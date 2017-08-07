@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>RATP PC viewer</title>
+
+        <style type="text/css">
+            html {height: 100%;}
+            body { margin: 0; overflow:hidden; height:100%}
+
+            #viewerDiv {
+                margin : auto auto;
+                width: 100%;
+                height: 100%;
+                padding: 0;
+            }
+
+            #menuDiv {position: absolute; top:0px; margin-left: 0px;}
+            #info {
+                color: black;
+                position: absolute;
+                top: 0px;
+                right: 0px;
+                padding: 5px;
+                z-index: 100;
+
+                z-index: 100;
+                background-color: white;
+                border: 2px solid black;
+                border-radius: 5px;
+            }
+        </style>
+
+        <meta charset="UTF-8">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script src="GUI/dat.gui/dat.gui.min.js"></script>
+    </head>
+    <body>
+        <div id="viewerDiv"></div>
+        <div id="info">
+
+        </div>
+        <div id="splat"></div>
+
+        <script src="/examples/GUI/GuiTools.js"></script>
+        <script src="/dist/itowns.js"></script>
+        <script src="/dist/debug.js"></script>
+
+        <script type="text/javascript">
+
+            /* global itowns,document,GuiTools*/
+            const viewerDiv = document.getElementById('viewerDiv');
+
+            itowns.THREE.Object3D.DefaultUp.set(0, 0, 1);
+
+            itowns.proj4.defs('EPSG:3946',
+                '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+
+            const bb =  {
+                "lx": 1650798.7022,
+                "ly": 8181453.994,
+                "lz": 35.9102,
+                "ux": 1651206.1331,
+                "uy": 8181861.4249,
+                "uz": 443.3411000000358
+            };
+
+            const bbox = new itowns.Extent(
+                'EPSG:3946',
+                bb.lx, bb.ux,
+                bb.ly, bb.uy);
+
+            const view = new itowns.View('EPSG:3946', viewerDiv);
+            const menuGlobe = new GuiTools('menuDiv', view, 460);
+
+            function placeCamera(position) {
+                if (position) {
+                    view.camera.camera3D.position.set(position.x, position.y, position.z);
+                } else {
+                    view.camera.camera3D.position.set(1651083.037, 8181534.45, 41.03);
+                }
+                view.notifyChange(true);
+            }
+
+            // point cloud
+            function getParameterByName(name, url) {
+                if (!url) url = window.location.href;
+                name = name.replace(/[\[\]]/g, "\\$&");
+                var regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+            const withoutQueryStr = window.location.origin + window.location.pathname;
+            const path = withoutQueryStr.substr(0, withoutQueryStr.lastIndexOf('/'));
+            const data = getParameterByName('data');
+            const x = Number.parseFloat(getParameterByName('x'));
+            const y= Number.parseFloat(getParameterByName('y'));
+            const z = Number.parseFloat(getParameterByName('z'));
+            const theta = Number.parseFloat(getParameterByName('theta'));
+            const phi = Number.parseFloat(getParameterByName('phi'));
+            let position;
+            if (!(isNaN(x) || isNaN(y) || isNaN(z))) {
+                position = {x, y, z}
+            }
+            placeCamera(position);
+
+            const bboxcolor = [0xeeee00, 0x33ddaa];
+
+            const url = `${path}/${data}`;
+
+
+            const info = document.createElement('span');
+            document.getElementById('info').appendChild(info);
+            document.getElementById('info').appendChild(document.createElement('br'));
+
+
+            const pointcloud = new itowns.GeometryLayer('pointcloud', view.scene);
+            pointcloud.protocol = 'potreeconverter';
+            pointcloud.url = url;
+
+            pointcloud.preUpdate = itowns.PointCloudProcessing.preUpdate;
+            pointcloud.update = itowns.PointCloudProcessing.update;
+            pointcloud.densityThreshold = {
+                min: 0.05,
+                max: 0.15,
+                lerp: true,
+            };
+            pointcloud.postUpdate = itowns.PointCloudProcessing.postUpdate;
+
+
+            /*
+            TODO: restore EDL
+            const edlRenderer = new itowns.PointCloudEDLRenderer(view);
+
+            let edlEnabled = { value: true };
+            let edlGUI = menuGlobe.gui.addFolder('EDL');
+            edlGUI.add(edlEnabled, 'value').name('enabled').onChange(() => { view.notifyChange(true); });
+            edlGUI.add(edlRenderer.controlParameters, 'subsample').onChange(() => { view.notifyChange(true); });
+            edlGUI.add(edlRenderer.controlParameters, 'radius').onChange(() => { view.notifyChange(true); });
+            edlGUI.add(edlRenderer.controlParameters, 'strength').onChange(() => { view.notifyChange(true); });
+            edlGUI.add(edlRenderer.controlParameters, 'directions').min(1).max(16).step(1).onChange(() => { view.notifyChange(true); });
+            edlGUI.add(edlRenderer.controlParameters, 'n').min(1).max(4).step(1).onChange(() => { view.notifyChange(true); });
+
+
+            view.render = () => {
+                const g = view.mainLoop.gfxEngine;
+                const r = g.renderer;
+
+                // update stats
+                info.textContent = `Nb points: ${pointcloud.counters.displayedCount} (${Math.floor(100 * pointcloud.counters.displayedCount / pointcloud.counters.pointCount)} %) (${view.mainLoop.gfxEngine.renderer.info.memory.geometries})`;
+
+
+                r.setClearColor(new itowns.THREE.Color(0xffffff));
+
+                if (!edlEnabled.value) {
+                    // normal rendering
+                    g.renderView(view);
+                } else {
+                    edlRenderer.renderView(view);
+
+                    r.render(view.scene2D, view.camera.camera2D);
+                }
+            };
+            */
+
+            const selectionGroup = new itowns.THREE.Group();
+
+            view.mainLoop.gfxEngine.renderer.domElement.addEventListener('dblclick', (event) => {
+                if (!pointcloud.root) {
+                    return;
+                }
+                if (!selectionGroup.parent) {
+                    // add selectionGroup to the scene after root, in order for selected points
+                    // to be displayed after (alternative solution: use renderOrder)
+                    view.scene.add(selectionGroup);
+                    selectionGroup.frustumCulled = false;
+                }
+
+                selectionGroup.visible = false;
+                view.scene.traverse((o) => {
+                    if (o.isPoints && o.baseId) {
+                        o.material.enablePicking(true);
+                    }
+                });
+
+                const mouse = {
+                    x: event.offsetX,
+                    y: (event.currentTarget.height || event.currentTarget.offsetHeight) - event.offsetY,
+                };
+
+                const buffer = view.mainLoop.gfxEngine.renderViewTobuffer(
+                        view, view.mainLoop.gfxEngine.fullSizeRenderTarget,
+                        mouse.x, mouse.y, 1, 1);
+
+                // see PointCloudProvider and the construction of unique_id
+                const objId = (buffer[0] << 8) | buffer[1];
+                const index = (buffer[2] << 8) | buffer[3];
+
+                const i = (objId << 16) | index;
+                console.log("objId, index, i", objId, index, i);
+
+                view.scene.traverse((o) => {
+                    if (o.isPoints && o.baseId) {
+                        if (o.baseId == objId) {
+                            console.log('found o', o);
+                            const positions = o.geometry.attributes.position.array;
+                            const uids = o.geometry.attributes['unique_id'].array;
+
+                            const g = new itowns.THREE.BufferGeometry();
+
+                            const p = positions.slice(3 * index + 0, 3 * index + 3);
+                            const uid = uids.slice(4 * index + 0, 4 * index + 4);
+                            const c = Uint8Array.of(255, 0, 0, 255);
+                            console.log('NEW SELECTION', index, p, uid, c);
+                            g.addAttribute('position', new itowns.THREE.BufferAttribute(p, 3));
+                            console.log('position', p);
+                            g.addAttribute('color', new itowns.THREE.BufferAttribute(c, 4, true));
+                            g.addAttribute('unique_id', new itowns.THREE.BufferAttribute(uids, 4, true));
+
+                            const m = new itowns.PointsMaterial(5);
+
+                            m.depthTest = false;
+                            const pickedPoint = new itowns.THREE.Points(g, m);
+                            pickedPoint.position.copy(o.position);
+                            pickedPoint.scale.copy(o.scale);
+                            pickedPoint.updateMatrix();
+                            pickedPoint.updateMatrixWorld(true);
+
+                            pickedPoint.layers.set(pointcloud.threejsLayer);
+                            pickedPoint.frustumCulled = false;
+                            selectionGroup.add(pickedPoint);
+
+                            selectionGroup.layers.set(pointcloud.threejsLayer);
+                            console.log('done');
+
+                            // view.camera.camera3D.lookAt(p.clone().applyMatrix4(b.matrixWorld));
+                        }
+
+                        o.material.enablePicking(false);
+                    }
+
+                });
+
+                selectionGroup.visible = true;
+                view.notifyChange(true);
+            });
+
+            const sprayTool = new itowns.SprayTools(view);
+            // view.controls.push(sprayTool);
+
+            const fpControls = new itowns.FirstPersonControls(view, { focusOnClick: true });
+
+            view.addLayer(pointcloud).then((pc) => {
+                debug.PointCloudDebug.initTools(view, pc, menuGlobe.gui);
+                view.notifyChange(true);
+            });
+            view.camera.camera3D.far = 2000;
+
+            //  new debug.Debug(view, viewerDiv);
+
+        </script>
+
+    </body>
+</html>
