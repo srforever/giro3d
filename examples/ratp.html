@@ -256,10 +256,30 @@
                 debug.PointCloudDebug.initTools(view, pc, menuGlobe.gui);
                 view.notifyChange(true);
             });
-            view.camera.camera3D.far = 2000;
+            view.camera.camera3D.far = 200000;
 
             //  new debug.Debug(view, viewerDiv);
+  var layer = new itowns.GeometryLayer('bati', view.scene);
 
+  layer.preUpdate = itowns.pre3dTilesUpdate;
+  layer.update = itowns.process3dTilesNode(
+      itowns.$3dTilesCulling,
+      itowns.$3dTilesSubdivisionControl
+      );
+  layer.name = name;
+  layer.url = `${path}/resources/vectos3d/paris_cave_27591/tileset.json`;
+  //layer.url = 'http://localhost:5000/getCity?city=paris_cave_27591';
+  layer.protocol = '3d-tiles';
+  layer.overrideMaterials = new THREE.MeshLambertMaterial();  // custom cesium shaders are not functional
+  layer.overrideMaterials.emissive = new itowns.THREE.Color(0x00ff00);
+  layer.type = 'geometry';
+  layer.visible = true;
+  view.addLayer(layer);
+
+const sun = new itowns.THREE.DirectionalLight();
+sun.position.set(-0.5, 0, 1);
+sun.updateMatrixWorld(true);
+view.scene.add(sun);
         </script>
 
     </body>
