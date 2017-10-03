@@ -273,6 +273,7 @@
   layer.protocol = '3d-tiles';
   layer.overrideMaterials = new THREE.MeshLambertMaterial();  // custom cesium shaders are not functional
   layer.overrideMaterials.emissive = new itowns.THREE.Color(0x00ff00);
+  layer.overrideMaterials.side = THREE.DoubleSide;
   layer.type = 'geometry';
   layer.visible = true;
   view.addLayer(layer);
