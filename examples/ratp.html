@@ -165,6 +165,8 @@
                 view.mainLoop.gfxEngine.renderView(view);
                 // enable only pointcloud
                 pointcloud.visible = true;
+                const prev = view.camera.camera3D.layers.mask;
+                view.camera.camera3D.layers.mask = 1 << pointcloud.threejsLayer
 
                 if (fpControls && !(fpControls._isUserInteracting || fpControls.isUserInteracting())) {
                     // disable occlusion + inpaint while moving
@@ -177,8 +179,9 @@
                     pcRenderer.inpainting.parameters.enabled = inpainting;
                 } else {
                     pcRenderer.renderView(view, pointcloud.opacity);
-                    g.renderView(view);
                 }
+
+                view.camera.camera3D.layers.mask = prev;
             };
 
 
@@ -267,7 +270,7 @@
             const sprayTool = new itowns.SprayTools(view);
             // view.controls.push(sprayTool);
 
-            const fpControls = new itowns.FirstPersonControls(view, { focusOnClick: true });
+            const fpControls = new itowns.FirstPersonControls(view, { focusOnClick: true, moveSpeed: 100 });
 
             view.addLayer(pointcloud).then((pc) => {
                 debug.PointCloudDebug.initTools(view, pc, menuGlobe.gui);
@@ -293,6 +296,32 @@
   layer.type = 'geometry';
   layer.visible = true;
   // view.addLayer(layer);
+
+
+const base = new itowns.THREE.Group();
+base.position.z = 50;
+base.updateMatrixWorld();
+menuGlobe.gui.add(base.position, 'z').name('vecto2d z').onChange(() => {
+    base.updateMatrixWorld();
+    view.notifyChange(true);
+});
+view.scene.add(base);
+for (const name of ['edf', 'eclairage', 'transport', 'edivers', 'arbre', 'eau', 'limites', 'concession','assainissement', 'cpcu', 'trottoir', 'gaz', 'vrd', 'mur', 'bati']) {
+    var bati = new itowns.GeometryLayer(name, base);
+    bati.preUpdate = itowns.pre3dTilesUpdate;
+    bati.update = itowns.process3dTilesNode(
+        itowns.$3dTilesCulling,
+        itowns.$3dTilesSubdivisionControl
+    );
+    bati.name = name;
+    bati.url = `http://localhost:8000/${name}/tileset.json`;
+    bati.protocol = '3d-tiles'
+    bati.overrideMaterials = new itowns.THREE.MeshLambertMaterial();
+    bati.overrideMaterials.emissive = new itowns.THREE.Color(Math.random(), Math.random(), Math.random());
+    bati.type = 'geometry';
+    bati.visible = true;
+    itowns.View.prototype.addLayer.call(view, bati);
+}
 
 const sun = new itowns.THREE.DirectionalLight();
 sun.position.set(-0.5, 0, 1);
