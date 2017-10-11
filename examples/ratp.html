@@ -46,6 +46,57 @@
         <script src="/dist/itowns.js"></script>
         <script src="/dist/debug.js"></script>
 
+        <script id="vertexShader" type="text/shader">
+#include <common>
+#include <logdepthbuf_pars_vertex>
+varying vec2 vUv;
+uniform vec2 origin;
+uniform float texWidth;
+uniform float texHeight;
+varying float realZ;
+void main() {
+    vec4 realPosition = modelMatrix * vec4(position, 1.0);
+    realZ = realPosition.z;
+    vUv = vec2((realPosition.x - origin.x) / texWidth , (realPosition.y - origin.y) / texHeight);
+
+    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0);
+    #include <logdepthbuf_vertex>
+}
+
+        </script>
+        <script id="fragmentShader" type="text/shader">
+#include <common>
+#include <logdepthbuf_pars_fragment>
+uniform sampler2D geolTexture[2];
+varying vec2 vUv;
+varying float realZ;
+
+float convertFromRgb(const in float color, const in float min, const in float max) {
+    if (color == 0.0) return 0.0;
+    return min + color * (max - min);
+}
+void main() {
+// get z for texture 1
+    vec4 tex1Value = texture2D(geolTexture[0], vUv);
+    vec4 tex2Value = texture2D(geolTexture[1], vUv);
+
+    float z1 = convertFromRgb(tex1Value.r, 20.0, 45.0);
+    float z2 = convertFromRgb(tex2Value.r, 14.0, 71.0);
+
+    if (realZ < z2) {
+        gl_FragColor = vec4(1, 0, 0, 0.3);
+    } else if (realZ < z1) {
+        gl_FragColor = vec4(0, 1, 0, 0.3);
+    } else {
+        gl_FragColor = vec4(0, 0, 1, 0.3);
+    }
+
+    //gl_FragColor = tex1Value;
+    //gl_FragColor = vec4(1,1,0,vUv.x);
+
+    #include <logdepthbuf_fragment>
+}
+        </script>
         <script type="text/javascript">
 
             /* global itowns,document,GuiTools*/
@@ -331,6 +382,68 @@ const sun = new itowns.THREE.DirectionalLight();
 sun.position.set(-0.5, 0, 1);
 sun.updateMatrixWorld(true);
 view.scene.add(sun);
+
+function buildRasterLayer(name, view, minmax) {
+  const extent = new itowns.Extent(view.referenceCrs, ...minmax);
+  const anchor = new itowns.THREE.Group();
+  const geom = new itowns.createPlanarLayer('geom' + name, extent, { object3d: anchor });
+  geom.disableSkirt = true;
+  view.addLayer(geom);
+  view.addLayer({
+    update: itowns.updateLayeredMaterialNodeImagery,
+    url: `${path}/resources/rasters/${name}`,
+    type: 'color',
+    protocol: 'static',
+    id: name,
+    name,
+    projection: extent.crs(),
+    extent,
+  }, geom);
+  view.scene.add(anchor);
+  return geom;
+};
+var tile1 = buildRasterLayer('rectify2550.json', view, [1650689.12692239, 1651324.3935097859, 8181632.106679055, 8182058.308204069]);
+var extent_toit2 = [1642789.4540314234, 1661353.0581432753, 8178853.903374324, 8193878.905985176]
+
+const d = new debug.Debug(view, menuGlobe.gui);
+//debug.createTileDebugUI(menuGlobe.gui, view , tile1, d);
+debug.createTileDebugUI(menuGlobe.gui, view , tile2, d);
+debug.createTileDebugUI(menuGlobe.gui, view , tile3, d);
+
+// experimentation on geom couche
+
+const THREE = itowns.THREE;
+
+var toit2Tex = itowns.Fetcher.texture(`${path}/resources/geols/toit2_aa.png`);
+var toit1Tex =  itowns.Fetcher.texture(`${path}/resources/geols/toit1_am.png`);
+Promise.all([toit2Tex.promise, toit1Tex.promise]).then(() => {
+    console.log('creating plane');
+    var planeGeom = new THREE.PlaneGeometry(extent_toit2[1] - extent_toit2[0] , 200);
+    //var material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
+    var fragmentShader =  document.getElementById( 'fragmentShader' ).textContent;
+    console.log(toit1Tex.texture, toit2Tex.texture);
+    var material = new THREE.ShaderMaterial( {
+        uniforms: {
+            geolTexture: { value: [toit1Tex.texture, toit2Tex.texture] },
+            origin: { value: new THREE.Vector2(extent_toit2[0], extent_toit2[2]) },
+            texWidth: { value: extent_toit2[1] - extent_toit2[0] },
+            texHeight: { value: extent_toit2[3] - extent_toit2[2] },
+        },
+        vertexShader: document.getElementById( 'vertexShader' ).textContent,
+        fragmentShader: fragmentShader,
+    } );
+    material.side = THREE.DoubleSide;
+    material.transparent =  true;
+
+    var plane = new THREE.Mesh( planeGeom, material );
+    var planePosition = new THREE.Vector3(extent_toit2[0] + 0.5* (extent_toit2[1] - extent_toit2[0]),
+            extent_toit2[2] + 0.5 * (extent_toit2[3] - extent_toit2[2]), 100);
+    plane.position.copy(planePosition);
+    plane.rotation.x = Math.PI / 2;
+    plane.updateMatrixWorld(true);
+    view.scene.add( plane );
+    view.notifyChange(true);
+});
         </script>
 
     </body>
