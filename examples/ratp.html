@@ -272,6 +272,9 @@
 
             const fpControls = new itowns.FirstPersonControls(view, { focusOnClick: true, moveSpeed: 100 });
 
+            view.camera.camera3D.rotation.x = THREE.Math.degToRad(theta || 100);
+            view.camera.camera3D.rotation.z = THREE.Math.degToRad(phi || 196);
+
             view.addLayer(pointcloud).then((pc) => {
                 debug.PointCloudDebug.initTools(view, pc, menuGlobe.gui);
                 view.notifyChange(true);
