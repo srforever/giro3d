@@ -171,6 +171,7 @@ void main() {
             const pointcloud = new itowns.GeometryLayer('pointcloud', view.scene);
             pointcloud.protocol = 'potreeconverter';
             pointcloud.url = url;
+            pointcloud.pointSize = 0;
 
             pointcloud.preUpdate = itowns.PointCloudProcessing.preUpdate;
             pointcloud.update = itowns.PointCloudProcessing.update;
@@ -322,7 +323,7 @@ void main() {
             const sprayTool = new itowns.SprayTools(view);
             // view.controls.push(sprayTool);
 
-            const fpControls = new itowns.FirstPersonControls(view, { focusOnClick: true, moveSpeed: 100 });
+            const fpControls = new itowns.FirstPersonControls(view, { focusOnClick: true, moveSpeed: 10 });
 
             view.camera.camera3D.rotation.x = itowns.THREE.Math.degToRad(theta || 100);
             view.camera.camera3D.rotation.z = itowns.THREE.Math.degToRad(phi || 196);
@@ -406,8 +407,8 @@ var tile1 = buildRasterLayer('rectify2550.json', view, [1650689.12692239, 165132
 var extent_toit2 = [1642789.4540314234, 1661353.0581432753, 8178853.903374324, 8193878.905985176]
 
 const d = new debug.Debug(view, menuGlobe.gui);
-//debug.createTileDebugUI(menuGlobe.gui, view , tile1, d);
-debug.createTileDebugUI(menuGlobe.gui, view , tile2, d);
+debug.createTileDebugUI(menuGlobe.gui, view , tile1, d);
+// debug.createTileDebugUI(menuGlobe.gui, view , tile2, d);
 debug.createTileDebugUI(menuGlobe.gui, view , tile3, d);
 
 // experimentation on geom couche
