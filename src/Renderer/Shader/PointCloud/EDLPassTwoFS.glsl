@@ -10,7 +10,7 @@ void main() {
     // circle around individual points
     vec4 source = texture2D(textureColor, vUv);
     if (edl == 0.0) {
-        gl_FragColor = vec4(source.rgb, 0.0);
+        discard;
     } else {
         gl_FragColor = vec4(source.rgb * edl, opacity);
     }
