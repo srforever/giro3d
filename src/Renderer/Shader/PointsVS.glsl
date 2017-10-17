@@ -105,6 +105,25 @@ void main() {
         pp.y = 1.0 - pp.y;
         vec3 textureColor = texture2D(texture, pp).rgb;
         vColor = vec4(mix(textureColor, overlayColor.rgb, overlayColor.a), opacity);
+    } else if (mode == MODE_ELEVATION) {
+        float z = position.z * 0.01;
+        // colors from OGC EL.GridCoverage.Default style
+        if (z >= 0.0 && z <= 50.0) {
+            vColor = mix(
+                vec4(float(0x28) / 255.0, float(0xED) / 255.0, float(0xD6) / 255.0, 1.0),
+                vec4(float(0x54) / 255.0, float(0xF7) / 255.0, float(0x6D) / 255.0, 1.0),
+                z / 50.0);
+        } else if (z <= 100.0) {
+            vColor = mix(
+                vec4(float(0x54) / 255.0, float(0xF7) / 255.0, float(0x6D) / 255.0, 1.0),
+                vec4(float(0x9A) / 255.0, float(0xFA) / 255.0, float(0x66) / 255.0, 1.0),
+                (z - 50.0)/ 50.0);
+        } else {
+            vColor = mix(
+                vec4(float(0x9A) / 255.0, float(0xFA) / 255.0, float(0x66) / 255.0, 1.0),
+                vec4(float(0x7B) / 255.0, float(0xF2) / 255.0, float(0x3A) / 255.0, 1.0),
+                (z - 100.0)/ 50.0);
+        }
     } else {
         // default to color mode
         vColor = vec4(mix(color, overlayColor.rgb, overlayColor.a), opacity);

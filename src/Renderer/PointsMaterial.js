@@ -9,6 +9,7 @@ export const MODE = {
     CLASSIFICATION: 2,
     NORMAL: 3,
     TEXTURE: 4,
+    ELEVATION: 5,
 };
 
 class PointsMaterial extends RawShaderMaterial {
