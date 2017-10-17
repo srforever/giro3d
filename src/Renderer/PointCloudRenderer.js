@@ -204,16 +204,18 @@ function PointCloudRenderer(view) {
     this.renderTargets = _createRenderTargets(view);
 
     this.view = view;
-    view.addFrameRequester(() => {
-        if (this.view.camera.width != this.renderTargets[RT.FULL_RES_0].width ||
-            this.view.camera.width != this.renderTargets[RT.FULL_RES_0].height) {
-            // release old render targets
-            this.renderTargets.forEach(rt => rt.dispose());
-            // build new ones
-            this.renderTargets = _createRenderTargets(view);
-        }
-    });
+    view.addFrameRequester(this);
 }
+
+PointCloudRenderer.prototype.update = function update() {
+    if (this.view.camera.width != this.renderTargets[RT.FULL_RES_0].width ||
+        this.view.camera.width != this.renderTargets[RT.FULL_RES_0].height) {
+        // release old render targets
+        this.renderTargets.forEach(rt => rt.dispose());
+        // build new ones
+        this.renderTargets = _createRenderTargets(this.view);
+    }
+};
 
 PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.0) {
     const g = view.mainLoop.gfxEngine;
