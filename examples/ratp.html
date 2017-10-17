@@ -403,13 +403,13 @@ function buildRasterLayer(name, view, minmax) {
   view.scene.add(anchor);
   return geom;
 };
-var tile1 = buildRasterLayer('rectify2550.json', view, [1650689.12692239, 1651324.3935097859, 8181632.106679055, 8182058.308204069]);
+//var tile1 = buildRasterLayer('rectify2550.json', view, [1650689.12692239, 1651324.3935097859, 8181632.106679055, 8182058.308204069]);
 var extent_toit2 = [1642789.4540314234, 1661353.0581432753, 8178853.903374324, 8193878.905985176]
 
 const d = new debug.Debug(view, menuGlobe.gui);
-debug.createTileDebugUI(menuGlobe.gui, view , tile1, d);
+//debug.createTileDebugUI(menuGlobe.gui, view , tile1, d);
 // debug.createTileDebugUI(menuGlobe.gui, view , tile2, d);
-debug.createTileDebugUI(menuGlobe.gui, view , tile3, d);
+//debug.createTileDebugUI(menuGlobe.gui, view , tile3, d);
 
 // experimentation on geom couche
 
@@ -440,6 +440,7 @@ Promise.all([toit2Tex.promise, toit1Tex.promise]).then(() => {
     var planePosition = new THREE.Vector3(extent_toit2[0] + 0.5* (extent_toit2[1] - extent_toit2[0]),
             extent_toit2[2] + 0.5 * (extent_toit2[3] - extent_toit2[2]), 100);
     plane.position.copy(planePosition);
+    plane.position.copy(view.camera.camera3D.position);
     plane.rotation.x = Math.PI / 2;
     plane.updateMatrixWorld(true);
     view.scene.add( plane );
