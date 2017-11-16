@@ -48,7 +48,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
     THREE.RawShaderMaterial.call(this);
 
     const maxTexturesUnits = Capabilities.getMaxTextureUnitsCount();
-    const nbSamplers = Math.min(maxTexturesUnits - 1, 16 - 1);
+    const nbSamplers = Math.min(maxTexturesUnits - 1, 16 - 2);
 
     options = options || { };
 
