@@ -133,12 +133,7 @@ Extent.prototype.as = function as(crs) {
         return new Extent(crs, { north, south, east, west });
     }
 
-    return new Extent(crs, {
-        west: this.west(),
-        east: this.east(),
-        north: this.north(),
-        south: this.south(),
-    });
+    return this;
 };
 
 Extent.prototype.offsetToParent = function offsetToParent(other, target = new THREE.Vector4()) {
