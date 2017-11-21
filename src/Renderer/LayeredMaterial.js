@@ -62,6 +62,9 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
         // default
         this.defines.DATA_TEXTURE_ELEVATION = 1;
     }
+    if (options.side) {
+        this.side = options.side;
+    }
 
     this.defines.TEX_UNITS = nbSamplers;
     if (__DEBUG__) {
