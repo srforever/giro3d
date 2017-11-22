@@ -24,3 +24,9 @@ export { default as FirstPersonControls } from './Renderer/ThreeExtended/FirstPe
 export { default as FeaturesUtils } from './Renderer/ThreeExtended/FeaturesUtils';
 export { default as DEMUtils } from './utils/DEMUtils';
 export { default as Picking } from './Core/Picking';
+export { default as OBB } from './Renderer/ThreeExtended/OBB';
+
+export { default as DeformationChain } from './DeformationChain';
+export { default as PointDnD } from './PointDnD';
+export { default as HoverHelper } from './HoverHelper';
+export { default as OrthoCameraControls } from './OrthoCameraControls';
