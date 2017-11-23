@@ -24,6 +24,14 @@ OBB.prototype.clone = function clone() {
     return cOBB;
 };
 
+OBB.prototype.updateMinMax = function updateMinMax(min, max) {
+    this.box3D.min.copy(min);
+    this.box3D.max.copy(max);
+    this.natBox.copy(this.box3D);
+    this.update();
+    this.oPosition.copy(this.position);
+};
+
 OBB.prototype.update = function update() {
     this.updateMatrixWorld(true);
     this._cPointsWorld(this._points(this.topPointsWorld));
