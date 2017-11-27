@@ -80,7 +80,7 @@ export default {
 
         layer.canTileTextureBeImproved = this.canTileTextureBeImproved;
         layer.url = new URL(layer.url, window.location);
-        return Fetcher.json(layer.url.href).then((metadata) => {
+        return Fetcher.json(layer.url.href, layer.networkOptions).then((metadata) => {
             layer.images = [];
             // eslint-disable-next-line guard-for-in
             for (const image in metadata) {
