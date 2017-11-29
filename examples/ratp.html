@@ -202,39 +202,85 @@ void main() {
 
 
             view.render = () => {
-                const g = view.mainLoop.gfxEngine;
-                const r = g.renderer;
+              const g = view.mainLoop.gfxEngine;
+              const r = g.renderer;
 
-                // update stats
-                if (pointcloud && pointcloud.counters) {
-                    info.textContent = `Nb points: ${pointcloud.counters.displayedCount} (${Math.floor(100 * pointcloud.counters.displayedCount / pointcloud.counters.pointCount)} %) (${view.mainLoop.gfxEngine.renderer.info.memory.geometries})`;
+              r.setClearColor(new THREE.Color(0xffffff));
+
+              const oldMask = view.camera.camera3D.layers.mask;
+
+              const OPAQUE = 0;
+              const POINTS = 1;
+              const TRANSPARENT = 2;
+              const renderBuckets = [
+                [], [], []
+              ];
+
+              view.scene.traverse((c) => {
+                if (c.material && c.visible && c.material.visible) {
+                  if (c.isPoints) {
+                    if (c.layer) {
+                      if (view.getLayers(l => l.id === c.layer)[0].fx == false) {
+                        renderBuckets[OPAQUE].push(c);
+                      } else {
+                        renderBuckets[POINTS].push(c);
+                        c.material.visible = false;
+                      }
+                    } else {
+                      // c is a point, but don't have any layer attached. Probably an annotation
+                      // we put it in transparent because we want it above pointclouds
+                      renderBuckets[TRANSPARENT].push(c);
+                      c.material.visible = false
+                    }
+                  } else if (c.material.transparent) {
+                    renderBuckets[TRANSPARENT].push(c);
+                    c.material.visible = false;
+                  } else {
+                    renderBuckets[OPAQUE].push(c);
+                  }
                 }
+              });
 
-                r.setClearColor(new itowns.THREE.Color(0xffffff));
 
-                // disable pointcloud layer
-                pointcloud.visible = false;
-                // render
-                view.mainLoop.gfxEngine.renderView(view);
-                // enable only pointcloud
-                pointcloud.visible = true;
-                const prev = view.camera.camera3D.layers.mask;
-                view.camera.camera3D.layers.mask = 1 << pointcloud.threejsLayer
+              // Draw OPAQUE first
+              g.renderView(view);
+              for (const obj of renderBuckets[OPAQUE]) {
+                obj.material.visible = false;
+              }
 
-                if (fpControls && !(fpControls._isUserInteracting || fpControls.isUserInteracting())) {
-                    // disable occlusion + inpaint while moving
-                    const occlusion = pcRenderer.occlusion.parameters.enabled;
-                    const inpainting = pcRenderer.inpainting.parameters.enabled;
-                    pcRenderer.occlusion.enabled = false;
-                    pcRenderer.occlusion.enabled = false;
-                    pcRenderer.renderView(view, pointcloud.opacity);
-                    pcRenderer.occlusion.parameters.enabled = occlusion;
-                    pcRenderer.inpainting.parameters.enabled = inpainting;
-                } else {
-                    pcRenderer.renderView(view, pointcloud.opacity);
-                }
+              // Draw POINTS
+              for (const obj of renderBuckets[POINTS]) {
+                obj.material.visible = true;
+              }
+              if (fpControls && !(fpControls._isUserInteracting || fpControls.isUserInteracting())) {
+                pcRenderer.renderView(view, 1.0);
+              } else {
+                // disable occlusion + inpaint while moving
+                const occlusion = pcRenderer.occlusion.parameters.enabled;
+                const inpainting = pcRenderer.inpainting.parameters.enabled;
+                pcRenderer.occlusion.parameters.enabled = false;
+                pcRenderer.inpainting.parameters.enabled = false;
+                pcRenderer.renderView(view, 1.0);
+                pcRenderer.occlusion.parameters.enabled = occlusion;
+                pcRenderer.inpainting.parameters.enabled = inpainting;
+                view.notifyChange(true);
+              }
+              for (const obj of renderBuckets[POINTS]) {
+                obj.material.visible = false;
+              }
 
-                view.camera.camera3D.layers.mask = prev;
+              // Draw TRANSPARENT
+              for (const obj of renderBuckets[TRANSPARENT]) {
+                obj.material.visible = true;
+              }
+              g.renderer.render(view.scene, view.camera.camera3D);
+
+              for (const obj of renderBuckets[OPAQUE]) {
+                obj.material.visible = true;
+              }
+              for (const obj of renderBuckets[POINTS]) {
+                obj.material.visible = true;
+              }
             };
 
 

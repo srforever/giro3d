@@ -107,7 +107,6 @@ void main() {
 
         if (m < threshold) {
             gl_FragColor = texture2D(colorTexture, vUv);
-            gl_FragColor.a = opacity;
             gl_FragDepthEXT = depth;
         } else if (showRemoved) {
             gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);

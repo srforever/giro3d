@@ -14,7 +14,6 @@ void main() {
     // non empty pixel
     if (depth < 1.0) {
         gl_FragColor = texture2D(colorTexture, vUv);
-        gl_FragColor.a = opacity;
         return;
     }
 
@@ -44,7 +43,6 @@ void main() {
 
         if (total_weight > 0.0) {
             gl_FragColor = averageColor / total_weight;
-            gl_FragColor.a = opacity;
             gl_FragDepthEXT = averageDepth / total_weight;
         } else {
             gl_FragColor.a = 0.0;

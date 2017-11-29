@@ -13,7 +13,7 @@ void main() {
     if (edl == 0.0) {
         discard;
     } else {
-        gl_FragColor = vec4(source.rgb * edl, opacity);
+        gl_FragColor = vec4(source.rgb * edl, source.a);
         gl_FragDepthEXT = texture2D(depthTexture, vUv).r;
     }
 }
