@@ -2,15 +2,15 @@ import * as THREE from 'three';
 
 const raycaster = new THREE.Raycaster();
 
-function eventToMouse(event) {
+function eventToMouse(view, event) {
     return {
-        x: (event.clientX / window.innerWidth) * 2 - 1,
-        y: -(event.clientY / window.innerHeight) * 2 + 1,
+        x: (event.offsetX / view.mainLoop.gfxEngine.renderer.domElement.clientWidth) * 2 - 1,
+        y: -(event.offsetY / view.mainLoop.gfxEngine.renderer.domElement.clientHeight) * 2 + 1,
     };
 }
 
 function objectUnderMouseEvent(event, view, objects) {
-    const mouse = eventToMouse(event);
+    const mouse = eventToMouse(view, event);
 
     raycaster.setFromCamera(mouse, view.camera.camera3D);
     const intersects = raycaster.intersectObjects(objects);

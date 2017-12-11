@@ -195,29 +195,29 @@ class DeformationChain {
         if (this.chains.length == 0) {
             this.newChain();
         }
-        let keepColor;
+        let color;
         if (this.active.point <= 0 || this.active.point == (this._activeChain().length - 1)) {
             // active point is either the first or the last
             if (this.active.point == 0) {
                 // we must keep the same color
-                keepColor = this._activeChain()[this.active.point].color;
+                color = this._activeChain()[this.active.point].color;
                 this.active.point = -1;
-
             }
         } else {
             // no support for branch -> new chain
             this.newChain(this._activeChain()[this.active.point]);
         }
+        color = color || new THREE.Color(
+                        Math.random(), Math.random(), Math.random());
 
         if (pt.isVector3) {
             this._activeChain().splice(
                 this.active.point + 1,
                 0,
                 {
-                    original: pt.clone(),
-                    modified: pt.clone(),
-                    color: keepColor ? keepColor : new THREE.Color(
-                        Math.random(), Math.random(), Math.random()),
+                    color,
+                    original: pt.clone().setZ(0),
+                    modified: pt.clone().setZ(0),
                     scale: new THREE.Vector3(1, 3, 1),
                 });
         } else {
@@ -225,10 +225,9 @@ class DeformationChain {
                 this.active.point + 1,
                 0,
                 {
+                    color,
                     original: pt.original,
                     modified: pt.modified,
-                    color: keepColor ? keepColor : new THREE.Color(
-                        Math.random(), Math.random(), Math.random()),
                     scale: new THREE.Vector3(1, 3, 1),
                 });
         }
@@ -465,6 +464,7 @@ class DeformationChain {
 
                 const v1 = new THREE.Vector3(segment.v1.x, segment.v1.y, segment.v1.z);
                 this.addPoint(v1);
+
                 // load matrix
                 const m = new THREE.Matrix4();
                 m.elements = segment.matrix.elements;
@@ -484,6 +484,7 @@ class DeformationChain {
                         new THREE.Vector3(segment.influence.x, segment.influence.y, 1);
                 }
             }
+            this._activeChain().reverse();
         }
     }
 }

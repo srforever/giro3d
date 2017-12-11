@@ -2,10 +2,10 @@ import * as THREE from 'three';
 
 const raycaster = new THREE.Raycaster();
 
-function eventToMouse(event) {
+function eventToMouse(view, event) {
     return {
-        x: (event.clientX / window.innerWidth) * 2 - 1,
-        y: -(event.clientY / window.innerHeight) * 2 + 1,
+        x: (event.offsetX / view.mainLoop.gfxEngine.renderer.domElement.clientWidth) * 2 - 1,
+        y: -(event.offsetY / view.mainLoop.gfxEngine.renderer.domElement.clientHeight) * 2 + 1,
     };
 }
 
@@ -13,7 +13,7 @@ function getDragSource(view, event, draggables) {
     if (!draggables) {
         return;
     }
-    const mouse = eventToMouse(event);
+    const mouse = eventToMouse(view, event);
     raycaster.setFromCamera(mouse, view.camera.camera3D);
 
     const intersects = raycaster.intersectObjects(draggables);
@@ -78,7 +78,7 @@ class PointDnD {
 
         if (this.dragging) {
             this._hovered = null;
-            const mouse = eventToMouse(event);
+            const mouse = eventToMouse(this.view, event);
             raycaster.setFromCamera(mouse, this.view.camera.camera3D);
             const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1));
             const p = plane.intersectLine(

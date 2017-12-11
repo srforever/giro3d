@@ -168,7 +168,11 @@ class PointsMaterial extends RawShaderMaterial {
     }
 
     enableTransfo(v) {
-        this.defines.DEFORMATION_SUPPORT = v ? 1 : 0;
+        if (v) {
+            this.defines.DEFORMATION_SUPPORT = 1;
+        } else {
+            delete this.defines.DEFORMATION_SUPPORT;
+        }
         this.needsUpdate = true;
     }
 }

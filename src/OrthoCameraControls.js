@@ -24,7 +24,7 @@ class OrthoCameraControls {
     }
 
     onMouseDown(event) {
-        this.dragStartPosition = new Vector2(event.clientX, event.clientY);
+        this.dragStartPosition = new Vector2(event.offsetX, event.offsetY);
         this.dragCameraStart = {
             left: this.view.camera.camera3D.left,
             right: this.view.camera.camera3D.right,
@@ -37,8 +37,8 @@ class OrthoCameraControls {
         if (this.dragStartPosition) {
             const windowSize = this.view.mainLoop.gfxEngine.getWindowSize();
             const width = this.view.camera.camera3D.right - this.view.camera.camera3D.left;
-            const deltaX = width * (event.clientX - this.dragStartPosition.x) / -windowSize.x;
-            const deltaY = width * (event.clientY - this.dragStartPosition.y) / windowSize.y;
+            const deltaX = width * (event.offsetX - this.dragStartPosition.x) / -windowSize.x;
+            const deltaY = width * (event.offsetY - this.dragStartPosition.y) / windowSize.y;
 
             this.view.camera.camera3D.left = this.dragCameraStart.left + deltaX;
             this.view.camera.camera3D.right = this.dragCameraStart.right + deltaX;

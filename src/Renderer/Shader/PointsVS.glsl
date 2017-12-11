@@ -155,6 +155,11 @@ void main() {
     mat4 mvMatrix = modelViewMatrix;
 
     #ifdef DEFORMATION_SUPPORT
+    if (!pickingMode) {
+        vColor = enableTransfo > 0 ?
+            vec4(0.0, 1.0, 1.0, 1.0):
+            vec4(1.0, 0.0, 1.0, 1.0);
+    }
     if (enableTransfo > 0) {
         vec4 mPosition = modelMatrix * vec4(position, 1.0);
         float minDistance = 1000.0;
@@ -165,13 +170,16 @@ void main() {
             }
             vec2 v = vec[i].xy;
             float length = vec[i].z;
-            vec2 diff = mPosition.xy - origin[i];
-            float d = dot(diff, v);
-            float offset = length * (influence[i].x - 1.0) * 0.5;
+            float depassement_x =
+                length * (influence[i].x - 1.0);
 
-            if (d >= -offset && d <= (length + offset)) {
-                vec2 norm = vec2(-v.y, v.x);
-                float d = abs(dot(diff, norm));
+            vec2 diff = mPosition.xy - origin[i];
+            float distance_x = dot(diff, v);
+
+            if (-depassement_x <= distance_x &&
+                    distance_x <= (length + depassement_x)) {
+                vec2 normal = vec2(-v.y, v.x);
+                float d = abs(dot(diff, normal));
                 if (d < minDistance && d <= influence[i].y) {
                     minDistance = d;
                     bestChoice = i;
@@ -182,12 +190,11 @@ void main() {
         if (bestChoice >= 0) {
             // override modelViewMatrix
             mvMatrix = transformations[bestChoice];
-            vColor = mix(tColors[bestChoice], vColor, 0.5);
+            vColor = mix(
+                tColors[bestChoice],
+                vec4(color, 1.0),
+                0.5);
         }
-        // debug selection
-        // else {
-            // vColor = vec4(1.0, 0.0, 1.0, 1.0);
-        // }
     }
     #endif
 
