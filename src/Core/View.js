@@ -62,6 +62,7 @@ function View(crs, viewerDiv, options = {}) {
     this.mainLoop = options.mainLoop || new MainLoop(new Scheduler(), engine);
 
     this.scene = options.scene3D || new Scene();
+    this.scene2D = new Scene();
     if (!options.scene3D) {
         this.scene.autoUpdate = false;
     }

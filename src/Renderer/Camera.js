@@ -12,7 +12,7 @@ function Camera(crs, width, height, options = {}) {
     this.camera3D.near = 0.1;
     this.camera3D.far = 2000000000;
     this.camera3D.updateProjectionMatrix();
-
+    this.camera2D = new THREE.OrthographicCamera(0, 1, 0, 1, 0, 10);
     this._viewMatrix = new THREE.Matrix4();
     this.width = width;
     this.height = height;
@@ -40,6 +40,11 @@ function resize(camera, width, height) {
     if (camera.camera3D.updateProjectionMatrix) {
         camera.camera3D.updateProjectionMatrix();
     }
+
+    camera.camera2D.right = width;
+    camera.camera2D.top = height;
+    camera.camera2D.bottom = 0;
+    camera.camera2D.updateProjectionMatrix();
 }
 
 Camera.prototype.update = function update(width, height) {

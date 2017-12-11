@@ -43,6 +43,8 @@ function c3DEngine(rendererOrDiv, options = {}) {
         this.renderer.setViewport(0, 0, this.width, this.height);
         this.renderer.clear();
         this.renderer.render(view.scene, view.camera.camera3D);
+        this.renderer.clearDepth();
+        this.renderer.render(view.scene2D, view.camera.camera2D);
     }.bind(this);
 
     this.onWindowResize = function onWindowResize(w, h) {
