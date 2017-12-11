@@ -63,6 +63,15 @@ vec3 decodeSphereMappedNormal(vec2 encodedNormal) {
 }
 #endif
 
+#ifdef DEFORMATION_SUPPORT
+uniform int enableTransfo;
+uniform mat4 transformations[NUM_TRANSFO];
+uniform vec3 vec[NUM_TRANSFO];
+uniform vec2 origin[NUM_TRANSFO];
+uniform vec2 influence[NUM_TRANSFO];
+uniform vec4 tColors[NUM_TRANSFO];
+#endif
+
 void main() {
 
 #if defined(NORMAL_OCT16)
@@ -143,7 +152,48 @@ void main() {
         vColor = vec4(mix(color, overlayColor.rgb, overlayColor.a), opacity);
     }
 
-    gl_Position = projectionMatrix * (modelViewMatrix * vec4( position, 1.0 ));
+    mat4 mvMatrix = modelViewMatrix;
+
+    #ifdef DEFORMATION_SUPPORT
+    if (enableTransfo > 0) {
+        vec4 mPosition = modelMatrix * vec4(position, 1.0);
+        float minDistance = 1000.0;
+        int bestChoice = -1;
+        for (int i = 0; i < NUM_TRANSFO; i++) {
+            if (i >= enableTransfo) {
+                break;
+            }
+            vec2 v = vec[i].xy;
+            float length = vec[i].z;
+            vec2 diff = mPosition.xy - origin[i];
+            float d = dot(diff, v);
+            float offset = length * (influence[i].x - 1.0) * 0.5;
+
+            if (d >= -offset && d <= (length + offset)) {
+                vec2 norm = vec2(-v.y, v.x);
+                float d = abs(dot(diff, norm));
+                if (d < minDistance && d <= influence[i].y) {
+                    minDistance = d;
+                    bestChoice = i;
+                }
+            }
+        }
+
+        if (bestChoice >= 0) {
+            // override modelViewMatrix
+            mvMatrix = transformations[bestChoice];
+            vColor = mix(tColors[bestChoice], vColor, 0.5);
+        }
+        // debug selection
+        // else {
+            // vColor = vec4(1.0, 0.0, 1.0, 1.0);
+        // }
+    }
+    #endif
+
+    vec4 mvPosition = mvMatrix * vec4( position, 1.0 );
+    vViewPos = mvPosition.xyz;
+    gl_Position = projectionMatrix * mvPosition;
 
     if (size > 0.) {
         gl_PointSize = size;

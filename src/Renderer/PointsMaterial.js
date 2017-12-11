@@ -1,4 +1,4 @@
-import { Vector2, Vector4, Uniform, NoBlending, NormalBlending, RawShaderMaterial } from 'three';
+import { Matrix4, Color, Vector2, Vector3, Vector4, Uniform, NoBlending, NormalBlending, RawShaderMaterial } from 'three';
 import PointsVS from './Shader/PointsVS.glsl';
 import PointsFS from './Shader/PointsFS.glsl';
 import Capabilities from '../Core/System/Capabilities';
@@ -11,6 +11,8 @@ export const MODE = {
     TEXTURE: 4,
     ELEVATION: 5,
 };
+
+const NUM_TRANSFO = 16;
 
 class PointsMaterial extends RawShaderMaterial {
     constructor(options = {}) {
@@ -40,11 +42,40 @@ class PointsMaterial extends RawShaderMaterial {
             this.defines.USE_LOGDEPTHBUF = 1;
             this.defines.USE_LOGDEPTHBUF_EXT = 1;
         }
+        this.extensions.fragDepth = true;
+        this.uniforms.enableTransfo = new Uniform(0);
 
-        if (__DEBUG__) {
-            this.defines.DEBUG = 1;
+
+        this.transformations = [];
+        for (let i = 0; i < NUM_TRANSFO; i++) {
+            this.transformations.push(new Matrix4());
+        }
+        this.uniforms.transformations = new Uniform(this.transformations);
+
+        this.vec = [];
+        for (let i = 0; i < NUM_TRANSFO; i++) {
+            this.vec.push(new Vector3());
+        }
+        this.uniforms.vec = new Uniform(this.vec);
+
+        this.origin = [];
+        for (let i = 0; i < NUM_TRANSFO; i++) {
+            this.origin.push(new Vector2());
+        }
+        this.uniforms.origin = new Uniform(this.origin);
+
+        this.influence = [];
+        for (let i = 0; i < NUM_TRANSFO; i++) {
+            this.influence.push(new Vector2());
+        }
+        this.uniforms.influence = new Uniform(this.influence);
+
+        this.tColors = [];
+        for (let i = 0; i < NUM_TRANSFO; i++) {
+            this.tColors.push(new Color());
         }
         this.colorLayer = null;
+        this.uniforms.tColors = new Uniform(this.tColors);
 
         this.updateUniforms();
     }
@@ -105,6 +136,11 @@ class PointsMaterial extends RawShaderMaterial {
         if (layer === this.colorLayer) {
             return { texture: this.uniforms.texture.value };
         }
+        if (__DEBUG__) {
+            this.defines.DEBUG = 1;
+        }
+
+        this.defines.NUM_TRANSFO = NUM_TRANSFO;
     }
     setLayerTextures(layer, textures) {
         if (Array.isArray(textures)) {
@@ -129,6 +165,11 @@ class PointsMaterial extends RawShaderMaterial {
     // eslint-disable-next-line class-methods-use-this
     setLayerOpacity() {
         // no-op
+    }
+
+    enableTransfo(v) {
+        this.defines.DEFORMATION_SUPPORT = v ? 1 : 0;
+        this.needsUpdate = true;
     }
 }
 
