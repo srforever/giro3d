@@ -212,6 +212,34 @@ c3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget
     return target;
 };
 
+c3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(view, layer, buffer, x, y, width, height) {
+    // hide all layers but the requested one
+    const previousVisibility = view._layers.map(l => l.visible);
+    for (const v of view._layers) {
+        v.visible = false;
+    }
+    layer.visible = true;
+
+    const current = this.renderer.getRenderTarget();
+    this.renderer.setRenderTarget(buffer);
+    this.renderer.setViewport(0, 0, buffer.width, buffer.height);
+    this.renderer.setScissor(x, y, width, height);
+    this.renderer.setScissorTest(true);
+    this.renderer.clearTarget(buffer, true, true, false);
+    this.renderer.render(layer.object3d, view.camera.camera3D, buffer);
+    this.renderer.setScissorTest(false);
+    var pixelBuffer = new Uint8Array(4 * width * height);
+    this.renderer.readRenderTargetPixels(buffer, x, y, width, height, pixelBuffer);
+    this.renderer.setRenderTarget(current);
+
+    for (let i = 0; i < previousVisibility.length; i++) {
+        view._layers[i].visible = previousVisibility[i];
+    }
+
+    return pixelBuffer;
+};
+
+
 c3DEngine.prototype.bufferToImage = function bufferToImage(pixelBuffer, width, height) {
     var canvas = document.createElement('canvas');
     var ctx = canvas.getContext('2d');
