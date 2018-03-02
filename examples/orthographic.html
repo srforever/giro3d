@@ -19,22 +19,22 @@
 
             // Define geographic extent: CRS, min/max X, min/max Y
             var extent = new itowns.Extent(
-                    'EPSG:3857',
-                    -20026376.39, 20026376.39,
-                    -20048966.10, 20048966.10);
+                'EPSG:3857',
+                -20026376.39, 20026376.39,
+                -20048966.10, 20048966.10);
 
             // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
             var r = viewerDiv.clientWidth / viewerDiv.clientHeight;
             var camera = new itowns.THREE.OrthographicCamera(
-                    extent.west(), extent.east(),
-                    extent.east() / r, extent.west() / r,
-                    0, 1000);
+                extent.west(), extent.east(),
+                extent.east() / r, extent.west() / r,
+                0, 1000);
 
             // Instanciate PlanarView
             var view = new itowns.PlanarView(
-                    viewerDiv, extent, { maxSubdivisionLevel: 10, camera: camera });
+                    viewerDiv, extent, { renderer: renderer, maxSubdivisionLevel: 10, camera: camera });
 
             var onMouseWheel = function onMouseWheel(event) {
                 var change = 1 - (Math.sign(event.wheelDelta || -event.detail) * 0.1);
@@ -92,6 +92,7 @@
                     bottom: view.camera.camera3D.bottom,
                 };
             });
+            var obj;
             viewerDiv.addEventListener('mousemove', function mouseMove(event) {
                 var width;
                 var deltaX;
@@ -109,22 +110,37 @@
                     view.camera.camera3D.bottom = dragCameraStart.bottom + deltaY;
                     view.notifyChange(true);
                 }
+
+                if (obj) {
+                    const intersects = view.pickObjectsAt(
+                            event,
+                            obj);
+                    console.log(intersects);
+                }
+
+
             });
             viewerDiv.addEventListener('mouseup', function mouseUp() {
                 dragStartPosition = undefined;
             });
 
 
-            itowns.Fetcher.json('./test.geojson').then(function (json) {
-                const obj = itowns.Feature2Mesh.convert({ altitude: 1000 })(itowns.GeoJSON2Features.parse('EPSG:3857', json));
+            itowns.Fetcher.json('../test.geojson').then(function (json) {
+                obj = itowns.Feature2Mesh.convert()(itowns.GeoJSON2Features.parse('EPSG:3857', json));
+                obj.children[0].renderOrder = 1;
                 view.scene.add(obj);
                 view.notifyChange(true);
             });
+            /*itowns.Fetcher.json('../test2.geojson').then(json => {
+                const obj = itowns.Feature2Mesh.convert()(itowns.GeoJSON2Features.parse('EPSG:3857', json));
+                obj.children[0].renderOrder = 1;
+                view.scene.add(obj);
+                view.notifyChange(true);
+            }); */
 
 
             // Request redraw
             view.notifyChange(true);
-
         </script>
     </body>
 </html>
