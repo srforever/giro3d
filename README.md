@@ -1,3 +1,4 @@
+NOTE: This package is published for my personal convenience, the official package is [here](https://www.npmjs.com/package/itowns)
 
 <p align="center">
 <img src="https://raw.githubusercontent.com/iTowns/itowns.github.io/master/images/itowns_logo_300x134.png" />
