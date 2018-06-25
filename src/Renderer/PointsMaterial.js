@@ -1,4 +1,4 @@
-import { Vector4, Uniform, NoBlending, NormalBlending, RawShaderMaterial } from 'three';
+import { Vector2, Vector4, Uniform, NoBlending, NormalBlending, RawShaderMaterial } from 'three';
 import PointsVS from './Shader/PointsVS.glsl';
 import PointsFS from './Shader/PointsFS.glsl';
 import Capabilities from '../Core/System/Capabilities';
@@ -8,11 +8,12 @@ export const MODE = {
     INTENSITY: 1,
     CLASSIFICATION: 2,
     NORMAL: 3,
+    TEXTURE: 4,
 };
 
 class PointsMaterial extends RawShaderMaterial {
     constructor(options = {}) {
-        super(options);
+        super();
         this.vertexShader = PointsVS;
         this.fragmentShader = PointsFS;
 
@@ -42,6 +43,8 @@ class PointsMaterial extends RawShaderMaterial {
         if (__DEBUG__) {
             this.defines.DEBUG = 1;
         }
+        this.colorLayer = null;
+
         this.updateUniforms();
     }
 
@@ -67,17 +70,64 @@ class PointsMaterial extends RawShaderMaterial {
     }
 
     update(source) {
-        this.visible = source.visible;
-        this.opacity = source.opacity;
-        this.transparent = source.transparent;
-        this.size = source.size;
-        this.mode = source.mode;
-        this.pickingId = source.pickingId;
-        this.scale = source.scale;
-        this.overlayColor.copy(source.overlayColor);
+        if (source) {
+            this.visible = source.visible;
+            this.opacity = source.opacity;
+            this.transparent = source.transparent;
+            this.size = source.size;
+            this.mode = source.mode;
+            this.pickingId = source.pickingId;
+            this.scale = source.scale;
+            this.overlayColor.copy(source.overlayColor);
+        }
         this.updateUniforms();
-        Object.assign(this.defines, source.defines);
+        if (source) {
+            Object.assign(this.defines, source.defines);
+        }
         return this;
+    }
+
+    // Coloring support
+    pushLayer(layer, extents) {
+        this.mode = MODE.TEXTURE;
+        this.updateUniforms();
+
+        this.colorLayer = layer;
+        this.uniforms.texture = new Uniform();
+        this.uniforms.offsetScale = new Uniform(new Vector4(0, 0, 1, 1));
+        this.uniforms.extentTopLeft = new Uniform(new Vector2(extents[0].west(), extents[0].north()));
+        const dim = extents[0].dimensions();
+        this.uniforms.extentSize = new Uniform(new Vector2(dim.x, dim.y));
+    }
+
+    getLayerTextures(layer) {
+        if (layer === this.colorLayer) {
+            return { textures: [this.uniforms.texture.value] };
+        }
+    }
+    setLayerTextures(layer, textures) {
+        if (Array.isArray(textures)) {
+            textures = textures[0];
+        }
+        if (layer === this.colorLayer) {
+            this.uniforms.texture.value = textures.texture;
+            this.uniforms.offsetScale.value.copy(textures.pitch);
+        }
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    setSequence() {
+        // no-op
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    setLayerVisibility() {
+        // no-op
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    setLayerOpacity() {
+        // no-op
     }
 }
 
