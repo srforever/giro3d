@@ -14,6 +14,7 @@ import WFSProvider from '../../Provider/WFSProvider';
 import RasterProvider from '../../Provider/RasterProvider';
 import StaticProvider from '../../Provider/StaticProvider';
 import CancelledCommandException from './CancelledCommandException';
+import Cache from './Cache';
 
 var instanceScheduler = null;
 
@@ -142,19 +143,23 @@ Scheduler.prototype.initDefaultProviders = function initDefaultProviders() {
     this.addProtocolProvider('static', StaticProvider);
 };
 
-Scheduler.prototype.runCommand = function runCommand(command, queue, executingCounterUpToDate) {
+Scheduler.prototype.runCommand = function runCommand(command, queue, recurse = true) {
     var provider = this.providers[command.layer.protocol];
 
     if (!provider) {
         throw new Error('No known provider for layer', command.layer.id);
     }
 
-    queue.execute(command, provider, executingCounterUpToDate).then(() => {
+    queue.execute(command, provider).then(() => {
         // notify view that one command ended.
         command.view.notifyChange(command.requester, command.redraw);
 
+        if (recurse) {
+            this.flush(queue, command.layer.id);
+        }
+
         // try to execute next command
-        if (queue.counters.executing < this.maxCommandsPerHost) {
+        if (recurse && queue.counters.executing < this.maxCommandsPerHost) {
             const cmd = this.deQueue(queue);
             if (cmd) {
                 this.runCommand(cmd, queue);
@@ -164,9 +169,6 @@ Scheduler.prototype.runCommand = function runCommand(command, queue, executingCo
 };
 
 Scheduler.prototype.execute = function execute(command) {
-    // TODO: check for mandatory commands fields
-
-
     // parse host
     const layer = command.layer;
     const host = layer.url ? new URL(layer.url, document.location).host : undefined;
@@ -184,6 +186,12 @@ Scheduler.prototype.execute = function execute(command) {
     const q = host ? this.hostQueues.get(host) : this.defaultQueue;
 
     command.timestamp = Date.now();
+
+    if (isInCache(command)) {
+        q.counters.pending++;
+        this.runCommand(command, q, false);
+        return command.promise;
+    }
 
     q.queue(command);
 
@@ -204,6 +212,31 @@ Scheduler.prototype.execute = function execute(command) {
     }
 
     return command.promise;
+};
+
+function isInCache(command) {
+    if (command.toDownload) {
+        for (const toDownload of command.toDownload) {
+            if (!toDownload.url ||
+                !Cache.get(toDownload.url)) {
+                return false;
+            }
+        }
+        return true;
+    }
+}
+
+Scheduler.prototype.flush = function flush(queue, layerId) {
+    const store = queue.storages.get(layerId);
+    for (let i = 0; i < store.q.priv.data.length; i++) {
+        const cmd = store.q.priv.data[i];
+        if (isInCache(cmd)) {
+            this.runCommand(cmd, queue, false);
+            store.q.priv.data.splice(i, 1);
+            store.q.length--;
+            i--;
+        }
+    }
 };
 
 /**
