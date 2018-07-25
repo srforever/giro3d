@@ -25,3 +25,4 @@ export { default as FirstPersonControls } from './Renderer/ThreeExtended/FirstPe
 export { default as PlanarControls } from './Renderer/ThreeExtended/PlanarControls';
 export { default as FeaturesUtils } from './Renderer/ThreeExtended/FeaturesUtils';
 export { default as DEMUtils } from './utils/DEMUtils';
+export { default as Picking } from './Core/Picking';

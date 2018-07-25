@@ -392,7 +392,7 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                     markForDeletion(layer, n);
                 }
             }
-            // toggle wireframe
+            // update material
             if (node.content && node.content.visible) {
                 node.content.traverse((o) => {
                     if (o.layer == layer && o.material) {
@@ -400,9 +400,6 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                         if (o.isPoints) {
                             if (o.material.update) {
                                 o.material.update(layer.material);
-                                if (node.pendingSubdivision) {
-                                    o.material.uniforms.size.value = 2 * o.material.size;
-                                }
                             } else {
                                 o.material.copy(layer.material);
                             }
