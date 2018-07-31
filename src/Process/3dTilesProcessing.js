@@ -110,7 +110,6 @@ function _subdivideNodeSubstractive(context, layer, node) {
                     if (node.additiveRefinement) {
                         context.view.notifyChange(node);
                     }
-                    layer.tileIndex.index[tile.tileId].loaded = true;
                 }));
         }
         Promise.all(promises).then(() => {
@@ -166,42 +165,31 @@ export function $3dTilesCulling(camera, node, tileMatrixWorld) {
 //   - doesn't have 'content' -> it's a raw Object3D object,
 //     and must be cleaned with _cleanupObject3D()
 function cleanup3dTileset(layer, n, depth = 0) {
-    // If this layer is not using additive refinement, we can only
-    // clean a tile if all its neighbours are cleaned as well because
-    // a tile can only be in 2 states:
-    //   - displayed and no children displayed
-    //   - hidden and all of its children displayed
-    // So here we implement a conservative measure: if T is cleanable
-    // we actually only clean its children tiles.
-    const canCleanCompletely = n.additiveRefinement || depth > 0;
+    unmarkForDeletion(layer, n);
 
-    for (let i = 0; i < n.children.length; i++) {
-        // skip non-tiles elements
-        if (!n.children[i].content) {
-            if (canCleanCompletely) {
-                n.children[i].traverse(_cleanupObject3D);
-            }
-        } else {
-            cleanup3dTileset(layer, n.children[i], depth + 1);
-        }
+    layer.tileIndex.index[n.tileId].loaded = false;
+
+    // clean children tiles recursively
+    for (const child of getChildTiles(n)) {
+        cleanup3dTileset(layer, child, depth + 1);
+        n.remove(child);
     }
 
-
-    if (canCleanCompletely) {
-        if (n.dispose) {
-            n.dispose();
-        }
+    if (n.content) {
+        // clean content
+        n.content.traverse(_cleanupObject3D);
         delete n.content;
-        layer.tileIndex.index[n.tileId].loaded = false;
-        n.remove(...n.children);
+    }
 
-        // and finally remove from parent
-        if (depth == 0 && n.parent) {
-            n.parent.remove(n);
-        }
-    } else {
-        const tiles = getChildTiles(n);
-        n.remove(...tiles);
+    if (n.dispose) {
+        n.dispose();
+    }
+
+    n.remove(n.content);
+
+    // and finally remove from parent
+    if (depth == 0 && n.parent) {
+        n.parent.remove(n);
     }
 }
 
@@ -233,12 +221,8 @@ export function pre3dTilesUpdate(context, layer) {
     const now = Date.now();
     if (layer._cleanableTiles.length
         && (now - layer._cleanableTiles[0].cleanableSince) > layer.cleanupDelay) {
-        // Make sure we don't clean root tile
-        layer.root.cleanableSince = undefined;
-
-        let i = 0;
-        for (; i < layer._cleanableTiles.length; i++) {
-            const elt = layer._cleanableTiles[i];
+        while (layer._cleanableTiles.length) {
+            const elt = layer._cleanableTiles[0];
             if ((now - elt.cleanableSince) > layer.cleanupDelay) {
                 cleanup3dTileset(layer, elt);
             } else {
@@ -246,8 +230,6 @@ export function pre3dTilesUpdate(context, layer) {
                 break;
             }
         }
-        // remove deleted elements from _cleanableTiles
-        layer._cleanableTiles.splice(0, i);
     }
 
     return [layer.root];
@@ -312,6 +294,13 @@ function markForDeletion(layer, elt) {
     }
 }
 
+function unmarkForDeletion(layer, elt) {
+    if (elt.cleanableSince) {
+        layer._cleanableTiles.splice(layer._cleanableTiles.indexOf(elt), 1);
+        elt.cleanableSince = undefined;
+    }
+}
+
 export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTest = $3dTilesSubdivisionControl) {
     return function _process3dTilesNodes(context, layer, node) {
         // early exit if parent's subdivision is in progress
@@ -326,10 +315,7 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
 
 
         if (isVisible) {
-            if (node.cleanableSince) {
-                layer._cleanableTiles.splice(layer._cleanableTiles.indexOf(node), 1);
-                node.cleanableSince = undefined;
-            }
+            unmarkForDeletion(layer, node);
 
             let returnValue;
             if (node.pendingSubdivision || subdivisionTest(context, layer, node)) {
@@ -356,7 +342,9 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
             return returnValue;
         }
 
-        markForDeletion(layer, node);
+        if (node != layer.root) {
+            markForDeletion(layer, node);
+        }
     };
 }
 

@@ -54,6 +54,20 @@ export function $3dTilesIndex(tileset, baseURL) {
     }.bind(this);
     recurse(tileset.root, baseURL);
 
+    // Add a special tileId = 0 which acts as root of the tileset but has
+    // no content.
+    // This way we can safely cleanup the root of the tileset in the processing
+    // code, and keep a valid layer.root tile.
+    // this.index[0] = {
+    //     baseURL: this.index[1].baseURL,
+    //     viewerRequestVolume: this.index[1].viewerRequestVolume,
+    //     boundingVolume: this.index[1].boundingVolume,
+    //     children: [1],
+    //     transform: this.index[1].transform,
+    //     refine: this.index[1].refine,
+    //     geometricError: this.index[1].geometricError,
+    // };
+
     this.extendTileset = function extendTileset(tileset, nodeId, baseURL) {
         recurse(tileset.root, baseURL, this.index[nodeId]);
         this.index[nodeId].children = [tileset.root];
@@ -93,6 +107,20 @@ function preprocessDataLayer(layer, view, scheduler) {
 
     layer._cleanableTiles = [];
     return Fetcher.json(layer.url, layer.networkOptions).then((tileset) => {
+        // Add a tile which acts as root of the tileset but has no content.
+        // This way we can safely cleanup the root of the tileset in the processing
+        // code, and keep a valid layer.root tile.
+        const fakeroot = {
+            boundingVolume: tileset.root.boundingVolume,
+            geometricError: tileset.root.geometricError,
+            refine: tileset.root.refine,
+            transform: tileset.root.transform,
+            children: [tileset.root],
+        };
+        // Remove transform which has been moved up to fakeroot
+        tileset.root.transform = undefined;
+        // Replace root
+        tileset.root = fakeroot;
         layer.tileset = tileset;
         const urlPrefix = layer.url.slice(0, layer.url.lastIndexOf('/') + 1);
         layer.tileIndex = new $3dTilesIndex(tileset, urlPrefix);
