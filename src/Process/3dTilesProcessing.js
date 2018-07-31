@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import Extent from '../Core/Geographic/Extent';
+import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 
 function requestNewTile(view, scheduler, geometryLayer, metadata, parent, redraw) {
     const command = {
@@ -7,13 +8,27 @@ function requestNewTile(view, scheduler, geometryLayer, metadata, parent, redraw
         view,
         requester: parent,
         layer: geometryLayer,
-        priority: parent ? 1.0 / (parent.distance + 1) : 100,
+        priority: parent ? parent.sse : 1,
         /* specific params */
         metadata,
         redraw,
+        earlyDropFunction: cmd =>
+            cmd.requester && (
+                // requester cleaned
+                !cmd.requester.parent ||
+                // requester not visible anymore
+                !cmd.requester.visible ||
+                // requester visible but doesn't need subdivision anymore
+                cmd.requester.sse < cmd.layer.sseThreshold),
     };
 
-    return scheduler.execute(command);
+    return scheduler.execute(command).then(
+        node => node,
+        (err) => {
+            if (err instanceof CancelledCommandException) {
+                return undefined;
+            }
+        });
 }
 
 function getChildTiles(tile) {
@@ -77,16 +92,20 @@ function _subdivideNodeAdditive(context, layer, node, cullingTest) {
             continue;
         }
         child.promise = requestNewTile(context.view, context.scheduler, layer, child, node, true).then((tile) => {
-            node.add(tile);
-            tile.updateMatrixWorld();
+            if (!tile) {
+                // cancelled promise
+            } else {
+                node.add(tile);
+                tile.updateMatrixWorld();
 
-            const extent = boundingVolumeToExtent(layer.extent.crs(), tile.boundingVolume, tile.matrixWorld);
-            tile.traverse((obj) => {
-                obj.extent = extent;
-            });
+                const extent = boundingVolumeToExtent(layer.extent.crs(), tile.boundingVolume, tile.matrixWorld);
+                tile.traverse((obj) => {
+                    obj.extent = extent;
+                });
 
-            context.view.notifyChange(child);
-            child.loaded = true;
+                context.view.notifyChange(child);
+                child.loaded = true;
+            }
             delete child.promise;
         });
     }
@@ -355,6 +374,8 @@ export function $3dTilesSubdivisionControl(context, layer, node) {
     if (layer.tileIndex.index[node.tileId].isTileset) {
         return true;
     }
+
     const sse = computeNodeSSE(context.camera, node);
+    node.sse = sse;
     return sse > layer.sseThreshold;
 }
