@@ -6,6 +6,34 @@ import GeometryDebug from './GeometryDebug';
 const invMatrixChangeUpVectorZtoY = new THREE.Matrix4().getInverse(new THREE.Matrix4().makeRotationX(Math.PI / 2));
 const invMatrixChangeUpVectorZtoX = new THREE.Matrix4().getInverse(new THREE.Matrix4().makeRotationZ(-Math.PI / 2));
 
+const unitBoxMesh = (function _() {
+    var indices = new Uint16Array([0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7]);
+    var positions = new Float32Array(8 * 3);
+    new THREE.Vector3(+0.5, +0.5, +0.5).toArray(positions, 0);
+    new THREE.Vector3(-0.5, +0.5, +0.5).toArray(positions, 3);
+    new THREE.Vector3(-0.5, -0.5, +0.5).toArray(positions, 6);
+    new THREE.Vector3(+0.5, -0.5, +0.5).toArray(positions, 9);
+    new THREE.Vector3(+0.5, +0.5, -0.5).toArray(positions, 12);
+    new THREE.Vector3(-0.5, +0.5, -0.5).toArray(positions, 15);
+    new THREE.Vector3(-0.5, -0.5, -0.5).toArray(positions, 18);
+    new THREE.Vector3(+0.5, -0.5, -0.5).toArray(positions, 21);
+    var geometry = new THREE.BufferGeometry();
+    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
+    geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    return function _() {
+        const color = new THREE.Color(Math.random(), Math.random(), Math.random());
+        const material = new THREE.LineBasicMaterial({
+            color: color.getHex(),
+            linewidth: 3,
+        });
+
+        const box = new THREE.LineSegments(geometry, material);
+        box.frustumCulled = false;
+        return box;
+    };
+}());
+
 export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) {
     const gui = GeometryDebug.createGeometryDebugUI(datDebugTool, view, _3dTileslayer);
 
@@ -39,10 +67,8 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
                 }
                 // 3dtiles with box
                 if (metadata.boundingVolume.box) {
-                    const size = metadata.boundingVolume.box.getSize();
-                    const g = new THREE.BoxGeometry(size.x, size.y, size.z);
-                    const material = new THREE.MeshBasicMaterial({ wireframe: true });
-                    helper = new THREE.Mesh(g, material);
+                    helper = unitBoxMesh();
+                    helper.scale.copy(metadata.boundingVolume.box.getSize());
                     metadata.boundingVolume.box.getCenter(helper.position);
                 }
                 // 3dtiles with Sphere

@@ -41,6 +41,7 @@ export function $3dTilesIndex(tileset, baseURL) {
 
         node.viewerRequestVolume = node.viewerRequestVolume ? getBox(node.viewerRequestVolume, inverseTileTransform) : undefined;
         node.boundingVolume = getBox(node.boundingVolume, inverseTileTransform);
+        node.refine = node.refine || (parent ? parent.refine : 'ADD');
 
         this.index[counter] = node;
         node.tileId = counter;
@@ -112,7 +113,7 @@ function preprocessDataLayer(layer, view, scheduler) {
         // code, and keep a valid layer.root tile.
         const fakeroot = {
             boundingVolume: tileset.root.boundingVolume,
-            geometricError: tileset.root.geometricError,
+            geometricError: tileset.geometricError * 10,
             refine: tileset.root.refine,
             transform: tileset.root.transform,
             children: [tileset.root],

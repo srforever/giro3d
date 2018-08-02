@@ -74,7 +74,16 @@ const tmpMatrix = new THREE.Matrix4();
 function _subdivideNodeAdditive(context, layer, node, cullingTest) {
     for (const child of layer.tileIndex.index[node.tileId].children) {
         // child being downloaded => skip
-        if (child.promise || child.loaded) {
+        if (child.promise) {
+            continue;
+        }
+        if (child.loaded) {
+            if (__DEBUG__) {
+                const existing = node.children.filter(n => n.tileId == child.tileId);
+                if (existing.length == 0) {
+                    throw new Error(`Bug. Node ${child.tileId} tagged as loaded but missing from parent`);
+                }
+            }
             continue;
         }
 
@@ -91,17 +100,22 @@ function _subdivideNodeAdditive(context, layer, node, cullingTest) {
         if (!isVisible) {
             continue;
         }
-        child.promise = requestNewTile(context.view, context.scheduler, layer, child, node, true).then((tile) => {
-            if (!tile) {
-                // cancelled promise
-            } else {
-                node.add(tile);
-                tile.updateMatrixWorld();
 
-                const extent = boundingVolumeToExtent(layer.extent.crs(), tile.boundingVolume, tile.matrixWorld);
-                tile.traverse((obj) => {
-                    obj.extent = extent;
-                });
+        child.promise = requestNewTile(context.view, context.scheduler, layer, child, node, true).then((tile) => {
+            if (!tile || !node.parent) {
+                // cancelled promise or node has been deleted
+            } else {
+                // If the tile has been cleaned, but not its parent, then the tile is already
+                // in the node.children array
+                if (node.children.filter(c => c.tileId == tile.tileId).length == 0) {
+                    node.add(tile);
+                    tile.updateMatrixWorld();
+
+                    const extent = boundingVolumeToExtent(layer.extent.crs(), tile.boundingVolume, tile.matrixWorld);
+                    tile.traverse((obj) => {
+                        obj.extent = extent;
+                    });
+                }
 
                 context.view.notifyChange(child);
                 child.loaded = true;
@@ -187,6 +201,8 @@ function cleanup3dTileset(layer, n, depth = 0) {
     unmarkForDeletion(layer, n);
 
     layer.tileIndex.index[n.tileId].loaded = false;
+    layer.tileIndex.index[n.tileId].deleted = Date.now();
+    n.deleted = Date.now();
 
     // clean children tiles recursively
     for (const child of getChildTiles(n)) {
@@ -197,6 +213,7 @@ function cleanup3dTileset(layer, n, depth = 0) {
     if (n.content) {
         // clean content
         n.content.traverse(_cleanupObject3D);
+        n.remove(n.content);
         delete n.content;
     }
 
@@ -204,17 +221,21 @@ function cleanup3dTileset(layer, n, depth = 0) {
         n.dispose();
     }
 
-    n.remove(n.content);
 
     // and finally remove from parent
-    if (depth == 0 && n.parent) {
-        n.parent.remove(n);
-    }
+    // if (depth == 0 && n.parent) {
+    //     n.parent.remove(n);
+    // }
 }
 
 // This function is used to cleanup a Object3D hierarchy.
 // (no 3dtiles spectific code here because this is managed by cleanup3dTileset)
 function _cleanupObject3D(n) {
+    if (__DEBUG__) {
+        if (n.tileId) {
+            throw new Error(`_cleanupObject3D must not be called on a 3dtiles tile (tileId = ${n.tileId})`);
+        }
+    }
     // all children of 'n' are raw Object3D
     for (const child of n.children) {
         _cleanupObject3D(child);
@@ -327,6 +348,7 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
             node.visible = false;
             return undefined;
         }
+        let returnValue;
 
         // do proper culling
         const isVisible = cullingTest ? (!cullingTest(context.camera, node, node.matrixWorld)) : true;
@@ -336,7 +358,6 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
         if (isVisible) {
             unmarkForDeletion(layer, node);
 
-            let returnValue;
             if (node.pendingSubdivision || subdivisionTest(context, layer, node)) {
                 subdivideNode(context, layer, node, cullingTest);
                 // display iff children aren't ready
@@ -358,12 +379,11 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                     }
                 });
             }
-            return returnValue;
-        }
-
-        if (node != layer.root) {
+        } else if (node != layer.root) {
             markForDeletion(layer, node);
         }
+
+        return returnValue;
     };
 }
 
