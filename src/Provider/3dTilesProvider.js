@@ -108,6 +108,10 @@ function preprocessDataLayer(layer, view, scheduler) {
 
     layer._cleanableTiles = [];
     return Fetcher.json(layer.url, layer.networkOptions).then((tileset) => {
+        if (!tileset.root.refine) {
+            tileset.root.refine = tileset.refine;
+        }
+
         // Add a tile which acts as root of the tileset but has no content.
         // This way we can safely cleanup the root of the tileset in the processing
         // code, and keep a valid layer.root tile.

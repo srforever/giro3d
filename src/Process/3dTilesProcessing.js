@@ -2,18 +2,23 @@ import * as THREE from 'three';
 import Extent from '../Core/Geographic/Extent';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 
-function requestNewTile(view, scheduler, geometryLayer, metadata, parent, redraw) {
+function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
+    if (metadata.obj) {
+        unmarkForDeletion(layer, metadata.obj);
+        return Promise.resolve(metadata.obj);
+    }
+
     const command = {
         /* mandatory */
         view,
         requester: parent,
-        layer: geometryLayer,
+        layer,
         priority: parent ? parent.sse : 1,
         /* specific params */
         metadata,
         redraw,
         earlyDropFunction: cmd =>
-            cmd.requester && (
+            cmd.requester && cmd.requester.additiveRefinement && (
                 // requester cleaned
                 !cmd.requester.parent ||
                 // requester not visible anymore
@@ -23,7 +28,10 @@ function requestNewTile(view, scheduler, geometryLayer, metadata, parent, redraw
     };
 
     return scheduler.execute(command).then(
-        node => node,
+        (node) => {
+            metadata.obj = node;
+            return node;
+        },
         (err) => {
             if (err instanceof CancelledCommandException) {
                 return undefined;
@@ -77,15 +85,6 @@ function _subdivideNodeAdditive(context, layer, node, cullingTest) {
         if (child.promise) {
             continue;
         }
-        if (child.loaded) {
-            if (__DEBUG__) {
-                const existing = node.children.filter(n => n.tileId == child.tileId);
-                if (existing.length == 0) {
-                    throw new Error(`Bug. Node ${child.tileId} tagged as loaded but missing from parent`);
-                }
-            }
-            continue;
-        }
 
         // 'child' is only metadata (it's *not* a THREE.Object3D). 'cullingTest' needs
         // a matrixWorld, so we compute it: it's node's matrixWorld x child's transform
@@ -105,20 +104,15 @@ function _subdivideNodeAdditive(context, layer, node, cullingTest) {
             if (!tile || !node.parent) {
                 // cancelled promise or node has been deleted
             } else {
-                // If the tile has been cleaned, but not its parent, then the tile is already
-                // in the node.children array
-                if (node.children.filter(c => c.tileId == tile.tileId).length == 0) {
-                    node.add(tile);
-                    tile.updateMatrixWorld();
+                node.add(tile);
+                tile.updateMatrixWorld();
 
-                    const extent = boundingVolumeToExtent(layer.extent.crs(), tile.boundingVolume, tile.matrixWorld);
-                    tile.traverse((obj) => {
-                        obj.extent = extent;
-                    });
-                }
+                const extent = boundingVolumeToExtent(layer.extent.crs(), tile.boundingVolume, tile.matrixWorld);
+                tile.traverse((obj) => {
+                    obj.extent = extent;
+                });
 
                 context.view.notifyChange(child);
-                child.loaded = true;
             }
             delete child.promise;
         });
@@ -126,30 +120,53 @@ function _subdivideNodeAdditive(context, layer, node, cullingTest) {
 }
 
 function _subdivideNodeSubstractive(context, layer, node) {
-    if (!node.pendingSubdivision && getChildTiles(node).length == 0) {
-        const childrenTiles = layer.tileIndex.index[node.tileId].children;
-        if (childrenTiles === undefined || childrenTiles.length === 0) {
-            return;
-        }
-        node.pendingSubdivision = true;
-
-        const promises = [];
-        for (let i = 0; i < childrenTiles.length; i++) {
-            promises.push(
-                requestNewTile(context.view, context.scheduler, layer, childrenTiles[i], node, false).then((tile) => {
-                    childrenTiles[i].loaded = true;
-                    node.add(tile);
-                    tile.updateMatrixWorld();
-                    if (node.additiveRefinement) {
-                        context.view.notifyChange(node);
-                    }
-                }));
-        }
-        Promise.all(promises).then(() => {
-            node.pendingSubdivision = false;
-            context.view.notifyChange(node);
-        });
+    // Subdivision in progress => nothing to do
+    if (node.pendingSubdivision) {
+        return;
     }
+
+    if (getChildTiles(node).length > 0) {
+        return;
+    }
+    // No child => nothing to do either
+    const childrenTiles = layer.tileIndex.index[node.tileId].children;
+    if (childrenTiles === undefined || childrenTiles.length === 0) {
+        return;
+    }
+
+    node.pendingSubdivision = true;
+
+    // Substractive (refine = 'REPLACE') is an all or nothing subdivision mode
+    const promises = [];
+    for (const child of layer.tileIndex.index[node.tileId].children) {
+        promises.push(
+            requestNewTile(context.view, context.scheduler, layer, child, node, false).then((tile) => {
+                node.add(tile);
+                tile.updateMatrixWorld();
+
+                const extent = boundingVolumeToExtent(layer.extent.crs(), tile.boundingVolume, tile.matrixWorld);
+                tile.traverse((obj) => {
+                    obj.extent = extent;
+                });
+
+                // If children is a tileset, we need to prefetch here, because 'node' will
+                // be hidden as soon as its children are created. But if a child is a tileset,
+                // the real content is in its own child.
+                // So we block node.pendingSubdivision until child's child is ready
+
+                const childPromises = [];
+                if (layer.tileIndex.index[tile.tileId].isTileset) {
+                    for (const childchild of layer.tileIndex.index[tile.tileId].children) {
+                        childPromises.push(requestNewTile(context.view, context.scheduler, layer, childchild, tile, false));
+                    }
+                    return Promise.all(childPromises);
+                }
+            }));
+    }
+    Promise.all(promises).then(() => {
+        node.pendingSubdivision = false;
+        context.view.notifyChange(node);
+    });
 }
 
 export function $3dTilesCulling(camera, node, tileMatrixWorld) {
@@ -200,9 +217,10 @@ export function $3dTilesCulling(camera, node, tileMatrixWorld) {
 function cleanup3dTileset(layer, n, depth = 0) {
     unmarkForDeletion(layer, n);
 
-    layer.tileIndex.index[n.tileId].loaded = false;
-    layer.tileIndex.index[n.tileId].deleted = Date.now();
-    n.deleted = Date.now();
+    if (layer.tileIndex.index[n.tileId].obj) {
+        layer.tileIndex.index[n.tileId].obj.deleted = Date.now();
+        layer.tileIndex.index[n.tileId].obj = undefined;
+    }
 
     // clean children tiles recursively
     for (const child of getChildTiles(n)) {
@@ -311,7 +329,7 @@ export function init3dTilesLayer(view, scheduler, layer) {
                 delete layer.tileset;
                 layer.object3d.add(tile);
                 tile.updateMatrixWorld();
-                layer.tileIndex.index[tile.tileId].loaded = true;
+                layer.tileIndex.index[tile.tileId].obj = tile;
                 layer.root = tile;
                 layer.extent = boundingVolumeToExtent(layer.projection || view.referenceCrs,
                     tile.boundingVolume, tile.matrixWorld);
@@ -343,6 +361,9 @@ function unmarkForDeletion(layer, elt) {
 
 export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTest = $3dTilesSubdivisionControl) {
     return function _process3dTilesNodes(context, layer, node) {
+        // Remove deleted children (?)
+        node.remove(...node.children.filter(c => c.deleted));
+
         // early exit if parent's subdivision is in progress
         if (node.parent.pendingSubdivision && !node.parent.additiveRefinement) {
             node.visible = false;
@@ -376,11 +397,23 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                 node.content.traverse((o) => {
                     if (o.layer == layer && o.material) {
                         o.material.wireframe = layer.wireframe;
+                        if (o.isPoints) {
+                            if (o.material.update) {
+                                o.material.update(layer.material);
+                                if (node.pendingSubdivision) {
+                                    o.material.uniforms.size.value = 2 * o.material.size;
+                                }
+                            } else {
+                                o.material.copy(layer.material);
+                            }
+                        }
                     }
                 });
             }
         } else if (node != layer.root) {
-            markForDeletion(layer, node);
+            if (node.parent && node.parent.additiveRefinement) {
+                markForDeletion(layer, node);
+            }
         }
 
         return returnValue;
