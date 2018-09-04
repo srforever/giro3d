@@ -1,0 +1,39 @@
+# TODO find a way to use stages with 2 parallel pipelines
+#
+# rationale: I'd like to have a 3 stages pipelines: install, test and deploy, and execute it for each supported node version.
+#
+# I cannot really do that now because gitlab does not seem to support having 2 distinct pipelines. the only thing you can do is:
+#
+#          stage install               stage test              stage deploy
+# *---- npm i with node 8----*----npm test with node 8----*---...
+#  \___ npm i with node 10__/ \___npm test with node 10___/
+#
+# this is problematic because I really don't want the node_modules/ folder to be mixed between versions.
+#
+# Instead, we'd like to have:
+#
+# *---- npm i with node 8----*----npm test with node 8----*---...
+# *---- npm i with node 10---*----npm test with node 10___*---...
+#
+
+image: node:10-alpine
+
+cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+        - node_modules/
+
+test_stable:
+    image: node:8-alpine
+    # TODO make puppeter work :-/ and replace with npm i && npm test && npm pack
+    script: npm i && npm run lint -- --max-warnings=0 && npm run build && npm run test-unit && npm pack
+    artifacts:
+        paths:
+            - dist
+            - itowns-*.tgz
+        name: "$CI_COMMIT_REF_SLUG"
+
+test_lts:
+    image: node:10-alpine
+    script: npm i && npm run lint -- --max-warnings=0 && npm run build && npm run test-unit && npm pack
+
