@@ -19,9 +19,6 @@ export function createPlanarLayer(id, extent, options) {
 
     // Configure tiles
     const nodeInitFn = function nodeInitFn(layer, parent, node) {
-        node.material.setLightingOn(layer.lighting.enable);
-        node.material.uniforms.lightPosition.value = layer.lighting.position;
-
         if (layer.noTextureColor) {
             node.material.uniforms.noTextureColor.value.copy(layer.noTextureColor);
         }

@@ -5,9 +5,8 @@ const float PI          = 3.14159265359;
 const float INV_TWO_PI  = 1.0 / (2.0*PI);
 const float PI4         = 0.78539816339;
 
-attribute float     uv_pm;
-attribute vec2      uv_wgs84;
 attribute vec3      position;
+attribute vec2      uv;
 attribute vec3      normal;
 
 uniform sampler2D   dTextures_00[1];
@@ -18,8 +17,7 @@ uniform mat4        projectionMatrix;
 uniform mat4        modelViewMatrix;
 uniform mat4        modelMatrix;
 
-varying vec2        vUv_WGS84;
-varying float       vUv_PM;
+varying vec2        vUv;
 varying vec3        vNormal;
 varying vec4        pos;
 
@@ -33,15 +31,13 @@ highp float decode32(highp vec4 rgba) {
 
 void main() {
 
-        vUv_WGS84 = uv_wgs84;
-        vUv_PM = uv_pm;
-
+        vUv = uv;
         vec4 vPosition;
 
         if(loadedTexturesCount[0] > 0) {
             vec2    vVv = vec2(
-                vUv_WGS84.x * offsetScale_L00[0].z + offsetScale_L00[0].x,
-                (1.0 - vUv_WGS84.y) * offsetScale_L00[0].z + offsetScale_L00[0].y);
+                vUv.x * offsetScale_L00[0].z + offsetScale_L00[0].x,
+                (1.0 - vUv.y) * offsetScale_L00[0].z + offsetScale_L00[0].y);
 
             #if defined(RGBA_TEXTURE_ELEVATION)
                 vec4 rgba = texture2D( dTextures_00[0], vVv ) * 255.0;

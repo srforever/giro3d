@@ -6,25 +6,7 @@ function Buffers() {
     this.index = null;
     this.position = null;
     this.normal = null;
-    // 2 UV set per tile: wgs84 and pm
-    //    - wgs84: 1 texture per tile because tiles are using wgs84 projection
-    //    - pm: use multiple textures per tile.
-    //      +-------------------------+
-    //      |                         |
-    //      |     Texture 0           |
-    //      +-------------------------+
-    //      |                         |
-    //      |     Texture 1           |
-    //      +-------------------------+
-    //      |                         |
-    //      |     Texture 2           |
-    //      +-------------------------+
-    //        * u = wgs84.u
-    //        * v = textureid + v in this texture
-    this.uv = {
-        wgs84: null,
-        pm: null,
-    };
+    this.uv = null;
 }
 
 function TileGeometry(params, builder) {
@@ -39,8 +21,7 @@ function TileGeometry(params, builder) {
     this.setIndex(bufferAttribs.index);
     this.addAttribute('position', bufferAttribs.position);
     this.addAttribute('normal', bufferAttribs.normal);
-    this.addAttribute('uv_wgs84', bufferAttribs.uv.wgs84);
-    this.addAttribute('uv_pm', bufferAttribs.uv.pm);
+    this.addAttribute('uv', bufferAttribs.uv);
 
     this.computeBoundingBox();
     this.OBB = builder.OBB(this.boundingBox);
@@ -64,7 +45,6 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
 
     outBuffers.position = new THREE.BufferAttribute(new Float32Array(nVertex * 3), 3);
     outBuffers.normal = new THREE.BufferAttribute(new Float32Array(nVertex * 3), 3);
-    outBuffers.uv.pm = new THREE.BufferAttribute(new Float32Array(nVertex), 1);
 
     // Read previously cached values (index and uv.wgs84 only depend on the # of triangles)
     const cacheKey = `${builder.type}_${params.disableSkirt ? 0 : 1}_${params.segment}`;
@@ -72,17 +52,17 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
     const mustBuildIndexAndWGS84 = !cachedBuffers;
     if (cachedBuffers) {
         outBuffers.index = cachedBuffers.index;
-        outBuffers.uv.wgs84 = cachedBuffers.uvwgs84;
+        outBuffers.uv = cachedBuffers.uv;
     } else {
         outBuffers.index = new THREE.BufferAttribute(
             new Uint32Array(triangles * 3), 1);
-        outBuffers.uv.wgs84 = new THREE.BufferAttribute(
+        outBuffers.uv = new THREE.BufferAttribute(
             new Float32Array(nVertex * 2), 2);
 
         // Update cache
         cache.set(cacheKey, {
             index: outBuffers.index,
-            uvwgs84: outBuffers.uv.wgs84,
+            uv: outBuffers.uv,
         });
     }
 
@@ -97,18 +77,12 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
     builder.Prepare(params);
 
     var UV_WGS84 = function UV_WGS84() {};
-    var UV_PM = function UV_PM() {};
 
     // Define UV computation functions if needed
     if (mustBuildIndexAndWGS84) {
         UV_WGS84 = function UV_WGS84(out, id, u, v) {
-            out.uv.wgs84.array[id * 2 + 0] = u;
-            out.uv.wgs84.array[id * 2 + 1] = v;
-        };
-    }
-    if (builder.getUV_PM) {
-        UV_PM = function UV_PM(out, id, u) {
-            out.uv.pm.array[id] = u;
+            out.uv.array[id * 2 + 0] = u;
+            out.uv.array[id * 2 + 1] = v;
         };
     }
 
@@ -118,8 +92,6 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
         const v = y / heightSegments;
 
         builder.vProjecte(v, params);
-
-        var uv_pm = builder.getUV_PM ? builder.getUV_PM(params) : undefined;
 
         for (let x = 0; x <= widthSegments; x++) {
             const u = x / widthSegments;
@@ -143,7 +115,6 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
             normal.toArray(outBuffers.normal.array, id_m3);
 
             UV_WGS84(outBuffers, idVertex, u, v);
-            UV_PM(outBuffers, idVertex, uv_pm);
 
             if (!params.disableSkirt) {
                 if (y !== 0 && y !== heightSegments) {
@@ -217,8 +188,8 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
             };
 
             buildUVSkirt = function buildUVSkirt(id) {
-                outBuffers.uv.wgs84.array[idVertex * 2 + 0] = outBuffers.uv.wgs84.array[id * 2 + 0];
-                outBuffers.uv.wgs84.array[idVertex * 2 + 1] = outBuffers.uv.wgs84.array[id * 2 + 1];
+                outBuffers.uv.array[idVertex * 2 + 0] = outBuffers.uv.array[id * 2 + 0];
+                outBuffers.uv.array[idVertex * 2 + 1] = outBuffers.uv.array[id * 2 + 1];
             };
         }
 
@@ -239,8 +210,6 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
             outBuffers.normal.array[id_m3 + 2] = outBuffers.normal.array[id2_m3 + 2];
 
             buildUVSkirt(id);
-
-            outBuffers.uv.pm.array[idVertex] = outBuffers.uv.pm.array[id];
 
             const idf = (i + 1) % skirt.length;
 

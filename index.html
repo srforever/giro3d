@@ -1,79 +1,83 @@
-<!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html>
     <head>
-        <title>Globe</title>
-
-    <style type="text/css">
-            html {height: 100%}
-        body { margin: 0; overflow:hidden; height:100%}
-
-            #viewerDiv {
-                margin : auto auto;
-                width: 100%;
-                height: 100%;
-                padding: 0;
+        <title>Itowns Examples</title>
+        <link rel="stylesheet" type="text/css" href="./examples/css/example.css">
+        <style type="text/css">
+            iframe {
+                width: 300px;
+                height: 200px;
+                border: none;
             }
-            #menuDiv {position: absolute; top:0px; margin-left: 0px;}
-
-
+            .exampleContainer {
+                width: 350px;
+                display: inline-block;
+            }
         </style>
-        <meta charset="UTF-8">
-
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <script src="examples/js/GUI/dat.gui/dat.gui.min.js"></script>
     </head>
     <body>
-        <div id="viewerDiv"></div>
-        <script src="examples/js/GUI/GuiTools.js"></script>
-        <script src="dist/itowns.js"></script>
-        <script src="dist/debug.js"></script>
+        <h1>Itowns Examples</h1>
+        <p>
+        (click on title to open fullscreen)
+        </p>
+        <div id="error-nowebgl"></div>
+        <div class="exampleContainer">
+            <h3><a href='./examples/orthographic.html' target='_blank'>Orthographic</a></h3>
+            <img src='./examples/screenshots/orthographic.jpg'>
+            <iframe src="" style="display: none;"></iframe>
+        </div>
+        <div class="exampleContainer">
+            <h3><a href='./examples/pointcloud.html' target='_blank'>Pointcloud</a></h3>
+            <img src='./examples/screenshots/pointcloud.jpg'>
+            <iframe src="" style="display: none;"></iframe>
+        </div>
+        <div class="exampleContainer">
+            <h3><a href='./examples/planar.html' target='_blank'>Planar mode</a></h3>
+            <img src='./examples/screenshots/planar.jpg'>
+            <iframe src="" style="display: none;"></iframe>
+        </div>
+        <div class="exampleContainer">
+            <h3><a href='./examples/cubic_planar.html' target='_blank'>Layers transformations</a></h3>
+            <img src='./examples/screenshots/cubic_planar.jpg'>
+            <iframe src="" style="display: none;"></iframe>
+        </div>
+        <div class="exampleContainer">
+            <h3><a href='./examples/wfs.html' target='_blank'>WFS data with reprojection</a></h3>
+            <img src='./examples/screenshots/wfs.jpg'>
+            <iframe src="" style="display: none;"></iframe>
+        </div>
+        <div class="exampleContainer">
+            <h3><a href='./examples/planar_vector.html' target='_blank'>Plane mode with data vector</a></h3>
+            <img src='./examples/screenshots/planar_vector.jpg'>
+            <iframe src="" style="display: none;"></iframe>
+        </div>
+        <div class="exampleContainer">
+            <h3><a href='./examples/panorama.html' target='_blank'>Panoramas</a></h3>
+            <img src='./examples/screenshots/panorama.jpg'>
+            <iframe src="" style="display: none;"></iframe>
+        </div>
+        <div class="exampleContainer">
+            <h3><a href='./examples/planar_vector_tiles.html' target='_blank'>Plane mode
+                    with vector tiles data</a></h3>
+            <img src='./examples/screenshots/planar_vector_tiles.jpg'>
+            <iframe src="" style="display: none;"></iframe>
+        </div>
+        <script src="https://unpkg.com/three@0.86.0/examples/js/Detector.js"></script>
         <script type="text/javascript">
-            /* global itowns,document,GuiTools, debug, window */
+            if (!Detector.webgl) {
+                Detector.addGetWebGLMessage({ parent: document.getElementById('error-nowebgl') });
+            } else {
+                function enableOnClick(evt) {
+                    this.getElementsByTagName('img')[0].style.display = 'none';
+                    this.getElementsByTagName('iframe')[0].style.display = '';
+                    this.getElementsByTagName('iframe')[0].src = this.getElementsByTagName('a')[0].href;
+                }
 
-            var positionOnGlobe = { longitude: 2.351323, latitude: 48.856712, altitude: 25000000 };
-
-            // iTowns namespace defined here
-            var viewerDiv = document.getElementById('viewerDiv');
-            var globeView = new itowns.GlobeView(viewerDiv, positionOnGlobe);
-            var menuGlobe = new GuiTools('menuDiv', globeView);
-
-            function addLayerCb(layer) {
-                return globeView.addLayer(layer);
+                    var divs = document.getElementsByClassName('exampleContainer');
+                    var i;
+                    for (i=0; i<divs.length; i++) {
+                        divs[i].addEventListener('click', enableOnClick.bind(divs[i]));
+                }
             }
-
-            var promises = [];
-            promises.push(itowns.Fetcher.json('examples/layers/JSONLayers/Ortho.json').then(addLayerCb));
-            promises.push(itowns.Fetcher.json('examples/layers/JSONLayers/OrthosCRS.json').then(addLayerCb));
-            promises.push(itowns.Fetcher.json('examples/layers/JSONLayers/ScanEX.json').then(addLayerCb));
-            promises.push(itowns.Fetcher.json('examples/layers/JSONLayers/Region.json').then(addLayerCb));
-
-            promises.push(itowns.Fetcher.json('examples/layers/JSONLayers/Cada.json').then(addLayerCb));
-            promises.push(itowns.Fetcher.json('examples/layers/JSONLayers/Administrative.json').then(addLayerCb));
-            promises.push(itowns.Fetcher.json('examples/layers/JSONLayers/Transport.json').then(addLayerCb));
-            promises.push(itowns.Fetcher.json('examples/layers/JSONLayers/Railways.json').then(addLayerCb));
-            promises.push(itowns.Fetcher.json('examples/layers/JSONLayers/Denomination.json').then(addLayerCb));
-
-            promises.push(itowns.Fetcher.json('examples/layers/JSONLayers/WORLD_DTM.json').then(addLayerCb));
-            promises.push(itowns.Fetcher.json('examples/layers/JSONLayers/IGN_MNT_HIGHRES.json').then(addLayerCb));
-
-            menuGlobe.addGUI('RealisticLighting', false, globeView.setRealisticLightingOn.bind(globeView));
-
-            Promise.all(promises).then(menuGlobe.addLayersGUI.bind(menuGlobe)).catch(console.error);
-
-            // eslint-disable-next-line prefer-arrow-callback
-            globeView.addEventListener(itowns.GLOBE_VIEW_EVENTS.GLOBE_INITIALIZED, function m() {
-                // eslint-disable-next-line no-console
-                console.info('Globe initialized');
-            });
-
-            const d = new debug.Debug(globeView, menuGlobe.gui);
-            debug.createTileDebugUI(menuGlobe.gui, globeView, globeView.wgs84TileLayer, d);
-            window.globeView = globeView;
-</script>
+        </script>
     </body>
 </html>

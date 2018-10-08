@@ -17,21 +17,17 @@ uniform vec4        offsetScale_L01[TEX_UNITS];
 
 // offset texture | Projection | fx | Opacity
 uniform vec4        paramLayers[8];
-uniform int         loadedTexturesCount[8];
 uniform bool        visibility[8];
 
 uniform float       distanceFog;
 uniform int         colorLayersCount;
-uniform vec3        lightPosition;
 
 uniform vec3        noTextureColor;
 
 // Options global
 uniform bool        selected;
-uniform bool        lightingEnabled;
 
-varying vec2        vUv_WGS84;
-varying float       vUv_PM;
+varying vec2        vUv;
 varying vec3        vNormal;
 
 uniform float opacity;
@@ -75,18 +71,11 @@ void main() {
 
 
     #if defined(DEBUG)
-         if (showOutline && (vUv_WGS84.x < sLine || vUv_WGS84.x > 1.0 - sLine || vUv_WGS84.y < sLine || vUv_WGS84.y > 1.0 - sLine))
+         if (showOutline && (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine))
              gl_FragColor = CRed;
          else
     #endif
     {
-        // Reconstruct PM uv and PM subtexture id (see TileGeometry)
-        vec2 uvPM ;
-        uvPM.x             = vUv_WGS84.x;
-        float y            = vUv_PM;
-        int pmSubTextureIndex = int(floor(y));
-        uvPM.y             = y - float(pmSubTextureIndex);
-
         #if defined(USE_LOGDEPTHBUF) && defined(USE_LOGDEPTHBUF_EXT)
             float depth = gl_FragDepthEXT / gl_FragCoord.w;
         #else
@@ -108,32 +97,14 @@ void main() {
                 vec4 paramsA = paramLayers[layer];
 
                 if(paramsA.w > 0.0) {
-                    bool projWGS84 = paramsA.y == 0.0;
-                    int pmTextureCount = int(paramsA.y);
-                    int textureIndex = int(paramsA.x) + (projWGS84 ? 0 : pmSubTextureIndex);
+                    int textureIndex = int(paramsA.x);
 
-                    if (!projWGS84 && pmTextureCount <= pmSubTextureIndex) {
-                        continue;
-                    }
-
-                    #if defined(DEBUG)
-                    if (showOutline && !projWGS84 && (uvPM.x < sLine || uvPM.x > 1.0 - sLine || uvPM.y < sLine || uvPM.y > 1.0 - sLine)) {
-                        gl_FragColor = COrange;
-                        return;
-                    }
-                    #endif
-
-                    /* if (0 <= textureIndex && textureIndex < loadedTexturesCount[1]) */ {
-
-                        // TODO: Try other OS before delete dead
-                        // get value in array, the index must be constant
-                        // Strangely it's work with function returning a global variable, doesn't work on Chrome Windows
-                        // vec4 layerColor = texture2D(dTextures_01[getTextureIndex()],  pitUV(projWGS84 ? vUv_WGS84 : uvPM,pitScale_L01[getTextureIndex()]));
+                    {
                         vec4 layerColor = colorAtIdUv(
                             dTextures_01,
                             offsetScale_L01,
                             textureIndex,
-                            projWGS84 ? vUv_WGS84 : uvPM);
+                            vUv);
 
                         if (layerColor.a > 0.0 && paramsA.w > 0.0) {
                             validTexture = true;
@@ -172,11 +143,6 @@ void main() {
         // Fog
         gl_FragColor = mix(CFog, diffuseColor, fogIntensity);
         gl_FragColor.a = 1.0;
-
-        if(lightingEnabled) {   // Add lighting
-            float light = min(2. * dot(vNormal, lightPosition),1.);
-            gl_FragColor.rgb *= light;
-        }
     }
     gl_FragColor.a = opacity;
     #endif

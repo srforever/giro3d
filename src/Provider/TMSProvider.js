@@ -3,7 +3,7 @@ import OGCWebServiceHelper from './OGCWebServiceHelper';
 import URLBuilder from './URLBuilder';
 import Extent from '../Core/Geographic/Extent';
 import VectorTileHelper from './VectorTileHelper';
-import { chooseExtentToDownload } from './WMTSProvider';
+import { STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY, STRATEGY_GROUP } from '../Core/Layer/LayerUpdateStrategy';
 
 function preprocessDataLayer(layer) {
     if (!layer.extent) {
@@ -26,6 +26,57 @@ function preprocessDataLayer(layer) {
         };
     }
     layer.fx = layer.fx || 0.0;
+}
+
+// Maps nodeLevel to groups defined in layer's options
+// eg with groups = [3, 7, 12]:
+//     * nodeLevel = 2 -> 3
+//     * nodeLevel = 4 -> 3
+//     * nodeLevel = 7 -> 7
+//     * nodeLevel = 15 -> 12
+function _group(nodeLevel, currentLevel, options) {
+    var f = options.groups.filter(val => (val <= nodeLevel));
+    return f.length ? f[f.length - 1] : options.groups[0];
+}
+
+function chooseExtentToDownload(extent, currentExtent, layer, pitch, previousError) {
+    if (layer.updateStrategy.type == STRATEGY_MIN_NETWORK_TRAFFIC) {
+        return extent;
+    }
+
+    let nextZoom = 0;
+    if (currentExtent) {
+        if (extent.zoom <= (currentExtent.zoom + 1)) {
+            return extent;
+        }
+
+        switch (layer.updateStrategy.type) {
+            case STRATEGY_PROGRESSIVE:
+                nextZoom += 1;
+                break;
+            case STRATEGY_GROUP:
+                nextZoom = _group(extent.zoom, currentExtent.zoom, layer.updateStrategy.options);
+                break;
+            default:
+            case STRATEGY_DICHOTOMY:
+                nextZoom = Math.ceil((currentExtent.zoom + extent.zoom) / 2);
+                break;
+        }
+    }
+
+    if (previousError && previousError.extent && previousError.extent.zoom == nextZoom) {
+        nextZoom = Math.ceil((currentExtent.zoom + nextZoom) / 2);
+    }
+
+    nextZoom = Math.min(
+        Math.max(nextZoom, layer.options.zoom.min),
+        layer.options.zoom.max);
+
+    if (extent.zoom <= nextZoom) {
+        return extent;
+    }
+
+    return OGCWebServiceHelper.WMTS_WGS84Parent(extent, nextZoom, pitch);
 }
 
 function canTextureBeImproved(layer, extents, textures, previousError) {

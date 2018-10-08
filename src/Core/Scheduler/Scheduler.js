@@ -5,7 +5,6 @@
  */
 
 import PriorityQueue from 'js-priority-queue';
-import WMTSProvider from '../../Provider/WMTSProvider';
 import WMSProvider from '../../Provider/WMSProvider';
 import TileProvider from '../../Provider/TileProvider';
 import $3dTilesProvider from '../../Provider/3dTilesProvider';
@@ -132,8 +131,6 @@ Scheduler.prototype.constructor = Scheduler;
 
 Scheduler.prototype.initDefaultProviders = function initDefaultProviders() {
     // Register all providers
-    this.addProtocolProvider('wmts', WMTSProvider);
-    this.addProtocolProvider('wmtsc', WMTSProvider);
     this.addProtocolProvider('tile', TileProvider);
     this.addProtocolProvider('wms', WMSProvider);
     this.addProtocolProvider('3d-tiles', $3dTilesProvider);
