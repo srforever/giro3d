@@ -48,7 +48,8 @@
   "peerDependencies": {
     "proj4": "^2.4.4",
     "three": "^0.89.0",
-    "three.meshline": "^1.0.3"
+    "three.meshline": "^1.0.3",
+    "ol": "^5.2.0"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -75,6 +76,7 @@
     "puppeteer": "^1.5.0",
     "three": "^0.89.0",
     "three.meshline": "^1.0.3",
+    "ol": "^5.2.0",
     "webpack": "^3.0.0",
     "webpack-dev-server": "^2.11.1"
   }

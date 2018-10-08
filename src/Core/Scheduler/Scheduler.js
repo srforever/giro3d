@@ -13,6 +13,7 @@ import PointCloudProvider from '../../Provider/PointCloudProvider';
 import WFSProvider from '../../Provider/WFSProvider';
 import RasterProvider from '../../Provider/RasterProvider';
 import StaticProvider from '../../Provider/StaticProvider';
+import OSMProvider from '../../Provider/OSMProvider';
 import CancelledCommandException from './CancelledCommandException';
 import Cache from './Cache';
 
@@ -141,6 +142,7 @@ Scheduler.prototype.initDefaultProviders = function initDefaultProviders() {
     this.addProtocolProvider('wfs', WFSProvider);
     this.addProtocolProvider('rasterizer', RasterProvider);
     this.addProtocolProvider('static', StaticProvider);
+    this.addProtocolProvider('osm', OSMProvider);
 };
 
 Scheduler.prototype.runCommand = function runCommand(command, queue, recurse = true) {
