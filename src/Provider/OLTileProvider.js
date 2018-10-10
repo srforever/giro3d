@@ -41,7 +41,7 @@ function selectTile(layer, extent) {
     const tile = source.getTile(tileCoord[0], tileCoord[1], tileCoord[2], 1, projection);
     const tileExtent = fromOLExtent(
         tileGrid.getTileCoordExtent(tileCoord), projection.getCode());
-    const pitch = tileExtent.offsetToParent(extent);
+    const pitch = extent.offsetToParent(tileExtent);
     return { extent, pitch, tile, tileExtent };
 }
 
