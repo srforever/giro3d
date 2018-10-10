@@ -1,4 +1,3 @@
-import { Vector4 } from 'three/src/math/Vector4';
 import { Texture } from 'three/src/textures/Texture';
 
 import TileState from 'ol/TileState';
