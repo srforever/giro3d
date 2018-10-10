@@ -45,18 +45,19 @@
             setupLoadingScreen(viewerDiv, view);
 
             // eslint-disable-next-line no-unused-vars
-            var osmSource = new itowns.olsource.OSM();
+            var osmSource = new itowns.olsource.OSM({ wrapX: false });
 
             // eslint-disable-next-line no-unused-vars
-            var stamenSource = new itowns.olsource.Stamen({ layer: 'toner' });
+            var stamenSource = new itowns.olsource.Stamen({ layer: 'toner', wrapX: false });
 
             // eslint-disable-next-line no-unused-vars
             var wmsSource = new itowns.olsource.TileWMS({
-              url: 'https://ahocevar.com/geoserver/wms',
-              params: {'LAYERS': 'topp:states', 'TILED': true},
-              projection: 'EPSG:3857',
-              crossOrigin: '*',
-              serverType: 'geoserver'
+                url: 'https://ahocevar.com/geoserver/wms',
+                params: {'LAYERS': 'topp:states', 'TILED': true},
+                projection: 'EPSG:3857',
+                crossOrigin: '*',
+                serverType: 'geoserver',
+                wrapX: false
             })
 
             // Add a base layer
