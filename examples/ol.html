@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Itowns - Orthographic Camera Example</title>
+        <title>Itowns - OpenLayers Example</title>
 
         <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="css/example.css">
@@ -44,20 +44,35 @@
             view.camera.camera3D.rotateZ(-Math.PI / 2);
             setupLoadingScreen(viewerDiv, view);
 
-            // Add an OSM layer
+            // eslint-disable-next-line no-unused-vars
+            var osmSource = new itowns.olsource.OSM();
+
+            // eslint-disable-next-line no-unused-vars
+            var stamenSource = new itowns.olsource.Stamen({ layer: 'toner' });
+
+            // eslint-disable-next-line no-unused-vars
+            var wmsSource = new itowns.olsource.TileWMS({
+              url: 'https://ahocevar.com/geoserver/wms',
+              params: {'LAYERS': 'topp:states', 'TILED': true},
+              projection: 'EPSG:3857',
+              crossOrigin: '*',
+              serverType: 'geoserver'
+            })
+
+            // Add a base layer
             view.addLayer({
                 id: 'osm',
                 type: 'color',
-                protocol: 'osm',
-                options: {
-                    attribution: {
-                        name: 'OpenStreetMap',
-                        url: 'http://www.openstreetmap.org/',
-                    },
-                },
-                updateStrategy: {
-                    type: itowns.STRATEGY_DICHOTOMY,
-                },
+                protocol: 'oltile',
+                source: stamenSource
+            });
+
+            // Add a WMS layer
+            view.addLayer({
+                id: 'wms',
+                type: 'color',
+                protocol: 'oltile',
+                source: wmsSource
             });
 
             // Request redraw

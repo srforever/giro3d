@@ -1,18 +1,17 @@
 import { Vector4 } from 'three/src/math/Vector4';
 import { Texture } from 'three/src/textures/Texture';
 
-import OSM from 'ol/source/OSM';
 import TileState from 'ol/TileState';
 import { listenOnce } from 'ol/events';
 
 import Extent from '../Core/Geographic/Extent';
 
 function preprocessDataLayer(layer) {
-    const source = new OSM();
-    layer.source = source;
-    const extent = source.getTileGrid().getExtent();
-    layer.extent = new Extent('EPSG:3857', extent[0], extent[2], extent[1], extent[3]);
-    layer.origin = 'top';
+    const source = layer.source;
+    const projection = source.getProjection();
+    const tileGrid = source.getTileGridForProjection(projection);
+    const extent = tileGrid.getExtent();
+    layer.extent = new Extent(projection.getCode(), extent[0], extent[2], extent[1], extent[3]);
     layer.fx = 0.0;
 }
 
@@ -30,7 +29,8 @@ function canTextureBeImproved(layer, extents, textures, previousError) {
 // eslint-disable-next-line no-unused-vars
 function selectAllExtentsToDownload(layer, extents, textures, previousError) {
     const source = layer.source;
-    const tileGrid = source.getTileGrid();
+    const projection = source.getProjection();
+    const tileGrid = source.getTileGridForProjection(projection);
     const results = [];
     for (let i = 0; i < extents.length; i++) {
         const extent = extents[i];
