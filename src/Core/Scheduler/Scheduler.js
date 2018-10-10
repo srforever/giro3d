@@ -1,10 +1,5 @@
-/**
- * Generated On: 2015-10-5
- * Class: Scheduler
- * Description: Cette classe singleton gère les requetes/Commandes  de la scène. Ces commandes peuvent etre synchrone ou asynchrone. Elle permet d'executer, de prioriser  et d'annuler les commandes de la pile. Les commandes executées sont placées dans une autre file d'attente.
- */
-
 import PriorityQueue from 'js-priority-queue';
+import TileState from 'ol/TileState';
 import WMSProvider from '../../Provider/WMSProvider';
 import TileProvider from '../../Provider/TileProvider';
 import $3dTilesProvider from '../../Provider/3dTilesProvider';
@@ -190,6 +185,8 @@ Scheduler.prototype.execute = function execute(command) {
     command.timestamp = Date.now();
 
     if (isInCache(command)) {
+        // Fast path: command result is already available,
+        // so skip the queueing mechanism and execute directly
         q.counters.pending++;
         this.runCommand(command, q, false);
         return command.promise;
@@ -218,9 +215,17 @@ Scheduler.prototype.execute = function execute(command) {
 
 function isInCache(command) {
     if (command.toDownload) {
+        // Probably belongs to the provider (= it's part of a command API)
         for (const toDownload of command.toDownload) {
-            if (!toDownload.url ||
-                !Cache.get(toDownload.url)) {
+            if (toDownload.url) {
+                if (!Cache.get(toDownload.url)) {
+                    return false;
+                }
+            } else if (toDownload.tile) {
+                if (toDownload.tile.getState() != TileState.LOADED) {
+                    return false;
+                }
+            } else {
                 return false;
             }
         }
