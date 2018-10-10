@@ -23,7 +23,7 @@ function toOLExtent(extent) {
         Math.ceil(extent.west()),
         Math.ceil(extent.south()),
         Math.floor(extent.east()),
-        Math.floor(extent.north())
+        Math.floor(extent.north()),
     ];
 }
 
