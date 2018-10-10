@@ -19,7 +19,12 @@ function fromOLExtent(extent, projectionCode) {
 }
 
 function toOLExtent(extent) {
-    return [extent.west(), extent.south(), extent.east(), extent.north()];
+    return [
+        Math.ceil(extent.west()),
+        Math.ceil(extent.south()),
+        Math.floor(extent.east()),
+        Math.floor(extent.north())
+    ];
 }
 
 // eslint-disable-next-line no-unused-vars
