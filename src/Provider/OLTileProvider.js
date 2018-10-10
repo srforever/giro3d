@@ -11,40 +11,43 @@ function preprocessDataLayer(layer) {
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
     const extent = tileGrid.getExtent();
-    layer.extent = new Extent(projection.getCode(), extent[0], extent[2], extent[1], extent[3]);
+    layer.extent = fromOLExtent(extent, projection.getCode());
     layer.fx = 0.0;
 }
 
-function canTextureBeImproved(layer, extents, textures, previousError) {
-    for (let i = 0; i < extents.length; i++) {
-        const extent = extents[i].as(layer.extent.crs());
-        const texture = textures[i];
-        if (texture && texture.extent && texture.extent.isInside(extent)) {
-            return;
-        }
-    }
-    return selectAllExtentsToDownload(layer, extents, textures, previousError);
+function fromOLExtent(extent, projectionCode) {
+    return new Extent(projectionCode, extent[0], extent[2], extent[1], extent[3]);
+}
+
+function toOLExtent(extent) {
+    return [extent.west(), extent.south(), extent.east(), extent.north()];
 }
 
 // eslint-disable-next-line no-unused-vars
-function selectAllExtentsToDownload(layer, extents, textures, previousError) {
+function canTextureBeImproved(layer, extents, textures, previousError) {
+    const extent = extents[0].as(layer.extent.crs());
+    const texture = textures[0];
+    const tile = selectTile(layer, extent);
+    if (texture && texture.extent && texture.extent.isInside(tile.tileExtent)) {
+        return;
+    }
+    return [tile];
+}
+
+function selectTile(layer, extent) {
     const source = layer.source;
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
-    const results = [];
-    for (let i = 0; i < extents.length; i++) {
-        const extent = extents[i];
-        const pitch = new Vector4(0, 0, 1, 1);
-        const tileCoord = tileCoordForExtent(tileGrid, extent);
-        const tile = source.getTile(
-            tileCoord[0], tileCoord[1], tileCoord[2], 1, source.getProjection());
-        results.push({ extent, pitch, tile });
-    }
-    return results;
+    const tileCoord = tileCoordForExtent(tileGrid, extent);
+    const tile = source.getTile(tileCoord[0], tileCoord[1], tileCoord[2], 1, projection);
+    const tileExtent = fromOLExtent(
+        tileGrid.getTileCoordExtent(tileCoord), projection.getCode());
+    const pitch = tileExtent.offsetToParent(extent);
+    return { extent, pitch, tile, tileExtent };
 }
 
 function tileCoordForExtent(tileGrid, extent) {
-    extent = [extent.west(), extent.south(), extent.east(), extent.north()];
+    extent = toOLExtent(extent);
     const minZoom = tileGrid.getMinZoom();
     const maxZoom = tileGrid.getMaxZoom();
     for (let z = maxZoom, tileRange; z >= minZoom; z--) {
@@ -90,6 +93,7 @@ function createTexture(tile, layer) {
     const texture = new Texture(tile.tile.getImage());
     texture.needsUpdate = true;
     texture.premultiplyAlpha = layer.transparent;
+    texture.extent = tile.tileExtent;
     texture.extent = tile.extent;
     return { texture, pitch: tile.pitch };
 }
