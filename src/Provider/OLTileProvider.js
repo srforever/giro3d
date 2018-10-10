@@ -93,7 +93,6 @@ function createTexture(tile, layer) {
     texture.needsUpdate = true;
     texture.premultiplyAlpha = layer.transparent;
     texture.extent = tile.tileExtent;
-    texture.extent = tile.extent;
     return { texture, pitch: tile.pitch };
 }
 
