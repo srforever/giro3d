@@ -16,7 +16,8 @@ function createMapboxStreetsV6Style(Style, Fill, Stroke, Icon, Text) {
     if (!icon) {
       icon = new Style({image: new Icon({
         src: 'https://cdn.rawgit.com/mapbox/maki/master/icons/' + iconName + '-15.svg',
-        imgSize: [15, 15]
+        imgSize: [15, 15],
+        crossOrigin: 'anonymous'
       })});
       iconCache[iconName] = icon;
     }
