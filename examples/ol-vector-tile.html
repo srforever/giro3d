@@ -39,6 +39,7 @@
                 zoomOutFactor: 0.5,
                 // Don't zoom too much on smart zoom
                 smartZoomHeightMax: 100000,
+                handleCollision: false
             });
 
             // Turn in the right angle
@@ -61,6 +62,22 @@
                 source: vectorTileSource,
                 style: createMapboxStreetsV6Style,
             });
+
+            view.addLayer({
+                id: 'mapbox-terrain-rgb',
+                type: 'elevation',
+                protocol: 'xyz',
+                url:'https://api.mapbox.com/v4/mapbox.terrain-rgb/${z}/${x}/${y}.pngraw?access_token=' + key,
+                extent: [extent.west(), extent.east(), extent.south(), extent.north()],
+                projection: 'EPSG:3857',
+                networkOptions: { crossOrigin: 'anonymous' },
+            });
+
+            view.tileLayer.materialOptions = {
+                useColorTextureElevation: true,
+                colorTextureElevationMinZ: 0,
+                colorTextureElevationMaxZ: 1
+            };
 
 
             // Request redraw

@@ -29,6 +29,7 @@ uniform bool        selected;
 
 varying vec2        vUv;
 varying vec3        vNormal;
+varying vec3 vColor;
 
 uniform float opacity;
 
@@ -144,6 +145,7 @@ void main() {
         gl_FragColor = mix(CFog, diffuseColor, fogIntensity);
         gl_FragColor.a = 1.0;
     }
+    gl_FragColor.rgb = mix(gl_FragColor.rgb, vColor, 0.25);
     gl_FragColor.a = opacity;
     #endif
 }

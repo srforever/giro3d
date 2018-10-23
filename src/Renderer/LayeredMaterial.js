@@ -119,6 +119,7 @@ const LayeredMaterial = function LayeredMaterial(options) {
     fillArray(paramLayers, vector4);
     fillArray(this.layerTexturesCount, 0);
 
+    this.uniforms.tileDimensions = new THREE.Uniform(new THREE.Vector2());
     // Elevation texture
     this.uniforms.dTextures_00 = new THREE.Uniform(this.textures[l_ELEVATION]);
 

@@ -6,6 +6,11 @@ import { computeMinMaxElevation } from '../Parser/XbilParser';
 // max retry loading before changing the status to definitiveError
 const MAX_RETRY = 4;
 
+const fooCanvas = document.createElement('canvas');
+fooCanvas.width = 256;
+fooCanvas.height = 256;
+
+
 function initNodeElevationTextureFromParent(node, parent, layer) {
     // Inherit parent's elevation texture. Note that contrary to color layers the elevation level of the
     // node might not be EMPTY_TEXTURE_ZOOM in this init function. That's because we can have
@@ -214,6 +219,44 @@ export default {
             }).then((texture) => {
                 if (!texture) { return; }
 
+                // mapbox elevation
+                const w = texture.texture.image.width * texture.pitch.z;
+                const h = texture.texture.image.height * texture.pitch.w;
+                const fooCtx = fooCanvas.getContext('2d');
+                fooCtx.drawImage(
+                    texture.texture.image,
+                    texture.texture.image.width * texture.pitch.x,
+                    texture.texture.image.height * texture.pitch.y,
+                    w, h,
+                    0, 0, w, h);
+                const data = fooCtx.getImageData(0, 0, w, h).data;
+                function tr(r, g, b) {
+                    return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
+                }
+
+                let min = Infinity;
+                let max = -Infinity;
+                const stride = w * 4;
+                for (let i = 0; i < h; i++) {
+                    for (let j = 0; j < w; j += 4) {
+                        const val = tr(
+                            data[i * stride + j],
+                            data[i * stride + j + 1],
+                            data[i * stride + j + 2]);
+                        if (val < min) {
+                            min = val;
+                        }
+                        if (val > max) {
+                            max = val;
+                        }
+                    }
+                }
+                texture.min = min;
+                texture.max = max;
+
+                // texture.texture.wrapS = MirroredRepeatWrapping;
+                // texture.texture.wrapT = MirroredRepeatWrapping;
+                // texture.texture.needsUpdate = true;
                 node.setTextureElevation(layer, texture);
                 node.layerUpdateState[layer.id].success();
             });

@@ -39,6 +39,7 @@ export function requestNewTile(view, scheduler, geometryLayer, extent, parent, l
     };
 
     return scheduler.execute(command).then((node) => {
+        node.material.uniforms.tileDimensions.value.copy(node.extent.dimensions());
         node.add(node.OBB());
         geometryLayer.onTileCreated(geometryLayer, parent, node);
         return node;
