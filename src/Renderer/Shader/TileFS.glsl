@@ -113,7 +113,7 @@ void main() {
 
     float hillshade = calcHillshade(a, b, c, d, e, f, g, h, i, elevationOffsetScale.zw * 256.0);
 
-    gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(hillshade), 0.75);
+    gl_FragColor.rgb *= hillshade;
     #endif
 
     gl_FragColor.a = 1.0;
