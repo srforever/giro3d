@@ -11,7 +11,7 @@ uniform vec3      noTextureColor;
 uniform float     opacity;
 
 varying vec2        vUv;
-
+varying vec4 vColor;
 
 #if defined(HILLSHADE)
 // hillshade support
@@ -116,6 +116,7 @@ void main() {
     gl_FragColor.rgb *= hillshade;
     #endif
 
+    gl_FragColor.rgb = mix(gl_FragColor.rgb, vColor.rgb, vColor.a);
     gl_FragColor.a = 1.0;
     #endif
 }

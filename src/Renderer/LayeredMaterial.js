@@ -56,6 +56,7 @@ const LayeredMaterial = function LayeredMaterial(options) {
     if (options.useColorTextureElevation) {
         this.defines.COLOR_TEXTURE_ELEVATION = 1;
         this.defines.HILLSHADE = 1;
+        this.defines.STITCHING = 1;
     } else {
         // default
         this.defines.DATA_TEXTURE_ELEVATION = 1;
@@ -86,21 +87,31 @@ const LayeredMaterial = function LayeredMaterial(options) {
         elevation: {
             offsetScale: new THREE.Vector4(0, 0, 0, 0),
             texture: emptyTexture,
+            neighbours: {
+                offsetScale: Array(4),
+                texture: Array(4),
+            },
         },
     };
     fillArray(this.texturesInfo.color.offsetScale, vector4);
     fillArray(this.texturesInfo.color.textures, emptyTexture);
     fillArray(this.texturesInfo.color.opacity, 1.0);
     fillArray(this.texturesInfo.color.visible, false);
+    fillArray(this.texturesInfo.elevation.neighbours.texture, emptyTexture);
+    fillArray(this.texturesInfo.elevation.neighbours.offsetScale, vector4);
 
     this.layerTexturesCount = Array(8);
 
     fillArray(this.layerTexturesCount, 0);
 
     this.uniforms.tileDimensions = new THREE.Uniform(new THREE.Vector2());
+    this.uniforms.neighbourdiffLevel = new THREE.Uniform(new THREE.Vector4());
+
     // Elevation texture
     this.uniforms.elevationTexture = new THREE.Uniform(this.texturesInfo.elevation.texture);
     this.uniforms.elevationOffsetScale = new THREE.Uniform(this.texturesInfo.elevation.offsetScale);
+    this.uniforms.nTex = new THREE.Uniform(this.texturesInfo.elevation.neighbours.texture);
+    this.uniforms.nOff = new THREE.Uniform(this.texturesInfo.elevation.neighbours.offsetScale);
 
     // Color textures's layer
     this.uniforms.colorTexture = new THREE.Uniform(this.texturesInfo.color.textures);

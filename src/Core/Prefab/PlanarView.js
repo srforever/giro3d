@@ -73,6 +73,48 @@ export function createPlanarLayer(id, extent, options) {
         return layer.level0Nodes;
     };
 
+    tileLayer.postUpdate = (context, layer) => {
+        for (const r of layer.level0Nodes) {
+            r.traverse((node) => {
+                if (node.layer != layer || !node.material.visible) {
+                    return;
+                }
+                node.material.uniforms.neighbourdiffLevel.value.set(0, 0, 0, 1);
+                const n = findNeighbours(node);
+                if (n) {
+                    for (let i = 0; i < 4; i++) {
+                        if (!n[i] || !n[i][0].material.visible) {
+                            // neighbour is missing or smaller => don't do anything
+                            node.material.uniforms
+                                .neighbourdiffLevel.value.setComponent(i, 1);
+                        } else {
+                            const nn = n[i][0];
+                            const targetExtent = n[i][1];
+                            node.material.uniforms
+                                .neighbourdiffLevel.value.setComponent(i, nn.level - node.level);
+                            node.material.texturesInfo.elevation.neighbours.texture[i] =
+                                nn.material.texturesInfo.elevation.texture;
+
+                            const offscale = targetExtent.offsetToParent(nn.extent);
+                            node.material.texturesInfo.elevation.neighbours.offsetScale[i] =
+                                nn.material.texturesInfo.elevation.offsetScale.clone();
+
+                            node.material.texturesInfo.elevation.neighbours.offsetScale[i].x +=
+                                offscale.x * node.material.texturesInfo.elevation.neighbours.offsetScale[i].z;
+                            node.material.texturesInfo.elevation.neighbours.offsetScale[i].y +=
+                                offscale.y * node.material.texturesInfo.elevation.neighbours.offsetScale[i].w;
+                            node.material.texturesInfo.elevation.neighbours.offsetScale[i].z *=
+                                offscale.z;
+                            node.material.texturesInfo.elevation.neighbours.offsetScale[i].w *=
+                                offscale.w;
+
+                                // nn.material.texturesInfo.elevation.offsetScale;
+                        }
+                    }
+                }
+            });
+        }
+    };
 
     function subdivision(context, layer, node) {
         if (SubdivisionControl.hasEnoughTexturesToSubdivide(context, layer, node)) {
@@ -80,6 +122,51 @@ export function createPlanarLayer(id, extent, options) {
                 options.maxDeltaElevationLevel || 4)(context, layer, node);
         }
         return false;
+    }
+
+    function findSmallestExtentCoveringGoingDown(node, extent) {
+        if (node.children) {
+            for (const c of node.children) {
+                if (c.extent) {
+                    if (extent.isInside(c.extent)) {
+                        return findSmallestExtentCoveringGoingDown(c, extent);
+                    }
+                }
+            }
+        }
+        return [node, extent];
+    }
+
+    function findSmallestExtentCoveringGoingUp(node, extent) {
+        if (extent.isInside(node.extent)) {
+            return node;
+        }
+        if (!node.parent || !node.parent.extent) {
+            return undefined;
+        }
+        return findSmallestExtentCoveringGoingUp(node.parent, extent);
+    }
+    function findSmallestExtentCovering(node, extent) {
+        const n = findSmallestExtentCoveringGoingUp(node, extent);
+        if (n) {
+            return findSmallestExtentCoveringGoingDown(n, extent);
+        }
+    }
+
+    function findNeighbours(node) {
+        if (node.level == 0) {
+            return;
+        }
+
+        const dim = node.extent.dimensions();
+        // top, right, bottom, left
+        const result = [
+            findSmallestExtentCovering(node, node.extent.clone().shift(0, dim.y)),
+            findSmallestExtentCovering(node, node.extent.clone().shift(dim.x, 0)),
+            findSmallestExtentCovering(node, node.extent.clone().shift(0, -dim.y)),
+            findSmallestExtentCovering(node, node.extent.clone().shift(-dim.x, 0)),
+        ];
+        return result;
     }
 
     tileLayer.update = processTiledGeometryNode(planarCulling, subdivision);

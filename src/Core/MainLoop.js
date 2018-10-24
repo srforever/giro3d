@@ -168,7 +168,7 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
     for (const geometryLayer of view.getLayers((x, y) => !y)) {
         context.fastUpdateHint = undefined;
         context.geometryLayer = geometryLayer;
-        if (geometryLayer.ready && geometryLayer.visible && !geometryLayer.frozen) {
+        if (geometryLayer.ready && geometryLayer.visible) {
             view.execFrameRequesters(MAIN_LOOP_EVENTS.BEFORE_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer);
 
             // Filter updateSources that are relevant for the geometryLayer

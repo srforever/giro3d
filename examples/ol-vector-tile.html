@@ -10,8 +10,11 @@
     </head>
     <body>
         <div id="viewerDiv"></div>
+        <script src="js/GUI/dat.gui/dat.gui.min.js"></script>
         <script src="../dist/itowns.js"></script>
         <script src="js/loading_screen.js"></script>
+        <script src="../dist/debug.js"></script>
+        <script src="js/GUI/GuiTools.js"></script>
         <script src="js/mapbox-streets-v6-style.js"></script>
         <script type="text/javascript">
             // # Orthographic viewer
@@ -86,6 +89,9 @@
                     view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1));
             });
 
+            var menuGlobe = new GuiTools('menuDiv', view);
+            var d = new debug.Debug(view, menuGlobe.gui);
+            debug.createTileDebugUI(menuGlobe.gui, view, view.tileLayer, d);
         </script>
     </body>
 </html>

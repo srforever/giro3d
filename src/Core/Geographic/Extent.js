@@ -389,6 +389,14 @@ Extent.prototype.expandByPoint = function expandByPoint(coordinates) {
     }
 };
 
+Extent.prototype.shift = function shift(x, y) {
+    this._values[CARDINAL.WEST] += x;
+    this._values[CARDINAL.EAST] += x;
+    this._values[CARDINAL.SOUTH] += y;
+    this._values[CARDINAL.NORTH] += y;
+    return this;
+};
+
 Extent.fromBox3 = function fromBox3(crs, box) {
     return new Extent(crs, {
         west: box.min.x,

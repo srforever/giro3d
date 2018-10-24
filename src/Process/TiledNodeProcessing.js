@@ -112,19 +112,25 @@ export function processTiledGeometryNode(cullingTest, subdivisionTest) {
         }
 
         // do proper culling
-        const isVisible = cullingTest ? (!cullingTest(node, context.camera)) : true;
-        node.visible = isVisible;
+        if (!layer.frozen) {
+            const isVisible = cullingTest ? (!cullingTest(node, context.camera)) : true;
+            node.visible = isVisible;
+        }
 
-        if (isVisible) {
+        if (node.visible) {
             let requestChildrenUpdate = false;
 
-            if (node.pendingSubdivision || subdivisionTest(context, layer, node)) {
-                subdivideNode(context, layer, node);
-                // display iff children aren't ready
-                node.setDisplayed(node.pendingSubdivision);
-                requestChildrenUpdate = true;
+            if (!layer.frozen) {
+                if (node.pendingSubdivision || subdivisionTest(context, layer, node)) {
+                    subdivideNode(context, layer, node);
+                    // display iff children aren't ready
+                    node.setDisplayed(node.pendingSubdivision);
+                    requestChildrenUpdate = true;
+                } else {
+                    node.setDisplayed(true);
+                }
             } else {
-                node.setDisplayed(true);
+                requestChildrenUpdate = true;
             }
 
             if (node.material.visible) {
