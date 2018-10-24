@@ -6,21 +6,8 @@
 
 import * as THREE from 'three';
 import proj4 from 'proj4';
-import Ellipsoid from '../Math/Ellipsoid';
-
-proj4.defs('EPSG:4978', '+proj=geocent +datum=WGS84 +units=m +no_defs');
 
 const projectionCache = {};
-
-export function ellipsoidSizes() {
-    return {
-        x: 6378137,
-        y: 6378137,
-        z: 6356752.3142451793,
-    };
-}
-
-const ellipsoid = new Ellipsoid(ellipsoidSizes());
 
 export const UNIT = {
     DEGREE: 1,
@@ -110,28 +97,11 @@ export function is4326(crs) {
 }
 
 // Only support explicit conversions
-const cartesian = new THREE.Vector3();
 function _convert(coordsIn, newCrs, target) {
     target = target || new Coordinates(newCrs, 0, 0);
     if (newCrs === coordsIn.crs) {
         return target.copy(coordsIn);
     } else {
-        if (is4326(coordsIn.crs) && newCrs === 'EPSG:4978') {
-            ellipsoid.cartographicToCartesian(coordsIn, cartesian);
-            target.set(newCrs, cartesian);
-            target._normal = coordsIn.geodesicNormal;
-            return target;
-        }
-
-        if (coordsIn.crs === 'EPSG:4978' && is4326(newCrs)) {
-            ellipsoid.cartesianToCartographic({
-                x: coordsIn._values[0],
-                y: coordsIn._values[1],
-                z: coordsIn._values[2],
-            }, target);
-            return target;
-        }
-
         if (coordsIn.crs in proj4.defs && newCrs in proj4.defs) {
             const val0 = coordsIn._values[0];
             let val1 = coordsIn._values[1];
@@ -140,16 +110,7 @@ function _convert(coordsIn, newCrs, target) {
             // there is a bug for converting anything from and to 4978 with proj4
             // https://github.com/proj4js/proj4js/issues/195
             // the workaround is to use an intermediate projection, like EPSG:4326
-            if (newCrs == 'EPSG:4978') {
-                const p = instanceProj4(crsIn, 'EPSG:4326').forward([val0, val1]);
-                target.set('EPSG:4326', p[0], p[1], coordsIn._values[2]);
-                return target.as('EPSG:4978', target);
-            } else if (coordsIn.crs === 'EPSG:4978') {
-                coordsIn.as('EPSG:4326', target);
-                const p = instanceProj4(target.crs, newCrs).forward([target._values[0], target._values[1]]);
-                target.set(newCrs, p[0], p[1], target._values[2]);
-                return target;
-            } else if (is4326(crsIn) && newCrs == 'EPSG:3857') {
+            if (is4326(crsIn) && newCrs == 'EPSG:3857') {
                 val1 = THREE.Math.clamp(val1, -89.999999, 89.999999);
                 const p = instanceProj4(crsIn, newCrs).forward([val0, val1]);
                 return target.set(newCrs, p[0], p[1], coordsIn._values[2]);
@@ -182,6 +143,7 @@ function _convert(coordsIn, newCrs, target) {
  * // or
  * new Coordinates('EPSG:4326', 2.33, 48.24, 24999549); //Geographic coordinates
  */
+const planarNormal = new THREE.Vector3(0, 0, 1);
 
 function Coordinates(crs, ...coordinates) {
     this._values = new Float64Array(3);
@@ -190,25 +152,8 @@ function Coordinates(crs, ...coordinates) {
     Object.defineProperty(this, 'geodesicNormal',
         {
             configurable: true,
-            get: () => {
-                this._normal = this._normal || computeGeodesicNormal(this);
-                return this._normal;
-            },
+            get: () => planarNormal,
         });
-}
-
-const planarNormal = new THREE.Vector3(0, 0, 1);
-
-function computeGeodesicNormal(coord) {
-    if (is4326(coord.crs)) {
-        return ellipsoid.geodeticSurfaceNormalCartographic(coord);
-    }
-    // In globe mode (EPSG:4978), we compute the normal.
-    if (coord.crs == 'EPSG:4978') {
-        return ellipsoid.geodeticSurfaceNormal(coord);
-    }
-    // In planar mode, normal is the up vector.
-    return planarNormal;
 }
 
 Coordinates.prototype.set = function set(crs, ...coordinates) {

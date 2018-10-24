@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import Coordinates from '../../Core/Geographic/Coordinates';
 
 function OBB(min, max) {
     THREE.Object3D.call(this);
@@ -63,43 +62,5 @@ OBB.prototype._cPointsWorld = function _cPointsWorld(points) {
 
     return points;
 };
-
-/**
- * Determines if the sphere is above the XY space of the box
- *
- * @param      {Sphere}   sphere  The sphere
- * @return     {boolean}  True if sphere is above the XY space of the box, False otherwise.
- */
-OBB.prototype.isSphereAboveXYBox = function isSphereAboveXYBox(sphere) {
-    const localSpherePosition = this.worldToLocal(sphere.position);
-    // get obb closest point to sphere center by clamping
-    const x = Math.max(this.box3D.min.x, Math.min(localSpherePosition.x, this.box3D.max.x));
-    const y = Math.max(this.box3D.min.y, Math.min(localSpherePosition.y, this.box3D.max.y));
-
-    // this is the same as isPointInsideSphere.position
-    const distance = Math.sqrt((x - localSpherePosition.x) * (x - localSpherePosition.x) +
-                           (y - localSpherePosition.y) * (y - localSpherePosition.y));
-
-    return distance < sphere.radius;
-};
-
-// Allocate these variables once and for all
-const tmp = {
-    epsg4978: new Coordinates('EPSG:4978', 0, 0),
-    cardinals: [],
-    normal: new THREE.Vector3(),
-    maxV: new THREE.Vector3(),
-    minV: new THREE.Vector3(),
-    translate: new THREE.Vector3(),
-    cardinal3D: new THREE.Vector3(),
-    transformNormalToZ: new THREE.Quaternion(),
-    alignTileOnWorldXY: new THREE.Quaternion(),
-    tangentPlaneAtOrigin: new THREE.Plane(),
-    zUp: new THREE.Vector3(0, 0, 1),
-};
-
-for (let i = 0; i < 9; i++) {
-    tmp.cardinals.push(new Coordinates('EPSG:4326'));
-}
 
 export default OBB;

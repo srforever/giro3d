@@ -34,9 +34,7 @@
             Promise.all(promises).then(function _(panoramas) {
                 // Create an iTowns PanoramaView
                 view = new itowns.PanoramaView(viewerDiv,
-                    new itowns.Coordinates('EPSG:4326',
-                        panoramas[0]['coordinates'][0],
-                        panoramas[0]['coordinates'][1]).as('EPSG:4978'),
+                    new itowns.Coordinates('EPSG:3857'),
                     itowns.Panorama.SPHERICAL);
                 setupLoadingScreen(viewerDiv, view);
 

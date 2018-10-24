@@ -2,7 +2,6 @@ import * as THREE from 'three';
 import proj4 from 'proj4';
 import assert from 'assert';
 import Extent from '../../src/Core/Geographic/Extent';
-import BuilderEllipsoidTile from '../../src/Core/Prefab/Globe/BuilderEllipsoidTile';
 import PlanarTileBuilder from '../../src/Core/Prefab/Planar/PlanarTileBuilder';
 import TileGeometry from '../../src/Core/TileGeometry';
 import OBB from '../../src/Renderer/ThreeExtended/OBB';
@@ -53,20 +52,6 @@ function assertVerticesAreInOBB(builder, extent) {
     }
     assert.equal(geom.attributes.position.count - failing, geom.attributes.position.count, 'All points should be inside OBB');
 }
-
-describe('Ellipsoid tiles OBB computation', function () {
-    const builder = new BuilderEllipsoidTile();
-
-    it('should compute globe-level 0 OBB correctly', function () {
-        const extent = new Extent('EPSG:4326', -180, 0, -90, 90);
-        assertVerticesAreInOBB(builder, extent);
-    });
-
-    it('should compute globe-level 2 OBB correctly', function () {
-        const extent = new Extent('EPSG:4326', 0, 45, -45, 0);
-        assertVerticesAreInOBB(builder, extent);
-    });
-});
 
 describe('Planar tiles OBB computation', function () {
     const builder = new PlanarTileBuilder();

@@ -65,13 +65,14 @@ void main() {
     #else
 
     #if defined(DEBUG)
-     if ((vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine)) {
+     if (showOutline && (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine)) {
          gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
          return;
      }
     #endif
 
     vec4 diffuseColor = vec4(noTextureColor, 0.0);
+
     for (int i = 0; i < TEX_UNITS; i++) {
         if (!colorVisible[i] || colorOpacity[i] <= 0.0) {
             continue;
