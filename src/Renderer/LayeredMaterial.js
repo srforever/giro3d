@@ -83,6 +83,7 @@ const LayeredMaterial = function LayeredMaterial(options) {
     if (options.useRgbaTextureElevation) {
         throw new Error('Restore this feature');
     } else if (options.useColorTextureElevation) {
+        this.fragmentShaderHeader += '#define COLOR_TEXTURE_ELEVATION\n';
         vsOptions = '\n#define COLOR_TEXTURE_ELEVATION\n';
         vsOptions += `\nconst float _minElevation = ${options.colorTextureElevationMinZ.toFixed(1)};\n`;
         vsOptions += `\nconst float _maxElevation = ${options.colorTextureElevationMaxZ.toFixed(1)};\n`;
