@@ -86,6 +86,13 @@ function subdivideNode(context, layer, node) {
     }
 }
 
+function updateMinMaxDistance(context, node) {
+    const bbox = node.OBB().box3D.clone()
+        .applyMatrix4(node.OBB().matrixWorld);
+    const distance = bbox.distanceToPoint(context.camera.camera3D.position);
+    context.distance.update(distance, 2 * node.boundingSphere.radius);
+}
+
 export function processTiledGeometryNode(cullingTest, subdivisionTest) {
     return function _processTiledGeometryNode(context, layer, node) {
         if (!node.parent) {
@@ -96,6 +103,20 @@ export function processTiledGeometryNode(cullingTest, subdivisionTest) {
             node.visible = false;
             node.setDisplayed(false);
             return undefined;
+        }
+
+        if (context.fastUpdateHint) {
+            if (!context.fastUpdateHint.isAncestorOf(node)) {
+                // if visible, children bbox can only be smaller => stop updates
+                if (node.material.visible) {
+                    updateMinMaxDistance(context, node);
+                    return;
+                } else if (node.visible) {
+                    return node.children.filter(n => n.layer == layer);
+                } else {
+                    return;
+                }
+            }
         }
 
         // do proper culling
@@ -115,6 +136,8 @@ export function processTiledGeometryNode(cullingTest, subdivisionTest) {
             }
 
             if (node.material.visible) {
+                updateMinMaxDistance(context, node);
+
                 // update uniforms
                 if (context.view.fogDistance != undefined) {
                     node.setFog(context.view.fogDistance);

@@ -5,11 +5,12 @@ precision highp int;
 #define EPSILON 1e-6
 
 attribute vec3 position;
+uniform mat4 modelMatrix;
 uniform mat4 projectionMatrix;
 uniform mat4 modelViewMatrix;
 uniform float size;
 
-uniform bool pickingMode;
+uniform int pickingId;
 uniform int mode;
 uniform float opacity;
 uniform vec4 overlayColor;
@@ -24,6 +25,11 @@ attribute vec2 sphereMappedNormal;
 #else
 attribute vec3 normal;
 #endif
+
+uniform sampler2D texture;
+uniform vec4 offsetScale;
+uniform vec2 extentTopLeft;
+uniform vec2 extentSize;
 
 varying vec4 vColor;
 
@@ -70,12 +76,35 @@ void main() {
     vec3 normal = color;
 #endif
 
-    if (pickingMode) {
+    if (pickingId > 0) {
         vColor = unique_id;
+
+        float left4bitsShift = pow(2.0, 4.0); // << 4 <=> * 2^4
+        float right4bitsShift = 1.0 / left4bitsShift; // << 4 <=> / 1 * 2^4
+        float fId = float(pickingId);
+        // 20 bits for 'unique_id' (= the point index in the buffer)
+        // 12 bits for 'pickingId' (= the point instance id)
+        // (see Picking.js)
+        // upperPart = pickingId >> 4
+        float upperPart = floor(fId * right4bitsShift);
+        vColor.r = upperPart / 255.0;
+        // lowerPart = pickingId - upperPart << 4
+        float lowerPart = fId - upperPart * left4bitsShift;
+        vColor.g += (lowerPart * left4bitsShift) / 255.0;
     } else if (mode == MODE_INTENSITY) {
         vColor = vec4(intensity, intensity, intensity, opacity);
     } else if (mode == MODE_NORMAL) {
         vColor = vec4(abs(normal), opacity);
+    } else if (mode == MODE_TEXTURE) {
+        vec2 pp = (modelMatrix * vec4(position, 1.0)).xy;
+        // offsetScale is from topleft
+        pp.x -= extentTopLeft.x;
+        pp.y = extentTopLeft.y - pp.y;
+        pp *= offsetScale.zw / extentSize;
+        pp += offsetScale.xy;
+        pp.y = 1.0 - pp.y;
+        vec3 textureColor = texture2D(texture, pp).rgb;
+        vColor = vec4(mix(textureColor, overlayColor.rgb, overlayColor.a), opacity);
     } else {
         // default to color mode
         vColor = vec4(mix(color, overlayColor.rgb, overlayColor.a), opacity);

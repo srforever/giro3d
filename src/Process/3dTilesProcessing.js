@@ -295,24 +295,27 @@ export function pre3dTilesUpdate(context, layer) {
 
 const boundingVolumeBox = new THREE.Box3();
 const boundingVolumeSphere = new THREE.Sphere();
-export function computeNodeSSE(camera, node) {
+export function computeNodeSSE(context, node) {
     node.distance = 0;
     if (node.boundingVolume.region) {
         boundingVolumeBox.copy(node.boundingVolume.region.box3D);
         boundingVolumeBox.applyMatrix4(node.boundingVolume.region.matrixWorld);
-        node.distance = boundingVolumeBox.distanceToPoint(camera.camera3D.position);
+        node.distance = boundingVolumeBox.distanceToPoint(context.camera.camera3D.position);
+        context.distance.update(node.distance, node.boundingVolume.region.box3D.getSize());
     } else if (node.boundingVolume.box) {
         // boundingVolume.box is affected by matrixWorld
         boundingVolumeBox.copy(node.boundingVolume.box);
         boundingVolumeBox.applyMatrix4(node.matrixWorld);
-        node.distance = boundingVolumeBox.distanceToPoint(camera.camera3D.position);
+        node.distance = boundingVolumeBox.distanceToPoint(context.camera.camera3D.position);
+        context.distance.update(node.distance, node.boundingVolume.box.getSize());
     } else if (node.boundingVolume.sphere) {
         // boundingVolume.sphere is affected by matrixWorld
         boundingVolumeSphere.copy(node.boundingVolume.sphere);
         boundingVolumeSphere.applyMatrix4(node.matrixWorld);
         // TODO: see https://github.com/iTowns/itowns/issues/800
         node.distance = Math.max(0.0,
-            boundingVolumeSphere.distanceToPoint(camera.camera3D.position));
+            boundingVolumeSphere.distanceToPoint(context.camera.camera3D.position));
+        context.distance.update(node.distance, 2 * node.boundingVolume.sphere.radius);
     } else {
         return Infinity;
     }
@@ -320,7 +323,7 @@ export function computeNodeSSE(camera, node) {
         // This test is needed in case geometricError = distance = 0
         return Infinity;
     }
-    return camera._preSSE * (node.geometricError / node.distance);
+    return context.camera._preSSE * (node.geometricError / node.distance);
 }
 
 export function init3dTilesLayer(view, scheduler, layer) {
@@ -392,7 +395,7 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                     markForDeletion(layer, n);
                 }
             }
-            // toggle wireframe
+            // update material
             if (node.content && node.content.visible) {
                 node.content.traverse((o) => {
                     if (o.layer == layer && o.material) {
@@ -400,9 +403,6 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                         if (o.isPoints) {
                             if (o.material.update) {
                                 o.material.update(layer.material);
-                                if (node.pendingSubdivision) {
-                                    o.material.uniforms.size.value = 2 * o.material.size;
-                                }
                             } else {
                                 o.material.copy(layer.material);
                             }
@@ -428,7 +428,8 @@ export function $3dTilesSubdivisionControl(context, layer, node) {
         return true;
     }
 
-    const sse = computeNodeSSE(context.camera, node);
+    const sse = computeNodeSSE(context, node);
     node.sse = sse;
+
     return sse > layer.sseThreshold;
 }

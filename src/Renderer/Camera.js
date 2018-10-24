@@ -10,6 +10,9 @@ function Camera(crs, width, height, options = {}) {
     Object.defineProperty(this, 'crs', { get: () => crs });
 
     this.camera3D = options.camera ? options.camera : new THREE.PerspectiveCamera(30, width / height);
+    this.camera3D.near = 0.1;
+    this.camera3D.far = 2000000000;
+    this.camera3D.updateProjectionMatrix();
 
     this._viewMatrix = new THREE.Matrix4();
     this.width = width;
@@ -19,17 +22,19 @@ function Camera(crs, width, height, options = {}) {
 }
 
 function resize(camera, width, height) {
-    camera.width = width;
-    camera.height = height;
-    const ratio = width / height;
+    if (width && height) {
+        camera.width = width;
+        camera.height = height;
+        const ratio = width / height;
 
-    if (camera.camera3D.aspect !== ratio) {
-        camera.camera3D.aspect = ratio;
-        if (camera.camera3D.isOrthographicCamera) {
-            const halfH = (camera.camera3D.right - camera.camera3D.left) * 0.5 / ratio;
-            const y = (camera.camera3D.top + camera.camera3D.bottom) * 0.5;
-            camera.camera3D.top = y + halfH;
-            camera.camera3D.bottom = y - halfH;
+        if (camera.camera3D.aspect !== ratio) {
+            camera.camera3D.aspect = ratio;
+            if (camera.camera3D.isOrthographicCamera) {
+                const halfH = (camera.camera3D.right - camera.camera3D.left) * 0.5 / ratio;
+                const y = (camera.camera3D.top + camera.camera3D.bottom) * 0.5;
+                camera.camera3D.top = y + halfH;
+                camera.camera3D.bottom = y - halfH;
+            }
         }
     }
 

@@ -6,6 +6,7 @@ import PotreeCinParser from '../Parser/PotreeCinParser';
 import PointsMaterial, { MODE } from '../Renderer/PointsMaterial';
 import Picking from '../Core/Picking';
 import Extent from '../Core/Geographic/Extent';
+import Points from '../Core/Points';
 
 // Create an A(xis)A(ligned)B(ounding)B(ox) for the child `childIndex` of one aabb.
 // (PotreeConverter protocol builds implicit octree hierarchy by applying the same
@@ -116,31 +117,6 @@ function findChildrenByName(node, name) {
         }
     }
     throw new Error(`Cannot find node with name '${name}'`);
-}
-
-let nextuuid = 1;
-function addPickingAttribute(points) {
-    // generate unique id for picking
-    const numPoints = points.geometry.attributes.position.count;
-    const ids = new Uint8Array(4 * numPoints);
-    const baseId = nextuuid++;
-    if (numPoints > 0xffff || baseId > 0xffff) {
-        // TODO: fixme
-        console.warn('Currently picking is limited to Points with less than 65535 elements and less than 65535 Points instances');
-        return points;
-    }
-    for (let i = 0; i < numPoints; i++) {
-        // todo numpoints > 16bits
-        const v = (baseId << 16) | i;
-        ids[4 * i + 0] = (v & 0xff000000) >> 24;
-        ids[4 * i + 1] = (v & 0x00ff0000) >> 16;
-        ids[4 * i + 2] = (v & 0x0000ff00) >> 8;
-        ids[4 * i + 3] = (v & 0x000000ff) >> 0;
-    }
-
-    points.baseId = baseId;
-    points.geometry.addAttribute('unique_id', new THREE.BufferAttribute(ids, 4, true));
-    return points;
 }
 
 function computeBbox(layer) {
@@ -286,8 +262,10 @@ export default {
         const url = `${metadata.baseurl}/r${metadata.name}.${layer.extension}?isleaf=${command.isLeaf ? 1 : 0}`;
 
         return Fetcher.arrayBuffer(url, layer.fetchOptions).then(buffer => layer.parse(buffer, layer.metadata.pointAttributes)).then((geometry) => {
-            const points = new THREE.Points(geometry, layer.material.clone());
-            addPickingAttribute(points);
+            const points = new Points(layer, geometry, layer.material.clone());
+            if (points.material.enablePicking) {
+                Picking.preparePointGeometryForPicking(points.geometry);
+            }
             points.frustumCulled = false;
             points.matrixAutoUpdate = false;
             points.position.copy(metadata.bbox.min);
