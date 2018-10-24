@@ -2,8 +2,6 @@ import * as THREE from 'three';
 import B3dmParser from '../Parser/B3dmParser';
 import PntsParser from '../Parser/PntsParser';
 import Fetcher from './Fetcher';
-import OBB from '../Renderer/ThreeExtended/OBB';
-import Extent from '../Core/Geographic/Extent';
 import { pre3dTilesUpdate, process3dTilesNode, init3dTilesLayer } from '../Process/3dTilesProcessing';
 import utf8Decoder from '../utils/Utf8Decoder';
 import Picking from '../Core/Picking';
@@ -136,25 +134,9 @@ function preprocessDataLayer(layer, view, scheduler) {
     });
 }
 
-function getBox(volume, inverseTileTransform) {
+function getBox(volume) {
     if (volume.region) {
-        const region = volume.region;
-        const extent = new Extent('EPSG:4326',
-            THREE.Math.radToDeg(region[0]),
-            THREE.Math.radToDeg(region[2]),
-            THREE.Math.radToDeg(region[1]),
-            THREE.Math.radToDeg(region[3]));
-        const box = OBB.extentToOBB(extent, region[4], region[5]);
-        // at this point box.matrix = box.epsg4978_from_local, so
-        // we transform it in parent_from_local by using parent's epsg4978_from_local
-        // which from our point of view is epsg4978_from_parent.
-        // box.matrix = (epsg4978_from_parent ^ -1) * epsg4978_from_local
-        //            =  parent_from_epsg4978 * epsg4978_from_local
-        //            =  parent_from_local
-        box.matrix.premultiply(inverseTileTransform);
-        // update position, rotation and scale
-        box.matrix.decompose(box.position, box.quaternion, box.scale);
-        return { region: box };
+        throw new Error('volume.region is unsupported');
     } else if (volume.box) {
         // TODO: only works for axis aligned boxes
         const box = volume.box;

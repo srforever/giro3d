@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 import Coordinates from '../../Core/Geographic/Coordinates';
-import TileGeometry from '../../Core/TileGeometry';
-import BuilderEllipsoidTile from '../../Core/Prefab/Globe/BuilderEllipsoidTile';
 
 function OBB(min, max) {
     THREE.Object3D.call(this);
@@ -103,31 +101,5 @@ const tmp = {
 for (let i = 0; i < 9; i++) {
     tmp.cardinals.push(new Coordinates('EPSG:4326'));
 }
-
-// get oriented bounding box of tile
-const builder = new BuilderEllipsoidTile();
-OBB.extentToOBB = function _extentToOBB(extent, minHeight = 0, maxHeight = 0) {
-    if (extent._crs != 'EPSG:4326') {
-        throw new Error('The extent crs is not a Geographic Coordinates (EPSG:4326)');
-    }
-
-    const { sharableExtent, quaternion, position } = builder.computeSharableExtent(extent);
-    const paramsGeometry = {
-        extent: sharableExtent,
-        level: 0,
-        segment: 2,
-        disableSkirt: true,
-    };
-
-    const geometry = new TileGeometry(paramsGeometry, builder);
-    const obb = geometry.OBB;
-    obb.updateZ(minHeight, maxHeight);
-    obb.position.copy(position);
-    obb.quaternion.copy(quaternion);
-    obb.update();
-
-    // Calling geometry.dispose() is not needed since this geometry never gets rendered
-    return obb;
-};
 
 export default OBB;
