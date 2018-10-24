@@ -55,11 +55,11 @@ const LayeredMaterial = function LayeredMaterial(options) {
     // Move this to the setTerrain code
     if (options.useColorTextureElevation) {
         this.defines.COLOR_TEXTURE_ELEVATION = 1;
+        this.defines.HILLSHADE = 1;
     } else {
         // default
         this.defines.DATA_TEXTURE_ELEVATION = 1;
     }
-    this.defines.HILLSHADE = 1;
 
     this.defines.TEX_UNITS = nbSamplers;
     if (__DEBUG__) {

@@ -7,7 +7,6 @@ function PlanarTileBuilder() {
     this.tmp = {
         coords: new Coordinates('EPSG:4326', 0, 0),
         position: new THREE.Vector3(),
-        normal: new THREE.Vector3(0, 0, 1),
     };
 
     this.type = 'p';
@@ -35,11 +34,6 @@ PlanarTileBuilder.prototype.Center = function Center(extent) {
 PlanarTileBuilder.prototype.VertexPosition = function VertexPosition(params) {
     this.tmp.position.set(params.projected.x, params.projected.y, 0);
     return this.tmp.position;
-};
-
-// get normal for last vertex
-PlanarTileBuilder.prototype.VertexNormal = function VertexNormal() {
-    return this.tmp.normal;
 };
 
 // coord u tile to projected

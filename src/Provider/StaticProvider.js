@@ -127,7 +127,7 @@ export default {
             layer._spatialIndex, layer.images, tile.extent.as(layer.extent.crs())).length > 0;
     },
 
-    canTextureBeImproved(layer, extents, currentTextures) {
+    canTextureBeImproved(layer, extents, currentTexture) {
         if (!layer.images) {
             return;
         }
@@ -136,7 +136,7 @@ export default {
         if (!s) {
             return;
         }
-        if (currentTextures && currentTextures[0].file != s.image) {
+        if (currentTexture && currentTexture.file != s.image) {
             return [{
                 selection: s,
                 pitch: extents[0].offsetToParent(s.extent),

@@ -5,7 +5,6 @@ const cache = new Map();
 function Buffers() {
     this.index = null;
     this.position = null;
-    this.normal = null;
     this.uv = null;
 }
 
@@ -20,7 +19,6 @@ function TileGeometry(params, builder) {
 
     this.setIndex(bufferAttribs.index);
     this.addAttribute('position', bufferAttribs.position);
-    this.addAttribute('normal', bufferAttribs.normal);
     this.addAttribute('uv', bufferAttribs.uv);
 
     this.computeBoundingBox();
@@ -44,7 +42,6 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
     const triangles = (nSeg) * (nSeg) * 2 + (params.disableSkirt ? 0 : 4 * nSeg * 2);
 
     outBuffers.position = new THREE.BufferAttribute(new Float32Array(nVertex * 3), 3);
-    outBuffers.normal = new THREE.BufferAttribute(new Float32Array(nVertex * 3), 3);
 
     // Read previously cached values (index and uv.wgs84 only depend on the # of triangles)
     const cacheKey = `${builder.type}_${params.disableSkirt ? 0 : 1}_${params.segment}`;
@@ -100,7 +97,6 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
             builder.uProjecte(u, params);
 
             const vertex = builder.VertexPosition(params, params.projected);
-            const normal = builder.VertexNormal(params);
 
             // move geometry to center world
             vertex.sub(this.center);
@@ -108,11 +104,9 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
             // align normal to z axis
             if (params.quatNormalToZ) {
                 vertex.applyQuaternion(params.quatNormalToZ);
-                normal.applyQuaternion(params.quatNormalToZ);
             }
 
             vertex.toArray(outBuffers.position.array, id_m3);
-            normal.toArray(outBuffers.normal.array, id_m3);
 
             UV_WGS84(outBuffers, idVertex, u, v);
 
@@ -164,63 +158,6 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
                 idVertex2 = bufferize(v4, v2, v1, idVertex2);
                 idVertex2 = bufferize(v4, v3, v2, idVertex2);
             }
-        }
-    }
-
-    const iStart = idVertex;
-
-    // TODO: WARNING beware skirt's size influences performance
-    // The size of the skirt is now a ratio of the size of the tile.
-    // To be perfect it should depend on the real elevation delta but too heavy to compute
-    if (!params.disableSkirt) {
-        // We compute the actual size of tile segment to use later for the skirt.
-        const segmentSize = new THREE.Vector3().fromArray(outBuffers.position.array).distanceTo(
-            new THREE.Vector3().fromArray(outBuffers.position.array, 3));
-
-        var buildIndexSkirt = function buildIndexSkirt() {};
-        var buildUVSkirt = function buildUVSkirt() {};
-
-        if (mustBuildIndexAndWGS84) {
-            buildIndexSkirt = function buildIndexSkirt(id, v1, v2, v3, v4) {
-                id = bufferize(v1, v2, v3, id);
-                id = bufferize(v1, v3, v4, id);
-                return id;
-            };
-
-            buildUVSkirt = function buildUVSkirt(id) {
-                outBuffers.uv.array[idVertex * 2 + 0] = outBuffers.uv.array[id * 2 + 0];
-                outBuffers.uv.array[idVertex * 2 + 1] = outBuffers.uv.array[id * 2 + 1];
-            };
-        }
-
-        for (let i = 0; i < skirt.length; i++) {
-            const id = skirt[i];
-            const id_m3 = idVertex * 3;
-            const id2_m3 = id * 3;
-
-            outBuffers.position.array[id_m3 + 0] = outBuffers.position.array[id2_m3 + 0]
-                - outBuffers.normal.array[id2_m3 + 0] * segmentSize;
-            outBuffers.position.array[id_m3 + 1] = outBuffers.position.array[id2_m3 + 1]
-                - outBuffers.normal.array[id2_m3 + 1] * segmentSize;
-            outBuffers.position.array[id_m3 + 2] = outBuffers.position.array[id2_m3 + 2]
-                - outBuffers.normal.array[id2_m3 + 2] * segmentSize;
-
-            outBuffers.normal.array[id_m3 + 0] = outBuffers.normal.array[id2_m3 + 0];
-            outBuffers.normal.array[id_m3 + 1] = outBuffers.normal.array[id2_m3 + 1];
-            outBuffers.normal.array[id_m3 + 2] = outBuffers.normal.array[id2_m3 + 2];
-
-            buildUVSkirt(id);
-
-            const idf = (i + 1) % skirt.length;
-
-            const v1 = id;
-            const v2 = idVertex;
-            const v3 = (idf === 0) ? iStart : idVertex + 1;
-            const v4 = skirt[idf];
-
-            idVertex2 = buildIndexSkirt(idVertex2, v1, v2, v3, v4);
-
-            idVertex++;
         }
     }
 
