@@ -237,7 +237,7 @@ function PlanarControls(view, options = {}) {
 
     // add this PlanarControl instance to the view's framerequesters
     // with this, PlanarControl.update() will be called each frame
-    this.view.addFrameRequester(MAIN_LOOP_EVENTS.AFTER_CAMERA_UPDATE, this.update.bind(this));
+    this.view.addFrameRequester(MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, this.update.bind(this));
 
     /**
      * Initiate a drag movement (translation on xy plane). The movement value
