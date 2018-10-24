@@ -33,23 +33,10 @@ export function prePlanarUpdate(context, layer) {
     }
 }
 
-export function planarSubdivisionControl(maxLevel, maxDeltaElevationLevel) {
+export function planarSubdivisionControl(maxLevel) {
     return function _planarSubdivisionControl(context, layer, node) {
         if (maxLevel <= node.level) {
             return false;
-        }
-
-        // Prevent to subdivise the node if the current elevation level
-        // we must avoid a tile, with level 20, inherits a level 3 elevation texture.
-        // The induced geometric error is much too large and distorts the SSE
-        const textureInfos = node.material.getLayerTextures({ type: 'elevation' });
-        if (textureInfos.textures[0].extent) {
-            const offsetScale = textureInfos.offsetScales[0];
-            const ratio = offsetScale.z;
-            // ratio is node size / texture size
-            if (ratio < 1 / Math.pow(2, maxDeltaElevationLevel)) {
-                return false;
-            }
         }
 
         return _isTileBigOnScreen(context.camera, node);

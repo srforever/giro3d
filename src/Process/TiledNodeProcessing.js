@@ -67,15 +67,6 @@ function subdivideNode(context, layer, node) {
                 node.add(child);
                 child.updateMatrixWorld(true);
             }
-            // TODO
-            /*
-              if (child.material.elevationLayersId.length) {
-                // need to force update elevation when delta is important
-                if (child.level - child.material.getElevationLayerLevel() > 6) {
-                    updateNodeElevation(_this.scene, params.tree, child, params.layersConfig, true);
-                }
-            }
-            */
             node.pendingSubdivision = false;
             context.view.notifyChange(node, false);
         }, (err) => {

@@ -1,34 +1,33 @@
 import LayerUpdateState from '../Core/Layer/LayerUpdateState';
-import { ImageryLayers } from '../Core/Layer/Layer';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 
 const MAX_RETRY = 4;
 
 function initColorTexturesFromParent(node, parent, layer) {
-    if (!parent.material || !parent.material.getLayerTextures) {
+    if (!parent.material || !parent.material.getLayerTexture) {
         return false;
     }
 
     const coords = node.getCoordsForLayer(layer);
-    const parentTextures = parent.material.getLayerTextures(layer);
-    if (!parentTextures) {
+    const parentTexture = parent.material.getLayerTexture(layer);
+    if (!parentTexture) {
         return false;
     }
 
     const textures = [];
 
     for (const c of coords) {
-        for (const texture of parentTextures.textures) {
-            if (!texture || !texture.extent) {
-                continue;
-            }
-            if (c.isInside(texture.extent)) {
-                textures.push({
-                    texture,
-                    pitch: c.offsetToParent(texture.extent),
-                });
-                break;
-            }
+        const texture = parentTexture.texture;
+
+        if (!texture || !texture.extent) {
+            break;
+        }
+        if (c.isInside(texture.extent)) {
+            textures.push({
+                texture,
+                pitch: c.offsetToParent(texture.extent),
+            });
+            break;
         }
     }
 
@@ -83,7 +82,7 @@ export default {
                 if (!layer.noTextureParentOutsideLimit &&
                     parent &&
                     parent.material &&
-                    parent.material.getLayerTextures(layer)) {
+                    parent.material.getLayerTexture(layer)) {
                     // ok, we're going to inherit our parent's texture
                 } else {
                     node.layerUpdateState[layer.id].noMoreUpdatePossible();
@@ -93,10 +92,6 @@ export default {
 
             // INIT TEXTURE
             material.pushLayer(layer, node.getCoordsForLayer(layer));
-
-            const imageryLayers = context.view.getLayers((l, p) => l.type === 'color' && p == node.layer);
-            const sequence = ImageryLayers.getColorLayersIdOrderedBySequence(imageryLayers);
-            material.setSequence(sequence);
 
             if (parent && initColorTexturesFromParent(node, parent, layer)) {
                 context.view.notifyChange(node, false);
@@ -125,7 +120,7 @@ export default {
         const nextDownloads = layer.canTextureBeImproved(
             layer,
             node.getCoordsForLayer(layer),
-            node.material.getLayerTextures(layer).textures,
+            node.material.getLayerTexture(layer).texture,
             node.layerUpdateState[layer.id].failureParams);
 
         if (!nextDownloads) {
