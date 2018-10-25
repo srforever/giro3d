@@ -1,4 +1,3 @@
-import * as THREE from 'three';
 import OBBHelper from './OBBHelper';
 import TileObjectChart from './charts/TileObjectChart';
 import TileVisibilityChart from './charts/TileVisibilityChart';
@@ -112,12 +111,6 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
                 // FIXME a proper way of notifying tile deletion to children layers should be implemented
                 node.setDisplayed = function setDisplayed(show) {
                     this.material.visible = show;
-                    if (!show) {
-                        let i = this.children.length;
-                        while (i--) {
-                            const c = this.children[i];
-                        }
-                    }
                 };
             } else {
                 helper = helpers[0];

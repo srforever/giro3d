@@ -8,33 +8,25 @@ function initColorTexturesFromParent(node, parent, layer) {
         return false;
     }
 
-    const coords = node.getCoordsForLayer(layer);
+    const extent = node.getExtentForLayer(layer);
     const parentTexture = parent.material.getLayerTexture(layer);
     if (!parentTexture) {
         return false;
     }
 
-    const textures = [];
+    const texture = parentTexture.texture;
 
-    for (const c of coords) {
-        const texture = parentTexture.texture;
-
-        if (!texture || !texture.extent) {
-            break;
-        }
-        if (c.isInside(texture.extent)) {
-            textures.push({
-                texture,
-                pitch: c.offsetToParent(texture.extent),
-            });
-            break;
-        }
+    if (!texture || !texture.extent) {
+        return false;
     }
-
-    if (textures.length == coords.length) {
-        node.material.setLayerTextures(layer, textures);
+    if (extent.isInside(texture.extent)) {
+        node.material.setLayerTextures(layer, [{
+            texture,
+            pitch: extent.offsetToParent(texture.extent),
+        }]);
         return true;
     }
+
     return false;
 }
 
@@ -91,7 +83,7 @@ export default {
             }
 
             // INIT TEXTURE
-            material.pushLayer(layer, node.getCoordsForLayer(layer));
+            material.pushLayer(layer, node.getExtentForLayer(layer));
 
             if (parent && initColorTexturesFromParent(node, parent, layer)) {
                 context.view.notifyChange(node, false);
@@ -119,7 +111,7 @@ export default {
         // Does this tile needs a new texture?
         const nextDownloads = layer.canTextureBeImproved(
             layer,
-            node.getCoordsForLayer(layer),
+            node.getExtentForLayer(layer),
             node.material.getLayerTexture(layer).texture,
             node.layerUpdateState[layer.id].failureParams);
 

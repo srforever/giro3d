@@ -65,16 +65,16 @@ export default {
     // inverted to match the same scheme as OSM, Google Maps or other system.
     // See link below for more information
     // https://alastaira.wordpress.com/2011/07/06/converting-tms-tile-coordinates-to-googlebingosm-tile-coordinates/
-    computeTMSCoordinates(tile, extent, origin = 'bottom') {
-        if (tile.extent.crs() != extent.crs()) {
+    computeTMSCoordinates(tileExtent, extent, origin = 'bottom') {
+        if (tileExtent.crs() != extent.crs()) {
             throw new Error('Unsupported configuration. TMS is only supported when geometry has the same crs than TMS layer');
         }
-        const c = tile.extent.center();
+        const c = tileExtent.center();
         const layerDimension = extent.dimensions();
 
         // Each level has 2^n * 2^n tiles...
         // ... so we count how many tiles of the same width as tile we can fit in the layer
-        const tileCount = Math.round(layerDimension.x / tile.extent.dimensions().x);
+        const tileCount = Math.round(layerDimension.x / tileExtent.dimensions().x);
         // ... 2^zoom = tilecount => zoom = log2(tilecount)
         const zoom = Math.floor(Math.log2(tileCount));
 

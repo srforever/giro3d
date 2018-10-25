@@ -22,9 +22,9 @@ function initNodeElevationTextureFromParent(node, parent, layer) {
         return;
     }
     if (!nodeTexture.extent || parentTexture.extent.isInside(nodeTexture.extent)) {
-        const coords = node.getCoordsForLayer(layer);
+        const extent = node.getExtentForLayer(layer);
 
-        const pitch = coords[0].offsetToParent(parentTexture.extent);
+        const pitch = extent.offsetToParent(parentTexture.extent);
         const elevation = {
             texture: parentTexture,
             pitch,
@@ -38,32 +38,6 @@ function initNodeElevationTextureFromParent(node, parent, layer) {
         elevation.max = max;
 
         node.setTextureElevation(layer, elevation);
-    }
-}
-
-function getIndiceWithPitch(i, pitch, w) {
-    // Return corresponding indice in parent tile using pitch
-    const currentX = (i % w) / w;  // normalized
-    const currentY = Math.floor(i / w) / w; // normalized
-    const newX = pitch.x + currentX * pitch.z;
-    const newY = pitch.y + currentY * pitch.w;
-    const newIndice = Math.floor(newY * w) * w + Math.floor(newX * w);
-    return newIndice;
-}
-
-function insertSignificantValuesFromParent(texture, node, parent, layer) {
-    const parentTexture = parent.material.getLayerTexture(layer).texture;
-    if (parentTexture.extent) {
-        const coords = node.getCoordsForLayer(layer);
-        const pitch = coords[0].offsetToParent(parentTexture.extent);
-        const tData = texture.image.data;
-        const l = tData.length;
-
-        for (var i = 0; i < l; ++i) {
-            if (tData[i] === layer.noDataValue) {
-                tData[i] = parentTexture.image.data[getIndiceWithPitch(i, pitch, 256)];
-            }
-        }
     }
 }
 
@@ -89,16 +63,6 @@ function refinementCommandCancellationFn(cmd) {
     }
 
     return !cmd.requester.material.visible;
-}
-
-function checkNodeElevationTextureValidity(texture, noDataValue) {
-    // We check if the elevation texture has some significant values through corners
-    const tData = texture.image.data;
-    const l = tData.length;
-    return tData[0] > noDataValue &&
-           tData[l - 1] > noDataValue &&
-           tData[Math.sqrt(l) - 1] > noDataValue &&
-           tData[l - Math.sqrt(l)] > noDataValue;
 }
 
 export default {
@@ -136,7 +100,7 @@ export default {
         // Does this tile needs a new texture?
         const nextDownloads = layer.canTextureBeImproved(
             layer,
-            node.getCoordsForLayer(layer),
+            node.getExtentForLayer(layer),
             node.material.getLayerTexture(layer).textures,
             node.layerUpdateState[layer.id].failureParams);
 
@@ -202,15 +166,6 @@ export default {
                     // See UV construction for more details
                     terrain.texture.flipY = false;
                     terrain.texture.needsUpdate = true;
-                }
-
-                if (terrain.texture &&
-                    terrain.texture.image.data &&
-                    !checkNodeElevationTextureValidity(terrain.texture, layer.noDataValue)) {
-                    // Quick check to avoid using elevation texture with no data value
-                    // If we have no data values, we use value from the parent tile
-                    // We should later implement multi elevation layer to choose the one to use at each level
-                    insertSignificantValuesFromParent(terrain.texture, node, parent, layer);
                 }
 
                 // TODO do xbil specific processing here, instead of doing it

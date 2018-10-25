@@ -7,7 +7,6 @@
 import * as THREE from 'three';
 import RendererConstant from '../Renderer/RendererConstant';
 import OGCWebServiceHelper from '../Provider/OGCWebServiceHelper';
-import { is4326 } from './Geographic/Coordinates';
 
 function TileMesh(layer, geometry, material, extent, level) {
     // Constructor
@@ -26,8 +25,6 @@ function TileMesh(layer, geometry, material, extent, level) {
     this.obb = this.geometry.OBB.clone();
 
     this.frustumCulled = false;
-
-    this.wmtsCoords = {};
 
     // Layer
     this.setDisplayed(false);
@@ -160,27 +157,15 @@ TileMesh.prototype.changeSequenceLayers = function changeSequenceLayers(sequence
     this.material.setSequence(sequence);
 };
 
-TileMesh.prototype.getCoordsForLayer = function getCoordsForLayer(layer) {
-    if (layer.protocol.indexOf('wmts') == 0) {
-        OGCWebServiceHelper.computeTileMatrixSetCoordinates(this, layer.options.tileMatrixSet);
-        return this.wmtsCoords[layer.options.tileMatrixSet];
-    } else if (layer.protocol == 'tms' || layer.protocol == 'xyz') {
-        // Special globe case: use the P(seudo)M(ercator) coordinates
-        if (is4326(this.extent.crs()) &&
-                (layer.extent.crs() == 'EPSG:3857' || is4326(layer.extent.crs()))) {
-            OGCWebServiceHelper.computeTileMatrixSetCoordinates(this, 'PM');
-            return this.wmtsCoords.PM;
-        } else {
-            return OGCWebServiceHelper.computeTMSCoordinates(this, layer.extent, layer.origin);
-        }
-    } else if (layer.extent.crs() == this.extent.crs()) {
-        // Currently extent.as() always clone the extent, even if the output
-        // crs is the same.
-        // So we avoid using it if both crs are the same.
-        return [this.extent];
-    } else {
-        return [this.extent.as(layer.extent.crs())];
+TileMesh.prototype.getExtentForLayer = function getExtentForLayer(layer) {
+    if (layer.extent.crs() != this.extent.crs()) {
+        throw new Error('Unsupported reprojection');
     }
+    if (layer.protocol == 'tms' || layer.protocol == 'xyz') {
+        return OGCWebServiceHelper
+            .computeTMSCoordinates(this.extent, layer.extent, layer.origin)[0];
+    }
+    return this.extent;
 };
 
 /**

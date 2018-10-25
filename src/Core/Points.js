@@ -10,7 +10,7 @@ class Points extends THREE.Points {
         this.wmtsCoords = {};
     }
 
-    getCoordsForLayer(layer) {
+    getExtentForLayer(layer) {
         if (layer.extent.crs() != this._layer.extent.crs()) {
             throw new Error('Unsupported reprojection');
         }

@@ -79,43 +79,41 @@ function chooseExtentToDownload(extent, currentExtent, layer, pitch, previousErr
     return OGCWebServiceHelper.WMTS_WGS84Parent(extent, nextZoom, pitch);
 }
 
-function canTextureBeImproved(layer, extents, textures, previousError) {
-    for (const extent of extents) {
-        if (!extentInsideLimit(extent, layer)) {
-            return;
-        }
-        if (extent.zoom > layer.options.zoom.max) {
-            return;
-        }
+function canTextureBeImproved(layer, extent, texture, previousError) {
+    if (!extentInsideLimit(extent, layer)) {
+        return;
+    }
+    if (extent.zoom > layer.options.zoom.max) {
+        return;
     }
 
-    if (!textures || textures.length < extents.length) {
-        return selectAllExtentsToDownload(layer, extents, textures, previousError);
+    if (!texture) {
+        return selectAllExtentsToDownload(layer, extent, texture, previousError);
     }
 
-    for (let i = 0; i < extents.length; i++) {
-        if (!textures[i].extent || textures[i].extent.zoom < extents[i].zoom) {
-            return selectAllExtentsToDownload(layer, extents, textures, previousError);
-        }
+    if (!texture.extent || texture.extent.zoom < extent.zoom) {
+        return selectAllExtentsToDownload(layer, extent, texture, previousError);
     }
 }
 
-function selectAllExtentsToDownload(layer, extents, textures, previousError) {
-    const result = [];
-    for (let i = 0; i < extents.length; i++) {
-        const pitch = new THREE.Vector4(0, 0, 1, 1);
-        const extent = chooseExtentToDownload(extents[i], (textures && textures[i].extent) ? textures[i].extent : null, layer, pitch, previousError);
-        // if the choice is the same as the current one => stop updating
-        if (textures && textures[i].extent && textures[i].extent.zoom == extent.zoom) {
-            return;
-        }
-        result.push({
-            extent,
-            pitch,
-            url: URLBuilder.xyz(extent, layer),
-        });
+function selectAllExtentsToDownload(layer, extent_, texture, previousError) {
+    const pitch = new THREE.Vector4(0, 0, 1, 1);
+    const extent = chooseExtentToDownload(
+        extent_,
+        (texture && texture.extent) ? texture.extent : null,
+        layer,
+        pitch,
+        previousError);
+
+    // if the choice is the same as the current one => stop updating
+    if (texture && texture.extent && texture.extent.zoom == extent.zoom) {
+        return;
     }
-    return result;
+    return [{
+        extent,
+        pitch,
+        url: URLBuilder.xyz(extent, layer),
+    }];
 }
 
 function executeCommand(command) {
@@ -147,7 +145,7 @@ function tileTextureCount(tile, layer) {
 
 function tileInsideLimit(tile, layer) {
     // assume 1 TMS texture per tile (ie: tile geometry CRS is the same as layer's CRS)
-    return extentInsideLimit(tile.getCoordsForLayer(layer)[0], layer);
+    return extentInsideLimit(tile.getExtentForLayer(layer), layer);
 }
 
 function extentInsideLimit(extent, layer) {

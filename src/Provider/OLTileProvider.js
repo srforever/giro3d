@@ -28,9 +28,9 @@ function toOLExtent(extent) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function canTextureBeImproved(layer, extents, texture, previousError) {
-    const extent = extents[0].as(layer.extent.crs());
-    const tile = selectTile(layer, extent);
+function canTextureBeImproved(layer, extent, texture, previousError) {
+    const ex = extent.as(layer.extent.crs());
+    const tile = selectTile(layer, ex);
     if (texture && texture.extent && texture.extent.isInside(tile.tileExtent)) {
         return;
     }
@@ -106,14 +106,9 @@ function tileTextureCount(tile, layer) {
 }
 
 function tileInsideLimit(tile, layer) {
-    var extents = tile.getCoordsForLayer(layer);
-    for (let i = 0; i < extents.length; i++) {
-        const extent = extents[i].as(layer.extent.crs());
-        if (extent.isInside(layer.extent)) {
-            return true;
-        }
-    }
-    return false;
+    const extent = tile.getExtentForLayer(layer);
+    // const extent = extents[i].as(layer.extent.crs());
+    return extent.isInside(layer.extent);
 }
 
 export default {

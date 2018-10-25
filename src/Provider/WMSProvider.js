@@ -5,8 +5,8 @@ import { STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY 
 
 const supportedFormats = ['image/png', 'image/jpg', 'image/jpeg'];
 
-function tileTextureCount(tile, layer) {
-    return tile.extent.crs() == layer.projection ? 1 : tile.getCoordsForLayer(layer).length;
+function tileTextureCount() {
+    return 1;
 }
 
 function preprocessDataLayer(layer) {
@@ -67,49 +67,39 @@ function preprocessDataLayer(layer) {
 }
 
 function tileInsideLimit(tile, layer) {
-    const extents = tile.getCoordsForLayer(layer);
-    for (let i = 0; i < extents.length; i++) {
-        const extent = extents[i].as(layer.extent.crs());
-        if (extent.isInside(layer.extent)) {
-            return true;
-        }
-    }
-    return false;
+    const extent = tile.getExtentForLayer(layer);
+    return extent.as(layer.extent.crs()).isInside(layer.extent);
 }
 
-function canTextureBeImproved(layer, extents, texture, previousError) {
-    for (let i = 0; i < extents.length; i++) {
-        const extent = extents[i].as(layer.extent.crs());
+function canTextureBeImproved(layer, extent, texture, previousError) {
+    const ex = extent.as(layer.extent.crs());
 
-        // if texture extent matches extent => we're good
-        if (texture && texture.extent && texture.extent.isInside(extent)) {
-            return;
-        }
+    // if texture extent matches extent => we're good
+    if (texture && texture.extent && texture.extent.isInside(extent)) {
+        return;
     }
 
-    return selectAllExtentsToDownload(layer, extents, texture, previousError);
+    return selectAllExtentsToDownload(layer, ex, texture, previousError);
 }
 
-function selectAllExtentsToDownload(layer, extents, texture, previousError) {
+function selectAllExtentsToDownload(layer, ex, texture, previousError) {
     const result = [];
-    for (let i = 0; i < extents.length; i++) {
-        const ex = extents[i].as(layer.extent.crs());
-        const extent = chooseExtentToDownload(
-            layer,
-            ex,
-            (texture && texture.extent) ? texture.extent : null,
-            previousError);
-        // if the choice is the same as the current one => stop updating
-        if (texture && texture.extent && texture.extent.isInside(extent)) {
-            return;
-        }
-        const pitch = ex.offsetToParent(extent);
-        result.push({
-            extent,
-            pitch,
-            url: URLBuilder.bbox(extent, layer),
-        });
+    const extent = chooseExtentToDownload(
+        layer,
+        ex,
+        (texture && texture.extent) ? texture.extent : null,
+        previousError);
+    // if the choice is the same as the current one => stop updating
+    if (texture && texture.extent && texture.extent.isInside(extent)) {
+        return;
     }
+    const pitch = ex.offsetToParent(extent);
+    result.push({
+        extent,
+        pitch,
+        url: URLBuilder.bbox(extent, layer),
+    });
+
     return result;
 }
 
