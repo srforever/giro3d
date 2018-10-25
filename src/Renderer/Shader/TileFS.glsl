@@ -61,7 +61,7 @@ void main() {
     #if defined(MATTE_ID_MODE)
         gl_FragColor = packDepthToRGBA(float(uuid) / (256.0 * 256.0 * 256.0));
     #elif defined(DEPTH_MODE)
-        gl_FragColor = packDepthToRGBA(gl_FragCoord.z / gl_FragCoord.w);
+        gl_FragColor = packDepthToRGBA(gl_FragCoord.z);
     #else
 
     #if defined(DEBUG)

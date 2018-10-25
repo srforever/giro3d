@@ -191,14 +191,14 @@ c3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget
 
     // Don't use setViewport / setScissor on renderer because they would affect
     // on screen rendering as well. Instead set them on the render target.
-    this.fullSizeRenderTarget.viewport.set(0, 0, target.width, target.height);
+    target.viewport.set(0, 0, target.width, target.height);
     if (zone) {
-        this.fullSizeRenderTarget.scissor.set(
+        target.scissor.set(
             zone.x,
             target.height - (zone.y + zone.height),
             zone.width,
             zone.height);
-        this.fullSizeRenderTarget.scissorTest = true;
+        target.scissorTest = true;
     }
 
     this.renderer.setRenderTarget(target);
@@ -206,7 +206,7 @@ c3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget
     this.renderer.render(view.scene, view.camera.camera3D, target);
     this.renderer.setRenderTarget(current);
 
-    this.fullSizeRenderTarget.scissorTest = false;
+    target.scissorTest = false;
     return target;
 };
 
