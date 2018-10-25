@@ -2,6 +2,7 @@ import Extent from '../Core/Geographic/Extent';
 import Coordinates from '../Core/Geographic/Coordinates';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 import ObjectRemovalHelper from './ObjectRemovalHelper';
+import ScreenSpaceError from '../Core/ScreenSpaceError';
 
 
 const center = new Coordinates('EPSG:4326', 0, 0, 0);
@@ -121,6 +122,13 @@ export function processTiledGeometryNode(cullingTest, subdivisionTest) {
             let requestChildrenUpdate = false;
 
             if (!layer.frozen) {
+                node._a = ScreenSpaceError.computeFromBox3(
+                        context.camera,
+                        node.OBB().box3D,
+                        node.OBB().matrixWorld,
+                        node.OBB().box3D.getSize().x,
+                        ScreenSpaceError.MODE_3D);
+
                 if (node.pendingSubdivision || subdivisionTest(context, layer, node)) {
                     subdivideNode(context, layer, node);
                     // display iff children aren't ready

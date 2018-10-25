@@ -39,6 +39,18 @@ export function planarSubdivisionControl(maxLevel) {
             return false;
         }
 
+        if (node._a.sse[0] == Infinity) {
+            return true;
+        }
+
+        const a = node._a.sse[1].clone().sub(node._a.sse[0]).length();
+        const b = node._a.sse[2].clone().sub(node._a.sse[0]).length();
+
+        if (a < 200 || b < 200) {
+            return false;
+        }
+        return a > 256 || b > 256;
+
         return _isTileBigOnScreen(context.camera, node);
     };
 }
