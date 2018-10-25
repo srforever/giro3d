@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
-const v = new THREE.Vector3();
 const m = new THREE.Matrix4();
-const localToNDC = new THREE.Matrix4();
-const modelViewMatrix = new THREE.Matrix4();
+// const localToNDC = new THREE.Matrix4();
+// const modelRotMatrix = new THREE.Matrix4();
+// const modelViewMatrix = new THREE.Matrix4();
 const temp = [
     new THREE.Vector3(),
     new THREE.Vector3(),
@@ -13,15 +13,26 @@ const temp = [
 
 function computeSSE(offset, size, matrix, camera, _3d) {
     temp[0].copy(offset);
-    temp[1].set(size.x, 0, 0).add(offset);
-    temp[2].set(0, size.y, 0).add(offset);
-    if (_3d) {
-        temp[3].set(0, 0, size.z).add(offset);
-    }
+    temp[0].applyMatrix4(matrix);
 
-    localToNDC.multiplyMatrices(camera._viewMatrix, matrix);
+    matrix.extractBasis(temp[1], temp[2], temp[3]);
+    temp[1].normalize().multiplyScalar(size.x).add(temp[0]);
+    temp[2].normalize().multiplyScalar(size.y).add(temp[0]);
+    temp[3].normalize().multiplyScalar(size.z).add(temp[0]);
+
+    // modelRotMatrix.extractRotation(matrix);
+    // temp[1].set(size.x, 0, 0);
+    // temp[2].set(0, size.y, 0);
+    // if (_3d) {
+    //     temp[3].set(0, 0, size.z);
+    // }
+    // for (let i = 1; i < 4; i++) {
+    //     temp[i].applyMatrix4(modelRotMatrix).add(temp[0]);
+    // }
+
+    const worldToNDC = camera._viewMatrix;
     for (let i = 0; i < (_3d ? 4 : 3); i++) {
-        temp[i].applyMatrix4(localToNDC);
+        temp[i].applyMatrix4(worldToNDC);
         temp[i].z = 0;
         // Map temp[i] from NDC = [-1, 1] to viewport coordinates
         temp[i].x = (temp[i].x + 1.0) * camera.width * 0.5;
@@ -34,7 +45,7 @@ function computeSSE(offset, size, matrix, camera, _3d) {
     }
     return res;
 
-    return basis.map(b => b.length());
+    // return basis.map(b => b.length());
 }
 
 function findBox3Distance(camera, box3, matrix) {
@@ -71,10 +82,9 @@ export default {
      */
     MODE_3D: 2,
 
-    /**
-     * Compute a "visible" error: project geometricError in meter on screen,
-     * based on a bounding box and a transformation matrix.
-     */
+    //
+    // Compute a "visible" error: project geometricError in meter on screen,
+    // based on a bounding box and a transformation matrix.
     computeFromBox3(camera, box3, matrix, geometricError, mode) {
         const distance = findBox3Distance(camera, box3, matrix);
 
@@ -98,19 +108,18 @@ export default {
         return {
             sse,
             distance,
-            size,
         };
     },
 
     computeFromSphere(camera, sphere, matrix, geometricError) {
         const s = sphere.clone().applyMatrix4(matrix);
         const distance = Math.max(0.0, s.distanceToPoint(camera.camera3D.position));
-        basis[0].set(geometricError, 0, -distance);
-        basis[0].applyMatrix4(camera.camera3D.projectionMatrix);
-        basis[0].x = basis[0].x * camera.width * 0.5;
-        basis[0].y = basis[0].y * camera.height * 0.5;
-        basis[0].z = 0;
+        temp[0].set(geometricError, 0, -distance);
+        temp[0].applyMatrix4(camera.camera3D.projectionMatrix);
+        temp[0].x = temp[0].x * camera.width * 0.5;
+        temp[0].y = temp[0].y * camera.height * 0.5;
+        temp[0].z = 0;
 
-        return basis[0].length();
+        return temp[0].length();
     },
 };

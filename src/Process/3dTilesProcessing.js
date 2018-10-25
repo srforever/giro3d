@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import Extent from '../Core/Geographic/Extent';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
+import ScreenSpaceError from '../Core/ScreenSpaceError';
 
 function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
     if (metadata.obj) {
@@ -26,6 +27,13 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
                 // requester visible but doesn't need subdivision anymore
                 cmd.requester.sse < cmd.layer.sseThreshold),
     };
+
+    if (metadata.content) {
+        const path = metadata.content.url || metadata.content.uri;
+        const url = path.startsWith('http') ? path : metadata.baseURL + path;
+
+        command.toDownload = [{ url }];
+    }
 
     return scheduler.execute(command).then(
         (node) => {
@@ -298,16 +306,30 @@ const boundingVolumeSphere = new THREE.Sphere();
 export function computeNodeSSE(context, node) {
     node.distance = 0;
     if (node.boundingVolume.region) {
-        boundingVolumeBox.copy(node.boundingVolume.region.box3D);
-        boundingVolumeBox.applyMatrix4(node.boundingVolume.region.matrixWorld);
-        node.distance = boundingVolumeBox.distanceToPoint(context.camera.camera3D.position);
-        context.distance.update(node.distance, node.boundingVolume.region.box3D.getSize());
+        throw new Error('boundingVolume.region is unsupported');
     } else if (node.boundingVolume.box) {
         // boundingVolume.box is affected by matrixWorld
         boundingVolumeBox.copy(node.boundingVolume.box);
         boundingVolumeBox.applyMatrix4(node.matrixWorld);
         node.distance = boundingVolumeBox.distanceToPoint(context.camera.camera3D.position);
         context.distance.update(node.distance, node.boundingVolume.box.getSize());
+
+        const sse = ScreenSpaceError.computeFromBox3(
+            context.camera,
+            node.boundingVolume.box,
+            node.matrixWorld,
+            node.geometricError,
+            ScreenSpaceError.MODE_3D);
+
+        if (sse.sse[0] == Infinity) {
+            return Infinity;
+        }
+        const a = sse.sse[1].clone().sub(sse.sse[0]).length();
+        const b = sse.sse[2].clone().sub(sse.sse[0]).length();
+
+        node._a = sse;
+
+        return Math.max(a, b);
     } else if (node.boundingVolume.sphere) {
         // boundingVolume.sphere is affected by matrixWorld
         boundingVolumeSphere.copy(node.boundingVolume.sphere);

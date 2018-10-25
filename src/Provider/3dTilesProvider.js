@@ -7,6 +7,7 @@ import utf8Decoder from '../utils/Utf8Decoder';
 import Picking from '../Core/Picking';
 import Points from '../Core/Points';
 import PointsMaterial from '../Renderer/PointsMaterial';
+import Cache from '../Core/Scheduler/Cache';
 
 export function $3dTilesIndex(tileset, baseURL) {
     let counter = 1;
@@ -28,15 +29,13 @@ export function $3dTilesIndex(tileset, baseURL) {
             }
         }
 
+        inverseTileTransform.getInverse(node._worldFromLocalTransform);
         // getBox only use inverseTileTransform for volume.region so let's not
         // compute the inverse matrix each time
-        if ((node.viewerRequestVolume && node.viewerRequestVolume.region)
-            || (node.boundingVolume && node.boundingVolume.region)) {
-            if (node._worldFromLocalTransform) {
-                inverseTileTransform.getInverse(node._worldFromLocalTransform);
-            } else {
-                inverseTileTransform.identity();
-            }
+        if (node._worldFromLocalTransform) {
+            inverseTileTransform.getInverse(node._worldFromLocalTransform);
+        } else {
+            inverseTileTransform.identity();
         }
 
         node.viewerRequestVolume = node.viewerRequestVolume ? getBox(node.viewerRequestVolume, inverseTileTransform) : undefined;
@@ -249,7 +248,8 @@ function executeCommand(command) {
             b3dm: b3dmToMesh,
             pnts: pntsParse,
         };
-        return Fetcher.arrayBuffer(url, layer.networkOptions).then((result) => {
+        const dl = Cache.get(url) || Cache.set(url, Fetcher.arrayBuffer(url, layer.networkOptions), Cache.TEXTURE);
+        return dl.then((result) => {
             if (result !== undefined) {
                 let func;
                 const magic = utf8Decoder.decode(new Uint8Array(result, 0, 4));

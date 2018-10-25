@@ -77,30 +77,30 @@ function tileInsideLimit(tile, layer) {
     return false;
 }
 
-function canTextureBeImproved(layer, extents, textures, previousError) {
+function canTextureBeImproved(layer, extents, texture, previousError) {
     for (let i = 0; i < extents.length; i++) {
         const extent = extents[i].as(layer.extent.crs());
 
         // if texture extent matches extent => we're good
-        if (textures[i] && textures[i].extent && textures[i].extent.isInside(extent)) {
+        if (texture && texture.extent && texture.extent.isInside(extent)) {
             return;
         }
     }
 
-    return selectAllExtentsToDownload(layer, extents, textures, previousError);
+    return selectAllExtentsToDownload(layer, extents, texture, previousError);
 }
 
-function selectAllExtentsToDownload(layer, extents, textures, previousError) {
+function selectAllExtentsToDownload(layer, extents, texture, previousError) {
     const result = [];
     for (let i = 0; i < extents.length; i++) {
         const ex = extents[i].as(layer.extent.crs());
         const extent = chooseExtentToDownload(
             layer,
             ex,
-            (textures && textures[i]) ? textures[i].extent : null,
+            (texture && texture.extent) ? texture.extent : null,
             previousError);
         // if the choice is the same as the current one => stop updating
-        if (textures[i] && textures[i].extent && textures[i].extent.isInside(extent)) {
+        if (texture && texture.extent && texture.extent.isInside(extent)) {
             return;
         }
         const pitch = ex.offsetToParent(extent);

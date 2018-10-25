@@ -100,9 +100,9 @@ class PointsMaterial extends RawShaderMaterial {
         this.uniforms.extentSize = new Uniform(new Vector2(dim.x, dim.y));
     }
 
-    getLayerTextures(layer) {
+    getLayerTexture(layer) {
         if (layer === this.colorLayer) {
-            return { textures: [this.uniforms.texture.value] };
+            return { texture: this.uniforms.texture.value };
         }
     }
     setLayerTextures(layer, textures) {
