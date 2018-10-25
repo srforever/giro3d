@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import RendererConstant from '../Renderer/RendererConstant';
-import OGCWebServiceHelper, { SIZE_TEXTURE_TILE } from '../Provider/OGCWebServiceHelper';
+import OGCWebServiceHelper from '../Provider/OGCWebServiceHelper';
 import { is4326 } from './Geographic/Coordinates';
 
 function TileMesh(layer, geometry, material, extent, level) {
@@ -25,12 +25,8 @@ function TileMesh(layer, geometry, material, extent, level) {
 
     this.obb = this.geometry.OBB.clone();
 
-    this.boundingSphere = new THREE.Sphere();
-    this.OBB().box3D.getBoundingSphere(this.boundingSphere);
-
     this.frustumCulled = false;
 
-    this.updateGeometricError();
     this.wmtsCoords = {};
 
     // Layer
@@ -130,15 +126,7 @@ TileMesh.prototype.setBBoxZ = function setBBoxZ(min, max) {
     }
     if (Math.floor(min) !== Math.floor(this.obb.z.min) || Math.floor(max) !== Math.floor(this.obb.z.max)) {
         this.OBB().updateZ(min, max);
-        this.OBB().box3D.getBoundingSphere(this.boundingSphere);
-        this.updateGeometricError();
     }
-};
-
-TileMesh.prototype.updateGeometricError = function updateGeometricError() {
-    // The geometric error is calculated to have a correct texture display.
-    // For the projection of a texture's texel to be less than or equal to one pixel
-    this.geometricError = this.boundingSphere.radius / SIZE_TEXTURE_TILE;
 };
 
 TileMesh.prototype.setTexturesLayer = function setTexturesLayer(textures, layerType, layerId) {

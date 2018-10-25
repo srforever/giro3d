@@ -83,7 +83,7 @@ function updateMinMaxDistance(context, node) {
     const bbox = node.OBB().box3D.clone()
         .applyMatrix4(node.OBB().matrixWorld);
     const distance = bbox.distanceToPoint(context.camera.camera3D.position);
-    context.distance.update(distance, 2 * node.boundingSphere.radius);
+    context.distance.update(distance, 2 * node.OBB().box3D.getSize().length());
 }
 
 export function processTiledGeometryNode(cullingTest, subdivisionTest) {

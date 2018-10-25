@@ -70,17 +70,17 @@
             });
 
             // Add an WMS elevation layer (see WMSProvider* for valid options)
-            view.addLayer({
-                url: 'https://download.data.grandlyon.com/wms/grandlyon',
-                type: 'elevation',
-                protocol: 'wms',
-                networkOptions: { crossOrigin: 'anonymous' },
-                id: 'wms_elevation',
-                name: 'MNT2012_Altitude_10m_CC46',
-                projection: 'EPSG:3946',
-                heightMapWidth: 256,
-                format: 'image/jpeg',
-            });
+            // view.addLayer({
+            //     url: 'https://download.data.grandlyon.com/wms/grandlyon',
+            //     type: 'elevation',
+            //     protocol: 'wms',
+            //     networkOptions: { crossOrigin: 'anonymous' },
+            //     id: 'wms_elevation',
+            //     name: 'MNT2012_Altitude_10m_CC46',
+            //     projection: 'EPSG:3946',
+            //     heightMapWidth: 256,
+            //     format: 'image/jpeg',
+            // });
             // Since the elevation layer use color textures, specify min/max z
             view.tileLayer.materialOptions = {
                 useColorTextureElevation: true,

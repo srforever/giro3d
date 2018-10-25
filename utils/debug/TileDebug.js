@@ -78,8 +78,6 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
 
     // Bounding box control
     const obb_layer_id = `${layer.id}_obb_debug`;
-    const sb_layer_id = `${layer.id}_sb_debug`;
-    const geometrySphere = new THREE.SphereGeometry(1, 16, 16);
 
     function debugIdUpdate(context, layer, node) {
         const enabled = context.camera.camera3D.layers.test({ mask: 1 << layer.threejsLayer });
@@ -101,17 +99,8 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
                 const l = context.view.getLayers(l => l.id === layer.id)[0];
                 const l3js = l.threejsLayer;
 
-                if (layer.id == obb_layer_id) {
-                    helper = new OBBHelper(node.OBB(), `id:${node.id}`);
-                    helper.children[0].layers.set(l3js);
-                } else if (layer.id == sb_layer_id) {
-                    const color = new THREE.Color(Math.random(), Math.random(), Math.random());
-                    const material = new THREE.MeshBasicMaterial({ color: color.getHex(), wireframe: true });
-                    helper = new THREE.Mesh(geometrySphere, material);
-                    helper.position.copy(node.boundingSphere.center);
-                    helper.scale.multiplyScalar(node.boundingSphere.radius);
-                }
-
+                helper = new OBBHelper(node.OBB(), `id:${node.id}`);
+                helper.children[0].layers.set(l3js);
                 helper.layers.set(l3js);
                 helper.layer = layer;
                 node.add(helper);
@@ -127,14 +116,6 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
                         let i = this.children.length;
                         while (i--) {
                             const c = this.children[i];
-                            if (c.layer === sb_layer_id) {
-                                if (c.dispose) {
-                                    c.dispose();
-                                } else {
-                                    c.material.dispose();
-                                }
-                                this.children.splice(i, 1);
-                            }
                         }
                     }
                 };
@@ -144,9 +125,6 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
             if (layer.id == obb_layer_id) {
                 helper.setMaterialVisibility(true);
                 helper.update(node.OBB());
-            } else if (layer.id == sb_layer_id) {
-                helper.position.copy(node.boundingSphere.center);
-                helper.scale.multiplyScalar(node.boundingSphere.radius);
             }
         } else {
             // hide obb children
@@ -167,17 +145,6 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
             visible: false,
         }, layer).then((l) => {
             gui.add(l, 'visible').name('Bounding boxes').onChange(() => {
-                view.notifyChange(l);
-            });
-        });
-    View.prototype.addLayer.call(view,
-        {
-            id: sb_layer_id,
-            type: 'debug',
-            update: debugIdUpdate,
-            visible: false,
-        }, layer).then((l) => {
-            gui.add(l, 'visible').name('Bounding Spheres').onChange(() => {
                 view.notifyChange(l);
             });
         });
