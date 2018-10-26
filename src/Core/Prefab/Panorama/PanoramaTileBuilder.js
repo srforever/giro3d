@@ -8,7 +8,6 @@ function PanoramaTileBuilder(type, ratio) {
     this.tmp = {
         coords: new Coordinates('EPSG:4326', 0, 0),
         position: new THREE.Vector3(),
-        normal: new THREE.Vector3(0, 0, 1),
     };
 
     if (type === undefined) {
@@ -34,20 +33,14 @@ PanoramaTileBuilder.prototype.constructor = PanoramaTileBuilder;
 
 // prepare params
 // init projected object -> params.projected
-const axisX = new THREE.Vector3(0, 1, 0);
 PanoramaTileBuilder.prototype.Prepare = function Prepare(params) {
-    const angle = (params.extent.north() + params.extent.south()) * 0.5;
-
     if (this.projectionType === ProjectionType.SPHERICAL) {
-        params.quatNormalToZ = new THREE.Quaternion().setFromAxisAngle(
-            axisX, THREE.Math.degToRad(90 - angle));
         params.projected = {
             theta: 0,
             phi: 0,
             radius: this.radius,
         };
     } else {
-        params.quatNormalToZ = new THREE.Quaternion().setFromAxisAngle(axisX, (Math.PI * 0.5));
         params.projected = {
             theta: 0,
             radius: this.radius,
@@ -62,7 +55,7 @@ PanoramaTileBuilder.prototype.Center = function Center(extent) {
     this.uProjecte(0.5, params);
     this.vProjecte(0.5, params);
 
-    return this.VertexPosition(params).clone();
+    return new THREE.Vector3(0, 0, 0);
 };
 
 // get position 3D cartesian
@@ -76,11 +69,6 @@ PanoramaTileBuilder.prototype.VertexPosition = function VertexPosition(params) {
     this.tmp.position.set(this.tmp.position.z, this.tmp.position.x, this.tmp.position.y);
 
     return this.tmp.position;
-};
-
-// get normal for last vertex
-PanoramaTileBuilder.prototype.VertexNormal = function VertexNormal() {
-    return this.tmp.position.clone().negate().normalize();
 };
 
 // coord u tile to projected
@@ -133,12 +121,12 @@ PanoramaTileBuilder.prototype.computeSharableExtent = function fnComputeSharable
             (extent.north() + extent.south()) * 0.5);
     quatToAlignLongitude.setFromAxisAngle(axisZ, -THREE.Math.degToRad(rotLon));
     quatToAlignLatitude.setFromAxisAngle(axisY, -THREE.Math.degToRad(rotLat));
-    quatToAlignLongitude.multiply(quatToAlignLatitude);
+    // quatToAlignLongitude.multiply(quatToAlignLatitude);
 
     return {
         sharableExtent,
         quaternion: quatToAlignLongitude.clone(),
-        position: this.Center(extent),
+        position: this.Center(sharableExtent),
     };
 };
 

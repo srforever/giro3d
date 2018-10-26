@@ -3,12 +3,8 @@ import * as THREE from 'three';
 import View from '../View';
 import { MAIN_LOOP_EVENTS } from '../MainLoop';
 import RendererConstant from '../../Renderer/RendererConstant';
-
 import { GeometryLayer } from '../Layer/Layer';
-
-import { processTiledGeometryNode } from '../../Process/TiledNodeProcessing';
 import PlanarTileBuilder from './Planar/PlanarTileBuilder';
-import SubdivisionControl from '../../Process/SubdivisionControl';
 
 export function createPlanarLayer(id, extent, options) {
     const tileLayer = new GeometryLayer(id, options.object3d || new THREE.Group());

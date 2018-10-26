@@ -82,8 +82,10 @@ function subdivideNode(context, layer, node) {
 function updateMinMaxDistance(context, node) {
     const bbox = node.OBB().box3D.clone()
         .applyMatrix4(node.OBB().matrixWorld);
-    const distance = bbox.distanceToPoint(context.camera.camera3D.position);
-    context.distance.update(distance, 2 * node.OBB().box3D.getSize().length());
+    const distance = context.distance.plane
+        .distanceToPoint(bbox.getCenter());
+    const radius = bbox.getSize().length() * 0.5;
+    context.distance.update(distance - radius, distance + radius);
 }
 
 // TODO: maxLevel should be deduced from layers
@@ -97,14 +99,16 @@ function testTileSSE(tile, sse, maxLevel) {
     }
 
     // TODO do this directly in ScreenSpaceError
-    const a = sse[1].clone().sub(sse[0]).length();
-    const b = sse[2].clone().sub(sse[0]).length();
+    const values = [
+        sse[1].clone().sub(sse[0]).length(),
+        sse[2].clone().sub(sse[0]).length(),
+        sse[3].clone().sub(sse[0]).length()];
 
     // TODO: depends on texture size of course
-    if (a < 200 || b < 200) {
+    if (values.filter(v => v < 200).length >= 2) {
         return false;
     }
-    return a > 256 || b > 256;
+    return values.filter(v => v >= 256).length >= 1;
 }
 
 function preUpdate(context, layer, changeSources) {
@@ -154,6 +158,7 @@ function update(context, layer, node) {
     if (!node.parent) {
         return ObjectRemovalHelper.removeChildrenAndCleanup(layer, node);
     }
+
     // early exit if parent' subdivision is in progress
     if (node.parent.pendingSubdivision) {
         node.visible = false;

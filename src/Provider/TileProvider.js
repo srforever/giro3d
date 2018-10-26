@@ -50,6 +50,7 @@ function executeCommand(command) {
     const segment = layer.segments || 16;
     const key = `${builder.type}_${layer.disableSkirt ? 0 : 1}_${segment}_${level}_${south}`;
 
+    // TODO
     let geometry = Cache.get(key);
     // build geometry if doesn't exist
     if (!geometry) {

@@ -101,11 +101,6 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
             // move geometry to center world
             vertex.sub(this.center);
 
-            // align normal to z axis
-            if (params.quatNormalToZ) {
-                vertex.applyQuaternion(params.quatNormalToZ);
-            }
-
             vertex.toArray(outBuffers.position.array, id_m3);
 
             UV_WGS84(outBuffers, idVertex, u, v);

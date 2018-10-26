@@ -1,3 +1,4 @@
+import * as THREE from 'three';
 import OBBHelper from './OBBHelper';
 import TileObjectChart from './charts/TileObjectChart';
 import TileVisibilityChart from './charts/TileVisibilityChart';
@@ -104,6 +105,14 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
                 helper.layer = layer;
                 node.add(helper);
                 helper.updateMatrixWorld(true);
+
+
+                const foo = new THREE.AxesHelper(10);
+                // foo.layers.set(l3js);
+                node.add(foo);
+                foo.material.depthTest = false;
+                foo.material.transparent = true;
+                foo.updateMatrixWorld(true);
 
                 // if we don't do that, our OBBHelper will never get removed,
                 // because once a node is invisible, children are not removed

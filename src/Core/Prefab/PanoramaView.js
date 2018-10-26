@@ -4,7 +4,6 @@ import View from '../View';
 
 import { GeometryLayer } from '../Layer/Layer';
 import Extent from '../Geographic/Extent';
-import { processTiledGeometryNode } from '../../Process/TiledNodeProcessing';
 import PanoramaTileBuilder from './Panorama/PanoramaTileBuilder';
 import ProjectionType from './Panorama/Constants';
 

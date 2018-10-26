@@ -1,4 +1,4 @@
-import { EventDispatcher } from 'three';
+import { Plane, EventDispatcher } from 'three';
 import { GeometryLayer, Layer } from './Layer/Layer';
 import Cache from '../Core/Scheduler/Cache';
 
@@ -126,6 +126,10 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
         // Min/max distance to the camera, for all rendered objects.
         // (processing update function are expected to update this)
         distance: {
+            plane: new Plane()
+                .setFromNormalAndCoplanarPoint(
+                    view.camera.camera3D.getWorldDirection(),
+                    view.camera.camera3D.position /* TODO matrixWorld */),
             min: Infinity,
             max: 0,
         },

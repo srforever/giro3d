@@ -317,6 +317,7 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
     } else if (layer.type == 'elevation') {
         layer.update = layer.update || ElevationTextureProcessing.updateLayerElement;
     } else if (layer.protocol == 'tile') {
+        layer.disableSkirt = true;
         layer.preUpdate = TiledNodeProcessing.preUpdate;
         layer.update = TiledNodeProcessing.update;
         layer.pickObjectsAt = (_view, mouse, radius) => Picking.pickTilesAt(_view, mouse, radius, layer);
