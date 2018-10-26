@@ -14,7 +14,7 @@ function _selectImagesFromSpatialIndex(index, images, extent) {
 function selectBestImageForExtent(layer, extent) {
     const candidates =
         _selectImagesFromSpatialIndex(
-            layer._spatialIndex, layer.images, extent.as(layer.extent.crs()));
+            layer._spatialIndex, layer.images, extent);
 
     let selection;
     for (const entry of candidates) {
@@ -127,11 +127,11 @@ export default {
             layer._spatialIndex, layer.images, tile.extent.as(layer.extent.crs())).length > 0;
     },
 
-    canTextureBeImproved(layer, extents, currentTexture) {
+    canTextureBeImproved(layer, extent, currentTexture) {
         if (!layer.images) {
             return;
         }
-        const s = selectBestImageForExtent(layer, extents[0]);
+        const s = selectBestImageForExtent(layer, extent);
 
         if (!s) {
             return;
@@ -139,7 +139,7 @@ export default {
         if (currentTexture && currentTexture.file != s.image) {
             return [{
                 selection: s,
-                pitch: extents[0].offsetToParent(s.extent),
+                pitch: extent.offsetToParent(s.extent),
                 url: buildUrl(layer, s.image),
             }];
         }
