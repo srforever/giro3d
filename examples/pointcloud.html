@@ -163,6 +163,10 @@
             <script src="js/loading_screen.js"></script>
             <script src="../dist/debug.js"></script>
             <script type="text/javascript">
+                window.THREE = itowns.THREE;
+            </script>
+            <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
+            <script type="text/javascript">
                 var searchParams = new URL(window.location.href).searchParams;
                 function showPointcloud(serverUrl, fileName, lopocsTable, potree) {
                     var pointcloud;
@@ -217,8 +221,20 @@
                         view.camera.camera3D.position.set(position.x, position.y, position.z);
                         view.camera.camera3D.lookAt(lookAt);
                         // create controls
-                        controls = new itowns.FirstPersonControls(view, { focusOnClick: true });
-                        debugGui.add(controls.options, 'moveSpeed', 1, 100).name('Movement speed');
+                        controls = new THREE.MapControls(
+                            view.camera.camera3D,
+                            view.mainLoop.gfxEngine.renderer.domElement);
+                        controls.target.copy(lookAt);
+                        controls.enableDamping = true;
+                        controls.dampingFactor = 0.25;
+
+                        view.addFrameRequester('before_camera_update', () => {
+                            controls.update();
+                        });
+                        controls.addEventListener('change', () => {
+                            view.notifyChange(view.camera.camera3D);
+                        });
+
 
                         view.notifyChange(view.camera.camera3D);
                     }
@@ -242,7 +258,6 @@
                         lookAt = bbox.getCenter();
                         lookAt.z = bbox.min.z;
                         placeCamera(position, lookAt);
-                        controls.moveSpeed = bbox.getSize().length() / 3;
 
                         view.addFrameRequester('after_render', () => {
                             var info = document.getElementById('info');

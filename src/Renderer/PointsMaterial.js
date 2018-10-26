@@ -88,15 +88,15 @@ class PointsMaterial extends RawShaderMaterial {
     }
 
     // Coloring support
-    pushLayer(layer, extents) {
+    pushLayer(layer, extent) {
         this.mode = MODE.TEXTURE;
         this.updateUniforms();
 
         this.colorLayer = layer;
         this.uniforms.texture = new Uniform();
         this.uniforms.offsetScale = new Uniform(new Vector4(0, 0, 1, 1));
-        this.uniforms.extentTopLeft = new Uniform(new Vector2(extents[0].west(), extents[0].north()));
-        const dim = extents[0].dimensions();
+        this.uniforms.extentTopLeft = new Uniform(new Vector2(extent.west(), extent.north()));
+        const dim = extent.dimensions();
         this.uniforms.extentSize = new Uniform(new Vector2(dim.x, dim.y));
     }
 

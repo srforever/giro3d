@@ -14,7 +14,7 @@ class Points extends THREE.Points {
         if (layer.extent.crs() != this._layer.extent.crs()) {
             throw new Error('Unsupported reprojection');
         }
-        return [this.extent];
+        return this.extent;
     }
 }
 

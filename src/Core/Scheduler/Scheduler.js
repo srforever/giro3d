@@ -186,7 +186,7 @@ Scheduler.prototype.execute = function execute(command) {
 
     command.timestamp = Date.now();
 
-    if (isInCache(command)) {
+    if (false && isInCache(command)) {
         // Fast path: command result is already available,
         // so skip the queueing mechanism and execute directly
         q.counters.pending++;
