@@ -9,6 +9,7 @@ import Scheduler from './Scheduler/Scheduler';
 import Picking from './Picking';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing';
 import ElevationTextureProcessing from '../Process/ElevationTextureProcessing';
+import TiledNodeProcessing from '../Process/TiledNodeProcessing';
 
 export const VIEW_EVENTS = {
     /**
@@ -131,11 +132,6 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
     }
 
     layer.options = layer.options || {};
-    // TODO remove this warning and fallback after the release following v2.3.0
-    if (!layer.format && layer.options.mimetype) {
-        console.warn('layer.options.mimetype is deprecated, please use layer.format');
-        layer.format = layer.options.mimetype;
-    }
 
     if (!layer.updateStrategy) {
         layer.updateStrategy = {
@@ -320,6 +316,10 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
         layer.update = layer.update || ColorTextureProcessing.updateLayerElement;
     } else if (layer.type == 'elevation') {
         layer.update = layer.update || ElevationTextureProcessing.updateLayerElement;
+    } else if (layer.protocol == 'tile') {
+        layer.preUpdate = TiledNodeProcessing.preUpdate;
+        layer.update = TiledNodeProcessing.update;
+        layer.pickObjectsAt = (_view, mouse, radius) => Picking.pickTilesAt(_view, mouse, radius, layer);
     }
 
     return new Promise((resolve, reject) => {

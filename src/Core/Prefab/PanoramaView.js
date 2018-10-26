@@ -5,11 +5,8 @@ import View from '../View';
 import { GeometryLayer } from '../Layer/Layer';
 import Extent from '../Geographic/Extent';
 import { processTiledGeometryNode } from '../../Process/TiledNodeProcessing';
-import { panoramaCulling, panoramaSubdivisionControl } from '../../Process/PanoramaTileProcessing';
 import PanoramaTileBuilder from './Panorama/PanoramaTileBuilder';
-import SubdivisionControl from '../../Process/SubdivisionControl';
 import ProjectionType from './Panorama/Constants';
-import Picking from '../Picking';
 
 export function createPanoramaLayer(id, coordinates, type, options = {}) {
     const tileLayer = new GeometryLayer(id, options.object3d || new THREE.Group());
@@ -69,87 +66,14 @@ export function createPanoramaLayer(id, coordinates, type, options = {}) {
         throw new Error(`Unsupported panorama projection type ${type}.
             Only ProjectionType.SPHERICAL and ProjectionType.CYLINDRICAL are supported`);
     }
-    tileLayer.disableSkirt = true;
 
-    // Configure tiles
-    const nodeInitFn = function nodeInitFn(layer, parent, node) {
-        if (layer.noTextureColor) {
-            node.material.uniforms.noTextureColor.value.copy(layer.noTextureColor);
-        }
-        node.material.depthWrite = false;
-
-        if (__DEBUG__) {
-            node.material.uniforms.showOutline = { value: layer.showOutline || false };
-            node.material.wireframe = layer.wireframe || false;
-        }
-    };
-
-    tileLayer.preUpdate = (context, layer, changeSources) => {
-        SubdivisionControl.preUpdate(context, layer);
-
-        if (__DEBUG__) {
-            layer._latestUpdateStartingLevel = 0;
-        }
-
-        if (changeSources.has(undefined) || changeSources.size == 0) {
-            return layer.level0Nodes;
-        }
-
-        let commonAncestor;
-        for (const source of changeSources.values()) {
-            if (source.isCamera) {
-                // if the change is caused by a camera move, no need to bother
-                // to find common ancestor: we need to update the whole tree:
-                // some invisible tiles may now be visible
-                return layer.level0Nodes;
-            }
-            if (source.layer === layer.id) {
-                if (!commonAncestor) {
-                    commonAncestor = source;
-                } else {
-                    commonAncestor = source.findCommonAncestor(commonAncestor);
-                    if (!commonAncestor) {
-                        return layer.level0Nodes;
-                    }
-                }
-                if (commonAncestor.material == null) {
-                    commonAncestor = undefined;
-                }
-            }
-        }
-        if (commonAncestor) {
-            if (__DEBUG__) {
-                layer._latestUpdateStartingLevel = commonAncestor.level;
-            }
-            return [commonAncestor];
-        } else {
-            return layer.level0Nodes;
-        }
-    };
-
-
-    function subdivision(context, layer, node) {
-        if (SubdivisionControl.hasEnoughTexturesToSubdivide(context, layer, node)) {
-            return panoramaSubdivisionControl(
-                options.maxSubdivisionLevel || 10, new THREE.Vector2(512, 256))(context, layer, node);
-        }
-        return false;
-    }
-
-    tileLayer.update = processTiledGeometryNode(panoramaCulling, subdivision);
     tileLayer.builder = new PanoramaTileBuilder(type, options.ratio);
-    tileLayer.onTileCreated = nodeInitFn;
     tileLayer.protocol = 'tile';
     tileLayer.visible = true;
-    tileLayer.segments = 8;
-    tileLayer.quality = 0.5;
     tileLayer.lighting = {
         enable: false,
         position: { x: -0.5, y: 0.0, z: 1.0 },
     };
-    // provide custom pick function
-    tileLayer.pickObjectsAt = (_view, mouse, radius) => Picking.pickTilesAt(_view, mouse, radius, tileLayer);
-
 
     return tileLayer;
 }

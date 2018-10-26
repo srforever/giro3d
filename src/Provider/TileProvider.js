@@ -9,7 +9,7 @@ import TileMesh from '../Core/TileMesh';
 import LayeredMaterial from '../Renderer/LayeredMaterial';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 import Cache from '../Core/Scheduler/Cache';
-import { requestNewTile } from '../Process/TiledNodeProcessing';
+import TiledNodeProcessing from '../Process/TiledNodeProcessing';
 
 function preprocessDataLayer(layer, view, scheduler) {
     if (!layer.schemeTile) {
@@ -22,7 +22,7 @@ function preprocessDataLayer(layer, view, scheduler) {
     const promises = [];
 
     for (const root of layer.schemeTile) {
-        promises.push(requestNewTile(view, scheduler, layer, root, undefined, 0));
+        promises.push(TiledNodeProcessing.requestNewTile(view, scheduler, layer, root, undefined, 0));
     }
     return Promise.all(promises).then((level0s) => {
         layer.level0Nodes = level0s;
@@ -94,6 +94,15 @@ function executeCommand(command) {
     tile.material.uniforms.opacity.value = layer.opacity;
     tile.setVisibility(false);
     tile.updateMatrix();
+
+    if (layer.noTextureColor) {
+        tile.material.uniforms.noTextureColor.value.copy(layer.noTextureColor);
+    }
+
+    if (__DEBUG__) {
+        tile.material.uniforms.showOutline = { value: layer.showOutline || false };
+        tile.material.wireframe = layer.wireframe || false;
+    }
 
     if (parent) {
         tile.setBBoxZ(parent.OBB().z.min, parent.OBB().z.max);

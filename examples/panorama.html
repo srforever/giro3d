@@ -6,8 +6,18 @@
         <link rel="stylesheet" type="text/css" href="css/example.css">
         <link rel="stylesheet" type="text/css" href="css/loading_screen.css">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style type="text/css">
+            .maa {
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                stroke-width:2;
+            }
+        </style>
     </head>
     <body>
+        <svg class="maa"></svg>
         <div id="viewerDiv"></div>
 
         <script src="../dist/itowns.js"></script>
@@ -69,8 +79,6 @@
                 var gui = new dat.GUI();
                 var ddd = new debug.Debug(view, gui);
                 debug.createTileDebugUI(gui, view, view.baseLayer, ddd);
-                gui.add(view.baseLayer, 'quality').min(0.1).max(1.0).onChange(
-                    function () { view.notifyChange(); });
 
                 // Add controls
                 new itowns.FirstPersonControls(view, {
@@ -88,6 +96,28 @@
                     view.notifyChange();
                 });
                 window.view = view;
+
+                document.addEventListener('click', (evt) => {
+                    const r = view._layers[0].pickObjectsAt(view, view.eventToViewCoords(evt), 1);
+                    if (!r.length) return;
+                    const obj = r[0].object;
+                    console.log(obj)
+                    const svg = document.getElementsByClassName('maa')[0];
+                    while (svg.firstChild) {
+                        svg.removeChild(svg.firstChild);
+                    }
+                    const colors = ['red', 'green', 'purple'];
+                    for (let i = 1; i<4; i++) {
+                        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+                        line.setAttribute('x1', obj._a.sse[0].x.toFixed());
+                        line.setAttribute('y1', obj._a.sse[0].y.toFixed())
+                        line.setAttribute('x2', obj._a.sse[i].x.toFixed())
+                        line.setAttribute('y2', obj._a.sse[i].y.toFixed())
+                        line.setAttribute('stroke', colors[i-1]);
+                        svg.append(line);
+                    }
+                });
+
             }).catch(console.error);
         </script>
 
