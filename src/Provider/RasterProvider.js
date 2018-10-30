@@ -107,6 +107,7 @@ export default {
                     crsIn: layer.projection,
                     crsOut: parentCrs,
                     filteringExtent: layer.extent,
+                    featureCb: layer.options.featureCb,
                 };
 
                 return GeoJsonParser.parse(geojson, options);

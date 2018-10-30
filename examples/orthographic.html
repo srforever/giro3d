@@ -131,6 +131,29 @@
                 view.scene.add(obj);
                 view.notifyChange(true);
             });
+            const red = new itowns.THREE.Color('red');
+            const yellow = new itowns.THREE.Color('yellow');
+            itowns.Fetcher.json( 'http://localhost:8080/examples/serpent.json').then(json => {
+                const features = itowns.GeoJSON2Features.parse('EPSG:3857', json, null, {
+                    featureCb: function (feat) {
+                        feat.properties.stroke = feat.properties.tmtm > 500000 ? red : yellow;
+                        feat.properties['stroke-width'] = feat.properties.tmtm > 500000 ? '10.0' : '1.0';
+                    }
+                });
+                const mesh = itowns.Feature2Mesh.convert({
+                    altitude: 1000,
+                    color: function(properties) { return properties.stroke }
+                })(features);
+
+                mesh.traverse(o => {
+                    if (o.material) {
+                        o.material.linewidth = o.userData.properties['stroke-width'];
+                    }
+                });
+
+                view.scene.add(mesh);
+                view.notifyChange(true);
+            }).catch( e => console.error(e));
             /*itowns.Fetcher.json('../test2.geojson').then(json => {
                 const obj = itowns.Feature2Mesh.convert()(itowns.GeoJSON2Features.parse('EPSG:3857', json));
                 obj.children[0].renderOrder = 1;
