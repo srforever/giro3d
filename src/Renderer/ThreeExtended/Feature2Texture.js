@@ -45,6 +45,7 @@ function _drawPolygon(ctx, vertices, indices, origin, scale, properties, style) 
         ctx.strokeStyle = style.stroke || properties.stroke;
         ctx.lineWidth = style.strokeWidth || properties['stroke-width'] || 2.0;
         ctx.globalAlpha = style.strokeOpacity || properties['stroke-opacity'] || 1.0;
+        ctx.lineCap = style.strokeCap || properties['stroke-cap'] || 'butt';
         ctx.stroke();
     }
 
