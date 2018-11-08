@@ -50,50 +50,7 @@ Camera.prototype.update = function update(width, height) {
 
     // keep our visibility testing matrix ready
     this._viewMatrix.multiplyMatrices(this.camera3D.projectionMatrix, this.camera3D.matrixWorldInverse);
-
-    // sse = projected geometric error on screen plane from distance
-    // We're using an approximation, assuming that the geometric error of all
-    // objects is perpendicular to the camera view vector (= we always compute
-    // for worst case).
-    //
-    //            screen plane             object
-    //               |                         __
-    //               |                        /  \
-    //               |             geometric{|
-    //  < fov angle  . } sse          error {|    |
-    //               |                        \__/
-    //               |
-    //               |<--------------------->
-    //               |        distance
-    //
-    //              geometric_error * screen_width      (resp. screen_height)
-    //     =  ---------------------------------------
-    //        2 * distance * tan (horizontal_fov / 2)   (resp. vertical_fov)
-    //
-    //
-    // We pre-compute the preSSE (= constant part of the screen space error formula) once here
-
-    const verticalFOV = THREE.Math.degToRad(this.camera3D.fov);
-    const verticalPreSSE = this.height / (2.0 * Math.tan(verticalFOV * 0.5));
-
-    // Note: the preSSE for the horizontal FOV is the same value
-    // focale = (this.height * 0.5) / Math.tan(verticalFOV * 0.5);
-    // horizontalFOV = 2 * Math.atan(this.width * 0.5 / focale);
-    // horizontalPreSSE = this.width / (2.0 * Math.tan(horizontalFOV * 0.5)); (1)
-    // => replacing horizontalFOV in Math.tan(horizontalFOV * 0.5)
-    // Math.tan(horizontalFOV * 0.5) = Math.tan(2 * Math.atan(this.width * 0.5 / focale) * 0.5)
-    //                               = Math.tan(Math.atan(this.width * 0.5 / focale))
-    //                               = this.width * 0.5 / focale
-    // => now replacing focale
-    //                               = this.width * 0.5 / (this.height * 0.5) / Math.tan(verticalFOV * 0.5)
-    //                               = Math.tan(verticalFOV * 0.5) * this.width / this.height
-    // => back to (1)
-    // horizontalPreSSE = this.width / (2.0 * Math.tan(verticalFOV * 0.5) * this.width / this.height)
-    //                  = this.height / 2.0 * Math.tan(verticalFOV * 0.5)
-    //                  = verticalPreSSE
-    this._preSSE = verticalPreSSE;
 };
-
 
 /**
  * Return the position in the requested CRS, or in camera's CRS if undefined.
@@ -102,15 +59,6 @@ Camera.prototype.update = function update(width, height) {
  */
 Camera.prototype.position = function position(crs) {
     return new Coordinates(this.crs, this.camera3D.position).as(crs || this.crs);
-};
-
-/**
- * Set the position of the camera using a Coordinates object.
- * If you want to modify the position directly using x,y,z value then use camera.camera3D.position.set(x, y, z)
- * @param {Coordinates} position the new position of the camera
- */
-Camera.prototype.setPosition = function setPosition(position) {
-    this.camera3D.position.copy(position.as(this.crs).xyz());
 };
 
 const tmp = {

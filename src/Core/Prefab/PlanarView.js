@@ -122,7 +122,7 @@ function PlanarView(viewerDiv, extent, options = {}) {
     const lookat = positionCamera.xyz();
     lookat.z = 0;
 
-    this.camera.setPosition(positionCamera);
+    this.camera.camera3D.position.copy(positionCamera);
     this.camera.camera3D.lookAt(lookat);
     this.camera.camera3D.updateMatrixWorld(true);
 
