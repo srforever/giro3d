@@ -1,12 +1,32 @@
 import * as THREE from 'three';
 import Extent from '../Core/Geographic/Extent';
-import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 import ScreenSpaceError from '../Core/ScreenSpaceError';
 
 function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
     if (metadata.obj) {
         unmarkForDeletion(layer, metadata.obj);
+        view.notifyChange(parent);
         return Promise.resolve(metadata.obj);
+    }
+
+    let priority;
+    if (!parent || parent.additiveRefinement) {
+        // Additive refinement can be done independently for each child,
+        // so we can compute a per child priority
+        const size = metadata.boundingVolume.box.clone()
+            .applyMatrix4(metadata._worldFromLocalTransform)
+            .getSize();
+        priority = size.x * size.y;
+    } else {
+        // But the 'replace' refinement needs to download all children at
+        // the same time.
+        // If one of the children is very small, its priority will be low,
+        // and it will delay the display of its siblings.
+        // So we compute a priority based on the size of the parent
+        const size = parent.boundingVolume.box.clone()
+            .applyMatrix4(parent.matrixWorld)
+            .getSize();
+        priority = size.x * size.y;// / layer.tileIndex.index[parent.tileId].children.length;
     }
 
     const command = {
@@ -14,12 +34,12 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
         view,
         requester: parent,
         layer,
-        priority: parent ? parent.sse : 1,
+        priority,
         /* specific params */
         metadata,
         redraw,
         earlyDropFunction: cmd =>
-            cmd.requester && cmd.requester.additiveRefinement && (
+            cmd.requester && (
                 // requester cleaned
                 !cmd.requester.parent ||
                 // requester not visible anymore
@@ -39,11 +59,6 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
         (node) => {
             metadata.obj = node;
             return node;
-        },
-        (err) => {
-            if (err instanceof CancelledCommandException) {
-                return undefined;
-            }
         });
 }
 
@@ -89,8 +104,8 @@ function boundingVolumeToExtent(crs, volume, transform) {
 const tmpMatrix = new THREE.Matrix4();
 function _subdivideNodeAdditive(context, layer, node, cullingTest) {
     for (const child of layer.tileIndex.index[node.tileId].children) {
-        // child being downloaded => skip
-        if (child.promise) {
+        // child being downloaded or already added => skip
+        if (child.promise || node.children.filter(n => n.tileId == child.tileId).length > 0) {
             continue;
         }
 
@@ -122,6 +137,8 @@ function _subdivideNodeAdditive(context, layer, node, cullingTest) {
 
                 context.view.notifyChange(child);
             }
+            delete child.promise;
+        }, () => {
             delete child.promise;
         });
     }
@@ -156,24 +173,19 @@ function _subdivideNodeSubstractive(context, layer, node) {
                 tile.traverse((obj) => {
                     obj.extent = extent;
                 });
-
-                // If children is a tileset, we need to prefetch here, because 'node' will
-                // be hidden as soon as its children are created. But if a child is a tileset,
-                // the real content is in its own child.
-                // So we block node.pendingSubdivision until child's child is ready
-
-                const childPromises = [];
-                if (layer.tileIndex.index[tile.tileId].isTileset) {
-                    for (const childchild of layer.tileIndex.index[tile.tileId].children) {
-                        childPromises.push(requestNewTile(context.view, context.scheduler, layer, childchild, tile, false));
-                    }
-                    return Promise.all(childPromises);
-                }
             }));
     }
     Promise.all(promises).then(() => {
         node.pendingSubdivision = false;
         context.view.notifyChange(node);
+    }, () => {
+        node.pendingSubdivision = false;
+
+        // delete other children
+        for (const n of getChildTiles(node)) {
+            n.visible = false;
+            markForDeletion(layer, n);
+        }
     });
 }
 
@@ -384,6 +396,12 @@ function unmarkForDeletion(layer, elt) {
     }
 }
 
+function isTilesetContentReady(tileset, node) {
+    return tileset && node && // is tileset loaded ?
+        node.children.length == 1 && // is tileset root loaded ?
+        node.children[0].children.length > 0;
+}
+
 export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTest = $3dTilesSubdivisionControl) {
     return function _process3dTilesNodes(context, layer, node) {
         // Remove deleted children (?)
@@ -407,7 +425,28 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
             if (node.pendingSubdivision || subdivisionTest(context, layer, node)) {
                 subdivideNode(context, layer, node, cullingTest);
                 // display iff children aren't ready
-                setDisplayed(node, node.pendingSubdivision || node.additiveRefinement);
+                if (node.additiveRefinement || node.pendingSubdivision) {
+                    setDisplayed(node, true);
+                } else {
+                    // If one of our child is a tileset, this node must be displayed until this
+                    // child content is ready, to avoid hiding our content too early (= when our child
+                    // is loaded but its content is not)
+                    const subtilesets = layer.tileIndex.index[node.tileId].children.filter(
+                        tile => tile.isTileset);
+
+                    if (subtilesets.length) {
+                        let allReady = true;
+                        for (const tileset of subtilesets) {
+                            if (!isTilesetContentReady(tileset, node.children.filter(n => n.tileId == tileset.tileId)[0])) {
+                                allReady = false;
+                                break;
+                            }
+                        }
+                        setDisplayed(node, allReady);
+                    } else {
+                        setDisplayed(node, true);
+                    }
+                }
                 returnValue = getChildTiles(node);
             } else {
                 setDisplayed(node, true);

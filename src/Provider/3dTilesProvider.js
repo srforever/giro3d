@@ -48,7 +48,16 @@ export function $3dTilesIndex(tileset, baseURL) {
         counter++;
         if (node.children) {
             for (const child of node.children) {
-                recurse(child, baseURL, node);
+                try {
+                    recurse(child, baseURL, node);
+                } catch (error) {
+                    node.children[node.children.indexOf(child)] = undefined;
+                }
+            }
+            const count = node.children.length;
+            node.children = node.children.filter(n => n !== undefined);
+            if (node.children.length != count) {
+                // console.log('Removed elements:', count - node.children.length);
             }
         }
     }.bind(this);
@@ -138,20 +147,25 @@ function getBox(volume) {
         throw new Error('volume.region is unsupported');
     } else if (volume.box) {
         // TODO: only works for axis aligned boxes
-        const box = volume.box;
+        const bbox = volume.box;
         // box[0], box[1], box[2] = center of the box
         // box[3], box[4], box[5] = x axis direction and half-length
         // box[6], box[7], box[8] = y axis direction and half-length
         // box[9], box[10], box[11] = z axis direction and half-length
-        const center = new THREE.Vector3(box[0], box[1], box[2]);
-        const w = center.x - box[3];
-        const e = center.x + box[3];
-        const s = center.y - box[7];
-        const n = center.y + box[7];
-        const b = center.z - box[11];
-        const t = center.z + box[11];
+        const center = new THREE.Vector3(bbox[0], bbox[1], bbox[2]);
 
-        return { box: new THREE.Box3(new THREE.Vector3(w, s, b), new THREE.Vector3(e, n, t)) };
+        const w = center.x - bbox[3];
+        const e = center.x + bbox[3];
+        const s = center.y - bbox[7];
+        const n = center.y + bbox[7];
+        const b = center.z - bbox[11];
+        const t = center.z + bbox[11];
+
+        const box = new THREE.Box3(new THREE.Vector3(w, s, b), new THREE.Vector3(e, n, t));
+        if (box.getSize().length() == 0) {
+            throw new Error('Invalid boundingVolume (0 sized box)');
+        }
+        return { box };
     } else if (volume.sphere) {
         const sphere = new THREE.Sphere(new THREE.Vector3(volume.sphere[0], volume.sphere[1], volume.sphere[2]), volume.sphere[3]);
         return { sphere };
