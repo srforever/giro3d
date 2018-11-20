@@ -168,11 +168,12 @@ function update(context, layer, node) {
         let requestChildrenUpdate = false;
 
         if (!layer.frozen) {
+            const s = node.OBB().box3D.getSize();
             const sse = ScreenSpaceError.computeFromBox3(
                     context.camera,
                     node.OBB().box3D,
                     node.OBB().matrixWorld,
-                    node.OBB().box3D.getSize().x,
+                    Math.max(s.x, s.y),
                     ScreenSpaceError.MODE_3D);
             node._a = sse; // DEBUG
 
