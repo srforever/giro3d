@@ -105,6 +105,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
 
     fillArray(this.layerTexturesCount, 0);
 
+    this.uniforms.validityExtent = new THREE.Uniform(new THREE.Vector4());
     this.uniforms.tileDimensions = new THREE.Uniform(new THREE.Vector2());
     this.uniforms.neighbourdiffLevel = new THREE.Uniform(new THREE.Vector4());
 

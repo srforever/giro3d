@@ -45,23 +45,11 @@ export function createPlanarLayer(id, extent, options) {
     if (extent.crs() == 'EPSG:3857') {
         // align quadtree on EPSG:3857 full extent
         const aligned = compute3857Extent(extent);
-        if (!extent.isInside(aligned)) {
-            throw new Error('oops');
-        }
-        if (aligned.isInside(extent)) {
-            tileLayer.schemeTile = [extent];
-        } else {
-            tileLayer.schemeTile = [];
-            const quads = aligned.quadtreeSplit();
-            for (const quad of quads) {
-                const inter = quad.intersect(extent);
-                if (inter.dimensions().x > 0) {
-                    tileLayer.schemeTile.push(inter);
-                }
-            }
-        }
+        tileLayer.schemeTile = [aligned];
+        tileLayer.validityExtent = extent;
     } else {
         tileLayer.schemeTile = [extent];
+        tileLayer.validityExtent = extent;
     }
     tileLayer.maxSubdivisionLevel = options.maxSubdivisionLevel;
 

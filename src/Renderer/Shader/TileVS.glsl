@@ -12,13 +12,17 @@ uniform float segments;
 #endif
 
 uniform mat4        projectionMatrix;
-uniform mat4        modelViewMatrix;
+uniform mat4        modelMatrix;
+uniform mat4        viewMatrix;
+uniform mat4 modelViewMatrix;
 
 uniform vec4 neighbourdiffLevel;
 uniform vec2 tileDimensions;
 
 varying vec2        vUv;
 varying vec4 vColor;
+
+uniform vec4 validityExtent;
 
 
 #include <GetElevation>
@@ -150,5 +154,20 @@ void main() {
         vPosition.z = elevation;
     }
 
-    gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+    vec4 worldPosition = modelMatrix * vPosition;
+
+    if (worldPosition.x < validityExtent.x ||
+        worldPosition.x > validityExtent.z ||
+        worldPosition.y < validityExtent.y ||
+        worldPosition.y > validityExtent.w) {
+        worldPosition.x = clamp(worldPosition.x, validityExtent.x, validityExtent.z);
+        worldPosition.y = clamp(worldPosition.y, validityExtent.y, validityExtent.w);
+        worldPosition.z = 0.0;
+
+        gl_Position = projectionMatrix * viewMatrix * worldPosition;
+        vColor = vec4(157.0/255.0, 212.0/255.0, 220.0/255.0, 1.0);
+    } else {
+        gl_Position = projectionMatrix * modelViewMatrix * vPosition;
+    }
+
 }
