@@ -178,6 +178,8 @@ export default {
                 const w = texture.texture.image.width * texture.pitch.z;
                 const h = texture.texture.image.height * texture.pitch.w;
                 const fooCtx = fooCanvas.getContext('2d');
+                fooCanvas.width = 256;
+                fooCanvas.height = 256;
                 fooCtx.drawImage(
                     texture.texture.image,
                     texture.texture.image.width * texture.pitch.x,
@@ -193,7 +195,7 @@ export default {
                 let max = -Infinity;
                 const stride = w * 4;
                 for (let i = 0; i < h; i++) {
-                    for (let j = 0; j < w; j += 4) {
+                    for (let j = 0; j < stride; j += 4) {
                         const val = tr(
                             data[i * stride + j],
                             data[i * stride + j + 1],
