@@ -406,4 +406,24 @@ Extent.fromBox3 = function fromBox3(crs, box) {
     });
 };
 
+const center = new Coordinates('EPSG:4326', 0, 0, 0);
+Extent.prototype.quadtreeSplit = function quadtreeSplit() {
+    this.center(center);
+
+    const northWest = new Extent(this.crs(),
+        this.west(), center._values[0],
+        center._values[1], this.north());
+    const northEast = new Extent(this.crs(),
+        center._values[0], this.east(),
+        center._values[1], this.north());
+    const southWest = new Extent(this.crs(),
+        this.west(), center._values[0],
+        this.south(), center._values[1]);
+    const southEast = new Extent(this.crs(),
+        center._values[0], this.east(),
+        this.south(), center._values[1]);
+
+    return [northWest, northEast, southWest, southEast];
+};
+
 export default Extent;

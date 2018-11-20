@@ -1,5 +1,3 @@
-import Extent from '../Core/Geographic/Extent';
-import Coordinates from '../Core/Geographic/Coordinates';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 import ObjectRemovalHelper from './ObjectRemovalHelper';
 import ScreenSpaceError from '../Core/ScreenSpaceError';
@@ -27,29 +25,9 @@ function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
     });
 }
 
-const center = new Coordinates('EPSG:4326', 0, 0, 0);
-function subdivisionExtents(bbox) {
-    bbox.center(center);
-
-    const northWest = new Extent(bbox.crs(),
-        bbox.west(), center._values[0],
-        center._values[1], bbox.north());
-    const northEast = new Extent(bbox.crs(),
-        center._values[0], bbox.east(),
-        center._values[1], bbox.north());
-    const southWest = new Extent(bbox.crs(),
-        bbox.west(), center._values[0],
-        bbox.south(), center._values[1]);
-    const southEast = new Extent(bbox.crs(),
-        center._values[0], bbox.east(),
-        bbox.south(), center._values[1]);
-
-    return [northWest, northEast, southWest, southEast];
-}
-
 function subdivideNode(context, layer, node) {
     if (!node.pendingSubdivision && !node.children.some(n => n.layer == layer)) {
-        const extents = subdivisionExtents(node.extent);
+        const extents = node.extent.quadtreeSplit();
         // TODO: pendingSubdivision mechanism is fragile, get rid of it
         node.pendingSubdivision = true;
 
