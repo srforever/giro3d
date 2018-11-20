@@ -10,7 +10,7 @@ import Extent from '../Geographic/Extent';
 function compute3857Extent(tileExtent) {
     const extent = new Extent('EPSG:3857',
         -20037508.342789244, 20037508.342789244,
-        -20037508.342789255, 20037508.342789244);
+        -20037508.342789244, 20037508.342789244);
     const c = tileExtent.center();
     const layerDimension = extent.dimensions();
 

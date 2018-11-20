@@ -10,7 +10,7 @@ function preprocessDataLayer(layer) {
         // default to the full 3857 extent
         layer.extent = new Extent('EPSG:3857',
             -20037508.342789244, 20037508.342789244,
-            -20037508.342789255, 20037508.342789244);
+            -20037508.342789244, 20037508.342789244);
     }
     if (!(layer.extent instanceof (Extent))) {
         if (!layer.projection) {
