@@ -83,6 +83,37 @@
                 transparent: true,
             });
 
+            // Add a vector layer
+
+            var format = new itowns.olformat.GeoJSON();
+            var vectorSource = new itowns.olsource.Vector({ });
+
+            itowns.Fetcher.json('https://cdn.jsdelivr.net/gh/gregoiredavid/france-geojson@master/departements.geojson')
+                .then(geojson => {
+                var features = format.readFeatures(geojson, {
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:3857'
+                });
+                vectorSource.addFeatures(features);
+            });
+
+            view.addLayer({
+                id: 'vec',
+                type: 'color',
+                protocol: 'olvector',
+                projection: 'EPSG:3857',
+                source: vectorSource,
+                transparent: true,
+                style: (Style, Fill, Stroke) => function _(feature) {
+                    return new Style({
+                        stroke: new Stroke({
+                            color: 'cyan',
+                            width: 1,
+                        }),
+                    });
+                }
+            });
+
             // Request redraw
             view.notifyChange();
 

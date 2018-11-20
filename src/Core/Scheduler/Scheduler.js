@@ -10,6 +10,7 @@ import RasterProvider from '../../Provider/RasterProvider';
 import StaticProvider from '../../Provider/StaticProvider';
 import OLTileProvider from '../../Provider/OLTileProvider';
 import OLVectorTileProvider from '../../Provider/OLVectorTileProvider';
+import OLVectorProvider from '../../Provider/OLVectorProvider';
 import CancelledCommandException from './CancelledCommandException';
 import Cache from './Cache';
 
@@ -140,6 +141,7 @@ Scheduler.prototype.initDefaultProviders = function initDefaultProviders() {
     this.addProtocolProvider('static', StaticProvider);
     this.addProtocolProvider('oltile', OLTileProvider);
     this.addProtocolProvider('olvectortile', OLVectorTileProvider);
+    this.addProtocolProvider('olvector', OLVectorProvider);
 };
 
 Scheduler.prototype.runCommand = function runCommand(command, queue, recurse = true) {
