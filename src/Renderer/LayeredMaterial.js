@@ -44,7 +44,7 @@ function fillArray(array, remp) {
 //   - useColorTextureElevation: declare that the elevation texture is an RGB textures.
 //   - colorTextureElevationMinZ: altitude value mapped on the (0, 0, 0) color
 //   - colorTextureElevationMaxZ: altitude value mapped on the (255, 255, 255) color
-const LayeredMaterial = function LayeredMaterial(options) {
+const LayeredMaterial = function LayeredMaterial(options, segments) {
     THREE.RawShaderMaterial.call(this);
 
     const maxTexturesUnits = Capabilities.getMaxTextureUnitsCount();
@@ -55,8 +55,9 @@ const LayeredMaterial = function LayeredMaterial(options) {
     // Move this to the setTerrain code
     if (options.useColorTextureElevation) {
         this.defines.COLOR_TEXTURE_ELEVATION = 1;
-        this.defines.HILLSHADE = 1;
+        // this.defines.HILLSHADE = 1;
         this.defines.STITCHING = 1;
+        this.uniforms.segments = new THREE.Uniform(segments);
     } else {
         // default
         this.defines.DATA_TEXTURE_ELEVATION = 1;

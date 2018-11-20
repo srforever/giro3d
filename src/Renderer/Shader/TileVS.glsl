@@ -8,6 +8,7 @@ uniform vec4        elevationOffsetScale;
 #if defined(STITCHING)
 uniform sampler2D nTex[4];
 uniform vec4 nOff[4];
+uniform float segments;
 #endif
 
 uniform mat4        projectionMatrix;
@@ -59,25 +60,52 @@ void main() {
         float elevation = getElevation(elevationTexture, vVv);
 
 #if defined(STITCHING)
+        // We process the 4 borders separatly. The logic is:
+        // - identify if the current vertex is on the border
+        // - then, if the neighbour tile is:
+        //     - at the same level (= precision): we average
+        //       both elevations
+        //     - at a lower level (less precise): we use its
+        //       elevation. And if this vertex has no direct
+        //       v-neighbour, it is shifted along the other
+        //       (x when processing north/south border, else
+        //       y) to be at the same position than the vertex
+        //       on the other tile. Eg, for vertex 'o' below:
+        //
+        //    ---xx--x--       ---xx--x--
+        //       ||  |            ||⋱|
+        //       |o--x--  =>      ||  x--
+        //       ||  |            ||  |
+        //    ---xx--x--       ---xx--x--
+        //       ||  |            ||  |
+        //
+        // factor: num_vert_in_tile / num_vert_in_neighbour_tile
+        //       = 2^(level_difference)
+        vec4 neighbourFactor = pow(vec4(2.0), abs(neighbourdiffLevel));
+        // Interval in current tile is: 1.0 / segments. If a neighbour
+        // has less vertices on our shared edges, its interval size is
+        // going to be:
+        vec4 modulo = neighbourFactor / segments;
+        // West border
         if (vUv.x < 0.01) {
             if (neighbourdiffLevel.w < 0.0) {
-                if (fract((vUv.y / 0.0625) / 2.0) > 0.1) {
-                    vPosition.y -= tileDimensions.y / 16.0;
-                    vUv.y -= 0.0625;
-                }
+                float offset = fract(vUv.y / modulo.w) * modulo.w;
+                vPosition.y -= tileDimensions.y * offset;
+                vUv.y -= offset;
+
                 elevation = readNeighbourElevation(vUv, 3);
                 // vColor = vec4(1.0, 0.0, 0.0, 0.5);
             } else if (neighbourdiffLevel.w == 0.0) {
                 elevation += readNeighbourElevation(uv, 3);
                 weight += 1;
             }
-        } else if (vUv.x > 0.99) {
+        }
+        // East border
+        else if (vUv.x > 0.99) {
             if (neighbourdiffLevel.y < 0.0) {
-                if (fract((vUv.y / 0.0625) / 2.0) > 0.1) {
-                    // move up
-                    vPosition.y -= tileDimensions.y / 16.0;
-                    vUv.y -= 0.0625;
-                }
+                float offset = fract(vUv.y / modulo.y) * modulo.y;
+                vPosition.y -= tileDimensions.y * offset;
+                vUv.y -= offset;
                 elevation = readNeighbourElevation(vUv, 1);
                 // vColor = vec4(1.0, 1.0, 0.0, 0.5);
             } else if (neighbourdiffLevel.y == 0.0) {
@@ -85,14 +113,13 @@ void main() {
                 weight += 1;
             }
         }
-
+        // South border
         if (vUv.y < 0.01) {
             if (neighbourdiffLevel.z < 0.0) {
-                if (fract((vUv.x / 0.0625) / 2.0) > 0.1) {
-                    // move to the left
-                    vPosition.x -= tileDimensions.x / 16.0;
-                    vUv.x -= 0.0625;
-                }
+                float offset = fract(vUv.x / modulo.z) * modulo.z;
+                // move to the left
+                vPosition.x -= tileDimensions.x * offset;
+                vUv.x -= offset;
 
                 elevation = readNeighbourElevation(vUv, 2);
                 weight = 1;
@@ -100,12 +127,13 @@ void main() {
                 elevation += readNeighbourElevation(uv, 2);
                 weight += 1;
             }
-        } else if (vUv.y > 0.99) {
+        }
+        // North border
+        else if (vUv.y > 0.99) {
             if (neighbourdiffLevel.x < 0.0) {
-                if (fract((vUv.x / 0.0625) / 2.0) > 0.1) {
-                    vPosition.x -= tileDimensions.x / 16.0;
-                    vUv.x -= 0.0625;
-                }
+                float offset = fract(vUv.x / modulo.x) * modulo.x;
+                vPosition.x -= tileDimensions.x * offset;
+                vUv.x -= offset;
 
                 elevation = readNeighbourElevation(vUv, 0);
                 weight = 1;

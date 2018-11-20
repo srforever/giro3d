@@ -74,7 +74,7 @@ function executeCommand(command) {
 
     // build tile
     geometry._count++;
-    const material = new LayeredMaterial(layer.materialOptions);
+    const material = new LayeredMaterial(layer.materialOptions, segment);
     const tile = new TileMesh(layer, geometry, material, extent, level);
     tile.layers.set(command.threejsLayer);
 

@@ -426,4 +426,32 @@ Extent.prototype.quadtreeSplit = function quadtreeSplit() {
     return [northWest, northEast, southWest, southEast];
 };
 
+Extent.prototype.externalBorders = function externalBorders(ratio) {
+    const result = [
+        this.clone(),
+        this.clone(),
+        this.clone(),
+        this.clone()];
+
+    const dim = this.dimensions();
+
+    // north border
+    result[0]._values[CARDINAL.SOUTH] =
+        result[0]._values[CARDINAL.NORTH];
+    result[0]._values[CARDINAL.NORTH] += dim.y * ratio;
+    // east border
+    result[1]._values[CARDINAL.WEST] =
+        result[1]._values[CARDINAL.EAST];
+    result[1]._values[CARDINAL.EAST] += dim.x * ratio;
+    // south border
+    result[2]._values[CARDINAL.NORTH] =
+        result[2]._values[CARDINAL.SOUTH];
+    result[2]._values[CARDINAL.SOUTH] -= dim.y * ratio;
+    // west border
+    result[3]._values[CARDINAL.EAST] =
+        result[3]._values[CARDINAL.WEST];
+    result[3]._values[CARDINAL.WEST] -= dim.x * ratio;
+    return result;
+};
+
 export default Extent;
