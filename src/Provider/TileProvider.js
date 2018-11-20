@@ -46,11 +46,9 @@ function executeCommand(command) {
     const level = (command.level === undefined) ? (parent.level + 1) : command.level;
 
     const { sharableExtent, quaternion, position } = builder.computeSharableExtent(extent);
-    const south = sharableExtent.south().toFixed(6);
-    const segment = layer.segments || 16;
-    const key = `${builder.type}_${layer.disableSkirt ? 0 : 1}_${segment}_${level}_${south}`;
+    const segment = layer.segments || 8;
+    const key = `${builder.type}_${segment}_${level}_${extent._values.join(',')}`;
 
-    // TODO
     let geometry = Cache.get(key);
     // build geometry if doesn't exist
     if (!geometry) {
