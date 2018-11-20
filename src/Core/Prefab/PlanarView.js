@@ -72,6 +72,14 @@ export function createPlanarLayer(id, extent, options) {
             return node;
         }
         if (!node.parent || !node.parent.extent) {
+            if (node.level == 0 && node.parent.children.length) {
+                for (const sibling of node.parent.children) {
+                    if (sibling.extent &&
+                        extent.isInside(sibling.extent)) {
+                        return sibling;
+                    }
+                }
+            }
             return undefined;
         }
         return findSmallestExtentCoveringGoingUp(node.parent, extent);
@@ -84,10 +92,6 @@ export function createPlanarLayer(id, extent, options) {
     }
 
     function findNeighbours(node) {
-        if (node.level == 0) {
-            return;
-        }
-
         const dim = node.extent.dimensions();
         // top, right, bottom, left
         const result = [
