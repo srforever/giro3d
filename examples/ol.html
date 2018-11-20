@@ -13,6 +13,10 @@
         <script src="../dist/itowns.js"></script>
         <script src="js/loading_screen.js"></script>
         <script type="text/javascript">
+            window.THREE = itowns.THREE;
+        </script>
+        <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
+        <script type="text/javascript">
             // # Orthographic viewer
 
             // Define geographic extent: CRS, min/max X, min/max Y
@@ -29,15 +33,17 @@
 
             // Instanciate controls
             // eslint-disable-next-line no-new
-            new itowns.PlanarControls(view, {
-                // We do not want the user to zoom out too much
-                maxAltitude: 40000000,
-                // We want to keep the rotation disabled, to only have a view from the top
-                // Faster zoom in/out speed
-                zoomInFactor: 0.5,
-                zoomOutFactor: 0.5,
-                // Don't zoom too much on smart zoom
-                smartZoomHeightMax: 100000,
+            var controls = new THREE.MapControls(
+                view.camera.camera3D,
+                view.mainLoop.gfxEngine.renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.25;
+
+            view.addFrameRequester('before_camera_update', () => {
+                controls.update();
+            });
+            controls.addEventListener('change', () => {
+                view.notifyChange(view.camera.camera3D);
             });
 
             // Turn in the right angle
@@ -73,7 +79,8 @@
                 id: 'wms',
                 type: 'color',
                 protocol: 'oltile',
-                source: wmsSource
+                source: wmsSource,
+                transparent: true,
             });
 
             // Request redraw
