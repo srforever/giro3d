@@ -37,14 +37,13 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
     const nSeg = params.segment;
     // segments count :
     // Tile : (nSeg + 1) * (nSeg + 1)
-    // Skirt : 8 * (nSeg - 1)
-    const nVertex = (nSeg + 1) * (nSeg + 1) + (params.disableSkirt ? 0 : 4 * nSeg);
-    const triangles = (nSeg) * (nSeg) * 2 + (params.disableSkirt ? 0 : 4 * nSeg * 2);
+    const nVertex = (nSeg + 1) * (nSeg + 1);
+    const triangles = (nSeg) * (nSeg) * 2;
 
     outBuffers.position = new THREE.BufferAttribute(new Float32Array(nVertex * 3), 3);
 
     // Read previously cached values (index and uv.wgs84 only depend on the # of triangles)
-    const cacheKey = `${builder.type}_${params.disableSkirt ? 0 : 1}_${params.segment}`;
+    const cacheKey = `${builder.type}_${params.segment}`;
     const cachedBuffers = cache.get(cacheKey);
     const mustBuildIndexAndWGS84 = !cachedBuffers;
     if (cachedBuffers) {
@@ -68,8 +67,6 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
 
     var idVertex = 0;
     const vertices = [];
-    let skirt = [];
-    const skirtEnd = [];
 
     builder.Prepare(params);
 
@@ -104,33 +101,12 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
             vertex.toArray(outBuffers.position.array, id_m3);
 
             UV_WGS84(outBuffers, idVertex, u, v);
-
-            if (!params.disableSkirt) {
-                if (y !== 0 && y !== heightSegments) {
-                    if (x === widthSegments) {
-                        skirt.push(idVertex);
-                    } else if (x === 0) {
-                        skirtEnd.push(idVertex);
-                    }
-                }
-            }
-
             verticesRow.push(idVertex);
 
             idVertex++;
         }
 
         vertices.push(verticesRow);
-
-        if (y === 0) {
-            skirt = skirt.concat(verticesRow);
-        } else if (y === heightSegments) {
-            skirt = skirt.concat(verticesRow.slice().reverse());
-        }
-    }
-
-    if (!params.disableSkirt) {
-        skirt = skirt.concat(skirtEnd.reverse());
     }
 
     function bufferize(va, vb, vc, idVertex) {
