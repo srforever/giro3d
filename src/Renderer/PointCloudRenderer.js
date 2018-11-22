@@ -5,6 +5,8 @@ import EDLPassTwoFS from './Shader/PointCloud/EDLPassTwoFS.glsl';
 import OcclusionFS from './Shader/PointCloud/OcclusionFS.glsl';
 import InpaintingFS from './Shader/PointCloud/InpaintingFS.glsl';
 
+import { MAIN_LOOP_EVENTS } from '../Core/MainLoop';
+
 const RT = {
     FULL_RES_0: 0,
     FULL_RES_1: 1,
@@ -204,7 +206,7 @@ function PointCloudRenderer(view) {
     this.renderTargets = _createRenderTargets(view);
 
     this.view = view;
-    view.addFrameRequester(this);
+    view.addFrameRequester(MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, this.update.bind(this));
 }
 
 PointCloudRenderer.prototype.update = function update() {

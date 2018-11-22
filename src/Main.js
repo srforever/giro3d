@@ -30,3 +30,5 @@ export { default as DeformationChain } from './DeformationChain';
 export { default as PointDnD } from './PointDnD';
 export { default as HoverHelper } from './HoverHelper';
 export { default as OrthoCameraControls } from './OrthoCameraControls';
+
+export { default as PointCloudRenderer } from './Renderer/PointCloudRenderer';
