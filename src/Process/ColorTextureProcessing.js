@@ -151,9 +151,7 @@ export default {
                 if (err instanceof CancelledCommandException) {
                     node.layerUpdateState[layer.id].success();
                 } else {
-                    if (__DEBUG__) {
-                        console.warn('Imagery texture update error for', node, err);
-                    }
+                    console.warn('Imagery texture update error for', node, err);
                     const definitiveError = node.layerUpdateState[layer.id].errorCount > MAX_RETRY;
                     node.layerUpdateState[layer.id].failure(Date.now(), definitiveError, err);
                     if (!definitiveError) {
