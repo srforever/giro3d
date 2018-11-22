@@ -130,18 +130,22 @@
             pointcloud.postUpdate = itowns.PointCloudProcessing.postUpdate;
 
 
-            /*
-            TODO: restore EDL
-            const edlRenderer = new itowns.PointCloudEDLRenderer(view);
-
-            let edlEnabled = { value: true };
-            let edlGUI = menuGlobe.gui.addFolder('EDL');
-            edlGUI.add(edlEnabled, 'value').name('enabled').onChange(() => { view.notifyChange(true); });
-            edlGUI.add(edlRenderer.controlParameters, 'subsample').onChange(() => { view.notifyChange(true); });
-            edlGUI.add(edlRenderer.controlParameters, 'radius').onChange(() => { view.notifyChange(true); });
-            edlGUI.add(edlRenderer.controlParameters, 'strength').onChange(() => { view.notifyChange(true); });
-            edlGUI.add(edlRenderer.controlParameters, 'directions').min(1).max(16).step(1).onChange(() => { view.notifyChange(true); });
-            edlGUI.add(edlRenderer.controlParameters, 'n').min(1).max(4).step(1).onChange(() => { view.notifyChange(true); });
+            const pcRenderer = new itowns.PointCloudRenderer(view);
+            const folder = menuGlobe.gui.addFolder('Point cloud Renderer');
+            folder.add(pcRenderer.occlusion.parameters, 'enabled').name('occlusion').onChange(() => { view.notifyChange(true) });
+            const occ = folder.addFolder('Occlusion parameters');
+            occ.add(pcRenderer.occlusion.parameters, 'threshold').onChange(() => { view.notifyChange(true) });
+            occ.add(pcRenderer.occlusion.parameters, 'showRemoved').onChange(() => { view.notifyChange(true) });
+            folder.add(pcRenderer.inpainting.parameters, 'enabled').name('inpainting').onChange(() => { view.notifyChange(true) });
+            const inp = folder.addFolder('Inpainting parameters');
+            inp.add(pcRenderer.inpainting.parameters, 'fill_steps').onChange(() => { view.notifyChange(true) });
+            inp.add(pcRenderer.inpainting.parameters, 'depth_contrib').min(0.0).max(1.0).onChange(() => { view.notifyChange(true) });
+            folder.add(pcRenderer.edl.parameters, 'enabled').name('edl').onChange(() => { view.notifyChange(true) });
+            const edl = folder.addFolder('EDL parameters');
+            edl.add(pcRenderer.edl.parameters, 'strength').onChange(() => { view.notifyChange(true) });
+            edl.add(pcRenderer.edl.parameters, 'directions').onChange(() => { view.notifyChange(true) });
+            edl.add(pcRenderer.edl.parameters, 'radius').onChange(() => { view.notifyChange(true) });
+            edl.add(pcRenderer.edl.parameters, 'n').onChange(() => { view.notifyChange(true) });
 
 
             view.render = () => {
@@ -155,16 +159,28 @@
 
                 r.setClearColor(new itowns.THREE.Color(0xffffff));
 
-                if (!edlEnabled.value) {
-                    // normal rendering
-                    g.renderView(view);
-                } else {
-                    edlRenderer.renderView(view);
+                // disable pointcloud layer
+                pointcloud.visible = false;
+                // render
+                view.mainLoop.gfxEngine.renderView(view);
+                // enable only pointcloud
+                pointcloud.visible = true;
 
-                    //r.render(view.scene2D, view.camera.camera2D);
+                if (fpControls && !(fpControls._isUserInteracting || fpControls.isUserInteracting())) {
+                    // disable occlusion + inpaint while moving
+                    const occlusion = pcRenderer.occlusion.parameters.enabled;
+                    const inpainting = pcRenderer.inpainting.parameters.enabled;
+                    pcRenderer.occlusion.enabled = false;
+                    pcRenderer.occlusion.enabled = false;
+                    pcRenderer.renderView(view, pointcloud.opacity);
+                    pcRenderer.occlusion.parameters.enabled = occlusion;
+                    pcRenderer.inpainting.parameters.enabled = inpainting;
+                } else {
+                    pcRenderer.renderView(view, pointcloud.opacity);
+                    g.renderView(view);
                 }
             };
-            */
+
 
             const selectionGroup = new itowns.THREE.Group();
 
@@ -271,12 +287,12 @@
   layer.url = `${path}/resources/vectos3d/paris_cave_27591/tileset.json`;
   //layer.url = 'http://localhost:5000/getCity?city=paris_cave_27591';
   layer.protocol = '3d-tiles';
-  layer.overrideMaterials = new THREE.MeshLambertMaterial();  // custom cesium shaders are not functional
+  layer.overrideMaterials = new itowns.THREE.MeshLambertMaterial();  // custom cesium shaders are not functional
   layer.overrideMaterials.emissive = new itowns.THREE.Color(0x00ff00);
-  layer.overrideMaterials.side = THREE.DoubleSide;
+  layer.overrideMaterials.side = itowns.THREE.DoubleSide;
   layer.type = 'geometry';
   layer.visible = true;
-  view.addLayer(layer);
+  // view.addLayer(layer);
 
 const sun = new itowns.THREE.DirectionalLight();
 sun.position.set(-0.5, 0, 1);
