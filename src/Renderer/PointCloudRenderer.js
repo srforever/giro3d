@@ -62,12 +62,14 @@ function PointCloudRenderer(view) {
             // colors from a normal rendering to compose the final pixel color
             new THREE.ShaderMaterial({
                 uniforms: {
+                    depthTexture: { value: null },
                     textureColor: { value: null },
                     textureEDL: { value: null },
                     opacity: { value: 1.0 },
                 },
                 vertexShader: BasicVS,
                 fragmentShader: EDLPassTwoFS,
+                extensions: { fragDepth: true },
             })],
         // EDL tuning
         parameters: {
@@ -97,6 +99,7 @@ function PointCloudRenderer(view) {
             } else {
                 m.uniforms.textureColor.value = input.texture;
                 m.uniforms.textureEDL.value = renderer.renderTargets[RT.EDL_VALUES].texture;
+                m.uniforms.depthTexture.value = input.depthTexture;
 
                 return { material: m };
             }

@@ -1,3 +1,4 @@
+uniform sampler2D depthTexture;
 uniform sampler2D textureColor;
 uniform sampler2D textureEDL;
 
@@ -13,5 +14,6 @@ void main() {
         discard;
     } else {
         gl_FragColor = vec4(source.rgb * edl, opacity);
+        gl_FragDepthEXT = texture2D(depthTexture, vUv).r;
     }
 }
