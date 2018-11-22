@@ -1,11 +1,16 @@
 import * as THREE from 'three';
 import Coordinates, { crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCRS, is4326 } from '../Geographic/Coordinates';
-import Projection from '../Geographic/Projection';
 
 /**
  * Extent is a SIG-area (so 2D)
  * It can use explicit coordinates (e.g: lon/lat) or implicit (WMTS coordinates)
  */
+
+function YToWGS84(y) {
+    return THREE.Math.radToDeg(
+        2 * (Math.atan(Math.exp(-(y - 0.5) * Math.PI * 2)) - Math.PI / 4));
+}
+
 
 const CARDINAL = {
     WEST: 0,
@@ -85,8 +90,8 @@ Extent.prototype.as = function as(crs) {
             const Yn = 1 - sizeRow * (nbRow - (this.row));
             const Ys = 1 - sizeRow * (nbRow - (this.row + 1));
             // convert Y PM to latitude EPSG:4326 degree
-            const north = Projection.YToWGS84(Yn);
-            const south = Projection.YToWGS84(Ys);
+            const north = YToWGS84(Yn);
+            const south = YToWGS84(Ys);
             // create intermediate EPSG:4326 and convert in new crs
             return new Extent('EPSG:4326', { west, east, south, north }).as(crs);
         } else if (this._crs == 'WMTS:WGS84G' && crs == 'EPSG:4326') {
