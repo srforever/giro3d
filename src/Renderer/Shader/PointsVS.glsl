@@ -119,8 +119,6 @@ void main() {
         // colors from OGC EL.GridCoverage.Default style
         if (z < -100.0) {
             vColor = vec4(float(0x00) / 255.0, float(0x5C) / 255.0, float(0xE6) / 255.0, 1.0);
-        if (z < -100.0) {
-            vColor = vec4(float(0x00) / 255.0, float(0x5C) / 255.0, float(0xE6) / 255.0, 1.0);
         } else if (z <= 0.0) {
             vColor = mix(
                 vec4(float(0x00) / 255.0, float(0x5C) / 255.0, float(0xE6) / 255.0, 1.0),
@@ -151,6 +149,8 @@ void main() {
         // default to color mode
         vColor = vec4(mix(color, overlayColor.rgb, overlayColor.a), opacity);
     }
+
+    vColor.a = opacity;
 
     mat4 mvMatrix = modelViewMatrix;
 
@@ -199,7 +199,6 @@ void main() {
     #endif
 
     vec4 mvPosition = mvMatrix * vec4( position, 1.0 );
-    vViewPos = mvPosition.xyz;
     gl_Position = projectionMatrix * mvPosition;
 
     if (size > 0.) {
