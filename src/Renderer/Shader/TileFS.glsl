@@ -117,6 +117,6 @@ void main() {
     #endif
 
     gl_FragColor.rgb = mix(gl_FragColor.rgb, vColor.rgb, vColor.a);
-    gl_FragColor.a = 1.0;
+    gl_FragColor.a = opacity;
     #endif
 }
