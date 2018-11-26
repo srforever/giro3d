@@ -293,7 +293,7 @@ function featureToMesh(feature, options) {
     mesh.material.vertexColors = THREE.VertexColors;
     mesh.material.color = new THREE.Color(0xffffff);
 
-    mesh.properties = feature.properties;
+    mesh.userData.properties = feature.properties;
 
     return mesh;
 }
