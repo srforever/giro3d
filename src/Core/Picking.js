@@ -42,9 +42,8 @@ function screenCoordsToNodeId(view, tileLayer, viewCoords, radius) {
 
     const ids = [];
 
-    traversePickingCircle(radius, (x, y) => {
-        const idx = (y * 2 * radius + x) * 4;
-        const data = buffer.slice(idx, idx + 4);
+    traversePickingCircle(radius, (x, y, idx) => {
+        const data = buffer.slice(idx * 4, idx * 4 + 4);
         depthRGBA.fromArray(data).divideScalar(255.0);
         const unpack = unpack1K(depthRGBA, Math.pow(256, 3));
 
@@ -81,7 +80,10 @@ function traversePickingCircle(radius, callback) {
                     continue;
                 }
 
-                if (callback(x, y) === false) {
+                const realX = radius + x;
+                const realY = radius + y;
+                const idx = realY * (2 * radius) + realX;
+                if (callback(realX, realY, idx) === false) {
                     return;
                 }
             }
@@ -133,7 +135,9 @@ export default {
         return results;
     },
 
-    pickPointsAt: (view, viewCoords, radius, layer) => {
+    pickPointsAt: (view, viewCoords, radius, layer, filter) => {
+        radius = Math.floor(radius);
+
         // Enable picking mode for points material, by assigning
         // a unique id to each Points instance.
         let visibleId = 1;
@@ -155,8 +159,8 @@ export default {
         const buffer = view.mainLoop.gfxEngine.renderViewToBuffer(
             { camera: view.camera, scene: layer.object3d },
             {
-                x: viewCoords.x - radius,
-                y: viewCoords.y - radius,
+                x: Math.max(0, viewCoords.x - radius),
+                y: Math.max(0, viewCoords.y - radius),
                 width: 1 + radius * 2,
                 height: 1 + radius * 2,
             });
@@ -165,16 +169,40 @@ export default {
 
         const candidates = [];
 
-        traversePickingCircle(radius, (x, y) => {
-            const idx = (y * 2 * radius + x) * 4;
-            const data = buffer.slice(idx, idx + 4);
+        traversePickingCircle(radius, (x, y, idx) => {
+            const coord = {
+                x: x + viewCoords.x,
+                y: y + viewCoords.y,
+                z: 0,
+            };
+            if (filter && !filter(coord)) {
+                return;
+            }
 
+            if (idx * 4 < 0 || ((idx + 1) * 4) > buffer.length) {
+                console.error('azadaz');
+            }
+
+            const data = buffer.slice(idx * 4, idx * 4 + 4);
+
+            if (data[0] == 255 && data[1] == 255) {
+                return;
+            }
             // 12 first bits (so data[0] and half of data[1]) = pickingId
-            const pickingId = (data[0] << 4) | ((data[1] & 0xf0) >> 4);
-            // the remaining 20 bits = the point index
-            const index = ((data[1] & 0x0f) << 16) | (data[2] << 8) | data[3];
+            const pickingId = data[0] + ((data[1] & 0xf0) << 4);
 
-            const r = { pickingId, index };
+            if (pickingId > visibleId) {
+                console.log('weird')
+                console.log(pickingId);
+            }
+            // the remaining 20 bits = the point index
+            const index = ((data[1] & 0x0f) << 16) + (data[2] << 8) + data[3];
+
+            const r = {
+                pickingId,
+                index,
+                coord,
+            };
 
             // filter already if already present
             for (let i = 0; i < candidates.length; i++) {
@@ -182,6 +210,7 @@ export default {
                     return;
                 }
             }
+
             candidates.push(r);
         });
 
@@ -190,10 +219,15 @@ export default {
             if (o.isPoints && o.visible && o.material.visible) {
                 for (let i = 0; i < candidates.length; i++) {
                     if (candidates[i].pickingId == o.material.pickingId) {
+                        const position = new THREE.Vector3()
+                            .fromArray(o.geometry.attributes.position.array, 3 * candidates[i].index)
+                            .applyMatrix4(o.matrixWorld);
                         result.push({
                             object: o,
                             index: candidates[i].index,
                             layer,
+                            position,
+                            coord: candidates[i].coord,
                         });
                     }
                 }

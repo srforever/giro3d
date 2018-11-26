@@ -227,7 +227,7 @@ export default {
         layer.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
 
         // this probably needs to be moved to somewhere else
-        layer.pickObjectsAt = (view, mouse, radius) => Picking.pickPointsAt(view, mouse, radius, layer);
+        layer.pickObjectsAt = (view, mouse, radius, filter) => Picking.pickPointsAt(view, mouse, radius, layer, filter);
 
         return Fetcher.json(`${layer.url}/${layer.file}`, layer.networkOptions)
             .then((metadata) => {

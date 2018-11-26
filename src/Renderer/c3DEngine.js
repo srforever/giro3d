@@ -172,6 +172,9 @@ c3DEngine.prototype.renderViewToBuffer = function renderViewToBuffer(view, zone)
 
     this.renderViewToRenderTarget(view, this.fullSizeRenderTarget, zone);
 
+    zone.x = Math.max(0, Math.min(zone.x, this.width));
+    zone.y = Math.max(0, Math.min(zone.y, this.height));
+
     const pixelBuffer = new Uint8Array(4 * zone.width * zone.height);
     this.renderer.readRenderTargetPixels(
         this.fullSizeRenderTarget,
@@ -199,8 +202,8 @@ c3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget
     target.viewport.set(0, 0, target.width, target.height);
     if (zone) {
         target.scissor.set(
-            zone.x,
-            target.height - (zone.y + zone.height),
+            Math.max(0, zone.x),
+            Math.max(target.height - (zone.y + zone.height)),
             zone.width,
             zone.height);
         target.scissorTest = true;

@@ -88,18 +88,19 @@ void main() {
     if (pickingId > 0) {
         vColor = unique_id;
 
-        float left4bitsShift = pow(2.0, 4.0); // << 4 <=> * 2^4
-        float right4bitsShift = 1.0 / left4bitsShift; // << 4 <=> / 1 * 2^4
-        float fId = float(pickingId);
+        int left4bitsShift = 16; // << 4 <=> * 2^4
+        int left8bitsShift = left4bitsShift * left4bitsShift;
         // 20 bits for 'unique_id' (= the point index in the buffer)
         // 12 bits for 'pickingId' (= the point instance id)
         // (see Picking.js)
-        // upperPart = pickingId >> 4
-        float upperPart = floor(fId * right4bitsShift);
-        vColor.r = upperPart / 255.0;
-        // lowerPart = pickingId - upperPart << 4
-        float lowerPart = fId - upperPart * left4bitsShift;
-        vColor.g += (lowerPart * left4bitsShift) / 255.0;
+        //     = |4bits||     8 bits     |
+        //          ^ left-most 4 bits of the green channel
+        //                     ^ red channel
+        int upperPart = pickingId / left8bitsShift;
+        int lowerPart = pickingId - upperPart * left8bitsShift; // 8 bits
+        vColor.r = float(lowerPart) / 255.0;
+        vColor.g += float(upperPart * 8) / 255.0; // << 4
+        // vColor.g += float(upperPart * left4bitsShift) / 255.0;
     } else if (mode == MODE_INTENSITY) {
         vColor = vec4(intensity, intensity, intensity, opacity);
     } else if (mode == MODE_NORMAL) {
@@ -147,12 +148,11 @@ void main() {
                 vec4(float(0x7B) / 255.0, float(0xF2) / 255.0, float(0x3A) / 255.0, 1.0),
                 (z - 100.0)/ 50.0);
         }
+        vColor.a = opacity;
     } else {
         // default to color mode
         vColor = vec4(mix(color, overlayColor.rgb, overlayColor.a), opacity);
     }
-
-    vColor.a = opacity;
 
     mat4 mvMatrix = modelViewMatrix;
 
