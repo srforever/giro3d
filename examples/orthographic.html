@@ -34,7 +34,7 @@
 
             // Instanciate PlanarView
             var view = new itowns.PlanarView(
-                    viewerDiv, extent, { renderer: renderer, maxSubdivisionLevel: 10, camera: camera });
+                    viewerDiv, extent, { maxSubdivisionLevel: 10, camera: camera });
 
             var onMouseWheel = function onMouseWheel(event) {
                 var change = 1 - (Math.sign(event.wheelDelta || -event.detail) * 0.1);
@@ -49,7 +49,7 @@
                 view.camera.camera3D.top = cy + halfNewHeight;
                 view.camera.camera3D.bottom = cy - halfNewHeight;
 
-                view.notifyChange(true);
+                view.notifyChange(view.camera.camera3D, true);
             };
 
             var dragStartPosition;
@@ -108,12 +108,13 @@
                     view.camera.camera3D.right = dragCameraStart.right + deltaX;
                     view.camera.camera3D.top = dragCameraStart.top + deltaY;
                     view.camera.camera3D.bottom = dragCameraStart.bottom + deltaY;
-                    view.notifyChange(true);
+                    view.notifyChange(view.camera.camera3D, true);
                 }
 
                 if (obj) {
                     const intersects = view.pickObjectsAt(
                             event,
+                            null,
                             obj);
                     console.log(intersects);
                 }
@@ -126,36 +127,42 @@
 
 
             itowns.Fetcher.json('../test.geojson').then(function (json) {
-                obj = itowns.Feature2Mesh.convert()(itowns.GeoJSON2Features.parse('EPSG:3857', json));
-                obj.children[0].renderOrder = 1;
-                view.scene.add(obj);
-                view.notifyChange(true);
+                itowns.GeoJsonParser.parse(json, { crsOut: 'EPSG:3857' } ).then(features => {
+                    obj = itowns.Feature2Mesh.convert()(features);
+                    obj.traverse(o => {
+                        o.renderOrder = 1;
+                        if (o.material) {
+                            o.material.transparent = true;
+                            o.material.opacity = 0.3;
+                        }
+                    });
+                    view.scene.add(obj);
+                    view.notifyChange(obj, true);
+                });
             });
             const red = new itowns.THREE.Color('red');
             const yellow = new itowns.THREE.Color('yellow');
             itowns.Fetcher.json( 'http://localhost:8080/examples/serpent.json').then(json => {
-                const features = itowns.GeoJSON2Features.parse('EPSG:3857', json, null, {
-                    featureCb: function (feat) {
-                        feat.properties.stroke = feat.properties.tmtm > 500000 ? red : yellow;
-                        feat.properties['stroke-width'] = feat.properties.tmtm > 500000 ? '10.0' : '1.0';
+                view.addLayer({
+                    type: 'color',
+                    geojson: json,
+                    protocol: 'rasterizer',
+                    id: 'serpent',
+                    name: 'serpent',
+                    transparent: true,
+                    style: {
+                        strokeCap: 'round',
+                    },
+                    options: {
+                        featureCb: function (feat) {
+                            feat.properties.stroke = feat.properties.tmtm > 500000 ? red.getStyle() : yellow.getStyle();
+                            feat.properties['stroke-width'] = feat.properties.tmtm > 500000 ? '10.0': '1.0';
+                        }
                     }
                 });
-                const mesh = itowns.Feature2Mesh.convert({
-                    altitude: 1000,
-                    color: function(properties) { return properties.stroke }
-                })(features);
-
-                mesh.traverse(o => {
-                    if (o.material) {
-                        o.material.linewidth = o.userData.properties['stroke-width'];
-                    }
-                });
-
-                view.scene.add(mesh);
-                view.notifyChange(true);
             }).catch( e => console.error(e));
             /*itowns.Fetcher.json('../test2.geojson').then(json => {
-                const obj = itowns.Feature2Mesh.convert()(itowns.GeoJSON2Features.parse('EPSG:3857', json));
+                const obj = itowns.Feature2Mesh.convert()(itowns.GeoJsonParser.parse('EPSG:3857', json));
                 obj.children[0].renderOrder = 1;
                 view.scene.add(obj);
                 view.notifyChange(true);
@@ -163,7 +170,7 @@
 
 
             // Request redraw
-            view.notifyChange(true);
+            view.notifyChange(null, true);
         </script>
     </body>
 </html>
