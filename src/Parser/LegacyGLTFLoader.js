@@ -81,7 +81,7 @@ export default ( function () {
 
 			}
 
-			console.time( 'LegacyGLTFLoader' );
+			// console.time( 'LegacyGLTFLoader' );
 
 			var parser = new GLTFParser( json, extensions, {
 
@@ -92,7 +92,7 @@ export default ( function () {
 
 			parser.parse( function ( scene, scenes, cameras, animations ) {
 
-				console.timeEnd( 'LegacyGLTFLoader' );
+				// console.timeEnd( 'LegacyGLTFLoader' );
 
 				var glTF = {
 					"scene": scene,
@@ -429,6 +429,8 @@ export default ( function () {
 		SAMPLER_2D: 35678,
 		TRIANGLES: 4,
 		LINES: 1,
+        LINE_LOOP: 2,
+        LINE_STRIP: 3,
 		UNSIGNED_BYTE: 5121,
 		UNSIGNED_SHORT: 5123,
 
@@ -1663,7 +1665,9 @@ export default ( function () {
 
 						group.add( meshNode );
 
-					} else if ( primitive.mode === WEBGL_CONSTANTS.LINES ) {
+                    } else if ( primitive.mode === WEBGL_CONSTANTS.LINES
+                        || primitive.mode === WEBGL_CONSTANTS.LINE_STRIP
+                        || primitive.mode === WEBGL_CONSTANTS.LINE_LOOP ) {
 
 						var geometry = new THREE.BufferGeometry();
 
@@ -1705,7 +1709,13 @@ export default ( function () {
 
 						} else {
 
-							meshNode = new THREE.Line( geometry, material );
+                           if (primitive.mode === WEBGL_CONSTANTS.LINES ) {
+                               meshNode = new THREE.LineSegments( geometry, material );
+                           } else if (primitive.mode === WEBGL_CONSTANTS.LINE_LOOP) {
+                               meshNode = new THREE.LineLoop( geometry, material );
+                           } else {
+                               meshNode = new THREE.Line( geometry, material );
+                           }
 
 						}
 

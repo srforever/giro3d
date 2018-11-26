@@ -9,13 +9,14 @@ import Points from '../Core/Points';
 import PointsMaterial from '../Renderer/PointsMaterial';
 import Cache from '../Core/Scheduler/Cache';
 
+const identity = new THREE.Matrix4();
 export function $3dTilesIndex(tileset, baseURL) {
     let counter = 1;
     this.index = {};
     const inverseTileTransform = new THREE.Matrix4();
     const recurse = function recurse_f(node, baseURL, parent) {
         // compute transform (will become Object3D.matrix when the object is downloaded)
-        node.transform = node.transform ? (new THREE.Matrix4()).fromArray(node.transform) : undefined;
+        node.transform = node.transform ? (new THREE.Matrix4()).fromArray(node.transform) : identity;
 
         // The only reason to store _worldFromLocalTransform is because of extendTileset where we need the
         // transform chain for one node.
@@ -29,7 +30,7 @@ export function $3dTilesIndex(tileset, baseURL) {
             }
         }
 
-        inverseTileTransform.getInverse(node._worldFromLocalTransform);
+        // inverseTileTransform.getInverse(node._worldFromLocalTransform);
         // getBox only use inverseTileTransform for volume.region so let's not
         // compute the inverse matrix each time
         if (node._worldFromLocalTransform) {
