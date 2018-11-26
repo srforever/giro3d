@@ -131,11 +131,11 @@ export default {
     },
     canTextureBeImproved(layer, extents, currentTextures) {
         if (!currentTextures || !currentTextures[0].extent) {
-            return true;
+            return [true];
         }
         const dim = extents[0].dimensions();
         const inside = currentTextures[0].extent.isInside(extents[0], dim.x * 0.001);
-        return !inside;
+        return inside ? [] : [true];
     },
     tileInsideLimit(tile, layer) {
         const extent = tile.getCoordsForLayer(layer)[0];
