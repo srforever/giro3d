@@ -22,7 +22,6 @@ export { default as PointCloudProcessing } from './Process/PointCloudProcessing'
 export { default as Feature2Mesh } from './Renderer/ThreeExtended/Feature2Mesh';
 export { default as FirstPersonControls } from './Renderer/ThreeExtended/FirstPersonControls';
 export { default as FeaturesUtils } from './Renderer/ThreeExtended/FeaturesUtils';
-export { default as DEMUtils } from './utils/DEMUtils';
 export { default as Picking } from './Core/Picking';
 export { default as OBB } from './Renderer/ThreeExtended/OBB';
 
