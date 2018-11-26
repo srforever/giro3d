@@ -135,7 +135,7 @@ export default {
         }
         const dim = extents[0].dimensions();
         const inside = currentTextures[0].extent.isInside(extents[0], dim.x * 0.001);
-        return inside ? [] : [true];
+        return inside ? false : [true];
     },
     tileInsideLimit(tile, layer) {
         const extent = tile.getCoordsForLayer(layer)[0];
