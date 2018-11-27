@@ -93,7 +93,7 @@ function _instanciateQueue() {
                 this.counters.executing--;
                 cmd.reject(err);
                 this.counters.failed++;
-                if (__DEBUG__ && this.counters.failed < 3) {
+                if (this.counters.failed < 3) {
                     console.error(err);
                 }
             });
@@ -198,21 +198,7 @@ Scheduler.prototype.execute = function execute(command) {
 
     q.queue(command);
 
-    if (q.counters.executing < this.maxCommandsPerHost) {
-        // Defer the processing after the end of the current frame.
-        // Promise.resolve or setTimeout(..., 0) will do the job, the difference
-        // is:
-        //   - setTimeout is a new task, queued in the event-loop queues
-        //   - Promise is a micro-task, executed before other tasks
-        Promise.resolve().then(() => {
-            if (q.counters.executing < this.maxCommandsPerHost) {
-                const cmd = this.deQueue(q);
-                if (cmd) {
-                    this.runCommand(cmd, q);
-                }
-            }
-        });
-    }
+    this.executeNextForQueue(q);
 
     return command.promise;
 };
@@ -238,15 +224,45 @@ function isInCache(command) {
 }
 
 Scheduler.prototype.flush = function flush(queue, layerId) {
-    const store = queue.storages.get(layerId);
-    for (let i = 0; i < store.q.priv.data.length; i++) {
-        const cmd = store.q.priv.data[i];
-        if (isInCache(cmd)) {
-            this.runCommand(cmd, queue, false);
-            store.q.priv.data.splice(i, 1);
-            store.q.length--;
-            i--;
+    if (layerId) {
+        const flushed = [];
+        const store = queue.storages.get(layerId);
+        for (let i = 0; i < store.q.priv.data.length; i++) {
+            const cmd = store.q.priv.data[i];
+            if (isInCache(cmd)) {
+                // TODO: we'd like this command to be run in a sync fashion,
+                // since we know the result is already available. This would
+                // reduce latency, and avoid the need for the Promise.all()
+                flushed.push(this.runCommand(cmd, queue, false));
+
+                store.q.priv.data.splice(i, 1);
+                store.q.length--;
+                i--;
+            }
         }
+        if (flushed.length) {
+            Promise.all(flushed).then(() => {
+                this.executeNextForQueue(queue);
+            });
+        }
+    }
+};
+
+Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
+    if (queue.counters.executing < this.maxCommandsPerHost) {
+        // Defer the processing after the end of the current frame.
+        // Promise.resolve or setTimeout(..., 0) will do the job, the difference
+        // is:
+        //   - setTimeout is a new task, queued in the event-loop queues
+        //   - Promise is a micro-task, executed before other tasks
+        Promise.resolve().then(() => {
+            if (queue.counters.executing < this.maxCommandsPerHost) {
+                const cmd = this.deQueue(queue);
+                if (cmd) {
+                    this.runCommand(cmd, queue);
+                }
+            }
+        });
     }
 };
 
