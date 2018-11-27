@@ -1,7 +1,6 @@
 import LayerUpdateState from '../Core/Layer/LayerUpdateState';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 import { SIZE_TEXTURE_TILE } from '../Provider/OGCWebServiceHelper';
-import { computeMinMaxElevation } from '../Parser/XbilParser';
 
 // max retry loading before changing the status to definitiveError
 const MAX_RETRY = 4;
@@ -12,33 +11,24 @@ fooCanvas.height = 256;
 
 
 function initNodeElevationTextureFromParent(node, parent, layer) {
-    // Inherit parent's elevation texture. Note that contrary to color layers the elevation level of the
-    // node might not be EMPTY_TEXTURE_ZOOM in this init function. That's because we can have
-    // multiple elevation layers (thus multiple calls to initNodeElevationTextureFromParent) but a given
-    // node can only use 1 elevation texture
     const nodeTexture = node.material.getLayerTexture(layer).texture;
     const parentTexture = parent.material.getLayerTexture(layer).texture;
     if (!parentTexture.extent) {
         return;
     }
-    if (!nodeTexture.extent || parentTexture.extent.isInside(nodeTexture.extent)) {
-        const extent = node.getExtentForLayer(layer);
 
-        const pitch = extent.offsetToParent(parentTexture.extent);
-        const elevation = {
-            texture: parentTexture,
-            pitch,
-        };
+    const extent = node.getExtentForLayer(layer);
 
-        const { min, max } = computeMinMaxElevation(
-            parentTexture.image.data,
-            SIZE_TEXTURE_TILE, SIZE_TEXTURE_TILE,
-            pitch);
-        elevation.min = min;
-        elevation.max = max;
+    const pitch = extent.offsetToParent(parentTexture.extent);
+    const elevation = {
+        texture: parentTexture,
+        pitch,
+    };
 
-        node.setTextureElevation(layer, elevation);
-    }
+    elevation.min = 0;
+    elevation.max = 129;
+
+    node.setTextureElevation(layer, elevation);
 }
 
 function nodeCommandQueuePriorityFunction(node) {

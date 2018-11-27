@@ -19,15 +19,12 @@ function initColorTexturesFromParent(node, parent, layer) {
     if (!texture || !texture.extent) {
         return false;
     }
-    if (extent.isInside(texture.extent, texture.extent.dimensions().x * 0.001)) {
-        node.material.setLayerTextures(layer, [{
-            texture,
-            pitch: extent.offsetToParent(texture.extent),
-        }]);
-        return true;
-    }
 
-    return false;
+    node.material.setLayerTextures(layer, [{
+        texture,
+        pitch: extent.offsetToParent(texture.extent),
+    }]);
+    return true;
 }
 
 function nodeCommandQueuePriorityFunction(node) {
