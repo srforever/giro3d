@@ -72,6 +72,10 @@ function testTileSSE(tile, sse, maxLevel) {
         return false;
     }
 
+    if (tile.extent.dimensions().x < 5) {
+        return false;
+    }
+
     if (sse[0] == Infinity) {
         return true;
     }
@@ -81,9 +85,13 @@ function testTileSSE(tile, sse, maxLevel) {
         sse[1].clone().sub(sse[0]).length(),
         sse[2].clone().sub(sse[0]).length(),
         sse[3].clone().sub(sse[0]).length()];
+    values.length = 2;
 
     // TODO: depends on texture size of course
     if (values.filter(v => v < 200).length >= 2) {
+        return false;
+    }
+    if (values.filter(v => v < 100).length >= 1) {
         return false;
     }
     return values.filter(v => v >= 256).length >= 1;
