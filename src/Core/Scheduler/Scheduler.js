@@ -151,7 +151,7 @@ Scheduler.prototype.runCommand = function runCommand(command, queue, recurse = t
         throw new Error('No known provider for layer', command.layer.id);
     }
 
-    queue.execute(command, provider).then(() => {
+    return queue.execute(command, provider).then(() => {
         // notify view that one command ended.
         command.view.notifyChange(command.requester, command.redraw);
 
