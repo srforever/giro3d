@@ -243,7 +243,9 @@ Scheduler.prototype.flush = function flush(queue, layerId) {
         const cmd = store.q.priv.data[i];
         if (isInCache(cmd)) {
             this.runCommand(cmd, queue, false);
-            cmd.earlyDropFunction = () => true;
+            store.q.priv.data.splice(i, 1);
+            store.q.length--;
+            i--;
         }
     }
 };
