@@ -159,23 +159,17 @@ Extent.prototype.offsetToParent = function offsetToParent(other, target = new TH
             invDiff, invDiff);
     }
 
-    const dimension = {
-        x: Math.abs(other.east() - other.west()),
-        y: Math.abs(other.north() - other.south()),
-    };
+    const oDim = other.dimensions();
+    const dim = this.dimensions();
 
     const originX =
-        (this.west() - other.west()) / dimension.x;
+        (this.west() - other.west()) / oDim.x;
     const originY =
-        (other.north() - this.north()) / dimension.y;
+        (other.north() - this.north()) / oDim.y;
 
-    const scaleX =
-        Math.abs(
-            this.east() - this.west()) / dimension.x;
+    const scaleX = dim.x / oDim.x;
 
-    const scaleY =
-        Math.abs(
-            this.north() - this.south()) / dimension.y;
+    const scaleY = dim.y / oDim.y;
 
     return target.set(originX, originY, scaleX, scaleY);
 };
