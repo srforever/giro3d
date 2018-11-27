@@ -162,42 +162,45 @@ export default {
             }).then((texture) => {
                 if (!texture) { return; }
 
-                // mapbox elevation
-                const w = texture.texture.image.width * texture.pitch.z;
-                const h = texture.texture.image.height * texture.pitch.w;
-                const fooCtx = fooCanvas.getContext('2d');
-                fooCanvas.width = 256;
-                fooCanvas.height = 256;
-                fooCtx.drawImage(
-                    texture.texture.image,
-                    texture.texture.image.width * texture.pitch.x,
-                    texture.texture.image.height * texture.pitch.y,
-                    w, h,
-                    0, 0, w, h);
-                const data = fooCtx.getImageData(0, 0, w, h).data;
-                function tr(r, g, b) {
-                    return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
-                }
+                if (false) {
+                    // mapbox elevation
+                    const w = texture.texture.image.width * texture.pitch.z;
+                    const h = texture.texture.image.height * texture.pitch.w;
+                    const fooCtx = fooCanvas.getContext('2d');
+                    fooCanvas.width = 256;
+                    fooCanvas.height = 256;
+                    fooCtx.drawImage(
+                        texture.texture.image,
+                        texture.texture.image.width * texture.pitch.x,
+                        texture.texture.image.height * texture.pitch.y,
+                        w, h,
+                        0, 0, w, h);
+                    const data = fooCtx.getImageData(0, 0, w, h).data;
+                    function tr(r, g, b) {
+                        return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
+                    }
 
-                let min = Infinity;
-                let max = -Infinity;
-                const stride = w * 4;
-                for (let i = 0; i < h; i++) {
-                    for (let j = 0; j < stride; j += 4) {
-                        const val = tr(
-                            data[i * stride + j],
-                            data[i * stride + j + 1],
-                            data[i * stride + j + 2]);
-                        if (val < min) {
-                            min = val;
-                        }
-                        if (val > max) {
-                            max = val;
+                    let min = Infinity;
+                    let max = -Infinity;
+                    const stride = w * 4;
+                    for (let i = 0; i < h; i++) {
+                        for (let j = 0; j < stride; j += 4) {
+                            const val = tr(
+                                data[i * stride + j],
+                                data[i * stride + j + 1],
+                                data[i * stride + j + 2]);
+                            if (val < min) {
+                                min = val;
+                            }
+                            if (val > max) {
+                                max = val;
+                            }
                         }
                     }
+
                 }
-                texture.min = min;
-                texture.max = max;
+                texture.min = 0;
+                texture.max = 129;
 
                 // texture.texture.wrapS = MirroredRepeatWrapping;
                 // texture.texture.wrapT = MirroredRepeatWrapping;
