@@ -67,8 +67,8 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
     }
 
     this.defines.TEX_UNITS = nbSamplers;
-    if (__DEBUG__) {
         this.defines.DEBUG = 1;
+    if (__DEBUG__) {
     }
 
     this.fragmentShader = TileFS;

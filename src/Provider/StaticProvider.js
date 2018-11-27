@@ -30,6 +30,40 @@ function selectBestImageForExtent(layer, extent) {
             }
         }
     }
+    if (selection) {
+        return selection;
+    }
+    // nope : doesn't work
+    // return;
+    if (candidates.length == 0) {
+        return;
+    }
+    // We didn't found an image containing entirely the extent,
+    // but candidates isn't empty so we can return the smallest
+    // that has the biggest coverage of the extent
+    let coverage = 0;
+    for (const entry of candidates) {
+        const inter = entry.extent.intersect(extent);
+        const dim = inter.dimensions();
+        const cov = Math.floor(dim.x * dim.y);
+        // console.log(cov, entry.image)
+        if (cov >= coverage) {
+            if (!selection) {
+                selection = entry
+                coverage = cov;
+            } else if (cov == coverage) {
+                const d1 = entry.extent.dimensions();
+                const d2 = selection.extent.dimensions();
+                if (d1.x < d2.x && d1.y < d2.y) {
+                    selection = entry;
+                    coverage = cov;
+                }
+            } else {
+                selection = entry;
+                coverage = cov;
+            }
+        }
+    }
     return selection;
 }
 
@@ -90,7 +124,7 @@ export default {
                     extent,
                 });
             }
-            layer._spatialIndex = flatbush(layer.images.length);
+            layer._spatialIndex = new flatbush(layer.images.length);
             for (const image of layer.images) {
                 layer._spatialIndex.add(
                     image.extent.west(),
@@ -123,8 +157,8 @@ export default {
             return false;
         }
 
-        return _selectImagesFromSpatialIndex(
-            layer._spatialIndex, layer.images, tile.extent.as(layer.extent.crs())).length > 0;
+        return selectBestImageForExtent(layer, tile.extent);
+            // layer._spatialIndex, layer.images, tile.extent.as(layer.extent.crs())).length > 0;
     },
 
     canTextureBeImproved(layer, extent, currentTexture) {
@@ -136,7 +170,7 @@ export default {
         if (!s) {
             return;
         }
-        if (currentTexture && currentTexture.file != s.image) {
+        if (!currentTexture || (currentTexture && currentTexture.file != s.image)) {
             return [{
                 selection: s,
                 pitch: extent.offsetToParent(s.extent),

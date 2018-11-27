@@ -65,7 +65,7 @@ void main() {
     #else
 
     #if defined(DEBUG)
-     if (showOutline && (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine)) {
+     if (/*showOutline &&*/ (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine)) {
          gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
          return;
      }
@@ -82,6 +82,11 @@ void main() {
         uv.x = vUv.x * colorOffsetScale[i].z + colorOffsetScale[i].x;
         uv.y = 1.0 - ((1.0 - vUv.y) * colorOffsetScale[i].w + colorOffsetScale[i].y);
 
+        if (uv.x < 0.0 || uv.x > 1.0 || uv.y > 1.0 || uv.y < 0.0) {
+            continue;
+        }
+
+        // TODO: fixme for Firefox
         vec4 layerColor = texture2D(colorTexture[i], uv);
 
         // Use premultiplied-alpha blending formula because source textures are either:
