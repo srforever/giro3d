@@ -109,7 +109,7 @@ function refinementCommandCancellationFn(cmd) {
 }
 
 export default {
-    updateLayerElement(context, layer, node, parent) {
+    updateLayerElement(context, layer, node, parent, initOnly = false) {
         const material = node.material;
 
         if (!node.parent || !material) {
@@ -134,7 +134,8 @@ export default {
         const ts = Date.now();
 
         // Possible conditions to *not* update the elevation texture
-        if (layer.frozen ||
+        if (initOnly ||
+                layer.frozen ||
                 !node.material.visible ||
                 !node.layerUpdateState[layer.id].canTryUpdate(ts)) {
             return;

@@ -53,7 +53,7 @@ function refinementCommandCancellationFn(cmd) {
 
 
 export default {
-    updateLayerElement(context, layer, node, parent) {
+    updateLayerElement(context, layer, node, parent, initOnly = false) {
         const material = node.material;
 
         if (!node.parent || !material) {
@@ -89,7 +89,7 @@ export default {
         }
 
         // Node is hidden, no need to update it
-        if (!node.material.visible) {
+        if (!node.material.visible || initOnly) {
             return;
         }
 

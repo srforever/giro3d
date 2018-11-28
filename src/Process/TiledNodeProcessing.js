@@ -17,43 +17,37 @@ function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
         threejsLayer: geometryLayer.threejsLayer,
     };
 
-    return scheduler.execute(command).then((node) => {
-        node.material.uniforms.tileDimensions.value.copy(node.extent.dimensions());
-        node.add(node.OBB());
-        geometryLayer.onTileCreated(geometryLayer, parent, node);
-        return node;
-    });
+    const node = scheduler.execute(command);
+
+    node.material.uniforms.tileDimensions.value.copy(node.extent.dimensions());
+    node.add(node.OBB());
+    geometryLayer.onTileCreated(geometryLayer, parent, node);
+
+    return node;
 }
 
 function subdivideNode(context, layer, node) {
-    if (!node.pendingSubdivision && !node.children.some(n => n.layer == layer)) {
+    if (!node.children.some(n => n.layer == layer)) {
         const extents = node.extent.quadtreeSplit();
-        // TODO: pendingSubdivision mechanism is fragile, get rid of it
-        node.pendingSubdivision = true;
 
         const promises = [];
         const children = [];
         for (const extent of extents) {
-            promises.push(
-                requestNewTile(context.view, context.scheduler, layer, extent, node).then((child) => {
-                    children.push(child);
-                    return node;
-                }));
-        }
+            const child = requestNewTile(
+                context.view, context.scheduler, layer, extent, node);
+            node.add(child);
 
-        Promise.all(promises).then(() => {
-            for (const child of children) {
-                node.add(child);
-                child.updateMatrixWorld(true);
+            // inherit our parent's textures
+            for (const e of context.elevationLayers) {
+                e.update(context, e, child, node, true);
             }
-            node.pendingSubdivision = false;
-            context.view.notifyChange(node, false);
-        }, (err) => {
-            node.pendingSubdivision = false;
-            if (!(err instanceof CancelledCommandException)) {
-                throw new Error(err);
+            for (const c of context.colorLayers) {
+                c.update(context, c, child, node, true);
             }
-        });
+
+            child.updateMatrixWorld(true);
+        }
+        context.view.notifyChange(node, false);
     }
 }
 

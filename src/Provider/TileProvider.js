@@ -38,7 +38,7 @@ function executeCommand(command) {
     if (command.requester &&
         !command.requester.material) {
         // request has been deleted
-        return Promise.reject(new CancelledCommandException(command));
+        return;
     }
     const layer = command.layer;
     const builder = layer.builder;
@@ -113,7 +113,7 @@ function executeCommand(command) {
         tile.setBBoxZ(layer.materialOptions.colorTextureElevationMinZ, layer.materialOptions.colorTextureElevationMaxZ);
     }
 
-    return Promise.resolve(tile);
+    return tile;
 }
 
 export default {

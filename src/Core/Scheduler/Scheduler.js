@@ -170,6 +170,11 @@ Scheduler.prototype.runCommand = function runCommand(command, queue, recurse = t
 };
 
 Scheduler.prototype.execute = function execute(command) {
+    if (command.layer && command.layer.protocol == 'tile') {
+        const provider = this.providers[command.layer.protocol];
+        return provider.executeCommand(command);
+    }
+
     // parse host
     const layer = command.layer;
     const host = layer.url ? new URL(layer.url, document.location).host : undefined;
