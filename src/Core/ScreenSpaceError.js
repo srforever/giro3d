@@ -1,10 +1,9 @@
 import * as THREE from 'three';
 
+
 const m = new THREE.Matrix4();
-// const localToNDC = new THREE.Matrix4();
-// const modelRotMatrix = new THREE.Matrix4();
-// const modelViewMatrix = new THREE.Matrix4();
 const temp = [
+    new THREE.Vector3(),
     new THREE.Vector3(),
     new THREE.Vector3(),
     new THREE.Vector3(),
@@ -16,36 +15,49 @@ function computeSSE(offset, size, matrix, camera, _3d) {
     temp[0].applyMatrix4(matrix);
 
     matrix.extractBasis(temp[1], temp[2], temp[3]);
-    temp[1].normalize().multiplyScalar(size.x).add(temp[0]);
-    temp[2].normalize().multiplyScalar(size.y).add(temp[0]);
-    temp[3].normalize().multiplyScalar(size.z).add(temp[0]);
+    // x-axis
+    temp[1].normalize().multiplyScalar(size.x);
+    // y-axis
+    temp[2].normalize().multiplyScalar(size.y);
+    // diag-axis
+    temp[3] = temp[1].clone().add(temp[2]);
+    // z-axis
+    if (_3d) {
+        temp[4] = temp[1].clone().add(temp[2]);
+    }
 
-    // modelRotMatrix.extractRotation(matrix);
-    // temp[1].set(size.x, 0, 0);
-    // temp[2].set(0, size.y, 0);
-    // if (_3d) {
-    //     temp[3].set(0, 0, size.z);
-    // }
-    // for (let i = 1; i < 4; i++) {
-    //     temp[i].applyMatrix4(modelRotMatrix).add(temp[0]);
-    // }
-
+    for (let i = 1; i < (_3d ? 5 : 4); i++) {
+        temp[i].add(temp[0]);
+    }
     const worldToNDC = camera._viewMatrix;
-    for (let i = 0; i < (_3d ? 4 : 3); i++) {
+    for (let i = 0; i < (_3d ? 5 : 4); i++) {
         temp[i].applyMatrix4(worldToNDC);
         temp[i].z = 0;
+        temp[i].clampScalar(-1, 1);
         // Map temp[i] from NDC = [-1, 1] to viewport coordinates
         temp[i].x = (temp[i].x + 1.0) * camera.width * 0.5;
         temp[i].y = camera.height - (temp[i].y + 1.0) * camera.height * 0.5;
     }
 
-    const res = [];
-    for (let i = 0; i < 4; i++) {
-        res.push(temp[i].clone());
-    }
-    return res;
+    // compute the real area
+    const area = Math.abs(THREE.ShapeUtils.area([temp[0], temp[2], temp[3], temp[1]]));
 
-    // return basis.map(b => b.length());
+    const result = {
+        origin: temp[0].clone(),
+        x: temp[1].clone(),
+        y: temp[2].clone(),
+        lengths: { },
+        area
+    };
+    result.lengths.x = temp[1].sub(temp[0]).length();
+    result.lengths.y = temp[2].sub(temp[0]).length();
+    if (_3d) {
+        result.z = temp[4].clone();
+        result.lengths.z = temp[4].sub(temp[0]).length();
+    }
+    result.ratio = result.area / (result.lengths.x * result.lengths.y);
+
+    return result;
 }
 
 function findBox3Distance(camera, box3, matrix) {
@@ -62,12 +74,15 @@ function findBox3Distance(camera, box3, matrix) {
     return box3.distanceToPoint(pt);
 }
 
-function computeSizeFromGeometricError(box3, geometricError) {
+function computeSizeFromGeometricError(box3, geometricError, _3d) {
     const size = box3.getSize();
+    let maxComponent = Math.max(size.x, size.y);
+    if (_3d) {
+        maxComponent = Math.max(maxComponent, size.z);
+    }
     // Build a vector with the same ratio than box3,
     // and with the biggest component being geometricError
-    size.multiplyScalar(geometricError /
-        Math.max(size.x, Math.max(size.y, size.z)));
+    size.multiplyScalar(geometricError / maxComponent);
     return size;
 }
 
@@ -89,26 +104,18 @@ export default {
         const distance = findBox3Distance(camera, box3, matrix);
 
         if (distance <= geometricError) {
-            return {
-                sse: [Infinity, Infinity, Infinity],
-                distance,
-            };
+            return;
         }
 
-        const size = computeSizeFromGeometricError(box3, geometricError);
-
+        const size = computeSizeFromGeometricError(
+            box3, geometricError, mode == this.MODE_3D);
         let offset = box3.min;
-        if (mode == this.MODE_2D) {
-            offset = offset.clone().setComponent(2, 0);
-        }
+
         const sse = computeSSE(
             offset, size, matrix,
             camera, mode == this.MODE_3D);
 
-        return {
-            sse,
-            distance,
-        };
+        return sse;
     },
 
     computeFromSphere(camera, sphere, matrix, geometricError) {
@@ -122,4 +129,60 @@ export default {
 
         return temp[0].length();
     },
+
+    initDebugTool(view) {
+        // Should move to a proper debug tool.. later
+        const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+        svg.style.top = '0px';
+        svg.style.left = '0px';
+        svg.style.width = '100%';
+        svg.style.height = '100%';
+        svg.style.position = 'absolute';
+        svg.style.pointerEvents = 'none';
+        document.getElementById('viewerDiv').appendChild(svg);
+
+        document.addEventListener('click', (evt) => {
+          const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
+          if (!r.length) return;
+          const obj = r[0].object;
+          console.log(obj)
+
+          // const svg = document.getElementsByClassName('maa')[0];
+          while (svg.firstChild) {
+              svg.removeChild(svg.firstChild);
+          }
+          function addLine(v1, v2, length, color) {
+              const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+              line.setAttribute('x1', v1.x.toFixed());
+              line.setAttribute('y1', v1.y.toFixed())
+              line.setAttribute('x2', v2.x.toFixed())
+              line.setAttribute('y2', v2.y.toFixed())
+              line.setAttribute('stroke', color);
+              svg.append(line);
+
+              const text2 = document.createElementNS('http://www.w3.org/2000/svg','text');
+              text2.setAttribute('x', ((v1.x + v2.x) * 0.5).toFixed());
+              text2.setAttribute('y', ((v1.y + v2.y) * 0.5 - 10).toFixed());
+              text2.setAttribute('stroke', color);
+              text2.textContent = length.toFixed();
+              svg.append(text2);
+          }
+
+          addLine(obj.sse.origin, obj.sse.x, obj.sse.lengths.x, 'yellow');
+          addLine(obj.sse.origin, obj.sse.y, obj.sse.lengths.y, 'purple');
+
+          const origin = document.createElementNS('http://www.w3.org/2000/svg','circle');
+          origin.setAttribute('cx', obj.sse.origin.x.toFixed());
+          origin.setAttribute('cy', obj.sse.origin.y.toFixed())
+          origin.setAttribute('r', 5)
+          origin.setAttribute('stroke', 'black');
+          svg.append(origin);
+          const text = document.createElementNS('http://www.w3.org/2000/svg','text');
+          text.setAttribute('x', (obj.sse.origin.x + 10).toFixed());
+          text.setAttribute('y', (obj.sse.origin.y - 10).toFixed())
+          text.textContent = obj.id;
+
+          svg.append(text);
+        });
+    }
 };

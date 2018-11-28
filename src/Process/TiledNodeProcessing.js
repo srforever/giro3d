@@ -76,25 +76,23 @@ function testTileSSE(tile, sse, maxLevel) {
         return false;
     }
 
-    if (sse[0] == Infinity) {
+    if (!sse) {
         return true;
     }
 
-    // TODO do this directly in ScreenSpaceError
     const values = [
-        sse[1].clone().sub(sse[0]).length(),
-        sse[2].clone().sub(sse[0]).length(),
-        sse[3].clone().sub(sse[0]).length()];
-    values.length = 2;
+        sse.lengths.x * sse.ratio,
+        sse.lengths.y * sse.ratio
+    ];
 
     // TODO: depends on texture size of course
-    if (values.filter(v => v < 200).length >= 2) {
-        return false;
-    }
+    // if (values.filter(v => v < 200).length >= 2) {
+    //     return false;
+    // }
     if (values.filter(v => v < 100).length >= 1) {
         return false;
     }
-    return values.filter(v => v >= 256).length >= 1;
+    return values.filter(v => v >= 256).length >= 2;
 }
 
 function preUpdate(context, layer, changeSources) {
@@ -177,16 +175,20 @@ function update(context, layer, node) {
 
         if (!layer.frozen) {
             const s = node.OBB().box3D.getSize();
+            const obb = node.OBB();
             const sse = ScreenSpaceError.computeFromBox3(
                     context.camera,
-                    node.OBB().box3D,
-                    node.OBB().matrixWorld,
+                    obb.box3D,
+                    obb.matrixWorld,
                     Math.max(s.x, s.y),
-                    ScreenSpaceError.MODE_3D);
-            node._a = sse; // DEBUG
+                    ScreenSpaceError.MODE_2D);
+
+            if (true || __DEBUG__) {
+                node.sse = sse; // DEBUG
+            }
 
             if (node.pendingSubdivision ||
-                (testTileSSE(node, sse.sse, layer.maxSubdivisionLevel || -1) &&
+                (testTileSSE(node, sse, layer.maxSubdivisionLevel || -1) &&
                     SubdivisionControl.hasEnoughTexturesToSubdivide(context, layer, node))) {
                 subdivideNode(context, layer, node);
                 // display iff children aren't ready

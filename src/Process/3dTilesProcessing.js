@@ -333,15 +333,10 @@ export function computeNodeSSE(context, node) {
             node.geometricError,
             ScreenSpaceError.MODE_3D);
 
-        if (sse.sse[0] == Infinity) {
+        if (!sse) {
             return Infinity;
         }
-        const a = sse.sse[1].clone().sub(sse.sse[0]).length();
-        const b = sse.sse[2].clone().sub(sse.sse[0]).length();
-
-        node._a = sse;
-
-        return Math.max(a, b);
+        return Math.max(sse.lengths.x, sse.lengths.y);
     } else if (node.boundingVolume.sphere) {
         // boundingVolume.sphere is affected by matrixWorld
         boundingVolumeSphere.copy(node.boundingVolume.sphere);
