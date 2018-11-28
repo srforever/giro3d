@@ -23,7 +23,7 @@ function computeSSE(offset, size, matrix, camera, _3d) {
     temp[3] = temp[1].clone().add(temp[2]);
     // z-axis
     if (_3d) {
-        temp[4] = temp[1].clone().add(temp[2]);
+        temp[4].normalize().multiplyScalar(size.z);
     }
 
     for (let i = 1; i < (_3d ? 5 : 4); i++) {
