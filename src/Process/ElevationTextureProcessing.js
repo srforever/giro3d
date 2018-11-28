@@ -60,8 +60,6 @@ function minMaxFromTexture(texture, pitch) {
                 max = Math.max(max, data[i * stride])
             }
         }
-        min *= 129 / 255;
-        max *= 129 / 255;
     }
 
     if (pitch.z == 1.0 && pitch.w == 1.0) {
