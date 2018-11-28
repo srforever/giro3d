@@ -399,7 +399,10 @@ Scheduler.prototype.deQueue = function deQueue(queue) {
         }
     }
 
-    return undefined;
+    if (st) {
+        // retry, in another layer
+        return this.deQueue(queue);
+    }
 };
 
 export default Scheduler;
