@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import Fetcher from './Fetcher';
 import Cache from '../Core/Scheduler/Cache';
-import XbilParser from '../Parser/XbilParser';
 import Projection from '../Core/Geographic/Projection';
 import Extent from '../Core/Geographic/Extent';
 
@@ -27,21 +26,6 @@ export default {
             }), Cache.POLICIES.TEXTURE);
     },
     getXBilTextureByUrl(url, networkOptions) {
-        return Cache.get(url) || Cache.set(url, Fetcher.arrayBuffer(url, networkOptions)
-            .then(buffer => XbilParser.parse(buffer, { url }))
-            .then((result) => {
-                // TODO  RGBA is needed for navigator with no support in texture float
-                // In RGBA elevation texture LinearFilter give some errors with nodata value.
-                // need to rewrite sample function in shader
-
-                const texture = getTextureFloat(result.floatArray);
-                texture.generateMipmaps = false;
-                texture.magFilter = THREE.LinearFilter;
-                texture.minFilter = THREE.LinearFilter;
-                texture.min = result.min;
-                texture.max = result.max;
-                return texture;
-            }), Cache.POLICIES.ELEVATION);
     },
     computeTileMatrixSetCoordinates(tile, tileMatrixSet) {
         tileMatrixSet = tileMatrixSet || 'WGS84G';
