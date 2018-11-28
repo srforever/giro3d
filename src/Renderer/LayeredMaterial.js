@@ -92,8 +92,8 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
             offsetScale: new THREE.Vector4(0, 0, 0, 0),
             texture: emptyTexture,
             neighbours: {
-                offsetScale: Array(4),
-                texture: Array(4),
+                offsetScale: Array(8),
+                texture: Array(8),
             },
         },
     };
@@ -111,6 +111,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
     this.uniforms.validityExtent = new THREE.Uniform(new THREE.Vector4());
     this.uniforms.tileDimensions = new THREE.Uniform(new THREE.Vector2());
     this.uniforms.neighbourdiffLevel = new THREE.Uniform(new THREE.Vector4());
+    this.uniforms.neighbourdiffLevel2 = new THREE.Uniform(new THREE.Vector4());
 
     // Elevation texture
     this.uniforms.elevationTexture = new THREE.Uniform(this.texturesInfo.elevation.texture);

@@ -448,4 +448,41 @@ Extent.prototype.externalBorders = function externalBorders(ratio) {
     return result;
 };
 
+Extent.prototype.externalCorners = function externalCorners(ratio) {
+    const result = [
+        this.clone(),
+        this.clone(),
+        this.clone(),
+        this.clone()];
+
+    const dim = this.dimensions();
+
+    // [NW, NE, SW, SE]
+    // north corners
+    result[0]._values[CARDINAL.SOUTH] = result[0]._values[CARDINAL.NORTH];
+    result[0]._values[CARDINAL.NORTH] += dim.y * ratio;
+    result[1]._values[CARDINAL.SOUTH] = result[0]._values[CARDINAL.SOUTH];
+    result[1]._values[CARDINAL.NORTH] = result[0]._values[CARDINAL.NORTH];
+
+    // south corners
+    result[2]._values[CARDINAL.NORTH] = result[2]._values[CARDINAL.SOUTH];
+    result[2]._values[CARDINAL.SOUTH] -= dim.y * ratio;
+    result[3]._values[CARDINAL.NORTH] = result[2]._values[CARDINAL.NORTH];
+    result[3]._values[CARDINAL.SOUTH] = result[2]._values[CARDINAL.SOUTH];
+
+    // east corners
+    result[1]._values[CARDINAL.WEST] = result[1]._values[CARDINAL.EAST];
+    result[1]._values[CARDINAL.EAST] += dim.x * ratio;
+    result[3]._values[CARDINAL.WEST] = result[1]._values[CARDINAL.WEST];
+    result[3]._values[CARDINAL.EAST] = result[1]._values[CARDINAL.EAST];
+
+    // west corners
+    result[0]._values[CARDINAL.EAST] = result[0]._values[CARDINAL.WEST];
+    result[0]._values[CARDINAL.WEST] -= dim.x * ratio;
+    result[2]._values[CARDINAL.EAST] = result[0]._values[CARDINAL.EAST];
+    result[2]._values[CARDINAL.WEST] = result[0]._values[CARDINAL.WEST];
+
+    return result;
+};
+
 export default Extent;

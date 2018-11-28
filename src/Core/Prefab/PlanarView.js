@@ -59,15 +59,21 @@ export function createPlanarLayer(id, extent, options) {
                 if (node.layer != layer || !node.material.visible) {
                     return;
                 }
-                node.material.uniforms.neighbourdiffLevel.value.set(0, 0, 0, 1);
+                node.material.uniforms.neighbourdiffLevel.value.set(1, 1, 1, 1);
+                node.material.uniforms.neighbourdiffLevel2.value.set(1, 1, 1, 1);
                 const n = findNeighbours(node);
                 if (n) {
                     const dimensions = node.extent.dimensions();
-                    for (let i = 0; i < 4; i++) {
-                        if (!n[i] || !n[i][0].material.visible) {
+                    for (let i = 0; i < 8; i++) {
+                        if (!n[i]) { //} || !n[i][0].material.visible ??????) {
                             // neighbour is missing or smaller => don't do anything
-                            node.material.uniforms
-                                .neighbourdiffLevel.value.setComponent(i, 1);
+                            if (i < 4) {
+                                node.material.uniforms
+                                    .neighbourdiffLevel.value.setComponent(i, 1);
+                            } else {
+                                node.material.uniforms
+                                    .neighbourdiffLevel2.value.setComponent(i - 4, 1);
+                            }
                         } else {
                             const nn = n[i][0];
                             const targetExtent = n[i][1];
@@ -81,8 +87,13 @@ export function createPlanarLayer(id, extent, options) {
                                 Math.round(nn.extent.dimensions().y / dimensions.y) :
                                 Math.round(nn.extent.dimensions().x / dimensions.x));
 
-                            node.material.uniforms
-                                .neighbourdiffLevel.value.setComponent(i, -diff);
+                            if (i < 4) {
+                                node.material.uniforms
+                                    .neighbourdiffLevel.value.setComponent(i, -diff);
+                            } else {
+                                node.material.uniforms
+                                    .neighbourdiffLevel2.value.setComponent(i - 4, -diff);
+                            }
                             node.material.texturesInfo.elevation.neighbours.texture[i] =
                                 nn.material.texturesInfo.elevation.texture;
 
@@ -144,8 +155,11 @@ export function createPlanarLayer(id, extent, options) {
 
     function findNeighbours(node) {
         // top, right, bottom, left
-        const borders = node.extent.externalBorders(0.1);
-        return borders.map(border => findSmallestExtentCovering(node, border));
+        const borders = node.extent.externalBorders(0.1)
+            .map(border => findSmallestExtentCovering(node, border));
+        const corners = node.extent.externalCorners(0.1)
+            .map(corner => findSmallestExtentCovering(node, corner));
+        return borders.concat(corners);
     }
 
     tileLayer.builder = new PlanarTileBuilder();
