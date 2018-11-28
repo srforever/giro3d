@@ -6,8 +6,8 @@ attribute vec2      uv;
 uniform sampler2D   elevationTexture;
 uniform vec4        elevationOffsetScale;
 #if defined(STITCHING)
-uniform sampler2D nTex[8];
-uniform vec4 nOff[8];
+uniform sampler2D nTex[4];
+uniform vec4 nOff[4];
 uniform float segments;
 #endif
 
@@ -17,7 +17,6 @@ uniform mat4        viewMatrix;
 uniform mat4 modelViewMatrix;
 
 uniform vec4 neighbourdiffLevel;
-uniform vec4 neighbourdiffLevel2;
 uniform vec2 tileDimensions;
 
 varying vec2        vUv;
@@ -37,7 +36,7 @@ vec2 computeUv(vec2 uv, vec2 offset, vec2 scale) {
 float readNeighbourElevation(vec2 uv, int neighbour) {
     vec2 vv = uv;
     // top
-    if (fract(float(neighbour) / 2.0) > 0.1) {
+    if (neighbour == 1 || neighbour == 3) {
         vv.x = 1.0 - vv.x;
     } else {
         vv.y = 1.0 - vv.y;
@@ -91,10 +90,8 @@ void main() {
         // has less vertices on our shared edges, its interval size is
         // going to be:
         vec4 modulo = neighbourFactor / segments;
-        int onBorder = -1;
         // West border
         if (vUv.x < 0.01) {
-            onBorder = 0;
             if (neighbourdiffLevel.w < 0.0) {
                 float offset = fract(vUv.y / modulo.w) * modulo.w;
                 vPosition.y -= tileDimensions.y * offset;
@@ -109,7 +106,6 @@ void main() {
         }
         // East border
         else if (vUv.x > 0.99) {
-            onBorder = 1;
             if (neighbourdiffLevel.y < 0.0) {
                 float offset = fract(vUv.y / modulo.y) * modulo.y;
                 vPosition.y -= tileDimensions.y * offset;
@@ -123,11 +119,6 @@ void main() {
         }
         // South border
         if (vUv.y < 0.01) {
-            if (onBorder >= 0) {
-                // this is a corner
-                elevation += readNeighbourElevation(uv, 6 + onBorder);
-                weight += 1;
-            }
             if (neighbourdiffLevel.z < 0.0) {
                 float offset = fract(vUv.x / modulo.z) * modulo.z;
                 // move to the left
@@ -143,11 +134,6 @@ void main() {
         }
         // North border
         else if (vUv.y > 0.99) {
-            if (onBorder >= 0) {
-                // this is a corner
-                elevation += readNeighbourElevation(uv, 4 + onBorder);
-                weight += 1;
-            }
             if (neighbourdiffLevel.x < 0.0) {
                 float offset = fract(vUv.x / modulo.x) * modulo.x;
                 vPosition.x -= tileDimensions.x * offset;
