@@ -12,6 +12,7 @@ uniform float     opacity;
 
 varying vec2        vUv;
 varying vec4 vColor;
+varying vec4 vPosition;
 
 #if defined(HILLSHADE)
 // hillshade support
@@ -72,6 +73,7 @@ void main() {
     #endif
 
     vec4 diffuseColor = vec4(noTextureColor, 0.0);
+    diffuseColor.rgb = vec3(vPosition.z / 129.0);
 
     for (int i = 0; i < TEX_UNITS; i++) {
         if (!colorVisible[i] || colorOpacity[i] <= 0.0) {
@@ -124,4 +126,10 @@ void main() {
     gl_FragColor.rgb = mix(gl_FragColor.rgb, vColor.rgb, vColor.a);
     gl_FragColor.a = opacity;
     #endif
+
+    // iso line
+    /*float coord = vPosition.z;
+    float coord_10 = coord * 0.1;
+    float line_10 = abs(fract(coord_10 - 0.5) - 0.5) / fwidth(coord_10);
+    gl_FragColor.xyz *= min(line_10, 1.0);*/
 }
