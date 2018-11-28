@@ -93,16 +93,8 @@ function initNodeElevationTextureFromParent(node, parent, layer) {
 }
 
 function nodeCommandQueuePriorityFunction(node) {
-    // We know that 'node' is visible because commands can only be
-    // issued for visible nodes.
-
-    // TODO: need priorization of displayed nodes
-    if (node.material.visible) {
-        // Then prefer displayed() node over non-displayed one
-        return 100;
-    } else {
-        return 10;
-    }
+    const dim = node.extent.dimensions();
+    return dim.x * dim.y;
 }
 
 function refinementCommandCancellationFn(cmd) {
