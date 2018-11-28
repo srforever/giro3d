@@ -9,6 +9,68 @@ const fooCanvas = document.createElement('canvas');
 fooCanvas.width = 256;
 fooCanvas.height = 256;
 
+function minMaxFromTexture(texture, pitch) {
+    if (pitch.z == 1.0 && pitch.w == 1.0 && texture.min != undefined && texture.max != undefined) {
+        return { min: texture.min, max: texture.max };
+    }
+
+    const w = Math.round(texture.image.width * pitch.z);
+    const h = Math.round(texture.image.height * pitch.w);
+
+    if (w == 0 || h == 0) {
+        return { min: 0, max: 0 };
+    }
+    const fooCtx = fooCanvas.getContext('2d');
+    fooCanvas.width = w;
+    fooCanvas.height = h;
+    fooCtx.drawImage(
+        texture.image,
+        texture.image.width * pitch.x,
+        texture.image.height * pitch.y,
+        w, h,
+        0, 0, w, h);
+    const data = fooCtx.getImageData(0, 0, w, h).data;
+    const stride = w * 4;
+
+    let min = Infinity;
+    let max = -Infinity;
+    if (false) {
+        function tr(r, g, b) {
+            return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
+        }
+
+        for (let i = 0; i < h; i++) {
+            for (let j = 0; j < stride; j += 4) {
+                const val = tr(
+                    data[i * stride + j],
+                    data[i * stride + j + 1],
+                    data[i * stride + j + 2]);
+                if (val < min) {
+                    min = val;
+                }
+                if (val > max) {
+                    max = val;
+                }
+            }
+        }
+    } else {
+        for (let i = 0; i < h; i++) {
+            for (let j = 0; j < stride; j += 4) {
+                min = Math.min(min, data[i * stride])
+                max = Math.max(max, data[i * stride])
+            }
+        }
+        min *= 129 / 255;
+        max *= 129 / 255;
+    }
+
+    if (pitch.z == 1.0 && pitch.w == 1.0) {
+        texture.min = min;
+        texture.max = max;
+    }
+    return { min, max };
+}
+
 
 function initNodeElevationTextureFromParent(node, parent, layer) {
     const nodeTexture = node.material.getLayerTexture(layer).texture;
@@ -25,8 +87,9 @@ function initNodeElevationTextureFromParent(node, parent, layer) {
         pitch,
     };
 
-    elevation.min = 0;
-    elevation.max = 129;
+    const { min, max } = minMaxFromTexture(parentTexture, pitch);
+    elevation.min = min;
+    elevation.max = max;
 
     node.setTextureElevation(layer, elevation);
 }
@@ -155,57 +218,15 @@ export default {
                     terrain.texture.flipY = false;
                     terrain.texture.needsUpdate = true;
                 }
-
-                // TODO do xbil specific processing here, instead of doing it
-                // early in OGCWebServiceHelper
                 return terrain;
-            }).then((texture) => {
-                if (!texture) { return; }
+            }).then((elevation) => {
+                if (!elevation) { return; }
 
-                if (false) {
-                    // mapbox elevation
-                    const w = texture.texture.image.width * texture.pitch.z;
-                    const h = texture.texture.image.height * texture.pitch.w;
-                    const fooCtx = fooCanvas.getContext('2d');
-                    fooCanvas.width = 256;
-                    fooCanvas.height = 256;
-                    fooCtx.drawImage(
-                        texture.texture.image,
-                        texture.texture.image.width * texture.pitch.x,
-                        texture.texture.image.height * texture.pitch.y,
-                        w, h,
-                        0, 0, w, h);
-                    const data = fooCtx.getImageData(0, 0, w, h).data;
-                    function tr(r, g, b) {
-                        return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
-                    }
+                const { min, max } = minMaxFromTexture(elevation.texture, elevation.pitch);
+                elevation.min = min;
+                elevation.max = max;
 
-                    let min = Infinity;
-                    let max = -Infinity;
-                    const stride = w * 4;
-                    for (let i = 0; i < h; i++) {
-                        for (let j = 0; j < stride; j += 4) {
-                            const val = tr(
-                                data[i * stride + j],
-                                data[i * stride + j + 1],
-                                data[i * stride + j + 2]);
-                            if (val < min) {
-                                min = val;
-                            }
-                            if (val > max) {
-                                max = val;
-                            }
-                        }
-                    }
-
-                }
-                texture.min = 0;
-                texture.max = 129;
-
-                // texture.texture.wrapS = MirroredRepeatWrapping;
-                // texture.texture.wrapT = MirroredRepeatWrapping;
-                // texture.texture.needsUpdate = true;
-                node.setTextureElevation(layer, texture);
+                node.setTextureElevation(layer, elevation);
                 node.layerUpdateState[layer.id].success();
             });
     },
