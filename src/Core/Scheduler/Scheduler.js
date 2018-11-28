@@ -186,17 +186,14 @@ Scheduler.prototype.execute = function execute(command) {
 
     const q = host ? this.hostQueues.get(host) : this.defaultQueue;
 
-    command.timestamp = Date.now();
-
     if (isInCache(command)) {
         // Fast path: command result is already available,
         // so skip the queueing mechanism and execute directly
         q.counters.pending++;
         this.runCommand(command, q, false);
-        return command.promise;
+    } else {
+        q.queue(command);
     }
-
-    q.queue(command);
 
     this.executeNextForQueue(q);
 
