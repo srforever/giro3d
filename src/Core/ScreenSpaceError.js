@@ -33,7 +33,7 @@ function computeSSE(offset, size, matrix, camera, _3d) {
     for (let i = 0; i < (_3d ? 5 : 4); i++) {
         temp[i].applyMatrix4(worldToNDC);
         temp[i].z = 0;
-        temp[i].clampScalar(-1, 1);
+        // temp[i].clampScalar(-1, 1);
         // Map temp[i] from NDC = [-1, 1] to viewport coordinates
         temp[i].x = (temp[i].x + 1.0) * camera.width * 0.5;
         temp[i].y = camera.height - (temp[i].y + 1.0) * camera.height * 0.5;
