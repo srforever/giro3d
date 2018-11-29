@@ -145,7 +145,7 @@ export default {
         const nextDownloads = layer.canTextureBeImproved(
             layer,
             node.getExtentForLayer(layer),
-            node.material.getLayerTexture(layer).textures,
+            node.material.getLayerTexture(layer).texture,
             node.layerUpdateState[layer.id].failureParams);
 
         if (!nextDownloads) {
@@ -170,18 +170,9 @@ export default {
                 if (node.material === null) {
                     return;
                 }
-
                 // We currently only support a single elevation texture
                 if (Array.isArray(result)) {
                     result = result[0];
-                }
-
-                const currentTexture = node.material.getLayerTexture(layer).texture;
-                if (currentTexture.extent) {
-                    // Cancel update if current texture extent is <= new texture
-                    if (currentTexture.extent.isInside(result.texture.extent)) {
-                        return;
-                    }
                 }
                 return result;
             },
@@ -199,8 +190,6 @@ export default {
                     }
                 }
             }).then((elevation) => {
-                if (!elevation) { return; }
-
                 const { min, max } = minMaxFromTexture(elevation.texture, elevation.pitch);
                 elevation.min = min;
                 elevation.max = max;
