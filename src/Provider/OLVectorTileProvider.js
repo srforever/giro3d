@@ -234,6 +234,12 @@ function renderTileImage(tile, layer) {
     const size = source.getTilePixelSize(z, pixelRatio, source.getProjection());
     context.canvas.width = size[0];
     context.canvas.height = size[1];
+    if (layer.backgroundColor) {
+        context.fillStyle = layer.backgroundColor;
+        context.fillRect(
+            0, 0,
+            context.canvas.width, context.canvas.height);
+    }
     const tileExtent = tileGrid.getTileCoordExtent(tileCoord);
     for (let i = 0, ii = tile.tileKeys.length; i < ii; ++i) {
         const sourceTile = tile.getTile(tile.tileKeys[i]);
