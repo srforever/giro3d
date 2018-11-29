@@ -190,6 +190,9 @@ export default {
                     }
                 }
             }).then((elevation) => {
+                if (!elevation) {
+                    return;
+                }
                 const { min, max } = minMaxFromTexture(elevation.texture, elevation.pitch);
                 elevation.min = min;
                 elevation.max = max;
