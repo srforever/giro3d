@@ -2,7 +2,6 @@ import { Vector3 } from 'three';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 import ObjectRemovalHelper from './ObjectRemovalHelper';
 import ScreenSpaceError from '../Core/ScreenSpaceError';
-import SubdivisionControl from './SubdivisionControl';
 
 function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
     const command = {
@@ -95,11 +94,14 @@ function testTileSSE(tile, sse, maxLevel) {
 }
 
 function preUpdate(context, layer, changeSources) {
-    SubdivisionControl.preUpdate(context, layer);
-
     if (__DEBUG__) {
         layer._latestUpdateStartingLevel = 0;
     }
+
+    context.colorLayers = context.view.getLayers(
+        (l, a) => a && a.id == layer.id && l.type == 'color');
+    context.elevationLayers = context.view.getLayers(
+        (l, a) => a && a.id == layer.id && l.type == 'elevation');
 
     if (changeSources.has(undefined) || changeSources.size == 0) {
         return layer.level0Nodes;
@@ -186,9 +188,7 @@ function update(context, layer, node) {
                 node.sse = sse; // DEBUG
             }
 
-            if (node.pendingSubdivision ||
-                (testTileSSE(node, sse, layer.maxSubdivisionLevel || -1) &&
-                    SubdivisionControl.hasEnoughTexturesToSubdivide(context, layer, node))) {
+            if (testTileSSE(node, sse, layer.maxSubdivisionLevel || -1)) {
                 subdivideNode(context, layer, node);
                 // display iff children aren't ready
                 node.setDisplayed(node.pendingSubdivision);
