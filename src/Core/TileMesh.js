@@ -34,10 +34,6 @@ function TileMesh(layer, geometry, material, extent, level) {
     this.material.setUuid(this.id);
 
     this._state = RendererConstant.FINAL;
-
-    // TODO: this is required for the OBB to be visible.
-    // But this value shouldn't be used for SSE computation
-    this.obb.updateZ(0, 129);
 }
 
 TileMesh.prototype = Object.create(THREE.Mesh.prototype);

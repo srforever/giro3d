@@ -2,6 +2,11 @@ import LayerUpdateState from '../Core/Layer/LayerUpdateState';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 import { SIZE_TEXTURE_TILE } from '../Provider/OGCWebServiceHelper';
 
+export const ELEVATION_FORMAT = {
+    MAPBOX_RGB: 0,
+    HEIGHFIELD: 1,
+};
+
 // max retry loading before changing the status to definitiveError
 const MAX_RETRY = 4;
 
@@ -9,7 +14,7 @@ const fooCanvas = document.createElement('canvas');
 fooCanvas.width = 256;
 fooCanvas.height = 256;
 
-function minMaxFromTexture(texture, pitch) {
+export function minMaxFromTexture(layer, texture, pitch) {
     if (pitch.z == 1.0 && pitch.w == 1.0 && texture.min != undefined && texture.max != undefined) {
         return { min: texture.min, max: texture.max };
     }
@@ -18,15 +23,16 @@ function minMaxFromTexture(texture, pitch) {
     const h = Math.round(texture.image.height * pitch.w);
 
     if (w == 0 || h == 0) {
-        return { min: 0, max: 0 };
+        return { min: texture.min, max: texture.max };
     }
     const fooCtx = fooCanvas.getContext('2d');
     fooCanvas.width = w;
     fooCanvas.height = h;
+    // y-offset is from bottom-left of the image
     fooCtx.drawImage(
         texture.image,
         texture.image.width * pitch.x,
-        texture.image.height * pitch.y,
+        texture.image.height - texture.image.height * pitch.y - h,
         w, h,
         0, 0, w, h);
     const data = fooCtx.getImageData(0, 0, w, h).data;
@@ -34,7 +40,7 @@ function minMaxFromTexture(texture, pitch) {
 
     let min = Infinity;
     let max = -Infinity;
-    if (false) {
+    if (layer.format == ELEVATION_FORMAT.MAPBOX_RGB) {
         function tr(r, g, b) {
             return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
         }
@@ -53,13 +59,15 @@ function minMaxFromTexture(texture, pitch) {
                 }
             }
         }
-    } else {
+    } else if (layer.format == ELEVATION_FORMAT.HEIGHFIELD) {
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < stride; j += 4) {
-                min = Math.min(min, data[i * stride])
-                max = Math.max(max, data[i * stride])
+                min = Math.min(min, data[i * stride + j])
+                max = Math.max(max, data[i * stride + j])
             }
         }
+    } else {
+        throw new Error('Unsupported layer.format "' + layer.format + "'");
     }
 
     if (pitch.z == 1.0 && pitch.w == 1.0) {
@@ -85,7 +93,7 @@ function initNodeElevationTextureFromParent(node, parent, layer) {
         pitch,
     };
 
-    const { min, max } = minMaxFromTexture(parentTexture, pitch);
+    const { min, max } = minMaxFromTexture(layer, parentTexture, pitch);
     elevation.min = min;
     elevation.max = max;
 
@@ -193,7 +201,7 @@ export default {
                 if (!elevation) {
                     return;
                 }
-                const { min, max } = minMaxFromTexture(elevation.texture, elevation.pitch);
+                const { min, max } = minMaxFromTexture(layer, elevation.texture, elevation.pitch);
                 elevation.min = min;
                 elevation.max = max;
 

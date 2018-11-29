@@ -109,8 +109,15 @@ function executeCommand(command) {
 
     if (parent) {
         tile.setBBoxZ(parent.OBB().z.min, parent.OBB().z.max);
-    } else if (layer.materialOptions && layer.materialOptions.useColorTextureElevation) {
-        tile.setBBoxZ(layer.materialOptions.colorTextureElevationMinZ, layer.materialOptions.colorTextureElevationMaxZ);
+    } else {
+        // TODO: probably not here
+        const elevation = command.view.getLayers((l, p) => p == layer && l.type == 'elevation');
+        if (elevation.length > 0) {
+            if (!elevation[0].minmax) {
+                console.error('fix the provider');
+            }
+            tile.setBBoxZ(elevation[0].minmax.min, elevation[0].minmax.max)
+        }
     }
 
     return tile;

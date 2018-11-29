@@ -3,6 +3,7 @@ import { Vector4 } from 'three';
 import Extent from '../Core/Geographic/Extent';
 import OGCWebServiceHelper from './OGCWebServiceHelper';
 import Fetcher from './Fetcher';
+import { minMaxFromTexture } from '../Process/ElevationTextureProcessing';
 
 function _selectImagesFromSpatialIndex(index, images, extent) {
     return index.search(
@@ -73,20 +74,15 @@ function buildUrl(layer, image) {
 }
 
 function getTexture(toDownload, layer) {
-    const fn = layer.format.indexOf('image/x-bil') === 0 ?
-        OGCWebServiceHelper.getXBilTextureByUrl :
-        OGCWebServiceHelper.getColorTextureByUrl;
-    return fn(toDownload.url, layer.networkOptions).then((texture) => {
+    return OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions).then((texture) => {
         // adjust pitch
         const result = {
             texture,
-            pitch: new Vector4(0, 0, 1, 1),
+            pitch: toDownload.pitch || new Vector4(0, 0, 1, 1),
         };
 
         result.texture.extent = toDownload.selection.extent;
         result.texture.file = toDownload.selection.image;
-
-        result.pitch = toDownload.pitch;
         if (layer.transparent) {
             texture.premultiplyAlpha = true;
         }
@@ -104,14 +100,6 @@ function getTexture(toDownload, layer) {
  */
 export default {
     preprocessDataLayer(layer) {
-        if (!layer.extent) {
-            throw new Error('layer.extent is required');
-        }
-
-        if (!(layer.extent instanceof Extent)) {
-            layer.extent = new Extent(layer.projection, ...layer.extent);
-        }
-
         layer.canTileTextureBeImproved = this.canTileTextureBeImproved;
         layer.url = new URL(layer.url, window.location);
         return Fetcher.json(layer.url.href, layer.networkOptions).then((metadata) => {
@@ -123,6 +111,12 @@ export default {
                     image,
                     extent,
                 });
+
+                if (!layer.extent) {
+                    layer.extent = extent;
+                } else {
+                    layer.extent.union(extent);
+                }
             }
             layer._spatialIndex = new flatbush(layer.images.length);
             for (const image of layer.images) {
@@ -134,20 +128,16 @@ export default {
             }
             layer._spatialIndex.finish();
         }).then(() => {
-            if (!layer.format) {
+            if (layer.type == 'elevation') {
                 // fetch the first image to detect format
-                if (layer.images.length) {
-                    const url = buildUrl(layer, layer.images[0].image);
-                    return fetch(url, layer.networkOptions).then((response) => {
-                        layer.format = response.headers.get('Content-type');
-                        if (layer.format === 'application/octet-stream') {
-                            layer.format = 'image/x-bil';
-                        }
-                        if (!layer.format) {
-                            throw new Error(`${layer.name}: could not detect layer format, please configure 'layer.format'.`);
-                        }
-                    });
-                }
+                const selection = selectBestImageForExtent(layer, layer.extent);
+                const url = buildUrl(layer, selection.image);
+                return getTexture({ url, selection }, layer).then((result) => {
+                    const minmax = minMaxFromTexture(layer, result.texture, result.pitch);
+                    result.texture.min = minmax.min;
+                    result.texture.max = minmax.max;
+                    layer.minmax = minmax;
+                });
             }
         });
     },

@@ -170,6 +170,18 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
 
         // the last promise in the chain must return the layer
         layer.whenReady = providerPreprocessing.then(() => {
+            if (layer.type == 'elevation') {
+                if (!layer.minmax) {
+                    throw new Error('At this point the whole min/max should be known');
+                }
+                parentLayer.object3d.traverse((n) => {
+                    if (n.setBBoxZ) {
+                        n.setBBoxZ(layer.minmax.min, layer.minmax.max);
+                    }
+                })
+            }
+
+
             layer.ready = true;
             return layer;
         });
