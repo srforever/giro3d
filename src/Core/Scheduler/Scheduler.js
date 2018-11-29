@@ -207,20 +207,17 @@ Scheduler.prototype.execute = function execute(command) {
 function isInCache(command) {
     if (command.toDownload) {
         // Probably belongs to the provider (= it's part of a command API)
-        for (const toDownload of command.toDownload) {
-            if (toDownload.url) {
-                if (!Cache.get(toDownload.url)) {
-                    return false;
-                }
-            } else if (toDownload.tile) {
-                if (toDownload.tile.getState() != TileState.LOADED) {
-                    return false;
-                }
-            } else {
+        if (command.url) {
+            if (!Cache.get(command.url)) {
                 return false;
             }
+        } else if (command.tile) {
+            if (command.tile.getState() != TileState.LOADED) {
+                return false;
+            }
+        } else {
+            return false;
         }
-        return true;
     }
 }
 

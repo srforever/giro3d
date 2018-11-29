@@ -83,7 +83,6 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
 }
 
 function selectAllExtentsToDownload(layer, ex, texture, previousError) {
-    const result = [];
     const extent = chooseExtentToDownload(
         layer,
         ex,
@@ -94,13 +93,11 @@ function selectAllExtentsToDownload(layer, ex, texture, previousError) {
         return;
     }
     const pitch = ex.offsetToParent(extent);
-    result.push({
+    return {
         extent,
         pitch,
         url: URLBuilder.bbox(extent, layer),
-    });
-
-    return result;
+    };
 }
 
 export function chooseExtentToDownload(layer, extent, currentExtent) {
@@ -190,11 +187,7 @@ function getColorTexture(layer, toDownload) {
 }
 
 function executeCommand(command) {
-    const promises = [];
-    for (let i = 0; i < command.toDownload.length; i++) {
-        promises.push(getColorTexture(command.layer, command.toDownload[i]));
-    }
-    return Promise.all(promises);
+    return getColorTexture(command.layer, command.toDownload)
 }
 
 export default {

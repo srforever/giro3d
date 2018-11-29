@@ -109,34 +109,31 @@ function selectAllExtentsToDownload(layer, extent_, texture, previousError) {
     if (texture && texture.extent && texture.extent.zoom == extent.zoom) {
         return;
     }
-    return [{
+    return {
         extent,
         pitch,
         url: URLBuilder.xyz(extent, layer),
-    }];
+    };
 }
 
 function executeCommand(command) {
     const layer = command.layer;
 
     const promises = [];
-    for (const todo of command.toDownload) {
-        const promise = layer.format === 'application/x-protobuf;type=mapbox-vector' ?
-            VectorTileHelper.getVectorTileTextureByUrl(todo.url, command.requester, layer, todo.extent) :
-            OGCWebServiceHelper.getColorTextureByUrl(todo.url, layer.networkOptions);
+    const promise = layer.format === 'application/x-protobuf;type=mapbox-vector' ?
+        VectorTileHelper.getVectorTileTextureByUrl(command.toDownload, command.requester, layer, todo.extent) :
+        OGCWebServiceHelper.getColorTextureByUrl(command.toDownload, layer.networkOptions);
 
-        promises.push(promise.then((texture) => {
-            const result = {};
-            result.texture = texture;
-            result.texture.extent = todo.extent;
-            result.pitch = todo.pitch;
-            if (layer.transparent) {
-                texture.premultiplyAlpha = true;
-            }
-            return result;
-        }));
-    }
-    return Promise.all(promises);
+    return promise.then((texture) => {
+        const result = {};
+        result.texture = texture;
+        result.texture.extent = todo.extent;
+        result.pitch = todo.pitch;
+        if (layer.transparent) {
+            texture.premultiplyAlpha = true;
+        }
+        return result;
+    });
 }
 
 function tileTextureCount(tile, layer) {

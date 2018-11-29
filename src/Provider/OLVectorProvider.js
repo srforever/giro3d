@@ -44,22 +44,18 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
     if (texture && texture.extent &&
         texture.extent.isInside(extent) &&
         texture.revision == layer.source.getRevision()) {
-        return [];
+        return null;
     }
 
     const layerExtent = fromOLExtent(layer.source.getExtent(), 'EPSG:3857');
     if (extent.intersectsExtent(layerExtent)) {
-        return [extent];
+        return extent;
     }
-    return [];
+    return null;
 }
 
 function executeCommand(command) {
-    const promises = [];
-    for (const extent of command.toDownload) {
-        promises.push(createTexture(extent, command.layer));
-    }
-    return Promise.all(promises);
+    return createTexture(command.toDownload, command.layer);
 }
 
 function createTexture(extent, layer) {

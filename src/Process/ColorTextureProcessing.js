@@ -112,13 +112,13 @@ export default {
             node.material.getLayerTexture(layer).texture,
             node.layerUpdateState[layer.id].failureParams);
 
-        // if the provider returns false/undef, then we konw it will never have any texture
-        if (!nextDownloads) {
+        // if the provider returns undef, then we konw it will never have any texture
+        if (nextDownloads === undefined) {
             node.layerUpdateState[layer.id].noMoreUpdatePossible();
             return;
         }
         // in this case, the layer might be able to provide a texture later
-        if (nextDownloads.length == 0) {
+        if (nextDownloads === null) {
             return;
         }
 

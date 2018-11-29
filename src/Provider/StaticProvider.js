@@ -148,16 +148,16 @@ export default {
             return;
         }
         if (!currentTexture || (currentTexture && currentTexture.file != s.image)) {
-            return [{
+            return {
                 selection: s,
                 pitch: extent.offsetToParent(s.extent),
                 url: buildUrl(layer, s.image),
-            }];
+            };
         }
     },
 
     executeCommand(command) {
         const layer = command.layer;
-        return getTexture(command.toDownload[0], layer);
+        return getTexture(command.toDownload, layer);
     },
 };

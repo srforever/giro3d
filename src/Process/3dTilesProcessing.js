@@ -56,7 +56,7 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
         const path = metadata.content.url || metadata.content.uri;
         const url = path.startsWith('http') ? path : metadata.baseURL + path;
 
-        command.toDownload = [{ url }];
+        command.toDownload = { url };
     }
 
     return scheduler.execute(command).then(

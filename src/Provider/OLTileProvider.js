@@ -34,7 +34,7 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
     if (texture && texture.extent && texture.extent.isInside(tile.tileExtent)) {
         return;
     }
-    return [tile];
+    return tile;
 }
 
 function selectTile(layer, extent) {
@@ -63,11 +63,7 @@ function tileCoordForExtent(tileGrid, extent) {
 }
 
 function executeCommand(command) {
-    const promises = [];
-    for (const tile of command.toDownload) {
-        promises.push(loadTile(tile, command.layer));
-    }
-    return Promise.all(promises);
+    return loadTile(command.toDownload, command.layer);
 }
 
 function loadTile(tile, layer) {
