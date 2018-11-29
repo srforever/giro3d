@@ -81,18 +81,18 @@ function _instanciateQueue() {
             // commands pending
             pending: 0,
         },
-        execute(cmd, provider) {
-            this.counters.pending--;
-            this.counters.executing++;
+        execute(cmd, provider, countersIncrement=1) {
+            this.counters.pending -= countersIncrement;
+            this.counters.executing += countersIncrement;
             return provider.executeCommand(cmd).then((result) => {
-                this.counters.executing--;
+                this.counters.executing -= countersIncrement;
                 cmd.resolve(result);
                 // only count successul commands
-                this.counters.executed++;
+                this.counters.executed += countersIncrement;
             }, (err) => {
-                this.counters.executing--;
+                this.counters.executing -= countersIncrement;
                 cmd.reject(err);
-                this.counters.failed++;
+                this.counters.failed += countersIncrement;
                 if (this.counters.failed < 3) {
                     console.error(err);
                 }
@@ -151,7 +151,7 @@ Scheduler.prototype.runCommand = function runCommand(command, queue, recurse = t
         throw new Error('No known provider for layer', command.layer.id);
     }
 
-    return queue.execute(command, provider).then(() => {
+    return queue.execute(command, provider, recurse ? 1 : 0).then(() => {
         // notify view that one command ended.
         command.view.notifyChange(command.requester, command.redraw);
 
@@ -194,7 +194,6 @@ Scheduler.prototype.execute = function execute(command) {
     if (isInCache(command)) {
         // Fast path: command result is already available,
         // so skip the queueing mechanism and execute directly
-        q.counters.pending++;
         this.runCommand(command, q, false);
     } else {
         q.queue(command);
