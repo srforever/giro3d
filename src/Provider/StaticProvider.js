@@ -3,7 +3,6 @@ import { Vector4 } from 'three';
 import Extent from '../Core/Geographic/Extent';
 import OGCWebServiceHelper from './OGCWebServiceHelper';
 import Fetcher from './Fetcher';
-import { minMaxFromTexture } from '../Process/ElevationTextureProcessing';
 
 function _selectImagesFromSpatialIndex(index, images, extent) {
     return index.search(
@@ -127,18 +126,6 @@ export default {
                     image.extent.north());
             }
             layer._spatialIndex.finish();
-        }).then(() => {
-            if (layer.type == 'elevation') {
-                // fetch the first image to detect format
-                const selection = selectBestImageForExtent(layer, layer.extent);
-                const url = buildUrl(layer, selection.image);
-                return getTexture({ url, selection }, layer).then((result) => {
-                    const minmax = minMaxFromTexture(layer, result.texture, result.pitch);
-                    result.texture.min = minmax.min;
-                    result.texture.max = minmax.max;
-                    layer.minmax = minmax;
-                });
-            }
         });
     },
 

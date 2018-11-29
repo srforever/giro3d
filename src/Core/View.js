@@ -8,7 +8,7 @@ import { GeometryLayer, Layer, defineLayerProperty } from './Layer/Layer';
 import Scheduler from './Scheduler/Scheduler';
 import Picking from './Picking';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing';
-import ElevationTextureProcessing from '../Process/ElevationTextureProcessing';
+import ElevationTextureProcessing, { minMaxFromTexture } from '../Process/ElevationTextureProcessing';
 import TiledNodeProcessing from '../Process/TiledNodeProcessing';
 
 export const VIEW_EVENTS = {
@@ -166,6 +166,21 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
             if (!(providerPreprocessing && providerPreprocessing.then)) {
                 providerPreprocessing = Promise.resolve();
             }
+        }
+
+        if (layer.type === 'elevation') {
+            providerPreprocessing = providerPreprocessing.then(() => {
+                const down = provider.canTextureBeImproved(layer, layer.extent);
+                return provider.executeCommand({
+                    layer,
+                    toDownload: down,
+                }).then((result) => {
+                    const minmax = minMaxFromTexture(layer, result.texture, result.pitch);
+                    result.texture.min = minmax.min;
+                    result.texture.max = minmax.max;
+                    layer.minmax = minmax;
+                });
+            });
         }
 
         // the last promise in the chain must return the layer
@@ -356,6 +371,7 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
             reject(new Error(`${layer.protocol} is not a recognized protocol name.`));
             return;
         }
+
         layer = _preprocessLayer(this, layer, provider, parentLayer);
         if (parentLayer) {
             parentLayer.attach(layer);
@@ -368,9 +384,10 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
                 reject(new Error('Cant add GeometryLayer: missing a preUpdate function'));
                 return;
             }
-
             this._layers.push(layer);
         }
+
+
 
         if (!layer.projection) {
             layer.projection = (parentLayer && parentLayer.extent) ? parentLayer.extent.crs() : this.referenceCrs;
