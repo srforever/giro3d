@@ -40,16 +40,27 @@ function compute3857Extent(tileExtent) {
 
 export function createPlanarLayer(id, extent, options) {
     const tileLayer = new GeometryLayer(id, options.object3d || new THREE.Group());
-    tileLayer.extent = extent;
+    if (Array.isArray(extent)) {
+        tileLayer.extent = extent[0];
+        for (let i = 1; i < extent.length; i++) {
+            tileLayer.extent.union(extent[i]);
+        }
+    } else {
+        tileLayer.extent = extent;
+    }
 
-    if (extent.crs() == 'EPSG:3857') {
+    if (tileLayer.extent.crs() == 'EPSG:3857') {
         // align quadtree on EPSG:3857 full extent
         const aligned = compute3857Extent(extent);
         tileLayer.schemeTile = [aligned];
         tileLayer.validityExtent = extent;
     } else {
-        tileLayer.schemeTile = [extent];
-        tileLayer.validityExtent = extent;
+        if (Array.isArray(extent)) {
+            tileLayer.schemeTile = extent;
+        } else {
+            tileLayer.schemeTile = [extent];
+        }
+        tileLayer.validityExtent = tileLayer.extent;
     }
     tileLayer.maxSubdivisionLevel = options.maxSubdivisionLevel;
 
@@ -161,12 +172,14 @@ export function createPlanarLayer(id, extent, options) {
 function PlanarView(viewerDiv, extent, options = {}) {
     THREE.Object3D.DefaultUp.set(0, 0, 1);
 
+    const tileLayer = createPlanarLayer('planar', extent, options);
+
     // Setup View
-    View.call(this, extent.crs(), viewerDiv, options);
+    View.call(this, tileLayer.extent.crs(), viewerDiv, options);
 
     // Configure camera
-    const dim = extent.dimensions();
-    const positionCamera = extent.center().clone();
+    const dim = tileLayer.extent.dimensions();
+    const positionCamera = tileLayer.extent.center().clone();
     positionCamera._values[2] = Math.max(dim.x, dim.y);
     const lookat = positionCamera.xyz();
     lookat.z = 0;
@@ -175,7 +188,6 @@ function PlanarView(viewerDiv, extent, options = {}) {
     this.camera.camera3D.lookAt(lookat);
     this.camera.camera3D.updateMatrixWorld(true);
 
-    const tileLayer = createPlanarLayer('planar', extent, options);
 
     this.addLayer(tileLayer);
 
