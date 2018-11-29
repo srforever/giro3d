@@ -2,10 +2,6 @@ import * as THREE from 'three';
 import Extent from '../Core/Geographic/Extent';
 import ScreenSpaceError from '../Core/ScreenSpaceError';
 
-const tmp = {
-    v: new THREE.Vector3(),
-};
-
 function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
     if (metadata.obj) {
         unmarkForDeletion(layer, metadata.obj);
@@ -19,7 +15,7 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
         // so we can compute a per child priority
         const size = metadata.boundingVolume.box.clone()
             .applyMatrix4(metadata._worldFromLocalTransform)
-            .getSize(tmp.v);
+            .getSize();
         priority = size.x * size.y;
     } else {
         // But the 'replace' refinement needs to download all children at
@@ -29,7 +25,7 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
         // So we compute a priority based on the size of the parent
         const size = parent.boundingVolume.box.clone()
             .applyMatrix4(parent.matrixWorld)
-            .getSize(tmp.v);
+            .getSize();
         priority = size.x * size.y;// / layer.tileIndex.index[parent.tileId].children.length;
     }
 
@@ -328,7 +324,7 @@ export function computeNodeSSE(context, node) {
         boundingVolumeBox.copy(node.boundingVolume.box);
         boundingVolumeBox.applyMatrix4(node.matrixWorld);
         node.distance = boundingVolumeBox.distanceToPoint(context.camera.camera3D.position);
-        context.distance.update(node.distance, node.boundingVolume.box.getSize(tmp.v));
+        context.distance.update(node.distance, node.boundingVolume.box.getSize());
 
         const sse = ScreenSpaceError.computeFromBox3(
             context.camera,

@@ -75,7 +75,7 @@ function findBox3Distance(camera, box3, matrix) {
 }
 
 function computeSizeFromGeometricError(box3, geometricError, _3d) {
-    const size = box3.getSize(temp[0]);
+    const size = box3.getSize();
     let maxComponent = Math.max(size.x, size.y);
     if (_3d) {
         maxComponent = Math.max(maxComponent, size.z);
