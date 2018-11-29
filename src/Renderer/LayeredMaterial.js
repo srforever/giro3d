@@ -11,11 +11,12 @@ import TileFS from './Shader/TileFS.glsl';
 import Capabilities from '../Core/System/Capabilities';
 import PrecisionQualifier from './Shader/Chunk/PrecisionQualifier.glsl';
 import GetElevation from './Shader/Chunk/GetElevation.glsl';
+import ComputeUV from './Shader/Chunk/ComputeUV.glsl';
 
 // Declaring our own chunks
 THREE.ShaderChunk.PrecisionQualifier = PrecisionQualifier;
 THREE.ShaderChunk.GetElevation = GetElevation;
-
+THREE.ShaderChunk.ComputeUV = ComputeUV;
 
 const emptyTexture = new THREE.Texture();
 const vector4 = new THREE.Vector4(0.0, 0.0, 0.0, 0.0);

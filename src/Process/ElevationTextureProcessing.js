@@ -198,18 +198,6 @@ export default {
                         }, node.layerUpdateState[layer.id].secondsUntilNextTry() * 1000);
                     }
                 }
-            }).then((terrain) => {
-                if (!terrain) {
-                    return;
-                }
-                if (terrain.texture && terrain.texture.flipY) {
-                    // DataTexture default to false, so make sure other Texture types
-                    // do the same (eg image texture)
-                    // See UV construction for more details
-                    terrain.texture.flipY = false;
-                    terrain.texture.needsUpdate = true;
-                }
-                return terrain;
             }).then((elevation) => {
                 if (!elevation) { return; }
 

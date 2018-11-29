@@ -26,13 +26,9 @@ varying vec4 vPosition;
 uniform vec4 validityExtent;
 
 #include <GetElevation>
+#include <ComputeUV>
 
 #if defined(STITCHING)
-vec2 computeUv(vec2 uv, vec2 offset, vec2 scale) {
-    return vec2(
-        uv.x * scale.x + offset.x,
-        (1.0 - uv.y) * scale.y + offset.y);
-}
 float readNeighbourElevation(vec2 uv, int neighbour) {
     vec2 vv = uv;
     // top
@@ -55,10 +51,7 @@ void main() {
     vColor = vec4(0., 0., 0., 0.);
 
     if(elevationOffsetScale.z > 0.) {
-        vec2    vVv = vec2(
-            vUv.x * elevationOffsetScale.z + elevationOffsetScale.x,
-            (1.0 - vUv.y) * elevationOffsetScale.w + elevationOffsetScale.y);
-
+        vec2 vVv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
         int weight = 1;
 
         float elevation = getElevation(elevationTexture, vVv);
@@ -97,7 +90,8 @@ void main() {
                 vPosition.y -= tileDimensions.y * offset;
                 vUv.y -= offset;
 
-                elevation = readNeighbourElevation(vUv, 3);
+                elevation += 10.0 * readNeighbourElevation(vUv, 3);
+                weight += 10;
                 // vColor = vec4(1.0, 0.0, 0.0, 0.5);
             } else if (neighbourdiffLevel.w == 0.0) {
                 elevation += readNeighbourElevation(uv, 3);
@@ -110,7 +104,8 @@ void main() {
                 float offset = fract(vUv.y / modulo.y) * modulo.y;
                 vPosition.y -= tileDimensions.y * offset;
                 vUv.y -= offset;
-                elevation = readNeighbourElevation(vUv, 1);
+                elevation += 10.0 * readNeighbourElevation(vUv, 1);
+                weight += 10;
                 // vColor = vec4(1.0, 1.0, 0.0, 0.5);
             } else if (neighbourdiffLevel.y == 0.0) {
                 elevation += readNeighbourElevation(uv, 1);
@@ -125,8 +120,8 @@ void main() {
                 vPosition.x -= tileDimensions.x * offset;
                 vUv.x -= offset;
 
-                elevation = readNeighbourElevation(vUv, 2);
-                weight = 1;
+                elevation += 10.0 * readNeighbourElevation(vUv, 2);
+                weight += 10;
             } else if (neighbourdiffLevel.z == 0.0) {
                 elevation += readNeighbourElevation(uv, 2);
                 weight += 1;
@@ -139,8 +134,8 @@ void main() {
                 vPosition.x -= tileDimensions.x * offset;
                 vUv.x -= offset;
 
-                elevation = readNeighbourElevation(vUv, 0);
-                weight = 1;
+                elevation += 10.0 * readNeighbourElevation(vUv, 0);
+                weight += 10;
             } else if (neighbourdiffLevel.x == 0.0) {
                 elevation += readNeighbourElevation(uv, 0);
                 weight += 1;

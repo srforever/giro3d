@@ -53,6 +53,8 @@ uniform bool showOutline;
 const float sLine = 0.008;
 #endif
 
+#include <ComputeUV>
+
 #if defined(MATTE_ID_MODE) || defined(DEPTH_MODE)
 #include <packing>
 uniform int  uuid;
@@ -80,9 +82,7 @@ void main() {
             continue;
         }
 
-        vec2 uv;
-        uv.x = vUv.x * colorOffsetScale[i].z + colorOffsetScale[i].x;
-        uv.y = 1.0 - ((1.0 - vUv.y) * colorOffsetScale[i].w + colorOffsetScale[i].y);
+        vec2 uv = computeUv(vUv, colorOffsetScale[i].xy, colorOffsetScale[i].zw);
 
         if (uv.x < 0.0 || uv.x > 1.0 || uv.y > 1.0 || uv.y < 0.0) {
             continue;
