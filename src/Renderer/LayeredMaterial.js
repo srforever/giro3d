@@ -12,6 +12,7 @@ import Capabilities from '../Core/System/Capabilities';
 import PrecisionQualifier from './Shader/Chunk/PrecisionQualifier.glsl';
 import GetElevation from './Shader/Chunk/GetElevation.glsl';
 import ComputeUV from './Shader/Chunk/ComputeUV.glsl';
+import { ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing';
 
 // Declaring our own chunks
 THREE.ShaderChunk.PrecisionQualifier = PrecisionQualifier;
@@ -53,16 +54,9 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
 
     options = options || { };
 
-    // Move this to the setTerrain code
-    if (options.useColorTextureElevation) {
-        this.defines.COLOR_TEXTURE_ELEVATION = 1;
-        // this.defines.HILLSHADE = 1;
-        this.defines.STITCHING = 1;
-        this.uniforms.segments = new THREE.Uniform(segments);
-    } else {
-        // default
-        this.defines.DATA_TEXTURE_ELEVATION = 1;
-    }
+    // this.defines.HILLSHADE = 1;
+    this.defines.STITCHING = 1;
+    this.uniforms.segments = new THREE.Uniform(segments);
     if (options.side) {
         this.side = options.side;
     }
@@ -176,6 +170,17 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
     }
 
     if (layer.type === 'elevation') {
+        if (layer.format == ELEVATION_FORMAT.MAPBOX_RGB) {
+            if (!this.defines.MAPBOX_RGB_ELEVATION) {
+                this.defines.MAPBOX_RGB_ELEVATION = 1;
+                this.needsUpdate = true;
+            }
+        } else if (layer.format == ELEVATION_FORMAT.HEIGHFIELD) {
+            if (!this.defines.HEIGHTFIELD_ELEVATION) {
+                this.defines.HEIGHTFIELD_ELEVATION = 1;
+                this.needsUpdate = true;
+            }
+        }
         this.texturesInfo.elevation.texture = textures.texture;
         this.uniforms.elevationTexture.value = textures.texture;
         this.texturesInfo.elevation.offsetScale.copy(textures.pitch);
