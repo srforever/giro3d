@@ -38,11 +38,12 @@ export function crsToUnit(crs) {
     }
 }
 
-export function reasonnableEpsilonForCRS(crs) {
+export function reasonnableEpsilonForCRS(crs, extent) {
     if (is4326(crs)) {
         return 0.01;
     } else {
-        return 0.001;
+        const d = extent.dimensions();
+        return 0.001 * Math.min(d.x, d.y);
     }
 }
 

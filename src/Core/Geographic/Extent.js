@@ -259,7 +259,7 @@ Extent.prototype.isInside = function isInside(other, epsilon) {
         }
     } else {
         const o = other.as(this._crs);
-        epsilon = epsilon == undefined ? reasonnableEpsilonForCRS(this._crs) : epsilon;
+        epsilon = epsilon == undefined ? reasonnableEpsilonForCRS(this._crs, this) : epsilon;
         return this.east() - o.east() <= epsilon &&
                o.west() - this.west() <= epsilon &&
                this.north() - o.north() <= epsilon &&
