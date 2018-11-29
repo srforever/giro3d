@@ -1,4 +1,4 @@
-import { Plane, EventDispatcher } from 'three';
+import { Vector3, Plane, EventDispatcher } from 'three';
 import { GeometryLayer, Layer } from './Layer/Layer';
 import Cache from '../Core/Scheduler/Cache';
 
@@ -128,7 +128,7 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
         distance: {
             plane: new Plane()
                 .setFromNormalAndCoplanarPoint(
-                    view.camera.camera3D.getWorldDirection(),
+                    view.camera.camera3D.getWorldDirection(new Vector3()),
                     view.camera.camera3D.position /* TODO matrixWorld */),
             min: Infinity,
             max: 0,

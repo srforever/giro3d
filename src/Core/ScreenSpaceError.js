@@ -8,6 +8,7 @@ const temp = [
     new THREE.Vector3(),
     new THREE.Vector3(),
     new THREE.Vector3(),
+    new THREE.Vector3(),
 ];
 
 function computeSSE(offset, size, matrix, camera, _3d) {
@@ -75,7 +76,7 @@ function findBox3Distance(camera, box3, matrix) {
 }
 
 function computeSizeFromGeometricError(box3, geometricError, _3d) {
-    const size = box3.getSize();
+    const size = box3.getSize(temp[5]);
     let maxComponent = Math.max(size.x, size.y);
     if (_3d) {
         maxComponent = Math.max(maxComponent, size.z);
