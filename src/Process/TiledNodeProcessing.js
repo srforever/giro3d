@@ -47,7 +47,7 @@ function subdivideNode(context, layer, node) {
 
             child.updateMatrixWorld(true);
         }
-        context.view.notifyChange(node, false);
+        context.view.notifyChange(node);
     }
 }
 

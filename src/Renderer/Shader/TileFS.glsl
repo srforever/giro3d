@@ -77,29 +77,14 @@ void main() {
     vec4 diffuseColor = vec4(noTextureColor, 0.0);
     diffuseColor.rgb = vec3(vPosition.z / 129.0);
 
-    for (int i = 0; i < TEX_UNITS; i++) {
-        if (!colorVisible[i] || colorOpacity[i] <= 0.0) {
-            continue;
-        }
+    // We can't loop here over textures since Firefox doesn't support
+    // reading from a sampler array without a constant index
+    // (ie texture2D(texture[i], uv) is disallowed).
+    INSERT_TEXTURE_READING_CODE
+    // Instead we generate the unrolled loop when needed and insert it
+    // here (see LayeredMaterial.js).
 
-        vec2 uv = computeUv(vUv, colorOffsetScale[i].xy, colorOffsetScale[i].zw);
-
-        if (uv.x < 0.0 || uv.x > 1.0 || uv.y > 1.0 || uv.y < 0.0) {
-            continue;
-        }
-
-        // TODO: fixme for Firefox
-        vec4 layerColor = texture2D(colorTexture[i], uv);
-
-        // Use premultiplied-alpha blending formula because source textures are either:
-        //     - fully opaque (layer.transparent = false)
-        //     - or use premultiplied alpha (texture.premultiplyAlpha = true)
-        // Note: using material.premultipliedAlpha doesn't make sense since we're manually blending
-        // the multiple colors in the shader.
-        diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[i]) + layerColor * colorOpacity[i];
-    }
     gl_FragColor = diffuseColor;
-
 
     #if defined(HILLSHADE)
     vec2 onePixel = vec2(1.0) / 256.0;

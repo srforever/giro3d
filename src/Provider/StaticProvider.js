@@ -64,6 +64,7 @@ function selectBestImageForExtent(layer, extent) {
             }
         }
     }
+    layer.discardOutsideUV = true;
     return selection;
 }
 

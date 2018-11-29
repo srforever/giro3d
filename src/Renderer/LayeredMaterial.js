@@ -62,7 +62,9 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
     }
 
     this.defines.TEX_UNITS = nbSamplers;
-        this.defines.DEBUG = 1;
+    this.defines.INSERT_TEXTURE_READING_CODE = '';
+
+    this.defines.DEBUG = 1;
     if (__DEBUG__) {
     }
 
@@ -125,7 +127,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
 
     this.uniforms.opacity = new THREE.Uniform(1.0);
 
-    this.colorLayersId = [];
+    this.colorLayers = [];
 };
 
 LayeredMaterial.prototype = Object.create(THREE.RawShaderMaterial.prototype);
@@ -151,7 +153,7 @@ LayeredMaterial.prototype.getLayerTexture = function getLayerTexture(layer) {
         };
     }
 
-    const index = this.indexOfColorLayer(layer.id);
+    const index = this.indexOfColorLayer(layer);
 
     if (index !== -1) {
         return {
@@ -185,7 +187,7 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
         this.uniforms.elevationTexture.value = textures.texture;
         this.texturesInfo.elevation.offsetScale.copy(textures.pitch);
     } else if (layer.type === 'color') {
-        const index = this.indexOfColorLayer(layer.id);
+        const index = this.indexOfColorLayer(layer);
         this.texturesInfo.color.textures[index] = textures.texture;
         this.texturesInfo.color.offsetScale[index] = textures.pitch;
     } else {
@@ -193,30 +195,74 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
     }
 };
 
+function rebuildFragmentShader(shader) {
+    const material = this;
+    let textureReadingCode = '';
+    for (let i = 0; i < material.colorLayers.length; i++) {
+        // Use premultiplied-alpha blending formula because source textures are either:
+        //     - fully opaque (layer.transparent = false)
+        //     - or use premultiplied alpha (texture.premultiplyAlpha = true)
+        // Note: using material.premultipliedAlpha doesn't make sense since we're manually blending
+        // the multiple colors in the shader.
+        if (material.colorLayers[i].discardOutsideUV) {
+            textureReadingCode += `
+            if (colorVisible[${i}] && colorOpacity[${i}] > 0.0) {
+                vec2 uv = computeUv(vUv, colorOffsetScale[${i}].xy, colorOffsetScale[${i}].zw);
+                if (uv.x < -0.001 || uv.x > 1.001 || uv.y > 1.001 || uv.y < -0.001) {
+
+                } else {
+                    vec4 layerColor = texture2D(colorTexture[${i}], uv);
+                    diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[${i}]) + layerColor * colorOpacity[${i}];
+                }
+            }
+            `;
+        } else {
+            textureReadingCode += `
+            if (colorVisible[${i}] && colorOpacity[${i}] > 0.0) {
+                vec2 uv = clamp(
+                    computeUv(vUv, colorOffsetScale[${i}].xy, colorOffsetScale[${i}].zw),
+                    vec2(0.0, 0.0), vec2(1.0, 1.0));
+                vec4 layerColor = texture2D(colorTexture[${i}], uv);
+                diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[${i}]) + layerColor * colorOpacity[${i}];
+            }
+            `;
+        }
+    }
+    material.fragmentShader = TileFS.replace(
+        'INSERT_TEXTURE_READING_CODE',
+        textureReadingCode);
+    shader.fragmentShader = material.fragmentShader;
+    material.onBeforeCompile = function () {};
+    return material.fragmentShader;
+}
+
 LayeredMaterial.prototype.pushLayer = function pushLayer(layer) {
-    const index = this.colorLayersId.length;
+    const index = this.colorLayers.length;
     this.texturesInfo.color.opacity[index] = layer.opacity;
     this.texturesInfo.color.visible[index] = layer.visible;
-    this.colorLayersId.push(layer.id);
+    this.colorLayers.push(layer);
+
+    this.needsUpdate = true;
+    this.onBeforeCompile = rebuildFragmentShader.bind(this);
 };
 
-LayeredMaterial.prototype.indexOfColorLayer = function indexOfColorLayer(layerId) {
-    return this.colorLayersId.indexOf(layerId);
+LayeredMaterial.prototype.indexOfColorLayer = function indexOfColorLayer(layer) {
+    return this.colorLayers.indexOf(layer);
 };
 
 LayeredMaterial.prototype.setLayerOpacity = function setLayerOpacity(layer, opacity) {
-    const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer.id);
+    const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
     this.texturesInfo.color.opacity[index] = opacity;
 };
 
 LayeredMaterial.prototype.setLayerVisibility = function setLayerVisibility(layer, visible) {
-    const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer.id);
+    const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
     this.texturesInfo.color.visible[index] = visible;
 };
 
 LayeredMaterial.prototype.isLayerTextureLoaded = function isColorLayerLoaded(layer) {
     if (layer.type == 'color') {
-        const index = this.indexOfColorLayer(layer.id);
+        const index = this.indexOfColorLayer(layer);
         if (index >= 0) {
             return this.texturesInfo.color.textures[index] != emptyTexture;
         }
