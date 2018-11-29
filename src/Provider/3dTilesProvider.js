@@ -163,7 +163,7 @@ function getBox(volume) {
         const t = center.z + bbox[11];
 
         const box = new THREE.Box3(new THREE.Vector3(w, s, b), new THREE.Vector3(e, n, t));
-        if (box.getSize().length() == 0) {
+        if (box.getSize(new THREE.Vector3()).length() == 0) {
             throw new Error('Invalid boundingVolume (0 sized box)');
         }
         return { box };

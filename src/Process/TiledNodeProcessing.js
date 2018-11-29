@@ -1,3 +1,4 @@
+import { Vector3 } from 'three';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 import ObjectRemovalHelper from './ObjectRemovalHelper';
 import ScreenSpaceError from '../Core/ScreenSpaceError';
@@ -51,12 +52,16 @@ function subdivideNode(context, layer, node) {
     }
 }
 
+const tmp = {
+    v: new Vector3(),
+};
+
 function updateMinMaxDistance(context, node) {
     const bbox = node.OBB().box3D.clone()
         .applyMatrix4(node.OBB().matrixWorld);
     const distance = context.distance.plane
-        .distanceToPoint(bbox.getCenter());
-    const radius = bbox.getSize().length() * 0.5;
+        .distanceToPoint(bbox.getCenter(tmp.v));
+    const radius = bbox.getSize(tmp.v).length() * 0.5;
     context.distance.update(distance - radius, distance + radius);
 }
 
@@ -168,7 +173,7 @@ function update(context, layer, node) {
         let requestChildrenUpdate = false;
 
         if (!layer.frozen) {
-            const s = node.OBB().box3D.getSize();
+            const s = node.OBB().box3D.getSize(tmp.v);
             const obb = node.OBB();
             const sse = ScreenSpaceError.computeFromBox3(
                     context.camera,

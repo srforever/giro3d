@@ -34,8 +34,12 @@ function cube(size) {
     return geometry;
 }
 
+const tmp = {
+    v: new THREE.Vector3(),
+};
+
 function initBoundingBox(elt, layer) {
-    const size = elt.tightbbox.getSize();
+    const size = elt.tightbbox.getSize(tmp.v);
     elt.obj.boxHelper = new THREE.LineSegments(
         cube(size),
         elt.childrenBitField ?
@@ -89,7 +93,7 @@ function markForDeletion(elt) {
 function updateMinMaxDistance(context, bbox) {
     const distance = context.distance.plane
         .distanceToPoint(bbox.getCenter());
-    const radius = bbox.getSize().length() * 0.5;
+    const radius = bbox.getSize(tmp.v).length() * 0.5;
     context.distance.update(distance - radius, distance + radius);
     return distance;
 }
