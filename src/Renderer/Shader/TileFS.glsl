@@ -68,7 +68,7 @@ void main() {
     #else
 
     #if defined(DEBUG)
-     if (/*showOutline &&*/ (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine)) {
+     if (showOutline && (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine)) {
          gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
          return;
      }
