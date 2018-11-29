@@ -27,6 +27,19 @@ const IMAGE_REPLAYS = {
 const tmpTransform_ = createTransform();
 
 function preprocessDataLayer(layer) {
+    if (layer.source.getFormat().dataProjection.getCode() != layer.projection) {
+        for (const f of layer.source.getFeatures()) {
+            f.getGeometry().transform(
+                layer.source.getFormat().dataProjection.getCode(),
+                layer.projection);
+        }
+        layer.source.on('addfeature', (evt) => {
+            evt.feature.getGeometry().transform(
+                layer.source.getFormat().dataProjection.getCode(),
+                layer.projection);
+        });
+    }
+
     layer.getStyleFunction = () => layer.style(Style, Fill, Stroke, Icon, Text);
 }
 
@@ -47,7 +60,7 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
         return null;
     }
 
-    const layerExtent = fromOLExtent(layer.source.getExtent(), 'EPSG:3857');
+    const layerExtent = fromOLExtent(layer.source.getExtent(), layer.projection);
     if (extent.intersectsExtent(layerExtent)) {
         return extent;
     }
@@ -73,7 +86,7 @@ function createReplayGroup(extent, layer) {
     const source = layer.source;
     const pixelRatio = 1;
     const declutterTree = null;
-    const resolution = 2 * (extent.dimensions().x / 256);
+    const resolution = (extent.dimensions().x / 256);
     const renderBuffer = 100;
     const olExtent = toOLExtent(extent);
     const replayGroup = new CanvasReplayGroup(0, olExtent, resolution,
@@ -122,13 +135,13 @@ function handleStyleImageChange_() {
 function renderTileImage(_canvas, replayGroup, extent) {
     const pixelRatio = 1;
     const replays = IMAGE_REPLAYS.image;
-    const resolution = extent.dimensions().x / 256;
+    const resolutionX = extent.dimensions().x / 256;
+    const resolutionY = extent.dimensions().y / 256;
     _canvas.width = 256;
     _canvas.height = 256;
     const context = _canvas.getContext('2d');
-    const pixelScale = pixelRatio / resolution;
     const transform = resetTransform(tmpTransform_);
-    scaleTransform(transform, pixelScale, -pixelScale);
+    scaleTransform(transform, pixelRatio / resolutionX, -pixelRatio / resolutionY);
     translateTransform(transform, -extent.west(), -extent.north());
     replayGroup.replay(context, transform, 0, {}, true, replays);
 }
