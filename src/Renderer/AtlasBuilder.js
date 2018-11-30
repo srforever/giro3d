@@ -55,6 +55,7 @@ export default {
         const atlas = {};
         for (let i = 0; i < blocks.length; i++) {
             atlas[blocks[i].layerId] = blocks[i].fit;
+            atlas[blocks[i].layerId].offset = colorBleedHalfOffset;
         }
 
         return { atlas, maxX, maxY };

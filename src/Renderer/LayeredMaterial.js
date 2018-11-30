@@ -57,7 +57,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
 
     if (true || __DEBUG__) {
         this.defines.DEBUG = 1;
-        this.uniforms.showOutline = new THREE.Uniform(true);
+        this.uniforms.showOutline = new THREE.Uniform(false);
     }
 
     this.fragmentShader = TileFS;
@@ -159,13 +159,29 @@ function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revi
     const ctx = canvas.getContext('2d');
 
     // TODO: only if !opaque
-    ctx.clearRect(atlasInfo.x, atlasInfo.y, layer.imageSize.w, layer.imageSize.h);
+    ctx.clearRect(atlasInfo.x, atlasInfo.y, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
 
     if (image) {
+        // draw the whole image
         ctx.drawImage(
             image,
-            atlasInfo.x, atlasInfo.y,
+            atlasInfo.x, atlasInfo.y + atlasInfo.offset,
             layer.imageSize.w, layer.imageSize.h);
+
+        if (atlasInfo.offset) {
+            // avoid texture bleeding: repeat the first/last row
+            ctx.drawImage(
+                image,
+                0, 0, layer.imageSize.w, atlasInfo.offset,
+                atlasInfo.x, atlasInfo.y,
+                layer.imageSize.w, atlasInfo.offset);
+            ctx.drawImage(
+                image,
+                0, 0, layer.imageSize.w, atlasInfo.offset,
+                atlasInfo.x, atlasInfo.y + layer.imageSize.h + atlasInfo.offset,
+                layer.imageSize.w, atlasInfo.offset);
+        }
+
 
         // draw area of interest
         // ctx.strokeStyle = "green";
@@ -213,7 +229,7 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
         const yRatio = layer.imageSize.h / this.canvas.height;
         this.texturesInfo.color.offsetScale[index] = new THREE.Vector4(
             atlas.x / this.canvas.width + textures.pitch.x * xRatio,
-            atlas.y / this.canvas.height + textures.pitch.y * yRatio,
+            (atlas.y + atlas.offset) / this.canvas.height + textures.pitch.y * yRatio,
             textures.pitch.z * xRatio,
             textures.pitch.w * yRatio);
         // draw the full image
@@ -237,12 +253,11 @@ function rebuildFragmentShader(shader) {
     for (let i = 0; i < material.colorLayers.length; i++) {
         const layer = material.colorLayers[i];
         const atlas = material.texturesInfo.color.atlas[layer.id];
-
         const validArea = {
             x1: atlas.x / w,
             x2: atlas.x / w + layer.imageSize.w / w,
-            y2: 1 - atlas.y / h,
-            y1: 1 - (atlas.y / h + layer.imageSize.h / h),
+            y2: 1 - (atlas.y + atlas.offset) / h,
+            y1: 1 - ((atlas.y + atlas.offset) / h + layer.imageSize.h / h),
         };
 
         // Use premultiplied-alpha blending formula because source textures are either:

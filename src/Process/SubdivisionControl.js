@@ -7,9 +7,6 @@ export default {
     },
 
     hasEnoughTexturesToSubdivide: (context, layer, node) => {
-        // TODO: call texture inheritance from subdivision
-        // return true;
-
         // Prevent subdivision if node is covered by at least one elevation layer
         // and if node doesn't have a elevation texture yet.
         for (const e of context.elevationLayers) {
@@ -20,6 +17,11 @@ export default {
                 }
                 return false;
             }
+        }
+
+        if (node.children.some(n => n.layer == layer)) {
+            // No need to prevent subdivision, since we've already done it before
+            return true;
         }
 
         // Prevent subdivision if missing color texture
