@@ -64,7 +64,7 @@ function compute3857Extent(tileExtent) {
 export function createPlanarLayer(id, extent, options) {
     const tileLayer = new GeometryLayer(id, options.object3d || new THREE.Group());
     if (Array.isArray(extent)) {
-        tileLayer.extent = extent[0];
+        tileLayer.extent = extent[0].clone();
         for (let i = 1; i < extent.length; i++) {
             tileLayer.extent.union(extent[i]);
         }
