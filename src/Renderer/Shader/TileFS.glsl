@@ -1,9 +1,12 @@
 #include <PrecisionQualifier>
 
-uniform sampler2D colorTexture[TEX_UNITS];
+uniform sampler2D colorTexture;
+
+#if TEX_UNITS
 uniform vec4      colorOffsetScale[TEX_UNITS];
 uniform float     colorOpacity[TEX_UNITS];
 uniform bool      colorVisible[TEX_UNITS];
+#endif
 
 // backgroundColor
 uniform vec3      noTextureColor;
@@ -75,7 +78,7 @@ void main() {
     #endif
 
     vec4 diffuseColor = vec4(noTextureColor, 0.0);
-    diffuseColor.rgb = vec3(vPosition.z / 129.0);
+    // diffuseColor.rgb = vec3(vPosition.z / 129.0);
 
     // We can't loop here over textures since Firefox doesn't support
     // reading from a sampler array without a constant index

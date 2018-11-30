@@ -1,4 +1,4 @@
-import { Vector4, CanvasTexture } from 'three';
+import { Vector4, CanvasTexture, Texture } from 'three';
 
 import CanvasReplayGroup from 'ol/render/canvas/ReplayGroup';
 import { getSquaredTolerance as getSquaredRenderTolerance,
@@ -27,6 +27,8 @@ const IMAGE_REPLAYS = {
 const tmpTransform_ = createTransform();
 
 function preprocessDataLayer(layer) {
+    layer.imageSize = { w: 256, h: 256 };
+
     if (layer.source.getFormat().dataProjection.getCode() != layer.projection) {
         for (const f of layer.source.getFeatures()) {
             f.getGeometry().transform(
@@ -73,10 +75,16 @@ function executeCommand(command) {
 
 function createTexture(extent, layer) {
     const replayGroup = createReplayGroup(extent, layer);
-    const _canvas = document.createElement('canvas');
-    renderTileImage(_canvas, replayGroup, extent);
-    const texture = new CanvasTexture(_canvas);
-    texture.premultiplyAlpha = layer.transparent;
+    let texture;
+    if (!replayGroup) {
+        texture = new Texture();
+    } else {
+        const _canvas = document.createElement('canvas');
+        _canvas.width = layer.imageSize.w;
+        _canvas.height = layer.imageSize.h;
+        renderTileImage(_canvas, replayGroup, extent);
+        texture = new CanvasTexture(_canvas);
+    }
     texture.extent = extent;
     texture.revision = layer.source.getRevision();
     return Promise.resolve({ texture, pitch: new Vector4(0, 0, 1, 1) });
@@ -86,13 +94,14 @@ function createReplayGroup(extent, layer) {
     const source = layer.source;
     const pixelRatio = 1;
     const declutterTree = null;
-    const resolution = (extent.dimensions().x / 256);
+    const resolution = (extent.dimensions().x / layer.imageSize.w);
     const renderBuffer = 100;
     const olExtent = toOLExtent(extent);
     const replayGroup = new CanvasReplayGroup(0, olExtent, resolution,
       pixelRatio, source.getOverlaps(), declutterTree, renderBuffer);
     const squaredTolerance = getSquaredRenderTolerance(resolution, pixelRatio);
 
+    let used = false;
     const render = function render(feature) {
         let styles;
         const styleFunction = feature.getStyleFunction() || layer.getStyleFunction();
@@ -102,12 +111,14 @@ function createReplayGroup(extent, layer) {
         if (styles) {
             renderFeature(feature, squaredTolerance, styles, replayGroup);
         }
+        used = true;
     };
-
     source.forEachFeatureInExtent(olExtent, render, this);
-
     replayGroup.finish();
-    return replayGroup;
+
+    if (used) {
+        return replayGroup;
+    }
 }
 
 function renderFeature(feature, squaredTolerance, styles, replayGroup) {
@@ -135,10 +146,8 @@ function handleStyleImageChange_() {
 function renderTileImage(_canvas, replayGroup, extent) {
     const pixelRatio = 1;
     const replays = IMAGE_REPLAYS.image;
-    const resolutionX = extent.dimensions().x / 256;
-    const resolutionY = extent.dimensions().y / 256;
-    _canvas.width = 256;
-    _canvas.height = 256;
+    const resolutionX = extent.dimensions().x / _canvas.width;
+    const resolutionY = extent.dimensions().y / _canvas.height;
     const context = _canvas.getContext('2d');
     const transform = resetTransform(tmpTransform_);
     scaleTransform(transform, pixelRatio / resolutionX, -pixelRatio / resolutionY);

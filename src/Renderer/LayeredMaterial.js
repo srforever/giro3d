@@ -1,10 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-
 import * as THREE from 'three';
 import TileVS from './Shader/TileVS.glsl';
 import TileFS from './Shader/TileFS.glsl';
@@ -13,6 +6,7 @@ import PrecisionQualifier from './Shader/Chunk/PrecisionQualifier.glsl';
 import GetElevation from './Shader/Chunk/GetElevation.glsl';
 import ComputeUV from './Shader/Chunk/ComputeUV.glsl';
 import { ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing';
+import AtlasBuilder from './AtlasBuilder';
 
 // Declaring our own chunks
 THREE.ShaderChunk.PrecisionQualifier = PrecisionQualifier;
@@ -49,9 +43,6 @@ function fillArray(array, remp) {
 const LayeredMaterial = function LayeredMaterial(options, segments) {
     THREE.RawShaderMaterial.call(this);
 
-    const maxTexturesUnits = Capabilities.getMaxTextureUnitsCount();
-    const nbSamplers = Math.min(maxTexturesUnits - 1, 16 - 2);
-
     options = options || { };
 
     // this.defines.HILLSHADE = 1;
@@ -61,29 +52,26 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
         this.side = options.side;
     }
 
-    this.defines.TEX_UNITS = nbSamplers;
+    this.defines.TEX_UNITS = 0;
     this.defines.INSERT_TEXTURE_READING_CODE = '';
 
-    this.defines.DEBUG = 1;
-    if (__DEBUG__) {
+    if (true || __DEBUG__) {
+        this.defines.DEBUG = 1;
+        this.uniforms.showOutline = new THREE.Uniform(false);
     }
 
     this.fragmentShader = TileFS;
     this.vertexShader = TileVS;
 
-    // handle on textures uniforms
-    this.textures = [];
-    // handle on textures offsetScale uniforms
-    this.offsetScale = [];
-    // handle Loaded textures count by layer's type uniforms
-    this.loadedTexturesCount = [0, 0];
-
+    this.canvas = document.createElement('canvas');
     this.texturesInfo = {
         color: {
-            offsetScale: Array(nbSamplers),
-            textures: Array(nbSamplers),
-            opacity: Array(nbSamplers),
-            visible: Array(nbSamplers),
+            offsetScale: [],
+            atlasTexture: new THREE.CanvasTexture(this.canvas),
+            textures: [],
+            opacity: [],
+            visible: [],
+            atlas: undefined,
         },
         elevation: {
             offsetScale: new THREE.Vector4(0, 0, 0, 0),
@@ -94,16 +82,10 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
             },
         },
     };
-    fillArray(this.texturesInfo.color.offsetScale, vector4);
-    fillArray(this.texturesInfo.color.textures, emptyTexture);
-    fillArray(this.texturesInfo.color.opacity, 1.0);
-    fillArray(this.texturesInfo.color.visible, false);
     fillArray(this.texturesInfo.elevation.neighbours.texture, emptyTexture);
     fillArray(this.texturesInfo.elevation.neighbours.offsetScale, vector4);
 
-    this.layerTexturesCount = Array(8);
-
-    fillArray(this.layerTexturesCount, 0);
+    this.canvasRevision = 0;
 
     this.uniforms.validityExtent = new THREE.Uniform(new THREE.Vector4());
     this.uniforms.tileDimensions = new THREE.Uniform(new THREE.Vector2());
@@ -116,10 +98,10 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
     this.uniforms.nOff = new THREE.Uniform(this.texturesInfo.elevation.neighbours.offsetScale);
 
     // Color textures's layer
-    this.uniforms.colorTexture = new THREE.Uniform(this.texturesInfo.color.textures);
-    this.uniforms.colorOffsetScale = new THREE.Uniform(this.texturesInfo.color.offsetScale);
-    this.uniforms.colorOpacity = new THREE.Uniform(this.texturesInfo.color.opacity);
-    this.uniforms.colorVisible = new THREE.Uniform(this.texturesInfo.color.visible);
+    this.uniforms.colorTexture = new THREE.Uniform(this.texturesInfo.color.atlasTexture);
+    this.uniforms.colorOffsetScale = new THREE.Uniform(); //this.texturesInfo.color.offsetScale);
+    this.uniforms.colorOpacity = new THREE.Uniform(); //this.texturesInfo.color.opacity);
+    this.uniforms.colorVisible = new THREE.Uniform(); //this.texturesInfo.color.visible);
 
     this.uniforms.uuid = new THREE.Uniform(0);
 
@@ -128,6 +110,13 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
     this.uniforms.opacity = new THREE.Uniform(1.0);
 
     this.colorLayers = [];
+
+    this.texturesInfo.color.atlasTexture.generateMipmaps = false;
+    this.texturesInfo.color.atlasTexture.magFilter = THREE.LinearFilter;
+    this.texturesInfo.color.atlasTexture.minFilter = THREE.LinearFilter;
+    this.texturesInfo.color.atlasTexture.anisotropy = 1;
+    this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
+    this.texturesInfo.color.atlasTexture.needsUpdate = false;
 };
 
 LayeredMaterial.prototype = Object.create(THREE.RawShaderMaterial.prototype);
@@ -158,12 +147,39 @@ LayeredMaterial.prototype.getLayerTexture = function getLayerTexture(layer) {
     if (index !== -1) {
         return {
             texture: this.texturesInfo.color.textures[index],
-            offsetScale: this.texturesInfo.color.offsetScale[index],
+            // offsetScale: this.texturesInfo.color.offsetScale[index],
         };
     } else {
         // throw new Error(`Invalid layer "${layer}"`);
     }
 };
+
+function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revision) {
+    const canvas = atlasTexture.image;
+    const ctx = canvas.getContext('2d');
+
+    // TODO: only if !opaque
+    ctx.clearRect(atlasInfo.x, atlasInfo.y, layer.imageSize.w, layer.imageSize.h);
+
+    if (image) {
+        ctx.drawImage(
+            image,
+            atlasInfo.x, atlasInfo.y,
+            layer.imageSize.w, layer.imageSize.h);
+
+        // draw area of interest
+        // ctx.strokeStyle = "green";
+        // ctx.strokeRect(
+            // interest.x * canvas.width,
+            // interest.y * canvas.height,
+            // interest.z * canvas.width,
+            // interest.w * canvas.height);
+    }
+    // ctx.font = '24px serif';
+    // ctx.fillText(`${revision}:${atlasInfo.x},${atlasInfo.y} ${layer.imageSize.w}x${layer.imageSize.h}`, atlasInfo.x, atlasInfo.y + layer.imageSize.h * 0.5);
+    atlasTexture.needsUpdate = true;
+    return revision + 1;
+}
 
 LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, textures) {
     if (Array.isArray(textures)) {
@@ -188,8 +204,26 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
         this.texturesInfo.elevation.offsetScale.copy(textures.pitch);
     } else if (layer.type === 'color') {
         const index = this.indexOfColorLayer(layer);
+
+        const atlas = this.texturesInfo.color.atlas[layer.id];
+        atlas.offsetScale = textures.pitch;
         this.texturesInfo.color.textures[index] = textures.texture;
-        this.texturesInfo.color.offsetScale[index] = textures.pitch;
+        // compute offset / scale
+        const xRatio = layer.imageSize.w / this.canvas.width;
+        const yRatio = layer.imageSize.h / this.canvas.height;
+        this.texturesInfo.color.offsetScale[index] = new THREE.Vector4(
+            atlas.x / this.canvas.width + textures.pitch.x * xRatio,
+            atlas.y / this.canvas.height + textures.pitch.y * yRatio,
+            textures.pitch.z * xRatio,
+            textures.pitch.w * yRatio);
+        // draw the full image
+        this.canvasRevision = drawLayerOnCanvas(
+            layer,
+            this.texturesInfo.color.atlasTexture,
+            atlas,
+            textures.texture.image,
+            this.texturesInfo.color.offsetScale[index],
+            this.canvasRevision);
     } else {
         throw new Error(`Unsupported layer type '${layer.type}'`);
     }
@@ -198,20 +232,36 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
 function rebuildFragmentShader(shader) {
     const material = this;
     let textureReadingCode = '';
+    const w = material.texturesInfo.color.atlasTexture.image.width;
+    const h = material.texturesInfo.color.atlasTexture.image.height;
     for (let i = 0; i < material.colorLayers.length; i++) {
+        const layer = material.colorLayers[i];
+        const atlas = material.texturesInfo.color.atlas[layer.id];
+
+        const validArea = {
+            x1: atlas.x / w,
+            x2: atlas.x / w + layer.imageSize.w / w,
+            y2: 1 - atlas.y / h,
+            y1: 1 - (atlas.y / h + layer.imageSize.h / h),
+        };
+
         // Use premultiplied-alpha blending formula because source textures are either:
         //     - fully opaque (layer.transparent = false)
         //     - or use premultiplied alpha (texture.premultiplyAlpha = true)
         // Note: using material.premultipliedAlpha doesn't make sense since we're manually blending
         // the multiple colors in the shader.
         if (material.colorLayers[i].discardOutsideUV) {
+            const epsilon = 0.001;
             textureReadingCode += `
             if (colorVisible[${i}] && colorOpacity[${i}] > 0.0) {
                 vec2 uv = computeUv(vUv, colorOffsetScale[${i}].xy, colorOffsetScale[${i}].zw);
-                if (uv.x < -0.001 || uv.x > 1.001 || uv.y > 1.001 || uv.y < -0.001) {
+                if (uv.x < ${validArea.x1 - epsilon} ||
+                    uv.x > ${validArea.x2 + epsilon} ||
+                    uv.y > ${validArea.y2 + epsilon} ||
+                    uv.y < ${validArea.y1 - epsilon}) {
 
                 } else {
-                    vec4 layerColor = texture2D(colorTexture[${i}], uv);
+                    vec4 layerColor = texture2D(colorTexture, uv);
                     diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[${i}]) + layerColor * colorOpacity[${i}];
                 }
             }
@@ -221,8 +271,8 @@ function rebuildFragmentShader(shader) {
             if (colorVisible[${i}] && colorOpacity[${i}] > 0.0) {
                 vec2 uv = clamp(
                     computeUv(vUv, colorOffsetScale[${i}].xy, colorOffsetScale[${i}].zw),
-                    vec2(0.0, 0.0), vec2(1.0, 1.0));
-                vec4 layerColor = texture2D(colorTexture[${i}], uv);
+                    vec2(${validArea.x1}, ${validArea.y1}), vec2(${validArea.x2}, ${validArea.y2}));
+                vec4 layerColor = texture2D(colorTexture, uv);
                 diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[${i}]) + layerColor * colorOpacity[${i}];
             }
             `;
@@ -232,18 +282,73 @@ function rebuildFragmentShader(shader) {
         'INSERT_TEXTURE_READING_CODE',
         textureReadingCode);
     shader.fragmentShader = material.fragmentShader;
+
     material.onBeforeCompile = function () {};
     return material.fragmentShader;
 }
 
-LayeredMaterial.prototype.pushLayer = function pushLayer(layer) {
+LayeredMaterial.prototype.pushLayer = function pushLayer(newLayer) {
     const index = this.colorLayers.length;
-    this.texturesInfo.color.opacity[index] = layer.opacity;
-    this.texturesInfo.color.visible[index] = layer.visible;
-    this.colorLayers.push(layer);
+    this.texturesInfo.color.opacity.push(newLayer.opacity);
+    this.texturesInfo.color.visible.push(newLayer.visible);
+    this.texturesInfo.color.offsetScale.push(new THREE.Vector4());
+    this.texturesInfo.color.textures.push(emptyTexture);
+    this.colorLayers.push(newLayer);
 
-    this.needsUpdate = true;
     this.onBeforeCompile = rebuildFragmentShader.bind(this);
+
+    // Assign a place in the canvas for this layer
+    const { atlas, maxX, maxY } = AtlasBuilder.pack(
+        Capabilities.getMaxTextureSize(),
+        this.colorLayers.map(layer => layer.id),
+        this.colorLayers.map(layer => layer.imageSize));
+
+    const oldAtlas = this.texturesInfo.color.atlas;
+    this.texturesInfo.color.atlas = atlas;
+
+    if (!oldAtlas || (maxX != this.canvas.width || maxY != this.canvas.height)) {
+        // this clears the canvas
+        this.canvas.width = maxX;
+        this.canvas.height = maxY;
+
+        // so we need to redraw all the known layers
+        for (let i = 0; i < this.colorLayers.length - 1; i++) {
+            if (this.texturesInfo.color.textures[i] == emptyTexture) {
+                continue;
+            }
+            const layer = this.colorLayers[i];
+            // reconstruct offsetScale
+            const xRatio = layer.imageSize.w / maxX;
+            const yRatio = layer.imageSize.h / maxY;
+            const offsetScale = oldAtlas[this.colorLayers[i].id].offsetScale;
+            atlas[layer.id].offsetScale = offsetScale;
+
+            this.texturesInfo.color.offsetScale[i].set(
+                atlas[layer.id].x / maxX +
+                    offsetScale.x * xRatio,
+                atlas[layer.id].y / maxY +
+                    offsetScale.y * yRatio,
+                offsetScale.z * xRatio,
+                offsetScale.w * yRatio);
+            // redraw texture
+            this.canvasRevision = drawLayerOnCanvas(
+                layer,
+                this.texturesInfo.color.atlasTexture,
+                atlas[layer.id],
+                this.texturesInfo.color.textures[i].image,
+                this.texturesInfo.color.offsetScale[i],
+                this.canvasRevision);
+        }
+    }
+
+    if (this.colorLayers.length == 1) {
+        // init uniforms
+        this.uniforms.colorOffsetScale = new THREE.Uniform(this.texturesInfo.color.offsetScale);
+        this.uniforms.colorOpacity = new THREE.Uniform(this.texturesInfo.color.opacity);
+        this.uniforms.colorVisible = new THREE.Uniform(this.texturesInfo.color.visible);
+    }
+    this.defines.TEX_UNITS = this.colorLayers.length;
+    this.needsUpdate = true;
 };
 
 LayeredMaterial.prototype.indexOfColorLayer = function indexOfColorLayer(layer) {
@@ -274,5 +379,29 @@ LayeredMaterial.prototype.isLayerTextureLoaded = function isColorLayerLoaded(lay
 LayeredMaterial.prototype.setUuid = function setUuid(uuid) {
     this.uniforms.uuid.value = uuid;
 };
+
+export function initDebugTool(view) {
+    // Should move to a proper debug tool.. later
+    const div = document.createElement('div');
+    div.style.top = '0';
+    div.style.right = '0';
+    div.style.position = 'absolute';
+    div.style.backgroundColor = 'lightgray';
+    document.getElementById('viewerDiv').appendChild(div);
+
+    document.addEventListener('click', (evt) => {
+      const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
+      if (!r.length) return;
+      const obj = r[0].object;
+      console.log(obj)
+
+      while (div.firstChild) {
+          div.removeChild(div.firstChild);
+      }
+      if (obj.material.canvas) {
+        div.appendChild(obj.material.canvas);
+      }
+    });
+}
 
 export default LayeredMaterial;

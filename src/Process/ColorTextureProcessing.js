@@ -20,24 +20,16 @@ function initColorTexturesFromParent(node, parent, layer) {
         return false;
     }
 
-    node.material.setLayerTextures(layer, [{
+    node.material.setLayerTextures(layer, {
         texture,
         pitch: extent.offsetToParent(texture.extent),
-    }]);
+    });
     return true;
 }
 
 function nodeCommandQueuePriorityFunction(node) {
-    // We know that 'node' is visible because commands can only be
-    // issued for visible nodes.
-
-    // TODO: need priorization of displayed nodes
-    if (node.material.visible) {
-        // Then prefer displayed() node over non-displayed one
-        return 100;
-    } else {
-        return 10;
-    }
+    const dim = node.extent.dimensions();
+    return dim.x * dim.y;
 }
 
 function refinementCommandCancellationFn(cmd) {
@@ -106,10 +98,11 @@ export default {
         }
 
         // Does this tile needs a new texture?
+        const existing = node.material.getLayerTexture(layer);
         const nextDownloads = layer.canTextureBeImproved(
             layer,
             node.getExtentForLayer(layer),
-            node.material.getLayerTexture(layer).texture,
+            existing ? existing.texture : null,
             node.layerUpdateState[layer.id].failureParams);
 
         // if the provider returns undef, then we konw it will never have any texture

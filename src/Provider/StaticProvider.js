@@ -127,6 +127,17 @@ export default {
                     image.extent.north());
             }
             layer._spatialIndex.finish();
+
+            const s = selectBestImageForExtent(layer, layer.extent)
+            return getTexture({
+                url: buildUrl(layer, s.image),
+                selection: s,
+            }, layer).then((result) => {
+                layer.imageSize = {
+                    w: result.texture.image.width,
+                    h: result.texture.image.height
+                };
+            });
         });
     },
 

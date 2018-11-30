@@ -32,3 +32,5 @@ export { default as OrthoCameraControls } from './OrthoCameraControls';
 
 export { default as PointCloudRenderer } from './Renderer/PointCloudRenderer';
 export { default as ScreenSpaceError } from './Core/ScreenSpaceError';
+
+export { initDebugTool as initCanvasDebugTool } from './Renderer/LayeredMaterial';
