@@ -57,7 +57,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments) {
 
     if (true || __DEBUG__) {
         this.defines.DEBUG = 1;
-        this.uniforms.showOutline = new THREE.Uniform(false);
+        this.uniforms.showOutline = new THREE.Uniform(true);
     }
 
     this.fragmentShader = TileFS;

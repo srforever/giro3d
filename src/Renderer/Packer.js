@@ -12,8 +12,8 @@ function fit(blocks, w, h) {
         const node = _findNode(root, block.w, block.h);
         if (node) {
             block.fit = _splitNode(node, block.w, block.h);
-            maxX = Math.max(node.x + block.w);
-            maxY = Math.max(node.y + block.h);
+            maxX = Math.max(maxX, node.x + block.w);
+            maxY = Math.max(maxY, node.y + block.h);
         }
     }
     if (!_Math.isPowerOfTwo(maxX)) {
