@@ -24,6 +24,9 @@ const IMAGE_REPLAYS = {
         ReplayType.LINE_STRING, ReplayType.IMAGE, ReplayType.TEXT],
 };
 
+const emptyTexture = new Texture();
+emptyTexture.empty = true;
+
 const tmpTransform_ = createTransform();
 
 function preprocessDataLayer(layer) {
@@ -66,7 +69,10 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
     if (extent.intersectsExtent(layerExtent)) {
         return extent;
     }
-    return null;
+    if (texture && texture.empty) {
+        return null;
+    }
+    return extent;
 }
 
 function executeCommand(command) {
@@ -74,6 +80,11 @@ function executeCommand(command) {
 }
 
 function createTexture(extent, layer) {
+    const layerExtent = fromOLExtent(layer.source.getExtent(), layer.projection);
+    if (!extent.intersectsExtent(layerExtent)) {
+        return Promise.resolve({ texture: emptyTexture, pitch: new Vector4(0, 0, 1, 1) });
+    }
+
     const replayGroup = createReplayGroup(extent, layer);
     let texture;
     if (!replayGroup) {
