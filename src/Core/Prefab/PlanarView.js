@@ -11,7 +11,7 @@ import Coordinates from '../Geographic/Coordinates';
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = tileCount * x / layerDimension.x;
     const ty = tileCount * y / layerDimension.y;
-    return { x: Math.round(tx), y: Math.round(ty) }
+    return { x: Math.floor(tx), y: Math.floor(ty) }
  }
 
 
@@ -33,49 +33,43 @@ function compute3857Extent(tileExtent) {
     const tl = new Coordinates('EPSG:3857', tileExtent.west(), tileExtent.north());
     const br = new Coordinates('EPSG:3857', tileExtent.east(), tileExtent.south());
     const center = tileExtent.center();
-    while (zoom >= 0) {
-        const realTileCount = Math.pow(2, zoom);
+    const realTileCount = Math.pow(2, zoom);
 
-        // compute tile that contains the center
-        const candidate = findCellWith(
-            center.x() - extent.west(), extent.north() - center.y(),
-            layerDimension, realTileCount);
+    // compute tile that contains the center
+    const topLeft = findCellWith(
+        tl.x() - extent.west(), extent.north() - tl.y(),
+        layerDimension, realTileCount);
+    const bottomRight = findCellWith(
+        br.x() - extent.west(), extent.north() - br.y(),
+        layerDimension, realTileCount);
 
-        const tileSize = {
-            x: layerDimension.x / realTileCount,
-            y: layerDimension.y / realTileCount,
-        };
+    const tileSize = {
+        x: layerDimension.x / realTileCount,
+        y: layerDimension.y / realTileCount,
+    };
 
-        const left = extent.west() + candidate.x * tileSize.x;
-        const top = extent.north() - candidate.y * tileSize.y;
+    const extents = [];
+    for (let i = topLeft.x; i <= bottomRight.x; i++) {
+        for (let j = topLeft.y; j <= bottomRight.y; j++) {
+            const west = extent.west() + i * tileSize.x;
+            const north = extent.north() - j * tileSize.y;
 
-        const ex = new Extent('EPSG:3857',
-            left, left + tileSize.x,
-            top - tileSize.y, top);
-
-        if (ex.isPointInside(tl) &&
-            ex.isPointInside(br)) {
-            return ex;
+            extents.push(new Extent('EPSG:3857',
+                west, west + tileSize.x,
+                north - tileSize.y, north));
         }
-        zoom --;
     }
+    return extents;
 }
 
 export function createPlanarLayer(id, extent, options) {
     const tileLayer = new GeometryLayer(id, options.object3d || new THREE.Group());
-    if (Array.isArray(extent)) {
-        tileLayer.extent = extent[0].clone();
-        for (let i = 1; i < extent.length; i++) {
-            tileLayer.extent.union(extent[i]);
-        }
-    } else {
-        tileLayer.extent = extent;
-    }
 
-    if (tileLayer.extent.crs() == 'EPSG:3857') {
+
+    if (extent.crs() == 'EPSG:3857') {
         // align quadtree on EPSG:3857 full extent
         const aligned = compute3857Extent(extent);
-        tileLayer.schemeTile = [aligned];
+        tileLayer.schemeTile = aligned;
         tileLayer.validityExtent = extent;
     } else {
         if (Array.isArray(extent)) {
@@ -85,6 +79,11 @@ export function createPlanarLayer(id, extent, options) {
         }
         tileLayer.validityExtent = tileLayer.extent;
     }
+    tileLayer.extent = tileLayer.schemeTile[0].clone();
+    for (let i = 1; i < tileLayer.schemeTile.length; i++) {
+        tileLayer.extent.union(tileLayer.schemeTile[i]);
+    }
+
     tileLayer.maxSubdivisionLevel = options.maxSubdivisionLevel;
 
     tileLayer.postUpdate = (context, layer) => {
