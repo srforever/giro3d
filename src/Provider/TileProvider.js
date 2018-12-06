@@ -75,10 +75,6 @@ function executeCommand(command) {
     // build tile
     geometry._count++;
     const material = new LayeredMaterial(layer.materialOptions, segment);
-    material.uniforms.validityExtent.value.x = layer.validityExtent.west();
-    material.uniforms.validityExtent.value.y = layer.validityExtent.south();
-    material.uniforms.validityExtent.value.z = layer.validityExtent.east();
-    material.uniforms.validityExtent.value.w = layer.validityExtent.north();
     const tile = new TileMesh(layer, geometry, material, extent, level);
     tile.layers.set(command.threejsLayer);
 

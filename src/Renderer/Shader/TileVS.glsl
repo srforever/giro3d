@@ -179,21 +179,5 @@ void main() {
     //         vec4(float(0x7B) / 255.0, float(0xF2) / 255.0, float(0x3A) / 255.0, 1.0),
     //         (z - 100.0)/ 50.0);
     // }
-
-    vec4 worldPosition = modelMatrix * vPosition;
-
-    if (worldPosition.x < validityExtent.x ||
-        worldPosition.x > validityExtent.z ||
-        worldPosition.y < validityExtent.y ||
-        worldPosition.y > validityExtent.w) {
-        worldPosition.x = clamp(worldPosition.x, validityExtent.x, validityExtent.z);
-        worldPosition.y = clamp(worldPosition.y, validityExtent.y, validityExtent.w);
-        worldPosition.z = 0.0;
-
-        gl_Position = projectionMatrix * viewMatrix * worldPosition;
-        vColor = vec4(157.0/255.0, 212.0/255.0, 220.0/255.0, 1.0);
-    } else {
-        gl_Position = projectionMatrix * modelViewMatrix * vPosition;
-    }
-
+    gl_Position = projectionMatrix * modelViewMatrix * vPosition;
 }

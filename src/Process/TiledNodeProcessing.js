@@ -160,10 +160,6 @@ function update(context, layer, node) {
         node.visible = isVisible;
     }
 
-    if (node.visible && layer.validityExtent) {
-        node.visible = node.extent.intersectsExtent(layer.validityExtent);
-    }
-
     if (node.visible) {
         let requestChildrenUpdate = false;
 

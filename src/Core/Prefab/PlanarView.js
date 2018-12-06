@@ -64,9 +64,9 @@ function compute3857Extent(tileExtent) {
 
 export function createPlanarLayer(id, extent, options) {
     const tileLayer = new GeometryLayer(id, options.object3d || new THREE.Group());
+    const crs = Array.isArray(extent) ? extent[0].crs() : extent.crs();
 
-
-    if (extent.crs() == 'EPSG:3857') {
+    if (crs == 'EPSG:3857') {
         // align quadtree on EPSG:3857 full extent
         const aligned = compute3857Extent(extent);
         tileLayer.schemeTile = aligned;
