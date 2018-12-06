@@ -53,7 +53,7 @@ float calcHillshade(float a, float b, float c, float d, float e, float f, float 
 
 #if defined(DEBUG)
 uniform bool showOutline;
-const float sLine = 0.008;
+const float sLine = 0.003;
 #endif
 
 #include <ComputeUV>
@@ -69,13 +69,6 @@ void main() {
     #elif defined(DEPTH_MODE)
         gl_FragColor = packDepthToRGBA(gl_FragCoord.z);
     #else
-
-    #if defined(DEBUG)
-     if (showOutline && (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine)) {
-         gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);
-         return;
-     }
-    #endif
 
     vec4 diffuseColor = vec4(noTextureColor, 0.0);
     // diffuseColor.rgb = vec3(vPosition.z / 129.0);
@@ -113,6 +106,12 @@ void main() {
 
     gl_FragColor.rgb = mix(gl_FragColor.rgb, vColor.rgb, vColor.a);
     gl_FragColor.a = opacity;
+
+    #if defined(DEBUG)
+    if (showOutline && (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine)) {
+        gl_FragColor.rgb = mix(vec3(1.0, 0.0, 0.0), gl_FragColor.rgb, 0.2);
+    }
+    #endif
     #endif
 
     // iso line

@@ -194,10 +194,6 @@ function update(context, layer, node) {
             updateMinMaxDistance(context, node);
 
             // update uniforms
-            if (context.view.fogDistance != undefined) {
-                node.setFog(context.view.fogDistance);
-            }
-
             if (!requestChildrenUpdate) {
                 return ObjectRemovalHelper.removeChildren(layer, node);
             }

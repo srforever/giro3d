@@ -92,7 +92,7 @@ void main() {
 
                 elevation = readNeighbourElevation(vUv, 3, nTex[3]);
                 weight = 1;
-                // vColor = vec4(1.0, 0.0, 0.0, 0.5);
+                // vColor = vec4(0.0, 1.0, 0.0, 0.5);
             } else if (neighbourdiffLevel.w == 0.0) {
                 elevation += readNeighbourElevation(uv, 3, nTex[3]);
                 weight += 1;
@@ -122,6 +122,7 @@ void main() {
 
                 elevation = readNeighbourElevation(vUv, 2, nTex[2]);
                 weight = 1;
+                // vColor = vec4(0.0, 1.0, 1.0, 0.5);
             } else if (neighbourdiffLevel.z == 0.0) {
                 elevation += readNeighbourElevation(uv, 2, nTex[2]);
                 weight += 1;
@@ -136,6 +137,7 @@ void main() {
 
                 elevation = readNeighbourElevation(vUv, 0, nTex[0]);
                 weight = 1;
+                // vColor = vec4(0.0, 0.0, 1.0, 0.5);
             } else if (neighbourdiffLevel.x == 0.0) {
                 elevation += readNeighbourElevation(uv, 0, nTex[0]);
                 weight += 1;

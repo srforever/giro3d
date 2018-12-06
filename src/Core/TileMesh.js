@@ -32,6 +32,8 @@ function TileMesh(layer, geometry, material, extent, level) {
     this.layerUpdateState = {};
 
     this.material.setUuid(this.id);
+    const dim = extent.dimensions();
+    this.material.uniforms.tileDimensions.value.set(dim.x, dim.y);
 
     this._state = RendererConstant.FINAL;
 }
