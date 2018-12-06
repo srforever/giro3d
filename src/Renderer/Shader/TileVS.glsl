@@ -29,7 +29,7 @@ uniform vec4 validityExtent;
 #include <ComputeUV>
 
 #if defined(STITCHING)
-float readNeighbourElevation(vec2 uv, int neighbour) {
+float readNeighbourElevation(vec2 uv, int neighbour, sampler2D texture) {
     vec2 vv = uv;
     // top
     if (neighbour == 1 || neighbour == 3) {
@@ -40,7 +40,7 @@ float readNeighbourElevation(vec2 uv, int neighbour) {
     vec2 vVv = computeUv(
         vv,
         nOff[neighbour].xy, nOff[neighbour].zw);
-    return getElevation(nTex[neighbour], vVv);
+    return getElevation(texture, vVv);
 }
 #endif
 
@@ -90,11 +90,11 @@ void main() {
                 vPosition.y -= tileDimensions.y * offset;
                 vUv.y -= offset;
 
-                elevation = readNeighbourElevation(vUv, 3);
+                elevation = readNeighbourElevation(vUv, 3, nTex[3]);
                 weight = 1;
                 // vColor = vec4(1.0, 0.0, 0.0, 0.5);
             } else if (neighbourdiffLevel.w == 0.0) {
-                elevation += readNeighbourElevation(uv, 3);
+                elevation += readNeighbourElevation(uv, 3, nTex[3]);
                 weight += 1;
             }
         }
@@ -104,11 +104,11 @@ void main() {
                 float offset = fract(vUv.y / modulo.y) * modulo.y;
                 vPosition.y -= tileDimensions.y * offset;
                 vUv.y -= offset;
-                elevation = readNeighbourElevation(vUv, 1);
+                elevation = readNeighbourElevation(vUv, 1, nTex[1]);
                 weight = 1;
                 // vColor = vec4(1.0, 1.0, 0.0, 0.5);
             } else if (neighbourdiffLevel.y == 0.0) {
-                elevation += readNeighbourElevation(uv, 1);
+                elevation += readNeighbourElevation(uv, 1, nTex[1]);
                 weight += 1;
             }
         }
@@ -120,10 +120,10 @@ void main() {
                 vPosition.x -= tileDimensions.x * offset;
                 vUv.x -= offset;
 
-                elevation = readNeighbourElevation(vUv, 2);
+                elevation = readNeighbourElevation(vUv, 2, nTex[2]);
                 weight = 1;
             } else if (neighbourdiffLevel.z == 0.0) {
-                elevation += readNeighbourElevation(uv, 2);
+                elevation += readNeighbourElevation(uv, 2, nTex[2]);
                 weight += 1;
             }
         }
@@ -134,10 +134,10 @@ void main() {
                 vPosition.x -= tileDimensions.x * offset;
                 vUv.x -= offset;
 
-                elevation = readNeighbourElevation(vUv, 0);
+                elevation = readNeighbourElevation(vUv, 0, nTex[0]);
                 weight = 1;
             } else if (neighbourdiffLevel.x == 0.0) {
-                elevation += readNeighbourElevation(uv, 0);
+                elevation += readNeighbourElevation(uv, 0, nTex[0]);
                 weight += 1;
             }
         }

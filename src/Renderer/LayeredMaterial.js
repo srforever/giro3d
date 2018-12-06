@@ -303,7 +303,6 @@ function rebuildFragmentShader(shader) {
 }
 
 LayeredMaterial.prototype.pushLayer = function pushLayer(newLayer) {
-    const index = this.colorLayers.length;
     this.texturesInfo.color.opacity.push(newLayer.opacity);
     this.texturesInfo.color.visible.push(newLayer.visible);
     this.texturesInfo.color.offsetScale.push(new THREE.Vector4());
@@ -408,7 +407,6 @@ export function initDebugTool(view) {
       const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
       if (!r.length) return;
       const obj = r[0].object;
-      console.log(obj)
 
       while (div.firstChild) {
           div.removeChild(div.firstChild);

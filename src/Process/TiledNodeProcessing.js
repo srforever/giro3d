@@ -1,4 +1,4 @@
-import { Vector3 } from 'three';
+import { Math as _Math, Vector3 } from 'three';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 import ObjectRemovalHelper from './ObjectRemovalHelper';
 import ScreenSpaceError from '../Core/ScreenSpaceError';
@@ -19,8 +19,6 @@ function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
     };
 
     const node = scheduler.execute(command);
-
-    node.material.uniforms.tileDimensions.value.copy(node.extent.dimensions());
     node.add(node.OBB());
     geometryLayer.onTileCreated(geometryLayer, parent, node);
 
@@ -142,13 +140,6 @@ function update(context, layer, node) {
         return ObjectRemovalHelper.removeChildrenAndCleanup(layer, node);
     }
 
-    // early exit if parent' subdivision is in progress
-    if (node.parent.pendingSubdivision) {
-        node.visible = false;
-        node.setDisplayed(false);
-        return undefined;
-    }
-
     if (context.fastUpdateHint) {
         if (!context.fastUpdateHint.isAncestorOf(node)) {
             // if visible, children bbox can only be smaller => stop updates
@@ -190,12 +181,11 @@ function update(context, layer, node) {
                 node.sse = sse; // DEBUG
             }
 
-            if (node.pendingSubdivision ||
-                (testTileSSE(node, sse, layer.maxSubdivisionLevel || -1) &&
-                    SubdivisionControl.hasEnoughTexturesToSubdivide(context, layer, node))) {
+            if (testTileSSE(node, sse, layer.maxSubdivisionLevel || -1) &&
+                    SubdivisionControl.hasEnoughTexturesToSubdivide(context, layer, node)) {
                 subdivideNode(context, layer, node);
                 // display iff children aren't ready
-                node.setDisplayed(node.pendingSubdivision);
+                node.setDisplayed(false);
                 requestChildrenUpdate = true;
             } else {
                 node.setDisplayed(true);
