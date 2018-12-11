@@ -53,7 +53,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
     this.defines.TEX_UNITS = 0;
     this.defines.INSERT_TEXTURE_READING_CODE = '';
 
-    if (true || __DEBUG__) {
+    if (false || __DEBUG__) {
         this.defines.DEBUG = 1;
         this.uniforms.showOutline = new THREE.Uniform(true);
     }
@@ -72,6 +72,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
         color: {
             offsetScale: [],
             atlasTexture: new THREE.CanvasTexture(this.canvas),
+            parentAtlasTexture: null,
             textures: [],
             opacity: [],
             visible: [],
@@ -234,14 +235,17 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
         const atlas = this.atlasInfo.atlas[layer.id];
         atlas.offsetScale = textures.pitch;
         this.texturesInfo.color.textures[index] = textures.texture;
+
+        const canvas = this.uniforms.colorTexture.value.image;
+
         // compute offset / scale
-        const xRatio = layer.imageSize.w / this.canvas.width;
-        const yRatio = layer.imageSize.h / this.canvas.height;
+        const xRatio = layer.imageSize.w / canvas.width;
+        const yRatio = layer.imageSize.h / canvas.height;
 
         if (nope) {
             this.texturesInfo.color.offsetScale[index] = new THREE.Vector4(
-                atlas.x / this.canvas.width + textures.pitch.x * xRatio,
-                (atlas.y + atlas.offset) / this.canvas.height + textures.pitch.y * yRatio,
+                atlas.x / canvas.width + textures.pitch.x * xRatio,
+                (atlas.y + atlas.offset) / canvas.height + textures.pitch.y * yRatio,
                 textures.pitch.z * xRatio,
                 textures.pitch.w * yRatio);
             // we already got our texture (needsUpdate is done in TiledNodeProcessing)
@@ -261,13 +265,17 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
                 clearTimeout(this.setTimeoutId);
             }
             this.setTimeoutId = setTimeout(() => {
+                this.texturesInfo.color.parentAtlasTexture = null;
+                this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
+
                 for (const up of this.pendingUpdates) {
                     up();
                 }
-                // console.log('DID' ,this.pendingUpdates.length, ' updates', this.id);
                 this.pendingUpdates.length = 0;
                 this.texturesInfo.color.atlasTexture.needsUpdate = true;
-                view.notifyChange();
+                if (this.visible) {
+                    view.notifyChange();
+                }
                 this.setTimeoutId = null;
             }, 300 + Math.random() * 300);
             // already drawn on the canvas
@@ -466,7 +474,7 @@ export function initDebugTool(view) {
           div.removeChild(div.firstChild);
       }
       if (obj.material.canvas) {
-        div.appendChild(obj.material.canvas);
+        div.appendChild(obj.material.uniforms.colorTexture.value.image);
       }
     });
 }

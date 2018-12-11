@@ -40,16 +40,11 @@ function subdivideNode(context, layer, node) {
             for (const e of context.elevationLayers) {
                 e.update(context, e, child, node, true);
             }
-            for (const c of context.colorLayers) {
-                c.update(context, c, child, node, true);
-            }
-
-            // TODO
-            // copy-paste parent's canvas
-            if (node.material.canvas.width > 0) {
-                const ctx = child.material.canvas.getContext('2d');
-                ctx.drawImage(node.material.canvas, 0, 0);
-                child.material.texturesInfo.color.atlasTexture.needsUpdate = true;
+            if (node.material.uniforms.colorTexture.value.image.width > 0) {
+                for (const c of context.colorLayers) {
+                    c.update(context, c, child, node, true);
+                }
+                child.material.uniforms.colorTexture.value = node.material.uniforms.colorTexture.value;
             }
 
             child.updateMatrixWorld(true);

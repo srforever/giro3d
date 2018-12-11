@@ -306,7 +306,7 @@ function renderTileImage(_canvas, tile, atlasInfo, layer) {
         ctx.fillStyle = layer.backgroundColor;
         ctx.fillRect(
             0, 0,
-            layer.imageSize.w, layer.imageSize.h);
+            layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
     }
     const tileExtent = tileGrid.getTileCoordExtent(tileCoord);
     let empty = true;
