@@ -44,6 +44,14 @@ function subdivideNode(context, layer, node) {
                 c.update(context, c, child, node, true);
             }
 
+            // TODO
+            // copy-paste parent's canvas
+            if (node.material.canvas.width > 0) {
+                const ctx = child.material.canvas.getContext('2d');
+                ctx.drawImage(node.material.canvas, 0, 0);
+                child.material.texturesInfo.color.atlasTexture.needsUpdate = true;
+            }
+
             child.updateMatrixWorld(true);
         }
         context.view.notifyChange(node);
@@ -86,10 +94,10 @@ function testTileSSE(tile, sse, maxLevel) {
     // if (values.filter(v => v < 200).length >= 2) {
     //     return false;
     // }
-    if (values.filter(v => v < 100).length >= 1) {
+    if (values.filter(v => v < (100 * tile.layer.sseScale)).length >= 1) {
         return false;
     }
-    return values.filter(v => v >= 256).length >= 2;
+    return values.filter(v => v >= (256 * tile.layer.sseScale)).length >= 2;
 }
 
 function preUpdate(context, layer, changeSources) {

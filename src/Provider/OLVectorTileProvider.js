@@ -1,4 +1,4 @@
-import { Texture } from 'three/src/textures/Texture';
+import { Texture, Vector4, CanvasTexture } from 'three';
 
 import TileState from 'ol/TileState';
 import { listenOnce } from 'ol/events';
@@ -27,6 +27,15 @@ const IMAGE_REPLAYS = {
 };
 
 const tmpTransform_ = createTransform();
+const emptyTexture = new Texture();
+const emptyPitch = new Vector4(0, 0, 1, 1);
+
+function Foo() {
+    this.storage = {};
+    this.contains = (tileCoord) => {
+        return tileCoord in this.storage;
+    }
+}
 
 function preprocessDataLayer(layer) {
     const source = layer.source;
@@ -38,6 +47,7 @@ function preprocessDataLayer(layer) {
     layer.extent = fromOLExtent(extent, projection.getCode());
     layer.getStyleFunction = () => layer.style(Style, Fill, Stroke, Icon, Text);
     layer.fx = 0.0;
+    layer.usedTiles = {};
 }
 
 function fromOLExtent(extent, projectionCode) {
@@ -60,6 +70,9 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
     if (texture && texture.extent && texture.extent.isInside(tile.tileExtent)) {
         return;
     }
+    if (texture == emptyTexture) {
+        return;
+    }
     return tile;
 }
 
@@ -69,8 +82,19 @@ function selectTile(layer, extent) {
     const tileGrid = source.getTileGridForProjection(projection);
     const tileCoord = tileCoordForExtent(tileGrid, extent);
     const tile = source.getTile(tileCoord[0], tileCoord[1], tileCoord[2], 1, projection);
+
+    const zKey = tile.tileCoord[0].toString();
+    if (!(zKey in layer.usedTiles)) {
+        layer.usedTiles[zKey] = new Foo();
+    }
+    layer.usedTiles[zKey].storage[tile.tileCoord] = tile;
+
     const tileExtent = fromOLExtent(
         tileGrid.getTileCoordExtent(tileCoord), projection.getCode());
+    // OL assumes square tiles and compute maxY from minY, so recompute maxY with the correct ratio
+    const dim = layer.extent.dimensions();
+    const ratio = dim.y / dim.x;
+    tileExtent._values[3] = tileExtent._values[2] + tileExtent.dimensions().x * ratio;
     const pitch = extent.offsetToParent(tileExtent);
     return { extent, pitch, tile, tileExtent };
 }
@@ -89,14 +113,14 @@ function tileCoordForExtent(tileGrid, extent) {
 }
 
 function executeCommand(command) {
-    return loadTile(command.toDownload, command.layer)
+    return loadTile(command.requester, command.toDownload, command.layer)
 }
 
-function loadTile(tile, layer) {
+function loadTile(node, tile, layer) {
     let promise;
     const imageTile = tile.tile;
     if (imageTile.getState() == TileState.LOADED) {
-        promise = Promise.resolve(createTexture(tile, layer));
+        promise = Promise.resolve(createTexture(node, tile, layer));
     } else {
         promise = new Promise((resolve, reject) => {
             imageTile.load();
@@ -106,7 +130,7 @@ function loadTile(tile, layer) {
                 if (tileState == TileState.ERROR) {
                     reject();
                 } else if (tileState == TileState.LOADED) {
-                    resolve(createTexture(tile, layer));
+                    resolve(createTexture(node, tile, layer));
                 }
             });
         });
@@ -114,14 +138,40 @@ function loadTile(tile, layer) {
     return promise;
 }
 
-function createTexture(tile, layer) {
+function createTexture(node, tile, layer) {
+    if (!node.material) {
+        return;
+    }
     createReplayGroup(tile.tile, layer);
-    renderTileImage(tile.tile, layer);
-    const image = tile.tile.getImage(layer);
-    const texture = new Texture(image);
-    texture.needsUpdate = true;
+    const _canvas = node.material.canvas;
+    const atlas = node.layer.atlasInfo.atlas[layer.id];
+    const isEmpty = renderTileImage(_canvas, tile.tile, atlas, layer);
+    // if (isEmpty) {
+    //     return {
+    //         texture: emptyTexture,
+    //         extent: tile.extent,
+    //         pitch: emptyPitch
+    //     };
+    // }
+
+    for (let t = 0, tt = tile.tile.tileKeys.length; t < tt; ++t) {
+        const sourceTile = tile.tile.getTile(tile.tile.tileKeys[t]);
+        if (sourceTile.getState() != TileState.LOADED) {
+            continue;
+        }
+        sourceTile.setReplayGroup(layer, tile.tile.tileCoord.toString(), undefined);
+    }
+
+    // const image = tile.tile.getImage(layer);
+    const texture = new CanvasTexture(_canvas);
+    // texture.needsUpdate = true;
     texture.premultiplyAlpha = layer.transparent;
     texture.extent = tile.tileExtent;
+
+    const zKey = tile.tile.tileCoord[0].toString();
+    delete layer.usedTiles[zKey].storage[tile.tile.tileCoord];
+    layer.source.tileCache.expireCache(layer.usedTiles);
+
     return { texture, pitch: tile.pitch };
 }
 
@@ -136,9 +186,14 @@ function createReplayGroup(tile, layer) {
     const renderOrder = null;
 
     const tmpExtent = createEmptyExtent();
+    if (tile.tileKeys.length > 1) {
+        console.log(tile.tileKeys.length);
+    }
+    let empty = true;
     for (let t = 0, tt = tile.tileKeys.length; t < tt; ++t) {
         const sourceTile = tile.getTile(tile.tileKeys[t]);
         if (sourceTile.getState() != TileState.LOADED) {
+            console.log('not loaded !!!')
             continue;
         }
         const sourceTileCoord = sourceTile.tileCoord;
@@ -191,9 +246,12 @@ function createReplayGroup(tile, layer) {
             if (!bufferedExtent || intersects(bufferedExtent, feature.getGeometry().getExtent())) {
                 render.call(this, feature);
             }
+            empty = false;
         }
         replayGroup.finish();
-        sourceTile.setReplayGroup(layer, tile.tileCoord.toString(), replayGroup);
+        if (!empty) {
+            sourceTile.setReplayGroup(layer, tile.tileCoord.toString(), replayGroup);
+        }
     }
     replayState.renderedRevision = 1;
     replayState.renderedRenderOrder = renderOrder;
@@ -221,7 +279,7 @@ function renderFeature(feature, squaredTolerance, styles, replayGroup) {
 function handleStyleImageChange_() {
 }
 
-function renderTileImage(tile, layer) {
+function renderTileImage(_canvas, tile, atlasInfo, layer) {
     const pixelRatio = 1;
     const replayState = tile.getReplayState(layer);
     const revision = 1;
@@ -232,17 +290,26 @@ function renderTileImage(tile, layer) {
     const source = layer.source;
     const tileGrid = source.getTileGridForProjection(source.getProjection());
     const resolution = tileGrid.getResolution(z);
-    const context = tile.getContext(layer);
+    const ctx = _canvas.getContext('2d');
+    ctx.save();
+    ctx.translate(atlasInfo.x, atlasInfo.y);
+    ctx.clearRect(0, 0, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
+    ctx.beginPath();
+    ctx.rect(0, 0, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
+    ctx.clip();
+
+    //  tile.getContext(layer);
     const size = source.getTilePixelSize(z, pixelRatio, source.getProjection());
-    context.canvas.width = size[0];
-    context.canvas.height = size[1];
+    // context.canvas.width = size[0];
+    // context.canvas.height = size[1];
     if (layer.backgroundColor) {
-        context.fillStyle = layer.backgroundColor;
-        context.fillRect(
+        ctx.fillStyle = layer.backgroundColor;
+        ctx.fillRect(
             0, 0,
-            context.canvas.width, context.canvas.height);
+            layer.imageSize.w, layer.imageSize.h);
     }
     const tileExtent = tileGrid.getTileCoordExtent(tileCoord);
+    let empty = true;
     for (let i = 0, ii = tile.tileKeys.length; i < ii; ++i) {
         const sourceTile = tile.getTile(tile.tileKeys[i]);
         if (sourceTile.getState() != TileState.LOADED) {
@@ -254,8 +321,13 @@ function renderTileImage(tile, layer) {
         translateTransform(transform, -tileExtent[0], -tileExtent[3]);
         const replayGroup = /** @type {CanvasReplayGroup} */ (sourceTile.getReplayGroup(layer,
           tile.tileCoord.toString()));
-        replayGroup.replay(context, transform, 0, {}, true, replays);
+        if (replayGroup) {
+            replayGroup.replay(ctx, transform, 0, {}, true, replays);
+            empty = false;
+        }
     }
+    ctx.restore();
+    return empty;
 }
 
 // eslint-disable-next-line no-unused-vars

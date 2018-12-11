@@ -84,6 +84,7 @@ export function createPlanarLayer(id, extent, options) {
         tileLayer.extent.union(tileLayer.schemeTile[i]);
     }
 
+    tileLayer.sseScale = 1.5;
     tileLayer.maxSubdivisionLevel = options.maxSubdivisionLevel;
 
     tileLayer.postUpdate = (context, layer) => {

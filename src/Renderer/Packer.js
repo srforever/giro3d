@@ -4,8 +4,8 @@
 import { Math as _Math } from 'three';
 
 // 2D Bin Packing algorithm (fit N random dimension blocks in a w * h rectangle) implementation
-function fit(blocks, w, h) {
-    const root = { x: 0, y: 0, w, h };
+function fit(blocks, w, h, previousRoot) {
+    const root = previousRoot || { x: 0, y: 0, w, h };
     let maxX = 0;
     let maxY = 0;
     for (const block of blocks) {

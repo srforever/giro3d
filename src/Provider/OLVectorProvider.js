@@ -76,10 +76,10 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
 }
 
 function executeCommand(command) {
-    return createTexture(command.toDownload, command.layer);
+    return createTexture(command.requester, command.toDownload, command.layer);
 }
 
-function createTexture(extent, layer) {
+function createTexture(node, extent, layer) {
     const layerExtent = fromOLExtent(layer.source.getExtent(), layer.projection);
     if (!extent.intersectsExtent(layerExtent)) {
         return Promise.resolve({ texture: emptyTexture, pitch: new Vector4(0, 0, 1, 1) });
@@ -90,10 +90,11 @@ function createTexture(extent, layer) {
     if (!replayGroup) {
         texture = new Texture();
     } else {
-        const _canvas = document.createElement('canvas');
-        _canvas.width = layer.imageSize.w;
-        _canvas.height = layer.imageSize.h;
-        renderTileImage(_canvas, replayGroup, extent);
+        const _canvas = /*document.createElement('canvas'); */ node.material.canvas;
+        // _canvas.width = layer.imageSize.w;
+        // _canvas.height = layer.imageSize.h;
+        const atlas = node.layer.atlasInfo.atlas[layer.id];
+        renderTileImage(_canvas, replayGroup, extent, atlas, layer);
         texture = new CanvasTexture(_canvas);
     }
     texture.extent = extent;
@@ -154,16 +155,26 @@ function renderFeature(feature, squaredTolerance, styles, replayGroup) {
 function handleStyleImageChange_() {
 }
 
-function renderTileImage(_canvas, replayGroup, extent) {
+function renderTileImage(_canvas, replayGroup, extent, atlasInfo, layer) {
     const pixelRatio = 1;
     const replays = IMAGE_REPLAYS.image;
-    const resolutionX = extent.dimensions().x / _canvas.width;
-    const resolutionY = extent.dimensions().y / _canvas.height;
-    const context = _canvas.getContext('2d');
+    const resolutionX = extent.dimensions().x / layer.imageSize.w;
+    const resolutionY = extent.dimensions().y / layer.imageSize.h;
+    const ctx = _canvas.getContext('2d');
+    ctx.save();
+    // clipping path
+
+    ctx.translate(atlasInfo.x, atlasInfo.y);
+    ctx.clearRect(0, 0, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
+    ctx.beginPath();
+    ctx.rect(0, 0, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
+    ctx.clip();
     const transform = resetTransform(tmpTransform_);
     scaleTransform(transform, pixelRatio / resolutionX, -pixelRatio / resolutionY);
     translateTransform(transform, -extent.west(), -extent.north());
-    replayGroup.replay(context, transform, 0, {}, true, replays);
+    replayGroup.replay(ctx, transform, 0, {}, true, replays);
+
+    ctx.restore();
 }
 
 // eslint-disable-next-line no-unused-vars

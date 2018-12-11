@@ -47,7 +47,7 @@ function executeCommand(command) {
 
     const { sharableExtent, quaternion, position } = builder.computeSharableExtent(extent);
     const segment = layer.segments || 8;
-    const key = `${builder.type}_${segment}_${level}_${extent._values.join(',')}`;
+    const key = `${builder.type}_${segment}_${level}_${sharableExtent._values.join(',')}`;
 
     let geometry = Cache.get(key);
     // build geometry if doesn't exist
@@ -74,7 +74,7 @@ function executeCommand(command) {
 
     // build tile
     geometry._count++;
-    const material = new LayeredMaterial(layer.materialOptions, segment);
+    const material = new LayeredMaterial(layer.materialOptions, segment, layer.atlasInfo);
     const tile = new TileMesh(layer, geometry, material, extent, level);
     tile.layers.set(command.threejsLayer);
 

@@ -1,5 +1,8 @@
 import { EventDispatcher } from 'three';
 import Picking from '../Picking';
+import Capabilities from '../System/Capabilities';
+import AtlasBuilder from '../../Renderer/AtlasBuilder';
+
 
 /**
  * Fires when layer sequence change (meaning when the order of the layer changes in the view)
@@ -79,6 +82,8 @@ function GeometryLayer(id, object3d) {
         writable: false,
     });
 
+    this.atlasInfo = {};
+
     // Setup default picking method
     this.pickObjectsAt = (view, mouse, radius) => Picking.pickObjectsAt(view, mouse, radius, this.object3d);
 
@@ -108,6 +113,17 @@ GeometryLayer.prototype.attach = function attach(layer) {
         throw new Error(`Missing 'update' function -> can't attach layer ${layer.id}`);
     }
     this._attachedLayers.push(layer);
+
+    const colorLayers = this._attachedLayers.filter(l => l.type === 'color');
+
+    // rebuild color textures atlas
+    const { atlas, maxX, maxY } = AtlasBuilder.pack(
+        Capabilities.getMaxTextureSize(),
+        colorLayers.map(layer => layer.id),
+        colorLayers.map(layer => layer.imageSize));
+    this.atlasInfo.atlas = atlas;
+    this.atlasInfo.maxX = maxX;
+    this.atlasInfo.maxY = maxY;
 };
 
 GeometryLayer.prototype.detach = function detach(layer) {

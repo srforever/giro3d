@@ -27,16 +27,19 @@ function getCanvas() {
  * @return {THREE.CanvasTexture}
  */
 export default {
-    pack(maxSize, layerIds, imageSizes) {
+    pack(maxSize, layerIds, imageSizes, oldAtlas) {
         // pick an available canvas, or build a new one
-        const atlasCanvas = getCanvas();
+        // const atlasCanvas = getCanvas();
 
         // Use a 1 pixel border to avoid color bleed when sampling at the edges
         // of the texture
-        const colorBleedHalfOffset = imageSizes.length == 1 ? 0 : 1;
+        const colorBleedHalfOffset = 1; // imageSizes.length == 1 ? 0 : 1;
         const blocks = [];
 
         for (let i = 0; i < imageSizes.length; i++) {
+            if (oldAtlas && layerIds[i] in oldAtlas) {
+                continue;
+            }
             const sWidth = imageSizes[i].w;
             const sHeight = imageSizes[i].h;
 
@@ -50,9 +53,24 @@ export default {
         // sort from big > small images (the packing alg works best if big images are treated first)
         blocks.sort((a, b) => Math.max(a.w, a.h) < Math.max(b.w, b.h));
 
-        const { maxX, maxY } = fit(blocks, maxSize, maxSize);
+        let previousRoot;
+        if (oldAtlas) {
+            for (const k in oldAtlas) {
+                const fit = oldAtlas[k];
+                if (fit.x == 0 && fit.y == 0) {
+                    // Updating
+                    previousRoot = fit;
+                    break;
+                }
+            }
+        }
+        if (oldAtlas && !previousRoot) {
+            console.error('UH');
+        }
 
-        const atlas = {};
+        const { maxX, maxY } = fit(blocks, maxSize, maxSize, previousRoot);
+
+        const atlas = oldAtlas || {};
         for (let i = 0; i < blocks.length; i++) {
             atlas[blocks[i].layerId] = blocks[i].fit;
             atlas[blocks[i].layerId].offset = colorBleedHalfOffset;

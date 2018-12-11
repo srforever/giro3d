@@ -23,7 +23,7 @@ function initColorTexturesFromParent(node, parent, layer) {
     node.material.setLayerTextures(layer, {
         texture,
         pitch: extent.offsetToParent(texture.extent),
-    });
+    }, true);
     return true;
 }
 
@@ -84,7 +84,6 @@ export default {
         if (!node.material.visible || initOnly) {
             return;
         }
-
         // TODO: move this to defineLayerProperty() declaration
         // to avoid mixing layer's network updates and layer's params
         // Update material parameters
@@ -115,6 +114,9 @@ export default {
             return;
         }
 
+
+        node.material.update();
+
         node.layerUpdateState[layer.id].newTry();
         const command = {
             /* mandatory */
@@ -132,10 +134,9 @@ export default {
                     return;
                 }
 
-                node.material.setLayerTextures(layer, result);
-                node.layerUpdateState[layer.id].success();
-
-                return result;
+                return node.material.setLayerTextures(layer, result, false, context.view).then(() => {
+                    node.layerUpdateState[layer.id].success();
+                });
             },
             (err) => {
                 if (err instanceof CancelledCommandException) {

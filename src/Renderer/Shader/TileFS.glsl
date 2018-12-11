@@ -115,8 +115,8 @@ void main() {
     #endif
 
     // iso line
-    /*float coord = vPosition.z;
+    float coord = vPosition.z;
     float coord_10 = coord * 0.1;
     float line_10 = abs(fract(coord_10 - 0.5) - 0.5) / fwidth(coord_10);
-    gl_FragColor.xyz *= min(line_10, 1.0);*/
+    // gl_FragColor.xyz *= max(0.8, min(line_10, 1.0));
 }
