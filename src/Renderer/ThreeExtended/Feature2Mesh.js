@@ -155,7 +155,7 @@ function featureToLine(feature, properties, options) {
         for (const geometry of feature.geometry) {
             const start = geometry.indices[0].offset;
             const end = start + geometry.indices[0].count;
-            for (let j = start; j < end; j++) {
+            for (let j = start; j < end - 1; j++) {
                 indices.push(j);
                 indices.push(j + 1);
             }

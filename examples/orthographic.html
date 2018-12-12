@@ -26,11 +26,16 @@
             // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
-            var r = viewerDiv.clientWidth / viewerDiv.clientHeight;
-            var camera = new itowns.THREE.OrthographicCamera(
-                extent.west(), extent.east(),
-                extent.east() / r, extent.west() / r,
-                0, 1000);
+            let center = { x: 328745, y: 5904608 };
+            let halfHeight = (6800000 - 5000000) / 2;
+            let camera = new itowns.THREE.OrthographicCamera(
+                    // left and right determined empirically
+                    -628337.4524312895,
+                    2111620.264270613,
+                    center.y + halfHeight,
+                    center.y - halfHeight,
+                    0,
+                    1000);
 
             // Instanciate PlanarView
             var view = new itowns.PlanarView(
@@ -116,7 +121,6 @@
                             event,
                             null,
                             obj);
-                    console.log(intersects);
                 }
 
 
