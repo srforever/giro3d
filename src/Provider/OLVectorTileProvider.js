@@ -142,17 +142,23 @@ function createTexture(node, tile, layer) {
     if (!node.material) {
         return;
     }
-    createReplayGroup(tile.tile, layer);
     const _canvas = node.material.canvas;
+    const texture = new CanvasTexture(_canvas);
+    // texture.needsUpdate = true;
+    texture.premultiplyAlpha = layer.transparent;
+    texture.extent = tile.tileExtent;
+
+    const empty = createReplayGroup(tile.tile, layer);
+
+    if (empty) {
+        return {
+            texture,
+            pitch: new Vector4(0, 0, 0, 0),
+        };
+    }
+
     const atlas = node.layer.atlasInfo.atlas[layer.id];
-    const isEmpty = renderTileImage(_canvas, tile.tile, atlas, layer);
-    // if (isEmpty) {
-    //     return {
-    //         texture: emptyTexture,
-    //         extent: tile.extent,
-    //         pitch: emptyPitch
-    //     };
-    // }
+    renderTileImage(_canvas, tile.tile, atlas, layer);
 
     for (let t = 0, tt = tile.tile.tileKeys.length; t < tt; ++t) {
         const sourceTile = tile.tile.getTile(tile.tile.tileKeys[t]);
@@ -161,12 +167,6 @@ function createTexture(node, tile, layer) {
         }
         sourceTile.setReplayGroup(layer, tile.tile.tileCoord.toString(), undefined);
     }
-
-    // const image = tile.tile.getImage(layer);
-    const texture = new CanvasTexture(_canvas);
-    // texture.needsUpdate = true;
-    texture.premultiplyAlpha = layer.transparent;
-    texture.extent = tile.tileExtent;
 
     const zKey = tile.tile.tileCoord[0].toString();
     delete layer.usedTiles[zKey].storage[tile.tile.tileCoord];
@@ -255,6 +255,7 @@ function createReplayGroup(tile, layer) {
     }
     replayState.renderedRevision = 1;
     replayState.renderedRenderOrder = renderOrder;
+    return empty;
 }
 
 function renderFeature(feature, squaredTolerance, styles, replayGroup) {

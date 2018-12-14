@@ -15,26 +15,18 @@ fooCanvas.width = 256;
 fooCanvas.height = 256;
 
 export function minMaxFromTexture(layer, texture, pitch) {
-    if (pitch.z == 1.0 && pitch.w == 1.0 && texture.min != undefined && texture.max != undefined) {
-        return { min: texture.min, max: texture.max };
+    if (texture.min != undefined && texture.max != undefined) {
+        return {
+            min: texture.min,
+            max: texture.max
+        };
     }
-
-    const w = Math.round(texture.image.width * pitch.z);
-    const h = Math.round(texture.image.height * pitch.w);
-
-    if (w == 0 || h == 0) {
-        return { min: texture.min, max: texture.max };
-    }
+    const w = texture.image.width;
+    const h = texture.image.height;
     const fooCtx = fooCanvas.getContext('2d');
     fooCanvas.width = w;
     fooCanvas.height = h;
-    // y-offset is from bottom-left of the image
-    fooCtx.drawImage(
-        texture.image,
-        texture.image.width * pitch.x,
-        texture.image.height - texture.image.height * pitch.y - h,
-        w, h,
-        0, 0, w, h);
+    fooCtx.drawImage(texture.image, 0, 0);
     const data = fooCtx.getImageData(0, 0, w, h).data;
     const stride = w * 4;
 
@@ -70,10 +62,8 @@ export function minMaxFromTexture(layer, texture, pitch) {
         throw new Error('Unsupported layer.format "' + layer.format + "'");
     }
 
-    if (pitch.z == 1.0 && pitch.w == 1.0) {
-        texture.min = min;
-        texture.max = max;
-    }
+    texture.min = min;
+    texture.max = max;
     return { min, max };
 }
 

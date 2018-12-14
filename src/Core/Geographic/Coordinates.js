@@ -43,7 +43,7 @@ export function reasonnableEpsilonForCRS(crs, extent) {
         return 0.01;
     } else {
         const d = extent.dimensions();
-        return 0.001 * Math.min(d.x, d.y);
+        return 0.01 * Math.min(d.x, d.y);
     }
 }
 

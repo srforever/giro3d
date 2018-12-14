@@ -373,31 +373,31 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
         }
 
         layer = _preprocessLayer(this, layer, provider, parentLayer);
-        if (parentLayer) {
-            parentLayer.attach(layer);
-        } else {
-            if (typeof (layer.update) !== 'function') {
-                reject(new Error('Cant add GeometryLayer: missing a update function'));
-                return;
-            }
-            if (typeof (layer.preUpdate) !== 'function') {
-                reject(new Error('Cant add GeometryLayer: missing a preUpdate function'));
-                return;
-            }
-            this._layers.push(layer);
-        }
-
-
 
         if (!layer.projection) {
             layer.projection = (parentLayer && parentLayer.extent) ? parentLayer.extent.crs() : this.referenceCrs;
         }
 
-        if (layer.object3d && !layer.object3d.parent && layer.object3d !== this.scene) {
-            this.scene.add(layer.object3d);
-        }
 
         layer.whenReady.then((layer) => {
+            if (parentLayer) {
+                parentLayer.attach(layer);
+            } else {
+                if (typeof (layer.update) !== 'function') {
+                    reject(new Error('Cant add GeometryLayer: missing a update function'));
+                    return;
+                }
+                if (typeof (layer.preUpdate) !== 'function') {
+                    reject(new Error('Cant add GeometryLayer: missing a preUpdate function'));
+                    return;
+                }
+                this._layers.push(layer);
+            }
+
+            if (layer.object3d && !layer.object3d.parent && layer.object3d !== this.scene) {
+                this.scene.add(layer.object3d);
+            }
+
             this.notifyChange(parentLayer || layer, false);
             if (!this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END] ||
                     this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END].indexOf(this._allLayersAreReadyCallback) == -1) {

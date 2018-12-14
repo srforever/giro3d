@@ -30,10 +30,10 @@ export default {
     pack(maxSize, layerIds, imageSizes, oldAtlas) {
         // pick an available canvas, or build a new one
         // const atlasCanvas = getCanvas();
-
+        maxSize = 2048;
         // Use a 1 pixel border to avoid color bleed when sampling at the edges
         // of the texture
-        const colorBleedHalfOffset = 1; // imageSizes.length == 1 ? 0 : 1;
+        const colorBleedHalfOffset = 0;//1; // imageSizes.length == 1 ? 0 : 1;
         const blocks = [];
 
         for (let i = 0; i < imageSizes.length; i++) {

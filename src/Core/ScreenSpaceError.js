@@ -11,6 +11,8 @@ const temp = [
     new THREE.Vector3(),
 ];
 
+function easeInOutQuad(t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t }
+
 function computeSSE(offset, size, matrix, camera, _3d) {
     temp[0].copy(offset);
     temp[0].applyMatrix4(matrix);
@@ -56,7 +58,7 @@ function computeSSE(offset, size, matrix, camera, _3d) {
         result.z = temp[4].clone();
         result.lengths.z = temp[4].sub(temp[0]).length();
     }
-    result.ratio = result.area / (result.lengths.x * result.lengths.y);
+    result.ratio = easeInOutQuad(result.area / (result.lengths.x * result.lengths.y));
 
     return result;
 }

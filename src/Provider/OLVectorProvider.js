@@ -82,24 +82,25 @@ function executeCommand(command) {
 function createTexture(node, extent, layer) {
     const layerExtent = fromOLExtent(layer.source.getExtent(), layer.projection);
     if (!extent.intersectsExtent(layerExtent)) {
-        return Promise.resolve({ texture: emptyTexture, pitch: new Vector4(0, 0, 1, 1) });
+        return Promise.resolve({ texture: emptyTexture, pitch: new Vector4(0, 0, 0, 0) });
     }
 
     const replayGroup = createReplayGroup(extent, layer);
     let texture;
+    let pitch;
     if (!replayGroup) {
         texture = new Texture();
+        pitch = new Vector4(0, 0, 0, 0);
     } else {
-        const _canvas = /*document.createElement('canvas'); */ node.material.canvas;
-        // _canvas.width = layer.imageSize.w;
-        // _canvas.height = layer.imageSize.h;
+        const _canvas = node.material.canvas;
         const atlas = node.layer.atlasInfo.atlas[layer.id];
         renderTileImage(_canvas, replayGroup, extent, atlas, layer);
         texture = new CanvasTexture(_canvas);
+        pitch = new Vector4(0, 0, 1, 1);
     }
     texture.extent = extent;
     texture.revision = layer.source.getRevision();
-    return Promise.resolve({ texture, pitch: new Vector4(0, 0, 1, 1) });
+    return Promise.resolve({ texture, pitch });
 }
 
 function createReplayGroup(extent, layer) {

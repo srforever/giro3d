@@ -114,9 +114,6 @@ export default {
             return;
         }
 
-
-        node.material.update();
-
         node.layerUpdateState[layer.id].newTry();
         const command = {
             /* mandatory */

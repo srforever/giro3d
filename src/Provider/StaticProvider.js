@@ -100,6 +100,9 @@ function getTexture(toDownload, layer) {
  */
 export default {
     preprocessDataLayer(layer) {
+        if (layer.extent) {
+            console.warn('Ignoring given layer.extent, and rebuilding it from sources images instead');
+        }
         layer.canTileTextureBeImproved = this.canTileTextureBeImproved;
         layer.url = new URL(layer.url, window.location);
         return Fetcher.json(layer.url.href, layer.networkOptions).then((metadata) => {
@@ -113,7 +116,7 @@ export default {
                 });
 
                 if (!layer.extent) {
-                    layer.extent = extent;
+                    layer.extent = extent.clone();
                 } else {
                     layer.extent.union(extent);
                 }

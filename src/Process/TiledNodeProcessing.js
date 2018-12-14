@@ -44,6 +44,7 @@ function subdivideNode(context, layer, node) {
                 for (const c of context.colorLayers) {
                     c.update(context, c, child, node, true);
                 }
+
                 child.material.uniforms.colorTexture.value = node.material.uniforms.colorTexture.value;
             }
 
@@ -194,6 +195,8 @@ function update(context, layer, node) {
         }
 
         if (node.material.visible) {
+            node.material.update();
+
             updateMinMaxDistance(context, node);
 
             // update uniforms

@@ -82,7 +82,7 @@ function GeometryLayer(id, object3d) {
         writable: false,
     });
 
-    this.atlasInfo = {};
+    this.atlasInfo = { maxX: 0, maxY: 0 };
 
     // Setup default picking method
     this.pickObjectsAt = (view, mouse, radius) => Picking.pickObjectsAt(view, mouse, radius, this.object3d);
@@ -114,16 +114,19 @@ GeometryLayer.prototype.attach = function attach(layer) {
     }
     this._attachedLayers.push(layer);
 
-    const colorLayers = this._attachedLayers.filter(l => l.type === 'color');
+    if (layer.type === 'color') {
+        const colorLayers = this._attachedLayers.filter(l => l.type === 'color');
 
-    // rebuild color textures atlas
-    const { atlas, maxX, maxY } = AtlasBuilder.pack(
-        Capabilities.getMaxTextureSize(),
-        colorLayers.map(layer => layer.id),
-        colorLayers.map(layer => layer.imageSize));
-    this.atlasInfo.atlas = atlas;
-    this.atlasInfo.maxX = maxX;
-    this.atlasInfo.maxY = maxY;
+        // rebuild color textures atlas
+        const { atlas, maxX, maxY } = AtlasBuilder.pack(
+            Capabilities.getMaxTextureSize(),
+            colorLayers.map(layer => layer.id),
+            colorLayers.map(layer => layer.imageSize),
+            this.atlasInfo.atlas);
+        this.atlasInfo.atlas = atlas;
+        this.atlasInfo.maxX = Math.max(this.atlasInfo.maxX, maxX);
+        this.atlasInfo.maxY = Math.max(this.atlasInfo.maxY, maxY);
+    }
 };
 
 GeometryLayer.prototype.detach = function detach(layer) {
