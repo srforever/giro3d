@@ -161,7 +161,7 @@ function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revi
     const canvas = atlasTexture.image;
     const ctx = canvas.getContext('2d');
 
-    if (image != undefined) {//} && layer.transparent) {
+    if (image != undefined && layer.transparent) {
         // TODO: only if !opaque
         ctx.clearRect(atlasInfo.x, atlasInfo.y, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
     }
@@ -441,6 +441,7 @@ LayeredMaterial.prototype.update = function update() {
         this.canvas = newCanvas;
         this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
     }
+    return this.canvas.width > 0;
 };
 
 LayeredMaterial.prototype.indexOfColorLayer = function indexOfColorLayer(layer) {
