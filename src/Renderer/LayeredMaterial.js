@@ -77,6 +77,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
             textures: [],
             opacity: [],
             visible: [],
+            colors: [],
         },
         elevation: {
             offsetScale: new THREE.Vector4(0, 0, 0, 0),
@@ -106,6 +107,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
     this.uniforms.colorOffsetScale = new THREE.Uniform(); //this.texturesInfo.color.offsetScale);
     this.uniforms.colorOpacity = new THREE.Uniform(); //this.texturesInfo.color.opacity);
     this.uniforms.colorVisible = new THREE.Uniform(); //this.texturesInfo.color.visible);
+    this.uniforms.colors = new THREE.Uniform(this.texturesInfo.color.colors);
 
     this.uniforms.uuid = new THREE.Uniform(0);
 
@@ -356,6 +358,7 @@ function rebuildFragmentShader(shader) {
 
                 } else {
                     vec4 layerColor = texture2D(colorTexture, uv);
+                    layerColor.rgb *= colors[${i}];
                     diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[${i}]) + layerColor * colorOpacity[${i}];
                 }`;
         } else {
@@ -364,6 +367,7 @@ function rebuildFragmentShader(shader) {
                     computeUv(vUv, colorOffsetScale[${i}].xy, colorOffsetScale[${i}].zw),
                     vec2(${validArea.x1}, ${validArea.y1}), vec2(${validArea.x2}, ${validArea.y2}));
                 vec4 layerColor = texture2D(colorTexture, uv);
+                layerColor.rgb *= colors[${i}];
                 diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[${i}]) + layerColor * colorOpacity[${i}];
             `;
         }
@@ -390,6 +394,7 @@ LayeredMaterial.prototype.pushLayer = function pushLayer(newLayer) {
     this.texturesInfo.color.offsetScale.push(new THREE.Vector4(0, 0, 0, 0));
     this.texturesInfo.color.originalOffsetScale.push(new THREE.Vector4(0, 0, 0, 0));
     this.texturesInfo.color.textures.push(emptyTexture);
+    this.texturesInfo.color.colors.push(newLayer.color || new THREE.Color(1, 1, 1));
     this.colorLayers.push(newLayer);
 
     if (this.colorLayers.length == 1) {

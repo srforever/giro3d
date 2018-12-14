@@ -6,6 +6,7 @@ uniform sampler2D colorTexture;
 uniform vec4      colorOffsetScale[TEX_UNITS];
 uniform float     colorOpacity[TEX_UNITS];
 uniform bool      colorVisible[TEX_UNITS];
+uniform vec3      colors[TEX_UNITS];
 #endif
 
 // backgroundColor
