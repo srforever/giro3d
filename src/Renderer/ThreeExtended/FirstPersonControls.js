@@ -102,7 +102,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
     }
 
     isUserInteracting() {
-        return this.moves.size !== 0 && !this._isMouseDown;
+        return this.moves.size !== 0 || this._isMouseDown;
     }
 
     /**
