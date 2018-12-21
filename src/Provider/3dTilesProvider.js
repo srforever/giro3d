@@ -115,6 +115,10 @@ function preprocessDataLayer(layer, view, scheduler) {
     // override the default method, since updated objects are metadata in this case
     layer.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
 
+    if (layer.material.enablePicking) {
+        layer.pickObjectsAt = (view, mouse, radius) => Picking.pickPointsAt(view, mouse, radius, layer);
+    }
+
     layer._cleanableTiles = [];
     return Fetcher.json(layer.url, layer.networkOptions).then((tileset) => {
         if (!tileset.root.refine) {
