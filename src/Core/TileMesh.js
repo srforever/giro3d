@@ -128,15 +128,6 @@ TileMesh.prototype.setBBoxZ = function setBBoxZ(min, max) {
     }
 };
 
-TileMesh.prototype.setTexturesLayer = function setTexturesLayer(textures, layerType, layerId) {
-    if (this.material === null) {
-        return;
-    }
-    if (textures) {
-        this.material.setTexturesLayer(textures, layerType, layerId);
-    }
-};
-
 TileMesh.prototype.OBB = function OBB() {
     return this.obb;
 };
