@@ -8,7 +8,7 @@ import { GeometryLayer, Layer, defineLayerProperty } from './Layer/Layer';
 import Scheduler from './Scheduler/Scheduler';
 import Picking from './Picking';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing';
-import ElevationTextureProcessing, { minMaxFromTexture } from '../Process/ElevationTextureProcessing';
+import ElevationTextureProcessing, { minMaxFromTexture, ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing';
 import TiledNodeProcessing from '../Process/TiledNodeProcessing';
 
 export const VIEW_EVENTS = {
@@ -226,6 +226,7 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
                     o.material.transparent = layer.opacity < 1.0;
                     o.material.uniforms.opacity.value = layer.opacity;
                 }
+                o.material.depthWrite = !o.material.transparent;
             }
         };
         defineLayerProperty(layer, 'opacity', 1.0, () => {
@@ -344,6 +345,10 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
         layer.update = layer.update || ColorTextureProcessing.updateLayerElement;
     } else if (layer.type == 'elevation') {
         layer.update = layer.update || ElevationTextureProcessing.updateLayerElement;
+        if (layer.format == ELEVATION_FORMAT.HEIGHFIELD) {
+            layer.heightFieldOffset = layer.heightFieldOffset || 0;
+            layer.heightFieldScale = layer.heightFieldScale || 255;
+        }
     } else if (layer.protocol == 'tile') {
         layer.disableSkirt = true;
         layer.preUpdate = TiledNodeProcessing.preUpdate;
@@ -378,9 +383,25 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
             layer.projection = (parentLayer && parentLayer.extent) ? parentLayer.extent.crs() : this.referenceCrs;
         }
 
-
         layer.whenReady.then((layer) => {
             if (parentLayer) {
+                if (layer.type === 'elevation') {
+                    parentLayer.minMaxFromElevationLayer = {
+                        min: layer.minmax.min,
+                        max: layer.minmax.max,
+                    };
+                    for (const node of parentLayer.level0Nodes) {
+                        node.traverse(n => {
+                            if (n.setBBoxZ) {
+                                n.setBBoxZ(
+                                    parentLayer.minMaxFromElevationLayer.min,
+                                    parentLayer.minMaxFromElevationLayer.max);
+                            }
+                        })
+                    }
+                    console.log(parentLayer.minMaxFromElevationLayer);
+                }
+
                 parentLayer.attach(layer);
             } else {
                 if (typeof (layer.update) !== 'function') {

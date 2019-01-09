@@ -74,7 +74,10 @@ function buildUrl(layer, image) {
 }
 
 function getTexture(toDownload, layer) {
-    return OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions).then((texture) => {
+    // ...
+    return (layer.format == 2 ?
+        OGCWebServiceHelper.getXBilTextureByUrl(toDownload.url, layer.networkOptions) :
+         OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions)).then((texture) => {
         // adjust pitch
         const result = {
             texture,

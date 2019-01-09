@@ -15,7 +15,7 @@ export { process3dTilesNode, init3dTilesLayer, $3dTilesCulling, $3dTilesSubdivis
 export { default as FeatureProcessing } from './Process/FeatureProcessing';
 export { default as ColorTextureProcessing } from './Process/ColorTextureProcessing';
 export { default as ElevationTextureProcessing, ELEVATION_FORMAT } from './Process/ElevationTextureProcessing';
-export { processTiledGeometryNode, initTiledGeometryLayer } from './Process/TiledNodeProcessing';
+export { default as TiledNodeProcessing } from './Process/TiledNodeProcessing';
 export { ColorLayersOrdering } from './Renderer/ColorLayersOrdering';
 export { default as PointsMaterial } from './Renderer/PointsMaterial';
 export { default as PointCloudProcessing } from './Process/PointCloudProcessing';

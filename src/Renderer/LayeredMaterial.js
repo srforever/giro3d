@@ -53,7 +53,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
     this.defines.TEX_UNITS = 0;
     this.defines.INSERT_TEXTURE_READING_CODE = '';
 
-    if (__DEBUG__) {
+    if (true || __DEBUG__) {
         this.defines.DEBUG = 1;
         this.uniforms.showOutline = new THREE.Uniform(true);
     }
@@ -116,7 +116,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
     this.uniforms.opacity = new THREE.Uniform(1.0);
 
     this.colorLayers = [];
-
+    // this.wireframe = true;
     this.texturesInfo.color.atlasTexture.generateMipmaps = false;
     this.texturesInfo.color.atlasTexture.magFilter = THREE.LinearFilter;
     this.texturesInfo.color.atlasTexture.minFilter = THREE.LinearFilter;
@@ -243,8 +243,16 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
         } else if (layer.format == ELEVATION_FORMAT.HEIGHFIELD) {
             if (!this.defines.HEIGHTFIELD_ELEVATION) {
                 this.defines.HEIGHTFIELD_ELEVATION = 1;
+                this.uniforms.heightFieldOffset = new THREE.Uniform(layer.heightFieldOffset || 0.0);
+                this.uniforms.heightFieldScale = new THREE.Uniform(layer.heightFieldScale || 255.0);
                 this.needsUpdate = true;
             }
+        } else if (layer.format == ELEVATION_FORMAT.RATP_GEOL) {
+            if (!this.defines.RATP_GEOL_ELEVATION) {
+                this.defines.RATP_GEOL_ELEVATION = 1;
+            }
+        } else {
+            throw new Error('Missing layer.format handling', layer.format);
         }
         this.texturesInfo.elevation.texture = textures.texture;
         this.uniforms.elevationTexture.value = textures.texture;
@@ -410,6 +418,9 @@ LayeredMaterial.prototype.pushLayer = function pushLayer(newLayer) {
 };
 
 LayeredMaterial.prototype.update = function update() {
+    if (this.colorLayers.length == 0) {
+        return true;
+    }
     if (this.atlasInfo.maxX > this.canvas.width || this.atlasInfo.maxY > this.canvas.height) {
         // TODO: test this and then make providers draw directly in this.canvas
         const newCanvas = document.createElement('canvas');

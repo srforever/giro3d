@@ -72,7 +72,6 @@ void main() {
     #else
 
     vec4 diffuseColor = vec4(noTextureColor, 0.0);
-    // diffuseColor.rgb = vec3(vPosition.z / 129.0);
 
     // We can't loop here over textures since Firefox doesn't support
     // reading from a sampler array without a constant index
@@ -105,7 +104,7 @@ void main() {
     gl_FragColor.rgb *= hillshade;
     #endif
 
-    gl_FragColor.rgb = mix(gl_FragColor.rgb, vColor.rgb, vColor.a);
+    // gl_FragColor.rgb = mix(gl_FragColor.rgb, vColor.rgb, vColor.a);
     gl_FragColor.a = opacity;
 
     #if defined(DEBUG)
@@ -115,9 +114,5 @@ void main() {
     #endif
     #endif
 
-    // iso line
-    float coord = vPosition.z;
-    float coord_10 = coord * 0.1;
-    float line_10 = abs(fract(coord_10 - 0.5) - 0.5) / fwidth(coord_10);
-    // gl_FragColor.xyz *= max(0.8, min(line_10, 1.0));
+
 }

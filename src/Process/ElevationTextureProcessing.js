@@ -5,6 +5,8 @@ import { SIZE_TEXTURE_TILE } from '../Provider/OGCWebServiceHelper';
 export const ELEVATION_FORMAT = {
     MAPBOX_RGB: 0,
     HEIGHFIELD: 1,
+    XBIL: 2,
+    RATP_GEOL: 3,
 };
 
 // max retry loading before changing the status to definitiveError
@@ -14,25 +16,30 @@ const fooCanvas = document.createElement('canvas');
 fooCanvas.width = 256;
 fooCanvas.height = 256;
 
-export function minMaxFromTexture(layer, texture, pitch) {
+export function minMaxFromTexture(layer, texture) {
     if (texture.min != undefined && texture.max != undefined) {
         return {
             min: texture.min,
             max: texture.max
         };
     }
-    const w = texture.image.width;
-    const h = texture.image.height;
-    const fooCtx = fooCanvas.getContext('2d');
-    fooCanvas.width = w;
-    fooCanvas.height = h;
-    fooCtx.drawImage(texture.image, 0, 0);
-    const data = fooCtx.getImageData(0, 0, w, h).data;
-    const stride = w * 4;
+
+    function colorImageSetup() {
+        const w = texture.image.width;
+        const h = texture.image.height;
+        const fooCtx = fooCanvas.getContext('2d');
+        fooCanvas.width = w;
+        fooCanvas.height = h;
+        fooCtx.drawImage(texture.image, 0, 0);
+        const data = fooCtx.getImageData(0, 0, w, h).data;
+        const stride = w * 4;
+        return { data, stride, h }
+    }
 
     let min = Infinity;
     let max = -Infinity;
     if (layer.format == ELEVATION_FORMAT.MAPBOX_RGB) {
+        const { data, stride, h } = colorImageSetup();
         function tr(r, g, b) {
             return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
         }
@@ -52,13 +59,28 @@ export function minMaxFromTexture(layer, texture, pitch) {
             }
         }
     } else if (layer.format == ELEVATION_FORMAT.HEIGHFIELD) {
+        const { data, stride, h } = colorImageSetup();
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < stride; j += 4) {
                 min = Math.min(min, data[i * stride + j])
                 max = Math.max(max, data[i * stride + j])
             }
         }
-    } else {
+        min = layer.heightFieldOffset + layer.heightFieldScale * (min / 255);
+        max = layer.heightFieldOffset + layer.heightFieldScale * (max / 255);
+    } else if (layer.format == ELEVATION_FORMAT.XBIL) {
+        for (let i = 0; i < texture.image.data.length; i++) {
+            const val = texture.image.data[i];
+            if (val > -1000) {
+                min = Math.min(min, val);
+                max = Math.max(max, val);
+            }
+        }
+    } else if (layer.format == ELEVATION_FORMAT.RATP_GEOL) {
+        // TODO
+        min = -1000;
+        max = 1000;
+    } else {
         throw new Error('Unsupported layer.format "' + layer.format + "'");
     }
 

@@ -35,6 +35,11 @@ function TileMesh(layer, geometry, material, extent, level) {
     const dim = extent.dimensions();
     this.material.uniforms.tileDimensions.value.set(dim.x, dim.y);
 
+    if (layer.minMaxFromElevationLayer) {
+
+        this.setBBoxZ(layer.minMaxFromElevationLayer.min, layer.minMaxFromElevationLayer.max);
+    }
+
     this._state = RendererConstant.FINAL;
 }
 
@@ -52,6 +57,7 @@ TileMesh.prototype.isVisible = function isVisible() {
 
 TileMesh.prototype.setDisplayed = function setDisplayed(show) {
     this.material.visible = show && this.material.update();
+    this.material.transparent = this.material.opacity != 1;
 };
 
 TileMesh.prototype.setVisibility = function setVisibility(show) {
@@ -69,11 +75,14 @@ TileMesh.prototype.changeState = function changeState(state) {
     }
     if (state == RendererConstant.DEPTH) {
         this.material.defines.DEPTH_MODE = 1;
+        this.material.transparent = false;
         delete this.material.defines.MATTE_ID_MODE;
     } else if (state == RendererConstant.ID) {
         this.material.defines.MATTE_ID_MODE = 1;
+        this.material.transparent = false;
         delete this.material.defines.DEPTH_MODE;
     } else {
+        this.material.transparent = this.material.opacity != 1;
         delete this.material.defines.MATTE_ID_MODE;
         delete this.material.defines.DEPTH_MODE;
     }

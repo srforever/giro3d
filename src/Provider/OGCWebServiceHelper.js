@@ -26,6 +26,14 @@ export default {
             }), Cache.POLICIES.TEXTURE);
     },
     getXBilTextureByUrl(url, networkOptions) {
+        return Cache.get(url) || Cache.set(url, Fetcher.arrayBuffer(url, networkOptions)
+            .then((buffer) => {
+                const texture = getTextureFloat(buffer);
+                texture.generateMipmaps = false;
+                texture.magFilter = THREE.LinearFilter;
+                texture.minFilter = THREE.LinearFilter;
+                return texture;
+            }), Cache.POLICIES.TEXTURE);
     },
     computeTileMatrixSetCoordinates(tile, tileMatrixSet) {
         tileMatrixSet = tileMatrixSet || 'WGS84G';
