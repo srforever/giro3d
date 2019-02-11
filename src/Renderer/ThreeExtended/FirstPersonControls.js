@@ -50,6 +50,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
         super();
         this.camera = view.camera.camera3D;
         this.view = view;
+        this.enabled = true;
         this.moves = new Set();
         if (options.panoramaRatio) {
             const radius = (options.panoramaRatio * 200) / (2 * Math.PI);
@@ -139,6 +140,9 @@ class FirstPersonControls extends THREE.EventDispatcher {
      * appears unneeded.
      */
     update(dt, updateLoopRestarted, force) {
+        if (!this.enabled) {
+            return;
+        }
         // dt will not be relevant when we just started rendering, we consider a 1-frame move in this case
         if (updateLoopRestarted) {
             dt = 16;
@@ -164,6 +168,9 @@ class FirstPersonControls extends THREE.EventDispatcher {
     // Event callback functions
     // Mouse movement handling
     onMouseDown(event) {
+        if (!this.enabled) {
+            return;
+        }
         event.preventDefault();
         this._isMouseDown = true;
 
@@ -175,10 +182,16 @@ class FirstPersonControls extends THREE.EventDispatcher {
     }
 
     onMouseUp() {
+        if (!this.enabled) {
+            return;
+        }
         this._isMouseDown = false;
     }
 
     onMouseMove(event) {
+        if (!this.enabled) {
+            return;
+        }
         if (this._isMouseDown === true) {
             // in rigor we have tan(theta) = tan(cameraFOV) * deltaH / H
             // (where deltaH is the vertical amount we moved, and H the renderer height)
@@ -200,6 +213,9 @@ class FirstPersonControls extends THREE.EventDispatcher {
 
     // Mouse wheel
     onMouseWheel(event) {
+        if (!this.enabled) {
+            return;
+        }
         let delta = 0;
         if (event.wheelDelta !== undefined) {
             delta = -event.wheelDelta;
@@ -225,6 +241,9 @@ class FirstPersonControls extends THREE.EventDispatcher {
 
     // Keyboard handling
     onKeyUp(e) {
+        if (!this.enabled) {
+            return;
+        }
         const move = MOVEMENTS[e.keyCode];
         if (move) {
             this.moves.delete(move);
@@ -234,6 +253,9 @@ class FirstPersonControls extends THREE.EventDispatcher {
     }
 
     onKeyDown(e) {
+        if (!this.enabled) {
+            return;
+        }
         const move = MOVEMENTS[e.keyCode];
         if (move) {
             this.moves.add(move);

@@ -310,14 +310,16 @@
                         svg.removeChild(svg.firstChild);
                     }
                     const colors = ['red', 'green', 'purple'];
-                    for (let i = 1; i<4; i++) {
-                        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-                        line.setAttribute('x1', obj._a.sse[0].x.toFixed());
-                        line.setAttribute('y1', obj._a.sse[0].y.toFixed())
-                        line.setAttribute('x2', obj._a.sse[i].x.toFixed())
-                        line.setAttribute('y2', obj._a.sse[i].y.toFixed())
-                        line.setAttribute('stroke', colors[i-1]);
-                        svg.append(line);
+                    if (obj._a) {
+                        for (let i = 1; i<4; i++) {
+                            const line = document.createElementNS('http://www.w3.org/2000/svg','line');
+                            line.setAttribute('x1', obj._a.sse[0].x.toFixed());
+                            line.setAttribute('y1', obj._a.sse[0].y.toFixed())
+                            line.setAttribute('x2', obj._a.sse[i].x.toFixed())
+                            line.setAttribute('y2', obj._a.sse[i].y.toFixed())
+                            line.setAttribute('stroke', colors[i-1]);
+                            svg.append(line);
+                        }
                     }
                 });
 
