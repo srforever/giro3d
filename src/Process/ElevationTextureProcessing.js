@@ -83,7 +83,12 @@ function initNodeElevationTextureFromParent(node, parent, layer) {
         pitch,
     };
 
-    const { min, max } = minMaxFromTexture(layer, parentTexture, pitch);
+    let { min, max } = parentTexture;
+    if (!min || !max) {
+        const minmax = minMaxFromTexture(layer, parentTexture, pitch);
+        min = minmax.min;
+        max = minmax.max;
+    }
     elevation.min = min;
     elevation.max = max;
 
