@@ -50,13 +50,15 @@ export function reasonnableEpsilonForCRS(crs, extent) {
 function _crsToUnitWithError(crs) {
     const u = crsToUnit(crs);
     if (crs === undefined || u === undefined) {
-        throw new Error(`Invalid crs paramater value '${crs}'`);
+        throw new Error(`Invalid crs parameter value '${crs}'`);
     }
     return u;
 }
 
 export function assertCrsIsValid(crs) {
-    _crsToUnitWithError(crs);
+    if (!proj4.defs[crs]) {
+        throw new Error(`Invalid crs parameter value '${crs}'. Did you define it with proj4?`);
+    }
 }
 
 export function crsIsGeographic(crs) {
