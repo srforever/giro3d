@@ -115,7 +115,8 @@ function preprocessDataLayer(layer, view, scheduler) {
     // override the default method, since updated objects are metadata in this case
     layer.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
 
-    if (layer.material.enablePicking) {
+    // TODO: find a better way to know that this layer is about pointcloud ?
+    if (layer.material && layer.material.enablePicking) {
         layer.pickObjectsAt = (view, mouse, radius) => Picking.pickPointsAt(view, mouse, radius, layer);
     }
 
