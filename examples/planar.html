@@ -88,13 +88,13 @@
                 colorTextureElevationMaxZ: 240,
             };
 
-            view.camera.setPosition(new itowns.Coordinates('EPSG:3946', extent.west(), extent.south(), 2000));
+            view.camera.camera3D.position.copy(new itowns.Coordinates('EPSG:3946', extent.west(), extent.south(), 2000).xyz());
             // Then look at extent's center
             view.camera.camera3D.lookAt(extent.center().xyz());
 
             // instanciate controls
             // eslint-disable-next-line no-new
-            new itowns.PlanarControls(view, {});
+            new itowns.FirstPersonControls(view, {});
 
             // Request redraw
             view.notifyChange();

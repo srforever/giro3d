@@ -29,7 +29,7 @@
             var view = new itowns.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 20 });
 
             // eslint-disable-next-line no-new
-            new itowns.PlanarControls(view, {
+            new itowns.FirstPersonControls(view, {
                 // We do not want the user to zoom out too much
                 maxAltitude: 40000000,
                 // We want to keep the rotation disabled, to only have a view from the top
