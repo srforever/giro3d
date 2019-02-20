@@ -3,12 +3,21 @@ import CancelledCommandException from '../Core/Scheduler/CancelledCommandExcepti
 
 const MAX_RETRY = 4;
 
-function initColorTexturesFromParent(node, parent, layer) {
+function initColorTexturesFromParent(context, node, parent, layer) {
     if (!parent.material || !parent.material.getLayerTexture) {
         return false;
     }
 
     const extent = node.getExtentForLayer(layer);
+    // move up until we have a parent that uses its own atlas
+    // This is needed because otherwise we'll get inconsistencies: child will inherit the atlas,
+    // but will compute its offset/scale values based on the result of parent.material.getLayerTexture()
+    while (parent && parent.material && parent.material.uniforms.colorTexture.value != parent.material.texturesInfo.color.atlasTexture) {
+        parent = parent.parent;
+    }
+    if (!parent || !parent.material) {
+        return false;
+    }
     const parentTexture = parent.material.getLayerTexture(layer);
     if (!parentTexture) {
         return false;
@@ -23,7 +32,7 @@ function initColorTexturesFromParent(node, parent, layer) {
     node.material.setLayerTextures(layer, {
         texture,
         pitch: extent.offsetToParent(texture.extent),
-    }, true);
+    }, true, context.view);
     return true;
 }
 
@@ -74,7 +83,7 @@ export default {
             // INIT TEXTURE
             material.pushLayer(layer, node.getExtentForLayer(layer));
 
-            if (parent && initColorTexturesFromParent(node, parent, layer)) {
+            if (parent && initColorTexturesFromParent(context, node, parent, layer)) {
                 context.view.notifyChange(node, false);
                 return;
             }
@@ -84,6 +93,7 @@ export default {
         if (!node.material.visible || initOnly) {
             return;
         }
+
         // TODO: move this to defineLayerProperty() declaration
         // to avoid mixing layer's network updates and layer's params
         // Update material parameters

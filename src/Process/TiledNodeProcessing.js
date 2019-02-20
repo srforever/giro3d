@@ -44,7 +44,6 @@ function subdivideNode(context, layer, node) {
                 for (const c of context.colorLayers) {
                     c.update(context, c, child, node, true);
                 }
-
                 child.material.uniforms.colorTexture.value = node.material.uniforms.colorTexture.value;
             }
 

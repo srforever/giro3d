@@ -53,11 +53,11 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
     this.defines.TEX_UNITS = 0;
     this.defines.INSERT_TEXTURE_READING_CODE = '';
 
-    if (true || __DEBUG__) {
+    if (__DEBUG__) {
         this.defines.DEBUG = 1;
         this.uniforms.showOutline = new THREE.Uniform(true);
     }
-    this.extensions.derivatives = true;
+    // this.extensions.derivatives = true;
 
     this.fragmentShader = TileFS;
     this.vertexShader = TileVS;
@@ -228,7 +228,7 @@ function updateOffsetScale(imageSize, atlas, originalOffsetScale, canvas, target
 }
 
 
-LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, textures, nope, view) {
+LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, textures, shortcut, view) {
     if (Array.isArray(textures)) {
         // console.warn(`Provider should return a single texture and not an Array. See layer id = ${layer.id}`);
         textures = textures[0];
@@ -267,7 +267,7 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
 
         const canvas = this.uniforms.colorTexture.value.image;
 
-        if (nope) {
+        if (shortcut) {
             updateOffsetScale(
                 layer.imageSize,
                 this.atlasInfo.atlas[layer.id],
@@ -427,6 +427,7 @@ LayeredMaterial.prototype.update = function update() {
         newCanvas.width = this.atlasInfo.maxX;
         newCanvas.height = this.atlasInfo.maxY;
         if (this.canvas.width > 0) {
+            console.log("Redraw")
             const ctx = newCanvas.getContext('2d');
             ctx.drawImage(this.canvas, 0, 0, this.canvas.width, this.canvas.height);
         }
@@ -510,6 +511,8 @@ export function initDebugTool(view) {
       if (obj.material.canvas) {
         obj.material.uniforms.colorTexture.value.image.style.width = '100%';
         div.appendChild(obj.material.uniforms.colorTexture.value.image);
+        obj.material.canvas.style.width = '100%';
+        div.appendChild(obj.material.canvas);
       }
     });
 }
