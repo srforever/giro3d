@@ -5,7 +5,7 @@
 
 
 import * as THREE from 'three';
-import togeojson from 'togeojson';
+import togeojson from '@mapbox/togeojson';
 import Extent from '../Core/Geographic/Extent';
 import Feature2Texture from '../Renderer/ThreeExtended/Feature2Texture';
 import GeoJsonParser from '../Parser/GeoJsonParser';
