@@ -57,7 +57,10 @@ const Cache = {
      */
     get: (key) => {
         const entry = data.get(key);
-        const stat = stats.get(key) || stats.set(key, { hit: 0, miss: 0 });
+        if (!stats.has(key)) {
+            stats.set(key, { hit: 0, miss: 0 });
+        }
+        const stat = stats.get(key);
 
         if (entry) {
             stat.hit++;
