@@ -25,7 +25,7 @@ export default {
         }
 
         // Prevent subdivision if missing color texture
-        for (const c of context.colorLayers) {
+        /* for (const c of context.colorLayers) {
             if (c.frozen || !c.visible || !c.ready) {
                 continue;
             }
@@ -36,7 +36,7 @@ export default {
             if (c.tileInsideLimit(node, c) && !node.material.isLayerTextureLoaded(c)) {
                 return false;
             }
-        }
+            } */
         return true;
     },
 };
