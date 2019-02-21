@@ -9,7 +9,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <div id="viewerDiv"></div>
+        <div id="viewerDiv">
+            <button id="toggle-serpent">Toggle serpent</button>
+        </div>
         <script src="../dist/itowns.js"></script>
         <script src="js/loading_screen.js"></script>
         <script type="text/javascript">
@@ -130,24 +132,62 @@
             });
 
 
-            itowns.Fetcher.json('../test.geojson').then(function (json) {
+            itowns.Fetcher.json('/test2.geojson').then(function (json) {
                 itowns.GeoJsonParser.parse(json, { crsOut: 'EPSG:3857' } ).then(features => {
                     obj = itowns.Feature2Mesh.convert()(features);
                     obj.traverse(o => {
                         o.renderOrder = 1;
                         if (o.material) {
                             o.material.transparent = true;
-                            o.material.opacity = 0.3;
+                            o.material.opacity = 0.5;
                         }
                     });
                     view.scene.add(obj);
                     view.notifyChange(obj, true);
                 });
             });
+            /*itowns.Fetcher.json('/test3.geojson').then(function (geojson) {
+                const THREE = itowns.THREE;
+                for (const jsonFeat of geojson.features) {
+                    // transform this geom into a multilinestring
+                    // multipolygon is an array of polygon, itself and array of outer ring and hole rings
+                    // we just want an array of linestring, one for the outer ring and one for each hole
+                    const newCoords = []
+                        for (let i = 0; i < jsonFeat.geometry.coordinates.length; i++) {
+                            const poly = jsonFeat.geometry.coordinates[i];
+                            for (let j = 0; j < poly.length; j++) {
+                                const coord = poly[j];
+                                newCoords.push(coord);
+                            }
+                        }
+                    const geometry = {
+                        type: 'MultiLineString',
+                        coordinates: newCoords,
+                    };
+                    const copy = {
+                        type: 'Feature',
+                        properties: JSON.parse(JSON.stringify(jsonFeat.properties)),
+                        geometry
+                    };
+                    itowns.GeoJsonParser.parse(copy, { crsOut: 'EPSG:3857' }).then(feat => {
+                        const mesh = itowns.Feature2Mesh.convert({
+                            altitude: 11,
+                        })(feat);
+                        mesh.material.vertexColors = THREE.NoColors;
+                        mesh.material.color = new THREE.Color(0xff0000);
+                        mesh.traverse(o => {
+                            o.renderOrder = 2;
+                        });
+                        view.scene.add(mesh);
+                        view.notifyChange(mesh, true);
+                    });
+                }
+            }).catch( e=> console.error(e));*/
             const red = new itowns.THREE.Color('red');
             const yellow = new itowns.THREE.Color('yellow');
-            itowns.Fetcher.json( 'http://localhost:8080/examples/serpent.json').then(json => {
-                view.addLayer({
+
+            itowns.Fetcher.json( '/examples/serpent.geojson').then(json => {
+                const serpent = {
                     type: 'color',
                     geojson: json,
                     protocol: 'rasterizer',
@@ -162,6 +202,15 @@
                             feat.properties.stroke = feat.properties.tmtm > 500000 ? red.getStyle() : yellow.getStyle();
                             feat.properties['stroke-width'] = feat.properties.tmtm > 500000 ? '10.0': '1.0';
                         }
+                    }
+                };
+                view.addLayer(serpent);
+                document.getElementById('toggle-serpent').addEventListener('click', (e) => {
+                    const existing = view.getLayers(l => l.id == 'serpent')[0];
+                    if (existing) {
+                        view.removeLayer(existing);
+                    } else {
+                        view.addLayer(serpent);
                     }
                 });
             }).catch( e => console.error(e));

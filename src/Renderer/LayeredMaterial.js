@@ -417,6 +417,21 @@ LayeredMaterial.prototype.pushLayer = function pushLayer(newLayer) {
     this.onBeforeCompile = rebuildFragmentShader.bind(this);
 };
 
+LayeredMaterial.prototype.removeLayer = function removeLayer(layer) {
+    const index = this.colorLayers.indexOf(layer);
+    this.texturesInfo.color.opacity.splice(index, 1);
+    this.texturesInfo.color.visible.splice(index, 1);
+    this.texturesInfo.color.offsetScale.splice(index, 1);
+    this.texturesInfo.color.originalOffsetScale.splice(index, 1);
+    this.texturesInfo.color.textures.splice(index, 1);
+    this.texturesInfo.color.colors.splice(index, 1);
+    this.colorLayers.splice(index, 1);
+
+    this.defines.TEX_UNITS = this.colorLayers.length;
+
+    this.needsUpdate = true;
+};
+
 LayeredMaterial.prototype.update = function update() {
     if (this.colorLayers.length == 0) {
         return true;

@@ -54,6 +54,20 @@ function refinementCommandCancellationFn(cmd) {
 
 
 export default {
+    cleanLayer(view, layer, parentLayer) {
+        parentLayer.object3d.traverse((o) => {
+            if (o.layer === parentLayer) {
+                // clean object of layer
+                delete o.layerUpdateState[layer.id];
+                // delete texture in material
+                o.removeColorLayer(layer.id);
+                // reinit sequence
+                const imageryLayers = view.getLayers((l, p) => l.type === 'color' && p == o.layer && l != layer);
+                const sequence = ImageryLayers.getColorLayersIdOrderedBySequence(imageryLayers);
+                o.material.setSequence(sequence);
+            }
+        });
+    },
     updateLayerElement(context, layer, node, parent, initOnly = false) {
         const material = node.material;
 

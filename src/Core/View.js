@@ -11,6 +11,7 @@ import ColorTextureProcessing from '../Process/ColorTextureProcessing';
 import ElevationTextureProcessing, { minMaxFromTexture, ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing';
 import TiledNodeProcessing from '../Process/TiledNodeProcessing';
 import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh';
+import ObjectRemovalHelper from '../Process/ObjectRemovalHelper';
 
 export const VIEW_EVENTS = {
     /**
@@ -254,6 +255,17 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
     return layer;
 }
 
+function _cleanLayer(view, layer, parentLayer) {
+    // XXX do providers needs to clean their layers ? Usually it's just some properties initialisation...
+    // provider.cleanDataLayer(layer, view, view.mainLoop.scheduler, parentLayer);
+    if (layer.type == 'color') {
+        ColorTextureProcessing.cleanLayer(view, layer, parentLayer);
+    } else if (layer.type == 'elevation') {
+        // TODO
+        // ElevationTextureProcessing.clean(layer, parentLayer.object3d);
+    }
+}
+
 /**
  * Options to wms protocol
  * @typedef {Object} OptionsWms
@@ -434,6 +446,20 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
             resolve(layer);
         });
     });
+};
+
+View.prototype.removeLayer = function removeLayer(layer) {
+    if (layer.object3d) {
+        ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, layer.object3d);
+        this.scene.remove(layer.object3d);
+    }
+    const parentLayer = this.getLayers(l => l._attachedLayers && l._attachedLayers.includes(layer))[0];
+    if (parentLayer) {
+        parentLayer.detach(layer);
+    }
+    _cleanLayer(this, layer, parentLayer);
+    // TODO clean also this layer's children
+    this.notifyChange(parentLayer || this.camera.camera3D, true);
 };
 
 View.prototype.addVector = function addVector(vector) {

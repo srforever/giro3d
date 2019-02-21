@@ -127,7 +127,6 @@ export default {
                 layer.extent = feature.extent;
             }
         });
-
     },
     canTextureBeImproved(layer, extents, currentTextures) {
         if (!currentTextures || !currentTextures[0].extent) {
