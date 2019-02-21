@@ -132,7 +132,7 @@
             });
 
 
-            itowns.Fetcher.json('/test2.geojson').then(function (json) {
+            /* itowns.Fetcher.json('/test2.geojson').then(function (json) {
                 itowns.GeoJsonParser.parse(json, { crsOut: 'EPSG:3857' } ).then(features => {
                     obj = itowns.Feature2Mesh.convert()(features);
                     obj.traverse(o => {
@@ -145,7 +145,7 @@
                     view.scene.add(obj);
                     view.notifyChange(obj, true);
                 });
-            });
+            }); */
             /*itowns.Fetcher.json('/test3.geojson').then(function (geojson) {
                 const THREE = itowns.THREE;
                 for (const jsonFeat of geojson.features) {

@@ -10,6 +10,7 @@ import Extent from '../Core/Geographic/Extent';
 import Feature2Texture from '../Renderer/ThreeExtended/Feature2Texture';
 import GeoJsonParser from '../Parser/GeoJsonParser';
 import Fetcher from './Fetcher';
+import Cache from '../Core/Scheduler/Cache';
 
 function getExtentFromGpxFile(file) {
     const bound = file.getElementsByTagName('bounds')[0];
@@ -23,6 +24,9 @@ function getExtentFromGpxFile(file) {
     return new Extent('EPSG:4326', -180, 180, -90, 90);
 }
 
+function getKey(extent, layer) {
+    return layer.id + extent.crs() + extent.west() + extent.east() + extent.north() + extent.west();
+}
 function createTextureFromVector(tile, layer) {
     if (!tile.material) {
         return Promise.resolve();
@@ -31,7 +35,8 @@ function createTextureFromVector(tile, layer) {
     if (layer.type == 'color') {
         const coords = tile.extent;
         const result = { pitch: new THREE.Vector4(0, 0, 1, 1) };
-        result.texture = Feature2Texture.createTextureFromFeature(layer.feature, tile.extent, 256, layer.style);
+        const key = getKey(tile.extent, layer);
+        result.texture = Cache.get(key) || Cache.set(key, Feature2Texture.createTextureFromFeature(layer.feature, tile.extent, 256, layer.style));
         result.texture.extent = tile.extent;
         result.texture.coords = coords;
         result.texture.coords.zoom = tile.level;
