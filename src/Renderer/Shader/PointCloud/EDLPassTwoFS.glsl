@@ -11,9 +11,9 @@ void main() {
     // circle around individual points
     vec4 source = texture2D(textureColor, vUv);
     if (edl == 0.0) {
-        discard;
+        gl_FragColor = vec4(source.rgb, source.a);
     } else {
         gl_FragColor = vec4(source.rgb * edl, source.a);
-        gl_FragDepthEXT = texture2D(depthTexture, vUv).r;
     }
+    gl_FragDepthEXT = texture2D(depthTexture, vUv).r;
 }

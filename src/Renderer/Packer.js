@@ -27,7 +27,7 @@ function fit(blocks, w, h, previousRoot) {
 
 function _findNode(root, w, h) {
     if (root.used) {
-        return _findNode(root.right, w, h) || _findNode(root.down, w, h);
+        return _findNode(root.right, w, h) || _findNode(root.down, w, h);
     } else if ((w <= root.w) && (h <= root.h)) {
         return root;
     } else {

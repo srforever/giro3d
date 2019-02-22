@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import BasicVS from './Shader/BasicVS.glsl';
+import EDLPassZeroFS from './Shader/PointCloud/EDLPassZeroFS.glsl';
 import EDLPassOneFS from './Shader/PointCloud/EDLPassOneFS.glsl';
 import EDLPassTwoFS from './Shader/PointCloud/EDLPassTwoFS.glsl';
 import OcclusionFS from './Shader/PointCloud/OcclusionFS.glsl';
@@ -11,6 +12,7 @@ const RT = {
     FULL_RES_0: 0,
     FULL_RES_1: 1,
     EDL_VALUES: 2,
+    HALF_RES: 3,
 };
 
 function PointCloudRenderer(view) {
@@ -41,6 +43,14 @@ function PointCloudRenderer(view) {
     //    - Potree (https://github.com/potree/potree/)
     this.edl = {
         passes: [
+            new THREE.ShaderMaterial({
+                uniforms: {
+                    depthTexture: { value: null },
+                },
+                vertexShader: BasicVS,
+                fragmentShader: EDLPassZeroFS,
+                extensions: { fragDepth: true },
+            }),
             // EDL 1st pass material
             // This pass is writing a single value per pixel, describing the depth
             // difference between one pixel and its neighbours.
@@ -88,7 +98,11 @@ function PointCloudRenderer(view) {
         setup(renderer, input, passIdx) {
             const m = this.passes[passIdx];
             if (passIdx == 0) {
+                // scale down depth texture
                 m.uniforms.depthTexture.value = input.depthTexture;
+                return { material: m, output: renderer.renderTargets[RT.HALF_RES] };
+            } else if (passIdx == 1) {
+                m.uniforms.depthTexture.value = renderer.renderTargets[RT.HALF_RES].depthTexture;
                 m.uniforms.resolution.value.set(input.width, input.height);
                 m.uniforms.cameraNear.value = renderer.view.camera.camera3D.near;
                 m.uniforms.cameraFar.value = renderer.view.camera.camera3D.far;
@@ -96,7 +110,6 @@ function PointCloudRenderer(view) {
                 m.uniforms.strength.value = this.parameters.strength;
                 m.uniforms.directions.value = this.parameters.directions;
                 m.uniforms.n.value = this.parameters.n;
-
                 return { material: m, output: renderer.renderTargets[RT.EDL_VALUES] };
             } else {
                 m.uniforms.textureColor.value = input.texture;
@@ -211,7 +224,7 @@ function PointCloudRenderer(view) {
 
 PointCloudRenderer.prototype.update = function update() {
     if (this.view.camera.width != this.renderTargets[RT.FULL_RES_0].width ||
-        this.view.camera.width != this.renderTargets[RT.FULL_RES_0].height) {
+        this.view.camera.height != this.renderTargets[RT.FULL_RES_0].height) {
         // release old render targets
         this.renderTargets.forEach(rt => rt.dispose());
         // build new ones
@@ -297,6 +310,7 @@ function _createRenderTargets(view) {
     renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width, view.camera.height));
     renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width, view.camera.height));
     renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width, view.camera.height));
+    renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width * 0.5, view.camera.height * 0.5));
 
     renderTargets[RT.FULL_RES_0].texture.minFilter = THREE.LinearFilter;
     renderTargets[RT.FULL_RES_0].texture.generateMipmaps = false;
@@ -322,6 +336,15 @@ function _createRenderTargets(view) {
     renderTargets[RT.EDL_VALUES].texture.format = THREE.RGBAFormat;
     renderTargets[RT.EDL_VALUES].texture.minFilter = THREE.NearestFilter;
     renderTargets[RT.EDL_VALUES].texture.magFilter = THREE.NearestFilter;
+
+    renderTargets[RT.HALF_RES].texture.minFilter = THREE.LinearFilter;
+    renderTargets[RT.HALF_RES].texture.generateMipmaps = false;
+    renderTargets[RT.HALF_RES].depthBuffer = true;
+    renderTargets[RT.HALF_RES].texture.format = THREE.RGBAFormat;
+    renderTargets[RT.HALF_RES].texture.minFilter = THREE.NearestFilter;
+    renderTargets[RT.HALF_RES].texture.magFilter = THREE.NearestFilter;
+    renderTargets[RT.HALF_RES].depthTexture = new THREE.DepthTexture();
+    renderTargets[RT.HALF_RES].depthTexture.type = THREE.UnsignedShortType;
 
     return renderTargets;
 }
