@@ -55,80 +55,13 @@
         <div id="info">
 
         </div>
-        <div id="help">
-            <h4>Fonctionnement:</h4>
-            <p>Définir des segments de transformation.<br>Chaque transfo est défini par 4 points: 2 rouges (non déplaçables) et 2 jaunes.<br>La transfo est celle transformant le segment entre les points rouges en le segment entre les points jaunes.</p>
-            <p>Les segments sont indépendants, mais 2 segments connectés partagent un point de controle commun (et ont la même couleur)</p>
-            <p>Chaque segment a une zone d'influence, dont la taille est modifiable</p>
-            <h4>Controles:</h4>
-            <ul>
-                <li>double-clic: ajout d'un nouveau point Rouge. Ce point est connecté au point Rouge actif (= bordure verte) s'il existe</li>
-                <li>clic-droit (sur un point rouge): ce point devient le nouveau point actif</li>
-                <li>les points Jaune sont déplaçables, et définissent la transformation appliquée</li>
-                <li>les zones rectangles sont les zones "d'influence" de chaque transformation</li>
-                <li>molette + ctrl sur une zone d'influence : élargissement de la zone</li>
-                <li>molette + shift sur une zone d'influence : alongement de la zone</li>
-                <li>survol point Rouge + touche "Suppr": suppression du point</li>
-                <li>bouton <em>new_line</em> en haut à gauche : déselection du point Rouge actif</li>
-            </ul>
-        </div>
+
         <div id="splat"></div>
 
         <script src="/examples/GUI/GuiTools.js"></script>
         <script src="/dist/itowns.js"></script>
         <script src="/dist/debug.js"></script>
 
-        <script id="vertexShader" type="text/shader">
-#include <common>
-#include <logdepthbuf_pars_vertex>
-varying vec2 vUv;
-uniform vec2 origin;
-uniform float texWidth;
-uniform float texHeight;
-varying float realZ;
-void main() {
-    vec4 realPosition = modelMatrix * vec4(position, 1.0);
-    realZ = realPosition.z;
-    vUv = vec2((realPosition.x - origin.x) / texWidth , (realPosition.y - origin.y) / texHeight);
-
-    gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0);
-    #include <logdepthbuf_vertex>
-}
-
-        </script>
-        <script id="fragmentShader" type="text/shader">
-#include <common>
-#include <logdepthbuf_pars_fragment>
-uniform sampler2D geolTexture[2];
-varying vec2 vUv;
-varying float realZ;
-
-float convertFromRgb(const in float color, const in float min, const in float max) {
-    if (color == 0.0) return 0.0;
-    return min + color * (max - min);
-}
-void main() {
-// get z for texture 1
-    vec4 tex1Value = texture2D(geolTexture[0], vUv);
-    vec4 tex2Value = texture2D(geolTexture[1], vUv);
-
-    float z1 = convertFromRgb(tex1Value.r, 20.0, 45.0);
-    float z2 = convertFromRgb(tex2Value.r, 14.0, 71.0);
-
-    if (realZ < z2) {
-        gl_FragColor = vec4(1, 0, 0, 0.3);
-    } else if (realZ < z1) {
-        gl_FragColor = vec4(0, 1, 0, 0.3);
-    } else {
-        gl_FragColor = vec4(0, 0, 1, 0.3);
-    }
-
-    //gl_FragColor = tex1Value;
-    //gl_FragColor = vec4(1,1,0,vUv.x);
-
-    #include <logdepthbuf_fragment>
-}
-        </script>
         <script type="text/javascript">
 
             /* global itowns,document,GuiTools*/
