@@ -226,7 +226,7 @@ export default {
                             object: o,
                             index: candidates[i].index,
                             layer,
-                            position,
+                            point: position,
                             coord: candidates[i].coord,
                         });
                     }
