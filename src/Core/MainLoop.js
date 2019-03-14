@@ -192,7 +192,10 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
 
     if (context.distance.min != Infinity) {
         // Multiply min/max by (0.9, 1.1) to be on the safe side
-        view.camera.camera3D.near = Math.max(0.1, 0.9 * context.distance.min);
+        // TODO so we need to take into account objects added through view.scene.add !!
+        // and also every Object3D added independently to the scene !!
+        // layer and provider are not the correct abstraction for this. must be lower level (traverse view.scene ?)
+        view.camera.camera3D.near = 0.1;// Math.max(0.1, 0.9 * context.distance.min);
         view.camera.camera3D.far = 1.1 * context.distance.max;
     } else {
         view.camera.camera3D.near = previousNear;
