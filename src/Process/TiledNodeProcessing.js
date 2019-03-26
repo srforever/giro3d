@@ -93,7 +93,7 @@ function testTileSSE(tile, sse, maxLevel) {
     if (values.filter(v => v < (100 * tile.layer.sseScale)).length >= 1) {
         return false;
     }
-    return values.filter(v => v >= (256 * tile.layer.sseScale)).length >= 2;
+    return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
 }
 
 function preUpdate(context, layer, changeSources) {
