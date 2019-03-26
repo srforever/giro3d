@@ -68,12 +68,12 @@
             view.tileLayer.showOutline = true;
 
             // Add an TMS imagery layer
-            /*view.addLayer({
+            view.addLayer({
                 type: 'color',
                 protocol: 'xyz',
                 id: 'OPENSM',
                 // eslint-disable-next-line no-template-curly-in-string
-                url: 'http://geomarketer.oslandia.io/osm_standard/${z}/${x}/${y}.png',
+                url: 'http://127.0.0.1:8183/osm_standard/${z}/${x}/${y}.png',
                 networkOptions: { crossOrigin: 'use-credentials' },
                 extent: [extent.west(), extent.east(), extent.south(), extent.north()],
                 projection: 'EPSG:3857',
@@ -88,13 +88,13 @@
                     type: itowns.STRATEGY_DICHOTOMY,
                 },
                 sequence: 1
-            });*/
+            });
             view.addLayer({
                 type: 'color',
                 protocol: 'xyz',
                 id: 'OPEN_label',
                 // eslint-disable-next-line no-template-curly-in-string
-                url: 'http://geomarketer.oslandia.io/osm_label/${z}/${x}/${y}.png',
+                url: 'http://127.0.0.1:8183/osm_label/${z}/${x}/${y}.png',
                 networkOptions: { crossOrigin: 'use-credentials' },
                 extent: [extent.west(), extent.east(), extent.south(), extent.north()],
                 projection: 'EPSG:3857',
@@ -232,7 +232,7 @@
                         }
                     }
                 };
-                view.addLayer(serpent);
+                //view.addLayer(serpent);
                 document.getElementById('toggle-serpent').addEventListener('click', (e) => {
                     const existing = view.getLayers(l => l.id == 'serpent')[0];
                     if (existing) {
