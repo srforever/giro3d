@@ -65,18 +65,20 @@
             // By default itowns' tiles geometry have a "skirt" (ie they have a height),
             // but in case of orthographic we don't need this feature, so disable it
             view.tileLayer.disableSkirt = true;
+            view.tileLayer.showOutline = true;
 
             // Add an TMS imagery layer
-            view.addLayer({
+            /*view.addLayer({
                 type: 'color',
                 protocol: 'xyz',
                 id: 'OPENSM',
                 // eslint-disable-next-line no-template-curly-in-string
-                url: 'http://c.tile.stamen.com/watercolor/${z}/${x}/${y}.jpg',
-                networkOptions: { crossOrigin: 'anonymous' },
+                url: 'http://geomarketer.oslandia.io/osm_standard/${z}/${x}/${y}.png',
+                networkOptions: { crossOrigin: 'use-credentials' },
                 extent: [extent.west(), extent.east(), extent.south(), extent.north()],
                 projection: 'EPSG:3857',
                 options: {
+                    zoom: { min: 0, max: 25 },
                     attribution: {
                         name: 'OpenStreetMap',
                         url: 'http://www.openstreetmap.org/',
@@ -85,6 +87,28 @@
                 updateStrategy: {
                     type: itowns.STRATEGY_DICHOTOMY,
                 },
+                sequence: 1
+            });*/
+            view.addLayer({
+                type: 'color',
+                protocol: 'xyz',
+                id: 'OPEN_label',
+                // eslint-disable-next-line no-template-curly-in-string
+                url: 'http://geomarketer.oslandia.io/osm_label/${z}/${x}/${y}.png',
+                networkOptions: { crossOrigin: 'use-credentials' },
+                extent: [extent.west(), extent.east(), extent.south(), extent.north()],
+                projection: 'EPSG:3857',
+                options: {
+                    zoom: { min: 0, max: 25 },
+                    attribution: {
+                        name: 'OpenStreetMap',
+                        url: 'http://www.openstreetmap.org/',
+                    },
+                },
+                updateStrategy: {
+                    type: itowns.STRATEGY_DICHOTOMY,
+                },
+                sequence: 2
             });
 
             viewerDiv.addEventListener('DOMMouseScroll', onMouseWheel);
@@ -196,6 +220,10 @@
                     transparent: true,
                     style: {
                         strokeCap: 'round',
+                    },
+                    level: {
+                        min: 3,
+                        max: 999
                     },
                     options: {
                         featureCb: function (feat) {
