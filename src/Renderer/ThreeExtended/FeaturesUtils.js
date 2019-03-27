@@ -104,6 +104,7 @@ function pointIsInsidePolygon(point, polygonPoints) {
 }
 
 function isFeatureSingleGeometryUnderCoordinate(coordinate, type, coordinates, epsilon) {
+    // TODO support multipolygon case
     if (type == 'linestring' && pointIsOverLine(coordinate, coordinates, epsilon)) {
         return true;
     } else if (type == 'polygon' && pointIsInsidePolygon(coordinate, coordinates)) {

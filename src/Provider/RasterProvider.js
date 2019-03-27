@@ -50,6 +50,34 @@ function createTextureFromVector(tile, layer) {
     }
 }
 
+function _compareResultFromLevel(r1, r2) {
+    return r2.object.level - r1.object.level;
+}
+function pickObjectsAt(view, mouse, radius) {
+    // first find the coordinates (and so pick the tiles)
+    // find the parent layer
+    const parentLayer = view.getLayers(l => l.type === 'geometry' && l._attachedLayers.includes(this))[0];
+    const results = view.pickObjectsAt(mouse, radius, parentLayer.level0Nodes[0]);
+    if (results.length === 0) {
+        return [];
+    }
+    // we also get lower level tiles, but we only need to examine the higher level tiles (the more precise ones)
+    results.sort(_compareResultFromLevel);
+    const highestLevel = results[0].object.level;
+    const picked = [];
+    for (const result of results) {
+        if (result.object.level < highestLevel) {
+            break; // we have examined all the precise tiles
+        }
+        const point = result.point;
+        const pickedFeatures = Feature2Texture.featuresAtPoint(this.feature, result.object.extent, 256, this.style, point, radius);
+        for (const f of pickedFeatures) {
+            picked.push({ object: f, point, layer: this });
+        }
+    }
+    return picked;
+}
+
 export default {
     preprocessDataLayer(layer, view, scheduler, parentLayer) {
         if (!layer.url && !layer.geojson) {
@@ -76,6 +104,7 @@ export default {
         // It shouldn't use parent's texture outside its extent
         // Otherwise artefacts appear at the outer edge
         layer.noTextureParentOutsideLimit = true;
+        layer.pickObjectsAt = pickObjectsAt;
 
         const geojsonPromise = layer.geojson ?
             Promise.resolve(layer.geojson)

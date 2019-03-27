@@ -135,5 +135,43 @@ export default {
 
         return texture;
     },
+    featuresAtPoint(collection, extent, sizeTexture, style, point, radius) {
+        if (!collection) {
+            return [];
+        }
+        const results = [];
+
+        // We can only calculate the scale from the full tile
+        const dimension = extent.dimensions();
+        const scale = new THREE.Vector2(sizeTexture / dimension.x, sizeTexture / dimension.y);
+
+        // A texture is instancied drawn canvas
+        // origin and dimension are used to transform the feature's coordinates to canvas's space
+        const origin = new THREE.Vector2(point.x - radius / scale.x, point.y - radius / scale.y);
+
+        const c = document.createElement('canvas');
+
+        c.width = 1 + radius * 2;
+        c.height = 1 + radius * 2;
+        const ctx = c.getContext('2d');
+        ctx.globalCompositeOperation = 'source-over';
+
+        // Draw the canvas
+        for (const feature of collection.features) {
+            ctx.clearRect(0, 0, c.width, c.height);
+            drawFeature(ctx, feature, origin, scale, extent, style);
+            const imgd = ctx.getImageData(0, 0, c.width, c.height);
+            const pix = imgd.data;
+            let found = false;
+            for (let i = 0; i < imgd.data.length; i += 4) {
+                found = found || pix[i + 3] > 0; // for now we only test opacity > 0
+                if (found) break;
+            }
+            if (found) {
+                results.push(feature);
+            }
+        }
+        return results;
+    },
 };
 

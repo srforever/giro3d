@@ -11,6 +11,7 @@
     <body>
         <div id="viewerDiv">
             <button id="toggle-serpent">Toggle serpent</button>
+            <span id="info"></span>
         </div>
         <script src="../dist/itowns.js"></script>
         <script src="js/loading_screen.js"></script>
@@ -18,6 +19,13 @@
 
             /* global itowns, renderer */
             // # Orthographic viewer
+
+            function randomColor() {
+                const r = Math.floor(Math.random() * 256);
+                const g = Math.floor(Math.random() * 256);
+                const b = Math.floor(Math.random() * 256);
+                return `rgb(${r}, ${g}, ${b})`;
+            }
 
             // Define geographic extent: CRS, min/max X, min/max Y
             var extent = new itowns.Extent(
@@ -123,7 +131,7 @@
                     bottom: view.camera.camera3D.bottom,
                 };
             });
-            var obj;
+            const infoDiv = document.getElementById('info')
             viewerDiv.addEventListener('mousemove', function mouseMove(event) {
                 var width;
                 var deltaX;
@@ -142,11 +150,18 @@
                     view.notifyChange(view.camera.camera3D, true);
                 }
 
-                if (obj) {
-                    const intersects = view.pickObjectsAt(
-                            event,
-                            null,
-                            obj);
+                const regions = view.getLayers(l => l.name === 'regions')[0];
+
+                const startTime = performance.now();
+                const intersects = view.pickObjectsAt(
+                        event,
+                        null,
+                        regions);
+                console.log('time', performance.now() - startTime);
+                if (intersects.length > 0) {
+                    infoDiv.innerHTML = intersects.map(i => i.object.properties.nom).join(', ');
+                } else {
+                    infoDiv.innerHTML = '';
                 }
 
 
@@ -156,20 +171,30 @@
             });
 
 
-            /* itowns.Fetcher.json('/test2.geojson').then(function (json) {
-                itowns.GeoJsonParser.parse(json, { crsOut: 'EPSG:3857' } ).then(features => {
-                    obj = itowns.Feature2Mesh.convert()(features);
-                    obj.traverse(o => {
-                        o.renderOrder = 1;
-                        if (o.material) {
-                            o.material.transparent = true;
-                            o.material.opacity = 0.5;
+            itowns.Fetcher.json('/test2.geojson').then(function (json) {
+                const regions = {
+                    type: 'color',
+                    geojson: json,
+                    protocol: 'rasterizer',
+                    id: 'regions',
+                    name: 'regions',
+                    transparent: true,
+                    style: (properties) => {
+                        if (properties.style) {
+                            return properties.style;
+                        } else {
+                            properties.style = { fill: randomColor() };
+                            return properties.style;
                         }
-                    });
-                    view.scene.add(obj);
-                    view.notifyChange(obj, true);
-                });
-            }); */
+                    },
+                    level: {
+                        min: 3,
+                        max: 999
+                    },
+                    sequence: 2,
+                };
+                view.addLayer(regions);
+            });
             /*itowns.Fetcher.json('/test3.geojson').then(function (geojson) {
                 const THREE = itowns.THREE;
                 for (const jsonFeat of geojson.features) {
@@ -230,9 +255,10 @@
                             feat.properties.stroke = feat.properties.tmtm > 500000 ? red.getStyle() : yellow.getStyle();
                             feat.properties['stroke-width'] = feat.properties.tmtm > 500000 ? '10.0': '1.0';
                         }
-                    }
+                    },
+                    sequence: 3,
                 };
-                //view.addLayer(serpent);
+                view.addLayer(serpent);
                 document.getElementById('toggle-serpent').addEventListener('click', (e) => {
                     const existing = view.getLayers(l => l.id == 'serpent')[0];
                     if (existing) {
