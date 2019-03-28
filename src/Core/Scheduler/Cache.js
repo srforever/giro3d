@@ -96,6 +96,13 @@ const Cache = {
         return value;
     },
 
+    deletePrefix: (prefix) => {
+        for (const key of data.keys()) {
+            if (key.startsWith && key.startsWith(prefix)) {
+                data.delete(key);
+            }
+        }
+    },
     /**
      * Deletes the specified entry from the cache.
      *

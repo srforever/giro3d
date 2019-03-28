@@ -106,6 +106,11 @@ export default {
         layer.noTextureParentOutsideLimit = true;
         layer.pickObjectsAt = pickObjectsAt;
 
+        // TODO implement this for every provider using Cache
+        layer.clean = () => {
+            Cache.deletePrefix(layer.id);
+        };
+
         const geojsonPromise = layer.geojson ?
             Promise.resolve(layer.geojson)
             :

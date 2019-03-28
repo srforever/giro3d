@@ -257,12 +257,16 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
 
 function _cleanLayer(view, layer, parentLayer) {
     // XXX do providers needs to clean their layers ? Usually it's just some properties initialisation...
-    // provider.cleanDataLayer(layer, view, view.mainLoop.scheduler, parentLayer);
+    // - YES they do, because Providers use Cache, and they know which key they
+    // use. (this behaviour is dangerous and we should change this)
     if (layer.type == 'color') {
         ColorTextureProcessing.cleanLayer(view, layer, parentLayer);
     } else if (layer.type == 'elevation') {
         // TODO
         // ElevationTextureProcessing.clean(layer, parentLayer.object3d);
+    }
+    if (typeof layer.clean === 'function') {
+        layer.clean();
     }
 }
 
