@@ -20,8 +20,7 @@
     "*.md",
     "dist",
     "lib",
-    "doc",
-    "examples"
+    "doc"
   ],
   "repository": {
     "type": "git",
