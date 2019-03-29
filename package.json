@@ -1,5 +1,5 @@
 {
-  "name": "itowns",
+  "name": "@autra/itowns",
   "version": "2.3.3",
   "description": "A JS/WebGL framework for 3D geospatial data visualization",
   "main": "lib/Main.js",
