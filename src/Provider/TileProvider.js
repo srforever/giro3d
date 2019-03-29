@@ -77,6 +77,9 @@ function executeCommand(command) {
     const material = new LayeredMaterial(layer.materialOptions, segment, layer.atlasInfo);
     const tile = new TileMesh(layer, geometry, material, extent, level);
     tile.layers.set(command.threejsLayer);
+    if (layer.renderOrder != undefined) {
+        tile.renderOrder = layer.renderOrder;
+    }
     material.opacity = layer.opacity;
 
     if (parent && parent instanceof TileMesh) {
