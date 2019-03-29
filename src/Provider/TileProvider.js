@@ -116,7 +116,7 @@ function executeCommand(command) {
             if (!elevation[0].minmax) {
                 console.error('fix the provider');
             }
-            tile.setBBoxZ(elevation[0].minmax.min, elevation[0].minmax.max)
+            tile.setBBoxZ(elevation[0].minmax.min, elevation[0].minmax.max);
         }
     }
 

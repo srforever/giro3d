@@ -193,7 +193,7 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
                     if (n.setBBoxZ) {
                         n.setBBoxZ(layer.minmax.min, layer.minmax.max);
                     }
-                })
+                });
             }
 
 
@@ -391,13 +391,13 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
                         max: layer.minmax.max,
                     };
                     for (const node of parentLayer.level0Nodes) {
-                        node.traverse(n => {
+                        node.traverse((n) => {
                             if (n.setBBoxZ) {
                                 n.setBBoxZ(
                                     parentLayer.minMaxFromElevationLayer.min,
                                     parentLayer.minMaxFromElevationLayer.max);
                             }
-                        })
+                        });
                     }
                     console.log(parentLayer.minMaxFromElevationLayer);
                 }

@@ -33,7 +33,7 @@ export default {
         maxSize = 2048;
         // Use a 1 pixel border to avoid color bleed when sampling at the edges
         // of the texture
-        const colorBleedHalfOffset = 0;//1; // imageSizes.length == 1 ? 0 : 1;
+        const colorBleedHalfOffset = 0;// 1; // imageSizes.length == 1 ? 0 : 1;
         const blocks = [];
 
         for (let i = 0; i < imageSizes.length; i++) {
@@ -55,7 +55,7 @@ export default {
 
         let previousRoot;
         if (oldAtlas) {
-            for (const k in oldAtlas) {
+            for (const k in oldAtlas) { // eslint-disable-line guard-for-in
                 const fit = oldAtlas[k];
                 if (fit.x == 0 && fit.y == 0) {
                     // Updating

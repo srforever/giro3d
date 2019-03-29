@@ -82,7 +82,7 @@ function testTileSSE(tile, sse, maxLevel) {
 
     const values = [
         sse.lengths.x * sse.ratio,
-        sse.lengths.y * sse.ratio
+        sse.lengths.y * sse.ratio,
     ];
 
     // TODO: depends on texture size of course

@@ -55,6 +55,7 @@ module.exports = {
 
         // deactivated rules for `examples/`
         'no-console': 'off',
+        'no-unused-vars': 'off',
 
         // TODO reactivate all the following rules
         'no-underscore-dangle': 'off',

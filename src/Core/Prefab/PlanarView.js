@@ -11,8 +11,8 @@ import Coordinates from '../Geographic/Coordinates';
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = tileCount * x / layerDimension.x;
     const ty = tileCount * y / layerDimension.y;
-    return { x: Math.floor(tx), y: Math.floor(ty) }
- }
+    return { x: Math.floor(tx), y: Math.floor(ty) };
+}
 
 
 // return the 3857 tile that fully contains the given extent
@@ -28,7 +28,7 @@ function compute3857Extent(tileExtent) {
         Math.floor(layerDimension.x / tileExtent.dimensions().x),
         Math.floor(layerDimension.y / tileExtent.dimensions().y));
     // ... 2^zoom = tilecount => zoom = log2(tilecount)
-    let zoom = Math.floor(Math.log2(tileCount));
+    const zoom = Math.floor(Math.log2(tileCount));
 
     const tl = new Coordinates('EPSG:3857', tileExtent.west(), tileExtent.north());
     const br = new Coordinates('EPSG:3857', tileExtent.east(), tileExtent.south());

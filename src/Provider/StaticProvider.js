@@ -49,7 +49,7 @@ function selectBestImageForExtent(layer, extent) {
         // console.log(cov, entry.image)
         if (cov >= coverage) {
             if (!selection) {
-                selection = entry
+                selection = entry;
                 coverage = cov;
             } else if (cov == coverage) {
                 const d1 = entry.extent.dimensions();
@@ -79,19 +79,19 @@ function getTexture(toDownload, layer) {
         OGCWebServiceHelper.getXBilTextureByUrl(toDownload.url, layer.networkOptions) :
          OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions)).then((texture) => {
         // adjust pitch
-        const result = {
-            texture,
-            pitch: toDownload.pitch || new Vector4(0, 0, 1, 1),
-        };
+             const result = {
+                 texture,
+                 pitch: toDownload.pitch || new Vector4(0, 0, 1, 1),
+             };
 
-        result.texture.extent = toDownload.selection.extent;
-        result.texture.file = toDownload.selection.image;
-        if (layer.transparent) {
-            texture.premultiplyAlpha = true;
-        }
+             result.texture.extent = toDownload.selection.extent;
+             result.texture.file = toDownload.selection.image;
+             if (layer.transparent) {
+                 texture.premultiplyAlpha = true;
+             }
 
-        return result;
-    });
+             return result;
+         });
 }
 
 
@@ -134,14 +134,14 @@ export default {
             }
             layer._spatialIndex.finish();
 
-            const s = selectBestImageForExtent(layer, layer.extent)
+            const s = selectBestImageForExtent(layer, layer.extent);
             return getTexture({
                 url: buildUrl(layer, s.image),
                 selection: s,
             }, layer).then((result) => {
                 layer.imageSize = {
                     w: result.texture.image.width,
-                    h: result.texture.image.height
+                    h: result.texture.image.height,
                 };
             });
         });

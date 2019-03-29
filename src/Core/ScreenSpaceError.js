@@ -11,7 +11,7 @@ const temp = [
     new THREE.Vector3(),
 ];
 
-function easeInOutQuad(t) { return t<.5 ? 2*t*t : -1+(4-2*t)*t }
+function easeInOutQuad(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
 
 function computeSSE(offset, size, matrix, camera, _3d) {
     temp[0].copy(offset);
@@ -50,7 +50,7 @@ function computeSSE(offset, size, matrix, camera, _3d) {
         x: temp[1].clone(),
         y: temp[2].clone(),
         lengths: { },
-        area
+        area,
     };
     result.lengths.x = temp[1].sub(temp[0]).length();
     result.lengths.y = temp[2].sub(temp[0]).length();
@@ -112,7 +112,7 @@ export default {
 
         const size = computeSizeFromGeometricError(
             box3, geometricError, mode == this.MODE_3D);
-        let offset = box3.min;
+        const offset = box3.min;
 
         const sse = computeSSE(
             offset, size, matrix,
@@ -135,7 +135,7 @@ export default {
 
     initDebugTool(view) {
         // Should move to a proper debug tool.. later
-        const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
         svg.style.top = '0px';
         svg.style.left = '0px';
         svg.style.width = '100%';
@@ -145,47 +145,47 @@ export default {
         document.getElementById('viewerDiv').appendChild(svg);
 
         document.addEventListener('click', (evt) => {
-          const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
-          if (!r.length) return;
-          const obj = r[0].object;
-          console.log(obj)
+            const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
+            if (!r.length) return;
+            const obj = r[0].object;
+            console.log(obj);
 
           // const svg = document.getElementsByClassName('maa')[0];
-          while (svg.firstChild) {
-              svg.removeChild(svg.firstChild);
-          }
-          function addLine(v1, v2, length, color) {
-              const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-              line.setAttribute('x1', v1.x.toFixed());
-              line.setAttribute('y1', v1.y.toFixed())
-              line.setAttribute('x2', v2.x.toFixed())
-              line.setAttribute('y2', v2.y.toFixed())
-              line.setAttribute('stroke', color);
-              svg.append(line);
+            while (svg.firstChild) {
+                svg.removeChild(svg.firstChild);
+            }
+            function addLine(v1, v2, length, color) {
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', v1.x.toFixed());
+                line.setAttribute('y1', v1.y.toFixed());
+                line.setAttribute('x2', v2.x.toFixed());
+                line.setAttribute('y2', v2.y.toFixed());
+                line.setAttribute('stroke', color);
+                svg.append(line);
 
-              const text2 = document.createElementNS('http://www.w3.org/2000/svg','text');
-              text2.setAttribute('x', ((v1.x + v2.x) * 0.5).toFixed());
-              text2.setAttribute('y', ((v1.y + v2.y) * 0.5 - 10).toFixed());
-              text2.setAttribute('stroke', color);
-              text2.textContent = length.toFixed();
-              svg.append(text2);
-          }
+                const text2 = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text2.setAttribute('x', ((v1.x + v2.x) * 0.5).toFixed());
+                text2.setAttribute('y', ((v1.y + v2.y) * 0.5 - 10).toFixed());
+                text2.setAttribute('stroke', color);
+                text2.textContent = length.toFixed();
+                svg.append(text2);
+            }
 
-          addLine(obj.sse.origin, obj.sse.x, obj.sse.lengths.x, 'yellow');
-          addLine(obj.sse.origin, obj.sse.y, obj.sse.lengths.y, 'purple');
+            addLine(obj.sse.origin, obj.sse.x, obj.sse.lengths.x, 'yellow');
+            addLine(obj.sse.origin, obj.sse.y, obj.sse.lengths.y, 'purple');
 
-          const origin = document.createElementNS('http://www.w3.org/2000/svg','circle');
-          origin.setAttribute('cx', obj.sse.origin.x.toFixed());
-          origin.setAttribute('cy', obj.sse.origin.y.toFixed())
-          origin.setAttribute('r', 5)
-          origin.setAttribute('stroke', 'black');
-          svg.append(origin);
-          const text = document.createElementNS('http://www.w3.org/2000/svg','text');
-          text.setAttribute('x', (obj.sse.origin.x + 10).toFixed());
-          text.setAttribute('y', (obj.sse.origin.y - 10).toFixed())
-          text.textContent = obj.id;
+            const origin = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            origin.setAttribute('cx', obj.sse.origin.x.toFixed());
+            origin.setAttribute('cy', obj.sse.origin.y.toFixed());
+            origin.setAttribute('r', 5);
+            origin.setAttribute('stroke', 'black');
+            svg.append(origin);
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', (obj.sse.origin.x + 10).toFixed());
+            text.setAttribute('y', (obj.sse.origin.y - 10).toFixed());
+            text.textContent = obj.id;
 
-          svg.append(text);
+            svg.append(text);
         });
-    }
+    },
 };

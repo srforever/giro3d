@@ -16,11 +16,15 @@ const fooCanvas = document.createElement('canvas');
 fooCanvas.width = 256;
 fooCanvas.height = 256;
 
+function tr(r, g, b) {
+    return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
+}
+
 export function minMaxFromTexture(layer, texture) {
     if (texture.min != undefined && texture.max != undefined) {
         return {
             min: texture.min,
-            max: texture.max
+            max: texture.max,
         };
     }
 
@@ -33,17 +37,13 @@ export function minMaxFromTexture(layer, texture) {
         fooCtx.drawImage(texture.image, 0, 0);
         const data = fooCtx.getImageData(0, 0, w, h).data;
         const stride = w * 4;
-        return { data, stride, h }
+        return { data, stride, h };
     }
 
     let min = Infinity;
     let max = -Infinity;
     if (layer.format == ELEVATION_FORMAT.MAPBOX_RGB) {
         const { data, stride, h } = colorImageSetup();
-        function tr(r, g, b) {
-            return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
-        }
-
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < stride; j += 4) {
                 const val = tr(
@@ -62,8 +62,8 @@ export function minMaxFromTexture(layer, texture) {
         const { data, stride, h } = colorImageSetup();
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < stride; j += 4) {
-                min = Math.min(min, data[i * stride + j])
-                max = Math.max(max, data[i * stride + j])
+                min = Math.min(min, data[i * stride + j]);
+                max = Math.max(max, data[i * stride + j]);
             }
         }
         min = layer.heightFieldOffset + layer.heightFieldScale * (min / 255);
@@ -80,8 +80,8 @@ export function minMaxFromTexture(layer, texture) {
         // TODO
         min = -1000;
         max = 1000;
-    } else {
-        throw new Error('Unsupported layer.format "' + layer.format + "'");
+    } else {
+        throw new Error(`Unsupported layer.format "${layer.format}'`);
     }
 
     texture.min = min;

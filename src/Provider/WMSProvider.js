@@ -187,7 +187,7 @@ function getColorTexture(layer, toDownload) {
 }
 
 function executeCommand(command) {
-    return getColorTexture(command.layer, command.toDownload)
+    return getColorTexture(command.layer, command.toDownload);
 }
 
 export default {

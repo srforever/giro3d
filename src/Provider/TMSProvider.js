@@ -121,14 +121,14 @@ function executeCommand(command) {
 
     const promises = [];
     const promise = layer.format === 'application/x-protobuf;type=mapbox-vector' ?
-        VectorTileHelper.getVectorTileTextureByUrl(command.toDownload, command.requester, layer, todo.extent) :
+        VectorTileHelper.getVectorTileTextureByUrl(command.toDownload, command.requester, layer/* , todo.extent */) :
         OGCWebServiceHelper.getColorTextureByUrl(command.toDownload, layer.networkOptions);
 
     return promise.then((texture) => {
         const result = {};
         result.texture = texture;
-        result.texture.extent = todo.extent;
-        result.pitch = todo.pitch;
+        // result.texture.extent = todo.extent;
+        // result.pitch = todo.pitch;
         if (layer.transparent) {
             texture.premultiplyAlpha = true;
         }

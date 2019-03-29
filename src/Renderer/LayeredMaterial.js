@@ -104,9 +104,9 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
 
     // Color textures's layer
     this.uniforms.colorTexture = new THREE.Uniform(this.texturesInfo.color.atlasTexture);
-    this.uniforms.colorOffsetScale = new THREE.Uniform(); //this.texturesInfo.color.offsetScale);
-    this.uniforms.colorOpacity = new THREE.Uniform(); //this.texturesInfo.color.opacity);
-    this.uniforms.colorVisible = new THREE.Uniform(); //this.texturesInfo.color.visible);
+    this.uniforms.colorOffsetScale = new THREE.Uniform(); // this.texturesInfo.color.offsetScale);
+    this.uniforms.colorOpacity = new THREE.Uniform(); // this.texturesInfo.color.opacity);
+    this.uniforms.colorVisible = new THREE.Uniform(); // this.texturesInfo.color.visible);
     this.uniforms.colors = new THREE.Uniform(this.texturesInfo.color.colors);
 
     this.uniforms.uuid = new THREE.Uniform(0);
@@ -316,7 +316,7 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
                     this.texturesInfo.color.offsetScale[index],
                     this.canvasRevision);
             }
-            this.pendingUpdates.length = 0
+            this.pendingUpdates.length = 0;
             this.texturesInfo.color.atlasTexture.needsUpdate = true;
             if (this.visible) {
                 view.notifyChange();
@@ -402,7 +402,7 @@ LayeredMaterial.prototype.pushLayer = function pushLayer(newLayer) {
     this.texturesInfo.color.offsetScale.push(new THREE.Vector4(0, 0, 0, 0));
     this.texturesInfo.color.originalOffsetScale.push(new THREE.Vector4(0, 0, 0, 0));
     this.texturesInfo.color.textures.push(emptyTexture);
-    this.texturesInfo.color.colors.push(newLayer.color || new THREE.Color(1, 1, 1));
+    this.texturesInfo.color.colors.push(newLayer.color || new THREE.Color(1, 1, 1));
     this.colorLayers.push(newLayer);
 
     if (this.colorLayers.length == 1) {
@@ -427,7 +427,7 @@ LayeredMaterial.prototype.update = function update() {
         newCanvas.width = this.atlasInfo.maxX;
         newCanvas.height = this.atlasInfo.maxY;
         if (this.canvas.width > 0) {
-            console.log("Redraw")
+            console.log('Redraw');
             const ctx = newCanvas.getContext('2d');
             ctx.drawImage(this.canvas, 0, 0, this.canvas.width, this.canvas.height);
         }
@@ -501,19 +501,19 @@ export function initDebugTool(view) {
     document.getElementById('viewerDiv').appendChild(div);
 
     document.addEventListener('click', (evt) => {
-      const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
-      if (!r.length) return;
-      const obj = r[0].object;
+        const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
+        if (!r.length) return;
+        const obj = r[0].object;
 
-      while (div.firstChild) {
-          div.removeChild(div.firstChild);
-      }
-      if (obj.material.canvas) {
-        obj.material.uniforms.colorTexture.value.image.style.width = '100%';
-        div.appendChild(obj.material.uniforms.colorTexture.value.image);
-        obj.material.canvas.style.width = '100%';
-        div.appendChild(obj.material.canvas);
-      }
+        while (div.firstChild) {
+            div.removeChild(div.firstChild);
+        }
+        if (obj.material.canvas) {
+            obj.material.uniforms.colorTexture.value.image.style.width = '100%';
+            div.appendChild(obj.material.uniforms.colorTexture.value.image);
+            obj.material.canvas.style.width = '100%';
+            div.appendChild(obj.material.canvas);
+        }
     });
 }
 

@@ -36,7 +36,6 @@ function TileMesh(layer, geometry, material, extent, level) {
     this.material.uniforms.tileDimensions.value.set(dim.x, dim.y);
 
     if (layer.minMaxFromElevationLayer) {
-
         this.setBBoxZ(layer.minMaxFromElevationLayer.min, layer.minMaxFromElevationLayer.max);
     }
 

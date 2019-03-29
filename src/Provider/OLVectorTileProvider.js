@@ -32,9 +32,7 @@ const emptyPitch = new Vector4(0, 0, 1, 1);
 
 function Foo() {
     this.storage = {};
-    this.contains = (tileCoord) => {
-        return tileCoord in this.storage;
-    }
+    this.contains = tileCoord => tileCoord in this.storage;
 }
 
 function preprocessDataLayer(layer) {
@@ -113,7 +111,7 @@ function tileCoordForExtent(tileGrid, extent) {
 }
 
 function executeCommand(command) {
-    return loadTile(command.requester, command.toDownload, command.layer)
+    return loadTile(command.requester, command.toDownload, command.layer);
 }
 
 function loadTile(node, tile, layer) {
@@ -193,7 +191,7 @@ function createReplayGroup(tile, layer) {
     for (let t = 0, tt = tile.tileKeys.length; t < tt; ++t) {
         const sourceTile = tile.getTile(tile.tileKeys[t]);
         if (sourceTile.getState() != TileState.LOADED) {
-            console.log('not loaded !!!')
+            console.log('not loaded !!!');
             continue;
         }
         const sourceTileCoord = sourceTile.tileCoord;

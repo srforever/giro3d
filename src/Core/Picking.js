@@ -192,7 +192,7 @@ export default {
             const pickingId = data[0] + ((data[1] & 0xf0) << 4);
 
             if (pickingId > visibleId) {
-                console.log('weird')
+                console.log('weird');
                 console.log(pickingId);
             }
             // the remaining 20 bits = the point index

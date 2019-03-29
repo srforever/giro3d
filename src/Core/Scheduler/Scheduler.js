@@ -81,7 +81,7 @@ function _instanciateQueue() {
             // commands pending
             pending: 0,
         },
-        execute(cmd, provider, countersIncrement=1) {
+        execute(cmd, provider, countersIncrement = 1) {
             this.counters.pending -= countersIncrement;
             this.counters.executing += countersIncrement;
             return provider.executeCommand(cmd).then((result) => {
