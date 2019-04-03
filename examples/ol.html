@@ -72,7 +72,7 @@
                 type: 'color',
                 protocol: 'oltile',
                 source: stamenSource
-            });
+            }).catch(e => console.error(e));
 
             // Add a WMS layer
             view.addLayer({
@@ -81,7 +81,7 @@
                 protocol: 'oltile',
                 source: wmsSource,
                 transparent: true,
-            });
+            }).catch(e => console.error(e));
 
             // Add a vector layer
 
