@@ -57,13 +57,14 @@ const tmp = {
     v: new Vector3(),
 };
 
-function updateMinMaxDistance(context, node) {
+function updateMinMaxDistance(context, layer, node) {
     const bbox = node.OBB().box3D.clone()
         .applyMatrix4(node.OBB().matrixWorld);
     const distance = context.distance.plane
         .distanceToPoint(bbox.getCenter(tmp.v));
     const radius = bbox.getSize(tmp.v).length() * 0.5;
-    context.distance.update(distance - radius, distance + radius);
+    layer._distance.min = Math.min(layer._distance.min, distance - radius);
+    layer._distance.max = Math.max(layer._distance.max, distance + radius);
 }
 
 // TODO: maxLevel should be deduced from layers
@@ -147,7 +148,7 @@ function update(context, layer, node) {
         if (!context.fastUpdateHint.isAncestorOf(node)) {
             // if visible, children bbox can only be smaller => stop updates
             if (node.material.visible) {
-                updateMinMaxDistance(context, node);
+                updateMinMaxDistance(context, layer, node);
                 return;
             } else if (node.visible) {
                 return node.children.filter(n => n.layer == layer);
@@ -196,7 +197,7 @@ function update(context, layer, node) {
         if (node.material.visible) {
             node.material.update();
 
-            updateMinMaxDistance(context, node);
+            updateMinMaxDistance(context, layer, node);
 
             // update uniforms
             if (!requestChildrenUpdate) {

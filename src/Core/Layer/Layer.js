@@ -103,6 +103,9 @@ function GeometryLayer(id, object3d) {
     };
 
     this.postUpdate = () => {};
+
+    // processing can overwrite that with values calculating from this layer's Object3D
+    this._distance = { min: Infinity, max: 0 };
 }
 
 GeometryLayer.prototype = Object.create(EventDispatcher.prototype);

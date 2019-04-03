@@ -90,11 +90,12 @@ function markForDeletion(elt) {
     }
 }
 
-function updateMinMaxDistance(context, bbox) {
+function updateMinMaxDistance(context, layer, bbox) {
     const distance = context.distance.plane
         .distanceToPoint(bbox.getCenter());
     const radius = bbox.getSize(tmp.v).length() * 0.5;
-    context.distance.update(distance - radius, distance + radius);
+    layer._distance.min = Math.min(layer._distance.min, distance - radius);
+    layer._distance.max = Math.max(layer._distance.max, distance + radius);
     return distance;
 }
 
@@ -169,7 +170,7 @@ export default {
             if (!elt.visible) {
                 return;
             }
-            updateMinMaxDistance(context, bbox);
+            updateMinMaxDistance(context, layer, bbox);
         } else {
             elt.visible = context.camera.isBox3Visible(bbox, layer.object3d.matrixWorld);
 
@@ -178,7 +179,7 @@ export default {
                 return;
             }
 
-            const distance = updateMinMaxDistance(context, bbox);
+            const distance = updateMinMaxDistance(context, layer, bbox);
             elt.notVisibleSince = undefined;
 
             // only load geometry if this elements has points

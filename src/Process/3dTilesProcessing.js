@@ -320,16 +320,9 @@ export function pre3dTilesUpdate(context, layer) {
 const boundingVolumeBox = new THREE.Box3();
 const boundingVolumeSphere = new THREE.Sphere();
 export function computeNodeSSE(context, node) {
-    node.distance = 0;
     if (node.boundingVolume.region) {
         throw new Error('boundingVolume.region is unsupported');
     } else if (node.boundingVolume.box) {
-        // boundingVolume.box is affected by matrixWorld
-        boundingVolumeBox.copy(node.boundingVolume.box);
-        boundingVolumeBox.applyMatrix4(node.matrixWorld);
-        node.distance = boundingVolumeBox.distanceToPoint(context.camera.camera3D.position);
-        context.distance.update(node.distance, node.boundingVolume.box.getSize(tmp.v));
-
         const sse = ScreenSpaceError.computeFromBox3(
             context.camera,
             node.boundingVolume.box,
@@ -341,15 +334,7 @@ export function computeNodeSSE(context, node) {
             return Infinity;
         }
         return Math.max(sse.lengths.x, sse.lengths.y);
-    } else if (node.boundingVolume.sphere) {
-        // boundingVolume.sphere is affected by matrixWorld
-        boundingVolumeSphere.copy(node.boundingVolume.sphere);
-        boundingVolumeSphere.applyMatrix4(node.matrixWorld);
-        // TODO: see https://github.com/iTowns/itowns/issues/800
-        node.distance = Math.max(0.0,
-            boundingVolumeSphere.distanceToPoint(context.camera.camera3D.position));
-        context.distance.update(node.distance, 2 * node.boundingVolume.sphere.radius);
-    } else {
+    } else if (!node.boundingVolume.sphere) {
         return Infinity;
     }
     if (node.distance === 0) {
@@ -401,6 +386,27 @@ function isTilesetContentReady(tileset, node) {
         node.children[0].children.length > 0;
 }
 
+function calculateCameraDistance(context, node) {
+    node.distance = 0;
+    if (node.boundingVolume.region) {
+        throw new Error('boundingVolume.region is unsupported');
+    } else if (node.boundingVolume.box) {
+        // boundingVolume.box is affected by matrixWorld
+        // TODO this calculation is shared with computeNodeSSE. Cache maybe ?
+        boundingVolumeBox.copy(node.boundingVolume.box);
+        boundingVolumeBox.applyMatrix4(node.matrixWorld);
+        node.distance = boundingVolumeBox.distanceToPoint(context.camera.camera3D.position);
+    } else if (node.boundingVolume.sphere) {
+        // boundingVolume.sphere is affected by matrixWorld
+        // TODO this calculation is shared with computeNodeSSE. Cache maybe ?
+        boundingVolumeSphere.copy(node.boundingVolume.sphere);
+        boundingVolumeSphere.applyMatrix4(node.matrixWorld);
+        // TODO: see https://github.com/iTowns/itowns/issues/800
+        node.distance = Math.max(0.0,
+            boundingVolumeSphere.distanceToPoint(context.camera.camera3D.position));
+    }
+}
+
 export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTest = $3dTilesSubdivisionControl) {
     return function _process3dTilesNodes(context, layer, node) {
         // Remove deleted children (?)
@@ -421,6 +427,11 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
         if (isVisible) {
             unmarkForDeletion(layer, node);
 
+            // We need distance for 2 things:
+            // - subdivision testing
+            // - near / far calculation in MainLoop. For this one, we need the distance for *all* displayed tiles.
+            // For this last reason, we need to calculate this here, and not in subdivisionControl
+            calculateCameraDistance(context, node);
             if (node.pendingSubdivision || subdivisionTest(context, layer, node)) {
                 subdivideNode(context, layer, node, cullingTest);
                 // display iff children aren't ready
@@ -457,6 +468,16 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
             }
             // update material
             if (node.content && node.content.visible) {
+                // it will therefore contribute to near / far calculation
+                if (node.boundingVolume.region) {
+                    throw new Error('boundingVolume.region is not yet supported');
+                } else if (node.boundingVolume.box) {
+                    layer._distance.min = Math.min(layer._distance.min, node.distance);
+                    layer._distance.max = Math.max(layer._distance.max, node.boundingVolume.box.getSize(tmp.v).length());
+                } else if (node.boundingVolume.sphere) {
+                    layer._distance.min = Math.min(layer._distance.min, node.distance);
+                    layer._distance.max = Math.max(layer._distance.max, 2 * node.boundingVolume.sphere.radius);
+                }
                 node.content.traverse((o) => {
                     if (o.layer == layer && o.material) {
                         o.material.wireframe = layer.wireframe;

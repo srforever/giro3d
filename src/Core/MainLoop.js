@@ -5,6 +5,9 @@ import Cache from '../Core/Scheduler/Cache';
 export const RENDERING_PAUSED = 0;
 export const RENDERING_SCHEDULED = 1;
 
+// TODO should probably be configurable?
+const MAX_DISTANCE = 2000000000;
+
 /**
  * MainLoop's update events list that are fired using
  * {@link View#execFrameRequesters}.
@@ -138,13 +141,6 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
         // or a partial update and to act accordingly
         fastUpdateHint: undefined,
     };
-    context.distance.update = (dist, size) => {
-        if (size.isVector3) {
-            size = size.length();
-        }
-        context.distance.min = Math.min(context.distance.min, dist);
-        context.distance.max = Math.max(context.distance.max, dist + size);
-    };
 
     const previousNear = view.camera.camera3D.near;
     const previousFar = view.camera.camera3D.far;
@@ -152,7 +148,7 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
     // visibility using camera's frustum; without depending on the near/far
     // values which are only used for rendering.
     view.camera.camera3D.near = 0.1;
-    view.camera.camera3D.far = 2000000000;
+    view.camera.camera3D.far = MAX_DISTANCE;
     // We can't just use camera3D.updateProjectionMatrix() because part of
     // the update process use camera._viewMatrix, and this matrix depends
     // on near/far values.
@@ -178,6 +174,11 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
             // Filter updateSources that are relevant for the geometryLayer
             const srcs = filterChangeSources(updateSources, geometryLayer);
             if (srcs.size > 0) {
+                // if we don't have any element in srcs, it means we don't need to update our layer to display it correctly.
+                // but in this case we still need to use layer._distance to calculate near / far
+                // hence the reset is here, and the update of context.distance is outside of this if
+                geometryLayer._distance.min = Infinity;
+                geometryLayer._distance.max = 0;
                 // `preUpdate` returns an array of elements to update
                 const elementsToUpdate = geometryLayer.preUpdate(context, geometryLayer, srcs);
                 // `update` is called in `updateElements`.
@@ -185,22 +186,23 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
                 // `postUpdate` is called when this geom layer update process is finished
                 geometryLayer.postUpdate(context, geometryLayer, updateSources);
             }
-
+            if (geometryLayer._distance) {
+                context.distance.min = Math.min(context.distance.min, geometryLayer._distance.min);
+                if (geometryLayer._distance.max == Infinity) {
+                    context.distance.max = MAX_DISTANCE;
+                } else {
+                    context.distance.max = Math.max(context.distance.max, geometryLayer._distance.max);
+                }
+            }
             view.execFrameRequesters(MAIN_LOOP_EVENTS.AFTER_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer);
         }
     }
 
-    if (context.distance.min != Infinity) {
-        // Multiply min/max by (0.9, 1.1) to be on the safe side
-        // TODO so we need to take into account objects added through view.scene.add !!
-        // and also every Object3D added independently to the scene !!
-        // layer and provider are not the correct abstraction for this. must be lower level (traverse view.scene ?)
-        view.camera.camera3D.near = 0.1;// Math.max(0.1, 0.9 * context.distance.min);
-        view.camera.camera3D.far = 1.1 * context.distance.max;
-    } else {
-        view.camera.camera3D.near = previousNear;
-        view.camera.camera3D.far = previousFar;
-    }
+    // TODO so we need to take into account objects added through view.scene.add !!
+    // and also every Object3D added independently to the scene !!
+    // layer and provider are not the correct abstraction for this. must be lower level (traverse view.scene ?)
+    view.camera.camera3D.near = context.distance.min === Infinity ? previousNear : 0.1; // context.distance.min;
+    view.camera.camera3D.far = THREE.Math.clamp(context.distance.max, view.camera.camera3D.near, MAX_DISTANCE);
     view.camera.update();
 };
 
