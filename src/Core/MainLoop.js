@@ -1,4 +1,4 @@
-import { Vector3, Plane, EventDispatcher } from 'three';
+import { Vector3, Plane, EventDispatcher, Math as ThreeMath } from 'three';
 import { GeometryLayer, Layer } from './Layer/Layer';
 import Cache from '../Core/Scheduler/Cache';
 
@@ -202,7 +202,7 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
     // and also every Object3D added independently to the scene !!
     // layer and provider are not the correct abstraction for this. must be lower level (traverse view.scene ?)
     view.camera.camera3D.near = context.distance.min === Infinity ? previousNear : 0.1; // context.distance.min;
-    view.camera.camera3D.far = THREE.Math.clamp(context.distance.max, view.camera.camera3D.near, MAX_DISTANCE);
+    view.camera.camera3D.far = ThreeMath.clamp(context.distance.max, view.camera.camera3D.near, MAX_DISTANCE);
     view.camera.update();
 };
 
