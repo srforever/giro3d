@@ -32,16 +32,20 @@ const tmpTransform_ = createTransform();
 function preprocessDataLayer(layer) {
     layer.imageSize = { w: 256, h: 256 };
 
-    if (layer.source.getFormat().dataProjection.getCode() != layer.projection) {
+    const format = layer.source.getFormat();
+    if (format && format.dataProjection.getCode() != layer.projection) {
         for (const f of layer.source.getFeatures()) {
             f.getGeometry().transform(
                 layer.source.getFormat().dataProjection.getCode(),
                 layer.projection);
         }
         layer.source.on('addfeature', (evt) => {
-            evt.feature.getGeometry().transform(
-                layer.source.getFormat().dataProjection.getCode(),
-                layer.projection);
+            const format = layer.source.getFormat();
+            if (format) {
+                evt.feature.getGeometry().transform(
+                    layer.source.getFormat().dataProjection.getCode(),
+                    layer.projection);
+            }
         });
     }
 
