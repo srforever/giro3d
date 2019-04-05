@@ -144,7 +144,7 @@ export default {
         svg.style.pointerEvents = 'none';
         document.getElementById('viewerDiv').appendChild(svg);
 
-        document.addEventListener('click', (evt) => {
+        document.addEventListener('click', evt => {
             const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
             if (!r.length) return;
             const obj = r[0].object;

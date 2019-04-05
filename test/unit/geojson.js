@@ -15,12 +15,12 @@ function parse(geojson) {
 
 describe('GeoJsonParser', function () {
     it('should set all z coordinates to 1', () =>
-        parse(holes).then((collection) => {
+        parse(holes).then(collection => {
             assert.ok(collection.features[0].vertices.every(v => v.z() == 1));
         }));
 
     it('should respect all z coordinates', () =>
-        parse(gpx).then((collection) => {
+        parse(gpx).then(collection => {
             assert.ok(collection.features[0].vertices.every(v => v.z() != 1));
         }));
 
@@ -30,7 +30,7 @@ describe('GeoJsonParser', function () {
             crsOut: 'EPSG:3946',
             buildExtent: true,
             filteringExtent: new Extent('EPSG:3946', 10, 20, 10, 20),
-        }).then((collection) => {
+        }).then(collection => {
             assert.ok(collection.features.length == 0);
         }));
 });

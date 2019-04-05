@@ -121,7 +121,7 @@ export default {
         const results = [];
         const _ids = screenCoordsToNodeId(_view, layer, viewCoords, radius);
 
-        const extractResult = (node) => {
+        const extractResult = node => {
             if (_ids.indexOf(node.id) >= 0 && node instanceof TileMesh) {
                 results.push({
                     object: node,
@@ -143,7 +143,7 @@ export default {
         let visibleId = 1;
         // 12 bits reserved for the ids (= 4096 instances)
         const maxVisibleId = 1 << 12;
-        layer.object3d.traverse((o) => {
+        layer.object3d.traverse(o => {
             if (o.isPoints && o.visible && o.material.visible && o.material.enablePicking) {
                 o.material.enablePicking(visibleId++);
 
@@ -215,7 +215,7 @@ export default {
         });
 
         const result = [];
-        layer.object3d.traverse((o) => {
+        layer.object3d.traverse(o => {
             if (o.isPoints && o.visible && o.material.visible) {
                 for (let i = 0; i < candidates.length; i++) {
                     if (candidates[i].pickingId == o.material.pickingId) {
@@ -303,7 +303,7 @@ export default {
         return target;
     },
 
-    preparePointGeometryForPicking: (pointsGeometry) => {
+    preparePointGeometryForPicking: pointsGeometry => {
         // generate unique id for picking
         const numPoints = pointsGeometry.attributes.position.count;
         // reserve 12 bits for the entity id

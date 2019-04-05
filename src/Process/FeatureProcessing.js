@@ -45,7 +45,7 @@ export default {
 
         const features = node.children.filter(n => n.layer == layer);
         for (const feat of features) {
-            feat.traverse((o) => {
+            feat.traverse(o => {
                 if (o.material) {
                     o.material.transparent = layer.opacity < 1.0;
                     o.material.opacity = layer.opacity;
@@ -87,7 +87,7 @@ export default {
             requester: node,
         };
 
-        context.scheduler.execute(command).then((result) => {
+        context.scheduler.execute(command).then(result => {
             // if request return empty json, WFSProvider.getFeatures return undefined
             if (result) {
                 // call onMeshCreated callback if needed
@@ -116,7 +116,7 @@ export default {
                 node.layerUpdateState[layer.id].failure(1, true);
             }
         },
-        (err) => {
+        err => {
             if (err instanceof CancelledCommandException) {
                 node.layerUpdateState[layer.id].success();
             } else if (err instanceof SyntaxError) {

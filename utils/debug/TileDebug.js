@@ -7,7 +7,7 @@ import ObjectRemovalHelper from '../../src/Process/ObjectRemovalHelper';
 import GeometryDebug from './GeometryDebug';
 
 function applyToNodeFirstMaterial(view, root, layer, cb) {
-    root.traverse((object) => {
+    root.traverse(object => {
         if (object.material && object.layer === layer) {
             cb(object.material);
         }
@@ -34,10 +34,10 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
     };
 
     // tiles outline
-    gui.add(layer, 'showOutline').name('Show tiles outline').onChange((newValue) => {
+    gui.add(layer, 'showOutline').name('Show tiles outline').onChange(newValue => {
         layer.showOutline = newValue;
 
-        applyToNodeFirstMaterial(view, layer.object3d, layer, (material) => {
+        applyToNodeFirstMaterial(view, layer.object3d, layer, material => {
             if (material.uniforms) {
                 material.uniforms.showOutline = { value: newValue };
                 material.needsUpdate = true;
@@ -46,16 +46,16 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
     });
 
     // tiles wireframe
-    gui.add(layer, 'wireframe').name('Wireframe').onChange((newValue) => {
+    gui.add(layer, 'wireframe').name('Wireframe').onChange(newValue => {
         layer.wireframe = newValue;
 
-        applyToNodeFirstMaterial(view, layer.object3d, layer, (material) => {
+        applyToNodeFirstMaterial(view, layer.object3d, layer, material => {
             material.wireframe = newValue;
         });
     });
 
     // TileObjectChart visibility
-    gui.add(state, 'objectChart').name('Object chart').onChange((newValue) => {
+    gui.add(state, 'objectChart').name('Object chart').onChange(newValue => {
         if (newValue) {
             document.getElementById(objectChardId).parentNode.style.display = 'block';
         } else {
@@ -66,7 +66,7 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
     });
 
     // TileVisibilityChart visibility
-    gui.add(state, 'visibilityChart').name('Visibility chart').onChange((newValue) => {
+    gui.add(state, 'visibilityChart').name('Visibility chart').onChange(newValue => {
         if (newValue) {
             document.getElementById(visibleChardId).parentNode.style.display = 'block';
         } else {
@@ -145,7 +145,7 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
             type: 'debug',
             update: debugIdUpdate,
             visible: false,
-        }, layer).then((l) => {
+        }, layer).then(l => {
             gui.add(l, 'visible').name('Bounding boxes').onChange(() => {
                 view.notifyChange(l);
             });

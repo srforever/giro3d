@@ -56,7 +56,7 @@ MainLoop.prototype.scheduleViewUpdate = function scheduleViewUpdate(view, forceR
             document.title += ' ⌛';
         }
 
-        requestAnimationFrame((timestamp) => { this._step(view, timestamp); });
+        requestAnimationFrame(timestamp => { this._step(view, timestamp); });
     }
 };
 
@@ -110,7 +110,7 @@ function updateElements(context, geometryLayer, elements) {
 function filterChangeSources(updateSources, geometryLayer) {
     let fullUpdate = false;
     const filtered = new Set();
-    updateSources.forEach((src) => {
+    updateSources.forEach(src => {
         if (src === geometryLayer || src.isCamera) {
             fullUpdate = true;
         } else if (src.layer === geometryLayer) {
@@ -157,7 +157,7 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
     view.camera.update();
 
     // replace layer with their parent where needed
-    updateSources.forEach((src) => {
+    updateSources.forEach(src => {
         const layer = src.layer || src;
         if (layer instanceof Layer) {
             if (!(layer instanceof GeometryLayer)) {

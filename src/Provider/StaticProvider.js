@@ -77,7 +77,7 @@ function getTexture(toDownload, layer) {
     // ...
     return (layer.format == 2 ?
         OGCWebServiceHelper.getXBilTextureByUrl(toDownload.url, layer.networkOptions) :
-         OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions)).then((texture) => {
+         OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions)).then(texture => {
         // adjust pitch
              const result = {
                  texture,
@@ -108,7 +108,7 @@ export default {
         }
         layer.canTileTextureBeImproved = this.canTileTextureBeImproved;
         layer.url = new URL(layer.url, window.location);
-        return Fetcher.json(layer.url.href, layer.networkOptions).then((metadata) => {
+        return Fetcher.json(layer.url.href, layer.networkOptions).then(metadata => {
             layer.images = [];
             // eslint-disable-next-line guard-for-in
             for (const image in metadata) {
@@ -138,7 +138,7 @@ export default {
             return getTexture({
                 url: buildUrl(layer, s.image),
                 selection: s,
-            }, layer).then((result) => {
+            }, layer).then(result => {
                 layer.imageSize = {
                     w: result.texture.image.width,
                     h: result.texture.image.height,

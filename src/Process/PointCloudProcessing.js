@@ -211,7 +211,7 @@ export default {
                         redraw: true,
                         isLeaf: elt.childrenBitField == 0,
                         earlyDropFunction: cmd => !cmd.requester.visible || !layer.visible,
-                    }).then((pts) => {
+                    }).then(pts => {
                         if (layer.onPointsCreated) {
                             layer.onPointsCreated(layer, pts);
                         }
@@ -225,7 +225,7 @@ export default {
                         layer.group.add(elt.obj);
                         elt.obj.updateMatrixWorld(true);
                         elt.promise = null;
-                    }, (err) => {
+                    }, err => {
                         if (err instanceof CancelledCommandException) {
                             elt.promise = null;
                         }

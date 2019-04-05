@@ -17,7 +17,7 @@ const tileCoord = new Extent('WMTS:WGS84G', 0, 0, 0);
 export default {
     getColorTextureByUrl(url, networkOptions) {
         return Cache.get(url) || Cache.set(url, Fetcher.texture(url, networkOptions)
-            .then((texture) => {
+            .then(texture => {
                 texture.generateMipmaps = false;
                 texture.magFilter = THREE.LinearFilter;
                 texture.minFilter = THREE.LinearFilter;
@@ -27,7 +27,7 @@ export default {
     },
     getXBilTextureByUrl(url, networkOptions) {
         return Cache.get(url) || Cache.set(url, Fetcher.arrayBuffer(url, networkOptions)
-            .then((buffer) => {
+            .then(buffer => {
                 const texture = getTextureFloat(buffer);
                 texture.generateMipmaps = false;
                 texture.magFilter = THREE.LinearFilter;

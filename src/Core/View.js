@@ -182,7 +182,7 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
                 return provider.executeCommand({
                     layer,
                     toDownload: down,
-                }).then((result) => {
+                }).then(result => {
                     const minmax = minMaxFromTexture(layer, result.texture, result.pitch);
                     result.texture.min = minmax.min;
                     result.texture.max = minmax.max;
@@ -197,7 +197,7 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
                 if (!layer.minmax) {
                     throw new Error('At this point the whole min/max should be known');
                 }
-                parentLayer.object3d.traverse((n) => {
+                parentLayer.object3d.traverse(n => {
                     if (n.setBBoxZ) {
                         n.setBBoxZ(layer.minmax.min, layer.minmax.max);
                     }
@@ -223,7 +223,7 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
         defineLayerProperty(layer, 'frozen', false);
         _syncGeometryLayerVisibility(layer, view);
 
-        const changeOpacity = (o) => {
+        const changeOpacity = o => {
             if (o.material) {
                 // != undefined: we want the test to pass if opacity is 0
                 if (o.material.opacity != undefined) {
@@ -239,7 +239,7 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
         };
         defineLayerProperty(layer, 'opacity', 1.0, () => {
             if (layer.object3d) {
-                layer.object3d.traverse((o) => {
+                layer.object3d.traverse(o => {
                     if (o.layer !== layer) {
                         return;
                     }
@@ -406,7 +406,7 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
             layer.projection = (parentLayer && parentLayer.extent) ? parentLayer.extent.crs() : this.referenceCrs;
         }
 
-        layer.whenReady.then((layer) => {
+        layer.whenReady.then(layer => {
             if (parentLayer) {
                 if (layer.type === 'elevation') {
                     parentLayer.minMaxFromElevationLayer = {
@@ -414,7 +414,7 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
                         max: layer.minmax.max,
                     };
                     for (const node of parentLayer.level0Nodes) {
-                        node.traverse((n) => {
+                        node.traverse(n => {
                             if (n.setBBoxZ) {
                                 n.setBBoxZ(
                                     parentLayer.minMaxFromElevationLayer.min,

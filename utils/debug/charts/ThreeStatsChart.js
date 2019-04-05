@@ -25,7 +25,7 @@ export default function ThreeStatsChart(chartId, renderer) {
         },
     });
 
-    this.update = (displayed) => {
+    this.update = displayed => {
         const limit = 60;
         const timeInS = Math.floor((Date.now() - timestamp) / 1000);
         const lbl = `${timeInS}s`;

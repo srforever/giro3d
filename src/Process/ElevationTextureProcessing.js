@@ -191,7 +191,7 @@ export default {
         };
 
         return context.scheduler.execute(command).then(
-            (result) => {
+            result => {
                 if (node.material === null) {
                     return;
                 }
@@ -201,7 +201,7 @@ export default {
                 }
                 return result;
             },
-            (err) => {
+            err => {
                 if (err instanceof CancelledCommandException) {
                     node.layerUpdateState[layer.id].success();
                 } else {
@@ -214,7 +214,7 @@ export default {
                         }, node.layerUpdateState[layer.id].secondsUntilNextTry() * 1000);
                     }
                 }
-            }).then((elevation) => {
+            }).then(elevation => {
                 if (!elevation) {
                     return;
                 }

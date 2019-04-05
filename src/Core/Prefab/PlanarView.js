@@ -90,7 +90,7 @@ export function createPlanarLayer(id, extent, options) {
 
     tileLayer.postUpdate = (context, layer) => {
         for (const r of layer.level0Nodes) {
-            r.traverse((node) => {
+            r.traverse(node => {
                 if (node.layer != layer || !node.material.visible) {
                     return;
                 }

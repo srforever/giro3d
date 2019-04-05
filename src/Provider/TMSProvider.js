@@ -124,7 +124,7 @@ function executeCommand(command) {
         VectorTileHelper.getVectorTileTextureByUrl(command.toDownload, command.requester, layer/* , todo.extent */) :
         OGCWebServiceHelper.getColorTextureByUrl(command.toDownload, layer.networkOptions);
 
-    return promise.then((texture) => {
+    return promise.then(texture => {
         const result = {};
         result.texture = texture;
         // result.texture.extent = todo.extent;

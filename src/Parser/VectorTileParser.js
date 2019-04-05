@@ -17,7 +17,7 @@ function readPBF(file, options) {
         extent: options.extent,
     };
 
-    layers.forEach((layer_id) => {
+    layers.forEach(layer_id => {
         const l = vectorTile.layers[layer_id];
 
         for (let i = 0; i < l.length; i++) {

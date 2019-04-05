@@ -173,14 +173,14 @@ export function chooseExtentToDownload(layer, extent, currentExtent) {
 
 function getColorTexture(layer, toDownload) {
     const result = { pitch: toDownload.pitch };
-    return OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions).then((texture) => {
+    return OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions).then(texture => {
         result.texture = texture;
         result.texture.extent = toDownload.extent;
         if (layer.transparent) {
             texture.premultiplyAlpha = true;
         }
         return result;
-    }, (err) => {
+    }, err => {
         err.extent = toDownload.extent;
         throw err;
     });

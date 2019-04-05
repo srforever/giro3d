@@ -10,12 +10,12 @@ global.window = {
 scheduler.addProtocolProvider('test', {
     preprocessDataLayer: () => {
     },
-    executeCommand: (cmd) => {
+    executeCommand: cmd => {
         setTimeout(() => {
             cmd.done = true;
             cmd._r(cmd);
         }, 0);
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
             cmd._r = resolve;
         });
     },
@@ -38,7 +38,7 @@ function cmd(layerId = 'foo', prio = 0) {
 
 describe('Command execution', function () {
     it('should execute one command', function (done) {
-        scheduler.execute(cmd()).then((c) => {
+        scheduler.execute(cmd()).then(c => {
             assert.ok(c.done);
             done();
         });
@@ -50,7 +50,7 @@ describe('Command execution', function () {
             promises.push(scheduler.execute(cmd()));
         }
 
-        Promise.all(promises).then((commands) => {
+        Promise.all(promises).then(commands => {
             for (const cmd of commands) {
                 assert.ok(cmd.done);
             }
@@ -63,11 +63,11 @@ describe('Command execution', function () {
         const promises = [];
         for (let i = 0; i < 50; i++) {
             promises.push(scheduler.execute(cmd('layer0', 1)).then(
-                (c) => { results.push(c.layer.id); }));
+                c => { results.push(c.layer.id); }));
             promises.push(scheduler.execute(cmd('layer1', 5)).then(
-                (c) => { results.push(c.layer.id); }));
+                c => { results.push(c.layer.id); }));
             promises.push(scheduler.execute(cmd('layer2', 10)).then(
-                (c) => { results.push(c.layer.id); }));
+                c => { results.push(c.layer.id); }));
         }
 
         Promise.all(promises).then(() => {

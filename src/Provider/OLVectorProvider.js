@@ -39,7 +39,7 @@ function preprocessDataLayer(layer) {
                 layer.source.getFormat().dataProjection.getCode(),
                 layer.projection);
         }
-        layer.source.on('addfeature', (evt) => {
+        layer.source.on('addfeature', evt => {
             const format = layer.source.getFormat();
             if (format) {
                 evt.feature.getGeometry().transform(

@@ -31,7 +31,7 @@ describe('ColorTextureProcessing.updateLayerElement', function () {
         },
         scheduler: {
             commands: [],
-            execute: (cmd) => {
+            execute: cmd => {
                 context.scheduler.commands.push(cmd);
                 return new Promise(() => { /* no-op */ });
             },

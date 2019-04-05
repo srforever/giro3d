@@ -52,7 +52,7 @@ function Debug(view, datDebugTool, chartDivContainer) {
     };
 
     // charts
-    gui.add(state, 'displayCharts').name('Display charts').onChange((newValue) => {
+    gui.add(state, 'displayCharts').name('Display charts').onChange(newValue => {
         if (newValue) {
             chartDivContainer.style.display = 'flex';
         } else {
@@ -60,7 +60,7 @@ function Debug(view, datDebugTool, chartDivContainer) {
         }
     });
 
-    gui.add(state, 'debugCameraWindow').name('debug Camera').onChange((value) => {
+    gui.add(state, 'debugCameraWindow').name('debug Camera').onChange(value => {
         if (value) {
             view.addFrameRequester(MAIN_LOOP_EVENTS.AFTER_RENDER, renderCameraDebug);
         } else {
@@ -69,14 +69,14 @@ function Debug(view, datDebugTool, chartDivContainer) {
         view.notifyChange();
     });
 
-    gui.add(state, 'freeze').name('freeze update').onChange((newValue) => {
+    gui.add(state, 'freeze').name('freeze update').onChange(newValue => {
         tileLayer.frozen = newValue;
         view.notifyChange();
     });
 
     gui.add(state, 'eventsDebug').name('Debug event').onChange((() => {
         let eventFolder;
-        return (newValue) => {
+        return newValue => {
             const controls = view.controls;
             const listeners = [];
             if (newValue) {
@@ -88,7 +88,7 @@ function Debug(view, datDebugTool, chartDivContainer) {
                 const roundedLon = Math.round(initialPosition.longitude() * 10000) / 10000;
                 state.cameraTargetUpdated = `lat: ${roundedLat} lon: ${roundedLon}`;
                 const cameraTargetUpdatedController = eventFolder.add(state, 'cameraTargetUpdated').name('camera-target-changed');
-                const cameraTargetListener = (ev) => {
+                const cameraTargetListener = ev => {
                     const positionGeo = ev.new.cameraTarget.as('EPSG:4326');
                     const roundedLat = Math.round(positionGeo.latitude() * 10000) / 10000;
                     const roundedLon = Math.round(positionGeo.longitude() * 10000) / 10000;
@@ -221,7 +221,7 @@ Debug.prototype.updateChartDivSize = function updateChartDivSize() {
             div.style.width = `${size}%`;
         }
     }
-    this.charts.forEach((c) => {
+    this.charts.forEach(c => {
         c.resize();
         c.update();
     });

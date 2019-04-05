@@ -21,7 +21,7 @@ export default {
      * @return {Promise}
      */
     text(url, options = {}) {
-        return fetch(url, options).then((response) => {
+        return fetch(url, options).then(response => {
             checkResponse(response);
             return response.text();
         });
@@ -36,7 +36,7 @@ export default {
      * @return {Promise}
      */
     json(url, options = {}) {
-        return fetch(url, options).then((response) => {
+        return fetch(url, options).then(response => {
             checkResponse(response);
             return response.json();
         });
@@ -51,7 +51,7 @@ export default {
      * @return {Promise}
      */
     xml(url, options = {}) {
-        return fetch(url, options).then((response) => {
+        return fetch(url, options).then(response => {
             checkResponse(response);
             return response.text();
         }).then(text => new window.DOMParser().parseFromString(text, 'text/xml'));
@@ -91,7 +91,7 @@ export default {
      * @return {Promise}
      */
     arrayBuffer(url, options = {}) {
-        return fetch(url, options).then((response) => {
+        return fetch(url, options).then(response => {
             checkResponse(response);
             return response.arrayBuffer();
         });

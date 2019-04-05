@@ -8,7 +8,7 @@ describe('PotreeBinParser', function () {
         for (let i = 0; i < 12; i++) {
             dv.setInt32(i * 4, i * 2, true);
         }
-        return PotreeBinParser.parse(buffer, ['POSITION_CARTESIAN']).then((geom) => {
+        return PotreeBinParser.parse(buffer, ['POSITION_CARTESIAN']).then(geom => {
             const posAttr = geom.getAttribute('position');
             assert.equal(posAttr.itemSize, 3);
             assert.ok(posAttr.array instanceof Float32Array);

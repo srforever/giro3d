@@ -84,12 +84,12 @@ function _instanciateQueue() {
         execute(cmd, provider, countersIncrement = 1) {
             this.counters.pending -= countersIncrement;
             this.counters.executing += countersIncrement;
-            return provider.executeCommand(cmd).then((result) => {
+            return provider.executeCommand(cmd).then(result => {
                 this.counters.executing -= countersIncrement;
                 cmd.resolve(result);
                 // only count successul commands
                 this.counters.executed += countersIncrement;
-            }, (err) => {
+            }, err => {
                 this.counters.executing -= countersIncrement;
                 cmd.reject(err);
                 this.counters.failed += countersIncrement;

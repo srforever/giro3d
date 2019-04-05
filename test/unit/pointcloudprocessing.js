@@ -33,7 +33,7 @@ describe('preUpdate', function () {
         sources.add(elt1);
         sources.add(elt2);
         sources.add(elt3);
-        layer.root.findChildrenByName = (name) => {
+        layer.root.findChildrenByName = name => {
             assert.equal('12', name);
         };
         PointCloudProcessing.preUpdate(context, layer, sources);
@@ -46,7 +46,7 @@ describe('preUpdate', function () {
         const sources = new Set();
         sources.add(elt1);
         sources.add(elt2);
-        layer.root.findChildrenByName = (name) => {
+        layer.root.findChildrenByName = name => {
             assert.equal('12', name);
         };
         PointCloudProcessing.preUpdate(context, layer, sources);

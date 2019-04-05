@@ -54,7 +54,7 @@ function createChildAABB(aabb, childIndex) {
 
 
 function parseOctree(layer, hierarchyStepSize, root) {
-    return Fetcher.arrayBuffer(`${root.baseurl}/r${root.name}.hrc`, layer.networkOptions).then((blob) => {
+    return Fetcher.arrayBuffer(`${root.baseurl}/r${root.name}.hrc`, layer.networkOptions).then(blob => {
         const view = new DataView(blob);
 
         const stack = [];
@@ -230,12 +230,12 @@ export default {
         layer.pickObjectsAt = (view, mouse, radius, filter) => Picking.pickPointsAt(view, mouse, radius, layer, filter);
 
         return Fetcher.json(`${layer.url}/${layer.file}`, layer.networkOptions)
-            .then((metadata) => {
+            .then(metadata => {
                 parseMetadata(metadata, layer);
                 const bbox = computeBbox(layer);
                 return parseOctree(layer, layer.metadata.hierarchyStepSize, { baseurl: `${layer.url}/${layer.metadata.octreeDir}/r`, name: '', bbox });
             })
-            .then((root) => {
+            .then(root => {
                 // eslint-disable-next-line no-console
                 console.log('LAYER metadata:', root);
                 layer.root = root;
@@ -261,7 +261,7 @@ export default {
         // when we request .hrc files)
         const url = `${metadata.baseurl}/r${metadata.name}.${layer.extension}?isleaf=${command.isLeaf ? 1 : 0}`;
 
-        return Fetcher.arrayBuffer(url, layer.networkOptions).then(buffer => layer.parse(buffer, layer.metadata.pointAttributes)).then((geometry) => {
+        return Fetcher.arrayBuffer(url, layer.networkOptions).then(buffer => layer.parse(buffer, layer.metadata.pointAttributes)).then(geometry => {
             const points = new Points(layer, geometry, layer.material.clone());
             if (points.material.enablePicking) {
                 Picking.preparePointGeometryForPicking(points.geometry);

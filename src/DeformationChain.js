@@ -349,7 +349,7 @@ class DeformationChain {
                     rect.link = { k, i };
                     rect.updateMatrixWorld(true);
 
-                    rect.onMouseOver = (end) => {
+                    rect.onMouseOver = end => {
                         eltA.highlight = end ? undefined : 'rect';
                     };
 
@@ -373,7 +373,7 @@ class DeformationChain {
                     rect2.link = { k, i };
                     rect2.updateMatrixWorld(true);
                     rect2.matrixWorld.premultiply(TTT[k][i].matrix);
-                    rect2.onMouseOver = (end) => {
+                    rect2.onMouseOver = end => {
                         eltA.highlight = end ? undefined : 'rect';
                     };
 

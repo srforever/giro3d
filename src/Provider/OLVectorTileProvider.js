@@ -122,7 +122,7 @@ function loadTile(node, tile, layer) {
     } else {
         promise = new Promise((resolve, reject) => {
             imageTile.load();
-            listenOnce(imageTile, 'change', (evt) => {
+            listenOnce(imageTile, 'change', evt => {
                 const imageTile = evt.target;
                 const tileState = imageTile.getState();
                 if (tileState == TileState.ERROR) {

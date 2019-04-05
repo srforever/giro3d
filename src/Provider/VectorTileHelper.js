@@ -58,7 +58,7 @@ export default {
     getVectorTileTextureByUrl(url, tile, layer, coords) {
         if (layer.type !== 'color') return;
 
-        return Cache.get(url) || Cache.set(url, getVectorTileByUrl(url, tile, layer, coords).then((features) => {
+        return Cache.get(url) || Cache.set(url, getVectorTileByUrl(url, tile, layer, coords).then(features => {
             const backgroundColor = (layer.backgroundLayer && layer.backgroundLayer.paint) ?
                 new THREE.Color(layer.backgroundLayer.paint['background-color']) :
                 undefined;

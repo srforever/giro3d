@@ -42,7 +42,7 @@ export const defineLayerProperty = function defineLayerProperty(layer, propertyN
         Object.defineProperty(layer,
             propertyName,
             { get: () => property,
-                set: (newValue) => {
+                set: newValue => {
                     if (property !== newValue) {
                         const event = { type: `${propertyName}-property-changed`, previous: {}, new: {} };
                         event.previous[propertyName] = property;
@@ -93,7 +93,7 @@ function GeometryLayer(id, object3d) {
     // layer.
     // See 3dtilesProvider or PointCloudProvider for examples.
     // eslint-disable-next-line arrow-body-style
-    this.getObjectToUpdateForAttachedLayers = (obj) => {
+    this.getObjectToUpdateForAttachedLayers = obj => {
         if (obj.parent && obj.material) {
             return {
                 element: obj,

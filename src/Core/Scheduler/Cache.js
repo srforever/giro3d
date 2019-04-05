@@ -55,7 +55,7 @@ const Cache = {
      *
      * @return {Object}
      */
-    get: (key) => {
+    get: key => {
         const entry = data.get(key);
         if (!stats.has(key)) {
             stats.set(key, { hit: 0, miss: 0 });
@@ -96,7 +96,7 @@ const Cache = {
         return value;
     },
 
-    deletePrefix: (prefix) => {
+    deletePrefix: prefix => {
         for (const key of data.keys()) {
             if (key.startsWith && key.startsWith(prefix)) {
                 data.delete(key);
@@ -153,7 +153,7 @@ const Cache = {
 
         let hit = 0;
         let miss = 0;
-        stats.forEach((stat) => {
+        stats.forEach(stat => {
             hit += stat.hit;
             miss += stat.miss;
         });

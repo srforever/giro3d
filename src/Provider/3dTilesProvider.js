@@ -88,7 +88,7 @@ export function $3dTilesIndex(tileset, baseURL) {
 export function getObjectToUpdateForAttachedLayers(meta) {
     if (meta.content) {
         const result = [];
-        meta.content.traverse((obj) => {
+        meta.content.traverse(obj => {
             if (obj.isObject3D && obj.material && obj.layer == meta.layer) {
                 result.push(obj);
             }
@@ -121,7 +121,7 @@ function preprocessDataLayer(layer, view, scheduler) {
     }
 
     layer._cleanableTiles = [];
-    return Fetcher.json(layer.url, layer.networkOptions).then((tileset) => {
+    return Fetcher.json(layer.url, layer.networkOptions).then(tileset => {
         if (!tileset.root.refine) {
             tileset.root.refine = tileset.refine;
         }
@@ -187,7 +187,7 @@ function b3dmToMesh(data, layer, url) {
         doNotPatchMaterial: layer.doNotPatchMaterial,
         opacity: layer.opacity,
     };
-    return B3dmParser.parse(data, options).then((result) => {
+    return B3dmParser.parse(data, options).then(result => {
         const batchTable = result.batchTable;
         const object3d = result.gltf.scene;
         return { batchTable, object3d };
@@ -195,7 +195,7 @@ function b3dmToMesh(data, layer, url) {
 }
 
 function pntsParse(data, layer) {
-    return PntsParser.parse(data).then((result) => {
+    return PntsParser.parse(data).then(result => {
         const material = layer.material ?
             layer.material.clone() :
             // new PointsMaterial({ size: 3 });
@@ -256,7 +256,7 @@ function executeCommand(command) {
         }
     }
 
-    const setLayer = (obj) => {
+    const setLayer = obj => {
         obj.layers.set(layer.threejsLayer);
         obj.userData.metadata = metadata;
         obj.layer = layer;
@@ -269,7 +269,7 @@ function executeCommand(command) {
             pnts: pntsParse,
         };
         const dl = Cache.get(url) || Cache.set(url, Fetcher.arrayBuffer(url, layer.networkOptions), Cache.TEXTURE);
-        return dl.then((result) => {
+        return dl.then(result => {
             if (result !== undefined) {
                 let func;
                 const magic = utf8Decoder.decode(new Uint8Array(result, 0, 4));
@@ -286,7 +286,7 @@ function executeCommand(command) {
                 }
                 if (func) {
                     // TODO: request should be delayed if there is a viewerRequestVolume
-                    return func(result, layer, url).then((content) => {
+                    return func(result, layer, url).then(content => {
                         tile.content = content.object3d;
                         if (content.batchTable) {
                             tile.batchTable = content.batchTable;

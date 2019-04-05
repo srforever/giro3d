@@ -55,7 +55,7 @@ function Extent(crs, ...values) {
         this._values[CARDINAL.NORTH] = values[0].north;
     } else if (values.length == 4) {
         this._values = new Float64Array(4);
-        Object.keys(CARDINAL).forEach((key) => {
+        Object.keys(CARDINAL).forEach(key => {
             const cardinal = CARDINAL[key];
             this._values[cardinal] = values[cardinal];
         });
@@ -326,7 +326,7 @@ Extent.prototype.set = function set(...values) {
         this.row = values[1];
         this.col = values[2];
     } else {
-        Object.keys(CARDINAL).forEach((key) => {
+        Object.keys(CARDINAL).forEach(key => {
             const cardinal = CARDINAL[key];
             this._values[cardinal] = values[cardinal];
         });

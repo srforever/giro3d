@@ -67,10 +67,10 @@ function getFeatures(crs, tile, layer) {
     return (Cache.get(urld) || Cache.set(urld, Fetcher.json(urld, layer.networkOptions)))
         .then(
             geojson => GeoJsonParser.parse(geojson, { crsOut: crs, filteringExtent: tile.extent, filter: layer.filter }),
-            (err) => {
+            err => {
                 // special handling for 400 errors, as it probably means the config is wrong
                 if (err.response.status == 400) {
-                    return err.response.text().then((text) => {
+                    return err.response.text().then(text => {
                         const getCapUrl = `${layer.url}SERVICE=WFS&REQUEST=GetCapabilities&VERSION=${layer.version}`;
                         const xml = new DOMParser().parseFromString(text, 'application/xml');
                         const errorElem = xml.querySelector('Exception');

@@ -128,7 +128,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
             type: 'debug',
             update: debugIdUpdate,
             visible: false,
-        }, _3dTileslayer).then((l) => {
+        }, _3dTileslayer).then(l => {
             gui.add(l, 'visible').name('Bounding boxes').onChange(() => {
                 view.notifyChange(_3dTileslayer);
             });

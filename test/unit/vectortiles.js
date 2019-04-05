@@ -18,7 +18,7 @@ function parse(pbf) {
 
 describe('Vector tiles', function () {
     it('should return two squares', () =>
-        parse(multipolygon).then((collection) => {
+        parse(multipolygon).then(collection => {
             // two squares (4 + 1 closing vertices)
             assert.ok(collection.features[0].vertices.length == 10);
 

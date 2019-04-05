@@ -108,8 +108,8 @@ export default {
                 promises.push(Promise.resolve({}));
             }
             // TODO: missing feature table
-            promises.push(new Promise((resolve/* , reject */) => {
-                const onload = (gltf) => {
+            promises.push(new Promise(resolve => {
+                const onload = gltf => {
                     for (const scene of gltf.scenes) {
                         scene.traverse(filterUnsupportedSemantics);
                     }

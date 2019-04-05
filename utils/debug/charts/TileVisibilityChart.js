@@ -33,7 +33,7 @@ export default function TileVisibilityChart(chartId, tileLayer) {
         },
     });
 
-    this.update = (displayed) => {
+    this.update = displayed => {
         function countVisible(node, stats) {
             if (!node || !node.visible) {
                 return;

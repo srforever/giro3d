@@ -1,3 +1,4 @@
+import { ImageryLayers } from '../Core/Layer/Layer';
 import LayerUpdateState from '../Core/Layer/LayerUpdateState';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 
@@ -55,7 +56,7 @@ function refinementCommandCancellationFn(cmd) {
 
 export default {
     cleanLayer(view, layer, parentLayer) {
-        parentLayer.object3d.traverse((o) => {
+        parentLayer.object3d.traverse(o => {
             if (o.layer === parentLayer) {
                 // clean object of layer
                 delete o.layerUpdateState[layer.id];
@@ -150,7 +151,7 @@ export default {
         };
 
         return context.scheduler.execute(command).then(
-            (result) => {
+            result => {
                 if (node.material === null) {
                     return;
                 }
@@ -159,7 +160,7 @@ export default {
                     node.layerUpdateState[layer.id].success();
                 });
             },
-            (err) => {
+            err => {
                 if (err instanceof CancelledCommandException) {
                     node.layerUpdateState[layer.id].success();
                 } else {

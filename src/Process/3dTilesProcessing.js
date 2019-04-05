@@ -60,7 +60,7 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
     }
 
     return scheduler.execute(command).then(
-        (node) => {
+        node => {
             metadata.obj = node;
             return node;
         });
@@ -127,7 +127,7 @@ function _subdivideNodeAdditive(context, layer, node, cullingTest) {
             continue;
         }
 
-        child.promise = requestNewTile(context.view, context.scheduler, layer, child, node, true).then((tile) => {
+        child.promise = requestNewTile(context.view, context.scheduler, layer, child, node, true).then(tile => {
             if (!tile || !node.parent) {
                 // cancelled promise or node has been deleted
             } else {
@@ -135,7 +135,7 @@ function _subdivideNodeAdditive(context, layer, node, cullingTest) {
                 tile.updateMatrixWorld();
 
                 const extent = boundingVolumeToExtent(layer.extent.crs(), tile.boundingVolume, tile.matrixWorld);
-                tile.traverse((obj) => {
+                tile.traverse(obj => {
                     obj.extent = extent;
                 });
 
@@ -169,12 +169,12 @@ function _subdivideNodeSubstractive(context, layer, node) {
     const promises = [];
     for (const child of layer.tileIndex.index[node.tileId].children) {
         promises.push(
-            requestNewTile(context.view, context.scheduler, layer, child, node, false).then((tile) => {
+            requestNewTile(context.view, context.scheduler, layer, child, node, false).then(tile => {
                 node.add(tile);
                 tile.updateMatrixWorld();
 
                 const extent = boundingVolumeToExtent(layer.extent.crs(), tile.boundingVolume, tile.matrixWorld);
-                tile.traverse((obj) => {
+                tile.traverse(obj => {
                     obj.extent = extent;
                 });
             }));
@@ -346,7 +346,7 @@ export function computeNodeSSE(context, node) {
 
 export function init3dTilesLayer(view, scheduler, layer) {
     return requestNewTile(view, scheduler, layer, layer.tileset.root, undefined, true).then(
-            (tile) => {
+            tile => {
                 delete layer.tileset;
                 layer.object3d.add(tile);
                 tile.updateMatrixWorld();
@@ -478,7 +478,7 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                     layer._distance.min = Math.min(layer._distance.min, node.distance);
                     layer._distance.max = Math.max(layer._distance.max, 2 * node.boundingVolume.sphere.radius);
                 }
-                node.content.traverse((o) => {
+                node.content.traverse(o => {
                     if (o.layer == layer && o.material) {
                         o.material.wireframe = layer.wireframe;
                         if (o.isPoints) {

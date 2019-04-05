@@ -4,7 +4,7 @@
   "description": "A JS/WebGL framework for 3D geospatial data visualization",
   "main": "lib/Main.js",
   "scripts": {
-    "lint": "eslint \"src/**/*.js\" \"test/**/*.js\" \"examples/**/*.js\"",
+    "lint": "eslint \"src/**/*.js\" \"utils/**/*.js\" \"test/**/*.js\" \"examples/**/*.js\"",
     "doc": "jsdoc -t node_modules/docdash --readme JSDOC.md -c jsdoc-config.json",
     "doclint": "npm run doc -- -t templates/silent",
     "test": "npm run lint -- --max-warnings=0 && npm run build && npm run test-examples && npm run test-with-coverage",

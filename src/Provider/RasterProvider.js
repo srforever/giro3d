@@ -114,7 +114,7 @@ export default {
         const geojsonPromise = layer.geojson ?
             Promise.resolve(layer.geojson)
             :
-            Fetcher.text(layer.url, layer.networkOptions).then((text) => {
+            Fetcher.text(layer.url, layer.networkOptions).then(text => {
                 let geojson;
                 const trimmedText = text.trim();
                 // We test the start of the string to choose a parser
@@ -145,7 +145,7 @@ export default {
                 return geojson;
             });
 
-        return geojsonPromise.then((geojson) => {
+        return geojsonPromise.then(geojson => {
             if (geojson) {
                 const options = {
                     buildExtent: true,
@@ -157,7 +157,7 @@ export default {
 
                 return GeoJsonParser.parse(geojson, options);
             }
-        }).then((feature) => {
+        }).then(feature => {
             if (Array.isArray(feature) && feature.length == 0) {
                 return;
             }

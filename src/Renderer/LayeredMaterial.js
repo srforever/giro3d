@@ -515,7 +515,7 @@ export function initDebugTool(view) {
     div.style.backgroundColor = 'lightgray';
     document.getElementById('viewerDiv').appendChild(div);
 
-    document.addEventListener('click', (evt) => {
+    document.addEventListener('click', evt => {
         const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
         if (!r.length) return;
         const obj = r[0].object;

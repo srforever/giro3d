@@ -31,7 +31,7 @@ export default function CameraNearFarChart(chartId, camera) {
         },
     });
 
-    this.update = (displayed) => {
+    this.update = displayed => {
         if (!displayed) {
             return;
         }
