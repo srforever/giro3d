@@ -27,6 +27,7 @@ module.exports = {
     'padded-blocks' : 'warn',
     'no-unused-vars': 'warn',
     'no-plusplus': 'off',
+    'arrow-parens': ['error', 'as-needed'],
     // this option sets a specific tab width for your code
     // http://eslint.org/docs/rules/indent
     indent: ['warn', 4, {
