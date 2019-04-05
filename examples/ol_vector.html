@@ -1,0 +1,188 @@
+<html>
+    <head>
+        <title>Itowns - OpenLayers Example</title>
+
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="css/example.css">
+        <link rel="stylesheet" type="text/css" href="css/loading_screen.css">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div id="viewerDiv"></div>
+        <script src="../dist/itowns.js"></script>
+        <script src="js/loading_screen.js"></script>
+        <script type="text/javascript">
+            // # Orthographic viewer
+
+            // Define geographic extent: CRS, min/max X, min/max Y
+            var extent = new itowns.Extent(
+                'EPSG:3857',
+                -20037508.342789244, 20037508.342789244,
+                -20037508.342789244, 20037508.342789244);
+
+            // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
+            var viewerDiv = document.getElementById('viewerDiv');
+
+            // Instanciate PlanarView
+            // var view = new itowns.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 15 });
+            var view = new itowns.View('EPSG:3857', viewerDiv);
+
+            // Turn in the right angle
+            view.camera.camera3D.rotateZ(-Math.PI / 2);
+            view.camera.camera3D.position.set(0, 0, 20000000);
+            view.camera.camera3D.lookAt(0, 0, 0);
+            setupLoadingScreen(viewerDiv, view);
+
+            // eslint-disable-next-line no-unused-vars
+            var vectorSource = new itowns.olsource.Vector({
+                url: 'https://openlayers.org/en/latest/examples/data/geojson/countries.geojson',
+                format: new itowns.olformat.GeoJSON({ featureProjection: 'EPSG:3857' }),
+            });
+            // Not sure what to put in there
+            var vector = new itowns.ollayer.Vector({
+                source: vectorSource,
+                // here will go style and rendering options...
+            });
+
+            // eslint-disable-next-line no-unused-vars
+            var wmsSource = new itowns.olsource.TileWMS({
+                url: 'https://ahocevar.com/geoserver/wms',
+                params: {'LAYERS': 'topp:states', 'TILED': true},
+                projection: 'EPSG:3857',
+                crossOrigin: '*',
+                serverType: 'geoserver',
+                wrapX: false
+            })
+
+            // Add a WMS layer
+            /*view.addLayer({
+                id: 'wms',
+                type: 'color',
+                protocol: 'oltile',
+                source: wmsSource
+            }).catch(e => console.error(e))*/;
+
+            // add the vector source
+            view.addVector(vector);
+
+            // Request redraw
+            view.notifyChange();
+
+
+            const format = new itowns.olformat.GeoJSON({ featureProjection: 'EPSG:3857' });
+            const feature = format.readFeature({ type: 'Feature', geometry: {
+  "type": "MultiPolygon",
+  "coordinates": [
+    [
+      [
+        [
+          -46,
+          -30
+        ],
+        [
+          -41,
+          -30
+        ],
+        [
+          -41,
+          -35
+        ],
+        [
+          -46,
+          -35
+        ],
+        [
+          -46,
+          -30
+        ]
+      ],
+      [
+        [ -45, -31],
+        [ -42, -31],
+        [ -42, -34],
+        [ -45, -31]
+
+      ]
+    ],
+    [
+      [
+        [
+          -47.900390625,
+          -14.944784875088372
+        ],
+        [
+          -51.591796875,
+          -19.91138351415555
+        ],
+        [
+          -41.11083984375,
+          -21.309846141087192
+        ],
+        [
+          -43.39599609375,
+          -15.390135715305204
+        ],
+        [
+          -47.900390625,
+          -14.944784875088372
+        ]
+      ],
+      [
+        [
+          -46.6259765625,
+          -17.14079039331664
+        ],
+        [
+          -47.548828125,
+          -16.804541076383455
+        ],
+        [
+          -46.23046874999999,
+          -16.699340234594537
+        ],
+        [
+          -45.3515625,
+          -19.31114335506464
+        ],
+        [
+          -46.6259765625,
+          -17.14079039331664
+        ]
+      ],
+      [
+        [
+          -44.40673828125,
+          -18.375379094031825
+        ],
+        [
+          -44.4287109375,
+          -20.097206227083888
+        ],
+        [
+          -42.9345703125,
+          -18.979025953255267
+        ],
+        [
+          -43.52783203125,
+          -17.602139123350838
+        ],
+        [
+          -44.40673828125,
+          -18.375379094031825
+        ]
+      ]
+      ]
+    ]
+
+  }});
+            var vector2 = new itowns.ollayer.Vector({
+                source: new itowns.olsource.Vector({
+                    features: [feature]
+                })
+            });
+            view.addVector(vector2);
+
+        </script>
+    </body>
+</html>

@@ -10,6 +10,7 @@ import Picking from './Picking';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing';
 import ElevationTextureProcessing, { minMaxFromTexture, ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing';
 import TiledNodeProcessing from '../Process/TiledNodeProcessing';
+import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh';
 
 export const VIEW_EVENTS = {
     /**
@@ -433,6 +434,36 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
             resolve(layer);
         });
     });
+};
+
+View.prototype.addVector = function addVector(vector) {
+    const source = vector.getSource();
+    const convert = OlFeature2Mesh.convert({ altitude: 1 });
+    // default loader does not have a "success" callback. Instead openlayers tests for
+    if (source.getFeatures().length > 0) {
+        vector.object3d = convert(source.getFeatures());
+        this._threeObjects.add(vector.object3d);
+        this.notifyChange(vector.object3d, true);
+    }
+    source.on('change', () => {
+        // naive way of dealing with changes : remove everything and add everything back
+        if (vector.object3d) {
+            this._threeObjects.remove(vector.object3d);
+            vector.object3d.traverse(o => {
+                if (o.material) {
+                    o.material.dispose();
+                }
+                if (o.geometry) {
+                    o.geometry.dispose();
+                }
+                o.dispose();
+            });
+        }
+        vector.object3d = convert(source.getFeatures());
+        this._threeObjects.add(vector.object3d);
+        this.notifyChange(vector.object3d, true);
+    });
+    source.loadFeatures([-Infinity, -Infinity, Infinity, Infinity], undefined, this.referenceCrs);
 };
 
 /**
