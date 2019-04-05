@@ -1,4 +1,4 @@
-import { Vector3, Plane, EventDispatcher, Math as ThreeMath } from 'three';
+import { Vector3, Plane, EventDispatcher, Math as ThreeMath, Sphere } from 'three';
 import { GeometryLayer, Layer } from './Layer/Layer';
 import Cache from '../Core/Scheduler/Cache';
 
@@ -7,6 +7,8 @@ export const RENDERING_SCHEDULED = 1;
 
 // TODO should probably be configurable?
 const MAX_DISTANCE = 2000000000;
+
+const _tmpSphere = new Sphere();
 
 /**
  * MainLoop's update events list that are fired using
@@ -198,11 +200,27 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
         }
     }
 
+    view._threeObjects.traverse(o => {
+        if (o.geometry) {
+            if (o.geometry.boundingSphere) {
+                _tmpSphere.copy(o.geometry.boundingSphere);
+                _tmpSphere.applyMatrix4(o.matrixWorld);
+                const d = _tmpSphere.distanceToPoint(context.camera.camera3D.position);
+                context.distance.min = ThreeMath.clamp(d, 0, context.distance.min);
+
+                context.distance.max = Math.max(context.distance.max, d + 2 * _tmpSphere.radius);
+            } else {
+                console.warn('object.geometry without boundingSphere!!', o);
+            }
+        }
+    });
+
     // TODO so we need to take into account objects added through view.scene.add !!
     // and also every Object3D added independently to the scene !!
     // layer and provider are not the correct abstraction for this. must be lower level (traverse view.scene ?)
     view.camera.camera3D.near = context.distance.min === Infinity ? previousNear : 0.1; // context.distance.min;
-    view.camera.camera3D.far = ThreeMath.clamp(context.distance.max, view.camera.camera3D.near, MAX_DISTANCE);
+    view.camera.camera3D.far = context.distance.max === 0 ? previousFar :
+        ThreeMath.clamp(context.distance.max, view.camera.camera3D.near, MAX_DISTANCE);
     view.camera.update();
 };
 

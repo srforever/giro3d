@@ -1,5 +1,5 @@
 /* global window */
-import { Scene, EventDispatcher, Vector2, Object3D } from 'three';
+import { Scene, Group, EventDispatcher, Vector2, Object3D } from 'three';
 import Camera from '../Renderer/Camera';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop';
 import c3DEngine from '../Renderer/c3DEngine';
@@ -62,6 +62,12 @@ function View(crs, viewerDiv, options = {}) {
     this.mainLoop = options.mainLoop || new MainLoop(new Scheduler(), engine);
 
     this.scene = options.scene3D || new Scene();
+    // will contain simple three objects that need to be taken into account, for example camera near / far calculation
+    // maybe it'll be better to do the contrary: having a group where *all* the itowns object will be added,
+    // and traverse all other objects for near far calculation
+    // but actuelly I'm not even sure near far calculation is worthy of this.
+    this._threeObjects = new Group();
+    this.scene.add(this._threeObjects);
     this.scene2D = new Scene();
     if (!options.scene3D) {
         this.scene.autoUpdate = false;
