@@ -11,7 +11,11 @@ import Coordinates from '../Geographic/Coordinates';
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = tileCount * x / layerDimension.x;
     const ty = tileCount * y / layerDimension.y;
-    return { x: Math.floor(tx), y: Math.floor(ty) };
+    // if the user configures an extent with exact same dimension as the "reference" extent of the crs,
+    // they won't expect this function to return the tile immediately to the bottom right.
+    // therefore, if tx or ty is exactly one, we need to give back 0 instead.
+    // we consider inclusive bounds actually.
+    return { x: tx == 1 ? 0 : Math.floor(tx), y: ty == 1 ? 0 : Math.floor(ty) };
 }
 
 
