@@ -222,35 +222,6 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
         defineLayerProperty(layer, 'visible', true, () => _syncGeometryLayerVisibility(layer, view));
         defineLayerProperty(layer, 'frozen', false);
         _syncGeometryLayerVisibility(layer, view);
-
-        const changeOpacity = o => {
-            if (o.material) {
-                // != undefined: we want the test to pass if opacity is 0
-                if (o.material.opacity != undefined) {
-                    o.material.transparent = layer.opacity < 1.0;
-                    o.material.opacity = layer.opacity;
-                }
-                if (o.material.uniforms && o.material.uniforms.opacity != undefined) {
-                    o.material.transparent = layer.opacity < 1.0;
-                    o.material.uniforms.opacity.value = layer.opacity;
-                }
-                o.material.depthWrite = !o.material.transparent;
-            }
-        };
-        defineLayerProperty(layer, 'opacity', 1.0, () => {
-            if (layer.object3d) {
-                layer.object3d.traverse(o => {
-                    if (o.layer !== layer) {
-                        return;
-                    }
-                    changeOpacity(o);
-                    // 3dtiles layers store scenes in children's content property
-                    if (o.content) {
-                        o.content.traverse(changeOpacity);
-                    }
-                });
-            }
-        });
     }
     return layer;
 }

@@ -82,6 +82,36 @@ function GeometryLayer(id, object3d) {
         writable: false,
     });
 
+    // layer parameters
+    const changeOpacity = o => {
+        if (o.material) {
+            // != undefined: we want the test to pass if opacity is 0
+            if (o.material.opacity != undefined) {
+                o.material.transparent = this.opacity < 1.0;
+                o.material.opacity = this.opacity;
+            }
+            if (o.material.uniforms && o.material.uniforms.opacity != undefined) {
+                o.material.transparent = this.opacity < 1.0;
+                o.material.uniforms.opacity.value = this.opacity;
+            }
+            o.material.depthWrite = !o.material.transparent;
+        }
+    };
+    defineLayerProperty(this, 'opacity', 1.0, () => {
+        if (this.object3d) {
+            this.object3d.traverse(o => {
+                if (o.layer !== this) {
+                    return;
+                }
+                changeOpacity(o);
+                // 3dtiles layers store scenes in children's content property
+                if (o.content) {
+                    o.content.traverse(changeOpacity);
+                }
+            });
+        }
+    });
+
     this.atlasInfo = { maxX: 0, maxY: 0 };
 
     // Setup default picking method
