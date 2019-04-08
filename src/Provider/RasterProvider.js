@@ -98,6 +98,7 @@ export default {
             layer.options.zoom = { min: 5, max: 21 };
         }
 
+        layer.imageSize = { w: 256, h: 256 };
         layer.style = layer.style || {};
 
         // Rasterization of data vector
@@ -167,16 +168,13 @@ export default {
             }
         });
     },
-    canTextureBeImproved(layer, extents, currentTextures) {
-        if (!currentTextures || !currentTextures[0].extent) {
-            return [true];
+    canTextureBeImproved(layer, extent, texture) {
+        if (!texture || !texture.extent || !texture.extent.isInside(extent)) {
+            return extent;
         }
-        const dim = extents[0].dimensions();
-        const inside = currentTextures[0].extent.isInside(extents[0], dim.x * 0.001);
-        return inside ? false : [true];
     },
     tileInsideLimit(tile, layer) {
-        const extent = tile.getCoordsForLayer(layer)[0];
+        const extent = tile.getExtentForLayer(layer);
         return layer.extent.intersectsExtent(extent);
     },
     executeCommand(command) {

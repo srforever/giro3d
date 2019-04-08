@@ -418,7 +418,7 @@ LayeredMaterial.prototype.pushLayer = function pushLayer(newLayer) {
 };
 
 LayeredMaterial.prototype.removeLayer = function removeLayer(layer) {
-    const index = this.colorLayers.indexOf(layer);
+    const index = this.indexOfColorLayer(layer);
     if (index === -1) {
         console.warn(`Layer ${layer.id} not found, so not removed...`);
         return;
