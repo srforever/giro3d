@@ -61,11 +61,10 @@ export default {
                 // clean object of layer
                 delete o.layerUpdateState[layer.id];
                 // delete texture in material
-                o.removeColorLayer(layer.id);
-                // reinit sequence
-                const imageryLayers = view.getLayers((l, p) => l.type === 'color' && p == o.layer && l != layer);
-                const sequence = ImageryLayers.getColorLayersIdOrderedBySequence(imageryLayers);
-                o.material.setSequence(sequence);
+                // it's possible not to have this layer in this particular Mesh, see `updateLayerElement`
+                if (o.material && o.material.indexOfColorLayer(layer) !== -1) {
+                    o.material.removeLayer(layer);
+                }
             }
         });
     },

@@ -419,6 +419,10 @@ LayeredMaterial.prototype.pushLayer = function pushLayer(newLayer) {
 
 LayeredMaterial.prototype.removeLayer = function removeLayer(layer) {
     const index = this.colorLayers.indexOf(layer);
+    if (index === -1) {
+        console.warn(`Layer ${layer.id} not found, so not removed...`);
+        return;
+    }
     this.texturesInfo.color.opacity.splice(index, 1);
     this.texturesInfo.color.visible.splice(index, 1);
     this.texturesInfo.color.offsetScale.splice(index, 1);
@@ -430,6 +434,8 @@ LayeredMaterial.prototype.removeLayer = function removeLayer(layer) {
     this.defines.TEX_UNITS = this.colorLayers.length;
 
     this.needsUpdate = true;
+
+    this.onBeforeCompile = rebuildFragmentShader.bind(this);
 };
 
 LayeredMaterial.prototype.update = function update() {
