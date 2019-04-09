@@ -4,14 +4,16 @@ const pt = new THREE.Vector2();
 
 function _moveTo(ctx, coord, scale, origin) {
     pt.x = coord._values[0] - origin.x;
-    pt.y = coord._values[1] - origin.y;
+    // canvas y axis is top to bottom
+    pt.y = origin.y - coord._values[1];
     pt.multiply(scale);
     ctx.moveTo(pt.x, pt.y);
 }
 
 function _lineTo(ctx, coord, scale, origin) {
     pt.x = coord._values[0] - origin.x;
-    pt.y = coord._values[1] - origin.y;
+    // canvas y axis is top to bottom
+    pt.y = origin.y - coord._values[1];
     pt.multiply(scale);
     ctx.lineTo(pt.x, pt.y);
 }
@@ -59,7 +61,8 @@ function _drawPolygon(ctx, vertices, indices, origin, scale, properties, style) 
 
 function drawPoint(ctx, vertice, origin, scale, style = {}) {
     pt.x = vertice._values[0] - origin.x;
-    pt.y = vertice._values[1] - origin.y;
+    // canvas y axes is top to bottom
+    pt.y = origin.y - vertice._values[1];
     pt.multiply(scale);
 
     ctx.beginPath();
@@ -96,7 +99,8 @@ export default {
         if (collection) {
             // A texture is instancied drawn canvas
             // origin and dimension are used to transform the feature's coordinates to canvas's space
-            const origin = new THREE.Vector2(extent.west(), extent.south());
+            // NOTE: canvas y axes is top to bottom
+            const origin = new THREE.Vector2(extent.west(), extent.north());
             const dimension = extent.dimensions();
             const c = document.createElement('canvas');
 
@@ -147,7 +151,8 @@ export default {
 
         // A texture is instancied drawn canvas
         // origin and dimension are used to transform the feature's coordinates to canvas's space
-        const origin = new THREE.Vector2(point.x - radius / scale.x, point.y - radius / scale.y);
+        // NOTE: canvas y axes is top to bottom
+        const origin = new THREE.Vector2(point.x - radius / scale.x, point.y + radius / scale.y);
 
         const c = document.createElement('canvas');
 
