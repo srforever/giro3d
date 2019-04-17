@@ -331,14 +331,25 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
     }
 };
 
+function zIndexSort(a, b) {
+    if (a.zIndex == b.zIndex) {
+        return 0;
+    } else if (!a.zIndex) {
+        return -1;
+    } else {
+        return a.zIndex - b.zIndex;
+    }
+}
+
 function rebuildFragmentShader(shader) {
     const material = this;
     const _atlas = material.atlasInfo.atlas;
     let textureReadingCode = '';
     const w = material.atlasInfo.maxX;
     const h = material.atlasInfo.maxY;
-    for (let i = 0; i < material.colorLayers.length; i++) {
-        const layer = material.colorLayers[i];
+    const sortedLayers = [...material.colorLayers].sort(zIndexSort);
+    for (const layer of sortedLayers) {
+        const i = this.indexOfColorLayer(layer);
         const atlas = _atlas[layer.id];
         const validArea = {
             x1: atlas.x / w,
