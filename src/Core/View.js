@@ -85,9 +85,10 @@ function View(crs, viewerDiv, options = {}) {
     this._layers = [];
 
     window.addEventListener('resize', () => {
-        // If the user gave us a container (<div>) then itowns' size is
-        // the container's size. Otherwise we use window' size.
-        const newSize = new Vector2(viewerDiv.clientWidth, viewerDiv.clientHeight);
+        // using boundingRect because clientWidth/height round the result (at least in chrome)
+        // resulting in unwanted scrollbars
+        const boundingRect = viewerDiv.getBoundingClientRect();
+        const newSize = new Vector2(boundingRect.width, boundingRect.height);
         this.mainLoop.gfxEngine.onWindowResize(newSize.x, newSize.y);
         this.notifyChange(this.camera.camera3D);
     }, false);

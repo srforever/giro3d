@@ -44,6 +44,9 @@ function selectTile(layer, extent) {
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
     const tileCoord = tileCoordForExtent(tileGrid, extent);
+    if (!tileCoord) {
+        return null;
+    }
     const tile = source.getTile(tileCoord[0], tileCoord[1], tileCoord[2], 1, projection);
     const tileExtent = fromOLExtent(
         tileGrid.getTileCoordExtent(tileCoord), projection.getCode());
