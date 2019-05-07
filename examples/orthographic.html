@@ -10,8 +10,6 @@
     </head>
     <body>
         <div id="viewerDiv">
-            <button id="toggle-serpent">Toggle serpent</button>
-            <span id="info"></span>
         </div>
         <script src="../dist/itowns.js"></script>
         <script src="js/loading_screen.js"></script>
@@ -19,12 +17,11 @@
 
             /* global itowns, renderer */
             // # Orthographic viewer
-
             // Define geographic extent: CRS, min/max X, min/max Y
             var extent = new itowns.Extent(
                 'EPSG:3857',
-                -20026376.39, 20026376.39,
-                -20048966.10, 20048966.10);
+                -20037508.342789244, 20037508.342789244,
+                -20037508.342789244, 20037508.342789244);
 
             // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
@@ -50,51 +47,16 @@
             // By default itowns' tiles geometry have a "skirt" (ie they have a height),
             // but in case of orthographic we don't need this feature, so disable it
             view.tileLayer.disableSkirt = true;
-            view.tileLayer.showOutline = true;
 
             // Add an TMS imagery layer
+            var stamenSource = new itowns.olsource.Stamen({ layer: 'watercolor', wrapX: false });
+            // Add a base layer
             view.addLayer({
+                id: 'osm',
                 type: 'color',
-                protocol: 'xyz',
-                id: 'OPENSM',
-                // eslint-disable-next-line no-template-curly-in-string
-                url: 'http://127.0.0.1:8183/osm_standard/${z}/${x}/${y}.png',
-                networkOptions: { crossOrigin: 'use-credentials' },
-                extent: [extent.west(), extent.east(), extent.south(), extent.north()],
-                projection: 'EPSG:3857',
-                options: {
-                    zoom: { min: 0, max: 25 },
-                    attribution: {
-                        name: 'OpenStreetMap',
-                        url: 'http://www.openstreetmap.org/',
-                    },
-                },
-                updateStrategy: {
-                    type: itowns.STRATEGY_DICHOTOMY,
-                },
-                sequence: 1
-            });
-            view.addLayer({
-                type: 'color',
-                protocol: 'xyz',
-                id: 'OPEN_label',
-                // eslint-disable-next-line no-template-curly-in-string
-                url: 'http://127.0.0.1:8183/osm_label/${z}/${x}/${y}.png',
-                networkOptions: { crossOrigin: 'use-credentials' },
-                extent: [extent.west(), extent.east(), extent.south(), extent.north()],
-                projection: 'EPSG:3857',
-                options: {
-                    zoom: { min: 0, max: 25 },
-                    attribution: {
-                        name: 'OpenStreetMap',
-                        url: 'http://www.openstreetmap.org/',
-                    },
-                },
-                updateStrategy: {
-                    type: itowns.STRATEGY_DICHOTOMY,
-                },
-                sequence: 2
-            });
+                protocol: 'oltile',
+                source: stamenSource,
+            }).catch(e => console.error(e));
 
             var onMouseWheel = function onMouseWheel(event) {
                 var change = 1 - (Math.sign(event.wheelDelta || -event.detail) * 0.1);
@@ -142,29 +104,10 @@
                     view.camera.camera3D.bottom = dragCameraStart.bottom + deltaY;
                     view.notifyChange(view.camera.camera3D, true);
                 }
-
-                const regions = view.getLayers(l => l.name === 'regions')[0];
-
-                const startTime = performance.now();
-                const intersects = view.pickObjectsAt(
-                        event,
-                        null,
-                        regions);
-                console.log('time', performance.now() - startTime);
-                if (intersects.length > 0) {
-                    infoDiv.innerHTML = intersects.map(i => i.object.properties.nom).join(', ');
-                } else {
-                    infoDiv.innerHTML = '';
-                }
-
-
             });
             viewerDiv.addEventListener('mouseup', function mouseUp() {
                 dragStartPosition = undefined;
             });
-
-
-            view.notifyChange(null, true);
         </script>
     </body>
 </html>
