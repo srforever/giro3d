@@ -473,10 +473,10 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                     throw new Error('boundingVolume.region is not yet supported');
                 } else if (node.boundingVolume.box) {
                     layer._distance.min = Math.min(layer._distance.min, node.distance);
-                    layer._distance.max = Math.max(layer._distance.max, node.boundingVolume.box.getSize(tmp.v).length());
+                    layer._distance.max = Math.max(layer._distance.max, node.distance + node.boundingVolume.box.getSize(tmp.v).length());
                 } else if (node.boundingVolume.sphere) {
                     layer._distance.min = Math.min(layer._distance.min, node.distance);
-                    layer._distance.max = Math.max(layer._distance.max, 2 * node.boundingVolume.sphere.radius);
+                    layer._distance.max = Math.max(layer._distance.max, node.distance + 2 * node.boundingVolume.sphere.radius);
                 }
                 node.content.traverse(o => {
                     if (o.layer == layer && o.material) {
