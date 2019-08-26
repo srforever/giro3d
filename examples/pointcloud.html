@@ -168,12 +168,12 @@
             <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
             <script type="text/javascript">
                 var searchParams = new URL(window.location.href).searchParams;
+                var view;
                 function showPointcloud(serverUrl, fileName, lopocsTable, potree) {
                     var pointcloud;
                     var oldPostUpdate;
                     var viewerDiv;
                     var debugGui;
-                    var view;
                     var controls;
 
                     viewerDiv = document.getElementById('viewerDiv');
