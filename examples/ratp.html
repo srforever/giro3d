@@ -489,7 +489,7 @@
                 view.addLayer(pointcloud).then((pc) => {
                     debug.PointCloudDebug.initTools(view, pc, menuGlobe.gui);
                     view.notifyChange(true);
-                    placeCamera(pc.root.bbox.getCenter().clone().setZ(pc.root.bbox.max.z * 2));
+                    placeCamera(pc.root.bbox.getCenter(new THREE.Vector2()).clone().setZ(pc.root.bbox.max.z * 2));
                 });
             }
             view.camera.camera3D.far = 200000;

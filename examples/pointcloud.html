@@ -169,6 +169,7 @@
             <script type="text/javascript">
                 var searchParams = new URL(window.location.href).searchParams;
                 var view;
+                var tmpVec3 = new itowns.THREE.Vector3();
                 function showPointcloud(serverUrl, fileName, lopocsTable, potree) {
                     var pointcloud;
                     var oldPostUpdate;
@@ -250,19 +251,19 @@
                             pointcloud.root.bbox :
                             pointcloud.root.boundingVolume.box.clone().applyMatrix4(pointcloud.root.matrixWorld);
 
-                        view.camera.camera3D.far = 2.0 * bbox.getSize().length();
+                        view.camera.camera3D.far = 2.0 * bbox.getSize(tmpVec3).length();
 
-                        ratio = bbox.getSize().x / bbox.getSize().z;
+                        ratio = bbox.getSize(tmpVec3).x / bbox.getSize(tmpVec3).z;
                         position = bbox.min.clone().add(
-                            bbox.getSize().multiply({ x: 0, y: 0, z: ratio * 0.5 }));
-                        lookAt = bbox.getCenter();
+                            bbox.getSize(tmpVec3).multiply({ x: 0, y: 0, z: ratio * 0.5 }));
+                        lookAt = bbox.getCenter(tmpVec3);
                         lookAt.z = bbox.min.z;
                         placeCamera(position, lookAt);
 
                         view.addFrameRequester('after_render', () => {
                             var info = document.getElementById('info');
                             info.textContent = 'Nb points: ' +
-                                view.mainLoop.gfxEngine.renderer.info.render.vertices.toLocaleString();
+                                view.mainLoop.gfxEngine.renderer.info.render.points.toLocaleString();
                         });
 
                         if (pointcloud.url == 'http://3d.oslandia.com/3dtiles/lyon.3dtiles/tileset.json') {

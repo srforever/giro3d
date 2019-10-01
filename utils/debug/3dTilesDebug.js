@@ -45,6 +45,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
 
     // Bounding box control
     const obb_layer_id = `${_3dTileslayer.id}_obb_debug`;
+    const tmpVec3 = new THREE.Vector3();
 
     const debugIdUpdate = function debugIdUpdate(context, layer, node) {
         const enabled = context.camera.camera3D.layers.test({ mask: 1 << layer.threejsLayer });
@@ -68,7 +69,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
                 // 3dtiles with box
                 if (metadata.boundingVolume.box) {
                     helper = unitBoxMesh();
-                    helper.scale.copy(metadata.boundingVolume.box.getSize());
+                    helper.scale.copy(metadata.boundingVolume.box.getSize(tmpVec3));
                     metadata.boundingVolume.box.getCenter(helper.position);
                 }
                 // 3dtiles with Sphere
