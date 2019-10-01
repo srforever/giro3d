@@ -7,7 +7,6 @@ import * as THREE from 'three';
 import TileGeometry from '../Core/TileGeometry';
 import TileMesh from '../Core/TileMesh';
 import LayeredMaterial from '../Renderer/LayeredMaterial';
-import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 import Cache from '../Core/Scheduler/Cache';
 import TiledNodeProcessing from '../Process/TiledNodeProcessing';
 

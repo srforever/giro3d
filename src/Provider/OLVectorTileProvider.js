@@ -28,7 +28,7 @@ const IMAGE_REPLAYS = {
 
 const tmpTransform_ = createTransform();
 const emptyTexture = new Texture();
-const emptyPitch = new Vector4(0, 0, 1, 1);
+// const emptyPitch = new Vector4(0, 0, 1, 1);
 
 function Foo() {
     this.storage = {};
@@ -187,14 +187,11 @@ function createReplayGroup(tile, layer) {
     const renderOrder = null;
 
     const tmpExtent = createEmptyExtent();
-    if (tile.tileKeys.length > 1) {
-        console.log(tile.tileKeys.length);
-    }
     let empty = true;
     for (let t = 0, tt = tile.tileKeys.length; t < tt; ++t) {
         const sourceTile = tile.getTile(tile.tileKeys[t]);
         if (sourceTile.getState() != TileState.LOADED) {
-            console.log('not loaded !!!');
+            console.warn('not loaded !!!', sourceTile);
             continue;
         }
         const sourceTileCoord = sourceTile.tileCoord;
@@ -301,7 +298,7 @@ function renderTileImage(_canvas, tile, atlasInfo, layer) {
     ctx.clip();
 
     //  tile.getContext(layer);
-    const size = source.getTilePixelSize(z, pixelRatio, source.getProjection());
+    // const size = source.getTilePixelSize(z, pixelRatio, source.getProjection());
     // context.canvas.width = size[0];
     // context.canvas.height = size[1];
     if (layer.backgroundColor) {

@@ -1,6 +1,5 @@
 import LayerUpdateState from '../Core/Layer/LayerUpdateState';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
-import { SIZE_TEXTURE_TILE } from '../Provider/OGCWebServiceHelper';
 
 export const ELEVATION_FORMAT = {
     MAPBOX_RGB: 0,
@@ -91,7 +90,6 @@ export function minMaxFromTexture(layer, texture) {
 
 
 function initNodeElevationTextureFromParent(node, parent, layer) {
-    const nodeTexture = node.material.getLayerTexture(layer).texture;
     const parentTexture = parent.material.getLayerTexture(layer).texture;
     if (!parentTexture.extent) {
         return;

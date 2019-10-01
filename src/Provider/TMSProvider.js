@@ -119,7 +119,6 @@ function selectAllExtentsToDownload(layer, extent_, texture, previousError) {
 function executeCommand(command) {
     const layer = command.layer;
 
-    const promises = [];
     const promise = layer.format === 'application/x-protobuf;type=mapbox-vector' ?
         VectorTileHelper.getVectorTileTextureByUrl(command.toDownload, command.requester, layer/* , todo.extent */) :
         OGCWebServiceHelper.getColorTextureByUrl(command.toDownload, layer.networkOptions);

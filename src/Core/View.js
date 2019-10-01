@@ -394,7 +394,6 @@ View.prototype.addLayer = function addLayer(layer, parentLayer) {
                             }
                         });
                     }
-                    console.log(parentLayer.minMaxFromElevationLayer);
                 }
 
                 parentLayer.attach(layer);

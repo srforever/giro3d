@@ -261,11 +261,11 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
         return Promise.resolve(true);
     } else if (layer.type === 'color') {
         const index = this.indexOfColorLayer(layer);
-        const atlas = this.atlasInfo.atlas[layer.id];
+        // const atlas = this.atlasInfo.atlas[layer.id];
         this.texturesInfo.color.originalOffsetScale[index].copy(textures.pitch);
         this.texturesInfo.color.textures[index] = textures.texture;
 
-        const canvas = this.uniforms.colorTexture.value.image;
+        // const canvas = this.uniforms.colorTexture.value.image;
 
         if (shortcut) {
             updateOffsetScale(
@@ -288,7 +288,7 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
                 this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
                 for (const layer of this.colorLayers) {
                     if (this.pendingUpdates.indexOf(layer) == -1) {
-                        console.log('no new texture for ', layer.id, '. Redrawing the old one');
+                        console.warn('no new texture for ', layer.id, '. Redrawing the old one');
                         this.pendingUpdates.push(layer);
                     }
                 }
@@ -403,7 +403,7 @@ function rebuildFragmentShader(shader) {
         'INSERT_TEXTURE_READING_CODE',
         textureReadingCode);
     shader.fragmentShader = material.fragmentShader;
-    material.onBeforeCompile = function () {};
+    material.onBeforeCompile = function noop() {};
     return material.fragmentShader;
 }
 
@@ -459,7 +459,6 @@ LayeredMaterial.prototype.update = function update() {
         newCanvas.width = this.atlasInfo.maxX;
         newCanvas.height = this.atlasInfo.maxY;
         if (this.canvas.width > 0) {
-            console.log('Redraw');
             const ctx = newCanvas.getContext('2d');
             ctx.drawImage(this.canvas, 0, 0, this.canvas.width, this.canvas.height);
         }
@@ -474,7 +473,6 @@ LayeredMaterial.prototype.update = function update() {
 
         for (let i = 0; i < this.colorLayers.length; i++) {
             const layer = this.colorLayers[i];
-            const os = this.texturesInfo.color.offsetScale[i];
             const atlas = this.atlasInfo.atlas[layer.id];
             const pitch = this.texturesInfo.color.originalOffsetScale[i];
 

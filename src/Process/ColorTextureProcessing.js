@@ -1,4 +1,3 @@
-import { ImageryLayers } from '../Core/Layer/Layer';
 import LayerUpdateState from '../Core/Layer/LayerUpdateState';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
 

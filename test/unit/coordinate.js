@@ -10,14 +10,6 @@ function assertFloatEqual(float1, float2, precision = 5) {
     assert.equal(Number(float1).toFixed(precision), Number(float2).toFixed(precision));
 }
 
-// Assert two coordinates obects are equals.
-function assertCoordEqual(coord1, coord2) {
-    assert.equal(coord1.crs, coord2.crs);
-    assertFloatEqual(coord1._values[0], coord2._values[0]);
-    assertFloatEqual(coord1._values[1], coord2._values[1]);
-    assertFloatEqual(coord1._values[2], coord2._values[2]);
-}
-
 describe('Coordinate conversions', function () {
     // This case happend in iTowns when we convert the tile extent (4326) to a target WFS server (EPSG:3946 for example) to request Lyon bus line in WFS.
     it('should correctly convert from EPSG:4326 (tiles extent) to EPSG:3946 (Lyon WFS) and back to EPSG:4326 (degrees)', function () {

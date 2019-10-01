@@ -1,5 +1,4 @@
-import { Math as _Math, Vector3 } from 'three';
-import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
+import { Vector3 } from 'three';
 import ObjectRemovalHelper from './ObjectRemovalHelper';
 import ScreenSpaceError from '../Core/ScreenSpaceError';
 import SubdivisionControl from './SubdivisionControl';
@@ -29,8 +28,6 @@ function subdivideNode(context, layer, node) {
     if (!node.children.some(n => n.layer == layer)) {
         const extents = node.extent.quadtreeSplit();
 
-        const promises = [];
-        const children = [];
         for (const extent of extents) {
             const child = requestNewTile(
                 context.view, context.scheduler, layer, extent, node);
@@ -177,9 +174,7 @@ function update(context, layer, node) {
                     Math.max(s.x, s.y),
                     ScreenSpaceError.MODE_2D);
 
-            if (true || __DEBUG__) {
-                node.sse = sse; // DEBUG
-            }
+            node.sse = sse; // DEBUG
 
             if (testTileSSE(node, sse, layer.maxSubdivisionLevel || -1) &&
                     SubdivisionControl.hasEnoughTexturesToSubdivide(context, layer, node)) {

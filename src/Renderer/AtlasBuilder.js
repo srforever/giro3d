@@ -1,16 +1,4 @@
-import * as THREE from 'three';
-import Capabilities from '../Core/System/Capabilities';
 import fit from './Packer';
-
-const availableCanvas = [];
-
-function getCanvas() {
-    if (availableCanvas.length) {
-        return availableCanvas.pop();
-    }
-    const canvas = document.createElement('canvas');
-    return canvas;
-}
 
 /**
  * Build a texture atlas from N images.

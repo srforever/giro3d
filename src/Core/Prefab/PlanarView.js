@@ -36,7 +36,6 @@ function compute3857Extent(tileExtent) {
 
     const tl = new Coordinates('EPSG:3857', tileExtent.west(), tileExtent.north());
     const br = new Coordinates('EPSG:3857', tileExtent.east(), tileExtent.south());
-    const center = tileExtent.center();
     const realTileCount = Math.pow(2, zoom);
 
     // compute tile that contains the center

@@ -5,7 +5,7 @@ import { MAIN_LOOP_EVENTS } from '../../Core/MainLoop';
 // but including these controls in itowns allows use to integrate them tightly with itowns.
 // Especially the existing controls are expecting a continuous update loop while we have a pausable one (so our controls use .notifyChange when needed)
 
-function limitRotation(camera3D, rot, verticalFOV) {
+function limitRotation(camera3D, rot /* , verticalFOV */) {
     // Limit vertical rotation (look up/down) to make sure the user cannot see
     // outside of the cone defined by verticalFOV
     const limit = Math.PI * 0.5;// THREE.Math.degToRad(verticalFOV - camera3D.fov * 0.5) * 0.5;
