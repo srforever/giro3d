@@ -144,6 +144,7 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
             id: obb_layer_id,
             type: 'debug',
             update: debugIdUpdate,
+            preUpdate: () => {},
             visible: false,
         }, layer).then(l => {
             gui.add(l, 'visible').name('Bounding boxes').onChange(() => {
