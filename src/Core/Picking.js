@@ -228,6 +228,7 @@ export default {
                             layer,
                             point: position,
                             coord: candidates[i].coord,
+                            distance: view.camera.camera3D.position.distanceTo(position),
                         });
                     }
                 }
