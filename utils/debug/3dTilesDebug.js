@@ -91,7 +91,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
                     helper.updateMatrixWorld();
                 }
 
-                if (helper && !metadata.boundingVolume.region) {
+                if (helper && (metadata.magic == 'b3dm' || metadata.magic == 'i3dm') && !metadata.boundingVolume.region) {
                     // compensate B3dm orientation correction
                     const gltfUpAxis = _3dTileslayer.asset.gltfUpAxis;
                     helper.updateMatrix();
@@ -101,10 +101,9 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
                         helper.matrix.premultiply(invMatrixChangeUpVectorZtoX);
                     }
                     helper.applyMatrix(new THREE.Matrix4());
-
-                    node.add(helper);
-                    helper.updateMatrixWorld();
                 }
+                node.add(helper);
+                helper.updateMatrixWorld();
             } else {
                 helper = node.userData.obb;
             }

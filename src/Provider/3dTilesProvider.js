@@ -273,6 +273,7 @@ function executeCommand(command) {
             if (result !== undefined) {
                 let func;
                 const magic = utf8Decoder.decode(new Uint8Array(result, 0, 4));
+                metadata.magic = magic;
                 if (magic[0] === '{') {
                     result = JSON.parse(utf8Decoder.decode(new Uint8Array(result)));
                     const newPrefix = url.slice(0, url.lastIndexOf('/') + 1);
