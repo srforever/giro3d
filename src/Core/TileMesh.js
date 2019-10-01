@@ -160,7 +160,7 @@ TileMesh.prototype.changeSequenceLayers = function changeSequenceLayers(sequence
 
 TileMesh.prototype.getExtentForLayer = function getExtentForLayer(layer) {
     if (layer.extent.crs() != this.extent.crs()) {
-        throw new Error('Unsupported reprojection');
+        throw new Error(`Layer should be in the same CRS of their supporting tile geometry, but layer crs is ${layer.extent.crs()} and tile crs is ${this.extent.crs()}`);
     }
     if (layer.protocol == 'tms' || layer.protocol == 'xyz') {
         return OGCWebServiceHelper
