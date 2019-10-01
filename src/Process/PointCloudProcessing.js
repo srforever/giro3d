@@ -30,7 +30,6 @@ function cube(size) {
         new THREE.Vector3(h.x, h.y, h.z),
         new THREE.Vector3(h.x, -h.y, -h.z),
         new THREE.Vector3(h.x, -h.y, h.z));
-    geometry.computeLineDistances();
     return geometry;
 }
 
@@ -44,6 +43,7 @@ function initBoundingBox(elt, layer) {
         cube(size),
         elt.childrenBitField ?
             new THREE.LineDashedMaterial({ color: 0, dashSize: 0.25, gapSize: 0.25 }) : new THREE.LineBasicMaterial({ color: 0 }));
+    elt.obj.boxHelper.computeLineDistances();
 
     elt.obj.boxHelper.frustumCulled = false;
     elt.obj.boxHelper.position.copy(elt.tightbbox.min);

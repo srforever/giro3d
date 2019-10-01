@@ -386,7 +386,7 @@ class DeformationChain {
                             dashed.geometry.vertices[1] =
                                 rect2.geometry.vertices[o].clone().applyMatrix4(rect2.matrixWorld)
                                     .sub(dashed.position);
-                            dashed.geometry.computeLineDistances();
+                            dashed.computeLineDistances();
                             dashed.geometry.verticesNeedUpdate = true;
                             dashed.geometry.lineDistancesNeedUpdate = true;
                             if (o == 0 || o == 3) {
