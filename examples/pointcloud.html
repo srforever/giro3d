@@ -240,7 +240,7 @@
                     }
 
                     // add pointcloud to scene
-                    function onLayerReady() {
+                    function onLayerReady(l) {
                         var ratio;
                         var position;
                         var lookAt;
@@ -287,6 +287,13 @@
                             view.addLayer(colorize, pointcloud);
                         }
 
+                        // debug UI
+                        if (potree) {
+                            debug.PointCloudDebug.initTools(view, l, debugGui);
+                        } else {
+                            debug.create3dTilesDebugUI(debugGui, view, l);
+                        }
+
                     }
                     window.view = view;
 
@@ -303,7 +310,7 @@
                 document.addEventListener('click', (evt) => {
                     const r = view._layers[0].pickObjectsAt(view, view.eventToViewCoords(evt), 1);
                     if (!r.length) return;
-                    const obj = r[0].object.userData.metadata.obj;
+                    const obj = r[0].object;
                     console.log(obj)
                     const svg = document.getElementsByClassName('maa')[0];
                     while (svg.firstChild) {
