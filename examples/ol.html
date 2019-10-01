@@ -56,6 +56,14 @@
             // eslint-disable-next-line no-unused-vars
             var stamenSource = new itowns.olsource.Stamen({ layer: 'toner', wrapX: false });
 
+            // Add a base layer
+            view.addLayer({
+                id: 'osm',
+                type: 'color',
+                protocol: 'oltile',
+                source: stamenSource
+            }).catch(e => console.error(e));
+
             // eslint-disable-next-line no-unused-vars
             var wmsSource = new itowns.olsource.TileWMS({
                 url: 'https://ahocevar.com/geoserver/wms',
@@ -65,14 +73,6 @@
                 serverType: 'geoserver',
                 wrapX: false
             })
-
-            // Add a base layer
-            view.addLayer({
-                id: 'osm',
-                type: 'color',
-                protocol: 'oltile',
-                source: stamenSource
-            }).catch(e => console.error(e));
 
             // Add a WMS layer
             view.addLayer({
