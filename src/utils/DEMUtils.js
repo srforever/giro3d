@@ -176,6 +176,7 @@ function tileAt(pt, tile) {
 }
 
 let _canvas;
+let ctx;
 function _readTextureValueAt(layer, texture, ...uv) {
     for (let i = 0; i < uv.length; i += 2) {
         uv[i] = THREE.Math.clamp(uv[i], 0, texture.image.width - 1);
@@ -198,6 +199,7 @@ function _readTextureValueAt(layer, texture, ...uv) {
             _canvas = document.createElement('canvas');
             _canvas.width = 2;
             _canvas.height = 2;
+            ctx = _canvas.getContext('2d');
         }
         let minx = Infinity;
         let miny = Infinity;
@@ -214,7 +216,6 @@ function _readTextureValueAt(layer, texture, ...uv) {
         _canvas.width = Math.max(_canvas.width, dw);
         _canvas.height = Math.max(_canvas.height, dh);
 
-        const ctx = _canvas.getContext('2d');
         ctx.drawImage(texture.image, minx, miny, dw, dh, 0, 0, dw, dh);
         const d = ctx.getImageData(0, 0, dw, dh);
 
