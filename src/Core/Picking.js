@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import TileMesh from './TileMesh';
-import RendererConstant from '../Renderer/RendererConstant';
-import { unpack1K } from '../Renderer/LayeredMaterial';
+import TileMesh from './TileMesh.js';
+import RendererConstant from '../Renderer/RendererConstant.js';
+import { unpack1K } from '../Renderer/LayeredMaterial.js';
 
 function hideEverythingElse(view, object, threejsLayer = 0) {
     // We want to render only 'object' and its hierarchy.
