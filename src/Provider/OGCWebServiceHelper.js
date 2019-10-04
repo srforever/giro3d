@@ -96,6 +96,6 @@ export default {
             pitch.w = invDiff;
         }
 
-        return target.set(levelParent, r, c);
+        return target.set(target.crs(), levelParent, r, c);
     },
 };

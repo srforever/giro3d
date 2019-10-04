@@ -299,28 +299,30 @@ Extent.prototype.intersectsExtent = function intersectsExtent(bbox) {
 };
 
 /**
- * @documentation: Return the intersection of this extent with another one
+ * @documentation: Set this extent to the intersection of itself and other
  * @param {type} other
  * @returns {Boolean}
  */
 Extent.prototype.intersect = function intersect(other) {
     if (!this.intersectsExtent(other)) {
-        return new Extent(this.crs(), 0, 0, 0, 0);
+        this.set(this.crs(), 0, 0, 0, 0);
+        return this;
     }
+    // TODO use an intermediate tmp instance for .as
     if (other.crs() != this.crs()) {
         other = other.as(this.crs());
     }
-    const extent = new Extent(this.crs(),
+    this.set(this.crs(),
         Math.max(this.west(), other.west()),
         Math.min(this.east(), other.east()),
         Math.max(this.south(), other.south()),
         Math.min(this.north(), other.north()));
 
-    return extent;
+    return this;
 };
 
-
-Extent.prototype.set = function set(...values) {
+Extent.prototype.set = function set(crs, ...values) {
+    this._crs = crs;
     if (_isTiledCRS(this.crs())) {
         this.zoom = values[0];
         this.row = values[1];

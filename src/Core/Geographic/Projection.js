@@ -65,7 +65,7 @@ const Projection = {
         bbox.center(center);
         var col = Math.floor((Math.PI + MathExt.degToRad(center.longitude())) / uX);
         var row = Math.floor(nY - (PI_OV_TWO + MathExt.degToRad(center.latitude())) / uY);
-        return target.set(zoom, row, col);
+        return target.set('WMTS:WGS84G', zoom, row, col);
     },
 
     UnitaryToLongitudeWGS84(u, bbox) {
