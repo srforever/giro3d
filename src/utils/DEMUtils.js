@@ -168,7 +168,7 @@ function tileAt(pt, tile) {
                 return t;
             }
         }
-        if (tile.material.isElevationLayerLoaded()) {
+        if (tile.material.isLayerTextureLoaded({ type: 'elevation' })) {
             return tile;
         }
         return undefined;
@@ -225,8 +225,8 @@ function _readTextureValueAt(layer, texture, ...uv) {
 
             // d is 4 bytes per pixel
             result.push(THREE.Math.lerp(
-                layer.materialOptions.colorTextureElevationMinZ,
-                layer.materialOptions.colorTextureElevationMaxZ,
+                layer.minMaxFromElevationLayer.min,
+                layer.minMaxFromElevationLayer.max,
                 d.data[4 * oy * dw + 4 * ox] / 255));
         }
         if (uv.length === 2) {
@@ -370,9 +370,9 @@ function _readZ(layer, method, coord, nodes, cache) {
     }
 
     const tile = tileWithValidElevationTexture;
-    const texturesInfo = tileWithValidElevationTexture.material.getLayerTextures({ type: 'elevation' });
+    const texturesInfo = tileWithValidElevationTexture.material.getLayerTexture({ type: 'elevation' });
 
-    const src = texturesInfo.textures[0];
+    const src = texturesInfo.texture;
     // check cache value if existing
     if (cache) {
         if (cache.id === src.id && cache.version === src.version) {
@@ -383,7 +383,7 @@ function _readZ(layer, method, coord, nodes, cache) {
     // Assuming that tiles are split in 4 children, we lookup the parent that
     // really owns this texture
     const stepsUpInHierarchy = Math.round(Math.log2(1.0 /
-        texturesInfo.offsetScales[0].z));
+        texturesInfo.offsetScale.z));
     for (let i = 0; i < stepsUpInHierarchy; i++) {
         tileWithValidElevationTexture = tileWithValidElevationTexture.parent;
     }
