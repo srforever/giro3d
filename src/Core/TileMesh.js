@@ -80,10 +80,14 @@ TileMesh.prototype.changeState = function changeState(state) {
         this.material.defines.MATTE_ID_MODE = 1;
         this.material.transparent = false;
         delete this.material.defines.DEPTH_MODE;
+    } else if (state == RendererConstant.UV) {
+        this.material.defines.UV_MODE = 1;
+        this.material.transparent = false;
     } else {
         this.material.transparent = this.material.opacity != 1;
         delete this.material.defines.MATTE_ID_MODE;
         delete this.material.defines.DEPTH_MODE;
+        delete this.material.defines.UV_MODE;
     }
 
     this._state = state;

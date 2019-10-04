@@ -8,4 +8,6 @@ export default {
     DEPTH: 1,
     // id object
     ID: 2,
+    // pack uv of current tile
+    UV: 3,
 };

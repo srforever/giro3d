@@ -51,6 +51,18 @@ float calcHillshade(float a, float b, float c, float d, float e, float f, float 
 }
 #endif
 
+vec4 encodeHalfRGBA ( vec2 v ) {
+	vec4 encoded = vec4( 0.0 );
+	const vec2 offset = vec2( 1.0 / 255.0, 0.0 );
+	encoded.xy = vec2( v.x, fract( v.x * 255.0 ) );
+	encoded.xy = encoded.xy - ( encoded.yy * offset );
+	encoded.zw = vec2( v.y, fract( v.y * 255.0 ) );
+	encoded.zw = encoded.zw - ( encoded.ww * offset );
+	return encoded;
+}
+vec2 decodeHalfRGBA( vec4 v ) {
+	return vec2( v.x + ( v.y / 255.0 ), v.z + ( v.w / 255.0 ) );
+}
 
 #if defined(DEBUG)
 uniform bool showOutline;
@@ -69,6 +81,8 @@ void main() {
         gl_FragColor = packDepthToRGBA(float(uuid) / (256.0 * 256.0 * 256.0));
     #elif defined(DEPTH_MODE)
         gl_FragColor = packDepthToRGBA(gl_FragCoord.z);
+    #elif defined(UV_MODE)
+        gl_FragColor = encodeHalfRGBA(vUv);
     #else
 
     vec4 diffuseColor = vec4(noTextureColor, 0.0);
