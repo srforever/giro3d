@@ -2,6 +2,8 @@ import * as THREE from 'three';
 import TileMesh from './TileMesh.js';
 import RendererConstant from '../Renderer/RendererConstant.js';
 import { unpack1K } from '../Renderer/LayeredMaterial.js';
+import Coordinates from '../Core/Geographic/Coordinates.js';
+import DEMUtils from '../utils/DEMUtils.js';
 
 function hideEverythingElse(view, object, threejsLayer = 0) {
     // We want to render only 'object' and its hierarchy.
@@ -14,6 +16,13 @@ function hideEverythingElse(view, object, threejsLayer = 0) {
     return () => {
         view.camera.camera3D.layers.mask = prev;
     };
+}
+
+function unpackHalfRGBA(v, target) {
+    if (!target || !target.isVector2) {
+        target = new THREE.Vector2();
+    }
+    return target.set(v.x + (v.y / 255.0), v.z + (v.w / 255.0));
 }
 
 const depthRGBA = new THREE.Vector4();
@@ -102,6 +111,7 @@ function findLayerInParent(obj) {
 }
 
 const raycaster = new THREE.Raycaster();
+const tmpCoords = new Coordinates('EPSG:3857', 0, 0, 0);
 
 /**
  * @module Picking
@@ -119,14 +129,58 @@ const raycaster = new THREE.Raycaster();
 export default {
     pickTilesAt: (_view, viewCoords, radius, layer) => {
         const results = [];
+        // TODO is there a way to get the node id AND uv on the same render pass ?
+        // We would need to get a upper bound to the tile ids, and not use the three.js uuid
+        // We need to assess how much precision will be left for the uv, and if it is acceptable
+        // do we really gain something, considering the fact that render in UV
+        // mode will be fast (we only render one object) ?
         const _ids = screenCoordsToNodeId(_view, layer, viewCoords, radius);
 
         const extractResult = node => {
+            // for each node (normally no more than 4 of them) we do a render
+            // in UV mode to get the uv under the mouse. This'll give us the
+            // x,y coordinates, and we use DEMUtils to get z (normally no
+            // render needed, but maybe a draw on canvas ? Check that).
             if (_ids.indexOf(node.id) >= 0 && node instanceof TileMesh) {
-                results.push({
-                    object: node,
-                    layer,
+                const restore = node.pushRenderState(RendererConstant.UV);
+                const buffer = _view.mainLoop.gfxEngine.renderViewToBuffer(
+                    { camera: _view.camera, scene: node },
+                    {
+                        x: Math.max(0, viewCoords.x - radius),
+                        y: Math.max(0, viewCoords.y - radius),
+                        width: 1 + radius * 2,
+                        height: 1 + radius * 2,
+                    });
+                const uvs = [];
+                traversePickingCircle(radius, (x, y, idx) => {
+                    const data = buffer.slice(idx * 4, idx * 4 + 4);
+                    depthRGBA.fromArray(data).divideScalar(255.0);
+                    uvs.push(unpackHalfRGBA(depthRGBA));
                 });
+                // Reconstruct position from uv
+                for (const uv of uvs) {
+                    tmpCoords.set(layer.extent.crs(),
+                        // TODO this looks a lot like PlanarTileBuilder.uProjecte
+                        node.extent.west() + uv.x * (node.extent.east() - node.extent.west()),
+                        node.extent.south() + uv.y * (node.extent.north() - node.extent.south()),
+                        0);
+                    const result = DEMUtils.getElevationValueAt(layer, tmpCoords, DEMUtils.FAST_READ_Z, [node]);
+                    if (result) {
+                        tmpCoords._values[2] = result.z;
+                        // convert to view crs
+                        // here (and only here) should be the Coordinates instance creation
+                        const coord = tmpCoords.as(_view.referenceCrs, new Coordinates(_view.referenceCrs));
+                        const point = tmpCoords.xyz(new THREE.Vector3());
+                        results.push({
+                            object: node,
+                            layer,
+                            point,
+                            coord,
+                            distance: _view.camera.camera3D.position.distanceTo(point),
+                        });
+                    }
+                }
+                restore();
             }
         };
         for (const n of layer.level0Nodes) {
