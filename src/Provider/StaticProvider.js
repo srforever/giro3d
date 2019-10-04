@@ -11,6 +11,7 @@ function _selectImagesFromSpatialIndex(index, images, extent) {
 }
 
 // select the smallest image entirely covering the tile
+let inter = new Extent('dummy', 0, 0, 0, 0);
 function selectBestImageForExtent(layer, extent) {
     const candidates =
         _selectImagesFromSpatialIndex(
@@ -43,7 +44,8 @@ function selectBestImageForExtent(layer, extent) {
     // that has the biggest coverage of the extent
     let coverage = 0;
     for (const entry of candidates) {
-        const inter = entry.extent.intersect(extent);
+        inter.copy(entry.extent);
+        inter = inter.intersect(extent);
         const dim = inter.dimensions();
         const cov = Math.floor(dim.x * dim.y);
         // console.log(cov, entry.image)
