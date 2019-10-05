@@ -3,18 +3,18 @@ import { Texture, Vector4, CanvasTexture } from 'three';
 import TileState from 'ol/TileState';
 import { listenOnce } from 'ol/events';
 import { createEmpty as createEmptyExtent,
-         getIntersection, equals, buffer, intersects } from 'ol/extent';
+    getIntersection, equals, buffer, intersects } from 'ol/extent';
 import CanvasReplayGroup from 'ol/render/canvas/ReplayGroup';
 import { getSquaredTolerance as getSquaredRenderTolerance,
-         renderFeature as renderVectorFeature,
-       } from 'ol/renderer/vector';
+    renderFeature as renderVectorFeature,
+} from 'ol/renderer/vector';
 import { Fill, Icon, Stroke, Style, Text } from 'ol/style';
 import ReplayType from 'ol/render/ReplayType';
 import {
-  create as createTransform,
-  reset as resetTransform,
-  scale as scaleTransform,
-  translate as translateTransform,
+    create as createTransform,
+    reset as resetTransform,
+    scale as scaleTransform,
+    translate as translateTransform,
 } from 'ol/transform';
 import { equivalent as equivalentProjection } from 'ol/proj';
 import Units from 'ol/proj/Units';
@@ -199,7 +199,7 @@ function createReplayGroup(tile, layer) {
         const sharedExtent = getIntersection(tileExtent, sourceTileExtent);
         const renderBuffer = 100;
         const bufferedExtent = equals(sourceTileExtent, sharedExtent) ? null :
-          buffer(sharedExtent, renderBuffer * resolution, tmpExtent);
+            buffer(sharedExtent, renderBuffer * resolution, tmpExtent);
         const tileProjection = sourceTile.getProjection();
         let reproject = false;
         if (!equivalentProjection(sourceProjection, tileProjection)) {
@@ -210,7 +210,7 @@ function createReplayGroup(tile, layer) {
         const pixelRatio = 1;
         const declutterTree = null;
         const replayGroup = new CanvasReplayGroup(0, sharedExtent, resolution,
-          pixelRatio, source.getOverlaps(), declutterTree, renderBuffer);
+            pixelRatio, source.getOverlaps(), declutterTree, renderBuffer);
         const squaredTolerance = getSquaredRenderTolerance(resolution, pixelRatio);
 
         const render = function render(feature) {
@@ -269,8 +269,8 @@ function renderFeature(feature, squaredTolerance, styles, replayGroup) {
         }
     } else {
         loading = renderVectorFeature(
-          replayGroup, feature, styles, squaredTolerance,
-          handleStyleImageChange_, null);
+            replayGroup, feature, styles, squaredTolerance,
+            handleStyleImageChange_, null);
     }
     return loading;
 }
@@ -319,7 +319,7 @@ function renderTileImage(_canvas, tile, atlasInfo, layer) {
         scaleTransform(transform, pixelScale, -pixelScale);
         translateTransform(transform, -tileExtent[0], -tileExtent[3]);
         const replayGroup = /** @type {CanvasReplayGroup} */ (sourceTile.getReplayGroup(layer,
-          tile.tileCoord.toString()));
+            tile.tileCoord.toString()));
         if (replayGroup) {
             replayGroup.replay(ctx, transform, 0, {}, true, replays);
             empty = false;

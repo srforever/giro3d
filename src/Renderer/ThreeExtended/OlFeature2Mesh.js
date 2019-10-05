@@ -138,8 +138,8 @@ function featureToMultiPolygon(feature, properties, options) {
         // Convert ends from array element indices to number of 3d coordinates relative to the start of this polygon
         const normalizedEnds = ends.map(normalizingEndsFn);
         const triangles = Earcut(threeGeom.attributes.position.array.slice(start * 3, polyNormEnd * 3),
-                                 normalizedEnds.slice(0, -1),
-                                 3);
+            normalizedEnds.slice(0, -1),
+            3);
 
         // shift them to represent their position in the global array
         indices = indices.concat(triangles.map(mapTriangle));

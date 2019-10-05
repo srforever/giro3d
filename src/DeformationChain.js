@@ -208,7 +208,7 @@ class DeformationChain {
             this.newChain(this._activeChain()[this.active.point]);
         }
         color = color || new THREE.Color(
-                        Math.random(), Math.random(), Math.random());
+            Math.random(), Math.random(), Math.random());
 
         if (pt.isVector3) {
             this._activeChain().splice(
@@ -264,7 +264,7 @@ class DeformationChain {
             const chain = this.chains[k];
 
             if (this.active.chain == k && this.active.point >= chain.length) {
-                this.active.point --;
+                this.active.point--;
             }
 
             // draw 2 points per element in the chain:

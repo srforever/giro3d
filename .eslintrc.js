@@ -87,6 +87,8 @@ module.exports = {
     'no-continue': 'off',
     'no-console': [ 'warn', { allow: ['warn', 'error'] } ],
     'import/extensions': ['warn', 'always', { ignorePackages: true }],
+    'no-redeclare': 'off',
+
   },
   "globals": {
     "__DEBUG__": false

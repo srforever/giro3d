@@ -69,7 +69,7 @@ export default {
             throw new Error('No array buffer provided.');
         }
 
-        const view = new DataView(buffer, 4);   // starts after magic
+        const view = new DataView(buffer, 4); // starts after magic
 
         let byteOffset = 0;
         const b3dmHeader = {};

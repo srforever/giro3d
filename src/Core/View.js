@@ -41,9 +41,9 @@ export const VIEW_EVENTS = {
  * @param {?Scene} options.scene3D - {@link Scene} instance to use, otherwise a default one will be constructed
  * @constructor
  */
- // TODO:
- // - remove debug boolean, replace by if __DEBUG__ and checkboxes in debug UI
- //
+// TODO:
+// - remove debug boolean, replace by if __DEBUG__ and checkboxes in debug UI
+//
 function View(crs, viewerDiv, options = {}) {
     if (!viewerDiv) {
         throw new Error('Invalid viewerDiv parameter (must non be null/undefined)');

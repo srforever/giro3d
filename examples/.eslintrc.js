@@ -1,8 +1,4 @@
 module.exports = {
-    'extends': [
-        'eslint-config-airbnb-base',
-        'eslint-config-airbnb-base/rules/strict',
-    ],
     parserOptions: {
         ecmaVersion: 5,
         sourceType: 'script',

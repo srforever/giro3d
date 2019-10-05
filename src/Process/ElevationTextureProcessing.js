@@ -213,15 +213,15 @@ export default {
                     }
                 }
             }).then(elevation => {
-                if (!elevation) {
-                    return;
-                }
-                const { min, max } = minMaxFromTexture(layer, elevation.texture, elevation.pitch);
-                elevation.min = min;
-                elevation.max = max;
+            if (!elevation) {
+                return;
+            }
+            const { min, max } = minMaxFromTexture(layer, elevation.texture, elevation.pitch);
+            elevation.min = min;
+            elevation.max = max;
 
-                node.setTextureElevation(layer, elevation);
-                node.layerUpdateState[layer.id].success();
-            });
+            node.setTextureElevation(layer, elevation);
+            node.layerUpdateState[layer.id].success();
+        });
     },
 };

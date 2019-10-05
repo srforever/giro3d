@@ -186,7 +186,7 @@ function featureToPolygon(feature, properties, options) {
         const holesOffsets = geometry.indices.map(i => i.offset - start).slice(1);
 
         const triangles = Earcut(geom.attributes.position.array.slice(start * 3, end * 3),
-                holesOffsets, 3);
+            holesOffsets, 3);
 
         indices = indices.concat(triangles.map(i => i + start));
     }
@@ -225,7 +225,7 @@ function featureToExtrudedPolygon(feature, properties, options) {
         const holesOffsets = geometry.indices.map(i => i.offset - start).slice(1);
 
         const triangles = Earcut(geom.attributes.position.array.slice(start * 3, end * 3),
-                holesOffsets, 3);
+            holesOffsets, 3);
 
         indices = indices.concat(triangles.map(i => i + start + feature.vertices.length));
 

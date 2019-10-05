@@ -55,12 +55,12 @@ function preprocessDataLayer(layer) {
     }
 
     layer.url = `${layer.url
-                  }?SERVICE=WMS&REQUEST=GetMap&LAYERS=${layer.name
-                  }&VERSION=${layer.version
-                  }&STYLES=${layer.style
-                  }&FORMAT=${layer.format
-                  }&TRANSPARENT=${layer.transparent
-                  }&BBOX=%bbox` +
+    }?SERVICE=WMS&REQUEST=GetMap&LAYERS=${layer.name
+    }&VERSION=${layer.version
+    }&STYLES=${layer.style
+    }&FORMAT=${layer.format
+    }&TRANSPARENT=${layer.transparent
+    }&BBOX=%bbox` +
                   `&${crsPropName}=${layer.projection
                   }&WIDTH=${layer.width
                   }&HEIGHT=${layer.width}`;

@@ -346,15 +346,15 @@ export function computeNodeSSE(context, node) {
 
 export function init3dTilesLayer(view, scheduler, layer) {
     return requestNewTile(view, scheduler, layer, layer.tileset.root, undefined, true).then(
-            tile => {
-                delete layer.tileset;
-                layer.object3d.add(tile);
-                tile.updateMatrixWorld();
-                layer.tileIndex.index[tile.tileId].obj = tile;
-                layer.root = tile;
-                layer.extent = boundingVolumeToExtent(layer.projection || view.referenceCrs,
-                    tile.boundingVolume, tile.matrixWorld);
-            });
+        tile => {
+            delete layer.tileset;
+            layer.object3d.add(tile);
+            tile.updateMatrixWorld();
+            layer.tileIndex.index[tile.tileId].obj = tile;
+            layer.root = tile;
+            layer.extent = boundingVolumeToExtent(layer.projection || view.referenceCrs,
+                tile.boundingVolume, tile.matrixWorld);
+        });
 }
 
 function setDisplayed(node, display) {

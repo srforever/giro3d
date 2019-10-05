@@ -26,11 +26,11 @@ function preprocessDataLayer(layer) {
         layer.extent = new Extent(layer.projection, layer.extent);
     }
     layer.url = `${layer.url
-                      }SERVICE=WFS&REQUEST=GetFeature&typeName=${layer.typeName
-                      }&VERSION=${layer.version
-                      }&SRSNAME=${layer.crs
-                      }&outputFormat=${layer.format
-                      }&BBOX=%bbox,${layer.crs}`;
+    }SERVICE=WFS&REQUEST=GetFeature&typeName=${layer.typeName
+    }&VERSION=${layer.version
+    }&SRSNAME=${layer.crs
+    }&outputFormat=${layer.format
+    }&BBOX=%bbox,${layer.crs}`;
 }
 
 function tileInsideLimit(tile, layer) {

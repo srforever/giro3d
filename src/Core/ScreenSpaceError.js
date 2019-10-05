@@ -150,7 +150,7 @@ export default {
             const obj = r[0].object;
             console.log(obj); // eslint-disable-line no-console
 
-          // const svg = document.getElementsByClassName('maa')[0];
+            // const svg = document.getElementsByClassName('maa')[0];
             while (svg.firstChild) {
                 svg.removeChild(svg.firstChild);
             }

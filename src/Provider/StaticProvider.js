@@ -6,8 +6,8 @@ import Fetcher from './Fetcher';
 
 function _selectImagesFromSpatialIndex(index, images, extent) {
     return index.search(
-            extent.west(), extent.south(),
-            extent.east(), extent.north()).map(i => images[i]);
+        extent.west(), extent.south(),
+        extent.east(), extent.north()).map(i => images[i]);
 }
 
 // select the smallest image entirely covering the tile
@@ -79,21 +79,21 @@ function getTexture(toDownload, layer) {
     // ...
     return (layer.format == 2 ?
         OGCWebServiceHelper.getXBilTextureByUrl(toDownload.url, layer.networkOptions) :
-         OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions)).then(texture => {
+        OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions)).then(texture => {
         // adjust pitch
-             const result = {
-                 texture,
-                 pitch: toDownload.pitch || new Vector4(0, 0, 1, 1),
-             };
+        const result = {
+            texture,
+            pitch: toDownload.pitch || new Vector4(0, 0, 1, 1),
+        };
 
-             result.texture.extent = toDownload.selection.extent;
-             result.texture.file = toDownload.selection.image;
-             if (layer.transparent) {
-                 texture.premultiplyAlpha = true;
-             }
+        result.texture.extent = toDownload.selection.extent;
+        result.texture.file = toDownload.selection.image;
+        if (layer.transparent) {
+            texture.premultiplyAlpha = true;
+        }
 
-             return result;
-         });
+        return result;
+    });
 }
 
 
@@ -155,7 +155,7 @@ export default {
         }
 
         return selectBestImageForExtent(layer, tile.extent);
-            // layer._spatialIndex, layer.images, tile.extent.as(layer.extent.crs())).length > 0;
+        // layer._spatialIndex, layer.images, tile.extent.as(layer.extent.crs())).length > 0;
     },
 
     canTextureBeImproved(layer, extent, currentTexture) {

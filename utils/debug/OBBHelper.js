@@ -43,7 +43,7 @@ function OBBHelper(OBB, text) {
     this.textMesh.frustumCulled = false;
 
     if (OBB !== undefined)
-      { this.update(OBB); }
+    { this.update(OBB); }
 }
 
 OBBHelper.prototype = Object.create(THREE.LineSegments.prototype);

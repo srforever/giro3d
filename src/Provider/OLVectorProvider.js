@@ -2,15 +2,15 @@ import { Vector4, CanvasTexture, Texture } from 'three';
 
 import CanvasReplayGroup from 'ol/render/canvas/ReplayGroup';
 import { getSquaredTolerance as getSquaredRenderTolerance,
-         renderFeature as renderVectorFeature,
-       } from 'ol/renderer/vector';
+    renderFeature as renderVectorFeature,
+} from 'ol/renderer/vector';
 import { Fill, Icon, Stroke, Style, Text } from 'ol/style';
 import ReplayType from 'ol/render/ReplayType';
 import {
-  create as createTransform,
-  reset as resetTransform,
-  scale as scaleTransform,
-  translate as translateTransform,
+    create as createTransform,
+    reset as resetTransform,
+    scale as scaleTransform,
+    translate as translateTransform,
 } from 'ol/transform';
 
 import Extent from '../Core/Geographic/Extent';
@@ -115,7 +115,7 @@ function createReplayGroup(extent, layer) {
     const renderBuffer = 100;
     const olExtent = toOLExtent(extent);
     const replayGroup = new CanvasReplayGroup(0, olExtent, resolution,
-      pixelRatio, source.getOverlaps(), declutterTree, renderBuffer);
+        pixelRatio, source.getOverlaps(), declutterTree, renderBuffer);
     const squaredTolerance = getSquaredRenderTolerance(resolution, pixelRatio);
 
     let used = false;
@@ -151,8 +151,8 @@ function renderFeature(feature, squaredTolerance, styles, replayGroup) {
         }
     } else {
         loading = renderVectorFeature(
-          replayGroup, feature, styles, squaredTolerance,
-          handleStyleImageChange_, null);
+            replayGroup, feature, styles, squaredTolerance,
+            handleStyleImageChange_, null);
     }
     return loading;
 }
