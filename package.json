@@ -1,6 +1,6 @@
 {
   "name": "@autra/itowns",
-  "version": "3.1.0-osl",
+  "version": "3.1.1-osl",
   "description": "A JS/WebGL framework for 3D geospatial data visualization",
   "main": "lib/Main.js",
   "scripts": {
