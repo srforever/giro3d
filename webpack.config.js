@@ -46,12 +46,6 @@ module.exports = {
         libraryTarget: 'umd',
         umdNamedDefine: true,
     },
-    optimization: {
-        splitChunks: {
-            chunks: 'initial',
-            name: 'itowns',
-        },
-    },
     plugins: [
         definePlugin,
     ],
