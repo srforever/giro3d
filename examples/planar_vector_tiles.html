@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Itowns - Planar + vector-tiles</title>
+        <title>giro3d - Planar + vector-tiles</title>
 
         <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="css/example.css">
@@ -10,26 +10,26 @@
     </head>
     <body>
         <div id="viewerDiv"></div>
-        <script src="../dist/itowns.js"></script>
+        <script src="../dist/giro3d.js"></script>
         <script src="js/loading_screen.js"></script>
         <script src="js/VectorTileStyleSupport.js"></script>
         <script>
             // # Planar view with one single layer of vector tile
 
             // Define geographic extent: CRS, min/max X, min/max Y
-            var extent = new itowns.Extent(
+            var extent = new giro3d.Extent(
                 'EPSG:3857',
                 -20037508.342789244, 20037508.342789244,
                 -20037508.342789255, 20037508.342789244);
 
-            // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
+            // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
             // Instanciate PlanarView
-            var view = new itowns.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 20 });
+            var view = new giro3d.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 20 });
 
             // eslint-disable-next-line no-new
-            new itowns.FirstPersonControls(view, {
+            new giro3d.FirstPersonControls(view, {
                 // We do not want the user to zoom out too much
                 maxAltitude: 40000000,
                 // We want to keep the rotation disabled, to only have a view from the top
@@ -80,7 +80,7 @@
                         },
                     },
                     updateStrategy: {
-                        type: itowns.STRATEGY_DICHOTOMY,
+                        type: giro3d.STRATEGY_DICHOTOMY,
                     },
                     style: mapboxStyle,
                     filter: mapboxFilter(supportedLayers),

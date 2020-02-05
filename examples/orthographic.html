@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Itowns - Orthographic Camera Example</title>
+        <title>giro3d - Orthographic Camera Example</title>
 
         <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="css/example.css">
@@ -11,24 +11,24 @@
     <body>
         <div id="viewerDiv">
         </div>
-        <script src="../dist/itowns.js"></script>
+        <script src="../dist/giro3d.js"></script>
         <script src="js/loading_screen.js"></script>
         <script type="text/javascript">
 
-            /* global itowns, renderer */
+            /* global giro3d, renderer */
             // # Orthographic viewer
             // Define geographic extent: CRS, min/max X, min/max Y
-            var extent = new itowns.Extent(
+            var extent = new giro3d.Extent(
                 'EPSG:3857',
                 -20037508.342789244, 20037508.342789244,
                 -20037508.342789244, 20037508.342789244);
 
-            // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
+            // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
             let center = { x: 328745, y: 5904608 };
             let halfHeight = (6800000 - 5000000) / 2;
-            let camera = new itowns.THREE.OrthographicCamera(
+            let camera = new giro3d.THREE.OrthographicCamera(
                     // left and right determined empirically
                     -628337.4524312895,
                     2111620.264270613,
@@ -38,18 +38,18 @@
                     1000);
 
             // Instanciate PlanarView
-            var view = new itowns.PlanarView(
+            var view = new giro3d.PlanarView(
                     viewerDiv, extent, { maxSubdivisionLevel: 10, camera: camera });
 
             var dragStartPosition;
             var dragCameraStart;
 
-            // By default itowns' tiles geometry have a "skirt" (ie they have a height),
+            // By default giro3d' tiles geometry have a "skirt" (ie they have a height),
             // but in case of orthographic we don't need this feature, so disable it
             view.tileLayer.disableSkirt = true;
 
             // Add an TMS imagery layer
-            var stamenSource = new itowns.olsource.Stamen({ layer: 'watercolor', wrapX: false });
+            var stamenSource = new giro3d.olsource.Stamen({ layer: 'watercolor', wrapX: false });
             // Add a base layer
             view.addLayer({
                 id: 'osm',

@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { MAIN_LOOP_EVENTS } from '../../Core/MainLoop';
 
 // Note: we could use existing three.js controls (like https://github.com/mrdoob/three.js/blob/dev/examples/js/controls/FirstPersonControls.js)
-// but including these controls in itowns allows use to integrate them tightly with itowns.
+// but including these controls in giro3d allows use to integrate them tightly with giro3d.
 // Especially the existing controls are expecting a continuous update loop while we have a pausable one (so our controls use .notifyChange when needed)
 
 function limitRotation(camera3D, rot /* , verticalFOV */) {
@@ -135,7 +135,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
      * Updates the camera position / rotation based on occured input events.
      * This is done automatically when needed but can also be done if needed.
      * @param {number} dt - ellpased time since last update in seconds
-     * @param {boolean} updateLoopRestarted - true if itowns' update loop just restarted
+     * @param {boolean} updateLoopRestarted - true if giro3d' update loop just restarted
      * @param {boolean} force - set to true if you want to force the update, even if it
      * appears unneeded.
      */

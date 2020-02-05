@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Itowns - OpenLayers Example</title>
+        <title>giro3d - OpenLayers Example</title>
 
         <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="css/example.css">
@@ -10,26 +10,26 @@
     </head>
     <body>
         <div id="viewerDiv"></div>
-        <script src="../dist/itowns.js"></script>
+        <script src="../dist/giro3d.js"></script>
         <script src="js/loading_screen.js"></script>
         <script type="text/javascript">
-            window.THREE = itowns.THREE;
+            window.THREE = giro3d.THREE;
         </script>
         <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
         <script type="text/javascript">
             // # Orthographic viewer
 
             // Define geographic extent: CRS, min/max X, min/max Y
-            var extent = new itowns.Extent(
+            var extent = new giro3d.Extent(
                 'EPSG:3857',
                 -20037508.342789244, 20037508.342789244,
                 -20037508.342789244, 20037508.342789244);
 
-            // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
+            // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
             // Instanciate PlanarView
-            var view = new itowns.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 15 });
+            var view = new giro3d.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 15 });
 
             // Instanciate controls
             // eslint-disable-next-line no-new
@@ -51,10 +51,10 @@
             setupLoadingScreen(viewerDiv, view);
 
             // eslint-disable-next-line no-unused-vars
-            var osmSource = new itowns.olsource.OSM({ wrapX: false });
+            var osmSource = new giro3d.olsource.OSM({ wrapX: false });
 
             // eslint-disable-next-line no-unused-vars
-            var stamenSource = new itowns.olsource.Stamen({ layer: 'toner', wrapX: false });
+            var stamenSource = new giro3d.olsource.Stamen({ layer: 'toner', wrapX: false });
 
             // Add a base layer
             view.addLayer({
@@ -65,7 +65,7 @@
             }).catch(e => console.error(e));
 
             // eslint-disable-next-line no-unused-vars
-            var wmsSource = new itowns.olsource.TileWMS({
+            var wmsSource = new giro3d.olsource.TileWMS({
                 url: 'https://ahocevar.com/geoserver/wms',
                 params: {'LAYERS': 'topp:states', 'TILED': true},
                 projection: 'EPSG:3857',
@@ -85,10 +85,10 @@
 
             // Add a vector layer
 
-            var format = new itowns.olformat.GeoJSON();
-            var vectorSource = new itowns.olsource.Vector({ });
+            var format = new giro3d.olformat.GeoJSON();
+            var vectorSource = new giro3d.olsource.Vector({ });
 
-            itowns.Fetcher.json('https://cdn.jsdelivr.net/gh/gregoiredavid/france-geojson@master/departements.geojson')
+            giro3d.Fetcher.json('https://cdn.jsdelivr.net/gh/gregoiredavid/france-geojson@master/departements.geojson')
                 .then(geojson => {
                 var features = format.readFeatures(geojson, {
                     dataProjection: 'EPSG:4326',

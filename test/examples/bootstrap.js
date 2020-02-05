@@ -5,7 +5,7 @@ const net = require('net');
 const fs = require('fs');
 const http = require('http');
 
-// We could run 'npm start' to serve itowns for the tests,
+// We could run 'npm start' to serve giro3d for the tests,
 // but it's slow to start (so tests might fail on timeouts).
 // Since the 'test-examples' target depends on the 'run' target,
 // we instead run the simplest http server.
@@ -36,7 +36,7 @@ function startStaticFileServer() {
             resolve(server.address().port);
         });
 
-        global.itownsServer = server;
+        global.giro3dServer = server;
     });
 }
 
@@ -75,7 +75,7 @@ before(async () => {
     }
 
     // wait for the server to be ready
-    global.itownsPort = await server;
+    global.giro3dPort = await server;
 
     global.printLogs = (page) => {
         page.on('console', (msg) => {
@@ -89,7 +89,7 @@ before(async () => {
     // ready and rendering has been done
     global.loadExample = async (page, url, screenshotName) => {
         if (page.loadExampleCalled) {
-            throw new Error('loadExample must only be called once. Use waitUntilItownsIsIdle / waitNextRender instead');
+            throw new Error('loadExample must only be called once. Use waitUntilgiro3dIsIdle / waitNextRender instead');
         }
         // eslint-disable-next-line no-param-reassign
         page.loadExampleCalled = true;
@@ -115,10 +115,10 @@ before(async () => {
         const result = await page.evaluate(() => new Promise((resolve) => {
             __getView().then((v) => {
                 function resolveWhenReady() {
-                    v.removeEventListener(itowns.VIEW_EVENTS.LAYERS_INITIALIZED, resolveWhenReady);
+                    v.removeEventListener(giro3d.VIEW_EVENTS.LAYERS_INITIALIZED, resolveWhenReady);
                     resolve(true);
                 }
-                v.addEventListener(itowns.VIEW_EVENTS.LAYERS_INITIALIZED, resolveWhenReady);
+                v.addEventListener(giro3d.VIEW_EVENTS.LAYERS_INITIALIZED, resolveWhenReady);
             });
         }));
 
@@ -129,8 +129,8 @@ before(async () => {
         return result;
     };
 
-    // Use waitUntilItownsIsIdle to wait until itowns has finished all its work (= layer updates)
-    global.waitUntilItownsIsIdle = async (page, screenshotName) => {
+    // Use waitUntilgiro3dIsIdle to wait until giro3d has finished all its work (= layer updates)
+    global.waitUntilgiro3dIsIdle = async (page, screenshotName) => {
         const result = await page.evaluate(() => new Promise((resolve) => {
             __getView().then((v) => {
                 function resolveWhenReady() {
@@ -154,16 +154,16 @@ before(async () => {
         page.evaluate(() => new Promise((resolve) => {
             __getView().then((v) => {
                 function resolveWhenDrawn() {
-                    v.removeFrameRequester(itowns.MAIN_LOOP_EVENTS.AFTER_RENDER, resolveWhenDrawn);
+                    v.removeFrameRequester(giro3d.MAIN_LOOP_EVENTS.AFTER_RENDER, resolveWhenDrawn);
 
                     // make sure the loading screen is hidden
-                    const container = document.getElementById('itowns-loader');
+                    const container = document.getElementById('giro3d-loader');
                     if (container) {
                         container.style.display = 'none';
                     }
                     resolve();
                 }
-                v.addFrameRequester(itowns.MAIN_LOOP_EVENTS.AFTER_RENDER, resolveWhenDrawn);
+                v.addFrameRequester(giro3d.MAIN_LOOP_EVENTS.AFTER_RENDER, resolveWhenDrawn);
                 v.notifyChange();
             });
         }));
@@ -192,9 +192,9 @@ before(async () => {
 // close browser and reset global variables
 after((done) => {
     global.browser.close();
-    if (global.itownsServer) {
+    if (global.giro3dServer) {
         // stop server
-        global.itownsServer.close(done);
+        global.giro3dServer.close(done);
     } else {
         done();
     }

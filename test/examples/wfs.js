@@ -1,11 +1,11 @@
-/* global browser, itownsPort */
+/* global browser, giro3dPort */
 const assert = require('assert');
 
 describe('wfs', () => {
     it('should run', async function _() {
         const page = await browser.newPage();
         const result = await loadExample(page,
-            `http://localhost:${itownsPort}/examples/wfs.html`,
+            `http://localhost:${giro3dPort}/examples/wfs.html`,
             this.test.fullTitle());
 
         assert.ok(result);
@@ -15,7 +15,7 @@ describe('wfs', () => {
     it('should pick the correct building', async function _() {
         const page = await browser.newPage();
         await loadExample(page,
-            `http://localhost:${itownsPort}/examples/wfs.html`,
+            `http://localhost:${giro3dPort}/examples/wfs.html`,
             this.test.fullTitle());
 
         // test picking

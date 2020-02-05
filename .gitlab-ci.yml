@@ -30,7 +30,7 @@ test_stable:
     artifacts:
         paths:
             - dist
-            - itowns-*.tgz
+            - giro3d-*.tgz
         name: "$CI_COMMIT_REF_SLUG"
 
 test_lts:

@@ -401,7 +401,7 @@ function calculateCameraDistance(context, node) {
         // TODO this calculation is shared with computeNodeSSE. Cache maybe ?
         boundingVolumeSphere.copy(node.boundingVolume.sphere);
         boundingVolumeSphere.applyMatrix4(node.matrixWorld);
-        // TODO: see https://github.com/iTowns/itowns/issues/800
+        // TODO: this probably assumes that the camera has no parent
         node.distance = Math.max(0.0,
             boundingVolumeSphere.distanceToPoint(context.camera.camera3D.position));
     }

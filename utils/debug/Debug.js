@@ -6,10 +6,10 @@ import { MAIN_LOOP_EVENTS } from '../../src/Core/MainLoop';
 import PanoramaView from '../../src/Core/Prefab/PanoramaView';
 
 /**
- * Create a debug instance attached to an itowns instance
+ * Create a debug instance attached to an giro3d instance
  *
  * @Constructor
- * @param {Scene} scene the itowns Scene
+ * @param {Scene} scene the giro3d Scene
  * @return {Debug} a debug instance
  */
 

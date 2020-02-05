@@ -220,14 +220,14 @@ function readFeatures(crsIn, crsOut, features, filteringExtent, options) {
 
 /**
  * The GeoJsonParser module provide a [parse]{@link module:GeoJsonParser.parse}
- * method that takes a GeoJSON in and gives an object formatted for iTowns
+ * method that takes a GeoJSON in and gives an object formatted for giro3d
  * containing all necessary informations to display this GeoJSON.
  *
  * @module GeoJsonParser
  */
 export default {
     /**
-     * Similar to the geometry of a feature in a GeoJSON, but adapted to iTowns.
+     * Similar to the geometry of a feature in a GeoJSON, but adapted to giro3d.
      * The difference is that coordinates are stored as {@link Coordinates}
      * instead of raw values. If needed, more information is provided.
      *
@@ -244,7 +244,7 @@ export default {
      */
 
     /**
-     * Similar to a feature in a GeoJSON, but adapted to iTowns.
+     * Similar to a feature in a GeoJSON, but adapted to giro3d.
      *
      * @typedef Feature
      * @type {Object}

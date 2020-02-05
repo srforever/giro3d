@@ -163,7 +163,7 @@ function parseMetadata(metadata, layer) {
     } else {
         // Lopocs
         layer.metadata.scale = 1;
-        layer.metadata.octreeDir = `itowns/${layer.table}.points`;
+        layer.metadata.octreeDir = `giro3d/${layer.table}.points`;
         layer.metadata.hierarchyStepSize = 1000000; // ignore this with lopocs
         customBinFormat = true;
     }

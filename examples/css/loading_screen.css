@@ -1,4 +1,4 @@
-#itowns-loader span {
+#giro3d-loader span {
   display: inline-block;
   color: #404e73;
   font-family: Arial;
@@ -6,20 +6,20 @@
   text-decoration: none;
   animation: colorchange 1s infinite alternate ease-in-out;
 }
-#itowns-loader .c2 {
+#giro3d-loader .c2 {
   animation-delay: 0.1s;
 }
-#itowns-loader .c3 {
+#giro3d-loader .c3 {
   animation-delay: 0.2s;
   margin-left: -0.12em;
 }
-#itowns-loader .c4 {
+#giro3d-loader .c4 {
   animation-delay: 0.3s;
 }
-#itowns-loader .c5 {
+#giro3d-loader .c5 {
   animation-delay: 0.40s;
 }
-#itowns-loader .c6 {
+#giro3d-loader .c6 {
   animation-delay: 0.50s;
 }
 
@@ -29,7 +29,7 @@
   30%  { color: #7ea8c5; transform: translate(0, -.15em); }
   0%   { color: #404e73; transform: translate(0, 0em); }
 }
-#itowns-loader {
+#giro3d-loader {
   z-index: 1000;
 
   position: absolute;

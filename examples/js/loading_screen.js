@@ -1,4 +1,4 @@
-/* global itowns */
+/* global giro3d */
 
 // eslint-disable-next-line no-unused-vars
 function setupLoadingScreen(viewerDiv, view) {
@@ -15,7 +15,7 @@ function setupLoadingScreen(viewerDiv, view) {
         <div class="text">\
         <span class="c1">i</span><span class="c2">T</span><span class="c3">o</span><span class="c4">w</span><span class="c5">n</span><span class="c6">s</span>\
         </div>';
-    loadingScreenContainer.id = 'itowns-loader';
+    loadingScreenContainer.id = 'giro3d-loader';
     viewerDiv.appendChild(loadingScreenContainer);
 
     // auto-hide in 3 sec or if view is loaded
@@ -32,10 +32,10 @@ function setupLoadingScreen(viewerDiv, view) {
         });
         loadingScreenContainer = null;
         view.removeEventListener(
-            itowns.VIEW_EVENTS.LAYERS_INITIALIZED,
+            giro3d.VIEW_EVENTS.LAYERS_INITIALIZED,
             hideLoader);
     }
 
-    view.addEventListener(itowns.VIEW_EVENTS.LAYERS_INITIALIZED, hideLoader);
+    view.addEventListener(giro3d.VIEW_EVENTS.LAYERS_INITIALIZED, hideLoader);
     setTimeout(hideLoader, 3000);
 }

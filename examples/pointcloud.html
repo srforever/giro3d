@@ -95,7 +95,7 @@
 
         <div class="centered">
             <div id="lopocs"> </div>
-            <div id="itowns"> </div>
+            <div id="giro3d"> </div>
             <h2>Point cloud absolute URL: </h2>
             <h4>(file.js from PotreeConverter or Lopocs url)</h4>
             <input id="url" type="url" value="http://3d.oslandia.com/3dtiles/eglise_saint_blaise_arles/tileset.json">
@@ -154,22 +154,22 @@
                     } else if (url.indexOf('.json') == (url.length - 5)) {
                         showPointcloud(url, undefined, undefined, false);
                     } else {
-                        itowns.Fetcher.json(url + '/infos/sources').then(function(meta) { buildLopocsResultTable(url, meta); });
+                        giro3d.Fetcher.json(url + '/infos/sources').then(function(meta) { buildLopocsResultTable(url, meta); });
                     }
                 }
             </script>
             <script src="js/GUI/dat.gui/dat.gui.min.js"></script>
-            <script src="../dist/itowns.js"></script>
+            <script src="../dist/giro3d.js"></script>
             <script src="js/loading_screen.js"></script>
             <script src="../dist/debug.js"></script>
             <script type="text/javascript">
-                window.THREE = itowns.THREE;
+                window.THREE = giro3d.THREE;
             </script>
             <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
             <script type="text/javascript">
                 var searchParams = new URL(window.location.href).searchParams;
                 var view;
-                var tmpVec3 = new itowns.THREE.Vector3();
+                var tmpVec3 = new giro3d.THREE.Vector3();
                 function showPointcloud(serverUrl, fileName, lopocsTable, potree) {
                     var pointcloud;
                     var oldPostUpdate;
@@ -180,30 +180,30 @@
                     viewerDiv = document.getElementById('viewerDiv');
                     viewerDiv.style.display = 'block';
 
-                    itowns.THREE.Object3D.DefaultUp.set(0, 0, 1);
+                    giro3d.THREE.Object3D.DefaultUp.set(0, 0, 1);
 
-                    itowns.proj4.defs('EPSG:3946',
+                    giro3d.proj4.defs('EPSG:3946',
                         '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 ' +
                         '+y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
 
                     debugGui = new dat.GUI({ width: 400 });
 
-                    view = new itowns.View('EPSG:3946', viewerDiv);
+                    view = new giro3d.View('EPSG:3946', viewerDiv);
                     setupLoadingScreen(viewerDiv, view);
                     view.mainLoop.gfxEngine.renderer.setClearColor(0xcccccc);
 
                     // Configure Point Cloud layer
-                    pointcloud = new itowns.GeometryLayer('pointcloud', new itowns.THREE.Group());
+                    pointcloud = new giro3d.GeometryLayer('pointcloud', new giro3d.THREE.Group());
                     pointcloud.file = fileName || 'infos/sources';
                     pointcloud.protocol = potree ? 'potreeconverter' : '3d-tiles';
                     pointcloud.url = serverUrl;
                     pointcloud.table = lopocsTable;
                     if (searchParams.get('material') === 'three') {
-                        pointcloud.material = new itowns.THREE.PointsMaterial({
+                        pointcloud.material = new giro3d.THREE.PointsMaterial({
                             color: 0xff8888,
                             sizeAttenuation: false,
                             size: 1,
-                            vertexColors: itowns.THREE.VertexColors
+                            vertexColors: giro3d.THREE.VertexColors
                         });
                     }
 
@@ -277,12 +277,12 @@
                                 name: 'Ortho2009_vue_ensemble_16cm_CC46',
                                 projection: 'EPSG:3946',
                                 format: 'image/jpeg',
-                                extent: new itowns.Extent(
+                                extent: new giro3d.Extent(
                                     'EPSG:3946',
                                     1821381, 1870550,
                                     5138641, 5205640),
                                 updateStrategy: {
-                                    type: itowns.STRATEGY_DICHOTOMY
+                                    type: giro3d.STRATEGY_DICHOTOMY
                                 }
                             }
                             view.addLayer(colorize, pointcloud);

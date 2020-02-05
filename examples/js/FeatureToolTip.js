@@ -1,4 +1,4 @@
-/* global itowns, document */
+/* global giro3d, document */
 // eslint-disable-next-line no-unused-vars
 function ToolTip(viewer, viewerDiv, tooltip, precisionPx) {
     var mouseDown = 0;
@@ -35,7 +35,7 @@ function ToolTip(viewer, viewerDiv, tooltip, precisionPx) {
             // convert degree precision
             for (i = 0; i < layers.length; i++) {
                 layer = layers[i];
-                result = itowns.FeaturesUtils.filterFeaturesUnderCoordinate(
+                result = giro3d.FeaturesUtils.filterFeaturesUnderCoordinate(
                     geoCoord, layer.feature, precision);
                 result.sort(function compare(a, b) { return b.feature.type !== 'point'; });
                 for (p = 0; p < result.length; p++) {

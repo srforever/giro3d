@@ -1,6 +1,6 @@
 {
-  "name": "@autra/itowns",
-  "version": "3.1.1-osl",
+  "name": "@autra/giro3d",
+  "version": "0.0.1-osl",
   "description": "A JS/WebGL framework for 3D geospatial data visualization",
   "main": "lib/Main.js",
   "scripts": {
@@ -24,13 +24,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/iTowns/itowns.git"
+    "url": "git+https://github.com/Oslandia/giro3d.git"
   },
   "license": "(CECILL-B OR MIT)",
   "bugs": {
-    "url": "https://github.com/iTowns/itowns/issues"
+    "url": "https://github.com/Oslandia/giro3d/issues"
   },
-  "homepage": "https://itowns.github.io/",
+  "homepage": "https://giro3d.github.io/",
   "dependencies": {
     "@mapbox/vector-tile": "^1.3.0",
     "babel-polyfill": "^6.26.0",

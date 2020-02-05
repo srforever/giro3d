@@ -1,9 +1,9 @@
 // This file is copy pasted from THREE
-/* CUSTOM ITOWNS */
+/* CUSTOM giro3d */
 /* Add the extention _BATCHID */
 /* eslint-disable */
 import * as THREE from 'three';
-/* END CUSTOM ITOWNS */
+/* END CUSTOM giro3d */
 /**
  * @author Rich Tibbett / https://github.com/richtr
  * @author mrdoob / http://mrdoob.com/

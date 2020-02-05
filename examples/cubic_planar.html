@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Itowns - 6 planes on a cube</title>
+        <title>giro3d - 6 planes on a cube</title>
 
         <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="css/example.css">
@@ -10,10 +10,10 @@
     </head>
     <body>
         <div id="viewerDiv"></div>
-        <script src="../dist/itowns.js"></script>
+        <script src="../dist/giro3d.js"></script>
         <script src="js/loading_screen.js"></script>
         <script type="text/javascript">
-            window.THREE = itowns.THREE;
+            window.THREE = giro3d.THREE;
         </script>
         <script src="https://unpkg.com/three@0.86.0/examples/js/controls/OrbitControls.js"></script>
         <script type="text/javascript">
@@ -42,57 +42,57 @@
 
             var cubeTransformations = [
                 {
-                    position: new itowns.THREE.Vector3(0, 0, 0.5),
-                    rotation: new itowns.THREE.Euler(),
+                    position: new giro3d.THREE.Vector3(0, 0, 0.5),
+                    rotation: new giro3d.THREE.Euler(),
                 },
                 {
-                    position: new itowns.THREE.Vector3(0, 0, -0.5),
-                    rotation: new itowns.THREE.Euler().set(Math.PI, 0, 0),
+                    position: new giro3d.THREE.Vector3(0, 0, -0.5),
+                    rotation: new giro3d.THREE.Euler().set(Math.PI, 0, 0),
                 },
                 {
-                    position: new itowns.THREE.Vector3(0, 0.5, 0),
-                    rotation: new itowns.THREE.Euler().set(-Math.PI * 0.5, 0, 0),
+                    position: new giro3d.THREE.Vector3(0, 0.5, 0),
+                    rotation: new giro3d.THREE.Euler().set(-Math.PI * 0.5, 0, 0),
                 },
                 {
-                    position: new itowns.THREE.Vector3(0, -0.5, 0),
-                    rotation: new itowns.THREE.Euler().set(Math.PI * 0.5, 0, 0),
+                    position: new giro3d.THREE.Vector3(0, -0.5, 0),
+                    rotation: new giro3d.THREE.Euler().set(Math.PI * 0.5, 0, 0),
                 },
                 {
-                    position: new itowns.THREE.Vector3(0.5, 0, 0),
-                    rotation: new itowns.THREE.Euler().set(0, Math.PI * 0.5, 0),
+                    position: new giro3d.THREE.Vector3(0.5, 0, 0),
+                    rotation: new giro3d.THREE.Euler().set(0, Math.PI * 0.5, 0),
                 },
                 {
-                    position: new itowns.THREE.Vector3(-0.5, 0, 0),
-                    rotation: new itowns.THREE.Euler().set(0, -Math.PI * 0.5, 0),
+                    position: new giro3d.THREE.Vector3(-0.5, 0, 0),
+                    rotation: new giro3d.THREE.Euler().set(0, -Math.PI * 0.5, 0),
                 },
             ];
 
             // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)
-            itowns.proj4.defs('EPSG:3946',
+            giro3d.proj4.defs('EPSG:3946',
                 '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
 
             // Define geographic extent: CRS, min/max X, min/max Y
-            extent = new itowns.Extent(
+            extent = new giro3d.Extent(
                 'EPSG:3946',
                 1837900, 1837900 + 8000,
                 5170100, 5170100 + 8000);
 
-            // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
+            // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             viewerDiv = document.getElementById('viewerDiv');
 
-            itowns.THREE.Object3D.DefaultUp.set(0, 0, 1);
+            giro3d.THREE.Object3D.DefaultUp.set(0, 0, 1);
 
-            scale = new itowns.THREE.Vector3(1, 1, 1).divideScalar(extent.dimensions().x);
+            scale = new giro3d.THREE.Vector3(1, 1, 1).divideScalar(extent.dimensions().x);
 
             // Instanciate View
-            view = new itowns.View(extent.crs(), viewerDiv);
+            view = new giro3d.View(extent.crs(), viewerDiv);
             setupLoadingScreen(viewerDiv, view);
 
             view.mainLoop.gfxEngine.renderer.setClearColor(0x999999);
 
-            parent = new itowns.THREE.Mesh(
-                new itowns.THREE.BoxGeometry(8000, 8000, 8000),
-                new itowns.THREE.MeshBasicMaterial({ color: 0xdddddd }));
+            parent = new giro3d.THREE.Mesh(
+                new giro3d.THREE.BoxGeometry(8000, 8000, 8000),
+                new giro3d.THREE.MeshBasicMaterial({ color: 0xdddddd }));
             parent.scale.copy(scale);
             parent.updateMatrixWorld(true);
 
@@ -100,7 +100,7 @@
 
             for (index = 0; index < wmsLayers.length; index++) {
                 wms = wmsLayers[index];
-                obj = new itowns.THREE.Object3D();
+                obj = new giro3d.THREE.Object3D();
                 offset = extent.center().xyz().negate().applyEuler(cubeTransformations[index].rotation);
                 offset.add(cubeTransformations[index].position.divide(scale));
                 obj.position.copy(offset);
@@ -108,7 +108,7 @@
                 parent.add(obj);
                 obj.updateMatrixWorld(true);
 
-                tileLayer = itowns.createPlanarLayer('planar' + wms + index, extent, { object3d: obj });
+                tileLayer = giro3d.createPlanarLayer('planar' + wms + index, extent, { object3d: obj });
                 tileLayer.disableSkirt = true;
 
                 view.addLayer(tileLayer);
@@ -150,9 +150,9 @@
             // Position the camera at south-west corner
             view.camera.camera3D.position.set(3, 2, 3);
             view.camera.camera3D.updateMatrixWorld(true);
-            view.camera.camera3D.lookAt(new itowns.THREE.Vector3(0, 0, 0));
+            view.camera.camera3D.lookAt(new giro3d.THREE.Vector3(0, 0, 0));
 
-            controls = new itowns.THREE.OrbitControls(view.camera.camera3D, viewerDiv);
+            controls = new giro3d.THREE.OrbitControls(view.camera.camera3D, viewerDiv);
             controls.minDistance = 1;
             controls.addEventListener('change', function _() { view.notifyChange(view.camera.camera3D); });
 

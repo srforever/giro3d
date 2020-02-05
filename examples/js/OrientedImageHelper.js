@@ -1,4 +1,4 @@
-/* global itowns, document */
+/* global giro3d, document */
 
 // set object position to the coordinate
 // set object ENH orientation: X to the east, Y (green) to the north, Z (blue) look to the sky.
@@ -14,19 +14,19 @@ function createTexturedPlane(textureUrl, opacity) {
     var geometry;
     var material;
 
-    texture = new itowns.THREE.TextureLoader().load(textureUrl);
-    geometry = new itowns.THREE.PlaneGeometry(1, 1, 32);
-    material = new itowns.THREE.MeshBasicMaterial({
+    texture = new giro3d.THREE.TextureLoader().load(textureUrl);
+    geometry = new giro3d.THREE.PlaneGeometry(1, 1, 32);
+    material = new giro3d.THREE.MeshBasicMaterial({
         map: texture,
         color: 0xffffff,
         transparent: true,
         opacity: opacity,
     });
-    return new itowns.THREE.Mesh(geometry, material);
+    return new giro3d.THREE.Mesh(geometry, material);
 }
 
 function transformTexturedPlane(camera, distance, plane) {
-    var Yreel = 2 * Math.tan(itowns.THREE.Math.degToRad(camera.fov / 2)) * distance;
+    var Yreel = 2 * Math.tan(giro3d.THREE.Math.degToRad(camera.fov / 2)) * distance;
     var Xreel = camera.aspect * Yreel;
 
     // set position and scale
@@ -39,7 +39,7 @@ function transformTexturedPlane(camera, distance, plane) {
 // eslint-disable-next-line no-unused-vars
 function initCamera(view, image, coord, EnhToOrientationUp, EnhToOrientationLookAt, rotMatrix,
     orientationToCameraUp, orientationToCameraLookAt, distance, size, focale) {
-    var fov = itowns.THREE.Math.radToDeg((2 * Math.atan((size[1] / 2) / focale)));
+    var fov = giro3d.THREE.Math.radToDeg((2 * Math.atan((size[1] / 2) / focale)));
     var coordView;
     var localSpace;
     var orientedImage;
@@ -50,12 +50,12 @@ function initCamera(view, image, coord, EnhToOrientationUp, EnhToOrientationLook
 
     // create 'local space', with the origin placed on 'coord',
     // with Y axis to the north, X axis to the east and Z axis as the geodesic normal.
-    localSpace = new itowns.THREE.Object3D();
+    localSpace = new giro3d.THREE.Object3D();
     view.scene.add(localSpace);
     placeObjectFromCoordinate(localSpace, coordView);
 
     // add second object : 'oriented image'
-    orientedImage = new itowns.THREE.Object3D();
+    orientedImage = new giro3d.THREE.Object3D();
     // place the 'oriented image' in the 'local space'
     localSpace.add(orientedImage);
 
@@ -64,12 +64,12 @@ function initCamera(view, image, coord, EnhToOrientationUp, EnhToOrientationLook
     orientedImage.lookAt(EnhToOrientationLookAt);
 
     // apply rotation
-    quaternion = new itowns.THREE.Quaternion().setFromRotationMatrix(rotMatrix);
+    quaternion = new giro3d.THREE.Quaternion().setFromRotationMatrix(rotMatrix);
     orientedImage.quaternion.multiply(quaternion);
     orientedImage.updateMatrixWorld();
 
     // create a THREE JS Camera
-    camera = new itowns.THREE.PerspectiveCamera(fov, size[0] / size[1], distance / 2, distance * 2);
+    camera = new giro3d.THREE.PerspectiveCamera(fov, size[0] / size[1], distance / 2, distance * 2);
     orientedImage.add(camera);
     camera.up.copy(orientationToCameraUp);
     camera.lookAt(orientationToCameraLookAt);
@@ -114,7 +114,7 @@ function setupViewCameraDecomposing(view, camera) {
 // add a camera helper to debug camera position..
 // eslint-disable-next-line no-unused-vars
 function addCameraHelper(view, camera) {
-    var cameraHelper = new itowns.THREE.CameraHelper(camera);
+    var cameraHelper = new giro3d.THREE.CameraHelper(camera);
     view.scene.add(cameraHelper);
     cameraHelper.updateMatrixWorld(true);
 }

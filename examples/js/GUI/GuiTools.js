@@ -4,7 +4,7 @@
  * Description: Classe pour créer un menu.
  */
 
-/* global dat,viewerDiv, itowns */
+/* global dat,viewerDiv, giro3d */
 
 dat.GUI.prototype.removeFolder = function removeFolder(name) {
     var folder = this.__folders[name];
@@ -81,7 +81,7 @@ GuiTools.prototype.addElevationLayerGUI = function addElevationLayerGUI(layer) {
 
 GuiTools.prototype.addImageryLayersGUI = function addImageryLayersGUI(layers) {
     var i;
-    var seq = itowns.ImageryLayers.getColorLayersIdOrderedBySequence(layers);
+    var seq = giro3d.ImageryLayers.getColorLayersIdOrderedBySequence(layers);
     var sortedLayers = layers.sort(function comp(a, b) {
         return seq.indexOf(a.id) < seq.indexOf(b.id);
     });

@@ -275,7 +275,7 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
 /**
  * When adding a layer to a view, some preprocessing can be done on it, before
  * fetching or creating resources attached to it. For example, in the WMTS and
- * WFS providers (included in iTowns), default options to the layer are added if
+ * WFS providers (included in giro3d), default options to the layer are added if
  * some are missing.
  *
  * @function
@@ -311,7 +311,7 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
  * resolving to an object containing sufficient information for the associated
  * processing to the current layer. For example, see the
  * [LayeredMaterialNodeProcessing#updateLayeredMaterialNodeElevation]{@link
- * https://github.com/iTowns/itowns/blob/master/src/Process/LayeredMaterialNodeProcessing.js}
+ * https://github.com/Oslandia/giro3d/blob/master/src/Process/LayeredMaterialNodeProcessing.js}
  * class or other processing class.
  */
 
@@ -319,7 +319,7 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
  * Adds a provider for a specified protocol. The provider will be used when
  * executing the queue to provide resources. See {@link Provider} for more
  * informations.
- * By default, some protocols are already set in iTowns: WMTS, WMS, WFS, TMS,
+ * By default, some protocols are already set in giro3d: WMTS, WMS, WFS, TMS,
  * XYZ, PotreeConverter, Rasterizer, 3D-Tiles and Static.
  * <br><br>
  * Warning: if the specified protocol has already a provider attached to it, the

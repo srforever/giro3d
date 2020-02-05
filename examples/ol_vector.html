@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Itowns - OpenLayers Example</title>
+        <title>giro3d - OpenLayers Example</title>
 
         <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="css/example.css">
@@ -10,23 +10,23 @@
     </head>
     <body>
         <div id="viewerDiv"></div>
-        <script src="../dist/itowns.js"></script>
+        <script src="../dist/giro3d.js"></script>
         <script src="js/loading_screen.js"></script>
         <script type="text/javascript">
             // # Orthographic viewer
 
             // Define geographic extent: CRS, min/max X, min/max Y
-            var extent = new itowns.Extent(
+            var extent = new giro3d.Extent(
                 'EPSG:3857',
                 -20037508.342789244, 20037508.342789244,
                 -20037508.342789244, 20037508.342789244);
 
-            // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
+            // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
             // Instanciate PlanarView
-            // var view = new itowns.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 15 });
-            var view = new itowns.View('EPSG:3857', viewerDiv);
+            // var view = new giro3d.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 15 });
+            var view = new giro3d.View('EPSG:3857', viewerDiv);
 
             // Turn in the right angle
             view.camera.camera3D.rotateZ(-Math.PI / 2);
@@ -35,18 +35,18 @@
             setupLoadingScreen(viewerDiv, view);
 
             // eslint-disable-next-line no-unused-vars
-            var vectorSource = new itowns.olsource.Vector({
+            var vectorSource = new giro3d.olsource.Vector({
                 url: 'https://openlayers.org/en/latest/examples/data/geojson/countries.geojson',
-                format: new itowns.olformat.GeoJSON({ featureProjection: 'EPSG:3857' }),
+                format: new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' }),
             });
             // Not sure what to put in there
-            var vector = new itowns.ollayer.Vector({
+            var vector = new giro3d.ollayer.Vector({
                 source: vectorSource,
                 // here will go style and rendering options...
             });
 
             // eslint-disable-next-line no-unused-vars
-            var wmsSource = new itowns.olsource.TileWMS({
+            var wmsSource = new giro3d.olsource.TileWMS({
                 url: 'https://ahocevar.com/geoserver/wms',
                 params: {'LAYERS': 'topp:states', 'TILED': true},
                 projection: 'EPSG:3857',
@@ -70,7 +70,7 @@
             view.notifyChange();
 
 
-            const format = new itowns.olformat.GeoJSON({ featureProjection: 'EPSG:3857' });
+            const format = new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' });
             const feature = format.readFeature({ type: 'Feature', geometry: {
   "type": "MultiPolygon",
   "coordinates": [
@@ -176,8 +176,8 @@
     ]
 
   }});
-            var vector2 = new itowns.ollayer.Vector({
-                source: new itowns.olsource.Vector({
+            var vector2 = new giro3d.ollayer.Vector({
+                source: new giro3d.olsource.Vector({
                     features: [feature]
                 })
             });

@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Itowns - OpenLayers Example</title>
+        <title>giro3d - OpenLayers Example</title>
 
         <meta charset="UTF-8">
         <link rel="stylesheet" type="text/css" href="css/example.css">
@@ -42,29 +42,29 @@
         </svg>
         <div id="viewerDiv"></div>
         <script src="js/GUI/dat.gui/dat.gui.min.js"></script>
-        <script src="../dist/itowns.js"></script>
+        <script src="../dist/giro3d.js"></script>
         <script src="js/loading_screen.js"></script>
         <script src="../dist/debug.js"></script>
         <script src="js/GUI/GuiTools.js"></script>
         <script src="js/mapbox-streets-v6-style.js"></script>
         <script type="text/javascript">
-            window.THREE = itowns.THREE;
+            window.THREE = giro3d.THREE;
         </script>
         <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
         <script type="text/javascript">
             // # Orthographic viewer
 
             // Define geographic extent: CRS, min/max X, min/max Y
-            var extent = new itowns.Extent(
+            var extent = new giro3d.Extent(
                 'EPSG:3857',
                 -20037508.342789244, 20037508.342789244,
                 -20037508.342789244, 20037508.342789244);
 
-            // `viewerDiv` will contain iTowns' rendering area (`<canvas>`)
+            // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
             // Instanciate PlanarView
-            var view = new itowns.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 15 });
+            var view = new giro3d.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 15 });
 
             // Instanciate controls
             var controls = new THREE.MapControls(
@@ -86,8 +86,8 @@
 
             const key = 'pk.eyJ1IjoiYWhvY2V2YXIiLCJhIjoiRk1kMWZaSSJ9.E5BkluenyWQMsBLsuByrmg';
             // eslint-disable-next-line no-unused-vars
-            var vectorTileSource = new itowns.VectorTileSource({
-                format: new itowns.olformat.MVT(),
+            var vectorTileSource = new giro3d.VectorTileSource({
+                format: new giro3d.olformat.MVT(),
                 url: 'https://{a-d}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/' +
                     '{z}/{x}/{y}.vector.pbf?access_token=' + key
             });

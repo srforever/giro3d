@@ -35,7 +35,7 @@ replacementPluginConf[1].replacements.find(decl => decl.identifierName === '__DE
 
 module.exports = {
     entry: {
-        itowns: ['babel-polyfill', 'url-polyfill', 'whatwg-fetch', path.resolve(__dirname, 'src/MainBundle.js')],
+        giro3d: ['babel-polyfill', 'url-polyfill', 'whatwg-fetch', path.resolve(__dirname, 'src/MainBundle.js')],
         debug: [path.resolve(__dirname, 'utils/debug/Main.js')],
     },
     devtool: 'source-map',

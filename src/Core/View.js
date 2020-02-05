@@ -28,7 +28,7 @@ export const VIEW_EVENTS = {
 };
 
 /**
- * Constructs an Itowns View instance
+ * Constructs an giro3d View instance
  *
  * @param {string} crs - The default CRS of Three.js coordinates. Should be a cartesian CRS.
  * @param {HTMLElement} viewerDiv - Where to instanciate the Three.js scene in the DOM
@@ -65,7 +65,7 @@ function View(crs, viewerDiv, options = {}) {
 
     this.scene = options.scene3D || new Scene();
     // will contain simple three objects that need to be taken into account, for example camera near / far calculation
-    // maybe it'll be better to do the contrary: having a group where *all* the itowns object will be added,
+    // maybe it'll be better to do the contrary: having a group where *all* the giro3d object will be added,
     // and traverse all other objects for near far calculation
     // but actuelly I'm not even sure near far calculation is worthy of this.
     this._threeObjects = new Group();
