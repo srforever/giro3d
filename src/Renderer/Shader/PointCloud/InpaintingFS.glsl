@@ -3,9 +3,21 @@ uniform sampler2D colorTexture;
 
 varying vec2 vUv;
 
+uniform float m43;
+uniform float m33;
 uniform vec2 resolution;
 uniform float depth_contrib;
 uniform float opacity;
+
+uniform bool enableZAttenuation;
+uniform float zAttMax;
+uniform float zAttMin;
+
+float zview(float depth) {
+    // http://www.derschmale.com/2014/01/26/reconstructing-positions-from-the-depth-buffer/
+    float zndc = 2.0 * depth - 1.0;
+    return - m43 / (zndc + m33);
+}
 
 void main() {
     float depth = texture2D(depthTexture, vUv).x;
@@ -30,8 +42,17 @@ void main() {
                 float d = texture2D(depthTexture, uv).x;
 
                 if (d < 1.0) {
+                    if (enableZAttenuation) {
+                        float z = -zview(d);
+                        // attenuation according to distance
+                        float zAttenuation = clamp((zAttMax - z) / (zAttMax - zAttMin), 0.0, 1.0); // I wish smoothstep was supported...
+                        if (abs(float(i))+abs(float(j)) > (float(kernel) * 2.0 * zAttenuation)) {
+                            continue;
+                        }
+                    }
                     float r_ij = sqrt(float(i*i + j*j));
-                    float weight_ij = (float(kernel) - r_ij * 0.5) * (1.0 - min(1.0, abs(d - depth) / depth_contrib));
+                    float weight_ij = (float(kernel) - r_ij * 1.0)
+                        * (1.0 - min(1.0, abs(d - depth) / depth_contrib));
                     if (weight_ij > 0.0) {
                         averageColor += weight_ij * texture2D(colorTexture, uv);
                         averageDepth += weight_ij * d;

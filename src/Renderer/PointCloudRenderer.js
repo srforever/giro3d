@@ -191,6 +191,11 @@ function PointCloudRenderer(view) {
                     resolution: { value: new THREE.Vector2(256, 256) },
                     depth_contrib: { value: 0.5 },
                     opacity: { value: 1.0 },
+                    m43: { value: 0 },
+                    m33: { value: 0 },
+                    enableZAttenuation: { value: false },
+                    zAttMax: { value: 0 },
+                    zAttMin: { value: 0 },
                 },
                 vertexShader: BasicVS,
                 fragmentShader: InpaintingFS,
@@ -203,14 +208,27 @@ function PointCloudRenderer(view) {
             fill_steps: 2,
             // depth contribution to the final color (?)
             depth_contrib: 0.5,
+            enableZAttenuation: true,
+            zAttMin: 10,
+            zAttMax: 100,
         },
         setup(renderer, input) {
             const m = this.passes[0];
+            const n = renderer.view.camera.camera3D.near;
+            const f = renderer.view.camera.camera3D.far;
+            const m43 = -(2 * f * n) / (f - n);
+            const m33 = -(f + n) / (f - n);
+
+            m.uniforms.m43.value = m43;
+            m.uniforms.m33.value = m33;
 
             m.uniforms.colorTexture.value = input.texture;
             m.uniforms.depthTexture.value = input.depthTexture;
             m.uniforms.resolution.value.set(input.width, input.height);
             m.uniforms.depth_contrib.value = this.parameters.depth_contrib;
+            m.uniforms.enableZAttenuation.value = this.parameters.enableZAttenuation;
+            m.uniforms.zAttMin.value = this.parameters.zAttMin;
+            m.uniforms.zAttMax.value = this.parameters.zAttMax;
 
             return { material: m };
         },
