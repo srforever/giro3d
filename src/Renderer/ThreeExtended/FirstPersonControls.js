@@ -168,7 +168,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
     // Event callback functions
     // Mouse movement handling
     onMouseDown(event) {
-        if (!this.enabled) {
+        if (!this.enabled || event.button !== 0) {
             return;
         }
         event.preventDefault();
@@ -182,14 +182,14 @@ class FirstPersonControls extends THREE.EventDispatcher {
     }
 
     onMouseUp() {
-        if (!this.enabled) {
+        if (!this.enabled || event.button !== 0) {
             return;
         }
         this._isMouseDown = false;
     }
 
     onMouseMove(event) {
-        if (!this.enabled) {
+        if (!this.enabled || event.button !== 0) {
             return;
         }
         if (this._isMouseDown === true) {
