@@ -165,20 +165,20 @@ export default {
                         node.extent.south() + uv.y * (node.extent.north() - node.extent.south()),
                         0);
                     const result = DEMUtils.getElevationValueAt(layer, tmpCoords, DEMUtils.FAST_READ_Z, [node]);
-                    if (result) {
-                        tmpCoords._values[2] = result.z;
-                        // convert to view crs
-                        // here (and only here) should be the Coordinates instance creation
-                        const coord = tmpCoords.as(_view.referenceCrs, new Coordinates(_view.referenceCrs));
-                        const point = tmpCoords.xyz(new THREE.Vector3());
-                        results.push({
-                            object: node,
-                            layer,
-                            point,
-                            coord,
-                            distance: _view.camera.camera3D.position.distanceTo(point),
-                        });
-                    }
+                    const z = result && result.z || 0;
+
+                    tmpCoords._values[2] = z;
+                    // convert to view crs
+                    // here (and only here) should be the Coordinates instance creation
+                    const coord = tmpCoords.as(_view.referenceCrs, new Coordinates(_view.referenceCrs));
+                    const point = tmpCoords.xyz(new THREE.Vector3());
+                    results.push({
+                        object: node,
+                        layer,
+                        point,
+                        coord,
+                        distance: _view.camera.camera3D.position.distanceTo(point),
+                    });
                 }
                 restore();
             }
