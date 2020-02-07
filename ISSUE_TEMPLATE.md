@@ -36,5 +36,5 @@
 ## Possible Cause/Fix/Solution
 <!--- Not obligatory, but suggest a cause or reason for the bug if relevant, -->
 <!--- or ideas how to implement the addition or change -->
-<!--- In any case, please consider opening a PR and become an iTowns developer! -->
+<!--- In any case, please consider opening a PR and become an giro3d developer! -->
 

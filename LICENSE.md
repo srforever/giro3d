@@ -1,12 +1,12 @@
-Copyright 2016 iTowns Contributors
+Copyright 2016 giro3d Contributors
 
-iTowns V2 is licenced under both licences CeCILL-B Version 1.0 and MIT.
+giro3d V2 is licenced under both licences CeCILL-B Version 1.0 and MIT.
 
-## iTowns V2
+## giro3d V2
 
 ### CeCILL-B
 
-iTowns is licensed under the CeCILL-B license, Version 1.0. You may obtain a copy of the License at
+giro3d is licensed under the CeCILL-B license, Version 1.0. You may obtain a copy of the License at
 
 http://www.cecill.info/licences/Licence_CeCILL-B_V1-en.html
 
@@ -14,7 +14,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 ### MIT
 
-iTowns is licensed under the MIT Licence. You may obtain a copy of the License at
+giro3d is licensed under the MIT Licence. You may obtain a copy of the License at
 
 https://opensource.org/licenses/MIT
 
@@ -22,7 +22,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 ## Third-Party Code
 
-iTowns V2 includes the following third-party code.
+giro3d V2 includes the following third-party code.
 
 ### ThreeJS
 

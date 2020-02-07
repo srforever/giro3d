@@ -23,12 +23,12 @@ fi
 
 # Save some useful information
 REPO=`git config remote.origin.url`
-SITE_REPO=git@github.com:iTowns/itowns.github.io.git
+SITE_REPO=git@github.com:giro3d/giro3d.github.io.git
 SHA=`git rev-parse --verify HEAD`
 COMMIT_AUTHOR_EMAIL=`git show  --pretty=format:"%ae" -q`
 COMMIT_AUTHOR_NAME=`git show  --pretty=format:"%an" -q`
 
-# Give me the right to push/pull on itowns.github.io
+# Give me the right to push/pull on giro3d.github.io
 chmod 600 ./deploy_key
 eval `ssh-agent -s`
 ssh-add ./deploy_key
@@ -37,24 +37,24 @@ ssh-add ./deploy_key
 # (using master because https://help.github.com/articles/user-organization-and-project-pages/)
 git clone $SITE_REPO --single-branch --branch master out
 
-# We're going to rewrite all the content of out/itowns
+# We're going to rewrite all the content of out/giro3d
 
 # Remove everything then recreate the content, to avoid keeping stale files
-if [ -d out/itowns ]; then
+if [ -d out/giro3d ]; then
     pushd out
-    git rm -rf itowns
+    git rm -rf giro3d
     popd
 fi
 
-mkdir -p out/itowns/dist
+mkdir -p out/giro3d/dist
 
 # Copy build results
-cp -R dist/*.js out/itowns/dist/
+cp -R dist/*.js out/giro3d/dist/
 # generate the API documentation
-npm run doc -- -d out/itowns/API_Doc
+npm run doc -- -d out/giro3d/API_Doc
 
 # Copy examples
-cp -R examples out/itowns/
+cp -R examples out/giro3d/
 
 # Deleting the JS files in examples/layers
 #git rm -f examples/layers/\ *.js
@@ -65,8 +65,8 @@ git config user.name "$COMMIT_AUTHOR_NAME"
 git config user.email "$COMMIT_AUTHOR_EMAIL"
 
 # Commit the "changes", i.e. the new version.
-git add itowns
-git commit -m "Deploy from itowns to GitHub Pages: ${SHA}"
+git add giro3d
+git commit -m "Deploy from giro3d to GitHub Pages: ${SHA}"
 
 # Now that we're all set up, we can push.
 git push $SITE_REPO

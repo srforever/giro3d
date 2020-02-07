@@ -1,6 +1,6 @@
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to iTowns 2.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to giro3d.
 
-The following people have contributed to iTowns 2.
+The following people have contributed to giro3d.
 
 * [IGN](http://www.ign.fr)
   * [Gérald Choqueux](https://github.com/gchoqueux)
@@ -25,7 +25,7 @@ The following people have contributed to iTowns 2.
   * [Marie Lamure](https://github.com/mlamure)
   * [Vincent Jaillot](https://github.com/jailln)
 
-The following organizations supported iTowns2 :
+The following organizations supported giro3d :
 * IGN ( http://www.ign.fr )
 * Oslandia ( http://www.oslandia.com )
 * AtolCD ( http://www.atolcd.com )
