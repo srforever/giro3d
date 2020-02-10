@@ -61,7 +61,11 @@ function View(crs, viewerDiv, options = {}) {
         engine = new c3DEngine(viewerDiv, options.renderer);
     }
 
-    this.mainLoop = options.mainLoop || new MainLoop(new Scheduler(), engine);
+    const mainLoopOptions = {
+        minNear: options.camera ? options.camera.minNear : null,
+        maxFar: options.camera ? options.camera.maxFar : null,
+    };
+    this.mainLoop = options.mainLoop || new MainLoop(new Scheduler(), engine, mainLoopOptions);
 
     this.scene = options.scene3D || new Scene();
     // will contain simple three objects that need to be taken into account, for example camera near / far calculation

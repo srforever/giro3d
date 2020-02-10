@@ -5,7 +5,7 @@ import Cache from '../Core/Scheduler/Cache';
 export const RENDERING_PAUSED = 0;
 export const RENDERING_SCHEDULED = 1;
 
-// TODO should probably be configurable?
+const MIN_DISTANCE = 0.1;
 const MAX_DISTANCE = 2000000000;
 
 const _tmpSphere = new Sphere();
@@ -35,12 +35,14 @@ export const MAIN_LOOP_EVENTS = {
     UPDATE_END: 'update_end',
 };
 
-function MainLoop(scheduler, engine) {
+function MainLoop(scheduler, engine, options = {}) {
     this.renderingState = RENDERING_PAUSED;
     this.needsRedraw = false;
     this.scheduler = scheduler;
     this.gfxEngine = engine; // TODO: remove me
     this._updateLoopRestarted = true;
+    this.maxFar = options.maxFar || MAX_DISTANCE;
+    this.minNear = options.minNear || MIN_DISTANCE;
 }
 
 MainLoop.prototype = Object.create(EventDispatcher.prototype);
@@ -149,8 +151,8 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
     // Reset near/far to default value to allow update function to test
     // visibility using camera's frustum; without depending on the near/far
     // values which are only used for rendering.
-    view.camera.camera3D.near = 0.1;
-    view.camera.camera3D.far = MAX_DISTANCE;
+    view.camera.camera3D.near = this.minNear;
+    view.camera.camera3D.far = this.maxFar;
     // We can't just use camera3D.updateProjectionMatrix() because part of
     // the update process use camera._viewMatrix, and this matrix depends
     // on near/far values.
@@ -218,9 +220,8 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
     // TODO so we need to take into account objects added through view.scene.add !!
     // and also every Object3D added independently to the scene !!
     // layer and provider are not the correct abstraction for this. must be lower level (traverse view.scene ?)
-    view.camera.camera3D.near = context.distance.min === Infinity ? previousNear : 0.1; // context.distance.min;
-    view.camera.camera3D.far = context.distance.max === 0 ? previousFar :
-        ThreeMath.clamp(context.distance.max, view.camera.camera3D.near, MAX_DISTANCE);
+    view.camera.camera3D.near = context.distance.min === Infinity ? this.minNear : ThreeMath.clamp(context.distance.min, this.minNear, this.maxFar);
+    view.camera.camera3D.far = context.distance.max === 0 ? this.maxFar : ThreeMath.clamp(context.distance.max, view.camera.camera3D.near, this.maxFar);
     view.camera.update();
 };
 
