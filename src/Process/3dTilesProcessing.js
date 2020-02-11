@@ -207,10 +207,10 @@ export function $3dTilesCulling(camera, node, tileMatrixWorld) {
             return true;
         }
         if (nodeViewer.sphere) {
-            const worldCoordinateCenter = nodeViewer.sphere.center.clone();
-            worldCoordinateCenter.applyMatrix4(tileMatrixWorld);
             // To check the distance between the center sphere and the camera
-            if (!(camera.camera3D.position.distanceTo(worldCoordinateCenter) <= nodeViewer.sphere.radius)) {
+            tmp.s.copy(nodeViewer.sphere);
+            tmp.s.applyMatrix4(node.matrixWorld);
+            if (!(camera.camera3D.position.distanceTo(tmp.s.center) <= tmp.s.radius)) {
                 return true;
             }
         }
