@@ -193,7 +193,7 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
             if (geometryLayer._distance) {
                 context.distance.min = Math.min(context.distance.min, geometryLayer._distance.min);
                 if (geometryLayer._distance.max == Infinity) {
-                    context.distance.max = MAX_DISTANCE;
+                    context.distance.max = this.maxFar;
                 } else {
                     context.distance.max = Math.max(context.distance.max, geometryLayer._distance.max);
                 }
@@ -217,11 +217,17 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
         }
     });
 
-    // TODO so we need to take into account objects added through view.scene.add !!
-    // and also every Object3D added independently to the scene !!
-    // layer and provider are not the correct abstraction for this. must be lower level (traverse view.scene ?)
-    view.camera.camera3D.near = context.distance.min === Infinity ? this.minNear : ThreeMath.clamp(context.distance.min, this.minNear, this.maxFar);
-    view.camera.camera3D.far = context.distance.max === 0 ? this.maxFar : ThreeMath.clamp(context.distance.max, view.camera.camera3D.near, this.maxFar);
+    // NOTE: if the object responsible of this value of minDistance is near one
+    // end of the field of view, the near plane must be at near = minDistance *
+    // cos(fov)
+    let minDistance = context.distance.min * Math.cos(ThreeMath.degToRad(view.camera.camera3D.fov / 2));
+    // clamp it to minNear / maxFar
+    minDistance = minDistance === Infinity ? this.minNear : ThreeMath.clamp(minDistance, this.minNear, this.maxFar);
+    view.camera.camera3D.near = minDistance;
+
+    const far = context.distance.max === 0 ? this.maxFar : ThreeMath.clamp(context.distance.max, minDistance, this.maxFar);
+    view.camera.camera3D.far = far;
+
     view.camera.update();
 };
 

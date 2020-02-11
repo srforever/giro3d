@@ -62,8 +62,8 @@ function View(crs, viewerDiv, options = {}) {
     }
 
     const mainLoopOptions = {
-        minNear: options.camera ? options.camera.minNear : null,
-        maxFar: options.camera ? options.camera.maxFar : null,
+        minNear: options.cameraOptions ? options.cameraOptions.minNear : null,
+        maxFar: options.cameraOptions ? options.cameraOptions.maxFar : null,
     };
     this.mainLoop = options.mainLoop || new MainLoop(new Scheduler(), engine, mainLoopOptions);
 
