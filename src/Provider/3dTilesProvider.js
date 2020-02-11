@@ -236,6 +236,7 @@ export function configureTile(tile, layer, metadata, parent) {
     if (tile.boundingVolume.region) {
         tile.add(tile.boundingVolume.region);
     }
+    tile.distance = {};
     tile.updateMatrixWorld();
 }
 

@@ -4,6 +4,8 @@ import ScreenSpaceError from '../Core/ScreenSpaceError';
 
 const tmp = {
     v: new THREE.Vector3(),
+    b: new THREE.Box3(),
+    s: new THREE.Sphere(),
 };
 
 function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
@@ -27,6 +29,7 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
         // If one of the children is very small, its priority will be low,
         // and it will delay the display of its siblings.
         // So we compute a priority based on the size of the parent
+        // TODO cache the computation of world bounding volume ?
         const size = parent.boundingVolume.box.clone()
             .applyMatrix4(parent.matrixWorld)
             .getSize(tmp.v);
@@ -82,8 +85,6 @@ function subdivideNode(context, layer, node, cullingTest) {
     }
 }
 
-const tmpBox3 = new THREE.Box3();
-const tmpSphere = new THREE.Sphere();
 function boundingVolumeToExtent(crs, volume, transform) {
     if (volume.region) {
         return new Extent('EPSG:4326',
@@ -92,10 +93,10 @@ function boundingVolumeToExtent(crs, volume, transform) {
             THREE.Math.radToDeg(volume.region[1]),
             THREE.Math.radToDeg(volume.region[3]));
     } else if (volume.box) {
-        const box = tmpBox3.copy(volume.box).applyMatrix4(transform);
+        const box = tmp.b.copy(volume.box).applyMatrix4(transform);
         return Extent.fromBox3(crs, box);
     } else {
-        const sphere = tmpSphere.copy(volume.sphere).applyMatrix4(transform);
+        const sphere = tmp.s.copy(volume.sphere).applyMatrix4(transform);
         return new Extent(crs, {
             west: sphere.center.x - sphere.radius,
             east: sphere.center.x + sphere.radius,
@@ -317,8 +318,6 @@ export function pre3dTilesUpdate(context, layer) {
     return [layer.root];
 }
 
-const boundingVolumeBox = new THREE.Box3();
-const boundingVolumeSphere = new THREE.Sphere();
 export function computeNodeSSE(context, node) {
     if (node.boundingVolume.region) {
         throw new Error('boundingVolume.region is unsupported');
@@ -386,24 +385,25 @@ function isTilesetContentReady(tileset, node) {
         node.children[0].children.length > 0;
 }
 
-function calculateCameraDistance(context, node) {
-    node.distance = 0;
+function calculateCameraDistance(camera, node) {
+    node.distance.min = 0;
+    node.distance.max = 0;
     if (node.boundingVolume.region) {
         throw new Error('boundingVolume.region is unsupported');
     } else if (node.boundingVolume.box) {
         // boundingVolume.box is affected by matrixWorld
-        // TODO this calculation is shared with computeNodeSSE. Cache maybe ?
-        boundingVolumeBox.copy(node.boundingVolume.box);
-        boundingVolumeBox.applyMatrix4(node.matrixWorld);
-        node.distance = boundingVolumeBox.distanceToPoint(context.camera.camera3D.position);
+        tmp.b.copy(node.boundingVolume.box);
+        tmp.b.applyMatrix4(node.matrixWorld);
+        node.distance.min = tmp.b.distanceToPoint(camera.position);
+        node.distance.max = node.distance.min + tmp.b.getSize(tmp.v).length();
     } else if (node.boundingVolume.sphere) {
         // boundingVolume.sphere is affected by matrixWorld
-        // TODO this calculation is shared with computeNodeSSE. Cache maybe ?
-        boundingVolumeSphere.copy(node.boundingVolume.sphere);
-        boundingVolumeSphere.applyMatrix4(node.matrixWorld);
+        tmp.s.copy(node.boundingVolume.sphere);
+        tmp.s.applyMatrix4(node.matrixWorld);
         // TODO: this probably assumes that the camera has no parent
-        node.distance = Math.max(0.0,
-            boundingVolumeSphere.distanceToPoint(context.camera.camera3D.position));
+        node.distance.min = Math.max(0.0,
+            tmp.s.distanceToPoint(camera.position));
+        node.distance.max = node.distance.min + 2 * tmp.s.radius;
     }
 }
 
@@ -431,7 +431,7 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
             // - subdivision testing
             // - near / far calculation in MainLoop. For this one, we need the distance for *all* displayed tiles.
             // For this last reason, we need to calculate this here, and not in subdivisionControl
-            calculateCameraDistance(context, node);
+            calculateCameraDistance(context.camera.camera3D, node);
             if (node.pendingSubdivision || subdivisionTest(context, layer, node)) {
                 subdivideNode(context, layer, node, cullingTest);
                 // display iff children aren't ready
@@ -472,11 +472,11 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                 if (node.boundingVolume.region) {
                     throw new Error('boundingVolume.region is not yet supported');
                 } else if (node.boundingVolume.box) {
-                    layer._distance.min = Math.min(layer._distance.min, node.distance);
-                    layer._distance.max = Math.max(layer._distance.max, node.distance + node.boundingVolume.box.getSize(tmp.v).length());
+                    layer._distance.min = Math.min(layer._distance.min, node.distance.min);
+                    layer._distance.max = Math.max(layer._distance.max, node.distance.max);
                 } else if (node.boundingVolume.sphere) {
-                    layer._distance.min = Math.min(layer._distance.min, node.distance);
-                    layer._distance.max = Math.max(layer._distance.max, node.distance + 2 * node.boundingVolume.sphere.radius);
+                    layer._distance.min = Math.min(layer._distance.min, node.distance.min);
+                    layer._distance.max = Math.max(layer._distance.max, node.distance.max);
                 }
                 node.content.traverse(o => {
                     if (o.layer == layer && o.material) {
