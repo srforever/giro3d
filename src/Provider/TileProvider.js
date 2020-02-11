@@ -101,6 +101,11 @@ function executeCommand(command) {
         tile.material.uniforms.noTextureColor.value.copy(layer.noTextureColor);
     }
 
+    // no texture opacity
+    if (layer.noTextureOpacity != undefined) {
+        tile.material.uniforms.noTextureOpacity.value = layer.noTextureOpacity;
+    }
+
     if (__DEBUG__) {
         tile.material.uniforms.showOutline = { value: layer.showOutline || false };
         tile.material.wireframe = layer.wireframe || false;

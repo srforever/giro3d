@@ -10,6 +10,7 @@ uniform vec3      colors[TEX_UNITS];
 #endif
 
 // backgroundColor
+uniform float      noTextureOpacity;
 uniform vec3      noTextureColor;
 // tile opacity
 uniform float     opacity;
@@ -87,6 +88,7 @@ void main() {
 
     vec4 diffuseColor = vec4(noTextureColor, 0.0);
 
+    bool hasTexture = false;
     // We can't loop here over textures since Firefox doesn't support
     // reading from a sampler array without a constant index
     // (ie texture2D(texture[i], uv) is disallowed).
@@ -119,7 +121,11 @@ void main() {
     #endif
 
     // gl_FragColor.rgb = mix(gl_FragColor.rgb, vColor.rgb, vColor.a);
-    gl_FragColor.a = opacity;
+    if (hasTexture) {
+        gl_FragColor.a = opacity;
+    } else {
+        gl_FragColor.a = noTextureOpacity * opacity;
+    }
 
     #if defined(DEBUG)
     if (showOutline && (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine)) {

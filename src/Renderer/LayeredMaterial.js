@@ -112,6 +112,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
     this.uniforms.uuid = new THREE.Uniform(0);
 
     this.uniforms.noTextureColor = new THREE.Uniform(new THREE.Color(0.04, 0.23, 0.35));
+    this.uniforms.noTextureOpacity = new THREE.Uniform(1.0);
 
     this.uniforms.opacity = new THREE.Uniform(1.0);
 
@@ -377,6 +378,9 @@ function rebuildFragmentShader(shader) {
 
                 } else {
                     vec4 layerColor = texture2D(colorTexture, uv);
+                    if (layerColor.a > 0.0) {
+                        hasTexture = true;
+                    }
                     layerColor.rgb *= colors[${i}];
                     diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[${i}]) + layerColor * colorOpacity[${i}];
                 }`;
@@ -386,6 +390,9 @@ function rebuildFragmentShader(shader) {
                     computeUv(vUv, colorOffsetScale[${i}].xy, colorOffsetScale[${i}].zw),
                     vec2(${validArea.x1}, ${validArea.y1}), vec2(${validArea.x2}, ${validArea.y2}));
                 vec4 layerColor = texture2D(colorTexture, uv);
+                if (layerColor.a > 0.0) {
+                    hasTexture = true;
+                }
                 layerColor.rgb *= colors[${i}];
                 diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[${i}]) + layerColor * colorOpacity[${i}];
             `;

@@ -1,4 +1,4 @@
-import { EventDispatcher } from 'three';
+import { Color, EventDispatcher } from 'three';
 import Picking from '../Picking';
 import Capabilities from '../System/Capabilities';
 import AtlasBuilder from '../../Renderer/AtlasBuilder';
@@ -83,15 +83,16 @@ function GeometryLayer(id, object3d) {
     });
 
     // layer parameters
+    // TODO there must be a better way™
     const changeOpacity = o => {
         if (o.material) {
             // != undefined: we want the test to pass if opacity is 0
             if (o.material.opacity != undefined) {
-                o.material.transparent = this.opacity < 1.0;
+                o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
                 o.material.opacity = this.opacity;
             }
             if (o.material.uniforms && o.material.uniforms.opacity != undefined) {
-                o.material.transparent = this.opacity < 1.0;
+                o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
                 o.material.uniforms.opacity.value = this.opacity;
             }
             o.material.depthWrite = !o.material.transparent;
@@ -107,6 +108,59 @@ function GeometryLayer(id, object3d) {
                 // 3dtiles layers store scenes in children's content property
                 if (o.content) {
                     o.content.traverse(changeOpacity);
+                }
+            });
+        }
+    });
+    const changeNoTextureColor = o => {
+        if (o.material) {
+            if (o.material.noTextureColor) {
+                o.material.noTextureColor.value.copy(this.noTextureColor);
+            }
+            if (o.material.uniforms && o.material.uniforms.noTextureColor) {
+                o.material.uniforms.noTextureColor.value.copy(this.noTextureColor);
+            }
+            o.material.depthWrite = !o.material.transparent;
+        }
+    };
+    defineLayerProperty(this, 'noTextureColor', new Color(0.04, 0.23, 0.35), () => {
+        if (this.object3d) {
+            this.object3d.traverse(o => {
+                if (o.layer !== this) {
+                    return;
+                }
+                changeNoTextureColor(o);
+                // 3dtiles layers store scenes in children's content property
+                if (o.content) {
+                    o.content.traverse(changeNoTextureColor);
+                }
+            });
+        }
+    });
+    const changeNoTextureOpacity = o => {
+        if (o.material) {
+            // != undefined: we want the test to pass if noTextureOpacity is 0
+            if (o.material.noTextureOpacity != undefined) {
+                o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
+                o.material.noTextureOpacity = this.noTextureOpacity;
+            }
+            if (o.material.uniforms && o.material.uniforms.noTextureOpacity != undefined) {
+                o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
+                o.material.uniforms.noTextureOpacity.value = this.noTextureOpacity;
+            }
+            o.material.depthWrite = !o.material.transparent;
+        }
+    };
+    defineLayerProperty(this, 'noTextureOpacity', 1.0, () => {
+        if (this.object3d) {
+            this.object3d.traverse(o => {
+                if (o.layer !== this) {
+                    return;
+                }
+                changeNoTextureOpacity(o);
+                // 3dtiles layers store scenes in children's content property
+                if (o.content) {
+                    o.content.traverse(changeNoTextureOpacity);
                 }
             });
         }
