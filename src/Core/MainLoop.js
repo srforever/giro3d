@@ -204,6 +204,9 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
 
     // TODO document the fact Object3D must be added through threeObjects if they want to influence near / far plane
     view.threeObjects.traverse(o => {
+        if (!o.visible) {
+            return;
+        }
         if (o.geometry) {
             if (o.geometry.boundingSphere) {
                 _tmpSphere.copy(o.geometry.boundingSphere);
