@@ -72,8 +72,8 @@ function View(crs, viewerDiv, options = {}) {
     // maybe it'll be better to do the contrary: having a group where *all* the giro3d object will be added,
     // and traverse all other objects for near far calculation
     // but actuelly I'm not even sure near far calculation is worthy of this.
-    this._threeObjects = new Group();
-    this.scene.add(this._threeObjects);
+    this.threeObjects = new Group();
+    this.scene.add(this.threeObjects);
     this.scene2D = new Scene();
     if (!options.scene3D) {
         this.scene.autoUpdate = false;
@@ -447,13 +447,13 @@ View.prototype.addVector = function addVector(vector) {
     // default loader does not have a "success" callback. Instead openlayers tests for
     if (source.getFeatures().length > 0) {
         vector.object3d = convert(source.getFeatures());
-        this._threeObjects.add(vector.object3d);
+        this.threeObjects.add(vector.object3d);
         this.notifyChange(vector.object3d, true);
     }
     source.on('change', () => {
         // naive way of dealing with changes : remove everything and add everything back
         if (vector.object3d) {
-            this._threeObjects.remove(vector.object3d);
+            this.threeObjects.remove(vector.object3d);
             vector.object3d.traverse(o => {
                 if (o.material) {
                     o.material.dispose();
@@ -465,7 +465,7 @@ View.prototype.addVector = function addVector(vector) {
             });
         }
         vector.object3d = convert(source.getFeatures());
-        this._threeObjects.add(vector.object3d);
+        this.threeObjects.add(vector.object3d);
         this.notifyChange(vector.object3d, true);
     });
     source.loadFeatures([-Infinity, -Infinity, Infinity, Infinity], undefined, this.referenceCrs);
