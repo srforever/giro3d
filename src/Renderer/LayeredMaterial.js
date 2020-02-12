@@ -111,7 +111,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
 
     this.uniforms.uuid = new THREE.Uniform(0);
 
-    this.uniforms.noTextureColor = new THREE.Uniform(new THREE.Color(0.04, 0.23, 0.35));
+    this.uniforms.noTextureColor = new THREE.Uniform(new THREE.Color());
     this.uniforms.noTextureOpacity = new THREE.Uniform(1.0);
 
     this.uniforms.opacity = new THREE.Uniform(1.0);
