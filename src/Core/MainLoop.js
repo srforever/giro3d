@@ -207,17 +207,13 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
         if (!o.visible) {
             return;
         }
-        if (o.geometry) {
-            if (o.geometry.boundingSphere) {
-                _tmpSphere.copy(o.geometry.boundingSphere);
-                _tmpSphere.applyMatrix4(o.matrixWorld);
-                const d = _tmpSphere.distanceToPoint(context.camera.camera3D.position);
-                context.distance.min = ThreeMath.clamp(d, 0, context.distance.min);
+        if (o.geometry && o.geometry.boundingSphere) {
+            _tmpSphere.copy(o.geometry.boundingSphere);
+            _tmpSphere.applyMatrix4(o.matrixWorld);
+            const d = _tmpSphere.distanceToPoint(context.camera.camera3D.position);
+            context.distance.min = ThreeMath.clamp(d, 0, context.distance.min);
 
-                context.distance.max = Math.max(context.distance.max, d + 2 * _tmpSphere.radius);
-            } else {
-                console.warn('object.geometry without boundingSphere!!', o);
-            }
+            context.distance.max = Math.max(context.distance.max, d + 2 * _tmpSphere.radius);
         }
     });
 
