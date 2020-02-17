@@ -8,7 +8,7 @@ import { MAIN_LOOP_EVENTS } from '../../Core/MainLoop';
 function limitRotation(camera3D, rot /* , verticalFOV */) {
     // Limit vertical rotation (look up/down) to make sure the user cannot see
     // outside of the cone defined by verticalFOV
-    const limit = Math.PI * 0.5 - 0.01;// THREE.Math.degToRad(verticalFOV - camera3D.fov * 0.5) * 0.5;
+    const limit = Math.PI * 0.5 - 0.01; // THREE.Math.degToRad(verticalFOV - camera3D.fov * 0.5) * 0.5;
     return THREE.Math.clamp(rot, -limit, limit);
 }
 
