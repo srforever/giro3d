@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import RendererConstant from './RendererConstant.js';
 import TileVS from './Shader/TileVS.glsl';
 import TileFS from './Shader/TileFS.glsl';
 import PrecisionQualifier from './Shader/Chunk/PrecisionQualifier.glsl';
@@ -49,6 +50,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
     if (options.side) {
         this.side = options.side;
     }
+    this.uniforms.renderingState = new THREE.Uniform(RendererConstant.FINAL);
 
     this.defines.TEX_UNITS = 0;
     this.defines.INSERT_TEXTURE_READING_CODE = '';

@@ -38,8 +38,6 @@ function TileMesh(layer, geometry, material, extent, level) {
     if (layer.minMaxFromElevationLayer) {
         this.setBBoxZ(layer.minMaxFromElevationLayer.min, layer.minMaxFromElevationLayer.max);
     }
-
-    this._state = RendererConstant.FINAL;
 }
 
 TileMesh.prototype = Object.create(THREE.Mesh.prototype);
@@ -56,7 +54,7 @@ TileMesh.prototype.isVisible = function isVisible() {
 
 TileMesh.prototype.setDisplayed = function setDisplayed(show) {
     this.material.visible = show && this.material.update();
-    this.material.transparent = this.material.opacity != 1;
+    this.material.transparent = this.material.opacity != 1 || this.material.uniforms.noTextureOpacity.value != 1;
 };
 
 TileMesh.prototype.setVisibility = function setVisibility(show) {
@@ -69,28 +67,16 @@ TileMesh.prototype.isDisplayed = function isDisplayed() {
 
 // switch material in function of state
 TileMesh.prototype.changeState = function changeState(state) {
-    if (state == this._state) {
+    if (state == this.material.uniforms.renderingState.value) {
         return;
     }
-    if (state == RendererConstant.DEPTH) {
-        this.material.defines.DEPTH_MODE = 1;
-        this.material.transparent = false;
-        delete this.material.defines.MATTE_ID_MODE;
-    } else if (state == RendererConstant.ID) {
-        this.material.defines.MATTE_ID_MODE = 1;
-        this.material.transparent = false;
-        delete this.material.defines.DEPTH_MODE;
-    } else if (state == RendererConstant.UV) {
-        this.material.defines.UV_MODE = 1;
+    // TODO this is a implicit dep to LayeredMaterial
+    this.material.uniforms.renderingState.value = state;
+    if (state > RendererConstant.FINAL) {
         this.material.transparent = false;
     } else {
-        this.material.transparent = this.material.opacity != 1;
-        delete this.material.defines.MATTE_ID_MODE;
-        delete this.material.defines.DEPTH_MODE;
-        delete this.material.defines.UV_MODE;
+        this.material.transparent = this.material.opacity != 1 || this.material.uniforms.noTextureOpacity.value != 1;
     }
-
-    this._state = state;
 
     this.material.needsUpdate = true;
 };
@@ -102,11 +88,11 @@ function applyChangeState(n, s) {
 }
 
 TileMesh.prototype.pushRenderState = function pushRenderState(state) {
-    if (this._state == state) {
+    if (this.material.uniforms.renderingState.value == state) {
         return () => { };
     }
 
-    const oldState = this._state;
+    const oldState = this.material.uniforms.renderingState.value;
     this.traverse(n => applyChangeState(n, state));
 
     return () => {
