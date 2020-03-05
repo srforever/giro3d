@@ -26,13 +26,13 @@
 
             // Instanciate PlanarView
             // var view = new giro3d.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 15 });
-            var view = new giro3d.View('EPSG:3857', viewerDiv);
+            var instance = new giro3d.Instance('EPSG:3857', viewerDiv);
 
             // Turn in the right angle
-            view.camera.camera3D.rotateZ(-Math.PI / 2);
-            view.camera.camera3D.position.set(0, 0, 20000000);
-            view.camera.camera3D.lookAt(0, 0, 0);
-            setupLoadingScreen(viewerDiv, view);
+            instance.camera.camera3D.rotateZ(-Math.PI / 2);
+            instance.camera.camera3D.position.set(0, 0, 20000000);
+            instance.camera.camera3D.lookAt(0, 0, 0);
+            setupLoadingScreen(viewerDiv, instance);
 
             // eslint-disable-next-line no-unused-vars
             var vectorSource = new giro3d.olsource.Vector({
@@ -56,7 +56,7 @@
             })
 
             // Add a WMS layer
-            /*view.addLayer({
+            /*instance.addLayer({
                 id: 'wms',
                 type: 'color',
                 protocol: 'oltile',
@@ -64,10 +64,10 @@
             }).catch(e => console.error(e))*/;
 
             // add the vector source
-            view.addVector(vector);
+            instance.addVector(vector);
 
             // Request redraw
-            view.notifyChange();
+            instance.notifyChange();
 
 
             const format = new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' });
@@ -181,7 +181,7 @@
                     features: [feature]
                 })
             });
-            view.addVector(vector2);
+            instance.addVector(vector2);
 
         </script>
     </body>

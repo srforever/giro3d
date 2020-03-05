@@ -7,8 +7,8 @@ export { default as PanoramaView, createPanoramaLayer } from './Core/Prefab/Pano
 export { default as Panorama } from './Core/Prefab/Panorama/Constants';
 export { default as Fetcher } from './Provider/Fetcher';
 export { MAIN_LOOP_EVENTS } from './Core/MainLoop';
-export { default as View } from './Core/View';
-export { VIEW_EVENTS } from './Core/View';
+export { default as Instance } from './Core/instance';
+export { VIEW_EVENTS } from './Core/instance';
 export { default as GpxParser } from './Parser/GpxParser';
 export { default as GeoJsonParser } from './Parser/GeoJsonParser';
 export { process3dTilesNode, init3dTilesLayer, $3dTilesCulling, $3dTilesSubdivisionControl, pre3dTilesUpdate } from './Process/3dTilesProcessing';

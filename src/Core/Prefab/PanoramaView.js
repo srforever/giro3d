@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import View from '../View';
+import Instance from '../instance';
 
 import { GeometryLayer } from '../Layer/Layer';
 import Extent from '../Geographic/Extent';
@@ -80,8 +80,8 @@ export function createPanoramaLayer(id, coordinates, type, options = {}) {
 function PanoramaView(viewerDiv, coordinates, type, options = {}) {
     THREE.Object3D.DefaultUp.set(0, 0, 1);
 
-    // Setup View
-    View.call(this, coordinates.crs, viewerDiv, options);
+    // Setup Instance
+    Instance.call(this, viewerDiv, coordinates.crs, options);
 
     // Configure camera
     const camera = this.camera.camera3D;
@@ -101,12 +101,13 @@ function PanoramaView(viewerDiv, coordinates, type, options = {}) {
 
     const tileLayer = createPanoramaLayer('panorama', coordinates, type, options);
 
-    View.prototype.addLayer.call(this, tileLayer);
+    Instance.prototype.addLayer.call(this, tileLayer);
 
     this.baseLayer = tileLayer;
 }
 
-PanoramaView.prototype = Object.create(View.prototype);
+// TODO PanoramaView shouldn't subclass Instance
+PanoramaView.prototype = Object.create(Instance.prototype);
 PanoramaView.prototype.constructor = PanoramaView;
 
 PanoramaView.prototype.addLayer = function addLayer(layer) {
@@ -116,7 +117,7 @@ PanoramaView.prototype.addLayer = function addLayer(layer) {
     if (layer.type != 'color') {
         throw new Error(`Unsupported layer type ${layer.type} (PanoramaView only support 'color' layers)`);
     }
-    return View.prototype.addLayer.call(this, layer, this.baseLayer);
+    return Instance.prototype.addLayer.call(this, layer, this.baseLayer);
 };
 
 export default PanoramaView;

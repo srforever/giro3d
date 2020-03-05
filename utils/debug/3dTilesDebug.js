@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import OBBHelper from './OBBHelper';
-import View from '../../src/Core/View';
+import Instance from '../../src/Core/instance';
 import GeometryDebug from './GeometryDebug';
 
 const invMatrixChangeUpVectorZtoY = new THREE.Matrix4().getInverse(new THREE.Matrix4().makeRotationX(Math.PI / 2));
@@ -122,7 +122,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
         }
     };
 
-    View.prototype.addLayer.call(view,
+    Instance.prototype.addLayer.call(view,
         {
             id: obb_layer_id,
             type: 'debug',

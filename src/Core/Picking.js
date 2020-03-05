@@ -117,24 +117,24 @@ const tmpCoords = new Coordinates('EPSG:3857', 0, 0, 0);
  * @module Picking
  *
  * Implement various picking methods for geometry layers.
- * These methods are not meant to be used directly, see View.pickObjectsAt
+ * These methods are not meant to be used directly, see Instance.pickObjectsAt
  * instead.
  *
  * All the methods here takes the same parameters:
- *   - the View instance
+ *   - the instance
  *   - view coordinates (in pixels) where picking should be done
  *   - radius (in pixels) of the picking circle
  *   - layer: the geometry layer used for picking
  */
 export default {
-    pickTilesAt: (_view, viewCoords, radius, layer) => {
+    pickTilesAt: (_instance, viewCoords, radius, layer) => {
         const results = [];
         // TODO is there a way to get the node id AND uv on the same render pass ?
         // We would need to get a upper bound to the tile ids, and not use the three.js uuid
         // We need to assess how much precision will be left for the uv, and if it is acceptable
         // do we really gain something, considering the fact that render in UV
         // mode will be fast (we only render one object) ?
-        const _ids = screenCoordsToNodeId(_view, layer, viewCoords, radius);
+        const _ids = screenCoordsToNodeId(_instance, layer, viewCoords, radius);
 
         const extractResult = node => {
             // for each node (normally no more than 4 of them) we do a render
@@ -143,8 +143,8 @@ export default {
             // render needed, but maybe a draw on canvas ? Check that).
             if (_ids.indexOf(node.id) >= 0 && node instanceof TileMesh) {
                 const restore = node.pushRenderState(RendererConstant.UV);
-                const buffer = _view.mainLoop.gfxEngine.renderViewToBuffer(
-                    { camera: _view.camera, scene: node },
+                const buffer = _instance.mainLoop.gfxEngine.renderViewToBuffer(
+                    { camera: _instance.camera, scene: node },
                     {
                         x: Math.max(0, viewCoords.x - radius),
                         y: Math.max(0, viewCoords.y - radius),
@@ -165,20 +165,20 @@ export default {
                         node.extent.south() + uv.y * (node.extent.north() - node.extent.south()),
                         0);
                     const result = DEMUtils.getElevationValueAt(layer, tmpCoords, DEMUtils.FAST_READ_Z, [node]);
-                    const z = result && result.z || 0;
-
-                    tmpCoords._values[2] = z;
-                    // convert to view crs
-                    // here (and only here) should be the Coordinates instance creation
-                    const coord = tmpCoords.as(_view.referenceCrs, new Coordinates(_view.referenceCrs));
-                    const point = tmpCoords.xyz(new THREE.Vector3());
-                    results.push({
-                        object: node,
-                        layer,
-                        point,
-                        coord,
-                        distance: _view.camera.camera3D.position.distanceTo(point),
-                    });
+                    if (result) {
+                        tmpCoords._values[2] = result.z;
+                        // convert to view crs
+                        // here (and only here) should be the Coordinates instance creation
+                        const coord = tmpCoords.as(_instance.referenceCrs, new Coordinates(_instance.referenceCrs));
+                        const point = tmpCoords.xyz(new THREE.Vector3());
+                        results.push({
+                            object: node,
+                            layer,
+                            point,
+                            coord,
+                            distance: _instance.camera.camera3D.position.distanceTo(point),
+                        });
+                    }
                 }
                 restore();
             }

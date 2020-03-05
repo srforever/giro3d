@@ -1,18 +1,6 @@
-NOTE: This package is published for my personal convenience, the official package is [here](https://www.npmjs.com/package/giro3d)
+## Geospatial 3D WebGL visualization plateform
 
-<p align="center">
-<img src="https://raw.githubusercontent.com/giro3d/giro3d.github.io/master/images/giro3d_logo_300x134.png" />
-</p>
-
-[![Coverage Status](https://coveralls.io/repos/github/giro3d/giro3d/badge.svg?branch=master)](https://coveralls.io/github/giro3d/giro3d?branch=master)
-
-## What is it?
-
-giro3d is a [Three.js](https://threejs.org/)-based framework written in Javascript/WebGL for visualizing 3D geospatial data.
-
-It can connect to WMS/WMTS/TMS servers including elevation data and load many different data formats (3dTiles, GPX, KML and much much more).
-
-![giro3d screenshot](https://raw.githubusercontent.com/giro3d/giro3d.github.io/master/images/giro3dReleaseXS.jpg)
+Giro3d is a versatile [Three.js](https://threejs.org/)-based framework written in Javascript/WebGL for visualizing 3D geospatial data.
 
 ## API documentation and examples
 

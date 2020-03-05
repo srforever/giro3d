@@ -103,7 +103,7 @@ function _instanciateQueue() {
 
 /**
  * The Scheduler is in charge of managing the [Providers]{@link Provider} that
- * are used to gather resources needed to display the layers on a {@link View}.
+ * are used to gather resources needed to display the layers on a {@link Instance}.
  * There is only one instance of a Scheduler per webview, and it is instanciated
  * with the creation of the first view.
  *
@@ -282,7 +282,7 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
  * @name Provider#preprocessDataLayer
  *
  * @param {Layer} layer
- * @param {View} [view]
+ * @param {Instance} [view]
  * @param {Scheduler} [scheduler]
  * @param {Layer} [parentLayer]
  */
@@ -301,7 +301,7 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
  * @name Provider#executeCommand
  *
  * @param {Object} command
- * @param {View} command.view
+ * @param {Instance} command.view
  * @param {Layer} command.layer
  * @param {TileMesh} [command.requester] - Every layer is attached to a tile.
  * @param {number} [command.targetLevel] - The target level is used when there

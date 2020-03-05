@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import OBBHelper from './OBBHelper';
 import TileObjectChart from './charts/TileObjectChart';
 import TileVisibilityChart from './charts/TileVisibilityChart';
-import View from '../../src/Core/View';
+import Instance from '../../src/Core/instance';
 import ObjectRemovalHelper from '../../src/Process/ObjectRemovalHelper';
 import GeometryDebug from './GeometryDebug';
 
@@ -139,7 +139,7 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
         }
     }
 
-    View.prototype.addLayer.call(view,
+    Instance.prototype.addLayer.call(view,
         {
             id: obb_layer_id,
             type: 'debug',

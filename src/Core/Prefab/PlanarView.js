@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import View from '../View';
+import Instance from '../instance';
 import { MAIN_LOOP_EVENTS } from '../MainLoop';
 import RendererConstant from '../../Renderer/RendererConstant';
 import { GeometryLayer } from '../Layer/Layer';
@@ -201,8 +201,8 @@ function PlanarView(viewerDiv, extent, options = {}) {
 
     const tileLayer = createPlanarLayer('planar', extent, options);
 
-    // Setup View
-    View.call(this, tileLayer.extent.crs(), viewerDiv, options);
+    // Setup Instance
+    Instance.call(this, viewerDiv, tileLayer.extent.crs(), options);
 
     // Configure camera
     const dim = tileLayer.extent.dimensions();
@@ -230,11 +230,11 @@ function PlanarView(viewerDiv, extent, options = {}) {
     this.tileLayer = tileLayer;
 }
 
-PlanarView.prototype = Object.create(View.prototype);
+PlanarView.prototype = Object.create(Instance.prototype);
 PlanarView.prototype.constructor = PlanarView;
 
 PlanarView.prototype.addLayer = function addLayer(layer) {
-    return View.prototype.addLayer.call(this, layer, this.tileLayer);
+    return Instance.prototype.addLayer.call(this, layer, this.tileLayer);
 };
 
 export default PlanarView;

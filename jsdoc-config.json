@@ -10,10 +10,9 @@
     "source": {
         "include": [
             "src/Core/MainLoop.js",
-            "src/Core/View.js",
+            "src/Core/Instance.js",
             "src/Core/Geographic/Coordinates.js",
             "src/Core/Layer/Layer.js",
-            "src/Core/Prefab/GlobeView.js",
             "src/Core/Scheduler/Cache.js",
             "src/Core/Scheduler/Scheduler.js",
 

@@ -1,6 +1,6 @@
 import { Vector3, Plane, EventDispatcher, Math as ThreeMath, Sphere } from 'three';
-import { GeometryLayer, Layer } from './Layer/Layer';
-import Cache from '../Core/Scheduler/Cache';
+import { GeometryLayer, Layer } from './Layer/Layer.js';
+import Cache from '../Core/Scheduler/Cache.js';
 
 export const RENDERING_PAUSED = 0;
 export const RENDERING_SCHEDULED = 1;
@@ -12,7 +12,7 @@ const _tmpSphere = new Sphere();
 
 /**
  * MainLoop's update events list that are fired using
- * {@link View#execFrameRequesters}.
+ * {@link Instance#execFrameRequesters}.
  *
  * @property UPDATE_START {string} fired at the start of the update
  * @property BEFORE_CAMERA_UPDATE {string} fired before the camera update
@@ -48,7 +48,7 @@ function MainLoop(scheduler, engine, options = {}) {
 MainLoop.prototype = Object.create(EventDispatcher.prototype);
 MainLoop.prototype.constructor = MainLoop;
 
-MainLoop.prototype.scheduleViewUpdate = function scheduleViewUpdate(view, forceRedraw) {
+MainLoop.prototype.scheduleUpdate = function scheduleUpdate(instance, forceRedraw) {
     this.needsRedraw |= forceRedraw;
 
     if (this.renderingState !== RENDERING_SCHEDULED) {
@@ -58,7 +58,7 @@ MainLoop.prototype.scheduleViewUpdate = function scheduleViewUpdate(view, forceR
             document.title += ' ⌛';
         }
 
-        requestAnimationFrame(timestamp => { this._step(view, timestamp); });
+        requestAnimationFrame(timestamp => { this._step(instance, timestamp); });
     }
 };
 
@@ -122,21 +122,21 @@ function filterChangeSources(updateSources, geometryLayer) {
     return fullUpdate ? new Set([geometryLayer]) : filtered;
 }
 
-MainLoop.prototype._update = function _update(view, updateSources, dt) {
+MainLoop.prototype._update = function _update(instance, updateSources, dt) {
     const context = {
-        // View's camera
-        camera: view.camera,
+        // Instance's camera
+        camera: instance.camera,
         // Command scheduler
         scheduler: this.scheduler,
-        // The view
-        view,
+        // The instance
+        view: instance, // TODO change to instance
         // Min/max distance to the camera, for all rendered objects.
         // (processing update function are expected to update this)
         distance: {
             plane: new Plane()
                 .setFromNormalAndCoplanarPoint(
-                    view.camera.camera3D.getWorldDirection(new Vector3()),
-                    view.camera.camera3D.position /* TODO matrixWorld */),
+                    instance.camera.camera3D.getWorldDirection(new Vector3()),
+                    instance.camera.camera3D.position /* TODO matrixWorld */),
             min: Infinity,
             max: 0,
         },
@@ -146,17 +146,15 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
         fastUpdateHint: undefined,
     };
 
-    const previousNear = view.camera.camera3D.near;
-    const previousFar = view.camera.camera3D.far;
     // Reset near/far to default value to allow update function to test
     // visibility using camera's frustum; without depending on the near/far
     // values which are only used for rendering.
-    view.camera.camera3D.near = this.minNear;
-    view.camera.camera3D.far = this.maxFar;
+    instance.camera.camera3D.near = this.minNear;
+    instance.camera.camera3D.far = this.maxFar;
     // We can't just use camera3D.updateProjectionMatrix() because part of
     // the update process use camera._viewMatrix, and this matrix depends
     // on near/far values.
-    view.camera.update();
+    instance.camera.update();
 
     // replace layer with their parent where needed
     updateSources.forEach(src => {
@@ -164,16 +162,16 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
         if (layer instanceof Layer) {
             if (!(layer instanceof GeometryLayer)) {
                 // add the parent layer to update sources
-                updateSources.add(view.getParentLayer(layer));
+                updateSources.add(instance.getParentLayer(layer));
             }
         }
     });
 
-    for (const geometryLayer of view.getLayers((x, y) => !y)) {
+    for (const geometryLayer of instance.getLayers((x, y) => !y)) {
         context.fastUpdateHint = undefined;
         context.geometryLayer = geometryLayer;
         if (geometryLayer.ready && geometryLayer.visible) {
-            view.execFrameRequesters(MAIN_LOOP_EVENTS.BEFORE_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer);
+            instance.execFrameRequesters(MAIN_LOOP_EVENTS.BEFORE_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer);
 
             // Filter updateSources that are relevant for the geometryLayer
             const srcs = filterChangeSources(updateSources, geometryLayer);
@@ -198,12 +196,12 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
                     context.distance.max = Math.max(context.distance.max, geometryLayer._distance.max);
                 }
             }
-            view.execFrameRequesters(MAIN_LOOP_EVENTS.AFTER_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer);
+            instance.execFrameRequesters(MAIN_LOOP_EVENTS.AFTER_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer);
         }
     }
 
     // TODO document the fact Object3D must be added through threeObjects if they want to influence near / far plane
-    view.threeObjects.traverse(o => {
+    instance.threeObjects.traverse(o => {
         if (!o.visible) {
             return;
         }
@@ -217,42 +215,45 @@ MainLoop.prototype._update = function _update(view, updateSources, dt) {
         }
     });
 
-    // NOTE: if the object responsible of this value of minDistance is near one
-    // end of the field of view, the near plane must be at near = minDistance *
-    // cos(fov)
-    let minDistance = context.distance.min * Math.cos(ThreeMath.degToRad(view.camera.camera3D.fov / 2));
+    let minDistance = context.distance.min;
+    if (instance.camera.camera3D.isPerspective) {
+        // NOTE: if the object responsible of this value of minDistance is near one
+        // end of the field of view, the near plane must be at near = minDistance *
+        // cos(fov)
+        minDistance *= minDistance * Math.cos(ThreeMath.degToRad(instance.camera.camera3D.fov / 2));
+    }
     // clamp it to minNear / maxFar
     minDistance = minDistance === Infinity ? this.minNear : ThreeMath.clamp(minDistance, this.minNear, this.maxFar);
-    view.camera.camera3D.near = minDistance;
+    instance.camera.camera3D.near = minDistance;
 
     const far = context.distance.max === 0 ? this.maxFar : ThreeMath.clamp(context.distance.max, minDistance, this.maxFar);
-    view.camera.camera3D.far = far;
+    instance.camera.camera3D.far = far;
 
-    view.camera.update();
+    instance.camera.update();
 };
 
-MainLoop.prototype._step = function _step(view, timestamp) {
+MainLoop.prototype._step = function _step(instance, timestamp) {
     const dt = timestamp - this._lastTimestamp;
-    view._executeFrameRequestersRemovals();
+    instance._executeFrameRequestersRemovals();
 
-    view.execFrameRequesters(MAIN_LOOP_EVENTS.UPDATE_START, dt, this._updateLoopRestarted);
+    instance.execFrameRequesters(MAIN_LOOP_EVENTS.UPDATE_START, dt, this._updateLoopRestarted);
 
     const willRedraw = this.needsRedraw;
     this._lastTimestamp = timestamp;
 
-    // Reset internal state before calling _update (so future calls to View.notifyChange()
+    // Reset internal state before calling _update (so future calls to Instance.notifyChange()
     // can properly change it)
     this.needsRedraw = false;
     this.renderingState = RENDERING_PAUSED;
-    const updateSources = new Set(view._changeSources);
-    view._changeSources.clear();
+    const updateSources = new Set(instance._changeSources);
+    instance._changeSources.clear();
 
     // update camera
     const dim = this.gfxEngine.getWindowSize();
 
-    view.execFrameRequesters(MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, dt, this._updateLoopRestarted);
-    view.camera.update(dim.x, dim.y);
-    view.execFrameRequesters(MAIN_LOOP_EVENTS.AFTER_CAMERA_UPDATE, dt, this._updateLoopRestarted);
+    instance.execFrameRequesters(MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, dt, this._updateLoopRestarted);
+    instance.camera.update(dim.x, dim.y);
+    instance.execFrameRequesters(MAIN_LOOP_EVENTS.AFTER_CAMERA_UPDATE, dt, this._updateLoopRestarted);
 
     // Disable camera's matrix auto update to make sure the camera's
     // world matrix is never updated mid-update.
@@ -261,11 +262,11 @@ MainLoop.prototype._step = function _step(view, timestamp) {
     // camera matrixWorld.
     // Note: this is required at least because WEBGLRenderer calls
     // camera.updateMatrixWorld()
-    const oldAutoUpdate = view.camera.camera3D.matrixAutoUpdate;
-    view.camera.camera3D.matrixAutoUpdate = false;
+    const oldAutoUpdate = instance.camera.camera3D.matrixAutoUpdate;
+    instance.camera.camera3D.matrixAutoUpdate = false;
 
     // update data-structure
-    this._update(view, updateSources, dt);
+    this._update(instance, updateSources, dt);
 
     if (this.scheduler.commandsWaitingExecutionCount() == 0) {
         this.dispatchEvent({ type: 'command-queue-empty' });
@@ -273,11 +274,11 @@ MainLoop.prototype._step = function _step(view, timestamp) {
 
     // Redraw *only* if needed.
     // (redraws only happen when this.needsRedraw is true, which in turn only happens when
-    // view.notifyChange() is called with redraw=true)
+    // instance.notifyChange() is called with redraw=true)
     // As such there's no continuous update-loop, instead we use a ad-hoc update/render
     // mechanism.
     if (willRedraw) {
-        this._renderView(view, dt);
+        this._renderInstance(instance, dt);
     }
 
     // next time, we'll consider that we've just started the loop if we are still PAUSED now
@@ -287,25 +288,25 @@ MainLoop.prototype._step = function _step(view, timestamp) {
         document.title = document.title.substr(0, document.title.length - 2);
     }
 
-    view.camera.camera3D.matrixAutoUpdate = oldAutoUpdate;
+    instance.camera.camera3D.matrixAutoUpdate = oldAutoUpdate;
 
     // Clear the cache of expired resources
     Cache.flush();
 
-    view.execFrameRequesters(MAIN_LOOP_EVENTS.UPDATE_END, dt, this._updateLoopRestarted);
+    instance.execFrameRequesters(MAIN_LOOP_EVENTS.UPDATE_END, dt, this._updateLoopRestarted);
 };
 
-MainLoop.prototype._renderView = function _renderView(view, dt) {
-    view.execFrameRequesters(MAIN_LOOP_EVENTS.BEFORE_RENDER, dt, this._updateLoopRestarted);
+MainLoop.prototype._renderInstance = function _renderInstance(instance, dt) {
+    instance.execFrameRequesters(MAIN_LOOP_EVENTS.BEFORE_RENDER, dt, this._updateLoopRestarted);
 
-    if (view.render) {
-        view.render();
+    if (instance.render) {
+        instance.render();
     } else {
         // use default rendering method
-        this.gfxEngine.renderView(view);
+        this.gfxEngine.renderView(instance);
     }
 
-    view.execFrameRequesters(MAIN_LOOP_EVENTS.AFTER_RENDER, dt, this._updateLoopRestarted);
+    instance.execFrameRequesters(MAIN_LOOP_EVENTS.AFTER_RENDER, dt, this._updateLoopRestarted);
 };
 
 export default MainLoop;

@@ -88,7 +88,7 @@
                 bb.ly, bb.uy);
 
             var camcam = new giro3d.THREE.OrthographicCamera(-180, 80, -130, 130, 0, 1000);
-            const view = new giro3d.View('EPSG:3949', viewerDiv, { camera: camcam });
+            const view = new giro3d.Instance('EPSG:3949', viewerDiv, { camera: camcam });
             const menuGlobe = new GuiTools('menuDiv', view, 460);
 
             function placeCamera(position) {
@@ -537,7 +537,7 @@ for (const name of ['edf', 'eclairage', 'transport', 'edivers', 'arbre', 'eau', 
     bati.type = 'geometry';
     bati.visible = true;
     // bati.sseThreshold = 100;
-    giro3d.View.prototype.addLayer.call(view, bati);
+    giro3d.Instance.prototype.addLayer.call(view, bati);
 }
 
 const sun = new giro3d.THREE.DirectionalLight();

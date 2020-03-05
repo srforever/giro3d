@@ -196,6 +196,7 @@ GeometryLayer.prototype = Object.create(EventDispatcher.prototype);
 GeometryLayer.prototype.constructor = GeometryLayer;
 
 GeometryLayer.prototype.attach = function attach(layer) {
+    console.log('going to attach layer', layer, this);
     if (!layer.update) {
         throw new Error(`Missing 'update' function -> can't attach layer ${layer.id}`);
     }
@@ -224,7 +225,7 @@ GeometryLayer.prototype.detach = function detach(layer) {
 
 /**
  * Don't use directly constructor to instance a new Layer
- * use addLayer in {@link View}
+ * use addLayer in {@link Instance}
  * @example
  * // add and create a new Layer
  * const newLayer = view.addLayer({options});
