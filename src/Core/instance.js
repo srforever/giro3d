@@ -70,8 +70,8 @@ class Instance extends EventDispatcher {
         // object will be added, and traverse all other objects for near far
         // calculation but actually I'm not even sure near far calculation is
         // worthy of this.
-        this._threeObjects = new Group();
-        this.scene.add(this._threeObjects);
+        this.threeObjects = new Group();
+        this.scene.add(this.threeObjects);
         this.scene2D = new Scene();
         if (!options.scene3D) {
             this.scene.autoUpdate = false;
