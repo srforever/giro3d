@@ -45,6 +45,8 @@ module.exports = {
         library: '[name]',
         libraryTarget: 'umd',
         umdNamedDefine: true,
+        devtoolModuleFilenameTemplate: 'webpack://[namespace]/[resource-path]?[loaders]',
+        devtoolNamespace: 'giro3d',
     },
     plugins: [
         definePlugin,
