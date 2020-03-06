@@ -1,0 +1,11 @@
+{
+    "libs": [
+        "browser",
+        "ecma5.json",
+        "ecma6.json"
+    ],
+    "plugins": {
+        "webpack": {},
+        "es_modules": {}
+    }
+}
