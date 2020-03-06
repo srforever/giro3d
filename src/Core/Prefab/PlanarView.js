@@ -65,7 +65,7 @@ function compute3857Extent(tileExtent) {
     return extents;
 }
 
-export function createPlanarLayer(id, extent, options) {
+export function createPlanarLayer(id, extent, options = {}) {
     const tileLayer = new GeometryLayer(id, options.object3d || new THREE.Group());
     const crs = Array.isArray(extent) ? extent[0].crs() : extent.crs();
 
