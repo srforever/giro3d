@@ -42,7 +42,7 @@ const Projection = {
     getCoordWMTS_WGS84(tileCoord, bbox, tileMatrixSet) {
         // TODO: PM, WGS84G are hard-coded reference to IGN's TileMatrixSet
         if (tileMatrixSet === 'PM') {
-            return WMTS_WGS84ToWMTS_PM(tileCoord, bbox);
+            return wmtsWgs84ToWmtsPm(tileCoord, bbox);
         } else if (tileMatrixSet === 'WGS84G') {
             return [tileCoord.clone()];
         }
@@ -79,7 +79,7 @@ const Projection = {
 };
 
 
-function WMTS_WGS84ToWMTS_PM(cWMTS, bbox) {
+function wmtsWgs84ToWmtsPm(cWMTS, bbox) {
     const wmtsBox = [];
     const level = cWMTS.zoom + 1;
     const nbRow = Math.pow(2, level);

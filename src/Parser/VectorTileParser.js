@@ -17,8 +17,8 @@ function readPBF(file, options) {
         extent: options.extent,
     };
 
-    layers.forEach(layer_id => {
-        const l = vectorTile.layers[layer_id];
+    layers.forEach(layerId => {
+        const l = vectorTile.layers[layerId];
 
         for (let i = 0; i < l.length; i++) {
             let feature;
@@ -32,7 +32,7 @@ function readPBF(file, options) {
                 feature = l.feature(i).toGeoJSON(options.coords.col, y - options.coords.row - 1, options.coords.zoom);
             }
             if (layers.length > 1) {
-                feature.properties.vt_layer = layer_id;
+                feature.properties.vt_layer = layerId;
             }
 
             geojson.features.push(feature);

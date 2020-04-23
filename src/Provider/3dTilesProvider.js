@@ -14,7 +14,7 @@ export function $3dTilesIndex(tileset, baseURL) {
     let counter = 1;
     this.index = {};
     const inverseTileTransform = new THREE.Matrix4();
-    const recurse = function recurse_f(node, baseURL, parent) {
+    const recurse = function recurseFn(node, baseURL, parent) {
         // compute transform (will become Object3D.matrix when the object is downloaded)
         node.transform = node.transform ? (new THREE.Matrix4()).fromArray(node.transform) : identity;
 

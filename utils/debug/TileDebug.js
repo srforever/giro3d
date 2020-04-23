@@ -77,7 +77,7 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
     });
 
     // Bounding box control
-    const obb_layer_id = `${layer.id}_obb_debug`;
+    const obbLayerId = `${layer.id}_obb_debug`;
 
     function debugIdUpdate(context, layer, node) {
         const enabled = context.camera.camera3D.layers.test({ mask: 1 << layer.threejsLayer });
@@ -124,7 +124,7 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
             } else {
                 helper = helpers[0];
             }
-            if (layer.id == obb_layer_id) {
+            if (layer.id == obbLayerId) {
                 helper.setMaterialVisibility(true);
                 helper.update(node.OBB());
             }
@@ -141,7 +141,7 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
 
     Instance.prototype.addLayer.call(view,
         {
-            id: obb_layer_id,
+            id: obbLayerId,
             type: 'debug',
             update: debugIdUpdate,
             preUpdate: () => {},

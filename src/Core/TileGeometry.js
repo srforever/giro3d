@@ -69,7 +69,7 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
 
         for (let x = 0; x <= widthSegments; x++) {
             const u = x / widthSegments;
-            const id_m3 = idVertex * 3;
+            const idM3 = idVertex * 3;
 
             builder.uProjecte(u, params);
 
@@ -78,7 +78,7 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
             // move geometry to center world
             vertex.sub(this.center);
 
-            vertex.toArray(outBuffers.position.array, id_m3);
+            vertex.toArray(outBuffers.position.array, idM3);
 
             UV_WGS84(outBuffers, idVertex, u, v);
             verticesRow.push(idVertex);

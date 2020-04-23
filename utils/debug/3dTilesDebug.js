@@ -44,7 +44,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
     GeometryDebug.addWireFrameCheckbox(gui, view, _3dTileslayer);
 
     // Bounding box control
-    const obb_layer_id = `${_3dTileslayer.id}_obb_debug`;
+    const obbLayerId = `${_3dTileslayer.id}_obb_debug`;
     const tmpVec3 = new THREE.Vector3();
 
     const debugIdUpdate = function debugIdUpdate(context, layer, node) {
@@ -124,7 +124,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
 
     Instance.prototype.addLayer.call(view,
         {
-            id: obb_layer_id,
+            id: obbLayerId,
             type: 'debug',
             update: debugIdUpdate,
             visible: false,

@@ -125,7 +125,7 @@ export default {
                         b3dmHeader.FTBinaryLength + b3dmHeader.BTJSONLength +
                         b3dmHeader.BTBinaryLength), gltf.scene);
 
-                    const init_mesh = function f_init(mesh) {
+                    const initMesh = function initFn(mesh) {
                         mesh.frustumCulled = false;
                         if (mesh.material) {
                             if (options.overrideMaterials) {
@@ -146,7 +146,7 @@ export default {
                             mesh.material.opacity = options.opacity;
                         }
                     };
-                    gltf.scene.traverse(init_mesh);
+                    gltf.scene.traverse(initMesh);
 
                     resolve(gltf);
                 };
