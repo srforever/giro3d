@@ -30,9 +30,8 @@ function _findNode(root, w, h) {
         return _findNode(root.right, w, h) || _findNode(root.down, w, h);
     } else if ((w <= root.w) && (h <= root.h)) {
         return root;
-    } else {
-        return null;
     }
+    return null;
 }
 
 function _splitNode(node, w, h) {

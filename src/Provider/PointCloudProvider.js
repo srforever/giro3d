@@ -13,15 +13,15 @@ import Points from '../Core/Points';
 // subdivision algo recursively)
 function createChildAABB(aabb, childIndex) {
     // Code taken from potree
-    var min = aabb.min;
-    var max = aabb.max;
-    var dHalfLength = new THREE.Vector3().copy(max).sub(min).multiplyScalar(0.5);
-    var xHalfLength = new THREE.Vector3(dHalfLength.x, 0, 0);
-    var yHalfLength = new THREE.Vector3(0, dHalfLength.y, 0);
-    var zHalfLength = new THREE.Vector3(0, 0, dHalfLength.z);
+    let min = aabb.min;
+    let max = aabb.max;
+    const dHalfLength = new THREE.Vector3().copy(max).sub(min).multiplyScalar(0.5);
+    const xHalfLength = new THREE.Vector3(dHalfLength.x, 0, 0);
+    const yHalfLength = new THREE.Vector3(0, dHalfLength.y, 0);
+    const zHalfLength = new THREE.Vector3(0, 0, dHalfLength.z);
 
-    var cmin = min;
-    var cmax = new THREE.Vector3().add(min).add(dHalfLength);
+    const cmin = min;
+    const cmax = new THREE.Vector3().add(min).add(dHalfLength);
 
     if (childIndex === 1) {
         min = new THREE.Vector3().copy(cmin).add(zHalfLength);
@@ -144,7 +144,7 @@ function computeBbox(layer) {
 function parseMetadata(metadata, layer) {
     layer.metadata = metadata;
 
-    var customBinFormat = true;
+    let customBinFormat = true;
 
     // Lopocs pointcloud server can expose the same file structure as PotreeConverter output.
     // The only difference is the metadata root file (cloud.js vs infos/sources), and we can
@@ -181,11 +181,10 @@ export function getObjectToUpdateForAttachedLayers(meta) {
                 element: meta.obj,
                 parent: p.obj,
             };
-        } else {
-            return {
-                element: meta.obj,
-            };
         }
+        return {
+            element: meta.obj,
+        };
     }
 }
 

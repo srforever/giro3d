@@ -9,7 +9,7 @@ import { STRATEGY_MIN_NETWORK_TRAFFIC } from '../../src/Core/Layer/LayerUpdateSt
 
 const assert = require('assert');
 
-describe('ColorTextureProcessing.updateLayerElement', function () {
+describe('ColorTextureProcessing.updateLayerElement', () => {
     // Misc var to initialize a TileMesh instance
     const geom = new THREE.Geometry();
     geom.OBB = new OBB(new THREE.Vector3(), new THREE.Vector3(1, 1, 1));
@@ -44,7 +44,7 @@ describe('ColorTextureProcessing.updateLayerElement', function () {
         extent: new Extent('EPSG:4326', 0, 0, 0, 0),
     };
 
-    beforeEach('reset state', function () {
+    beforeEach('reset state', () => {
         // clear commands array
         context.scheduler.commands = [];
         // reset default layer state

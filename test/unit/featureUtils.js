@@ -7,7 +7,7 @@ const geojson = require('../data/geojson/simple.geojson.json');
 
 const promise = GeoJsonParser.parse(geojson, { crsOut: 'EPSG:4326', buildExtent: true });
 
-describe('FeaturesUtils', function () {
+describe('FeaturesUtils', () => {
     it('should correctly parse geojson', () =>
         promise.then(collection => {
             assert.equal(collection.features.length, 3);

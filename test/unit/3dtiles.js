@@ -38,7 +38,7 @@ function tilesetWithSphere(transformMatrix) {
     return tileset;
 }
 
-describe('Distance computation using boundingVolume.box', function () {
+describe('Distance computation using boundingVolume.box', () => {
     proj4.defs('EPSG:3946',
         '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
 
@@ -47,7 +47,7 @@ describe('Distance computation using boundingVolume.box', function () {
     camera.camera3D.updateMatrixWorld(true);
     const context = { distance: { min: 0, max: 0, update: () => { } }, camera };
 
-    it('should compute distance correctly', function () {
+    it('should compute distance correctly', () => {
         const tileset = tilesetWithBox();
         const tileIndex = new $3dTilesIndex(tileset, '');
 
@@ -59,7 +59,7 @@ describe('Distance computation using boundingVolume.box', function () {
         assert.equal(tile.distance, 100 - 1);
     });
 
-    it('should affected by transform', function () {
+    it('should affected by transform', () => {
         const m = new Matrix4().makeTranslation(0, 0, 10).multiply(
             new Matrix4().makeScale(0.01, 0.01, 0.01));
         const tileset = tilesetWithBox(m);
@@ -77,7 +77,7 @@ describe('Distance computation using boundingVolume.box', function () {
     });
 });
 
-describe('Distance computation using boundingVolume.sphere', function () {
+describe('Distance computation using boundingVolume.sphere', () => {
     proj4.defs('EPSG:3946',
         '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
 
@@ -86,7 +86,7 @@ describe('Distance computation using boundingVolume.sphere', function () {
     camera.camera3D.updateMatrixWorld(true);
     const context = { distance: { min: 0, max: 0, update: () => { } }, camera };
 
-    it('should compute distance correctly', function () {
+    it('should compute distance correctly', () => {
         const tileset = tilesetWithSphere();
         const tileIndex = new $3dTilesIndex(tileset, '');
 
@@ -98,7 +98,7 @@ describe('Distance computation using boundingVolume.sphere', function () {
         assert.equal(tile.distance, 100 - 1);
     });
 
-    it('should affected by transform', function () {
+    it('should affected by transform', () => {
         const m = new Matrix4().makeTranslation(0, 0, 10).multiply(
             new Matrix4().makeScale(0.01, 0.01, 0.01));
         const tileset = tilesetWithSphere(m);

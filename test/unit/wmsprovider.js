@@ -1,12 +1,11 @@
+import assert from 'assert';
+
 import { chooseExtentToDownload } from '../../src/Provider/WMSProvider';
 import Extent from '../../src/Core/Geographic/Extent';
 import { STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY } from '../../src/Core/Layer/LayerUpdateStrategy';
 
-/* global describe, it */
 
-const assert = require('assert');
-
-describe('verify wms strategies implementation', function () {
+describe('verify wms strategies implementation', () => {
     const extent = new Extent('EPSG:4978', {
         west: 0,
         east: 0.1,

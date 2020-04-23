@@ -33,7 +33,7 @@ function Debug(view, datDebugTool, chartDivContainer) {
     this.charts.push(new ThreeStatsChart('three-info', view.mainLoop.gfxEngine.renderer));
     this.charts.push(new CameraNearFarChart('camera-range', view.camera.camera3D));
 
-    const charts = this.charts;
+    const { charts } = this;
     const tileLayer = view.tileLayer || view.wgs84TileLayer || view.baseLayer;
 
     function debugChartUpdate(updateDuration) {
@@ -77,7 +77,7 @@ function Debug(view, datDebugTool, chartDivContainer) {
     gui.add(state, 'eventsDebug').name('Debug event').onChange((() => {
         let eventFolder;
         return newValue => {
-            const controls = view.controls;
+            const { controls } = view;
             const listeners = [];
             if (newValue) {
                 eventFolder = gui.addFolder('Events');
@@ -125,7 +125,7 @@ function Debug(view, datDebugTool, chartDivContainer) {
     debugCamera.updateProjectionMatrix();
     const g = view.mainLoop.gfxEngine;
     const r = g.renderer;
-    let fogDistance = view.fogDistance;
+    let { fogDistance } = view;
     helper.visible = false;
     view.scene.add(helper);
 

@@ -19,9 +19,8 @@ function _unitFromProj4Unit(projunit) {
         return UNIT.DEGREE;
     } else if (projunit === 'm') {
         return UNIT.METER;
-    } else {
-        return undefined;
     }
+    return undefined;
 }
 
 export function crsToUnit(crs) {
@@ -41,10 +40,9 @@ export function crsToUnit(crs) {
 export function reasonnableEpsilonForCRS(crs, extent) {
     if (is4326(crs)) {
         return 0.01;
-    } else {
-        const d = extent.dimensions();
-        return 0.01 * Math.min(d.x, d.y);
     }
+    const d = extent.dimensions();
+    return 0.01 * Math.min(d.x, d.y);
 }
 
 function _crsToUnitWithError(crs) {
@@ -104,28 +102,26 @@ function _convert(coordsIn, newCrs, target) {
     target = target || new Coordinates(newCrs, 0, 0);
     if (newCrs === coordsIn.crs) {
         return target.copy(coordsIn);
-    } else {
-        if (coordsIn.crs in proj4.defs && newCrs in proj4.defs) {
-            const val0 = coordsIn._values[0];
-            let val1 = coordsIn._values[1];
-            const crsIn = coordsIn.crs;
-
-            // there is a bug for converting anything from and to 4978 with proj4
-            // https://github.com/proj4js/proj4js/issues/195
-            // the workaround is to use an intermediate projection, like EPSG:4326
-            if (is4326(crsIn) && newCrs == 'EPSG:3857') {
-                val1 = THREE.Math.clamp(val1, -89.999999, 89.999999);
-                const p = instanceProj4(crsIn, newCrs).forward([val0, val1]);
-                return target.set(newCrs, p[0], p[1], coordsIn._values[2]);
-            } else {
-                // here is the normal case with proj4
-                const p = instanceProj4(crsIn, newCrs).forward([val0, val1]);
-                return target.set(newCrs, p[0], p[1], coordsIn._values[2]);
-            }
-        }
-
-        throw new Error(`Cannot convert from crs ${coordsIn.crs} to ${newCrs}`);
     }
+    if (coordsIn.crs in proj4.defs && newCrs in proj4.defs) {
+        const val0 = coordsIn._values[0];
+        let val1 = coordsIn._values[1];
+        const crsIn = coordsIn.crs;
+
+        // there is a bug for converting anything from and to 4978 with proj4
+        // https://github.com/proj4js/proj4js/issues/195
+        // the workaround is to use an intermediate projection, like EPSG:4326
+        if (is4326(crsIn) && newCrs == 'EPSG:3857') {
+            val1 = THREE.Math.clamp(val1, -89.999999, 89.999999);
+            const p = instanceProj4(crsIn, newCrs).forward([val0, val1]);
+            return target.set(newCrs, p[0], p[1], coordsIn._values[2]);
+        }
+        // here is the normal case with proj4
+        const p = instanceProj4(crsIn, newCrs).forward([val0, val1]);
+        return target.set(newCrs, p[0], p[1], coordsIn._values[2]);
+    }
+
+    throw new Error(`Cannot convert from crs ${coordsIn.crs} to ${newCrs}`);
 }
 
 /**

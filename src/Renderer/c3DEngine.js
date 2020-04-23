@@ -234,7 +234,7 @@ c3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(view, lay
     this.renderer.clearTarget(buffer, true, true, false);
     this.renderer.render(layer.object3d, view.camera.camera3D, buffer);
     this.renderer.setScissorTest(false);
-    var pixelBuffer = new Uint8Array(4 * width * height);
+    const pixelBuffer = new Uint8Array(4 * width * height);
     this.renderer.readRenderTargetPixels(buffer, x, y, width, height, pixelBuffer);
     this.renderer.setRenderTarget(current);
 
@@ -247,20 +247,20 @@ c3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(view, lay
 
 
 c3DEngine.prototype.bufferToImage = function bufferToImage(pixelBuffer, width, height) {
-    var canvas = document.createElement('canvas');
-    var ctx = canvas.getContext('2d');
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
 
     // size the canvas to your desired image
     canvas.width = width;
     canvas.height = height;
 
-    var imgData = ctx.getImageData(0, 0, width, height);
+    const imgData = ctx.getImageData(0, 0, width, height);
     imgData.data.set(pixelBuffer);
 
     ctx.putImageData(imgData, 0, 0);
 
     // create a new img object
-    var image = new Image();
+    const image = new Image();
 
     // set the img.src to the canvas data url
     image.src = canvas.toDataURL();
@@ -292,11 +292,10 @@ c3DEngine.prototype.depthBufferRGBAValueToOrthoZ = function depthBufferRGBAValue
         const logDepthBufFC = 2.0 / (Math.log(camera.far + 1.0) / Math.LN2);
         // invert function : gl_FragDepthEXT = log2(vFragDepth) * logDepthBufFC * 0.5;
         return Math.pow(2.0, 2.0 * gl_FragDepthEXT / logDepthBufFC);
-    } else {
-        let gl_FragCoord_Z = unpack1K(depthRGBA);
-        gl_FragCoord_Z = gl_FragCoord_Z * 2.0 - 1.0;
-        return 2.0 * camera.near * camera.far / (camera.far + camera.near - gl_FragCoord_Z * (camera.far - camera.near));
     }
+    let gl_FragCoord_Z = unpack1K(depthRGBA);
+    gl_FragCoord_Z = gl_FragCoord_Z * 2.0 - 1.0;
+    return 2.0 * camera.near * camera.far / (camera.far + camera.near - gl_FragCoord_Z * (camera.far - camera.near));
 };
 
 

@@ -62,9 +62,9 @@ OBB.prototype._points = function _points(points) {
 };
 
 OBB.prototype._cPointsWorld = function _cPointsWorld(points) {
-    var m = this.matrixWorld;
+    const m = this.matrixWorld;
 
-    for (var i = 0, max = points.length; i < max; i++) {
+    for (let i = 0, max = points.length; i < max; i++) {
         points[i].applyMatrix4(m);
     }
 

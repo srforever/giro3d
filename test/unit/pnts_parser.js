@@ -14,7 +14,7 @@ function bufferFromString(pnts, size) {
     return buffer;
 }
 
-describe('pnts parser', function () {
+describe('pnts parser', () => {
     const pnts = `
         70 6e 74 73 01 00 00 00  82 00 00 00 48 00 00 00
         1e 00 00 00 00 00 00 00  00 00 00 00 7b 22 50 4f
@@ -25,7 +25,7 @@ describe('pnts parser', function () {
         34 7d 7d 20 f1 34 09 42  90 a9 56 42 9c 15 24 41
         58 9b 0d 42 90 a9 56 42  9c 15 24 41 e0 9b 85 b7
         8f 89`;
-    it('should return the correct points', function (done) {
+    it('should return the correct points', done => {
         const buffer = bufferFromString(pnts, 16 * 8 + 2);
 
         PntsParser.parse(buffer).then(result => {

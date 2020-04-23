@@ -95,15 +95,14 @@ function boundingVolumeToExtent(crs, volume, transform) {
     } else if (volume.box) {
         const box = tmp.b.copy(volume.box).applyMatrix4(transform);
         return Extent.fromBox3(crs, box);
-    } else {
-        const sphere = tmp.s.copy(volume.sphere).applyMatrix4(transform);
-        return new Extent(crs, {
-            west: sphere.center.x - sphere.radius,
-            east: sphere.center.x + sphere.radius,
-            south: sphere.center.y - sphere.radius,
-            north: sphere.center.y + sphere.radius,
-        });
     }
+    const sphere = tmp.s.copy(volume.sphere).applyMatrix4(transform);
+    return new Extent(crs, {
+        west: sphere.center.x - sphere.radius,
+        east: sphere.center.x + sphere.radius,
+        south: sphere.center.y - sphere.radius,
+        north: sphere.center.y + sphere.radius,
+    });
 }
 
 const tmpMatrix = new THREE.Matrix4();

@@ -176,14 +176,12 @@ TileMesh.prototype.findCommonAncestor = function findCommonAncestor(tile) {
             return tile;
         } else if (tile.level != 0) {
             return this.parent.findCommonAncestor(tile.parent);
-        } else {
-            return undefined;
         }
+        return undefined;
     } else if (tile.level < this.level) {
         return this.parent.findCommonAncestor(tile);
-    } else {
-        return this.findCommonAncestor(tile.parent);
     }
+    return this.findCommonAncestor(tile.parent);
 };
 
 TileMesh.prototype.isAncestorOf = function isAncestorOf(node) {

@@ -16,7 +16,7 @@ function parse(pbf) {
     return VectorTileParser.parse(pbf, { coords, extent });
 }
 
-describe('Vector tiles', function () {
+describe('Vector tiles', () => {
     it('should return two squares', () =>
         parse(multipolygon).then(collection => {
             // two squares (4 + 1 closing vertices)

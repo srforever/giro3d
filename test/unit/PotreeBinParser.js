@@ -1,8 +1,8 @@
 import assert from 'assert';
 import PotreeBinParser from '../../src/Parser/PotreeBinParser';
 
-describe('PotreeBinParser', function () {
-    it('should correctly parse position buffer', function () {
+describe('PotreeBinParser', () => {
+    it('should correctly parse position buffer', () => {
         const buffer = new ArrayBuffer(12 * 4);
         const dv = new DataView(buffer);
         for (let i = 0; i < 12; i++) {
@@ -18,7 +18,7 @@ describe('PotreeBinParser', function () {
         });
     });
 
-    it('should correctly parse a complex buffer (positions, intensity, rgb and classification)', function () {
+    it('should correctly parse a complex buffer (positions, intensity, rgb and classification)', () => {
         // generate 12 points: positions, intensity, rgba, classification
         const numbyte = 3 * 4 + 2 + 4 * 1 + 1;
         const numPoints = 5;
@@ -41,7 +41,7 @@ describe('PotreeBinParser', function () {
             dv.setUint8(i * numbyte + 18, i * 3);
         }
 
-        return PotreeBinParser.parse(buffer, ['POSITION_CARTESIAN', 'INTENSITY', 'COLOR_PACKED', 'CLASSIFICATION']).then(function (geom) {
+        return PotreeBinParser.parse(buffer, ['POSITION_CARTESIAN', 'INTENSITY', 'COLOR_PACKED', 'CLASSIFICATION']).then(geom => {
             const posAttr = geom.getAttribute('position');
             const intensityAttr = geom.getAttribute('intensity');
             const colorAttr = geom.getAttribute('color');

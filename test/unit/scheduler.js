@@ -36,15 +36,15 @@ function cmd(layerId = 'foo', prio = 0) {
     };
 }
 
-describe('Command execution', function () {
-    it('should execute one command', function (done) {
+describe('Command execution', () => {
+    it('should execute one command', done => {
         scheduler.execute(cmd()).then(c => {
             assert.ok(c.done);
             done();
         });
     });
 
-    it('should execute 100 commands', function (done) {
+    it('should execute 100 commands', done => {
         const promises = [];
         for (let i = 0; i < 100; i++) {
             promises.push(scheduler.execute(cmd()));
@@ -58,7 +58,7 @@ describe('Command execution', function () {
         });
     });
 
-    it('should execute balance commands between layers', function (done) {
+    it('should execute balance commands between layers', done => {
         const results = [];
         const promises = [];
         for (let i = 0; i < 50; i++) {

@@ -52,16 +52,16 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
     outBuffers.uv = new THREE.BufferAttribute(
         new Float32Array(nVertex * 2), 2);
 
-    var widthSegments = Math.max(2, Math.floor(nSeg) || 2);
-    var heightSegments = Math.max(2, Math.floor(nSeg) || 2);
+    const widthSegments = Math.max(2, Math.floor(nSeg) || 2);
+    const heightSegments = Math.max(2, Math.floor(nSeg) || 2);
 
-    var idVertex = 0;
+    let idVertex = 0;
     const vertices = [];
 
     builder.Prepare(params);
 
     for (let y = 0; y <= heightSegments; y++) {
-        var verticesRow = [];
+        const verticesRow = [];
 
         const v = y / heightSegments;
 

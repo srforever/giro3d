@@ -79,10 +79,9 @@ function getFeatures(crs, tile, layer) {
                         console.error(`Layer ${layer.name}: bad request when fetching data. Server says: "${errorCode}: ${errorMessage}". \nReviewing ${getCapUrl} may help.`, err);
                         throw err;
                     });
-                } else {
-                    console.error(`Layer ${layer.name}: ${err.response.status} error while trying to fetch WFS data. Url was ${urld}.`, err);
-                    throw err;
                 }
+                console.error(`Layer ${layer.name}: ${err.response.status} error while trying to fetch WFS data. Url was ${urld}.`, err);
+                throw err;
             })
         .then(feature => assignLayer(layer.convert(feature), layer));
 }

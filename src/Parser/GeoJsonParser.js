@@ -43,7 +43,7 @@ function readCoordinates(crsIn, crsOut, coordinates, extent, target) {
     // TODO: 1 is a default z value, makes this configurable
     let z = 1;
     for (const pair of coordinates) {
-        if (typeof pair[2] == 'number') {
+        if (typeof pair[2] === 'number') {
             z = pair[2];
         }
 

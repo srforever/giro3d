@@ -2,8 +2,8 @@ import assert from 'assert';
 import { Group, Mesh } from 'three';
 import { getObjectToUpdateForAttachedLayers } from '../../src/Provider/3dTilesProvider';
 
-describe('getObjectToUpdateForAttachedLayers', function () {
-    it('should correctly return all children', function () {
+describe('getObjectToUpdateForAttachedLayers', () => {
+    it('should correctly return all children', () => {
         const layer = { };
         const tile = {
             content: new Group(),

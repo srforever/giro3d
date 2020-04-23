@@ -1,8 +1,8 @@
 import assert from 'assert';
 import Camera from '../../src/Renderer/Camera';
 
-describe('preSSE checks', function () {
-    it('should increase when fov decrease', function () {
+describe('preSSE checks', () => {
+    it('should increase when fov decrease', () => {
         const camera = new Camera('', 100, 50);
 
         camera.update(100, 50);

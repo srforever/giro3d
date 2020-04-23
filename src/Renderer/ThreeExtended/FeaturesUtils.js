@@ -6,7 +6,7 @@ function pointIsOverLine(point, linePoints, epsilon) {
     const x0 = point._values[0];
     const y0 = point._values[1];
     // for each segment of the line (j is i -1)
-    for (var i = 1, j = 0; i < linePoints.length; j = i++) {
+    for (let i = 1, j = 0; i < linePoints.length; j = i++) {
         /* **********************************************************
             norm     : norm of vector P1P2
             distance : distance point P0 to line P1P2
@@ -59,7 +59,7 @@ function getClosestPoint(point, points, epsilon) {
     const y0 = point._values[1];
     let squaredEpsilon = epsilon * epsilon;
     let closestPoint;
-    for (var i = 0; i < points.length; ++i) {
+    for (let i = 0; i < points.length; ++i) {
         const x1 = points[i]._values[0];
         const y1 = points[i]._values[1];
         const xP = x0 - x1;

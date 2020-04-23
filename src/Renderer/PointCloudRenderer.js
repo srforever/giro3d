@@ -111,13 +111,12 @@ function PointCloudRenderer(view) {
                 m.uniforms.directions.value = this.parameters.directions;
                 m.uniforms.n.value = this.parameters.n;
                 return { material: m, output: renderer.renderTargets[RT.EDL_VALUES] };
-            } else {
-                m.uniforms.textureColor.value = input.texture;
-                m.uniforms.textureEDL.value = renderer.renderTargets[RT.EDL_VALUES].texture;
-                m.uniforms.depthTexture.value = input.depthTexture;
-
-                return { material: m };
             }
+            m.uniforms.textureColor.value = input.texture;
+            m.uniforms.textureEDL.value = renderer.renderTargets[RT.EDL_VALUES].texture;
+            m.uniforms.depthTexture.value = input.depthTexture;
+
+            return { material: m };
         },
     };
 

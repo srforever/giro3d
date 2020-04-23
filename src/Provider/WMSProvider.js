@@ -164,9 +164,8 @@ export function chooseExtentToDownload(layer, extent, currentExtent) {
         // may not cover it entirely
         if (extent.isInside(ex)) {
             return ex;
-        } else {
-            nextDepth -= 1;
         }
+        nextDepth -= 1;
     }
     return extent;
 }

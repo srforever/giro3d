@@ -7,8 +7,8 @@ const invMatrixChangeUpVectorZtoY = new THREE.Matrix4().getInverse(new THREE.Mat
 const invMatrixChangeUpVectorZtoX = new THREE.Matrix4().getInverse(new THREE.Matrix4().makeRotationZ(-Math.PI / 2));
 
 const unitBoxMesh = (function _() {
-    var indices = new Uint16Array([0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7]);
-    var positions = new Float32Array(8 * 3);
+    const indices = new Uint16Array([0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7]);
+    const positions = new Float32Array(8 * 3);
     new THREE.Vector3(+0.5, +0.5, +0.5).toArray(positions, 0);
     new THREE.Vector3(-0.5, +0.5, +0.5).toArray(positions, 3);
     new THREE.Vector3(-0.5, -0.5, +0.5).toArray(positions, 6);
@@ -17,7 +17,7 @@ const unitBoxMesh = (function _() {
     new THREE.Vector3(-0.5, +0.5, -0.5).toArray(positions, 15);
     new THREE.Vector3(-0.5, -0.5, -0.5).toArray(positions, 18);
     new THREE.Vector3(+0.5, -0.5, -0.5).toArray(positions, 21);
-    var geometry = new THREE.BufferGeometry();
+    const geometry = new THREE.BufferGeometry();
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
     geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
 
@@ -53,7 +53,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
         if (!enabled) {
             return;
         }
-        const metadata = node.userData.metadata;
+        const { metadata } = node.userData;
 
         let helper = node.userData.obb;
 
@@ -94,7 +94,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
 
                 if (helper && (metadata.magic == 'b3dm' || metadata.magic == 'i3dm') && !metadata.boundingVolume.region) {
                     // compensate B3dm orientation correction
-                    const gltfUpAxis = _3dTileslayer.asset.gltfUpAxis;
+                    const { gltfUpAxis } = _3dTileslayer.asset;
                     helper.updateMatrix();
                     if (gltfUpAxis === undefined || gltfUpAxis === 'Y') {
                         helper.matrix.premultiply(invMatrixChangeUpVectorZtoY);

@@ -67,10 +67,9 @@ function Extent(crs, ...values) {
 Extent.prototype.clone = function clone() {
     if (_isTiledCRS(this._crs)) {
         return new Extent(this._crs, this.zoom, this.row, this.col);
-    } else {
-        const result = new Extent(this._crs, ...this._values);
-        return result;
     }
+    const result = new Extent(this._crs, ...this._values);
+    return result;
 };
 
 Extent.prototype.as = function as(crs) {
@@ -103,9 +102,8 @@ Extent.prototype.as = function as(crs) {
             const east = 180 - size * (2 * nbRow - (this.col + 1));
 
             return new Extent(crs, { west, east, south, north });
-        } else {
-            throw new Error('Unsupported yet');
         }
+        throw new Error('Unsupported yet');
     }
 
     if (this._crs != crs && !(is4326(this._crs) && is4326(crs))) {
@@ -232,12 +230,11 @@ Extent.prototype.isPointInside = function isPointInside(coord, epsilon = 0) {
                c.longitude() >= this.west() - epsilon &&
                c.latitude() <= this.north() + epsilon &&
                c.latitude() >= this.south() - epsilon;
-    } else {
-        return c.x() <= this.east() + epsilon &&
+    }
+    return c.x() <= this.east() + epsilon &&
                c.x() >= this.west() - epsilon &&
                c.y() <= this.north() + epsilon &&
                c.y() >= this.south() - epsilon;
-    }
 };
 
 Extent.prototype.isInside = function isInside(other, epsilon) {
@@ -247,23 +244,21 @@ Extent.prototype.isInside = function isInside(other, epsilon) {
                 this.col == other.col;
         } else if (this.zoom < other.zoom) {
             return false;
-        } else {
-            const diffLevel = this.zoom - other.zoom;
-            const diff = Math.pow(2, diffLevel);
-            const invDiff = 1 / diff;
-
-            const r = (this.row - (this.row % diff)) * invDiff;
-            const c = (this.col - (this.col % diff)) * invDiff;
-            return r == other.row && c == other.col;
         }
-    } else {
-        const o = other.as(this._crs);
-        epsilon = epsilon == undefined ? reasonnableEpsilonForCRS(this._crs, this) : epsilon;
-        return this.east() - o.east() <= epsilon &&
+        const diffLevel = this.zoom - other.zoom;
+        const diff = Math.pow(2, diffLevel);
+        const invDiff = 1 / diff;
+
+        const r = (this.row - (this.row % diff)) * invDiff;
+        const c = (this.col - (this.col % diff)) * invDiff;
+        return r == other.row && c == other.col;
+    }
+    const o = other.as(this._crs);
+    epsilon = epsilon == undefined ? reasonnableEpsilonForCRS(this._crs, this) : epsilon;
+    return this.east() - o.east() <= epsilon &&
                o.west() - this.west() <= epsilon &&
                this.north() - o.north() <= epsilon &&
                o.south() - this.south() <= epsilon;
-    }
 };
 
 Extent.prototype.offsetScale = function offsetScale(bbox) {
@@ -276,11 +271,11 @@ Extent.prototype.offsetScale = function offsetScale(bbox) {
         y: Math.abs(this.north() - this.south()),
     };
 
-    var originX = (bbox.west() - this.west()) / dimension.x;
-    var originY = (bbox.north() - this.north()) / dimension.y;
+    const originX = (bbox.west() - this.west()) / dimension.x;
+    const originY = (bbox.north() - this.north()) / dimension.y;
 
-    var scaleX = Math.abs(bbox.east() - bbox.west()) / dimension.x;
-    var scaleY = Math.abs(bbox.north() - bbox.south()) / dimension.y;
+    const scaleX = Math.abs(bbox.east() - bbox.west()) / dimension.x;
+    const scaleY = Math.abs(bbox.north() - bbox.south()) / dimension.y;
 
     return new THREE.Vector4(originX, originY, scaleX, scaleY);
 };

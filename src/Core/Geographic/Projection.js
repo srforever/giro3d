@@ -45,26 +45,25 @@ const Projection = {
             return WMTS_WGS84ToWMTS_PM(tileCoord, bbox);
         } else if (tileMatrixSet === 'WGS84G') {
             return [tileCoord.clone()];
-        } else {
-            throw new Error(`Unsupported TileMatrixSet '${tileMatrixSet}'`);
         }
+        throw new Error(`Unsupported TileMatrixSet '${tileMatrixSet}'`);
     },
 
     WGS84toWMTS(bbox, target = new Extent('WMTS:WGS84G', 0, 0, 0)) {
         bbox.dimensions(dim);
 
-        var zoom = Math.floor(
+        const zoom = Math.floor(
             Math.log(Math.PI / MathExt.degToRad(dim.y)) / LOG_TWO + 0.5);
 
-        var nY = Math.pow(2, zoom);
-        var nX = 2 * nY;
+        const nY = Math.pow(2, zoom);
+        const nX = 2 * nY;
 
-        var uX = Math.PI * 2 / nX;
-        var uY = Math.PI / nY;
+        const uX = Math.PI * 2 / nX;
+        const uY = Math.PI / nY;
 
         bbox.center(center);
-        var col = Math.floor((Math.PI + MathExt.degToRad(center.longitude())) / uX);
-        var row = Math.floor(nY - (PI_OV_TWO + MathExt.degToRad(center.latitude())) / uY);
+        const col = Math.floor((Math.PI + MathExt.degToRad(center.longitude())) / uX);
+        const row = Math.floor(nY - (PI_OV_TWO + MathExt.degToRad(center.latitude())) / uY);
         return target.set('WMTS:WGS84G', zoom, row, col);
     },
 
@@ -81,14 +80,14 @@ const Projection = {
 
 
 function WMTS_WGS84ToWMTS_PM(cWMTS, bbox) {
-    var wmtsBox = [];
-    var level = cWMTS.zoom + 1;
-    var nbRow = Math.pow(2, level);
+    const wmtsBox = [];
+    const level = cWMTS.zoom + 1;
+    const nbRow = Math.pow(2, level);
 
-    var sizeRow = 1.0 / nbRow;
+    const sizeRow = 1.0 / nbRow;
 
-    var yMin = Projection.WGS84ToY(WGS84LatitudeClamp(bbox.north()));
-    var yMax = Projection.WGS84ToY(WGS84LatitudeClamp(bbox.south()));
+    const yMin = Projection.WGS84ToY(WGS84LatitudeClamp(bbox.north()));
+    const yMax = Projection.WGS84ToY(WGS84LatitudeClamp(bbox.south()));
 
     let maxRow;
 
@@ -101,8 +100,8 @@ function WMTS_WGS84ToWMTS_PM(cWMTS, bbox) {
     // make sure we don't exceed boundaries
     maxRow = Math.min(maxRow, nbRow - 1);
 
-    var minCol = cWMTS.col;
-    var maxCol = minCol;
+    const minCol = cWMTS.col;
+    const maxCol = minCol;
 
     for (let r = maxRow; r >= minRow; r--) {
         for (let c = minCol; c <= maxCol; c++) {

@@ -3,13 +3,13 @@ import { Box3, Vector3 } from 'three';
 import Coordinates from '../../src/Core/Geographic/Coordinates';
 import Extent from '../../src/Core/Geographic/Extent';
 
-describe('Extent constructors', function () {
+describe('Extent constructors', () => {
     const minX = 0;
     const maxX = 10;
     const minY = -1;
     const maxY = 3;
 
-    it('should build the expected extent using Coordinates', function () {
+    it('should build the expected extent using Coordinates', () => {
         const withCoords = new Extent('EPSG:4326',
             new Coordinates('EPSG:4326', minX, minY),
             new Coordinates('EPSG:4326', maxX, maxY));
@@ -19,7 +19,7 @@ describe('Extent constructors', function () {
         assert.equal(maxY, withCoords.north());
     });
 
-    it('should build the expected extent using keywords', function () {
+    it('should build the expected extent using keywords', () => {
         const withKeywords = new Extent('EPSG:4326', {
             south: minY,
             east: maxX,
@@ -32,7 +32,7 @@ describe('Extent constructors', function () {
         assert.equal(maxY, withKeywords.north());
     });
 
-    it('should build the expected extent using values', function () {
+    it('should build the expected extent using values', () => {
         const withValues = new Extent('EPSG:4326',
             minX,
             maxX,
@@ -44,7 +44,7 @@ describe('Extent constructors', function () {
         assert.equal(maxY, withValues.north());
     });
 
-    it('should build the expected extent from box3', function () {
+    it('should build the expected extent from box3', () => {
         const box = new Box3(
             new Vector3(Math.random(), Math.random()),
             new Vector3(Math.random(), Math.random()));

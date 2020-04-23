@@ -38,7 +38,7 @@ import AtlasBuilder from '../../Renderer/AtlasBuilder';
 export const defineLayerProperty = function defineLayerProperty(layer, propertyName, defaultValue, onChange) {
     const existing = Object.getOwnPropertyDescriptor(layer, propertyName);
     if (!existing || !existing.set) {
-        var property = layer[propertyName] == undefined ? defaultValue : layer[propertyName];
+        let property = layer[propertyName] == undefined ? defaultValue : layer[propertyName];
         Object.defineProperty(layer,
             propertyName,
             { get: () => property,

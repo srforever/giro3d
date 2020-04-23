@@ -164,8 +164,7 @@ export default {
                 }
             }));
             return Promise.all(promises).then(values => ({ gltf: values[1], batchTable: values[0] }));
-        } else {
-            throw new Error('Invalid b3dm file.');
         }
+        throw new Error('Invalid b3dm file.');
     },
 };

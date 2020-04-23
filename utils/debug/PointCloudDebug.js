@@ -5,9 +5,8 @@ function isInHierarchy(elt, hierarchyNode) {
         return elt.name.startsWith(hierarchyNode);
     } else if (elt.name.length < hierarchyNode.length) {
         return hierarchyNode.startsWith(elt.name);
-    } else {
-        return hierarchyNode === elt.name;
     }
+    return hierarchyNode === elt.name;
 }
 
 export default {
@@ -30,7 +29,7 @@ export default {
         layer.dbgDisplayParents = true;
         layer.dbgDisplaybbox = false;
 
-        var styleUI = layer.debugUI.addFolder('Styling');
+        const styleUI = layer.debugUI.addFolder('Styling');
         if (layer.material.mode != undefined) {
             styleUI.add(layer.material, 'mode', MODE).name('Display mode').onChange(update);
         }

@@ -23,8 +23,8 @@ function _gGpxToWTrackSegmentsArray(gpxXML) {
 }
 
 function _gpxPtToCartesian(pt, crs) {
-    var longitude = Number(pt.attributes.lon.nodeValue);
-    var latitude = Number(pt.attributes.lat.nodeValue);
+    const longitude = Number(pt.attributes.lon.nodeValue);
+    const latitude = Number(pt.attributes.lat.nodeValue);
     // TODO: get elevation with terrain
     const elem = pt.getElementsByTagName('ele')[0];
     const elevation = elem ? Number(elem.childNodes[0].nodeValue) : 0;
@@ -50,7 +50,7 @@ function updatePointScale(renderer, scene, camera) {
 }
 
 function _gpxToWayPointsMesh(gpxXML, crs) {
-    var wayPts = _gpxToWayPointsArray(gpxXML);
+    const wayPts = _gpxToWayPointsArray(gpxXML);
 
     if (wayPts.length) {
         const points = new THREE.Group();
@@ -72,9 +72,8 @@ function _gpxToWayPointsMesh(gpxXML, crs) {
             points.add(mesh);
         }
         return points;
-    } else {
-        return null;
     }
+    return null;
 }
 
 function updatePath(renderer, scene, camera) {
@@ -85,30 +84,30 @@ function updatePath(renderer, scene, camera) {
 }
 
 function _gpxToWTrackPointsMesh(gpxXML, options) {
-    var trackSegs = _gGpxToWTrackSegmentsArray(gpxXML);
-    var masterObject = new THREE.Object3D();
+    const trackSegs = _gGpxToWTrackSegmentsArray(gpxXML);
+    const masterObject = new THREE.Object3D();
 
     if (trackSegs.length) {
         for (const trackSeg of trackSegs) {
-            var trackPts = _gGpxToWTrackPointsArray(trackSeg);
+            const trackPts = _gGpxToWTrackPointsArray(trackSeg);
 
             if (trackPts.length) {
                 gpxXML.center = gpxXML.center || _gpxPtToCartesian(trackPts[0], options.crs);
 
-                var geometry = new THREE.Geometry();
+                const geometry = new THREE.Geometry();
 
                 for (const trackPt of trackPts) {
                     const point = _gpxPtToCartesian(trackPt, options.crs).sub(gpxXML.center);
                     geometry.vertices.push(point);
                 }
 
-                var line = new Line.MeshLine();
+                const line = new Line.MeshLine();
                 line.setGeometry(geometry);
                 // Due to limitations in the ANGLE layer,
                 // with the WebGL renderer on Windows platforms
                 // lineWidth will always be 1 regardless of the set value
                 // Use MeshLine to fix it
-                var material = new Line.MeshLineMaterial({
+                const material = new Line.MeshLineMaterial({
                     lineWidth: options.lineWidth || 12,
                     sizeAttenuation: 0,
                     color: new THREE.Color(0xFF0000),
@@ -129,9 +128,8 @@ function _gpxToWTrackPointsMesh(gpxXML, options) {
         }
         return masterObject;
     }
-    else {
-        return null;
-    }
+
+    return null;
 }
 
 function _gpxToMesh(gpxXML, options = {}) {
@@ -143,10 +141,10 @@ function _gpxToMesh(gpxXML, options = {}) {
         options.enablePin = true;
     }
 
-    var gpxMesh = new THREE.Object3D();
+    const gpxMesh = new THREE.Object3D();
 
     // Getting the track points
-    var trackPts = _gpxToWTrackPointsMesh(gpxXML, options);
+    const trackPts = _gpxToWTrackPointsMesh(gpxXML, options);
 
     if (trackPts) {
         gpxMesh.add(trackPts);
@@ -154,7 +152,7 @@ function _gpxToMesh(gpxXML, options = {}) {
 
     if (options.enablePin) {
         // Getting the waypoint points
-        var wayPts = _gpxToWayPointsMesh(gpxXML, options.crs);
+        const wayPts = _gpxToWayPointsMesh(gpxXML, options.crs);
 
         if (wayPts) {
             gpxMesh.add(wayPts);

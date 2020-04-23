@@ -2,7 +2,7 @@
 
 // eslint-disable-next-line no-unused-vars
 function setupLoadingScreen(viewerDiv, view) {
-    var loadingScreenContainer;
+    let loadingScreenContainer;
 
     if (view.isDebugMode) {
         return;
@@ -27,7 +27,7 @@ function setupLoadingScreen(viewerDiv, view) {
         loadingScreenContainer.style.pointerEvents = 'none';
         loadingScreenContainer.style.transition = 'opacity 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53)';
 
-        loadingScreenContainer.addEventListener('transitionend', function _(e) {
+        loadingScreenContainer.addEventListener('transitionend', e => {
             viewerDiv.removeChild(e.target);
         });
         loadingScreenContainer = null;

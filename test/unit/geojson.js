@@ -13,7 +13,7 @@ function parse(geojson) {
     return GeoJsonParser.parse(geojson, { crsIn: 'EPSG:3946', crsOut: 'EPSG:3946', buildExtent: true });
 }
 
-describe('GeoJsonParser', function () {
+describe('GeoJsonParser', () => {
     it('should set all z coordinates to 1', () =>
         parse(holes).then(collection => {
             assert.ok(collection.features[0].vertices.every(v => v.z() == 1));

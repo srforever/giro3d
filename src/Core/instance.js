@@ -491,12 +491,11 @@ class Instance extends EventDispatcher {
     eventToViewCoords(event, touchIdx = 0) {
         if (event.touches === undefined || !event.touches.length) {
             return _eventCoords.set(event.offsetX, event.offsetY);
-        } else {
-            const br = this.mainLoop.gfxEngine.renderer.domElement.getBoundingClientRect();
-            return _eventCoords.set(
-                event.touches[touchIdx].clientX - br.x,
-                event.touches[touchIdx].clientY - br.y);
         }
+        const br = this.mainLoop.gfxEngine.renderer.domElement.getBoundingClientRect();
+        return _eventCoords.set(
+            event.touches[touchIdx].clientX - br.x,
+            event.touches[touchIdx].clientY - br.y);
     }
 
     /**

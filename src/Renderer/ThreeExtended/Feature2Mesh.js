@@ -7,9 +7,8 @@ function getProperty(name, options, defaultValue, ...args) {
     if (property) {
         if (typeof property === 'function') {
             return property(...args);
-        } else {
-            return property;
         }
+        return property;
     }
 
     if (typeof defaultValue === 'function') {
@@ -162,9 +161,8 @@ function featureToLine(feature, properties, options) {
         }
         geom.setIndex(new THREE.BufferAttribute(new Uint16Array(indices), 1));
         return new THREE.LineSegments(geom);
-    } else {
-        return new THREE.Line(geom);
     }
+    return new THREE.Line(geom);
 }
 
 function featureToPolygon(feature, properties, options) {
@@ -258,7 +256,7 @@ function featureToMesh(feature, options) {
         return;
     }
 
-    var mesh;
+    let mesh;
     switch (feature.type) {
         case 'point':
         case 'multipoint': {
@@ -277,8 +275,7 @@ function featureToMesh(feature, options) {
                     feature,
                     feature.properties,
                     options);
-            }
-            else {
+            } else {
                 mesh = featureToPolygon(
                     feature,
                     feature.properties,

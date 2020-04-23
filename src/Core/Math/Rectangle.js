@@ -42,11 +42,11 @@ Rectangle.prototype.containsPoint = function containsPoint(v) {
         throw new Error('point is required.');
     }
 
-    var longitude = v.x;
-    var latitude = v.y;
+    const longitude = v.x;
+    const latitude = v.y;
 
-    var west = this._west;
-    var east = this._east;
+    const west = this._west;
+    const east = this._east;
 
     return (longitude > west) &&
        (longitude < east) &&

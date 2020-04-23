@@ -26,23 +26,23 @@ for (let i = 1; i < 4; i++) {
     }
 }
 
-describe('TileMesh', function () {
-    it('should find the correct common ancestor between two tiles of same level', function () {
+describe('TileMesh', () => {
+    it('should find the correct common ancestor between two tiles of same level', () => {
         const res = tree[2][0].findCommonAncestor(tree[2][1]);
         assert.equal(res, tree[1][0]);
     });
 
-    it('should find the correct common ancestor between two tiles of different level', function () {
+    it('should find the correct common ancestor between two tiles of different level', () => {
         const res = tree[2][0].findCommonAncestor(tree[3][4]);
         assert.equal(res, tree[1][0]);
     });
 
-    it('should find the correct common ancestor between two tiles to be the first one', function () {
+    it('should find the correct common ancestor between two tiles to be the first one', () => {
         const res = tree[2][0].findCommonAncestor(tree[3][0]);
         assert.equal(res, tree[2][0]);
     });
 
-    it('should find the correct common ancestor between two tiles to be the root', function () {
+    it('should find the correct common ancestor between two tiles to be the root', () => {
         const res = tree[3][60].findCommonAncestor(tree[2][0]);
         assert.equal(res, tree[0][0]);
     });

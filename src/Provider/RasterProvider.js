@@ -45,9 +45,8 @@ function createTextureFromVector(tile, layer) {
             result.texture.premultiplyAlpha = true;
         }
         return Promise.resolve(result);
-    } else {
-        return Promise.resolve();
     }
+    return Promise.resolve();
 }
 
 function _compareResultFromLevel(r1, r2) {

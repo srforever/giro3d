@@ -59,9 +59,8 @@ export default {
 
             const pnts = { point, batchTable };
             return Promise.resolve(pnts);
-        } else {
-            throw new Error('Invalid pnts file.');
         }
+        throw new Error('Invalid pnts file.');
     },
 };
 

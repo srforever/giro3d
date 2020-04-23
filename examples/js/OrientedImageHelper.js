@@ -10,9 +10,9 @@ function placeObjectFromCoordinate(object, coord) {
 }
 
 function createTexturedPlane(textureUrl, opacity) {
-    var texture;
-    var geometry;
-    var material;
+    let texture;
+    let geometry;
+    let material;
 
     texture = new giro3d.THREE.TextureLoader().load(textureUrl);
     geometry = new giro3d.THREE.PlaneGeometry(1, 1, 32);
@@ -20,14 +20,14 @@ function createTexturedPlane(textureUrl, opacity) {
         map: texture,
         color: 0xffffff,
         transparent: true,
-        opacity: opacity,
+        opacity,
     });
     return new giro3d.THREE.Mesh(geometry, material);
 }
 
 function transformTexturedPlane(camera, distance, plane) {
-    var Yreel = 2 * Math.tan(giro3d.THREE.Math.degToRad(camera.fov / 2)) * distance;
-    var Xreel = camera.aspect * Yreel;
+    const Yreel = 2 * Math.tan(giro3d.THREE.Math.degToRad(camera.fov / 2)) * distance;
+    const Xreel = camera.aspect * Yreel;
 
     // set position and scale
     plane.scale.set(Xreel, Yreel, 1);
@@ -39,12 +39,12 @@ function transformTexturedPlane(camera, distance, plane) {
 // eslint-disable-next-line no-unused-vars
 function initCamera(view, image, coord, EnhToOrientationUp, EnhToOrientationLookAt, rotMatrix,
     orientationToCameraUp, orientationToCameraLookAt, distance, size, focale) {
-    var fov = giro3d.THREE.Math.radToDeg((2 * Math.atan((size[1] / 2) / focale)));
-    var coordView;
-    var localSpace;
-    var orientedImage;
-    var quaternion;
-    var camera;
+    const fov = giro3d.THREE.Math.radToDeg((2 * Math.atan((size[1] / 2) / focale)));
+    let coordView;
+    let localSpace;
+    let orientedImage;
+    let quaternion;
+    let camera;
 
     coordView = coord.as(view.referenceCrs);
 
@@ -81,7 +81,7 @@ function initCamera(view, image, coord, EnhToOrientationUp, EnhToOrientationLook
 // eslint-disable-next-line no-unused-vars
 function setupPictureFromCamera(camera, imageUrl, opacity, distance) {
     // create a textured plane, representing the picture.
-    var plane = createTexturedPlane(imageUrl, opacity);
+    const plane = createTexturedPlane(imageUrl, opacity);
     camera.add(plane);
 
     transformTexturedPlane(camera, distance, plane);
@@ -101,8 +101,8 @@ function setupViewCameraLookingAtObject(camera, coord, objectToLookAt) {
 // set camera settings to view.camera, even the up vector !
 // eslint-disable-next-line no-unused-vars
 function setupViewCameraDecomposing(view, camera) {
-    var upWorld;
-    var viewCamera = view.camera.camera3D;
+    let upWorld;
+    const viewCamera = view.camera.camera3D;
     camera.matrixWorld.decompose(viewCamera.position, viewCamera.quaternion, viewCamera.scale);
 
     // setup up vector
@@ -114,20 +114,20 @@ function setupViewCameraDecomposing(view, camera) {
 // add a camera helper to debug camera position..
 // eslint-disable-next-line no-unused-vars
 function addCameraHelper(view, camera) {
-    var cameraHelper = new giro3d.THREE.CameraHelper(camera);
+    const cameraHelper = new giro3d.THREE.CameraHelper(camera);
     view.scene.add(cameraHelper);
     cameraHelper.updateMatrixWorld(true);
 }
 
 // eslint-disable-next-line no-unused-vars
 function setupPictureUI(menu, pictureInfos, plane, updateDistanceCallback, view, min, max) {
-    var orientedImageGUI = menu.gui.addFolder('Oriented Image');
-    orientedImageGUI.add(pictureInfos, 'distance', min, max).name('Distance').onChange(function distanceChanged(value) {
+    const orientedImageGUI = menu.gui.addFolder('Oriented Image');
+    orientedImageGUI.add(pictureInfos, 'distance', min, max).name('Distance').onChange(value => {
         pictureInfos.distance = value;
         updateDistanceCallback();
         view.notifyChange();
     });
-    orientedImageGUI.add(pictureInfos, 'opacity', 0, 1).name('Opacity').onChange(function opacityChanged(value) {
+    orientedImageGUI.add(pictureInfos, 'opacity', 0, 1).name('Opacity').onChange(value => {
         plane.material.opacity = value;
         view.notifyChange();
     });

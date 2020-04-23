@@ -90,15 +90,14 @@ class PointDnD {
             updateHighlight(this.view, this.selectionCircle, p);
             this.view.notifyChange(true);
             return true;
-        } else {
-            this._hovered = getDragSource(this.view, event, this.draggables);
-            if (this._hovered) {
-                // move selection circle
-                updateHighlight(this.view, this.selectionCircle, this._hovered.position);
-            } else if (this.selectionCircle.visible) {
-                this.selectionCircle.visible = false;
-                this.view.notifyChange(true);
-            }
+        }
+        this._hovered = getDragSource(this.view, event, this.draggables);
+        if (this._hovered) {
+            // move selection circle
+            updateHighlight(this.view, this.selectionCircle, this._hovered.position);
+        } else if (this.selectionCircle.visible) {
+            this.selectionCircle.visible = false;
+            this.view.notifyChange(true);
         }
     }
 

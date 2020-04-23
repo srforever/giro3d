@@ -131,9 +131,8 @@ function preUpdate(context, layer, changeSources) {
             layer._latestUpdateStartingLevel = commonAncestor.level;
         }
         return [commonAncestor];
-    } else {
-        return layer.level0Nodes;
     }
+    return layer.level0Nodes;
 }
 
 function update(context, layer, node) {
@@ -149,9 +148,8 @@ function update(context, layer, node) {
                 return;
             } else if (node.visible) {
                 return node.children.filter(n => n.layer == layer);
-            } else {
-                return;
             }
+            return;
         }
     }
 

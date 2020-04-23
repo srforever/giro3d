@@ -43,7 +43,7 @@ export default function ThreeStatsChart(chartId, renderer) {
             lastValidCompareIndex--;
         }
 
-        const memory = renderer.info.memory;
+        const { memory } = renderer.info;
         textureDataset.data.push({ x: timeInS, y: memory.textures });
         geometryDataset.data.push({ x: timeInS, y: memory.geometries });
         if (textureDataset.data.length > limit) {

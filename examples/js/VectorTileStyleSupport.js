@@ -4,9 +4,9 @@
 /* eslint-disable no-continue */
 /* eslint-disable no-bitwise */
 function mapboxStyle(properties) {
-    var styles = [];
-    properties.mapboxLayer.forEach(function _(layer) {
-        var r = { };
+    const styles = [];
+    properties.mapboxLayer.forEach(layer => {
+        const r = { };
         // a feature could be used in several layers...
         if ('paint' in layer) {
             if (layer.type === 'fill') {
@@ -34,14 +34,14 @@ function mapboxStyle(properties) {
 function mapboxFilter(layers) {
     return function _(properties, geometry) {
         properties.mapboxLayer = [];
-        layers.forEach(function _(layer) {
+        layers.forEach(layer => {
             if (properties.vt_layer !== layer['source-layer']) {
                 return;
             }
             if ('filter' in layer) {
-                var filteredOut = false;
-                for (var i = 0; i < layer.filter.length; i++) {
-                    var filter = layer.filter[i];
+                let filteredOut = false;
+                for (let i = 0; i < layer.filter.length; i++) {
+                    const filter = layer.filter[i];
 
                     if (filter.length === undefined) {
                         continue;

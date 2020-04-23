@@ -1,8 +1,8 @@
 import assert from 'assert';
 import { getObjectToUpdateForAttachedLayers, _testing } from '../../src/Provider/PointCloudProvider';
 
-describe('PointCloudProvider', function () {
-    it('should correctly parse normal information in metadata', function () {
+describe('PointCloudProvider', () => {
+    it('should correctly parse normal information in metadata', () => {
         const layer = {
             material: { defines: {} },
         };
@@ -50,14 +50,14 @@ describe('PointCloudProvider', function () {
 });
 
 
-describe('getObjectToUpdateForAttachedLayers', function () {
-    it('should correctly no-parent for the root', function () {
+describe('getObjectToUpdateForAttachedLayers', () => {
+    it('should correctly no-parent for the root', () => {
         const meta = {
             obj: 'a',
         };
         assert.equal(getObjectToUpdateForAttachedLayers(meta).element, 'a');
     });
-    it('should correctly return the element and its parent', function () {
+    it('should correctly return the element and its parent', () => {
         const meta = {
             obj: 'a',
             parent: {

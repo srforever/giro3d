@@ -18,7 +18,7 @@ const vector4 = new THREE.Vector4(0.0, 0.0, 0.0, 0.0);
 // from three.js packDepthToRGBA
 const UnpackDownscale = 255 / 256; // 0..1 -> fraction (excluding 1)
 export function unpack1K(color, factor) {
-    var bitSh = new THREE.Vector4(
+    const bitSh = new THREE.Vector4(
         UnpackDownscale / (256.0 * 256.0 * 256.0),
         UnpackDownscale / (256.0 * 256.0),
         UnpackDownscale / 256.0,
@@ -157,9 +157,8 @@ LayeredMaterial.prototype.getLayerTexture = function getLayerTexture(layer) {
             texture: this.texturesInfo.color.textures[index],
             // offsetScale: this.texturesInfo.color.offsetScale[index],
         };
-    } else {
-        // throw new Error(`Invalid layer "${layer}"`);
     }
+    // throw new Error(`Invalid layer "${layer}"`);
 };
 
 function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revision) {
@@ -329,9 +328,8 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
 
 
         return Promise.resolve();
-    } else {
-        throw new Error(`Unsupported layer type '${layer.type}'`);
     }
+    throw new Error(`Unsupported layer type '${layer.type}'`);
 };
 
 function zIndexSort(a, b) {
@@ -339,9 +337,8 @@ function zIndexSort(a, b) {
         return 0;
     } else if (!a.zIndex) {
         return -1;
-    } else {
-        return a.zIndex - b.zIndex;
     }
+    return a.zIndex - b.zIndex;
 }
 
 function rebuildFragmentShader(shader) {

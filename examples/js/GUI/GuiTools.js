@@ -7,7 +7,7 @@
 /* global dat,viewerDiv, giro3d */
 
 dat.GUI.prototype.removeFolder = function removeFolder(name) {
-    var folder = this.__folders[name];
+    const folder = this.__folders[name];
     if (!folder) {
         return;
     }
@@ -18,7 +18,7 @@ dat.GUI.prototype.removeFolder = function removeFolder(name) {
 };
 
 dat.GUI.prototype.hideFolder = function hideFolder(name, value) {
-    var folder = this.__folders[name];
+    const folder = this.__folders[name];
     if (!folder) {
         return;
     }
@@ -26,8 +26,8 @@ dat.GUI.prototype.hideFolder = function hideFolder(name, value) {
 };
 
 function GuiTools(domId, view, w) {
-    var width = w || 245;
-    this.gui = new dat.GUI({ autoPlace: false, width: width });
+    const width = w || 245;
+    this.gui = new dat.GUI({ autoPlace: false, width });
     this.gui.domElement.id = domId;
     viewerDiv.appendChild(this.gui.domElement);
     this.colorGui = this.gui.addFolder('Color Layers');
@@ -35,15 +35,15 @@ function GuiTools(domId, view, w) {
 
     if (view) {
         this.view = view;
-        view.addEventListener('layers-order-changed', (function refreshColorGui() {
-            var i;
-            var colorLayers = view.getLayers(function filter(l) { return l.type === 'color'; });
+        view.addEventListener('layers-order-changed', () => {
+            let i;
+            const colorLayers = view.getLayers(l => l.type === 'color');
             for (i = 0; i < colorLayers.length; i++) {
                 this.removeLayersGUI(colorLayers[i].id);
             }
 
             this.addImageryLayersGUI(colorLayers);
-        }).bind(this));
+        });
     }
 }
 
@@ -57,41 +57,39 @@ GuiTools.prototype.addLayersGUI = function fnAddLayersGUI() {
 };
 
 GuiTools.prototype.addImageryLayerGUI = function addImageryLayerGUI(layer) {
-    var folder = this.colorGui.addFolder(layer.id);
-    folder.add({ visible: layer.visible }, 'visible').onChange((function updateVisibility(value) {
+    const folder = this.colorGui.addFolder(layer.id);
+    folder.add({ visible: layer.visible }, 'visible').onChange(value => {
         layer.visible = value;
         this.view.notifyChange(layer);
-    }).bind(this));
-    folder.add({ opacity: layer.opacity }, 'opacity').min(0.0).max(1.0).onChange((function updateOpacity(value) {
+    });
+    folder.add({ opacity: layer.opacity }, 'opacity').min(0.0).max(1.0).onChange(value => {
         layer.opacity = value;
         this.view.notifyChange(layer);
-    }).bind(this));
-    folder.add({ frozen: layer.frozen }, 'frozen').onChange((function updateFrozen(value) {
+    });
+    folder.add({ frozen: layer.frozen }, 'frozen').onChange(value => {
         layer.frozen = value;
         this.view.notifyChange(layer);
-    }).bind(this));
+    });
 };
 
 GuiTools.prototype.addElevationLayerGUI = function addElevationLayerGUI(layer) {
-    var folder = this.elevationGui.addFolder(layer.id);
-    folder.add({ frozen: layer.frozen }, 'frozen').onChange(function refreshFrozenGui(value) {
+    const folder = this.elevationGui.addFolder(layer.id);
+    folder.add({ frozen: layer.frozen }, 'frozen').onChange(value => {
         layer.frozen = value;
     });
 };
 
 GuiTools.prototype.addImageryLayersGUI = function addImageryLayersGUI(layers) {
-    var i;
-    var seq = giro3d.ImageryLayers.getColorLayersIdOrderedBySequence(layers);
-    var sortedLayers = layers.sort(function comp(a, b) {
-        return seq.indexOf(a.id) < seq.indexOf(b.id);
-    });
+    let i;
+    const seq = giro3d.ImageryLayers.getColorLayersIdOrderedBySequence(layers);
+    const sortedLayers = layers.sort((a, b) => seq.indexOf(a.id) < seq.indexOf(b.id));
     for (i = 0; i < sortedLayers.length; i++) {
         this.addImageryLayerGUI(sortedLayers[i]);
     }
 };
 
 GuiTools.prototype.addElevationLayersGUI = function addElevationLayersGUI(layers) {
-    var i;
+    let i;
     for (i = 0; i < layers.length; i++) {
         this.addElevationLayerGUI(layers[i]);
     }

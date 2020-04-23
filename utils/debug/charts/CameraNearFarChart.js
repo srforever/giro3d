@@ -40,8 +40,8 @@ export default function CameraNearFarChart(chartId, camera) {
         const n = Math.round(camera.near);
 
         const count = chart.data.datasets[1].data.length;
-        if (f == chart.data.datasets[1].data[count - 1] &&
-            n == chart.data.datasets[0].data[count - 1]) {
+        if (f == chart.data.datasets[1].data[count - 1]
+            && n == chart.data.datasets[0].data[count - 1]) {
             return;
         }
 

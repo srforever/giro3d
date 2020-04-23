@@ -17,7 +17,7 @@ obb.translateY(translate.y);
 obb.translateZ(translate.z);
 obb.update();
 
-describe('OBB', function () {
+describe('OBB', () => {
     it('should correctly instance obb', () => {
         assert.equal(obb.natBox.min.x, min.x);
         assert.equal(obb.natBox.max.x, max.x);
@@ -53,10 +53,10 @@ function assertVerticesAreInOBB(builder, extent) {
     assert.equal(geom.attributes.position.count - failing, geom.attributes.position.count, 'All points should be inside OBB');
 }
 
-describe('Planar tiles OBB computation', function () {
+describe('Planar tiles OBB computation', () => {
     const builder = new PlanarTileBuilder();
 
-    it('should compute OBB correctly', function () {
+    it('should compute OBB correctly', () => {
         const extent = new Extent('EPSG:3946', -100, 100, -50, 50);
         assertVerticesAreInOBB(builder, extent);
     });

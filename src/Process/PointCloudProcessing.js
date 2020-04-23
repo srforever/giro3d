@@ -3,8 +3,8 @@ import CancelledCommandException from '../Core/Scheduler/CancelledCommandExcepti
 
 // Draw a cube with lines (12 lines).
 function cube(size) {
-    var h = size.clone().multiplyScalar(0.5);
-    var geometry = new THREE.Geometry();
+    const h = size.clone().multiplyScalar(0.5);
+    const geometry = new THREE.Geometry();
     geometry.vertices.push(
         new THREE.Vector3(-h.x, -h.y, -h.z),
         new THREE.Vector3(-h.x, h.y, -h.z),
@@ -241,10 +241,9 @@ export default {
         if (elt.children && elt.children.length) {
             if (elt.sse >= 1) {
                 return elt.children;
-            } else {
-                for (const child of elt.children) {
-                    markForDeletion(child);
-                }
+            }
+            for (const child of elt.children) {
+                markForDeletion(child);
             }
         }
     },

@@ -3,18 +3,18 @@ import * as THREE from 'three';
 // TODO regler le probleme glsl
 import fontJS from './fonts/optimer_regular.json';
 
-var font = new THREE.Font(fontJS);
-var tmpVec3 = new THREE.Vector3();
+const font = new THREE.Font(fontJS);
+const tmpVec3 = new THREE.Vector3();
 
 function OBBHelper(OBB, text) {
-    var indices = new Uint16Array([0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7]);
-    var positions = new Float32Array(8 * 3);
+    const indices = new Uint16Array([0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7]);
+    const positions = new Float32Array(8 * 3);
 
-    var geometry = new THREE.BufferGeometry();
+    const geometry = new THREE.BufferGeometry();
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
     geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-    var color = new THREE.Color(Math.random(), Math.random(), Math.random());
+    const color = new THREE.Color(Math.random(), Math.random(), Math.random());
 
     THREE.LineSegments.call(this, geometry, new THREE.LineBasicMaterial({
         color: color.getHex(),
@@ -23,9 +23,9 @@ function OBBHelper(OBB, text) {
 
     this.frustumCulled = false;
 
-    var size = OBB.box3D.getSize(tmpVec3);
+    const size = OBB.box3D.getSize(tmpVec3);
 
-    var geometryText = new THREE.TextGeometry(text, {
+    const geometryText = new THREE.TextGeometry(text, {
 
         font,
         size: size.x * 0.0666,
@@ -42,8 +42,7 @@ function OBBHelper(OBB, text) {
     this.add(this.textMesh);
     this.textMesh.frustumCulled = false;
 
-    if (OBB !== undefined)
-    { this.update(OBB); }
+    if (OBB !== undefined) { this.update(OBB); }
 }
 
 OBBHelper.prototype = Object.create(THREE.LineSegments.prototype);
@@ -76,8 +75,8 @@ const points = [
 ];
 
 OBBHelper.prototype.update = function update(OBB) {
-    const position = this.geometry.attributes.position;
-    const array = position.array;
+    const { position } = this.geometry.attributes;
+    const { array } = position;
 
     OBB._points(points);
     let offset = 0;

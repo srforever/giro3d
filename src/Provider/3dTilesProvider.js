@@ -99,11 +99,10 @@ export function getObjectToUpdateForAttachedLayers(meta) {
                 elements: result,
                 parent: p.content,
             };
-        } else {
-            return {
-                elements: result,
-            };
         }
+        return {
+            elements: result,
+        };
     }
 }
 
@@ -251,8 +250,7 @@ function executeCommand(command) {
     if (metadata.content) {
         if (metadata.content.url) { // 3D Tiles pre 1.0 version
             path = metadata.content.url;
-        }
-        else { // 3D Tiles 1.0 version
+        } else { // 3D Tiles 1.0 version
             path = metadata.content.uri;
         }
     }
@@ -302,10 +300,9 @@ function executeCommand(command) {
             tile.traverse(setLayer);
             return tile;
         });
-    } else {
-        tile.traverse(setLayer);
-        return Promise.resolve(tile);
     }
+    tile.traverse(setLayer);
+    return Promise.resolve(tile);
 }
 
 export default {

@@ -3,7 +3,7 @@ import PointCloudProcessing from '../../src/Process/PointCloudProcessing';
 
 const context = { camera: { height: 1, camera3D: { fov: 1 } } };
 
-describe('preUpdate', function () {
+describe('preUpdate', () => {
     it('should return root if no change source', () => {
         const layer = { root: {} };
         const sources = new Set();
