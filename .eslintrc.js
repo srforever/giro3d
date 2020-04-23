@@ -5,7 +5,7 @@ module.exports = {
    'eslint-config-airbnb-base/rules/strict',
  ],
   parserOptions: {
-    ecmaVersion: 6,
+    ecmaVersion: 2017,
     sourceType: 'module',
     ecmaFeatures: {
       impliedStrict: true
@@ -23,9 +23,6 @@ module.exports = {
     commonjs: true
   },
   rules: {
-    'no-trailing-spaces': 'warn',
-    'padded-blocks' : 'warn',
-    'no-unused-vars': 'warn',
     'no-plusplus': 'off',
     'arrow-parens': ['error', 'as-needed'],
     // this option sets a specific tab width for your code
@@ -53,42 +50,10 @@ module.exports = {
       requireParamDescription: false,
       requireReturnDescription: false,
     }],
-    // TODO reactivate this rule once a proper npm package is made
-    // a good configuration might be:
-    /*'import/no-extraneous-dependencies': ['error', {
-      devDependencies: ['test/**', 'tests/**', 'examples/**'],
-    }],*/
-    'import/no-extraneous-dependencies': 'off',
-
-    // TODO reactivate all the following rules
-
-    // maybe 'no-mixed-operators': ['error', { allowSamePrecedence: true }],
-    'no-mixed-operators': 'off',
-    'no-use-before-define': ['error', { 'functions': false }],
-    // should probably be
-    // 'no-underscore-dangle': ['error', { allowAfterThis: true, allowAfterSuper: true }],
+    'import/no-extraneous-dependencies': ['error', {
+        devDependencies: ['**/test/**', 'tests/**', 'examples/**'],
+    }],
     'no-underscore-dangle': 'off',
-    'eqeqeq': 'off',
-    // what len ? Airbnb does 100. github wraps line above 80
-    'max-len': 'off',
-    'no-param-reassign': 'off',
-    'no-else-return': 'off',
-    'no-var': 'off',
-    'vars-on-top': 'off',
-    'no-shadow': 'off',
-    'no-restricted-properties': 'off',
-    'prefer-spread': 'off',
-    'camelcase': 'off',
-    'no-bitwise': 'off',
-    'no-restricted-syntax': 'off',
-    'consistent-return': 'off',
-    'brace-style': 'off',
-    'new-cap': 'off',
-    'no-continue': 'off',
-    'no-console': [ 'warn', { allow: ['warn', 'error'] } ],
-    'import/extensions': ['warn', 'always', { ignorePackages: true }],
-    'no-redeclare': 'off',
-
   },
   "globals": {
     "__DEBUG__": false
