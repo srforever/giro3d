@@ -152,12 +152,13 @@ LayeredMaterial.prototype.getLayerTexture = function getLayerTexture(layer) {
 
     const index = this.indexOfColorLayer(layer);
 
-    if (index !== -1) {
-        return {
-            texture: this.texturesInfo.color.textures[index],
-            // offsetScale: this.texturesInfo.color.offsetScale[index],
-        };
+    if (index === -1) {
+        return null;
     }
+    return {
+        texture: this.texturesInfo.color.textures[index],
+        // offsetScale: this.texturesInfo.color.offsetScale[index],
+    };
     // throw new Error(`Invalid layer "${layer}"`);
 };
 
@@ -514,12 +515,14 @@ LayeredMaterial.prototype.setLayerVisibility = function setLayerVisibility(layer
 LayeredMaterial.prototype.isLayerTextureLoaded = function isColorLayerLoaded(layer) {
     if (layer.type == 'color') {
         const index = this.indexOfColorLayer(layer);
-        if (index >= 0) {
-            return this.texturesInfo.color.textures[index] != emptyTexture;
+        if (index < 0) {
+            return null;
         }
+        return this.texturesInfo.color.textures[index] != emptyTexture;
     } else if (layer.type == 'elevation') {
         return this.texturesInfo.elevation.texture != emptyTexture;
     }
+    return null; // TODO throw?
 };
 
 LayeredMaterial.prototype.setUuid = function setUuid(uuid) {

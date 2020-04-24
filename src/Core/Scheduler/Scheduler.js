@@ -48,6 +48,7 @@ function drawNextLayer(storages) {
         selected.accumulator -= sum;
         return selected.q;
     }
+    return null;
 }
 
 function _instanciateQueue() {
@@ -205,20 +206,16 @@ Scheduler.prototype.execute = function execute(command) {
 };
 
 function isInCache(command) {
-    if (command.toDownload) {
-        // Probably belongs to the provider (= it's part of a command API)
-        if (command.url) {
-            if (!Cache.get(command.url)) {
-                return false;
-            }
-        } else if (command.tile) {
-            if (command.tile.getState() != TileState.LOADED) {
-                return false;
-            }
-        } else {
-            return false;
-        }
+    if (!command.toDownload) {
+        return false;
     }
+    // Probably belongs to the provider (= it's part of a command API)
+    if (command.url) {
+        return !!Cache.get(command.url);
+    } else if (command.tile) {
+        return command.tile.getState() === TileState.LOADED;
+    }
+    return false;
 }
 
 Scheduler.prototype.flush = function flush(queue, layerId) {
@@ -401,6 +398,7 @@ Scheduler.prototype.deQueue = function deQueue(queue) {
         // retry, in another layer
         return this.deQueue(queue);
     }
+    return null;
 };
 
 export default Scheduler;

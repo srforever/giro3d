@@ -145,11 +145,11 @@ function update(context, layer, node) {
             // if visible, children bbox can only be smaller => stop updates
             if (node.material.visible) {
                 updateMinMaxDistance(context, layer, node);
-                return;
+                return null;
             } else if (node.visible) {
                 return node.children.filter(n => n.layer == layer);
             }
-            return;
+            return null;
         }
     }
 

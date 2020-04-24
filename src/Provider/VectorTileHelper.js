@@ -56,7 +56,7 @@ export default {
      * resulting texture of the vector tile.
      */
     getVectorTileTextureByUrl(url, tile, layer, coords) {
-        if (layer.type !== 'color') return;
+        if (layer.type !== 'color') return null;
 
         return Cache.get(url) || Cache.set(url, getVectorTileByUrl(url, tile, layer, coords).then(features => {
             const backgroundColor = (layer.backgroundLayer && layer.backgroundLayer.paint) ?

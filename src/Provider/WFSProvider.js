@@ -45,14 +45,15 @@ function executeCommand(command) {
 }
 
 function assignLayer(object, layer) {
-    if (object) {
-        object.layer = layer;
-        object.layers.set(layer.threejsLayer);
-        for (const c of object.children) {
-            assignLayer(c, layer);
-        }
-        return object;
+    if (!object) {
+        return null;
     }
+    object.layer = layer;
+    object.layers.set(layer.threejsLayer);
+    for (const c of object.children) {
+        assignLayer(c, layer);
+    }
+    return object;
 }
 
 function getFeatures(crs, tile, layer) {

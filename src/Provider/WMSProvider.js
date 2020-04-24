@@ -76,7 +76,7 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
 
     // if texture extent matches extent => we're good
     if (texture && texture.extent && texture.extent.isInside(extent)) {
-        return;
+        return null;
     }
 
     return selectAllExtentsToDownload(layer, ex, texture, previousError);
@@ -90,7 +90,7 @@ function selectAllExtentsToDownload(layer, ex, texture, previousError) {
         previousError);
     // if the choice is the same as the current one => stop updating
     if (texture && texture.extent && texture.extent.isInside(extent)) {
-        return;
+        return null;
     }
     const pitch = ex.offsetToParent(extent);
     return {

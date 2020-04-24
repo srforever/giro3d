@@ -160,7 +160,7 @@ export default {
     update(context, layer, elt) {
         if (layer.octreeDepthLimit >= 0 && layer.octreeDepthLimit < elt.name.length) {
             markForDeletion(elt);
-            return;
+            return null;
         }
 
         // pick the best bounding box
@@ -168,7 +168,7 @@ export default {
 
         if (context.fastUpdateHint && !elt.name.startsWith(context.fastUpdateHint)) {
             if (!elt.visible) {
-                return;
+                return null;
             }
             updateMinMaxDistance(context, layer, bbox);
         } else {
@@ -176,7 +176,7 @@ export default {
 
             if (!elt.visible) {
                 markForDeletion(elt);
-                return;
+                return null;
             }
 
             const distance = updateMinMaxDistance(context, layer, bbox);
@@ -246,6 +246,7 @@ export default {
                 markForDeletion(child);
             }
         }
+        return null;
     },
 
     postUpdate(context, layer) {

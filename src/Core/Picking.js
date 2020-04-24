@@ -108,6 +108,7 @@ function findLayerInParent(obj) {
     if (obj.parent) {
         return findLayerInParent(obj.parent);
     }
+    return null;
 }
 
 const raycaster = new THREE.Raycaster();
@@ -335,7 +336,7 @@ export default {
                 Math.abs(clearG - g) <= 1 &&
                 Math.abs(clearB - b) <= 1) {
                 // skip because nothing has been rendered here
-                return;
+                return false;
             }
 
             // Perform raycasting

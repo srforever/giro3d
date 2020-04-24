@@ -71,7 +71,7 @@ export default {
         const material = node.material;
 
         if (!node.parent || !material) {
-            return;
+            return null;
         }
 
         // Initialisation
@@ -89,7 +89,7 @@ export default {
                     // ok, we're going to inherit our parent's texture
                 } else {
                     node.layerUpdateState[layer.id].noMoreUpdatePossible();
-                    return;
+                    return null;
                 }
             }
 
@@ -98,13 +98,13 @@ export default {
 
             if (parent && initColorTexturesFromParent(context, node, parent, layer)) {
                 context.view.notifyChange(node, false);
-                return;
+                return null;
             }
         }
 
         // Node is hidden, no need to update it
         if (!node.material.visible || initOnly) {
-            return;
+            return null;
         }
 
         // TODO: move this to defineLayerProperty() declaration
@@ -116,7 +116,7 @@ export default {
         const ts = Date.now();
         // An update is pending / or impossible -> abort
         if (layer.frozen || !layer.visible || !node.layerUpdateState[layer.id].canTryUpdate(ts)) {
-            return;
+            return null;
         }
 
         // Does this tile needs a new texture?
@@ -130,11 +130,11 @@ export default {
         // if the provider returns undef, then we konw it will never have any texture
         if (nextDownloads === undefined) {
             node.layerUpdateState[layer.id].noMoreUpdatePossible();
-            return;
+            return null;
         }
         // in this case, the layer might be able to provide a texture later
         if (nextDownloads === null) {
-            return;
+            return null;
         }
 
         node.layerUpdateState[layer.id].newTry();
@@ -151,7 +151,7 @@ export default {
         return context.scheduler.execute(command).then(
             result => {
                 if (node.material === null) {
-                    return;
+                    return null;
                 }
 
                 return node.material.setLayerTextures(layer, result, false, context.view).then(() => {

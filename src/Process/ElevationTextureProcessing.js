@@ -136,7 +136,7 @@ export default {
         const material = node.material;
 
         if (!node.parent || !material) {
-            return;
+            return null;
         }
 
         // TODO: we need either
@@ -149,7 +149,7 @@ export default {
 
             if (parent && parent.material && initNodeElevationTextureFromParent(node, parent, layer)) {
                 context.view.notifyChange(node, false);
-                return;
+                return null;
             }
         }
 
@@ -161,7 +161,7 @@ export default {
                 layer.frozen ||
                 !node.material.visible ||
                 !node.layerUpdateState[layer.id].canTryUpdate(ts)) {
-            return;
+            return null;
         }
 
         // Does this tile needs a new texture?
@@ -173,7 +173,7 @@ export default {
 
         if (!nextDownloads) {
             node.layerUpdateState[layer.id].noMoreUpdatePossible();
-            return;
+            return null;
         }
 
         node.layerUpdateState[layer.id].newTry();
@@ -191,7 +191,7 @@ export default {
         return context.scheduler.execute(command).then(
             result => {
                 if (node.material === null) {
-                    return;
+                    return null;
                 }
                 // We currently only support a single elevation texture
                 if (Array.isArray(result)) {

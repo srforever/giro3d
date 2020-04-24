@@ -37,10 +37,10 @@ export default {
         if (!node.parent && node.children.length) {
             // if node has been removed dispose three.js resource
             ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, node);
-            return;
+            return null;
         }
         if (!node.visible) {
-            return;
+            return null;
         }
 
         const features = node.children.filter(n => n.layer == layer);
@@ -65,7 +65,7 @@ export default {
         }
 
         if (!layer.tileInsideLimit(node, layer)) {
-            return;
+            return null;
         }
 
         if (node.layerUpdateState[layer.id] === undefined) {
@@ -75,7 +75,7 @@ export default {
         const ts = Date.now();
 
         if (!node.layerUpdateState[layer.id].canTryUpdate(ts)) {
-            return;
+            return null;
         }
 
         node.layerUpdateState[layer.id].newTry();
@@ -87,7 +87,7 @@ export default {
             requester: node,
         };
 
-        context.scheduler.execute(command).then(result => {
+        return context.scheduler.execute(command).then(result => {
             // if request return empty json, WFSProvider.getFeatures return undefined
             if (result) {
                 // call onMeshCreated callback if needed

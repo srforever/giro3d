@@ -81,10 +81,10 @@ function chooseExtentToDownload(extent, currentExtent, layer, pitch, previousErr
 
 function canTextureBeImproved(layer, extent, texture, previousError) {
     if (!extentInsideLimit(extent, layer)) {
-        return;
+        return false;
     }
     if (extent.zoom > layer.options.zoom.max) {
-        return;
+        return false;
     }
 
     if (!texture) {
@@ -94,6 +94,7 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
     if (!texture.extent || texture.extent.zoom < extent.zoom) {
         return selectAllExtentsToDownload(layer, extent, texture, previousError);
     }
+    return false;
 }
 
 function selectAllExtentsToDownload(layer, extent_, texture, previousError) {
@@ -107,7 +108,7 @@ function selectAllExtentsToDownload(layer, extent_, texture, previousError) {
 
     // if the choice is the same as the current one => stop updating
     if (texture && texture.extent && texture.extent.zoom == extent.zoom) {
-        return;
+        return null;
     }
     return {
         extent,

@@ -37,7 +37,7 @@ function selectBestImageForExtent(layer, extent) {
     // nope : doesn't work
     // return;
     if (candidates.length == 0) {
-        return;
+        return null;
     }
     // We didn't found an image containing entirely the extent,
     // but candidates isn't empty so we can return the smallest
@@ -160,20 +160,21 @@ export default {
 
     canTextureBeImproved(layer, extent, currentTexture) {
         if (!layer.images) {
-            return;
+            return false;
         }
         const s = selectBestImageForExtent(layer, extent);
 
         if (!s) {
-            return;
+            return false;
         }
-        if (!currentTexture || (currentTexture && currentTexture.file != s.image)) {
-            return {
-                selection: s,
-                pitch: extent.offsetToParent(s.extent),
-                url: buildUrl(layer, s.image),
-            };
+        if (currentTexture && currentTexture.file === s.image) {
+            return false;
         }
+        return {
+            selection: s,
+            pitch: extent.offsetToParent(s.extent),
+            url: buildUrl(layer, s.image),
+        };
     },
 
     executeCommand(command) {

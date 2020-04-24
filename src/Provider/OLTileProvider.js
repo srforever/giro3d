@@ -34,7 +34,7 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
     const ex = extent.as(layer.extent.crs());
     const tile = selectTile(layer, ex);
     if (texture && texture.extent && texture.extent.isInside(tile.tileExtent)) {
-        return;
+        return null;
     }
     return tile;
 }

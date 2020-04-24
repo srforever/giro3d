@@ -175,9 +175,10 @@ export function createPlanarLayer(id, extent, options = {}) {
     }
     function findSmallestExtentCovering(node, extent) {
         const n = findSmallestExtentCoveringGoingUp(node, extent);
-        if (n) {
-            return findSmallestExtentCoveringGoingDown(n, extent);
+        if (!n) {
+            return null;
         }
+        return findSmallestExtentCoveringGoingDown(n, extent);
     }
 
     function findNeighbours(node) {

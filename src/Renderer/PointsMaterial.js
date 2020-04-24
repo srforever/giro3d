@@ -17,6 +17,9 @@ const NUM_TRANSFO = 16;
 class PointsMaterial extends RawShaderMaterial {
     constructor(options = {}) {
         super();
+        if (__DEBUG__) {
+            this.defines.DEBUG = 1;
+        }
         this.vertexShader = PointsVS;
         this.fragmentShader = PointsFS;
 
@@ -133,14 +136,10 @@ class PointsMaterial extends RawShaderMaterial {
     }
 
     getLayerTexture(layer) {
-        if (layer === this.colorLayer) {
-            return { texture: this.uniforms.texture.value };
+        if (layer !== this.colorLayer) {
+            return null;
         }
-        if (__DEBUG__) {
-            this.defines.DEBUG = 1;
-        }
-
-        this.defines.NUM_TRANSFO = NUM_TRANSFO;
+        return { texture: this.uniforms.texture.value };
     }
     setLayerTextures(layer, textures) {
         if (Array.isArray(textures)) {
@@ -170,8 +169,10 @@ class PointsMaterial extends RawShaderMaterial {
     enableTransfo(v) {
         if (v) {
             this.defines.DEFORMATION_SUPPORT = 1;
+            this.defines.NUM_TRANSFO = NUM_TRANSFO;
         } else {
             delete this.defines.DEFORMATION_SUPPORT;
+            delete this.defines.NUM_TRANSFO;
         }
         this.needsUpdate = true;
     }

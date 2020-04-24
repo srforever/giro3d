@@ -85,7 +85,7 @@ const GeometryToCoordinates = {
         // read contour first
         const coordinates = readCoordinates(crsIn, crsOut, coordsIn[0], extent);
         if (filteringExtent && !filteringExtent.isPointInside(coordinates[0])) {
-            return;
+            return null;
         }
         const indices = [{ offset: 0, count: coordinates.length }];
         let offset = coordinates.length;
@@ -106,7 +106,7 @@ const GeometryToCoordinates = {
         const extent = options.buildExtent ? new Extent(crsOut, Infinity, -Infinity, Infinity, -Infinity) : undefined;
         const coordinates = readCoordinates(crsIn, crsOut, coordsIn, extent);
         if (filteringExtent && !filteringExtent.isPointInside(coordinates[0])) {
-            return;
+            return null;
         }
         const indices = [{ offset: 0, count: coordinates.length }];
 
@@ -138,7 +138,7 @@ const GeometryToCoordinates = {
 
 function readGeometry(feature, crsIn, crsOut, geometry, filteringExtent, options) {
     if (geometry.length == 0) {
-        return;
+        return null;
     }
     switch (feature.type) {
         case 'point':
@@ -161,7 +161,7 @@ function readGeometry(feature, crsIn, crsOut, geometry, filteringExtent, options
 
 function readFeature(crsIn, crsOut, json, filteringExtent, options) {
     if (options.filter && !options.filter(json.properties, json.geometry)) {
-        return;
+        return null;
     }
     const feature = {
         type: json.geometry.type.toLowerCase(),
@@ -172,7 +172,7 @@ function readFeature(crsIn, crsOut, json, filteringExtent, options) {
     readGeometry(feature, crsIn, crsOut, json.geometry.coordinates, filteringExtent, options);
 
     if (feature.geometry.length == 0) {
-        return;
+        return null;
     }
 
     if (options.buildExtent) {

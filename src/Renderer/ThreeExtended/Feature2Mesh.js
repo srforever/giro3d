@@ -253,7 +253,7 @@ function featureToExtrudedPolygon(feature, properties, options) {
  */
 function featureToMesh(feature, options) {
     if (!feature.vertices) {
-        return;
+        return null;
     }
 
     let mesh;
@@ -296,7 +296,7 @@ function featureToMesh(feature, options) {
 }
 
 function featuresToThree(features, options) {
-    if (!features || features.length == 0) return;
+    if (!features || features.length == 0) return null;
 
     if (features.length == 1) {
         return featureToMesh(features[0], options);
@@ -330,7 +330,7 @@ export default {
      */
     convert(options = {}) {
         return function _convert(collection) {
-            if (!collection) return;
+            if (!collection) return null;
 
             return featuresToThree(collection.features, options);
         };

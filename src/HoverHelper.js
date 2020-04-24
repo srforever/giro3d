@@ -15,9 +15,10 @@ function objectUnderMouseEvent(event, view, objects) {
     raycaster.setFromCamera(mouse, view.camera.camera3D);
     const intersects = raycaster.intersectObjects(objects);
 
-    if (intersects.length > 0) {
-        return intersects[0].object;
+    if (intersects.length === 0) {
+        return null;
     }
+    return intersects[0].object;
 }
 
 
@@ -31,9 +32,7 @@ class HoverHelper {
     }
 
     get() {
-        if (this.hoveredObject) {
-            return this.hoveredObject;
-        }
+        return this.hoveredObject;
     }
 
     clear() {

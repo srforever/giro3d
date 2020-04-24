@@ -24,9 +24,10 @@ export default {
      */
     getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
         const result = _readZ(layer, method, coord, tileHint || layer.level0Nodes);
-        if (result) {
-            return { z: result.coord._values[2], texture: result.texture, tile: result.tile };
+        if (!result) {
+            return null;
         }
+        return { z: result.coord._values[2], texture: result.texture, tile: result.tile };
     },
 
     /**
@@ -69,14 +70,15 @@ export default {
                 undefined,
                 options.cache ? options.cache[0] : undefined);
 
-            if (result) {
-                if (options.cache) {
-                    options.cache[0] = result;
-                }
-                obj.updateMatrix();
-                obj.updateMatrixWorld();
-                return true;
+            if (!result) {
+                return false;
             }
+            if (options.cache) {
+                options.cache[0] = result;
+            }
+            obj.updateMatrix();
+            obj.updateMatrixWorld();
+            return true;
         } else {
             const matrices = {
                 worldFromLocal: obj.matrixWorld,
@@ -150,6 +152,7 @@ export default {
                 }
                 return success;
             }
+            return false; // TODO throw?
         }
     },
     FAST_READ_Z,
@@ -157,22 +160,23 @@ export default {
 };
 
 function tileAt(pt, tile) {
-    if (tile.extent) {
-        if (!tile.extent.isPointInside(pt)) {
-            return undefined;
-        }
-
-        for (let i = 0; i < tile.children.length; i++) {
-            const t = tileAt(pt, tile.children[i]);
-            if (t) {
-                return t;
-            }
-        }
-        if (tile.material.isLayerTextureLoaded({ type: 'elevation' })) {
-            return tile;
-        }
+    if (!tile.extent) {
+        return null;
+    }
+    if (!tile.extent.isPointInside(pt)) {
         return undefined;
     }
+
+    for (let i = 0; i < tile.children.length; i++) {
+        const t = tileAt(pt, tile.children[i]);
+        if (t) {
+            return t;
+        }
+    }
+    if (tile.material.isLayerTextureLoaded({ type: 'elevation' })) {
+        return tile;
+    }
+    return undefined;
 }
 
 let _canvas;
@@ -365,7 +369,7 @@ function _readZ(layer, method, coord, nodes, cache) {
 
     if (!tileWithValidElevationTexture) {
         // failed to find a tile, abort
-        return;
+        return null;
     }
 
     const tile = tileWithValidElevationTexture;
@@ -416,13 +420,14 @@ function _updateVector3(layer, method, nodes, vecCRS, vec, offset, matrices = {}
         coord.set(vecCRS, vec);
     }
     const result = _readZ(layer, method, coord, nodes, cache);
-    if (result) {
-        result.coord._values[2] += offset;
-        result.coord.as(vecCRS, temp.coord2).xyz(vec);
-        if (matrices.localFromWorld) {
-            vec.applyMatrix4(matrices.localFromWorld);
-        }
-        return { id: result.texture.id, version: result.texture.version, tile: result.tile };
+    if (!result) {
+        return null;
     }
+    result.coord._values[2] += offset;
+    result.coord.as(vecCRS, temp.coord2).xyz(vec);
+    if (matrices.localFromWorld) {
+        vec.applyMatrix4(matrices.localFromWorld);
+    }
+    return { id: result.texture.id, version: result.texture.version, tile: result.tile };
 }
 

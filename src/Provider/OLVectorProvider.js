@@ -136,6 +136,7 @@ function createReplayGroup(extent, layer) {
     if (used) {
         return replayGroup;
     }
+    return null;
 }
 
 function renderFeature(feature, squaredTolerance, styles, replayGroup) {

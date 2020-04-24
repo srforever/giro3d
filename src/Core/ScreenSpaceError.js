@@ -107,7 +107,7 @@ export default {
         const distance = findBox3Distance(camera, box3, matrix);
 
         if (distance <= geometricError) {
-            return;
+            return null;
         }
 
         const size = computeSizeFromGeometricError(

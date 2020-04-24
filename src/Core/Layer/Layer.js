@@ -178,12 +178,13 @@ function GeometryLayer(id, object3d) {
     // See 3dtilesProvider or PointCloudProvider for examples.
     // eslint-disable-next-line arrow-body-style
     this.getObjectToUpdateForAttachedLayers = obj => {
-        if (obj.parent && obj.material) {
-            return {
-                element: obj,
-                parent: obj.parent,
-            };
+        if (!obj.parent || !obj.material) {
+            return null;
         }
+        return {
+            element: obj,
+            parent: obj.parent,
+        };
     };
 
     this.postUpdate = () => {};

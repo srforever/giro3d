@@ -365,6 +365,7 @@ class Instance extends EventDispatcher {
                 }
             }
         }
+        return null;
     }
 
     /**

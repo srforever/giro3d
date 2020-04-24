@@ -146,19 +146,19 @@ export default {
             });
 
         return geojsonPromise.then(geojson => {
-            if (geojson) {
-                const options = {
-                    buildExtent: true,
-                    crsIn: layer.projection,
-                    crsOut: parentCrs,
-                    filteringExtent: layer.extent,
-                    featureCb: layer.options.featureCb,
-                };
-
-                return GeoJsonParser.parse(geojson, options);
+            if (!geojson) {
+                return null; // TODO  is this really necessary?
             }
+            const options = {
+                buildExtent: true,
+                crsIn: layer.projection,
+                crsOut: parentCrs,
+                filteringExtent: layer.extent,
+                featureCb: layer.options.featureCb,
+            };
+            return GeoJsonParser.parse(geojson, options);
         }).then(feature => {
-            if (Array.isArray(feature) && feature.length == 0) {
+            if (Array.isArray(feature) && feature.length === 0) {
                 return;
             }
             if (feature) {
@@ -168,9 +168,10 @@ export default {
         });
     },
     canTextureBeImproved(layer, extent, texture) {
-        if (!texture || !texture.extent || !texture.extent.isInside(extent)) {
-            return extent;
+        if (texture && texture.extent && texture.extent.isInside(extent)) {
+            return false;
         }
+        return extent;
     },
     tileInsideLimit(tile, layer) {
         const extent = tile.getExtentForLayer(layer);

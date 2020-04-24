@@ -66,10 +66,10 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
     const ex = extent.as(layer.extent.crs());
     const tile = selectTile(layer, ex);
     if (texture && texture.extent && texture.extent.isInside(tile.tileExtent)) {
-        return;
+        return null;
     }
     if (texture == emptyTexture) {
-        return;
+        return null;
     }
     return tile;
 }
@@ -141,7 +141,7 @@ function loadTile(node, tile, layer) {
 
 function createTexture(node, tile, layer) {
     if (!node.material) {
-        return;
+        return null;
     }
     const _canvas = node.material.canvas;
     const texture = new CanvasTexture(_canvas);

@@ -37,7 +37,7 @@ function executeCommand(command) {
     if (command.requester &&
         !command.requester.material) {
         // request has been deleted
-        return;
+        return null;
     }
     const layer = command.layer;
     const builder = layer.builder;

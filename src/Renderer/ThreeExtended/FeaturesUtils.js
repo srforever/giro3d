@@ -111,10 +111,12 @@ function isFeatureSingleGeometryUnderCoordinate(coordinate, type, coordinates, e
         return true;
     } else if (type == 'point') {
         const closestPoint = getClosestPoint(coordinate, coordinates, epsilon);
-        if (closestPoint) {
-            return { coordinates: closestPoint };
+        if (!closestPoint) {
+            return false
         }
+        return { coordinates: closestPoint };
     }
+    throw new Error(`Type ${type} not supported yet`);
 }
 
 function isFeatureUnderCoordinate(coordinate, feature, epsilon, result) {

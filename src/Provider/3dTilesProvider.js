@@ -86,24 +86,25 @@ export function $3dTilesIndex(tileset, baseURL) {
 }
 
 export function getObjectToUpdateForAttachedLayers(meta) {
-    if (meta.content) {
-        const result = [];
-        meta.content.traverse(obj => {
-            if (obj.isObject3D && obj.material && obj.layer == meta.layer) {
-                result.push(obj);
-            }
-        });
-        const p = meta.parent;
-        if (p && p.content) {
-            return {
-                elements: result,
-                parent: p.content,
-            };
+    if (!meta.content) {
+        return null;
+    }
+    const result = [];
+    meta.content.traverse(obj => {
+        if (obj.isObject3D && obj.material && obj.layer == meta.layer) {
+            result.push(obj);
         }
+    });
+    const p = meta.parent;
+    if (p && p.content) {
         return {
             elements: result,
+            parent: p.content,
         };
     }
+    return {
+        elements: result,
+    };
 }
 
 function preprocessDataLayer(layer, view, scheduler) {
@@ -174,6 +175,11 @@ function getBox(volume) {
     } else if (volume.sphere) {
         const sphere = new THREE.Sphere(new THREE.Vector3(volume.sphere[0], volume.sphere[1], volume.sphere[2]), volume.sphere[3]);
         return { sphere };
+    } else {
+        // TODO we should probably do
+        // throw new Error('volume has neither region, nor box, nor sphere...');
+        // but as I'm just correcting linter errors here, let's keep the old behaviour for now
+        return null;
     }
 }
 

@@ -174,18 +174,19 @@ function parseMetadata(metadata, layer) {
 }
 
 export function getObjectToUpdateForAttachedLayers(meta) {
-    if (meta.obj) {
-        const p = meta.parent;
-        if (p && p.obj) {
-            return {
-                element: meta.obj,
-                parent: p.obj,
-            };
-        }
+    if (!meta.obj) {
+        return null;
+    }
+    const p = meta.parent;
+    if (p && p.obj) {
         return {
             element: meta.obj,
+            parent: p.obj,
         };
     }
+    return {
+        element: meta.obj,
+    };
 }
 
 export default {

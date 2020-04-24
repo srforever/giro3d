@@ -69,6 +69,7 @@ const Cache = {
         }
 
         stat.miss++;
+        return undefined;
     },
 
     /**

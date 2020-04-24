@@ -7,7 +7,7 @@ function readPBF(file, options) {
 
     const layers = Object.keys(vectorTile.layers);
 
-    if (layers.length < 1) return;
+    if (layers.length < 1) return null;
 
     // We need to create a featureCollection as VectorTile does no support it
     const geojson = {
