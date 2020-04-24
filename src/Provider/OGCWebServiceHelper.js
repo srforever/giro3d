@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import Fetcher from './Fetcher';
-import Cache from '../Core/Scheduler/Cache';
-import Projection from '../Core/Geographic/Projection';
-import Extent from '../Core/Geographic/Extent';
+import Fetcher from './Fetcher.js';
+import Cache from '../Core/Scheduler/Cache.js';
+import Projection from '../Core/Geographic/Projection.js';
+import Extent from '../Core/Geographic/Extent.js';
 
 export const SIZE_TEXTURE_TILE = 256;
 

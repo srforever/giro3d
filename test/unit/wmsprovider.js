@@ -1,8 +1,8 @@
 import assert from 'assert';
 
-import { chooseExtentToDownload } from '../../src/Provider/WMSProvider';
-import Extent from '../../src/Core/Geographic/Extent';
-import { STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY } from '../../src/Core/Layer/LayerUpdateStrategy';
+import { chooseExtentToDownload } from '../../src/Provider/WMSProvider.js';
+import Extent from '../../src/Core/Geographic/Extent.js';
+import { STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY } from '../../src/Core/Layer/LayerUpdateStrategy.js';
 
 
 describe('verify wms strategies implementation', () => {

@@ -1,7 +1,7 @@
-import Extent from '../Core/Geographic/Extent';
-import OGCWebServiceHelper from './OGCWebServiceHelper';
-import URLBuilder from './URLBuilder';
-import { STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY } from '../Core/Layer/LayerUpdateStrategy';
+import Extent from '../Core/Geographic/Extent.js';
+import OGCWebServiceHelper from './OGCWebServiceHelper.js';
+import URLBuilder from './URLBuilder.js';
+import { STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY } from '../Core/Layer/LayerUpdateStrategy.js';
 
 const supportedFormats = ['image/png', 'image/jpg', 'image/jpeg'];
 

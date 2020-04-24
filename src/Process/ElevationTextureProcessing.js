@@ -1,5 +1,5 @@
-import LayerUpdateState from '../Core/Layer/LayerUpdateState';
-import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
+import LayerUpdateState from '../Core/Layer/LayerUpdateState.js';
+import CancelledCommandException from '../Core/Scheduler/CancelledCommandException.js';
 
 export const ELEVATION_FORMAT = {
     MAPBOX_RGB: 0,

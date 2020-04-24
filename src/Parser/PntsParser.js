@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import BatchTableParser from './BatchTableParser';
-import utf8Decoder from '../utils/Utf8Decoder';
+import BatchTableParser from './BatchTableParser.js';
+import utf8Decoder from '../utils/Utf8Decoder.js';
 
 export default {
     /** @module PntsParser */

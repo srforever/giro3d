@@ -1,25 +1,28 @@
 import { Texture, Vector4, CanvasTexture } from 'three';
 
-import TileState from 'ol/TileState';
-import { listenOnce } from 'ol/events';
-import { createEmpty as createEmptyExtent,
-    getIntersection, equals, buffer, intersects } from 'ol/extent';
-import CanvasReplayGroup from 'ol/render/canvas/ReplayGroup';
-import { getSquaredTolerance as getSquaredRenderTolerance,
+import TileState from 'ol/TileState.js';
+import { listenOnce } from 'ol/events.js';
+import {
+    createEmpty as createEmptyExtent,
+    getIntersection, equals, buffer, intersects
+} from 'ol/extent.js';
+import CanvasReplayGroup from 'ol/render/canvas/ReplayGroup.js';
+import {
+    getSquaredTolerance as getSquaredRenderTolerance,
     renderFeature as renderVectorFeature,
-} from 'ol/renderer/vector';
-import { Fill, Icon, Stroke, Style, Text } from 'ol/style';
-import ReplayType from 'ol/render/ReplayType';
+} from 'ol/renderer/vector.js';
+import { Fill, Icon, Stroke, Style, Text } from 'ol/style.js';
+import ReplayType from 'ol/render/ReplayType.js';
 import {
     create as createTransform,
     reset as resetTransform,
     scale as scaleTransform,
     translate as translateTransform,
-} from 'ol/transform';
-import { equivalent as equivalentProjection } from 'ol/proj';
-import Units from 'ol/proj/Units';
+} from 'ol/transform.js';
+import { equivalent as equivalentProjection } from 'ol/proj.js';
+import Units from 'ol/proj/Units.js';
 
-import Extent from '../Core/Geographic/Extent';
+import Extent from '../Core/Geographic/Extent.js';
 
 const IMAGE_REPLAYS = {
     image: [ReplayType.POLYGON, ReplayType.CIRCLE,

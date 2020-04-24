@@ -6,7 +6,7 @@ import EDLPassTwoFS from './Shader/PointCloud/EDLPassTwoFS.glsl';
 import OcclusionFS from './Shader/PointCloud/OcclusionFS.glsl';
 import InpaintingFS from './Shader/PointCloud/InpaintingFS.glsl';
 
-import { MAIN_LOOP_EVENTS } from '../Core/MainLoop';
+import { MAIN_LOOP_EVENTS } from '../Core/MainLoop.js';
 
 const RT = {
     FULL_RES_0: 0,

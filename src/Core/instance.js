@@ -1,17 +1,17 @@
 /* global window */
 import { Scene, Group, EventDispatcher, Vector2, Object3D } from 'three';
-import Camera from '../Renderer/Camera';
-import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop';
-import c3DEngine from '../Renderer/c3DEngine';
-import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy';
-import { GeometryLayer, Layer, defineLayerProperty } from './Layer/Layer';
-import Scheduler from './Scheduler/Scheduler';
-import Picking from './Picking';
-import ColorTextureProcessing from '../Process/ColorTextureProcessing';
-import ElevationTextureProcessing, { minMaxFromTexture, ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing';
-import TiledNodeProcessing from '../Process/TiledNodeProcessing';
-import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh';
-import ObjectRemovalHelper from '../Process/ObjectRemovalHelper';
+import Camera from '../Renderer/Camera.js';
+import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
+import c3DEngine from '../Renderer/c3DEngine.js';
+import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
+import { GeometryLayer, Layer, defineLayerProperty } from './Layer/Layer.js';
+import Scheduler from './Scheduler/Scheduler.js';
+import Picking from './Picking.js';
+import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
+import ElevationTextureProcessing, { minMaxFromTexture, ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing.js';
+import TiledNodeProcessing from '../Process/TiledNodeProcessing.js';
+import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh.js';
+import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
 
 export const VIEW_EVENTS = {
     /**

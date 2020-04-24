@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { Group, Mesh } from 'three';
-import { getObjectToUpdateForAttachedLayers } from '../../src/Provider/3dTilesProvider';
+import { getObjectToUpdateForAttachedLayers } from '../../src/Provider/3dTilesProvider.js';
 
 describe('getObjectToUpdateForAttachedLayers', () => {
     it('should correctly return all children', () => {

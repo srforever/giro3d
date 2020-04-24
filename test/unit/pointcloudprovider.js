@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { getObjectToUpdateForAttachedLayers, _testing } from '../../src/Provider/PointCloudProvider';
+import { getObjectToUpdateForAttachedLayers, _testing } from '../../src/Provider/PointCloudProvider.js';
 
 describe('PointCloudProvider', () => {
     it('should correctly parse normal information in metadata', () => {

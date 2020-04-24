@@ -1,9 +1,9 @@
 import { CameraHelper, Color, Vector3 } from 'three';
-import Coordinates from '../../src/Core/Geographic/Coordinates';
-import ThreeStatsChart from './charts/ThreeStatsChart';
-import CameraNearFarChart from './charts/CameraNearFarChart';
-import { MAIN_LOOP_EVENTS } from '../../src/Core/MainLoop';
-import PanoramaView from '../../src/Core/Prefab/PanoramaView';
+import Coordinates from '../../src/Core/Geographic/Coordinates.js';
+import ThreeStatsChart from './charts/ThreeStatsChart.js';
+import CameraNearFarChart from './charts/CameraNearFarChart.js';
+import { MAIN_LOOP_EVENTS } from '../../src/Core/MainLoop.js';
+import PanoramaView from '../../src/Core/Prefab/PanoramaView.js';
 
 /**
  * Create a debug instance attached to an giro3d instance

@@ -6,9 +6,9 @@
 
 import * as THREE from 'three';
 import Line from 'three.meshline';
-import Coordinates from '../Core/Geographic/Coordinates';
-import Capabilities from '../Core/System/Capabilities';
-import shaderUtils from '../Renderer/Shader/ShaderUtils';
+import Coordinates from '../Core/Geographic/Coordinates.js';
+import Capabilities from '../Core/System/Capabilities.js';
+import shaderUtils from '../Renderer/Shader/ShaderUtils.js';
 
 function _gpxToWayPointsArray(gpxXML) {
     return gpxXML.getElementsByTagName('wpt');

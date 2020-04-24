@@ -1,12 +1,12 @@
 import * as THREE from 'three';
 
-import Instance from '../instance';
-import { MAIN_LOOP_EVENTS } from '../MainLoop';
-import RendererConstant from '../../Renderer/RendererConstant';
-import { GeometryLayer } from '../Layer/Layer';
-import PlanarTileBuilder from './Planar/PlanarTileBuilder';
-import Extent from '../Geographic/Extent';
-import Coordinates from '../Geographic/Coordinates';
+import Instance from '../instance.js';
+import { MAIN_LOOP_EVENTS } from '../MainLoop.js';
+import RendererConstant from '../../Renderer/RendererConstant.js';
+import { GeometryLayer } from '../Layer/Layer.js';
+import PlanarTileBuilder from './Planar/PlanarTileBuilder.js';
+import Extent from '../Geographic/Extent.js';
+import Coordinates from '../Geographic/Coordinates.js';
 
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = tileCount * x / layerDimension.x;

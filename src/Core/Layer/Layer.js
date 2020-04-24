@@ -1,7 +1,7 @@
 import { Color, EventDispatcher } from 'three';
-import Picking from '../Picking';
-import Capabilities from '../System/Capabilities';
-import AtlasBuilder from '../../Renderer/AtlasBuilder';
+import Picking from '../Picking.js';
+import Capabilities from '../System/Capabilities.js';
+import AtlasBuilder from '../../Renderer/AtlasBuilder.js';
 
 
 /**

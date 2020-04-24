@@ -1,8 +1,8 @@
 import flatbush from 'flatbush';
 import { Vector4 } from 'three';
-import Extent from '../Core/Geographic/Extent';
-import OGCWebServiceHelper from './OGCWebServiceHelper';
-import Fetcher from './Fetcher';
+import Extent from '../Core/Geographic/Extent.js';
+import OGCWebServiceHelper from './OGCWebServiceHelper.js';
+import Fetcher from './Fetcher.js';
 
 function _selectImagesFromSpatialIndex(index, images, extent) {
     return index.search(

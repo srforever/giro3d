@@ -1,8 +1,8 @@
 import * as THREE from 'three';
-import Fetcher from './Fetcher';
-import Cache from '../Core/Scheduler/Cache';
-import VectorTileParser from '../Parser/VectorTileParser';
-import Feature2Texture from '../Renderer/ThreeExtended/Feature2Texture';
+import Fetcher from './Fetcher.js';
+import Cache from '../Core/Scheduler/Cache.js';
+import VectorTileParser from '../Parser/VectorTileParser.js';
+import Feature2Texture from '../Renderer/ThreeExtended/Feature2Texture.js';
 
 const getVectorTileByUrl = function getVectorTileByUrl(url, tile, layer, coords) {
     return Fetcher.arrayBuffer(url, layer.networkOptions).then(buffer =>

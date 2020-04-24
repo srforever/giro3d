@@ -1,5 +1,5 @@
-import Coordinates from '../Core/Geographic/Coordinates';
-import Extent from '../Core/Geographic/Extent';
+import Coordinates from '../Core/Geographic/Coordinates.js';
+import Extent from '../Core/Geographic/Extent.js';
 
 function applyOffset(indices, offset) {
     for (const indice of indices) {

@@ -1,6 +1,6 @@
 import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
-import GeoJsonParser from './GeoJsonParser';
+import GeoJsonParser from './GeoJsonParser.js';
 
 function readPBF(file, options) {
     const vectorTile = new VectorTile(new Protobuf(file));

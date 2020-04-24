@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 
-import * as olsource from 'ol/source';
-import VectorTileSource from 'ol/source/VectorTile';
-import * as olformat from 'ol/format';
-import * as ollayer from 'ol/layer';
+import * as olsource from 'ol/source.js';
+import VectorTileSource from 'ol/source/VectorTile.js';
+import * as olformat from 'ol/format.js';
+import * as ollayer from 'ol/layer.js';
 
 export { THREE };
 export { default as proj4 } from 'proj4';

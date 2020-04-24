@@ -1,5 +1,5 @@
 import assert from 'assert';
-import PotreeBinParser from '../../src/Parser/PotreeBinParser';
+import PotreeBinParser from '../../src/Parser/PotreeBinParser.js';
 
 describe('PotreeBinParser', () => {
     it('should correctly parse position buffer', () => {

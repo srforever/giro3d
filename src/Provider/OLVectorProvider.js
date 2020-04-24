@@ -1,19 +1,20 @@
 import { Vector4, CanvasTexture, Texture } from 'three';
 
-import CanvasReplayGroup from 'ol/render/canvas/ReplayGroup';
-import { getSquaredTolerance as getSquaredRenderTolerance,
+import CanvasReplayGroup from 'ol/render/canvas/ReplayGroup.js';
+import {
+    getSquaredTolerance as getSquaredRenderTolerance,
     renderFeature as renderVectorFeature,
-} from 'ol/renderer/vector';
-import { Fill, Icon, Stroke, Style, Text } from 'ol/style';
-import ReplayType from 'ol/render/ReplayType';
+} from 'ol/renderer/vector.js';
+import { Fill, Icon, Stroke, Style, Text } from 'ol/style.js';
+import ReplayType from 'ol/render/ReplayType.js';
 import {
     create as createTransform,
     reset as resetTransform,
     scale as scaleTransform,
     translate as translateTransform,
-} from 'ol/transform';
+} from 'ol/transform.js';
 
-import Extent from '../Core/Geographic/Extent';
+import Extent from '../Core/Geographic/Extent.js';
 
 function fromOLExtent(extent, projectionCode) {
     return new Extent(projectionCode, extent[0], extent[2], extent[1], extent[3]);

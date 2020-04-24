@@ -1,5 +1,5 @@
 import assert from 'assert';
-import Camera from '../../src/Renderer/Camera';
+import Camera from '../../src/Renderer/Camera.js';
 
 describe('preSSE checks', () => {
     it('should increase when fov decrease', () => {

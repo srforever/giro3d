@@ -1,9 +1,9 @@
-import { Texture } from 'three/src/textures/Texture';
+import { Texture } from 'three/src/textures/Texture.js';
 
-import TileState from 'ol/TileState';
-import { listenOnce } from 'ol/events';
+import TileState from 'ol/TileState.js';
+import { listenOnce } from 'ol/events.js';
 
-import Extent from '../Core/Geographic/Extent';
+import Extent from '../Core/Geographic/Extent.js';
 
 function preprocessDataLayer(layer) {
     const source = layer.source;

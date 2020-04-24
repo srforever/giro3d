@@ -4,11 +4,11 @@
  * and open the template in the editor.
  */
 import * as THREE from 'three';
-import TileGeometry from '../Core/TileGeometry';
-import TileMesh from '../Core/TileMesh';
-import LayeredMaterial from '../Renderer/LayeredMaterial';
-import Cache from '../Core/Scheduler/Cache';
-import TiledNodeProcessing from '../Process/TiledNodeProcessing';
+import TileGeometry from '../Core/TileGeometry.js';
+import TileMesh from '../Core/TileMesh.js';
+import LayeredMaterial from '../Renderer/LayeredMaterial.js';
+import Cache from '../Core/Scheduler/Cache.js';
+import TiledNodeProcessing from '../Process/TiledNodeProcessing.js';
 
 function preprocessDataLayer(layer, view, scheduler) {
     if (!layer.schemeTile) {

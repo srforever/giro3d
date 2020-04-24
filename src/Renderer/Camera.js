@@ -3,7 +3,7 @@
  */
 
 import * as THREE from 'three';
-import Coordinates from '../Core/Geographic/Coordinates';
+import Coordinates from '../Core/Geographic/Coordinates.js';
 
 function Camera(crs, width, height, options = {}) {
     Object.defineProperty(this, 'crs', { get: () => crs });

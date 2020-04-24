@@ -1,13 +1,13 @@
 import * as THREE from 'three';
-import B3dmParser from '../Parser/B3dmParser';
-import PntsParser from '../Parser/PntsParser';
-import Fetcher from './Fetcher';
-import { pre3dTilesUpdate, process3dTilesNode, init3dTilesLayer } from '../Process/3dTilesProcessing';
-import utf8Decoder from '../utils/Utf8Decoder';
-import Picking from '../Core/Picking';
-import Points from '../Core/Points';
-import PointsMaterial from '../Renderer/PointsMaterial';
-import Cache from '../Core/Scheduler/Cache';
+import B3dmParser from '../Parser/B3dmParser.js';
+import PntsParser from '../Parser/PntsParser.js';
+import Fetcher from './Fetcher.js';
+import { pre3dTilesUpdate, process3dTilesNode, init3dTilesLayer } from '../Process/3dTilesProcessing.js';
+import utf8Decoder from '../utils/Utf8Decoder.js';
+import Picking from '../Core/Picking.js';
+import Points from '../Core/Points.js';
+import PointsMaterial from '../Renderer/PointsMaterial.js';
+import Cache from '../Core/Scheduler/Cache.js';
 
 const identity = new THREE.Matrix4();
 export function $3dTilesIndex(tileset, baseURL) {

@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import GLTFLoader from './GLTFLoader';
-import LegacyGLTFLoader from './LegacyGLTFLoader';
-import BatchTableParser from './BatchTableParser';
-import Capabilities from '../Core/System/Capabilities';
-import shaderUtils from '../Renderer/Shader/ShaderUtils';
-import utf8Decoder from '../utils/Utf8Decoder';
+import GLTFLoader from './GLTFLoader.js';
+import LegacyGLTFLoader from './LegacyGLTFLoader.js';
+import BatchTableParser from './BatchTableParser.js';
+import Capabilities from '../Core/System/Capabilities.js';
+import shaderUtils from '../Renderer/Shader/ShaderUtils.js';
+import utf8Decoder from '../utils/Utf8Decoder.js';
 
 const matrixChangeUpVectorZtoY = (new THREE.Matrix4()).makeRotationX(Math.PI / 2);
 // For gltf rotation

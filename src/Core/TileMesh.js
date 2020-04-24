@@ -5,8 +5,8 @@
  */
 
 import * as THREE from 'three';
-import RendererConstant from '../Renderer/RendererConstant';
-import OGCWebServiceHelper from '../Provider/OGCWebServiceHelper';
+import RendererConstant from '../Renderer/RendererConstant.js';
+import OGCWebServiceHelper from '../Provider/OGCWebServiceHelper.js';
 
 function TileMesh(layer, geometry, material, extent, level) {
     // Constructor

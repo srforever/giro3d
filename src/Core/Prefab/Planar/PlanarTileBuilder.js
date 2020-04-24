@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import OBB from '../../../Renderer/ThreeExtended/OBB';
-import Coordinates from '../../Geographic/Coordinates';
-import Extent from '../../Geographic/Extent';
+import OBB from '../../../Renderer/ThreeExtended/OBB.js';
+import Coordinates from '../../Geographic/Coordinates.js';
+import Extent from '../../Geographic/Extent.js';
 
 function PlanarTileBuilder() {
     this.tmp = {

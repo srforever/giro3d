@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
-import ObjectRemovalHelper from './ObjectRemovalHelper';
-import ScreenSpaceError from '../Core/ScreenSpaceError';
-import SubdivisionControl from './SubdivisionControl';
+import ObjectRemovalHelper from './ObjectRemovalHelper.js';
+import ScreenSpaceError from '../Core/ScreenSpaceError.js';
+import SubdivisionControl from './SubdivisionControl.js';
 
 function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
     const command = {

@@ -1,11 +1,11 @@
 import * as THREE from 'three';
 
-import Instance from '../instance';
+import Instance from '../instance.js';
 
-import { GeometryLayer } from '../Layer/Layer';
-import Extent from '../Geographic/Extent';
-import PanoramaTileBuilder from './Panorama/PanoramaTileBuilder';
-import ProjectionType from './Panorama/Constants';
+import { GeometryLayer } from '../Layer/Layer.js';
+import Extent from '../Geographic/Extent.js';
+import PanoramaTileBuilder from './Panorama/PanoramaTileBuilder.js';
+import ProjectionType from './Panorama/Constants.js';
 
 export function createPanoramaLayer(id, coordinates, type, options = {}) {
     const tileLayer = new GeometryLayer(id, options.object3d || new THREE.Group());

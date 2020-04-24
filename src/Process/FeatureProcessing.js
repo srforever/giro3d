@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import LayerUpdateState from '../Core/Layer/LayerUpdateState';
-import CancelledCommandException from '../Core/Scheduler/CancelledCommandException';
-import ObjectRemovalHelper from './ObjectRemovalHelper';
+import LayerUpdateState from '../Core/Layer/LayerUpdateState.js';
+import CancelledCommandException from '../Core/Scheduler/CancelledCommandException.js';
+import ObjectRemovalHelper from './ObjectRemovalHelper.js';
 
 
 const vector = new THREE.Vector3();

@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import OBBHelper from './OBBHelper';
-import Instance from '../../src/Core/instance';
-import GeometryDebug from './GeometryDebug';
+import OBBHelper from './OBBHelper.js';
+import Instance from '../../src/Core/instance.js';
+import GeometryDebug from './GeometryDebug.js';
 
 const invMatrixChangeUpVectorZtoY = new THREE.Matrix4().getInverse(new THREE.Matrix4().makeRotationX(Math.PI / 2));
 const invMatrixChangeUpVectorZtoX = new THREE.Matrix4().getInverse(new THREE.Matrix4().makeRotationZ(-Math.PI / 2));

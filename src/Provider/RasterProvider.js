@@ -6,11 +6,11 @@
 
 import * as THREE from 'three';
 import togeojson from '@mapbox/togeojson';
-import Extent from '../Core/Geographic/Extent';
-import Feature2Texture from '../Renderer/ThreeExtended/Feature2Texture';
-import GeoJsonParser from '../Parser/GeoJsonParser';
-import Fetcher from './Fetcher';
-import Cache from '../Core/Scheduler/Cache';
+import Extent from '../Core/Geographic/Extent.js';
+import Feature2Texture from '../Renderer/ThreeExtended/Feature2Texture.js';
+import GeoJsonParser from '../Parser/GeoJsonParser.js';
+import Fetcher from './Fetcher.js';
+import Cache from '../Core/Scheduler/Cache.js';
 
 function getExtentFromGpxFile(file) {
     const bound = file.getElementsByTagName('bounds')[0];

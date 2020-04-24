@@ -1,6 +1,6 @@
 import assert from 'assert';
-import LayerUpdateState from '../../src/Core/Layer/LayerUpdateState';
-import ColorTextureProcessing from '../../src/Process/ColorTextureProcessing';
+import LayerUpdateState from '../../src/Core/Layer/LayerUpdateState.js';
+import ColorTextureProcessing from '../../src/Process/ColorTextureProcessing.js';
 
 describe('material state vs layer state', () => {
     let opacity;

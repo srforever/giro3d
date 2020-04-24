@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import Extent from '../Core/Geographic/Extent';
-import ScreenSpaceError from '../Core/ScreenSpaceError';
+import Extent from '../Core/Geographic/Extent.js';
+import ScreenSpaceError from '../Core/ScreenSpaceError.js';
 
 const tmp = {
     v: new THREE.Vector3(),

@@ -51,6 +51,7 @@ module.exports = {
       requireParamDescription: false,
       requireReturnDescription: false,
     }],
+    'import/extensions': ["error", "always"],
     'import/no-extraneous-dependencies': ['error', {
         devDependencies: ['**/test/**', 'tests/**', 'examples/**'],
     }],

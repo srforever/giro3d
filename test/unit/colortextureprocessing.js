@@ -1,10 +1,10 @@
 import * as THREE from 'three';
-import ColorTextureProcessing from '../../src/Process/ColorTextureProcessing';
-import TileMesh from '../../src/Core/TileMesh';
-import Extent from '../../src/Core/Geographic/Extent';
-import OBB from '../../src/Renderer/ThreeExtended/OBB';
-import LayeredMaterial from '../../src/Renderer/LayeredMaterial';
-import { STRATEGY_MIN_NETWORK_TRAFFIC } from '../../src/Core/Layer/LayerUpdateStrategy';
+import ColorTextureProcessing from '../../src/Process/ColorTextureProcessing.js';
+import TileMesh from '../../src/Core/TileMesh.js';
+import Extent from '../../src/Core/Geographic/Extent.js';
+import OBB from '../../src/Renderer/ThreeExtended/OBB.js';
+import LayeredMaterial from '../../src/Renderer/LayeredMaterial.js';
+import { STRATEGY_MIN_NETWORK_TRAFFIC } from '../../src/Core/Layer/LayerUpdateStrategy.js';
 /* global describe, it, beforeEach */
 
 const assert = require('assert');

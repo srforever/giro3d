@@ -4,12 +4,12 @@
  * Description: Provides data from a WFS stream
  */
 
-import Extent from '../Core/Geographic/Extent';
-import URLBuilder from './URLBuilder';
-import Fetcher from './Fetcher';
-import Cache from '../Core/Scheduler/Cache';
-import GeoJsonParser from '../Parser/GeoJsonParser';
-import Feature2Mesh from '../Renderer/ThreeExtended/Feature2Mesh';
+import Extent from '../Core/Geographic/Extent.js';
+import URLBuilder from './URLBuilder.js';
+import Fetcher from './Fetcher.js';
+import Cache from '../Core/Scheduler/Cache.js';
+import GeoJsonParser from '../Parser/GeoJsonParser.js';
+import Feature2Mesh from '../Renderer/ThreeExtended/Feature2Mesh.js';
 
 function preprocessDataLayer(layer) {
     if (!layer.typeName) {

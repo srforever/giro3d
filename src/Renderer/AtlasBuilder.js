@@ -1,4 +1,4 @@
-import fit from './Packer';
+import fit from './Packer.js';
 
 /**
  * Build a texture atlas from N images.

@@ -11,7 +11,7 @@ const stats = new Map();
  * @module Cache
  *
  * @example
- * import Cache from './Cache';
+ * import Cache from './Cache.js';
  *
  * Cache.set('foo', { bar: 1 }, Cache.POLICIES.TEXTURE);
  * Cache.set('acme', { bar: 32 });

@@ -1,10 +1,10 @@
 import * as THREE from 'three';
 import proj4 from 'proj4';
 import assert from 'assert';
-import Extent from '../../src/Core/Geographic/Extent';
-import PlanarTileBuilder from '../../src/Core/Prefab/Planar/PlanarTileBuilder';
-import TileGeometry from '../../src/Core/TileGeometry';
-import OBB from '../../src/Renderer/ThreeExtended/OBB';
+import Extent from '../../src/Core/Geographic/Extent.js';
+import PlanarTileBuilder from '../../src/Core/Prefab/Planar/PlanarTileBuilder.js';
+import TileGeometry from '../../src/Core/TileGeometry.js';
+import OBB from '../../src/Renderer/ThreeExtended/OBB.js';
 
 const max = new THREE.Vector3(10, 10, 10);
 const min = new THREE.Vector3(-10, -10, -10);

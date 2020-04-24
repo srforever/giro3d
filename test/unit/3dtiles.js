@@ -1,10 +1,10 @@
 import proj4 from 'proj4';
 import assert from 'assert';
 import { Matrix4, Object3D } from 'three';
-import Camera from '../../src/Renderer/Camera';
-import Coordinates from '../../src/Core/Geographic/Coordinates';
-import { computeNodeSSE } from '../../src/Process/3dTilesProcessing';
-import { $3dTilesIndex, configureTile } from '../../src/Provider/3dTilesProvider';
+import Camera from '../../src/Renderer/Camera.js';
+import Coordinates from '../../src/Core/Geographic/Coordinates.js';
+import { computeNodeSSE } from '../../src/Process/3dTilesProcessing.js';
+import { $3dTilesIndex, configureTile } from '../../src/Provider/3dTilesProvider.js';
 
 function tilesetWithBox(transformMatrix) {
     const tileset = {

@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import PointsMaterial from '../Renderer/PointsMaterial';
+import PointsMaterial from '../Renderer/PointsMaterial.js';
 
 class Points extends THREE.Points {
     constructor(layer, geometry, material = new PointsMaterial()) {
