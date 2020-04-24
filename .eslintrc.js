@@ -53,7 +53,7 @@ module.exports = {
     }],
     'import/extensions': ["error", "always"],
     'import/no-extraneous-dependencies': ['error', {
-        devDependencies: ['**/test/**', 'tests/**', 'examples/**'],
+        devDependencies: ['test/**', 'utils/**', 'examples/**'],
     }],
     'no-underscore-dangle': 'off',
   },
