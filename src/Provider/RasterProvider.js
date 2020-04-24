@@ -32,7 +32,7 @@ function createTextureFromVector(tile, layer) {
         return Promise.resolve();
     }
 
-    if (layer.type == 'color') {
+    if (layer.type === 'color') {
         const coords = tile.extent;
         const result = { pitch: new THREE.Vector4(0, 0, 1, 1) };
         const key = getKey(tile.extent, layer);

@@ -20,15 +20,15 @@ describe('Vector tiles', () => {
     it('should return two squares', () =>
         parse(multipolygon).then(collection => {
             // two squares (4 + 1 closing vertices)
-            assert.ok(collection.features[0].vertices.length == 10);
+            assert.ok(collection.features[0].vertices.length === 10);
 
             const square1 = collection.features[0].vertices.slice(0, 5);
             const square2 = collection.features[0].vertices.slice(5);
 
             // first and last points are the same
-            assert.ok(square1[0].x() == square1[4].x());
-            assert.ok(square1[0].y() == square1[4].y());
-            assert.ok(square2[0].x() == square2[4].x());
-            assert.ok(square2[0].y() == square2[4].y());
+            assert.ok(square1[0].x() === square1[4].x());
+            assert.ok(square1[0].y() === square1[4].y());
+            assert.ok(square2[0].x() === square2[4].x());
+            assert.ok(square2[0].y() === square2[4].y());
         }));
 });

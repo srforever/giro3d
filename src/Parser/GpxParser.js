@@ -137,7 +137,8 @@ function _gpxToMesh(gpxXML, options = {}) {
         return undefined;
     }
 
-    if (options.enablePin == undefined) {
+    // we want to test for null and undefined, false is an acceptable value
+    if (options.enablePin == null) {
         options.enablePin = true;
     }
 

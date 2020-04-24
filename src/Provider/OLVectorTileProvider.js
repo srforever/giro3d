@@ -68,7 +68,7 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
     if (texture && texture.extent && texture.extent.isInside(tile.tileExtent)) {
         return null;
     }
-    if (texture == emptyTexture) {
+    if (texture === emptyTexture) {
         return null;
     }
     return tile;
@@ -106,7 +106,7 @@ function tileCoordForExtent(tileGrid, extent) {
     const maxZoom = tileGrid.getMaxZoom();
     for (let z = maxZoom, tileRange; z >= minZoom; z--) {
         tileRange = tileGrid.getTileRangeForExtentAndZ(extent, z, tileRange);
-        if (tileRange.getWidth() == 1 && tileRange.getHeight() == 1) {
+        if (tileRange.getWidth() === 1 && tileRange.getHeight() === 1) {
             return [z, tileRange.minX, tileRange.minY];
         }
     }
@@ -120,7 +120,7 @@ function executeCommand(command) {
 function loadTile(node, tile, layer) {
     let promise;
     const imageTile = tile.tile;
-    if (imageTile.getState() == TileState.LOADED) {
+    if (imageTile.getState() === TileState.LOADED) {
         promise = Promise.resolve(createTexture(node, tile, layer));
     } else {
         promise = new Promise((resolve, reject) => {
@@ -128,9 +128,9 @@ function loadTile(node, tile, layer) {
             listenOnce(imageTile, 'change', evt => {
                 const imageTile = evt.target;
                 const tileState = imageTile.getState();
-                if (tileState == TileState.ERROR) {
+                if (tileState === TileState.ERROR) {
                     reject();
-                } else if (tileState == TileState.LOADED) {
+                } else if (tileState === TileState.LOADED) {
                     resolve(createTexture(node, tile, layer));
                 }
             });
@@ -163,7 +163,7 @@ function createTexture(node, tile, layer) {
 
     for (let t = 0, tt = tile.tile.tileKeys.length; t < tt; ++t) {
         const sourceTile = tile.tile.getTile(tile.tile.tileKeys[t]);
-        if (sourceTile.getState() != TileState.LOADED) {
+        if (sourceTile.getState() !== TileState.LOADED) {
             continue;
         }
         sourceTile.setReplayGroup(layer, tile.tile.tileCoord.toString(), undefined);
@@ -190,7 +190,7 @@ function createReplayGroup(tile, layer) {
     let empty = true;
     for (let t = 0, tt = tile.tileKeys.length; t < tt; ++t) {
         const sourceTile = tile.getTile(tile.tileKeys[t]);
-        if (sourceTile.getState() != TileState.LOADED) {
+        if (sourceTile.getState() !== TileState.LOADED) {
             console.warn('not loaded !!!', sourceTile);
             continue;
         }
@@ -233,7 +233,7 @@ function createReplayGroup(tile, layer) {
         for (let i = 0, ii = features.length; i < ii; ++i) {
             const feature = features[i];
             if (reproject) {
-                if (tileProjection.getUnits() == Units.TILE_PIXELS) {
+                if (tileProjection.getUnits() === Units.TILE_PIXELS) {
                     // projected tile extent
                     tileProjection.setWorldExtent(sourceTileExtent);
                     // tile extent in tile pixel space
@@ -311,7 +311,7 @@ function renderTileImage(_canvas, tile, atlasInfo, layer) {
     let empty = true;
     for (let i = 0, ii = tile.tileKeys.length; i < ii; ++i) {
         const sourceTile = tile.getTile(tile.tileKeys[i]);
-        if (sourceTile.getState() != TileState.LOADED) {
+        if (sourceTile.getState() !== TileState.LOADED) {
             continue;
         }
         const pixelScale = pixelRatio / resolution;

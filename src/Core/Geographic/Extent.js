@@ -20,15 +20,15 @@ const CARDINAL = {
 };
 
 function _isTiledCRS(crs) {
-    return crs.indexOf('WMTS:') == 0 ||
-        crs == 'TMS';
+    return crs.indexOf('WMTS:') === 0 ||
+        crs === 'TMS';
 }
 
 function Extent(crs, ...values) {
     this._crs = crs;
 
     if (_isTiledCRS(crs)) {
-        if (values.length == 3) {
+        if (values.length === 3) {
             this.zoom = values[0];
             this.row = values[1];
             this.col = values[2];
@@ -47,13 +47,13 @@ function Extent(crs, ...values) {
         this._values[CARDINAL.EAST] = values[1]._values[0];
         this._values[CARDINAL.SOUTH] = values[0]._values[1];
         this._values[CARDINAL.NORTH] = values[1]._values[1];
-    } else if (values.length == 1 && values[0].west != undefined) {
+    } else if (values.length === 1 && values[0].west !== undefined) {
         this._values = new Float64Array(4);
         this._values[CARDINAL.WEST] = values[0].west;
         this._values[CARDINAL.EAST] = values[0].east;
         this._values[CARDINAL.SOUTH] = values[0].south;
         this._values[CARDINAL.NORTH] = values[0].north;
-    } else if (values.length == 4) {
+    } else if (values.length === 4) {
         this._values = new Float64Array(4);
         Object.keys(CARDINAL).forEach(key => {
             const cardinal = CARDINAL[key];
@@ -76,7 +76,7 @@ Extent.prototype.as = function as(crs) {
     assertCrsIsValid(crs);
 
     if (_isTiledCRS(this._crs)) {
-        if (this._crs == 'WMTS:PM') {
+        if (this._crs === 'WMTS:PM') {
             // Convert this to the requested crs by using 4326 as an intermediate state.
             const nbCol = Math.pow(2, this.zoom);
             const size = 360 / nbCol;
@@ -93,7 +93,7 @@ Extent.prototype.as = function as(crs) {
             const south = YToWGS84(Ys);
             // create intermediate EPSG:4326 and convert in new crs
             return new Extent('EPSG:4326', { west, east, south, north }).as(crs);
-        } else if (this._crs == 'WMTS:WGS84G' && crs == 'EPSG:4326') {
+        } else if (this._crs === 'WMTS:WGS84G' && crs === 'EPSG:4326') {
             const nbRow = Math.pow(2, this.zoom);
             const size = 180 / nbRow;
             const north = size * (nbRow - this.row) - 90;
@@ -106,7 +106,7 @@ Extent.prototype.as = function as(crs) {
         throw new Error('Unsupported yet');
     }
 
-    if (this._crs != crs && !(is4326(this._crs) && is4326(crs))) {
+    if (this._crs !== crs && !(is4326(this._crs) && is4326(crs))) {
         // Compute min/max in x/y by projecting 8 cardinal points,
         // and then taking the min/max of each coordinates.
         const cardinals = [];
@@ -140,7 +140,7 @@ Extent.prototype.as = function as(crs) {
 };
 
 Extent.prototype.offsetToParent = function offsetToParent(other, target = new THREE.Vector4()) {
-    if (this.crs() != other.crs()) {
+    if (this.crs() !== other.crs()) {
         throw new Error('unsupported mix');
     }
     if (_isTiledCRS(this.crs())) {
@@ -223,7 +223,7 @@ Extent.prototype.dimensions = function dimensions(target) {
  * @return {boolean}
  */
 Extent.prototype.isPointInside = function isPointInside(coord, epsilon = 0) {
-    const c = (this.crs() == coord.crs) ? coord : coord.as(this.crs());
+    const c = (this.crs() === coord.crs) ? coord : coord.as(this.crs());
     // TODO this ignores altitude
     if (crsIsGeographic(this.crs())) {
         return c.longitude() <= this.east() + epsilon &&
@@ -239,9 +239,9 @@ Extent.prototype.isPointInside = function isPointInside(coord, epsilon = 0) {
 
 Extent.prototype.isInside = function isInside(other, epsilon) {
     if (_isTiledCRS(this.crs())) {
-        if (this.zoom == other.zoom) {
-            return this.row == other.row &&
-                this.col == other.col;
+        if (this.zoom === other.zoom) {
+            return this.row === other.row &&
+                this.col === other.col;
         } else if (this.zoom < other.zoom) {
             return false;
         }
@@ -251,10 +251,11 @@ Extent.prototype.isInside = function isInside(other, epsilon) {
 
         const r = (this.row - (this.row % diff)) * invDiff;
         const c = (this.col - (this.col % diff)) * invDiff;
-        return r == other.row && c == other.col;
+        return r === other.row && c === other.col;
     }
     const o = other.as(this._crs);
-    epsilon = epsilon == undefined ? reasonnableEpsilonForCRS(this._crs, this) : epsilon;
+    // 0 is an acceptable value for epsilon:
+    epsilon = epsilon == null ? reasonnableEpsilonForCRS(this._crs, this) : epsilon;
     return this.east() - o.east() <= epsilon &&
                o.west() - this.west() <= epsilon &&
                this.north() - o.north() <= epsilon &&
@@ -262,7 +263,7 @@ Extent.prototype.isInside = function isInside(other, epsilon) {
 };
 
 Extent.prototype.offsetScale = function offsetScale(bbox) {
-    if (bbox.crs() != this.crs()) {
+    if (bbox.crs() !== this.crs()) {
         throw new Error('unsupported offscale between 2 diff crs');
     }
 
@@ -304,7 +305,7 @@ Extent.prototype.intersect = function intersect(other) {
         return this;
     }
     // TODO use an intermediate tmp instance for .as
-    if (other.crs() != this.crs()) {
+    if (other.crs() !== this.crs()) {
         other = other.as(this.crs());
     }
     this.set(this.crs(),
@@ -347,7 +348,7 @@ Extent.prototype.copy = function copy(other) {
 };
 
 Extent.prototype.union = function union(extent) {
-    if (extent.crs() != this.crs()) {
+    if (extent.crs() !== this.crs()) {
         throw new Error('unsupported union between 2 diff crs');
     }
     const west = extent.west();

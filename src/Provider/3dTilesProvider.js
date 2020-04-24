@@ -57,7 +57,7 @@ export function $3dTilesIndex(tileset, baseURL) {
             }
             const count = node.children.length;
             node.children = node.children.filter(n => n !== undefined);
-            if (node.children.length != count) {
+            if (node.children.length !== count) {
                 // console.log('Removed elements:', count - node.children.length);
             }
         }
@@ -91,7 +91,7 @@ export function getObjectToUpdateForAttachedLayers(meta) {
     }
     const result = [];
     meta.content.traverse(obj => {
-        if (obj.isObject3D && obj.material && obj.layer == meta.layer) {
+        if (obj.isObject3D && obj.material && obj.layer === meta.layer) {
             result.push(obj);
         }
     });
@@ -168,7 +168,7 @@ function getBox(volume) {
         const t = center.z + bbox[11];
 
         const box = new THREE.Box3(new THREE.Vector3(w, s, b), new THREE.Vector3(e, n, t));
-        if (box.getSize(new THREE.Vector3()).length() == 0) {
+        if (box.getSize(new THREE.Vector3()).length() === 0) {
             throw new Error('Invalid boundingVolume (0 sized box)');
         }
         return { box };
@@ -283,9 +283,9 @@ function executeCommand(command) {
                     result = JSON.parse(utf8Decoder.decode(new Uint8Array(result)));
                     const newPrefix = url.slice(0, url.lastIndexOf('/') + 1);
                     layer.tileIndex.extendTileset(result, metadata.tileId, newPrefix);
-                } else if (magic == 'b3dm') {
+                } else if (magic === 'b3dm') {
                     func = supportedFormats.b3dm;
-                } else if (magic == 'pnts') {
+                } else if (magic === 'pnts') {
                     func = supportedFormats.pnts;
                 } else {
                     return Promise.reject(`Unsupported magic code ${magic}`);

@@ -202,7 +202,7 @@ export default {
             if (o.isPoints && o.visible && o.material.visible && o.material.enablePicking) {
                 o.material.enablePicking(visibleId++);
 
-                if (visibleId == maxVisibleId) {
+                if (visibleId === maxVisibleId) {
                     console.warn('Too much visible point instance. The next one won\'t be pickable');
                 }
             }
@@ -240,7 +240,7 @@ export default {
 
             const data = buffer.slice(idx * 4, idx * 4 + 4);
 
-            if (data[0] == 255 && data[1] == 255) {
+            if (data[0] === 255 && data[1] === 255) {
                 return;
             }
             // 12 first bits (so data[0] and half of data[1]) = pickingId
@@ -261,7 +261,7 @@ export default {
 
             // filter already if already present
             for (let i = 0; i < candidates.length; i++) {
-                if (candidates[i].pickingId == r.pickingId && candidates[i].index == r.index) {
+                if (candidates[i].pickingId === r.pickingId && candidates[i].index === r.index) {
                     return;
                 }
             }
@@ -273,7 +273,7 @@ export default {
         layer.object3d.traverse(o => {
             if (o.isPoints && o.visible && o.material.visible) {
                 for (let i = 0; i < candidates.length; i++) {
-                    if (candidates[i].pickingId == o.material.pickingId) {
+                    if (candidates[i].pickingId === o.material.pickingId) {
                         const position = new THREE.Vector3()
                             .fromArray(o.geometry.attributes.position.array, 3 * candidates[i].index)
                             .applyMatrix4(o.matrixWorld);
@@ -353,7 +353,7 @@ export default {
             }
 
             // Stop at first hit
-            return target.length == 0;
+            return target.length === 0;
         });
 
         return target;

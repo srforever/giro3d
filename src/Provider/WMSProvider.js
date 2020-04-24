@@ -40,7 +40,7 @@ function preprocessDataLayer(layer) {
 
     if (!layer.axisOrder) {
         // 4326 (lat/long) axis order depends on the WMS version used
-        if (layer.projection == 'EPSG:4326') {
+        if (layer.projection === 'EPSG:4326') {
             // EPSG 4326 x = lat, long = y
             // version 1.1.0 long/lat while version 1.3.0 mandates xy (so lat,long)
             layer.axisOrder = (layer.version === '1.1.0' ? 'wsen' : 'swne');
@@ -101,7 +101,7 @@ function selectAllExtentsToDownload(layer, ex, texture, previousError) {
 }
 
 export function chooseExtentToDownload(layer, extent, currentExtent) {
-    if (layer.updateStrategy.type == STRATEGY_MIN_NETWORK_TRAFFIC) {
+    if (layer.updateStrategy.type === STRATEGY_MIN_NETWORK_TRAFFIC) {
         return extent;
     }
     if (!currentExtent) {

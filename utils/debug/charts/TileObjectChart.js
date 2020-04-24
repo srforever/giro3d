@@ -31,7 +31,7 @@ export default function TileObjectsChart(chartId, tileLayer) {
         const limit = 60;
         const timeInS = Math.floor((Date.now() - timestamp) / 1000);
         const lbl = `${timeInS}s`;
-        const identical = (lastValidCompareIndex > 0 && label[lastValidCompareIndex] == lbl);
+        const identical = (lastValidCompareIndex > 0 && label[lastValidCompareIndex] === lbl);
         if (identical) {
             label.push('');
         } else {

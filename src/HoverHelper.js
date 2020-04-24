@@ -53,7 +53,7 @@ class HoverHelper {
         const old = this.hoveredObject;
         this.hoveredObject = objectUnderMouseEvent(event, this.view, this.hoverableObjects);
 
-        if (old == this.hoveredObject) {
+        if (old === this.hoveredObject) {
             return;
         }
         if (old) {

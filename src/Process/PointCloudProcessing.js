@@ -122,7 +122,7 @@ export default {
         // lookup lowest common ancestor of changeSources
         let commonAncestorName;
         for (const source of changeSources.values()) {
-            if (source.isCamera || source == layer) {
+            if (source.isCamera || source === layer) {
                 // if the change is caused by a camera move, no need to bother
                 // to find common ancestor: we need to update the whole tree:
                 // some invisible tiles may now be visible
@@ -132,18 +132,18 @@ export default {
                 continue;
             }
             // filter sources that belong to our layer
-            if (source.obj.isPoints && source.obj.layer == layer) {
+            if (source.obj.isPoints && source.obj.layer === layer) {
                 if (!commonAncestorName) {
                     commonAncestorName = source.name;
                 } else {
                     let i;
                     for (i = 0; i < Math.min(source.name.length, commonAncestorName.length); i++) {
-                        if (source.name[i] != commonAncestorName[i]) {
+                        if (source.name[i] !== commonAncestorName[i]) {
                             break;
                         }
                     }
                     commonAncestorName = commonAncestorName.substr(0, i);
-                    if (commonAncestorName.length == 0) {
+                    if (commonAncestorName.length === 0) {
                         break;
                     }
                 }
@@ -209,7 +209,7 @@ export default {
                         view: context.view,
                         priority,
                         redraw: true,
-                        isLeaf: elt.childrenBitField == 0,
+                        isLeaf: elt.childrenBitField === 0,
                         earlyDropFunction: cmd => !cmd.requester.visible || !layer.visible,
                     }).then(pts => {
                         if (layer.onPointsCreated) {

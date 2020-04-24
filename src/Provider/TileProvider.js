@@ -64,7 +64,7 @@ function executeCommand(command) {
         geometry._count = 0;
         geometry.dispose = () => {
             geometry._count--;
-            if (geometry._count == 0) {
+            if (geometry._count === 0) {
                 THREE.BufferGeometry.prototype.dispose.call(geometry);
                 Cache.delete(key);
             }
@@ -76,7 +76,7 @@ function executeCommand(command) {
     const material = new LayeredMaterial(layer.materialOptions, segment, layer.atlasInfo);
     const tile = new TileMesh(layer, geometry, material, extent, level);
     tile.layers.set(command.threejsLayer);
-    if (layer.renderOrder != undefined) {
+    if (layer.renderOrder !== undefined) {
         tile.renderOrder = layer.renderOrder;
     }
     material.opacity = layer.opacity;
@@ -102,7 +102,7 @@ function executeCommand(command) {
     }
 
     // no texture opacity
-    if (layer.noTextureOpacity != undefined) {
+    if (layer.noTextureOpacity !== undefined) {
         tile.material.uniforms.noTextureOpacity.value = layer.noTextureOpacity;
     }
 
@@ -115,7 +115,7 @@ function executeCommand(command) {
         tile.setBBoxZ(parent.OBB().z.min, parent.OBB().z.max);
     } else {
         // TODO: probably not here
-        const elevation = command.view.getLayers((l, p) => p == layer && l.type == 'elevation');
+        const elevation = command.view.getLayers((l, p) => p === layer && l.type === 'elevation');
         if (elevation.length > 0) {
             if (!elevation[0].minmax) {
                 console.error('fix the provider');

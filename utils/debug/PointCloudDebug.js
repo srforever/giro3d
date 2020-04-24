@@ -30,13 +30,13 @@ export default {
         layer.dbgDisplaybbox = false;
 
         const styleUI = layer.debugUI.addFolder('Styling');
-        if (layer.material.mode != undefined) {
+        if (layer.material.mode !== undefined) {
             styleUI.add(layer.material, 'mode', MODE).name('Display mode').onChange(update);
         }
         styleUI.add(layer, 'opacity', 0, 1).name('Layer Opacity').onChange(update);
         styleUI.add(layer, 'pointSize', 0, 15).name('Point Size').onChange(update);
         styleUI.add(layer, 'dbgDisplaybbox').name('Display Bounding Boxes').onChange(update);
-        if (layer.material.picking != undefined) {
+        if (layer.material.picking !== undefined) {
             styleUI.add(layer.material, 'picking').name('Display picking id').onChange(update);
         }
 
@@ -58,7 +58,7 @@ export default {
                 for (const pts of layer.group.children) {
                     pts.material.visible = false;
                     for (const name of stickies) {
-                        if (pts.userData.metadata.name == name) {
+                        if (pts.userData.metadata.name === name) {
                             pts.material.visible = true;
                         } else if (!isInHierarchy(pts.userData.metadata, name)) {
                             continue;

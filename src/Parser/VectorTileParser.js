@@ -25,7 +25,7 @@ function readPBF(file, options) {
             // We need to move from TMS to Google/Bing/OSM coordinates
             // https://alastaira.wordpress.com/2011/07/06/converting-tms-tile-coordinates-to-googlebingosm-tile-coordinates/
             // Only if the layer.origin is top
-            if (options.origin == 'top') {
+            if (options.origin === 'top') {
                 feature = l.feature(i).toGeoJSON(options.coords.col, options.coords.row, options.coords.zoom);
             } else {
                 const y = 1 << options.coords.zoom;

@@ -145,7 +145,7 @@ export default {
                     if (!result) {
                         success = false;
                     }
-                    if (prev != tmp.z) {
+                    if (prev !== tmp.z) {
                         geometry.attributes.position.needsUpdate = true;
                     }
                     geometry.attributes.position.setXYZ(i, tmp.x, tmp.y, tmp.z);
@@ -291,7 +291,7 @@ function _readZFast(layer, texture, uv) {
 function _readZCorrect(layer, texture, uv, tileDimensions, tileOwnerDimensions) {
     // We need to emulate the vertex shader code that does 2 thing:
     //   - interpolate (u, v) between triangle vertices: u,v will be multiple of 1/nsegments
-    //     (for now assume nsegments == 16)
+    //     (for now assume nsegments === 16)
     //   - read elevation texture at (u, v) for
 
     // Determine u,v based on the vertices count.
@@ -303,10 +303,10 @@ function _readZCorrect(layer, texture, uv, tileDimensions, tileOwnerDimensions) 
     let u = Math.floor(uv.x / modulo) * modulo;
     let v = Math.floor(uv.y / modulo) * modulo;
 
-    if (u == 1) {
+    if (u === 1) {
         u -= modulo;
     }
-    if (v == 1) {
+    if (v === 1) {
         v -= modulo;
     }
 
@@ -329,7 +329,7 @@ function _readZCorrect(layer, texture, uv, tileDimensions, tileOwnerDimensions) 
 
     // Determine if we're going to read the vertices from the top-left or lower-right triangle
     // (low-right = on the line 21-22 or under the diagonal lu = 1 - lv)
-    const lowerRightTriangle = (lv == 1) || lu / (1 - lv) >= 1;
+    const lowerRightTriangle = (lv === 1) || lu / (1 - lv) >= 1;
 
     const tri = new THREE.Triangle(
         new THREE.Vector3(u1, v2),
@@ -403,7 +403,7 @@ function _readZ(layer, method, coord, nodes, cache) {
     //   - the fast one: read the value of tileWithValidElevationTexture.texture.image
     //     at (offset.x, offset.y) and we're done
     //   - the correct one: emulate the vertex shader code
-    if (method == PRECISE_READ_Z) {
+    if (method === PRECISE_READ_Z) {
         pt._values[2] = _readZCorrect(layer, src, offset, tile.extent.dimensions(), tileWithValidElevationTexture.extent.dimensions());
     } else {
         pt._values[2] = _readZFast(layer, src, offset);

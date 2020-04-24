@@ -12,7 +12,7 @@ function initColorTexturesFromParent(context, node, parent, layer) {
     // move up until we have a parent that uses its own atlas
     // This is needed because otherwise we'll get inconsistencies: child will inherit the atlas,
     // but will compute its offset/scale values based on the result of parent.material.getLayerTexture()
-    while (parent && parent.material && parent.material.uniforms.colorTexture.value != parent.material.texturesInfo.color.atlasTexture) {
+    while (parent && parent.material && parent.material.uniforms.colorTexture.value !== parent.material.texturesInfo.color.atlasTexture) {
         parent = parent.parent;
     }
     if (!parent || !parent.material) {

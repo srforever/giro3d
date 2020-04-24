@@ -23,6 +23,7 @@ module.exports = {
     commonjs: true
   },
   rules: {
+     eqeqeq: ["error", "smart"],
     'no-plusplus': 'off',
     'arrow-parens': ['error', 'as-needed'],
     // this option sets a specific tab width for your code

@@ -97,11 +97,11 @@ function PointCloudRenderer(view) {
         },
         setup(renderer, input, passIdx) {
             const m = this.passes[passIdx];
-            if (passIdx == 0) {
+            if (passIdx === 0) {
                 // scale down depth texture
                 m.uniforms.depthTexture.value = input.depthTexture;
                 return { material: m, output: renderer.renderTargets[RT.HALF_RES] };
-            } else if (passIdx == 1) {
+            } else if (passIdx === 1) {
                 m.uniforms.depthTexture.value = renderer.renderTargets[RT.HALF_RES].depthTexture;
                 m.uniforms.resolution.value.set(input.width, input.height);
                 m.uniforms.cameraNear.value = renderer.view.camera.camera3D.near;
@@ -240,8 +240,8 @@ function PointCloudRenderer(view) {
 }
 
 PointCloudRenderer.prototype.update = function update() {
-    if (this.view.camera.width != this.renderTargets[RT.FULL_RES_0].width ||
-        this.view.camera.height != this.renderTargets[RT.FULL_RES_0].height) {
+    if (this.view.camera.width !== this.renderTargets[RT.FULL_RES_0].width ||
+        this.view.camera.height !== this.renderTargets[RT.FULL_RES_0].height) {
         // release old render targets
         this.renderTargets.forEach(rt => rt.dispose());
         // build new ones
@@ -284,7 +284,7 @@ PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.
             let { material, output } = stage.setup(this, this.renderTargets[previousStageOutput], j);
 
             // if last stage -> override output (draw to screen)
-            if (i == stages.length - 1 && j == stage.passes.length - 1) {
+            if (i === stages.length - 1 && j === stage.passes.length - 1) {
                 output = null;
             } else if (!output) {
                 output = this.renderTargets[stageOutput];

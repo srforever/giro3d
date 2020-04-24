@@ -1,5 +1,5 @@
 function pointIsOverLine(point, linePoints, epsilon) {
-    if (point.crs != linePoints[0].crs) {
+    if (point.crs !== linePoints[0].crs) {
         throw new Error('crs must be the same');
     }
 
@@ -51,7 +51,7 @@ function pointIsOverLine(point, linePoints, epsilon) {
 }
 
 function getClosestPoint(point, points, epsilon) {
-    if (point.crs != points[0].crs) {
+    if (point.crs !== points[0].crs) {
         throw new Error('crs must be the same');
     }
 
@@ -74,7 +74,7 @@ function getClosestPoint(point, points, epsilon) {
 }
 
 function pointIsInsidePolygon(point, polygonPoints) {
-    if (point.crs != polygonPoints[0].crs) {
+    if (point.crs !== polygonPoints[0].crs) {
         throw new Error('crs must be the same');
     }
     // ray-casting algorithm based on
@@ -93,7 +93,7 @@ function pointIsInsidePolygon(point, polygonPoints) {
         const yj = polygonPoints[j]._values[1];
 
         // isIntersect semi-infinite ray horizontally with polygon's edge
-        const isIntersect = ((yi > y) != (yj > y))
+        const isIntersect = ((yi > y) !== (yj > y))
             && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
         if (isIntersect) {
             inside = !inside;
@@ -105,11 +105,11 @@ function pointIsInsidePolygon(point, polygonPoints) {
 
 function isFeatureSingleGeometryUnderCoordinate(coordinate, type, coordinates, epsilon) {
     // TODO support multipolygon case
-    if (type == 'linestring' && pointIsOverLine(coordinate, coordinates, epsilon)) {
+    if (type === 'linestring' && pointIsOverLine(coordinate, coordinates, epsilon)) {
         return true;
-    } else if (type == 'polygon' && pointIsInsidePolygon(coordinate, coordinates)) {
+    } else if (type === 'polygon' && pointIsInsidePolygon(coordinate, coordinates)) {
         return true;
-    } else if (type == 'point') {
+    } else if (type === 'point') {
         const closestPoint = getClosestPoint(coordinate, coordinates, epsilon);
         if (!closestPoint) {
             return false
@@ -121,7 +121,7 @@ function isFeatureSingleGeometryUnderCoordinate(coordinate, type, coordinates, e
 
 function isFeatureUnderCoordinate(coordinate, feature, epsilon, result) {
     for (const geometry of feature.geometry) {
-        const coordinates = feature.type == 'polygon' ?
+        const coordinates = feature.type === 'polygon' ?
             feature.vertices.slice(geometry.indices[0].offset,
                 geometry.indices[0].offset + geometry.indices[0].count) :
             feature.vertices;

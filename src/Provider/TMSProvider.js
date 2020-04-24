@@ -18,7 +18,7 @@ function preprocessDataLayer(layer) {
         }
         layer.extent = new Extent(layer.projection, ...layer.extent);
     }
-    layer.origin = layer.origin || (layer.protocol == 'xyz' ? 'top' : 'bottom');
+    layer.origin = layer.origin || (layer.protocol === 'xyz' ? 'top' : 'bottom');
     if (!layer.options.zoom) {
         layer.options.zoom = {
             min: 0,
@@ -40,7 +40,7 @@ function _group(nodeLevel, currentLevel, options) {
 }
 
 function chooseExtentToDownload(extent, currentExtent, layer, pitch, previousError) {
-    if (layer.updateStrategy.type == STRATEGY_MIN_NETWORK_TRAFFIC) {
+    if (layer.updateStrategy.type === STRATEGY_MIN_NETWORK_TRAFFIC) {
         return extent;
     }
 
@@ -64,7 +64,7 @@ function chooseExtentToDownload(extent, currentExtent, layer, pitch, previousErr
         }
     }
 
-    if (previousError && previousError.extent && previousError.extent.zoom == nextZoom) {
+    if (previousError && previousError.extent && previousError.extent.zoom === nextZoom) {
         nextZoom = Math.ceil((currentExtent.zoom + nextZoom) / 2);
     }
 
@@ -107,7 +107,7 @@ function selectAllExtentsToDownload(layer, extent_, texture, previousError) {
         previousError);
 
     // if the choice is the same as the current one => stop updating
-    if (texture && texture.extent && texture.extent.zoom == extent.zoom) {
+    if (texture && texture.extent && texture.extent.zoom === extent.zoom) {
         return null;
     }
     return {

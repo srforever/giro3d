@@ -25,7 +25,7 @@ function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
 }
 
 function subdivideNode(context, layer, node) {
-    if (!node.children.some(n => n.layer == layer)) {
+    if (!node.children.some(n => n.layer === layer)) {
         const extents = node.extent.quadtreeSplit();
 
         for (const extent of extents) {
@@ -100,7 +100,7 @@ function preUpdate(context, layer, changeSources) {
         layer._latestUpdateStartingLevel = 0;
     }
 
-    if (changeSources.has(undefined) || changeSources.size == 0) {
+    if (changeSources.has(undefined) || changeSources.size === 0) {
         return layer.level0Nodes;
     }
 
@@ -147,7 +147,7 @@ function update(context, layer, node) {
                 updateMinMaxDistance(context, layer, node);
                 return null;
             } else if (node.visible) {
-                return node.children.filter(n => n.layer == layer);
+                return node.children.filter(n => n.layer === layer);
             }
             return null;
         }
@@ -199,7 +199,7 @@ function update(context, layer, node) {
         }
 
         // TODO: use Array.slice()
-        return requestChildrenUpdate ? node.children.filter(n => n.layer == layer) : undefined;
+        return requestChildrenUpdate ? node.children.filter(n => n.layer === layer) : undefined;
     }
 
     node.setDisplayed(false);

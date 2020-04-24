@@ -20,7 +20,7 @@ function tr(r, g, b) {
 }
 
 export function minMaxFromTexture(layer, texture) {
-    if (texture.min != undefined && texture.max != undefined) {
+    if (texture.min != null && texture.max != null) {
         return {
             min: texture.min,
             max: texture.max,
@@ -41,7 +41,7 @@ export function minMaxFromTexture(layer, texture) {
 
     let min = Infinity;
     let max = -Infinity;
-    if (layer.format == ELEVATION_FORMAT.MAPBOX_RGB) {
+    if (layer.format === ELEVATION_FORMAT.MAPBOX_RGB) {
         const { data, stride, h } = colorImageSetup();
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < stride; j += 4) {
@@ -57,7 +57,7 @@ export function minMaxFromTexture(layer, texture) {
                 }
             }
         }
-    } else if (layer.format == ELEVATION_FORMAT.HEIGHFIELD) {
+    } else if (layer.format === ELEVATION_FORMAT.HEIGHFIELD) {
         const { data, stride, h } = colorImageSetup();
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < stride; j += 4) {
@@ -67,7 +67,7 @@ export function minMaxFromTexture(layer, texture) {
         }
         min = layer.heightFieldOffset + layer.heightFieldScale * (min / 255);
         max = layer.heightFieldOffset + layer.heightFieldScale * (max / 255);
-    } else if (layer.format == ELEVATION_FORMAT.XBIL) {
+    } else if (layer.format === ELEVATION_FORMAT.XBIL) {
         for (let i = 0; i < texture.image.data.length; i++) {
             const val = texture.image.data[i];
             if (val > -1000) {
@@ -75,7 +75,7 @@ export function minMaxFromTexture(layer, texture) {
                 max = Math.max(max, val);
             }
         }
-    } else if (layer.format == ELEVATION_FORMAT.RATP_GEOL) {
+    } else if (layer.format === ELEVATION_FORMAT.RATP_GEOL) {
         // TODO
         min = -1000;
         max = 1000;

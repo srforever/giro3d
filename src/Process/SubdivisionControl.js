@@ -1,9 +1,9 @@
 export default {
     preUpdate: (context, layer) => {
         context.colorLayers = context.view.getLayers(
-            (l, a) => a && a.id == layer.id && l.type == 'color');
+            (l, a) => a && a.id === layer.id && l.type === 'color');
         context.elevationLayers = context.view.getLayers(
-            (l, a) => a && a.id == layer.id && l.type == 'elevation');
+            (l, a) => a && a.id === layer.id && l.type === 'elevation');
     },
 
     hasEnoughTexturesToSubdivide: (context, layer, node) => {
@@ -19,7 +19,7 @@ export default {
             }
         }
 
-        if (node.children.some(n => n.layer == layer)) {
+        if (node.children.some(n => n.layer === layer)) {
             // No need to prevent subdivision, since we've already done it before
             return true;
         }

@@ -70,7 +70,7 @@ LayerUpdateState.prototype.failure = function failure(timestamp, definitive, fai
 };
 
 LayerUpdateState.prototype.inError = function inError() {
-    return this.state == UPDATE_STATE.DEFINITIVE_ERROR || this.state == UPDATE_STATE.ERROR;
+    return this.state === UPDATE_STATE.DEFINITIVE_ERROR || this.state === UPDATE_STATE.ERROR;
 };
 
 export default LayerUpdateState;

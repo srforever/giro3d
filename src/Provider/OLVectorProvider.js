@@ -33,7 +33,7 @@ function preprocessDataLayer(layer) {
     layer.imageSize = { w: 256, h: 256 };
 
     const format = layer.source.getFormat();
-    if (format && format.dataProjection.getCode() != layer.projection) {
+    if (format && format.dataProjection.getCode() !== layer.projection) {
         for (const f of layer.source.getFeatures()) {
             f.getGeometry().transform(
                 layer.source.getFormat().dataProjection.getCode(),
@@ -65,7 +65,7 @@ function toOLExtent(extent) {
 function canTextureBeImproved(layer, extent, texture, previousError) {
     if (texture && texture.extent &&
         texture.extent.isInside(extent) &&
-        texture.revision == layer.source.getRevision()) {
+        texture.revision === layer.source.getRevision()) {
         return null;
     }
 

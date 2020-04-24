@@ -92,7 +92,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
                     helper.updateMatrixWorld();
                 }
 
-                if (helper && (metadata.magic == 'b3dm' || metadata.magic == 'i3dm') && !metadata.boundingVolume.region) {
+                if (helper && (metadata.magic === 'b3dm' || metadata.magic === 'i3dm') && !metadata.boundingVolume.region) {
                     // compensate B3dm orientation correction
                     const { gltfUpAxis } = _3dTileslayer.asset;
                     helper.updateMatrix();

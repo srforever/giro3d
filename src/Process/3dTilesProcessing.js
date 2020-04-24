@@ -71,7 +71,7 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
 
 function getChildTiles(tile) {
     // only keep children that have the same layer and a valid tileId
-    return tile.children.filter(n => n.layer == tile.layer && n.tileId);
+    return tile.children.filter(n => n.layer === tile.layer && n.tileId);
 }
 
 function subdivideNode(context, layer, node, cullingTest) {
@@ -109,7 +109,7 @@ const tmpMatrix = new THREE.Matrix4();
 function _subdivideNodeAdditive(context, layer, node, cullingTest) {
     for (const child of layer.tileIndex.index[node.tileId].children) {
         // child being downloaded or already added => skip
-        if (child.promise || node.children.filter(n => n.tileId == child.tileId).length > 0) {
+        if (child.promise || node.children.filter(n => n.tileId === child.tileId).length > 0) {
             continue;
         }
 
@@ -265,7 +265,7 @@ function cleanup3dTileset(layer, n, depth = 0) {
 
 
     // and finally remove from parent
-    // if (depth == 0 && n.parent) {
+    // if (depth === 0 && n.parent) {
     //     n.parent.remove(n);
     // }
 }
@@ -380,7 +380,7 @@ function unmarkForDeletion(layer, elt) {
 
 function isTilesetContentReady(tileset, node) {
     return tileset && node && // is tileset loaded ?
-        node.children.length == 1 && // is tileset root loaded ?
+        node.children.length === 1 && // is tileset root loaded ?
         node.children[0].children.length > 0;
 }
 
@@ -446,7 +446,7 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                     if (subtilesets.length) {
                         let allReady = true;
                         for (const tileset of subtilesets) {
-                            if (!isTilesetContentReady(tileset, node.children.filter(n => n.tileId == tileset.tileId)[0])) {
+                            if (!isTilesetContentReady(tileset, node.children.filter(n => n.tileId === tileset.tileId)[0])) {
                                 allReady = false;
                                 break;
                             }
@@ -478,7 +478,7 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                     layer._distance.max = Math.max(layer._distance.max, node.distance.max);
                 }
                 node.content.traverse(o => {
-                    if (o.layer == layer && o.material) {
+                    if (o.layer === layer && o.material) {
                         o.material.wireframe = layer.wireframe;
                         if (o.isPoints) {
                             if (o.material.update) {
@@ -490,7 +490,7 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                     }
                 });
             }
-        } else if (node != layer.root) {
+        } else if (node !== layer.root) {
             if (node.parent && node.parent.additiveRefinement) {
                 markForDeletion(layer, node);
             }

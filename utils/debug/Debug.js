@@ -37,7 +37,7 @@ function Debug(view, datDebugTool, chartDivContainer) {
     const tileLayer = view.tileLayer || view.wgs84TileLayer || view.baseLayer;
 
     function debugChartUpdate(updateDuration) {
-        const displayed = chartDivContainer.style.display != 'none';
+        const displayed = chartDivContainer.style.display !== 'none';
         charts.forEach(c => c.update(displayed, updateDuration));
     }
 

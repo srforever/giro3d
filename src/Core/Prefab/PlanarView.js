@@ -15,7 +15,7 @@ function findCellWith(x, y, layerDimension, tileCount) {
     // they won't expect this function to return the tile immediately to the bottom right.
     // therefore, if tx or ty is exactly one, we need to give back 0 instead.
     // we consider inclusive bounds actually.
-    return { x: tx == 1 ? 0 : Math.floor(tx), y: ty == 1 ? 0 : Math.floor(ty) };
+    return { x: tx === 1 ? 0 : Math.floor(tx), y: ty === 1 ? 0 : Math.floor(ty) };
 }
 
 
@@ -69,7 +69,7 @@ export function createPlanarLayer(id, extent, options = {}) {
     const tileLayer = new GeometryLayer(id, options.object3d || new THREE.Group());
     const crs = Array.isArray(extent) ? extent[0].crs() : extent.crs();
 
-    if (crs == 'EPSG:3857') {
+    if (crs === 'EPSG:3857') {
         // align quadtree on EPSG:3857 full extent
         const aligned = compute3857Extent(extent);
         tileLayer.schemeTile = aligned;
@@ -94,7 +94,7 @@ export function createPlanarLayer(id, extent, options = {}) {
     tileLayer.postUpdate = (context, layer) => {
         for (const r of layer.level0Nodes) {
             r.traverse(node => {
-                if (node.layer != layer || !node.material.visible) {
+                if (node.layer !== layer || !node.material.visible) {
                     return;
                 }
                 node.material.uniforms.neighbourdiffLevel.value.set(0, 0, 0, 1);
@@ -161,7 +161,7 @@ export function createPlanarLayer(id, extent, options = {}) {
             return node;
         }
         if (!node.parent || !node.parent.extent) {
-            if (node.level == 0 && node.parent.children.length) {
+            if (node.level === 0 && node.parent.children.length) {
                 for (const sibling of node.parent.children) {
                     if (sibling.extent &&
                         extent.isInside(sibling.extent)) {
@@ -222,7 +222,7 @@ function PlanarView(viewerDiv, extent, options = {}) {
     this._renderState = RendererConstant.FINAL;
     this._fullSizeDepthBuffer = null;
     this.addFrameRequester(MAIN_LOOP_EVENTS.BEFORE_RENDER, () => {
-        if (this._fullSizeDepthBuffer != null) {
+        if (this._fullSizeDepthBuffer !== null) {
             // clean depth buffer
             this._fullSizeDepthBuffer = null;
         }

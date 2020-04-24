@@ -166,7 +166,7 @@ function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revi
     const canvas = atlasTexture.image;
     const ctx = canvas.getContext('2d');
 
-    if (image != undefined && layer.transparent) {
+    if (image !== undefined && layer.transparent) {
         // TODO: only if !opaque
         ctx.clearRect(atlasInfo.x, atlasInfo.y, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
     }
@@ -215,7 +215,7 @@ function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revi
 }
 
 function updateOffsetScale(imageSize, atlas, originalOffsetScale, canvas, target) {
-    if (originalOffsetScale.z == 0 || originalOffsetScale.w == 0) {
+    if (originalOffsetScale.z === 0 || originalOffsetScale.w === 0) {
         target.set(0, 0, 0, 0);
         return;
     }
@@ -238,19 +238,19 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
     }
 
     if (layer.type === 'elevation') {
-        if (layer.format == ELEVATION_FORMAT.MAPBOX_RGB) {
+        if (layer.format === ELEVATION_FORMAT.MAPBOX_RGB) {
             if (!this.defines.MAPBOX_RGB_ELEVATION) {
                 this.defines.MAPBOX_RGB_ELEVATION = 1;
                 this.needsUpdate = true;
             }
-        } else if (layer.format == ELEVATION_FORMAT.HEIGHFIELD) {
+        } else if (layer.format === ELEVATION_FORMAT.HEIGHFIELD) {
             if (!this.defines.HEIGHTFIELD_ELEVATION) {
                 this.defines.HEIGHTFIELD_ELEVATION = 1;
                 this.uniforms.heightFieldOffset = new THREE.Uniform(layer.heightFieldOffset || 0.0);
                 this.uniforms.heightFieldScale = new THREE.Uniform(layer.heightFieldScale || 255.0);
                 this.needsUpdate = true;
             }
-        } else if (layer.format == ELEVATION_FORMAT.RATP_GEOL) {
+        } else if (layer.format === ELEVATION_FORMAT.RATP_GEOL) {
             if (!this.defines.RATP_GEOL_ELEVATION) {
                 this.defines.RATP_GEOL_ELEVATION = 1;
             }
@@ -283,14 +283,14 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
 
         this.pendingUpdates.push(layer);
 
-        if (this.setTimeoutId != null) {
+        if (this.setTimeoutId !== null) {
             clearTimeout(this.setTimeoutId);
         }
         this.setTimeoutId = setTimeout(() => {
-            if (this.uniforms.colorTexture.value != this.texturesInfo.color.atlasTexture) {
+            if (this.uniforms.colorTexture.value !== this.texturesInfo.color.atlasTexture) {
                 this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
                 for (const layer of this.colorLayers) {
-                    if (this.pendingUpdates.indexOf(layer) == -1) {
+                    if (this.pendingUpdates.indexOf(layer) === -1) {
                         console.warn('no new texture for ', layer.id, '. Redrawing the old one');
                         this.pendingUpdates.push(layer);
                     }
@@ -315,7 +315,7 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
                     layer,
                     this.texturesInfo.color.atlasTexture,
                     atlas,
-                    (srcImage == this.canvas) ? null : srcImage,
+                    (srcImage === this.canvas) ? null : srcImage,
                     this.texturesInfo.color.offsetScale[index],
                     this.canvasRevision);
             }
@@ -334,7 +334,7 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, te
 };
 
 function zIndexSort(a, b) {
-    if (a.zIndex == b.zIndex) {
+    if (a.zIndex === b.zIndex) {
         return 0;
     } else if (!a.zIndex) {
         return -1;
@@ -423,7 +423,7 @@ LayeredMaterial.prototype.pushLayer = function pushLayer(newLayer) {
     this.texturesInfo.color.colors.push(newLayer.color || new THREE.Color(1, 1, 1));
     this.colorLayers.push(newLayer);
 
-    if (this.colorLayers.length == 1) {
+    if (this.colorLayers.length === 1) {
         // init uniforms
         this.uniforms.colorOffsetScale = new THREE.Uniform(this.texturesInfo.color.offsetScale);
         this.uniforms.colorOpacity = new THREE.Uniform(this.texturesInfo.color.opacity);
@@ -457,7 +457,7 @@ LayeredMaterial.prototype.removeLayer = function removeLayer(layer) {
 };
 
 LayeredMaterial.prototype.update = function update() {
-    if (this.colorLayers.length == 0) {
+    if (this.colorLayers.length === 0) {
         return true;
     }
     if (this.atlasInfo.maxX > this.canvas.width || this.atlasInfo.maxY > this.canvas.height) {
@@ -513,14 +513,14 @@ LayeredMaterial.prototype.setLayerVisibility = function setLayerVisibility(layer
 };
 
 LayeredMaterial.prototype.isLayerTextureLoaded = function isColorLayerLoaded(layer) {
-    if (layer.type == 'color') {
+    if (layer.type === 'color') {
         const index = this.indexOfColorLayer(layer);
         if (index < 0) {
             return null;
         }
-        return this.texturesInfo.color.textures[index] != emptyTexture;
-    } else if (layer.type == 'elevation') {
-        return this.texturesInfo.elevation.texture != emptyTexture;
+        return this.texturesInfo.color.textures[index] !== emptyTexture;
+    } else if (layer.type === 'elevation') {
+        return this.texturesInfo.elevation.texture !== emptyTexture;
     }
     return null; // TODO throw?
 };

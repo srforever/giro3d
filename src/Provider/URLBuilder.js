@@ -70,7 +70,7 @@ export default {
      * @return {string} the formed url
      */
     bbox: function bbox(bbox, layer) {
-        const precision = layer.projection == 'EPSG:4326' ? 9 : 2;
+        const precision = layer.projection === 'EPSG:4326' ? 9 : 2;
         const box = bbox.crs() === layer.projection ?
             bbox :
             bbox.as(layer.projection);

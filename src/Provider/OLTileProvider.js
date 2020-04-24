@@ -60,7 +60,7 @@ function tileCoordForExtent(tileGrid, extent) {
     const maxZoom = tileGrid.getMaxZoom();
     for (let z = maxZoom, tileRange; z >= minZoom; z--) {
         tileRange = tileGrid.getTileRangeForExtentAndZ(extent, z, tileRange);
-        if (tileRange.getWidth() == 1 && tileRange.getHeight() == 1) {
+        if (tileRange.getWidth() === 1 && tileRange.getHeight() === 1) {
             return [z, tileRange.minX, tileRange.minY];
         }
     }
@@ -74,7 +74,7 @@ function executeCommand(command) {
 function loadTile(tile, layer) {
     let promise;
     const imageTile = tile.tile;
-    if (imageTile.getState() == TileState.LOADED) {
+    if (imageTile.getState() === TileState.LOADED) {
         promise = Promise.resolve(createTexture(tile, layer));
     } else {
         promise = new Promise((resolve, reject) => {
@@ -82,9 +82,9 @@ function loadTile(tile, layer) {
             listenOnce(imageTile, 'change', evt => {
                 const imageTile = evt.target;
                 const tileState = imageTile.getState();
-                if (tileState == TileState.ERROR) {
+                if (tileState === TileState.ERROR) {
                     reject();
-                } else if (tileState == TileState.LOADED) {
+                } else if (tileState === TileState.LOADED) {
                     resolve(createTexture(tile, layer));
                 }
             });

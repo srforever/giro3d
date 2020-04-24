@@ -1276,7 +1276,7 @@ export default ( function () {
 
 										uvalue = shaderParam.value;
 
-										if ( pname == "transparency" ) {
+										if ( pname === "transparency" ) {
 
 											materialParams.transparent = true;
 
@@ -1747,7 +1747,7 @@ export default ( function () {
 
 		return _each( json.cameras, function ( camera ) {
 
-			if ( camera.type == "perspective" && camera.perspective ) {
+			if ( camera.type === "perspective" && camera.perspective ) {
 
 				var yfov = camera.perspective.yfov;
 				var aspectRatio = camera.perspective.aspectRatio !== undefined ? camera.perspective.aspectRatio : 1;
@@ -1763,7 +1763,7 @@ export default ( function () {
 
 				return _camera;
 
-			} else if ( camera.type == "orthographic" && camera.orthographic ) {
+			} else if ( camera.type === "orthographic" && camera.orthographic ) {
 
 				var _camera = new THREE.OrthographicCamera( window.innerWidth / - 2, window.innerWidth / 2, window.innerHeight / 2, window.innerHeight / - 2, camera.orthographic.znear, camera.orthographic.zfar );
 				if ( camera.name !== undefined ) _camera.name = camera.name;

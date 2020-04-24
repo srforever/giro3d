@@ -40,14 +40,14 @@ export default function CameraNearFarChart(chartId, camera) {
         const n = Math.round(camera.near);
 
         const count = chart.data.datasets[1].data.length;
-        if (f == chart.data.datasets[1].data[count - 1]
-            && n == chart.data.datasets[0].data[count - 1]) {
+        if (f === chart.data.datasets[1].data[count - 1]
+            && n === chart.data.datasets[0].data[count - 1]) {
             return;
         }
 
         const timeInS = Math.floor((Date.now() - timestamp) / 1000);
         const lbl = `${timeInS}s`;
-        const identical = (lastValidCompareIndex > 0 && label[lastValidCompareIndex] == lbl);
+        const identical = (lastValidCompareIndex > 0 && label[lastValidCompareIndex] === lbl);
         if (identical) {
             label.push('');
         } else {

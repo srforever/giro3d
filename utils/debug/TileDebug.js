@@ -90,11 +90,11 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
         if (!enabled) {
             return;
         }
-        const helpers = node.children.filter(n => n.layer == layer);
+        const helpers = node.children.filter(n => n.layer === layer);
 
         if (node.material && node.material.visible) {
             let helper;
-            if (helpers.length == 0) {
+            if (helpers.length === 0) {
                 // add the ability to hide all the debug obj for one layer at once
                 const l = context.view.getLayers(l => l.id === layer.id)[0];
                 const l3js = l.threejsLayer;
@@ -124,13 +124,13 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
             } else {
                 helper = helpers[0];
             }
-            if (layer.id == obbLayerId) {
+            if (layer.id === obbLayerId) {
                 helper.setMaterialVisibility(true);
                 helper.update(node.OBB());
             }
         } else {
             // hide obb children
-            for (const child of node.children.filter(n => n.layer == layer.id)) {
+            for (const child of node.children.filter(n => n.layer === layer.id)) {
                 if (typeof child.setMaterialVisibility === 'function') {
                     child.setMaterialVisibility(false);
                 }

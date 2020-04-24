@@ -54,7 +54,7 @@ TileMesh.prototype.isVisible = function isVisible() {
 
 TileMesh.prototype.setDisplayed = function setDisplayed(show) {
     this.material.visible = show && this.material.update();
-    this.material.transparent = this.material.opacity != 1 || this.material.uniforms.noTextureOpacity.value != 1;
+    this.material.transparent = this.material.opacity !== 1 || this.material.uniforms.noTextureOpacity.value !== 1;
 };
 
 TileMesh.prototype.setVisibility = function setVisibility(show) {
@@ -67,7 +67,7 @@ TileMesh.prototype.isDisplayed = function isDisplayed() {
 
 // switch material in function of state
 TileMesh.prototype.changeState = function changeState(state) {
-    if (state == this.material.uniforms.renderingState.value) {
+    if (state === this.material.uniforms.renderingState.value) {
         return;
     }
     // TODO this is a implicit dep to LayeredMaterial
@@ -75,7 +75,7 @@ TileMesh.prototype.changeState = function changeState(state) {
     if (state > RendererConstant.FINAL) {
         this.material.transparent = false;
     } else {
-        this.material.transparent = this.material.opacity != 1 || this.material.uniforms.noTextureOpacity.value != 1;
+        this.material.transparent = this.material.opacity !== 1 || this.material.uniforms.noTextureOpacity.value !== 1;
     }
 
     this.material.needsUpdate = true;
@@ -88,7 +88,7 @@ function applyChangeState(n, s) {
 }
 
 TileMesh.prototype.pushRenderState = function pushRenderState(state) {
-    if (this.material.uniforms.renderingState.value == state) {
+    if (this.material.uniforms.renderingState.value === state) {
         return () => { };
     }
 
@@ -118,7 +118,8 @@ TileMesh.prototype.setTextureElevation = function setTextureElevation(layer, ele
 
 
 TileMesh.prototype.setBBoxZ = function setBBoxZ(min, max) {
-    if (min == undefined && max == undefined) {
+    // 0 is an acceptable value
+    if (min == null && max == null) {
         return;
     }
     if (Math.floor(min) !== Math.floor(this.obb.z.min) || Math.floor(max) !== Math.floor(this.obb.z.max)) {
@@ -149,10 +150,10 @@ TileMesh.prototype.changeSequenceLayers = function changeSequenceLayers(sequence
 };
 
 TileMesh.prototype.getExtentForLayer = function getExtentForLayer(layer) {
-    if (layer.extent.crs() != this.extent.crs()) {
+    if (layer.extent.crs() !== this.extent.crs()) {
         throw new Error(`Layer should be in the same CRS of their supporting tile geometry, but layer crs is ${layer.extent.crs()} and tile crs is ${this.extent.crs()}`);
     }
-    if (layer.protocol == 'tms' || layer.protocol == 'xyz') {
+    if (layer.protocol === 'tms' || layer.protocol === 'xyz') {
         return OGCWebServiceHelper
             .computeTMSCoordinates(this.extent, layer.extent, layer.origin)[0];
     }
@@ -171,10 +172,10 @@ TileMesh.prototype.findCommonAncestor = function findCommonAncestor(tile) {
     if (!tile) {
         return undefined;
     }
-    if (tile.level == this.level) {
-        if (tile.id == this.id) {
+    if (tile.level === this.level) {
+        if (tile.id === this.id) {
             return tile;
-        } else if (tile.level != 0) {
+        } else if (tile.level !== 0) {
             return this.parent.findCommonAncestor(tile.parent);
         }
         return undefined;

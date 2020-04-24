@@ -192,13 +192,13 @@ class DeformationChain {
     }
 
     addPoint(pt) {
-        if (this.chains.length == 0) {
+        if (this.chains.length === 0) {
             this.newChain();
         }
         let color;
-        if (this.active.point <= 0 || this.active.point == (this._activeChain().length - 1)) {
+        if (this.active.point <= 0 || this.active.point === (this._activeChain().length - 1)) {
             // active point is either the first or the last
-            if (this.active.point == 0) {
+            if (this.active.point === 0) {
                 // we must keep the same color
                 color = this._activeChain()[this.active.point].color;
                 this.active.point = -1;
@@ -263,7 +263,7 @@ class DeformationChain {
         for (let k = 0; k < this.chains.length; k++) {
             const chain = this.chains[k];
 
-            if (this.active.chain == k && this.active.point >= chain.length) {
+            if (this.active.chain === k && this.active.point >= chain.length) {
                 this.active.point--;
             }
 
@@ -289,7 +289,7 @@ class DeformationChain {
                     for (let t = 0; t < this.chains.length; t++) {
                         const ch = this.chains[t];
                         for (let u = 0; u < ch.length; u++) {
-                            if (ch[u].original == deleted[0].original) {
+                            if (ch[u].original === deleted[0].original) {
                                 ch.splice(u, 1);
                                 break;
                             }
@@ -389,7 +389,7 @@ class DeformationChain {
                             dashed.computeLineDistances();
                             dashed.geometry.verticesNeedUpdate = true;
                             dashed.geometry.lineDistancesNeedUpdate = true;
-                            if (o == 0 || o == 3) {
+                            if (o === 0 || o === 3) {
                                 // line from eltB side
                                 if (eltB.highlight === 'both') {
                                     dashed.material.color = new THREE.Color(0x881111);
@@ -474,7 +474,7 @@ class DeformationChain {
                 this._activeChain()[this.active.point].scale =
                     new THREE.Vector3(segment.influence.x, segment.influence.y, 1);
 
-                if (i == chain.length - 1) {
+                if (i === chain.length - 1) {
                     const v2 = new THREE.Vector3(segment.v2.x, segment.v2.y, segment.v2.z);
                     this.addPoint(v2);
 

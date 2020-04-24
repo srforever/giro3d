@@ -30,7 +30,7 @@ export default function ThreeStatsChart(chartId, renderer) {
         const timeInS = Math.floor((Date.now() - timestamp) / 1000);
         const lbl = `${timeInS}s`;
 
-        const identical = (lastValidCompareIndex > 0 && label[lastValidCompareIndex] == lbl);
+        const identical = (lastValidCompareIndex > 0 && label[lastValidCompareIndex] === lbl);
         if (identical) {
             label.push('');
         } else {

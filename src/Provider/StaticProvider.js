@@ -36,7 +36,7 @@ function selectBestImageForExtent(layer, extent) {
     }
     // nope : doesn't work
     // return;
-    if (candidates.length == 0) {
+    if (candidates.length === 0) {
         return null;
     }
     // We didn't found an image containing entirely the extent,
@@ -53,7 +53,7 @@ function selectBestImageForExtent(layer, extent) {
             if (!selection) {
                 selection = entry;
                 coverage = cov;
-            } else if (cov == coverage) {
+            } else if (cov === coverage) {
                 const d1 = entry.extent.dimensions();
                 const d2 = selection.extent.dimensions();
                 if (d1.x < d2.x && d1.y < d2.y) {
@@ -77,7 +77,7 @@ function buildUrl(layer, image) {
 
 function getTexture(toDownload, layer) {
     // ...
-    return (layer.format == 2 ?
+    return (layer.format === 2 ?
         OGCWebServiceHelper.getXBilTextureByUrl(toDownload.url, layer.networkOptions) :
         OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions)).then(texture => {
         // adjust pitch

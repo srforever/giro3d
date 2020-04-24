@@ -190,7 +190,7 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
             }
             if (geometryLayer._distance) {
                 context.distance.min = Math.min(context.distance.min, geometryLayer._distance.min);
-                if (geometryLayer._distance.max == Infinity) {
+                if (geometryLayer._distance.max === Infinity) {
                     context.distance.max = this.maxFar;
                 } else {
                     context.distance.max = Math.max(context.distance.max, geometryLayer._distance.max);
@@ -268,7 +268,7 @@ MainLoop.prototype._step = function _step(instance, timestamp) {
     // update data-structure
     this._update(instance, updateSources, dt);
 
-    if (this.scheduler.commandsWaitingExecutionCount() == 0) {
+    if (this.scheduler.commandsWaitingExecutionCount() === 0) {
         this.dispatchEvent({ type: 'command-queue-empty' });
     }
 

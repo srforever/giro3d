@@ -44,7 +44,7 @@ function prepareBufferGeometry(geom, color, altitude) {
             vertices[3 * i + j] = geom.flatCoordinates[geom.stride * i + j];
         }
         // fill the rest of the stride
-        if (geom.stride == 2) {
+        if (geom.stride === 2) {
             vertices[3 * i + 2] = Array.isArray(altitude) ? altitude[i] : altitude;
         }
     }
@@ -195,9 +195,9 @@ function featureToMesh(feature, options) {
 }
 
 function featuresToThree(features, options) {
-    if (!features || features.length == 0) return null;
+    if (!features || features.length === 0) return null;
 
-    if (features.length == 1) {
+    if (features.length === 1) {
         return featureToMesh(features[0], options);
     }
 

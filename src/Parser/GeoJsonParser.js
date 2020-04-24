@@ -11,9 +11,9 @@ function applyOffset(indices, offset) {
 
 function readCRS(json) {
     if (json.crs) {
-        if (json.crs.type.toLowerCase() == 'epsg') {
+        if (json.crs.type.toLowerCase() === 'epsg') {
             return `EPSG:${json.crs.properties.code}`;
-        } else if (json.crs.type.toLowerCase() == 'name') {
+        } else if (json.crs.type.toLowerCase() === 'name') {
             const epsgIdx = json.crs.properties.name.toLowerCase().indexOf('epsg:');
             if (epsgIdx >= 0) {
                 // authority:version:code => EPSG:[...]:code
@@ -116,7 +116,7 @@ const GeometryToCoordinates = {
         return feature;
     },
     multi(type, feature, crsIn, crsOut, coordsIn, filteringExtent, options) {
-        if (coordsIn.length == 1) {
+        if (coordsIn.length === 1) {
             return this[type](feature, crsIn, crsOut, coordsIn[0], filteringExtent, options);
         }
 
@@ -137,7 +137,7 @@ const GeometryToCoordinates = {
 };
 
 function readGeometry(feature, crsIn, crsOut, geometry, filteringExtent, options) {
-    if (geometry.length == 0) {
+    if (geometry.length === 0) {
         return null;
     }
     switch (feature.type) {
@@ -171,7 +171,7 @@ function readFeature(crsIn, crsOut, json, filteringExtent, options) {
 
     readGeometry(feature, crsIn, crsOut, json.geometry.coordinates, filteringExtent, options);
 
-    if (feature.geometry.length == 0) {
+    if (feature.geometry.length === 0) {
         return null;
     }
 

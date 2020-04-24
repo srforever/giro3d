@@ -102,12 +102,12 @@ function addExtrudedPolygonSideFaces(indices, length, offset, count, isClockWise
 }
 
 function prepareBufferGeometry(vert, color, altitude, extrude) {
-    const multiplyVerticesCount = (extrude == undefined) ? 1 : 2;
+    const multiplyVerticesCount = (extrude == null) ? 1 : 2;
 
     const vertices = new Float32Array(3 * vert.length * multiplyVerticesCount);
     const colors = new Uint8Array(3 * vert.length * multiplyVerticesCount);
 
-    if (multiplyVerticesCount == 1) {
+    if (multiplyVerticesCount === 1) {
         coordinatesToVertices(vert, altitude, vertices);
         fillColorArray(colors, vert.length, color.r * 255, color.g * 255, color.b * 255, 0);
     } else {
@@ -296,9 +296,9 @@ function featureToMesh(feature, options) {
 }
 
 function featuresToThree(features, options) {
-    if (!features || features.length == 0) return null;
+    if (!features || features.length === 0) return null;
 
-    if (features.length == 1) {
+    if (features.length === 1) {
         return featureToMesh(features[0], options);
     }
 

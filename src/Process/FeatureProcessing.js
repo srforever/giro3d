@@ -43,7 +43,7 @@ export default {
             return null;
         }
 
-        const features = node.children.filter(n => n.layer == layer);
+        const features = node.children.filter(n => n.layer === layer);
         for (const feat of features) {
             feat.traverse(o => {
                 if (o.material) {

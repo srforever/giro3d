@@ -38,7 +38,7 @@ import AtlasBuilder from '../../Renderer/AtlasBuilder';
 export const defineLayerProperty = function defineLayerProperty(layer, propertyName, defaultValue, onChange) {
     const existing = Object.getOwnPropertyDescriptor(layer, propertyName);
     if (!existing || !existing.set) {
-        let property = layer[propertyName] == undefined ? defaultValue : layer[propertyName];
+        let property = layer[propertyName] === undefined ? defaultValue : layer[propertyName];
         Object.defineProperty(layer,
             propertyName,
             { get: () => property,
@@ -86,12 +86,12 @@ function GeometryLayer(id, object3d) {
     // TODO there must be a better way™
     const changeOpacity = o => {
         if (o.material) {
-            // != undefined: we want the test to pass if opacity is 0
-            if (o.material.opacity != undefined) {
+            // != null: we want the test to pass if opacity is 0
+            if (o.material.opacity != null) {
                 o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
                 o.material.opacity = this.opacity;
             }
-            if (o.material.uniforms && o.material.uniforms.opacity != undefined) {
+            if (o.material.uniforms && o.material.uniforms.opacity != null) {
                 o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
                 o.material.uniforms.opacity.value = this.opacity;
             }
@@ -140,11 +140,11 @@ function GeometryLayer(id, object3d) {
     const changeNoTextureOpacity = o => {
         if (o.material) {
             // != undefined: we want the test to pass if noTextureOpacity is 0
-            if (o.material.noTextureOpacity != undefined) {
+            if (o.material.noTextureOpacity != null) {
                 o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
                 o.material.noTextureOpacity = this.noTextureOpacity;
             }
-            if (o.material.uniforms && o.material.uniforms.noTextureOpacity != undefined) {
+            if (o.material.uniforms && o.material.uniforms.noTextureOpacity != null) {
                 o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
                 o.material.uniforms.noTextureOpacity.value = this.noTextureOpacity;
             }
@@ -220,7 +220,7 @@ GeometryLayer.prototype.attach = function attach(layer) {
 
 GeometryLayer.prototype.detach = function detach(layer) {
     const count = this._attachedLayers.length;
-    this._attachedLayers = this._attachedLayers.filter(attached => attached.id != layer.id);
+    this._attachedLayers = this._attachedLayers.filter(attached => attached.id !== layer.id);
     return this._attachedLayers.length < count;
 };
 
@@ -232,17 +232,17 @@ GeometryLayer.prototype.detach = function detach(layer) {
  * const newLayer = view.addLayer({options});
  *
  * // Change layer's visibilty
- * const layerToChange = view.getLayers(layer => layer.id == 'idLayerToChange')[0];
+ * const layerToChange = view.getLayers(layer => layer.id === 'idLayerToChange')[0];
  * layerToChange.visible = false;
  * view.notifyChange(); // update viewer
  *
  * // Change layer's opacity
- * const layerToChange = view.getLayers(layer => layer.id == 'idLayerToChange')[0];
+ * const layerToChange = view.getLayers(layer => layer.id === 'idLayerToChange')[0];
  * layerToChange.opacity = 0.5;
  * view.notifyChange(); // update viewer
  *
  * // Listen properties
- * const layerToListen = view.getLayers(layer => layer.id == 'idLayerToListen')[0];
+ * const layerToListen = view.getLayers(layer => layer.id === 'idLayerToListen')[0];
  * layerToListen.addEventListener('visible-property-changed', (event) => console.log(event));
  * layerToListen.addEventListener('opacity-property-changed', (event) => console.log(event));
  * @constructor

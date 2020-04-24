@@ -60,11 +60,11 @@ export function assertCrsIsValid(crs) {
 }
 
 export function crsIsGeographic(crs) {
-    return (_crsToUnitWithError(crs) != UNIT.METER);
+    return (_crsToUnitWithError(crs) !== UNIT.METER);
 }
 
 export function crsIsGeocentric(crs) {
-    return (_crsToUnitWithError(crs) == UNIT.METER);
+    return (_crsToUnitWithError(crs) === UNIT.METER);
 }
 
 function _assertIsGeographic(crs) {
@@ -94,7 +94,7 @@ function instanceProj4(crsIn, crsOut) {
 }
 
 export function is4326(crs) {
-    return crs.indexOf('EPSG:4326') == 0;
+    return crs.indexOf('EPSG:4326') === 0;
 }
 
 // Only support explicit conversions
@@ -111,7 +111,7 @@ function _convert(coordsIn, newCrs, target) {
         // there is a bug for converting anything from and to 4978 with proj4
         // https://github.com/proj4js/proj4js/issues/195
         // the workaround is to use an intermediate projection, like EPSG:4326
-        if (is4326(crsIn) && newCrs == 'EPSG:3857') {
+        if (is4326(crsIn) && newCrs === 'EPSG:3857') {
             val1 = THREE.Math.clamp(val1, -89.999999, 89.999999);
             const p = instanceProj4(crsIn, newCrs).forward([val0, val1]);
             return target.set(newCrs, p[0], p[1], coordsIn._values[2]);
@@ -159,7 +159,7 @@ Coordinates.prototype.set = function set(crs, ...coordinates) {
     _crsToUnitWithError(crs);
     this.crs = crs;
 
-    if (coordinates.length == 1 && coordinates[0] instanceof THREE.Vector3) {
+    if (coordinates.length === 1 && coordinates[0] instanceof THREE.Vector3) {
         this._values[0] = coordinates[0].x;
         this._values[1] = coordinates[0].y;
         this._values[2] = coordinates[0].z;
@@ -428,7 +428,7 @@ Coordinates.prototype.as = function as(crs, target) {
  * @return {Vector2} normalized offset in extent
  */
 Coordinates.prototype.offsetInExtent = function offsetInExtent(extent, target) {
-    if (this.crs != extent.crs()) {
+    if (this.crs !== extent.crs()) {
         throw new Error('unsupported mix');
     }
 

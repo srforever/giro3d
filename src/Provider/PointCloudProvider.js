@@ -75,14 +75,14 @@ function parseOctree(layer, hierarchyStepSize, root) {
                 if (snode.childrenBitField & (1 << i) && (offset + 5) <= blob.byteLength) {
                     const c = view.getUint8(offset); offset += 1;
                     let n = view.getUint32(offset, true); offset += 4;
-                    if (n == 0) {
+                    if (n === 0) {
                         n = root.numPoints;
                     }
                     const childname = snode.name + i;
                     const bounds = createChildAABB(snode.bbox, i);
 
                     let url = root.baseurl;
-                    if ((childname.length % hierarchyStepSize) == 0) {
+                    if ((childname.length % hierarchyStepSize) === 0) {
                         const myname = childname.substr(root.name.length);
                         url = `${root.baseurl}/${myname}`;
                     }
@@ -112,7 +112,7 @@ function findChildrenByName(node, name) {
     }
     const charIndex = node.name.length;
     for (let i = 0; i < node.children.length; i++) {
-        if (node.children[i].name[charIndex] == name[charIndex]) {
+        if (node.children[i].name[charIndex] === name[charIndex]) {
             return findChildrenByName(node.children[i], name);
         }
     }
@@ -129,7 +129,7 @@ function computeBbox(layer) {
         // lopocs
         let idx = 0;
         for (const entry of layer.metadata) {
-            if (entry.table == layer.table) {
+            if (entry.table === layer.table) {
                 break;
             }
             idx++;
@@ -150,7 +150,7 @@ function parseMetadata(metadata, layer) {
     // The only difference is the metadata root file (cloud.js vs infos/sources), and we can
     // check for the existence of a `scale` field.
     // (if `scale` is defined => we're fetching files from PotreeConverter)
-    if (layer.metadata.scale != undefined) {
+    if (layer.metadata.scale !== undefined) {
         layer.isFromPotreeConverter = true;
         // PotreeConverter format
         customBinFormat = layer.metadata.pointAttributes === 'CIN';

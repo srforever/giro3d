@@ -107,8 +107,8 @@ class Instance extends EventDispatcher {
             // all layers must be ready
             const allReady = this.getLayers().every(layer => layer.ready);
             if (allReady &&
-                this.mainLoop.scheduler.commandsWaitingExecutionCount() == 0 &&
-                this.mainLoop.renderingState == RENDERING_PAUSED) {
+                this.mainLoop.scheduler.commandsWaitingExecutionCount() === 0 &&
+                this.mainLoop.renderingState === RENDERING_PAUSED) {
                 this.dispatchEvent({ type: VIEW_EVENTS.LAYERS_INITIALIZED });
                 this.removeFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, this._allLayersAreReadyCallback);
             }
@@ -174,15 +174,15 @@ class Instance extends EventDispatcher {
      * @return {Promise} a promise resolved with the new layer object when it is fully initialized or rejected if any error occurred.
      */
     addLayer(layer, parentLayer) {
-        if (layer.type == 'color') {
+        if (layer.type === 'color') {
             layer.update = layer.update || ColorTextureProcessing.updateLayerElement;
-        } else if (layer.type == 'elevation') {
+        } else if (layer.type === 'elevation') {
             layer.update = layer.update || ElevationTextureProcessing.updateLayerElement;
-            if (layer.format == ELEVATION_FORMAT.HEIGHFIELD) {
+            if (layer.format === ELEVATION_FORMAT.HEIGHFIELD) {
                 layer.heightFieldOffset = layer.heightFieldOffset || 0;
                 layer.heightFieldScale = layer.heightFieldScale || 255;
             }
-        } else if (layer.protocol == 'tile') {
+        } else if (layer.protocol === 'tile') {
             layer.disableSkirt = true;
             layer.preUpdate = TiledNodeProcessing.preUpdate;
             layer.update = TiledNodeProcessing.update;
@@ -194,7 +194,7 @@ class Instance extends EventDispatcher {
                 reject(new Error('layer is undefined'));
                 return;
             }
-            const duplicate = this.getLayers((l => l.id == layer.id));
+            const duplicate = this.getLayers((l => l.id === layer.id));
             if (duplicate.length > 0) {
                 reject(new Error(`Invalid id '${layer.id}': id already used`));
                 return;
@@ -253,7 +253,7 @@ class Instance extends EventDispatcher {
 
                 this.notifyChange(parentLayer || layer, false);
                 if (!this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END] ||
-                    this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END].indexOf(this._allLayersAreReadyCallback) == -1) {
+                    this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END].indexOf(this._allLayersAreReadyCallback) === -1) {
                     this.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, this._allLayersAreReadyCallback);
                 }
                 resolve(layer);
@@ -538,7 +538,7 @@ class Instance extends EventDispatcher {
      * @param {number} radius - picking will happen in a circle centered on mouseOrEvt. Radius
      * is the radius of this circle, in pixels
      * @param {...*} where - where to look for objects. Can be either: empty (= look
-     * in all layers with type == 'geometry'), layer ids or layers or a mix of all
+     * in all layers with type === 'geometry'), layer ids or layers or a mix of all
      * the above.
      * @return {Array} - an array of objects. Each element contains at least an object
      * property which is the Object3D under the cursor. Then depending on the queried
@@ -552,8 +552,8 @@ class Instance extends EventDispatcher {
      */
     pickObjectsAt(mouseOrEvt, radius, ...where) {
         const results = [];
-        const sources = where.length == 0 ?
-            this.getLayers(l => l.type == 'geometry') :
+        const sources = where.length === 0 ?
+            this.getLayers(l => l.type === 'geometry') :
             [...where];
         const mouse = (mouseOrEvt instanceof Event) ? this.eventToViewCoords(mouseOrEvt) : mouseOrEvt;
         radius = radius || 0;
@@ -579,7 +579,7 @@ class Instance extends EventDispatcher {
                     //   - it hasn't: this layer is attached to another one
                     let parentLayer;
                     this.getLayers((l, p) => {
-                        if (l.id == layer.id) {
+                        if (l.id === layer.id) {
                             parentLayer = p;
                         }
                     });
@@ -660,7 +660,7 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
     }
 
     if (!layer.whenReady) {
-        if (layer.type == 'geometry' || layer.type == 'debug') {
+        if (layer.type === 'geometry' || layer.type === 'debug') {
             if (!layer.object3d) {
                 // layer.threejsLayer *must* be assigned before preprocessing,
                 // because TileProvider.preprocessDataLayer function uses it.
@@ -692,7 +692,7 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
 
         // the last promise in the chain must return the layer
         layer.whenReady = providerPreprocessing.then(() => {
-            if (layer.type == 'elevation') {
+            if (layer.type === 'elevation') {
                 if (!layer.minmax) {
                     throw new Error('At this point the whole min/max should be known');
                 }
@@ -710,14 +710,14 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
     }
 
     // probably not the best place to do this
-    if (layer.type == 'color') {
+    if (layer.type === 'color') {
         defineLayerProperty(layer, 'frozen', false);
         defineLayerProperty(layer, 'visible', true);
         defineLayerProperty(layer, 'opacity', 1.0);
         defineLayerProperty(layer, 'sequence', 0);
-    } else if (layer.type == 'elevation') {
+    } else if (layer.type === 'elevation') {
         defineLayerProperty(layer, 'frozen', false);
-    } else if (layer.type == 'geometry' || layer.type == 'debug') {
+    } else if (layer.type === 'geometry' || layer.type === 'debug') {
         defineLayerProperty(layer, 'visible', true, () => _syncGeometryLayerVisibility(layer, view));
         defineLayerProperty(layer, 'frozen', false);
         _syncGeometryLayerVisibility(layer, view);
@@ -729,9 +729,9 @@ function _cleanLayer(view, layer, parentLayer) {
     // XXX do providers needs to clean their layers ? Usually it's just some properties initialisation...
     // - YES they do, because Providers use Cache, and they know which key they
     // use. (this behaviour is dangerous and we should change this)
-    if (layer.type == 'color') {
+    if (layer.type === 'color') {
         ColorTextureProcessing.cleanLayer(view, layer, parentLayer);
-    } else if (layer.type == 'elevation') {
+    } else if (layer.type === 'elevation') {
         // TODO
         // ElevationTextureProcessing.clean(layer, parentLayer.object3d);
     }
@@ -776,7 +776,7 @@ function _cleanLayer(view, layer, parentLayer) {
  */
 
 function layerIdToLayer(view, layerId) {
-    const lookup = view.getLayers(l => l.id == layerId);
+    const lookup = view.getLayers(l => l.id === layerId);
     if (!lookup.length) {
         throw new Error(`Invalid layer id used as where argument (value = ${layerId})`);
     }
