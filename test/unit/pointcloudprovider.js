@@ -20,7 +20,9 @@ describe('PointCloudProvider', () => {
         };
 
         _testing.parseMetadata(metadata, layer);
-        const normalDefined = layer.material.defines.NORMAL || layer.material.defines.NORMAL_SPHEREMAPPED || layer.material.defines.NORMAL_OCT16;
+        const normalDefined = layer.material.defines.NORMAL
+            || layer.material.defines.NORMAL_SPHEREMAPPED
+            || layer.material.defines.NORMAL_OCT16;
         assert.ok(!normalDefined);
 
         // normals as vector

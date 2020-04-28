@@ -34,12 +34,14 @@ const _eventCoords = new Vector2();
  * @param {string} crs - The default CRS of Three.js coordinates. Should be a cartesian CRS.
  * @param {HTMLElement} viewerDiv - Where to instanciate the Three.js scene in the DOM
  * @param {Object=} options - Optional properties.
- * @param {?MainLoop} options.mainLoop - {@link MainLoop} instance to use, otherwise a default one will be constructed
- * @param {?(WebGLRenderer|object)} options.renderer - {@link WebGLRenderer} instance to use, otherwise
- * a default one will be constructed. In this case, if options.renderer is an object, it will be used to
- * configure the renderer (see {@link c3DEngine}.  If not present, a new <canvas> will be created and
- * added to viewerDiv (mutually exclusive with mainLoop)
- * @param {?Scene} options.scene3D - {@link Scene} instance to use, otherwise a default one will be constructed
+ * @param {?MainLoop} options.mainLoop - {@link MainLoop} instance to use, otherwise a default one
+ * will be constructed
+ * @param {?(WebGLRenderer|object)} options.renderer - {@link WebGLRenderer} instance to use,
+ * otherwise a default one will be constructed. In this case, if options.renderer is an object, it
+ * will be used to configure the renderer (see {@link c2DEngine}.  If not present, a new <canvas>
+ * will be created and added to viewerDiv (mutually exclusive with mainLoop)
+ * @param {?Scene} options.scene2D - {@link Scene} instance to use, otherwise a default one will be
+ * constructed
  * @constructor
  */
 class Instance extends EventDispatcher {
@@ -110,7 +112,9 @@ class Instance extends EventDispatcher {
                 this.mainLoop.scheduler.commandsWaitingExecutionCount() === 0 &&
                 this.mainLoop.renderingState === RENDERING_PAUSED) {
                 this.dispatchEvent({ type: VIEW_EVENTS.LAYERS_INITIALIZED });
-                this.removeFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, this._allLayersAreReadyCallback);
+                this.removeFrameRequester(
+                    MAIN_LOOP_EVENTS.UPDATE_END, this._allLayersAreReadyCallback
+                );
             }
         };
     }
@@ -121,7 +125,8 @@ class Instance extends EventDispatcher {
      * @property {string} type the layer's type : 'color', 'elevation', 'geometry'
      * @property {string} protocol wmts and wms (wmtsc for custom deprecated)
      * @property {string} url Base URL of the repository or of the file(s) to load
-     * @property {string} format Format of this layer. See individual providers to check which formats are supported for a given layer type.
+     * @property {string} format Format of this layer. See individual providers to check which
+     * formats are supported for a given layer type.
      * @property {NetworkOptions} networkOptions Options for fetching resources over network
      * @property {Object} updateStrategy strategy to load imagery files
      * @property {OptionsWmts|OptionsWms} options WMTS or WMS options
@@ -171,7 +176,8 @@ class Instance extends EventDispatcher {
      *
      * @param {LayerOptions|Layer|GeometryLayer} layer
      * @param {Layer=} parentLayer
-     * @return {Promise} a promise resolved with the new layer object when it is fully initialized or rejected if any error occurred.
+     * @return {Promise} a promise resolved with the new layer object when it is fully initialized
+     * or rejected if any error occurred.
      */
     addLayer(layer, parentLayer) {
         if (layer.type === 'color') {
@@ -186,7 +192,8 @@ class Instance extends EventDispatcher {
             layer.disableSkirt = true;
             layer.preUpdate = TiledNodeProcessing.preUpdate;
             layer.update = TiledNodeProcessing.update;
-            layer.pickObjectsAt = (_instance, mouse, radius) => Picking.pickTilesAt(_instance, mouse, radius, layer);
+            layer.pickObjectsAt =
+                (_instance, mouse, radius) => Picking.pickTilesAt(_instance, mouse, radius, layer);
         }
 
         return new Promise((resolve, reject) => {
@@ -213,7 +220,8 @@ class Instance extends EventDispatcher {
             layer = _preprocessLayer(this, layer, provider, parentLayer);
 
             if (!layer.projection) {
-                layer.projection = (parentLayer && parentLayer.extent) ? parentLayer.extent.crs() : this.referenceCrs;
+                layer.projection = (parentLayer && parentLayer.extent)
+                    ? parentLayer.extent.crs() : this.referenceCrs;
             }
 
             layer.whenReady.then(layer => {
@@ -252,9 +260,12 @@ class Instance extends EventDispatcher {
                 }
 
                 this.notifyChange(parentLayer || layer, false);
-                if (!this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END] ||
-                    this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END].indexOf(this._allLayersAreReadyCallback) === -1) {
-                    this.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, this._allLayersAreReadyCallback);
+                const updateEndFR = this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END];
+                if (!updateEndFR || updateEndFR.indexOf(this._allLayersAreReadyCallback) === -1) {
+                    this.addFrameRequester(
+                        MAIN_LOOP_EVENTS.UPDATE_END,
+                        this._allLayersAreReadyCallback,
+                    );
                 }
                 resolve(layer);
             });
@@ -266,7 +277,9 @@ class Instance extends EventDispatcher {
             ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, layer.object3d);
             this.scene.remove(layer.object3d);
         }
-        const parentLayer = this.getLayers(l => l._attachedLayers && l._attachedLayers.includes(layer))[0];
+        const parentLayer = this.getLayers(
+            l => l._attachedLayers && l._attachedLayers.includes(layer),
+        )[0];
         if (parentLayer) {
             parentLayer.detach(layer);
         }
@@ -302,7 +315,11 @@ class Instance extends EventDispatcher {
             this._threeObjects.add(vector.object3d);
             this.notifyChange(vector.object3d, true);
         });
-        source.loadFeatures([-Infinity, -Infinity, Infinity, Infinity], undefined, this.referenceCrs);
+        source.loadFeatures(
+            [-Infinity, -Infinity, Infinity, Infinity],
+            undefined,
+            this.referenceCrs,
+        );
     }
 
     /**
@@ -552,10 +569,9 @@ class Instance extends EventDispatcher {
      */
     pickObjectsAt(mouseOrEvt, radius, ...where) {
         const results = [];
-        const sources = where.length === 0 ?
-            this.getLayers(l => l.type === 'geometry') :
-            [...where];
-        const mouse = (mouseOrEvt instanceof Event) ? this.eventToViewCoords(mouseOrEvt) : mouseOrEvt;
+        const sources = where.length === 0 ? this.getLayers(l => l.type === 'geometry') : [...where];
+        const mouse = (mouseOrEvt instanceof Event)
+            ? this.eventToViewCoords(mouseOrEvt) : mouseOrEvt;
         radius = radius || 0;
 
         for (const source of sources) {
@@ -669,7 +685,9 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
         }
         let providerPreprocessing = Promise.resolve();
         if (provider && provider.preprocessDataLayer) {
-            providerPreprocessing = provider.preprocessDataLayer(layer, view, view.mainLoop.scheduler, parentLayer);
+            providerPreprocessing = provider.preprocessDataLayer(
+                layer, view, view.mainLoop.scheduler, parentLayer
+            );
             if (!(providerPreprocessing && providerPreprocessing.then)) {
                 providerPreprocessing = Promise.resolve();
             }
@@ -726,8 +744,8 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
 }
 
 function _cleanLayer(view, layer, parentLayer) {
-    // XXX do providers needs to clean their layers ? Usually it's just some properties initialisation...
-    // - YES they do, because Providers use Cache, and they know which key they
+    // XXX do providers needs to clean their layers ? Usually it's just some properties
+    // initialisation...  - YES they do, because Providers use Cache, and they know which key they
     // use. (this behaviour is dangerous and we should change this)
     if (layer.type === 'color') {
         ColorTextureProcessing.cleanLayer(view, layer, parentLayer);

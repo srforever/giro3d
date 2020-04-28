@@ -11,10 +11,10 @@ import Coordinates from '../Geographic/Coordinates.js';
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = tileCount * x / layerDimension.x;
     const ty = tileCount * y / layerDimension.y;
-    // if the user configures an extent with exact same dimension as the "reference" extent of the crs,
-    // they won't expect this function to return the tile immediately to the bottom right.
-    // therefore, if tx or ty is exactly one, we need to give back 0 instead.
-    // we consider inclusive bounds actually.
+    // if the user configures an extent with exact same dimension as the "reference" extent of the
+    // crs, they won't expect this function to return the tile immediately to the bottom right.
+    // therefore, if tx or ty is exactly one, we need to give back 0 instead.  we consider inclusive
+    // bounds actually.
     return { x: tx === 1 ? 0 : Math.floor(tx), y: ty === 1 ? 0 : Math.floor(ty) };
 }
 
@@ -101,6 +101,7 @@ export function createPlanarLayer(id, extent, options = {}) {
                 const n = findNeighbours(node);
                 if (n) {
                     const dimensions = node.extent.dimensions();
+                    const elevationNeighbours = node.material.texturesInfo.elevation.neighbours;
                     for (let i = 0; i < 4; i++) {
                         if (!n[i] || !n[i][0].material.visible) {
                             // neighbour is missing or smaller => don't do anything
@@ -121,21 +122,20 @@ export function createPlanarLayer(id, extent, options = {}) {
 
                             node.material.uniforms
                                 .neighbourdiffLevel.value.setComponent(i, -diff);
-                            node.material.texturesInfo.elevation.neighbours.texture[i] =
+                            elevationNeighbours.texture[i] =
                                 nn.material.texturesInfo.elevation.texture;
 
                             const offscale = targetExtent.offsetToParent(nn.extent);
-                            node.material.texturesInfo.elevation.neighbours.offsetScale[i] =
+
+                            elevationNeighbours.offsetScale[i] =
                                 nn.material.texturesInfo.elevation.offsetScale.clone();
 
-                            node.material.texturesInfo.elevation.neighbours.offsetScale[i].x +=
-                                offscale.x * node.material.texturesInfo.elevation.neighbours.offsetScale[i].z;
-                            node.material.texturesInfo.elevation.neighbours.offsetScale[i].y +=
-                                offscale.y * node.material.texturesInfo.elevation.neighbours.offsetScale[i].w;
-                            node.material.texturesInfo.elevation.neighbours.offsetScale[i].z *=
-                                offscale.z;
-                            node.material.texturesInfo.elevation.neighbours.offsetScale[i].w *=
-                                offscale.w;
+                            elevationNeighbours.offsetScale[i].x +=
+                                offscale.x * elevationNeighbours.offsetScale[i].z;
+                            elevationNeighbours.offsetScale[i].y +=
+                                offscale.y * elevationNeighbours.offsetScale[i].w;
+                            elevationNeighbours.offsetScale[i].z *= offscale.z;
+                            elevationNeighbours.offsetScale[i].w *= offscale.w;
                         }
                     }
                 }

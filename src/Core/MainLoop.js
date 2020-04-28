@@ -99,7 +99,9 @@ function updateElements(context, geometryLayer, elements) {
                     // update attached layers
                     for (const attachedLayer of geometryLayer._attachedLayers) {
                         if (attachedLayer.ready) {
-                            attachedLayer.update(context, attachedLayer, sub.elements[i], sub.parent);
+                            attachedLayer.update(
+                                context, attachedLayer, sub.elements[i], sub.parent
+                            );
                         }
                     }
                 }
@@ -171,14 +173,17 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
         context.fastUpdateHint = undefined;
         context.geometryLayer = geometryLayer;
         if (geometryLayer.ready && geometryLayer.visible) {
-            instance.execFrameRequesters(MAIN_LOOP_EVENTS.BEFORE_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer);
+            instance.execFrameRequesters(
+                MAIN_LOOP_EVENTS.BEFORE_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer
+            );
 
             // Filter updateSources that are relevant for the geometryLayer
             const srcs = filterChangeSources(updateSources, geometryLayer);
             if (srcs.size > 0) {
-                // if we don't have any element in srcs, it means we don't need to update our layer to display it correctly.
-                // but in this case we still need to use layer._distance to calculate near / far
-                // hence the reset is here, and the update of context.distance is outside of this if
+                // if we don't have any element in srcs, it means we don't need to update our layer
+                // to display it correctly.  but in this case we still need to use layer._distance
+                // to calculate near / far hence the reset is here, and the update of
+                // context.distance is outside of this if
                 geometryLayer._distance.min = Infinity;
                 geometryLayer._distance.max = 0;
                 // `preUpdate` returns an array of elements to update
@@ -193,14 +198,19 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
                 if (geometryLayer._distance.max === Infinity) {
                     context.distance.max = this.maxFar;
                 } else {
-                    context.distance.max = Math.max(context.distance.max, geometryLayer._distance.max);
+                    context.distance.max = Math.max(
+                        context.distance.max, geometryLayer._distance.max
+                    );
                 }
             }
-            instance.execFrameRequesters(MAIN_LOOP_EVENTS.AFTER_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer);
+            instance.execFrameRequesters(
+                MAIN_LOOP_EVENTS.AFTER_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer
+            );
         }
     }
 
-    // TODO document the fact Object3D must be added through threeObjects if they want to influence near / far plane
+    // TODO document the fact Object3D must be added through threeObjects if they want to influence
+    // near / far plane
     instance.threeObjects.traverse(o => {
         if (!o.visible) {
             return;
@@ -223,10 +233,12 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
         minDistance *= minDistance * Math.cos(ThreeMath.degToRad(instance.camera.camera3D.fov / 2));
     }
     // clamp it to minNear / maxFar
-    minDistance = minDistance === Infinity ? this.minNear : ThreeMath.clamp(minDistance, this.minNear, this.maxFar);
+    minDistance = minDistance === Infinity
+        ? this.minNear : ThreeMath.clamp(minDistance, this.minNear, this.maxFar);
     instance.camera.camera3D.near = minDistance;
 
-    const far = context.distance.max === 0 ? this.maxFar : ThreeMath.clamp(context.distance.max, minDistance, this.maxFar);
+    const far = context.distance.max === 0
+        ? this.maxFar : ThreeMath.clamp(context.distance.max, minDistance, this.maxFar);
     instance.camera.camera3D.far = far;
 
     instance.camera.update();
@@ -251,9 +263,13 @@ MainLoop.prototype._step = function _step(instance, timestamp) {
     // update camera
     const dim = this.gfxEngine.getWindowSize();
 
-    instance.execFrameRequesters(MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, dt, this._updateLoopRestarted);
+    instance.execFrameRequesters(
+        MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, dt, this._updateLoopRestarted
+    );
     instance.camera.update(dim.x, dim.y);
-    instance.execFrameRequesters(MAIN_LOOP_EVENTS.AFTER_CAMERA_UPDATE, dt, this._updateLoopRestarted);
+    instance.execFrameRequesters(
+        MAIN_LOOP_EVENTS.AFTER_CAMERA_UPDATE, dt, this._updateLoopRestarted
+    );
 
     // Disable camera's matrix auto update to make sure the camera's
     // world matrix is never updated mid-update.

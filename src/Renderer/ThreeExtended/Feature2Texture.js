@@ -97,8 +97,8 @@ export default {
         let texture;
 
         if (collection) {
-            // A texture is instancied drawn canvas
-            // origin and dimension are used to transform the feature's coordinates to canvas's space
+            // A texture is instancied drawn canvas origin and dimension are used to transform the
+            // feature's coordinates to canvas's space
             // NOTE: canvas y axes is top to bottom
             const origin = new THREE.Vector2(extent.west(), extent.north());
             const dimension = extent.dimensions();
@@ -113,7 +113,9 @@ export default {
             }
             ctx.globalCompositeOperation = style.globalCompositeOperation || 'source-over';
 
-            const scale = new THREE.Vector2(ctx.canvas.width / dimension.x, ctx.canvas.width / dimension.y);
+            const scale = new THREE.Vector2(
+                ctx.canvas.width / dimension.x, ctx.canvas.width / dimension.y,
+            );
 
             // Draw the canvas
             for (const feature of collection.features) {

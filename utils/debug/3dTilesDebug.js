@@ -3,11 +3,15 @@ import OBBHelper from './OBBHelper.js';
 import Instance from '../../src/Core/instance.js';
 import GeometryDebug from './GeometryDebug.js';
 
-const invMatrixChangeUpVectorZtoY = new THREE.Matrix4().getInverse(new THREE.Matrix4().makeRotationX(Math.PI / 2));
-const invMatrixChangeUpVectorZtoX = new THREE.Matrix4().getInverse(new THREE.Matrix4().makeRotationZ(-Math.PI / 2));
+const invMatrixChangeUpVectorZtoY = new THREE.Matrix4()
+    .getInverse(new THREE.Matrix4().makeRotationX(Math.PI / 2));
+const invMatrixChangeUpVectorZtoX = new THREE.Matrix4()
+    .getInverse(new THREE.Matrix4().makeRotationZ(-Math.PI / 2));
 
 const unitBoxMesh = (function _() {
-    const indices = new Uint16Array([0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7]);
+    const indices = new Uint16Array(
+        [0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7],
+    );
     const positions = new Float32Array(8 * 3);
     new THREE.Vector3(+0.5, +0.5, +0.5).toArray(positions, 0);
     new THREE.Vector3(-0.5, +0.5, +0.5).toArray(positions, 3);
@@ -74,7 +78,9 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
                 }
                 // 3dtiles with Sphere
                 if (metadata.boundingVolume.sphere) {
-                    const geometry = new THREE.SphereGeometry(metadata.boundingVolume.sphere.radius, 32, 32);
+                    const geometry = new THREE.SphereGeometry(
+                        metadata.boundingVolume.sphere.radius, 32, 32,
+                    );
                     const material = new THREE.MeshBasicMaterial({ wireframe: true });
                     helper = new THREE.Mesh(geometry, material);
                     helper.position.copy(metadata.boundingVolume.sphere.center);

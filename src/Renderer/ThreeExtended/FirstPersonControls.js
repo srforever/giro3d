@@ -1,14 +1,17 @@
 import * as THREE from 'three';
 import { MAIN_LOOP_EVENTS } from '../../Core/MainLoop.js';
 
-// Note: we could use existing three.js controls (like https://github.com/mrdoob/three.js/blob/dev/examples/js/controls/FirstPersonControls.js)
-// but including these controls in giro3d allows use to integrate them tightly with giro3d.
-// Especially the existing controls are expecting a continuous update loop while we have a pausable one (so our controls use .notifyChange when needed)
+// Note: we could use existing three.js controls (like
+// https://github.com/mrdoob/three.js/blob/dev/examples/js/controls/FirstPersonControls.js) but
+// including these controls in giro3d allows use to integrate them tightly with giro3d.  Especially
+// the existing controls are expecting a continuous update loop while we have a pausable one (so our
+// controls use .notifyChange when needed)
 
 function limitRotation(camera3D, rot /* , verticalFOV */) {
     // Limit vertical rotation (look up/down) to make sure the user cannot see
     // outside of the cone defined by verticalFOV
-    const limit = Math.PI * 0.5 - 0.01; // THREE.Math.degToRad(verticalFOV - camera3D.fov * 0.5) * 0.5;
+    // const limit = THREE.Math.degToRad(verticalFOV - camera3D.fov * 0.5) * 0.5;
+    const limit = Math.PI * 0.5 - 0.01;
     return THREE.Math.clamp(rot, -limit, limit);
 }
 
@@ -36,15 +39,19 @@ class FirstPersonControls extends THREE.EventDispatcher {
      * @Constructor
      * @param {View} view
      * @param {object} options
-     * @param {boolean} options.focusOnClick - whether or not to focus the renderer domElement on click
-     * @param {boolean} options.focusOnMouseOver - whether or not to focus when the mouse is over the domElement
+     * @param {boolean} options.focusOnClick - whether or not to focus the renderer domElement on
+     * click
+     * @param {boolean} options.focusOnMouseOver - whether or not to focus when the mouse is over
+     * the domElement
      * @param {boolean} options.moveSpeed - if > 0, pressing the arrow keys will move the camera
-     * @param {number} options.verticalFOV - define the max visible vertical angle of the scene in degrees (default 180)
-     * @param {number} options.panoramaRatio - alternative way to specify the max vertical angle when using a panorama.
-     * You can specify the panorama width/height ratio and the verticalFOV will be computed automatically
-     * @param {boolean} options.disableEventListeners - if true, the controls will not self listen to mouse/key events.
-     * You'll have to manually forward the events to the appropriate functions: onMouseDown, onMouseMove, onMouseUp,
-     * onKeyUp, onKeyDown and onMouseWheel.
+     * @param {number} options.verticalFOV - define the max visible vertical angle of the scene in
+     * degrees (default 180)
+     * @param {number} options.panoramaRatio - alternative way to specify the max vertical angle
+     * when using a panorama.  You can specify the panorama width/height ratio and the verticalFOV
+     * will be computed automatically
+     * @param {boolean} options.disableEventListeners - if true, the controls will not self listen
+     * to mouse/key events.  You'll have to manually forward the events to the appropriate
+     * functions: onMouseDown, onMouseMove, onMouseUp, onKeyUp, onKeyDown and onMouseWheel.
      */
     constructor(view, options = {}) {
         super();
@@ -54,11 +61,12 @@ class FirstPersonControls extends THREE.EventDispatcher {
         this.moves = new Set();
         if (options.panoramaRatio) {
             const radius = (options.panoramaRatio * 200) / (2 * Math.PI);
-            options.verticalFOV =
-                options.panoramaRatio === 2 ? 180 : THREE.Math.radToDeg(2 * Math.atan(200 / (2 * radius)));
+            options.verticalFOV = options.panoramaRatio === 2
+                ? 180 : THREE.Math.radToDeg(2 * Math.atan(200 / (2 * radius)));
         }
         options.verticalFOV = options.verticalFOV || 180;
-        options.moveSpeed = options.moveSpeed === undefined ? 10 : options.moveSpeed; // backward or forward move speed in m/s
+        // backward or forward move speed in m/s
+        options.moveSpeed = options.moveSpeed === undefined ? 10 : options.moveSpeed;
         this.options = options;
 
         this._isMouseDown = false;
@@ -143,7 +151,8 @@ class FirstPersonControls extends THREE.EventDispatcher {
         if (!this.enabled) {
             return;
         }
-        // dt will not be relevant when we just started rendering, we consider a 1-frame move in this case
+        // dt will not be relevant when we just started rendering, we consider a 1-frame move in
+        // this case
         if (updateLoopRestarted) {
             dt = 16;
         }
@@ -196,16 +205,20 @@ class FirstPersonControls extends THREE.EventDispatcher {
             // in rigor we have tan(theta) = tan(cameraFOV) * deltaH / H
             // (where deltaH is the vertical amount we moved, and H the renderer height)
             // we loosely approximate tan(x) by x
-            const pxToAngleRatio = THREE.Math.degToRad(this.camera.fov) / this.view.mainLoop.gfxEngine.height;
+            const pxToAngleRatio = THREE.Math.degToRad(this.camera.fov)
+                / this.view.mainLoop.gfxEngine.height;
 
             const coords = this.view.eventToViewCoords(event);
 
             // update state based on pointer movement
-            this._state.rotateY = ((coords.x - this._onMouseDownMouseX) * pxToAngleRatio) + this._stateOnMouseDown.rotateY;
+            this._state.rotateY = ((coords.x - this._onMouseDownMouseX) * pxToAngleRatio)
+                + this._stateOnMouseDown.rotateY;
             this._state.rotateX = limitRotation(
                 this.camera,
-                ((coords.y - this._onMouseDownMouseY) * pxToAngleRatio) + this._stateOnMouseDown.rotateX,
-                this.options.verticalFOV);
+                ((coords.y - this._onMouseDownMouseY) * pxToAngleRatio)
+                    + this._stateOnMouseDown.rotateX,
+                this.options.verticalFOV,
+            );
 
             applyRotation(this.view, this.camera, this._state);
         }

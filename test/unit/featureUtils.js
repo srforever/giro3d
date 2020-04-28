@@ -22,7 +22,9 @@ describe('FeaturesUtils', () => {
     it('should correctly filter point', () =>
         promise.then(collection => {
             const coordinates = new Coordinates('EPSG:4326', 1.26, 42.9);
-            const filter = FeaturesUtils.filterFeaturesUnderCoordinate(coordinates, collection, 0.1);
+            const filter = FeaturesUtils.filterFeaturesUnderCoordinate(
+                coordinates, collection, 0.1,
+            );
             assert.equal(filter.length, 1.0);
             assert.equal(filter[0].feature.type === 'point', 1.0);
         }));

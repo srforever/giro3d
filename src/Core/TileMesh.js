@@ -54,7 +54,8 @@ TileMesh.prototype.isVisible = function isVisible() {
 
 TileMesh.prototype.setDisplayed = function setDisplayed(show) {
     this.material.visible = show && this.material.update();
-    this.material.transparent = this.material.opacity !== 1 || this.material.uniforms.noTextureOpacity.value !== 1;
+    this.material.transparent = this.material.opacity !== 1
+        || this.material.uniforms.noTextureOpacity.value !== 1;
 };
 
 TileMesh.prototype.setVisibility = function setVisibility(show) {
@@ -75,7 +76,8 @@ TileMesh.prototype.changeState = function changeState(state) {
     if (state > RendererConstant.FINAL) {
         this.material.transparent = false;
     } else {
-        this.material.transparent = this.material.opacity !== 1 || this.material.uniforms.noTextureOpacity.value !== 1;
+        this.material.transparent = this.material.opacity !== 1
+            || this.material.uniforms.noTextureOpacity.value !== 1;
     }
 
     this.material.needsUpdate = true;
@@ -122,7 +124,8 @@ TileMesh.prototype.setBBoxZ = function setBBoxZ(min, max) {
     if (min == null && max == null) {
         return;
     }
-    if (Math.floor(min) !== Math.floor(this.obb.z.min) || Math.floor(max) !== Math.floor(this.obb.z.max)) {
+    if (Math.floor(min) !== Math.floor(this.obb.z.min)
+        || Math.floor(max) !== Math.floor(this.obb.z.max)) {
         this.OBB().updateZ(min, max);
     }
 };

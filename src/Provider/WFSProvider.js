@@ -34,14 +34,16 @@ function preprocessDataLayer(layer) {
 }
 
 function tileInsideLimit(tile, layer) {
-    return (layer.level === undefined || tile.level === layer.level) && layer.extent.intersectsExtent(tile.extent);
+    return (layer.level === undefined || tile.level === layer.level)
+        && layer.extent.intersectsExtent(tile.extent);
 }
 
 function executeCommand(command) {
     const layer = command.layer;
     const tile = command.requester;
     const destinationCrs = command.view.referenceCrs;
-    return getFeatures(destinationCrs, tile, layer, command).then(result => command.resolve(result));
+    return getFeatures(destinationCrs, tile, layer, command)
+        .then(result => command.resolve(result));
 }
 
 function assignLayer(object, layer) {
@@ -67,7 +69,9 @@ function getFeatures(crs, tile, layer) {
 
     return (Cache.get(urld) || Cache.set(urld, Fetcher.json(urld, layer.networkOptions)))
         .then(
-            geojson => GeoJsonParser.parse(geojson, { crsOut: crs, filteringExtent: tile.extent, filter: layer.filter }),
+            geojson => GeoJsonParser.parse(
+                geojson, { crsOut: crs, filteringExtent: tile.extent, filter: layer.filter },
+            ),
             err => {
                 // special handling for 400 errors, as it probably means the config is wrong
                 if (err.response.status === 400) {
@@ -83,7 +87,8 @@ function getFeatures(crs, tile, layer) {
                 }
                 console.error(`Layer ${layer.name}: ${err.response.status} error while trying to fetch WFS data. Url was ${urld}.`, err);
                 throw err;
-            })
+            },
+        )
         .then(feature => assignLayer(layer.convert(feature), layer));
 }
 

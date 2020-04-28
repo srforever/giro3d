@@ -55,11 +55,16 @@ export default {
      * @param {ArrayBuffer} buffer - the b3dm buffer.
      * @param {Object} options - additional properties.
      * @param {string=} [options.gltfUpAxis='Y'] - embedded glTF model up axis.
-     * @param {string} options.urlBase - the base url of the b3dm file (used to fetch textures for the embedded glTF model).
-     * @param {boolean=} [options.doNotPatchMaterial='false'] - disable patching material with logarithmic depth buffer support.
+     * @param {string} options.urlBase - the base url of the b3dm file (used to fetch textures for
+     * the embedded glTF model).
+     * @param {boolean=} [options.doNotPatchMaterial='false'] - disable patching material with
+     * logarithmic depth buffer support.
      * @param {float} [options.opacity=1.0] - the b3dm opacity.
-     * @param {boolean|Material=} [options.overrideMaterials='false'] - override b3dm's embedded glTF materials. If overrideMaterials is a three.js material, it will be the material used to override.
-     * @return {Promise} - a promise that resolves with an object containig a THREE.Scene (gltf) and a batch table (batchTable).
+     * @param {boolean|Material=} [options.overrideMaterials='false'] - override b3dm's embedded
+     * glTF materials. If overrideMaterials is a three.js material, it will be the material used to
+     * override.
+     * @return {Promise} - a promise that resolves with an object containig a THREE.Scene (gltf) and
+     * a batch table (batchTable).
      *
      */
     parse(buffer, options) {
@@ -77,7 +82,8 @@ export default {
         // Magic type is unsigned char [4]
         b3dmHeader.magic = utf8Decoder.decode(new Uint8Array(buffer, 0, 4));
         if (b3dmHeader.magic) {
-            // Version, byteLength, batchTableJSONByteLength, batchTableBinaryByteLength and batchTable types are uint32
+            // Version, byteLength, batchTableJSONByteLength, batchTableBinaryByteLength and
+            // batchTable types are uint32
             b3dmHeader.version = view.getUint32(byteOffset, true);
             byteOffset += Uint32Array.BYTES_PER_ELEMENT;
 
@@ -127,24 +133,27 @@ export default {
 
                     const initMesh = function initFn(mesh) {
                         mesh.frustumCulled = false;
-                        if (mesh.material) {
-                            if (options.overrideMaterials) {
-                                mesh.material.dispose();
-                                if (typeof (options.overrideMaterials) === 'object' &&
-                                    options.overrideMaterials.isMaterial) {
-                                    mesh.material = options.overrideMaterials.clone();
-                                } else {
-                                    mesh.material = new THREE.MeshLambertMaterial({ color: 0xffffff });
-                                }
-                            } else if (Capabilities.isLogDepthBufferSupported()
-                                        && mesh.material.isRawShaderMaterial
-                                        && !options.doNotPatchMaterial) {
-                                shaderUtils.patchMaterialForLogDepthSupport(mesh.material);
-                                console.warn('b3dm shader has been patched to add log depth buffer support');
-                            }
-                            mesh.material.transparent = options.opacity < 1.0;
-                            mesh.material.opacity = options.opacity;
+                        if (!mesh.material) {
+                            return;
                         }
+                        if (options.overrideMaterials) {
+                            mesh.material.dispose();
+                            if (typeof (options.overrideMaterials) === 'object' &&
+                                options.overrideMaterials.isMaterial) {
+                                mesh.material = options.overrideMaterials.clone();
+                            } else {
+                                mesh.material = new THREE.MeshLambertMaterial({ color: 0xffffff });
+                            }
+                        } else if (Capabilities.isLogDepthBufferSupported()
+                                    && mesh.material.isRawShaderMaterial
+                                    && !options.doNotPatchMaterial) {
+                            shaderUtils.patchMaterialForLogDepthSupport(mesh.material);
+                            console.warn(
+                                'b3dm shader has been patched to add log depth buffer support',
+                            );
+                        }
+                        mesh.material.transparent = options.opacity < 1.0;
+                        mesh.material.opacity = options.opacity;
                     };
                     gltf.scene.traverse(initMesh);
 
@@ -163,7 +172,8 @@ export default {
                     glTFLoader.parse(gltfBuffer, urlBase, onload);
                 }
             }));
-            return Promise.all(promises).then(values => ({ gltf: values[1], batchTable: values[0] }));
+            return Promise.all(promises)
+                .then(values => ({ gltf: values[1], batchTable: values[0] }));
         }
         throw new Error('Invalid b3dm file.');
     },

@@ -7,7 +7,8 @@ export default {
     /** Parse pnts buffer and extract THREE.Points and batch table
      * @function parse
      * @param {ArrayBuffer} buffer - the pnts buffer.
-     * @return {Promise} - a promise that resolves with an object containig a THREE.Points (point) and a batch table (batchTable).
+     * @return {Promise} - a promise that resolves with an object containig a THREE.Points (point)
+     * and a batch table (batchTable).
      *
      */
     parse: function parse(buffer) {
@@ -26,7 +27,8 @@ export default {
         byteOffset += 4;
 
         if (pntsHeader.magic) {
-            // Version, byteLength, batchTableJSONByteLength, batchTableBinaryByteLength and batchTable types are uint32
+            // Version, byteLength, batchTableJSONByteLength, batchTableBinaryByteLength and
+            // batchTable types are uint32
             pntsHeader.version = view.getUint32(byteOffset, true);
             byteOffset += Uint32Array.BYTES_PER_ELEMENT;
 

@@ -161,16 +161,17 @@ function PointCloudRenderer(view) {
             const mat = new THREE.Matrix4();
             mat.getInverse(renderer.view.camera.camera3D.projectionMatrix);
 
-            m.uniforms.colorTexture.value = input.texture;
-            m.uniforms.depthTexture.value = input.depthTexture;
-            m.uniforms.resolution.value.set(
+            const mU = m.uniforms;
+            mU.colorTexture.value = input.texture;
+            mU.depthTexture.value = input.depthTexture;
+            mU.resolution.value.set(
                 input.width, input.height);
-            m.uniforms.m43.value = m43;
-            m.uniforms.m33.value = m33;
-            m.uniforms.threshold.value = this.parameters.threshold;
-            m.uniforms.showRemoved.value = this.parameters.showRemoved;
-            m.uniforms.invPersMatrix.value.getInverse(renderer.view.camera.camera3D.projectionMatrix);
-            m.uniforms.clearColor.value.copy(renderer.view.mainLoop.gfxEngine.renderer.getClearColor());
+            mU.m43.value = m43;
+            mU.m33.value = m33;
+            mU.threshold.value = this.parameters.threshold;
+            mU.showRemoved.value = this.parameters.showRemoved;
+            mU.invPersMatrix.value.getInverse(renderer.view.camera.camera3D.projectionMatrix);
+            mU.clearColor.value.copy(renderer.view.mainLoop.gfxEngine.renderer.getClearColor());
 
             return { material: m };
         },
@@ -281,7 +282,9 @@ PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.
         for (let j = 0; j < stage.passes.length; j++) {
             // prepare stage
             // eslint-disable-next-line prefer-const
-            let { material, output } = stage.setup(this, this.renderTargets[previousStageOutput], j);
+            let { material, output } = stage.setup(
+                this, this.renderTargets[previousStageOutput], j,
+            );
 
             // if last stage -> override output (draw to screen)
             if (i === stages.length - 1 && j === stage.passes.length - 1) {
@@ -327,7 +330,9 @@ function _createRenderTargets(view) {
     renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width, view.camera.height));
     renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width, view.camera.height));
     renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width, view.camera.height));
-    renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width * 0.5, view.camera.height * 0.5));
+    renderTargets.push(
+        new THREE.WebGLRenderTarget(view.camera.width * 0.5, view.camera.height * 0.5),
+    );
 
     renderTargets[RT.FULL_RES_0].texture.minFilter = THREE.LinearFilter;
     renderTargets[RT.FULL_RES_0].texture.generateMipmaps = false;
@@ -347,7 +352,9 @@ function _createRenderTargets(view) {
     renderTargets[RT.FULL_RES_1].depthTexture = new THREE.DepthTexture();
     renderTargets[RT.FULL_RES_1].depthTexture.type = THREE.UnsignedShortType;
 
-    renderTargets[RT.EDL_VALUES] = new THREE.WebGLRenderTarget(view.camera.width, view.camera.height);
+    renderTargets[RT.EDL_VALUES] = new THREE.WebGLRenderTarget(
+        view.camera.width, view.camera.height,
+    );
     renderTargets[RT.EDL_VALUES].texture.generateMipmaps = false;
     renderTargets[RT.EDL_VALUES].depthBuffer = false;
     renderTargets[RT.EDL_VALUES].texture.format = THREE.RGBAFormat;

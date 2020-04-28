@@ -147,7 +147,9 @@ export default {
         if (node.layerUpdateState[layer.id] === undefined) {
             node.layerUpdateState[layer.id] = new LayerUpdateState();
 
-            if (parent && parent.material && initNodeElevationTextureFromParent(node, parent, layer)) {
+            if (parent
+                && parent.material
+                && initNodeElevationTextureFromParent(node, parent, layer)) {
                 context.view.notifyChange(node, false);
                 return null;
             }

@@ -11,7 +11,8 @@ function assertFloatEqual(float1, float2, precision = 5) {
 }
 
 describe('Coordinate conversions', () => {
-    // This case happend in giro3d when we convert the tile extent (4326) to a target WFS server (EPSG:3946 for example) to request Lyon bus line in WFS.
+    // This case happend in giro3d when we convert the tile extent (4326) to a target WFS server
+    // (EPSG:3946 for example) to request Lyon bus line in WFS.
     it('should correctly convert from EPSG:4326 (tiles extent) to EPSG:3946 (Lyon WFS) and back to EPSG:4326 (degrees)', () => {
         // geographic example for EPSG 4326 in degrees
         const longIn = 4.82212;

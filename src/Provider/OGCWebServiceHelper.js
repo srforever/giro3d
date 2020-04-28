@@ -7,7 +7,9 @@ import Extent from '../Core/Geographic/Extent.js';
 export const SIZE_TEXTURE_TILE = 256;
 
 const getTextureFloat = function getTextureFloat(buffer) {
-    const texture = new THREE.DataTexture(buffer, SIZE_TEXTURE_TILE, SIZE_TEXTURE_TILE, THREE.AlphaFormat, THREE.FloatType);
+    const texture = new THREE.DataTexture(
+        buffer, SIZE_TEXTURE_TILE, SIZE_TEXTURE_TILE, THREE.AlphaFormat, THREE.FloatType,
+    );
     texture.needsUpdate = true;
     return texture;
 };

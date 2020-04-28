@@ -165,12 +165,16 @@ export default {
                         node.extent.west() + uv.x * (node.extent.east() - node.extent.west()),
                         node.extent.south() + uv.y * (node.extent.north() - node.extent.south()),
                         0);
-                    const result = DEMUtils.getElevationValueAt(layer, tmpCoords, DEMUtils.FAST_READ_Z, [node]);
+                    const result = DEMUtils.getElevationValueAt(
+                        layer, tmpCoords, DEMUtils.FAST_READ_Z, [node]
+                    );
                     if (result) {
                         tmpCoords._values[2] = result.z;
                         // convert to view crs
                         // here (and only here) should be the Coordinates instance creation
-                        const coord = tmpCoords.as(_instance.referenceCrs, new Coordinates(_instance.referenceCrs));
+                        const coord = tmpCoords.as(
+                            _instance.referenceCrs, new Coordinates(_instance.referenceCrs)
+                        );
                         const point = tmpCoords.xyz(new THREE.Vector3());
                         results.push({
                             object: node,
@@ -275,7 +279,9 @@ export default {
                 for (let i = 0; i < candidates.length; i++) {
                     if (candidates[i].pickingId === o.material.pickingId) {
                         const position = new THREE.Vector3()
-                            .fromArray(o.geometry.attributes.position.array, 3 * candidates[i].index)
+                            .fromArray(
+                                o.geometry.attributes.position.array, 3 * candidates[i].index
+                            )
                             .applyMatrix4(o.matrixWorld);
                         result.push({
                             object: o,

@@ -10,7 +10,8 @@ function pointIsOverLine(point, linePoints, epsilon) {
         /* **********************************************************
             norm     : norm of vector P1P2
             distance : distance point P0 to line P1P2
-            scalar   : dot product of P1P0 and P1P2 divide by norm, it represents the projection of P0 on the line
+            scalar   : dot product of P1P0 and P1P2 divide by norm, it represents the projection of
+            P0 on the line
 
             Point is over segment P1P2 if :
                 * if the distance, , is inferior to epsilon
@@ -126,7 +127,9 @@ function isFeatureUnderCoordinate(coordinate, feature, epsilon, result) {
                 geometry.indices[0].offset + geometry.indices[0].count) :
             feature.vertices;
 
-        const under = isFeatureSingleGeometryUnderCoordinate(coordinate, feature.type, coordinates, epsilon);
+        const under = isFeatureSingleGeometryUnderCoordinate(
+            coordinate, feature.type, coordinates, epsilon,
+        );
         if (under) {
             result.push({
                 feature,

@@ -16,10 +16,11 @@ export function $3dTilesIndex(tileset, baseURL) {
     const inverseTileTransform = new THREE.Matrix4();
     const recurse = function recurseFn(node, baseURL, parent) {
         // compute transform (will become Object3D.matrix when the object is downloaded)
-        node.transform = node.transform ? (new THREE.Matrix4()).fromArray(node.transform) : identity;
+        node.transform = node.transform
+            ? (new THREE.Matrix4()).fromArray(node.transform) : identity;
 
-        // The only reason to store _worldFromLocalTransform is because of extendTileset where we need the
-        // transform chain for one node.
+        // The only reason to store _worldFromLocalTransform is because of extendTileset where we
+        // need the transform chain for one node.
         node._worldFromLocalTransform = node.transform;
         if (parent && parent._worldFromLocalTransform) {
             if (node.transform) {
@@ -39,7 +40,8 @@ export function $3dTilesIndex(tileset, baseURL) {
             inverseTileTransform.identity();
         }
 
-        node.viewerRequestVolume = node.viewerRequestVolume ? getBox(node.viewerRequestVolume, inverseTileTransform) : undefined;
+        node.viewerRequestVolume = node.viewerRequestVolume
+            ? getBox(node.viewerRequestVolume, inverseTileTransform) : undefined;
         node.boundingVolume = getBox(node.boundingVolume, inverseTileTransform);
         node.refine = node.refine || (parent ? parent.refine : 'ADD');
 
@@ -117,7 +119,9 @@ function preprocessDataLayer(layer, view, scheduler) {
 
     // TODO: find a better way to know that this layer is about pointcloud ?
     if (layer.material && layer.material.enablePicking) {
-        layer.pickObjectsAt = (view, mouse, radius) => Picking.pickPointsAt(view, mouse, radius, layer);
+        layer.pickObjectsAt = (view, mouse, radius) => {
+            return Picking.pickPointsAt(view, mouse, radius, layer);
+        };
     }
 
     layer._cleanableTiles = [];
@@ -173,7 +177,10 @@ function getBox(volume) {
         }
         return { box };
     } else if (volume.sphere) {
-        const sphere = new THREE.Sphere(new THREE.Vector3(volume.sphere[0], volume.sphere[1], volume.sphere[2]), volume.sphere[3]);
+        const sphere = new THREE.Sphere(
+            new THREE.Vector3(volume.sphere[0], volume.sphere[1], volume.sphere[2]),
+            volume.sphere[3],
+        );
         return { sphere };
     } else {
         // TODO we should probably do
@@ -273,7 +280,8 @@ function executeCommand(command) {
             b3dm: b3dmToMesh,
             pnts: pntsParse,
         };
-        const dl = Cache.get(url) || Cache.set(url, Fetcher.arrayBuffer(url, layer.networkOptions), Cache.TEXTURE);
+        const dl = Cache.get(url)
+            || Cache.set(url, Fetcher.arrayBuffer(url, layer.networkOptions), Cache.TEXTURE);
         return dl.then(result => {
             if (result !== undefined) {
                 let func;

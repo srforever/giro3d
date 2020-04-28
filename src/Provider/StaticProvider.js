@@ -76,10 +76,13 @@ function buildUrl(layer, image) {
 }
 
 function getTexture(toDownload, layer) {
-    // ...
-    return (layer.format === 2 ?
-        OGCWebServiceHelper.getXBilTextureByUrl(toDownload.url, layer.networkOptions) :
-        OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions)).then(texture => {
+    let textureP;
+    if (layer.format === 2) {
+        textureP = OGCWebServiceHelper.getXBilTextureByUrl(toDownload.url, layer.networkOptions);
+    } else {
+        textureP = OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions);
+    }
+    return textureP.then(texture => {
         // adjust pitch
         const result = {
             texture,

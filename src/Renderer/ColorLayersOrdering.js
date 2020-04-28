@@ -17,7 +17,8 @@ export const COLOR_LAYERS_ORDER_CHANGED = 'layers-order-changed';
 
 export const ColorLayersOrdering = {
     /**
-     * Moves up in the layer list. This function has no effect if the layer is moved to its current index.
+     * Moves up in the layer list. This function has no effect if the layer is moved to its current
+     * index.
      * @function moveLayerUp
      * @param      {View}  view the viewer
      * @param      {string}  layerId   The layer's idendifiant
@@ -41,7 +42,8 @@ export const ColorLayersOrdering = {
         }
     },
     /**
-     * Moves down in the layer list. This function has no effect if the layer is moved to its current index.
+     * Moves down in the layer list. This function has no effect if the layer is moved to its
+     * current index.
      * @function moveLayerDown
      * @param      {View}  view the viewer
      * @param      {string}  layerId   The layer's idendifiant
@@ -65,7 +67,8 @@ export const ColorLayersOrdering = {
         }
     },
     /**
-     * Moves a specific layer to a specific index in the layer list. This function has no effect if the layer is moved to its current index.
+     * Moves a specific layer to a specific index in the layer list. This function has no effect if
+     * the layer is moved to its current index.
      * @function moveLayerToIndex
      * @param      {View}  view the viewer
      * @param      {string}  layerId   The layer's idendifiant

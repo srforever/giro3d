@@ -69,7 +69,8 @@ function readCoordinates(crsIn, crsOut, coordinates, extent, target) {
 // Multi-* geometry types are merged in one.
 const GeometryToCoordinates = {
     point(feature, crsIn, crsOut, coordsIn, filteringExtent, options) {
-        const extent = options.buildExtent ? new Extent(crsOut, Infinity, -Infinity, Infinity, -Infinity) : undefined;
+        const extent = options.buildExtent
+            ? new Extent(crsOut, Infinity, -Infinity, Infinity, -Infinity) : undefined;
         let coordinates = readCoordinates(crsIn, crsOut, coordsIn, extent);
         if (filteringExtent) {
             coordinates = coordinates.filter(c => filteringExtent.isPointInside(c));
@@ -81,7 +82,8 @@ const GeometryToCoordinates = {
         return feature;
     },
     polygon(feature, crsIn, crsOut, coordsIn, filteringExtent, options) {
-        const extent = options.buildExtent ? new Extent(crsOut, Infinity, -Infinity, Infinity, -Infinity) : undefined;
+        const extent = options.buildExtent
+            ? new Extent(crsOut, Infinity, -Infinity, Infinity, -Infinity) : undefined;
         // read contour first
         const coordinates = readCoordinates(crsIn, crsOut, coordsIn[0], extent);
         if (filteringExtent && !filteringExtent.isPointInside(coordinates[0])) {
@@ -103,7 +105,8 @@ const GeometryToCoordinates = {
         return feature;
     },
     lineString(feature, crsIn, crsOut, coordsIn, filteringExtent, options) {
-        const extent = options.buildExtent ? new Extent(crsOut, Infinity, -Infinity, Infinity, -Infinity) : undefined;
+        const extent = options.buildExtent
+            ? new Extent(crsOut, Infinity, -Infinity, Infinity, -Infinity) : undefined;
         const coordinates = readCoordinates(crsIn, crsOut, coordsIn, extent);
         if (filteringExtent && !filteringExtent.isPointInside(coordinates[0])) {
             return null;
@@ -142,17 +145,29 @@ function readGeometry(feature, crsIn, crsOut, geometry, filteringExtent, options
     }
     switch (feature.type) {
         case 'point':
-            return GeometryToCoordinates.point(feature, crsIn, crsOut, [geometry], filteringExtent, options);
+            return GeometryToCoordinates.point(
+                feature, crsIn, crsOut, [geometry], filteringExtent, options,
+            );
         case 'multipoint':
-            return GeometryToCoordinates.multi('point', feature, crsIn, crsOut, geometry, filteringExtent, options);
+            return GeometryToCoordinates.multi(
+                'point', feature, crsIn, crsOut, geometry, filteringExtent, options,
+            );
         case 'linestring':
-            return GeometryToCoordinates.lineString(feature, crsIn, crsOut, geometry, filteringExtent, options);
+            return GeometryToCoordinates.lineString(
+                feature, crsIn, crsOut, geometry, filteringExtent, options,
+            );
         case 'multilinestring':
-            return GeometryToCoordinates.multi('lineString', feature, crsIn, crsOut, geometry, filteringExtent, options);
+            return GeometryToCoordinates.multi(
+                'lineString', feature, crsIn, crsOut, geometry, filteringExtent, options,
+            );
         case 'polygon':
-            return GeometryToCoordinates.polygon(feature, crsIn, crsOut, geometry, filteringExtent, options);
+            return GeometryToCoordinates.polygon(
+                feature, crsIn, crsOut, geometry, filteringExtent, options,
+            );
         case 'multipolygon':
-            return GeometryToCoordinates.multi('polygon', feature, crsIn, crsOut, geometry, filteringExtent, options);
+            return GeometryToCoordinates.multi(
+                'polygon', feature, crsIn, crsOut, geometry, filteringExtent, options,
+            );
         case 'geometrycollection':
         default:
             throw new Error(`Unhandled geometry type ${feature.type}`);
@@ -303,9 +318,13 @@ export default {
         options.crsIn = options.crsIn || readCRS(json);
         switch (json.type.toLowerCase()) {
             case 'featurecollection':
-                return Promise.resolve(readFeatures(options.crsIn, crsOut, json.features, filteringExtent, options));
+                return Promise.resolve(
+                    readFeatures(options.crsIn, crsOut, json.features, filteringExtent, options),
+                );
             case 'feature':
-                return Promise.resolve(readFeatures(options.crsIn, crsOut, [json], filteringExtent, options));
+                return Promise.resolve(
+                    readFeatures(options.crsIn, crsOut, [json], filteringExtent, options),
+                );
             default:
                 throw new Error(`Unsupported GeoJSON type: '${json.type}`);
         }

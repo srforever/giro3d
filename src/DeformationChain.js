@@ -103,8 +103,13 @@ function computeTransformation(originalLine, modifiedLine, scale, camera3D) {
     const vec = originalLine.delta().normalize();
     const length = originalLine.distance();
     const transfoBox = new THREE.Box2();
-    transfoBox.expandByPoint(originalLine.getCenter().add(vec.clone().multiplyScalar(length * scale.x * -0.5)));
-    transfoBox.expandByPoint(originalLine.getCenter().add(vec.clone().multiplyScalar(length * scale.x * 0.5)));
+    // TODO there *must be* a better way (check if getCenter creates an instance)
+    transfoBox.expandByPoint(
+        originalLine.getCenter().add(vec.clone().multiplyScalar(length * scale.x * -0.5))
+    );
+    transfoBox.expandByPoint(
+        originalLine.getCenter().add(vec.clone().multiplyScalar(length * scale.x * 0.5))
+    );
 
     const normal = new THREE.Vector2(-vec.y, vec.x);
     const scaleVec = normal.multiplyScalar(scale.y);
@@ -330,7 +335,9 @@ class DeformationChain {
                     // draw a rectangular influence area
                     const rect = this.rectangles.get();
                     for (let j = 0; j < 4; j++) {
-                        rect.geometry.vertices[j].x = Math.sign(rect.geometry.vertices[j].x) * length * 0.5;
+                        rect.geometry.vertices[j].x = Math.sign(rect.geometry.vertices[j].x)
+                            * length
+                            * 0.5;
                     }
                     rect.geometry.computeBoundingSphere();
                     line.getCenter(rect.position);
@@ -355,7 +362,9 @@ class DeformationChain {
 
                     const rect2 = this.rectangles.get();
                     for (let j = 0; j < 4; j++) {
-                        rect2.geometry.vertices[j].x = Math.sign(rect2.geometry.vertices[j].x) * length * 0.5;
+                        rect2.geometry.vertices[j].x = Math.sign(rect2.geometry.vertices[j].x)
+                            * length
+                            * 0.5;
                     }
                     rect2.geometry.computeBoundingSphere();
                     line.getCenter(rect2.position);

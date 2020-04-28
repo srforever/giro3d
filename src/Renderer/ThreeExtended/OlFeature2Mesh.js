@@ -48,7 +48,9 @@ function prepareBufferGeometry(geom, color, altitude) {
             vertices[3 * i + 2] = Array.isArray(altitude) ? altitude[i] : altitude;
         }
     }
-    fillColorArray(colors, geom.flatCoordinates.length, color.r * 255, color.g * 255, color.b * 255, 0);
+    fillColorArray(
+        colors, geom.flatCoordinates.length, color.r * 255, color.g * 255, color.b * 255, 0,
+    );
 
     const threeGeom = new THREE.BufferGeometry();
     threeGeom.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
@@ -133,11 +135,14 @@ function featureToMultiPolygon(feature, properties, options) {
         // end index (in term of coordinates) of this polygon (after the holes)
         const polyNormEnd = ends[ends.length - 1] / geom.stride;
 
-        // Convert ends from array element indices to number of 3d coordinates relative to the start of this polygon
+        // Convert ends from array element indices to number of 3d coordinates relative to the start
+        // of this polygon
         const normalizedEnds = ends.map(normalizingEndsFn);
-        const triangles = Earcut(threeGeom.attributes.position.array.slice(start * 3, polyNormEnd * 3),
+        const triangles = Earcut(
+            threeGeom.attributes.position.array.slice(start * 3, polyNormEnd * 3),
             normalizedEnds.slice(0, -1),
-            3);
+            3,
+        );
 
         // shift them to represent their position in the global array
         indices = indices.concat(triangles.map(mapTriangle));
@@ -155,7 +160,8 @@ function featureToMultiPolygon(feature, properties, options) {
  * @param {Object} feature - a Feature's geometry
  * @param {Object} options - options controlling the conversion
  * @param {number|function} options.altitude - define the base altitude of the mesh
- * @param {number|function} options.extrude - if defined, polygons will be extruded by the specified amount
+ * @param {number|function} options.extrude - if defined, polygons will be extruded by the specified
+ * amount
  * @param {object|function} options.color - define per feature color
  * @return {THREE.Mesh} mesh
  */
@@ -218,12 +224,14 @@ function featuresToThree(features, options) {
  */
 export default {
     /**
-     * Return a function that converts [Features]{@link module:GeoJsonParser} to Meshes. Feature collection will be converted to a
+     * Return a function that converts [Features]{@link module:GeoJsonParser} to Meshes. Feature
+     * collection will be converted to a
      * a THREE.Group.
      *
      * @param {Object} options - options controlling the conversion
      * @param {number|function} options.altitude - define the base altitude of the mesh
-     * @param {number|function} options.extrude - if defined, polygons will be extruded by the specified amount
+     * @param {number|function} options.extrude - if defined, polygons will be extruded by the
+     * specified amount
      * @param {object|function} options.color - define per feature color
      * @return {function}
      */

@@ -117,7 +117,8 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
                 // if we don't do that, our OBBHelper will never get removed,
                 // because once a node is invisible, children are not removed
                 // any more
-                // FIXME a proper way of notifying tile deletion to children layers should be implemented
+                // FIXME a proper way of notifying tile deletion to children layers should be
+                // implemented
                 node.setDisplayed = function setDisplayed(show) {
                     this.material.visible = show;
                 };

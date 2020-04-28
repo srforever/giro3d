@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 
-// See the different constants holding ordinal, name, numElements, byteSize in PointAttributes.cpp in PotreeConverter
+// See the different constants holding ordinal, name, numElements, byteSize in PointAttributes.cpp
+// in PotreeConverter
 // elementByteSize is byteSize / numElements
 const POINT_ATTTRIBUTES = {
     POSITION_CARTESIAN: {
@@ -66,7 +67,8 @@ export default {
     /** Parse .bin PotreeConverter format and convert to a THREE.BufferGeometry
      * @function parse
      * @param {ArrayBuffer} buffer - the bin buffer.
-     * @param {Object} pointAttributes - the point attributes information contained in layer.metadata coming from cloud.js
+     * @param {Object} pointAttributes - the point attributes information contained in
+     * layer.metadata coming from cloud.js
      * @return {Promise} - a promise that resolves with a THREE.BufferGeometry.
      *
      */
@@ -92,13 +94,18 @@ export default {
             const array = new attr.arrayType(arrayLength);
             for (let arrayOffset = 0; arrayOffset < arrayLength; arrayOffset += attr.numElements) {
                 for (let elemIdx = 0; elemIdx < attr.numElements; elemIdx++) {
-                    array[arrayOffset + elemIdx] = attr.getValue(view, attrOffset + elemIdx * attr.numByte);
+                    array[arrayOffset + elemIdx] = attr.getValue(
+                        view, attrOffset + elemIdx * attr.numByte,
+                    );
                 }
                 attrOffset += pointByteSize;
             }
             elemOffset += attr.byteSize;
             attrOffset = elemOffset;
-            geometry.addAttribute(attr.attributeName, new THREE.BufferAttribute(array, attr.numElements, attr.normalized));
+            geometry.addAttribute(
+                attr.attributeName,
+                new THREE.BufferAttribute(array, attr.numElements, attr.normalized),
+            );
         }
 
         geometry.computeBoundingBox();

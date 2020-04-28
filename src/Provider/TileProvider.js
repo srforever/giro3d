@@ -21,7 +21,9 @@ function preprocessDataLayer(layer, view, scheduler) {
     const promises = [];
 
     for (const root of layer.schemeTile) {
-        promises.push(TiledNodeProcessing.requestNewTile(view, scheduler, layer, root, undefined, 0));
+        promises.push(
+            TiledNodeProcessing.requestNewTile(view, scheduler, layer, root, undefined, 0),
+        );
     }
     return Promise.all(promises).then(level0s => {
         layer.level0Nodes = level0s;

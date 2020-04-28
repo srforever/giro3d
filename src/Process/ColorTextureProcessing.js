@@ -11,8 +11,11 @@ function initColorTexturesFromParent(context, node, parent, layer) {
     const extent = node.getExtentForLayer(layer);
     // move up until we have a parent that uses its own atlas
     // This is needed because otherwise we'll get inconsistencies: child will inherit the atlas,
-    // but will compute its offset/scale values based on the result of parent.material.getLayerTexture()
-    while (parent && parent.material && parent.material.uniforms.colorTexture.value !== parent.material.texturesInfo.color.atlasTexture) {
+    // but will compute its offset/scale values based on the result of
+    // parent.material.getLayerTexture()
+    while (parent && parent.material
+        && parent.material.uniforms.colorTexture.value
+            !== parent.material.texturesInfo.color.atlasTexture) {
         parent = parent.parent;
     }
     if (!parent || !parent.material) {
@@ -60,7 +63,8 @@ export default {
                 // clean object of layer
                 delete o.layerUpdateState[layer.id];
                 // delete texture in material
-                // it's possible not to have this layer in this particular Mesh, see `updateLayerElement`
+                // it's possible not to have this layer in this particular Mesh, see
+                // `updateLayerElement`
                 if (o.material && o.material.indexOfColorLayer(layer) !== -1) {
                     o.material.removeLayer(layer);
                 }
@@ -154,9 +158,10 @@ export default {
                     return null;
                 }
 
-                return node.material.setLayerTextures(layer, result, false, context.view).then(() => {
-                    node.layerUpdateState[layer.id].success();
-                });
+                return node.material.setLayerTextures(layer, result, false, context.view)
+                    .then(() => {
+                        node.layerUpdateState[layer.id].success();
+                    });
             },
             err => {
                 if (err instanceof CancelledCommandException) {

@@ -120,31 +120,35 @@ function _subdivideNodeAdditive(context, layer, node, cullingTest) {
             overrideMatrixWorld = tmpMatrix.multiplyMatrices(node.matrixWorld, child.transform);
         }
 
-        const isVisible = cullingTest ? !cullingTest(context.camera, child, overrideMatrixWorld) : true;
+        const isVisible = cullingTest
+            ? !cullingTest(context.camera, child, overrideMatrixWorld) : true;
 
         // child is not visible => skip
         if (!isVisible) {
             continue;
         }
 
-        child.promise = requestNewTile(context.view, context.scheduler, layer, child, node, true).then(tile => {
-            if (!tile || !node.parent) {
-                // cancelled promise or node has been deleted
-            } else {
-                node.add(tile);
-                tile.updateMatrixWorld();
+        child.promise = requestNewTile(context.view, context.scheduler, layer, child, node, true)
+            .then(tile => {
+                if (!tile || !node.parent) {
+                    // cancelled promise or node has been deleted
+                } else {
+                    node.add(tile);
+                    tile.updateMatrixWorld();
 
-                const extent = boundingVolumeToExtent(layer.extent.crs(), tile.boundingVolume, tile.matrixWorld);
-                tile.traverse(obj => {
-                    obj.extent = extent;
-                });
+                    const extent = boundingVolumeToExtent(
+                        layer.extent.crs(), tile.boundingVolume, tile.matrixWorld,
+                    );
+                    tile.traverse(obj => {
+                        obj.extent = extent;
+                    });
 
-                context.view.notifyChange(child);
-            }
-            delete child.promise;
-        }, () => {
-            delete child.promise;
-        });
+                    context.view.notifyChange(child);
+                }
+                delete child.promise;
+            }, () => {
+                delete child.promise;
+            });
     }
 }
 
@@ -168,16 +172,19 @@ function _subdivideNodeSubstractive(context, layer, node) {
     // Substractive (refine = 'REPLACE') is an all or nothing subdivision mode
     const promises = [];
     for (const child of layer.tileIndex.index[node.tileId].children) {
-        promises.push(
-            requestNewTile(context.view, context.scheduler, layer, child, node, false).then(tile => {
+        const p = requestNewTile(context.view, context.scheduler, layer, child, node, false)
+            .then(tile => {
                 node.add(tile);
                 tile.updateMatrixWorld();
 
-                const extent = boundingVolumeToExtent(layer.extent.crs(), tile.boundingVolume, tile.matrixWorld);
+                const extent = boundingVolumeToExtent(
+                    layer.extent.crs(), tile.boundingVolume, tile.matrixWorld,
+                );
                 tile.traverse(obj => {
                     obj.extent = extent;
                 });
-            }));
+            });
+        promises.push(p);
     }
     Promise.all(promises).then(() => {
         node.pendingSubdivision = false;
@@ -406,7 +413,9 @@ function calculateCameraDistance(camera, node) {
     }
 }
 
-export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTest = $3dTilesSubdivisionControl) {
+export function process3dTilesNode(
+    cullingTest = $3dTilesCulling, subdivisionTest = $3dTilesSubdivisionControl
+) {
     return function _process3dTilesNodes(context, layer, node) {
         // Remove deleted children (?)
         node.remove(...node.children.filter(c => c.deleted));
@@ -419,7 +428,8 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
         let returnValue;
 
         // do proper culling
-        const isVisible = cullingTest ? (!cullingTest(context.camera, node, node.matrixWorld)) : true;
+        const isVisible = cullingTest
+            ? (!cullingTest(context.camera, node, node.matrixWorld)) : true;
         node.visible = isVisible;
 
 
@@ -428,7 +438,8 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
 
             // We need distance for 2 things:
             // - subdivision testing
-            // - near / far calculation in MainLoop. For this one, we need the distance for *all* displayed tiles.
+            // - near / far calculation in MainLoop. For this one, we need the distance for *all*
+            // displayed tiles.
             // For this last reason, we need to calculate this here, and not in subdivisionControl
             calculateCameraDistance(context.camera.camera3D, node);
             if (node.pendingSubdivision || subdivisionTest(context, layer, node)) {
@@ -438,15 +449,18 @@ export function process3dTilesNode(cullingTest = $3dTilesCulling, subdivisionTes
                     setDisplayed(node, true);
                 } else {
                     // If one of our child is a tileset, this node must be displayed until this
-                    // child content is ready, to avoid hiding our content too early (= when our child
-                    // is loaded but its content is not)
+                    // child content is ready, to avoid hiding our content too early (= when our
+                    // child is loaded but its content is not)
                     const subtilesets = layer.tileIndex.index[node.tileId].children.filter(
                         tile => tile.isTileset);
 
                     if (subtilesets.length) {
                         let allReady = true;
                         for (const tileset of subtilesets) {
-                            if (!isTilesetContentReady(tileset, node.children.filter(n => n.tileId === tileset.tileId)[0])) {
+                            const subTilesetNode = node.children.filter(
+                                n => n.tileId === tileset.tileId,
+                            )[0];
+                            if (!isTilesetContentReady(tileset, subTilesetNode)) {
                                 allReady = false;
                                 break;
                             }

@@ -43,7 +43,8 @@ PlanarTileBuilder.prototype.uProjecte = function uProjecte(u, params) {
 
 // coord v tile to projected
 PlanarTileBuilder.prototype.vProjecte = function vProjecte(v, params) {
-    params.projected.y = params.extent.south() + v * (params.extent.north() - params.extent.south());
+    params.projected.y = params.extent.south()
+        + v * (params.extent.north() - params.extent.south());
 };
 
 // get oriented bounding box of tile

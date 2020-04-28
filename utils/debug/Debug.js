@@ -142,7 +142,8 @@ function Debug(view, datDebugTool, chartDivContainer) {
             const size = { x: g.width * 0.2, y: g.height * 0.2 };
             debugCamera.aspect = size.x / size.y;
             const camera = view.camera.camera3D;
-            const coord = new Coordinates(view.referenceCrs, camera.position).as(tileLayer.extent._crs);
+            const coord = new Coordinates(view.referenceCrs, camera.position)
+                .as(tileLayer.extent._crs);
             if (view instanceof PanoramaView) {
                 debugCamera.position.set(0, 0, 100);
                 camera.localToWorld(debugCamera.position);

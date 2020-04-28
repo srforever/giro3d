@@ -122,9 +122,11 @@ function findChildrenByName(node, name) {
 function computeBbox(layer) {
     let bbox;
     if (layer.isFromPotreeConverter) {
+        const layerBbox = layer.metadata.boundingBox;
         bbox = new THREE.Box3(
-            new THREE.Vector3(layer.metadata.boundingBox.lx, layer.metadata.boundingBox.ly, layer.metadata.boundingBox.lz),
-            new THREE.Vector3(layer.metadata.boundingBox.ux, layer.metadata.boundingBox.uy, layer.metadata.boundingBox.uz));
+            new THREE.Vector3(layerBbox.lx, layerBbox.ly, layerBbox.lz),
+            new THREE.Vector3(layerBbox.ux, layerBbox.uy, layerBbox.uz),
+        );
     } else {
         // lopocs
         let idx = 0;
@@ -134,9 +136,11 @@ function computeBbox(layer) {
             }
             idx++;
         }
+        const layerBbox = layer.metadata[idx].bbox;
         bbox = new THREE.Box3(
-            new THREE.Vector3(layer.metadata[idx].bbox.xmin, layer.metadata[idx].bbox.ymin, layer.metadata[idx].bbox.zmin),
-            new THREE.Vector3(layer.metadata[idx].bbox.xmax, layer.metadata[idx].bbox.ymax, layer.metadata[idx].bbox.zmax));
+            new THREE.Vector3(layerBbox.xmin, layerBbox.ymin, layerBbox.zmin),
+            new THREE.Vector3(layerBbox.xmax, layerBbox.ymax, layerBbox.zmax),
+        );
     }
     return bbox;
 }
@@ -214,7 +218,8 @@ export default {
         layer.pointSize = layer.pointSize === 0 || !isNaN(layer.pointSize) ? layer.pointSize : 4;
         layer.sseThreshold = layer.sseThreshold || 2;
         layer.material = layer.material || {};
-        layer.material = layer.material.isMaterial ? layer.material : new PointsMaterial(layer.material);
+        layer.material = layer.material.isMaterial
+            ? layer.material : new PointsMaterial(layer.material);
         layer.material.defines = layer.material.defines || {};
         layer.mode = MODE.COLOR;
 
@@ -227,13 +232,19 @@ export default {
         layer.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
 
         // this probably needs to be moved to somewhere else
-        layer.pickObjectsAt = (view, mouse, radius, filter) => Picking.pickPointsAt(view, mouse, radius, layer, filter);
+        layer.pickObjectsAt = (view, mouse, radius, filter) => {
+            return Picking.pickPointsAt(view, mouse, radius, layer, filter);
+        };
 
         return Fetcher.json(`${layer.url}/${layer.file}`, layer.networkOptions)
             .then(metadata => {
                 parseMetadata(metadata, layer);
                 const bbox = computeBbox(layer);
-                return parseOctree(layer, layer.metadata.hierarchyStepSize, { baseurl: `${layer.url}/${layer.metadata.octreeDir}/r`, name: '', bbox });
+                return parseOctree(
+                    layer,
+                    layer.metadata.hierarchyStepSize,
+                    { baseurl: `${layer.url}/${layer.metadata.octreeDir}/r`, name: '', bbox },
+                );
             })
             .then(root => {
                 // eslint-disable-next-line no-console
@@ -252,32 +263,34 @@ export default {
 
         // Query HRC if we don't have children metadata yet.
         if (metadata.childrenBitField && metadata.children.length === 0) {
-            parseOctree(layer, layer.metadata.hierarchyStepSize, metadata).then(() => command.view.notifyChange(layer, false));
+            parseOctree(layer, layer.metadata.hierarchyStepSize, metadata)
+                .then(() => command.view.notifyChange(layer, false));
         }
 
         // `isLeaf` is for lopocs and allows the pointcloud server to consider that the current
         // node is the last one, even if we could subdivide even further.
-        // It's necessary because lopocs doens't know about the hierarchy (it generates it on the fly
-        // when we request .hrc files)
+        // It's necessary because lopocs doens't know about the hierarchy (it generates it on the
+        // fly when we request .hrc files)
         const url = `${metadata.baseurl}/r${metadata.name}.${layer.extension}?isleaf=${command.isLeaf ? 1 : 0}`;
 
-        return Fetcher.arrayBuffer(url, layer.networkOptions).then(buffer => layer.parse(buffer, layer.metadata.pointAttributes)).then(geometry => {
-            const points = new Points(layer, geometry, layer.material.clone());
-            if (points.material.enablePicking) {
-                Picking.preparePointGeometryForPicking(points.geometry);
-            }
-            points.frustumCulled = false;
-            points.matrixAutoUpdate = false;
-            points.position.copy(metadata.bbox.min);
-            points.scale.set(layer.metadata.scale, layer.metadata.scale, layer.metadata.scale);
-            points.updateMatrix();
-            points.tightbbox = geometry.boundingBox.applyMatrix4(points.matrix);
-            points.layers.set(layer.threejsLayer);
-            points.layer = layer;
-            points.extent = Extent.fromBox3(command.view.referenceCrs, metadata.bbox);
-            points.userData.metadata = metadata;
-            return points;
-        });
+        return Fetcher.arrayBuffer(url, layer.networkOptions)
+            .then(buffer => layer.parse(buffer, layer.metadata.pointAttributes)).then(geometry => {
+                const points = new Points(layer, geometry, layer.material.clone());
+                if (points.material.enablePicking) {
+                    Picking.preparePointGeometryForPicking(points.geometry);
+                }
+                points.frustumCulled = false;
+                points.matrixAutoUpdate = false;
+                points.position.copy(metadata.bbox.min);
+                points.scale.set(layer.metadata.scale, layer.metadata.scale, layer.metadata.scale);
+                points.updateMatrix();
+                points.tightbbox = geometry.boundingBox.applyMatrix4(points.matrix);
+                points.layers.set(layer.threejsLayer);
+                points.layer = layer;
+                points.extent = Extent.fromBox3(command.view.referenceCrs, metadata.bbox);
+                points.userData.metadata = metadata;
+                return points;
+            });
     },
 };
 

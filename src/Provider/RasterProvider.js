@@ -36,7 +36,10 @@ function createTextureFromVector(tile, layer) {
         const coords = tile.extent;
         const result = { pitch: new THREE.Vector4(0, 0, 1, 1) };
         const key = getKey(tile.extent, layer);
-        result.texture = Cache.get(key) || Cache.set(key, Feature2Texture.createTextureFromFeature(layer.feature, tile.extent, 256, layer.style));
+        const value = Feature2Texture.createTextureFromFeature(
+            layer.feature, tile.extent, 256, layer.style,
+        );
+        result.texture = Cache.get(key) || Cache.set(key, value);
         result.texture.extent = tile.extent;
         result.texture.coords = coords;
         result.texture.coords.zoom = tile.level;
@@ -55,12 +58,15 @@ function _compareResultFromLevel(r1, r2) {
 function pickObjectsAt(view, mouse, radius) {
     // first find the coordinates (and so pick the tiles)
     // find the parent layer
-    const parentLayer = view.getLayers(l => l.type === 'geometry' && l._attachedLayers.includes(this))[0];
+    const parentLayer = view.getLayers(
+        l => l.type === 'geometry' && l._attachedLayers.includes(this),
+    )[0];
     const results = view.pickObjectsAt(mouse, radius, parentLayer.level0Nodes[0]);
     if (results.length === 0) {
         return [];
     }
-    // we also get lower level tiles, but we only need to examine the higher level tiles (the more precise ones)
+    // we also get lower level tiles, but we only need to examine the higher level tiles (the more
+    // precise ones)
     results.sort(_compareResultFromLevel);
     const highestLevel = results[0].object.level;
     const picked = [];
@@ -69,7 +75,9 @@ function pickObjectsAt(view, mouse, radius) {
             break; // we have examined all the precise tiles
         }
         const point = result.point;
-        const pickedFeatures = Feature2Texture.featuresAtPoint(this.feature, result.object.extent, 256, this.style, point, radius);
+        const pickedFeatures = Feature2Texture.featuresAtPoint(
+            this.feature, result.object.extent, 256, this.style, point, radius,
+        );
         for (const f of pickedFeatures) {
             picked.push({ object: f, point, layer: this });
         }
@@ -127,12 +135,16 @@ export default {
                     } else if (file.documentElement.tagName.toLowerCase() === 'gpx') {
                         geojson = togeojson.gpx(file);
                         layer.style.stroke = layer.style.stroke || 'red';
-                        layer.extent = layer.extent.intersect(getExtentFromGpxFile(file).as(layer.extent.crs()));
+                        layer.extent = layer.extent.intersect(
+                            getExtentFromGpxFile(file).as(layer.extent.crs()),
+                        );
                     } else if (file.documentElement.tagName.toLowerCase() === 'parsererror') {
                         throw new Error('Error parsing XML document');
                     } else {
-                        throw new Error('Unsupported xml file, only valid KML and GPX are supported, but no <gpx> or <kml> tag found.',
-                            file);
+                        throw new Error(
+                            'Unsupported xml file, only valid KML and GPX are supported, but no <gpx> or <kml> tag found.',
+                            file,
+                        );
                     }
                 } else if (trimmedText.startsWith('{') || trimmedText.startsWith('[')) {
                     geojson = JSON.parse(text);

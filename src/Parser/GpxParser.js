@@ -116,12 +116,15 @@ function _gpxToWTrackPointsMesh(gpxXML, options) {
                 if (Capabilities.isLogDepthBufferSupported()) {
                     material.fragmentShader = material.fragmentShader.replace(/.*/, '').substr(1);
                     shaderUtils.patchMaterialForLogDepthSupport(material);
-                    console.warn('MeshLineMaterial shader has been patched to add log depth buffer support');
+                    console.warn(
+                        'MeshLineMaterial shader has been patched to add log depth buffer support',
+                    );
                 }
 
                 const pathMesh = new THREE.Mesh(line.geometry, material);
                 // update size screen uniform
-                // update depth test for visibilty path, because of the proximity of the terrain and gpx mesh
+                // update depth test for visibilty path, because of the proximity of the terrain and
+                // gpx mesh
                 pathMesh.onBeforeRender = updatePath;
                 masterObject.add(pathMesh);
             }
@@ -174,11 +177,14 @@ export default {
      * @function parse
      * @param {string} xml - the gpx file or xml.
      * @param {Object=} options - additional properties.
-     * @param {string} options.crs - the default CRS of Three.js coordinates. Should be a cartesian CRS.
+     * @param {string} options.crs - the default CRS of Three.js coordinates. Should be a cartesian
+     * CRS.
      * @param {boolean=} [options.enablePin=true] - draw pin for way points.
-     * @param {NetworkOptions=} options.networkOptions - options for fetching resources over network.
+     * @param {NetworkOptions=} options.networkOptions - options for fetching resources over
+     * network.
      * @param {number=} [options.lineWidth=12] - set line width to track line.
-     * @return {THREE.Mesh} - a promise that resolves with a Three.js Mesh (see {@link https://threejs.org/docs/#api/objects/Mesh}).
+     * @return {THREE.Mesh} - a promise that resolves with a Three.js Mesh (see
+     * {@link https://threejs.org/docs/#api/objects/Mesh}).
      * @example
      * // How to add a gpx object
      * giro3d.GpxParser.parse(file, { crs: viewer.referenceCrs }).then((gpx) => {

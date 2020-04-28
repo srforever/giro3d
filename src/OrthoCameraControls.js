@@ -10,8 +10,12 @@ class OrthoCameraControls {
     onMouseWheel(event) {
         const change = 1 - (Math.sign(event.wheelDelta || -event.detail) * 0.1);
 
-        const halfNewWidth = (this.view.camera.camera3D.right - this.view.camera.camera3D.left) * change * 0.5;
-        const halfNewHeight = (this.view.camera.camera3D.top - this.view.camera.camera3D.bottom) * change * 0.5;
+        const halfNewWidth = (this.view.camera.camera3D.right - this.view.camera.camera3D.left)
+            * change
+            * 0.5;
+        const halfNewHeight = (this.view.camera.camera3D.top - this.view.camera.camera3D.bottom)
+            * change
+            * 0.5;
         const cx = (this.view.camera.camera3D.right + this.view.camera.camera3D.left) * 0.5;
         const cy = (this.view.camera.camera3D.top + this.view.camera.camera3D.bottom) * 0.5;
 

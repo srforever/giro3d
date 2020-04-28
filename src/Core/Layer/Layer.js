@@ -35,16 +35,24 @@ import AtlasBuilder from '../../Renderer/AtlasBuilder.js';
  * @property type {string} visible-property-changed
 */
 
-export const defineLayerProperty = function defineLayerProperty(layer, propertyName, defaultValue, onChange) {
+export const defineLayerProperty = function defineLayerProperty(layer,
+                                                                propertyName,
+                                                                defaultValue,
+                                                                onChange) {
     const existing = Object.getOwnPropertyDescriptor(layer, propertyName);
     if (!existing || !existing.set) {
         let property = layer[propertyName] === undefined ? defaultValue : layer[propertyName];
         Object.defineProperty(layer,
             propertyName,
-            { get: () => property,
+            {
+                get: () => property,
                 set: newValue => {
                     if (property !== newValue) {
-                        const event = { type: `${propertyName}-property-changed`, previous: {}, new: {} };
+                        const event = {
+                            type: `${propertyName}-property-changed`,
+                            previous: {},
+                            new: {}
+                        };
                         event.previous[propertyName] = property;
                         event.new[propertyName] = newValue;
                         property = newValue;
@@ -53,7 +61,8 @@ export const defineLayerProperty = function defineLayerProperty(layer, propertyN
                         }
                         layer.dispatchEvent(event);
                     }
-                } });
+                }
+            });
     }
 };
 
@@ -169,14 +178,14 @@ function GeometryLayer(id, object3d) {
     this.atlasInfo = { maxX: 0, maxY: 0 };
 
     // Setup default picking method
-    this.pickObjectsAt = (view, mouse, radius) => Picking.pickObjectsAt(view, mouse, radius, this.object3d);
+    this.pickObjectsAt = (view, mouse, radius) => Picking.pickObjectsAt(
+        view, mouse, radius, this.object3d
+    );
 
-    // Attached layers expect to receive the visual representation of a layer (= THREE object with a material).
-    // So if a layer's update function don't process this kind of object, the layer must provide
-    // a getObjectToUpdateForAttachedLayers function that returns the correct object to update for attached
-    // layer.
-    // See 3dtilesProvider or PointCloudProvider for examples.
-    // eslint-disable-next-line arrow-body-style
+    // Attached layers expect to receive the visual representation of a layer (= THREE object with a
+    // material).  So if a layer's update function don't process this kind of object, the layer must
+    // provide a getObjectToUpdateForAttachedLayers function that returns the correct object to
+    // update for attached layer.  See 3dtilesProvider or PointCloudProvider for examples.
     this.getObjectToUpdateForAttachedLayers = obj => {
         if (!obj.parent || !obj.material) {
             return null;
@@ -275,10 +284,12 @@ const ImageryLayers = {
                 // change index of specified layer
                 imagery.sequence = newIndex;
             } else if (imagery.sequence > oldIndex && imagery.sequence <= newIndex) {
-                // down all layers between the old index and new index (to compensate the deletion of the old index)
+                // down all layers between the old index and new index (to compensate the deletion
+                // of the old index)
                 imagery.sequence--;
             } else if (imagery.sequence >= newIndex && imagery.sequence < oldIndex) {
-                // up all layers between the new index and old index (to compensate the insertion of the new index)
+                // up all layers between the new index and old index (to compensate the insertion of
+                // the new index)
                 imagery.sequence++;
             }
         }

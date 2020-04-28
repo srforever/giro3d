@@ -168,7 +168,9 @@ function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revi
 
     if (image !== undefined && layer.transparent) {
         // TODO: only if !opaque
-        ctx.clearRect(atlasInfo.x, atlasInfo.y, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
+        ctx.clearRect(
+            atlasInfo.x, atlasInfo.y, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset,
+        );
     }
 
     if (image) {
@@ -209,7 +211,9 @@ function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revi
     //     interest.w * canvas.height);
 
     // ctx.font = '24px serif';
-    // ctx.fillText(`${revision}:${atlasInfo.x},${atlasInfo.y} ${layer.imageSize.w}x${layer.imageSize.h}`, atlasInfo.x, atlasInfo.y + layer.imageSize.h * 0.5);
+    // ctx.fillText(`${revision}:${atlasInfo.x},${atlasInfo.y}
+    // ${layer.imageSize.w}x${layer.imageSize.h}`, atlasInfo.x, atlasInfo.y + layer.imageSize.h *
+    // 0.5);
     atlasTexture.needsUpdate = true;
     return revision + 1;
 }
@@ -231,9 +235,12 @@ function updateOffsetScale(imageSize, atlas, originalOffsetScale, canvas, target
 }
 
 
-LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(layer, textures, shortcut, view) {
+LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
+    layer, textures, shortcut, view,
+) {
     if (Array.isArray(textures)) {
-        // console.warn(`Provider should return a single texture and not an Array. See layer id = ${layer.id}`);
+        // console.warn(`Provider should return a single texture and not an Array. See layer id =
+        // ${layer.id}`);
         textures = textures[0];
     }
 

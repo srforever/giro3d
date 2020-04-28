@@ -37,11 +37,12 @@ function subdivideNode(context, layer, node) {
             for (const e of context.elevationLayers) {
                 e.update(context, e, child, node, true);
             }
-            if (node.material.uniforms.colorTexture.value.image.width > 0) {
+            const nodeUniforms = node.material.uniforms;
+            if (nodeUniforms.colorTexture.value.image.width > 0) {
                 for (const c of context.colorLayers) {
                     c.update(context, c, child, node, true);
                 }
-                child.material.uniforms.colorTexture.value = node.material.uniforms.colorTexture.value;
+                child.material.uniforms.colorTexture.value = nodeUniforms.colorTexture.value;
             }
 
             child.updateMatrixWorld(true);

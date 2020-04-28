@@ -58,34 +58,35 @@ export default {
     getVectorTileTextureByUrl(url, tile, layer, coords) {
         if (layer.type !== 'color') return null;
 
-        return Cache.get(url) || Cache.set(url, getVectorTileByUrl(url, tile, layer, coords).then(features => {
-            const backgroundColor = (layer.backgroundLayer && layer.backgroundLayer.paint) ?
-                new THREE.Color(layer.backgroundLayer.paint['background-color']) :
-                undefined;
+        return Cache.get(url) || Cache.set(url, getVectorTileByUrl(url, tile, layer, coords)
+            .then(features => {
+                const backgroundColor = (layer.backgroundLayer && layer.backgroundLayer.paint) ?
+                    new THREE.Color(layer.backgroundLayer.paint['background-color']) :
+                    undefined;
 
-            let extentTexture;
-            switch (coords.crs()) {
-                case 'TMS':
-                    extentTexture = tile.extent;
-                    break;
-                case 'WMTS:PM':
-                    extentTexture = coords.as('EPSG:3857');
-                    break;
-                default:
-                    extentTexture = coords.as(tile.extent.crs());
-            }
+                let extentTexture;
+                switch (coords.crs()) {
+                    case 'TMS':
+                        extentTexture = tile.extent;
+                        break;
+                    case 'WMTS:PM':
+                        extentTexture = coords.as('EPSG:3857');
+                        break;
+                    default:
+                        extentTexture = coords.as(tile.extent.crs());
+                }
 
-            const texture = Feature2Texture.createTextureFromFeature(
-                features,
-                extentTexture,
-                256,
-                layer.style,
-                backgroundColor);
+                const texture = Feature2Texture.createTextureFromFeature(
+                    features,
+                    extentTexture,
+                    256,
+                    layer.style,
+                    backgroundColor);
 
-            texture.extent = tile.extent;
-            texture.coords = coords;
+                texture.extent = tile.extent;
+                texture.coords = coords;
 
-            return texture;
-        }));
+                return texture;
+            }));
     },
 };

@@ -8,7 +8,8 @@ import Coordinates from '../Core/Geographic/Coordinates.js';
 function Camera(crs, width, height, options = {}) {
     Object.defineProperty(this, 'crs', { get: () => crs });
 
-    this.camera3D = options.camera ? options.camera : new THREE.PerspectiveCamera(30, width / height);
+    this.camera3D = options.camera
+        ? options.camera : new THREE.PerspectiveCamera(30, width / height);
     this.camera3D.near = 0.1;
     this.camera3D.far = 2000000000;
     this.camera3D.updateProjectionMatrix();
@@ -54,7 +55,9 @@ Camera.prototype.update = function update(width, height) {
     this.camera3D.updateMatrixWorld();
 
     // keep our visibility testing matrix ready
-    this._viewMatrix.multiplyMatrices(this.camera3D.projectionMatrix, this.camera3D.matrixWorldInverse);
+    this._viewMatrix.multiplyMatrices(
+        this.camera3D.projectionMatrix, this.camera3D.matrixWorldInverse,
+    );
 };
 
 /**

@@ -109,13 +109,19 @@ function prepareBufferGeometry(vert, color, altitude, extrude) {
 
     if (multiplyVerticesCount === 1) {
         coordinatesToVertices(vert, altitude, vertices);
-        fillColorArray(colors, vert.length, color.r * 255, color.g * 255, color.b * 255, 0);
+        fillColorArray(
+            colors, vert.length, color.r * 255, color.g * 255, color.b * 255, 0,
+        );
     } else {
         coordinatesToVertices(vert, altitude, vertices, 0);
-        fillColorArray(colors, vert.length, color[0].r * 255, color[0].g * 255, color[0].b * 255, 0);
+        fillColorArray(
+            colors, vert.length, color[0].r * 255, color[0].g * 255, color[0].b * 255, 0,
+        );
 
         coordinatesToVertices(vert, altitude, vertices, 3 * vert.length, extrude);
-        fillColorArray(colors, vert.length, color[1].r * 255, color[1].g * 255, color[1].b * 255, vert.length);
+        fillColorArray(
+            colors, vert.length, color[1].r * 255, color[1].g * 255, color[1].b * 255, vert.length,
+        );
     }
 
     const geom = new THREE.BufferGeometry();
@@ -247,7 +253,8 @@ function featureToExtrudedPolygon(feature, properties, options) {
  * @param {Object} feature - a Feature's geometry
  * @param {Object} options - options controlling the conversion
  * @param {number|function} options.altitude - define the base altitude of the mesh
- * @param {number|function} options.extrude - if defined, polygons will be extruded by the specified amount
+ * @param {number|function} options.extrude - if defined, polygons will be extruded by the specified
+ * amount
  * @param {object|function} options.color - define per feature color
  * @return {THREE.Mesh} mesh
  */
@@ -319,12 +326,13 @@ function featuresToThree(features, options) {
  */
 export default {
     /**
-     * Return a function that converts [Features]{@link module:GeoJsonParser} to Meshes. Feature collection will be converted to a
-     * a THREE.Group.
+     * Return a function that converts [Features]{@link module:GeoJsonParser} to Meshes. Feature
+     * collection will be converted to a a THREE.Group.
      *
      * @param {Object} options - options controlling the conversion
      * @param {number|function} options.altitude - define the base altitude of the mesh
-     * @param {number|function} options.extrude - if defined, polygons will be extruded by the specified amount
+     * @param {number|function} options.extrude - if defined, polygons will be extruded by the
+     * specified amount
      * @param {object|function} options.color - define per feature color
      * @return {function}
      */

@@ -39,10 +39,10 @@ const tmp = {
 
 function initBoundingBox(elt, layer) {
     const size = elt.tightbbox.getSize(tmp.v);
-    elt.obj.boxHelper = new THREE.LineSegments(
-        cube(size),
-        elt.childrenBitField ?
-            new THREE.LineDashedMaterial({ color: 0, dashSize: 0.25, gapSize: 0.25 }) : new THREE.LineBasicMaterial({ color: 0 }));
+    const lineMaterial = elt.childrenBitField
+        ? new THREE.LineDashedMaterial({ color: 0, dashSize: 0.25, gapSize: 0.25 })
+        : new THREE.LineBasicMaterial({ color: 0 })
+    elt.obj.boxHelper = new THREE.LineSegments(cube(size), lineMaterial);
     elt.obj.boxHelper.computeLineDistances();
 
     elt.obj.boxHelper.frustumCulled = false;
@@ -202,7 +202,8 @@ export default {
                     }
                 } else if (!elt.promise) {
                     // Increase priority of nearest node
-                    const priority = computeScreenSpaceError(context, layer, elt, distance) / Math.max(0.001, distance);
+                    const priority = computeScreenSpaceError(context, layer, elt, distance)
+                        / Math.max(0.001, distance);
                     elt.promise = context.scheduler.execute({
                         layer,
                         requester: elt,
@@ -217,7 +218,8 @@ export default {
                         }
 
                         elt.obj = pts;
-                        // store tightbbox to avoid ping-pong (bbox = larger => visible, tight => invisible)
+                        // store tightbbox to avoid ping-pong
+                        // (bbox = larger => visible, tight => invisible)
                         elt.tightbbox = pts.tightbbox;
 
                         // make sure to add it here, otherwise it might never
@@ -234,7 +236,8 @@ export default {
             }
 
             if (elt.children && elt.children.length) {
-                elt.sse = computeScreenSpaceError(context, layer, elt, distance) / layer.sseThreshold;
+                elt.sse = computeScreenSpaceError(context, layer, elt, distance)
+                    / layer.sseThreshold;
             }
         }
 
@@ -285,7 +288,8 @@ export default {
                 // This format doesn't require points to be evenly distributed, so
                 // we're going to sort the nodes by "importance" (= on screen size)
                 // and display only the first N nodes
-                layer.group.children.sort((p1, p2) => p2.userData.metadata.sse - p1.userData.metadata.sse);
+                layer.group.children
+                    .sort((p1, p2) => p2.userData.metadata.sse - p1.userData.metadata.sse);
 
                 let limitHit = false;
                 layer.displayedCount = 0;

@@ -187,11 +187,15 @@ c3DEngine.prototype.renderViewToBuffer = function renderViewToBuffer(view, zone)
  * Render view to a THREE.RenderTarget.
  *
  * @param {View} view - The view to render
- * @param {THREE.RenderTarget} [target] - destination render target. Default value: full size render target owned by c3DEngine.
- * @param {object} [zone] - partial zone to render (zone x/y uses view coordinates) Note: target must contain complete zone
+ * @param {THREE.RenderTarget} [target] - destination render target. Default value: full size render
+ * target owned by c3DEngine.
+ * @param {object} [zone] - partial zone to render (zone x/y uses view coordinates) Note: target
+ * must contain complete zone
  * @return {THREE.RenderTarget} - the destination render target
  */
-c3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget(view, target, zone) {
+c3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget(
+    view, target, zone,
+) {
     if (!target) {
         target = this.fullSizeRenderTarget;
     }
@@ -218,7 +222,9 @@ c3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget
     return target;
 };
 
-c3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(view, layer, buffer, x, y, width, height) {
+c3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(
+    view, layer, buffer, x, y, width, height,
+) {
     // hide all layers but the requested one
     const previousVisibility = view._layers.map(l => l.visible);
     for (const v of view._layers) {

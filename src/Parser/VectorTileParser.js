@@ -26,10 +26,12 @@ function readPBF(file, options) {
             // https://alastaira.wordpress.com/2011/07/06/converting-tms-tile-coordinates-to-googlebingosm-tile-coordinates/
             // Only if the layer.origin is top
             if (options.origin === 'top') {
-                feature = l.feature(i).toGeoJSON(options.coords.col, options.coords.row, options.coords.zoom);
+                feature = l.feature(i)
+                    .toGeoJSON(options.coords.col, options.coords.row, options.coords.zoom);
             } else {
                 const y = 1 << options.coords.zoom;
-                feature = l.feature(i).toGeoJSON(options.coords.col, y - options.coords.row - 1, options.coords.zoom);
+                feature = l.feature(i)
+                    .toGeoJSON(options.coords.col, y - options.coords.row - 1, options.coords.zoom);
             }
             if (layers.length > 1) {
                 feature.properties.vt_layer = layerId;
