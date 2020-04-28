@@ -1,6 +1,6 @@
 /**
  * Generated On: 2015-10-5
- * Class: c3DEngine
+ * Class: C3DEngine
  * Description: 3DEngine est l'interface avec le framework webGL.
  */
 
@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import Capabilities from '../Core/System/Capabilities.js';
 import { unpack1K } from './LayeredMaterial.js';
 
-function c3DEngine(rendererOrDiv, options = {}) {
+function C3DEngine(rendererOrDiv, options = {}) {
     // pick sensible default options
     if (options.antialias === undefined) {
         options.antialias = true;
@@ -136,15 +136,15 @@ function c3DEngine(rendererOrDiv, options = {}) {
 /*
  * return
  */
-c3DEngine.prototype.getWindowSize = function getWindowSize() {
+C3DEngine.prototype.getWindowSize = function getWindowSize() {
     return new THREE.Vector2(this.width, this.height);
 };
 
 /**
  * return renderer THREE.js
- * @returns {undefined|c3DEngine_L7.THREE.WebGLRenderer}
+ * @returns {undefined|C3DEngine_L7.THREE.WebGLRenderer}
  */
-c3DEngine.prototype.getRenderer = function getRenderer() {
+C3DEngine.prototype.getRenderer = function getRenderer() {
     return this.renderer;
 };
 
@@ -160,7 +160,7 @@ c3DEngine.prototype.getRenderer = function getRenderer() {
  * @return {THREE.RenderTarget} - Uint8Array, 4 bytes per pixel. The first pixel in
  * the array is the bottom-left pixel.
  */
-c3DEngine.prototype.renderViewToBuffer = function renderViewToBuffer(view, zone) {
+C3DEngine.prototype.renderViewToBuffer = function renderViewToBuffer(view, zone) {
     if (!zone) {
         zone = {
             x: 0,
@@ -189,12 +189,12 @@ c3DEngine.prototype.renderViewToBuffer = function renderViewToBuffer(view, zone)
  *
  * @param {View} view - The view to render
  * @param {THREE.RenderTarget} [target] - destination render target. Default value: full size render
- * target owned by c3DEngine.
+ * target owned by C3DEngine.
  * @param {object} [zone] - partial zone to render (zone x/y uses view coordinates) Note: target
  * must contain complete zone
  * @return {THREE.RenderTarget} - the destination render target
  */
-c3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget(
+C3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget(
     view, target, zone,
 ) {
     if (!target) {
@@ -224,7 +224,7 @@ c3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget
     return target;
 };
 
-c3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(
+C3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(
     view, layer, buffer, x, y, width, height,
 ) {
     // hide all layers but the requested one
@@ -254,7 +254,7 @@ c3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(
 };
 
 
-c3DEngine.prototype.bufferToImage = function bufferToImage(pixelBuffer, width, height) {
+C3DEngine.prototype.bufferToImage = function bufferToImage(pixelBuffer, width, height) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
@@ -276,7 +276,7 @@ c3DEngine.prototype.bufferToImage = function bufferToImage(pixelBuffer, width, h
     return image;
 };
 
-c3DEngine.prototype.getUniqueThreejsLayer = function getUniqueThreejsLayer() {
+C3DEngine.prototype.getUniqueThreejsLayer = function getUniqueThreejsLayer() {
     // We use three.js Object3D.layers feature to manage visibility of
     // geometry layers; so we need an internal counter to assign a new
     // one to each new geometry layer.
@@ -291,4 +291,4 @@ c3DEngine.prototype.getUniqueThreejsLayer = function getUniqueThreejsLayer() {
     return result;
 };
 
-export default c3DEngine;
+export default C3DEngine;

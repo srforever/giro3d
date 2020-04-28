@@ -6,12 +6,12 @@ import * as THREE from 'three';
 const POINT_ATTTRIBUTES = {
     POSITION_CARTESIAN: {
         numElements: 3,
-        arrayType: Float32Array,
+        ArrayType: Float32Array,
         attributeName: 'position',
     },
     COLOR_PACKED: {
         numElements: 4,
-        arrayType: Uint8Array,
+        ArrayType: Uint8Array,
         attributeName: 'color',
         normalized: true,
     },
@@ -19,13 +19,13 @@ const POINT_ATTTRIBUTES = {
         numElements: 1,
         numByte: 2,
         // using Float32Array because Float16Array doesn't exist
-        arrayType: Float32Array,
+        ArrayType: Float32Array,
         attributeName: 'intensity',
         normalized: true,
     },
     CLASSIFICATION: {
         numElements: 1,
-        arrayType: Uint8Array,
+        ArrayType: Uint8Array,
         attributeName: 'classification',
     },
     // Note: at the time of writing, PotreeConverter will only generate normals in Oct16 format
@@ -33,18 +33,18 @@ const POINT_ATTTRIBUTES = {
     // we keep all the historical value to still supports old conversion
     NORMAL_SPHEREMAPPED: {
         numElements: 2,
-        arrayType: Uint8Array,
+        ArrayType: Uint8Array,
         attributeName: 'sphereMappedNormal',
     },
     // see https://web.archive.org/web/20150303053317/http://lgdv.cs.fau.de/get/1602
     NORMAL_OCT16: {
         numElements: 2,
-        arrayType: Uint8Array,
+        ArrayType: Uint8Array,
         attributeName: 'oct16Normal',
     },
     NORMAL: {
         numElements: 3,
-        arrayType: Float32Array,
+        ArrayType: Float32Array,
         attributeName: 'normal',
     },
 };
@@ -52,7 +52,7 @@ const POINT_ATTTRIBUTES = {
 for (const potreeName of Object.keys(POINT_ATTTRIBUTES)) {
     const attr = POINT_ATTTRIBUTES[potreeName];
     attr.potreeName = potreeName;
-    attr.numByte = attr.numByte || attr.arrayType.BYTES_PER_ELEMENT;
+    attr.numByte = attr.numByte || attr.ArrayType.BYTES_PER_ELEMENT;
     attr.byteSize = attr.numElements * attr.numByte;
     attr.normalized = attr.normalized || false;
     // chrome is known to perform badly when we call a method without respecting its arity
@@ -91,7 +91,7 @@ export default {
         for (const potreeName of pointAttributes) {
             const attr = POINT_ATTTRIBUTES[potreeName];
             const arrayLength = attr.numElements * numPoints;
-            const array = new attr.arrayType(arrayLength);
+            const array = new attr.ArrayType(arrayLength);
             for (let arrayOffset = 0; arrayOffset < arrayLength; arrayOffset += attr.numElements) {
                 for (let elemIdx = 0; elemIdx < attr.numElements; elemIdx++) {
                     array[arrayOffset + elemIdx] = attr.getValue(

@@ -60,9 +60,9 @@ class Instance extends EventDispatcher {
         //   - an actual renderer (in this case we don't use viewerDiv)
         //   - options for the renderer to be created
         if (options.renderer && options.renderer.domElement) {
-            engine = new c3DEngine(options.renderer);
+            engine = new C3DEngine(options.renderer);
         } else {
-            engine = new c3DEngine(viewerDiv, options.renderer);
+            engine = new C3DEngine(viewerDiv, options.renderer);
         }
 
         this.mainLoop = options.mainLoop || new MainLoop(new Scheduler(), engine);
