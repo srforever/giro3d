@@ -23,7 +23,7 @@ const unitBoxMesh = (function _() {
     new THREE.Vector3(+0.5, -0.5, -0.5).toArray(positions, 21);
     const geometry = new THREE.BufferGeometry();
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-    geometry.addAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
     return function _() {
         const color = new THREE.Color(Math.random(), Math.random(), Math.random());
