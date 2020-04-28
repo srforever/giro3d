@@ -130,9 +130,9 @@ Camera.prototype.isBox3Visible = function isBox3Visible(box3, matrixWorld) {
 Camera.prototype.isSphereVisible = function isSphereVisible(sphere, matrixWorld) {
     if (matrixWorld) {
         tmp.matrix.multiplyMatrices(this._viewMatrix, matrixWorld);
-        tmp.frustum.setFromMatrix(tmp.matrix);
+        tmp.frustum.setFromProjectionMatrix(tmp.matrix);
     } else {
-        tmp.frustum.setFromMatrix(this._viewMatrix);
+        tmp.frustum.setFromProjectionMatrix(this._viewMatrix);
     }
     return tmp.frustum.intersectsSphere(sphere);
 };

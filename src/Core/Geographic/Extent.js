@@ -9,7 +9,7 @@ import Coordinates, {
  */
 
 function YToWGS84(y) {
-    return THREE.Math.radToDeg(
+    return THREE.MathUtils.radToDeg(
         2 * (Math.atan(Math.exp(-(y - 0.5) * Math.PI * 2)) - Math.PI / 4),
     );
 }

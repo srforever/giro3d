@@ -916,10 +916,10 @@ export default ( function () {
 	var WEBGL_FILTERS = {
 		9728: THREE.NearestFilter,
 		9729: THREE.LinearFilter,
-		9984: THREE.NearestMipMapNearestFilter,
-		9985: THREE.LinearMipMapNearestFilter,
-		9986: THREE.NearestMipMapLinearFilter,
-		9987: THREE.LinearMipMapLinearFilter
+		9984: THREE.NearestMipmapNearestFilter,
+		9985: THREE.LinearMipmapNearestFilter,
+		9986: THREE.NearestMipmapLinearFilter,
+		9987: THREE.LinearMipmapLinearFilter
 	};
 
 	var WEBGL_WRAPPINGS = {
@@ -1171,7 +1171,7 @@ export default ( function () {
 
 		}
 
-		mesh.updateMorphTargets();
+		mesh.updateMorphTargets(); // TODO Removed Geometry support from Mesh.updateMorphTargets(). Use BufferGeometry instead
 
 		if ( meshDef.weights !== undefined ) {
 
@@ -1643,7 +1643,7 @@ export default ( function () {
 
 			// Load Texture resource.
 
-			var loader = THREE.Loader.Handlers.get( sourceURI ) || textureLoader;
+			var loader = THREE.Loader.Handlers.get( sourceURI ) || textureLoader; // TODO removed
 
 			return new Promise( function ( resolve, reject ) {
 
@@ -1680,7 +1680,7 @@ export default ( function () {
 			var sampler = samplers[ textureDef.sampler ] || {};
 
 			texture.magFilter = WEBGL_FILTERS[ sampler.magFilter ] || THREE.LinearFilter;
-			texture.minFilter = WEBGL_FILTERS[ sampler.minFilter ] || THREE.LinearMipMapLinearFilter;
+			texture.minFilter = WEBGL_FILTERS[ sampler.minFilter ] || THREE.LinearMipmapLinearFilter;
 			texture.wrapS = WEBGL_WRAPPINGS[ sampler.wrapS ] || THREE.RepeatWrapping;
 			texture.wrapT = WEBGL_WRAPPINGS[ sampler.wrapT ] || THREE.RepeatWrapping;
 
@@ -2096,7 +2096,7 @@ export default ( function () {
 
 						if ( useSkinning ) {
 
-							mesh = new THREE.SkinnedMesh( geometry, material );
+							mesh = new THREE.SkinnedMesh( geometry, material ); // TODO Removed Geometry support from SkinnedMesh. Use BufferGeometry instead
 							material.skinning = true;
 
 						} else {
@@ -2200,7 +2200,7 @@ export default ( function () {
 			var aspectRatio = params.aspectRatio || 1;
 			var xfov = params.yfov * aspectRatio;
 
-			camera = new THREE.PerspectiveCamera( THREE.Math.radToDeg( xfov ), aspectRatio, params.znear || 1, params.zfar || 2e6 );
+			camera = new THREE.PerspectiveCamera( THREE.MathUtils.radToDeg( xfov ), aspectRatio, params.znear || 1, params.zfar || 2e6 );
 
 		} else if ( cameraDef.type === 'orthographic' ) {
 

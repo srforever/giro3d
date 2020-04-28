@@ -113,7 +113,7 @@ function _convert(coordsIn, newCrs, target) {
         // https://github.com/proj4js/proj4js/issues/195
         // the workaround is to use an intermediate projection, like EPSG:4326
         if (is4326(crsIn) && newCrs === 'EPSG:3857') {
-            val1 = THREE.Math.clamp(val1, -89.999999, 89.999999);
+            val1 = THREE.MathUtils.clamp(val1, -89.999999, 89.999999);
             const p = instanceProj4(crsIn, newCrs).forward([val0, val1]);
             return target.set(newCrs, p[0], p[1], coordsIn._values[2]);
         }

@@ -461,10 +461,10 @@ export default ( function () {
 	var WEBGL_FILTERS = {
 		9728: THREE.NearestFilter,
 		9729: THREE.LinearFilter,
-		9984: THREE.NearestMipMapNearestFilter,
-		9985: THREE.LinearMipMapNearestFilter,
-		9986: THREE.NearestMipMapLinearFilter,
-		9987: THREE.LinearMipMapLinearFilter
+		9984: THREE.NearestMipmapNearestFilter,
+		9985: THREE.LinearMipmapNearestFilter,
+		9986: THREE.NearestMipmapLinearFilter,
+		9987: THREE.LinearMipmapLinearFilter
 	};
 
 	var WEBGL_WRAPPINGS = {
@@ -1086,7 +1086,7 @@ export default ( function () {
 
 						}
 
-						var textureLoader = THREE.Loader.Handlers.get( sourceUri );
+						var textureLoader = THREE.Loader.Handlers.get( sourceUri ); // TODO removed
 
 						if ( textureLoader === null ) {
 
@@ -1118,7 +1118,7 @@ export default ( function () {
 								var sampler = json.samplers[ texture.sampler ];
 
 								_texture.magFilter = WEBGL_FILTERS[ sampler.magFilter ] || THREE.LinearFilter;
-								_texture.minFilter = WEBGL_FILTERS[ sampler.minFilter ] || THREE.NearestMipMapLinearFilter;
+								_texture.minFilter = WEBGL_FILTERS[ sampler.minFilter ] || THREE.NearestMipmapLinearFilter;
 								_texture.wrapS = WEBGL_WRAPPINGS[ sampler.wrapS ] || THREE.RepeatWrapping;
 								_texture.wrapT = WEBGL_WRAPPINGS[ sampler.wrapT ] || THREE.RepeatWrapping;
 
@@ -1756,7 +1756,7 @@ export default ( function () {
 				// aspectRatio = xfov / yfov
 				var xfov = yfov * aspectRatio;
 
-				var _camera = new THREE.PerspectiveCamera( THREE.Math.radToDeg( xfov ), aspectRatio, camera.perspective.znear || 1, camera.perspective.zfar || 2e6 );
+				var _camera = new THREE.PerspectiveCamera( THREE.MathUtils.radToDeg( xfov ), aspectRatio, camera.perspective.znear || 1, camera.perspective.zfar || 2e6 );
 				if ( camera.name !== undefined ) _camera.name = camera.name;
 
 				if ( camera.extras ) _camera.userData = camera.extras;
@@ -2039,7 +2039,7 @@ export default ( function () {
 									var material = originalMaterial;
 									material.skinning = true;
 
-									child = new THREE.SkinnedMesh( geometry, material );
+									child = new THREE.SkinnedMesh( geometry, material ); // TODO Removed Geometry support from SkinnedMesh. Use BufferGeometry instead
 									child.castShadow = true;
 									child.userData = originalUserData;
 									child.name = originalName;

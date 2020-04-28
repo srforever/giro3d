@@ -90,10 +90,10 @@ function subdivideNode(context, layer, node, cullingTest) {
 function boundingVolumeToExtent(crs, volume, transform) {
     if (volume.region) {
         return new Extent('EPSG:4326',
-            THREE.Math.radToDeg(volume.region[0]),
-            THREE.Math.radToDeg(volume.region[2]),
-            THREE.Math.radToDeg(volume.region[1]),
-            THREE.Math.radToDeg(volume.region[3]));
+            THREE.MathUtils.radToDeg(volume.region[0]),
+            THREE.MathUtils.radToDeg(volume.region[2]),
+            THREE.MathUtils.radToDeg(volume.region[1]),
+            THREE.MathUtils.radToDeg(volume.region[3]));
     }
     if (volume.box) {
         const box = tmp.b.copy(volume.box).applyMatrix4(transform);

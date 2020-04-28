@@ -110,7 +110,7 @@ export default {
         // See https://cesiumjs.org/hosted-apps/massiveworlds/downloads/Ring/WorldScaleTerrainRendering.pptx
         // slide 17
         context.camera.preSSE = context.camera.height
-                / (2 * Math.tan(THREE.Math.degToRad(context.camera.camera3D.fov) * 0.5));
+                / (2 * Math.tan(THREE.MathUtils.degToRad(context.camera.camera3D.fov) * 0.5));
 
         if (layer.material) {
             layer.material.visible = layer.visible;

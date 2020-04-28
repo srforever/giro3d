@@ -26,7 +26,7 @@ function createTexturedPlane(textureUrl, opacity) {
 }
 
 function transformTexturedPlane(camera, distance, plane) {
-    const Yreel = 2 * Math.tan(giro3d.THREE.Math.degToRad(camera.fov / 2)) * distance;
+    const Yreel = 2 * Math.tan(giro3d.THREE.MathUtils.degToRad(camera.fov / 2)) * distance;
     const Xreel = camera.aspect * Yreel;
 
     // set position and scale
@@ -39,7 +39,7 @@ function transformTexturedPlane(camera, distance, plane) {
 // eslint-disable-next-line no-unused-vars
 function initCamera(view, image, coord, EnhToOrientationUp, EnhToOrientationLookAt, rotMatrix,
     orientationToCameraUp, orientationToCameraLookAt, distance, size, focale) {
-    const fov = giro3d.THREE.Math.radToDeg((2 * Math.atan((size[1] / 2) / focale)));
+    const fov = giro3d.THREE.MathUtils.radToDeg((2 * Math.atan((size[1] / 2) / focale)));
     let coordView;
     let localSpace;
     let orientedImage;
