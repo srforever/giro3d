@@ -216,7 +216,7 @@ C3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget
     }
 
     this.renderer.setRenderTarget(target);
-    this.renderer.clearTarget(target, true, true, false);
+    this.renderer.clear();
     this.renderer.render(view.scene, view.camera.camera3D, target);
     this.renderer.setRenderTarget(current);
 
@@ -239,7 +239,7 @@ C3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(
     this.renderer.setViewport(0, 0, buffer.width, buffer.height);
     this.renderer.setScissor(x, y, width, height);
     this.renderer.setScissorTest(true);
-    this.renderer.clearTarget(buffer, true, true, false);
+    this.renderer.clear();
     this.renderer.render(layer.object3d, view.camera.camera3D, buffer);
     this.renderer.setScissorTest(false);
     const pixelBuffer = new Uint8Array(4 * width * height);

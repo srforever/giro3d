@@ -298,7 +298,7 @@ PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.
             // render stage
             r.setRenderTarget(output);
             if (output) {
-                r.clearTarget(output);
+                r.clear();
             }
             r.setViewport(
                 0, 0,
