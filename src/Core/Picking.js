@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import TileMesh from './TileMesh.js';
 import RendererConstant from '../Renderer/RendererConstant.js';
 import { unpack1K } from '../Renderer/LayeredMaterial.js';
-import Coordinates from '../Core/Geographic/Coordinates.js';
+import Coordinates from './Geographic/Coordinates.js';
 import DEMUtils from '../utils/DEMUtils.js';
 
 function hideEverythingElse(view, object, threejsLayer = 0) {

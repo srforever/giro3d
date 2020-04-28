@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import Coordinates, { crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCRS, is4326 } from '../Geographic/Coordinates.js';
+import Coordinates, { crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCRS, is4326 } from './Coordinates.js';
 
 /**
  * Extent is a SIG-area (so 2D)

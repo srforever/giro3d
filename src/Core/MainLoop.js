@@ -1,6 +1,6 @@
 import { Vector3, Plane, EventDispatcher, Math as ThreeMath, Sphere } from 'three';
 import { GeometryLayer, Layer } from './Layer/Layer.js';
-import Cache from '../Core/Scheduler/Cache.js';
+import Cache from './Scheduler/Cache.js';
 
 export const RENDERING_PAUSED = 0;
 export const RENDERING_SCHEDULED = 1;
