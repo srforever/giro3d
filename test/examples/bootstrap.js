@@ -150,23 +150,22 @@ before(async () => {
         return result;
     };
 
-    global.waitNextRender = page =>
-        page.evaluate(() => new Promise((resolve) => {
-            __getView().then((v) => {
-                function resolveWhenDrawn() {
-                    v.removeFrameRequester(giro3d.MAIN_LOOP_EVENTS.AFTER_RENDER, resolveWhenDrawn);
+    global.waitNextRender = (page) => page.evaluate(() => new Promise((resolve) => {
+        __getView().then((v) => {
+            function resolveWhenDrawn() {
+                v.removeFrameRequester(giro3d.MAIN_LOOP_EVENTS.AFTER_RENDER, resolveWhenDrawn);
 
-                    // make sure the loading screen is hidden
-                    const container = document.getElementById('giro3d-loader');
-                    if (container) {
-                        container.style.display = 'none';
-                    }
-                    resolve();
+                // make sure the loading screen is hidden
+                const container = document.getElementById('giro3d-loader');
+                if (container) {
+                    container.style.display = 'none';
                 }
-                v.addFrameRequester(giro3d.MAIN_LOOP_EVENTS.AFTER_RENDER, resolveWhenDrawn);
-                v.notifyChange();
-            });
-        }));
+                resolve();
+            }
+            v.addFrameRequester(giro3d.MAIN_LOOP_EVENTS.AFTER_RENDER, resolveWhenDrawn);
+            v.notifyChange();
+        });
+    }));
 
     // For now the '--no-sandbox' flag is needed. Otherwise Chrome fails to start:
     //
@@ -186,7 +185,8 @@ before(async () => {
         executablePath: process.env.CHROME,
         headless: !process.env.DEBUG,
         devtools: !!process.env.DEBUG,
-        args });
+        args,
+    });
 });
 
 // close browser and reset global variables
@@ -199,4 +199,3 @@ after((done) => {
         done();
     }
 });
-

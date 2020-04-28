@@ -1,5 +1,7 @@
 import * as THREE from 'three';
-import Coordinates, { crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCRS, is4326 } from './Coordinates.js';
+import Coordinates, {
+    crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCRS, is4326,
+} from './Coordinates.js';
 
 /**
  * Extent is a SIG-area (so 2D)
@@ -8,7 +10,8 @@ import Coordinates, { crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCR
 
 function YToWGS84(y) {
     return THREE.Math.radToDeg(
-        2 * (Math.atan(Math.exp(-(y - 0.5) * Math.PI * 2)) - Math.PI / 4));
+        2 * (Math.atan(Math.exp(-(y - 0.5) * Math.PI * 2)) - Math.PI / 4),
+    );
 }
 
 
@@ -20,8 +23,8 @@ const CARDINAL = {
 };
 
 function _isTiledCRS(crs) {
-    return crs.indexOf('WMTS:') === 0 ||
-        crs === 'TMS';
+    return crs.indexOf('WMTS:') === 0
+        || crs === 'TMS';
 }
 
 function Extent(crs, ...values) {
@@ -39,9 +42,9 @@ function Extent(crs, ...values) {
         } else {
             throw new Error(`Unsupported constructor args '${values}'`);
         }
-    } else if (values.length === 2 &&
-        values[0] instanceof Coordinates &&
-        values[1] instanceof Coordinates) {
+    } else if (values.length === 2
+        && values[0] instanceof Coordinates
+        && values[1] instanceof Coordinates) {
         this._values = new Float64Array(4);
         this._values[CARDINAL.WEST] = values[0]._values[0];
         this._values[CARDINAL.EAST] = values[1]._values[0];
@@ -92,8 +95,11 @@ Extent.prototype.as = function as(crs) {
             const north = YToWGS84(Yn);
             const south = YToWGS84(Ys);
             // create intermediate EPSG:4326 and convert in new crs
-            return new Extent('EPSG:4326', { west, east, south, north }).as(crs);
-        } else if (this._crs === 'WMTS:WGS84G' && crs === 'EPSG:4326') {
+            return new Extent('EPSG:4326', {
+                west, east, south, north,
+            }).as(crs);
+        }
+        if (this._crs === 'WMTS:WGS84G' && crs === 'EPSG:4326') {
             const nbRow = Math.pow(2, this.zoom);
             const size = 180 / nbRow;
             const north = size * (nbRow - this.row) - 90;
@@ -101,7 +107,9 @@ Extent.prototype.as = function as(crs) {
             const west = 180 - size * (2 * nbRow - this.col);
             const east = 180 - size * (2 * nbRow - (this.col + 1));
 
-            return new Extent(crs, { west, east, south, north });
+            return new Extent(crs, {
+                west, east, south, north,
+            });
         }
         throw new Error('Unsupported yet');
     }
@@ -133,7 +141,9 @@ Extent.prototype.as = function as(crs) {
             east = Math.max(east, cardinals[i]._values[0]);
             west = Math.min(west, cardinals[i]._values[0]);
         }
-        return new Extent(crs, { north, south, east, west });
+        return new Extent(crs, {
+            north, south, east, west,
+        });
     }
 
     return this;
@@ -154,16 +164,17 @@ Extent.prototype.offsetToParent = function offsetToParent(other, target = new TH
         return target.set(
             this.col * invDiff - c,
             this.row * invDiff - r,
-            invDiff, invDiff);
+            invDiff, invDiff,
+        );
     }
 
     const oDim = other.dimensions();
     const dim = this.dimensions();
 
-    const originX = Math.round(1000 *
-        (this.west() - other.west()) / oDim.x) * 0.001;
-    const originY = Math.round(1000 *
-        (other.north() - this.north()) / oDim.y) * 0.001;
+    const originX = Math.round(1000
+        * (this.west() - other.west()) / oDim.x) * 0.001;
+    const originY = Math.round(1000
+        * (other.north() - this.north()) / oDim.y) * 0.001;
 
     const scaleX = Math.round(1000 * dim.x / oDim.x) * 0.001;
     const scaleY = Math.round(1000 * dim.y / oDim.y) * 0.001;
@@ -226,23 +237,24 @@ Extent.prototype.isPointInside = function isPointInside(coord, epsilon = 0) {
     const c = (this.crs() === coord.crs) ? coord : coord.as(this.crs());
     // TODO this ignores altitude
     if (crsIsGeographic(this.crs())) {
-        return c.longitude() <= this.east() + epsilon &&
-               c.longitude() >= this.west() - epsilon &&
-               c.latitude() <= this.north() + epsilon &&
-               c.latitude() >= this.south() - epsilon;
+        return c.longitude() <= this.east() + epsilon
+               && c.longitude() >= this.west() - epsilon
+               && c.latitude() <= this.north() + epsilon
+               && c.latitude() >= this.south() - epsilon;
     }
-    return c.x() <= this.east() + epsilon &&
-               c.x() >= this.west() - epsilon &&
-               c.y() <= this.north() + epsilon &&
-               c.y() >= this.south() - epsilon;
+    return c.x() <= this.east() + epsilon
+               && c.x() >= this.west() - epsilon
+               && c.y() <= this.north() + epsilon
+               && c.y() >= this.south() - epsilon;
 };
 
 Extent.prototype.isInside = function isInside(other, epsilon) {
     if (_isTiledCRS(this.crs())) {
         if (this.zoom === other.zoom) {
-            return this.row === other.row &&
-                this.col === other.col;
-        } else if (this.zoom < other.zoom) {
+            return this.row === other.row
+                && this.col === other.col;
+        }
+        if (this.zoom < other.zoom) {
             return false;
         }
         const diffLevel = this.zoom - other.zoom;
@@ -256,10 +268,10 @@ Extent.prototype.isInside = function isInside(other, epsilon) {
     const o = other.as(this._crs);
     // 0 is an acceptable value for epsilon:
     epsilon = epsilon == null ? reasonnableEpsilonForCRS(this._crs, this) : epsilon;
-    return this.east() - o.east() <= epsilon &&
-               o.west() - this.west() <= epsilon &&
-               this.north() - o.north() <= epsilon &&
-               o.south() - this.south() <= epsilon;
+    return this.east() - o.east() <= epsilon
+               && o.west() - this.west() <= epsilon
+               && this.north() - o.north() <= epsilon
+               && o.south() - this.south() <= epsilon;
 };
 
 Extent.prototype.offsetScale = function offsetScale(bbox) {
@@ -288,10 +300,10 @@ Extent.prototype.offsetScale = function offsetScale(bbox) {
  */
 Extent.prototype.intersectsExtent = function intersectsExtent(bbox) {
     const other = bbox.as(this.crs());
-    return !(this.west() >= other.east() ||
-             this.east() <= other.west() ||
-             this.south() >= other.north() ||
-             this.north() <= other.south());
+    return !(this.west() >= other.east()
+             || this.east() <= other.west()
+             || this.south() >= other.north()
+             || this.north() <= other.south());
 };
 
 /**
@@ -442,20 +454,16 @@ Extent.prototype.externalBorders = function externalBorders(ratio) {
     const dim = this.dimensions();
 
     // north border
-    result[0]._values[CARDINAL.SOUTH] =
-        result[0]._values[CARDINAL.NORTH];
+    result[0]._values[CARDINAL.SOUTH] = result[0]._values[CARDINAL.NORTH];
     result[0]._values[CARDINAL.NORTH] += dim.y * ratio;
     // east border
-    result[1]._values[CARDINAL.WEST] =
-        result[1]._values[CARDINAL.EAST];
+    result[1]._values[CARDINAL.WEST] = result[1]._values[CARDINAL.EAST];
     result[1]._values[CARDINAL.EAST] += dim.x * ratio;
     // south border
-    result[2]._values[CARDINAL.NORTH] =
-        result[2]._values[CARDINAL.SOUTH];
+    result[2]._values[CARDINAL.NORTH] = result[2]._values[CARDINAL.SOUTH];
     result[2]._values[CARDINAL.SOUTH] -= dim.y * ratio;
     // west border
-    result[3]._values[CARDINAL.EAST] =
-        result[3]._values[CARDINAL.WEST];
+    result[3]._values[CARDINAL.EAST] = result[3]._values[CARDINAL.WEST];
     result[3]._values[CARDINAL.WEST] -= dim.x * ratio;
     return result;
 };

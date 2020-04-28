@@ -7,15 +7,16 @@ import Fetcher from './Fetcher.js';
 function _selectImagesFromSpatialIndex(index, images, extent) {
     return index.search(
         extent.west(), extent.south(),
-        extent.east(), extent.north()).map(i => images[i]);
+        extent.east(), extent.north(),
+    ).map(i => images[i]);
 }
 
 // select the smallest image entirely covering the tile
 let inter = new Extent('dummy', 0, 0, 0, 0);
 function selectBestImageForExtent(layer, extent) {
-    const candidates =
-        _selectImagesFromSpatialIndex(
-            layer._spatialIndex, layer.images, extent);
+    const candidates = _selectImagesFromSpatialIndex(
+        layer._spatialIndex, layer.images, extent,
+    );
 
     let selection;
     for (const entry of candidates) {
@@ -135,7 +136,8 @@ export default {
                     image.extent.west(),
                     image.extent.south(),
                     image.extent.east(),
-                    image.extent.north());
+                    image.extent.north(),
+                );
             }
             layer._spatialIndex.finish();
 
@@ -181,7 +183,7 @@ export default {
     },
 
     executeCommand(command) {
-        const layer = command.layer;
+        const { layer } = command;
         return getTexture(command.toDownload, layer);
     },
 };

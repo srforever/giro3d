@@ -3,7 +3,9 @@ import OGCWebServiceHelper from './OGCWebServiceHelper.js';
 import URLBuilder from './URLBuilder.js';
 import Extent from '../Core/Geographic/Extent.js';
 import VectorTileHelper from './VectorTileHelper.js';
-import { STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY, STRATEGY_GROUP } from '../Core/Layer/LayerUpdateStrategy.js';
+import {
+    STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY, STRATEGY_GROUP,
+} from '../Core/Layer/LayerUpdateStrategy.js';
 
 function preprocessDataLayer(layer) {
     if (!layer.extent) {
@@ -70,7 +72,8 @@ function chooseExtentToDownload(extent, currentExtent, layer, pitch, previousErr
 
     nextZoom = Math.min(
         Math.max(nextZoom, layer.options.zoom.min),
-        layer.options.zoom.max);
+        layer.options.zoom.max,
+    );
 
     if (extent.zoom <= nextZoom) {
         return extent;
@@ -104,7 +107,8 @@ function selectAllExtentsToDownload(layer, extent_, texture, previousError) {
         (texture && texture.extent) ? texture.extent : null,
         layer,
         pitch,
-        previousError);
+        previousError,
+    );
 
     // if the choice is the same as the current one => stop updating
     if (texture && texture.extent && texture.extent.zoom === extent.zoom) {
@@ -118,7 +122,7 @@ function selectAllExtentsToDownload(layer, extent_, texture, previousError) {
 }
 
 function executeCommand(command) {
-    const layer = command.layer;
+    const { layer } = command;
 
     let promise;
     if (layer.format === 'application/x-protobuf;type=mapbox-vector') {
@@ -153,8 +157,8 @@ function tileInsideLimit(tile, layer) {
 }
 
 function extentInsideLimit(extent, layer) {
-    return layer.options.zoom.min <= extent.zoom &&
-            extent.zoom <= layer.options.zoom.max;
+    return layer.options.zoom.min <= extent.zoom
+            && extent.zoom <= layer.options.zoom.max;
 }
 
 export default {

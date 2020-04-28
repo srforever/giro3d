@@ -29,7 +29,7 @@ function filterUnsupportedSemantics(obj) {
             names.push(name);
         }
         for (const name of names) {
-            const semantic = obj.gltfShader.boundUniforms[name].semantic;
+            const { semantic } = obj.gltfShader.boundUniforms[name];
             if (supported.indexOf(semantic) < 0) {
                 delete obj.gltfShader.boundUniforms[name];
             }
@@ -68,8 +68,8 @@ export default {
      *
      */
     parse(buffer, options) {
-        const gltfUpAxis = options.gltfUpAxis;
-        const urlBase = options.urlBase;
+        const { gltfUpAxis } = options;
+        const { urlBase } = options;
         if (!buffer) {
             throw new Error('No array buffer provided.');
         }
@@ -109,7 +109,8 @@ export default {
                 // is the byte length of the b3dm header
                 const sizeBegin = 28 + b3dmHeader.FTJSONLength + b3dmHeader.FTBinaryLength;
                 promises.push(BatchTableParser.parse(
-                    buffer.slice(sizeBegin, b3dmHeader.BTJSONLength + sizeBegin)));
+                    buffer.slice(sizeBegin, b3dmHeader.BTJSONLength + sizeBegin),
+                ));
             } else {
                 promises.push(Promise.resolve({}));
             }
@@ -127,9 +128,9 @@ export default {
                     }
 
                     // RTC managed
-                    applyOptionalCesiumRTC(buffer.slice(28 + b3dmHeader.FTJSONLength +
-                        b3dmHeader.FTBinaryLength + b3dmHeader.BTJSONLength +
-                        b3dmHeader.BTBinaryLength), gltf.scene);
+                    applyOptionalCesiumRTC(buffer.slice(28 + b3dmHeader.FTJSONLength
+                        + b3dmHeader.FTBinaryLength + b3dmHeader.BTJSONLength
+                        + b3dmHeader.BTBinaryLength), gltf.scene);
 
                     const initMesh = function initFn(mesh) {
                         mesh.frustumCulled = false;
@@ -138,8 +139,8 @@ export default {
                         }
                         if (options.overrideMaterials) {
                             mesh.material.dispose();
-                            if (typeof (options.overrideMaterials) === 'object' &&
-                                options.overrideMaterials.isMaterial) {
+                            if (typeof (options.overrideMaterials) === 'object'
+                                && options.overrideMaterials.isMaterial) {
                                 mesh.material = options.overrideMaterials.clone();
                             } else {
                                 mesh.material = new THREE.MeshLambertMaterial({ color: 0xffffff });
@@ -160,9 +161,9 @@ export default {
                     resolve(gltf);
                 };
 
-                const gltfBuffer = buffer.slice(28 + b3dmHeader.FTJSONLength +
-                    b3dmHeader.FTBinaryLength + b3dmHeader.BTJSONLength +
-                    b3dmHeader.BTBinaryLength);
+                const gltfBuffer = buffer.slice(28 + b3dmHeader.FTJSONLength
+                    + b3dmHeader.FTBinaryLength + b3dmHeader.BTJSONLength
+                    + b3dmHeader.BTBinaryLength);
 
                 const version = new DataView(gltfBuffer, 0, 20).getUint32(4, true);
 

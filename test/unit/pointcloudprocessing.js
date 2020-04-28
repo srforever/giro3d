@@ -9,7 +9,8 @@ describe('preUpdate', () => {
         const sources = new Set();
         assert.equal(
             layer.root,
-            PointCloudProcessing.preUpdate(context, layer, sources)[0]);
+            PointCloudProcessing.preUpdate(context, layer, sources)[0],
+        );
     });
 
     it('should return root if no common ancestors', () => {
@@ -21,7 +22,8 @@ describe('preUpdate', () => {
         sources.add(elt2);
         assert.equal(
             layer.root,
-            PointCloudProcessing.preUpdate(context, layer, sources)[0]);
+            PointCloudProcessing.preUpdate(context, layer, sources)[0],
+        );
     });
 
     it('should return common ancestor', () => {

@@ -36,14 +36,16 @@ const Projection = {
      */
     YToWGS84(y) {
         return MathExt.radToDeg(
-            2 * (Math.atan(Math.exp(-(y - 0.5) / INV_TWO_PI)) - PI_OV_FOUR));
+            2 * (Math.atan(Math.exp(-(y - 0.5) / INV_TWO_PI)) - PI_OV_FOUR),
+        );
     },
 
     getCoordWMTS_WGS84(tileCoord, bbox, tileMatrixSet) {
         // TODO: PM, WGS84G are hard-coded reference to IGN's TileMatrixSet
         if (tileMatrixSet === 'PM') {
             return wmtsWgs84ToWmtsPm(tileCoord, bbox);
-        } else if (tileMatrixSet === 'WGS84G') {
+        }
+        if (tileMatrixSet === 'WGS84G') {
             return [tileCoord.clone()];
         }
         throw new Error(`Unsupported TileMatrixSet '${tileMatrixSet}'`);
@@ -53,7 +55,8 @@ const Projection = {
         bbox.dimensions(dim);
 
         const zoom = Math.floor(
-            Math.log(Math.PI / MathExt.degToRad(dim.y)) / LOG_TWO + 0.5);
+            Math.log(Math.PI / MathExt.degToRad(dim.y)) / LOG_TWO + 0.5,
+        );
 
         const nY = Math.pow(2, zoom);
         const nX = 2 * nY;

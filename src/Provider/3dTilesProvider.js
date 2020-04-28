@@ -25,7 +25,8 @@ export function $3dTilesIndex(tileset, baseURL) {
         if (parent && parent._worldFromLocalTransform) {
             if (node.transform) {
                 node._worldFromLocalTransform = new THREE.Matrix4().multiplyMatrices(
-                    parent._worldFromLocalTransform, node.transform);
+                    parent._worldFromLocalTransform, node.transform,
+                );
             } else {
                 node._worldFromLocalTransform = parent._worldFromLocalTransform;
             }
@@ -119,9 +120,7 @@ function preprocessDataLayer(layer, view, scheduler) {
 
     // TODO: find a better way to know that this layer is about pointcloud ?
     if (layer.material && layer.material.enablePicking) {
-        layer.pickObjectsAt = (view, mouse, radius) => {
-            return Picking.pickPointsAt(view, mouse, radius, layer);
-        };
+        layer.pickObjectsAt = (view, mouse, radius) => Picking.pickPointsAt(view, mouse, radius, layer);
     }
 
     layer._cleanableTiles = [];
@@ -200,7 +199,7 @@ function b3dmToMesh(data, layer, url) {
         opacity: layer.opacity,
     };
     return B3dmParser.parse(data, options).then(result => {
-        const batchTable = result.batchTable;
+        const { batchTable } = result;
         const object3d = result.gltf.scene;
         return { batchTable, object3d };
     });
@@ -208,10 +207,10 @@ function b3dmToMesh(data, layer, url) {
 
 function pntsParse(data, layer) {
     return PntsParser.parse(data).then(result => {
-        const material = layer.material ?
-            layer.material.clone() :
+        const material = layer.material
+            ? layer.material.clone()
             // new PointsMaterial({ size: 3 });
-            new PointsMaterial();
+            : new PointsMaterial();
 
         if (material.enablePicking) {
             Picking.preparePointGeometryForPicking(result.point.geometry);
@@ -253,8 +252,8 @@ export function configureTile(tile, layer, metadata, parent) {
 }
 
 function executeCommand(command) {
-    const layer = command.layer;
-    const metadata = command.metadata;
+    const { layer } = command;
+    const { metadata } = command;
     const tile = new THREE.Object3D();
     configureTile(tile, layer, metadata, command.requester);
     // Patch for supporting 3D Tiles pre 1.0 (metadata.content.url) and 1.0

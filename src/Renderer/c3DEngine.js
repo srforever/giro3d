@@ -178,7 +178,8 @@ c3DEngine.prototype.renderViewToBuffer = function renderViewToBuffer(view, zone)
     const pixelBuffer = new Uint8Array(4 * zone.width * zone.height);
     this.renderer.readRenderTargetPixels(
         this.fullSizeRenderTarget,
-        zone.x, this.height - (zone.y + zone.height), zone.width, zone.height, pixelBuffer);
+        zone.x, this.height - (zone.y + zone.height), zone.width, zone.height, pixelBuffer,
+    );
 
     return pixelBuffer;
 };
@@ -209,7 +210,8 @@ c3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget
             Math.max(0, zone.x),
             Math.max(target.height - (zone.y + zone.height)),
             zone.width,
-            zone.height);
+            zone.height,
+        );
         target.scissorTest = true;
     }
 

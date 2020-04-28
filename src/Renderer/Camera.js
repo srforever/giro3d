@@ -120,7 +120,8 @@ function projectBox3PointsInCameraSpace(camera, box3, matrixWorld) {
 
 const ndcBox3 = new THREE.Box3(
     new THREE.Vector3(-1, -1, -1),
-    new THREE.Vector3(1, 1, 1));
+    new THREE.Vector3(1, 1, 1),
+);
 
 Camera.prototype.isBox3Visible = function isBox3Visible(box3, matrixWorld) {
     return this.box3SizeOnScreen(box3, matrixWorld).intersectsBox(ndcBox3);

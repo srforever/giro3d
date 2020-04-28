@@ -5,7 +5,9 @@ import {
     getSquaredTolerance as getSquaredRenderTolerance,
     renderFeature as renderVectorFeature,
 } from 'ol/renderer/vector.js';
-import { Fill, Icon, Stroke, Style, Text } from 'ol/style.js';
+import {
+    Fill, Icon, Stroke, Style, Text,
+} from 'ol/style.js';
 import ReplayType from 'ol/render/ReplayType.js';
 import {
     create as createTransform,
@@ -38,14 +40,16 @@ function preprocessDataLayer(layer) {
         for (const f of layer.source.getFeatures()) {
             f.getGeometry().transform(
                 layer.source.getFormat().dataProjection.getCode(),
-                layer.projection);
+                layer.projection,
+            );
         }
         layer.source.on('addfeature', evt => {
             const format = layer.source.getFormat();
             if (format) {
                 evt.feature.getGeometry().transform(
                     layer.source.getFormat().dataProjection.getCode(),
-                    layer.projection);
+                    layer.projection,
+                );
             }
         });
     }
@@ -64,9 +68,9 @@ function toOLExtent(extent) {
 
 // eslint-disable-next-line no-unused-vars
 function canTextureBeImproved(layer, extent, texture, previousError) {
-    if (texture && texture.extent &&
-        texture.extent.isInside(extent) &&
-        texture.revision === layer.source.getRevision()) {
+    if (texture && texture.extent
+        && texture.extent.isInside(extent)
+        && texture.revision === layer.source.getRevision()) {
         return null;
     }
 
@@ -109,7 +113,7 @@ function createTexture(node, extent, layer) {
 }
 
 function createReplayGroup(extent, layer) {
-    const source = layer.source;
+    const { source } = layer;
     const pixelRatio = 1;
     const declutterTree = null;
     const resolution = (extent.dimensions().x / layer.imageSize.w);
@@ -149,12 +153,14 @@ function renderFeature(feature, squaredTolerance, styles, replayGroup) {
         for (let i = 0, ii = styles.length; i < ii; ++i) {
             loading = renderVectorFeature(
                 replayGroup, feature, styles[i], squaredTolerance,
-                handleStyleImageChange_, null) || loading;
+                handleStyleImageChange_, null,
+            ) || loading;
         }
     } else {
         loading = renderVectorFeature(
             replayGroup, feature, styles, squaredTolerance,
-            handleStyleImageChange_, null);
+            handleStyleImageChange_, null,
+        );
     }
     return loading;
 }

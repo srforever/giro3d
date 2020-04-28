@@ -41,8 +41,7 @@ LayerUpdateState.prototype.secondsUntilNextTry = function secondsUntilNextTry() 
     if (this.state !== UPDATE_STATE.ERROR) {
         return 0;
     }
-    const idx =
-        Math.max(0, Math.min(this.errorCount, PAUSE_BETWEEN_ERRORS.length) - 1);
+    const idx = Math.max(0, Math.min(this.errorCount, PAUSE_BETWEEN_ERRORS.length) - 1);
 
     return PAUSE_BETWEEN_ERRORS[idx];
 };

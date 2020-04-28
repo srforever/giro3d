@@ -101,7 +101,8 @@ function PointCloudRenderer(view) {
                 // scale down depth texture
                 m.uniforms.depthTexture.value = input.depthTexture;
                 return { material: m, output: renderer.renderTargets[RT.HALF_RES] };
-            } else if (passIdx === 1) {
+            }
+            if (passIdx === 1) {
                 m.uniforms.depthTexture.value = renderer.renderTargets[RT.HALF_RES].depthTexture;
                 m.uniforms.resolution.value.set(input.width, input.height);
                 m.uniforms.cameraNear.value = renderer.view.camera.camera3D.near;
@@ -165,7 +166,8 @@ function PointCloudRenderer(view) {
             mU.colorTexture.value = input.texture;
             mU.depthTexture.value = input.depthTexture;
             mU.resolution.value.set(
-                input.width, input.height);
+                input.width, input.height,
+            );
             mU.m43.value = m43;
             mU.m33.value = m33;
             mU.threshold.value = this.parameters.threshold;
@@ -241,8 +243,8 @@ function PointCloudRenderer(view) {
 }
 
 PointCloudRenderer.prototype.update = function update() {
-    if (this.view.camera.width !== this.renderTargets[RT.FULL_RES_0].width ||
-        this.view.camera.height !== this.renderTargets[RT.FULL_RES_0].height) {
+    if (this.view.camera.width !== this.renderTargets[RT.FULL_RES_0].width
+        || this.view.camera.height !== this.renderTargets[RT.FULL_RES_0].height) {
         // release old render targets
         this.renderTargets.forEach(rt => rt.dispose());
         // build new ones
@@ -301,7 +303,8 @@ PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.
             r.setViewport(
                 0, 0,
                 output ? output.width : view.camera.width,
-                output ? output.height : view.camera.height);
+                output ? output.height : view.camera.height,
+            );
 
             if (material) {
                 // postprocessing scene

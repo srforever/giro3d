@@ -6,7 +6,7 @@ import { listenOnce } from 'ol/events.js';
 import Extent from '../Core/Geographic/Extent.js';
 
 function preprocessDataLayer(layer) {
-    const source = layer.source;
+    const { source } = layer;
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
     const sizePixel = source.getTilePixelSize(0/* z */, 1/* pixelRatio */, source.getProjection());
@@ -40,7 +40,7 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
 }
 
 function selectTile(layer, extent) {
-    const source = layer.source;
+    const { source } = layer;
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
     const tileCoord = tileCoordForExtent(tileGrid, extent);
@@ -49,9 +49,12 @@ function selectTile(layer, extent) {
     }
     const tile = source.getTile(tileCoord[0], tileCoord[1], tileCoord[2], 1, projection);
     const tileExtent = fromOLExtent(
-        tileGrid.getTileCoordExtent(tileCoord), projection.getCode());
+        tileGrid.getTileCoordExtent(tileCoord), projection.getCode(),
+    );
     const pitch = extent.offsetToParent(tileExtent);
-    return { extent, pitch, tile, tileExtent };
+    return {
+        extent, pitch, tile, tileExtent,
+    };
 }
 
 function tileCoordForExtent(tileGrid, extent) {

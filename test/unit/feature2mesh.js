@@ -22,7 +22,9 @@ function computeAreaOfMesh(mesh) {
             const index = mesh.geometry.index.array[i + j];
             contour.push(
                 new THREE.Vector3().fromArray(
-                    mesh.geometry.attributes.position.array, 3 * index));
+                    mesh.geometry.attributes.position.array, 3 * index,
+                ),
+            );
         }
         area += THREE.ShapeUtils.area(contour);
     }
@@ -30,26 +32,26 @@ function computeAreaOfMesh(mesh) {
 }
 
 describe('Feature2Mesh', () => {
-    it('rect mesh area should match geometry extent', () =>
-        parse().then(features => {
-            const mesh = Feature2Mesh.convert()(features);
-            const extentSize = features.extent.dimensions();
+    it('rect mesh area should match geometry extent', () => parse().then(features => {
+        const mesh = Feature2Mesh.convert()(features);
+        const extentSize = features.extent.dimensions();
 
-            assert.equal(
-                extentSize.x * extentSize.y,
-                computeAreaOfMesh(mesh.children[0]));
-        }));
+        assert.equal(
+            extentSize.x * extentSize.y,
+            computeAreaOfMesh(mesh.children[0]),
+        );
+    }));
 
-    it('square mesh area should match geometry extent minus holes', () =>
-        parse().then(feature => {
-            const mesh = Feature2Mesh.convert()(feature);
+    it('square mesh area should match geometry extent minus holes', () => parse().then(feature => {
+        const mesh = Feature2Mesh.convert()(feature);
 
-            const noHoleArea = computeAreaOfMesh(mesh.children[0]);
-            const holeArea = computeAreaOfMesh(mesh.children[1]);
-            const meshWithHoleArea = computeAreaOfMesh(mesh.children[2]);
+        const noHoleArea = computeAreaOfMesh(mesh.children[0]);
+        const holeArea = computeAreaOfMesh(mesh.children[1]);
+        const meshWithHoleArea = computeAreaOfMesh(mesh.children[2]);
 
-            assert.equal(
-                noHoleArea - holeArea,
-                meshWithHoleArea);
-        }));
+        assert.equal(
+            noHoleArea - holeArea,
+            meshWithHoleArea,
+        );
+    }));
 });

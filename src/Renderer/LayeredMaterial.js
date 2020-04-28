@@ -22,7 +22,8 @@ export function unpack1K(color, factor) {
         UnpackDownscale / (256.0 * 256.0 * 256.0),
         UnpackDownscale / (256.0 * 256.0),
         UnpackDownscale / 256.0,
-        UnpackDownscale);
+        UnpackDownscale,
+    );
     return factor ? bitSh.dot(color) * factor : bitSh.dot(color);
 }
 
@@ -178,7 +179,8 @@ function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revi
         ctx.drawImage(
             image,
             atlasInfo.x, atlasInfo.y + atlasInfo.offset,
-            layer.imageSize.w, layer.imageSize.h);
+            layer.imageSize.w, layer.imageSize.h,
+        );
 
         if (atlasInfo.offset) {
             // avoid texture bleeding: repeat the first/last row
@@ -186,12 +188,14 @@ function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revi
                 image,
                 0, 0, layer.imageSize.w, atlasInfo.offset,
                 atlasInfo.x, atlasInfo.y,
-                layer.imageSize.w, atlasInfo.offset);
+                layer.imageSize.w, atlasInfo.offset,
+            );
             ctx.drawImage(
                 image,
                 0, layer.imageSize.h - 1 - atlasInfo.offset, layer.imageSize.w, atlasInfo.offset,
                 atlasInfo.x, atlasInfo.y + layer.imageSize.h + atlasInfo.offset,
-                layer.imageSize.w, atlasInfo.offset);
+                layer.imageSize.w, atlasInfo.offset,
+            );
         }
     }
     // else {
@@ -231,7 +235,8 @@ function updateOffsetScale(imageSize, atlas, originalOffsetScale, canvas, target
         atlas.x / canvas.width + originalOffsetScale.x * xRatio,
         (atlas.y + atlas.offset) / canvas.height + originalOffsetScale.y * yRatio,
         originalOffsetScale.z * xRatio,
-        originalOffsetScale.w * yRatio);
+        originalOffsetScale.w * yRatio,
+    );
 }
 
 
@@ -269,7 +274,8 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
         this.texturesInfo.elevation.offsetScale.copy(textures.pitch);
 
         return Promise.resolve(true);
-    } else if (layer.type === 'color') {
+    }
+    if (layer.type === 'color') {
         const index = this.indexOfColorLayer(layer);
         // const atlas = this.atlasInfo.atlas[layer.id];
         this.texturesInfo.color.originalOffsetScale[index].copy(textures.pitch);
@@ -283,7 +289,8 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
                 this.atlasInfo.atlas[layer.id],
                 this.texturesInfo.color.originalOffsetScale[index],
                 this.uniforms.colorTexture.value.image,
-                this.texturesInfo.color.offsetScale[index]);
+                this.texturesInfo.color.offsetScale[index],
+            );
             // we already got our texture (needsUpdate is done in TiledNodeProcessing)
             return Promise.resolve();
         }
@@ -314,7 +321,8 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
                     this.atlasInfo.atlas[layer.id],
                     this.texturesInfo.color.originalOffsetScale[index],
                     this.uniforms.colorTexture.value.image,
-                    this.texturesInfo.color.offsetScale[index]);
+                    this.texturesInfo.color.offsetScale[index],
+                );
 
                 const srcImage = this.texturesInfo.color.textures[index].image;
 
@@ -324,7 +332,8 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
                     atlas,
                     (srcImage === this.canvas) ? null : srcImage,
                     this.texturesInfo.color.offsetScale[index],
-                    this.canvasRevision);
+                    this.canvasRevision,
+                );
             }
             this.pendingUpdates.length = 0;
             this.texturesInfo.color.atlasTexture.needsUpdate = true;
@@ -343,7 +352,8 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
 function zIndexSort(a, b) {
     if (a.zIndex === b.zIndex) {
         return 0;
-    } else if (!a.zIndex) {
+    }
+    if (!a.zIndex) {
         return -1;
     }
     return a.zIndex - b.zIndex;
@@ -415,7 +425,8 @@ function rebuildFragmentShader(shader) {
     }
     material.fragmentShader = TileFS.replace(
         'INSERT_TEXTURE_READING_CODE',
-        textureReadingCode);
+        textureReadingCode,
+    );
     shader.fragmentShader = material.fragmentShader;
     material.onBeforeCompile = function noop() {};
     return material.fragmentShader;
@@ -497,7 +508,8 @@ LayeredMaterial.prototype.update = function update() {
                 atlas.x / newCanvas.width + pitch.x * xRatio,
                 (atlas.y + atlas.offset) / newCanvas.height + pitch.y * yRatio,
                 pitch.z * xRatio,
-                pitch.w * yRatio);
+                pitch.w * yRatio,
+            );
         }
         this.canvas = newCanvas;
         this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
@@ -526,7 +538,8 @@ LayeredMaterial.prototype.isLayerTextureLoaded = function isColorLayerLoaded(lay
             return null;
         }
         return this.texturesInfo.color.textures[index] !== emptyTexture;
-    } else if (layer.type === 'elevation') {
+    }
+    if (layer.type === 'elevation') {
         return this.texturesInfo.elevation.texture !== emptyTexture;
     }
     return null; // TODO throw?

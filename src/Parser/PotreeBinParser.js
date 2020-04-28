@@ -57,9 +57,9 @@ for (const potreeName of Object.keys(POINT_ATTTRIBUTES)) {
     attr.normalized = attr.normalized || false;
     // chrome is known to perform badly when we call a method without respecting its arity
     const fnName = `getUint${attr.numByte * 8}`;
-    attr.getValue = attr.numByte === 1 ?
-        function getValue(view, offset) { return view[fnName](offset); } :
-        function getValue(view, offset) { return view[fnName](offset, true); };
+    attr.getValue = attr.numByte === 1
+        ? function getValue(view, offset) { return view[fnName](offset); }
+        : function getValue(view, offset) { return view[fnName](offset, true); };
 }
 
 export default {

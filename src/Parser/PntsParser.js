@@ -56,7 +56,8 @@ export default {
             if (pntsHeader.BTJSONLength > 0) {
                 const sizeBegin = 28 + pntsHeader.FTJSONLength + pntsHeader.FTBinaryLength;
                 batchTable = BatchTableParser.parse(
-                    buffer.slice(sizeBegin, pntsHeader.BTJSONLength + sizeBegin));
+                    buffer.slice(sizeBegin, pntsHeader.BTJSONLength + sizeBegin),
+                );
             }
 
             const pnts = { point, batchTable };
@@ -107,8 +108,8 @@ function parseFeatureBinary(array, byteOffset, FTJSONLength) {
     }
 
     // Add RTC feature
-    const offset = parseJSON.RTC_CENTER ?
-        new THREE.Vector3().fromArray(parseJSON.RTC_CENTER) : undefined;
+    const offset = parseJSON.RTC_CENTER
+        ? new THREE.Vector3().fromArray(parseJSON.RTC_CENTER) : undefined;
 
     return {
         geometry,

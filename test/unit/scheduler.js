@@ -63,11 +63,14 @@ describe('Command execution', () => {
         const promises = [];
         for (let i = 0; i < 50; i++) {
             promises.push(scheduler.execute(cmd('layer0', 1)).then(
-                c => { results.push(c.layer.id); }));
+                c => { results.push(c.layer.id); },
+            ));
             promises.push(scheduler.execute(cmd('layer1', 5)).then(
-                c => { results.push(c.layer.id); }));
+                c => { results.push(c.layer.id); },
+            ));
             promises.push(scheduler.execute(cmd('layer2', 10)).then(
-                c => { results.push(c.layer.id); }));
+                c => { results.push(c.layer.id); },
+            ));
         }
 
         Promise.all(promises).then(() => {

@@ -76,7 +76,8 @@ export default {
                 options.offset || 0,
                 matrices,
                 undefined,
-                options.cache ? options.cache[0] : undefined);
+                options.cache ? options.cache[0] : undefined,
+            );
 
             if (!result) {
                 return false;
@@ -87,81 +88,83 @@ export default {
             obj.updateMatrix();
             obj.updateMatrixWorld();
             return true;
-        } else {
-            const matrices = {
-                worldFromLocal: obj.matrixWorld,
-                localFromWorld: new THREE.Matrix4().getInverse(obj.matrixWorld),
-            };
-
-            const geometry = obj.geometry;
-            if (geometry.vertices) {
-                if (options.cache) {
-                    options.cache.length = geometry.vertices.length;
-                }
-
-                let success = true;
-                const coord = new Coordinates(objectCRS);
-                for (let i = 0; i < geometry.vertices.length; i++) {
-                    const cached = options.cache ? options.cache[i] : undefined;
-
-                    const result = _updateVector3(
-                        layer,
-                        options.method || FAST_READ_Z,
-                        tiles,
-                        objectCRS,
-                        geometry.vertices[i],
-                        options.offset || 0,
-                        matrices,
-                        coord,
-                        cached);
-
-                    if (options.cache) {
-                        options.cache[i] = result;
-                    }
-                    if (!result) {
-                        success = false;
-                    }
-                }
-                geometry.verticesNeedUpdate = true;
-                return success;
-            } else if (geometry instanceof THREE.BufferGeometry) {
-                if (options.cache) {
-                    options.cache.length = geometry.attributes.position.count;
-                }
-                let success = true;
-
-                const tmp = new THREE.Vector3();
-                const coord = new Coordinates(objectCRS);
-                for (let i = 0; i < geometry.attributes.position.count; i++) {
-                    const cached = options.cache ? options.cache[i] : undefined;
-
-                    tmp.fromBufferAttribute(geometry.attributes.position, i);
-                    const prev = tmp.z;
-                    const result = _updateVector3(
-                        layer,
-                        options.method || FAST_READ_Z,
-                        tiles,
-                        objectCRS,
-                        tmp,
-                        options.offset || 0,
-                        matrices,
-                        coord,
-                        cached);
-                    if (options.cache) {
-                        options.cache[i] = result;
-                    }
-                    if (!result) {
-                        success = false;
-                    }
-                    if (prev !== tmp.z) {
-                        geometry.attributes.position.needsUpdate = true;
-                    }
-                    geometry.attributes.position.setXYZ(i, tmp.x, tmp.y, tmp.z);
-                }
-                return success;
-            }
-            return false; // TODO throw?
         }
+        const matrices = {
+            worldFromLocal: obj.matrixWorld,
+            localFromWorld: new THREE.Matrix4().getInverse(obj.matrixWorld),
+        };
+
+        const { geometry } = obj;
+        if (geometry.vertices) {
+            if (options.cache) {
+                options.cache.length = geometry.vertices.length;
+            }
+
+            let success = true;
+            const coord = new Coordinates(objectCRS);
+            for (let i = 0; i < geometry.vertices.length; i++) {
+                const cached = options.cache ? options.cache[i] : undefined;
+
+                const result = _updateVector3(
+                    layer,
+                    options.method || FAST_READ_Z,
+                    tiles,
+                    objectCRS,
+                    geometry.vertices[i],
+                    options.offset || 0,
+                    matrices,
+                    coord,
+                    cached,
+                );
+
+                if (options.cache) {
+                    options.cache[i] = result;
+                }
+                if (!result) {
+                    success = false;
+                }
+            }
+            geometry.verticesNeedUpdate = true;
+            return success;
+        }
+        if (geometry instanceof THREE.BufferGeometry) {
+            if (options.cache) {
+                options.cache.length = geometry.attributes.position.count;
+            }
+            let success = true;
+
+            const tmp = new THREE.Vector3();
+            const coord = new Coordinates(objectCRS);
+            for (let i = 0; i < geometry.attributes.position.count; i++) {
+                const cached = options.cache ? options.cache[i] : undefined;
+
+                tmp.fromBufferAttribute(geometry.attributes.position, i);
+                const prev = tmp.z;
+                const result = _updateVector3(
+                    layer,
+                    options.method || FAST_READ_Z,
+                    tiles,
+                    objectCRS,
+                    tmp,
+                    options.offset || 0,
+                    matrices,
+                    coord,
+                    cached,
+                );
+                if (options.cache) {
+                    options.cache[i] = result;
+                }
+                if (!result) {
+                    success = false;
+                }
+                if (prev !== tmp.z) {
+                    geometry.attributes.position.needsUpdate = true;
+                }
+                geometry.attributes.position.setXYZ(i, tmp.x, tmp.y, tmp.z);
+            }
+            return success;
+        }
+        return false; // TODO throw?
     },
     FAST_READ_Z,
     PRECISE_READ_Z,
@@ -240,7 +243,8 @@ function _readTextureValueAt(layer, texture, ...uv) {
         result.push(THREE.Math.lerp(
             layer.minMaxFromElevationLayer.min,
             layer.minMaxFromElevationLayer.max,
-            d.data[4 * oy * dw + 4 * ox] / 255));
+            d.data[4 * oy * dw + 4 * ox] / 255,
+        ));
     }
     if (uv.length === 2) {
         return result[0];
@@ -249,8 +253,8 @@ function _readTextureValueAt(layer, texture, ...uv) {
 }
 
 function _convertUVtoTextureCoords(texture, u, v) {
-    const width = texture.image.width;
-    const height = texture.image.height;
+    const { width } = texture.image;
+    const { height } = texture.image;
 
     const up = Math.max(0, u * width - 0.5);
     const vp = Math.max(0, v * height - 0.5);
@@ -263,7 +267,9 @@ function _convertUVtoTextureCoords(texture, u, v) {
     const wu = up - u1;
     const wv = vp - v1;
 
-    return { u1, u2, v1, v2, wu, wv };
+    return {
+        u1, u2, v1, v2, wu, wv,
+    };
 }
 
 function _readTextureValueNearestFiltering(layer, texture, vertexU, vertexV) {
@@ -342,7 +348,8 @@ function _readZCorrect(layer, texture, uv, tileDimensions, tileOwnerDimensions) 
     const tri = new THREE.Triangle(
         new THREE.Vector3(u1, v2),
         new THREE.Vector3(u2, v1),
-        lowerRightTriangle ? new THREE.Vector3(u2, v2) : new THREE.Vector3(u1, v1));
+        lowerRightTriangle ? new THREE.Vector3(u2, v2) : new THREE.Vector3(u1, v1),
+    );
 
     // bary holds the respective weight of each vertices of the triangles
     const bary = tri.barycoordFromPoint(new THREE.Vector3(uv.x, uv.y));
@@ -393,8 +400,8 @@ function _readZ(layer, method, coord, nodes, cache) {
 
     // Assuming that tiles are split in 4 children, we lookup the parent that
     // really owns this texture
-    const stepsUpInHierarchy = Math.round(Math.log2(1.0 /
-        texturesInfo.offsetScale.z));
+    const stepsUpInHierarchy = Math.round(Math.log2(1.0
+        / texturesInfo.offsetScale.z));
     for (let i = 0; i < stepsUpInHierarchy; i++) {
         tileWithValidElevationTexture = tileWithValidElevationTexture.parent;
     }
@@ -444,4 +451,3 @@ function _updateVector3(layer, method, nodes, vecCRS, vec, offset, matrices = {}
     }
     return { id: result.texture.id, version: result.texture.version, tile: result.tile };
 }
-

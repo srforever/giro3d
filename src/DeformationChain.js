@@ -77,22 +77,26 @@ function angleFromLine(l) {
 function computeTransformation(originalLine, modifiedLine, scale, camera3D) {
     // Compute matrix
     const m1 = new THREE.Matrix4().makeTranslation(
-        -originalLine.getCenter().x, -originalLine.getCenter().y, 0);
+        -originalLine.getCenter().x, -originalLine.getCenter().y, 0,
+    );
 
     const angle1 = angleFromLine(originalLine);
     const angle2 = angleFromLine(modifiedLine);
 
     const m2 = new THREE.Matrix4().makeRotationZ(
-        -angle1);
+        -angle1,
+    );
 
     const s = modifiedLine.distance() / originalLine.distance();
     const m3 = new THREE.Matrix4().makeScale(s, 1.0, 1.0);
 
     const m4 = new THREE.Matrix4().makeRotationZ(
-        angle2);
+        angle2,
+    );
 
     const m5 = new THREE.Matrix4().makeTranslation(
-        modifiedLine.getCenter().x, modifiedLine.getCenter().y, 0.0);
+        modifiedLine.getCenter().x, modifiedLine.getCenter().y, 0.0,
+    );
 
     // to avoid precision issue in the shader, we must premultiply here
     if (camera3D) {
@@ -105,10 +109,10 @@ function computeTransformation(originalLine, modifiedLine, scale, camera3D) {
     const transfoBox = new THREE.Box2();
     // TODO there *must be* a better way (check if getCenter creates an instance)
     transfoBox.expandByPoint(
-        originalLine.getCenter().add(vec.clone().multiplyScalar(length * scale.x * -0.5))
+        originalLine.getCenter().add(vec.clone().multiplyScalar(length * scale.x * -0.5)),
     );
     transfoBox.expandByPoint(
-        originalLine.getCenter().add(vec.clone().multiplyScalar(length * scale.x * 0.5))
+        originalLine.getCenter().add(vec.clone().multiplyScalar(length * scale.x * 0.5)),
     );
 
     const normal = new THREE.Vector2(-vec.y, vec.x);
@@ -191,7 +195,7 @@ class DeformationChain {
     }
 
     updateScale(rectLink, changeX, changeY) {
-        const scale = this.chains[rectLink.k][rectLink.i].scale;
+        const { scale } = this.chains[rectLink.k][rectLink.i];
         scale.x = Math.max(1, scale.x + changeX);
         scale.y = Math.max(0.5, scale.y + changeY);
     }
@@ -213,7 +217,8 @@ class DeformationChain {
             this.newChain(this._activeChain()[this.active.point]);
         }
         color = color || new THREE.Color(
-            Math.random(), Math.random(), Math.random());
+            Math.random(), Math.random(), Math.random(),
+        );
 
         if (pt.isVector3) {
             this._activeChain().splice(
@@ -224,7 +229,8 @@ class DeformationChain {
                     original: pt.clone().setZ(0),
                     modified: pt.clone().setZ(0),
                     scale: new THREE.Vector3(1, 3, 1),
-                });
+                },
+            );
         } else {
             this._activeChain().splice(
                 this.active.point + 1,
@@ -234,7 +240,8 @@ class DeformationChain {
                     original: pt.original,
                     modified: pt.modified,
                     scale: new THREE.Vector3(1, 3, 1),
-                });
+                },
+            );
         }
 
         this.active.point = this.active.point + 1;
@@ -391,10 +398,12 @@ class DeformationChain {
                         for (let o = 0; o < 4; o++) {
                             const dashed = this.dashedLines.get();
                             dashed.position.copy(
-                                rect.geometry.vertices[o].clone().applyMatrix4(rect.matrixWorld));
-                            dashed.geometry.vertices[1] =
-                                rect2.geometry.vertices[o].clone().applyMatrix4(rect2.matrixWorld)
-                                    .sub(dashed.position);
+                                rect.geometry.vertices[o].clone().applyMatrix4(rect.matrixWorld),
+                            );
+                            dashed.geometry.vertices[1] = rect2.geometry.vertices[o]
+                                .clone()
+                                .applyMatrix4(rect2.matrixWorld)
+                                .sub(dashed.position);
                             dashed.computeLineDistances();
                             dashed.geometry.verticesNeedUpdate = true;
                             dashed.geometry.lineDistancesNeedUpdate = true;
@@ -445,7 +454,8 @@ class DeformationChain {
                 const transfo = computeTransformation(
                     originalLine, modifiedLine,
                     eltA.scale,
-                    camera3D);
+                    camera3D,
+                );
                 transfo.color = chain[0].color;
 
                 result.push(transfo);
@@ -478,19 +488,19 @@ class DeformationChain {
                 const m = new THREE.Matrix4();
                 m.elements = segment.matrix.elements;
 
-                this._activeChain()[this.active.point].modified =
-                    v1.clone().applyMatrix4(m);
-                this._activeChain()[this.active.point].scale =
-                    new THREE.Vector3(segment.influence.x, segment.influence.y, 1);
+                this._activeChain()[this.active.point].modified = v1.clone().applyMatrix4(m);
+                this._activeChain()[this.active.point].scale = new THREE.Vector3(
+                    segment.influence.x, segment.influence.y, 1,
+                );
 
                 if (i === chain.length - 1) {
                     const v2 = new THREE.Vector3(segment.v2.x, segment.v2.y, segment.v2.z);
                     this.addPoint(v2);
 
-                    this._activeChain()[this.active.point].modified =
-                        v2.clone().applyMatrix4(m);
-                    this._activeChain()[this.active.point].scale =
-                        new THREE.Vector3(segment.influence.x, segment.influence.y, 1);
+                    this._activeChain()[this.active.point].modified = v2.clone().applyMatrix4(m);
+                    this._activeChain()[this.active.point].scale = new THREE.Vector3(
+                        segment.influence.x, segment.influence.y, 1,
+                    );
                 }
             }
             this._activeChain().reverse();

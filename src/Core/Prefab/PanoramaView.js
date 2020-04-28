@@ -12,7 +12,8 @@ export function createPanoramaLayer(id, coordinates, type, options = {}) {
 
     coordinates.xyz(tileLayer.object3d.position);
     tileLayer.object3d.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, 0, 1), coordinates.geodesicNormal);
+        new THREE.Vector3(0, 0, 1), coordinates.geodesicNormal,
+    );
     tileLayer.object3d.updateMatrixWorld(true);
 
     // FIXME: add CRS = '0' support

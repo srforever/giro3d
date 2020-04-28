@@ -68,7 +68,8 @@ function featureToPoint(feature, properties, options) {
     const geom = prepareBufferGeometry(
         feature.vertices,
         color,
-        altitude);
+        altitude,
+    );
 
     return new THREE.Points(geom);
 }
@@ -81,7 +82,8 @@ function featureToLine(feature, properties, options) {
     const geom = prepareBufferGeometry(
         feature.vertices,
         color,
-        altitude);
+        altitude,
+    );
 
     if (feature.geometry.length > 1) {
         const indices = [];
@@ -185,7 +187,8 @@ function featureToMesh(feature, options) {
             mesh = featureToMultiPolygon(
                 feature,
                 feature.properties,
-                options);
+                options,
+            );
             break;
         }
         default:

@@ -48,9 +48,11 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
 
     outBuffers.position = new THREE.BufferAttribute(new Float32Array(nVertex * 3), 3);
     outBuffers.index = new THREE.BufferAttribute(
-        new Uint32Array(triangles * 3), 1);
+        new Uint32Array(triangles * 3), 1,
+    );
     outBuffers.uv = new THREE.BufferAttribute(
-        new Float32Array(nVertex * 2), 2);
+        new Float32Array(nVertex * 2), 2,
+    );
 
     const widthSegments = Math.max(2, Math.floor(nSeg) || 2);
     const heightSegments = Math.max(2, Math.floor(nSeg) || 2);

@@ -13,8 +13,8 @@ import Points from '../Core/Points.js';
 // subdivision algo recursively)
 function createChildAABB(aabb, childIndex) {
     // Code taken from potree
-    let min = aabb.min;
-    let max = aabb.max;
+    let { min } = aabb;
+    let { max } = aabb;
     const dHalfLength = new THREE.Vector3().copy(max).sub(min).multiplyScalar(0.5);
     const xHalfLength = new THREE.Vector3(dHalfLength.x, 0, 0);
     const yHalfLength = new THREE.Vector3(0, dHalfLength.y, 0);
@@ -159,8 +159,8 @@ function parseMetadata(metadata, layer) {
         // PotreeConverter format
         customBinFormat = layer.metadata.pointAttributes === 'CIN';
         // do we have normal information
-        const normal = Array.isArray(layer.metadata.pointAttributes) &&
-            layer.metadata.pointAttributes.find(elem => elem.startsWith('NORMAL'));
+        const normal = Array.isArray(layer.metadata.pointAttributes)
+            && layer.metadata.pointAttributes.find(elem => elem.startsWith('NORMAL'));
         if (normal) {
             layer.material.defines[normal] = 1;
         }
@@ -232,9 +232,7 @@ export default {
         layer.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
 
         // this probably needs to be moved to somewhere else
-        layer.pickObjectsAt = (view, mouse, radius, filter) => {
-            return Picking.pickPointsAt(view, mouse, radius, layer, filter);
-        };
+        layer.pickObjectsAt = (view, mouse, radius, filter) => Picking.pickPointsAt(view, mouse, radius, layer, filter);
 
         return Fetcher.json(`${layer.url}/${layer.file}`, layer.networkOptions)
             .then(metadata => {
@@ -258,7 +256,7 @@ export default {
     },
 
     executeCommand(command) {
-        const layer = command.layer;
+        const { layer } = command;
         const metadata = command.requester;
 
         // Query HRC if we don't have children metadata yet.

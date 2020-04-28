@@ -43,7 +43,8 @@ function screenCoordsToNodeId(view, tileLayer, viewCoords, radius) {
             y: viewCoords.y - radius,
             width: 1 + radius * 2,
             height: 1 + radius * 2,
-        });
+        },
+    );
 
     undoHide();
 
@@ -151,7 +152,8 @@ export default {
                         y: Math.max(0, viewCoords.y - radius),
                         width: 1 + radius * 2,
                         height: 1 + radius * 2,
-                    });
+                    },
+                );
                 const uvs = [];
                 traversePickingCircle(radius, (x, y, idx) => {
                     const data = buffer.slice(idx * 4, idx * 4 + 4);
@@ -166,14 +168,14 @@ export default {
                         node.extent.south() + uv.y * (node.extent.north() - node.extent.south()),
                         0);
                     const result = DEMUtils.getElevationValueAt(
-                        layer, tmpCoords, DEMUtils.FAST_READ_Z, [node]
+                        layer, tmpCoords, DEMUtils.FAST_READ_Z, [node],
                     );
                     if (result) {
                         tmpCoords._values[2] = result.z;
                         // convert to view crs
                         // here (and only here) should be the Coordinates instance creation
                         const coord = tmpCoords.as(
-                            _instance.referenceCrs, new Coordinates(_instance.referenceCrs)
+                            _instance.referenceCrs, new Coordinates(_instance.referenceCrs),
                         );
                         const point = tmpCoords.xyz(new THREE.Vector3());
                         results.push({
@@ -222,7 +224,8 @@ export default {
                 y: Math.max(0, viewCoords.y - radius),
                 width: 1 + radius * 2,
                 height: 1 + radius * 2,
-            });
+            },
+        );
 
         undoHide();
 
@@ -280,7 +283,7 @@ export default {
                     if (candidates[i].pickingId === o.material.pickingId) {
                         const position = new THREE.Vector3()
                             .fromArray(
-                                o.geometry.attributes.position.array, 3 * candidates[i].index
+                                o.geometry.attributes.position.array, 3 * candidates[i].index,
                             )
                             .applyMatrix4(o.matrixWorld);
                         result.push({
@@ -316,7 +319,8 @@ export default {
         };
         const pixels = view.mainLoop.gfxEngine.renderViewToBuffer(
             { scene: object, camera: view.camera },
-            zone);
+            zone,
+        );
 
         const clearColor = view.mainLoop.gfxEngine.renderer.getClearColor();
         const clearR = Math.round(255 * clearColor.r);
@@ -338,9 +342,9 @@ export default {
             const b = pixels[offset + 2];
             // Use approx. test to avoid rounding error or to behave
             // differently depending on hardware rounding mode.
-            if (Math.abs(clearR - r) <= 1 &&
-                Math.abs(clearG - g) <= 1 &&
-                Math.abs(clearB - b) <= 1) {
+            if (Math.abs(clearR - r) <= 1
+                && Math.abs(clearG - g) <= 1
+                && Math.abs(clearB - b) <= 1) {
                 // skip because nothing has been rendered here
                 return false;
             }
@@ -350,7 +354,8 @@ export default {
                 .setY(normalized.y + y / view.camera.height);
             raycaster.setFromCamera(
                 tmp,
-                view.camera.camera3D);
+                view.camera.camera3D,
+            );
 
             const intersects = raycaster.intersectObject(object, true);
             for (const inter of intersects) {

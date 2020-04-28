@@ -30,7 +30,8 @@ function compute3857Extent(tileExtent) {
     // ... so we count how many tiles of the same width as tile we can fit in the layer
     const tileCount = Math.min(
         Math.floor(layerDimension.x / tileExtent.dimensions().x),
-        Math.floor(layerDimension.y / tileExtent.dimensions().y));
+        Math.floor(layerDimension.y / tileExtent.dimensions().y),
+    );
     // ... 2^zoom = tilecount => zoom = log2(tilecount)
     const zoom = Math.floor(Math.log2(tileCount));
 
@@ -41,10 +42,12 @@ function compute3857Extent(tileExtent) {
     // compute tile that contains the center
     const topLeft = findCellWith(
         tl.x() - extent.west(), extent.north() - tl.y(),
-        layerDimension, realTileCount);
+        layerDimension, realTileCount,
+    );
     const bottomRight = findCellWith(
         br.x() - extent.west(), extent.north() - br.y(),
-        layerDimension, realTileCount);
+        layerDimension, realTileCount,
+    );
 
     const tileSize = {
         x: layerDimension.x / realTileCount,
@@ -116,24 +119,22 @@ export function createPlanarLayer(id, extent, options = {}) {
                             // that we're on a regular grid.
                             // The only thing we can assume is their shared edge are
                             // equal with a power of 2 factor.
-                            const diff = Math.log2((i % 2) ?
-                                Math.round(nn.extent.dimensions().y / dimensions.y) :
-                                Math.round(nn.extent.dimensions().x / dimensions.x));
+                            const diff = Math.log2((i % 2)
+                                ? Math.round(nn.extent.dimensions().y / dimensions.y)
+                                : Math.round(nn.extent.dimensions().x / dimensions.x));
 
                             node.material.uniforms
                                 .neighbourdiffLevel.value.setComponent(i, -diff);
-                            elevationNeighbours.texture[i] =
-                                nn.material.texturesInfo.elevation.texture;
+                            elevationNeighbours.texture[i] = nn.material.texturesInfo.elevation.texture;
 
                             const offscale = targetExtent.offsetToParent(nn.extent);
 
-                            elevationNeighbours.offsetScale[i] =
-                                nn.material.texturesInfo.elevation.offsetScale.clone();
+                            elevationNeighbours.offsetScale[i] = nn.material.texturesInfo.elevation.offsetScale.clone();
 
-                            elevationNeighbours.offsetScale[i].x +=
-                                offscale.x * elevationNeighbours.offsetScale[i].z;
-                            elevationNeighbours.offsetScale[i].y +=
-                                offscale.y * elevationNeighbours.offsetScale[i].w;
+                            elevationNeighbours.offsetScale[i].x
+                                += offscale.x * elevationNeighbours.offsetScale[i].z;
+                            elevationNeighbours.offsetScale[i].y
+                                += offscale.y * elevationNeighbours.offsetScale[i].w;
                             elevationNeighbours.offsetScale[i].z *= offscale.z;
                             elevationNeighbours.offsetScale[i].w *= offscale.w;
                         }
@@ -163,8 +164,8 @@ export function createPlanarLayer(id, extent, options = {}) {
         if (!node.parent || !node.parent.extent) {
             if (node.level === 0 && node.parent.children.length) {
                 for (const sibling of node.parent.children) {
-                    if (sibling.extent &&
-                        extent.isInside(sibling.extent)) {
+                    if (sibling.extent
+                        && extent.isInside(sibling.extent)) {
                         return sibling;
                     }
                 }

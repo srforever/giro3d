@@ -61,7 +61,8 @@ PlanarTileBuilder.prototype.computeSharableExtent = function fnComputeSharableEx
     const sharableExtent = new Extent(
         extent.crs(),
         -dim.x * 0.5, dim.x * 0.5,
-        -dim.y * 0.5, dim.y * 0.5);
+        -dim.y * 0.5, dim.y * 0.5,
+    );
     return {
         sharableExtent,
         quaternion,

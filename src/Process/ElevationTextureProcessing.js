@@ -34,7 +34,7 @@ export function minMaxFromTexture(layer, texture) {
         fooCanvas.width = w;
         fooCanvas.height = h;
         fooCtx.drawImage(texture.image, 0, 0);
-        const data = fooCtx.getImageData(0, 0, w, h).data;
+        const { data } = fooCtx.getImageData(0, 0, w, h);
         const stride = w * 4;
         return { data, stride, h };
     }
@@ -48,7 +48,8 @@ export function minMaxFromTexture(layer, texture) {
                 const val = tr(
                     data[i * stride + j],
                     data[i * stride + j + 1],
-                    data[i * stride + j + 2]);
+                    data[i * stride + j + 2],
+                );
                 if (val < min) {
                     min = val;
                 }
@@ -133,7 +134,7 @@ function refinementCommandCancellationFn(cmd) {
 
 export default {
     updateLayerElement(context, layer, node, parent, initOnly = false) {
-        const material = node.material;
+        const { material } = node;
 
         if (!node.parent || !material) {
             return null;
@@ -159,10 +160,10 @@ export default {
         const ts = Date.now();
 
         // Possible conditions to *not* update the elevation texture
-        if (initOnly ||
-                layer.frozen ||
-                !node.material.visible ||
-                !node.layerUpdateState[layer.id].canTryUpdate(ts)) {
+        if (initOnly
+                || layer.frozen
+                || !node.material.visible
+                || !node.layerUpdateState[layer.id].canTryUpdate(ts)) {
             return null;
         }
 
@@ -171,7 +172,8 @@ export default {
             layer,
             node.getExtentForLayer(layer),
             node.material.getLayerTexture(layer).texture,
-            node.layerUpdateState[layer.id].failureParams);
+            node.layerUpdateState[layer.id].failureParams,
+        );
 
         if (!nextDownloads) {
             node.layerUpdateState[layer.id].noMoreUpdatePossible();
@@ -214,7 +216,8 @@ export default {
                         }, node.layerUpdateState[layer.id].secondsUntilNextTry() * 1000);
                     }
                 }
-            }).then(elevation => {
+            },
+        ).then(elevation => {
             if (!elevation) {
                 return;
             }

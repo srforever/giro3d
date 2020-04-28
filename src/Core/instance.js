@@ -1,5 +1,7 @@
 /* global window */
-import { Scene, Group, EventDispatcher, Vector2, Object3D } from 'three';
+import {
+    Scene, Group, EventDispatcher, Vector2, Object3D,
+} from 'three';
 import Camera from '../Renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import c3DEngine from '../Renderer/c3DEngine.js';
@@ -83,7 +85,8 @@ class Instance extends EventDispatcher {
             this.referenceCrs,
             this.mainLoop.gfxEngine.getWindowSize().x,
             this.mainLoop.gfxEngine.getWindowSize().y,
-            options);
+            options,
+        );
 
         this._frameRequesters = { };
         this._layers = [];
@@ -108,12 +111,12 @@ class Instance extends EventDispatcher {
         this._allLayersAreReadyCallback = () => {
             // all layers must be ready
             const allReady = this.getLayers().every(layer => layer.ready);
-            if (allReady &&
-                this.mainLoop.scheduler.commandsWaitingExecutionCount() === 0 &&
-                this.mainLoop.renderingState === RENDERING_PAUSED) {
+            if (allReady
+                && this.mainLoop.scheduler.commandsWaitingExecutionCount() === 0
+                && this.mainLoop.renderingState === RENDERING_PAUSED) {
                 this.dispatchEvent({ type: VIEW_EVENTS.LAYERS_INITIALIZED });
                 this.removeFrameRequester(
-                    MAIN_LOOP_EVENTS.UPDATE_END, this._allLayersAreReadyCallback
+                    MAIN_LOOP_EVENTS.UPDATE_END, this._allLayersAreReadyCallback,
                 );
             }
         };
@@ -192,8 +195,7 @@ class Instance extends EventDispatcher {
             layer.disableSkirt = true;
             layer.preUpdate = TiledNodeProcessing.preUpdate;
             layer.update = TiledNodeProcessing.update;
-            layer.pickObjectsAt =
-                (_instance, mouse, radius) => Picking.pickTilesAt(_instance, mouse, radius, layer);
+            layer.pickObjectsAt = (_instance, mouse, radius) => Picking.pickTilesAt(_instance, mouse, radius, layer);
         }
 
         return new Promise((resolve, reject) => {
@@ -236,7 +238,8 @@ class Instance extends EventDispatcher {
                                 if (n.setBBoxZ) {
                                     n.setBBoxZ(
                                         parentLayer.minMaxFromElevationLayer.min,
-                                        parentLayer.minMaxFromElevationLayer.max);
+                                        parentLayer.minMaxFromElevationLayer.max,
+                                    );
                                 }
                             });
                         }
@@ -513,7 +516,8 @@ class Instance extends EventDispatcher {
         const br = this.mainLoop.gfxEngine.renderer.domElement.getBoundingClientRect();
         return _eventCoords.set(
             event.touches[touchIdx].clientX - br.x,
-            event.touches[touchIdx].clientY - br.y);
+            event.touches[touchIdx].clientY - br.y,
+        );
     }
 
     /**
@@ -547,6 +551,7 @@ class Instance extends EventDispatcher {
         _eventCoords.y = (ndcCoords.y - 1) * -0.5 * this.camera.height;
         return _eventCoords;
     }
+
     /**
      * Return objects from some layers/objects3d under the mouse in this view.
      *
@@ -575,12 +580,12 @@ class Instance extends EventDispatcher {
         radius = radius || 0;
 
         for (const source of sources) {
-            if (source instanceof GeometryLayer ||
-                source instanceof Layer ||
-                typeof (source) === 'string') {
-                const layer = (typeof (source) === 'string') ?
-                    layerIdToLayer(this, source) :
-                    source;
+            if (source instanceof GeometryLayer
+                || source instanceof Layer
+                || typeof (source) === 'string') {
+                const layer = (typeof (source) === 'string')
+                    ? layerIdToLayer(this, source)
+                    : source;
 
                 // does this layer have a custom picking function?
                 if (layer.pickObjectsAt) {
@@ -605,7 +610,8 @@ class Instance extends EventDispatcher {
                         this,
                         mouse,
                         radius,
-                        parentLayer.object3d);
+                        parentLayer.object3d,
+                    );
 
                     // then filter the results
                     for (const o of obj) {
@@ -620,7 +626,8 @@ class Instance extends EventDispatcher {
                     mouse,
                     radius,
                     source,
-                    results);
+                    results,
+                );
             } else {
                 throw new Error(`Invalid where arg (value = ${where}). Expected layers, layer ids or Object3Ds`);
             }
@@ -686,7 +693,7 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
         let providerPreprocessing = Promise.resolve();
         if (provider && provider.preprocessDataLayer) {
             providerPreprocessing = provider.preprocessDataLayer(
-                layer, view, view.mainLoop.scheduler, parentLayer
+                layer, view, view.mainLoop.scheduler, parentLayer,
             );
             if (!(providerPreprocessing && providerPreprocessing.then)) {
                 providerPreprocessing = Promise.resolve();

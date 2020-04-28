@@ -54,7 +54,7 @@ function drawNextLayer(storages) {
 function _instanciateQueue() {
     return {
         queue(command) {
-            const layer = command.layer;
+            const { layer } = command;
             let st = this.storages.get(layer.id);
             if (!st) {
                 st = {
@@ -177,7 +177,7 @@ Scheduler.prototype.execute = function execute(command) {
     }
 
     // parse host
-    const layer = command.layer;
+    const { layer } = command;
     const host = layer.url ? new URL(layer.url, document.location).host : undefined;
 
     command.promise = new Promise((resolve, reject) => {
@@ -212,7 +212,8 @@ function isInCache(command) {
     // Probably belongs to the provider (= it's part of a command API)
     if (command.url) {
         return !!Cache.get(command.url);
-    } else if (command.tile) {
+    }
+    if (command.tile) {
         return command.tile.getState() === TileState.LOADED;
     }
     return false;

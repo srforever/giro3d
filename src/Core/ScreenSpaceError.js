@@ -111,12 +111,14 @@ export default {
         }
 
         const size = computeSizeFromGeometricError(
-            box3, geometricError, mode === this.MODE_3D);
+            box3, geometricError, mode === this.MODE_3D,
+        );
         const offset = box3.min;
 
         const sse = computeSSE(
             offset, size, matrix,
-            camera, mode === this.MODE_3D);
+            camera, mode === this.MODE_3D,
+        );
 
         return sse;
     },

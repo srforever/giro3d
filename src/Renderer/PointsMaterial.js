@@ -1,4 +1,6 @@
-import { Matrix4, Color, Vector2, Vector3, Vector4, Uniform, NoBlending, NormalBlending, RawShaderMaterial } from 'three';
+import {
+    Matrix4, Color, Vector2, Vector3, Vector4, Uniform, NoBlending, NormalBlending, RawShaderMaterial,
+} from 'three';
 import PointsVS from './Shader/PointsVS.glsl';
 import PointsFS from './Shader/PointsFS.glsl';
 import Capabilities from '../Core/System/Capabilities.js';
@@ -141,6 +143,7 @@ class PointsMaterial extends RawShaderMaterial {
         }
         return { texture: this.uniforms.texture.value };
     }
+
     setLayerTextures(layer, textures) {
         if (Array.isArray(textures)) {
             textures = textures[0];

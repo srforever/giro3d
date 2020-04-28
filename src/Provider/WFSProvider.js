@@ -39,7 +39,7 @@ function tileInsideLimit(tile, layer) {
 }
 
 function executeCommand(command) {
-    const layer = command.layer;
+    const { layer } = command;
     const tile = command.requester;
     const destinationCrs = command.view.referenceCrs;
     return getFeatures(destinationCrs, tile, layer, command)

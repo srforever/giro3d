@@ -64,7 +64,8 @@ describe('ColorTextureProcessing.updateLayerElement', () => {
             layerGeom,
             geom,
             new LayeredMaterial(),
-            new Extent('EPSG:4326', 0, 0, 0, 0));
+            new Extent('EPSG:4326', 0, 0, 0, 0),
+        );
         tile.material.visible = false;
         tile.material.indexOfColorLayer = () => 0;
         ColorTextureProcessing.updateLayerElement(context, layer, tile);
@@ -76,7 +77,8 @@ describe('ColorTextureProcessing.updateLayerElement', () => {
             layerGeom,
             geom,
             new LayeredMaterial(),
-            new Extent('EPSG:4326', 0, 0, 0, 0));
+            new Extent('EPSG:4326', 0, 0, 0, 0),
+        );
         tile.material.visible = true;
         layer.canTextureBeImproved = () => false;
         ColorTextureProcessing.updateLayerElement(context, layer, tile);
@@ -90,7 +92,8 @@ describe('ColorTextureProcessing.updateLayerElement', () => {
             geom,
             new LayeredMaterial(),
             new Extent('EPSG:4326', 0, 0, 0, 0),
-            2);
+            2,
+        );
         tile.material.visible = true;
 
         tile.parent = {

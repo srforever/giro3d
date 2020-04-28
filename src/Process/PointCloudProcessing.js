@@ -29,7 +29,8 @@ function cube(size) {
         new THREE.Vector3(h.x, h.y, -h.z),
         new THREE.Vector3(h.x, h.y, h.z),
         new THREE.Vector3(h.x, -h.y, -h.z),
-        new THREE.Vector3(h.x, -h.y, h.z));
+        new THREE.Vector3(h.x, -h.y, h.z),
+    );
     return geometry;
 }
 
@@ -41,7 +42,7 @@ function initBoundingBox(elt, layer) {
     const size = elt.tightbbox.getSize(tmp.v);
     const lineMaterial = elt.childrenBitField
         ? new THREE.LineDashedMaterial({ color: 0, dashSize: 0.25, gapSize: 0.25 })
-        : new THREE.LineBasicMaterial({ color: 0 })
+        : new THREE.LineBasicMaterial({ color: 0 });
     elt.obj.boxHelper = new THREE.LineSegments(cube(size), lineMaterial);
     elt.obj.boxHelper.computeLineDistances();
 
@@ -108,9 +109,8 @@ export default {
 
         // See https://cesiumjs.org/hosted-apps/massiveworlds/downloads/Ring/WorldScaleTerrainRendering.pptx
         // slide 17
-        context.camera.preSSE =
-            context.camera.height /
-                (2 * Math.tan(THREE.Math.degToRad(context.camera.camera3D.fov) * 0.5));
+        context.camera.preSSE = context.camera.height
+                / (2 * Math.tan(THREE.Math.degToRad(context.camera.camera3D.fov) * 0.5));
 
         if (layer.material) {
             layer.material.visible = layer.visible;
@@ -260,7 +260,7 @@ export default {
         layer.displayedCount = 0;
         for (const pts of layer.group.children) {
             if (pts.material.visible) {
-                const count = pts.geometry.attributes.position.count;
+                const { count } = pts.geometry.attributes.position;
                 pts.geometry.setDrawRange(0, count);
                 layer.displayedCount += count;
             }
@@ -294,7 +294,7 @@ export default {
                 let limitHit = false;
                 layer.displayedCount = 0;
                 for (const pts of layer.group.children) {
-                    const count = pts.geometry.attributes.position.count;
+                    const { count } = pts.geometry.attributes.position;
                     if (limitHit || (layer.displayedCount + count) > layer.pointBudget) {
                         pts.material.visible = false;
                         limitHit = true;

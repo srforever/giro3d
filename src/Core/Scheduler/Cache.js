@@ -160,7 +160,9 @@ const Cache = {
         });
         stats.clear();
 
-        return { before, after: data.size, hit, miss };
+        return {
+            before, after: data.size, hit, miss,
+        };
     },
 };
 

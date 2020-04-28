@@ -45,14 +45,15 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
         /* specific params */
         metadata,
         redraw,
-        earlyDropFunction: cmd =>
-            cmd.requester && (
+        earlyDropFunction: cmd => cmd.requester
+            && (
                 // requester cleaned
-                !cmd.requester.parent ||
+                !cmd.requester.parent
                 // requester not visible anymore
-                !cmd.requester.visible ||
+                || !cmd.requester.visible
                 // requester visible but doesn't need subdivision anymore
-                cmd.requester.sse < cmd.layer.sseThreshold),
+                || cmd.requester.sse < cmd.layer.sseThreshold
+            ),
     };
 
     if (metadata.content) {
@@ -66,7 +67,8 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
         node => {
             metadata.obj = node;
             return node;
-        });
+        },
+    );
 }
 
 function getChildTiles(tile) {
@@ -92,7 +94,8 @@ function boundingVolumeToExtent(crs, volume, transform) {
             THREE.Math.radToDeg(volume.region[2]),
             THREE.Math.radToDeg(volume.region[1]),
             THREE.Math.radToDeg(volume.region[3]));
-    } else if (volume.box) {
+    }
+    if (volume.box) {
         const box = tmp.b.copy(volume.box).applyMatrix4(transform);
         return Extent.fromBox3(crs, box);
     }
@@ -224,7 +227,7 @@ export function $3dTilesCulling(camera, node, tileMatrixWorld) {
 
     // For bounding volume
     if (node.boundingVolume) {
-        const boundingVolume = node.boundingVolume;
+        const { boundingVolume } = node;
         if (boundingVolume.region) {
             return !camera.isBox3Visible(boundingVolume.region.box3D,
                 tileMatrixWorld.clone().multiply(boundingVolume.region.matrix));
@@ -333,7 +336,8 @@ export function computeNodeSSE(context, node) {
             node.boundingVolume.box,
             node.matrixWorld,
             node.geometricError,
-            ScreenSpaceError.MODE_3D);
+            ScreenSpaceError.MODE_3D,
+        );
 
         if (!sse) {
             return Infinity;
@@ -359,7 +363,8 @@ export function init3dTilesLayer(view, scheduler, layer) {
             layer.root = tile;
             layer.extent = boundingVolumeToExtent(layer.projection || view.referenceCrs,
                 tile.boundingVolume, tile.matrixWorld);
-        });
+        },
+    );
 }
 
 function setDisplayed(node, display) {
@@ -386,9 +391,9 @@ function unmarkForDeletion(layer, elt) {
 }
 
 function isTilesetContentReady(tileset, node) {
-    return tileset && node && // is tileset loaded ?
-        node.children.length === 1 && // is tileset root loaded ?
-        node.children[0].children.length > 0;
+    return tileset && node // is tileset loaded ?
+        && node.children.length === 1 // is tileset root loaded ?
+        && node.children[0].children.length > 0;
 }
 
 function calculateCameraDistance(camera, node) {
@@ -414,7 +419,7 @@ function calculateCameraDistance(camera, node) {
 }
 
 export function process3dTilesNode(
-    cullingTest = $3dTilesCulling, subdivisionTest = $3dTilesSubdivisionControl
+    cullingTest = $3dTilesCulling, subdivisionTest = $3dTilesSubdivisionControl,
 ) {
     return function _process3dTilesNodes(context, layer, node) {
         // Remove deleted children (?)
@@ -452,7 +457,8 @@ export function process3dTilesNode(
                     // child content is ready, to avoid hiding our content too early (= when our
                     // child is loaded but its content is not)
                     const subtilesets = layer.tileIndex.index[node.tileId].children.filter(
-                        tile => tile.isTileset);
+                        tile => tile.isTileset,
+                    );
 
                     if (subtilesets.length) {
                         let allReady = true;

@@ -17,7 +17,8 @@ export const UNIT = {
 function _unitFromProj4Unit(projunit) {
     if (projunit === 'degrees') {
         return UNIT.DEGREE;
-    } else if (projunit === 'm') {
+    }
+    if (projunit === 'm') {
         return UNIT.METER;
     }
     return undefined;
@@ -25,8 +26,8 @@ function _unitFromProj4Unit(projunit) {
 
 export function crsToUnit(crs) {
     switch (crs) {
-        case 'EPSG:4326' : return UNIT.DEGREE;
-        case 'EPSG:4978' : return UNIT.METER;
+        case 'EPSG:4326': return UNIT.DEGREE;
+        case 'EPSG:4978': return UNIT.METER;
         default: {
             const p = proj4.defs(crs);
             if (!p) {

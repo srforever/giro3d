@@ -13,7 +13,8 @@ function readCRS(json) {
     if (json.crs) {
         if (json.crs.type.toLowerCase() === 'epsg') {
             return `EPSG:${json.crs.properties.code}`;
-        } else if (json.crs.type.toLowerCase() === 'name') {
+        }
+        if (json.crs.type.toLowerCase() === 'name') {
             const epsgIdx = json.crs.properties.name.toLowerCase().indexOf('epsg:');
             if (epsgIdx >= 0) {
                 // authority:version:code => EPSG:[...]:code
@@ -310,8 +311,8 @@ export default {
      * module:GeoJsonParser~FeatureCollection}.
      */
     parse(json, options = {}) {
-        const crsOut = options.crsOut;
-        const filteringExtent = options.filteringExtent;
+        const { crsOut } = options;
+        const { filteringExtent } = options;
         if (typeof (json) === 'string') {
             json = JSON.parse(json);
         }

@@ -139,7 +139,8 @@ function featureToPoint(feature, properties, options) {
     const geom = prepareBufferGeometry(
         feature.vertices,
         color,
-        altitude);
+        altitude,
+    );
 
     return new THREE.Points(geom);
 }
@@ -152,7 +153,8 @@ function featureToLine(feature, properties, options) {
     const geom = prepareBufferGeometry(
         feature.vertices,
         color,
-        altitude);
+        altitude,
+    );
 
     if (feature.geometry.length > 1) {
         const indices = [];
@@ -179,7 +181,8 @@ function featureToPolygon(feature, properties, options) {
     const geom = prepareBufferGeometry(
         feature.vertices,
         color,
-        altitude);
+        altitude,
+    );
 
     let indices = [];
     for (const geometry of feature.geometry) {
@@ -213,12 +216,14 @@ function featureToExtrudedPolygon(feature, properties, options) {
         feature.vertices,
         colors,
         altitude,
-        extrude);
+        extrude,
+    );
 
     const isClockWise = THREE.ShapeUtils.isClockWise(
         feature.vertices.slice(feature.geometry[0].indices[0].offset,
-            feature.geometry[0].indices[0].offset +
-            feature.geometry[0].indices[0].count).map(c => c.xyz()));
+            feature.geometry[0].indices[0].offset
+            + feature.geometry[0].indices[0].count).map(c => c.xyz()),
+    );
 
     let indices = [];
     for (const geometry of feature.geometry) {
@@ -239,7 +244,8 @@ function featureToExtrudedPolygon(feature, properties, options) {
                 feature.vertices.length,
                 indice.offset,
                 indice.count,
-                isClockWise);
+                isClockWise,
+            );
         }
     }
 
@@ -281,12 +287,14 @@ function featureToMesh(feature, options) {
                 mesh = featureToExtrudedPolygon(
                     feature,
                     feature.properties,
-                    options);
+                    options,
+                );
             } else {
                 mesh = featureToPolygon(
                     feature,
                     feature.properties,
-                    options);
+                    options,
+                );
             }
             break;
         }

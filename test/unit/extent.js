@@ -47,7 +47,8 @@ describe('Extent constructors', () => {
     it('should build the expected extent from box3', () => {
         const box = new Box3(
             new Vector3(Math.random(), Math.random()),
-            new Vector3(Math.random(), Math.random()));
+            new Vector3(Math.random(), Math.random()),
+        );
         const fromBox = Extent.fromBox3('EPSG:4978', box);
 
         assert.equal(fromBox.west(), box.min.x);

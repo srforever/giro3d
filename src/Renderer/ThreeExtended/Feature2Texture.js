@@ -75,7 +75,7 @@ function drawPoint(ctx, vertice, origin, scale, style = {}) {
 }
 
 function drawFeature(ctx, feature, origin, scale, extent, style = {}) {
-    const properties = feature.properties;
+    const { properties } = feature;
 
     if (typeof (style) === 'function') {
         style = style(properties, feature);
@@ -181,4 +181,3 @@ export default {
         return results;
     },
 };
-

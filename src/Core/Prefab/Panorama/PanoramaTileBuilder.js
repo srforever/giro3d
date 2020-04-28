@@ -77,21 +77,22 @@ PanoramaTileBuilder.prototype.uProjecte = function uProjecte(u, params) {
     params.projected.theta = THREE.Math.degToRad(90 - THREE.Math.lerp(
         params.extent.east(),
         params.extent.west(),
-        1 - u));
+        1 - u,
+    ));
 };
 
 // coord v tile to projected
 PanoramaTileBuilder.prototype.vProjecte = function vProjecte(v, params) {
     if (this.projectionType === ProjectionType.SPHERICAL) {
-        params.projected.phi = THREE.Math.degToRad(90 -
-            THREE.Math.lerp(
+        params.projected.phi = THREE.Math.degToRad(90
+            - THREE.Math.lerp(
                 params.extent.north(),
                 params.extent.south(),
-                1 - v));
+                1 - v,
+            ));
     } else {
-        params.projected.y =
-            this.height *
-            THREE.Math.lerp(params.extent.south(), params.extent.north(), v) / 180;
+        params.projected.y = this.height
+            * THREE.Math.lerp(params.extent.south(), params.extent.north(), v) / 180;
     }
 };
 
@@ -111,16 +112,14 @@ PanoramaTileBuilder.prototype.computeSharableExtent = function fnComputeSharable
     // with a transformation (translation, rotation)
     const sizeLongitude = Math.abs(extent.west() - extent.east()) / 2;
     const sharableExtent = new Extent(
-        extent.crs(), -sizeLongitude, sizeLongitude, extent.south(), extent.north()
+        extent.crs(), -sizeLongitude, sizeLongitude, extent.south(), extent.north(),
     );
 
     // compute rotation to transform tile to position it
     // this transformation take into account the transformation of the parents
     const rotLon = extent.west() - sharableExtent.west();
-    const rotLat = 90 -
-        (this.projectionType === ProjectionType.CYLINDRICAL ?
-            0 :
-            (extent.north() + extent.south()) * 0.5);
+    const rotLat = this.projectionType === ProjectionType.CYLINDRICAL
+        ? 90 : 90 - ((extent.north() + extent.south()) * 0.5);
     quatToAlignLongitude.setFromAxisAngle(axisZ, -THREE.Math.degToRad(rotLon));
     quatToAlignLatitude.setFromAxisAngle(axisY, -THREE.Math.degToRad(rotLat));
     // quatToAlignLongitude.multiply(quatToAlignLatitude);

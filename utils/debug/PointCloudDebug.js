@@ -3,7 +3,8 @@ import { MODE } from '../../src/Renderer/PointsMaterial.js';
 function isInHierarchy(elt, hierarchyNode) {
     if (elt.name.length > hierarchyNode.length) {
         return elt.name.startsWith(hierarchyNode);
-    } else if (elt.name.length < hierarchyNode.length) {
+    }
+    if (elt.name.length < hierarchyNode.length) {
         return hierarchyNode.startsWith(elt.name);
     }
     return hierarchyNode === elt.name;

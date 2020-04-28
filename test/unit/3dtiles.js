@@ -61,7 +61,8 @@ describe('Distance computation using boundingVolume.box', () => {
 
     it('should affected by transform', () => {
         const m = new Matrix4().makeTranslation(0, 0, 10).multiply(
-            new Matrix4().makeScale(0.01, 0.01, 0.01));
+            new Matrix4().makeScale(0.01, 0.01, 0.01),
+        );
         const tileset = tilesetWithBox(m);
 
         const tileIndex = new $3dTilesIndex(tileset, '');
@@ -100,7 +101,8 @@ describe('Distance computation using boundingVolume.sphere', () => {
 
     it('should affected by transform', () => {
         const m = new Matrix4().makeTranslation(0, 0, 10).multiply(
-            new Matrix4().makeScale(0.01, 0.01, 0.01));
+            new Matrix4().makeScale(0.01, 0.01, 0.01),
+        );
         const tileset = tilesetWithSphere(m);
 
         const tileIndex = new $3dTilesIndex(tileset, '');

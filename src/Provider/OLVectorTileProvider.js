@@ -4,14 +4,16 @@ import TileState from 'ol/TileState.js';
 import { listenOnce } from 'ol/events.js';
 import {
     createEmpty as createEmptyExtent,
-    getIntersection, equals, buffer, intersects
+    getIntersection, equals, buffer, intersects,
 } from 'ol/extent.js';
 import CanvasReplayGroup from 'ol/render/canvas/ReplayGroup.js';
 import {
     getSquaredTolerance as getSquaredRenderTolerance,
     renderFeature as renderVectorFeature,
 } from 'ol/renderer/vector.js';
-import { Fill, Icon, Stroke, Style, Text } from 'ol/style.js';
+import {
+    Fill, Icon, Stroke, Style, Text,
+} from 'ol/style.js';
 import ReplayType from 'ol/render/ReplayType.js';
 import {
     create as createTransform,
@@ -39,7 +41,7 @@ function Foo() {
 }
 
 function preprocessDataLayer(layer) {
-    const source = layer.source;
+    const { source } = layer;
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
     const sizePixel = source.getTilePixelSize(0/* z */, 1/* pixelRatio */, source.getProjection());
@@ -78,7 +80,7 @@ function canTextureBeImproved(layer, extent, texture, previousError) {
 }
 
 function selectTile(layer, extent) {
-    const source = layer.source;
+    const { source } = layer;
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
     const tileCoord = tileCoordForExtent(tileGrid, extent);
@@ -94,13 +96,16 @@ function selectTile(layer, extent) {
     layer.usedTiles[zKey].storage[tile.tileCoord] = tile;
 
     const tileExtent = fromOLExtent(
-        tileGrid.getTileCoordExtent(tileCoord), projection.getCode());
+        tileGrid.getTileCoordExtent(tileCoord), projection.getCode(),
+    );
     // OL assumes square tiles and compute maxY from minY, so recompute maxY with the correct ratio
     const dim = layer.extent.dimensions();
     const ratio = dim.y / dim.x;
     tileExtent._values[3] = tileExtent._values[2] + tileExtent.dimensions().x * ratio;
     const pitch = extent.offsetToParent(tileExtent);
-    return { extent, pitch, tile, tileExtent };
+    return {
+        extent, pitch, tile, tileExtent,
+    };
 }
 
 function tileCoordForExtent(tileGrid, extent) {
@@ -181,7 +186,7 @@ function createTexture(node, tile, layer) {
 
 function createReplayGroup(tile, layer) {
     const replayState = tile.getReplayState(layer);
-    const source = layer.source;
+    const { source } = layer;
     const sourceTileGrid = source.getTileGrid();
     const sourceProjection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(sourceProjection);
@@ -201,8 +206,8 @@ function createReplayGroup(tile, layer) {
         const sourceTileExtent = sourceTileGrid.getTileCoordExtent(sourceTileCoord);
         const sharedExtent = getIntersection(tileExtent, sourceTileExtent);
         const renderBuffer = 100;
-        const bufferedExtent = equals(sourceTileExtent, sharedExtent) ? null :
-            buffer(sharedExtent, renderBuffer * resolution, tmpExtent);
+        const bufferedExtent = equals(sourceTileExtent, sharedExtent) ? null
+            : buffer(sharedExtent, renderBuffer * resolution, tmpExtent);
         const tileProjection = sourceTile.getProjection();
         let reproject = false;
         if (!equivalentProjection(sourceProjection, tileProjection)) {
@@ -268,12 +273,14 @@ function renderFeature(feature, squaredTolerance, styles, replayGroup) {
         for (let i = 0, ii = styles.length; i < ii; ++i) {
             loading = renderVectorFeature(
                 replayGroup, feature, styles[i], squaredTolerance,
-                handleStyleImageChange_, null) || loading;
+                handleStyleImageChange_, null,
+            ) || loading;
         }
     } else {
         loading = renderVectorFeature(
             replayGroup, feature, styles, squaredTolerance,
-            handleStyleImageChange_, null);
+            handleStyleImageChange_, null,
+        );
     }
     return loading;
 }
@@ -289,7 +296,7 @@ function renderTileImage(_canvas, tile, atlasInfo, layer) {
     replayState.renderedTileRevision = revision;
     const tileCoord = tile.wrappedTileCoord;
     const z = tileCoord[0];
-    const source = layer.source;
+    const { source } = layer;
     const tileGrid = source.getTileGridForProjection(source.getProjection());
     const resolution = tileGrid.getResolution(z);
     const ctx = _canvas.getContext('2d');
@@ -308,7 +315,8 @@ function renderTileImage(_canvas, tile, atlasInfo, layer) {
         ctx.fillStyle = layer.backgroundColor;
         ctx.fillRect(
             0, 0,
-            layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
+            layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset,
+        );
     }
     const tileExtent = tileGrid.getTileCoordExtent(tileCoord);
     let empty = true;

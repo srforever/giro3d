@@ -30,7 +30,8 @@ function subdivideNode(context, layer, node) {
 
         for (const extent of extents) {
             const child = requestNewTile(
-                context.view, context.scheduler, layer, extent, node);
+                context.view, context.scheduler, layer, extent, node,
+            );
             node.add(child);
 
             // inherit our parent's textures
@@ -147,7 +148,8 @@ function update(context, layer, node) {
             if (node.material.visible) {
                 updateMinMaxDistance(context, layer, node);
                 return null;
-            } else if (node.visible) {
+            }
+            if (node.visible) {
                 return node.children.filter(n => n.layer === layer);
             }
             return null;
@@ -171,12 +173,13 @@ function update(context, layer, node) {
                 obb.box3D,
                 obb.matrixWorld,
                 Math.max(s.x, s.y),
-                ScreenSpaceError.MODE_2D);
+                ScreenSpaceError.MODE_2D,
+            );
 
             node.sse = sse; // DEBUG
 
-            if (testTileSSE(node, sse, layer.maxSubdivisionLevel || -1) &&
-                    SubdivisionControl.hasEnoughTexturesToSubdivide(context, layer, node)) {
+            if (testTileSSE(node, sse, layer.maxSubdivisionLevel || -1)
+                    && SubdivisionControl.hasEnoughTexturesToSubdivide(context, layer, node)) {
                 subdivideNode(context, layer, node);
                 // display iff children aren't ready
                 node.setDisplayed(false);

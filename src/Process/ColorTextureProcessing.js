@@ -26,7 +26,7 @@ function initColorTexturesFromParent(context, node, parent, layer) {
         return false;
     }
 
-    const texture = parentTexture.texture;
+    const { texture } = parentTexture;
 
     if (!texture || !texture.extent) {
         return false;
@@ -72,7 +72,7 @@ export default {
         });
     },
     updateLayerElement(context, layer, node, parent, initOnly = false) {
-        const material = node.material;
+        const { material } = node;
 
         if (!node.parent || !material) {
             return null;
@@ -86,10 +86,10 @@ export default {
                 // we also need to check that tile's parent doesn't have a texture for this layer,
                 // because even if this tile is outside of the layer, it could inherit it's
                 // parent texture
-                if (!layer.noTextureParentOutsideLimit &&
-                    parent &&
-                    parent.material &&
-                    parent.material.getLayerTexture(layer)) {
+                if (!layer.noTextureParentOutsideLimit
+                    && parent
+                    && parent.material
+                    && parent.material.getLayerTexture(layer)) {
                     // ok, we're going to inherit our parent's texture
                 } else {
                     node.layerUpdateState[layer.id].noMoreUpdatePossible();
@@ -129,7 +129,8 @@ export default {
             layer,
             node.getExtentForLayer(layer),
             existing ? existing.texture : null,
-            node.layerUpdateState[layer.id].failureParams);
+            node.layerUpdateState[layer.id].failureParams,
+        );
 
         // if the provider returns undef, then we konw it will never have any texture
         if (nextDownloads === undefined) {
@@ -176,7 +177,7 @@ export default {
                         }, node.layerUpdateState[layer.id].secondsUntilNextTry() * 1000);
                     }
                 }
-            });
+            },
+        );
     },
 };
-

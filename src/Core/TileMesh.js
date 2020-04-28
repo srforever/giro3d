@@ -178,11 +178,13 @@ TileMesh.prototype.findCommonAncestor = function findCommonAncestor(tile) {
     if (tile.level === this.level) {
         if (tile.id === this.id) {
             return tile;
-        } else if (tile.level !== 0) {
+        }
+        if (tile.level !== 0) {
             return this.parent.findCommonAncestor(tile.parent);
         }
         return undefined;
-    } else if (tile.level < this.level) {
+    }
+    if (tile.level < this.level) {
         return this.parent.findCommonAncestor(tile);
     }
     return this.findCommonAncestor(tile.parent);

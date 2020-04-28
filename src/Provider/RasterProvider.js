@@ -74,7 +74,7 @@ function pickObjectsAt(view, mouse, radius) {
         if (result.object.level < highestLevel) {
             break; // we have examined all the precise tiles
         }
-        const point = result.point;
+        const { point } = result;
         const pickedFeatures = Feature2Texture.featuresAtPoint(
             this.feature, result.object.extent, 256, this.style, point, radius,
         );
@@ -119,10 +119,9 @@ export default {
             Cache.deletePrefix(layer.id);
         };
 
-        const geojsonPromise = layer.geojson ?
-            Promise.resolve(layer.geojson)
-            :
-            Fetcher.text(layer.url, layer.networkOptions).then(text => {
+        const geojsonPromise = layer.geojson
+            ? Promise.resolve(layer.geojson)
+            : Fetcher.text(layer.url, layer.networkOptions).then(text => {
                 let geojson;
                 const trimmedText = text.trim();
                 // We test the start of the string to choose a parser
@@ -190,7 +189,7 @@ export default {
         return layer.extent.intersectsExtent(extent);
     },
     executeCommand(command) {
-        const layer = command.layer;
+        const { layer } = command;
         const tile = command.requester;
 
         return createTextureFromVector(tile, layer);

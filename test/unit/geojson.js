@@ -14,23 +14,20 @@ function parse(geojson) {
 }
 
 describe('GeoJsonParser', () => {
-    it('should set all z coordinates to 1', () =>
-        parse(holes).then(collection => {
-            assert.ok(collection.features[0].vertices.every(v => v.z() === 1));
-        }));
+    it('should set all z coordinates to 1', () => parse(holes).then(collection => {
+        assert.ok(collection.features[0].vertices.every(v => v.z() === 1));
+    }));
 
-    it('should respect all z coordinates', () =>
-        parse(gpx).then(collection => {
-            assert.ok(collection.features[0].vertices.every(v => v.z() !== 1));
-        }));
+    it('should respect all z coordinates', () => parse(gpx).then(collection => {
+        assert.ok(collection.features[0].vertices.every(v => v.z() !== 1));
+    }));
 
-    it('should return an empty collection', () =>
-        GeoJsonParser.parse(holes, {
-            crsIn: 'EPSG:3946',
-            crsOut: 'EPSG:3946',
-            buildExtent: true,
-            filteringExtent: new Extent('EPSG:3946', 10, 20, 10, 20),
-        }).then(collection => {
-            assert.ok(collection.features.length === 0);
-        }));
+    it('should return an empty collection', () => GeoJsonParser.parse(holes, {
+        crsIn: 'EPSG:3946',
+        crsOut: 'EPSG:3946',
+        buildExtent: true,
+        filteringExtent: new Extent('EPSG:3946', 10, 20, 10, 20),
+    }).then(collection => {
+        assert.ok(collection.features.length === 0);
+    }));
 });

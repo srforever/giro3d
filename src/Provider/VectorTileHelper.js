@@ -5,14 +5,13 @@ import VectorTileParser from '../Parser/VectorTileParser.js';
 import Feature2Texture from '../Renderer/ThreeExtended/Feature2Texture.js';
 
 const getVectorTileByUrl = function getVectorTileByUrl(url, tile, layer, coords) {
-    return Fetcher.arrayBuffer(url, layer.networkOptions).then(buffer =>
-        VectorTileParser.parse(buffer, {
-            extent: tile.extent,
-            filteringExtent: layer.extent,
-            filter: layer.filter,
-            origin: layer.origin,
-            coords,
-        }));
+    return Fetcher.arrayBuffer(url, layer.networkOptions).then(buffer => VectorTileParser.parse(buffer, {
+        extent: tile.extent,
+        filteringExtent: layer.extent,
+        filter: layer.filter,
+        origin: layer.origin,
+        coords,
+    }));
 };
 
 /**
@@ -60,9 +59,9 @@ export default {
 
         return Cache.get(url) || Cache.set(url, getVectorTileByUrl(url, tile, layer, coords)
             .then(features => {
-                const backgroundColor = (layer.backgroundLayer && layer.backgroundLayer.paint) ?
-                    new THREE.Color(layer.backgroundLayer.paint['background-color']) :
-                    undefined;
+                const backgroundColor = (layer.backgroundLayer && layer.backgroundLayer.paint)
+                    ? new THREE.Color(layer.backgroundLayer.paint['background-color'])
+                    : undefined;
 
                 let extentTexture;
                 switch (coords.crs()) {
@@ -81,7 +80,8 @@ export default {
                     extentTexture,
                     256,
                     layer.style,
-                    backgroundColor);
+                    backgroundColor,
+                );
 
                 texture.extent = tile.extent;
                 texture.coords = coords;

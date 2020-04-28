@@ -5,7 +5,9 @@ import { Math as _Math } from 'three';
 
 // 2D Bin Packing algorithm (fit N random dimension blocks in a w * h rectangle) implementation
 function fit(blocks, w, h, previousRoot) {
-    const root = previousRoot || { x: 0, y: 0, w, h };
+    const root = previousRoot || {
+        x: 0, y: 0, w, h,
+    };
     let maxX = 0;
     let maxY = 0;
     for (const block of blocks) {
@@ -28,7 +30,8 @@ function fit(blocks, w, h, previousRoot) {
 function _findNode(root, w, h) {
     if (root.used) {
         return _findNode(root.right, w, h) || _findNode(root.down, w, h);
-    } else if ((w <= root.w) && (h <= root.h)) {
+    }
+    if ((w <= root.w) && (h <= root.h)) {
         return root;
     }
     return null;
@@ -36,8 +39,12 @@ function _findNode(root, w, h) {
 
 function _splitNode(node, w, h) {
     node.used = true;
-    node.down = { x: node.x, y: node.y + h, w: node.w, h: node.h - h };
-    node.right = { x: node.x + w, y: node.y, w: node.w - w, h };
+    node.down = {
+        x: node.x, y: node.y + h, w: node.w, h: node.h - h,
+    };
+    node.right = {
+        x: node.x + w, y: node.y, w: node.w - w, h,
+    };
     return node;
 }
 

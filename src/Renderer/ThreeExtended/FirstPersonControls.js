@@ -17,7 +17,8 @@ function limitRotation(camera3D, rot /* , verticalFOV */) {
 
 function applyRotation(view, camera3D, state) {
     camera3D.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0), camera3D.up);
+        new THREE.Vector3(0, 1, 0), camera3D.up,
+    );
 
     camera3D.rotateY(state.rotateY);
     camera3D.rotateX(state.rotateX);
@@ -85,7 +86,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
         };
         this.reset();
 
-        const domElement = view.mainLoop.gfxEngine.renderer.domElement;
+        const { domElement } = view.mainLoop.gfxEngine.renderer;
         if (!options.disableEventListeners) {
             domElement.addEventListener('mousedown', this.onMouseDown.bind(this), false);
             domElement.addEventListener('touchstart', this.onMouseDown.bind(this), false);
@@ -126,7 +127,8 @@ class FirstPersonControls extends THREE.EventDispatcher {
         // => r = inverse(q) * cam.quaterion
         // q is the quaternion derived from the up vector
         const q = new THREE.Quaternion().setFromUnitVectors(
-            new THREE.Vector3(0, 1, 0), this.camera.up);
+            new THREE.Vector3(0, 1, 0), this.camera.up,
+        );
         q.inverse();
         // compute r
         const r = this.camera.quaternion.clone().premultiply(q);
@@ -237,17 +239,17 @@ class FirstPersonControls extends THREE.EventDispatcher {
             delta = event.detail;
         }
 
-        this.camera.fov =
-            THREE.Math.clamp(this.camera.fov + Math.sign(delta),
-                10,
-                Math.min(100, this.options.verticalFOV));
+        this.camera.fov = THREE.Math.clamp(this.camera.fov + Math.sign(delta),
+            10,
+            Math.min(100, this.options.verticalFOV));
 
         this.camera.updateProjectionMatrix();
 
         this._state.rotateX = limitRotation(
             this.camera,
             this._state.rotateX,
-            this.options.verticalFOV);
+            this.options.verticalFOV,
+        );
 
         applyRotation(this.view, this.camera, this._state);
     }

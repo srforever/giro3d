@@ -60,8 +60,8 @@ function preprocessDataLayer(layer) {
     }&STYLES=${layer.style
     }&FORMAT=${layer.format
     }&TRANSPARENT=${layer.transparent
-    }&BBOX=%bbox` +
-                  `&${crsPropName}=${layer.projection
+    }&BBOX=%bbox`
+                  + `&${crsPropName}=${layer.projection
                   }&WIDTH=${layer.width
                   }&HEIGHT=${layer.width}`;
 }
@@ -87,7 +87,8 @@ function selectAllExtentsToDownload(layer, ex, texture, previousError) {
         layer,
         ex,
         (texture && texture.extent) ? texture.extent : null,
-        previousError);
+        previousError,
+    );
     // if the choice is the same as the current one => stop updating
     if (texture && texture.extent && texture.extent.isInside(extent)) {
         return null;

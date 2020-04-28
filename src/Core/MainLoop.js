@@ -1,4 +1,6 @@
-import { Vector3, Plane, EventDispatcher, Math as ThreeMath, Sphere } from 'three';
+import {
+    Vector3, Plane, EventDispatcher, Math as ThreeMath, Sphere,
+} from 'three';
 import { GeometryLayer, Layer } from './Layer/Layer.js';
 import Cache from './Scheduler/Cache.js';
 
@@ -100,7 +102,7 @@ function updateElements(context, geometryLayer, elements) {
                     for (const attachedLayer of geometryLayer._attachedLayers) {
                         if (attachedLayer.ready) {
                             attachedLayer.update(
-                                context, attachedLayer, sub.elements[i], sub.parent
+                                context, attachedLayer, sub.elements[i], sub.parent,
                             );
                         }
                     }
@@ -138,7 +140,8 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
             plane: new Plane()
                 .setFromNormalAndCoplanarPoint(
                     instance.camera.camera3D.getWorldDirection(new Vector3()),
-                    instance.camera.camera3D.position /* TODO matrixWorld */),
+                    instance.camera.camera3D.position, /* TODO matrixWorld */
+                ),
             min: Infinity,
             max: 0,
         },
@@ -174,7 +177,7 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
         context.geometryLayer = geometryLayer;
         if (geometryLayer.ready && geometryLayer.visible) {
             instance.execFrameRequesters(
-                MAIN_LOOP_EVENTS.BEFORE_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer
+                MAIN_LOOP_EVENTS.BEFORE_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer,
             );
 
             // Filter updateSources that are relevant for the geometryLayer
@@ -199,12 +202,12 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
                     context.distance.max = this.maxFar;
                 } else {
                     context.distance.max = Math.max(
-                        context.distance.max, geometryLayer._distance.max
+                        context.distance.max, geometryLayer._distance.max,
                     );
                 }
             }
             instance.execFrameRequesters(
-                MAIN_LOOP_EVENTS.AFTER_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer
+                MAIN_LOOP_EVENTS.AFTER_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer,
             );
         }
     }
@@ -264,11 +267,11 @@ MainLoop.prototype._step = function _step(instance, timestamp) {
     const dim = this.gfxEngine.getWindowSize();
 
     instance.execFrameRequesters(
-        MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, dt, this._updateLoopRestarted
+        MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, dt, this._updateLoopRestarted,
     );
     instance.camera.update(dim.x, dim.y);
     instance.execFrameRequesters(
-        MAIN_LOOP_EVENTS.AFTER_CAMERA_UPDATE, dt, this._updateLoopRestarted
+        MAIN_LOOP_EVENTS.AFTER_CAMERA_UPDATE, dt, this._updateLoopRestarted,
     );
 
     // Disable camera's matrix auto update to make sure the camera's

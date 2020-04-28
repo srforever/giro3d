@@ -35,14 +35,14 @@ function preprocessDataLayer(layer, view, scheduler) {
 }
 
 function executeCommand(command) {
-    const extent = command.extent;
-    if (command.requester &&
-        !command.requester.material) {
+    const { extent } = command;
+    if (command.requester
+        && !command.requester.material) {
         // request has been deleted
         return null;
     }
-    const layer = command.layer;
-    const builder = layer.builder;
+    const { layer } = command;
+    const { builder } = layer;
     const parent = command.requester;
     const level = (command.level === undefined) ? (parent.level + 1) : command.level;
 

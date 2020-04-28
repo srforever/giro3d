@@ -108,12 +108,14 @@ function isFeatureSingleGeometryUnderCoordinate(coordinate, type, coordinates, e
     // TODO support multipolygon case
     if (type === 'linestring' && pointIsOverLine(coordinate, coordinates, epsilon)) {
         return true;
-    } else if (type === 'polygon' && pointIsInsidePolygon(coordinate, coordinates)) {
+    }
+    if (type === 'polygon' && pointIsInsidePolygon(coordinate, coordinates)) {
         return true;
-    } else if (type === 'point') {
+    }
+    if (type === 'point') {
         const closestPoint = getClosestPoint(coordinate, coordinates, epsilon);
         if (!closestPoint) {
-            return false
+            return false;
         }
         return { coordinates: closestPoint };
     }
@@ -122,10 +124,10 @@ function isFeatureSingleGeometryUnderCoordinate(coordinate, type, coordinates, e
 
 function isFeatureUnderCoordinate(coordinate, feature, epsilon, result) {
     for (const geometry of feature.geometry) {
-        const coordinates = feature.type === 'polygon' ?
-            feature.vertices.slice(geometry.indices[0].offset,
-                geometry.indices[0].offset + geometry.indices[0].count) :
-            feature.vertices;
+        const coordinates = feature.type === 'polygon'
+            ? feature.vertices.slice(geometry.indices[0].offset,
+                geometry.indices[0].offset + geometry.indices[0].count)
+            : feature.vertices;
 
         const under = isFeatureSingleGeometryUnderCoordinate(
             coordinate, feature.type, coordinates, epsilon,

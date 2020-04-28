@@ -48,10 +48,10 @@ Rectangle.prototype.containsPoint = function containsPoint(v) {
     const west = this._west;
     const east = this._east;
 
-    return (longitude > west) &&
-       (longitude < east) &&
-       latitude >= this._south &&
-       latitude <= this._north;
+    return (longitude > west)
+       && (longitude < east)
+       && latitude >= this._south
+       && latitude <= this._north;
 };
 
 export default Rectangle;

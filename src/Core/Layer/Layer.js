@@ -36,9 +36,9 @@ import AtlasBuilder from '../../Renderer/AtlasBuilder.js';
 */
 
 export const defineLayerProperty = function defineLayerProperty(layer,
-                                                                propertyName,
-                                                                defaultValue,
-                                                                onChange) {
+    propertyName,
+    defaultValue,
+    onChange) {
     const existing = Object.getOwnPropertyDescriptor(layer, propertyName);
     if (!existing || !existing.set) {
         let property = layer[propertyName] === undefined ? defaultValue : layer[propertyName];
@@ -51,7 +51,7 @@ export const defineLayerProperty = function defineLayerProperty(layer,
                         const event = {
                             type: `${propertyName}-property-changed`,
                             previous: {},
-                            new: {}
+                            new: {},
                         };
                         event.previous[propertyName] = property;
                         event.new[propertyName] = newValue;
@@ -61,7 +61,7 @@ export const defineLayerProperty = function defineLayerProperty(layer,
                         }
                         layer.dispatchEvent(event);
                     }
-                }
+                },
             });
     }
 };
@@ -179,7 +179,7 @@ function GeometryLayer(id, object3d) {
 
     // Setup default picking method
     this.pickObjectsAt = (view, mouse, radius) => Picking.pickObjectsAt(
-        view, mouse, radius, this.object3d
+        view, mouse, radius, this.object3d,
     );
 
     // Attached layers expect to receive the visual representation of a layer (= THREE object with a
@@ -220,7 +220,8 @@ GeometryLayer.prototype.attach = function attach(layer) {
             Capabilities.getMaxTextureSize(),
             colorLayers.map(layer => layer.id),
             colorLayers.map(layer => layer.imageSize),
-            this.atlasInfo.atlas);
+            this.atlasInfo.atlas,
+        );
         this.atlasInfo.atlas = atlas;
         this.atlasInfo.maxX = Math.max(this.atlasInfo.maxX, maxX);
         this.atlasInfo.maxY = Math.max(this.atlasInfo.maxY, maxY);
