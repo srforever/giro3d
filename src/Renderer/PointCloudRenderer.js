@@ -316,9 +316,9 @@ PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.
                     this.mesh.material.transparent = true;
                     this.mesh.material.uniforms.opacity.value = opacity;
                 }
-                r.render(this.scene, this.camera, output);
+                r.render(this.scene, this.camera);
             } else {
-                r.render(view.scene, view.camera.camera3D, output);
+                r.render(view.scene, view.camera.camera3D);
             }
         }
         previousStageOutput = stageOutput;
