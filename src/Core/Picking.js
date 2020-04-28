@@ -384,6 +384,6 @@ export default {
             ids[4 * i + 2] = (i & 0x0000ff00) >> 8;
             ids[4 * i + 3] = (i & 0x000000ff) >> 0;
         }
-        pointsGeometry.addAttribute('unique_id', new THREE.BufferAttribute(ids, 4, true));
+        pointsGeometry.setAttribute('unique_id', new THREE.BufferAttribute(ids, 4, true));
     },
 };
