@@ -24,8 +24,8 @@ function TileGeometry(params, builder) {
     const bufferAttribs = this.computeBuffers(params, builder);
 
     this.setIndex(bufferAttribs.index);
-    this.addAttribute('position', bufferAttribs.position);
-    this.addAttribute('uv', bufferAttribs.uv);
+    this.setAttribute('position', bufferAttribs.position);
+    this.setAttribute('uv', bufferAttribs.uv);
 
     this.computeBoundingBox();
     this.OBB = builder.OBB(this.boundingBox);

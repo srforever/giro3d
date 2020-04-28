@@ -22,8 +22,8 @@ function PointCloudRenderer(view) {
     const geom = new THREE.BufferGeometry();
     const vertices = [0, 0, -3, 2, 0, -3, 0, 2, -3];
     const uvs = [0, 0, 2, 0, 0, 2];
-    geom.addAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geom.addAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
+    geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
     this.mesh = new THREE.Mesh(geom, null);
     // this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), null);
     this.mesh.frustumCulled = false;

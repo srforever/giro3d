@@ -10,8 +10,8 @@ function createPoint(color) {
         const c = Uint8Array.of(cc.r * 255, cc.g * 255, cc.b * 255, 255);
         const g = new THREE.BufferGeometry();
 
-        g.addAttribute('position', new THREE.BufferAttribute(p, 3));
-        g.addAttribute('color', new THREE.BufferAttribute(c, 4, true));
+        g.setAttribute('position', new THREE.BufferAttribute(p, 3));
+        g.setAttribute('color', new THREE.BufferAttribute(c, 4, true));
 
         const m = new PointsMaterial(5);
         m.depthTest = false;

@@ -53,8 +53,8 @@ function prepareBufferGeometry(geom, color, altitude) {
     );
 
     const threeGeom = new THREE.BufferGeometry();
-    threeGeom.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    threeGeom.addAttribute('color', new THREE.BufferAttribute(colors, 3, true));
+    threeGeom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    threeGeom.setAttribute('color', new THREE.BufferAttribute(colors, 3, true));
     threeGeom.computeBoundingSphere();
     return threeGeom;
 }

@@ -1937,47 +1937,47 @@ export default ( function () {
 
 							case 'POSITION':
 
-								geometry.addAttribute( 'position', bufferAttribute );
+								geometry.setAttribute( 'position', bufferAttribute );
 								break;
 
 							case 'NORMAL':
 
-								geometry.addAttribute( 'normal', bufferAttribute );
+								geometry.setAttribute( 'normal', bufferAttribute );
 								break;
 
 							case 'TEXCOORD_0':
 							case 'TEXCOORD0':
 							case 'TEXCOORD':
 
-								geometry.addAttribute( 'uv', bufferAttribute );
+								geometry.setAttribute( 'uv', bufferAttribute );
 								break;
 
 							case 'TEXCOORD_1':
 
-								geometry.addAttribute( 'uv2', bufferAttribute );
+								geometry.setAttribute( 'uv2', bufferAttribute );
 								break;
 
 							case 'COLOR_0':
 							case 'COLOR0':
 							case 'COLOR':
 
-								geometry.addAttribute( 'color', bufferAttribute );
+								geometry.setAttribute( 'color', bufferAttribute );
 								break;
 
 							case 'WEIGHTS_0':
 							case 'WEIGHT': // WEIGHT semantic deprecated.
 
-								geometry.addAttribute( 'skinWeight', bufferAttribute );
+								geometry.setAttribute( 'skinWeight', bufferAttribute );
 								break;
 
 							case 'JOINTS_0':
 							case 'JOINT': // JOINT semantic deprecated.
 
-								geometry.addAttribute( 'skinIndex', bufferAttribute );
+								geometry.setAttribute( 'skinIndex', bufferAttribute );
 								break;
 
 							case '_BATCHID':
-    							geometry.addAttribute( '_BATCHID', bufferAttribute );
+    							geometry.setAttribute( '_BATCHID', bufferAttribute );
     							break;
 						}
 
@@ -2049,7 +2049,7 @@ export default ( function () {
 							&& geometry.attributes.uv !== undefined ) {
 
 						console.log( 'THREE.GLTFLoader: Duplicating UVs to support aoMap.' );
-						geometry.addAttribute( 'uv2', new THREE.BufferAttribute( geometry.attributes.uv.array, 2 ) );
+						geometry.setAttribute( 'uv2', new THREE.BufferAttribute( geometry.attributes.uv.array, 2 ) );
 
 					}
 

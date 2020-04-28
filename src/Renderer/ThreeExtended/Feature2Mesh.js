@@ -125,8 +125,8 @@ function prepareBufferGeometry(vert, color, altitude, extrude) {
     }
 
     const geom = new THREE.BufferGeometry();
-    geom.addAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    geom.addAttribute('color', new THREE.BufferAttribute(colors, 3, true));
+    geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3, true));
     return geom;
 }
 

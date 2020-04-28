@@ -102,7 +102,7 @@ export default {
             }
             elemOffset += attr.byteSize;
             attrOffset = elemOffset;
-            geometry.addAttribute(
+            geometry.setAttribute(
                 attr.attributeName,
                 new THREE.BufferAttribute(array, attr.numElements, attr.normalized),
             );
