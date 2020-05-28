@@ -2076,7 +2076,7 @@ export default ( function () {
 
 					if ( useVertexColors ) {
 
-						material.vertexColors = THREE.VertexColors;
+						material.vertexColors = true;
 						material.needsUpdate = true;
 
 					}

@@ -302,7 +302,7 @@ function featureToMesh(feature, options) {
     }
 
     // set mesh material
-    mesh.material.vertexColors = THREE.VertexColors;
+    mesh.material.vertexColors = true;
     mesh.material.color = new THREE.Color(0xffffff);
 
     mesh.userData.properties = feature.properties;
