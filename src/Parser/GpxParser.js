@@ -10,6 +10,8 @@ import Coordinates from '../Core/Geographic/Coordinates.js';
 import Capabilities from '../Core/System/Capabilities.js';
 import shaderUtils from '../Renderer/Shader/ShaderUtils.js';
 
+const tmpVec2 = new THREE.Vector2();
+
 function _gpxToWayPointsArray(gpxXML) {
     return gpxXML.getElementsByTagName('wpt');
 }
@@ -44,7 +46,7 @@ function getDistance(object, camera) {
 
 function updatePointScale(renderer, scene, camera) {
     const distance = getDistance(this, camera);
-    const scale = Math.max(2, Math.min(100, distance / renderer.getSize().height));
+    const scale = Math.max(2, Math.min(100, distance / renderer.getSize(tmpVec2).height));
     this.scale.set(scale, scale, scale);
     this.updateMatrixWorld();
 }
@@ -79,7 +81,7 @@ function _gpxToWayPointsMesh(gpxXML, crs) {
 function updatePath(renderer, scene, camera) {
     const distance = getDistance(this, camera);
     this.material.depthTest = distance < this.geometry.boundingSphere.radius * 2;
-    const size = renderer.getSize();
+    const size = renderer.getSize(tmpVec2);
     this.material.uniforms.resolution.value.set(size.width, size.height);
 }
 
