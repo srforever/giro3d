@@ -107,7 +107,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
                     } else if (gltfUpAxis === 'X') {
                         helper.matrix.premultiply(invMatrixChangeUpVectorZtoX);
                     }
-                    helper.applyMatrix(new THREE.Matrix4());
+                    helper.applyMatrix4(new THREE.Matrix4());
                 }
                 node.add(helper);
                 helper.updateMatrixWorld();
