@@ -1,33 +1,21 @@
 {
-    "templates": {
-        "default": {
-            "layoutFile": "layout.tmpl",
-            "staticFiles": {
-                "paths": ["static_jsdoc"]
-            }
-        }
+    "opts": {
+        "recurse": true,
+        "template": "config/jsdoc/info"
+    },
+    "tags": {
+        "allowUnknownTags": true
     },
     "source": {
-        "include": [
-            "src/Core/MainLoop.js",
-            "src/Core/Instance.js",
-            "src/Core/Geographic/Coordinates.js",
-            "src/Core/Layer/Layer.js",
-            "src/Core/Scheduler/Cache.js",
-            "src/Core/Scheduler/Scheduler.js",
-
-            "src/Parser/GeoJsonParser.js",
-            "src/Parser/GpxParser.js",
-            "src/Parser/VectorTileParser.js",
-
-            "src/Provider/URLBuilder.js",
-            "src/Provider/VectorTileHelper.js",
-
-            "src/Renderer/ColorLayersOrdering.js",
-            "src/Renderer/ThreeExtended/Feature2Mesh.js",
-            "src/Renderer/ThreeExtended/GlobeControls.js",
-            "src/Renderer/ThreeExtended/PlanarControls.js",
-            "src/Renderer/ThreeExtended/FirstPersonControls.js"
-        ]
+        "includePattern": "\\.js$"
+    },
+    "plugins": [
+        "jsdoc-plugin-typescript",
+        "config/jsdoc/info/api-plugin",
+        "config/jsdoc/info/define-plugin",
+        "config/jsdoc/info/virtual-plugin"
+    ],
+    "typescript": {
+      "moduleRoot": "src"
     }
 }

@@ -1,9 +1,6 @@
 /**
- * Generated On: 2015-10-5
- * Class: Coordinates
- * Description: Coordonnées cartographiques
+ * @module Core/Geographic/Coordinates
  */
-
 import * as THREE from 'three';
 import proj4 from 'proj4';
 

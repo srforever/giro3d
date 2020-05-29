@@ -1,3 +1,6 @@
+/**
+ * @module Core/instance
+ */
 /* global window */
 import {
     Scene, Group, EventDispatcher, Vector2, Object3D,
