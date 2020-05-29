@@ -4,7 +4,7 @@ import {
 } from 'three';
 import Camera from '../Renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
-import c3DEngine from '../Renderer/c3DEngine.js';
+import C3DEngine from '../Renderer/c3DEngine.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import { GeometryLayer, Layer, defineLayerProperty } from './Layer/Layer.js';
 import Scheduler from './Scheduler/Scheduler.js';
