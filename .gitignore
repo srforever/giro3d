@@ -9,3 +9,4 @@
 /out/
 coverage
 .nyc_output/
+build

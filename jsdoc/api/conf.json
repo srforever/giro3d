@@ -1,0 +1,36 @@
+{
+  "opts": {
+    "recurse": true,
+    "template": "jsdoc/api/template"
+  },
+  "tags": {
+    "allowUnknownTags": true
+  },
+  "source": {
+    "includePattern": ".+\\.js$",
+    "excludePattern": "(^|\\/|\\\\)_",
+    "include": [
+      "src/Core/instance.js"
+    ]
+  },
+  "plugins": [
+    "jsdoc/api/plugins/markdown",
+    "jsdoc-plugin-typescript",
+    "jsdoc/api/plugins/inline-options",
+    "jsdoc/api/plugins/events",
+    "jsdoc/api/plugins/observable",
+    "jsdoc/api/plugins/api"
+  ],
+  "typescript": {
+    "moduleRoot": "src"
+  },
+  "templates": {
+    "cleverLinks": true,
+    "monospaceLinks": true,
+    "default": {
+      "outputSourceFiles": false
+    },
+    "applicationName": "Giro3D"
+  },
+  "jsVersion": 180
+}

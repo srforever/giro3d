@@ -34,22 +34,25 @@ export const VIEW_EVENTS = {
 
 const _eventCoords = new Vector2();
 /**
- * Constructs a giro3d View instance
- *
- * @param {string} crs - The default CRS of Three.js coordinates. Should be a cartesian CRS.
- * @param {HTMLElement} viewerDiv - Where to instanciate the Three.js scene in the DOM
- * @param {Object=} options - Optional properties.
- * @param {?MainLoop} options.mainLoop - {@link MainLoop} instance to use, otherwise a default one
- * will be constructed
- * @param {?(WebGLRenderer|object)} options.renderer - {@link WebGLRenderer} instance to use,
- * otherwise a default one will be constructed. In this case, if options.renderer is an object, it
- * will be used to configure the renderer (see {@link c2DEngine}.  If not present, a new <canvas>
- * will be created and added to viewerDiv (mutually exclusive with mainLoop)
- * @param {?Scene} options.scene2D - {@link Scene} instance to use, otherwise a default one will be
- * constructed
- * @constructor
+ * @api
  */
 class Instance extends EventDispatcher {
+    /**
+     * Constructs a giro3d View instance
+     *
+     * @param {string} crs - The default CRS of Three.js coordinates. Should be a cartesian CRS.
+     * @param {HTMLElement} viewerDiv - Where to instanciate the Three.js scene in the DOM
+     * @param {Object=} options - Optional properties.
+     * @param {?MainLoop} options.mainLoop - {@link MainLoop} instance to use, otherwise a default one
+     * will be constructed
+     * @param {?(WebGLRenderer|object)} options.renderer - {@link WebGLRenderer} instance to use,
+     * otherwise a default one will be constructed. In this case, if options.renderer is an object, it
+     * will be used to configure the renderer (see {@link c2DEngine}.  If not present, a new canvas
+     * will be created and added to viewerDiv (mutually exclusive with mainLoop)
+     * @param {?Scene} options.scene2D - {@link Scene} instance to use, otherwise a default one will be
+     * constructed
+     *
+     * */
     constructor(viewerDiv, crs = 'EPSG:3857', options = {}) {
         super();
         if (!viewerDiv) {
@@ -184,6 +187,7 @@ class Instance extends EventDispatcher {
      * @param {Layer=} parentLayer
      * @return {Promise} a promise resolved with the new layer object when it is fully initialized
      * or rejected if any error occurred.
+     * @api
      */
     addLayer(layer, parentLayer) {
         if (layer.type === 'color') {
