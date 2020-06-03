@@ -33,7 +33,7 @@ function compute3857Extent(tileExtent) {
         Math.floor(layerDimension.y / tileExtent.dimensions().y),
     );
     // ... 2^zoom = tilecount => zoom = log2(tilecount)
-    const zoom = Math.floor(Math.log2(tileCount));
+    const zoom = Math.floor(Math.max(0, Math.log2(tileCount)));
 
     const tl = new Coordinates('EPSG:3857', tileExtent.west(), tileExtent.north());
     const br = new Coordinates('EPSG:3857', tileExtent.east(), tileExtent.south());
