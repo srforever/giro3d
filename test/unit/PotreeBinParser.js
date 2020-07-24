@@ -1,3 +1,4 @@
+/* global describe, it */
 import assert from 'assert';
 import PotreeBinParser from '../../src/Parser/PotreeBinParser.js';
 

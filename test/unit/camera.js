@@ -1,3 +1,4 @@
+/* global describe, it */
 import assert from 'assert';
 import Camera from '../../src/Renderer/Camera.js';
 

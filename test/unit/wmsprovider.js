@@ -1,3 +1,4 @@
+/* global it, describe */
 import assert from 'assert';
 
 import { chooseExtentToDownload } from '../../src/Provider/WMSProvider.js';

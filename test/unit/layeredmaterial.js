@@ -1,3 +1,4 @@
+/* global describe, it */
 import assert from 'assert';
 import LayerUpdateState from '../../src/Core/Layer/LayerUpdateState.js';
 import ColorTextureProcessing from '../../src/Process/ColorTextureProcessing.js';

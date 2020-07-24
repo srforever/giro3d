@@ -1,3 +1,4 @@
+/* global describe, it */
 import proj4 from 'proj4';
 import assert from 'assert';
 import { Matrix4, Object3D } from 'three';

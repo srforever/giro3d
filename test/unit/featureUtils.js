@@ -1,3 +1,4 @@
+/* global describe, it */
 import assert from 'assert';
 import GeoJsonParser from '../../src/Parser/GeoJsonParser.js';
 import FeaturesUtils from '../../src/Renderer/ThreeExtended/FeaturesUtils.js';
