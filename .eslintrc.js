@@ -59,6 +59,7 @@ module.exports = {
         // we make heavy use of for loop, and continue is very handy when used correctly
         'no-continue': 'off',
         'no-param-reassign': 'off', // we use param reassign too much with targets
+        'no-use-before-define': ["error", "nofunc"]
     },
     "globals": {
         "__DEBUG__": false
