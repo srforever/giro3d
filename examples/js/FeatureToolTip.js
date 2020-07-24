@@ -1,4 +1,4 @@
-/* global giro3d, document */
+/* global giro3d */
 // eslint-disable-next-line no-unused-vars
 function ToolTip(viewer, viewerDiv, tooltip, precisionPx) {
     let mouseDown = 0;
