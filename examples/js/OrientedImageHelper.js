@@ -10,13 +10,9 @@ function placeObjectFromCoordinate(object, coord) {
 }
 
 function createTexturedPlane(textureUrl, opacity) {
-    let texture;
-    let geometry;
-    let material;
-
-    texture = new giro3d.THREE.TextureLoader().load(textureUrl);
-    geometry = new giro3d.THREE.PlaneGeometry(1, 1, 32);
-    material = new giro3d.THREE.MeshBasicMaterial({
+    const texture = new giro3d.THREE.TextureLoader().load(textureUrl);
+    const geometry = new giro3d.THREE.PlaneGeometry(1, 1, 32);
+    const material = new giro3d.THREE.MeshBasicMaterial({
         map: texture,
         color: 0xffffff,
         transparent: true,
@@ -40,22 +36,17 @@ function transformTexturedPlane(camera, distance, plane) {
 function initCamera(view, image, coord, EnhToOrientationUp, EnhToOrientationLookAt, rotMatrix,
     orientationToCameraUp, orientationToCameraLookAt, distance, size, focale) {
     const fov = giro3d.THREE.MathUtils.radToDeg((2 * Math.atan((size[1] / 2) / focale)));
-    let coordView;
-    let localSpace;
-    let orientedImage;
-    let quaternion;
-    let camera;
 
-    coordView = coord.as(view.referenceCrs);
+    const coordView = coord.as(view.referenceCrs);
 
     // create 'local space', with the origin placed on 'coord',
     // with Y axis to the north, X axis to the east and Z axis as the geodesic normal.
-    localSpace = new giro3d.THREE.Object3D();
+    const localSpace = new giro3d.THREE.Object3D();
     view.scene.add(localSpace);
     placeObjectFromCoordinate(localSpace, coordView);
 
     // add second object : 'oriented image'
-    orientedImage = new giro3d.THREE.Object3D();
+    const orientedImage = new giro3d.THREE.Object3D();
     // place the 'oriented image' in the 'local space'
     localSpace.add(orientedImage);
 
@@ -64,12 +55,15 @@ function initCamera(view, image, coord, EnhToOrientationUp, EnhToOrientationLook
     orientedImage.lookAt(EnhToOrientationLookAt);
 
     // apply rotation
-    quaternion = new giro3d.THREE.Quaternion().setFromRotationMatrix(rotMatrix);
+    const quaternion = new giro3d.THREE.Quaternion().setFromRotationMatrix(rotMatrix);
     orientedImage.quaternion.multiply(quaternion);
     orientedImage.updateMatrixWorld();
 
     // create a THREE JS Camera
-    camera = new giro3d.THREE.PerspectiveCamera(fov, size[0] / size[1], distance / 2, distance * 2);
+    const camera = new giro3d.THREE.PerspectiveCamera(fov,
+        size[0] / size[1],
+        distance / 2,
+        distance * 2);
     orientedImage.add(camera);
     camera.up.copy(orientationToCameraUp);
     camera.lookAt(orientationToCameraLookAt);
