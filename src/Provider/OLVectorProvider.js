@@ -44,10 +44,10 @@ function preprocessDataLayer(layer) {
             );
         }
         layer.source.on('addfeature', evt => {
-            const format = layer.source.getFormat();
-            if (format) {
+            const frmt = layer.source.getFormat();
+            if (frmt) {
                 evt.feature.getGeometry().transform(
-                    layer.source.getFormat().dataProjection.getCode(),
+                    frmt.dataProjection.getCode(),
                     layer.projection,
                 );
             }

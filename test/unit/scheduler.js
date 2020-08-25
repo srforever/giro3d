@@ -26,7 +26,7 @@ const view = {
     notifyChange: () => {},
 };
 
-function cmd(layerId = 'foo', prio = 0) {
+function makeCmd(layerId = 'foo', prio = 0) {
     return {
         layer: {
             id: layerId,
@@ -39,7 +39,7 @@ function cmd(layerId = 'foo', prio = 0) {
 
 describe('Command execution', () => {
     it('should execute one command', done => {
-        scheduler.execute(cmd()).then(c => {
+        scheduler.execute(makeCmd()).then(c => {
             assert.ok(c.done);
             done();
         });
@@ -48,7 +48,7 @@ describe('Command execution', () => {
     it('should execute 100 commands', done => {
         const promises = [];
         for (let i = 0; i < 100; i++) {
-            promises.push(scheduler.execute(cmd()));
+            promises.push(scheduler.execute(makeCmd()));
         }
 
         Promise.all(promises).then(commands => {
@@ -63,13 +63,13 @@ describe('Command execution', () => {
         const results = [];
         const promises = [];
         for (let i = 0; i < 50; i++) {
-            promises.push(scheduler.execute(cmd('layer0', 1)).then(
+            promises.push(scheduler.execute(makeCmd('layer0', 1)).then(
                 c => { results.push(c.layer.id); },
             ));
-            promises.push(scheduler.execute(cmd('layer1', 5)).then(
+            promises.push(scheduler.execute(makeCmd('layer1', 5)).then(
                 c => { results.push(c.layer.id); },
             ));
-            promises.push(scheduler.execute(cmd('layer2', 10)).then(
+            promises.push(scheduler.execute(makeCmd('layer2', 10)).then(
                 c => { results.push(c.layer.id); },
             ));
         }

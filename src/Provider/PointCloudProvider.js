@@ -231,8 +231,9 @@ export default {
         // override the default method, since updated objects are metadata in this case
         layer.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
 
-        // this probably needs to be moved to somewhere else
-        layer.pickObjectsAt = (view, mouse, radius, filter) => Picking.pickPointsAt(view, mouse, radius, layer, filter);
+        // TODO this probably needs to be moved to somewhere else
+        // Also see 3DTilesProvider that basically does this too
+        layer.pickObjectsAt = (view2, mouse, radius, filter) => Picking.pickPointsAt(view2, mouse, radius, layer, filter);
 
         return Fetcher.json(`${layer.url}/${layer.file}`, layer.networkOptions)
             .then(metadata => {

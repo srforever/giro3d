@@ -30,7 +30,7 @@ function readCRS(json) {
     return 'EPSG:4326';
 }
 
-const coords = new Coordinates('EPSG:4978', 0, 0, 0);
+const tmpCoords = new Coordinates('EPSG:4978', 0, 0, 0);
 function readCoordinates(crsIn, crsOut, coordinates, extent, target) {
     // coordinates is a list of pair [[x1, y1], [x2, y2], ..., [xn, yn]]
     let offset = 0;
@@ -51,8 +51,8 @@ function readCoordinates(crsIn, crsOut, coordinates, extent, target) {
         if (crsIn === crsOut) {
             out[offset + i] = new Coordinates(crsIn, pair[0], pair[1], z);
         } else {
-            coords.set(crsIn, pair[0], pair[1], z);
-            out[offset + i] = coords.as(crsOut);
+            tmpCoords.set(crsIn, pair[0], pair[1], z);
+            out[offset + i] = tmpCoords.as(crsOut);
         }
         // expand extent if present
         if (extent) {

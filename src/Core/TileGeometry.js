@@ -36,6 +36,13 @@ TileGeometry.prototype = Object.create(THREE.BufferGeometry.prototype);
 
 TileGeometry.prototype.constructor = TileGeometry;
 
+function bufferize(outBuffers, va, vb, vc, idVertex) {
+    outBuffers.index.array[idVertex + 0] = va;
+    outBuffers.index.array[idVertex + 1] = vb;
+    outBuffers.index.array[idVertex + 2] = vc;
+    return idVertex + 3;
+}
+
 TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder) {
     // Create output buffers.
     const outBuffers = new Buffers();
@@ -91,13 +98,6 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
         vertices.push(verticesRow);
     }
 
-    function bufferize(va, vb, vc, idVertex) {
-        outBuffers.index.array[idVertex + 0] = va;
-        outBuffers.index.array[idVertex + 1] = vb;
-        outBuffers.index.array[idVertex + 2] = vc;
-        return idVertex + 3;
-    }
-
     let idVertex2 = 0;
 
     for (let y = 0; y < heightSegments; y++) {
@@ -107,8 +107,8 @@ TileGeometry.prototype.computeBuffers = function computeBuffers(params, builder)
             const v3 = vertices[y + 1][x];
             const v4 = vertices[y + 1][x + 1];
 
-            idVertex2 = bufferize(v4, v2, v1, idVertex2);
-            idVertex2 = bufferize(v4, v3, v2, idVertex2);
+            idVertex2 = bufferize(outBuffers, v4, v2, v1, idVertex2);
+            idVertex2 = bufferize(outBuffers, v4, v3, v2, idVertex2);
         }
     }
 

@@ -232,12 +232,12 @@ class Instance extends EventDispatcher {
                     ? parentLayer.extent.crs() : this.referenceCrs;
             }
 
-            layer.whenReady.then(layer => {
+            layer.whenReady.then(l => {
                 if (parentLayer) {
-                    if (layer.type === 'elevation') {
+                    if (l.type === 'elevation') {
                         parentLayer.minMaxFromElevationLayer = {
-                            min: layer.minmax.min,
-                            max: layer.minmax.max,
+                            min: l.minmax.min,
+                            max: l.minmax.max,
                         };
                         for (const node of parentLayer.level0Nodes) {
                             node.traverse(n => {
@@ -251,24 +251,24 @@ class Instance extends EventDispatcher {
                         }
                     }
 
-                    parentLayer.attach(layer);
+                    parentLayer.attach(l);
                 } else {
-                    if (typeof (layer.update) !== 'function') {
+                    if (typeof (l.update) !== 'function') {
                         reject(new Error('Cant add GeometryLayer: missing a update function'));
                         return;
                     }
-                    if (typeof (layer.preUpdate) !== 'function') {
+                    if (typeof (l.preUpdate) !== 'function') {
                         reject(new Error('Cant add GeometryLayer: missing a preUpdate function'));
                         return;
                     }
-                    this._layers.push(layer);
+                    this._layers.push(l);
                 }
 
-                if (layer.object3d && !layer.object3d.parent && layer.object3d !== this.scene) {
-                    this.scene.add(layer.object3d);
+                if (l.object3d && !l.object3d.parent && l.object3d !== this.scene) {
+                    this.scene.add(l.object3d);
                 }
 
-                this.notifyChange(parentLayer || layer, false);
+                this.notifyChange(parentLayer || l, false);
                 const updateEndFR = this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END];
                 if (!updateEndFR || updateEndFR.indexOf(this._allLayersAreReadyCallback) === -1) {
                     this.addFrameRequester(
@@ -276,7 +276,7 @@ class Instance extends EventDispatcher {
                         this._allLayersAreReadyCallback,
                     );
                 }
-                resolve(layer);
+                resolve(l);
             });
         });
     }

@@ -25,7 +25,7 @@ const unitBoxMesh = (function _() {
     geometry.setIndex(new THREE.BufferAttribute(indices, 1));
     geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-    return function _() {
+    return function _unitBoxMesh() {
         const color = new THREE.Color(Math.random(), Math.random(), Math.random());
         const material = new THREE.LineBasicMaterial({
             color: color.getHex(),

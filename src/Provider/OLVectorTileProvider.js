@@ -134,8 +134,8 @@ function loadTile(node, tile, layer) {
         promise = new Promise((resolve, reject) => {
             imageTile.load();
             listenOnce(imageTile, 'change', evt => {
-                const imageTile = evt.target;
-                const tileState = imageTile.getState();
+                const imageTile2 = evt.target;
+                const tileState = imageTile2.getState();
                 if (tileState === TileState.ERROR) {
                     reject();
                 } else if (tileState === TileState.LOADED) {

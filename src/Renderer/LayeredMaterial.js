@@ -303,35 +303,35 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
         this.setTimeoutId = setTimeout(() => {
             if (this.uniforms.colorTexture.value !== this.texturesInfo.color.atlasTexture) {
                 this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
-                for (const layer of this.colorLayers) {
-                    if (this.pendingUpdates.indexOf(layer) === -1) {
-                        console.warn('no new texture for ', layer.id, '. Redrawing the old one');
-                        this.pendingUpdates.push(layer);
+                for (const l of this.colorLayers) {
+                    if (this.pendingUpdates.indexOf(l) === -1) {
+                        console.warn('no new texture for ', l.id, '. Redrawing the old one');
+                        this.pendingUpdates.push(l);
                     }
                 }
             }
 
             // Draw scheduled textures in canvas
-            for (const layer of this.pendingUpdates) {
-                const index = this.indexOfColorLayer(layer);
-                const atlas = this.atlasInfo.atlas[layer.id];
+            for (const l of this.pendingUpdates) {
+                const idx = this.indexOfColorLayer(l);
+                const atlas = this.atlasInfo.atlas[l.id];
 
                 updateOffsetScale(
-                    layer.imageSize,
-                    this.atlasInfo.atlas[layer.id],
-                    this.texturesInfo.color.originalOffsetScale[index],
+                    l.imageSize,
+                    this.atlasInfo.atlas[l.id],
+                    this.texturesInfo.color.originalOffsetScale[idx],
                     this.uniforms.colorTexture.value.image,
-                    this.texturesInfo.color.offsetScale[index],
+                    this.texturesInfo.color.offsetScale[idx],
                 );
 
-                const srcImage = this.texturesInfo.color.textures[index].image;
+                const srcImage = this.texturesInfo.color.textures[idx].image;
 
                 this.canvasRevision = drawLayerOnCanvas(
-                    layer,
+                    l,
                     this.texturesInfo.color.atlasTexture,
                     atlas,
                     (srcImage === this.canvas) ? null : srcImage,
-                    this.texturesInfo.color.offsetScale[index],
+                    this.texturesInfo.color.offsetScale[idx],
                     this.canvasRevision,
                 );
             }

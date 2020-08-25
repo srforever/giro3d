@@ -10,11 +10,30 @@ import PointsMaterial from '../Renderer/PointsMaterial.js';
 import Cache from '../Core/Scheduler/Cache.js';
 
 const identity = new THREE.Matrix4();
-export function $3dTilesIndex(tileset, baseURL) {
-    let counter = 1;
-    this.index = {};
-    const inverseTileTransform = new THREE.Matrix4();
-    const recurse = function recurseFn(node, baseURL, parent) {
+
+export class $3dTilesIndex {
+    constructor(tileset, baseURL) {
+        this._counter = 1;
+        this.index = {};
+        this._inverseTileTransform = new THREE.Matrix4();
+        this._recurse(tileset.root, baseURL);
+
+        // Add a special tileId = 0 which acts as root of the tileset but has
+        // no content.
+        // This way we can safely cleanup the root of the tileset in the processing
+        // code, and keep a valid layer.root tile.
+        // this.index[0] = {
+        //     baseURL: this.index[1].baseURL,
+        //     viewerRequestVolume: this.index[1].viewerRequestVolume,
+        //     boundingVolume: this.index[1].boundingVolume,
+        //     children: [1],
+        //     transform: this.index[1].transform,
+        //     refine: this.index[1].refine,
+        //     geometricError: this.index[1].geometricError,
+        // };
+    }
+
+    _recurse(node, baseURL, parent) {
         // compute transform (will become Object3D.matrix when the object is downloaded)
         node.transform = node.transform
             ? (new THREE.Matrix4()).fromArray(node.transform) : identity;
@@ -32,28 +51,28 @@ export function $3dTilesIndex(tileset, baseURL) {
             }
         }
 
-        // inverseTileTransform.getInverse(node._worldFromLocalTransform);
-        // getBox only use inverseTileTransform for volume.region so let's not
+        // this._inverseTileTransform.getInverse(node._worldFromLocalTransform);
+        // getBox only use this._inverseTileTransform for volume.region so let's not
         // compute the inverse matrix each time
         if (node._worldFromLocalTransform) {
-            inverseTileTransform.getInverse(node._worldFromLocalTransform);
+            this._inverseTileTransform.getInverse(node._worldFromLocalTransform);
         } else {
-            inverseTileTransform.identity();
+            this._inverseTileTransform.identity();
         }
 
         node.viewerRequestVolume = node.viewerRequestVolume
-            ? getBox(node.viewerRequestVolume, inverseTileTransform) : undefined;
-        node.boundingVolume = getBox(node.boundingVolume, inverseTileTransform);
+            ? getBox(node.viewerRequestVolume, this._inverseTileTransform) : undefined;
+        node.boundingVolume = getBox(node.boundingVolume, this._inverseTileTransform);
         node.refine = node.refine || (parent ? parent.refine : 'ADD');
 
-        this.index[counter] = node;
-        node.tileId = counter;
+        this.index[this._counter] = node;
+        node.tileId = this._counter;
         node.baseURL = baseURL;
-        counter++;
+        this._counter++;
         if (node.children) {
             for (const child of node.children) {
                 try {
-                    recurse(child, baseURL, node);
+                    this._recurse(child, baseURL, node);
                 } catch (error) {
                     node.children[node.children.indexOf(child)] = undefined;
                 }
@@ -64,28 +83,13 @@ export function $3dTilesIndex(tileset, baseURL) {
                 // console.log('Removed elements:', count - node.children.length);
             }
         }
-    }.bind(this);
-    recurse(tileset.root, baseURL);
+    }
 
-    // Add a special tileId = 0 which acts as root of the tileset but has
-    // no content.
-    // This way we can safely cleanup the root of the tileset in the processing
-    // code, and keep a valid layer.root tile.
-    // this.index[0] = {
-    //     baseURL: this.index[1].baseURL,
-    //     viewerRequestVolume: this.index[1].viewerRequestVolume,
-    //     boundingVolume: this.index[1].boundingVolume,
-    //     children: [1],
-    //     transform: this.index[1].transform,
-    //     refine: this.index[1].refine,
-    //     geometricError: this.index[1].geometricError,
-    // };
-
-    this.extendTileset = function extendTileset(tileset, nodeId, baseURL) {
-        recurse(tileset.root, baseURL, this.index[nodeId]);
+    extendTileset(tileset, nodeId, baseURL) {
+        this._recurse(tileset.root, baseURL, this.index[nodeId]);
         this.index[nodeId].children = [tileset.root];
         this.index[nodeId].isTileset = true;
-    };
+    }
 }
 
 export function getObjectToUpdateForAttachedLayers(meta) {
@@ -120,7 +124,7 @@ function preprocessDataLayer(layer, view, scheduler) {
 
     // TODO: find a better way to know that this layer is about pointcloud ?
     if (layer.material && layer.material.enablePicking) {
-        layer.pickObjectsAt = (view, mouse, radius) => Picking.pickPointsAt(view, mouse, radius, layer);
+        layer.pickObjectsAt = (view2, mouse, radius) => Picking.pickPointsAt(view2, mouse, radius, layer);
     }
 
     layer._cleanableTiles = [];

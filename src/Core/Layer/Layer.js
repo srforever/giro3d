@@ -218,8 +218,8 @@ GeometryLayer.prototype.attach = function attach(layer) {
         // rebuild color textures atlas
         const { atlas, maxX, maxY } = AtlasBuilder.pack(
             Capabilities.getMaxTextureSize(),
-            colorLayers.map(layer => layer.id),
-            colorLayers.map(layer => layer.imageSize),
+            colorLayers.map(l => l.id),
+            colorLayers.map(l => l.imageSize),
             this.atlasInfo.atlas,
         );
         this.atlasInfo.atlas = atlas;

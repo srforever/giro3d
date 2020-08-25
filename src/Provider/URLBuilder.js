@@ -64,16 +64,16 @@ export default {
      * // The resulting url is:
      * // http://server.geo/wms/BBOX=12,35,14,46&FORMAT=jpg&SERVICE=WMS
      *
-     * @param {Extent} bbox - the bounding box
+     * @param {Extent} boundingBox - the bounding box
      * @param {Layer} layer
      *
      * @return {string} the formed url
      */
-    bbox: function bbox(bbox, layer) {
+    bbox: function bbox(boundingBox, layer) {
         const precision = layer.projection === 'EPSG:4326' ? 9 : 2;
-        const box = bbox.crs() === layer.projection
-            ? bbox
-            : bbox.as(layer.projection);
+        const box = boundingBox.crs() === layer.projection
+            ? boundingBox
+            : boundingBox.as(layer.projection);
         const w = box.west().toFixed(precision);
         const s = box.south().toFixed(precision);
         const e = box.east().toFixed(precision);

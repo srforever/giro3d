@@ -68,6 +68,48 @@ function compute3857Extent(tileExtent) {
     return extents;
 }
 
+function findSmallestExtentCoveringGoingDown(node, extent) {
+    if (node.children) {
+        for (const c of node.children) {
+            if (c.extent) {
+                if (extent.isInside(c.extent)) {
+                    return findSmallestExtentCoveringGoingDown(c, extent);
+                }
+            }
+        }
+    }
+    return [node, extent];
+}
+function findSmallestExtentCoveringGoingUp(node, extent) {
+    if (extent.isInside(node.extent)) {
+        return node;
+    }
+    if (!node.parent || !node.parent.extent) {
+        if (node.level === 0 && node.parent.children.length) {
+            for (const sibling of node.parent.children) {
+                if (sibling.extent
+                    && extent.isInside(sibling.extent)) {
+                    return sibling;
+                }
+            }
+        }
+        return undefined;
+    }
+    return findSmallestExtentCoveringGoingUp(node.parent, extent);
+}
+function findSmallestExtentCovering(node, extent) {
+    const n = findSmallestExtentCoveringGoingUp(node, extent);
+    if (!n) {
+        return null;
+    }
+    return findSmallestExtentCoveringGoingDown(n, extent);
+}
+function findNeighbours(node) {
+    // top, right, bottom, left
+    const borders = node.extent.externalBorders(0.1);
+    return borders.map(border => findSmallestExtentCovering(node, border));
+}
+
 export function createPlanarLayer(id, extent, options = {}) {
     const tileLayer = new GeometryLayer(id, options.object3d || new THREE.Group());
     const crs = Array.isArray(extent) ? extent[0].crs() : extent.crs();
@@ -143,50 +185,6 @@ export function createPlanarLayer(id, extent, options = {}) {
             });
         }
     };
-
-    function findSmallestExtentCoveringGoingDown(node, extent) {
-        if (node.children) {
-            for (const c of node.children) {
-                if (c.extent) {
-                    if (extent.isInside(c.extent)) {
-                        return findSmallestExtentCoveringGoingDown(c, extent);
-                    }
-                }
-            }
-        }
-        return [node, extent];
-    }
-
-    function findSmallestExtentCoveringGoingUp(node, extent) {
-        if (extent.isInside(node.extent)) {
-            return node;
-        }
-        if (!node.parent || !node.parent.extent) {
-            if (node.level === 0 && node.parent.children.length) {
-                for (const sibling of node.parent.children) {
-                    if (sibling.extent
-                        && extent.isInside(sibling.extent)) {
-                        return sibling;
-                    }
-                }
-            }
-            return undefined;
-        }
-        return findSmallestExtentCoveringGoingUp(node.parent, extent);
-    }
-    function findSmallestExtentCovering(node, extent) {
-        const n = findSmallestExtentCoveringGoingUp(node, extent);
-        if (!n) {
-            return null;
-        }
-        return findSmallestExtentCoveringGoingDown(n, extent);
-    }
-
-    function findNeighbours(node) {
-        // top, right, bottom, left
-        const borders = node.extent.externalBorders(0.1);
-        return borders.map(border => findSmallestExtentCovering(node, border));
-    }
 
     tileLayer.builder = new PlanarTileBuilder();
     tileLayer.protocol = 'tile';

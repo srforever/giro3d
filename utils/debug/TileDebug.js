@@ -15,6 +15,68 @@ function applyToNodeFirstMaterial(view, root, layer, cb) {
     view.notifyChange();
 }
 
+function debugIdUpdate(context, layer, node) {
+    const enabled = context.camera.camera3D.layers.test({ mask: 1 << layer.threejsLayer });
+
+    if (!node.parent || !enabled) {
+        ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer.id, node);
+        return;
+    }
+
+    if (!enabled) {
+        return;
+    }
+    const helpers = node.children.filter(n => n.layer === layer);
+
+    if (node.material && node.material.visible) {
+        let helper;
+        if (helpers.length === 0) {
+            // add the ability to hide all the debug obj for one layer at once
+            const l3js = layer.threejsLayer;
+
+            helper = new OBBHelper(node.OBB(), `id:${node.id}`);
+            helper.children[0].layers.set(l3js);
+            helper.layers.set(l3js);
+            helper.layer = layer;
+            node.add(helper);
+            helper.updateMatrixWorld(true);
+
+
+            const foo = new THREE.AxesHelper(10);
+            // foo.layers.set(l3js);
+            node.add(foo);
+            foo.material.depthTest = false;
+            foo.material.transparent = true;
+            foo.updateMatrixWorld(true);
+
+            // if we don't do that, our OBBHelper will never get removed,
+            // because once a node is invisible, children are not removed
+            // any more
+            // FIXME a proper way of notifying tile deletion to children layers should be
+            // implemented
+            node.setDisplayed = function setDisplayed(show) {
+                this.material.visible = show;
+            };
+        } else {
+            helper = helpers[0];
+        }
+        // XXX layer.id should always be obbLayerId in this case, right?
+        // if (layer.id === obbLayerId) {
+        helper.setMaterialVisibility(true);
+        helper.update(node.OBB());
+        // }
+    } else {
+        // hide obb children
+        for (const child of node.children.filter(n => n.layer === layer.id)) {
+            if (typeof child.setMaterialVisibility === 'function') {
+                child.setMaterialVisibility(false);
+            }
+            child.visible = false;
+        }
+    }
+}
+
+
 export default function createTileDebugUI(datDebugTool, view, layer, debugInstance) {
     const gui = GeometryDebug.createGeometryDebugUI(datDebugTool, view, layer);
 
@@ -78,67 +140,6 @@ export default function createTileDebugUI(datDebugTool, view, layer, debugInstan
 
     // Bounding box control
     const obbLayerId = `${layer.id}_obb_debug`;
-
-    function debugIdUpdate(context, layer, node) {
-        const enabled = context.camera.camera3D.layers.test({ mask: 1 << layer.threejsLayer });
-
-        if (!node.parent || !enabled) {
-            ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer.id, node);
-            return;
-        }
-
-        if (!enabled) {
-            return;
-        }
-        const helpers = node.children.filter(n => n.layer === layer);
-
-        if (node.material && node.material.visible) {
-            let helper;
-            if (helpers.length === 0) {
-                // add the ability to hide all the debug obj for one layer at once
-                const l = context.view.getLayers(l => l.id === layer.id)[0];
-                const l3js = l.threejsLayer;
-
-                helper = new OBBHelper(node.OBB(), `id:${node.id}`);
-                helper.children[0].layers.set(l3js);
-                helper.layers.set(l3js);
-                helper.layer = layer;
-                node.add(helper);
-                helper.updateMatrixWorld(true);
-
-
-                const foo = new THREE.AxesHelper(10);
-                // foo.layers.set(l3js);
-                node.add(foo);
-                foo.material.depthTest = false;
-                foo.material.transparent = true;
-                foo.updateMatrixWorld(true);
-
-                // if we don't do that, our OBBHelper will never get removed,
-                // because once a node is invisible, children are not removed
-                // any more
-                // FIXME a proper way of notifying tile deletion to children layers should be
-                // implemented
-                node.setDisplayed = function setDisplayed(show) {
-                    this.material.visible = show;
-                };
-            } else {
-                helper = helpers[0];
-            }
-            if (layer.id === obbLayerId) {
-                helper.setMaterialVisibility(true);
-                helper.update(node.OBB());
-            }
-        } else {
-            // hide obb children
-            for (const child of node.children.filter(n => n.layer === layer.id)) {
-                if (typeof child.setMaterialVisibility === 'function') {
-                    child.setMaterialVisibility(false);
-                }
-                child.visible = false;
-            }
-        }
-    }
 
     Instance.prototype.addLayer.call(view,
         {

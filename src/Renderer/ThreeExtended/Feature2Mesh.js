@@ -19,9 +19,9 @@ function getProperty(name, options, defaultValue, ...args) {
 }
 
 function randomColor() {
-    const randomColor = new THREE.Color();
-    randomColor.setHex(Math.random() * 0xffffff);
-    return randomColor;
+    const color = new THREE.Color();
+    color.setHex(Math.random() * 0xffffff);
+    return color;
 }
 
 function fillColorArray(colors, length, r, g, b, offset) {
