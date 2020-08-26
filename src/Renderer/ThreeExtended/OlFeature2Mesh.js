@@ -18,7 +18,7 @@ function getProperty(name, options, defaultValue, ...args) {
     return defaultValue;
 }
 
-// TODO duplicate code with Feature2Mesh
+// TODO duplicate code with Feature2Mesh
 function randomColor() {
     const color = new THREE.Color();
     color.setHex(Math.random() * 0xffffff);
