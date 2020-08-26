@@ -63,8 +63,7 @@ export default function TileVisibilityChart(chartId, tileLayer) {
         for (const level in stats) {
             if ({}.hasOwnProperty.call(stats, level)) {
                 nbVisibleLabels[level] = `${level}`;
-                nbVisibleData[level] = stats[level][0];
-                nbDisplayedData[level] = stats[level][1];
+                [nbVisibleData[level], nbDisplayedData[level]] = stats[level];
             }
         }
 

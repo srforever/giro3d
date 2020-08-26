@@ -32,9 +32,7 @@ function Extent(crs, ...values) {
 
     if (_isTiledCRS(crs)) {
         if (values.length === 3) {
-            this.zoom = values[0];
-            this.row = values[1];
-            this.col = values[2];
+            [this.zoom, this.row, this.col] = values;
 
             if (this.zoom < 0) {
                 throw new Error(`invlid WTMS values ${values}`);
@@ -46,10 +44,8 @@ function Extent(crs, ...values) {
         && values[0] instanceof Coordinates
         && values[1] instanceof Coordinates) {
         this._values = new Float64Array(4);
-        this._values[CARDINAL.WEST] = values[0]._values[0];
-        this._values[CARDINAL.EAST] = values[1]._values[0];
-        this._values[CARDINAL.SOUTH] = values[0]._values[1];
-        this._values[CARDINAL.NORTH] = values[1]._values[1];
+        [this._values[CARDINAL.WEST], this._values[CARDINAL.SOUTH]] = values[0]._values;
+        [this._values[CARDINAL.EAST], this._values[CARDINAL.NORTH]] = values[1]._values;
     } else if (values.length === 1 && values[0].west !== undefined) {
         this._values = new Float64Array(4);
         this._values[CARDINAL.WEST] = values[0].west;
@@ -332,9 +328,7 @@ Extent.prototype.intersect = function intersect(other) {
 Extent.prototype.set = function set(crs, ...values) {
     this._crs = crs;
     if (_isTiledCRS(this.crs())) {
-        this.zoom = values[0];
-        this.row = values[1];
-        this.col = values[2];
+        [this.zoom, this.row, this.col] = values;
     } else {
         Object.keys(CARDINAL).forEach(key => {
             const cardinal = CARDINAL[key];

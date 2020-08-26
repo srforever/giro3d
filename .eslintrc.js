@@ -76,6 +76,24 @@ module.exports = {
             message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.',
           },
         ],
+        // disabling this because it is not yet possible to be subtle enough.
+        // For instance, ok:
+        // [this.zoom, this.row, this.col] = values
+        // is more readable than
+        // this.zoom = values[0]; this.row = values[1], this.col = values[2]
+        // or { foo, bar } = object; is better than foo = object.foo; bar = object.bar;
+        //
+        // But what about:
+        // [, , z] = array VS z = array[2];
+        // or
+        //
+        // color = this._activeChain()[this.active.point].color;
+        // VS
+        // ({color} = this._activeChain()[this.active.point])
+        // ?
+        // (yes, parenthesis are necessary)
+        // So let's use our common sense here
+        'prefer-destructuring': 'off',
     },
     "globals": {
         "__DEBUG__": false

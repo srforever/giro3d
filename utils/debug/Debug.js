@@ -189,7 +189,7 @@ function Debug(view, datDebugTool, chartDivContainer) {
             if (view.atmosphere) {
                 view.atmosphere.visible = true;
             }
-            fogDistance = view.fogDistance;
+            ({ fogDistance } = view);
             for (const obj of tileLayer.level0Nodes) {
                 obj.traverseVisible(updateFogDistance);
             }
