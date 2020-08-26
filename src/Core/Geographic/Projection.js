@@ -58,7 +58,7 @@ const Projection = {
             Math.log(Math.PI / MathExt.degToRad(dim.y)) / LOG_TWO + 0.5,
         );
 
-        const nY = Math.pow(2, zoom);
+        const nY = 2 ** zoom;
         const nX = 2 * nY;
 
         const uX = Math.PI * 2 / nX;
@@ -85,7 +85,7 @@ const Projection = {
 function wmtsWgs84ToWmtsPm(cWMTS, bbox) {
     const wmtsBox = [];
     const level = cWMTS.zoom + 1;
-    const nbRow = Math.pow(2, level);
+    const nbRow = 2 ** level;
 
     const sizeRow = 1.0 / nbRow;
 

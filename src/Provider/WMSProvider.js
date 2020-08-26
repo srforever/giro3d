@@ -141,7 +141,7 @@ export function chooseExtentToDownload(layer, extent, currentExtent) {
         return extent;
     }
     while (nextDepth > currentDepth) {
-        const p = Math.pow(2, nextDepth);
+        const p = 2 ** nextDepth;
         // the normalized ([0, 1]) texture size for each tile at this level
         const textureSize = 1 / p;
 

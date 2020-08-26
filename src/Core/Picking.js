@@ -55,7 +55,7 @@ function screenCoordsToNodeId(view, tileLayer, viewCoords, radius) {
     traversePickingCircle(radius, (x, y, idx) => {
         const data = buffer.slice(idx * 4, idx * 4 + 4);
         depthRGBA.fromArray(data).divideScalar(255.0);
-        const unpack = unpack1K(depthRGBA, Math.pow(256, 3));
+        const unpack = unpack1K(depthRGBA, 256 ** 3);
 
         const _id = Math.round(unpack);
         if (ids.indexOf(_id) < 0) {

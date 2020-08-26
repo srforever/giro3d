@@ -77,7 +77,7 @@ Extent.prototype.as = function as(crs) {
     if (_isTiledCRS(this._crs)) {
         if (this._crs === 'WMTS:PM') {
             // Convert this to the requested crs by using 4326 as an intermediate state.
-            const nbCol = Math.pow(2, this.zoom);
+            const nbCol = 2 ** this.zoom;
             const size = 360 / nbCol;
             // convert column PM to longitude EPSG:4326 degree
             const west = 180 - size * (nbCol - this.col);
@@ -96,7 +96,7 @@ Extent.prototype.as = function as(crs) {
             }).as(crs);
         }
         if (this._crs === 'WMTS:WGS84G' && crs === 'EPSG:4326') {
-            const nbRow = Math.pow(2, this.zoom);
+            const nbRow = 2 ** this.zoom;
             const size = 180 / nbRow;
             const north = size * (nbRow - this.row) - 90;
             const south = size * (nbRow - (this.row + 1)) - 90;
@@ -151,7 +151,7 @@ Extent.prototype.offsetToParent = function offsetToParent(other, target = new TH
     }
     if (_isTiledCRS(this.crs())) {
         const diffLevel = this.zoom - other.zoom;
-        const diff = Math.pow(2, diffLevel);
+        const diff = 2 ** diffLevel;
         const invDiff = 1 / diff;
 
         const r = (this.row - (this.row % diff)) * invDiff;
@@ -254,7 +254,7 @@ Extent.prototype.isInside = function isInside(other, epsilon) {
             return false;
         }
         const diffLevel = this.zoom - other.zoom;
-        const diff = Math.pow(2, diffLevel);
+        const diff = 2 ** diffLevel;
         const invDiff = 1 / diff;
 
         const r = (this.row - (this.row % diff)) * invDiff;

@@ -84,7 +84,7 @@ export default {
     },
     WMTS_WGS84Parent(cWMTS, levelParent, pitch, target = new Extent(cWMTS.crs(), 0, 0, 0)) {
         const diffLevel = cWMTS.zoom - levelParent;
-        const diff = Math.pow(2, diffLevel);
+        const diff = 2 ** diffLevel;
         const invDiff = 1 / diff;
 
         const r = (cWMTS.row - (cWMTS.row % diff)) * invDiff;
