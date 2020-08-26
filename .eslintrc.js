@@ -94,6 +94,7 @@ module.exports = {
         // (yes, parenthesis are necessary)
         // So let's use our common sense here
         'prefer-destructuring': 'off',
+        'no-bitwise': 'off', // we DO manipulate bits often enough, making this irrelevant
     },
     "globals": {
         "__DEBUG__": false
