@@ -167,13 +167,11 @@ Extent.prototype.offsetToParent = function offsetToParent(other, target = new TH
     const oDim = other.dimensions();
     const dim = this.dimensions();
 
-    const originX = Math.round(1000
-        * (this.west() - other.west()) / oDim.x) * 0.001;
-    const originY = Math.round(1000
-        * (other.north() - this.north()) / oDim.y) * 0.001;
+    const originX = Math.round((1000 * (this.west() - other.west())) / oDim.x) * 0.001;
+    const originY = Math.round((1000 * (other.north() - this.north())) / oDim.y) * 0.001;
 
-    const scaleX = Math.round(1000 * dim.x / oDim.x) * 0.001;
-    const scaleY = Math.round(1000 * dim.y / oDim.y) * 0.001;
+    const scaleX = Math.round((1000 * dim.x) / oDim.x) * 0.001;
+    const scaleY = Math.round((1000 * dim.y) / oDim.y) * 0.001;
 
     return target.set(originX, originY, scaleX, scaleY);
 };

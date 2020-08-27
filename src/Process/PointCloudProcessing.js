@@ -63,7 +63,7 @@ function computeScreenSpaceError(context, layer, elt, distance) {
     }
     const pointSpacing = layer.metadata.spacing / (2 ** elt.name.length);
     // Estimate the onscreen distance between 2 points
-    const onScreenSpacing = context.camera.preSSE * pointSpacing / distance;
+    const onScreenSpacing = (context.camera.preSSE * pointSpacing) / distance;
     // [  P1  ]--------------[   P2   ]
     //     <--------------------->      = pointsSpacing (in world coordinates)
     //                                  ~ onScreenSpacing (in pixels)

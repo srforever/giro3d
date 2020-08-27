@@ -35,7 +35,7 @@ function fillColorArray(colors, length, r, g, b, offset) {
 }
 
 function prepareBufferGeometry(geom, color, altitude) {
-    const vertices = new Float32Array(3 * geom.flatCoordinates.length / geom.stride);
+    const vertices = new Float32Array((3 * geom.flatCoordinates.length) / geom.stride);
     const colors = new Uint8Array(3 * geom.flatCoordinates.length);
 
     for (let i = 0; i < (geom.flatCoordinates.length / geom.stride); i++) {

@@ -9,8 +9,8 @@ import Extent from '../Geographic/Extent.js';
 import Coordinates from '../Geographic/Coordinates.js';
 
 function findCellWith(x, y, layerDimension, tileCount) {
-    const tx = tileCount * x / layerDimension.x;
-    const ty = tileCount * y / layerDimension.y;
+    const tx = (tileCount * x) / layerDimension.x;
+    const ty = (tileCount * y) / layerDimension.y;
     // if the user configures an extent with exact same dimension as the "reference" extent of the
     // crs, they won't expect this function to return the tile immediately to the bottom right.
     // therefore, if tx or ty is exactly one, we need to give back 0 instead.  we consider inclusive

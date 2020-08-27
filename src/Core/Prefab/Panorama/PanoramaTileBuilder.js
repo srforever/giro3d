@@ -91,8 +91,8 @@ PanoramaTileBuilder.prototype.vProjecte = function vProjecte(v, params) {
                 1 - v,
             ));
     } else {
-        params.projected.y = this.height
-            * THREE.MathUtils.lerp(params.extent.south(), params.extent.north(), v) / 180;
+        const nsLerp = THREE.MathUtils.lerp(params.extent.south(), params.extent.north(), v);
+        params.projected.y = (this.height * nsLerp) / 180;
     }
 };
 

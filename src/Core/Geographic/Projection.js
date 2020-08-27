@@ -61,7 +61,7 @@ const Projection = {
         const nY = 2 ** zoom;
         const nX = 2 * nY;
 
-        const uX = Math.PI * 2 / nX;
+        const uX = (Math.PI * 2) / nX;
         const uY = Math.PI / nY;
 
         bbox.center(center);

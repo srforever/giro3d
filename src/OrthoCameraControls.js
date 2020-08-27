@@ -41,8 +41,8 @@ class OrthoCameraControls {
         if (this.dragStartPosition) {
             const windowSize = this.view.mainLoop.gfxEngine.getWindowSize();
             const width = this.view.camera.camera3D.right - this.view.camera.camera3D.left;
-            const deltaX = width * (event.offsetX - this.dragStartPosition.x) / -windowSize.x;
-            const deltaY = width * (event.offsetY - this.dragStartPosition.y) / windowSize.y;
+            const deltaX = (width * (event.offsetX - this.dragStartPosition.x)) / -windowSize.x;
+            const deltaY = (width * (event.offsetY - this.dragStartPosition.y)) / windowSize.y;
 
             this.view.camera.camera3D.left = this.dragCameraStart.left + deltaX;
             this.view.camera.camera3D.right = this.dragCameraStart.right + deltaX;

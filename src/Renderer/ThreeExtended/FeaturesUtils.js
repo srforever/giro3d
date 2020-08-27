@@ -95,7 +95,7 @@ function pointIsInsidePolygon(point, polygonPoints) {
 
         // isIntersect semi-infinite ray horizontally with polygon's edge
         const isIntersect = ((yi > y) !== (yj > y))
-            && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+            && (x < ((xj - xi) * (y - yi)) / (yj - yi) + xi);
         if (isIntersect) {
             inside = !inside;
         }

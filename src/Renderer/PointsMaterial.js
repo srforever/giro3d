@@ -34,7 +34,7 @@ class PointsMaterial extends RawShaderMaterial {
         this.fragmentShader = PointsFS;
 
         this.size = options.size || 0;
-        this.scale = options.scale || 0.05 * 0.5 / Math.tan(1.0 / 2.0); // autosizing scale
+        this.scale = options.scale || (0.05 * 0.5) / Math.tan(1.0 / 2.0); // autosizing scale
         this.overlayColor = options.overlayColor || new Vector4(0, 0, 0, 0);
         this.mode = options.mode || MODE.COLOR;
         this.pickingId = 0;
