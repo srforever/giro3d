@@ -304,7 +304,7 @@ function executeCommand(command) {
                 } else if (magic === 'pnts') {
                     func = supportedFormats.pnts;
                 } else {
-                    return Promise.reject(`Unsupported magic code ${magic}`);
+                    return Promise.reject(new Error(`Unsupported magic code ${magic}`));
                 }
                 if (func) {
                     // TODO: request should be delayed if there is a viewerRequestVolume
