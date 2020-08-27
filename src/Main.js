@@ -14,7 +14,11 @@ export { VIEW_EVENTS } from './Core/instance.js';
 export { default as GpxParser } from './Parser/GpxParser.js';
 export { default as GeoJsonParser } from './Parser/GeoJsonParser.js';
 export {
-    process3dTilesNode, init3dTilesLayer, $3dTilesCulling, $3dTilesSubdivisionControl, pre3dTilesUpdate,
+    process3dTilesNode,
+    init3dTilesLayer,
+    $3dTilesCulling,
+    $3dTilesSubdivisionControl,
+    pre3dTilesUpdate,
 } from './Process/3dTilesProcessing.js';
 export { default as FeatureProcessing } from './Process/FeatureProcessing.js';
 export { default as ColorTextureProcessing } from './Process/ColorTextureProcessing.js';

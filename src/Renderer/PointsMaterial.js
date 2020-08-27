@@ -1,5 +1,13 @@
 import {
-    Matrix4, Color, Vector2, Vector3, Vector4, Uniform, NoBlending, NormalBlending, RawShaderMaterial,
+    Matrix4,
+    Color,
+    Vector2,
+    Vector3,
+    Vector4,
+    Uniform,
+    NoBlending,
+    NormalBlending,
+    RawShaderMaterial,
 } from 'three';
 import PointsVS from './Shader/PointsVS.glsl';
 import PointsFS from './Shader/PointsFS.glsl';

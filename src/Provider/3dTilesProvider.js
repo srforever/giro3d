@@ -124,7 +124,12 @@ function preprocessDataLayer(layer, view, scheduler) {
 
     // TODO: find a better way to know that this layer is about pointcloud ?
     if (layer.material && layer.material.enablePicking) {
-        layer.pickObjectsAt = (view2, mouse, radius) => Picking.pickPointsAt(view2, mouse, radius, layer);
+        layer.pickObjectsAt = (view2, mouse, radius) => Picking.pickPointsAt(
+            view2,
+            mouse,
+            radius,
+            layer,
+        );
     }
 
     layer._cleanableTiles = [];

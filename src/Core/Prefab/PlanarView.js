@@ -167,11 +167,20 @@ export function createPlanarLayer(id, extent, options = {}) {
 
                             node.material.uniforms
                                 .neighbourdiffLevel.value.setComponent(i, -diff);
-                            elevationNeighbours.texture[i] = nn.material.texturesInfo.elevation.texture;
+                            elevationNeighbours.texture[i] = nn
+                                .material
+                                .texturesInfo
+                                .elevation
+                                .texture;
 
                             const offscale = targetExtent.offsetToParent(nn.extent);
 
-                            elevationNeighbours.offsetScale[i] = nn.material.texturesInfo.elevation.offsetScale.clone();
+                            elevationNeighbours.offsetScale[i] = nn
+                                .material
+                                .texturesInfo
+                                .elevation
+                                .offsetScale
+                                .clone();
 
                             elevationNeighbours.offsetScale[i].x
                                 += offscale.x * elevationNeighbours.offsetScale[i].z;

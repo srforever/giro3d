@@ -42,14 +42,14 @@ class Instance extends EventDispatcher {
      * @param {string} crs - The default CRS of Three.js coordinates. Should be a cartesian CRS.
      * @param {HTMLElement} viewerDiv - Where to instanciate the Three.js scene in the DOM
      * @param {Object=} options - Optional properties.
-     * @param {?MainLoop} options.mainLoop - {@link MainLoop} instance to use, otherwise a default one
-     * will be constructed
+     * @param {?MainLoop} options.mainLoop - {@link MainLoop} instance to use, otherwise a default
+     * one will be constructed
      * @param {?(WebGLRenderer|object)} options.renderer - {@link WebGLRenderer} instance to use,
-     * otherwise a default one will be constructed. In this case, if options.renderer is an object, it
-     * will be used to configure the renderer (see {@link c2DEngine}.  If not present, a new canvas
-     * will be created and added to viewerDiv (mutually exclusive with mainLoop)
-     * @param {?Scene} options.scene2D - {@link Scene} instance to use, otherwise a default one will be
-     * constructed
+     * otherwise a default one will be constructed. In this case, if options.renderer is an object,
+     * it will be used to configure the renderer (see {@link c2DEngine}.  If not present, a new
+     * canvas will be created and added to viewerDiv (mutually exclusive with mainLoop)
+     * @param {?Scene} options.scene2D - {@link Scene} instance to use, otherwise a default one will
+     * be constructed
      *
      * */
     constructor(viewerDiv, crs = 'EPSG:3857', options = {}) {
@@ -201,7 +201,12 @@ class Instance extends EventDispatcher {
             layer.disableSkirt = true;
             layer.preUpdate = TiledNodeProcessing.preUpdate;
             layer.update = TiledNodeProcessing.update;
-            layer.pickObjectsAt = (_instance, mouse, radius) => Picking.pickTilesAt(_instance, mouse, radius, layer);
+            layer.pickObjectsAt = (_instance, mouse, radius) => Picking.pickTilesAt(
+                _instance,
+                mouse,
+                radius,
+                layer,
+            );
         }
 
         return new Promise((resolve, reject) => {

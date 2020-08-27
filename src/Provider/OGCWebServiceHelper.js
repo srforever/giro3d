@@ -50,7 +50,11 @@ export default {
                 tile.wmtsCoords.WGS84G = [tileCoord.clone()];
             }
 
-            tile.wmtsCoords[tileMatrixSet] = Projection.getCoordWMTS_WGS84(tileCoord, tile.extent, tileMatrixSet);
+            tile.wmtsCoords[tileMatrixSet] = Projection.getCoordWMTS_WGS84(
+                tileCoord,
+                tile.extent,
+                tileMatrixSet,
+            );
         }
     },
     // The origin parameter is to be set to the correct value, bottom or top

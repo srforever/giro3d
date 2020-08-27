@@ -5,13 +5,14 @@ import VectorTileParser from '../Parser/VectorTileParser.js';
 import Feature2Texture from '../Renderer/ThreeExtended/Feature2Texture.js';
 
 const getVectorTileByUrl = function getVectorTileByUrl(url, tile, layer, coords) {
-    return Fetcher.arrayBuffer(url, layer.networkOptions).then(buffer => VectorTileParser.parse(buffer, {
-        extent: tile.extent,
-        filteringExtent: layer.extent,
-        filter: layer.filter,
-        origin: layer.origin,
-        coords,
-    }));
+    return Fetcher.arrayBuffer(url, layer.networkOptions)
+        .then(buffer => VectorTileParser.parse(buffer, {
+            extent: tile.extent,
+            filteringExtent: layer.extent,
+            filter: layer.filter,
+            origin: layer.origin,
+            coords,
+        }));
 };
 
 /**
