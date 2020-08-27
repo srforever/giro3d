@@ -150,7 +150,7 @@ export default {
             const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
             if (!r.length) return;
             const obj = r[0].object;
-            console.log(obj); // eslint-disable-line no-console
+            console.log(obj);
 
             // const svg = document.getElementsByClassName('maa')[0];
             while (svg.firstChild) {

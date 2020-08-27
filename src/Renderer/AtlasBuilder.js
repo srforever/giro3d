@@ -53,7 +53,7 @@ export default {
             }
         }
         if (oldAtlas && !previousRoot) {
-            console.error('UH');
+            console.error('UH: oldAtlas is defined, but not previousRoot');
         }
 
         const { maxX, maxY } = fit(blocks, maxSize, maxSize, previousRoot);

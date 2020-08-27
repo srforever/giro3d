@@ -23,6 +23,7 @@ module.exports = {
         commonjs: true
     },
     rules: {
+        'no-console': 'off', // let's log cleverly!
         eqeqeq: ["error", "smart"],
         'no-plusplus': 'off',
         'arrow-parens': ['error', 'as-needed'],

@@ -51,13 +51,12 @@ export default {
         gl.attachShader(program, glFragmentShader);
         gl.linkProgram(program);
 
+        // XXX this might not be needed any more. Check the status of this bug, and supported fx
         if (gl.getProgramParameter(program, gl.LINK_STATUS) === false) {
             if (maxTexturesUnits > 16) {
                 const info = gl.getProgramInfoLog(program);
-                // eslint-disable-next-line no-console
                 console.warn(`${info}: using a maximum of 16 texture units instead of the reported value (${maxTexturesUnits})`);
                 if (isFirefox()) {
-                    // eslint-disable-next-line no-console
                     console.warn(`It can come from a Mesa/Firefox bug;
                         the shader compiles to an error when using more than 16 sampler uniforms,
                         see https://bugzilla.mozilla.org/show_bug.cgi?id=777028`);

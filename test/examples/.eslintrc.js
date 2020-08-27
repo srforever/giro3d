@@ -46,7 +46,6 @@ module.exports = {
             requireReturnDescription: false,
         }],
 
-        // deactivated rules for `examples/`
         'no-console': 'off',
 
         // TODO reactivate all the following rules

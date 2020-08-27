@@ -254,8 +254,7 @@ export default {
             const pickingId = data[0] + ((data[1] & 0xf0) << 4);
 
             if (pickingId > visibleId) {
-                console.warn('weird');
-                console.warn(pickingId);
+                console.warn(`weird: pickingId (${pickingId}) > visibleId (${visibleId})`);
             }
             // the remaining 20 bits = the point index
             const index = ((data[1] & 0x0f) << 16) + (data[2] << 8) + data[3];

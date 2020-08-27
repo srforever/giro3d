@@ -52,7 +52,6 @@ GuiTools.prototype.addLayersGUI = function fnAddLayersGUI() {
     function filterElevation(l) { return l.type === 'elevation'; }
     this.addImageryLayersGUI(this.view.getLayers(filterColor));
     this.addElevationLayersGUI(this.view.getLayers(filterElevation));
-    // eslint-disable-next-line no-console
     console.info('menu initialized');
 };
 

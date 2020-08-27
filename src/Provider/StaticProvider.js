@@ -110,7 +110,9 @@ function getTexture(toDownload, layer) {
 export default {
     preprocessDataLayer(layer) {
         if (layer.extent) {
-            console.warn('Ignoring given layer.extent, and rebuilding it from sources images instead');
+            console.warn(
+                'Ignoring given layer.extent, and rebuilding it from sources images instead',
+            );
         }
         layer.canTileTextureBeImproved = this.canTileTextureBeImproved;
         layer.url = new URL(layer.url, window.location);

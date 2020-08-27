@@ -252,7 +252,6 @@ export default {
                 );
             })
             .then(root => {
-                // eslint-disable-next-line no-console
                 console.log('LAYER metadata:', root);
                 layer.root = root;
                 root.findChildrenByName = findChildrenByName.bind(root, root);
