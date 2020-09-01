@@ -96,6 +96,7 @@ module.exports = {
         // So let's use our common sense here
         'prefer-destructuring': 'off',
         'no-bitwise': 'off', // we DO manipulate bits often enough, making this irrelevant
+        'max-classes-per-file': 'off', // for me, if we export only one, I don't see the wrong here
     },
     "globals": {
         "__DEBUG__": false
