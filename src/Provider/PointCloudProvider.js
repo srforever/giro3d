@@ -215,7 +215,8 @@ export default {
         layer.networkOptions = layer.networkOptions || {};
         layer.octreeDepthLimit = layer.octreeDepthLimit || -1;
         layer.pointBudget = layer.pointBudget || 2000000;
-        layer.pointSize = layer.pointSize === 0 || !isNaN(layer.pointSize) ? layer.pointSize : 4;
+        layer.pointSize = layer.pointSize === 0
+            || !Number.isNaN(layer.pointSize) ? layer.pointSize : 4;
         layer.sseThreshold = layer.sseThreshold || 2;
         layer.material = layer.material || {};
         layer.material = layer.material.isMaterial

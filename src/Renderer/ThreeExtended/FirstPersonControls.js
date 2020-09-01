@@ -192,7 +192,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
         this._stateOnMouseDown = this._state.snapshot();
     }
 
-    onMouseUp() {
+    onMouseUp(event) {
         if (!this.enabled || event.button !== 0) {
             return;
         }
