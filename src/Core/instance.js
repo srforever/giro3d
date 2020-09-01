@@ -39,8 +39,9 @@ class Instance extends EventDispatcher {
     /**
      * Constructs a giro3d View instance
      *
-     * @param {string} crs - The default CRS of Three.js coordinates. Should be a cartesian CRS.
+     *
      * @param {HTMLElement} viewerDiv - Where to instanciate the Three.js scene in the DOM
+     * @param {string} crs - The default CRS of Three.js coordinates. Should be a cartesian CRS.
      * @param {Object=} options - Optional properties.
      * @param {?MainLoop} options.mainLoop - {@link MainLoop} instance to use, otherwise a default
      * one will be constructed
