@@ -244,7 +244,7 @@ class DeformationChain {
             );
         }
 
-        this.active.point = this.active.point + 1;
+        this.active.point += 1;
         this.updateVisualRepresentation();
     }
 
