@@ -6,7 +6,6 @@
 
 import * as THREE from 'three';
 import Capabilities from '../Core/System/Capabilities.js';
-import { unpack1K } from './LayeredMaterial.js';
 
 function C3DEngine(rendererOrDiv, options = {}) {
     // pick sensible default options
