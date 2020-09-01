@@ -43,7 +43,7 @@ export default {
 
         let previousRoot;
         if (oldAtlas) {
-            for (const k in oldAtlas) { // eslint-disable-line guard-for-in
+            for (const k of Object.keys(oldAtlas)) { // eslint-disable-line guard-for-in
                 const fitResult = oldAtlas[k];
                 if (fitResult.x === 0 && fitResult.y === 0) {
                     // Updating

@@ -39,7 +39,7 @@ class PointsMaterial extends RawShaderMaterial {
         this.mode = options.mode || MODE.COLOR;
         this.pickingId = 0;
 
-        for (const key in MODE) {
+        for (const key of Object.keys(MODE)) {
             if (Object.prototype.hasOwnProperty.call(MODE, key)) {
                 this.defines[`MODE_${key}`] = MODE[key];
             }

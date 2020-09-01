@@ -119,7 +119,7 @@ export default {
         return Fetcher.json(layer.url.href, layer.networkOptions).then(metadata => {
             layer.images = [];
             // eslint-disable-next-line guard-for-in
-            for (const image in metadata) {
+            for (const image of Object.keys(metadata)) {
                 const extent = new Extent(layer.projection, ...metadata[image]);
                 layer.images.push({
                     image,

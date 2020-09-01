@@ -60,7 +60,7 @@ export default function TileVisibilityChart(chartId, tileLayer) {
         countVisible(tileLayer.object3d, stats);
         nbVisibleLabels.length = 0;
         nbVisibleData.length = 0;
-        for (const level in stats) {
+        for (const level of Object.keys(stats)) {
             if ({}.hasOwnProperty.call(stats, level)) {
                 nbVisibleLabels[level] = `${level}`;
                 [nbVisibleData[level], nbDisplayedData[level]] = stats[level];
