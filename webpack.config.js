@@ -18,7 +18,7 @@ var definePlugin = new webpack.DefinePlugin({
    - we also dynamise the value of __DEBUG__ according to the env var
 */
 // Note that we don't support .babelrc in parent folders
-var babelrc = fs.readFileSync(path.resolve(__dirname, '.babelrc'));
+var babelrc = fs.readFileSync(path.resolve(__dirname, 'babel.config.json'));
 var babelConf = JSON.parse(babelrc);
 var newPresets = [];
 for (var preset of babelConf.presets) {

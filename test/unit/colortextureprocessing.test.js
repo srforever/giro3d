@@ -44,7 +44,7 @@ describe('ColorTextureProcessing.updateLayerElement', () => {
         extent: new Extent('EPSG:4326', 0, 0, 0, 0),
     };
 
-    beforeEach('reset state', () => {
+    beforeEach(() => {
         // clear commands array
         context.scheduler.commands = [];
         // reset default layer state

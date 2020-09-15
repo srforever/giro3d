@@ -4,7 +4,7 @@ import assert from 'assert';
 import { Matrix4, Object3D } from 'three';
 import Camera from '../../src/Renderer/Camera.js';
 import Coordinates from '../../src/Core/Geographic/Coordinates.js';
-import { computeNodeSSE } from '../../src/Process/3dTilesProcessing.js';
+import { computeNodeSSE, _testing as tested } from '../../src/Process/3dTilesProcessing.js';
 import { $3dTilesIndex, configureTile } from '../../src/Provider/3dTilesProvider.js';
 
 function tilesetWithBox(transformMatrix) {
@@ -55,7 +55,9 @@ describe('Distance computation using boundingVolume.box', () => {
         const tile = new Object3D();
         configureTile(tile, { }, tileIndex.index['1']);
 
-        computeNodeSSE(context, tile);
+        tested.calculateCameraDistance(camera, tile);
+
+        console.log(tile.distance)
 
         assert.equal(tile.distance, 100 - 1);
     });
