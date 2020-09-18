@@ -63,7 +63,7 @@ describe('ColorTextureProcessing.updateLayerElement', () => {
         const tile = new TileMesh(
             layerGeom,
             geom,
-            new LayeredMaterial(),
+            new LayeredMaterial({}, 8, { maxX: 0, maxY: 0, atlas: {} }),
             new Extent('EPSG:4326', 0, 0, 0, 0),
         );
         tile.material.visible = false;
@@ -76,7 +76,7 @@ describe('ColorTextureProcessing.updateLayerElement', () => {
         const tile = new TileMesh(
             layerGeom,
             geom,
-            new LayeredMaterial(),
+            new LayeredMaterial({}, 8, { maxX: 0, maxY: 0, atlas: {} }),
             new Extent('EPSG:4326', 0, 0, 0, 0),
         );
         tile.material.visible = true;
@@ -90,7 +90,7 @@ describe('ColorTextureProcessing.updateLayerElement', () => {
         const tile = new TileMesh(
             layerGeom,
             geom,
-            new LayeredMaterial(),
+            new LayeredMaterial({}, 8, { maxX: 0, maxY: 0, atlas: {} }),
             new Extent('EPSG:4326', 0, 0, 0, 0),
             2,
         );
@@ -99,11 +99,13 @@ describe('ColorTextureProcessing.updateLayerElement', () => {
         tile.parent = {
             material: {
                 // eslint-disable-next-line arrow-body-style
-                getLayerTextures: () => {
+                getLayerTexture: () => {
                     return {
-                        textures: [{ extent }],
+                        texture: { extent },
                     };
                 },
+                uniforms: { colorTexture: { value: 'dummy' } },
+                texturesInfo: { color: { atlasTexture: 'dummy' } },
             },
         };
         layer.canTextureBeImproved = () => true;
