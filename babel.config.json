@@ -1,5 +1,5 @@
 {
-    "presets": ["env"],
+    "presets": ["@babel/preset-env"],
     "plugins": [
         ["babel-plugin-inline-import", {
             "extensions": [
@@ -7,7 +7,7 @@
                 ".glsl"
             ]
         }],
-        "transform-runtime",
+        "@babel/plugin-transform-runtime",
         ["minify-replace", {
             "replacements": [{
                 "identifierName": "__DEBUG__",
@@ -18,5 +18,20 @@
             }]
         }],
         ["minify-dead-code-elimination"]
-    ]
+    ],
+    "env": {
+        "test": {
+            "presets": [
+                "jest",
+                [
+                    "@babel/preset-env",
+                    {
+                        "targets": {
+                            "node": "current"
+                        }
+                    }
+                ]
+            ]
+        }
+    }
 }

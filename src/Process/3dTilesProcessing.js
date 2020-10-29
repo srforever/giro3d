@@ -343,14 +343,17 @@ export function computeNodeSSE(context, node) {
             return Infinity;
         }
         return Math.max(sse.lengths.x, sse.lengths.y);
-    } else if (!node.boundingVolume.sphere) {
+    } else if (node.boundingVolume.sphere) {
+        // TODO this is broken
+        if (node.distance === 0) {
+            // This test is needed in case geometricError = distance = 0
+            return Infinity;
+        }
+        return context.camera._preSSE * (node.geometricError / node.distance);
+    } else {
+        // TODO invalid tileset, should we throw?
         return Infinity;
     }
-    if (node.distance === 0) {
-        // This test is needed in case geometricError = distance = 0
-        return Infinity;
-    }
-    return context.camera._preSSE * (node.geometricError / node.distance);
 }
 
 export function init3dTilesLayer(view, scheduler, layer) {
@@ -406,6 +409,11 @@ function calculateCameraDistance(camera, node) {
         tmp.b.copy(node.boundingVolume.box);
         tmp.b.applyMatrix4(node.matrixWorld);
         node.distance.min = tmp.b.distanceToPoint(camera.position);
+        // this overestimates the distance a bit
+        // it's ok because what we *don't* want is underestimating it and this keeps the calculus
+        // fast
+        // Maybe we could make it more precise in the future, if big bounding boxes causes trouble
+        // with the far plane (but I don't really expect it to do so)
         node.distance.max = node.distance.min + tmp.b.getSize(tmp.v).length();
     } else if (node.boundingVolume.sphere) {
         // boundingVolume.sphere is affected by matrixWorld
@@ -533,3 +541,7 @@ export function $3dTilesSubdivisionControl(context, layer, node) {
 
     return sse > layer.sseThreshold;
 }
+
+export const _testing = {
+    calculateCameraDistance,
+};

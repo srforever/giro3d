@@ -1,5 +1,6 @@
 /* global it, describe */
 import assert from 'assert';
+import proj4 from 'proj4';
 
 import { chooseExtentToDownload } from '../../src/Provider/WMSProvider.js';
 import Extent from '../../src/Core/Geographic/Extent.js';
@@ -7,6 +8,8 @@ import { STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY 
 
 
 describe('verify wms strategies implementation', () => {
+    proj4.defs('EPSG:4978', '+proj=geocent +datum=WGS84 +units=m +no_defs');
+
     const extent = new Extent('EPSG:4978', {
         west: 0,
         east: 0.1,
