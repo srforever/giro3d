@@ -1,3 +1,5 @@
+[![Gitter](https://badges.gitter.im/_giro3d/community.svg)](https://gitter.im/_giro3d/community?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 ## Geospatial 3D WebGL visualization plateform
 
 Giro3d is a versatile [Three.js](https://threejs.org/)-based framework written in Javascript/WebGL for visualizing 3D geospatial data.
