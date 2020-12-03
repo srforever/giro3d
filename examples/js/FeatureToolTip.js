@@ -1,6 +1,7 @@
 /* global giro3d */
 // eslint-disable-next-line no-unused-vars
-function ToolTip(viewer, viewerDiv, tooltip, precisionPx) {
+// TODO remove this (or refacto heavily)
+window.ToolTip = function ToolTip(viewer, viewerDiv, tooltip, precisionPx) {
     let mouseDown = 0;
     const layers = viewer.getLayers(l => l.protocol === 'rasterizer');
 
