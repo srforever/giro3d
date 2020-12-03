@@ -268,6 +268,15 @@ function Layer(id) {
 Layer.prototype = Object.create(EventDispatcher.prototype);
 Layer.prototype.constructor = Layer;
 
+class TileLayer extends Layer {
+    constructor(options = {}) {
+        super(options.id);
+        this.type = options.type;
+        this.protocol = options.protocol;
+        this.source = options.source;
+    }
+}
+
 const ImageryLayers = {
     // move layer to new index
     // After the modification :
@@ -315,4 +324,4 @@ const ImageryLayers = {
     },
 };
 
-export { GeometryLayer, Layer, ImageryLayers };
+export { GeometryLayer, Layer, TileLayer, ImageryLayers };

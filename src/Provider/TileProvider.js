@@ -117,6 +117,7 @@ function executeCommand(command) {
         tile.setBBoxZ(parent.OBB().z.min, parent.OBB().z.max);
     } else {
         // TODO: probably not here
+        // TODO get parentGeometry from layer
         const elevation = command.view.getLayers((l, p) => p === layer && l.type === 'elevation');
         if (elevation.length > 0) {
             if (!elevation[0].minmax) {

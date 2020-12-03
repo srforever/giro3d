@@ -225,8 +225,9 @@ C3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(
     view, layer, buffer, x, y, width, height,
 ) {
     // hide all layers but the requested one
-    const previousVisibility = view._layers.map(l => l.visible);
-    for (const v of view._layers) {
+    // TODO restore the ability to hide layers (not only objects)
+    const previousVisibility = view._objects.map(l => l.visible);
+    for (const v of view._objects) {
         v.visible = false;
     }
     layer.visible = true;
@@ -244,7 +245,7 @@ C3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(
     this.renderer.setRenderTarget(current);
 
     for (let i = 0; i < previousVisibility.length; i++) {
-        view._layers[i].visible = previousVisibility[i];
+        view._objects[i].visible = previousVisibility[i];
     }
 
     return pixelBuffer;

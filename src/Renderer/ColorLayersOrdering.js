@@ -15,6 +15,7 @@ function updateLayersOrdering(geometryLayer, imageryLayers) {
 
 export const COLOR_LAYERS_ORDER_CHANGED = 'layers-order-changed';
 
+// TODO move this logic into each geometryobject
 export const ColorLayersOrdering = {
     /**
      * Moves up in the layer list. This function has no effect if the layer is moved to its current
@@ -26,6 +27,7 @@ export const ColorLayersOrdering = {
      * giro3d.ColorLayersOrdering.moveLayerUp(viewer, 'idLayerToUp');
      */
     moveLayerUp: function moveLayerUp(view, layerId) {
+        // TODO should be in map
         const imageryLayers = view.getLayers(l => l.type === 'color');
         const layer = view.getLayers(l => l.id === layerId)[0];
         if (layer) {

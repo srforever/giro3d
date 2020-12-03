@@ -63,26 +63,27 @@
             // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
-            // Instanciate PlanarView
-            var view = new giro3d.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 15 });
+            // Instanciate giro3di
+            let instance = new giro3d.Instance(viewerDiv, extent.crs());
+            let map = new giro3d.Map('planar', null, extent, { maxSubdivisionLevel: 15 });
 
             // Instanciate controls
             var controls = new THREE.MapControls(
-                view.camera.camera3D,
-                view.mainLoop.gfxEngine.renderer.domElement);
+                instance.camera.camera3D,
+                instance.mainLoop.gfxEngine.renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.25;
 
-            view.addFrameRequester('before_camera_update', () => {
+            instance.addFrameRequester('before_camera_update', () => {
                 controls.update();
             });
             controls.addEventListener('change', () => {
-                view.notifyChange(view.camera.camera3D);
+                instance.notifyChange(instance.camera.camera3D);
             });
 
             // Turn in the right angle
-            view.camera.camera3D.rotateZ(-Math.PI / 2);
-            setupLoadingScreen(viewerDiv, view);
+            instance.camera.camera3D.rotateZ(-Math.PI / 2);
+            setupLoadingScreen(viewerDiv, instance);
 
             const key = 'pk.eyJ1IjoiYWhvY2V2YXIiLCJhIjoiRk1kMWZaSSJ9.E5BkluenyWQMsBLsuByrmg';
             // eslint-disable-next-line no-unused-vars
@@ -93,7 +94,7 @@
             });
 
             // Add a base layer
-            view.addLayer({
+            instance.addLayer({
                 id: 'osm',
                 type: 'color',
                 protocol: 'olvectortile',
@@ -102,7 +103,7 @@
                 backgroundColor: 'hsl(47, 26%, 88%)'
             });
 
-            view.addLayer({
+            instance.addLayer({
                 id: 'mapbox-terrain-rgb',
                 type: 'elevation',
                 protocol: 'xyz',
@@ -112,16 +113,16 @@
                 networkOptions: { crossOrigin: 'anonymous' },
             });
 
-            view.tileLayer.materialOptions = {
+            instance.tileLayer.materialOptions = {
                 useColorTextureElevation: true,
             };
 
 
             // Request redraw
-            view.notifyChange();
+            instance.notifyChange();
 
             document.addEventListener('click', (evt) => {
-                const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
+                const r = instance.tileLayer.pickObjectsAt(instance, instance.eventToViewCoords(evt), 1);
                 if (!r.length) return;
                 const obj = r[0].object;
                 console.log(obj)
@@ -141,9 +142,9 @@
                 }
             });
 
-            var menuGlobe = new GuiTools('menuDiv', view);
-            var d = new debug.Debug(view, menuGlobe.gui);
-            debug.createTileDebugUI(menuGlobe.gui, view, view.tileLayer, d);
+            var menuGlobe = new GuiTools('menuDiv', instance);
+            var d = new debug.Debug(instance, menuGlobe.gui);
+            debug.createTileDebugUI(menuGlobe.gui, instance, map, d);
         </script>
     </body>
 </html>

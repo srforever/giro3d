@@ -25,7 +25,10 @@ dat.GUI.prototype.hideFolder = function hideFolder(name, value) {
     folder.__ul.hidden = value;
 };
 
-function GuiTools(domId, view, w) {
+// TODO :
+// - view should be instances
+// - we should walk through the objects, then through the color and
+function GuiTools(domId, instance, w) {
     const width = w || 245;
     this.gui = new dat.GUI({ autoPlace: false, width });
     this.gui.domElement.id = domId;
@@ -33,11 +36,12 @@ function GuiTools(domId, view, w) {
     this.colorGui = this.gui.addFolder('Color Layers');
     this.elevationGui = this.gui.addFolder('Elevation Layers');
 
-    if (view) {
-        this.view = view;
-        view.addEventListener('layers-order-changed', () => {
+    if (instance) {
+        this.instance = instance;
+        // TODO should be on map
+        instance.addEventListener('layers-order-changed', () => {
             let i;
-            const colorLayers = view.getLayers(l => l.type === 'color');
+            const colorLayers = instance.getLayers(l => l.type === 'color');
             for (i = 0; i < colorLayers.length; i++) {
                 this.removeLayersGUI(colorLayers[i].id);
             }
@@ -50,8 +54,9 @@ function GuiTools(domId, view, w) {
 GuiTools.prototype.addLayersGUI = function fnAddLayersGUI() {
     function filterColor(l) { return l.type === 'color'; }
     function filterElevation(l) { return l.type === 'elevation'; }
-    this.addImageryLayersGUI(this.view.getLayers(filterColor));
-    this.addElevationLayersGUI(this.view.getLayers(filterElevation));
+    // TODO should be on map
+    this.addImageryLayersGUI(this.instance.getLayers(filterColor));
+    this.addElevationLayersGUI(this.instance.getLayers(filterElevation));
     console.info('menu initialized');
 };
 
@@ -59,15 +64,15 @@ GuiTools.prototype.addImageryLayerGUI = function addImageryLayerGUI(layer) {
     const folder = this.colorGui.addFolder(layer.id);
     folder.add({ visible: layer.visible }, 'visible').onChange(value => {
         layer.visible = value;
-        this.view.notifyChange(layer);
+        this.instance.notifyChange(layer);
     });
     folder.add({ opacity: layer.opacity }, 'opacity').min(0.0).max(1.0).onChange(value => {
         layer.opacity = value;
-        this.view.notifyChange(layer);
+        this.instance.notifyChange(layer);
     });
     folder.add({ frozen: layer.frozen }, 'frozen').onChange(value => {
         layer.frozen = value;
-        this.view.notifyChange(layer);
+        this.instance.notifyChange(layer);
     });
 };
 

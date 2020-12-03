@@ -11,8 +11,6 @@ import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import { GeometryLayer, Layer, defineLayerProperty } from './Layer/Layer.js';
 import Scheduler from './Scheduler/Scheduler.js';
 import Picking from './Picking.js';
-import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
-import ElevationTextureProcessing, { minMaxFromTexture, ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing.js';
 import TiledNodeProcessing from '../Process/TiledNodeProcessing.js';
 import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
@@ -96,7 +94,7 @@ class Instance extends EventDispatcher {
         );
 
         this._frameRequesters = { };
-        this._layers = [];
+        this._objects = [];
 
         window.addEventListener('resize', () => {
             // using boundingRect because clientWidth/height round the result (at least in chrome)
@@ -117,7 +115,9 @@ class Instance extends EventDispatcher {
 
         this._allLayersAreReadyCallback = () => {
             // all layers must be ready
-            const allReady = this.getLayers().every(layer => layer.ready);
+            // TODO should check
+            const allReady = this.getObjects().every(obj => obj.ready)
+                && this.getLayers().every(layer => layer.ready);
             if (allReady
                 && this.mainLoop.scheduler.commandsWaitingExecutionCount() === 0
                 && this.mainLoop.renderingState === RENDERING_PAUSED) {
@@ -190,92 +190,62 @@ class Instance extends EventDispatcher {
      * or rejected if any error occurred.
      * @api
      */
-    addLayer(layer, parentLayer) {
-        if (layer.type === 'color') {
-            layer.update = layer.update || ColorTextureProcessing.updateLayerElement;
-        } else if (layer.type === 'elevation') {
-            layer.update = layer.update || ElevationTextureProcessing.updateLayerElement;
-            if (layer.format === ELEVATION_FORMAT.HEIGHFIELD) {
-                layer.heightFieldOffset = layer.heightFieldOffset || 0;
-                layer.heightFieldScale = layer.heightFieldScale || 255;
-            }
-        } else if (layer.protocol === 'tile') {
-            layer.disableSkirt = true;
-            layer.preUpdate = TiledNodeProcessing.preUpdate;
-            layer.update = TiledNodeProcessing.update;
-            layer.pickObjectsAt = (_instance, mouse, radius) => Picking.pickTilesAt(
+    add(object) {
+        // this should be in map or other objects
+        if (object.protocol === 'tile') {
+            // TODO
+            object.disableSkirt = true;
+            object.preUpdate = TiledNodeProcessing.preUpdate;
+            object.update = TiledNodeProcessing.update;
+            // TODO following lines probably shows that this code belong to Map
+            object._instance = this;
+            object.pickObjectsAt = (_instance, mouse, radius) => Picking.pickTilesAt(
                 _instance,
                 mouse,
                 radius,
-                layer,
+                object,
             );
         }
 
         return new Promise((resolve, reject) => {
-            if (!layer) {
-                reject(new Error('layer is undefined'));
+            if (!object) {
+                reject(new Error('object is undefined'));
                 return;
             }
-            const duplicate = this.getLayers((l => l.id === layer.id));
+            const duplicate = this.getObjects((l => l.id === object.id));
             if (duplicate.length > 0) {
-                reject(new Error(`Invalid id '${layer.id}': id already used`));
+                reject(new Error(`Invalid id '${object.id}': id already used`));
                 return;
             }
 
-            if (parentLayer && !layer.extent) {
-                layer.extent = parentLayer.extent;
-            }
-
-            const provider = this.mainLoop.scheduler.getProtocolProvider(layer.protocol);
-            if (layer.protocol && !provider) {
-                reject(new Error(`${layer.protocol} is not a recognized protocol name.`));
+            const provider = this.mainLoop.scheduler.getProtocolProvider(object.protocol);
+            if (object.protocol && !provider) {
+                reject(new Error(`${object.protocol} is not a recognized protocol name.`));
                 return;
             }
 
-            layer = _preprocessLayer(this, layer, provider, parentLayer);
+            object = _preprocessObject(this, object, provider);
 
-            if (!layer.projection) {
-                layer.projection = (parentLayer && parentLayer.extent)
-                    ? parentLayer.extent.crs() : this.referenceCrs;
+            if (!object.projection) {
+                object.projection = this.referenceCrs;
             }
 
-            layer.whenReady.then(l => {
-                if (parentLayer) {
-                    if (l.type === 'elevation') {
-                        parentLayer.minMaxFromElevationLayer = {
-                            min: l.minmax.min,
-                            max: l.minmax.max,
-                        };
-                        for (const node of parentLayer.level0Nodes) {
-                            node.traverse(n => {
-                                if (n.setBBoxZ) {
-                                    n.setBBoxZ(
-                                        parentLayer.minMaxFromElevationLayer.min,
-                                        parentLayer.minMaxFromElevationLayer.max,
-                                    );
-                                }
-                            });
-                        }
-                    }
-
-                    parentLayer.attach(l);
-                } else {
-                    if (typeof (l.update) !== 'function') {
-                        reject(new Error('Cant add GeometryLayer: missing a update function'));
-                        return;
-                    }
-                    if (typeof (l.preUpdate) !== 'function') {
-                        reject(new Error('Cant add GeometryLayer: missing a preUpdate function'));
-                        return;
-                    }
-                    this._layers.push(l);
+            object.whenReady.then(l => {
+                if (typeof (l.update) !== 'function') {
+                    reject(new Error('Cant add GeometryLayer: missing a update function'));
+                    return;
                 }
+                if (typeof (l.preUpdate) !== 'function') {
+                    reject(new Error('Cant add GeometryLayer: missing a preUpdate function'));
+                    return;
+                }
+                this._objects.push(l);
 
                 if (l.object3d && !l.object3d.parent && l.object3d !== this.scene) {
                     this.scene.add(l.object3d);
                 }
 
-                this.notifyChange(parentLayer || l, false);
+                this.notifyChange(l, false);
                 const updateEndFR = this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END];
                 if (!updateEndFR || updateEndFR.indexOf(this._allLayersAreReadyCallback) === -1) {
                     this.addFrameRequester(
@@ -288,20 +258,15 @@ class Instance extends EventDispatcher {
         });
     }
 
-    removeLayer(layer) {
-        if (layer.object3d) {
-            ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, layer.object3d);
-            this.scene.remove(layer.object3d);
+    removeObject(object) {
+        if (object.object3d) {
+            ObjectRemovalHelper.removeChildrenAndCleanupRecursively(object, object.object3d);
+            this.scene.remove(object.object3d);
         }
-        const parentLayer = this.getLayers(
-            l => l._attachedLayers && l._attachedLayers.includes(layer),
-        )[0];
-        if (parentLayer) {
-            parentLayer.detach(layer);
+        if (typeof object.clean === 'function') {
+            object.clean();
         }
-        _cleanLayer(this, layer, parentLayer);
-        // TODO clean also this layer's children
-        this.notifyChange(parentLayer || this.camera.camera3D, true);
+        this.notifyChange(this.camera.camera3D, true);
     }
 
     addVector(vector) {
@@ -359,29 +324,32 @@ class Instance extends EventDispatcher {
      *   - 2nd: (optional) the geometry layer to which the current layer is attached
      * @example
      * // get all layers
-     * view.getLayers();
+     * view.getObjects();
      * // get all color layers
-     * view.getLayers(layer => layer.type === 'color');
+     * view.getObjects(layer => layer.type === 'color');
      * // get all elevation layers
-     * view.getLayers(layer => layer.type === 'elevation');
+     * view.getObjects(layer => layer.type === 'elevation');
      * // get all geometry layers
-     * view.getLayers(layer => layer.type === 'geometry');
+     * view.getObjects(layer => layer.type === 'geometry');
      * // get one layer with id
-     * view.getLayers(layer => layer.id === 'itt');
+     * view.getObjects(layer => layer.id === 'itt');
      * @param {function(Layer):boolean} filter
      * @returns {Array<Layer>}
      */
-    getLayers(filter) {
+    getObjects(filter) {
         const result = [];
-        for (const geometryLayer of this._layers) {
+        for (const geometryLayer of this._objects) {
             if (!filter || filter(geometryLayer)) {
                 result.push(geometryLayer);
             }
-            for (const attached of geometryLayer._attachedLayers) {
-                if (!filter || filter(attached, geometryLayer)) {
-                    result.push(attached);
-                }
-            }
+        }
+        return result;
+    }
+
+    getLayers(filter) {
+        let result = [];
+        for (const obj of this._objects) {
+            result = [...result, ...obj.getLayers(filter)];
         }
         return result;
     }
@@ -391,7 +359,7 @@ class Instance extends EventDispatcher {
      * @returns {GeometryLayer} the parent layer of the given layer or undefined.
      */
     getParentLayer(layer) {
-        for (const geometryLayer of this._layers) {
+        for (const geometryLayer of this._objects) {
             for (const attached of geometryLayer._attachedLayers) {
                 if (attached === layer) {
                     return geometryLayer;
@@ -586,7 +554,7 @@ class Instance extends EventDispatcher {
      */
     pickObjectsAt(mouseOrEvt, radius, ...where) {
         const results = [];
-        const sources = where.length === 0 ? this.getLayers(l => l.type === 'geometry') : [...where];
+        const sources = where.length === 0 ? this.getObjects() : [...where];
         const mouse = (mouseOrEvt instanceof Event)
             ? this.eventToViewCoords(mouseOrEvt) : mouseOrEvt;
         radius = radius || 0;
@@ -595,42 +563,17 @@ class Instance extends EventDispatcher {
             if (source instanceof GeometryLayer
                 || source instanceof Layer
                 || typeof (source) === 'string') {
-                const layer = (typeof (source) === 'string')
-                    ? layerIdToLayer(this, source)
+                const object = (typeof (source) === 'string')
+                    ? objectIdToObject(this, source)
                     : source;
 
-                // does this layer have a custom picking function?
-                if (layer.pickObjectsAt) {
-                    const sp = layer.pickObjectsAt(this, mouse, radius);
-                    // warning: sp might be very large, so we can't use '...sp' (we'll hit
-                    // 'javascript maximum call stack size exceeded' error) nor
-                    // Array.prototype.push.apply(result, sp)
-                    for (let i = 0; i < sp.length; i++) {
-                        results.push(sp[i]);
-                    }
-                } else {
-                    //   - it hasn't: this layer is attached to another one
-                    let parentLayer;
-                    this.getLayers((l, p) => {
-                        if (l.id === layer.id) {
-                            parentLayer = p;
-                        }
-                    });
-
-                    // raycast using parent layer object3d
-                    const obj = Picking.pickObjectsAt(
-                        this,
-                        mouse,
-                        radius,
-                        parentLayer.object3d,
-                    );
-
-                    // then filter the results
-                    for (const o of obj) {
-                        if (o.layer === layer) {
-                            results.push(o);
-                        }
-                    }
+                // TODO ability to pick on a layer instead of a geometric object?
+                const sp = object.pickObjectsAt(this, mouse, radius);
+                // warning: sp might be very large, so we can't use '...sp' (we'll hit
+                // 'javascript maximum call stack size exceeded' error) nor
+                // Array.prototype.push.apply(result, sp)
+                for (let i = 0; i < sp.length; i++) {
+                    results.push(sp[i]);
                 }
             } else if (source instanceof Object3D) {
                 Picking.pickObjectsAt(
@@ -646,6 +589,22 @@ class Instance extends EventDispatcher {
         }
 
         return results;
+    }
+
+    focusObject(obj) {
+        if (obj instanceof Map) {
+            // Configure camera
+            // TODO support different CRS
+            const dim = obj.extent.dimensions();
+            const positionCamera = obj.extent.center().clone();
+            positionCamera._values[2] = Math.max(dim.x, dim.y);
+            const lookat = positionCamera.xyz();
+            lookat.z = 0; // TODO this supposes there is no terrain, nor z-displacement
+
+            this.camera.camera3D.position.copy(positionCamera.xyz());
+            this.camera.camera3D.lookAt(lookat);
+            this.camera.camera3D.updateMatrixWorld(true);
+        }
     }
 }
 
@@ -663,7 +622,7 @@ const _syncGeometryLayerVisibility = function _syncGeometryLayerVisibility(layer
     }
 };
 
-function _preprocessLayer(view, layer, provider, parentLayer) {
+function _preprocessObject(view, layer, provider, parentLayer) {
     if (!(layer instanceof Layer) && !(layer instanceof GeometryLayer)) {
         const nlayer = new Layer(layer.id);
         // nlayer.id is read-only so delete it from layer before Object.assign
@@ -695,12 +654,10 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
     }
 
     if (!layer.whenReady) {
-        if (layer.type === 'geometry' || layer.type === 'debug') {
-            if (!layer.object3d) {
-                // layer.threejsLayer *must* be assigned before preprocessing,
-                // because TileProvider.preprocessDataLayer function uses it.
-                layer.threejsLayer = view.mainLoop.gfxEngine.getUniqueThreejsLayer();
-            }
+        if (!layer.object3d) {
+            // layer.threejsLayer *must* be assigned before preprocessing,
+            // because TileProvider.preprocessDataLayer function uses it.
+            layer.threejsLayer = view.mainLoop.gfxEngine.getUniqueThreejsLayer();
         }
         let providerPreprocessing = Promise.resolve();
         if (provider && provider.preprocessDataLayer) {
@@ -712,68 +669,18 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
             }
         }
 
-        if (layer.type === 'elevation') {
-            providerPreprocessing = providerPreprocessing.then(() => {
-                const down = provider.canTextureBeImproved(layer, layer.extent);
-                return provider.executeCommand({
-                    layer,
-                    toDownload: down,
-                }).then(result => {
-                    const minmax = minMaxFromTexture(layer, result.texture, result.pitch);
-                    result.texture.min = minmax.min;
-                    result.texture.max = minmax.max;
-                    layer.minmax = minmax;
-                });
-            });
-        }
-
         // the last promise in the chain must return the layer
         layer.whenReady = providerPreprocessing.then(() => {
-            if (layer.type === 'elevation') {
-                if (!layer.minmax) {
-                    throw new Error('At this point the whole min/max should be known');
-                }
-                parentLayer.object3d.traverse(n => {
-                    if (n.setBBoxZ) {
-                        n.setBBoxZ(layer.minmax.min, layer.minmax.max);
-                    }
-                });
-            }
-
             layer.ready = true;
             return layer;
         });
     }
 
     // probably not the best place to do this
-    if (layer.type === 'color') {
-        defineLayerProperty(layer, 'frozen', false);
-        defineLayerProperty(layer, 'visible', true);
-        defineLayerProperty(layer, 'opacity', 1.0);
-        defineLayerProperty(layer, 'sequence', 0);
-    } else if (layer.type === 'elevation') {
-        defineLayerProperty(layer, 'frozen', false);
-    } else if (layer.type === 'geometry' || layer.type === 'debug') {
-        defineLayerProperty(layer, 'visible', true, () => _syncGeometryLayerVisibility(layer, view));
-        defineLayerProperty(layer, 'frozen', false);
-        _syncGeometryLayerVisibility(layer, view);
-    }
+    defineLayerProperty(layer, 'visible', true, () => _syncGeometryLayerVisibility(layer, view));
+    defineLayerProperty(layer, 'frozen', false);
+    _syncGeometryLayerVisibility(layer, view);
     return layer;
-}
-
-function _cleanLayer(view, layer, parentLayer) {
-    // XXX do providers needs to clean their layers ? Usually it's just some properties
-    // initialisation...  - YES they do, because Providers use Cache, and they know which key they
-    // use. (this behaviour is dangerous and we should change this)
-    if (layer.type === 'color') {
-        ColorTextureProcessing.cleanLayer(view, layer, parentLayer);
-    } else if (layer.type === 'elevation') {
-        // TODO
-        // ElevationTextureProcessing.clean(layer, parentLayer.object3d);
-    }
-    if (typeof layer.clean === 'function') {
-        layer.clean();
-    }
 }
 
 /**
@@ -811,8 +718,8 @@ function _cleanLayer(view, layer, parentLayer) {
  * @property * Same properties as the init parameter of fetch
  */
 
-function layerIdToLayer(view, layerId) {
-    const lookup = view.getLayers(l => l.id === layerId);
+function objectIdToObject(view, layerId) {
+    const lookup = view.getObjects(l => l.id === layerId);
     if (!lookup.length) {
         throw new Error(`Invalid layer id used as where argument (value = ${layerId})`);
     }

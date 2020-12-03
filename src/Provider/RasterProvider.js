@@ -60,6 +60,7 @@ function pickObjectsAt(view, mouse, radius) {
     const parentLayer = view.getLayers(
         l => l.type === 'geometry' && l._attachedLayers.includes(this),
     )[0];
+    // TODO get parentGeometry from a layer
     const results = view.pickObjectsAt(mouse, radius, parentLayer.level0Nodes[0]);
     if (results.length === 0) {
         return [];

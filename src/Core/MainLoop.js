@@ -172,7 +172,7 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
         }
     });
 
-    for (const geometryLayer of instance.getLayers((x, y) => !y)) {
+    for (const geometryLayer of instance.getObjects()) {
         context.fastUpdateHint = undefined;
         context.geometryLayer = geometryLayer;
         if (geometryLayer.ready && geometryLayer.visible) {

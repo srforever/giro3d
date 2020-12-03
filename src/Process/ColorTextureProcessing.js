@@ -56,9 +56,11 @@ function refinementCommandCancellationFn(cmd) {
 }
 
 export default {
-    cleanLayer(view, layer, parentLayer) {
-        parentLayer.object3d.traverse(o => {
-            if (o.layer === parentLayer) {
+    cleanLayer(layer, object) {
+        object.object3d.traverse(o => {
+            // TODO rename o.layer to o.giroobject, or o.object?
+            // object is not a great name too...
+            if (o.layer === object) {
                 // clean object of layer
                 delete o.layerUpdateState[layer.id];
                 // delete texture in material
