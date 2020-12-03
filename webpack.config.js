@@ -3,9 +3,10 @@ var path = require('path');
 var webpack = require('webpack');
 
 const debugBuild = process.env.NODE_ENV === 'development';
-var definePlugin = new webpack.DefinePlugin({
+const definePlugin = new webpack.DefinePlugin({
     __DEBUG__: debugBuild,
 });
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 /*
    configuring babel:
@@ -50,19 +51,10 @@ module.exports = {
     },
     plugins: [
         definePlugin,
+        new ESLintPlugin(),
     ],
     module: {
         rules: [
-            {
-                test: /\.js$/,
-                enforce: 'pre',
-                include: [
-                    path.resolve(__dirname, 'src'),
-                    path.resolve(__dirname, 'test'),
-                    path.resolve(__dirname, 'utils'),
-                ],
-                loader: 'eslint-loader',
-            },
             {
                 test: /\.js$/,
                 include: [
