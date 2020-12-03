@@ -48,7 +48,6 @@ export default {
         sticky.add(layer, 'dbgDisplayChildren').name('Display children of sticky node').onChange(update);
         sticky.add(layer, 'dbgDisplayParents').name('Display parents of sticky node').onChange(update);
 
-
         view.addFrameRequester('after_layer_update', () => {
             if (layer.bboxes) {
                 layer.bboxes.visible = layer.dbgDisplaybbox;

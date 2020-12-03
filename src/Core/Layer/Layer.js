@@ -3,7 +3,6 @@ import Picking from '../Picking.js';
 import Capabilities from '../System/Capabilities.js';
 import AtlasBuilder from '../../Renderer/AtlasBuilder.js';
 
-
 /**
  * Fires when layer sequence change (meaning when the order of the layer changes in the view)
  * @event Layer#sequence-property-changed

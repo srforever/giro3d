@@ -58,7 +58,6 @@ class PointsMaterial extends RawShaderMaterial {
         this.extensions.fragDepth = true;
         this.uniforms.enableTransfo = new Uniform(0);
 
-
         this.transformations = [];
         for (let i = 0; i < NUM_TRANSFO; i++) {
             this.transformations.push(new Matrix4());

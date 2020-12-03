@@ -1,6 +1,6 @@
-var fs = require('fs');
-var path = require('path');
-var webpack = require('webpack');
+const fs = require('fs');
+const path = require('path');
+const webpack = require('webpack');
 
 const debugBuild = process.env.NODE_ENV === 'development';
 const definePlugin = new webpack.DefinePlugin({
@@ -19,10 +19,10 @@ const ESLintPlugin = require('eslint-webpack-plugin');
    - we also dynamise the value of __DEBUG__ according to the env var
 */
 // Note that we don't support .babelrc in parent folders
-var babelrc = fs.readFileSync(path.resolve(__dirname, 'babel.config.json'));
-var babelConf = JSON.parse(babelrc);
-var newPresets = [];
-for (var preset of babelConf.presets) {
+const babelrc = fs.readFileSync(path.resolve(__dirname, 'babel.config.json'));
+const babelConf = JSON.parse(babelrc);
+const newPresets = [];
+for (let preset of babelConf.presets) {
     if (!Array.isArray(preset)) {
         preset = [preset];
     }

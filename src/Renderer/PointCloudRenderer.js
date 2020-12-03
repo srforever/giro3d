@@ -327,7 +327,6 @@ PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.
     r.setClearAlpha(oldClearAlpha);
 };
 
-
 function _createRenderTargets(view) {
     const renderTargets = [];
     renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width, view.camera.height));

@@ -1,5 +1,5 @@
 module.exports = {
-    'extends': [
+    extends: [
         'eslint-config-airbnb-base',
         'eslint-config-airbnb-base/rules/strict',
     ],
@@ -7,8 +7,8 @@ module.exports = {
         ecmaVersion: 2017,
         sourceType: 'script',
         ecmaFeatures: {
-            impliedStrict: true
-        }
+            impliedStrict: true,
+        },
     },
     env: {
         browser: true,
@@ -32,12 +32,12 @@ module.exports = {
             // },
             FunctionDeclaration: {
                 parameters: 1,
-                body: 1
+                body: 1,
             },
             FunctionExpression: {
                 parameters: 1,
-                body: 1
-            }
+                body: 1,
+            },
         }],
         'one-var': ['error', 'never'],
         'valid-jsdoc': ['error', {
@@ -50,5 +50,5 @@ module.exports = {
 
         // TODO reactivate all the following rules
         'no-underscore-dangle': 'off',
-    }
-}
+    },
+};

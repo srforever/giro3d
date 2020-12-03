@@ -6,13 +6,11 @@ function Buffers() {
     this.uv = null;
 }
 
-
 // Define UV computation functions if needed
 function UV_WGS84(out, id, u, v) {
     out.uv.array[id * 2 + 0] = u;
     out.uv.array[id * 2 + 1] = v;
 }
-
 
 function TileGeometry(params, builder) {
     // Constructor
@@ -30,7 +28,6 @@ function TileGeometry(params, builder) {
     this.computeBoundingBox();
     this.OBB = builder.OBB(this.boundingBox);
 }
-
 
 TileGeometry.prototype = Object.create(THREE.BufferGeometry.prototype);
 

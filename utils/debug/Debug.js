@@ -107,7 +107,6 @@ function Debug(view, datDebugTool, chartDivContainer) {
         };
     })());
 
-
     let before;
     view.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_START, () => {
         before = Date.now();
@@ -196,7 +195,6 @@ function Debug(view, datDebugTool, chartDivContainer) {
         }
     }
 }
-
 
 Debug.prototype.createChartContainer = function createChartContainer(chartId) {
     const div = document.createElement('div');

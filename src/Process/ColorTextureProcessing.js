@@ -55,7 +55,6 @@ function refinementCommandCancellationFn(cmd) {
     return !cmd.requester.material.visible;
 }
 
-
 export default {
     cleanLayer(view, layer, parentLayer) {
         parentLayer.object3d.traverse(o => {

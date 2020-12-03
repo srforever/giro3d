@@ -100,7 +100,6 @@ function getTexture(toDownload, layer) {
     });
 }
 
-
 /**
  * This provider uses no protocol but instead download static images directly.
  *

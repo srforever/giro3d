@@ -136,7 +136,6 @@ export function chooseExtentToDownload(layer, extent, currentExtent) {
             break;
     }
 
-
     if (nextDepth >= nodeDepth) {
         return extent;
     }

@@ -6,7 +6,6 @@ import { chooseExtentToDownload } from '../../src/Provider/WMSProvider.js';
 import Extent from '../../src/Core/Geographic/Extent.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY } from '../../src/Core/Layer/LayerUpdateStrategy.js';
 
-
 describe('verify wms strategies implementation', () => {
     proj4.defs('EPSG:4978', '+proj=geocent +datum=WGS84 +units=m +no_defs');
 

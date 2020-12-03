@@ -81,7 +81,6 @@ const Projection = {
     },
 };
 
-
 function wmtsWgs84ToWmtsPm(cWMTS, bbox) {
     const wmtsBox = [];
     const level = cWMTS.zoom + 1;

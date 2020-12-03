@@ -93,4 +93,4 @@ function ToolTip(viewer, viewerDiv, tooltip, precisionPx) {
 
     document.addEventListener('mousemove', readPosition, false);
     document.addEventListener('mousedown', pickPosition, false);
-}
+};

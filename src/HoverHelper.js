@@ -21,7 +21,6 @@ function objectUnderMouseEvent(event, view, objects) {
     return intersects[0].object;
 }
 
-
 class HoverHelper {
     constructor(view) {
         this.view = view;

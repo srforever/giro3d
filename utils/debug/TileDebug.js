@@ -41,7 +41,6 @@ function debugIdUpdate(context, layer, node) {
             node.add(helper);
             helper.updateMatrixWorld(true);
 
-
             const foo = new THREE.AxesHelper(10);
             // foo.layers.set(l3js);
             node.add(foo);
@@ -75,7 +74,6 @@ function debugIdUpdate(context, layer, node) {
         }
     }
 }
-
 
 export default function createTileDebugUI(datDebugTool, view, layer, debugInstance) {
     const gui = GeometryDebug.createGeometryDebugUI(datDebugTool, view, layer);

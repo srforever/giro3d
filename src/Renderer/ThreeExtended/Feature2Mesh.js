@@ -130,7 +130,6 @@ function prepareBufferGeometry(vert, color, altitude, extrude) {
     return geom;
 }
 
-
 function featureToPoint(feature, properties, options) {
     // get altitude / color from properties
     const altitude = getProperty('altitude', options, 0, properties, feature.vertices);
@@ -201,7 +200,6 @@ function featureToPolygon(feature, properties, options) {
     geom.setIndex(new THREE.BufferAttribute(new Uint16Array(indices), 1));
     return new THREE.Mesh(geom);
 }
-
 
 function featureToExtrudedPolygon(feature, properties, options) {
     // get altitude / color from properties

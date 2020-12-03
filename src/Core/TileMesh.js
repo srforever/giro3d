@@ -118,7 +118,6 @@ TileMesh.prototype.setTextureElevation = function setTextureElevation(layer, ele
     this.material.setLayerTextures(layer, elevation);
 };
 
-
 TileMesh.prototype.setBBoxZ = function setBBoxZ(min, max) {
     // 0 is an acceptable value
     if (min == null && max == null) {
