@@ -79,8 +79,6 @@ export function createPanoramaLayer(id, coordinates, type, options = {}) {
 }
 
 function PanoramaView(viewerDiv, coordinates, type, options = {}) {
-    THREE.Object3D.DefaultUp.set(0, 0, 1);
-
     // Setup Instance
     Instance.call(this, viewerDiv, coordinates.crs, options);
 

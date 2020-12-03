@@ -80,8 +80,6 @@
             // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             viewerDiv = document.getElementById('viewerDiv');
 
-            giro3d.THREE.Object3D.DefaultUp.set(0, 0, 1);
-
             scale = new giro3d.THREE.Vector3(1, 1, 1).divideScalar(extent.dimensions().x);
 
             // Instanciate View
