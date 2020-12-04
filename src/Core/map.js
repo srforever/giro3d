@@ -1,10 +1,14 @@
+/**
+ * @module Core/map
+ */
 import * as THREE from 'three';
 
 // import { MAIN_LOOP_EVENTS } from './MainLoop.js';
 import Coordinates from './Geographic/Coordinates.js';
 import Extent from './Geographic/Extent.js';
 import { MAIN_LOOP_EVENTS } from './MainLoop.js';
-import { GeometryLayer, Layer, defineLayerProperty } from './Layer/Layer.js';
+import Layer, { defineLayerProperty } from './Layer/Layer.js';
+import  GeometryLayer from './Layer/GeometryLayer.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import PlanarTileBuilder from './Prefab/Planar/PlanarTileBuilder.js';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
@@ -112,7 +116,21 @@ function findNeighbours(node) {
     return borders.map(border => findSmallestExtentCovering(node, border));
 }
 
+/**
+ * a Map object: base object to add map layers
+ * @api
+ */
 class Map extends GeometryLayer {
+    /**
+     * Constructs a Map object.
+     *
+     * @param {string} id
+     * @param {Object3d} object3d
+     * @param {Extent} extent
+     * @param {object} options
+     *
+     * @api
+     * */
     constructor(id, object3d, extent, options = {}) {
         super(id, object3d || new THREE.Group());
         const crs = Array.isArray(extent) ? extent[0].crs() : extent.crs();

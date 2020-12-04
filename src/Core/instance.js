@@ -8,7 +8,8 @@ import Camera from '../Renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../Renderer/c3DEngine.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
-import { GeometryLayer, Layer, defineLayerProperty } from './Layer/Layer.js';
+import Layer, { defineLayerProperty } from './Layer/Layer.js';
+import GeometryLayer from './Layer/GeometryLayer.js';
 import Scheduler from './Scheduler/Scheduler.js';
 import Picking from './Picking.js';
 import TiledNodeProcessing from '../Process/TiledNodeProcessing.js';
@@ -31,11 +32,12 @@ export const VIEW_EVENTS = {
 
 const _eventCoords = new Vector2();
 /**
+ * The instance is the main object of Giro3D
  * @api
  */
 class Instance extends EventDispatcher {
     /**
-     * Constructs a giro3d View instance
+     * Constructs a giro3d Instance
      *
      *
      * @param {HTMLElement} viewerDiv - Where to instanciate the Three.js scene in the DOM
@@ -49,6 +51,8 @@ class Instance extends EventDispatcher {
      * canvas will be created and added to viewerDiv (mutually exclusive with mainLoop)
      * @param {?Scene} options.scene2D - {@link Scene} instance to use, otherwise a default one will
      * be constructed
+     *
+     * @api
      *
      * */
     constructor(viewerDiv, crs = 'EPSG:3857', options = {}) {
@@ -682,41 +686,6 @@ function _preprocessObject(view, layer, provider, parentLayer) {
     _syncGeometryLayerVisibility(layer, view);
     return layer;
 }
-
-/**
- * Options to wms protocol
- * @typedef {Object} OptionsWms
- * @property {Attribution} attribution The intellectual property rights for the layer
- * @property {Object} extent Geographic extent of the service
- * @property {string} name
- */
-
-/**
- * Options to wtms protocol
- * @typedef {Object} OptionsWmts
- * @property {Attribution} attribution The intellectual property rights for the layer
- * @property {string} attribution.name The name of the owner of the data
- * @property {string} attribution.url The website of the owner of the data
- * @property {string} name
- * @property {string} tileMatrixSet
- * @property {Array.<Object>} tileMatrixSetLimits The limits for the tile matrix set
- * @property {number} tileMatrixSetLimits.minTileRow Minimum row for tiles at the level
- * @property {number} tileMatrixSetLimits.maxTileRow Maximum row for tiles at the level
- * @property {number} tileMatrixSetLimits.minTileCol Minimum col for tiles at the level
- * @property {number} tileMatrixSetLimits.maxTileCol Maximum col for tiles at the level
- * @property {Object} [zoom]
- * @property {Object} [zoom.min] layer's zoom minimum
- * @property {Object} [zoom.max] layer's zoom maximum
- */
-
-/**
- * @typedef {Object} NetworkOptions - Options for fetching resources over the
- * network. For json or xml fetching, this object is passed as it is to fetch
- * as the init object, see [fetch documentation]{@link https://developer.mozilla.org/en-US/docs/Web/API/WindowOrWorkerGlobalScope/fetch#Parameters}.
- * @property {string} crossOrigin For textures, only this property is used. Its
- * value is directly assigned to the crossorigin property of html tags.
- * @property * Same properties as the init parameter of fetch
- */
 
 function objectIdToObject(view, layerId) {
     const lookup = view.getObjects(l => l.id === layerId);
