@@ -252,7 +252,7 @@ $(function () {
 
   // warn about outdated version
     // TODO fix url
-    var packageUrl = 'https://raw.githubusercontent.com/Oslandia/giro3d.github.io/build/package.json';
+    var packageUrl = 'https://gitlab.com/giro3d/giro3d/-/raw/master/package.json';
   fetch(packageUrl).then(function(response) {
     return response.json();
   }).then(function(json) {
@@ -277,12 +277,12 @@ $(function () {
     }
   });
 
-  // create source code links to github
+  // create source code links to sourc code
   var srcLinks = $('div.tag-source');
   srcLinks.each(function(i, el) {
     var textParts = el.innerHTML.trim().split(', ');
       // TODO fix me
-      var link = 'https://gilab.com/Oslandia/giro3d/blob/v' + currentVersion + '/src/' +
+      var link = 'https://gitlab.com/giro3d/giro3d/-/tree/' + currentVersion + '/src/' +
       textParts[0];
     el.innerHTML = '<a href="' + link + '">' + textParts[0] + '</a>, ' +
       '<a href="' + link + textParts[1].replace('line ', '#L') + '">' +
