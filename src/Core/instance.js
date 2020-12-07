@@ -1,5 +1,6 @@
 /**
  * @module Core/instance
+ *
  */
 import {
     Scene, Group, EventDispatcher, Vector2, Object3D,
@@ -32,7 +33,16 @@ export const VIEW_EVENTS = {
 
 const _eventCoords = new Vector2();
 /**
- * The instance is the main object of Giro3D
+ * The instance is the core component of Giro3D. It encapsulates the 3D scene, the current camera
+ * and one or more 3D objects, like a {@link module:Core/map~Map}.
+ *
+ *
+ *     // Instanciate Giro3D
+ *     let instance = new giro3d.Instance(viewerDiv, extent.crs(), {camera: camera})
+ *     let map = new giro3d.Map('planar', null, extent, { maxSubdivisionLevel: 10 });
+ *     instance.add(map);
+ *
+ *
  * @api
  */
 class Instance extends EventDispatcher {
@@ -41,28 +51,22 @@ class Instance extends EventDispatcher {
      *
      *
      * @param {HTMLElement} viewerDiv - Where to instanciate the Three.js scene in the DOM
-     * @param {string} crs - The default CRS of Three.js coordinates. Should be a cartesian CRS.
      * @param {Object=} options - Optional properties.
-     * @param {?MainLoop} options.mainLoop - {@link MainLoop} instance to use, otherwise a default
-     * one will be constructed
-     * @param {?(WebGLRenderer|object)} options.renderer - {@link WebGLRenderer} instance to use,
-     * otherwise a default one will be constructed. In this case, if options.renderer is an object,
-     * it will be used to configure the renderer (see {@link c2DEngine}.  If not present, a new
-     * canvas will be created and added to viewerDiv (mutually exclusive with mainLoop)
-     * @param {?Scene} options.scene2D - {@link Scene} instance to use, otherwise a default one will
+     * @param {?string} [options.crs='EPSG:3857'] - The default CRS of Three.js coordinates. Should be a cartesian CRS.
+     * @param {?Scene} options.scene3D - {@link Scene} Three.js scene instance to use, otherwise a default one will
      * be constructed
      *
      * @api
      *
      * */
-    constructor(viewerDiv, crs = 'EPSG:3857', options = {}) {
+    constructor(viewerDiv, options = {}) {
         super();
         Object3D.DefaultUp.set(0, 0, 1);
         if (!viewerDiv) {
             throw new Error('Invalid viewerDiv parameter (must non be null/undefined)');
         }
 
-        this.referenceCrs = crs;
+        this.referenceCrs = options.crs || 'EPSG:3857';
 
         let engine;
         // options.renderer can be 2 separate things:
