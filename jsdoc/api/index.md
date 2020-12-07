@@ -9,7 +9,7 @@ API DOCUMENTATION
 
 
 <p id="para" align="center">
-<a href="http://www.oslandia.com"><img src="https://raw.githubusercontent.com/giro3d/giro3d.github.io/master/images/logo_oslandia.png" height="100" /></a>&nbsp;
+<a href="http://www.oslandia.com"><img src="./giro3d_logo.svg" height="100" /></a>&nbsp;
 </p>
 
 

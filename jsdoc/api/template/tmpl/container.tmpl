@@ -20,7 +20,7 @@
     <br>
     <?js if (doc.stability || doc.kind == 'namespace' || doc.kind == 'module') {
       var ancestors = doc.ancestors.map(a => a.replace(/>\./g, '>').replace(/\.</g, '<')).join('/');
-      var parts = [];
+      var parts = [obj.packageInfo.name];
       if (ancestors) {
         parts.push(ancestors.split('~').shift());
       }

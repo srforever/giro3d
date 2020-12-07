@@ -1,12 +1,18 @@
 @import url(https://fonts.googleapis.com/css?family=Quattrocento+Sans:400,400italic,700);
+
+:root {
+  --giro-bg-lightblue: rgba(189, 222, 247, 0.35);
+  --giro-blue: rgb(45, 130, 195);
+  --giro-darkblue: rgb(27, 93, 142)
+}
+
 .navbar-inverse {
   border: 0;
-  box-shadow: 0px -4px 15px 0px rgba(0,0,0,0.75);
+  box-shadow: 0px -4px 10px 0px rgba(0,0,0,0.75);
 }
 .navbar-inverse .navbar-inner {
   background: rgb(255, 255, 255);
   height: 50px;
-  text-shadow: 1px 1px 2px rgba(0,0,0,0.25);
 }
 .navbar-inverse .brand {
   color: #fff;
@@ -57,6 +63,7 @@ a {
   z-index: 1;
   -webkit-transition: all .2s;
   transition: all .2s;
+  color: var(--giro-blue);
 }
 .navigation li {
   color: #888;
@@ -76,6 +83,10 @@ ol {
 li {
   list-style-type: none;
 }
+code {
+  color: var(--giro-darkblue);
+  background-color: var(--giro-bg-lightblue);
+}
 #wrap {
   position: relative;
 }
@@ -92,7 +103,7 @@ li {
   float: left;
   width: 250px;
   height: 100%;
-  box-shadow: -4px 0px 15px 0px rgba(0,0,0,0.75);
+  border-right: 1px #ccc solid;
 }
 .navigation .applicationName {
   margin: 0;
@@ -168,7 +179,7 @@ li {
 .navigation li.item .title .static {
   display: block;
   border-radius: 3px;
-  background-color: #1F6B75;
+  background-color: var(--giro-blue);
   color: #FFF;
   font-size: 0.7em;
   padding: 2px 4px;
@@ -177,7 +188,7 @@ li {
 .navigation li.item .subtitle {
   margin-top: 10px;
   font: bold 0.7em Helvetica;
-  color: #1F6B75;
+  color: var(--giro-blue);
   display: block;
 }
 .navigation li.item .modulelink {
@@ -277,7 +288,7 @@ li {
 .main span.static, .main span.stability {
   display: inline-block;
   border-radius: 3px;
-  background-color: #1F6B75 !important;
+  background-color: var(--giro-blue) !important;
   color: #fff;
   vertical-align: top;
   font-size: 0.8em;
@@ -293,7 +304,7 @@ span.type-signature.static {
 .main .subsection-title {
   font-size: 15px;
   margin-top: 30px;
-  color: #1F6B75;
+  color: var(--giro-blue);
 }
 .main .description {
   margin-top: 10px;
@@ -387,7 +398,7 @@ span.type-signature.static {
   width: 110px;
 }
 .main table .type {
-  color: #aaa;
+  color: rgb(131, 130, 130);
   font-size: 12px;
 }
 .main table .attributes {
