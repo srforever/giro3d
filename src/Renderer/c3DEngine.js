@@ -250,7 +250,6 @@ C3DEngine.prototype.renderLayerTobuffer = function renderLayerTobuffer(
     return pixelBuffer;
 };
 
-
 C3DEngine.prototype.bufferToImage = function bufferToImage(pixelBuffer, width, height) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');

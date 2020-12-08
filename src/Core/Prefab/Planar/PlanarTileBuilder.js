@@ -21,7 +21,6 @@ PlanarTileBuilder.prototype.Prepare = function Prepare(params) {
     params.projected = new THREE.Vector3();
 };
 
-
 // get center tile in cartesian 3D
 const center = new THREE.Vector3();
 PlanarTileBuilder.prototype.Center = function Center(extent) {

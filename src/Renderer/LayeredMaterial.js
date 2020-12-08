@@ -142,7 +142,6 @@ LayeredMaterial.prototype.dispose = function dispose() {
     this.texturesInfo.elevation.texture.dispose();
 };
 
-
 LayeredMaterial.prototype.getLayerTexture = function getLayerTexture(layer) {
     if (layer.type === 'elevation') {
         return {
@@ -238,7 +237,6 @@ function updateOffsetScale(imageSize, atlas, originalOffsetScale, canvas, target
         originalOffsetScale.w * yRatio,
     );
 }
-
 
 LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
     layer, textures, shortcut, view,
@@ -342,7 +340,6 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
             }
             this.setTimeoutId = null;
         }, 300 + Math.random() * 300);
-
 
         return Promise.resolve();
     }

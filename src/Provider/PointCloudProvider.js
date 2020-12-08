@@ -52,7 +52,6 @@ function createChildAABB(aabb, childIndex) {
     return new THREE.Box3(min, max);
 }
 
-
 function parseOctree(layer, hierarchyStepSize, root) {
     return Fetcher.arrayBuffer(`${root.baseurl}/r${root.name}.hrc`, layer.networkOptions).then(blob => {
         const view = new DataView(blob);

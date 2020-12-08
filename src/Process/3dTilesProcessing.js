@@ -273,7 +273,6 @@ function cleanup3dTileset(layer, n, depth = 0) {
         n.dispose();
     }
 
-
     // and finally remove from parent
     // if (depth === 0 && n.parent) {
     //     n.parent.remove(n);
@@ -444,7 +443,6 @@ export function process3dTilesNode(
         const isVisible = cullingTest
             ? (!cullingTest(context.camera, node, node.matrixWorld)) : true;
         node.visible = isVisible;
-
 
         if (isVisible) {
             unmarkForDeletion(layer, node);

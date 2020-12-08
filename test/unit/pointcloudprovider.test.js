@@ -52,7 +52,6 @@ describe('PointCloudProvider', () => {
     });
 });
 
-
 describe('getObjectToUpdateForAttachedLayers', () => {
     it('should correctly no-parent for the root', () => {
         const meta = {

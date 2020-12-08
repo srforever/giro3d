@@ -60,7 +60,6 @@ function prepareBufferGeometry(geom, color, altitude) {
     return threeGeom;
 }
 
-
 function featureToPoint(feature, properties, options) {
     // get altitude / color from properties
     const altitude = getProperty('altitude', options, 0, properties, feature.vertices);
@@ -119,7 +118,6 @@ function featureToPolygon(feature, properties, options) {
     return new THREE.Mesh(threeGeom);
 }
 
-
 function featureToMultiPolygon(feature, properties, options) {
     // get altitude / color from properties
     const altitude = getProperty('altitude', options, 0, feature);
@@ -155,7 +153,6 @@ function featureToMultiPolygon(feature, properties, options) {
     threeGeom.setIndex(new THREE.BufferAttribute(new Uint16Array(indices), 1));
     return new THREE.Mesh(threeGeom);
 }
-
 
 /**
  * Convert a [Feature]{@link Feature#geometry}'s geometry to a Mesh

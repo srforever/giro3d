@@ -514,7 +514,6 @@ class Instance extends EventDispatcher {
         }
     }
 
-
     /**
      * Extract view coordinates from a mouse-event / touch-event
      * @param {event} event - event can be a MouseEvent or a TouchEvent
@@ -740,7 +739,6 @@ function _preprocessLayer(view, layer, provider, parentLayer) {
                 });
             }
 
-
             layer.ready = true;
             return layer;
         });
@@ -819,6 +817,5 @@ function layerIdToLayer(view, layerId) {
     }
     return lookup[0];
 }
-
 
 export default Instance;

@@ -92,7 +92,6 @@ export function minMaxFromTexture(layer, texture) {
     return { min, max };
 }
 
-
 function initNodeElevationTextureFromParent(node, parent, layer) {
     const parentTexture = parent.material.getLayerTexture(layer).texture;
     if (!parentTexture.extent) {

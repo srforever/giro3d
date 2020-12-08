@@ -18,7 +18,6 @@ function findCellWith(x, y, layerDimension, tileCount) {
     return { x: tx === 1 ? 0 : Math.floor(tx), y: ty === 1 ? 0 : Math.floor(ty) };
 }
 
-
 // return the 3857 tile that fully contains the given extent
 function compute3857Extent(tileExtent) {
     const extent = new Extent('EPSG:3857',
@@ -223,7 +222,6 @@ function PlanarView(viewerDiv, extent, options = {}) {
     this.camera.camera3D.position.copy(positionCamera.xyz());
     this.camera.camera3D.lookAt(lookat);
     this.camera.camera3D.updateMatrixWorld(true);
-
 
     this.addLayer(tileLayer);
 

@@ -297,7 +297,6 @@ function _readTextureValueWithBilinearFiltering(layer, texture, vertexU, vertexV
     return THREE.MathUtils.lerp(zu1, zu2, coords.wv);
 }
 
-
 function _readZFast(layer, texture, uv) {
     return _readTextureValueNearestFiltering(layer, texture, uv.x, uv.y);
 }
@@ -339,7 +338,6 @@ function _readZCorrect(layer, texture, uv, tileDimensions, tileOwnerDimensions) 
     // so lu (resp. lv) are the weight. When lu -> 0 (resp. 1) the final value -> z at u1 (resp. u2)
     const lu = (uv.x - u) / modulo;
     const lv = (uv.y - v) / modulo;
-
 
     // Determine if we're going to read the vertices from the top-left or lower-right triangle
     // (low-right = on the line 21-22 or under the diagonal lu = 1 - lv)
@@ -431,7 +429,6 @@ function _readZ(layer, method, coord, nodes, cache) {
     }
     return { coord: pt, texture: src, tile };
 }
-
 
 function _updateVector3(layer, method, nodes, vecCRS, vec, offset, matrices = {}, coords, cache) {
     const coord = coords || new Coordinates(vecCRS);

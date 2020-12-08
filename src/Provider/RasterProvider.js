@@ -3,7 +3,6 @@
  * Description: Provides textures from a vector data
  */
 
-
 import * as THREE from 'three';
 import togeojson from '@mapbox/togeojson';
 import Extent from '../Core/Geographic/Extent.js';

@@ -1,11 +1,12 @@
-var fs = require('fs');
-var path = require('path');
-var webpack = require('webpack');
+const fs = require('fs');
+const path = require('path');
+const webpack = require('webpack');
 
 const debugBuild = process.env.NODE_ENV === 'development';
-var definePlugin = new webpack.DefinePlugin({
+const definePlugin = new webpack.DefinePlugin({
     __DEBUG__: debugBuild,
 });
+const ESLintPlugin = require('eslint-webpack-plugin');
 
 /*
    configuring babel:
@@ -18,10 +19,10 @@ var definePlugin = new webpack.DefinePlugin({
    - we also dynamise the value of __DEBUG__ according to the env var
 */
 // Note that we don't support .babelrc in parent folders
-var babelrc = fs.readFileSync(path.resolve(__dirname, 'babel.config.json'));
-var babelConf = JSON.parse(babelrc);
-var newPresets = [];
-for (var preset of babelConf.presets) {
+const babelrc = fs.readFileSync(path.resolve(__dirname, 'babel.config.json'));
+const babelConf = JSON.parse(babelrc);
+const newPresets = [];
+for (let preset of babelConf.presets) {
     if (!Array.isArray(preset)) {
         preset = [preset];
     }
@@ -50,19 +51,10 @@ module.exports = {
     },
     plugins: [
         definePlugin,
+        new ESLintPlugin(),
     ],
     module: {
         rules: [
-            {
-                test: /\.js$/,
-                enforce: 'pre',
-                include: [
-                    path.resolve(__dirname, 'src'),
-                    path.resolve(__dirname, 'test'),
-                    path.resolve(__dirname, 'utils'),
-                ],
-                loader: 'eslint-loader',
-            },
             {
                 test: /\.js$/,
                 include: [

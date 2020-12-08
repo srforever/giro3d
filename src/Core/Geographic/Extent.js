@@ -14,7 +14,6 @@ function YToWGS84(y) {
     );
 }
 
-
 const CARDINAL = {
     WEST: 0,
     EAST: 1,
