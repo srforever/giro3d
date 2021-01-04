@@ -55,6 +55,7 @@ class Instance extends EventDispatcher {
      * */
     constructor(viewerDiv, crs = 'EPSG:3857', options = {}) {
         super();
+        Object3D.DefaultUp.set(0, 0, 1);
         if (!viewerDiv) {
             throw new Error('Invalid viewerDiv parameter (must non be null/undefined)');
         }
