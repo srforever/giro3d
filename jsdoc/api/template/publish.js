@@ -439,7 +439,7 @@ exports.publish = function (taffyData, opts, tutorials) {
   }
 
   if (sourceFilePaths.length) {
-    sourceFiles = shortenPaths(sourceFiles, path.commonPrefix(sourceFilePaths));
+    sourceFiles = shortenPaths(sourceFiles, path.join(process.cwd(), opts.sourcePath));
   }
   data().each(function (doclet) {
     const url = helper.createLink(doclet);
