@@ -1,5 +1,5 @@
 {
-  "name": "@autra/giro3d",
+  "name": "@giro3d/giro3d",
   "version": "0.0.2-osl",
   "description": "A JS/WebGL framework for 3D geospatial data visualization",
   "main": "lib/Main.js",
