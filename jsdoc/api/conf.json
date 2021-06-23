@@ -12,7 +12,8 @@
     "excludePattern": "(^|\\/|\\\\)_",
     "include": [
       "src/Core/instance.js",
-      "src/Core/map.js"
+      "src/Core/map.js",
+      "src/Core/Geographic/Extent.js"
     ]
   },
   "plugins": [
