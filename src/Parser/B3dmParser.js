@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import GLTFLoader from './GLTFLoader.js';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+
 import LegacyGLTFLoader from './LegacyGLTFLoader.js';
 import BatchTableParser from './BatchTableParser.js';
 import Capabilities from '../Core/System/Capabilities.js';
@@ -116,6 +117,7 @@ export default {
             }
             // TODO: missing feature table
             promises.push(new Promise(resolve => {
+                const onerror = error => console.error(error);
                 const onload = gltf => {
                     for (const scene of gltf.scenes) {
                         scene.traverse(filterUnsupportedSemantics);
@@ -170,7 +172,7 @@ export default {
                 if (version === 1) {
                     legacyGLTFLoader.parse(gltfBuffer, onload, urlBase);
                 } else {
-                    glTFLoader.parse(gltfBuffer, urlBase, onload);
+                    glTFLoader.parse(gltfBuffer, urlBase, onload, onerror);
                 }
             }));
             return Promise.all(promises)

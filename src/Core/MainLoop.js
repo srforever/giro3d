@@ -1,7 +1,8 @@
 import {
     Vector3, Plane, EventDispatcher, Math as ThreeMath, Sphere,
 } from 'three';
-import { GeometryLayer, Layer } from './Layer/Layer.js';
+import Layer from './Layer/Layer.js';
+import GeometryLayer from './Layer/GeometryLayer.js';
 import Cache from './Scheduler/Cache.js';
 
 export const RENDERING_PAUSED = 0;
@@ -172,7 +173,7 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
         }
     });
 
-    for (const geometryLayer of instance.getLayers((x, y) => !y)) {
+    for (const geometryLayer of instance.getObjects()) {
         context.fastUpdateHint = undefined;
         context.geometryLayer = geometryLayer;
         if (geometryLayer.ready && geometryLayer.visible) {

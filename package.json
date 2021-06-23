@@ -5,8 +5,8 @@
   "main": "lib/Main.js",
   "scripts": {
     "lint": "eslint \"src/**/*.js\" \"utils/**/*.js\" \"test/**/*.js\" \"examples/**/*.js\"",
-    "doc": "jsdoc -t node_modules/docdash --readme JSDOC.md -c jsdoc-config.json",
     "apidoc": "shx rm -rf build/apidoc && jsdoc -R jsdoc/api/index.md -c jsdoc/api/conf.json -P package.json -d build/apidoc",
+    "build-site": "mkdir -p build && cp -v site/index.html build/ && npm run apidoc",
     "doclint": "npm run apidoc -- -t templates/silent",
     "test": "npm run lint -- --max-warnings=0 && npm run build && npm run test-examples && npm run test-with-coverage",
     "test-unit": "jest test/unit",

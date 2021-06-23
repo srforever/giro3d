@@ -1,3 +1,6 @@
+/**
+ * @module Core/Geographic/Extent
+ */
 import * as THREE from 'three';
 import Coordinates, {
     crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCRS, is4326,
@@ -26,39 +29,84 @@ function _isTiledCRS(crs) {
         || crs === 'TMS';
 }
 
-function Extent(crs, ...values) {
-    this._crs = crs;
+/**
+ * An object representing a spatial extent. It encapsulates a Coordinate Reference System id (CRS)
+ * and coordinates.
+ *
+ * It leverages [proj4js](https://github.com/proj4js/proj4js) to do the heavy-lifting of defining
+ * and transforming coordinates between reference systems. As a consequence, every ESPG code known
+ * by proj4js can be used out of the box, as such:
+ *
+ *     // an extent defined by bottom-left longitude 0 and latitude 0 and top-right longitude 1 and
+ *     // latitude 1
+ *     const extent = new Extent('EPSG:4326', 0, 0, 1, 1);
+ *
+ * For other EPSG code, you must register to proj4 them before you can use them. Giro3d exposes the
+ * instance it uses:
+ *
+ *     import { default as proj4 } from 'proj4';
+ *     proj4.defs('EPSG:3946',
+            '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 + \
+            ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+ *     extent = new giro3d.Extent(
+ *                  'EPSG:3946',
+ *                  1837816.94334, 1847692.32501,
+ *                  5170036.4587, 5178412.82698);
+ *
+ * @api
+ */
+class Extent {
+    /**
+     * Constructs an Extent object.
+     *
+     * @param {string} crs - The crs code the coordinates are expressed in. Every EPSG code known by
+     * [proj4js](https://github.com/proj4js/proj4js) can be used directly.
+     *
+     *
+     * For others, you must manually register them. The proj4 instance used by giro3d is available
+     * at giro3d.proj4. Please refer to proj4js doc for more information.
+     *
+     * @param {Number|Object|Coordinates} values - Variable number of arguments. The following
+     * combinations are supported:
+     *
+     * - 2 Coordinates objets (one representing the min coords, another containing the max coords)
+     * - an object with `west`, `east`, `south`, `north` properties
+     * - an array of the form of the form or [minx, maxx, miny, maxy]
+     */
+    constructor(crs, ...values) {
+        this._crs = crs;
 
-    if (_isTiledCRS(crs)) {
-        if (values.length === 3) {
-            [this.zoom, this.row, this.col] = values;
+        if (_isTiledCRS(crs)) {
+            if (values.length === 3) {
+                [this.zoom, this.row, this.col] = values;
 
-            if (this.zoom < 0) {
-                throw new Error(`invlid WTMS values ${values}`);
+                if (this.zoom < 0) {
+                    throw new Error(`invlid WTMS values ${values}`);
+                }
+            } else {
+                throw new Error(`Unsupported constructor args '${values}'`);
             }
+        } else if (values.length === 2
+            && values[0] instanceof Coordinates
+            && values[1] instanceof Coordinates) {
+            this._values = new Float64Array(4);
+            [this._values[CARDINAL.WEST], this._values[CARDINAL.SOUTH]] = values[0]._values;
+            [this._values[CARDINAL.EAST], this._values[CARDINAL.NORTH]] = values[1]._values;
+        } else if (values.length === 1 && values[0].west !== undefined) {
+            this._values = new Float64Array(4);
+            this._values[CARDINAL.WEST] = values[0].west;
+            this._values[CARDINAL.EAST] = values[0].east;
+            this._values[CARDINAL.SOUTH] = values[0].south;
+            this._values[CARDINAL.NORTH] = values[0].north;
+        } else if (values.length === 4) {
+            this._values = new Float64Array(4);
+            Object.keys(CARDINAL).forEach(key => {
+                const cardinal = CARDINAL[key];
+                this._values[cardinal] = values[cardinal];
+            });
         } else {
             throw new Error(`Unsupported constructor args '${values}'`);
         }
-    } else if (values.length === 2
-        && values[0] instanceof Coordinates
-        && values[1] instanceof Coordinates) {
-        this._values = new Float64Array(4);
-        [this._values[CARDINAL.WEST], this._values[CARDINAL.SOUTH]] = values[0]._values;
-        [this._values[CARDINAL.EAST], this._values[CARDINAL.NORTH]] = values[1]._values;
-    } else if (values.length === 1 && values[0].west !== undefined) {
-        this._values = new Float64Array(4);
-        this._values[CARDINAL.WEST] = values[0].west;
-        this._values[CARDINAL.EAST] = values[0].east;
-        this._values[CARDINAL.SOUTH] = values[0].south;
-        this._values[CARDINAL.NORTH] = values[0].north;
-    } else if (values.length === 4) {
-        this._values = new Float64Array(4);
-        Object.keys(CARDINAL).forEach(key => {
-            const cardinal = CARDINAL[key];
-            this._values[cardinal] = values[cardinal];
-        });
-    } else {
-        throw new Error(`Unsupported constructor args '${values}'`);
     }
 }
 

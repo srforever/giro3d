@@ -1,6 +1,6 @@
 <?js
     var params = obj;
-    
+
     /* sort subparams under their parent params (like opts.classname) */
     var parentParam = null;
     params.forEach(function(param, i) {
@@ -15,11 +15,11 @@
             parentParam = param;
         }
     });
-    
+
     /* determine if we need extra "attributes" column */
     params.hasAttributes = false;
     params.hasName = false;
-    
+
     var colspan = 2;
     params.forEach(function(param) {
         if (!param) { return; }
@@ -30,15 +30,15 @@
             params.hasAttributes = true;
             param.variable = true;
         }
-        
+
         if (param.optional || param.nullable) {
             params.hasAttributes = true;
         }
-        
+
         if (param.name) {
             params.hasName = true;
         }
-        
+
     });
 ?>
 
@@ -48,25 +48,27 @@
 		<?js if (params.hasName) {?>
 		<th>Name</th>
 		<?js } ?>
-		
+
 		<th>Type</th>
-		
+
 		<th class="last">Description</th>
 	</tr>
 	</thead>
-	
+
 	<tbody>
 	<?js
         var self = this;
 	    params.forEach(function(param) {
 	        if (!param) { return; }
 	?>
-	
+
         <tr class="<?js= (param.stability && param.stability !== 'stable') ? 'unstable' : '' ?>">
             <?js if (params.hasName) {?>
-                <td class="name"><code><?js= param.name.replace(/^opt_/, "") ?></code></td>
+                <td class="name">
+                    <code><?js= param.name.replace(/^opt_/, "") ?><?js= param.variable ? '...':'' ?></code>
+                    </td>
             <?js } ?>
-            
+
             <?js if (!param.subparams) {?>
             <td class="type">
             <?js if (param.type && param.type.names) {?>
@@ -87,7 +89,7 @@
                 <?js= self.partial('params.tmpl', param.subparams) ?>
             <?js } ?></td>
         </tr>
-	
+
 	<?js }); ?>
 	</tbody>
 </table>

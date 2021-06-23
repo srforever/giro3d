@@ -34,56 +34,60 @@
                     2111620.264270613,
                     center.y + halfHeight,
                     center.y - halfHeight,
-                    0,
+                    -1,
                     1000);
+            // put the camera above the plane
+            camera.position.z = 1;
 
-            // Instanciate PlanarView
-            var view = new giro3d.PlanarView(
-                    viewerDiv, extent, { maxSubdivisionLevel: 10, camera: camera });
+            // Instanciate Giro3D
+            let instance = new giro3d.Instance(viewerDiv, {crs: extent.crs(), camera: camera});
+            instance.mainLoop.gfxEngine.renderer.setClearColor(0xcc0000);
+            let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 10 });
+            instance.add(map);
 
             var dragStartPosition;
             var dragCameraStart;
 
             // By default giro3d' tiles geometry have a "skirt" (ie they have a height),
             // but in case of orthographic we don't need this feature, so disable it
-            view.tileLayer.disableSkirt = true;
+            map.disableSkirt = true;
 
             // Add an TMS imagery layer
             var stamenSource = new giro3d.olsource.Stamen({ layer: 'watercolor', wrapX: false });
             // Add a base layer
-            view.addLayer({
+            map.addLayer(new giro3d.TileLayer({
                 id: 'osm',
                 type: 'color',
                 protocol: 'oltile',
                 source: stamenSource,
-            }).catch(e => console.error(e));
+            })).catch(e => console.error(e));
 
             var onMouseWheel = function onMouseWheel(event) {
                 var change = 1 - (Math.sign(event.wheelDelta || -event.detail) * 0.1);
 
-                var halfNewWidth = (view.camera.camera3D.right - view.camera.camera3D.left) * change * 0.5;
-                var halfNewHeight = (view.camera.camera3D.top - view.camera.camera3D.bottom) * change * 0.5;
-                var cx = (view.camera.camera3D.right + view.camera.camera3D.left) * 0.5;
-                var cy = (view.camera.camera3D.top + view.camera.camera3D.bottom) * 0.5;
+                var halfNewWidth = (instance.camera.camera3D.right - instance.camera.camera3D.left) * change * 0.5;
+                var halfNewHeight = (instance.camera.camera3D.top - instance.camera.camera3D.bottom) * change * 0.5;
+                var cx = (instance.camera.camera3D.right + instance.camera.camera3D.left) * 0.5;
+                var cy = (instance.camera.camera3D.top + instance.camera.camera3D.bottom) * 0.5;
 
-                view.camera.camera3D.left = cx - halfNewWidth;
-                view.camera.camera3D.right = cx + halfNewWidth;
-                view.camera.camera3D.top = cy + halfNewHeight;
-                view.camera.camera3D.bottom = cy - halfNewHeight;
+                instance.camera.camera3D.left = cx - halfNewWidth;
+                instance.camera.camera3D.right = cx + halfNewWidth;
+                instance.camera.camera3D.top = cy + halfNewHeight;
+                instance.camera.camera3D.bottom = cy - halfNewHeight;
 
-                view.notifyChange(view.camera.camera3D, true);
+                instance.notifyChange(instance.camera.camera3D, true);
             };
 
             viewerDiv.addEventListener('DOMMouseScroll', onMouseWheel);
             viewerDiv.addEventListener('mousewheel', onMouseWheel);
 
             viewerDiv.addEventListener('mousedown', function mouseDown(event) {
-                dragStartPosition = view.eventToViewCoords(event).clone();
+                dragStartPosition = instance.eventToViewCoords(event).clone();
                 dragCameraStart = {
-                    left: view.camera.camera3D.left,
-                    right: view.camera.camera3D.right,
-                    top: view.camera.camera3D.top,
-                    bottom: view.camera.camera3D.bottom,
+                    left: instance.camera.camera3D.left,
+                    right: instance.camera.camera3D.right,
+                    top: instance.camera.camera3D.top,
+                    bottom: instance.camera.camera3D.bottom,
                 };
             });
             const infoDiv = document.getElementById('info')
@@ -93,16 +97,16 @@
                 var deltaY;
                 var newpos;
                 if (dragStartPosition) {
-                    newpos = view.eventToViewCoords(event);
-                    width = view.camera.camera3D.right - view.camera.camera3D.left;
+                    newpos = instance.eventToViewCoords(event);
+                    width = instance.camera.camera3D.right - instance.camera.camera3D.left;
                     deltaX = width * (newpos.x - dragStartPosition.x) / -viewerDiv.clientWidth;
                     deltaY = width * (newpos.y - dragStartPosition.y) / viewerDiv.clientHeight;
 
-                    view.camera.camera3D.left = dragCameraStart.left + deltaX;
-                    view.camera.camera3D.right = dragCameraStart.right + deltaX;
-                    view.camera.camera3D.top = dragCameraStart.top + deltaY;
-                    view.camera.camera3D.bottom = dragCameraStart.bottom + deltaY;
-                    view.notifyChange(view.camera.camera3D, true);
+                    instance.camera.camera3D.left = dragCameraStart.left + deltaX;
+                    instance.camera.camera3D.right = dragCameraStart.right + deltaX;
+                    instance.camera.camera3D.top = dragCameraStart.top + deltaY;
+                    instance.camera.camera3D.bottom = dragCameraStart.bottom + deltaY;
+                    instance.notifyChange(instance.camera.camera3D, true);
                 }
             });
             viewerDiv.addEventListener('mouseup', function mouseUp() {

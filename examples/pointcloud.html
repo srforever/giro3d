@@ -97,7 +97,7 @@
             <div id="lopocs"> </div>
             <div id="giro3d"> </div>
             <h2>Point cloud absolute URL: </h2>
-            <h4>(file.js from PotreeConverter or Lopocs url)</h4>
+            <h4>(file.js from PotreeConverter, py3dtiles or Lopocs url)</h4>
             <input id="url" type="url" value="http://3d.oslandia.com/3dtiles/eglise_saint_blaise_arles/tileset.json">
             <input id="submit" type="submit" value="Connect">
             <div id="result">
@@ -192,6 +192,7 @@
                     setupLoadingScreen(viewerDiv, instance);
 
                     // Configure Point Cloud layer
+                    // TODO create a pointcloud object
                     pointcloud = new giro3d.GeometryLayer('pointcloud', new giro3d.THREE.Group());
                     pointcloud.file = fileName || 'infos/sources';
                     pointcloud.protocol = potree ? 'potreeconverter' : '3d-tiles';
@@ -297,7 +298,7 @@
                     }
                     window.giro = instance;
 
-                    instance.addLayer(pointcloud).then(onLayerReady);
+                    instance.add(pointcloud).then(onLayerReady);
                 }
 
                 if (searchParams.get('selector')) {
@@ -309,7 +310,7 @@
 
                 document.addEventListener('click', (evt) => {
                     if (!instance) return;
-                    const r = instance._layers[0].pickObjectsAt(instance, instance.eventToViewCoords(evt), 1);
+                    const r = instance._objects[0].pickObjectsAt(instance, instance.eventToViewCoords(evt), 1);
                     if (!r.length) return;
                     const obj = r[0].object;
                     console.log(obj)

@@ -1,10 +1,12 @@
 export { default as Coordinates, UNIT } from './Core/Geographic/Coordinates.js';
 export { default as Extent } from './Core/Geographic/Extent.js';
-export { GeometryLayer, ImageryLayers } from './Core/Layer/Layer.js';
+export { ImageryLayers } from './Core/Layer/Layer.js';
+export { default as GeometryLayer } from './Core/Layer/GeometryLayer.js';
+export { default as TileLayer } from './Core/Layer/TileLayer.js';
 export {
     STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_GROUP, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY,
 } from './Core/Layer/LayerUpdateStrategy.js';
-export { default as PlanarView, createPlanarLayer } from './Core/Prefab/PlanarView.js';
+export { default as Map } from './Core/map.js';
 export { default as PanoramaView, createPanoramaLayer } from './Core/Prefab/PanoramaView.js';
 export { default as Panorama } from './Core/Prefab/Panorama/Constants.js';
 export { default as Fetcher } from './Provider/Fetcher.js';
