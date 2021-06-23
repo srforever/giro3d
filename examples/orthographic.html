@@ -42,7 +42,7 @@
             // Instanciate Giro3D
             let instance = new giro3d.Instance(viewerDiv, {crs: extent.crs(), camera: camera});
             instance.mainLoop.gfxEngine.renderer.setClearColor(0xcc0000);
-            let map = new giro3d.Map('planar', null, extent, { maxSubdivisionLevel: 10 });
+            let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 10 });
             instance.add(map);
 
             var dragStartPosition;
