@@ -154,7 +154,6 @@ class Map extends GeometryLayer {
 
         this.sseScale = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel;
-        this.tileParams = options.tileParams || {};
 
         // TODO make that a class method ?
         this.postUpdate = (context, layer) => {
