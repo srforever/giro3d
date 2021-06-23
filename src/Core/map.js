@@ -125,14 +125,16 @@ class Map extends GeometryLayer {
      * Constructs a Map object.
      *
      * @param {string} id
-     * @param {Object3d} object3d
-     * @param {Extent} extent
-     * @param {object} options
+     * @param {Object=} options - Optional properties.
+     * @param {Extent} options.extent - geographic extent of the map
+     * @param {Extent} options.maxSubdivisionLevel - Maximum subdivision level of the current map
      *
      * @api
      * */
-    constructor(id, object3d, extent, options = {}) {
-        super(id, object3d || new THREE.Group());
+    constructor(id, options = {}) {
+        super(id, new THREE.Group());
+
+        const extent = options.extent;
         const crs = Array.isArray(extent) ? extent[0].crs() : extent.crs();
 
         this.validityExtent = extent;
@@ -311,6 +313,10 @@ class Map extends GeometryLayer {
         return layer;
     }
 
+    /**
+     *
+     * @api
+     */
     addLayer(layer) {
         if (layer.type === 'color') {
             layer.update = layer.update || ColorTextureProcessing.updateLayerElement;

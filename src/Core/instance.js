@@ -37,7 +37,7 @@ const _eventCoords = new Vector2();
  * and one or more 3D objects, like a {@link module:Core/map~Map}.
  *
  *
- *     // Instanciate Giro3D
+ *     // example of Giro3D instanciation
  *     let instance = new giro3d.Instance(viewerDiv, extent.crs(), {camera: camera})
  *     let map = new giro3d.Map('planar', null, extent, { maxSubdivisionLevel: 10 });
  *     instance.add(map);
@@ -52,8 +52,10 @@ class Instance extends EventDispatcher {
      *
      * @param {HTMLElement} viewerDiv - Where to instanciate the Three.js scene in the DOM
      * @param {Object=} options - Optional properties.
-     * @param {?string} [options.crs='EPSG:3857'] - The default CRS of Three.js coordinates. Should be a cartesian CRS.
-     * @param {?Scene} options.scene3D - {@link Scene} Three.js scene instance to use, otherwise a default one will
+     * @param {?string} [options.crs='EPSG:3857'] - The default CRS of Three.js coordinates. Should
+     * be a cartesian CRS.
+     * @param {?Scene} options.scene3D - {@link Scene} Three.js scene instance to use, otherwise a
+     * default one will
      * be constructed
      *
      * @api
