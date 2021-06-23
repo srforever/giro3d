@@ -172,12 +172,19 @@ function getBox(volume) {
         // box[9], box[10], box[11] = z axis direction and half-length
         const center = new THREE.Vector3(bbox[0], bbox[1], bbox[2]);
 
-        const w = center.x - bbox[3];
-        const e = center.x + bbox[3];
-        const s = center.y - bbox[7];
-        const n = center.y + bbox[7];
-        const b = center.z - bbox[11];
-        const t = center.z + bbox[11];
+        const halfXVector = new THREE.Vector3(bbox[3], bbox[4], bbox[5])
+        const halfYVector = new THREE.Vector3(bbox[6], bbox[7], bbox[8]);
+        const halfZVector = new THREE.Vector3(bbox[9], bbox[10], bbox[11]);
+        const point1 = center.clone()
+            .sub(halfXVector).sub(halfYVector).sub(halfZVector);
+        const point2 = center.clone()
+            .add(halfXVector).add(halfYVector).add(halfZVector);
+        const w = Math.min(point1.x, point2.x);
+        const e = Math.max(point1.x, point2.x);
+        const s = Math.min(point1.y, point2.y);
+        const n = Math.max(point1.y, point2.y);
+        const b = Math.min(point1.z, point2.z);
+        const t = Math.max(point1.z, point2.z);
 
         const box = new THREE.Box3(new THREE.Vector3(w, s, b), new THREE.Vector3(e, n, t));
         if (box.getSize(new THREE.Vector3()).length() === 0) {
