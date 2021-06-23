@@ -3,12 +3,10 @@
  */
 import * as THREE from 'three';
 
-// import { MAIN_LOOP_EVENTS } from './MainLoop.js';
 import Coordinates from './Geographic/Coordinates.js';
 import Extent from './Geographic/Extent.js';
-import { MAIN_LOOP_EVENTS } from './MainLoop.js';
 import Layer, { defineLayerProperty } from './Layer/Layer.js';
-import  GeometryLayer from './Layer/GeometryLayer.js';
+import GeometryLayer from './Layer/GeometryLayer.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import PlanarTileBuilder from './Prefab/Planar/PlanarTileBuilder.js';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
@@ -313,7 +311,8 @@ class Map extends GeometryLayer {
     }
 
     /**
-     *
+     * @param {Object=} layer - an object describing the layer options creation TODO document
+     * @returns {Layer} a promise resolving when the layer is ready
      * @api
      */
     addLayer(layer) {

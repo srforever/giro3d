@@ -194,7 +194,7 @@ class Instance extends EventDispatcher {
      * // One can also attach a callback to the same promise with a layer instance.
      * layer.whenReady.then(() => { ... });
      *
-     * @param {LayerOptions|Layer|GeometryLayer} layer
+     * @param {LayerOptions|Layer|GeometryLayer} object
      * @param {Layer=} parentLayer
      * @return {Promise} a promise resolved with the new layer object when it is fully initialized
      * or rejected if any error occurred.
@@ -577,7 +577,7 @@ class Instance extends EventDispatcher {
                     ? objectIdToObject(this, source)
                     : source;
 
-                // TODO ability to pick on a layer instead of a geometric object?
+                // TODO ability to pick on a layer instead of a geometric object?
                 const sp = object.pickObjectsAt(this, mouse, radius);
                 // warning: sp might be very large, so we can't use '...sp' (we'll hit
                 // 'javascript maximum call stack size exceeded' error) nor

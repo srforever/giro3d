@@ -172,7 +172,7 @@ function getBox(volume) {
         // box[9], box[10], box[11] = z axis direction and half-length
         const center = new THREE.Vector3(bbox[0], bbox[1], bbox[2]);
 
-        const halfXVector = new THREE.Vector3(bbox[3], bbox[4], bbox[5])
+        const halfXVector = new THREE.Vector3(bbox[3], bbox[4], bbox[5]);
         const halfYVector = new THREE.Vector3(bbox[6], bbox[7], bbox[8]);
         const halfZVector = new THREE.Vector3(bbox[9], bbox[10], bbox[11]);
         const point1 = center.clone()
