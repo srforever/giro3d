@@ -102,10 +102,5 @@ It has been funded through various research programs involving the French Nation
 
 giro3d is currently maintained by Oslandia ( http://www.oslandia.com )
 
-<p align="center">
-<a href="http://www.ign.fr"><img src="https://raw.githubusercontent.com/giro3d/giro3d.github.io/master/images/logo_ign.png" height="150" /></a>&nbsp;
-<a href="http://www.oslandia.com"><img src="https://raw.githubusercontent.com/giro3d/giro3d.github.io/master/images/logo_oslandia.png" height="150" /></a>&nbsp;
-<a href="https://www.atolcd.com"><img src="https://raw.githubusercontent.com/giro3d/giro3d.github.io/master/images/logo_atolcd.jpg" height="150" /></a>&nbsp;
-</p>
 
 
