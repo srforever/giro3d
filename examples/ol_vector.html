@@ -25,8 +25,14 @@
             var viewerDiv = document.getElementById('viewerDiv');
 
             // Instanciate PlanarView
-            // var view = new giro3d.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 15 });
-            var instance = new giro3d.Instance('EPSG:3857', viewerDiv);
+            var instance = new giro3d.Instance(viewerDiv, {crs: 'EPSG:3857'});
+            var map = new giro3d.Map(
+              'planar',
+              {
+                extent: extent,
+                cameraOptions: { minNear: 5 },
+              },
+            );
 
             // Turn in the right angle
             instance.camera.camera3D.rotateZ(-Math.PI / 2);
@@ -183,6 +189,30 @@
             });
             instance.addVector(vector2);
 
+
+            const formatLine = new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' });
+            const featureLine = format.readFeature({ type: 'Feature', geometry: {
+              "type": "LineString",
+              "coordinates": [[-30, -30], [-15, -15], [-15, -30], [-30, -45]]
+            }});
+            var vectorLine = new giro3d.ollayer.Vector({
+                source: new giro3d.olsource.Vector({
+                    features: [featureLine]
+                })
+            });
+            instance.addVector(vectorLine);
+
+            const formatPoints = new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' });
+            const featurePoints = format.readFeature({ type: 'Feature', geometry: {
+              "type": "MultiPoint",
+              "coordinates": [[-25, -25], [-15, -15], [-30, -30]]
+            }});
+            var vectorPoints = new giro3d.ollayer.Vector({
+                source: new giro3d.olsource.Vector({
+                    features: [featurePoints]
+                })
+            });
+            instance.addVector(vectorPoints);
         </script>
     </body>
 </html>

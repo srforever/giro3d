@@ -62,44 +62,24 @@ function prepareBufferGeometry(geom, color, altitude) {
 
 function featureToPoint(feature, properties, options) {
     // get altitude / color from properties
-    const altitude = getProperty('altitude', options, 0, properties, feature.vertices);
-    const color = getProperty('color', options, randomColor, properties);
+    const altitude = getProperty('altitude', options, 0, properties, feature);
+    const color = getProperty('color', options, randomColor, feature.getProperties());
 
-    const geom = prepareBufferGeometry(
-        feature.vertices,
-        color,
-        altitude,
-    );
+    const geom = feature.getGeometry();
+    const threeGeom = prepareBufferGeometry(geom, color, altitude);
 
-    return new THREE.Points(geom);
+    return new THREE.Points(threeGeom);
 }
 
 function featureToLine(feature, properties, options) {
     // get altitude / color from properties
-    const altitude = getProperty('altitude', options, 0, properties, feature.vertices);
-    const color = getProperty('color', options, randomColor, properties);
+    const altitude = getProperty('altitude', options, 0, properties, feature);
+    const color = getProperty('color', options, randomColor, feature.getProperties());
 
-    const geom = prepareBufferGeometry(
-        feature.vertices,
-        color,
-        altitude,
-    );
+    const geom = feature.getGeometry();
+    const threeGeom = prepareBufferGeometry(geom, color, altitude);
 
-    if (feature.geometry.length > 1) {
-        const indices = [];
-        // Multi line case
-        for (const geometry of feature.geometry) {
-            const start = geometry.indices[0].offset;
-            const end = start + geometry.indices[0].count;
-            for (let j = start; j < end; j++) {
-                indices.push(j);
-                indices.push(j + 1);
-            }
-        }
-        geom.setIndex(new THREE.BufferAttribute(new Uint16Array(indices), 1));
-        return new THREE.LineSegments(geom);
-    }
-    return new THREE.Line(geom);
+    return new THREE.Line(threeGeom);
 }
 
 function featureToPolygon(feature, properties, options) {
