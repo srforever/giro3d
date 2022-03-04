@@ -248,24 +248,24 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
     }
 
     if (layer.type === 'elevation') {
-        if (layer.format === ELEVATION_FORMAT.MAPBOX_RGB) {
+        if (layer.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
             if (!this.defines.MAPBOX_RGB_ELEVATION) {
                 this.defines.MAPBOX_RGB_ELEVATION = 1;
                 this.needsUpdate = true;
             }
-        } else if (layer.format === ELEVATION_FORMAT.HEIGHFIELD) {
+        } else if (layer.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
             if (!this.defines.HEIGHTFIELD_ELEVATION) {
                 this.defines.HEIGHTFIELD_ELEVATION = 1;
                 this.uniforms.heightFieldOffset = new THREE.Uniform(layer.heightFieldOffset || 0.0);
                 this.uniforms.heightFieldScale = new THREE.Uniform(layer.heightFieldScale || 255.0);
                 this.needsUpdate = true;
             }
-        } else if (layer.format === ELEVATION_FORMAT.RATP_GEOL) {
+        } else if (layer.elevationFormat === ELEVATION_FORMAT.RATP_GEOL) {
             if (!this.defines.RATP_GEOL_ELEVATION) {
                 this.defines.RATP_GEOL_ELEVATION = 1;
             }
         } else {
-            throw new Error('Missing layer.format handling', layer.format);
+            throw new Error('Missing layer.elevationFormat handling', layer.elevationFormat);
         }
         this.texturesInfo.elevation.texture = textures.texture;
         this.uniforms.elevationTexture.value = textures.texture;

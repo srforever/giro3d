@@ -320,7 +320,7 @@ class Map extends GeometryLayer {
             layer.update = layer.update || ColorTextureProcessing.updateLayerElement;
         } else if (layer.type === 'elevation') {
             layer.update = layer.update || ElevationTextureProcessing.updateLayerElement;
-            if (layer.format === ELEVATION_FORMAT.HEIGHFIELD) {
+            if (layer.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
                 layer.heightFieldOffset = layer.heightFieldOffset || 0;
                 layer.heightFieldScale = layer.heightFieldScale || 255;
             }
