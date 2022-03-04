@@ -285,7 +285,7 @@ class Instance extends EventDispatcher {
         // default loader does not have a "success" callback. Instead openlayers tests for
         if (source.getFeatures().length > 0) {
             vector.object3d = convert(source.getFeatures());
-            this._threeObjects.add(vector.object3d);
+            this.threeObjects.add(vector.object3d);
             this.notifyChange(vector.object3d, true);
         }
         source.on('change', () => {
@@ -303,7 +303,7 @@ class Instance extends EventDispatcher {
                 });
             }
             vector.object3d = convert(source.getFeatures());
-            this._threeObjects.add(vector.object3d);
+            this.threeObjects.add(vector.object3d);
             this.notifyChange(vector.object3d, true);
         });
         source.loadFeatures(
