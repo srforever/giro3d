@@ -18,6 +18,10 @@ function C3DEngine(rendererOrDiv, options = {}) {
     if (options.logarithmicDepthBuffer === undefined) {
         options.logarithmicDepthBuffer = false;
     }
+    if (options.clearColor === undefined) {
+        // Set clearColor to false for transparent
+        options.clearColor = 0x030508;
+    }
 
     const renderer = rendererOrDiv.domElement ? rendererOrDiv : undefined;
     const viewerDiv = renderer ? undefined : rendererOrDiv;
@@ -119,7 +123,9 @@ function C3DEngine(rendererOrDiv, options = {}) {
 
     Capabilities.updateCapabilities(this.renderer);
 
-    this.renderer.setClearColor(0x030508);
+    if (options.clearColor !== false) {
+        this.renderer.setClearColor(options.clearColor);
+    }
     this.renderer.autoClear = false;
     this.renderer.sortObjects = true;
 
