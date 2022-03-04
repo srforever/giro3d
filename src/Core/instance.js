@@ -240,6 +240,7 @@ class Instance extends EventDispatcher {
                 object.projection = this.referenceCrs;
             }
 
+            this._objects.push(object);
             object.whenReady.then(l => {
                 if (typeof (l.update) !== 'function') {
                     reject(new Error('Cant add GeometryLayer: missing a update function'));
@@ -249,7 +250,6 @@ class Instance extends EventDispatcher {
                     reject(new Error('Cant add GeometryLayer: missing a preUpdate function'));
                     return;
                 }
-                this._objects.push(l);
 
                 if (l.object3d && !l.object3d.parent && l.object3d !== this.scene) {
                     this.scene.add(l.object3d);
@@ -328,22 +328,14 @@ class Instance extends EventDispatcher {
     }
 
     /**
-     * Get all layers, with an optionnal filter applied.
-     * The filter method will be called with 2 args:
-     *   - 1st: current layer
-     *   - 2nd: (optional) the geometry layer to which the current layer is attached
+     * Get all opjects, with an optionnal filter applied.
+     * The filter method allows to get only a subset of objects
      * @example
-     * // get all layers
+     * // get all objects
      * view.getObjects();
-     * // get all color layers
-     * view.getObjects(layer => layer.type === 'color');
-     * // get all elevation layers
-     * view.getObjects(layer => layer.type === 'elevation');
-     * // get all geometry layers
-     * view.getObjects(layer => layer.type === 'geometry');
      * // get one layer with id
      * view.getObjects(layer => layer.id === 'itt');
-     * @param {function(Layer):boolean} filter
+     * @param {function(GeometryLayer):boolean} filter
      * @returns {Array<Layer>}
      */
     getObjects(filter) {
@@ -356,10 +348,15 @@ class Instance extends EventDispatcher {
         return result;
     }
 
+    /**
+     * Get all the layers attached to all the GeometryLayer of this objects
+     * @param {function(Layer):boolean} filter Optional filter function for attached layers
+     * @return {Array<Layer>}
+     */
     getLayers(filter) {
         let result = [];
-        for (const obj of this._objects) {
-            result = [...result, ...obj.getLayers(filter)];
+        for (const geometryLayer of this._objects) {
+            result = result.concat(geometryLayer.getLayers(filter));
         }
         return result;
     }
