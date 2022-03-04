@@ -246,8 +246,10 @@ class Map extends GeometryLayer {
             if (provider.tileInsideLimit) {
                 layer.tileInsideLimit = provider.tileInsideLimit.bind(provider);
             }
-            if (provider.canTextureBeImproved) {
-                layer.canTextureBeImproved = provider.canTextureBeImproved.bind(provider);
+            if (provider.getPossibleTextureImprovements) {
+                layer.getPossibleTextureImprovements = provider
+                    .getPossibleTextureImprovements
+                    .bind(provider);
             }
             if (provider.tileTextureCount) {
                 layer.tileTextureCount = provider.tileTextureCount.bind(provider);
@@ -267,7 +269,7 @@ class Map extends GeometryLayer {
 
             if (layer.type === 'elevation') {
                 providerPreprocessing = providerPreprocessing.then(() => {
-                    const down = provider.canTextureBeImproved(layer, layer.extent);
+                    const down = provider.getPossibleTextureImprovements(layer, layer.extent);
                     return provider.executeCommand({
                         layer,
                         toDownload: down,

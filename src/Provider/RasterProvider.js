@@ -178,9 +178,9 @@ export default {
             }
         });
     },
-    canTextureBeImproved(layer, extent, texture) {
+    getPossibleTextureImprovements(layer, extent, texture) {
         if (texture && texture.extent && texture.extent.isInside(extent)) {
-            return false;
+            return null;
         }
         return extent;
     },
