@@ -46,6 +46,7 @@ build_current:
     stage: build
     image: node:current-alpine
     script:
+        - export NODE_OPTIONS=--openssl-legacy-provider
         - npm i
         - npm run build
         - npm pack
