@@ -78,7 +78,7 @@ function buildUrl(layer, image) {
 
 function getTexture(toDownload, layer) {
     let textureP;
-    if (layer.format === 2) {
+    if (layer.elevationFormat === 2) {
         textureP = OGCWebServiceHelper.getXBilTextureByUrl(toDownload.url, layer.networkOptions);
     } else {
         textureP = OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions);
