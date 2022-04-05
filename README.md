@@ -6,15 +6,10 @@ Giro3d is a versatile [Three.js](https://threejs.org/)-based framework written i
 
 ## API documentation and examples
 
-**[API Documentation](http://www.giro3d-project.org/giro3d/API_Doc/)**
+**[API Documentation](http://giro3d.org/apidoc/index.html)**
 
+**[Examples](http://giro3d.org/examples/index.html)
 
-**Examples**
-
-- [Globe](http://www.giro3d-project.org/giro3d/examples/globe.html)
-- [Plane](http://www.giro3d-project.org/giro3d/examples/planar.html)
-- [Scene postprocessing](http://www.giro3d-project.org/giro3d/examples/postprocessing.html)
-- [3dtiles](http://www.giro3d-project.org/giro3d/examples/3dtiles.html)
 
 <p align="center">
 <a href="http://www.giro3d-project.org/giro3d/examples/index.html"><img src="http://www.giro3d-project.org/images/montage.jpg" /></a>
