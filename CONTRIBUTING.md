@@ -12,7 +12,7 @@ Everyone is welcome to contribute to giro3d!
 
 In addition to contributing to core giro3d code, we appreciate many types of contributions:
 
-* Being active on the giro3d mailing lists (see above) by answering questions and providing input on giro3d' direction.
+* Being active on issues, MR and other communication channel.
 * Showcasing your application built with giro3d : submit an issue with a link to your demo on the [giro3d website repository](https://github.com/giro3d/giro3d.github.io/issues). Tag it with the *demo* label
 * Writing tutorials, creating examples, and improving the reference documentation. See the issues labeled [doc](https://github.com/giro3d/giro3d/labels/doc)
 * Submitting issues as [described above](#submitting-an-issue)
@@ -58,8 +58,6 @@ If a related issue does not exist, submit a new one. Please include as much of t
 We welcome pull requests with great interest. We try to promptly review them, provide feedback, and merge. Following the tips in this guide will help your pull request be merged quickly.
 
 If you plan to make a major change, please start a new thread on the [giro3d mailing list](https://lists.osgeo.org/mailman/listinfo/giro3d-dev) first. Pull requests for small features and bug fixes can generally just be opened without discussion on the list.
-
-In the future, major code change will need to be submitted to the PSC trough an *giro3d Enhancement Proposal*. See the [PSC](https://github.com/giro3d/giro3d-project/blob/master/PSC.md) document for the (simple) process.
 
 ### Pull Request Guidelines
 

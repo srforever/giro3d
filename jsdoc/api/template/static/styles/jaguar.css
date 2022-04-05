@@ -162,10 +162,7 @@ code {
 }
 
 .navigation li.item a {
-  color: #bbb;
-}
-.navigation li.item a:hover {
-  color: #fff;
+  color: rgb(51, 51, 51);
 }
 .navigation li.item .title {
   cursor: pointer;
