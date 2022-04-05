@@ -186,9 +186,12 @@
 
                     debugGui = new dat.GUI({ width: 400 });
 
-                    instance = new giro3d.Instance(viewerDiv, 'EPSG:3946');
-                    // TODO introduce instance.setClearColor
-                    instance.mainLoop.gfxEngine.renderer.setClearColor(0xcccccc);
+                    instance = new giro3d.Instance(viewerDiv, {
+                        crs: 'EPSG:3946',
+                        renderer: {
+                            clearColor: 0xcccccc,
+                        }
+                    });
                     setupLoadingScreen(viewerDiv, instance);
 
                     // Configure Point Cloud layer
