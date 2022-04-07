@@ -284,13 +284,7 @@ class Instance extends EventDispatcher {
         return new Promise(resolve => {
             const source = vector.getSource();
             const convert = OlFeature2Mesh.convert({ altitude: 1 });
-            // default loader does not have a "success" callback. Instead openlayers tests for
-            if (source.getFeatures().length > 0) {
-                vector.object3d = convert(source.getFeatures());
-                this.threeObjects.add(vector.object3d);
-                this.notifyChange(vector.object3d, true);
-                resolve(vector);
-            }
+
             source.on('change', () => {
                 // naive way of dealing with changes : remove everything and add everything back
                 if (vector.object3d) {
@@ -308,13 +302,22 @@ class Instance extends EventDispatcher {
                 vector.object3d = convert(source.getFeatures());
                 this.threeObjects.add(vector.object3d);
                 this.notifyChange(vector.object3d, true);
-                resolve(vector);
             });
-            source.loadFeatures(
-                [-Infinity, -Infinity, Infinity, Infinity],
-                undefined,
-                this.referenceCrs,
-            );
+
+            // default loader does not have a "success" callback. Instead openlayers tests for
+            if (source.getFeatures().length > 0) {
+                vector.object3d = convert(source.getFeatures());
+                this.threeObjects.add(vector.object3d);
+                this.notifyChange(vector.object3d, true);
+                resolve(vector);
+            } else {
+                source.once('change', () => resolve(vector));
+                source.loadFeatures(
+                    [-Infinity, -Infinity, Infinity, Infinity],
+                    undefined,
+                    this.referenceCrs,
+                );
+            }
         });
     }
 
