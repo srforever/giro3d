@@ -126,7 +126,7 @@ export default {
 
         // Does this tile needs a new texture?
         const existing = node.material.getLayerTexture(layer);
-        const nextDownloads = layer.canTextureBeImproved(
+        const nextDownloads = layer.getPossibleTextureImprovements(
             layer,
             node.getExtentForLayer(layer),
             existing ? existing.texture : null,
@@ -134,12 +134,14 @@ export default {
         );
 
         // if the provider returns undef, then we konw it will never have any texture
+        // TODO make a superclass and document this behaviour (undefined: I'm done, null or false:
+        // come back later)
         if (nextDownloads === undefined) {
             node.layerUpdateState[layer.id].noMoreUpdatePossible();
             return null;
         }
         // in this case, the layer might be able to provide a texture later
-        if (nextDownloads === null) {
+        if (nextDownloads === null || nextDownloads === false) {
             return null;
         }
 

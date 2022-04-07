@@ -164,17 +164,17 @@ export default {
         // layer._spatialIndex, layer.images, tile.extent.as(layer.extent.crs())).length > 0;
     },
 
-    canTextureBeImproved(layer, extent, currentTexture) {
+    getPossibleTextureImprovements(layer, extent, currentTexture) {
         if (!layer.images) {
-            return false;
+            return null;
         }
         const s = selectBestImageForExtent(layer, extent);
 
         if (!s) {
-            return false;
+            return null;
         }
         if (currentTexture && currentTexture.file === s.image) {
-            return false;
+            return null;
         }
         return {
             selection: s,

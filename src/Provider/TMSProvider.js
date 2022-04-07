@@ -82,12 +82,12 @@ function chooseExtentToDownload(extent, currentExtent, layer, pitch, previousErr
     return OGCWebServiceHelper.WMTS_WGS84Parent(extent, nextZoom, pitch);
 }
 
-function canTextureBeImproved(layer, extent, texture, previousError) {
+function getPossibleTextureImprovements(layer, extent, texture, previousError) {
     if (!extentInsideLimit(extent, layer)) {
-        return false;
+        return null;
     }
     if (extent.zoom > layer.options.zoom.max) {
-        return false;
+        return null;
     }
 
     if (!texture) {
@@ -166,5 +166,5 @@ export default {
     executeCommand,
     tileTextureCount,
     tileInsideLimit,
-    canTextureBeImproved,
+    getPossibleTextureImprovements,
 };

@@ -655,8 +655,10 @@ function _preprocessObject(view, layer, provider, parentLayer) {
         if (provider.tileInsideLimit) {
             layer.tileInsideLimit = provider.tileInsideLimit.bind(provider);
         }
-        if (provider.canTextureBeImproved) {
-            layer.canTextureBeImproved = provider.canTextureBeImproved.bind(provider);
+        if (provider.getPossibleTextureImprovements) {
+            layer.getPossibleTextureImprovements = provider
+                .getPossibleTextureImprovements
+                .bind(provider);
         }
         if (provider.tileTextureCount) {
             layer.tileTextureCount = provider.tileTextureCount.bind(provider);

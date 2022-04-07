@@ -168,7 +168,7 @@ export default {
         }
 
         // Does this tile needs a new texture?
-        const nextDownloads = layer.canTextureBeImproved(
+        const nextDownloads = layer.getPossibleTextureImprovements(
             layer,
             node.getExtentForLayer(layer),
             node.material.getLayerTexture(layer).texture,

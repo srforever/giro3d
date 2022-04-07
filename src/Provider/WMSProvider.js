@@ -71,7 +71,7 @@ function tileInsideLimit(tile, layer) {
     return extent.as(layer.extent.crs()).isInside(layer.extent);
 }
 
-function canTextureBeImproved(layer, extent, texture, previousError) {
+function getPossibleTextureImprovements(layer, extent, texture, previousError) {
     const ex = extent.as(layer.extent.crs());
 
     // if texture extent matches extent => we're good
@@ -196,5 +196,5 @@ export default {
     executeCommand,
     tileTextureCount,
     tileInsideLimit,
-    canTextureBeImproved,
+    getPossibleTextureImprovements,
 };

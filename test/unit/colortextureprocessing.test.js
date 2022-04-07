@@ -80,7 +80,7 @@ describe('ColorTextureProcessing.updateLayerElement', () => {
             new Extent('EPSG:4326', 0, 0, 0, 0),
         );
         tile.material.visible = true;
-        layer.canTextureBeImproved = () => false;
+        layer.getPossibleTextureImprovements = () => null;
         ColorTextureProcessing.updateLayerElement(context, layer, tile);
 
         assert.equal(context.scheduler.commands.length, 0);
@@ -108,7 +108,7 @@ describe('ColorTextureProcessing.updateLayerElement', () => {
                 texturesInfo: { color: { atlasTexture: 'dummy' } },
             },
         };
-        layer.canTextureBeImproved = () => true;
+        layer.getPossibleTextureImprovements = () => ({}); // fake texture update information
 
         // FIRST PASS: init Node From Parent and get out of the function
         // without any network fetch

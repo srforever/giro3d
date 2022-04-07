@@ -67,7 +67,7 @@ function toOLExtent(extent) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function canTextureBeImproved(layer, extent, texture, previousError) {
+function getPossibleTextureImprovements(layer, extent, texture, previousError) {
     const ex = extent.as(layer.extent.crs());
     const tile = selectTile(layer, ex);
     if (texture && texture.extent && texture.extent.isInside(tile.tileExtent)) {
@@ -355,5 +355,5 @@ export default {
     executeCommand,
     tileTextureCount,
     tileInsideLimit,
-    canTextureBeImproved,
+    getPossibleTextureImprovements,
 };
