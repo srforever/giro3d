@@ -333,7 +333,7 @@ class Map extends GeometryLayer {
                 reject(new Error('layer is undefined'));
                 return;
             }
-            const duplicate = this.getLayers((l => l.id === layer.id));
+            const duplicate = this._instance.getLayers((l => l.id === layer.id));
             if (duplicate.length > 0) {
                 reject(new Error(`Invalid id '${layer.id}': id already used`));
                 return;

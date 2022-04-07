@@ -26,6 +26,7 @@ export const ColorLayersOrdering = {
      * @example
      * giro3d.ColorLayersOrdering.moveLayerUp(viewer, 'idLayerToUp');
      */
+    // TODO this should be done per Map / GeometryLayer, not for every color layers
     moveLayerUp: function moveLayerUp(view, layerId) {
         // TODO should be in map
         const imageryLayers = view.getLayers(l => l.type === 'color');

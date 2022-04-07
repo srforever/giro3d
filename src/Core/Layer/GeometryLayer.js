@@ -15,6 +15,7 @@ export default class GeometryLayer extends EventDispatcher {
             throw new Error('Missing/Invalid object3d parameter (must be a three.js Object3D instance)');
         }
         this._attachedLayers = [];
+        this._instance = null; // will be filled when we add the object to an instance
 
         if (object3d && object3d.type === 'Group' && object3d.name === '') {
             object3d.name = id;
@@ -171,5 +172,20 @@ export default class GeometryLayer extends EventDispatcher {
         const count = this._attachedLayers.length;
         this._attachedLayers = this._attachedLayers.filter(attached => attached.id !== layer.id);
         return this._attachedLayers.length < count;
+    }
+
+    /**
+     * Get all the layers attached to this object.
+     * @param {function(Layer):boolean} filter Optional filter function for attached layers
+     * @return {Array<Layer>}
+     */
+    getLayers(filter) {
+        const result = [];
+        for (const attached of this._attachedLayers) {
+            if (!filter || filter(attached)) {
+                result.push(attached);
+            }
+        }
+        return result;
     }
 }
