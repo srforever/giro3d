@@ -276,6 +276,7 @@ class Instance extends EventDispatcher {
         if (typeof object.clean === 'function') {
             object.clean();
         }
+        this._objects.splice(this._objects.indexOf(object, 1));
         this.notifyChange(this.camera.camera3D, true);
     }
 
