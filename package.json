@@ -83,9 +83,9 @@
     "shx": "^0.3.4",
     "three": "^0.124.0",
     "three.meshline": "^1.4.0",
-    "webpack": "^4.41.0",
-    "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.2"
+    "webpack": "^4.46.0",
+    "webpack-cli": "^3.3.12",
+    "webpack-dev-server": "^3.11.3"
   },
   "jest": {
     "transformIgnorePatterns": [
