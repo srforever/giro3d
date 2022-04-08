@@ -46,7 +46,7 @@
     "pbf": "^3.2.1",
     "text-encoding-utf-8": "^1.0.2",
     "url-polyfill": "^1.1.12",
-    "whatwg-fetch": "^2.0.2"
+    "whatwg-fetch": "^3.6.2"
   },
   "peerDependencies": {
     "proj4": "^2.8.0",
