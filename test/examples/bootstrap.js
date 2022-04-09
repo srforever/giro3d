@@ -96,7 +96,7 @@ before(async () => {
         page.setViewport({ width: 400, height: 300 });
 
         await page.goto(url);
-        await page.waitFor('#viewerDiv > canvas');
+        await page.waitForSelector('#viewerDiv > canvas');
 
         // install a globally available __getView helper
         await page.evaluate(() => {
