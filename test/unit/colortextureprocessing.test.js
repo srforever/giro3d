@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 import * as THREE from 'three';
 import ColorTextureProcessing from '../../src/Process/ColorTextureProcessing.js';
 import TileMesh from '../../src/Core/TileMesh.js';
