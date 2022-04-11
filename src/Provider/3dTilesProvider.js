@@ -51,11 +51,11 @@ export class $3dTilesIndex {
             }
         }
 
-        // this._inverseTileTransform.getInverse(node._worldFromLocalTransform);
+        // this._inverseTileTransform.copy(node._worldFromLocalTransform).invert();
         // getBox only use this._inverseTileTransform for volume.region so let's not
         // compute the inverse matrix each time
         if (node._worldFromLocalTransform) {
-            this._inverseTileTransform.getInverse(node._worldFromLocalTransform);
+            this._inverseTileTransform.copy(node._worldFromLocalTransform).invert();
         } else {
             this._inverseTileTransform.identity();
         }

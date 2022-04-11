@@ -87,7 +87,7 @@ function executeCommand(command) {
         // get parent extent transformation
         const pTrans = builder.computeSharableExtent(parent.extent);
         // place relative to his parent
-        position.sub(pTrans.position).applyQuaternion(pTrans.quaternion.inverse());
+        position.sub(pTrans.position).applyQuaternion(pTrans.quaternion.invert());
         quaternion.premultiply(pTrans.quaternion);
     }
 
