@@ -1,3 +1,7 @@
+/**
+ * @jest-environment jsdom
+ */
+
 /* global describe, it */
 import assert from 'assert';
 import Scheduler from '../../src/Core/Scheduler/Scheduler.js';

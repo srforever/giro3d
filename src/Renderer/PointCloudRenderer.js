@@ -160,7 +160,7 @@ function PointCloudRenderer(view) {
             const m43 = -(2 * f * n) / (f - n);
             const m33 = -(f + n) / (f - n);
             const mat = new THREE.Matrix4();
-            mat.getInverse(renderer.view.camera.camera3D.projectionMatrix);
+            mat.copy(renderer.view.camera.camera3D.projectionMatrix).invert();
 
             const mU = m.uniforms;
             mU.colorTexture.value = input.texture;
@@ -172,7 +172,7 @@ function PointCloudRenderer(view) {
             mU.m33.value = m33;
             mU.threshold.value = this.parameters.threshold;
             mU.showRemoved.value = this.parameters.showRemoved;
-            mU.invPersMatrix.value.getInverse(renderer.view.camera.camera3D.projectionMatrix);
+            mU.invPersMatrix.value.copy(renderer.view.camera.camera3D.projectionMatrix).invert();
             mU.clearColor.value.copy(renderer.view.mainLoop.gfxEngine.renderer.getClearColor());
 
             return { material: m };

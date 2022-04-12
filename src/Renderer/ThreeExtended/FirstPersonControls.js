@@ -129,7 +129,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
         const q = new THREE.Quaternion().setFromUnitVectors(
             new THREE.Vector3(0, 1, 0), this.camera.up,
         );
-        q.inverse();
+        q.invert();
         // compute r
         const r = this.camera.quaternion.clone().premultiply(q);
         // tranform it to euler
