@@ -1170,7 +1170,7 @@ export default ( function () {
 				if ( khr_material ) {
 
 					// don't copy over unused values to avoid material warning spam
-					var keys = [ 'ambient', 'emission', 'transparent', 'transparency', 'doubleSided' ];
+					var keys = [ 'ambient', 'emission', 'transparent', 'transmission', 'doubleSided' ];
 
 					switch ( khr_material.technique ) {
 
@@ -1207,7 +1207,7 @@ export default ( function () {
 					if ( khr_material.transparent || materialValues.transparent ) {
 
 						materialParams.transparent = true;
-						materialParams.opacity = ( materialValues.transparency !== undefined ) ? materialValues.transparency : 1;
+						materialParams.opacity = ( materialValues.transmission !== undefined ) ? materialValues.transmission : 1;
 
 					}
 
@@ -1276,7 +1276,7 @@ export default ( function () {
 
 										uvalue = shaderParam.value;
 
-										if ( pname === "transparency" ) {
+										if ( pname === "transmission" ) {
 
 											materialParams.transparent = true;
 
