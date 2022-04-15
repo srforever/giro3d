@@ -40,131 +40,351 @@ function fillArray(array, remp) {
 //   - useColorTextureElevation: declare that the elevation texture is an RGB textures.
 //   - colorTextureElevationMinZ: altitude value mapped on the (0, 0, 0) color
 //   - colorTextureElevationMaxZ: altitude value mapped on the (255, 255, 255) color
-const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
-    THREE.RawShaderMaterial.call(this);
+class LayeredMaterial extends THREE.RawShaderMaterial {
+    constructor( options = {}, segments, atlasInfo ) {
+        super();
 
-    options = options || { };
-    this.atlasInfo = atlasInfo;
-    // this.defines.HILLSHADE = 1;
-    this.defines.STITCHING = 1;
-    this.uniforms.segments = new THREE.Uniform(segments);
-    if (options.side) {
-        this.side = options.side;
-    }
-    this.uniforms.renderingState = new THREE.Uniform(RendererConstant.FINAL);
+        this.atlasInfo = atlasInfo;
+        this.defines.STITCHING = 1;
+        this.uniforms.segments = new THREE.Uniform(segments);
+        if (options.side) {
+            this.side = options.side;
+        }
+        this.uniforms.renderingState = new THREE.Uniform(RendererConstant.FINAL);
 
-    this.defines.TEX_UNITS = 0;
-    this.defines.INSERT_TEXTURE_READING_CODE = '';
+        this.defines.TEX_UNITS = 0;
+        this.defines.INSERT_TEXTURE_READING_CODE = '';
 
-    if (__DEBUG__) {
-        this.defines.DEBUG = 1;
-        this.uniforms.showOutline = new THREE.Uniform(true);
-    }
-    // this.extensions.derivatives = true;
+        if (__DEBUG__) {
+            this.defines.DEBUG = 1;
+            this.uniforms.showOutline = new THREE.Uniform(true);
+        }
 
-    this.fragmentShader = TileFS;
-    this.vertexShader = TileVS;
+        this.fragmentShader = TileFS;
+        this.vertexShader = TileVS;
 
-    this.canvas = document.createElement('canvas');
-    this.canvas.width = atlasInfo.maxX;
-    this.canvas.height = atlasInfo.maxY;
+        this.canvas = document.createElement('canvas');
+        this.canvas.width = atlasInfo.maxX;
+        this.canvas.height = atlasInfo.maxY;
 
-    this.pendingUpdates = [];
+        this.pendingUpdates = [];
 
-    this.texturesInfo = {
-        color: {
-            offsetScale: [],
-            originalOffsetScale: [],
-            atlasTexture: new THREE.CanvasTexture(this.canvas),
-            parentAtlasTexture: null,
-            textures: [],
-            opacity: [],
-            visible: [],
-            colors: [],
-        },
-        elevation: {
-            offsetScale: new THREE.Vector4(0, 0, 0, 0),
-            texture: emptyTexture,
-            neighbours: {
-                offsetScale: Array(4),
-                texture: Array(4),
+        this.texturesInfo = {
+            color: {
+                offsetScale: [],
+                originalOffsetScale: [],
+                atlasTexture: new THREE.CanvasTexture(this.canvas),
+                parentAtlasTexture: null,
+                textures: [],
+                opacity: [],
+                visible: [],
+                colors: [],
             },
-            format: null,
-        },
-    };
-    fillArray(this.texturesInfo.elevation.neighbours.texture, emptyTexture);
-    fillArray(this.texturesInfo.elevation.neighbours.offsetScale, vector4);
-
-    this.canvasRevision = 0;
-
-    this.uniforms.tileDimensions = new THREE.Uniform(new THREE.Vector2());
-    this.uniforms.neighbourdiffLevel = new THREE.Uniform(new THREE.Vector4());
-
-    // Elevation texture
-    this.uniforms.elevationTexture = new THREE.Uniform(this.texturesInfo.elevation.texture);
-    this.uniforms.elevationOffsetScale = new THREE.Uniform(this.texturesInfo.elevation.offsetScale);
-    this.uniforms.nTex = new THREE.Uniform(this.texturesInfo.elevation.neighbours.texture);
-    this.uniforms.nOff = new THREE.Uniform(this.texturesInfo.elevation.neighbours.offsetScale);
-
-    // Color textures's layer
-    this.uniforms.colorTexture = new THREE.Uniform(this.texturesInfo.color.atlasTexture);
-    this.uniforms.colorOffsetScale = new THREE.Uniform(); // this.texturesInfo.color.offsetScale);
-    this.uniforms.colorOpacity = new THREE.Uniform(); // this.texturesInfo.color.opacity);
-    this.uniforms.colorVisible = new THREE.Uniform(); // this.texturesInfo.color.visible);
-    this.uniforms.colors = new THREE.Uniform(this.texturesInfo.color.colors);
-
-    this.uniforms.uuid = new THREE.Uniform(0);
-
-    this.uniforms.noTextureColor = new THREE.Uniform(new THREE.Color());
-    this.uniforms.noTextureOpacity = new THREE.Uniform(1.0);
-
-    this.uniforms.opacity = new THREE.Uniform(1.0);
-
-    this.colorLayers = [];
-    // this.wireframe = true;
-    this.texturesInfo.color.atlasTexture.generateMipmaps = false;
-    this.texturesInfo.color.atlasTexture.magFilter = THREE.LinearFilter;
-    this.texturesInfo.color.atlasTexture.minFilter = THREE.LinearFilter;
-    this.texturesInfo.color.atlasTexture.anisotropy = 1;
-    this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
-    this.texturesInfo.color.atlasTexture.needsUpdate = false;
-};
-
-LayeredMaterial.prototype = Object.create(THREE.RawShaderMaterial.prototype);
-LayeredMaterial.prototype.constructor = LayeredMaterial;
-
-LayeredMaterial.prototype.dispose = function dispose() {
-    this.dispatchEvent({
-        type: 'dispose',
-    });
-    this.disposed = true;
-
-    this.texturesInfo.color.atlasTexture.dispose();
-    this.texturesInfo.elevation.texture.dispose();
-};
-
-LayeredMaterial.prototype.getLayerTexture = function getLayerTexture(layer) {
-    if (layer.type === 'elevation') {
-        return {
-            texture: this.texturesInfo.elevation.texture,
-            offsetScale: this.texturesInfo.elevation.offsetScale,
-            elevationFormat: this.texturesInfo.elevation.format,
-            heightFieldScale: this.texturesInfo.elevation.heightFieldScale,
-            heightFieldOffset: this.texturesInfo.elevation.heightFieldOffset,
+            elevation: {
+                offsetScale: new THREE.Vector4(0, 0, 0, 0),
+                texture: emptyTexture,
+                neighbours: {
+                    offsetScale: Array(4),
+                    texture: Array(4),
+                },
+                format: null,
+            },
         };
+        fillArray(this.texturesInfo.elevation.neighbours.texture, emptyTexture);
+        fillArray(this.texturesInfo.elevation.neighbours.offsetScale, vector4);
+
+        this.canvasRevision = 0;
+
+        this.uniforms.tileDimensions = new THREE.Uniform(new THREE.Vector2());
+        this.uniforms.neighbourdiffLevel = new THREE.Uniform(new THREE.Vector4());
+
+        // Elevation texture
+        this.uniforms.elevationTexture = new THREE.Uniform(this.texturesInfo.elevation.texture);
+        this.uniforms.elevationOffsetScale = new THREE.Uniform(this.texturesInfo.elevation.offsetScale);
+        this.uniforms.nTex = new THREE.Uniform(this.texturesInfo.elevation.neighbours.texture);
+        this.uniforms.nOff = new THREE.Uniform(this.texturesInfo.elevation.neighbours.offsetScale);
+
+        // Color textures's layer
+        this.uniforms.colorTexture = new THREE.Uniform(this.texturesInfo.color.atlasTexture);
+        this.uniforms.colorOffsetScale = new THREE.Uniform(); // this.texturesInfo.color.offsetScale);
+        this.uniforms.colorOpacity = new THREE.Uniform(); // this.texturesInfo.color.opacity);
+        this.uniforms.colorVisible = new THREE.Uniform(); // this.texturesInfo.color.visible);
+        this.uniforms.colors = new THREE.Uniform(this.texturesInfo.color.colors);
+
+        this.uniforms.uuid = new THREE.Uniform(0);
+
+        this.uniforms.noTextureColor = new THREE.Uniform(new THREE.Color());
+        this.uniforms.noTextureOpacity = new THREE.Uniform(1.0);
+
+        this.uniforms.opacity = new THREE.Uniform(1.0);
+
+        this.colorLayers = [];
+        this.texturesInfo.color.atlasTexture.generateMipmaps = false;
+        this.texturesInfo.color.atlasTexture.magFilter = THREE.LinearFilter;
+        this.texturesInfo.color.atlasTexture.minFilter = THREE.LinearFilter;
+        this.texturesInfo.color.atlasTexture.anisotropy = 1;
+        this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
+        this.texturesInfo.color.atlasTexture.needsUpdate = false;
     }
 
-    const index = this.indexOfColorLayer(layer);
+    dispose() {
+        this.dispatchEvent({
+            type: 'dispose',
+        });
+        this.disposed = true;
 
-    if (index === -1) {
-        return null;
+        this.texturesInfo.color.atlasTexture.dispose();
+        this.texturesInfo.elevation.texture.dispose();
     }
-    return {
-        texture: this.texturesInfo.color.textures[index],
-        // offsetScale: this.texturesInfo.color.offsetScale[index],
-    };
-    // throw new Error(`Invalid layer "${layer}"`);
-};
+
+    getLayerTexture(layer) {
+        if (layer.type === 'elevation') {
+            return {
+                texture: this.texturesInfo.elevation.texture,
+                offsetScale: this.texturesInfo.elevation.offsetScale,
+                elevationFormat: this.texturesInfo.elevation.format,
+                heightFieldScale: this.texturesInfo.elevation.heightFieldScale,
+                heightFieldOffset: this.texturesInfo.elevation.heightFieldOffset,
+            };
+        }
+
+        const index = this.indexOfColorLayer(layer);
+
+        if (index === -1) {
+            return null;
+        }
+        return {
+            texture: this.texturesInfo.color.textures[index],
+        }
+    }
+
+    setLayerTextures(layer, textures, shortcut, view) {
+        if (Array.isArray(textures)) {
+            // console.warn(`Provider should return a single texture and not an Array. See layer id =
+            // ${layer.id}`);
+            textures = textures[0];
+        }
+
+        if (layer.type === 'elevation') {
+            if (layer.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
+                if (!this.defines.MAPBOX_RGB_ELEVATION) {
+                    this.defines.MAPBOX_RGB_ELEVATION = 1;
+                    this.needsUpdate = true;
+                }
+            } else if (layer.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
+                if (!this.defines.HEIGHTFIELD_ELEVATION) {
+                    this.defines.HEIGHTFIELD_ELEVATION = 1;
+
+                    const heightFieldOffset = layer.heightFieldOffset || 0.0;
+                    this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
+                    this.uniforms.heightFieldOffset = new THREE.Uniform(heightFieldOffset);
+                    const heightFieldScale = layer.heightFieldScale || 255.0;
+                    this.texturesInfo.elevation.heightFieldScale = heightFieldScale;
+                    this.uniforms.heightFieldScale = new THREE.Uniform(heightFieldScale);
+                    this.needsUpdate = true;
+                }
+            } else if (layer.elevationFormat === ELEVATION_FORMAT.RATP_GEOL) {
+                if (!this.defines.RATP_GEOL_ELEVATION) {
+                    this.defines.RATP_GEOL_ELEVATION = 1;
+                }
+            } else {
+                throw new Error('Missing layer.elevationFormat handling', layer.elevationFormat);
+            }
+            this.uniforms.elevationTexture.value = textures.texture;
+            this.texturesInfo.elevation.texture = textures.texture;
+            this.texturesInfo.elevation.offsetScale.copy(textures.pitch);
+            this.texturesInfo.elevation.format = layer.elevationFormat;
+
+            return Promise.resolve(true);
+        }
+        if (layer.type === 'color') {
+            const index = this.indexOfColorLayer(layer);
+            this.texturesInfo.color.originalOffsetScale[index].copy(textures.pitch);
+            this.texturesInfo.color.textures[index] = textures.texture;
+
+            if (shortcut) {
+                updateOffsetScale(
+                    layer.imageSize,
+                    this.atlasInfo.atlas[layer.id],
+                    this.texturesInfo.color.originalOffsetScale[index],
+                    this.uniforms.colorTexture.value.image,
+                    this.texturesInfo.color.offsetScale[index],
+                );
+                // we already got our texture (needsUpdate is done in TiledNodeProcessing)
+                return Promise.resolve();
+            }
+
+            this.pendingUpdates.push(layer);
+
+            if (this.setTimeoutId !== null) {
+                clearTimeout(this.setTimeoutId);
+            }
+            this.setTimeoutId = setTimeout(() => {
+                if (this.uniforms.colorTexture.value !== this.texturesInfo.color.atlasTexture) {
+                    this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
+                    for (const l of this.colorLayers) {
+                        if (this.pendingUpdates.indexOf(l) === -1) {
+                            console.warn('no new texture for ', l.id, '. Redrawing the old one');
+                            this.pendingUpdates.push(l);
+                        }
+                    }
+                }
+
+                // Draw scheduled textures in canvas
+                for (const l of this.pendingUpdates) {
+                    const idx = this.indexOfColorLayer(l);
+                    const atlas = this.atlasInfo.atlas[l.id];
+
+                    updateOffsetScale(
+                        l.imageSize,
+                        this.atlasInfo.atlas[l.id],
+                        this.texturesInfo.color.originalOffsetScale[idx],
+                        this.uniforms.colorTexture.value.image,
+                        this.texturesInfo.color.offsetScale[idx],
+                    );
+
+                    const srcImage = this.texturesInfo.color.textures[idx].image;
+
+                    this.canvasRevision = drawLayerOnCanvas(
+                        l,
+                        this.texturesInfo.color.atlasTexture,
+                        atlas,
+                        (srcImage === this.canvas) ? null : srcImage,
+                        this.texturesInfo.color.offsetScale[idx],
+                        this.canvasRevision,
+                    );
+                }
+                this.pendingUpdates.length = 0;
+                this.texturesInfo.color.atlasTexture.needsUpdate = true;
+                if (this.visible) {
+                    view.notifyChange();
+                }
+                this.setTimeoutId = null;
+            }, 300 + Math.random() * 300);
+
+            return Promise.resolve();
+        }
+        throw new Error(`Unsupported layer type '${layer.type}'`);
+    }
+
+    pushLayer(newLayer) {
+        this.texturesInfo.color.opacity.push(newLayer.opacity);
+        this.texturesInfo.color.visible.push(newLayer.visible);
+        this.texturesInfo.color.offsetScale.push(new THREE.Vector4(0, 0, 0, 0));
+        this.texturesInfo.color.originalOffsetScale.push(new THREE.Vector4(0, 0, 0, 0));
+        this.texturesInfo.color.textures.push(emptyTexture);
+        this.texturesInfo.color.colors.push(newLayer.color || new THREE.Color(1, 1, 1));
+        this.colorLayers.push(newLayer);
+
+        if (this.colorLayers.length === 1) {
+            // init uniforms
+            this.uniforms.colorOffsetScale = new THREE.Uniform(this.texturesInfo.color.offsetScale);
+            this.uniforms.colorOpacity = new THREE.Uniform(this.texturesInfo.color.opacity);
+            this.uniforms.colorVisible = new THREE.Uniform(this.texturesInfo.color.visible);
+        }
+        this.defines.TEX_UNITS = this.colorLayers.length;
+        this.needsUpdate = true;
+
+        this.onBeforeCompile = rebuildFragmentShader.bind(this);
+    }
+
+    removeLayer(layer) {
+        const index = this.indexOfColorLayer(layer);
+        if (index === -1) {
+            console.warn(`Layer ${layer.id} not found, so not removed...`);
+            return;
+        }
+        this.texturesInfo.color.opacity.splice(index, 1);
+        this.texturesInfo.color.visible.splice(index, 1);
+        this.texturesInfo.color.offsetScale.splice(index, 1);
+        this.texturesInfo.color.originalOffsetScale.splice(index, 1);
+        this.texturesInfo.color.textures.splice(index, 1);
+        this.texturesInfo.color.colors.splice(index, 1);
+        this.colorLayers.splice(index, 1);
+
+        this.defines.TEX_UNITS = this.colorLayers.length;
+
+        this.needsUpdate = true;
+
+        this.onBeforeCompile = rebuildFragmentShader.bind(this);
+    }
+
+    update() {
+        if (this.colorLayers.length === 0) {
+            return true;
+        }
+        if (this.atlasInfo.maxX > this.canvas.width || this.atlasInfo.maxY > this.canvas.height) {
+            // TODO: test this and then make providers draw directly in this.canvas
+            const newCanvas = document.createElement('canvas');
+            newCanvas.width = this.atlasInfo.maxX;
+            newCanvas.height = this.atlasInfo.maxY;
+            if (this.canvas.width > 0) {
+                const ctx = newCanvas.getContext('2d');
+                ctx.drawImage(this.canvas, 0, 0, this.canvas.width, this.canvas.height);
+            }
+
+            this.texturesInfo.color.atlasTexture.dispose();
+            this.texturesInfo.color.atlasTexture = new THREE.CanvasTexture(newCanvas);
+            this.texturesInfo.color.atlasTexture.magFilter = THREE.LinearFilter;
+            this.texturesInfo.color.atlasTexture.minFilter = THREE.LinearFilter;
+            this.texturesInfo.color.atlasTexture.anisotropy = 1;
+            this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
+            this.texturesInfo.color.atlasTexture.needsUpdate = true;
+
+            for (let i = 0; i < this.colorLayers.length; i++) {
+                const layer = this.colorLayers[i];
+                const atlas = this.atlasInfo.atlas[layer.id];
+                const pitch = this.texturesInfo.color.originalOffsetScale[i];
+
+                // compute offset / scale
+                const xRatio = layer.imageSize.w / newCanvas.width;
+                const yRatio = layer.imageSize.h / newCanvas.height;
+                this.texturesInfo.color.offsetScale[i] = new THREE.Vector4(
+                    atlas.x / newCanvas.width + pitch.x * xRatio,
+                    (atlas.y + atlas.offset) / newCanvas.height + pitch.y * yRatio,
+                    pitch.z * xRatio,
+                    pitch.w * yRatio,
+                );
+            }
+            this.canvas = newCanvas;
+            this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
+        }
+        return this.canvas.width > 0;
+    }
+
+    indexOfColorLayer(layer) {
+        return this.colorLayers.indexOf(layer);
+    }
+
+    setLayerOpacity(layer, opacity) {
+        const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
+        this.texturesInfo.color.opacity[index] = opacity;
+    }
+
+    setLayerVisibility(layer, visible) {
+        const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
+        this.texturesInfo.color.visible[index] = visible;
+    }
+
+    isColorLayerLoaded(layer) {
+        if (layer.type === 'color') {
+            const index = this.indexOfColorLayer(layer);
+            if (index < 0) {
+                return null;
+            }
+            return this.texturesInfo.color.textures[index] !== emptyTexture;
+        }
+        if (layer.type === 'elevation') {
+            return this.texturesInfo.elevation.texture !== emptyTexture;
+        }
+        return null; // TODO throw?
+    }
+
+    setUuid(uuid) {
+        this.uniforms.uuid.value = uuid;
+    }
+
+}
 
 function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revision) {
     const canvas = atlasTexture.image;
@@ -241,120 +461,6 @@ function updateOffsetScale(imageSize, atlas, originalOffsetScale, canvas, target
         originalOffsetScale.w * yRatio,
     );
 }
-
-LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
-    layer, textures, shortcut, view,
-) {
-    if (Array.isArray(textures)) {
-        // console.warn(`Provider should return a single texture and not an Array. See layer id =
-        // ${layer.id}`);
-        textures = textures[0];
-    }
-
-    if (layer.type === 'elevation') {
-        if (layer.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
-            if (!this.defines.MAPBOX_RGB_ELEVATION) {
-                this.defines.MAPBOX_RGB_ELEVATION = 1;
-                this.needsUpdate = true;
-            }
-        } else if (layer.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
-            if (!this.defines.HEIGHTFIELD_ELEVATION) {
-                this.defines.HEIGHTFIELD_ELEVATION = 1;
-
-                const heightFieldOffset = layer.heightFieldOffset || 0.0;
-                this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
-                this.uniforms.heightFieldOffset = new THREE.Uniform(heightFieldOffset);
-                const heightFieldScale = layer.heightFieldScale || 255.0;
-                this.texturesInfo.elevation.heightFieldScale = heightFieldScale;
-                this.uniforms.heightFieldScale = new THREE.Uniform(heightFieldScale);
-                this.needsUpdate = true;
-            }
-        } else if (layer.elevationFormat === ELEVATION_FORMAT.RATP_GEOL) {
-            if (!this.defines.RATP_GEOL_ELEVATION) {
-                this.defines.RATP_GEOL_ELEVATION = 1;
-            }
-        } else {
-            throw new Error('Missing layer.elevationFormat handling', layer.elevationFormat);
-        }
-        this.uniforms.elevationTexture.value = textures.texture;
-        this.texturesInfo.elevation.texture = textures.texture;
-        this.texturesInfo.elevation.offsetScale.copy(textures.pitch);
-        this.texturesInfo.elevation.format = layer.elevationFormat;
-
-        return Promise.resolve(true);
-    }
-    if (layer.type === 'color') {
-        const index = this.indexOfColorLayer(layer);
-        // const atlas = this.atlasInfo.atlas[layer.id];
-        this.texturesInfo.color.originalOffsetScale[index].copy(textures.pitch);
-        this.texturesInfo.color.textures[index] = textures.texture;
-
-        // const canvas = this.uniforms.colorTexture.value.image;
-
-        if (shortcut) {
-            updateOffsetScale(
-                layer.imageSize,
-                this.atlasInfo.atlas[layer.id],
-                this.texturesInfo.color.originalOffsetScale[index],
-                this.uniforms.colorTexture.value.image,
-                this.texturesInfo.color.offsetScale[index],
-            );
-            // we already got our texture (needsUpdate is done in TiledNodeProcessing)
-            return Promise.resolve();
-        }
-
-        this.pendingUpdates.push(layer);
-
-        if (this.setTimeoutId !== null) {
-            clearTimeout(this.setTimeoutId);
-        }
-        this.setTimeoutId = setTimeout(() => {
-            if (this.uniforms.colorTexture.value !== this.texturesInfo.color.atlasTexture) {
-                this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
-                for (const l of this.colorLayers) {
-                    if (this.pendingUpdates.indexOf(l) === -1) {
-                        console.warn('no new texture for ', l.id, '. Redrawing the old one');
-                        this.pendingUpdates.push(l);
-                    }
-                }
-            }
-
-            // Draw scheduled textures in canvas
-            for (const l of this.pendingUpdates) {
-                const idx = this.indexOfColorLayer(l);
-                const atlas = this.atlasInfo.atlas[l.id];
-
-                updateOffsetScale(
-                    l.imageSize,
-                    this.atlasInfo.atlas[l.id],
-                    this.texturesInfo.color.originalOffsetScale[idx],
-                    this.uniforms.colorTexture.value.image,
-                    this.texturesInfo.color.offsetScale[idx],
-                );
-
-                const srcImage = this.texturesInfo.color.textures[idx].image;
-
-                this.canvasRevision = drawLayerOnCanvas(
-                    l,
-                    this.texturesInfo.color.atlasTexture,
-                    atlas,
-                    (srcImage === this.canvas) ? null : srcImage,
-                    this.texturesInfo.color.offsetScale[idx],
-                    this.canvasRevision,
-                );
-            }
-            this.pendingUpdates.length = 0;
-            this.texturesInfo.color.atlasTexture.needsUpdate = true;
-            if (this.visible) {
-                view.notifyChange();
-            }
-            this.setTimeoutId = null;
-        }, 300 + Math.random() * 300);
-
-        return Promise.resolve();
-    }
-    throw new Error(`Unsupported layer type '${layer.type}'`);
-};
 
 function zIndexSort(a, b) {
     if (a.zIndex === b.zIndex) {
@@ -438,123 +544,6 @@ function rebuildFragmentShader(shader) {
     material.onBeforeCompile = function noop() {};
     return material.fragmentShader;
 }
-
-LayeredMaterial.prototype.pushLayer = function pushLayer(newLayer) {
-    this.texturesInfo.color.opacity.push(newLayer.opacity);
-    this.texturesInfo.color.visible.push(newLayer.visible);
-    this.texturesInfo.color.offsetScale.push(new THREE.Vector4(0, 0, 0, 0));
-    this.texturesInfo.color.originalOffsetScale.push(new THREE.Vector4(0, 0, 0, 0));
-    this.texturesInfo.color.textures.push(emptyTexture);
-    this.texturesInfo.color.colors.push(newLayer.color || new THREE.Color(1, 1, 1));
-    this.colorLayers.push(newLayer);
-
-    if (this.colorLayers.length === 1) {
-        // init uniforms
-        this.uniforms.colorOffsetScale = new THREE.Uniform(this.texturesInfo.color.offsetScale);
-        this.uniforms.colorOpacity = new THREE.Uniform(this.texturesInfo.color.opacity);
-        this.uniforms.colorVisible = new THREE.Uniform(this.texturesInfo.color.visible);
-    }
-    this.defines.TEX_UNITS = this.colorLayers.length;
-    this.needsUpdate = true;
-
-    this.onBeforeCompile = rebuildFragmentShader.bind(this);
-};
-
-LayeredMaterial.prototype.removeLayer = function removeLayer(layer) {
-    const index = this.indexOfColorLayer(layer);
-    if (index === -1) {
-        console.warn(`Layer ${layer.id} not found, so not removed...`);
-        return;
-    }
-    this.texturesInfo.color.opacity.splice(index, 1);
-    this.texturesInfo.color.visible.splice(index, 1);
-    this.texturesInfo.color.offsetScale.splice(index, 1);
-    this.texturesInfo.color.originalOffsetScale.splice(index, 1);
-    this.texturesInfo.color.textures.splice(index, 1);
-    this.texturesInfo.color.colors.splice(index, 1);
-    this.colorLayers.splice(index, 1);
-
-    this.defines.TEX_UNITS = this.colorLayers.length;
-
-    this.needsUpdate = true;
-
-    this.onBeforeCompile = rebuildFragmentShader.bind(this);
-};
-
-LayeredMaterial.prototype.update = function update() {
-    if (this.colorLayers.length === 0) {
-        return true;
-    }
-    if (this.atlasInfo.maxX > this.canvas.width || this.atlasInfo.maxY > this.canvas.height) {
-        // TODO: test this and then make providers draw directly in this.canvas
-        const newCanvas = document.createElement('canvas');
-        newCanvas.width = this.atlasInfo.maxX;
-        newCanvas.height = this.atlasInfo.maxY;
-        if (this.canvas.width > 0) {
-            const ctx = newCanvas.getContext('2d');
-            ctx.drawImage(this.canvas, 0, 0, this.canvas.width, this.canvas.height);
-        }
-
-        this.texturesInfo.color.atlasTexture.dispose();
-        this.texturesInfo.color.atlasTexture = new THREE.CanvasTexture(newCanvas);
-        this.texturesInfo.color.atlasTexture.magFilter = THREE.LinearFilter;
-        this.texturesInfo.color.atlasTexture.minFilter = THREE.LinearFilter;
-        this.texturesInfo.color.atlasTexture.anisotropy = 1;
-        this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
-        this.texturesInfo.color.atlasTexture.needsUpdate = true;
-
-        for (let i = 0; i < this.colorLayers.length; i++) {
-            const layer = this.colorLayers[i];
-            const atlas = this.atlasInfo.atlas[layer.id];
-            const pitch = this.texturesInfo.color.originalOffsetScale[i];
-
-            // compute offset / scale
-            const xRatio = layer.imageSize.w / newCanvas.width;
-            const yRatio = layer.imageSize.h / newCanvas.height;
-            this.texturesInfo.color.offsetScale[i] = new THREE.Vector4(
-                atlas.x / newCanvas.width + pitch.x * xRatio,
-                (atlas.y + atlas.offset) / newCanvas.height + pitch.y * yRatio,
-                pitch.z * xRatio,
-                pitch.w * yRatio,
-            );
-        }
-        this.canvas = newCanvas;
-        this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
-    }
-    return this.canvas.width > 0;
-};
-
-LayeredMaterial.prototype.indexOfColorLayer = function indexOfColorLayer(layer) {
-    return this.colorLayers.indexOf(layer);
-};
-
-LayeredMaterial.prototype.setLayerOpacity = function setLayerOpacity(layer, opacity) {
-    const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
-    this.texturesInfo.color.opacity[index] = opacity;
-};
-
-LayeredMaterial.prototype.setLayerVisibility = function setLayerVisibility(layer, visible) {
-    const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
-    this.texturesInfo.color.visible[index] = visible;
-};
-
-LayeredMaterial.prototype.isLayerTextureLoaded = function isColorLayerLoaded(layer) {
-    if (layer.type === 'color') {
-        const index = this.indexOfColorLayer(layer);
-        if (index < 0) {
-            return null;
-        }
-        return this.texturesInfo.color.textures[index] !== emptyTexture;
-    }
-    if (layer.type === 'elevation') {
-        return this.texturesInfo.elevation.texture !== emptyTexture;
-    }
-    return null; // TODO throw?
-};
-
-LayeredMaterial.prototype.setUuid = function setUuid(uuid) {
-    this.uniforms.uuid.value = uuid;
-};
 
 export function initDebugTool(view) {
     // Should move to a proper debug tool.. later
