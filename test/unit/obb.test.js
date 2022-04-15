@@ -34,7 +34,7 @@ function assertVerticesAreInOBB(builder, extent) {
     };
 
     const geom = new TileGeometry(params, builder);
-    const inverse = new THREE.Matrix4().getInverse(geom.OBB.matrix);
+    const inverse = new THREE.Matrix4().copy(geom.OBB.matrix).invert();
 
     let failing = 0;
     const vec = new THREE.Vector3();
