@@ -1138,8 +1138,6 @@ export default ( function () {
 
 			if ( target.NORMAL !== undefined ) {
 
-				material.morphNormals = true;
-
 				// see target.POSITION's comment
 
 				normalAttribute = accessors[ target.NORMAL ].clone();
@@ -2351,7 +2349,7 @@ export default ( function () {
 
 							node.traverse( function ( object ) {
 
-								if ( object.isMesh === true && object.material.morphTargets === true ) {
+								if ( object.isMesh === true && oobject.material.morphTargets ) {
 
 									targetNames.push( object.name ? object.name : object.uuid );
 
