@@ -2037,7 +2037,6 @@ export default ( function () {
 
 									var geometry = originalGeometry;
 									var material = originalMaterial;
-									material.skinning = true;
 
 									child = new THREE.SkinnedMesh( geometry, material ); // TODO Removed Geometry support from SkinnedMesh. Use BufferGeometry instead
 									child.castShadow = true;

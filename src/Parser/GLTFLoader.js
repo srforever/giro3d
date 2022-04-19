@@ -2097,7 +2097,6 @@ export default ( function () {
 						if ( useSkinning ) {
 
 							mesh = new THREE.SkinnedMesh( geometry, material ); // TODO Removed Geometry support from SkinnedMesh. Use BufferGeometry instead
-							material.skinning = true;
 
 						} else {
 
