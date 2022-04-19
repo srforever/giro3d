@@ -173,7 +173,7 @@ function PointCloudRenderer(view) {
             mU.threshold.value = this.parameters.threshold;
             mU.showRemoved.value = this.parameters.showRemoved;
             mU.invPersMatrix.value.copy(renderer.view.camera.camera3D.projectionMatrix).invert();
-            mU.clearColor.value.copy(renderer.view.mainLoop.gfxEngine.renderer.getClearColor());
+            renderer.view.mainLoop.gfxEngine.renderer.getClearColor(mU.clearColor.value);
 
             return { material: m };
         },

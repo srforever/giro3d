@@ -321,7 +321,7 @@ export default {
             zone,
         );
 
-        const clearColor = view.mainLoop.gfxEngine.renderer.getClearColor();
+        const clearColor = view.mainLoop.gfxEngine.renderer.getClearColor(new Color());
         const clearR = Math.round(255 * clearColor.r);
         const clearG = Math.round(255 * clearColor.g);
         const clearB = Math.round(255 * clearColor.b);
