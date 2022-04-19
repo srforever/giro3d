@@ -15,7 +15,6 @@ function applyChangeState(n, s) {
 }
 
 class TileMesh extends THREE.Mesh {
-
     constructor(layer, geometry, material, extent, level) {
         super(geometry, material);
 

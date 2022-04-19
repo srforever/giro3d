@@ -2349,7 +2349,7 @@ export default ( function () {
 
 							node.traverse( function ( object ) {
 
-								if ( object.isMesh === true && oobject.material.morphTargets ) {
+								if ( object.isMesh === true && object.material.morphTargets ) {
 
 									targetNames.push( object.name ? object.name : object.uuid );
 

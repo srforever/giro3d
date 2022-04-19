@@ -27,14 +27,14 @@ function createPoint(color) {
 function createDashedLine() {
     const vertices = new Float32Array([
         0, 0, 0,
-        0, 0, 0
+        0, 0, 0,
     ]);
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 
     const dashedLine = new THREE.Line(
         geometry,
-        new THREE.LineDashedMaterial({ dashSize: 0.5, gapSize: 0.5 })
+        new THREE.LineDashedMaterial({ dashSize: 0.5, gapSize: 0.5 }),
     );
     dashedLine.material.depthTest = false;
     dashedLine.frustumCulled = false;
@@ -45,12 +45,12 @@ function createDashedLine() {
 function createLine() {
     const vertices = new Float32Array([
         0, 0, 0,
-        0, 0, 0
+        0, 0, 0,
     ]);
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
 
-    const dashedLine = new THREE.Line( geometry );
+    const dashedLine = new THREE.Line(geometry);
     dashedLine.material.depthTest = false;
     dashedLine.material.linewidth = 2;
     dashedLine.material.transparent = true;
@@ -63,14 +63,14 @@ function createRectangle() {
         0.5, 1, 0,
         -0.5, 1, 0,
         -0.5, -1, 0,
-        0.5, -1, 0
+        0.5, -1, 0,
     ]);
     const indices = [
         0, 1, 2,
-        2, 3, 0
+        2, 3, 0,
     ];
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
     geometry.setIndex(indices);
 
     const rect = new THREE.Mesh(geometry);

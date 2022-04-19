@@ -41,7 +41,7 @@ function fillArray(array, remp) {
 //   - colorTextureElevationMinZ: altitude value mapped on the (0, 0, 0) color
 //   - colorTextureElevationMaxZ: altitude value mapped on the (255, 255, 255) color
 class LayeredMaterial extends THREE.RawShaderMaterial {
-    constructor( options = {}, segments, atlasInfo ) {
+    constructor(options = {}, segments, atlasInfo) {
         super();
 
         this.atlasInfo = atlasInfo;
@@ -100,13 +100,16 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
 
         // Elevation texture
         this.uniforms.elevationTexture = new THREE.Uniform(this.texturesInfo.elevation.texture);
-        this.uniforms.elevationOffsetScale = new THREE.Uniform(this.texturesInfo.elevation.offsetScale);
+        this.uniforms.elevationOffsetScale = new THREE.Uniform(
+            this.texturesInfo.elevation.offsetScale,
+        );
         this.uniforms.nTex = new THREE.Uniform(this.texturesInfo.elevation.neighbours.texture);
         this.uniforms.nOff = new THREE.Uniform(this.texturesInfo.elevation.neighbours.offsetScale);
 
         // Color textures's layer
         this.uniforms.colorTexture = new THREE.Uniform(this.texturesInfo.color.atlasTexture);
-        this.uniforms.colorOffsetScale = new THREE.Uniform(); // this.texturesInfo.color.offsetScale);
+        // this.texturesInfo.color.offsetScale);
+        this.uniforms.colorOffsetScale = new THREE.Uniform();
         this.uniforms.colorOpacity = new THREE.Uniform(); // this.texturesInfo.color.opacity);
         this.uniforms.colorVisible = new THREE.Uniform(); // this.texturesInfo.color.visible);
         this.uniforms.colors = new THREE.Uniform(this.texturesInfo.color.colors);
@@ -155,13 +158,13 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
         }
         return {
             texture: this.texturesInfo.color.textures[index],
-        }
+        };
     }
 
     setLayerTextures(layer, textures, shortcut, view) {
         if (Array.isArray(textures)) {
-            // console.warn(`Provider should return a single texture and not an Array. See layer id =
-            // ${layer.id}`);
+            // console.warn(`Provider should return a single texture and not an Array.
+            // See layer id = ${layer.id}`);
             textures = textures[0];
         }
 
@@ -383,7 +386,6 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
     setUuid(uuid) {
         this.uniforms.uuid.value = uuid;
     }
-
 }
 
 function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revision) {

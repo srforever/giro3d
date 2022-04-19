@@ -19,7 +19,7 @@ function cube(size) {
         h.x, h.y, h.z,
         h.x, h.y, h.z,
         h.x, -h.y, h.z,
-        h.x, -h.y, h.z
+        h.x, -h.y, h.z,
         -h.x, -h.y, h.z,
         -h.x, -h.y, -h.z,
         -h.x, -h.y, h.z,
@@ -31,7 +31,7 @@ function cube(size) {
         h.x, -h.y, h.z,
     ]);
     const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute( 'position', new THREE.BufferAttribute( vertices, 3 ) );
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
     return geometry;
 }
 
