@@ -1,9 +1,11 @@
 import * as THREE from 'three';
+import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js'
+import { Font } from 'three/examples/jsm/loaders/FontLoader.js'
 
 // TODO regler le probleme glsl
 import fontJS from './fonts/optimer_regular.json';
 
-const font = new THREE.Font(fontJS);
+const font = new Font(fontJS);
 const tmpVec3 = new THREE.Vector3();
 const points = [
     new THREE.Vector3(),
@@ -38,7 +40,7 @@ class OBBHelper extends THREE.LineSegments {
 
         const size = OBB.box3D.getSize(tmpVec3);
 
-        const geometryText = new THREE.TextGeometry(text, {
+        const geometryText = new TextGeometry(text, {
 
             font,
             size: size.x * 0.0666,
