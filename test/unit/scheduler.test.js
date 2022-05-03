@@ -3,10 +3,6 @@ import assert from 'assert';
 import Scheduler from '../../src/Core/Scheduler/Scheduler.js';
 
 const scheduler = new Scheduler();
-global.window = {
-    addEventListener() {},
-    setTimeout,
-};
 
 scheduler.addProtocolProvider('test', {
     preprocessDataLayer: () => {
