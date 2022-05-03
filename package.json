@@ -49,10 +49,10 @@
     "whatwg-fetch": "^2.0.2"
   },
   "peerDependencies": {
+    "ol": "^5.2.0",
     "proj4": "^2.8.0",
     "three": "^0.117.1",
-    "three.meshline": "^1.0.3",
-    "ol": "^5.2.0"
+    "three.meshline": "^1.0.3"
   },
   "devDependencies": {
     "@babel/cli": "^7.11.6",
@@ -72,7 +72,8 @@
     "eslint-import-resolver-webpack": "^0.13.0",
     "eslint-plugin-import": "^2.22.1",
     "eslint-webpack-plugin": "^2.4.1",
-    "jest": "^26.4.2",
+    "jest": "^28.0.3",
+    "jest-environment-jsdom": "^28.0.2",
     "jsdoc": "3.6.3",
     "jsdoc-plugin-typescript": "^2.0.5",
     "marked": "^0.3.9",
@@ -90,6 +91,7 @@
   "jest": {
     "transformIgnorePatterns": [
       "node_modules/(?!ol|three)"
-    ]
+    ],
+    "testEnvironment": "jsdom"
   }
 }
