@@ -281,37 +281,44 @@ class Instance extends EventDispatcher {
     }
 
     addVector(vector) {
-        const source = vector.getSource();
-        const convert = OlFeature2Mesh.convert({ altitude: 1 });
-        // default loader does not have a "success" callback. Instead openlayers tests for
-        if (source.getFeatures().length > 0) {
-            vector.object3d = convert(source.getFeatures());
-            this.threeObjects.add(vector.object3d);
-            this.notifyChange(vector.object3d, true);
-        }
-        source.on('change', () => {
-            // naive way of dealing with changes : remove everything and add everything back
-            if (vector.object3d) {
-                this._threeObjects.remove(vector.object3d);
-                vector.object3d.traverse(o => {
-                    if (o.material) {
-                        o.material.dispose();
-                    }
-                    if (o.geometry) {
-                        o.geometry.dispose();
-                    }
-                    o.dispose();
-                });
+        return new Promise(resolve => {
+            const source = vector.getSource();
+            const convert = OlFeature2Mesh.convert({ altitude: 1 });
+
+            source.on('change', () => {
+                // naive way of dealing with changes : remove everything and add everything back
+                if (vector.object3d) {
+                    this._threeObjects.remove(vector.object3d);
+                    vector.object3d.traverse(o => {
+                        if (o.material) {
+                            o.material.dispose();
+                        }
+                        if (o.geometry) {
+                            o.geometry.dispose();
+                        }
+                        o.dispose();
+                    });
+                }
+                vector.object3d = convert(source.getFeatures());
+                this.threeObjects.add(vector.object3d);
+                this.notifyChange(vector.object3d, true);
+            });
+
+            // default loader does not have a "success" callback. Instead openlayers tests for
+            if (source.getFeatures().length > 0) {
+                vector.object3d = convert(source.getFeatures());
+                this.threeObjects.add(vector.object3d);
+                this.notifyChange(vector.object3d, true);
+                resolve(vector);
+            } else {
+                source.once('change', () => resolve(vector));
+                source.loadFeatures(
+                    [-Infinity, -Infinity, Infinity, Infinity],
+                    undefined,
+                    this.referenceCrs,
+                );
             }
-            vector.object3d = convert(source.getFeatures());
-            this.threeObjects.add(vector.object3d);
-            this.notifyChange(vector.object3d, true);
         });
-        source.loadFeatures(
-            [-Infinity, -Infinity, Infinity, Infinity],
-            undefined,
-            this.referenceCrs,
-        );
     }
 
     /**
