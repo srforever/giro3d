@@ -17,7 +17,6 @@
         </script>
         <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
         <script type="text/javascript">
-            // # Orthographic viewer
 
             // Define geographic extent: CRS, min/max X, min/max Y
             var extent = new giro3d.Extent(
@@ -28,54 +27,56 @@
             // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
-            // Instanciate PlanarView
-            var view = new giro3d.PlanarView(viewerDiv, extent, { maxSubdivisionLevel: 15 });
+            // Instanciate Giro3D
+            let instance = new giro3d.Instance(viewerDiv, {crs: extent.crs()});
+
+            let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 15 });
+            instance.add(map);
+
+            setupLoadingScreen(viewerDiv, instance);
+
+            // Instanciate camera
+            instance.camera.camera3D.position.set(0, 0, 10000000);
 
             // Instanciate controls
-            // eslint-disable-next-line no-new
+
             var controls = new THREE.MapControls(
-                view.camera.camera3D,
-                view.mainLoop.gfxEngine.renderer.domElement);
+                instance.camera.camera3D,
+                instance.mainLoop.gfxEngine.renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.25;
 
-            view.addFrameRequester('before_camera_update', () => {
+            instance.addFrameRequester('before_camera_update', () => {
                 controls.update();
             });
             controls.addEventListener('change', () => {
-                view.notifyChange(view.camera.camera3D);
+                instance.notifyChange(instance.camera.camera3D);
             });
 
-            // Turn in the right angle
-            view.camera.camera3D.rotateZ(-Math.PI / 2);
-            setupLoadingScreen(viewerDiv, view);
+            // Add a base layer
 
-            // eslint-disable-next-line no-unused-vars
-            var osmSource = new giro3d.olsource.OSM({ wrapX: false });
-
-            // eslint-disable-next-line no-unused-vars
             var stamenSource = new giro3d.olsource.Stamen({ layer: 'toner', wrapX: false });
 
-            // Add a base layer
-            view.addLayer({
+            map.addLayer({
                 id: 'osm',
                 type: 'color',
                 protocol: 'oltile',
                 source: stamenSource
             }).catch(e => console.error(e));
 
-            // eslint-disable-next-line no-unused-vars
+            // Add a WMS layer
+
             var wmsSource = new giro3d.olsource.TileWMS({
                 url: 'https://ahocevar.com/geoserver/wms',
                 params: {'LAYERS': 'topp:states', 'TILED': true},
                 projection: 'EPSG:3857',
                 crossOrigin: '*',
                 serverType: 'geoserver',
+                transition: 0,
                 wrapX: false
             })
 
-            // Add a WMS layer
-            view.addLayer({
+            map.addLayer({
                 id: 'wms',
                 type: 'color',
                 protocol: 'oltile',
@@ -87,7 +88,6 @@
 
             var format = new giro3d.olformat.GeoJSON();
             var vectorSource = new giro3d.olsource.Vector({ });
-
             giro3d.Fetcher.json('https://cdn.jsdelivr.net/gh/gregoiredavid/france-geojson@master/departements.geojson')
                 .then(geojson => {
                 var features = format.readFeatures(geojson, {
@@ -96,14 +96,13 @@
                 });
                 vectorSource.addFeatures(features);
             });
-
-            view.addLayer({
+            map.addLayer({
                 id: 'vec',
                 type: 'color',
                 protocol: 'olvector',
                 projection: 'EPSG:3857',
                 source: vectorSource,
-                transparent: true,
+                transparent: false,
                 style: (Style, Fill, Stroke) => function _(feature) {
                     return new Style({
                         stroke: new Stroke({
@@ -113,9 +112,6 @@
                     });
                 }
             });
-
-            // Request redraw
-            view.notifyChange();
 
         </script>
     </body>

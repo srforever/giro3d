@@ -13,7 +13,10 @@
         <script src="../dist/giro3d.js"></script>
         <script src="js/loading_screen.js"></script>
         <script type="text/javascript">
-            // # Orthographic viewer
+            window.THREE = giro3d.THREE;
+        </script>
+        <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
+        <script type="text/javascript">
 
             // Define geographic extent: CRS, min/max X, min/max Y
             var extent = new giro3d.Extent(
@@ -24,21 +27,89 @@
             // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
-            // Instanciate PlanarView
-            var instance = new giro3d.Instance(viewerDiv, {crs: 'EPSG:3857'});
-            var map = new giro3d.Map(
-              'planar',
-              {
-                extent: extent,
-                cameraOptions: { minNear: 5 },
-              },
-            );
+            // Instanciate Giro3D
+            let instance = new giro3d.Instance(viewerDiv, {crs: 'EPSG:3857'});
+            instance.mainLoop.gfxEngine.renderer.setClearColor(0xFFFFFF);
 
-            // Turn in the right angle
-            instance.camera.camera3D.rotateZ(-Math.PI / 2);
-            instance.camera.camera3D.position.set(0, 0, 20000000);
-            instance.camera.camera3D.lookAt(0, 0, 0);
+            let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 15 });
+            instance.add(map);
+
             setupLoadingScreen(viewerDiv, instance);
+
+            // Instanciate camera
+            instance.camera.camera3D.position.set(0, 0, 10000000);
+
+            // Instanciate controls
+            // eslint-disable-next-line no-new
+            var controls = new THREE.MapControls(
+                instance.camera.camera3D,
+                instance.mainLoop.gfxEngine.renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.25;
+
+            instance.addFrameRequester('before_camera_update', () => {
+                controls.update();
+            });
+            controls.addEventListener('change', () => {
+                instance.notifyChange(instance.camera.camera3D);
+            });
+
+            // Add a vector layer
+
+            var format = new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' });
+            var vectorSource = new giro3d.olsource.Vector({ });
+
+            giro3d.Fetcher.json('https://openlayers.org/data/vector/ecoregions.json')
+                .then(geojson => {
+                var features = format.readFeatures(geojson, {
+                    featureProjection: 'EPSG:3857'
+                });
+                vectorSource.addFeatures(features);
+            });
+
+            map.addLayer({
+                id: 'vec',
+                type: 'color',
+                protocol: 'olvector',
+                projection: 'EPSG:3857',
+                source: vectorSource,
+                style: (Style, Fill, Stroke) => function (feature) {
+                    const color = feature.get('COLOR') || '#eeeeee';
+                    return new Style({
+                        fill: new Fill({
+                          color: color
+                        }),
+                    });
+                }
+            });
+
+            var vectorSource2 = new giro3d.olsource.Vector({ });
+
+            giro3d.Fetcher.json('https://openlayers.org/en/latest/examples/data/geojson/countries.geojson')
+                .then(geojson => {
+                var features = format.readFeatures(geojson, {
+                    featureProjection: 'EPSG:3857'
+                });
+                vectorSource2.addFeatures(features);
+            });
+
+            map.addLayer({
+                id: 'vec2',
+                type: 'color',
+                protocol: 'olvector',
+                projection: 'EPSG:3857',
+                source: vectorSource2,
+                style: (Style, Fill, Stroke) => function (feature) {
+                    return new Style({
+                        stroke: new Stroke({
+                            color: 'black',
+                            width: 1,
+                        }),
+                    });
+                }
+            });
+
+            /* // WARNING: THE APPROACH BELOW IS WORKING BUT BLEEPING !!
 
             // eslint-disable-next-line no-unused-vars
             var vectorSource = new giro3d.olsource.Vector({
@@ -50,169 +121,149 @@
                 source: vectorSource,
                 // here will go style and rendering options...
             });
-
-            // eslint-disable-next-line no-unused-vars
-            var wmsSource = new giro3d.olsource.TileWMS({
-                url: 'https://ahocevar.com/geoserver/wms',
-                params: {'LAYERS': 'topp:states', 'TILED': true},
-                projection: 'EPSG:3857',
-                crossOrigin: '*',
-                serverType: 'geoserver',
-                wrapX: false
-            })
-
-            // Add a WMS layer
-            /*instance.addLayer({
-                id: 'wms',
-                type: 'color',
-                protocol: 'oltile',
-                source: wmsSource
-            }).catch(e => console.error(e))*/;
-
             // add the vector source
-            instance.addVector(vector);
+            instance.addVector(vector); */
 
-            // Request redraw
-            instance.notifyChange();
-
-
-            const format = new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' });
             const feature = format.readFeature({ type: 'Feature', geometry: {
-  "type": "MultiPolygon",
-  "coordinates": [
-    [
-      [
-        [
-          -46,
-          -30
-        ],
-        [
-          -41,
-          -30
-        ],
-        [
-          -41,
-          -35
-        ],
-        [
-          -46,
-          -35
-        ],
-        [
-          -46,
-          -30
-        ]
-      ],
-      [
-        [ -45, -31],
-        [ -42, -31],
-        [ -42, -34],
-        [ -45, -31]
+                "type": "MultiPolygon",
+                "coordinates": [
+                  [
+                    [
+                      [
+                        -46,
+                        -30
+                      ],
+                      [
+                        -41,
+                        -30
+                      ],
+                      [
+                        -41,
+                        -35
+                      ],
+                      [
+                        -46,
+                        -35
+                      ],
+                      [
+                        -46,
+                        -30
+                      ]
+                    ],
+                    [
+                      [ -45, -31],
+                      [ -42, -31],
+                      [ -42, -34],
+                      [ -45, -31]
 
-      ]
-    ],
-    [
-      [
-        [
-          -47.900390625,
-          -14.944784875088372
-        ],
-        [
-          -51.591796875,
-          -19.91138351415555
-        ],
-        [
-          -41.11083984375,
-          -21.309846141087192
-        ],
-        [
-          -43.39599609375,
-          -15.390135715305204
-        ],
-        [
-          -47.900390625,
-          -14.944784875088372
-        ]
-      ],
-      [
-        [
-          -46.6259765625,
-          -17.14079039331664
-        ],
-        [
-          -47.548828125,
-          -16.804541076383455
-        ],
-        [
-          -46.23046874999999,
-          -16.699340234594537
-        ],
-        [
-          -45.3515625,
-          -19.31114335506464
-        ],
-        [
-          -46.6259765625,
-          -17.14079039331664
-        ]
-      ],
-      [
-        [
-          -44.40673828125,
-          -18.375379094031825
-        ],
-        [
-          -44.4287109375,
-          -20.097206227083888
-        ],
-        [
-          -42.9345703125,
-          -18.979025953255267
-        ],
-        [
-          -43.52783203125,
-          -17.602139123350838
-        ],
-        [
-          -44.40673828125,
-          -18.375379094031825
-        ]
-      ]
-      ]
-    ]
+                    ]
+                  ],
+                  [
+                    [
+                      [
+                        -47.900390625,
+                        -14.944784875088372
+                      ],
+                      [
+                        -51.591796875,
+                        -19.91138351415555
+                      ],
+                      [
+                        -41.11083984375,
+                        -21.309846141087192
+                      ],
+                      [
+                        -43.39599609375,
+                        -15.390135715305204
+                      ],
+                      [
+                        -47.900390625,
+                        -14.944784875088372
+                      ]
+                    ],
+                    [
+                      [
+                        -46.6259765625,
+                        -17.14079039331664
+                      ],
+                      [
+                        -47.548828125,
+                        -16.804541076383455
+                      ],
+                      [
+                        -46.23046874999999,
+                        -16.699340234594537
+                      ],
+                      [
+                        -45.3515625,
+                        -19.31114335506464
+                      ],
+                      [
+                        -46.6259765625,
+                        -17.14079039331664
+                      ]
+                    ],
+                    [
+                      [
+                        -44.40673828125,
+                        -18.375379094031825
+                      ],
+                      [
+                        -44.4287109375,
+                        -20.097206227083888
+                      ],
+                      [
+                        -42.9345703125,
+                        -18.979025953255267
+                      ],
+                      [
+                        -43.52783203125,
+                        -17.602139123350838
+                      ],
+                      [
+                        -44.40673828125,
+                        -18.375379094031825
+                      ]
+                    ]
+                    ]
+                  ]
 
-  }});
-            var vector2 = new giro3d.ollayer.Vector({
-                source: new giro3d.olsource.Vector({
-                    features: [feature]
-                })
+                }
             });
-            instance.addVector(vector2);
 
-
-            const formatLine = new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' });
             const featureLine = format.readFeature({ type: 'Feature', geometry: {
               "type": "LineString",
               "coordinates": [[-30, -30], [-15, -15], [-15, -30], [-30, -45]]
             }});
-            var vectorLine = new giro3d.ollayer.Vector({
-                source: new giro3d.olsource.Vector({
-                    features: [featureLine]
-                })
-            });
-            instance.addVector(vectorLine);
 
-            const formatPoints = new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' });
             const featurePoints = format.readFeature({ type: 'Feature', geometry: {
               "type": "MultiPoint",
               "coordinates": [[-25, -25], [-15, -15], [-30, -30]]
             }});
-            var vectorPoints = new giro3d.ollayer.Vector({
-                source: new giro3d.olsource.Vector({
-                    features: [featurePoints]
-                })
+
+            var vectorSource3 = new giro3d.olsource.Vector({ });
+            vectorSource3.addFeatures([feature, featureLine, featurePoints]);
+
+            map.addLayer({
+                id: 'vec3',
+                type: 'color',
+                protocol: 'olvector',
+                projection: 'EPSG:3857',
+                source: vectorSource3,
+                // transparent: true,
+                style: (Style, Fill, Stroke) => function (feature) {
+                    return new Style({
+                        fill: new Fill({
+                          color: 'cyan'
+                        }),
+                        stroke: new Stroke({
+                            color: 'orange',
+                            width: 1,
+                        }),
+                    });
+                }
             });
-            instance.addVector(vectorPoints);
+
         </script>
     </body>
 </html>

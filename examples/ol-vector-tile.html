@@ -29,17 +29,6 @@
         </style>
     </head>
     <body>
-        <div class="foo"></div>
-        <div class="foo"></div>
-        <div class="foo"></div>
-        <div class="foo bla"></div>
-        <div class="foo bla"></div>
-        <div class="foo bla"></div>
-        <svg class="maa">
-<line x1="1249" y1="923" x2="1514" y2="940" style=""></line>
-<line x1="0" y1="0" x2="200" y2="200" style="stroke:rgb(255,0,0);" />
-<line x1="1016" y1="671" x2="1641" y2="671" stroke="rgb(255,0,0)"></line>
-        </svg>
         <div id="viewerDiv"></div>
         <script src="js/GUI/dat.gui/dat.gui.min.js"></script>
         <script src="../dist/giro3d.js"></script>
@@ -52,7 +41,6 @@
         </script>
         <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
         <script type="text/javascript">
-            // # Orthographic viewer
 
             // Define geographic extent: CRS, min/max X, min/max Y
             var extent = new giro3d.Extent(
@@ -63,11 +51,21 @@
             // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
-            // Instanciate giro3di
-            let instance = new giro3d.Instance(viewerDiv, extent.crs());
-            let map = new giro3d.Map('planar', null, extent, { maxSubdivisionLevel: 15 });
+            // Instanciate Giro3D
+
+            let instance = new giro3d.Instance(viewerDiv, {crs: 'EPSG:3857'});
+            instance.mainLoop.gfxEngine.renderer.setClearColor(0xffffff);
+
+            let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 15 });
+            instance.add(map);
+
+            setupLoadingScreen(viewerDiv, instance);
+
+            // Instanciate camera
+            instance.camera.camera3D.position.set(0, 0, 10000000);
 
             // Instanciate controls
+            // eslint-disable-next-line no-new
             var controls = new THREE.MapControls(
                 instance.camera.camera3D,
                 instance.mainLoop.gfxEngine.renderer.domElement);
@@ -81,11 +79,8 @@
                 instance.notifyChange(instance.camera.camera3D);
             });
 
-            // Turn in the right angle
-            instance.camera.camera3D.rotateZ(-Math.PI / 2);
-            setupLoadingScreen(viewerDiv, instance);
+            const key = 'pk.eyJ1IjoibWljaGFlbG51bm4iLCJhIjoiY2pudTk4czFuMDJ6NDNrcG56bG5xeWk4byJ9.R5dzdzAM5kaxa1gXjOQQrw';
 
-            const key = 'pk.eyJ1IjoiYWhvY2V2YXIiLCJhIjoiRk1kMWZaSSJ9.E5BkluenyWQMsBLsuByrmg';
             // eslint-disable-next-line no-unused-vars
             var vectorTileSource = new giro3d.VectorTileSource({
                 format: new giro3d.olformat.MVT(),
@@ -94,7 +89,7 @@
             });
 
             // Add a base layer
-            instance.addLayer({
+            map.addLayer({
                 id: 'osm',
                 type: 'color',
                 protocol: 'olvectortile',
@@ -103,48 +98,6 @@
                 backgroundColor: 'hsl(47, 26%, 88%)'
             });
 
-            instance.addLayer({
-                id: 'mapbox-terrain-rgb',
-                type: 'elevation',
-                protocol: 'xyz',
-                url:'https://api.mapbox.com/v4/mapbox.terrain-rgb/${z}/${x}/${y}.pngraw?access_token=' + key,
-                extent: [extent.west(), extent.east(), extent.south(), extent.north()],
-                projection: 'EPSG:3857',
-                networkOptions: { crossOrigin: 'anonymous' },
-            });
-
-            instance.tileLayer.materialOptions = {
-                useColorTextureElevation: true,
-            };
-
-
-            // Request redraw
-            instance.notifyChange();
-
-            document.addEventListener('click', (evt) => {
-                const r = instance.tileLayer.pickObjectsAt(instance, instance.eventToViewCoords(evt), 1);
-                if (!r.length) return;
-                const obj = r[0].object;
-                console.log(obj)
-                const svg = document.getElementsByClassName('maa')[0];
-                while (svg.firstChild) {
-                    svg.removeChild(svg.firstChild);
-                }
-                const colors = ['red', 'green', 'purple'];
-                for (let i = 1; i<4; i++) {
-                    const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-                    line.setAttribute('x1', obj._a.sse[0].x.toFixed());
-                    line.setAttribute('y1', obj._a.sse[0].y.toFixed())
-                    line.setAttribute('x2', obj._a.sse[i].x.toFixed())
-                    line.setAttribute('y2', obj._a.sse[i].y.toFixed())
-                    line.setAttribute('stroke', colors[i-1]);
-                    svg.append(line);
-                }
-            });
-
-            var menuGlobe = new GuiTools('menuDiv', instance);
-            var d = new debug.Debug(instance, menuGlobe.gui);
-            debug.createTileDebugUI(menuGlobe.gui, instance, map, d);
         </script>
     </body>
 </html>
