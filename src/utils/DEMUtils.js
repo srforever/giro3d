@@ -1,8 +1,13 @@
 import * as THREE from 'three';
 import Coordinates from '../Core/Geographic/Coordinates.js';
+import { ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing.js';
 
 const FAST_READ_Z = 0;
 const PRECISE_READ_Z = 1;
+
+function tr(r, g, b) {
+    return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
+}
 
 /**
  * Utility module to retrieve elevation at a given coordinates.
@@ -235,17 +240,32 @@ function _readTextureValueAt(layer, texture, ...uv) {
     const d = ctx.getImageData(0, 0, dw, dh);
 
     const result = [];
-    for (let i = 0; i < uv.length; i += 2) {
-        const ox = uv[i] - minx;
-        const oy = uv[i + 1] - miny;
+    const elevationLayers = layer.getLayers().filter(sublayer => sublayer.type === 'elevation');
 
-        // d is 4 bytes per pixel
-        result.push(THREE.MathUtils.lerp(
-            layer.minMaxFromElevationLayer.min,
-            layer.minMaxFromElevationLayer.max,
-            d.data[4 * oy * dw + 4 * ox] / 255,
-        ));
+    for (const l of elevationLayers) {
+        if (l.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
+            result.push(tr(d.data[0], d.data[1], d.data[2]));
+        } else if (l.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
+            for (let i = 0; i < uv.length; i += 2) {
+                const ox = uv[i] - minx;
+                const oy = uv[i + 1] - miny;
+
+                // d is 4 bytes per pixel
+                result.push(THREE.MathUtils.lerp(
+                    layer.minMaxFromElevationLayer.min,
+                    layer.minMaxFromElevationLayer.max,
+                    d.data[4 * oy * dw + 4 * ox] / 255,
+                ));
+            }
+        } else if (l.elevationFormat === ELEVATION_FORMAT.XBIL) {
+            throw new Error(`Unimplemented reading elevation value for layer.elevationFormat "${l.elevationFormat}'`);
+        } else if (l.elevationFormat === ELEVATION_FORMAT.RATP_GEOL) {
+            throw new Error(`Unimplemented reading elevation value for layer.elevationFormat "${l.elevationFormat}'`);
+        } else {
+            throw new Error(`Unsupported layer.elevationFormat "${l.elevationFormat}'`);
+        }
     }
+
     if (uv.length === 2) {
         return result[0];
     }
