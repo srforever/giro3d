@@ -15,7 +15,8 @@
     "build": "webpack -p",
     "transpile": "cross-env BABEL_DISABLE_CACHE=1 babel src --source-maps --out-dir lib",
     "start": "cross-env NODE_ENV=development BABEL_DISABLE_CACHE=1 webpack-dev-server -d --inline --hot",
-    "prepack": "npm run build && npm run transpile"
+    "prepack": "npm run build && npm run transpile",
+    "prepare": "npm run build && npm run transpile"
   },
   "files": [
     "*.md",
