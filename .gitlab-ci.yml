@@ -64,6 +64,9 @@ test_unit_lts:
     image: node:lts-alpine
     script:
         - npm run test-unit
+    artifacts:
+        paths:
+            - dist
 
 test_unit_current:
     stage: test-unit
