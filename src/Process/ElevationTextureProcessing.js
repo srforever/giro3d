@@ -1,19 +1,9 @@
 import LayerUpdateState from '../Core/Layer/LayerUpdateState.js';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException.js';
-
-export const ELEVATION_FORMAT = {
-    MAPBOX_RGB: 0,
-    HEIGHFIELD: 1,
-    XBIL: 2,
-    RATP_GEOL: 3,
-};
+import DEMUtils, { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
 
 // max retry loading before changing the status to definitiveError
 const MAX_RETRY = 4;
-
-function tr(r, g, b) {
-    return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
-}
 
 // get image data
 let fooCanvas;
@@ -48,7 +38,7 @@ export function minMaxFromTexture(layer, texture) {
         const { data, stride, h } = colorImageSetup(texture);
         for (let i = 0; i < h; i++) {
             for (let j = 0; j < stride; j += 4) {
-                const val = tr(
+                const val = DEMUtils.decodeMapboxElevation(
                     data[i * stride + j],
                     data[i * stride + j + 1],
                     data[i * stride + j + 2],

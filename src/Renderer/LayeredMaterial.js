@@ -5,7 +5,7 @@ import TileFS from './Shader/TileFS.glsl';
 import PrecisionQualifier from './Shader/Chunk/PrecisionQualifier.glsl';
 import GetElevation from './Shader/Chunk/GetElevation.glsl';
 import ComputeUV from './Shader/Chunk/ComputeUV.glsl';
-import { ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing.js';
+import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
 
 // Declaring our own chunks
 THREE.ShaderChunk.PrecisionQualifier = PrecisionQualifier;
