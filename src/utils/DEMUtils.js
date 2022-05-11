@@ -1,13 +1,15 @@
 import * as THREE from 'three';
 import Coordinates from '../Core/Geographic/Coordinates.js';
-import { ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing.js';
 
 const FAST_READ_Z = 0;
 const PRECISE_READ_Z = 1;
 
-function tr(r, g, b) {
-    return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
-}
+export const ELEVATION_FORMAT = {
+    MAPBOX_RGB: 0,
+    HEIGHFIELD: 1,
+    XBIL: 2,
+    RATP_GEOL: 3,
+};
 
 /**
  * Utility module to retrieve elevation at a given coordinates.
@@ -15,165 +17,175 @@ function tr(r, g, b) {
  * to render the tiles (globe or plane).
  * This implies that the return value may change depending on the current tile resolution.
  */
-export default {
-    /**
-     * Return current displayed elevation at coord in meters.
-     * @param {GeometryLayer} layer The tile layer owning the elevation textures we're going to
-     * query.
-     * This is typically the globeLayer or a planeLayer.
-     * @param {Coordinates} coord The coordinates that we're interested in
-     * @param {Number} method 2 available method: FAST_READ_Z (default) or PRECISE_READ_Z. Chosing
-     * between the 2 is a compromise between performance and visual quality
-     * @param {Array} tileHint Optional array of tiles to speed up the process. You can give
-     * candidates tiles likely to contain 'coord'. Otherwise the lookup process starts from the
-     * root.
-     * @return {object}  undefined if no result or z: displayed elevation in meters, texture: where
-     * the z value comes from, tile: owner of the texture
-     */
-    getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
-        const result = _readZ(layer, method, coord, tileHint || layer.level0Nodes);
+// export default {
+/**
+ * Return current displayed elevation at coord in meters.
+ * @param {GeometryLayer} layer The tile layer owning the elevation textures we're going to
+ * query.
+ * This is typically the globeLayer or a planeLayer.
+ * @param {Coordinates} coord The coordinates that we're interested in
+ * @param {Number} method 2 available method: FAST_READ_Z (default) or PRECISE_READ_Z. Chosing
+ * between the 2 is a compromise between performance and visual quality
+ * @param {Array} tileHint Optional array of tiles to speed up the process. You can give
+ * candidates tiles likely to contain 'coord'. Otherwise the lookup process starts from the
+ * root.
+ * @return {object}  undefined if no result or z: displayed elevation in meters, texture: where
+ * the z value comes from, tile: owner of the texture
+ */
+function getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
+    const result = _readZ(layer, method, coord, tileHint || layer.level0Nodes);
+    if (!result) {
+        return null;
+    }
+    return { z: result.coord._values[2], texture: result.texture, tile: result.tile };
+}
+
+/**
+ * Helper method that will position an object directly on the ground.
+ * @param {GeometryLayer} layer The tile layer owning the elevation textures we're going to
+ * query.
+ * This is typically the globeLayer or a planeLayer.
+ * @param {string} objectCRS the CRS used by the object coordinates. You probably want to use
+ * view.referenceCRS here.
+ * @param {Object3D} obj the object we want to modify.
+ * @param {object} options
+ * @param {number} options.method see getElevationValueAt documentation
+ * @param {boolean} options.modifyGeometry if unset/false, this function will modify
+ * object.position. If true, it will modify obj.geometry.vertices or
+ * obj.geometry.attributes.position
+ * @param {Array} tileHint see getElevationValueAt documentation
+ * @return {boolean} true if successful, false if we couldn't lookup the elevation at the given
+ * coords
+ */
+function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
+    let tiles;
+    if (tileHint) {
+        tiles = tileHint.concat(layer.level0Nodes);
+    } else {
+        tiles = layer.level0Nodes;
+    }
+
+    if (!options.modifyGeometry) {
+        if (options.cache) {
+            options.cache.length = 1;
+        }
+        const matrices = {
+            worldFromLocal: obj.parent ? obj.parent.matrixWorld : undefined,
+            localFromWorld: obj.parent
+                ? new THREE.Matrix4().getInverse(obj.parent.matrixWorld) : undefined,
+        };
+        const result = _updateVector3(
+            layer,
+            options.method || FAST_READ_Z,
+            tiles,
+            objectCRS,
+            obj.position,
+            options.offset || 0,
+            matrices,
+            undefined,
+            options.cache ? options.cache[0] : undefined,
+        );
+
         if (!result) {
-            return null;
+            return false;
         }
-        return { z: result.coord._values[2], texture: result.texture, tile: result.tile };
-    },
+        if (options.cache) {
+            options.cache[0] = result;
+        }
+        obj.updateMatrix();
+        obj.updateMatrixWorld();
+        return true;
+    }
+    const matrices = {
+        worldFromLocal: obj.matrixWorld,
+        localFromWorld: new THREE.Matrix4().getInverse(obj.matrixWorld),
+    };
 
-    /**
-     * Helper method that will position an object directly on the ground.
-     * @param {GeometryLayer} layer The tile layer owning the elevation textures we're going to
-     * query.
-     * This is typically the globeLayer or a planeLayer.
-     * @param {string} objectCRS the CRS used by the object coordinates. You probably want to use
-     * view.referenceCRS here.
-     * @param {Object3D} obj the object we want to modify.
-     * @param {object} options
-     * @param {number} options.method see getElevationValueAt documentation
-     * @param {boolean} options.modifyGeometry if unset/false, this function will modify
-     * object.position. If true, it will modify obj.geometry.vertices or
-     * obj.geometry.attributes.position
-     * @param {Array} tileHint see getElevationValueAt documentation
-     * @return {boolean} true if successful, false if we couldn't lookup the elevation at the given
-     * coords
-     */
-    placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
-        let tiles;
-        if (tileHint) {
-            tiles = tileHint.concat(layer.level0Nodes);
-        } else {
-            tiles = layer.level0Nodes;
+    const { geometry } = obj;
+    if (geometry.vertices) {
+        if (options.cache) {
+            options.cache.length = geometry.vertices.length;
         }
 
-        if (!options.modifyGeometry) {
-            if (options.cache) {
-                options.cache.length = 1;
-            }
-            const matrices = {
-                worldFromLocal: obj.parent ? obj.parent.matrixWorld : undefined,
-                localFromWorld: obj.parent
-                    ? new THREE.Matrix4().getInverse(obj.parent.matrixWorld) : undefined,
-            };
+        let success = true;
+        const coord = new Coordinates(objectCRS);
+        for (let i = 0; i < geometry.vertices.length; i++) {
+            const cached = options.cache ? options.cache[i] : undefined;
+
             const result = _updateVector3(
                 layer,
                 options.method || FAST_READ_Z,
                 tiles,
                 objectCRS,
-                obj.position,
+                geometry.vertices[i],
                 options.offset || 0,
                 matrices,
-                undefined,
-                options.cache ? options.cache[0] : undefined,
+                coord,
+                cached,
             );
 
+            if (options.cache) {
+                options.cache[i] = result;
+            }
             if (!result) {
-                return false;
+                success = false;
             }
-            if (options.cache) {
-                options.cache[0] = result;
-            }
-            obj.updateMatrix();
-            obj.updateMatrixWorld();
-            return true;
         }
-        const matrices = {
-            worldFromLocal: obj.matrixWorld,
-            localFromWorld: new THREE.Matrix4().getInverse(obj.matrixWorld),
-        };
-
-        const { geometry } = obj;
-        if (geometry.vertices) {
-            if (options.cache) {
-                options.cache.length = geometry.vertices.length;
-            }
-
-            let success = true;
-            const coord = new Coordinates(objectCRS);
-            for (let i = 0; i < geometry.vertices.length; i++) {
-                const cached = options.cache ? options.cache[i] : undefined;
-
-                const result = _updateVector3(
-                    layer,
-                    options.method || FAST_READ_Z,
-                    tiles,
-                    objectCRS,
-                    geometry.vertices[i],
-                    options.offset || 0,
-                    matrices,
-                    coord,
-                    cached,
-                );
-
-                if (options.cache) {
-                    options.cache[i] = result;
-                }
-                if (!result) {
-                    success = false;
-                }
-            }
-            geometry.verticesNeedUpdate = true;
-            return success;
+        geometry.verticesNeedUpdate = true;
+        return success;
+    }
+    if (geometry instanceof THREE.BufferGeometry) {
+        if (options.cache) {
+            options.cache.length = geometry.attributes.position.count;
         }
-        if (geometry instanceof THREE.BufferGeometry) {
+        let success = true;
+
+        const tmp = new THREE.Vector3();
+        const coord = new Coordinates(objectCRS);
+        for (let i = 0; i < geometry.attributes.position.count; i++) {
+            const cached = options.cache ? options.cache[i] : undefined;
+
+            tmp.fromBufferAttribute(geometry.attributes.position, i);
+            const prev = tmp.z;
+            const result = _updateVector3(
+                layer,
+                options.method || FAST_READ_Z,
+                tiles,
+                objectCRS,
+                tmp,
+                options.offset || 0,
+                matrices,
+                coord,
+                cached,
+            );
             if (options.cache) {
-                options.cache.length = geometry.attributes.position.count;
+                options.cache[i] = result;
             }
-            let success = true;
-
-            const tmp = new THREE.Vector3();
-            const coord = new Coordinates(objectCRS);
-            for (let i = 0; i < geometry.attributes.position.count; i++) {
-                const cached = options.cache ? options.cache[i] : undefined;
-
-                tmp.fromBufferAttribute(geometry.attributes.position, i);
-                const prev = tmp.z;
-                const result = _updateVector3(
-                    layer,
-                    options.method || FAST_READ_Z,
-                    tiles,
-                    objectCRS,
-                    tmp,
-                    options.offset || 0,
-                    matrices,
-                    coord,
-                    cached,
-                );
-                if (options.cache) {
-                    options.cache[i] = result;
-                }
-                if (!result) {
-                    success = false;
-                }
-                if (prev !== tmp.z) {
-                    geometry.attributes.position.needsUpdate = true;
-                }
-                geometry.attributes.position.setXYZ(i, tmp.x, tmp.y, tmp.z);
+            if (!result) {
+                success = false;
             }
-            return success;
+            if (prev !== tmp.z) {
+                geometry.attributes.position.needsUpdate = true;
+            }
+            geometry.attributes.position.setXYZ(i, tmp.x, tmp.y, tmp.z);
         }
-        return false; // TODO throw?
-    },
-    FAST_READ_Z,
-    PRECISE_READ_Z,
-};
+        return success;
+    }
+    return false; // TODO throw?
+}
+
+/**
+ * Decode pixel value to elevation value in meters for Mapbox/MapTiler elevation data.
+ * @param {Number} r Red pixel value
+ * @param {Number} g Green pixel value
+ * @param {Number} b Blue pixel value
+ * @returns {Number} Elevation in meters
+ */
+function decodeMapboxElevation(r, g, b) {
+    return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
+}
+
+// };
 
 function tileAt(pt, tile) {
     if (!tile.extent) {
@@ -244,7 +256,7 @@ function _readTextureValueAt(layer, texture, ...uv) {
 
     for (const l of elevationLayers) {
         if (l.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
-            result.push(tr(d.data[0], d.data[1], d.data[2]));
+            result.push(decodeMapboxElevation(d.data[0], d.data[1], d.data[2]));
         } else if (l.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
             for (let i = 0; i < uv.length; i += 2) {
                 const ox = uv[i] - minx;
@@ -468,3 +480,7 @@ function _updateVector3(layer, method, nodes, vecCRS, vec, offset, matrices = {}
     }
     return { id: result.texture.id, version: result.texture.version, tile: result.tile };
 }
+
+export default {
+    getElevationValueAt, placeObjectOnGround, decodeMapboxElevation, FAST_READ_Z, PRECISE_READ_Z,
+};
