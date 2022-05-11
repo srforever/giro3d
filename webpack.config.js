@@ -68,6 +68,14 @@ module.exports = {
         ],
     },
     devServer: {
-        publicPath: '/dist/',
+        static: [
+            {
+                directory: path.join(__dirname, 'examples'),
+                publicPath: '/',
+            },
+        ],
+        // devMiddleware: {
+            // publicPath: '/',
+        // },
     },
 };
