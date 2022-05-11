@@ -394,7 +394,7 @@ class Map extends GeometryLayer {
         }
         this._cleanLayer(layer);
         // TODO clean also this layer's children
-        this.notifyChange(parentLayer || this.camera.camera3D, true);
+        this.notifyChange(parentLayer || this._instance.camera.camera3D, true);
     }
 
     getLayers(filter) {
