@@ -26,9 +26,16 @@ In your project:
 ```bash
 npm install --save giro3d
 ```
-This package contains the ES5-compatible sources of giro3d.
+This package contains transpiled sources of giro3d (compatible with most browsers).
 
-If you're using a module bundler (like wepback), you can directly `require('giro3d')` in your code.
+If you're using a module bundler (like wepback) or plan on targeting recent enough browser, you can
+directly import it as such:
+
+```js
+import Instance from '@giro3d/giro3d/lib/Core/instance.js';
+// it's also possible to do this, but this will import everything.
+import * as giro3d from '@giro3d/giro3d';
+```
 
 Alternatively, we provide a bundle you can directly include in your html files that exposes `giro3d` in  `window`:
 ```html
