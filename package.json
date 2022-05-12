@@ -2,7 +2,7 @@
   "name": "@giro3d/giro3d",
   "version": "0.0.2-osl",
   "description": "A JS/WebGL framework for 3D geospatial data visualization",
-  "main": "lib/Main.js",
+  "main": "lib/MainBundle.js",
   "scripts": {
     "lint": "eslint \"src/**/*.js\" \"utils/**/*.js\" \"test/**/*.js\" \"examples/**/*.js\"",
     "apidoc": "shx rm -rf build/apidoc && jsdoc -R jsdoc/api/index.md -c jsdoc/api/conf.json -P package.json -d build/apidoc",
@@ -15,7 +15,8 @@
     "build": "webpack -p",
     "transpile": "cross-env BABEL_DISABLE_CACHE=1 babel src --source-maps --out-dir lib",
     "start": "cross-env NODE_ENV=development BABEL_DISABLE_CACHE=1 webpack-dev-server -d --inline --hot",
-    "prepack": "npm run build && npm run transpile"
+    "prepack": "npm run build && npm run transpile",
+    "prepare": "npm run build && npm run transpile"
   },
   "files": [
     "*.md",
