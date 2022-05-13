@@ -10,8 +10,9 @@ import GeometryLayer from './Layer/GeometryLayer.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import PlanarTileBuilder from './Prefab/Planar/PlanarTileBuilder.js';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
-import ElevationTextureProcessing, { minMaxFromTexture, ELEVATION_FORMAT } from '../Process/ElevationTextureProcessing.js';
+import ElevationTextureProcessing, { minMaxFromTexture } from '../Process/ElevationTextureProcessing.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
+import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
 
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = (tileCount * x) / layerDimension.x;

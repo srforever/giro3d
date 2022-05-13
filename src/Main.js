@@ -24,7 +24,7 @@ export {
 } from './Process/3dTilesProcessing.js';
 export { default as FeatureProcessing } from './Process/FeatureProcessing.js';
 export { default as ColorTextureProcessing } from './Process/ColorTextureProcessing.js';
-export { default as ElevationTextureProcessing, ELEVATION_FORMAT } from './Process/ElevationTextureProcessing.js';
+export { default as ElevationTextureProcessing } from './Process/ElevationTextureProcessing.js';
 export { default as TiledNodeProcessing } from './Process/TiledNodeProcessing.js';
 export { ColorLayersOrdering } from './Renderer/ColorLayersOrdering.js';
 export { default as PointsMaterial } from './Renderer/PointsMaterial.js';
@@ -43,3 +43,5 @@ export { default as PointCloudRenderer } from './Renderer/PointCloudRenderer.js'
 export { default as ScreenSpaceError } from './Core/ScreenSpaceError.js';
 
 export { initDebugTool as initCanvasDebugTool } from './Renderer/LayeredMaterial.js';
+
+export { default as DEMUtils, ELEVATION_FORMAT } from './utils/DEMUtils.js';
