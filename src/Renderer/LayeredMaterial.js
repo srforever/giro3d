@@ -89,6 +89,7 @@ const LayeredMaterial = function LayeredMaterial(options, segments, atlasInfo) {
                 offsetScale: Array(4),
                 texture: Array(4),
             },
+            format: null,
         },
     };
     fillArray(this.texturesInfo.elevation.neighbours.texture, emptyTexture);
@@ -147,6 +148,7 @@ LayeredMaterial.prototype.getLayerTexture = function getLayerTexture(layer) {
         return {
             texture: this.texturesInfo.elevation.texture,
             offsetScale: this.texturesInfo.elevation.offsetScale,
+            elevationFormat: this.texturesInfo.elevation.format,
         };
     }
 
@@ -270,6 +272,7 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
         this.texturesInfo.elevation.texture = textures.texture;
         this.uniforms.elevationTexture.value = textures.texture;
         this.texturesInfo.elevation.offsetScale.copy(textures.pitch);
+        this.texturesInfo.elevation.format = layer.elevationFormat;
 
         return Promise.resolve(true);
     }
