@@ -12,9 +12,9 @@
     "test-unit": "jest test/unit",
     "test-examples": "mocha -t 300000 --recursive test/examples",
     "test-with-coverage": "nyc -n src -r html cross-env npm run test-unit",
-    "build": "webpack -p",
+    "build": "webpack --mode=production",
     "transpile": "cross-env BABEL_DISABLE_CACHE=1 babel src --source-maps --out-dir lib",
-    "start": "cross-env NODE_ENV=development BABEL_DISABLE_CACHE=1 webpack-dev-server -d --inline --hot",
+    "start": "cross-env NODE_ENV=development BABEL_DISABLE_CACHE=1 webpack serve --devtool eval --hot true",
     "prepack": "npm run build && npm run transpile"
   },
   "files": [
@@ -84,9 +84,9 @@
     "shx": "^0.3.2",
     "three": "^0.117.1",
     "three.meshline": "^1.0.3",
-    "webpack": "^4.41.0",
-    "webpack-cli": "^3.3.9",
-    "webpack-dev-server": "^3.8.2"
+    "webpack": "^5.72.1",
+    "webpack-cli": "^4.9.2",
+    "webpack-dev-server": "^4.9.0"
   },
   "jest": {
     "transformIgnorePatterns": [
