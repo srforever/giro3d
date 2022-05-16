@@ -254,7 +254,17 @@ function _readTextureValueAt(layer, texture, format, ...uv) {
     const result = [];
 
     if (format === ELEVATION_FORMAT.MAPBOX_RGB) {
-        result.push(decodeMapboxElevation(d.data[0], d.data[1], d.data[2]));
+        for (let i = 0; i < uv.length; i += 2) {
+            const ox = uv[i] - minx;
+            const oy = uv[i + 1] - miny;
+
+            // d is 4 bytes per pixel
+            result.push(decodeMapboxElevation(
+                d.data[4 * oy * dw + 4 * ox],
+                d.data[4 * oy * dw + 4 * ox + 1],
+                d.data[4 * oy * dw + 4 * ox + 2],
+            ));
+        }
     } else if (format === ELEVATION_FORMAT.HEIGHFIELD) {
         for (let i = 0; i < uv.length; i += 2) {
             const ox = uv[i] - minx;
