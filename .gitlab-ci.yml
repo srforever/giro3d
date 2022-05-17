@@ -82,7 +82,6 @@ pages:
     script:
         - npm run build-site
         - mv build public
-        - cp -r dist/* public
     artifacts:
         paths:
             - public
