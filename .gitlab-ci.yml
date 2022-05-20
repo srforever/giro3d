@@ -23,6 +23,7 @@ stages:
     - build
     - lint
     - test-unit
+    - deploy
     - pages
 
 cache:
@@ -36,7 +37,6 @@ build_lts:
     script:
         - npm i
         - npm run build
-        - npm pack
     artifacts:
         paths:
             - dist
@@ -50,7 +50,6 @@ build_current:
         - export NODE_OPTIONS=--openssl-legacy-provider
         - npm i
         - npm run build
-        - npm pack
 
 lint:
     stage: lint
@@ -74,6 +73,15 @@ test_unit_current:
     image: node:current-alpine
     script:
         - npm run test-unit
+
+deploy:
+  stage: deploy
+  script:
+      - echo "@giro3d:registry=https://${CI_SERVER_HOST}/api/v4/packages/npm/" > .npmrc
+      - echo "//${CI_SERVER_HOST}/api/v4/packages/npm/:_authToken=${CI_JOB_TOKEN}">>.npmrc
+      - npm publish
+  # only:
+      # - master
 
 pages:
     stage: pages
