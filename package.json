@@ -25,13 +25,13 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Oslandia/giro3d.git"
+    "url": "git+https://gitlab.com/giro3d/giro3d.git"
   },
   "license": "(CECILL-B OR MIT)",
   "bugs": {
-    "url": "https://github.com/Oslandia/giro3d/issues"
+    "url": "https://gitlab.com/giro3d/giro3d/-/issues"
   },
-  "homepage": "https://giro3d.github.io/",
+  "homepage": "https://giro3d.org/",
   "browserslist": [
     "defaults"
   ],
