@@ -75,11 +75,12 @@ test_unit_current:
         - npm run test-unit
 
 deploy:
-  stage: deploy
-  script:
-      - echo "@giro3d:registry=https://${CI_SERVER_HOST}/api/v4/packages/npm/" > .npmrc
-      - echo "//${CI_SERVER_HOST}/api/v4/packages/npm/:_authToken=${CI_JOB_TOKEN}">>.npmrc
-      - npm publish
+    stage: deploy
+    image: node:lts-alpine
+    script:
+        - echo "@giro3d:registry=https://${CI_SERVER_HOST}/api/v4/packages/npm/" > .npmrc
+        - echo "//${CI_SERVER_HOST}/api/v4/packages/npm/:_authToken=${CI_JOB_TOKEN}">>.npmrc
+        - npm publish
   # only:
       # - master
 
