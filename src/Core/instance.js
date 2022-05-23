@@ -569,7 +569,8 @@ class Instance extends EventDispatcher {
      */
     pickObjectsAt(mouseOrEvt, radius, ...where) {
         const results = [];
-        const sources = where.length === 0 ? this.getObjects() : [...where];
+        const sources = where.length === 0
+            ? this.getObjects().concat(this.threeObjects) : [...where];
         const mouse = (mouseOrEvt instanceof Event)
             ? this.eventToViewCoords(mouseOrEvt) : mouseOrEvt;
         radius = radius || 0;
