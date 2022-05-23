@@ -288,7 +288,7 @@ class Instance extends EventDispatcher {
             source.on('change', () => {
                 // naive way of dealing with changes : remove everything and add everything back
                 if (vector.object3d) {
-                    this._threeObjects.remove(vector.object3d);
+                    this.threeObjects.remove(vector.object3d);
                     vector.object3d.traverse(o => {
                         if (o.material) {
                             o.material.dispose();
