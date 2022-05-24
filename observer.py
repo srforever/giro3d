@@ -23,9 +23,9 @@ class MyEH(PatternMatchingEventHandler):
             # find all the files that uses this
             file_list = subprocess.check_output(['git', 'grep', '-l', os.path.basename(event.src_path), '--', 'src'])
             print('## ' + event.src_path)
-            for file in file_list.split('\n'):
-                if file != '':
-                    transpile_file('./' + file)
+            for file in file_list.split(b'\n'):
+                if file != b'':
+                    transpile_file('./' + file.decode())
 
 
 
