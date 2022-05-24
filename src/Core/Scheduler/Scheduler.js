@@ -308,9 +308,8 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
  * @return {Promise} The {@link Scheduler} always expect a Promise as a result,
  * resolving to an object containing sufficient information for the associated
  * processing to the current layer. For example, see the
- * [LayeredMaterialNodeProcessing#updateLayeredMaterialNodeElevation]{@link
- * https://github.com/Oslandia/giro3d/blob/master/src/Process/LayeredMaterialNodeProcessing.js}
- * class or other processing class.
+ * LayeredMaterialNodeProcessing#updateLayeredMaterialNodeElevation
+ * function or other processing class.
  */
 
 /**
