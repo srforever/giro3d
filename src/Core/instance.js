@@ -288,7 +288,7 @@ class Instance extends EventDispatcher {
             source.on('change', () => {
                 // naive way of dealing with changes : remove everything and add everything back
                 if (vector.object3d) {
-                    this._threeObjects.remove(vector.object3d);
+                    this.threeObjects.remove(vector.object3d);
                     vector.object3d.traverse(o => {
                         if (o.material) {
                             o.material.dispose();
@@ -569,7 +569,8 @@ class Instance extends EventDispatcher {
      */
     pickObjectsAt(mouseOrEvt, radius, ...where) {
         const results = [];
-        const sources = where.length === 0 ? this.getObjects() : [...where];
+        const sources = where.length === 0
+            ? this.getObjects().concat(this.threeObjects) : [...where];
         const mouse = (mouseOrEvt instanceof Event)
             ? this.eventToViewCoords(mouseOrEvt) : mouseOrEvt;
         radius = radius || 0;
