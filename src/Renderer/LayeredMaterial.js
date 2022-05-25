@@ -149,6 +149,8 @@ LayeredMaterial.prototype.getLayerTexture = function getLayerTexture(layer) {
             texture: this.texturesInfo.elevation.texture,
             offsetScale: this.texturesInfo.elevation.offsetScale,
             elevationFormat: this.texturesInfo.elevation.format,
+            heightFieldScale: this.texturesInfo.elevation.heightFieldScale,
+            heightFieldOffset: this.texturesInfo.elevation.heightFieldOffset,
         };
     }
 
@@ -258,8 +260,13 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
         } else if (layer.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
             if (!this.defines.HEIGHTFIELD_ELEVATION) {
                 this.defines.HEIGHTFIELD_ELEVATION = 1;
-                this.uniforms.heightFieldOffset = new THREE.Uniform(layer.heightFieldOffset || 0.0);
-                this.uniforms.heightFieldScale = new THREE.Uniform(layer.heightFieldScale || 255.0);
+
+                const heightFieldOffset = layer.heightFieldOffset || 0.0;
+                this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
+                this.uniforms.heightFieldOffset = new THREE.Uniform(heightFieldOffset);
+                const heightFieldScale = layer.heightFieldScale || 255.0;
+                this.texturesInfo.elevation.heightFieldScale = heightFieldScale;
+                this.uniforms.heightFieldScale = new THREE.Uniform(heightFieldScale);
                 this.needsUpdate = true;
             }
         } else if (layer.elevationFormat === ELEVATION_FORMAT.RATP_GEOL) {
@@ -269,8 +276,8 @@ LayeredMaterial.prototype.setLayerTextures = function setLayerTextures(
         } else {
             throw new Error('Missing layer.elevationFormat handling', layer.elevationFormat);
         }
-        this.texturesInfo.elevation.texture = textures.texture;
         this.uniforms.elevationTexture.value = textures.texture;
+        this.texturesInfo.elevation.texture = textures.texture;
         this.texturesInfo.elevation.offsetScale.copy(textures.pitch);
         this.texturesInfo.elevation.format = layer.elevationFormat;
 
