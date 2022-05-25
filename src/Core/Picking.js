@@ -114,6 +114,7 @@ function findLayerInParent(obj) {
 
 const raycaster = new THREE.Raycaster();
 const tmpCoords = new Coordinates('EPSG:3857', 0, 0, 0);
+const tmpColor = new THREE.Color();
 
 /**
  * @module Picking
@@ -321,7 +322,7 @@ export default {
             zone,
         );
 
-        const clearColor = view.mainLoop.gfxEngine.renderer.getClearColor(new THREE.Color());
+        const clearColor = view.mainLoop.gfxEngine.renderer.getClearColor(tmpColor);
         const clearR = Math.round(255 * clearColor.r);
         const clearG = Math.round(255 * clearColor.g);
         const clearB = Math.round(255 * clearColor.b);
