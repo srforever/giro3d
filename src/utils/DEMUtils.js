@@ -185,8 +185,6 @@ function decodeMapboxElevation(r, g, b) {
     return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
 }
 
-// };
-
 function tileAt(pt, tile) {
     if (!tile.extent) {
         return null;
@@ -209,7 +207,8 @@ function tileAt(pt, tile) {
 
 let _canvas;
 let ctx;
-function _readTextureValueAt(layer, texture, format, ...uv) {
+function _readTextureValueAt(layer, textureInfo, ...uv) {
+    const { texture, elevationFormat: format } = textureInfo;
     for (let i = 0; i < uv.length; i += 2) {
         uv[i] = THREE.MathUtils.clamp(uv[i], 0, texture.image.width - 1);
         uv[i + 1] = THREE.MathUtils.clamp(uv[i + 1], 0, texture.image.height - 1);
@@ -265,11 +264,9 @@ function _readTextureValueAt(layer, texture, format, ...uv) {
             ));
         } else if (format === ELEVATION_FORMAT.HEIGHFIELD) {
             // d is 4 bytes per pixel
-            result.push(THREE.MathUtils.lerp(
-                layer.minMaxFromElevationLayer.min,
-                layer.minMaxFromElevationLayer.max,
-                d.data[4 * oy * dw + 4 * ox] / 255,
-            ));
+            const red = (d.data[4 * oy * dw + 4 * ox]) / 256.0;
+            const elevation = textureInfo.heightFieldOffset + red * textureInfo.heightFieldScale;
+            result.push(elevation);
         } else if (format === ELEVATION_FORMAT.XBIL) {
             throw new Error(`Unimplemented reading elevation value for layer.elevationFormat "${format}'`);
         } else if (format === ELEVATION_FORMAT.RATP_GEOL) {
@@ -305,19 +302,19 @@ function _convertUVtoTextureCoords(texture, u, v) {
     };
 }
 
-function _readTextureValueNearestFiltering(layer, texture, format, vertexU, vertexV) {
-    const coords = _convertUVtoTextureCoords(texture, vertexU, vertexV);
+function _readTextureValueNearestFiltering(layer, textureInfo, vertexU, vertexV) {
+    const coords = _convertUVtoTextureCoords(textureInfo.texture, vertexU, vertexV);
 
     const u = (coords.wu <= 0) ? coords.u1 : coords.u2;
     const v = (coords.wv <= 0) ? coords.v1 : coords.v2;
 
-    return _readTextureValueAt(layer, texture, format, u, v);
+    return _readTextureValueAt(layer, textureInfo, u, v);
 }
 
-function _readTextureValueWithBilinearFiltering(layer, texture, format, vertexU, vertexV) {
-    const coords = _convertUVtoTextureCoords(texture, vertexU, vertexV);
+function _readTextureValueWithBilinearFiltering(layer, textureInfo, vertexU, vertexV) {
+    const coords = _convertUVtoTextureCoords(textureInfo.texture, vertexU, vertexV);
 
-    const [z11, z21, z12, z22] = _readTextureValueAt(layer, texture, format,
+    const [z11, z21, z12, z22] = _readTextureValueAt(layer, textureInfo,
         coords.u1, coords.v1,
         coords.u2, coords.v1,
         coords.u1, coords.v2,
@@ -330,11 +327,11 @@ function _readTextureValueWithBilinearFiltering(layer, texture, format, vertexU,
     return THREE.MathUtils.lerp(zu1, zu2, coords.wv);
 }
 
-function _readZFast(layer, texture, format, uv) {
-    return _readTextureValueNearestFiltering(layer, texture, format, uv.x, uv.y);
+function _readZFast(layer, textureInfo, uv) {
+    return _readTextureValueNearestFiltering(layer, textureInfo, uv.x, uv.y);
 }
 
-function _readZCorrect(layer, texture, format, uv, tileDimensions, tileOwnerDimensions) {
+function _readZCorrect(layer, textureInfo, uv, tileDimensions, tileOwnerDimensions) {
     // We need to emulate the vertex shader code that does 2 thing:
     //   - interpolate (u, v) between triangle vertices: u,v will be multiple of 1/nsegments
     //     (for now assume nsegments === 16)
@@ -386,9 +383,9 @@ function _readZCorrect(layer, texture, format, uv, tileDimensions, tileOwnerDime
     const bary = tri.barycoordFromPoint(new THREE.Vector3(uv.x, uv.y));
 
     // read the 3 interesting values
-    const z1 = _readTextureValueWithBilinearFiltering(layer, texture, format, tri.a.x, tri.a.y);
-    const z2 = _readTextureValueWithBilinearFiltering(layer, texture, format, tri.b.x, tri.b.y);
-    const z3 = _readTextureValueWithBilinearFiltering(layer, texture, format, tri.c.x, tri.c.y);
+    const z1 = _readTextureValueWithBilinearFiltering(layer, textureInfo, tri.a.x, tri.a.y);
+    const z2 = _readTextureValueWithBilinearFiltering(layer, textureInfo, tri.b.x, tri.b.y);
+    const z3 = _readTextureValueWithBilinearFiltering(layer, textureInfo, tri.c.x, tri.c.y);
 
     // Blend with bary
     return z1 * bary.x + z2 * bary.y + z3 * bary.z;
@@ -419,10 +416,9 @@ function _readZ(layer, method, coord, nodes, cache) {
     }
 
     const tile = tileWithValidElevationTexture;
-    const texturesInfo = tileWithValidElevationTexture.material.getLayerTexture({ type: 'elevation' });
+    const textureInfo = tileWithValidElevationTexture.material.getLayerTexture({ type: 'elevation' });
 
-    const src = texturesInfo.texture;
-    const format = texturesInfo.elevationFormat;
+    const src = textureInfo.texture;
     // check cache value if existing
     if (cache) {
         if (cache.id === src.id && cache.version === src.version) {
@@ -433,7 +429,7 @@ function _readZ(layer, method, coord, nodes, cache) {
     // Assuming that tiles are split in 4 children, we lookup the parent that
     // really owns this texture
     const stepsUpInHierarchy = Math.round(Math.log2(1.0
-        / texturesInfo.offsetScale.z));
+        / textureInfo.offsetScale.z));
     for (let i = 0; i < stepsUpInHierarchy; i++) {
         tileWithValidElevationTexture = tileWithValidElevationTexture.parent;
     }
@@ -453,14 +449,13 @@ function _readZ(layer, method, coord, nodes, cache) {
     if (method === PRECISE_READ_Z) {
         pt._values[2] = _readZCorrect(
             layer,
-            src,
-            format,
+            textureInfo,
             offset,
             tile.extent.dimensions(),
             tileWithValidElevationTexture.extent.dimensions(),
         );
     } else {
-        pt._values[2] = _readZFast(layer, src, format, offset);
+        pt._values[2] = _readZFast(layer, textureInfo, offset);
     }
     return { coord: pt, texture: src, tile };
 }
