@@ -49,7 +49,7 @@
     "whatwg-fetch": "^2.0.2"
   },
   "peerDependencies": {
-    "ol": "^5.2.0",
+    "ol": "^6.14.1",
     "proj4": "^2.8.0",
     "three": "^0.117.1",
     "three.meshline": "^1.0.3"
@@ -78,7 +78,7 @@
     "jsdoc-plugin-typescript": "^2.0.5",
     "marked": "^0.3.9",
     "nyc": "^12.0.2",
-    "ol": "^5.2.0",
+    "ol": "^6.14.1",
     "proj4": "^2.8.0",
     "puppeteer": "^1.5.0",
     "shx": "^0.3.2",

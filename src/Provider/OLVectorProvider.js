@@ -1,6 +1,15 @@
 import { Vector4, CanvasTexture, Texture } from 'three';
 
-import CanvasReplayGroup from 'ol/render/canvas/ReplayGroup.js';
+// Even if it's not explicited in the changelog
+// https://github.com/openlayers/openlayers/blob/main/changelog/upgrade-notes.md
+// Around OL6 the replay group mechanism was split into BuilderGroup to create the
+// instructions and ExecutorGroup to run them.
+// The mechanism was altered following
+// https://github.com/openlayers/openlayers/issues/9215
+// to make it work
+
+import CanvasBuilderGroup from 'ol/render/canvas/BuilderGroup.js';
+import ExecutorGroup from 'ol/render/canvas/ExecutorGroup.js';
 import {
     getSquaredTolerance as getSquaredRenderTolerance,
     renderFeature as renderVectorFeature,
@@ -8,7 +17,6 @@ import {
 import {
     Fill, Icon, Stroke, Style, Text,
 } from 'ol/style.js';
-import ReplayType from 'ol/render/ReplayType.js';
 import {
     create as createTransform,
     reset as resetTransform,
@@ -21,11 +29,6 @@ import Extent from '../Core/Geographic/Extent.js';
 function fromOLExtent(extent, projectionCode) {
     return new Extent(projectionCode, extent[0], extent[2], extent[1], extent[3]);
 }
-
-const IMAGE_REPLAYS = {
-    image: [ReplayType.POLYGON, ReplayType.CIRCLE,
-        ReplayType.LINE_STRING, ReplayType.IMAGE, ReplayType.TEXT],
-};
 
 const emptyTexture = new Texture();
 emptyTexture.empty = true;
@@ -94,16 +97,16 @@ function createTexture(node, extent, layer) {
         return Promise.resolve({ texture: emptyTexture, pitch: new Vector4(0, 0, 0, 0) });
     }
 
-    const replayGroup = createReplayGroup(extent, layer);
+    const builderGroup = createBuilderGroup(extent, layer);
     let texture;
     let pitch;
-    if (!replayGroup) {
+    if (!builderGroup) {
         texture = new Texture();
         pitch = new Vector4(0, 0, 0, 0);
     } else {
         const _canvas = node.material.canvas;
         const atlas = node.layer.atlasInfo.atlas[layer.id];
-        renderTileImage(_canvas, replayGroup, extent, atlas, layer);
+        renderTileImage(_canvas, builderGroup, extent, atlas, layer);
         texture = new CanvasTexture(_canvas);
         pitch = new Vector4(0, 0, 1, 1);
     }
@@ -112,15 +115,12 @@ function createTexture(node, extent, layer) {
     return Promise.resolve({ texture, pitch });
 }
 
-function createReplayGroup(extent, layer) {
+function createBuilderGroup(extent, layer) {
     const { source } = layer;
     const pixelRatio = 1;
-    const declutterTree = null;
     const resolution = (extent.dimensions().x / layer.imageSize.w);
-    const renderBuffer = 100;
     const olExtent = toOLExtent(extent);
-    const replayGroup = new CanvasReplayGroup(0, olExtent, resolution,
-        pixelRatio, source.getOverlaps(), declutterTree, renderBuffer);
+    const builderGroup = new CanvasBuilderGroup(0, olExtent, resolution, pixelRatio);
     const squaredTolerance = getSquaredRenderTolerance(resolution, pixelRatio);
 
     let used = false;
@@ -131,20 +131,19 @@ function createReplayGroup(extent, layer) {
             styles = styleFunction(feature, resolution);
         }
         if (styles) {
-            renderFeature(feature, squaredTolerance, styles, replayGroup);
+            renderFeature(feature, squaredTolerance, styles, builderGroup);
         }
         used = true;
     };
     source.forEachFeatureInExtent(olExtent, render, this);
-    replayGroup.finish();
 
     if (used) {
-        return replayGroup;
+        return builderGroup;
     }
     return null;
 }
 
-function renderFeature(feature, squaredTolerance, styles, replayGroup) {
+function renderFeature(feature, squaredTolerance, styles, builderGroup) {
     if (!styles) {
         return false;
     }
@@ -152,14 +151,14 @@ function renderFeature(feature, squaredTolerance, styles, replayGroup) {
     if (Array.isArray(styles)) {
         for (let i = 0, ii = styles.length; i < ii; ++i) {
             loading = renderVectorFeature(
-                replayGroup, feature, styles[i], squaredTolerance,
-                handleStyleImageChange_, null,
+                builderGroup, feature, styles[i], squaredTolerance,
+                handleStyleImageChange_,
             ) || loading;
         }
     } else {
         loading = renderVectorFeature(
-            replayGroup, feature, styles, squaredTolerance,
-            handleStyleImageChange_, null,
+            builderGroup, feature, styles, squaredTolerance,
+            handleStyleImageChange_,
         );
     }
     return loading;
@@ -168,9 +167,8 @@ function renderFeature(feature, squaredTolerance, styles, replayGroup) {
 function handleStyleImageChange_() {
 }
 
-function renderTileImage(_canvas, replayGroup, extent, atlasInfo, layer) {
+function renderTileImage(_canvas, builderGroup, extent, atlasInfo, layer) {
     const pixelRatio = 1;
-    const replays = IMAGE_REPLAYS.image;
     const resolutionX = extent.dimensions().x / layer.imageSize.w;
     const resolutionY = extent.dimensions().y / layer.imageSize.h;
     const ctx = _canvas.getContext('2d');
@@ -185,7 +183,12 @@ function renderTileImage(_canvas, replayGroup, extent, atlasInfo, layer) {
     const transform = resetTransform(tmpTransform_);
     scaleTransform(transform, pixelRatio / resolutionX, -pixelRatio / resolutionY);
     translateTransform(transform, -extent.west(), -extent.north());
-    replayGroup.replay(ctx, transform, 0, {}, true, replays);
+    const olExtent = toOLExtent(extent);
+    const resolution = (extent.dimensions().x / layer.imageSize.w);
+    const executor = new ExecutorGroup(
+        olExtent, resolution, pixelRatio, true, builderGroup.finish(),
+    );
+    executor.execute(ctx, 1, transform, 0, true);
 
     ctx.restore();
 }
