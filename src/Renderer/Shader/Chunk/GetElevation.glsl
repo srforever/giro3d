@@ -14,9 +14,6 @@ const vec4 zShift = vec4(
 float getElevation(sampler2D texture, vec2 uv) {
     #if defined(HEIGHTFIELD_ELEVATION)
         vec4 c = texture2D(texture, uv);
-        if (heightFieldOffset != 0.0) {
-            c.r = (c.r - 1.0 / 255.0);
-        }
         vec4 color = heightFieldOffset + c * heightFieldScale;
         return color.r;
     #elif defined(MAPBOX_RGB_ELEVATION)
