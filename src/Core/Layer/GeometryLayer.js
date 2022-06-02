@@ -146,7 +146,6 @@ export default class GeometryLayer extends EventDispatcher {
     }
 
     attach(layer) {
-        console.log('going to attach layer', layer, this);
         if (!layer.update) {
             throw new Error(`Missing 'update' function -> can't attach layer ${layer.id}`);
         }
