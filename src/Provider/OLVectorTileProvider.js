@@ -6,7 +6,18 @@ import {
     createEmpty as createEmptyExtent,
     getIntersection, equals, buffer, intersects,
 } from 'ol/extent.js';
-import CanvasReplayGroup from 'ol/render/canvas/ReplayGroup.js';
+
+// Even if it's not explicited in the changelog
+// https://github.com/openlayers/openlayers/blob/main/changelog/upgrade-notes.md
+// Around OL6 the replay group mechanism was split into BuilderGroup to create the
+// instructions and ExecutorGroup to run them.
+// The mechanism was altered following
+// https://github.com/openlayers/openlayers/issues/9215
+// to make it work
+
+import CanvasBuilderGroup from 'ol/render/canvas/BuilderGroup.js';
+import CanvasExecutorGroup from 'ol/render/canvas/ExecutorGroup.js';
+
 import {
     getSquaredTolerance as getSquaredRenderTolerance,
     renderFeature as renderVectorFeature,
@@ -14,26 +25,17 @@ import {
 import {
     Fill, Icon, Stroke, Style, Text,
 } from 'ol/style.js';
-import ReplayType from 'ol/render/ReplayType.js';
 import {
     create as createTransform,
     reset as resetTransform,
     scale as scaleTransform,
     translate as translateTransform,
 } from 'ol/transform.js';
-import { equivalent as equivalentProjection } from 'ol/proj.js';
-import Units from 'ol/proj/Units.js';
 
 import Extent from '../Core/Geographic/Extent.js';
 
-const IMAGE_REPLAYS = {
-    image: [ReplayType.POLYGON, ReplayType.CIRCLE,
-        ReplayType.LINE_STRING, ReplayType.IMAGE, ReplayType.TEXT],
-};
-
 const tmpTransform_ = createTransform();
 const emptyTexture = new Texture();
-// const emptyPitch = new Vector4(0, 0, 1, 1);
 
 function Foo() {
     this.storage = {};
@@ -44,7 +46,7 @@ function preprocessDataLayer(layer) {
     const { source } = layer;
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
-    const sizePixel = source.getTilePixelSize(0/* z */, 1/* pixelRatio */, source.getProjection());
+    const sizePixel = source.getTilePixelSize(0/* z */, 1/* pixelRatio */, projection);
     layer.imageSize = { w: sizePixel[0], h: sizePixel[1] };
     const extent = tileGrid.getExtent();
     layer.extent = fromOLExtent(extent, projection.getCode());
@@ -157,7 +159,7 @@ function createTexture(node, tile, layer) {
     texture.premultiplyAlpha = layer.transparent;
     texture.extent = tile.tileExtent;
 
-    const empty = createReplayGroup(tile.tile, layer);
+    const empty = createBuilderGroup(tile.tile, layer);
 
     if (empty) {
         return {
@@ -169,14 +171,6 @@ function createTexture(node, tile, layer) {
     const atlas = node.layer.atlasInfo.atlas[layer.id];
     renderTileImage(_canvas, tile.tile, atlas, layer);
 
-    for (let t = 0, tt = tile.tile.tileKeys.length; t < tt; ++t) {
-        const sourceTile = tile.tile.getTile(tile.tile.tileKeys[t]);
-        if (sourceTile.getState() !== TileState.LOADED) {
-            continue;
-        }
-        sourceTile.setReplayGroup(layer, tile.tile.tileCoord.toString(), undefined);
-    }
-
     const zKey = tile.tile.tileCoord[0].toString();
     delete layer.usedTiles[zKey].storage[tile.tile.tileCoord];
     layer.source.tileCache.expireCache(layer.usedTiles);
@@ -184,20 +178,24 @@ function createTexture(node, tile, layer) {
     return { texture, pitch: tile.pitch };
 }
 
-function createReplayGroup(tile, layer) {
+function createBuilderGroup(tile, layer) {
     const replayState = tile.getReplayState(layer);
     const { source } = layer;
     const sourceTileGrid = source.getTileGrid();
     const sourceProjection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(sourceProjection);
     const resolution = tileGrid.getResolution(tile.tileCoord[0]);
-    const tileExtent = tile.extent;
+    const tileExtent = tileGrid.getTileCoordExtent(tile.wrappedTileCoord);
     const renderOrder = null;
+    const pixelRatio = 1;
 
     const tmpExtent = createEmptyExtent();
     let empty = true;
-    for (let t = 0, tt = tile.tileKeys.length; t < tt; ++t) {
-        const sourceTile = tile.getTile(tile.tileKeys[t]);
+
+    tile.executorGroups[layer.ol_uid] = [];
+    const sourceTiles = source.getSourceTiles(pixelRatio, sourceProjection, tile);
+    for (let t = 0, tt = sourceTiles.length; t < tt; ++t) {
+        const sourceTile = sourceTiles[t];
         if (sourceTile.getState() !== TileState.LOADED) {
             console.warn('not loaded !!!', sourceTile);
             continue;
@@ -206,19 +204,12 @@ function createReplayGroup(tile, layer) {
         const sourceTileExtent = sourceTileGrid.getTileCoordExtent(sourceTileCoord);
         const sharedExtent = getIntersection(tileExtent, sourceTileExtent);
         const renderBuffer = 100;
+        const builderExtent = buffer(sharedExtent, renderBuffer * resolution, tmpExtent);
         const bufferedExtent = equals(sourceTileExtent, sharedExtent) ? null
-            : buffer(sharedExtent, renderBuffer * resolution, tmpExtent);
-        const tileProjection = sourceTile.getProjection();
-        let reproject = false;
-        if (!equivalentProjection(sourceProjection, tileProjection)) {
-            reproject = true;
-            sourceTile.setProjection(sourceProjection);
-        }
-        replayState.dirty = false;
-        const pixelRatio = 1;
-        const declutterTree = null;
-        const replayGroup = new CanvasReplayGroup(0, sharedExtent, resolution,
-            pixelRatio, source.getOverlaps(), declutterTree, renderBuffer);
+            : builderExtent;
+
+        const builderGroup = new CanvasBuilderGroup(0, builderExtent, resolution,
+            pixelRatio);
         const squaredTolerance = getSquaredRenderTolerance(resolution, pixelRatio);
 
         const render = function render(feature) {
@@ -228,8 +219,7 @@ function createReplayGroup(tile, layer) {
                 styles = styleFunction(feature, resolution);
             }
             if (styles) {
-                const dirty = renderFeature(feature, squaredTolerance, styles, replayGroup);
-                // this.dirty_ = this.dirty_ || dirty;
+                const dirty = renderFeature(feature, squaredTolerance, styles, builderGroup);
                 replayState.dirty = replayState.dirty || dirty;
             }
         };
@@ -238,25 +228,24 @@ function createReplayGroup(tile, layer) {
         if (renderOrder && renderOrder !== replayState.renderedRenderOrder) {
             features.sort(renderOrder);
         }
+
         for (let i = 0, ii = features.length; i < ii; ++i) {
             const feature = features[i];
-            if (reproject) {
-                if (tileProjection.getUnits() === Units.TILE_PIXELS) {
-                    // projected tile extent
-                    tileProjection.setWorldExtent(sourceTileExtent);
-                    // tile extent in tile pixel space
-                    tileProjection.setExtent(sourceTile.getExtent());
-                }
-                feature.getGeometry().transform(tileProjection, sourceProjection);
-            }
             if (!bufferedExtent || intersects(bufferedExtent, feature.getGeometry().getExtent())) {
                 render.call(this, feature);
             }
             empty = false;
         }
-        replayGroup.finish();
         if (!empty) {
-            sourceTile.setReplayGroup(layer, tile.tileCoord.toString(), replayGroup);
+            const renderingReplayGroup = new CanvasExecutorGroup(
+                builderExtent,
+                resolution,
+                pixelRatio,
+                source.getOverlaps(),
+                builderGroup.finish(),
+                renderBuffer,
+            );
+            tile.executorGroups[layer.ol_uid].push(renderingReplayGroup);
         }
     }
     replayState.renderedRevision = 1;
@@ -264,7 +253,7 @@ function createReplayGroup(tile, layer) {
     return empty;
 }
 
-function renderFeature(feature, squaredTolerance, styles, replayGroup) {
+function renderFeature(feature, squaredTolerance, styles, builderGroup) {
     if (!styles) {
         return false;
     }
@@ -272,14 +261,14 @@ function renderFeature(feature, squaredTolerance, styles, replayGroup) {
     if (Array.isArray(styles)) {
         for (let i = 0, ii = styles.length; i < ii; ++i) {
             loading = renderVectorFeature(
-                replayGroup, feature, styles[i], squaredTolerance,
-                handleStyleImageChange_, null,
+                builderGroup, feature, styles[i], squaredTolerance,
+                handleStyleImageChange_, undefined,
             ) || loading;
         }
     } else {
         loading = renderVectorFeature(
-            replayGroup, feature, styles, squaredTolerance,
-            handleStyleImageChange_, null,
+            builderGroup, feature, styles, squaredTolerance,
+            handleStyleImageChange_, undefined,
         );
     }
     return loading;
@@ -292,7 +281,6 @@ function renderTileImage(_canvas, tile, atlasInfo, layer) {
     const pixelRatio = 1;
     const replayState = tile.getReplayState(layer);
     const revision = 1;
-    const replays = IMAGE_REPLAYS.image;
     replayState.renderedTileRevision = revision;
     const tileCoord = tile.wrappedTileCoord;
     const z = tileCoord[0];
@@ -307,10 +295,6 @@ function renderTileImage(_canvas, tile, atlasInfo, layer) {
     ctx.rect(0, 0, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
     ctx.clip();
 
-    //  tile.getContext(layer);
-    // const size = source.getTilePixelSize(z, pixelRatio, source.getProjection());
-    // context.canvas.width = size[0];
-    // context.canvas.height = size[1];
     if (layer.backgroundColor) {
         ctx.fillStyle = layer.backgroundColor;
         ctx.fillRect(
@@ -318,26 +302,19 @@ function renderTileImage(_canvas, tile, atlasInfo, layer) {
             layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset,
         );
     }
+
     const tileExtent = tileGrid.getTileCoordExtent(tileCoord);
-    let empty = true;
-    for (let i = 0, ii = tile.tileKeys.length; i < ii; ++i) {
-        const sourceTile = tile.getTile(tile.tileKeys[i]);
-        if (sourceTile.getState() !== TileState.LOADED) {
-            continue;
-        }
-        const pixelScale = pixelRatio / resolution;
-        const transform = resetTransform(tmpTransform_);
-        scaleTransform(transform, pixelScale, -pixelScale);
-        translateTransform(transform, -tileExtent[0], -tileExtent[3]);
-        const replayGroup = /** @type {CanvasReplayGroup} */ (sourceTile.getReplayGroup(layer,
-            tile.tileCoord.toString()));
-        if (replayGroup) {
-            replayGroup.replay(ctx, transform, 0, {}, true, replays);
-            empty = false;
-        }
+    const pixelScale = pixelRatio / resolution;
+    const transform = resetTransform(tmpTransform_);
+    scaleTransform(transform, pixelScale, -pixelScale);
+    translateTransform(transform, -tileExtent[0], -tileExtent[3]);
+    const executorGroups = tile.executorGroups[layer.ol_uid];
+    for (let i = 0, ii = executorGroups.length; i < ii; ++i) {
+        const executorGroup = executorGroups[i];
+        executorGroup.execute(ctx, 1, transform, 0, true);
     }
+
     ctx.restore();
-    return empty;
 }
 
 // eslint-disable-next-line no-unused-vars
