@@ -174,7 +174,7 @@ function Debug(view, datDebugTool, chartDivContainer) {
             }
             helper.visible = true;
             helper.updateMatrixWorld(true);
-            bClearColor.copy(r.getClearColor());
+            r.getClearColor(bClearColor);
             r.setViewport(g.width - size.x, g.height - size.y, size.x, size.y);
             r.setScissor(g.width - size.x, g.height - size.y, size.x, size.y);
             r.setScissorTest(true);

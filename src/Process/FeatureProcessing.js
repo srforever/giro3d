@@ -102,9 +102,9 @@ export default {
                 // expressed in crs coordinates (which may be different than world coordinates,
                 // if node's layer is attached to an Object with a non-identity transformation)
                 const tmp = node.extent.center().as(context.view.referenceCrs).xyz().negate();
-                quaternion.setFromRotationMatrix(node.matrixWorld).inverse();
+                quaternion.setFromRotationMatrix(node.matrixWorld).invert();
                 // const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,
-                // 0, 1), node.extent.center().geodesicNormal).inverse();
+                // 0, 1), node.extent.center().geodesicNormal).invert();
                 applyOffset(result, tmp, quaternion, result.minAltitude);
                 if (result.minAltitude) {
                     result.position.z = result.minAltitude;

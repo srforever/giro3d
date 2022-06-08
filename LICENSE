@@ -42,12 +42,6 @@ ES6-Promise is published under MIT.
 
 https://github.com/stefanpenner/es6-promise
 
-### JSZip
-
-JSZip is published under a dual MIT licence and GPLv3 licence. The MIT version is used here.
-
-https://stuk.github.io/jszip/
-
 ### PriorityQueue
 
 PriorityQueue is published under a Public Domain status.

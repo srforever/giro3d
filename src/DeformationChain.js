@@ -25,10 +25,17 @@ function createPoint(color) {
 }
 
 function createDashedLine() {
-    const dashedLine = new THREE.Line(new THREE.Geometry(),
-        new THREE.LineDashedMaterial({ dashSize: 0.5, gapSize: 0.5 }));
-    dashedLine.geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-    dashedLine.geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+    const vertices = new Float32Array([
+        0, 0, 0,
+        0, 0, 0,
+    ]);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+    const dashedLine = new THREE.Line(
+        geometry,
+        new THREE.LineDashedMaterial({ dashSize: 0.5, gapSize: 0.5 }),
+    );
     dashedLine.material.depthTest = false;
     dashedLine.frustumCulled = false;
     dashedLine.material.linewidth = 2;
@@ -36,9 +43,14 @@ function createDashedLine() {
 }
 
 function createLine() {
-    const dashedLine = new THREE.Line(new THREE.Geometry());
-    dashedLine.geometry.vertices.push(new THREE.Vector3(0, 0, 0));
-    dashedLine.geometry.vertices.push(new THREE.Vector3(0, 0, 0));
+    const vertices = new Float32Array([
+        0, 0, 0,
+        0, 0, 0,
+    ]);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+
+    const dashedLine = new THREE.Line(geometry);
     dashedLine.material.depthTest = false;
     dashedLine.material.linewidth = 2;
     dashedLine.material.transparent = true;
@@ -47,13 +59,20 @@ function createLine() {
 }
 
 function createRectangle() {
-    const geometry = new THREE.Geometry();
-    geometry.vertices.push(new THREE.Vector3(0.5, 1, 0));
-    geometry.vertices.push(new THREE.Vector3(-0.5, 1, 0));
-    geometry.vertices.push(new THREE.Vector3(-0.5, -1, 0));
-    geometry.vertices.push(new THREE.Vector3(0.5, -1, 0));
-    geometry.faces.push(new THREE.Face3(0, 1, 2));
-    geometry.faces.push(new THREE.Face3(2, 3, 0));
+    const vertices = new Float32Array([
+        0.5, 1, 0,
+        -0.5, 1, 0,
+        -0.5, -1, 0,
+        0.5, -1, 0,
+    ]);
+    const indices = [
+        0, 1, 2,
+        2, 3, 0,
+    ];
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    geometry.setIndex(indices);
+
     const rect = new THREE.Mesh(geometry);
     rect.material.transparent = true;
     rect.material.opacity = 0.1;

@@ -8,189 +8,186 @@ import * as THREE from 'three';
 import RendererConstant from '../Renderer/RendererConstant.js';
 import OGCWebServiceHelper from '../Provider/OGCWebServiceHelper.js';
 
-function TileMesh(layer, geometry, material, extent, level) {
-    // Constructor
-    THREE.Mesh.call(this, geometry, material);
-
-    this.layer = layer;
-
-    this.matrixAutoUpdate = false;
-    this.rotationAutoUpdate = false;
-
-    this.level = level;
-    this.extent = extent;
-
-    this.geometry = geometry;
-
-    this.obb = this.geometry.OBB.clone();
-
-    this.frustumCulled = false;
-
-    // Layer
-    this.setDisplayed(false);
-
-    this.layerUpdateState = {};
-
-    this.material.setUuid(this.id);
-    const dim = extent.dimensions();
-    this.material.uniforms.tileDimensions.value.set(dim.x, dim.y);
-
-    if (layer.minMaxFromElevationLayer) {
-        this.setBBoxZ(layer.minMaxFromElevationLayer.min, layer.minMaxFromElevationLayer.max);
-    }
-}
-
-TileMesh.prototype = Object.create(THREE.Mesh.prototype);
-TileMesh.prototype.constructor = TileMesh;
-
-TileMesh.prototype.updateMatrixWorld = function updateMatrixWorld(force) {
-    THREE.Mesh.prototype.updateMatrixWorld.call(this, force);
-    this.OBB().update();
-};
-
-TileMesh.prototype.isVisible = function isVisible() {
-    return this.visible;
-};
-
-TileMesh.prototype.setDisplayed = function setDisplayed(show) {
-    this.material.visible = show && this.material.update();
-    this.material.transparent = this.material.opacity !== 1
-        || this.material.uniforms.noTextureOpacity.value !== 1;
-};
-
-TileMesh.prototype.setVisibility = function setVisibility(show) {
-    this.visible = show;
-};
-
-TileMesh.prototype.isDisplayed = function isDisplayed() {
-    return this.material.visible;
-};
-
-// switch material in function of state
-TileMesh.prototype.changeState = function changeState(state) {
-    if (state === this.material.uniforms.renderingState.value) {
-        return;
-    }
-    // TODO this is a implicit dep to LayeredMaterial
-    this.material.uniforms.renderingState.value = state;
-    if (state > RendererConstant.FINAL) {
-        this.material.transparent = false;
-    } else {
-        this.material.transparent = this.material.opacity !== 1
-            || this.material.uniforms.noTextureOpacity.value !== 1;
-    }
-
-    this.material.needsUpdate = true;
-};
-
 function applyChangeState(n, s) {
     if (n.changeState) {
         n.changeState(s);
     }
 }
 
-TileMesh.prototype.pushRenderState = function pushRenderState(state) {
-    if (this.material.uniforms.renderingState.value === state) {
-        return () => { };
-    }
+class TileMesh extends THREE.Mesh {
+    constructor(layer, geometry, material, extent, level) {
+        super(geometry, material);
 
-    const oldState = this.material.uniforms.renderingState.value;
-    this.traverse(n => applyChangeState(n, state));
+        this.layer = layer;
 
-    return () => {
-        this.traverse(n => applyChangeState(n, oldState));
-    };
-};
+        this.matrixAutoUpdate = false;
+        this.rotationAutoUpdate = false;
 
-TileMesh.prototype.setFog = function setFog(fog) {
-    this.material.setFogDistance(fog);
-};
+        this.level = level;
+        this.extent = extent;
 
-TileMesh.prototype.setSelected = function setSelected(select) {
-    this.material.setSelected(select);
-};
+        this.geometry = geometry;
 
-TileMesh.prototype.setTextureElevation = function setTextureElevation(layer, elevation) {
-    if (this.material === null) {
-        return;
-    }
-    this.setBBoxZ(elevation.min, elevation.max);
-    this.material.setLayerTextures(layer, elevation);
-};
+        this.obb = this.geometry.OBB.clone();
 
-TileMesh.prototype.setBBoxZ = function setBBoxZ(min, max) {
-    // 0 is an acceptable value
-    if (min == null && max == null) {
-        return;
-    }
-    if (Math.floor(min) !== Math.floor(this.obb.z.min)
-        || Math.floor(max) !== Math.floor(this.obb.z.max)) {
-        this.OBB().updateZ(min, max);
-    }
-};
+        this.frustumCulled = false;
 
-TileMesh.prototype.OBB = function OBB() {
-    return this.obb;
-};
+        // Layer
+        this.setDisplayed(false);
 
-TileMesh.prototype.removeColorLayer = function removeColorLayer(idLayer) {
-    if (this.layerUpdateState && this.layerUpdateState[idLayer]) {
-        delete this.layerUpdateState[idLayer];
-    }
-    this.material.removeColorLayer(idLayer);
-};
+        this.layerUpdateState = {};
 
-TileMesh.prototype.changeSequenceLayers = function changeSequenceLayers(sequence) {
-    const layerCount = this.material.getColorLayersCount();
+        this.material.setUuid(this.id);
+        const dim = extent.dimensions();
+        this.material.uniforms.tileDimensions.value.set(dim.x, dim.y);
 
-    // Quit if there is only one layer
-    if (layerCount < 2) {
-        return;
-    }
-
-    this.material.setSequence(sequence);
-};
-
-TileMesh.prototype.getExtentForLayer = function getExtentForLayer(layer) {
-    if (layer.extent.crs() !== this.extent.crs()) {
-        throw new Error(`Layer should be in the same CRS of their supporting tile geometry, but layer crs is ${layer.extent.crs()} and tile crs is ${this.extent.crs()}`);
-    }
-    if (layer.protocol === 'tms' || layer.protocol === 'xyz') {
-        return OGCWebServiceHelper
-            .computeTMSCoordinates(this.extent, layer.extent, layer.origin)[0];
-    }
-    return this.extent;
-};
-
-/**
- * Search for a common ancestor between this tile and another one. It goes
- * through parents on each side until one is found.
- *
- * @param {TileMesh} tile
- *
- * @return {TileMesh} the resulting common ancestor
- */
-TileMesh.prototype.findCommonAncestor = function findCommonAncestor(tile) {
-    if (!tile) {
-        return undefined;
-    }
-    if (tile.level === this.level) {
-        if (tile.id === this.id) {
-            return tile;
+        if (layer.minMaxFromElevationLayer) {
+            this.setBBoxZ(layer.minMaxFromElevationLayer.min, layer.minMaxFromElevationLayer.max);
         }
-        if (tile.level !== 0) {
-            return this.parent.findCommonAncestor(tile.parent);
+    }
+
+    updateMatrixWorld(force) {
+        super.updateMatrixWorld.call(this, force);
+        this.OBB().update();
+    }
+
+    isVisible() {
+        return this.visible;
+    }
+
+    setDisplayed(show) {
+        this.material.visible = show && this.material.update();
+        this.material.transparent = this.material.opacity !== 1
+            || this.material.uniforms.noTextureOpacity.value !== 1;
+    }
+
+    setVisibility(show) {
+        this.visible = show;
+    }
+
+    isDisplayed() {
+        return this.material.visible;
+    }
+
+    // switch material in function of state
+    changeState(state) {
+        if (state === this.material.uniforms.renderingState.value) {
+            return;
         }
-        return undefined;
-    }
-    if (tile.level < this.level) {
-        return this.parent.findCommonAncestor(tile);
-    }
-    return this.findCommonAncestor(tile.parent);
-};
+        // TODO this is a implicit dep to LayeredMaterial
+        this.material.uniforms.renderingState.value = state;
+        if (state > RendererConstant.FINAL) {
+            this.material.transparent = false;
+        } else {
+            this.material.transparent = this.material.opacity !== 1
+                || this.material.uniforms.noTextureOpacity.value !== 1;
+        }
 
-TileMesh.prototype.isAncestorOf = function isAncestorOf(node) {
-    return node.findCommonAncestor(this) === this;
-};
+        this.material.needsUpdate = true;
+    }
 
+    pushRenderState(state) {
+        if (this.material.uniforms.renderingState.value === state) {
+            return () => { };
+        }
+
+        const oldState = this.material.uniforms.renderingState.value;
+        this.traverse(n => applyChangeState(n, state));
+
+        return () => {
+            this.traverse(n => applyChangeState(n, oldState));
+        };
+    }
+
+    setFog(fog) {
+        this.material.setFogDistance(fog);
+    }
+
+    setSelected(select) {
+        this.material.setSelected(select);
+    }
+
+    setTextureElevation(layer, elevation) {
+        if (this.material === null) {
+            return;
+        }
+        this.setBBoxZ(elevation.min, elevation.max);
+        this.material.setLayerTextures(layer, elevation);
+    }
+
+    setBBoxZ(min, max) {
+        // 0 is an acceptable value
+        if (min == null && max == null) {
+            return;
+        }
+        if (Math.floor(min) !== Math.floor(this.obb.z.min)
+            || Math.floor(max) !== Math.floor(this.obb.z.max)) {
+            this.OBB().updateZ(min, max);
+        }
+    }
+
+    OBB() {
+        return this.obb;
+    }
+
+    removeColorLayer(idLayer) {
+        if (this.layerUpdateState && this.layerUpdateState[idLayer]) {
+            delete this.layerUpdateState[idLayer];
+        }
+        this.material.removeColorLayer(idLayer);
+    }
+
+    changeSequenceLayers(sequence) {
+        const layerCount = this.material.getColorLayersCount();
+
+        // Quit if there is only one layer
+        if (layerCount < 2) {
+            return;
+        }
+
+        this.material.setSequence(sequence);
+    }
+
+    getExtentForLayer(layer) {
+        if (layer.extent.crs() !== this.extent.crs()) {
+            throw new Error(`Layer should be in the same CRS of their supporting tile geometry, but layer crs is ${layer.extent.crs()} and tile crs is ${this.extent.crs()}`);
+        }
+        if (layer.protocol === 'tms' || layer.protocol === 'xyz') {
+            return OGCWebServiceHelper
+                .computeTMSCoordinates(this.extent, layer.extent, layer.origin)[0];
+        }
+        return this.extent;
+    }
+
+    /**
+     * Search for a common ancestor between this tile and another one. It goes
+     * through parents on each side until one is found.
+     *
+     * @param {TileMesh} tile
+     *
+     * @return {TileMesh} the resulting common ancestor
+     */
+    findCommonAncestor(tile) {
+        if (!tile) {
+            return undefined;
+        }
+        if (tile.level === this.level) {
+            if (tile.id === this.id) {
+                return tile;
+            }
+            if (tile.level !== 0) {
+                return this.parent.findCommonAncestor(tile.parent);
+            }
+            return undefined;
+        }
+        if (tile.level < this.level) {
+            return this.parent.findCommonAncestor(tile);
+        }
+        return this.findCommonAncestor(tile.parent);
+    }
+
+    isAncestorOf(node) {
+        return node.findCommonAncestor(this) === this;
+    }
+}
 export default TileMesh;
