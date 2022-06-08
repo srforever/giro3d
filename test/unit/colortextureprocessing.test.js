@@ -11,7 +11,7 @@ const assert = require('assert');
 
 describe('ColorTextureProcessing.updateLayerElement', () => {
     // Misc var to initialize a TileMesh instance
-    const geom = new THREE.Geometry();
+    const geom = new THREE.BufferGeometry();
     geom.OBB = new OBB(new THREE.Vector3(), new THREE.Vector3(1, 1, 1));
 
     const extent = new Extent('EPSG:4326', 0, 2, 0, 2);

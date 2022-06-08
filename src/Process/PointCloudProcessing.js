@@ -4,33 +4,34 @@ import CancelledCommandException from '../Core/Scheduler/CancelledCommandExcepti
 // Draw a cube with lines (12 lines).
 function cube(size) {
     const h = size.clone().multiplyScalar(0.5);
-    const geometry = new THREE.Geometry();
-    geometry.vertices.push(
-        new THREE.Vector3(-h.x, -h.y, -h.z),
-        new THREE.Vector3(-h.x, h.y, -h.z),
-        new THREE.Vector3(-h.x, h.y, -h.z),
-        new THREE.Vector3(h.x, h.y, -h.z),
-        new THREE.Vector3(h.x, h.y, -h.z),
-        new THREE.Vector3(h.x, -h.y, -h.z),
-        new THREE.Vector3(h.x, -h.y, -h.z),
-        new THREE.Vector3(-h.x, -h.y, -h.z),
-        new THREE.Vector3(-h.x, -h.y, h.z),
-        new THREE.Vector3(-h.x, h.y, h.z),
-        new THREE.Vector3(-h.x, h.y, h.z),
-        new THREE.Vector3(h.x, h.y, h.z),
-        new THREE.Vector3(h.x, h.y, h.z),
-        new THREE.Vector3(h.x, -h.y, h.z),
-        new THREE.Vector3(h.x, -h.y, h.z),
-        new THREE.Vector3(-h.x, -h.y, h.z),
-        new THREE.Vector3(-h.x, -h.y, -h.z),
-        new THREE.Vector3(-h.x, -h.y, h.z),
-        new THREE.Vector3(-h.x, h.y, -h.z),
-        new THREE.Vector3(-h.x, h.y, h.z),
-        new THREE.Vector3(h.x, h.y, -h.z),
-        new THREE.Vector3(h.x, h.y, h.z),
-        new THREE.Vector3(h.x, -h.y, -h.z),
-        new THREE.Vector3(h.x, -h.y, h.z),
-    );
+    const vertices = new Float32Array([
+        -h.x, -h.y, -h.z,
+        -h.x, h.y, -h.z,
+        -h.x, h.y, -h.z,
+        h.x, h.y, -h.z,
+        h.x, h.y, -h.z,
+        h.x, -h.y, -h.z,
+        h.x, -h.y, -h.z,
+        -h.x, -h.y, -h.z,
+        -h.x, -h.y, h.z,
+        -h.x, h.y, h.z,
+        -h.x, h.y, h.z,
+        h.x, h.y, h.z,
+        h.x, h.y, h.z,
+        h.x, -h.y, h.z,
+        h.x, -h.y, h.z,
+        -h.x, -h.y, h.z,
+        -h.x, -h.y, -h.z,
+        -h.x, -h.y, h.z,
+        -h.x, h.y, -h.z,
+        -h.x, h.y, h.z,
+        h.x, h.y, -h.z,
+        h.x, h.y, h.z,
+        h.x, -h.y, -h.z,
+        h.x, -h.y, h.z,
+    ]);
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
     return geometry;
 }
 

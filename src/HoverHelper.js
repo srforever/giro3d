@@ -13,7 +13,7 @@ function objectUnderMouseEvent(event, view, objects) {
     const mouse = eventToMouse(view, event);
 
     raycaster.setFromCamera(mouse, view.camera.camera3D);
-    const intersects = raycaster.intersectObjects(objects);
+    const intersects = raycaster.intersectObjects(objects, false);
 
     if (intersects.length === 0) {
         return null;

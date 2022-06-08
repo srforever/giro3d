@@ -256,7 +256,7 @@ export default ( function () {
 						// transform joints to local space,
 						// then transform using joint's inverse
 						m4v[ mi ]
-							.getInverse( boundUniform.sourceNode.matrixWorld )
+							.copy( boundUniform.sourceNode.matrixWorld ).invert()
 							.multiply( boundUniform.targetNode.skeleton.bones[ mi ].matrixWorld )
 							.multiply( boundUniform.targetNode.skeleton.boneInverses[ mi ] )
 							.multiply( boundUniform.targetNode.bindMatrix );
@@ -1170,7 +1170,7 @@ export default ( function () {
 				if ( khr_material ) {
 
 					// don't copy over unused values to avoid material warning spam
-					var keys = [ 'ambient', 'emission', 'transparent', 'transparency', 'doubleSided' ];
+					var keys = [ 'ambient', 'emission', 'transparent', 'transmission', 'doubleSided' ];
 
 					switch ( khr_material.technique ) {
 
@@ -1207,7 +1207,7 @@ export default ( function () {
 					if ( khr_material.transparent || materialValues.transparent ) {
 
 						materialParams.transparent = true;
-						materialParams.opacity = ( materialValues.transparency !== undefined ) ? materialValues.transparency : 1;
+						materialParams.opacity = ( materialValues.transmission !== undefined ) ? materialValues.transmission : 1;
 
 					}
 
@@ -1276,7 +1276,7 @@ export default ( function () {
 
 										uvalue = shaderParam.value;
 
-										if ( pname === "transparency" ) {
+										if ( pname === "transmission" ) {
 
 											materialParams.transparent = true;
 
@@ -2037,7 +2037,6 @@ export default ( function () {
 
 									var geometry = originalGeometry;
 									var material = originalMaterial;
-									material.skinning = true;
 
 									child = new THREE.SkinnedMesh( geometry, material ); // TODO Removed Geometry support from SkinnedMesh. Use BufferGeometry instead
 									child.castShadow = true;

@@ -65,7 +65,7 @@ function computeSSE(offset, size, matrix, camera, _3d) {
 function findBox3Distance(camera, box3, matrix) {
     // TODO: can be cached
     // TODO: what about matrix scale component
-    m.getInverse(matrix);
+    m.copy(matrix).invert();
     // Move camera position in box3 basis
     // (we don't transform box3 to camera basis because box3 are AABB,
     // so instead we apply the inverse transformation to the camera)

@@ -153,6 +153,7 @@
             controls = new giro3d.THREE.OrbitControls(view.camera.camera3D, viewerDiv);
             controls.minDistance = 1;
             controls.addEventListener('change', function _() { view.notifyChange(view.camera.camera3D); });
+            controls.listenToKeyEvents();
 
             // Request redraw
             view.notifyChange();

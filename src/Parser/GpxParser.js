@@ -96,13 +96,12 @@ function _gpxToWTrackPointsMesh(gpxXML, options) {
             if (trackPts.length) {
                 gpxXML.center = gpxXML.center || _gpxPtToCartesian(trackPts[0], options.crs);
 
-                const geometry = new THREE.Geometry();
-
+                const points = [];
                 for (const trackPt of trackPts) {
                     const point = _gpxPtToCartesian(trackPt, options.crs).sub(gpxXML.center);
-                    geometry.vertices.push(point);
+                    points.push(point);
                 }
-
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
                 const line = new Line.MeshLine();
                 line.setGeometry(geometry);
                 // Due to limitations in the ANGLE layer,
