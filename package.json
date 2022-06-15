@@ -9,7 +9,7 @@
     "build-site": "mkdir -p build && cp -v site/index.html build/ && cp -rv examples build/ && cp -rv dist/* build && npm run apidoc",
     "doclint": "npm run apidoc -- -t templates/silent",
     "test": "npm run lint -- --max-warnings=0 && npm run build && npm run test-examples && npm run test-with-coverage",
-    "test-unit": "jest test/unit",
+    "test-unit": "jest test/unit --coverage",
     "test-examples": "mocha -t 300000 --recursive test/examples",
     "test-with-coverage": "nyc -n src -r html cross-env npm run test-unit",
     "build": "webpack --mode=production",
