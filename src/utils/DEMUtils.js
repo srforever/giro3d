@@ -199,7 +199,7 @@ function tileAt(pt, tile) {
             return t;
         }
     }
-    if (tile.material.isLayerTextureLoaded({ type: 'elevation' })) {
+    if (tile.material.isLayerLoaded({ type: 'elevation' })) {
         return tile;
     }
     return undefined;
