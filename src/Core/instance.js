@@ -67,6 +67,7 @@ class Instance extends EventDispatcher {
         if (!viewerDiv) {
             throw new Error('Invalid viewerDiv parameter (must non be null/undefined)');
         }
+        this.viewerDiv = viewerDiv;
 
         this.referenceCrs = options.crs || 'EPSG:3857';
 
@@ -106,14 +107,7 @@ class Instance extends EventDispatcher {
         this._frameRequesters = { };
         this._objects = [];
 
-        window.addEventListener('resize', () => {
-            // using boundingRect because clientWidth/height round the result (at least in chrome)
-            // resulting in unwanted scrollbars
-            const boundingRect = viewerDiv.getBoundingClientRect();
-            const newSize = new Vector2(boundingRect.width, boundingRect.height);
-            this.mainLoop.gfxEngine.onWindowResize(newSize.x, newSize.y);
-            this.notifyChange(this.camera.camera3D);
-        }, false);
+        window.addEventListener('resize', this.resizeCanvas, false);
 
         this._changeSources = new Set();
 
@@ -137,6 +131,38 @@ class Instance extends EventDispatcher {
                 );
             }
         };
+    }
+
+    resizeCanvas() {
+        // using boundingRect because clientWidth/height round the result (at least in chrome)
+        // resulting in unwanted scrollbars
+        const boundingRect = this.viewerDiv.getBoundingClientRect();
+        const newSize = new Vector2(boundingRect.width, boundingRect.height);
+        this.mainLoop.gfxEngine.onWindowResize(newSize.x, newSize.y);
+        this.notifyChange(this.camera.camera3D);
+    }
+
+    deinit() {
+        this._objects.forEach(object => this.removeObject(object));
+
+        let objects = [];
+        this.scene.traverse(object => {
+            objects.push(object);
+        });
+        objects.forEach(object => this.scene.remove(object));
+
+        objects = [];
+        this.scene2D.traverse(object => {
+            objects.push(object);
+        });
+        objects.forEach(object => this.scene2D.remove(object));
+
+        this.mainLoop.renderingState = RENDERING_PAUSED;
+
+        window.removeEventListener('resize', this.resizeCanvas);
+
+        delete this.referenceCrs;
+        delete this.mainLoop;
     }
 
     /**
