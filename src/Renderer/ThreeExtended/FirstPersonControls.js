@@ -53,6 +53,8 @@ class FirstPersonControls extends THREE.EventDispatcher {
      * @param {boolean} options.disableEventListeners - if true, the controls will not self listen
      * to mouse/key events.  You'll have to manually forward the events to the appropriate
      * functions: onMouseDown, onMouseMove, onMouseUp, onKeyUp, onKeyDown and onMouseWheel.
+     * @param {number} options.minHeight - the minimal height of the view camera
+     * @param {number} options.maxHeight - the maximal height of the view camera
      */
     constructor(view, options = {}) {
         super();
@@ -66,6 +68,10 @@ class FirstPersonControls extends THREE.EventDispatcher {
                 ? 180 : THREE.MathUtils.radToDeg(2 * Math.atan(200 / (2 * radius)));
         }
         options.verticalFOV = options.verticalFOV || 180;
+
+        options.minHeight = options.minHeight === undefined ? null : options.minHeight;
+        options.maxHeight = options.maxHeight === undefined ? null : options.maxHeight;
+
         // backward or forward move speed in m/s
         options.moveSpeed = options.moveSpeed === undefined ? 10 : options.moveSpeed;
         this.options = options;
@@ -165,6 +171,14 @@ class FirstPersonControls extends THREE.EventDispatcher {
             } else {
                 this.camera[move.method]((move.sign * this.options.moveSpeed * dt) / 1000);
             }
+        }
+
+        if (this.options.minHeight !== null
+                && this.camera.position.z < this.options.minHeight) {
+            this.camera.position.z = this.options.minHeight;
+        } else if (this.options.maxHeight !== null
+                && this.camera.position.z > this.options.maxHeight) {
+            this.camera.position.z = this.options.maxHeight;
         }
 
         if (this._isMouseDown === true || force === true) {
