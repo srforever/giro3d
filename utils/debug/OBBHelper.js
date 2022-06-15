@@ -65,7 +65,7 @@ class OBBHelper extends THREE.LineSegments {
         this.textMesh.material.visible = show;
     }
 
-    removeChildren() {
+    dispose() {
         this.material.dispose();
         this.geometry.dispose();
         if (this.textMesh) {
