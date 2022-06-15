@@ -369,7 +369,7 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
         this.texturesInfo.color.visible[index] = visible;
     }
 
-    isLayerLoaded(layer) {
+    isLayerTextureLoaded(layer) {
         if (layer.type === 'color') {
             const index = this.indexOfColorLayer(layer);
             if (index < 0) {
