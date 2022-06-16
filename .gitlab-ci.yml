@@ -60,6 +60,7 @@ lint:
 
 test_unit_lts:
     stage: test-unit
+    coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
     needs: [build_lts]
     image: node:lts-alpine
     script:
@@ -70,6 +71,7 @@ test_unit_lts:
 
 test_unit_current:
     stage: test-unit
+    coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
     needs: [build_current]
     image: node:current-alpine
     script:
