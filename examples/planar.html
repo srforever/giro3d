@@ -99,12 +99,9 @@
             };
 
             instance.camera.camera3D.position.copy(new giro3d.Coordinates('EPSG:3946', extent.west(), extent.south(), 2000).xyz());
-            // Then look at extent's center
-            instance.camera.camera3D.lookAt(extent.center().xyz());
 
             // instanciate controls
-            // eslint-disable-next-line no-new
-            new giro3d.FirstPersonControls(instance, {});
+            new giro3d.MapControls(instance, { target: extent.center().xyz() }); // look at extent's center
 
             // Request redraw
             instance.notifyChange();
