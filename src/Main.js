@@ -30,6 +30,7 @@ export { ColorLayersOrdering } from './Renderer/ColorLayersOrdering.js';
 export { default as PointsMaterial } from './Renderer/PointsMaterial.js';
 export { default as PointCloudProcessing } from './Process/PointCloudProcessing.js';
 export { default as Feature2Mesh } from './Renderer/ThreeExtended/Feature2Mesh.js';
+export { OrbitControls, MapControls } from './Renderer/ThreeExtended/OrbitControls.js';
 export { default as FirstPersonControls } from './Renderer/ThreeExtended/FirstPersonControls.js';
 export { default as FeaturesUtils } from './Renderer/ThreeExtended/FeaturesUtils.js';
 export { default as Picking } from './Core/Picking.js';
