@@ -21,7 +21,7 @@ const _endEvent = { type: 'end' };
 
 class OrbitControls extends EventDispatcher {
 
-	constructor( instance ) {
+	constructor( instance, options = {} ) {
 
 		super();
 
@@ -37,7 +37,7 @@ class OrbitControls extends EventDispatcher {
 		this.enabled = true;
 
 		// "target" sets the location of focus, where the object orbits around
-		this.target = new Vector3();
+		this.target = options.target || new Vector3();
 
 		// How far you can dolly in and out ( PerspectiveCamera only )
 		this.minDistance = 0;
@@ -1236,9 +1236,9 @@ class OrbitControls extends EventDispatcher {
 
 class MapControls extends OrbitControls {
 
-	constructor( object ) {
+	constructor( object, options = {} ) {
 
-		super( object );
+		super( object, options );
 
 		this.screenSpacePanning = false; // pan orthogonal to world-space direction camera.up
 
