@@ -21,13 +21,14 @@ const _endEvent = { type: 'end' };
 
 class OrbitControls extends EventDispatcher {
 
-	constructor( object, domElement ) {
+	constructor( instance ) {
 
 		super();
 
-		if ( domElement === undefined ) console.warn( 'THREE.OrbitControls: The second parameter "domElement" is now mandatory.' );
-		if ( domElement === document ) console.error( 'THREE.OrbitControls: "document" should not be used as the target "domElement". Please use "renderer.domElement" instead.' );
+        const object = instance.camera.camera3D;
+        const { domElement } = instance.mainLoop.gfxEngine.renderer;
 
+        this.instance = instance;
 		this.object = object;
 		this.domElement = domElement;
 		this.domElement.style.touchAction = 'none'; // disable touch scroll
@@ -281,6 +282,8 @@ class OrbitControls extends EventDispatcher {
 					lastPosition.copy( scope.object.position );
 					lastQuaternion.copy( scope.object.quaternion );
 					zoomChanged = false;
+
+                    scope.instance.notifyChange(scope.object);
 
 					return true;
 
@@ -1233,9 +1236,9 @@ class OrbitControls extends EventDispatcher {
 
 class MapControls extends OrbitControls {
 
-	constructor( object, domElement ) {
+	constructor( object ) {
 
-		super( object, domElement );
+		super( object );
 
 		this.screenSpacePanning = false; // pan orthogonal to world-space direction camera.up
 
