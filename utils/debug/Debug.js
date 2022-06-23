@@ -5,16 +5,16 @@ import CameraNearFarChart from './charts/CameraNearFarChart.js';
 import { MAIN_LOOP_EVENTS } from '../../src/Core/MainLoop.js';
 import PanoramaView from '../../src/Core/Prefab/PanoramaView.js';
 
-/**
- * Create a debug instance attached to an giro3d instance
- *
- * @Constructor
- * @param {Scene} scene the giro3d Scene
- * @return {Debug} a debug instance
- */
-
 // disabling eslint errors as it is the exported constructor
-function Debug(view, datDebugTool, chartDivContainer) {
+
+/**
+ * Creates a debug instance attached to an giro3d instance
+ *
+ * @param {module:Core/Instance~Instance} instance the giro3d instance
+ * @param {*} datDebugTool the [dat.GUI](https://github.com/dataarts/dat.gui) instance
+ * @param {HTMLDivElement} chartDivContainer the div container to use
+ */
+function Debug(instance, datDebugTool, chartDivContainer) {
     // CHARTS
     // Create default charts div if missing
     if (!chartDivContainer) {
@@ -30,11 +30,11 @@ function Debug(view, datDebugTool, chartDivContainer) {
 
     this.charts = [];
 
-    this.charts.push(new ThreeStatsChart('three-info', view.mainLoop.gfxEngine.renderer));
-    this.charts.push(new CameraNearFarChart('camera-range', view.camera.camera3D));
+    this.charts.push(new ThreeStatsChart('three-info', instance.mainLoop.gfxEngine.renderer));
+    this.charts.push(new CameraNearFarChart('camera-range', instance.camera.camera3D));
 
     const { charts } = this;
-    const tileLayer = view.tileLayer || view.wgs84TileLayer || view.baseLayer;
+    const tileLayer = instance.tileLayer || instance.wgs84TileLayer || instance.baseLayer;
 
     function debugChartUpdate(updateDuration) {
         const displayed = chartDivContainer.style.display !== 'none';
@@ -62,28 +62,28 @@ function Debug(view, datDebugTool, chartDivContainer) {
 
     gui.add(state, 'debugCameraWindow').name('debug Camera').onChange(value => {
         if (value) {
-            view.addFrameRequester(MAIN_LOOP_EVENTS.AFTER_RENDER, renderCameraDebug);
+            instance.addFrameRequester(MAIN_LOOP_EVENTS.AFTER_RENDER, renderCameraDebug);
         } else {
-            view.removeFrameRequester(MAIN_LOOP_EVENTS.AFTER_RENDER, renderCameraDebug);
+            instance.removeFrameRequester(MAIN_LOOP_EVENTS.AFTER_RENDER, renderCameraDebug);
         }
-        view.notifyChange();
+        instance.notifyChange();
     });
 
     gui.add(state, 'freeze').name('freeze update').onChange(newValue => {
         tileLayer.frozen = newValue;
-        view.notifyChange();
+        instance.notifyChange();
     });
 
     gui.add(state, 'eventsDebug').name('Debug event').onChange((() => {
         let eventFolder;
         return newValue => {
-            const { controls } = view;
+            const { controls } = instance;
             const listeners = [];
             if (newValue) {
                 eventFolder = gui.addFolder('Events');
 
                 // camera-target-updated event
-                const initialPosition = new Coordinates(view.referenceCrs, controls.getCameraTargetPosition()).as('EPSG:4326');
+                const initialPosition = new Coordinates(instance.referenceCrs, controls.getCameraTargetPosition()).as('EPSG:4326');
                 let roundedLat = Math.round(initialPosition.latitude() * 10000) / 10000;
                 let roundedLon = Math.round(initialPosition.longitude() * 10000) / 10000;
                 state.cameraTargetUpdated = `lat: ${roundedLat} lon: ${roundedLon}`;
@@ -108,25 +108,25 @@ function Debug(view, datDebugTool, chartDivContainer) {
     })());
 
     let before;
-    view.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_START, () => {
+    instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_START, () => {
         before = Date.now();
     });
-    view.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, () => {
+    instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, () => {
         const duration = Date.now() - before;
         // debug graphs update
         debugChartUpdate(duration);
     });
 
     // Camera debug
-    const helper = new CameraHelper(view.camera.camera3D);
-    const debugCamera = view.camera.camera3D.clone();
+    const helper = new CameraHelper(instance.camera.camera3D);
+    const debugCamera = instance.camera.camera3D.clone();
     debugCamera.fov *= 1.5;
     debugCamera.updateProjectionMatrix();
-    const g = view.mainLoop.gfxEngine;
+    const g = instance.mainLoop.gfxEngine;
     const r = g.renderer;
-    let { fogDistance } = view;
+    let { fogDistance } = instance;
     helper.visible = false;
-    view.scene.add(helper);
+    instance.scene.add(helper);
 
     function updateFogDistance(obj) {
         if (obj.setFog && fogDistance) {
@@ -140,10 +140,10 @@ function Debug(view, datDebugTool, chartDivContainer) {
         if (state.debugCameraWindow && debugCamera) {
             const size = { x: g.width * 0.2, y: g.height * 0.2 };
             debugCamera.aspect = size.x / size.y;
-            const camera = view.camera.camera3D;
-            const coord = new Coordinates(view.referenceCrs, camera.position)
+            const camera = instance.camera.camera3D;
+            const coord = new Coordinates(instance.referenceCrs, camera.position)
                 .as(tileLayer.extent._crs);
-            if (view instanceof PanoramaView) {
+            if (instance instanceof PanoramaView) {
                 debugCamera.position.set(0, 0, 100);
                 camera.localToWorld(debugCamera.position);
                 debugCamera.lookAt(camera.position);
@@ -151,13 +151,13 @@ function Debug(view, datDebugTool, chartDivContainer) {
                 // Compute position camera debug
                 const altitudeCameraDebug = 1.5 * coord._values[2];
                 coord._values[2] = altitudeCameraDebug;
-                coord.as(view.referenceCrs).xyz(debugCamera.position);
+                coord.as(instance.referenceCrs).xyz(debugCamera.position);
                 // Compute recoil camera
                 camera.worldToLocal(debugCamera.position);
                 debugCamera.position.z += altitudeCameraDebug;
                 camera.localToWorld(debugCamera.position);
                 // Compute target camera debug
-                lookAtCameraDebug.copy(view.camera.camera3D.position);
+                lookAtCameraDebug.copy(instance.camera.camera3D.position);
                 camera.worldToLocal(lookAtCameraDebug);
                 lookAtCameraDebug.z -= altitudeCameraDebug * 1.5;
                 camera.localToWorld(lookAtCameraDebug);
@@ -165,8 +165,8 @@ function Debug(view, datDebugTool, chartDivContainer) {
             }
 
             debugCamera.updateProjectionMatrix();
-            if (view.atmosphere) {
-                view.atmosphere.visible = false;
+            if (instance.atmosphere) {
+                instance.atmosphere.visible = false;
             }
             fogDistance = 10e10;
             for (const obj of tileLayer.level0Nodes) {
@@ -181,14 +181,14 @@ function Debug(view, datDebugTool, chartDivContainer) {
             r.setClearColor(0xeeeeee);
             r.clear();
             r.clearDepth();
-            r.render(view.scene, debugCamera);
+            r.render(instance.scene, debugCamera);
             r.setScissorTest(false);
             r.setClearColor(bClearColor);
             helper.visible = false;
-            if (view.atmosphere) {
-                view.atmosphere.visible = true;
+            if (instance.atmosphere) {
+                instance.atmosphere.visible = true;
             }
-            ({ fogDistance } = view);
+            ({ fogDistance } = instance);
             for (const obj of tileLayer.level0Nodes) {
                 obj.traverseVisible(updateFogDistance);
             }

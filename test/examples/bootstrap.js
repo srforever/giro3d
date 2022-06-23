@@ -115,10 +115,13 @@ before(async () => {
         const result = await page.evaluate(() => new Promise((resolve) => {
             __getView().then((v) => {
                 function resolveWhenReady() {
-                    v.removeEventListener(giro3d.VIEW_EVENTS.LAYERS_INITIALIZED, resolveWhenReady);
+                    v.removeEventListener(
+                        giro3d.INSTANCE_EVENTS.LAYERS_INITIALIZED,
+                        resolveWhenReady,
+                    );
                     resolve(true);
                 }
-                v.addEventListener(giro3d.VIEW_EVENTS.LAYERS_INITIALIZED, resolveWhenReady);
+                v.addEventListener(giro3d.INSTANCE_EVENTS.LAYERS_INITIALIZED, resolveWhenReady);
             });
         }));
 

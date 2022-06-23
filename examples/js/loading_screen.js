@@ -32,11 +32,11 @@ function setupLoadingScreen(viewerDiv, view) {
         });
         loadingScreenContainer = null;
         view.removeEventListener(
-            giro3d.VIEW_EVENTS.LAYERS_INITIALIZED,
+            giro3d.INSTANCE_EVENTS.LAYERS_INITIALIZED,
             hideLoader,
         );
     }
 
-    view.addEventListener(giro3d.VIEW_EVENTS.LAYERS_INITIALIZED, hideLoader);
+    view.addEventListener(giro3d.INSTANCE_EVENTS.LAYERS_INITIALIZED, hideLoader);
     setTimeout(hideLoader, 3000);
 }

@@ -1,5 +1,8 @@
+import Extent from '../Core/Geographic/Extent.js';
+import Layer from '../Core/Layer/Layer.js';
+
 /**
- * @module URLBuilder
+ * @module Provider/URLBuilder
  */
 export default {
     /**
@@ -23,7 +26,6 @@ export default {
      *
      * // The resulting url is:
      * // http://server.geo/wmts/SERVICE=WMTS&TILEMATRIX=12&TILEROW=1410&TILECOL=2072;
-     *
      * @example
      * coords = new Extent('TMS', 15, 2142, 3412);
      * layer.url = 'http://server.geo/tms/${z}/${y}/${x}.jpg';
@@ -31,11 +33,10 @@ export default {
      *
      * // The resulting url is:
      * // http://server.geo/tms/15/2142/3412.jpg;
-     *
-     * @param {Extent} coords - the coordinates
-     * @param {Layer} layer
-     *
-     * @return {string} the formed url
+     * @param {Extent} coords the coordinates
+     * @param {Layer} layer the layer to query
+     * @returns {string} the formed url
+     * @api
      */
     xyz: function xyz(coords, layer) {
         return layer.url.replace(/(\$\{z\}|%TILEMATRIX)/, coords.zoom)
@@ -63,11 +64,9 @@ export default {
      *
      * // The resulting url is:
      * // http://server.geo/wms/BBOX=12,35,14,46&FORMAT=jpg&SERVICE=WMS
-     *
-     * @param {Extent} boundingBox - the bounding box
-     * @param {Layer} layer
-     *
-     * @return {string} the formed url
+     * @param {Extent} boundingBox the bounding box
+     * @param {Layer} layer the layer to query
+     * @returns {string} the formed url
      */
     bbox: function bbox(boundingBox, layer) {
         const precision = layer.projection === 'EPSG:4326' ? 9 : 2;

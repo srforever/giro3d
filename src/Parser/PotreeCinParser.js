@@ -2,11 +2,12 @@ import * as THREE from 'three';
 
 export default {
     /** @module PotreeCinParser */
-    /** Parse .cin PotreeConverter format (see {@link https://github.com/peppsac/PotreeConverter/tree/custom_bin}) and convert to a THREE.BufferGeometry
-     * @function parse
-     * @param {ArrayBuffer} buffer - the cin buffer.
-     * @return {Promise} - a promise that resolves with a THREE.BufferGeometry.
+
+    /**
+     * Parse .cin PotreeConverter format (see {@link https://github.com/peppsac/PotreeConverter/tree/custom_bin}) and convert to a THREE.BufferGeometry
      *
+     * @param {ArrayBuffer} buffer the cin buffer.
+     * @returns {Promise} a promise that resolves with a THREE.BufferGeometry.
      */
     parse: function parse(buffer) {
         if (!buffer) {

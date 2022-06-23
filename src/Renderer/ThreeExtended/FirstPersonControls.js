@@ -37,24 +37,23 @@ const MOVEMENTS = {
 
 class FirstPersonControls extends THREE.EventDispatcher {
     /**
-     * @Constructor
-     * @param {View} view
-     * @param {object} options
-     * @param {boolean} options.focusOnClick - whether or not to focus the renderer domElement on
+     * @param {module:Core/Instance~Instance} view the giro3d instance to control
+     * @param {object} options additional options
+     * @param {boolean} options.focusOnClick whether or not to focus the renderer domElement on
      * click
-     * @param {boolean} options.focusOnMouseOver - whether or not to focus when the mouse is over
+     * @param {boolean} options.focusOnMouseOver whether or not to focus when the mouse is over
      * the domElement
-     * @param {boolean} options.moveSpeed - if > 0, pressing the arrow keys will move the camera
-     * @param {number} options.verticalFOV - define the max visible vertical angle of the scene in
+     * @param {boolean} options.moveSpeed if > 0, pressing the arrow keys will move the camera
+     * @param {number} options.verticalFOV define the max visible vertical angle of the scene in
      * degrees (default 180)
-     * @param {number} options.panoramaRatio - alternative way to specify the max vertical angle
+     * @param {number} options.panoramaRatio alternative way to specify the max vertical angle
      * when using a panorama.  You can specify the panorama width/height ratio and the verticalFOV
      * will be computed automatically
-     * @param {boolean} options.disableEventListeners - if true, the controls will not self listen
+     * @param {boolean} options.disableEventListeners if true, the controls will not self listen
      * to mouse/key events.  You'll have to manually forward the events to the appropriate
      * functions: onMouseDown, onMouseMove, onMouseUp, onKeyUp, onKeyDown and onMouseWheel.
-     * @param {number} options.minHeight - the minimal height of the view camera
-     * @param {number} options.maxHeight - the maximal height of the view camera
+     * @param {number} options.minHeight the minimal height of the view camera
+     * @param {number} options.maxHeight the maximal height of the view camera
      */
     constructor(view, options = {}) {
         super();
@@ -124,7 +123,8 @@ class FirstPersonControls extends THREE.EventDispatcher {
     /**
      * Resets the controls internal state to match the camera' state.
      * This must be called when manually modifying the camera's position or rotation.
-     * @param {boolean} preserveRotationOnX - if true, the look up/down rotation will
+     *
+     * @param {boolean} preserveRotationOnX if true, the look up/down rotation will
      * not be copied from the camera
      */
     reset(preserveRotationOnX = false) {
@@ -150,9 +150,10 @@ class FirstPersonControls extends THREE.EventDispatcher {
     /**
      * Updates the camera position / rotation based on occured input events.
      * This is done automatically when needed but can also be done if needed.
-     * @param {number} dt - ellpased time since last update in seconds
-     * @param {boolean} updateLoopRestarted - true if giro3d' update loop just restarted
-     * @param {boolean} force - set to true if you want to force the update, even if it
+     *
+     * @param {number} dt ellpased time since last update in seconds
+     * @param {boolean} updateLoopRestarted true if giro3d' update loop just restarted
+     * @param {boolean} force set to true if you want to force the update, even if it
      * appears unneeded.
      */
     update(dt, updateLoopRestarted, force) {

@@ -145,7 +145,9 @@ C3DEngine.prototype.getWindowSize = function getWindowSize() {
 
 /**
  * return renderer THREE.js
- * @returns {undefined|C3DEngine_L7.THREE.WebGLRenderer}
+ *
+ * @returns {C3DEngine.THREE.WebGLRenderer} the Three.js WebGL renderer,
+ * if any. Otherwise <code>undefined</code>
  */
 C3DEngine.prototype.getRenderer = function getRenderer() {
     return this.renderer;
@@ -154,16 +156,16 @@ C3DEngine.prototype.getRenderer = function getRenderer() {
 /**
  * Render view to a Uint8Array.
  *
- * @param {View} view - The view to render
- * @param {object} [zone] - partial zone to render
- * @param {number} zone.x - x (in view coordinate)
- * @param {number} zone.y - y (in view coordinate)
- * @param {number} zone.width - width of area to render (in pixels)
- * @param {number} zone.height - height of area to render (in pixels)
- * @return {THREE.RenderTarget} - Uint8Array, 4 bytes per pixel. The first pixel in
+ * @param {module:Core/Instance~Instance} instance The giro3d instance to render
+ * @param {object} [zone] partial zone to render
+ * @param {number} zone.x x (in view coordinate)
+ * @param {number} zone.y y (in view coordinate)
+ * @param {number} zone.width width of area to render (in pixels)
+ * @param {number} zone.height height of area to render (in pixels)
+ * @returns {THREE.RenderTarget} - Uint8Array, 4 bytes per pixel. The first pixel in
  * the array is the bottom-left pixel.
  */
-C3DEngine.prototype.renderViewToBuffer = function renderViewToBuffer(view, zone) {
+C3DEngine.prototype.renderViewToBuffer = function renderViewToBuffer(instance, zone) {
     if (!zone) {
         zone = {
             x: 0,
@@ -173,7 +175,7 @@ C3DEngine.prototype.renderViewToBuffer = function renderViewToBuffer(view, zone)
         };
     }
 
-    this.renderViewToRenderTarget(view, this.fullSizeRenderTarget, zone);
+    this.renderViewToRenderTarget(instance, this.fullSizeRenderTarget, zone);
 
     zone.x = Math.max(0, Math.min(zone.x, this.width));
     zone.y = Math.max(0, Math.min(zone.y, this.height));
@@ -190,15 +192,15 @@ C3DEngine.prototype.renderViewToBuffer = function renderViewToBuffer(view, zone)
 /**
  * Render view to a THREE.RenderTarget.
  *
- * @param {View} view - The view to render
- * @param {THREE.RenderTarget} [target] - destination render target. Default value: full size render
+ * @param {module:Core/Instance~Instance} instance The giro3d instance to render
+ * @param {THREE.RenderTarget} [target] destination render target. Default value: full size render
  * target owned by C3DEngine.
- * @param {object} [zone] - partial zone to render (zone x/y uses view coordinates) Note: target
+ * @param {object} [zone] partial zone to render (zone x/y uses view coordinates) Note: target
  * must contain complete zone
- * @return {THREE.RenderTarget} - the destination render target
+ * @returns {THREE.RenderTarget} - the destination render target
  */
 C3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget(
-    view, target, zone,
+    instance, target, zone,
 ) {
     if (!target) {
         target = this.fullSizeRenderTarget;
@@ -220,7 +222,7 @@ C3DEngine.prototype.renderViewToRenderTarget = function renderViewToRenderTarget
 
     this.renderer.setRenderTarget(target);
     this.renderer.clear();
-    this.renderer.render(view.scene, view.camera.camera3D);
+    this.renderer.render(instance.scene, instance.camera.camera3D);
     this.renderer.setRenderTarget(current);
 
     target.scissorTest = false;

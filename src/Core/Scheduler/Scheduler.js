@@ -107,8 +107,6 @@ function _instanciateQueue() {
  * are used to gather resources needed to display the layers on a {@link Instance}.
  * There is only one instance of a Scheduler per webview, and it is instanciated
  * with the creation of the first view.
- *
- * @constructor
  */
 function Scheduler() {
     // Constructor
@@ -278,11 +276,10 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
  *
  * @function
  * @name Provider#preprocessDataLayer
- *
- * @param {Layer} layer
- * @param {Instance} [view]
+ * @param {module:Core/Layer~Layer} layer
+ * @param {module:Core/Instance~Instance} [instance]
  * @param {Scheduler} [scheduler]
- * @param {Layer} [parentLayer]
+ * @param {module:Core/Layer~Layer} [parentLayer]
  */
 
 /**
@@ -297,15 +294,13 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
  *
  * @function
  * @name Provider#executeCommand
- *
- * @param {Object} command
- * @param {Instance} command.view
- * @param {Layer} command.layer
- * @param {TileMesh} [command.requester] - Every layer is attached to a tile.
- * @param {number} [command.targetLevel] - The target level is used when there
+ * @param {object} command
+ * @param {module:Core/Instance~Instance} command.instance the giro3d instance
+ * @param {module:Core/Layer~Layer} command.layer
+ * @param {module:Core/TileMesh~TileMesh} [command.requester] Every layer is attached to a tile.
+ * @param {number} [command.targetLevel] The target level is used when there
  * is a tiled layer, such as WMTS or TMS, but not in case like a GPX layer.
- *
- * @return {Promise} The {@link Scheduler} always expect a Promise as a result,
+ * @returns {Promise} The {@link Scheduler} always expect a Promise as a result,
  * resolving to an object containing sufficient information for the associated
  * processing to the current layer. For example, see the
  * LayeredMaterialNodeProcessing#updateLayeredMaterialNodeElevation
@@ -322,12 +317,11 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
  * Warning: if the specified protocol has already a provider attached to it, the
  * current provider will be overwritten by the given provider.
  *
- * @param {string} protocol - The name of the protocol to add. This is the
+ * @param {string} protocol The name of the protocol to add. This is the
  * <code>protocol</code> parameter put inside the configuration when adding a
  * layer. The capitalization of the name is not taken into account here.
- * @param {Provider} provider - The provider to link to the protocol, that must
+ * @param {Provider} provider The provider to link to the protocol, that must
  * respect the {@link Provider} interface description.
- *
  * @throws {Error} an error if any method of the {@link Provider} is not present
  * in the provider.
  */
@@ -345,9 +339,8 @@ Scheduler.prototype.addProtocolProvider = function addProtocolProvider(protocol,
 /**
  * Get a specific {@link Provider} given a particular protocol.
  *
- * @param {string} protocol
- *
- * @return {Provider}
+ * @param {string} protocol the protocol name
+ * @returns {Provider} the provider associated with the specified name
  */
 Scheduler.prototype.getProtocolProvider = function getProtocolProvider(protocol) {
     return this.providers[protocol];

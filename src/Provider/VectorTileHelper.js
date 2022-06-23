@@ -3,6 +3,9 @@ import Fetcher from './Fetcher.js';
 import Cache from '../Core/Scheduler/Cache.js';
 import VectorTileParser from '../Parser/VectorTileParser.js';
 import Feature2Texture from '../Renderer/ThreeExtended/Feature2Texture.js';
+import Extent from '../Core/Geographic/Extent.js';
+import TileMesh from '../Core/TileMesh.js';
+import Layer from '../Core/Layer/Layer.js';
 
 const getVectorTileByUrl = function getVectorTileByUrl(url, tile, layer, coords) {
     return Fetcher.arrayBuffer(url, layer.networkOptions)
@@ -24,21 +27,20 @@ export default {
      * module:GeoJsonParser.FeatureCollection}. See [VectorTileParser]{@link
      * module:VectorTileParser.parse} for more details on the parsing.
      *
-     * @param {string} url - The URL of the tile to fetch, NOT the template: use a
+     * @param {string} url The URL of the tile to fetch, NOT the template: use a
      * Provider instead if needed.
      * @param {TileMesh} tile
-     * @param {Layer|Object} layer - A Layer to associate to the tile or an
+     * @param {Layer|object} layer A Layer to associate to the tile or an
      * object containing the necessary properties from the layer.
-     * @param {Extent} layer.extent - The Extent to convert the input coordinates to.
+     * @param {Extent} layer.extent The Extent to convert the input coordinates to.
      * outside of this extent.
-     * @param {function=} layer.filter - Filter function to remove features.
-     * @param {string=} layer.origin - This option is to be set to the correct
+     * @param {Function=} layer.filter Filter function to remove features.
+     * @param {string=} layer.origin This option is to be set to the correct
      * value, bottom or top (default being bottom), if the computation of the
      * coordinates needs to be inverted to same scheme as OSM, Google Maps or
      * other system. See [this link]{@link https://alastaira.wordpress.com/2011/07/06/converting-tms-tile-coordinates-to-googlebingosm-tile-coordinates} for more informations.
      * @param {Extent} coords
-     *
-     * @return {Promise} A Promise resolving with a Feature Collection.
+     * @returns {Promise} A Promise resolving with a Feature Collection.
      * @function
      */
     getVectorTileByUrl,
@@ -46,13 +48,12 @@ export default {
     /**
      * Get a vector tile, parse it and return a [THREE.Texture]{@link https://threejs.org/docs/#api/textures/Texture}.
      *
-     * @param {string} url - The URL of the tile to fetch, NOT the template: use a
+     * @param {string} url The URL of the tile to fetch, NOT the template: use a
      * Provider instead if needed.
-     * @param {TileMesh} tile
-     * @param {Layer} layer
-     * @param {Extent} coords
-     *
-     * @return {Object} Contains a <code>texture</code> property that is the
+     * @param {TileMesh} tile the tile to fetch
+     * @param {Layer} layer the layer of the vector tile
+     * @param {Extent} coords the extent of the tile
+     * @returns {object} Contains a <code>texture</code> property that is the
      * resulting texture of the vector tile.
      */
     getVectorTileTextureByUrl(url, tile, layer, coords) {

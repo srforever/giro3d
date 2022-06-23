@@ -58,7 +58,6 @@ module.exports = {
             },
         }],
         'one-var': ['error', 'never'],
-        'import/no-cycle': 'off',
         'import/extensions': ['error', 'always'],
         'import/no-extraneous-dependencies': ['error', {
             devDependencies: ['test/**', 'utils/**', 'examples/**'],

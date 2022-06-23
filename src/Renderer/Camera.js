@@ -62,8 +62,9 @@ Camera.prototype.update = function update(width, height) {
 
 /**
  * Return the position in the requested CRS, or in camera's CRS if undefined.
+ *
  * @param {string} crs if defined (e.g 'EPSG:4236') the camera position will be returned in this CRS
- * @return {Coordinates} Coordinates object holding camera's position
+ * @returns {Coordinates} Coordinates object holding camera's position
  */
 Camera.prototype.position = function position(crs) {
     return new Coordinates(this.crs, this.camera3D.position).as(crs || this.crs);

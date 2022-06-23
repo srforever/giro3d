@@ -33,14 +33,17 @@ function fillColorArray(colors, length, r, g, b, offset) {
     }
 }
 
-/*
- * Convert coordinates to vertices positionned at a given altitude
- *
- * @param  {Coordinate[]} contour - Coordinates of a feature
- * @param  {number | number[] } altitude - Altitude of the feature
- * @return {Vector3[]} vertices
- */
 const vec = new THREE.Vector3();
+
+/**
+ * Converts coordinates to vertices positionned at a given altitude
+ *
+ * @param {module:Coree/Geographic/Coordinates~Coordinates[]} contour Coordinates of a feature
+ * @param {number | number[]} altitude Altitude of the feature
+ * @param {THREE.Vector3[]} target the array to fill with vertices
+ * @param {number} offset the offset in the target array
+ * @param {boolean} [extrude] should we extrude the object to the specified altitude ?
+ */
 function coordinatesToVertices(contour, altitude, target, offset = 0, extrude = undefined) {
     // loop over contour coodinates
     for (let i = 0; i < contour.length; i++) {
@@ -60,7 +63,7 @@ function coordinatesToVertices(contour, altitude, target, offset = 0, extrude = 
     }
 }
 
-/*
+/**
  * Add indices for the side faces.
  * We loop over the contour and create a side face made of two triangles.
  *
@@ -69,11 +72,11 @@ function coordinatesToVertices(contour, altitude, target, offset = 0, extrude = 
  *
  * If index (i) is on the roof, index (i+length) is on the floor.
  *
- * @param {number[]} indices - Array of indices to push to
- * @param {number} length - Total vertices count in the geom (excluding the extrusion ones)
- * @param {number} offset
- * @param {number} count
- * @param {boolean} isClockWise - Wrapping direction
+ * @param {number[]} indices Array of indices to push to
+ * @param {number} length Total vertices count in the geom (excluding the extrusion ones)
+ * @param {number} offset the offset in the array
+ * @param {number} count the number of indices
+ * @param {boolean} isClockWise Wrapping direction
  */
 function addExtrudedPolygonSideFaces(indices, length, offset, count, isClockWise) {
     // loop over contour length, and for each point of the contour,
@@ -254,13 +257,13 @@ function featureToExtrudedPolygon(feature, properties, options) {
 /**
  * Convert a [Feature]{@link Feature#geometry}'s geometry to a Mesh
  *
- * @param {Object} feature - a Feature's geometry
- * @param {Object} options - options controlling the conversion
- * @param {number|function} options.altitude - define the base altitude of the mesh
- * @param {number|function} options.extrude - if defined, polygons will be extruded by the specified
+ * @param {object} feature a Feature's geometry
+ * @param {object} options options controlling the conversion
+ * @param {number|Function} options.altitude define the base altitude of the mesh
+ * @param {number|Function} options.extrude if defined, polygons will be extruded by the specified
  * amount
- * @param {object|function} options.color - define per feature color
- * @return {THREE.Mesh} mesh
+ * @param {object|Function} options.color define per feature color
+ * @returns {THREE.Mesh} mesh
  */
 function featureToMesh(feature, options) {
     if (!feature.vertices) {
@@ -332,15 +335,16 @@ function featuresToThree(features, options) {
  */
 export default {
     /**
-     * Return a function that converts [Features]{@link module:GeoJsonParser} to Meshes. Feature
-     * collection will be converted to a a THREE.Group.
+     * Returns a function that converts
+     * {@link module:Parser/GeoJsonParser~FeatureCollection features} to a
+     * [THREE.Group](https://threejs.org/docs/index.html?q=group#api/en/objects/Group).
      *
-     * @param {Object} options - options controlling the conversion
-     * @param {number|function} options.altitude - define the base altitude of the mesh
-     * @param {number|function} options.extrude - if defined, polygons will be extruded by the
+     * @param {object} options options controlling the conversion
+     * @param {number|Function} options.altitude define the base altitude of the mesh
+     * @param {number|Function} options.extrude if defined, polygons will be extruded by the
      * specified amount
-     * @param {object|function} options.color - define per feature color
-     * @return {function}
+     * @param {object|Function} options.color define per feature color
+     * @returns {Function} the conversion function
      */
     convert(options = {}) {
         return function _convert(collection) {

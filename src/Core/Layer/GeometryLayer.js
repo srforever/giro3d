@@ -1,3 +1,6 @@
+/**
+ * @module Core/Layer/GeometryLayer
+ */
 import { Color, EventDispatcher } from 'three';
 
 import { defineLayerProperty } from './Layer.js';
@@ -5,14 +8,27 @@ import Picking from '../Picking.js';
 import AtlasBuilder from '../../Renderer/AtlasBuilder.js';
 import Capabilities from '../System/Capabilities.js';
 
+/**
+ * A layer containing a Three.js object.
+ *
+ * @api
+ */
 export default class GeometryLayer extends EventDispatcher {
+    /**
+     * Creates a GeometryLayer with the specified parameters.
+     *
+     * @param {string} id the unique identifier of this layer
+     * @param {module:three.Object3D} object3d the Three.js object to put in this layer
+     */
     constructor(id, object3d) {
         super();
         if (!id) {
             throw new Error('Missing id parameter (GeometryLayer must have a unique id defined)');
         }
         if (!object3d || !object3d.isObject3D) {
-            throw new Error('Missing/Invalid object3d parameter (must be a three.js Object3D instance)');
+            throw new Error(
+                'Missing/Invalid object3d parameter (must be a three.js Object3D instance)',
+            );
         }
         this._attachedLayers = [];
         this._instance = null; // will be filled when we add the object to an instance
@@ -175,8 +191,10 @@ export default class GeometryLayer extends EventDispatcher {
 
     /**
      * Get all the layers attached to this object.
-     * @param {function(Layer):boolean} filter Optional filter function for attached layers
-     * @return {Array<Layer>}
+     *
+     * @param {function(module:Core/Layer~Layer):boolean} filter
+     * Optional filter function for attached layers
+     * @returns {Array<module:Core/Layer~Layer>} the layers attached to this object
      */
     getLayers(filter) {
         const result = [];

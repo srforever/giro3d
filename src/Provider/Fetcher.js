@@ -1,3 +1,7 @@
+/**
+ * @module Provider/Fetcher
+ */
+
 import { TextureLoader } from 'three';
 
 const textureLoader = new TextureLoader();
@@ -13,12 +17,12 @@ function checkResponse(response) {
 export default {
 
     /**
-     * Wrapper over fetch to get some text
+     * Wrapper over `fetch` to get some text
      *
-     * @param {string} url
-     * @param {Object} options - fetch options (passed directly to fetch)
-     *
-     * @return {Promise}
+     * @api
+     * @param {string} url the URL to fetch
+     * @param {object} options fetch options (passed directly to fetch)
+     * @returns {Promise} the promise containing the text
      */
     text(url, options = {}) {
         return fetch(url, options).then(response => {
@@ -28,12 +32,12 @@ export default {
     },
 
     /**
-     * Little wrapper over fetch to get some json
+     * Wrapper over `fetch` to get some JSON
      *
-     * @param {string} url
-     * @param {Object} options - fetch options (passed directly to fetch)
-     *
-     * @return {Promise}
+     * @api
+     * @param {string} url the URL to fetch
+     * @param {object} options fetch options (passed directly to fetch)
+     * @returns {Promise} the promise containing the JSON
      */
     json(url, options = {}) {
         return fetch(url, options).then(response => {
@@ -43,12 +47,12 @@ export default {
     },
 
     /**
-     * Wrapper over fetch to get some xml.
+     * Wrapper over `fetch` to get some XML.
      *
-     * @param {string} url
-     * @param {Object} options - fetch options (passed directly to fetch)
-     *
-     * @return {Promise}
+     * @api
+     * @param {string} url the URL to fetch
+     * @param {object} options fetch options (passed directly to fetch)
+     * @returns {Promise} the promise containing the XML
      */
     xml(url, options = {}) {
         return fetch(url, options).then(response => {
@@ -60,12 +64,12 @@ export default {
     /**
      * Wrapper around TextureLoader.
      *
-     * @param {string} url
-     * @param {Object} options - options to pass to TextureLoader. Note that
+     * @api
+     * @param {string} url the URL to fetch
+     * @param {object} options options to pass to TextureLoader. Note that
      * THREE.js docs mention withCredentials, but it is not actually used in TextureLoader.js.
-     * @param {string} options.crossOrigin - passed directly to html elements supporting it
-     *
-     * @return {Promise}
+     * @param {string} options.crossOrigin passed directly to html elements supporting it
+     * @returns {Promise} the promiose containing the texture.
      */
     texture(url, options = {}) {
         let res;
@@ -83,12 +87,11 @@ export default {
     },
 
     /**
-     * Wrapper over fetch to get some ArrayBuffer
+     * Wrapper over `fetch` to get some `ArrayBuffer`
      *
-     * @param {string} url
-     * @param {Object} options - fetch options (passed directly to fetch)
-     *
-     * @return {Promise}
+     * @param {string} url the URL to fetch
+     * @param {object} options fetch options (passed directly to fetch)
+     * @returns {Promise} the promise containing the ArrayBuffer
      */
     arrayBuffer(url, options = {}) {
         return fetch(url, options).then(response => {

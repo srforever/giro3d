@@ -163,9 +163,8 @@ class TileMesh extends THREE.Mesh {
      * Search for a common ancestor between this tile and another one. It goes
      * through parents on each side until one is found.
      *
-     * @param {TileMesh} tile
-     *
-     * @return {TileMesh} the resulting common ancestor
+     * @param {TileMesh} tile the tile to evaluate
+     * @returns {TileMesh} the resulting common ancestor
      */
     findCommonAncestor(tile) {
         if (!tile) {

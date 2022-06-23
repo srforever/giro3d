@@ -64,13 +64,14 @@ for (const potreeName of Object.keys(POINT_ATTTRIBUTES)) {
 
 export default {
     /** @module PotreeBinParser */
-    /** Parse .bin PotreeConverter format and convert to a THREE.BufferGeometry
-     * @function parse
-     * @param {ArrayBuffer} buffer - the bin buffer.
-     * @param {Object} pointAttributes - the point attributes information contained in
-     * layer.metadata coming from cloud.js
-     * @return {Promise} - a promise that resolves with a THREE.BufferGeometry.
+
+    /**
+     * Parse .bin PotreeConverter format and convert to a THREE.BufferGeometry
      *
+     * @param {ArrayBuffer} buffer the bin buffer.
+     * @param {object} pointAttributes the point attributes information contained in
+     * layer.metadata coming from cloud.js
+     * @returns {Promise} - a promise that resolves with a THREE.BufferGeometry.
      */
     parse: function parse(buffer, pointAttributes) {
         if (!buffer) {
