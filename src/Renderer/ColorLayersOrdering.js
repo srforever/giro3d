@@ -1,4 +1,5 @@
 import { ImageryLayers } from '../Core/Layer/Layer.js';
+import Instance from '../Core/Instance.js';
 
 function updateLayersOrdering(geometryLayer, imageryLayers) {
     const sequence = ImageryLayers.getColorLayersIdOrderedBySequence(imageryLayers);
@@ -18,10 +19,11 @@ export const COLOR_LAYERS_ORDER_CHANGED = 'layers-order-changed';
 // TODO move this logic into each geometryobject
 export const ColorLayersOrdering = {
     /**
-     * Moves up in the layer list. This function has no effect if the layer is moved to its current
-     * index.
+     * Moves up in the layer list. This function has no effect
+     * if the layer is moved to its current index.
+     *
      * @function moveLayerUp
-     * @param      {View}  view the viewer
+     * @param      {Instance}  view the viewer
      * @param      {string}  layerId   The layer's idendifiant
      * @example
      * giro3d.ColorLayersOrdering.moveLayerUp(viewer, 'idLayerToUp');
@@ -48,8 +50,9 @@ export const ColorLayersOrdering = {
     /**
      * Moves down in the layer list. This function has no effect if the layer is moved to its
      * current index.
+     *
      * @function moveLayerDown
-     * @param      {View}  view the viewer
+     * @param      {Instance}  view the viewer
      * @param      {string}  layerId   The layer's idendifiant
      * @example
      * giro3d.ColorLayersOrdering.moveLayerDown(viewer, 'idLayerToDown');
@@ -72,10 +75,11 @@ export const ColorLayersOrdering = {
         }
     },
     /**
-     * Moves a specific layer to a specific index in the layer list. This function has no effect if
-     * the layer is moved to its current index.
+     * Moves a specific layer to a specific index in the layer list.
+     * This function has no effect if the layer is moved to its current index.
+     *
      * @function moveLayerToIndex
-     * @param      {View}  view the viewer
+     * @param      {Instance}  view the viewer
      * @param      {string}  layerId   The layer's idendifiant
      * @param      {number}  newIndex   The new index
      * @example

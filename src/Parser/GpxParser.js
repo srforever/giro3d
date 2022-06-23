@@ -174,17 +174,18 @@ function _gpxToMesh(gpxXML, options = {}) {
 
 export default {
     /** @module GpxParser */
-    /** Parse gpx file and convert to THREE.Mesh
-     * @function parse
-     * @param {string} xml - the gpx file or xml.
-     * @param {Object=} options - additional properties.
-     * @param {string} options.crs - the default CRS of Three.js coordinates. Should be a cartesian
+
+    /**
+     * Parse gpx file and convert to THREE.Mesh
+     *
+     * @param {string} xml the gpx file or xml.
+     * @param {object=} options additional properties.
+     * @param {string} options.crs the default CRS of Three.js coordinates. Should be a cartesian
      * CRS.
-     * @param {boolean=} [options.enablePin=true] - draw pin for way points.
-     * @param {NetworkOptions=} options.networkOptions - options for fetching resources over
-     * network.
-     * @param {number=} [options.lineWidth=12] - set line width to track line.
-     * @return {THREE.Mesh} - a promise that resolves with a Three.js Mesh (see
+     * @param {boolean=} [options.enablePin=true] draw pin for way points.
+     * @param {object=} options.networkOptions options for fetching resources over network.
+     * @param {number=} [options.lineWidth=12] set line width to track line.
+     * @returns {THREE.Mesh} a promise that resolves with a Three.js Mesh (see
      * {@link https://threejs.org/docs/#api/objects/Mesh}).
      * @example
      * // How to add a gpx object
@@ -194,7 +195,6 @@ export default {
      *         viewer.notifyChange();
      *      }
      * });
-     *
      */
     parse(xml, options = {}) {
         if (!(xml instanceof XMLDocument)) {

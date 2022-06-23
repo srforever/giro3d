@@ -1,6 +1,6 @@
 /**
  * Handle the interface and abstract annotations.
- * @param {Object} dictionary The tag dictionary.
+ * @param {object} dictionary The tag dictionary.
  */
 exports.defineTags = function (dictionary) {
   const classTag = dictionary.lookUp('class');

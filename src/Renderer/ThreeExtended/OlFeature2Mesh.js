@@ -137,13 +137,13 @@ function featureToMultiPolygon(feature, properties, options) {
 /**
  * Convert a [Feature]{@link Feature#geometry}'s geometry to a Mesh
  *
- * @param {Object} feature - a Feature's geometry
- * @param {Object} options - options controlling the conversion
- * @param {number|function} options.altitude - define the base altitude of the mesh
- * @param {number|function} options.extrude - if defined, polygons will be extruded by the specified
+ * @param {object} feature - a Feature's geometry
+ * @param {object} options - options controlling the conversion
+ * @param {number|Function} options.altitude - define the base altitude of the mesh
+ * @param {number|Function} options.extrude - if defined, polygons will be extruded by the specified
  * amount
- * @param {object|function} options.color - define per feature color
- * @return {THREE.Mesh} mesh
+ * @param {object|Function} options.color - define per feature color
+ * @returns {THREE.Mesh} mesh
  */
 function featureToMesh(feature, options) {
     let mesh;
@@ -209,12 +209,12 @@ export default {
      * collection will be converted to a
      * a THREE.Group.
      *
-     * @param {Object} options - options controlling the conversion
-     * @param {number|function} options.altitude - define the base altitude of the mesh
-     * @param {number|function} options.extrude - if defined, polygons will be extruded by the
+     * @param {object} options - options controlling the conversion
+     * @param {number|Function} options.altitude - define the base altitude of the mesh
+     * @param {number|Function} options.extrude - if defined, polygons will be extruded by the
      * specified amount
-     * @param {object|function} options.color - define per feature color
-     * @return {function}
+     * @param {object|Function} options.color - define per feature color
+     * @returns {Function} the conversion function
      */
     convert(options = {}) {
         return function _convert(collection) {

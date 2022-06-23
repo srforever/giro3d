@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { MAIN_LOOP_EVENTS } from '../../Core/MainLoop.js';
+import Instance from '../../Core/Instance.js';
 
 // Note: we could use existing three.js controls (like
 // https://github.com/mrdoob/three.js/blob/dev/examples/js/controls/FirstPersonControls.js) but
@@ -37,9 +38,8 @@ const MOVEMENTS = {
 
 class FirstPersonControls extends THREE.EventDispatcher {
     /**
-     * @Constructor
-     * @param {View} view
-     * @param {object} options
+     * @param {Instance} view the giro3d instance
+     * @param {object} options additional options
      * @param {boolean} options.focusOnClick - whether or not to focus the renderer domElement on
      * click
      * @param {boolean} options.focusOnMouseOver - whether or not to focus when the mouse is over
@@ -124,6 +124,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
     /**
      * Resets the controls internal state to match the camera' state.
      * This must be called when manually modifying the camera's position or rotation.
+     *
      * @param {boolean} preserveRotationOnX - if true, the look up/down rotation will
      * not be copied from the camera
      */
@@ -150,6 +151,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
     /**
      * Updates the camera position / rotation based on occured input events.
      * This is done automatically when needed but can also be done if needed.
+     *
      * @param {number} dt - ellpased time since last update in seconds
      * @param {boolean} updateLoopRestarted - true if giro3d' update loop just restarted
      * @param {boolean} force - set to true if you want to force the update, even if it

@@ -4,12 +4,13 @@ import utf8Decoder from '../utils/Utf8Decoder.js';
 
 export default {
     /** @module PntsParser */
-    /** Parse pnts buffer and extract THREE.Points and batch table
-     * @function parse
-     * @param {ArrayBuffer} buffer - the pnts buffer.
-     * @return {Promise} - a promise that resolves with an object containig a THREE.Points (point)
-     * and a batch table (batchTable).
+
+    /**
+     * Parse pnts buffer and extract THREE.Points and batch table
      *
+     * @param {ArrayBuffer} buffer - the pnts buffer.
+     * @returns {Promise} - a promise that resolves with an object containig a THREE.Points (point)
+     * and a batch table (batchTable).
      */
     parse: function parse(buffer) {
         if (!buffer) {

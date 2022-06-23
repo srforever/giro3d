@@ -5,7 +5,7 @@ import * as THREE from 'three';
 
 import Coordinates from './Geographic/Coordinates.js';
 import Extent from './Geographic/Extent.js';
-import Layer, { defineLayerProperty } from './Layer/Layer.js';
+import { Layer, defineLayerProperty } from './Layer/Layer.js';
 import GeometryLayer from './Layer/GeometryLayer.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import PlanarTileBuilder from './Prefab/Planar/PlanarTileBuilder.js';
@@ -85,6 +85,7 @@ function findSmallestExtentCoveringGoingDown(node, extent) {
     }
     return [node, extent];
 }
+
 function findSmallestExtentCoveringGoingUp(node, extent) {
     if (extent.isInside(node.extent)) {
         return node;
@@ -102,6 +103,7 @@ function findSmallestExtentCoveringGoingUp(node, extent) {
     }
     return findSmallestExtentCoveringGoingUp(node.parent, extent);
 }
+
 function findSmallestExtentCovering(node, extent) {
     const n = findSmallestExtentCoveringGoingUp(node, extent);
     if (!n) {
@@ -109,6 +111,7 @@ function findSmallestExtentCovering(node, extent) {
     }
     return findSmallestExtentCoveringGoingDown(n, extent);
 }
+
 function findNeighbours(node) {
     // top, right, bottom, left
     const borders = node.extent.externalBorders(0.1);
@@ -117,19 +120,19 @@ function findNeighbours(node) {
 
 /**
  * a Map object: base object to add map layers
+ *
  * @api
  */
 class Map extends GeometryLayer {
     /**
      * Constructs a Map object.
      *
-     * @param {string} id
-     * @param {Object=} options - Optional properties.
+     * @param {string} id The unique identifier of the Map
+     * @param {object=} options - Optional properties.
      * @param {Extent} options.extent - geographic extent of the map
      * @param {Extent} options.maxSubdivisionLevel - Maximum subdivision level of the current map
-     *
      * @api
-     * */
+     */
     constructor(id, options = {}) {
         super(id, new THREE.Group());
 
@@ -314,7 +317,37 @@ class Map extends GeometryLayer {
     }
 
     /**
-     * @param {Object=} layer - an object describing the layer options creation TODO document
+     * @param {object=} layer - an object describing the layer options creation
+     * @param {string} layer.id the unique identifier of the layer
+     * @param {string} layer.type the layer type (<code>'color'</code> or <code>'elevation'</code>)
+     * @param {Extent} layer.extent the layer extent
+     * @param {string=} layer.projection the optional layer projection.
+     * If none, defaults to the map's projection.
+     * @param {string=} layer.protocol the optional layer protocol. Can be any of:
+     * - <code>'tile'</code>
+     * - <code>'wms'</code>
+     * - <code>'3d-tiles'</code>
+     * - <code>'tms'</code>
+     * - <code>'xyz'</code>
+     * - <code>'potreeconverter'</code>
+     * - <code>'wfs'</code>
+     * - <code>'rasterizer'</code>
+     * - <code>'static'</code>
+     * - <code>'oltile'</code>
+     * - <code>'olvectortile'</code>
+     * - <code>'olvector'</code>
+     * @param {string} layer.elevationFormat if layer.type is<code>'elevation'</code>,
+     * specifies the elevation format.
+     * @param {string} layer.update the update function of this layer.If none provided,
+     * use default update functions for color and elevation layers
+     * (depending on <code>layer.elevationFormat</code>).
+     * @param {string} layer.heightFieldOffset if <code>layer.type</code> is<code>'elevation'</code>
+     * and <code>layer.elevationFormat</code> is <code>ELEVATION_FORMAT.HEIGHFIELD</code>,
+     * specifies the offset to use for scalar values in the height field. Default is <code>0</code>.
+     * @param {string} layer.heightFieldScale if <code>layer.type</code> is<code>'elevation'</code>
+     * and <code>layer.elevationFormat</code> is <code>ELEVATION_FORMAT.HEIGHFIELD</code>,
+     * specifies the scale to use for scalar values in the height field.
+     * Default is <code>255</code>.
      * @returns {Layer} a promise resolving when the layer is ready
      * @api
      */
@@ -382,6 +415,12 @@ class Map extends GeometryLayer {
         });
     }
 
+    /**
+     * Removes a layer from the map.
+     *
+     * @param {object} layer the layer to remove
+     * @api
+     */
     removeLayer(layer) {
         if (layer.object3d) {
             ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, layer.object3d);
@@ -398,6 +437,14 @@ class Map extends GeometryLayer {
         this.notifyChange(parentLayer || this._instance.camera.camera3D, true);
     }
 
+    /**
+     * Gets all layers that satifsy the filter predicate
+     *
+     * @api
+     * @param {*} [filter] the optional filter
+     * @returns {Array<object>} the layers that matched the predicate,
+     * or all layers if no predicate was provided.
+     */
     getLayers(filter) {
         const result = [];
         for (const layer of this._attachedLayers) {
@@ -408,6 +455,11 @@ class Map extends GeometryLayer {
         return result;
     }
 
+    /**
+     * Clean all layers in the map.
+     *
+     * @api
+     */
     clean() {
         for (const l of this.getLayers()) {
             this._cleanLayer(l);

@@ -1,3 +1,4 @@
+import { CanvasTexture } from 'three';
 import fit from './Packer.js';
 
 /**
@@ -8,11 +9,12 @@ import fit from './Packer.js';
  * Then this texture is created using a <canvas>,  onto which we draw all images.
  * In the end we return a THREE.CanvasTexture and an array 'uv' of Vector4, describing
  * the position/size of each input images in the atlas.
- * @param {array} images - an array of <img>
- * @param {array} uvs - an array of coordinates indicating what part of the image we should keep
+ *
+ * @param {Array} images - an array of <img>
+ * @param {Array} uvs - an array of coordinates indicating what part of the image we should keep
  * @param {boolean} needsPixelSeparation - does this atlas need to use a anti color bleed pixel
  * between images
- * @return {THREE.CanvasTexture}
+ * @returns {CanvasTexture} the texture atlas
  */
 export default {
     pack(maxSize, layerIds, imageSizes, oldAtlas) {
