@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 
-import Instance from '../instance.js';
+import Instance from '../Instance.js';
 
 import GeometryLayer from '../Layer/Layer.js';
 import Extent from '../Geographic/Extent.js';

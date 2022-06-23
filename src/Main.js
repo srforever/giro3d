@@ -6,13 +6,13 @@ export { default as TileLayer } from './Core/Layer/TileLayer.js';
 export {
     STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_GROUP, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY,
 } from './Core/Layer/LayerUpdateStrategy.js';
-export { default as Map } from './Core/map.js';
+export { default as Map } from './Core/Map.js';
 export { default as PanoramaView, createPanoramaLayer } from './Core/Prefab/PanoramaView.js';
 export { default as Panorama } from './Core/Prefab/Panorama/Constants.js';
 export { default as Fetcher } from './Provider/Fetcher.js';
 export { MAIN_LOOP_EVENTS } from './Core/MainLoop.js';
-export { default as Instance } from './Core/instance.js';
-export { VIEW_EVENTS } from './Core/instance.js';
+export { default as Instance } from './Core/Instance.js';
+export { VIEW_EVENTS } from './Core/Instance.js';
 export { default as GpxParser } from './Parser/GpxParser.js';
 export { default as GeoJsonParser } from './Parser/GeoJsonParser.js';
 export {
