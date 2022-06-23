@@ -5,7 +5,6 @@ import Extent from '../../src/Core/Geographic/Extent.js';
 import OBB from '../../src/Renderer/ThreeExtended/OBB.js';
 import LayeredMaterial from '../../src/Renderer/LayeredMaterial.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from '../../src/Core/Layer/LayerUpdateStrategy.js';
-/* global describe, it, beforeEach */
 
 const assert = require('assert');
 
