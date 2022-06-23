@@ -3,6 +3,9 @@
  * Class: Projection
  * Description: Outils de projections cartographiques et de convertion
  */
+/**
+ * @module Core/Geographic/Projection
+ */
 import { Math as MathExt } from 'three';
 import Coordinates from './Coordinates.js';
 import Extent from './Extent.js';
@@ -22,8 +25,9 @@ const center = new Coordinates('EPSG:4326', 0, 0, 0);
 const Projection = {
     /**
      * Convert latitude to y coordinate in TileMatrixSet
+     *
      * @param {number} latitude - latitude in degrees
-     * @return {number}
+     * @returns {number} the Y coordinate
      */
     WGS84ToY(latitude) {
         return 0.5 - Math.log(Math.tan(PI_OV_FOUR + MathExt.degToRad(latitude) * 0.5)) * INV_TWO_PI;
@@ -31,8 +35,9 @@ const Projection = {
 
     /**
      * Convert from y coordinate in TileMatrixSet to WGS84 latitude
+     *
      * @param {number} y - coords in TileMatrixSet
-     * @return {number} - latitude in degrees
+     * @returns {number} - latitude in degrees
      */
     YToWGS84(y) {
         return MathExt.radToDeg(

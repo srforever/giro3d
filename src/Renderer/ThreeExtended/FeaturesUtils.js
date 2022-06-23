@@ -1,3 +1,6 @@
+import { Feature, FeatureCollection } from 'ol';
+import Coordinates from '../../Core/Geographic/Coordinates.js';
+
 function pointIsOverLine(point, linePoints, epsilon) {
     if (point.crs !== linePoints[0].crs) {
         throw new Error('crs must be the same');
@@ -149,10 +152,8 @@ export default {
      * condition.
      * @param {Feature|FeatureCollection} features - A single feature or a
      * collection of them, to filter given the previous coordinate.
-     * @param {number} [epsilon=0.1] Tolerance around the coordinate (in
-     * coordinate's unit).
-     *
-     * @return {Feature[]} Array of filtered features.
+     * @param {number} [epsilon=0.1] Tolerance around the coordinate (in coordinate's unit).
+     * @returns {Feature[]} Array of filtered features.
      */
     filterFeaturesUnderCoordinate(coordinate, features, epsilon = 0.1) {
         const result = [];

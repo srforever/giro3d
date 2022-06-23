@@ -1,4 +1,6 @@
 import * as THREE from 'three';
+import { Object3D } from 'three';
+import GeometryLayer from '../Core/Layer/GeometryLayer.js';
 import Coordinates from '../Core/Geographic/Coordinates.js';
 
 const FAST_READ_Z = 0;
@@ -20,16 +22,17 @@ export const ELEVATION_FORMAT = {
 // export default {
 /**
  * Return current displayed elevation at coord in meters.
+ *
  * @param {GeometryLayer} layer The tile layer owning the elevation textures we're going to
  * query.
  * This is typically the globeLayer or a planeLayer.
  * @param {Coordinates} coord The coordinates that we're interested in
- * @param {Number} method 2 available method: FAST_READ_Z (default) or PRECISE_READ_Z. Chosing
+ * @param {number} method 2 available method: FAST_READ_Z (default) or PRECISE_READ_Z. Chosing
  * between the 2 is a compromise between performance and visual quality
  * @param {Array} tileHint Optional array of tiles to speed up the process. You can give
  * candidates tiles likely to contain 'coord'. Otherwise the lookup process starts from the
  * root.
- * @return {object}  undefined if no result or z: displayed elevation in meters, texture: where
+ * @returns {object}  undefined if no result or z: displayed elevation in meters, texture: where
  * the z value comes from, tile: owner of the texture
  */
 function getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
@@ -42,19 +45,19 @@ function getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
 
 /**
  * Helper method that will position an object directly on the ground.
- * @param {GeometryLayer} layer The tile layer owning the elevation textures we're going to
- * query.
+ *
+ * @param {GeometryLayer} layer The tile layer owning the elevation textures we're going to query.
  * This is typically the globeLayer or a planeLayer.
  * @param {string} objectCRS the CRS used by the object coordinates. You probably want to use
  * view.referenceCRS here.
  * @param {Object3D} obj the object we want to modify.
- * @param {object} options
+ * @param {object} options additional options
  * @param {number} options.method see getElevationValueAt documentation
  * @param {boolean} options.modifyGeometry if unset/false, this function will modify
  * object.position. If true, it will modify obj.geometry.vertices or
  * obj.geometry.attributes.position
  * @param {Array} tileHint see getElevationValueAt documentation
- * @return {boolean} true if successful, false if we couldn't lookup the elevation at the given
+ * @returns {boolean} true if successful, false if we couldn't lookup the elevation at the given
  * coords
  */
 function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
@@ -176,10 +179,11 @@ function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
 
 /**
  * Decode pixel value to elevation value in meters for Mapbox/MapTiler elevation data.
- * @param {Number} r Red pixel value
- * @param {Number} g Green pixel value
- * @param {Number} b Blue pixel value
- * @returns {Number} Elevation in meters
+ *
+ * @param {number} r Red pixel value
+ * @param {number} g Green pixel value
+ * @param {number} b Blue pixel value
+ * @returns {number} Elevation in meters
  */
 function decodeMapboxElevation(r, g, b) {
     return -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;

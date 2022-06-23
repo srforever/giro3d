@@ -230,7 +230,7 @@ function getPrettyName(doclet) {
  * @param {Array<Object>} members.namespaces Namespaces.
  * @param {Array<Object>} members.tutorials Tutorials.
  * @param {Array<Object>} members.events Events.
- * @return {string} The HTML for the navigation sidebar.
+ * @returns {string} The HTML for the navigation sidebar.
  */
 function buildNav(members) {
   const nav = [];
@@ -322,9 +322,9 @@ function buildNav(members) {
 }
 
 /**
- * @param {Object} taffyData See <http://taffydb.com/>.
- * @param {Object} opts Options.
- * @param {Object} tutorials Tutorials.
+ * @param {object} taffyData See <http://taffydb.com/>.
+ * @param {object} opts Options.
+ * @param {object} tutorials Tutorials.
  */
 exports.publish = function (taffyData, opts, tutorials) {
   data = taffyData;

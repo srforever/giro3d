@@ -2,11 +2,12 @@ import utf8Decoder from '../utils/Utf8Decoder.js';
 
 export default {
     /** @module BatchTableParser */
-    /** Parse batch table buffer and convert to JSON
-     * @function parse
-     * @param {ArrayBuffer} buffer - the batch table buffer.
-     * @return {Promise} - a promise that resolves with a JSON object.
+
+    /**
+     * Parse batch table buffer and convert to JSON
      *
+     * @param {ArrayBuffer} buffer - the batch table buffer.
+     * @returns {Promise} - a promise that resolves with a JSON object.
      */
     parse(buffer) {
         const content = utf8Decoder.decode(new Uint8Array(buffer));

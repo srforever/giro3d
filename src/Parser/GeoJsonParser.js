@@ -248,11 +248,10 @@ export default {
      * instead of raw values. If needed, more information is provided.
      *
      * @typedef FeatureGeometry
-     * @type {Object}
-     *
+     * @type {object}
      * @property {Extent} extent - The 2D extent containing all the points
      * composing the geometry.
-     * @property {?Object[]} indices - If this geometry is a
+     * @property {?object[]} indices - If this geometry is a
      * <code>linestring</code> or a <code>polygon</code>, contains the indices
      * that define the geometry. Objects stored in this array have two
      * properties, an <code>offset</code> and a <code>count</code>. The offset
@@ -263,8 +262,7 @@ export default {
      * Similar to a feature in a GeoJSON, but adapted to giro3d.
      *
      * @typedef Feature
-     * @type {Object}
-     *
+     * @type {object}
      * @property {string} type - Geometry type, can be <code>point</code>,
      * <code>multipoint</code>, <code>linestring</code>,
      * <code>multilinestring</code>, <code>polygon</code> or
@@ -272,7 +270,7 @@ export default {
      * @property {Coordinates[]} vertices - All the vertices of the geometry.
      * @property {FeatureGeometry[]} geometry - The feature's geometry, as an
      * array of [FeatureGeometry]{@link module:GeoJsonParser~FeatureGeometry}.
-     * @property {Object} properties - Properties of the features. It can be
+     * @property {object} properties - Properties of the features. It can be
      * anything specified in the GeoJSON under the <code>properties</code>
      * property.
      * @property {Extent?} extent - The 2D extent containing all the geometries
@@ -284,8 +282,7 @@ export default {
      * module:GeoJsonParser~Feature} and the extent of this collection.
      *
      * @typedef FeatureCollection
-     * @type {Object}
-     *
+     * @type {object}
      * @property {Feature[]} features - The array of features composing the
      * collection.
      * @property {Extent?} extent - The 2D extent containing all the features
@@ -297,7 +294,7 @@ export default {
      * module:GeoJsonParser~FeatureCollection}.
      *
      * @param {string} json - The GeoJSON file content to parse.
-     * @param {Object} options - Options controlling the parsing.
+     * @param {object} options - Options controlling the parsing.
      * @param {string} options.crsOut - The CRS to convert the input coordinates
      * to.
      * @param {string} options.crsIn - Override the data CRS.
@@ -305,9 +302,8 @@ export default {
      * features outside of this extent.
      * @param {boolean} [options.buildExtent=false] - If true the geometry will
      * have an extent property containing the area covered by the geom
-     * @param {function} [options.filter] - Filter function to remove features
-     *
-     * @return {Promise} A promise resolving with a [FeatureCollection]{@link
+     * @param {Function} [options.filter] - Filter function to remove features
+     * @returns {Promise} A promise resolving with a [FeatureCollection]{@link
      * module:GeoJsonParser~FeatureCollection}.
      */
     parse(json, options = {}) {

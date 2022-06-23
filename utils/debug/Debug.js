@@ -5,14 +5,6 @@ import CameraNearFarChart from './charts/CameraNearFarChart.js';
 import { MAIN_LOOP_EVENTS } from '../../src/Core/MainLoop.js';
 import PanoramaView from '../../src/Core/Prefab/PanoramaView.js';
 
-/**
- * Create a debug instance attached to an giro3d instance
- *
- * @Constructor
- * @param {Scene} scene the giro3d Scene
- * @return {Debug} a debug instance
- */
-
 // disabling eslint errors as it is the exported constructor
 function Debug(view, datDebugTool, chartDivContainer) {
     // CHARTS

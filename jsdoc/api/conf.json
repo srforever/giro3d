@@ -11,9 +11,16 @@
     "includePattern": ".+\\.js$",
     "excludePattern": "(^|\\/|\\\\)_",
     "include": [
-      "src/Core/instance.js",
-      "src/Core/map.js",
-      "src/Core/Geographic/Extent.js"
+      "src/Core/Instance.js",
+      "src/Core/Map.js",
+      "src/Core/Geographic/Extent.js",
+      "src/Core/Geographic/Coordinates.js",
+      "src/Core/Geographic/Projection.js",
+      "src/Core/Layer/Layer.js",
+      "src/Core/Layer/GeometryLayer.js",
+      "src/Core/Layer/TileLayer.js",
+      "src/Provider/Fetcher.js",
+      "src/Provider/URLBuilder.js"
     ]
   },
   "plugins": [

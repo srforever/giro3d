@@ -1,7 +1,7 @@
 import {
     Vector3, Plane, EventDispatcher, Math as ThreeMath, Sphere,
 } from 'three';
-import Layer from './Layer/Layer.js';
+import { Layer } from './Layer/Layer.js';
 import GeometryLayer from './Layer/GeometryLayer.js';
 import Cache from './Scheduler/Cache.js';
 
@@ -17,14 +17,14 @@ const _tmpSphere = new Sphere();
  * MainLoop's update events list that are fired using
  * {@link Instance#execFrameRequesters}.
  *
- * @property UPDATE_START {string} fired at the start of the update
- * @property BEFORE_CAMERA_UPDATE {string} fired before the camera update
- * @property AFTER_CAMERA_UPDATE {string} fired after the camera update
- * @property BEFORE_LAYER_UPDATE {string} fired before the layer update
- * @property AFTER_LAYER_UPDATE {string} fired after the layer update
- * @property BEFORE_RENDER {string} fired before the render
- * @property AFTER_RENDER {string} fired after the render
- * @property UPDATE_END {string} fired at the end of the update
+ * @property {string} UPDATE_START fired at the start of the update
+ * @property {string} BEFORE_CAMERA_UPDATE fired before the camera update
+ * @property {string} AFTER_CAMERA_UPDATE fired after the camera update
+ * @property {string} BEFORE_LAYER_UPDATE fired before the layer update
+ * @property {string} AFTER_LAYER_UPDATE fired after the layer update
+ * @property {string} BEFORE_RENDER fired before the render
+ * @property {string} AFTER_RENDER fired after the render
+ * @property {string} UPDATE_END fired at the end of the update
  */
 
 export const MAIN_LOOP_EVENTS = {

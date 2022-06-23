@@ -1,4 +1,3 @@
-/* global describe, it */
 import assert from 'assert';
 import PntsParser from '../../src/Parser/PntsParser.js';
 

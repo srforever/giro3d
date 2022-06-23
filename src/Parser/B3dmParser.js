@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+import { Material } from 'three';
 import LegacyGLTFLoader from './LegacyGLTFLoader.js';
 import BatchTableParser from './BatchTableParser.js';
 import Capabilities from '../Core/System/Capabilities.js';
@@ -51,22 +52,23 @@ function applyOptionalCesiumRTC(data, gltf) {
 
 export default {
     /** @module B3dmParser */
-    /** Parse b3dm buffer and extract THREE.Scene and batch table
-     * @function parse
+
+    /**
+     * Parse b3dm buffer and extract THREE.Scene and batch table
+     *
      * @param {ArrayBuffer} buffer - the b3dm buffer.
-     * @param {Object} options - additional properties.
+     * @param {object} options - additional properties.
      * @param {string=} [options.gltfUpAxis='Y'] - embedded glTF model up axis.
      * @param {string} options.urlBase - the base url of the b3dm file (used to fetch textures for
      * the embedded glTF model).
      * @param {boolean=} [options.doNotPatchMaterial='false'] - disable patching material with
      * logarithmic depth buffer support.
-     * @param {float} [options.opacity=1.0] - the b3dm opacity.
+     * @param {number} [options.opacity=1.0] - the b3dm opacity.
      * @param {boolean|Material=} [options.overrideMaterials='false'] - override b3dm's embedded
      * glTF materials. If overrideMaterials is a three.js material, it will be the material used to
      * override.
-     * @return {Promise} - a promise that resolves with an object containig a THREE.Scene (gltf) and
-     * a batch table (batchTable).
-     *
+     * @returns {Promise} - a promise that resolves with an object containig
+     * a THREE.Scene (gltf) and a batch table (batchTable).
      */
     parse(buffer, options) {
         const { gltfUpAxis } = options;

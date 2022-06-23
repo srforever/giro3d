@@ -64,7 +64,7 @@ test_unit_lts:
     needs: [build_lts]
     image: node:lts-alpine
     script:
-        - npm run test-unit
+        - npm run test-with-coverage
     artifacts:
         paths:
             - dist
@@ -75,7 +75,7 @@ test_unit_current:
     needs: [build_current]
     image: node:current-alpine
     script:
-        - npm run test-unit
+        - npm run test-with-coverage
 
 pages:
     stage: pages

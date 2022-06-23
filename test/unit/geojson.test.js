@@ -1,4 +1,3 @@
-/* global describe, it */
 import proj4 from 'proj4';
 import assert from 'assert';
 import GeoJsonParser from '../../src/Parser/GeoJsonParser.js';
