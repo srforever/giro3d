@@ -74,8 +74,5 @@ module.exports = {
                 publicPath: '/',
             },
         ],
-        // devMiddleware: {
-            // publicPath: '/',
-        // },
     },
 };
