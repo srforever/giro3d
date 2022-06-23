@@ -1,4 +1,3 @@
-/* global it, describe */
 import assert from 'assert';
 import proj4 from 'proj4';
 

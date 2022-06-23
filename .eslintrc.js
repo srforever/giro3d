@@ -1,8 +1,10 @@
 module.exports = {
     root: true,
-    'extends': [
+    plugins: ['jsdoc', 'jest'],
+    extends: [
         'eslint-config-airbnb-base',
         'eslint-config-airbnb-base/rules/strict',
+        'plugin:jsdoc/recommended',
     ],
     parserOptions: {
         ecmaVersion: 2017,
@@ -20,9 +22,22 @@ module.exports = {
         browser: true,
         es6: true,
         amd: true,
-        commonjs: true
+        commonjs: true,
+        jest: {
+            globals: true,
+        },
     },
     rules: {
+        'jest/no-disabled-tests': 'warn',
+        'jest/no-focused-tests': 'error',
+        'jest/no-identical-title': 'error',
+        'jest/prefer-to-have-length': 'warn',
+        'jest/valid-expect': 'error',
+        'jsdoc/require-jsdoc': 'off',
+        'jsdoc/require-returns': 'off',
+        'jsdoc/check-tag-names': [
+            'error', { definedTags: ['api'] },
+        ],
         'no-console': 'off', // let's log cleverly!
         eqeqeq: ['error', 'smart'],
         'no-plusplus': 'off',
@@ -43,12 +58,8 @@ module.exports = {
             },
         }],
         'one-var': ['error', 'never'],
-        'valid-jsdoc': ['error', {
-            requireReturn: false,
-            requireParamDescription: false,
-            requireReturnDescription: false,
-        }],
-        'import/extensions': ["error", "always"],
+        'import/no-cycle': 'off',
+        'import/extensions': ['error', 'always'],
         'import/no-extraneous-dependencies': ['error', {
             devDependencies: ['test/**', 'utils/**', 'examples/**'],
         }],

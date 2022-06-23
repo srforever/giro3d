@@ -1,4 +1,3 @@
-/* global describe, it */
 /* eslint-disable no-template-curly-in-string */
 import assert from 'assert';
 import URLBuilder from '../../src/Provider/URLBuilder.js';

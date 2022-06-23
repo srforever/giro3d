@@ -1,4 +1,3 @@
-/* global describe, it */
 import * as THREE from 'three';
 import proj4 from 'proj4';
 import assert from 'assert';

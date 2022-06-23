@@ -1,4 +1,3 @@
-/* global describe, it */
 import fs from 'fs';
 import assert from 'assert';
 import VectorTileParser from '../../src/Parser/VectorTileParser.js';

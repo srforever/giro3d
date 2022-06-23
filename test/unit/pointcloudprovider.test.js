@@ -1,4 +1,3 @@
-/* global describe, it */
 import assert from 'assert';
 import { getObjectToUpdateForAttachedLayers, _testing } from '../../src/Provider/PointCloudProvider.js';
 
