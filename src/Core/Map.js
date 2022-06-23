@@ -1,5 +1,5 @@
 /**
- * @module Core/map
+ * @module Core/Map
  */
 import * as THREE from 'three';
 

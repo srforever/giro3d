@@ -1,5 +1,5 @@
 /**
- * @module Core/instance
+ * @module Core/Instance
  *
  */
 import {

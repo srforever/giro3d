@@ -51,7 +51,7 @@ If you're using a module bundler (like [wepback](https://webpack.js.org/)) or pl
 directly import it as such:
 
 ```js
-import Instance from '@giro3d/giro3d/lib/Core/instance.js';
+import Instance from '@giro3d/giro3d/lib/Core/Instance.js';
 // it's also possible to do this, but this will import everything.
 import * as giro3d from '@giro3d/giro3d';
 ```
