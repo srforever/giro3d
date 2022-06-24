@@ -11,8 +11,8 @@
     "includePattern": ".+\\.js$",
     "excludePattern": "(^|\\/|\\\\)_",
     "include": [
-      "src/Core/instance.js",
-      "src/Core/map.js",
+      "src/Core/Instance.js",
+      "src/Core/Map.js",
       "src/Core/Geographic/Extent.js"
     ]
   },
