@@ -3,57 +3,257 @@ import { Box3, Vector3 } from 'three';
 import Coordinates from '../../src/Core/Geographic/Coordinates.js';
 import Extent from '../../src/Core/Geographic/Extent.js';
 
-describe('Extent constructors', () => {
-    const minX = 0;
-    const maxX = 10;
-    const minY = -1;
-    const maxY = 3;
+const BOUNDS_EPSG4326 = new Extent('EPSG:4326', {
+    south: -90, north: +90, east: +180, west: -180,
+});
 
-    it('should build the expected extent using Coordinates', () => {
-        const withCoords = new Extent('EPSG:4326',
-            new Coordinates('EPSG:4326', minX, minY),
-            new Coordinates('EPSG:4326', maxX, maxY));
-        assert.equal(minX, withCoords.west());
-        assert.equal(maxX, withCoords.east());
-        assert.equal(minY, withCoords.south());
-        assert.equal(maxY, withCoords.north());
-    });
+const BOUNDS_EPSG3857 = new Extent('EPSG:3857',
+    new Coordinates('EPSG:3857', -20026376.39, -20048966.10),
+    new Coordinates('EPSG:3857', +20026376.39, +20048966.10));
 
-    it('should build the expected extent using keywords', () => {
-        const withKeywords = new Extent('EPSG:4326', {
-            south: minY,
-            east: maxX,
-            north: maxY,
-            west: minX,
+describe('Extent', () => {
+    describe('constructor', () => {
+        const minX = 0;
+        const maxX = 10;
+        const minY = -1;
+        const maxY = 3;
+
+        it('should build the expected extent using Coordinates', () => {
+            const withCoords = new Extent('EPSG:4326',
+                new Coordinates('EPSG:4326', minX, minY),
+                new Coordinates('EPSG:4326', maxX, maxY));
+            assert.equal(minX, withCoords.west());
+            assert.equal(maxX, withCoords.east());
+            assert.equal(minY, withCoords.south());
+            assert.equal(maxY, withCoords.north());
         });
-        assert.equal(minX, withKeywords.west());
-        assert.equal(maxX, withKeywords.east());
-        assert.equal(minY, withKeywords.south());
-        assert.equal(maxY, withKeywords.north());
+
+        it('should build the expected extent using keywords', () => {
+            const withKeywords = new Extent('EPSG:4326', {
+                south: minY,
+                east: maxX,
+                north: maxY,
+                west: minX,
+            });
+            assert.equal(minX, withKeywords.west());
+            assert.equal(maxX, withKeywords.east());
+            assert.equal(minY, withKeywords.south());
+            assert.equal(maxY, withKeywords.north());
+        });
+
+        it('should build the expected extent using values', () => {
+            const withValues = new Extent('EPSG:4326',
+                minX,
+                maxX,
+                minY,
+                maxY);
+            assert.equal(minX, withValues.west());
+            assert.equal(maxX, withValues.east());
+            assert.equal(minY, withValues.south());
+            assert.equal(maxY, withValues.north());
+        });
+
+        it('should build the expected extent from box3', () => {
+            const box = new Box3(
+                new Vector3(Math.random(), Math.random()),
+                new Vector3(Math.random(), Math.random()),
+            );
+            const fromBox = Extent.fromBox3('EPSG:4978', box);
+
+            assert.equal(fromBox.west(), box.min.x);
+            assert.equal(fromBox.east(), box.max.x);
+            assert.equal(fromBox.north(), box.max.y);
+            assert.equal(fromBox.south(), box.min.y);
+        });
     });
 
-    it('should build the expected extent using values', () => {
-        const withValues = new Extent('EPSG:4326',
-            minX,
-            maxX,
-            minY,
-            maxY);
-        assert.equal(minX, withValues.west());
-        assert.equal(maxX, withValues.east());
-        assert.equal(minY, withValues.south());
-        assert.equal(maxY, withValues.north());
+    describe('clone', () => {
+        it('should return a new Extent', () => {
+            const south = -43;
+            const north = 34;
+            const east = 22.34;
+            const west = -179.99;
+
+            const original = new Extent('EPSG:4326', {
+                south, north, east, west,
+            });
+
+            const copy = original.clone();
+
+            assert.notEqual(copy, original, 'clone() should return a different object!');
+            assert.deepEqual(copy, original);
+
+            assert.equal(south, copy.south());
+            assert.equal(north, copy.north());
+            assert.equal(east, copy.east());
+            assert.equal(west, copy.west());
+        });
+
+        it('should return a tiled CRS if original is TMS', () => {
+            const zoom = 10;
+            const row = 5;
+            const col = 12;
+
+            const original = new Extent('TMS', zoom, row, col);
+            const copy = original.clone();
+
+            assert.notEqual(copy, original, 'clone() should return a different object!');
+            assert.deepEqual(copy, original);
+            assert.equal(copy.zoom, zoom);
+            assert.equal(copy.col, col);
+            assert.equal(copy.row, row);
+        });
+
+        it('should return a tiled CRS if original is WMTS', () => {
+            const zoom = 10;
+            const row = 5;
+            const col = 12;
+
+            const original = new Extent('WMTS:WGS84', zoom, row, col);
+            const copy = original.clone();
+
+            assert.notEqual(copy, original, 'clone() should return a different object!');
+            assert.deepEqual(copy, original);
+            assert.equal(copy.zoom, zoom);
+            assert.equal(copy.col, col);
+            assert.equal(copy.row, row);
+        });
     });
 
-    it('should build the expected extent from box3', () => {
-        const box = new Box3(
-            new Vector3(Math.random(), Math.random()),
-            new Vector3(Math.random(), Math.random()),
+    describe('as', () => {
+        it('should throw if target CRS is invalid', () => {
+            const original = new Extent('EPSG:4326', {
+                south: -5, east: 5, north: 5, west: -5,
+            });
+
+            assert.throws(() => original.as('foo'));
+        });
+
+        it('should return the original object if target CRS is same as source CRS', () => {
+            const original = new Extent('EPSG:4326', {
+                south: -5, east: 5, north: 5, west: -5,
+            });
+
+            const projected = original.as('EPSG:4326');
+
+            assert.equal(projected, original);
+        });
+
+        it('should return a different object if source and target CRSes are different', () => {
+            const original = new Extent('EPSG:4326', {
+                south: -5, east: 5, north: 5, west: -5,
+            });
+
+            const projected = original.as('EPSG:3857'); // Spherical Mercator
+            assert.notEqual(original, projected, 'it should be a different object');
+        });
+
+        it('should return the western hemisphere if it is the (0, 0, 0) WMTS tile in EPSG:4326', () => {
+            const original = new Extent('WMTS:WGS84G', 0, 0, 0);
+            const projected = original.as('EPSG:4326');
+
+            assert.equal(projected.west(), -180.0);
+            assert.equal(projected.east(), 0);
+            assert.equal(projected.north(), +90.0);
+            assert.equal(projected.south(), -90.0);
+        });
+
+        it('should return the eastern hemisphere if it is the (0, 0, 1) WMTS tile in EPSG:4326', () => {
+            const original = new Extent('WMTS:WGS84G', 0, 0, 1);
+            const projected = original.as('EPSG:4326');
+
+            assert.equal(projected.west(), 0);
+            assert.equal(projected.east(), +180.0);
+            assert.equal(projected.north(), +90.0);
+            assert.equal(projected.south(), -90.0);
+        });
+    });
+
+    describe('center', () => {
+        it('should return a new object if none was provided', () => {
+            const result = BOUNDS_EPSG4326.center();
+            assert.notEqual(result, undefined);
+        });
+
+        it('should return the argument object if provided', () => {
+            const target = new Coordinates('EPSG:4326', -1, -1);
+            const result = BOUNDS_EPSG4326.center(target);
+            assert.equal(target, result, 'it should be the same object');
+        });
+
+        it('should return (0, 0) if extent is the EPSG:4326 bounds', () => {
+            const result = BOUNDS_EPSG4326.center();
+            expect(result.longitude()).toBe(0);
+            expect(result.latitude()).toBe(0);
+        });
+
+        it('should return (0, 0) if extent is the EPSG:3857 bounds', () => {
+            const result = BOUNDS_EPSG3857.center();
+            expect(result.x()).toBe(0);
+            expect(result.y()).toBe(0);
+        });
+    });
+
+    describe('dimensions', () => {
+        it('should return a new object if none was provided', () => {
+            const result = BOUNDS_EPSG4326.dimensions();
+            expect(result).toBeDefined();
+        });
+
+        it('should return the passed object if any', () => {
+            const target = { x: NaN, y: NaN };
+            const result = BOUNDS_EPSG4326.dimensions(target);
+            expect(Object.is(result, target)).toBe(true);
+        });
+
+        it('should return (360, 180) for the EPSG:4326 bounds', () => {
+            const result = BOUNDS_EPSG4326.dimensions();
+            expect(result.x).toBe(360);
+            expect(result.y).toBe(180);
+        });
+
+        it('should return the correct EPSG:3857 dimensions', () => {
+            const result = BOUNDS_EPSG3857.dimensions();
+            expect(result.x).toBe(40052752.78);
+            expect(result.y).toBe(40097932.2);
+        });
+    });
+
+    describe('isPointInside', () => {
+        it('should return true if point is inside', () => {
+            const extent = new Extent('EPSG:4326', {
+                south: 25, north: 30, east: 54, west: 52,
+            });
+            expect(extent.isPointInside(new Coordinates('EPSG:4326', 53, 28, 0)))
+                .toBe(true);
+        });
+
+        it.each([-1, 0, 1, 5555555, Infinity, -Infinity, NaN])(
+            'should ignore altitude/Z (z = %d)',
+            z => {
+                const extent = new Extent('EPSG:4326', {
+                    south: 25, north: 30, east: 54, west: 52,
+                });
+                expect(extent.isPointInside(new Coordinates('EPSG:4326', 53, 28, z)))
+                    .toBe(true);
+            },
         );
-        const fromBox = Extent.fromBox3('EPSG:4978', box);
+    });
 
-        assert.equal(fromBox.west(), box.min.x);
-        assert.equal(fromBox.east(), box.max.x);
-        assert.equal(fromBox.north(), box.max.y);
-        assert.equal(fromBox.south(), box.min.y);
+    describe('fromBox3', () => {
+        it('should return the correct values and CRS', () => {
+            const box = {
+                min: { x: 1, y: 2 },
+                max: { x: 8, y: 9 },
+            };
+
+            const extent = Extent.fromBox3('EPSG:4326', box);
+
+            expect(extent.crs()).toBe('EPSG:4326');
+            expect(extent.west()).toBe(box.min.x);
+            expect(extent.east()).toBe(box.max.x);
+            expect(extent.north()).toBe(box.max.y);
+            expect(extent.south()).toBe(box.min.y);
+        });
     });
 });
