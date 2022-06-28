@@ -13,6 +13,8 @@ import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
 import ElevationTextureProcessing, { minMaxFromTexture } from '../Process/ElevationTextureProcessing.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
+import TiledNodeProcessing from '../Process/TiledNodeProcessing.js';
+import Picking from './Picking.js';
 
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = (tileCount * x) / layerDimension.x;
@@ -157,65 +159,9 @@ class Map extends GeometryLayer {
         this.sseScale = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel;
 
-        // TODO make that a class method ?
-        this.postUpdate = (context, layer) => {
-            for (const r of layer.level0Nodes) {
-                r.traverse(node => {
-                    if (node.layer !== layer || !node.material.visible) {
-                        return;
-                    }
-                    node.material.uniforms.neighbourdiffLevel.value.set(0, 0, 0, 1);
-                    const n = findNeighbours(node);
-                    if (n) {
-                        const dimensions = node.extent.dimensions();
-                        const elevationNeighbours = node.material.texturesInfo.elevation.neighbours;
-                        for (let i = 0; i < 4; i++) {
-                            if (!n[i] || !n[i][0].material.visible) {
-                                // neighbour is missing or smaller => don't do anything
-                                node.material.uniforms
-                                    .neighbourdiffLevel.value.setComponent(i, 1);
-                            } else {
-                                const nn = n[i][0];
-                                const targetExtent = n[i][1];
-
-                                // We want to compute the diff level, but can't directly
-                                // use nn.level - node.level, because there's no garuantee
-                                // that we're on a regular grid.
-                                // The only thing we can assume is their shared edge are
-                                // equal with a power of 2 factor.
-                                const diff = Math.log2((i % 2)
-                                    ? Math.round(nn.extent.dimensions().y / dimensions.y)
-                                    : Math.round(nn.extent.dimensions().x / dimensions.x));
-
-                                node.material.uniforms
-                                    .neighbourdiffLevel.value.setComponent(i, -diff);
-                                elevationNeighbours.texture[i] = nn
-                                    .material
-                                    .texturesInfo
-                                    .elevation
-                                    .texture;
-
-                                const offscale = targetExtent.offsetToParent(nn.extent);
-
-                                elevationNeighbours.offsetScale[i] = nn
-                                    .material
-                                    .texturesInfo
-                                    .elevation
-                                    .offsetScale
-                                    .clone();
-
-                                elevationNeighbours.offsetScale[i].x
-                                    += offscale.x * elevationNeighbours.offsetScale[i].z;
-                                elevationNeighbours.offsetScale[i].y
-                                    += offscale.y * elevationNeighbours.offsetScale[i].w;
-                                elevationNeighbours.offsetScale[i].z *= offscale.z;
-                                elevationNeighbours.offsetScale[i].w *= offscale.w;
-                            }
-                        }
-                    }
-                });
-            }
-        };
+        this.disableSkirt = true;
+        this.preUpdate = TiledNodeProcessing.preUpdate;
+        this.update = TiledNodeProcessing.update;
 
         this.builder = new PlanarTileBuilder();
         this.protocol = 'tile';
@@ -224,6 +170,75 @@ class Map extends GeometryLayer {
             enable: false,
             position: { x: -0.5, y: 0.0, z: 1.0 },
         };
+    }
+
+    pickObjectsAt(_instance, mouse, radius) {
+        return Picking.pickTilesAt(
+            _instance,
+            mouse,
+            radius,
+            this,
+        );
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    postUpdate(context, layer) {
+        for (const r of layer.level0Nodes) {
+            r.traverse(node => {
+                if (node.layer !== layer || !node.material.visible) {
+                    return;
+                }
+                node.material.uniforms.neighbourdiffLevel.value.set(0, 0, 0, 1);
+                const n = findNeighbours(node);
+                if (n) {
+                    const dimensions = node.extent.dimensions();
+                    const elevationNeighbours = node.material.texturesInfo.elevation.neighbours;
+                    for (let i = 0; i < 4; i++) {
+                        if (!n[i] || !n[i][0].material.visible) {
+                            // neighbour is missing or smaller => don't do anything
+                            node.material.uniforms
+                                .neighbourdiffLevel.value.setComponent(i, 1);
+                        } else {
+                            const nn = n[i][0];
+                            const targetExtent = n[i][1];
+
+                            // We want to compute the diff level, but can't directly
+                            // use nn.level - node.level, because there's no garuantee
+                            // that we're on a regular grid.
+                            // The only thing we can assume is their shared edge are
+                            // equal with a power of 2 factor.
+                            const diff = Math.log2((i % 2)
+                                ? Math.round(nn.extent.dimensions().y / dimensions.y)
+                                : Math.round(nn.extent.dimensions().x / dimensions.x));
+
+                            node.material.uniforms
+                                .neighbourdiffLevel.value.setComponent(i, -diff);
+                            elevationNeighbours.texture[i] = nn
+                                .material
+                                .texturesInfo
+                                .elevation
+                                .texture;
+
+                            const offscale = targetExtent.offsetToParent(nn.extent);
+
+                            elevationNeighbours.offsetScale[i] = nn
+                                .material
+                                .texturesInfo
+                                .elevation
+                                .offsetScale
+                                .clone();
+
+                            elevationNeighbours.offsetScale[i].x
+                                += offscale.x * elevationNeighbours.offsetScale[i].z;
+                            elevationNeighbours.offsetScale[i].y
+                                += offscale.y * elevationNeighbours.offsetScale[i].w;
+                            elevationNeighbours.offsetScale[i].z *= offscale.z;
+                            elevationNeighbours.offsetScale[i].w *= offscale.w;
+                        }
+                    }
+                }
+            });
+        }
     }
 
     // TODO this whole function should be either in providers or in layers
