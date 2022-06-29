@@ -9,7 +9,7 @@ import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../Renderer/c3DEngine.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import Layer, { defineLayerProperty } from './Layer/Layer.js';
-import GeometryLayer from './Layer/GeometryLayer.js';
+import Entity3D from './Layer/Entity3D.js';
 import Scheduler from './Scheduler/Scheduler.js';
 import Picking from './Picking.js';
 import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh.js';
@@ -205,7 +205,7 @@ class Instance extends EventDispatcher {
      *
      * // One can also attach a callback to the same promise with a layer instance.
      * layer.whenReady.then(() => { ... });
-     * @param {object|Layer|GeometryLayer} object the layer to add
+     * @param {object|Layer|Entity3D} object the layer to add
      * @returns {Promise} a promise resolved with the new layer object when it is fully initialized
      * or rejected if any error occurred.
      * @api
@@ -239,11 +239,11 @@ class Instance extends EventDispatcher {
             this._objects.push(object);
             object.whenReady.then(l => {
                 if (typeof (l.update) !== 'function') {
-                    reject(new Error('Cant add GeometryLayer: missing a update function'));
+                    reject(new Error('Cant add Entity3D: missing a update function'));
                     return;
                 }
                 if (typeof (l.preUpdate) !== 'function') {
-                    reject(new Error('Cant add GeometryLayer: missing a preUpdate function'));
+                    reject(new Error('Cant add Entity3D: missing a preUpdate function'));
                     return;
                 }
 
@@ -341,7 +341,7 @@ class Instance extends EventDispatcher {
      * instance.getObjects();
      * // get one layer with id
      * instance.getObjects(layer => layer.id === 'itt');
-     * @param {function(GeometryLayer):boolean} filter the optional query filter
+     * @param {function(Entity3D):boolean} filter the optional query filter
      * @returns {Array<Layer>} an array containing the queried layers
      */
     getObjects(filter) {
@@ -355,7 +355,7 @@ class Instance extends EventDispatcher {
     }
 
     /**
-     * Get all the layers attached to all the GeometryLayer of this objects
+     * Get all the layers attached to all the Entity3D of this objects
      *
      * @param {function(Layer):boolean} filter Optional filter function for attached layers
      * @returns {Array<Layer>} the layers attached to the geometry layers
@@ -370,7 +370,7 @@ class Instance extends EventDispatcher {
 
     /**
      * @param {Layer} layer the layer to test
-     * @returns {GeometryLayer} the parent layer of the given layer or undefined.
+     * @returns {Entity3D} the parent layer of the given layer or undefined.
      */
     getParentLayer(layer) {
         for (const geometryLayer of this._objects) {
@@ -576,7 +576,7 @@ class Instance extends EventDispatcher {
         radius = radius || 0;
 
         for (const source of sources) {
-            if (source instanceof GeometryLayer
+            if (source instanceof Entity3D
                 || source instanceof Layer
                 || typeof (source) === 'string') {
                 const object = (typeof (source) === 'string')
@@ -690,7 +690,7 @@ const _syncGeometryLayerVisibility = function _syncGeometryLayerVisibility(layer
 };
 
 function _preprocessObject(instance, layer, provider, parentLayer) {
-    if (!(layer instanceof Layer) && !(layer instanceof GeometryLayer)) {
+    if (!(layer instanceof Layer) && !(layer instanceof Entity3D)) {
         const nlayer = new Layer(layer.id);
         // nlayer.id is read-only so delete it from layer before Object.assign
         const tmp = layer;

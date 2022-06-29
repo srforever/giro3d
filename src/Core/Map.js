@@ -6,7 +6,7 @@ import * as THREE from 'three';
 import Coordinates from './Geographic/Coordinates.js';
 import Extent from './Geographic/Extent.js';
 import Layer, { defineLayerProperty } from './Layer/Layer.js';
-import GeometryLayer from './Layer/GeometryLayer.js';
+import Entity3D from './Layer/Entity3D.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import PlanarTileBuilder from './Prefab/Planar/PlanarTileBuilder.js';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
@@ -216,7 +216,7 @@ function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
  *
  * @api
  */
-class Map extends GeometryLayer {
+class Map extends Entity3D {
     /**
      * Constructs a Map object.
      *
@@ -448,7 +448,7 @@ class Map extends GeometryLayer {
 
     // TODO this whole function should be either in providers or in layers
     _preprocessLayer(layer, provider) {
-        if (!(layer instanceof Layer) && !(layer instanceof GeometryLayer)) {
+        if (!(layer instanceof Layer) && !(layer instanceof Entity3D)) {
             const nlayer = new Layer(layer.id);
             // nlayer.id is read-only so delete it from layer before Object.assign
             const tmp = layer;

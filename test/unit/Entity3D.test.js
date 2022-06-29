@@ -1,9 +1,9 @@
 import assert from 'assert';
 import { Color, Object3D } from 'three';
-import GeometryLayer from '../../src/Core/Layer/GeometryLayer.js';
+import Entity3D from '../../src/Core/Layer/Entity3D.js';
 
 /**
- * Creates a valid {@link GeometryLayer} for unit testing.
+ * Creates a valid {@link Entity3D} for unit testing.
  *
  * @param {Object3D} obj3d an optional object3d to inject
  */
@@ -13,16 +13,16 @@ function sut(obj3d = undefined) {
         isObject3D: true,
     };
 
-    const layer = new GeometryLayer(id, object3d);
+    const layer = new Entity3D(id, object3d);
     return layer;
 }
 
-describe('GeometryLayer', () => {
+describe('Entity3D', () => {
     describe('constructor', () => {
         it('should throw on undefined id and object3d', () => {
-            assert.throws(() => new GeometryLayer(undefined, { isObject3D: true }));
-            assert.throws(() => new GeometryLayer('foo', undefined));
-            assert.throws(() => new GeometryLayer('foo', { isObject3D: false }));
+            assert.throws(() => new Entity3D(undefined, { isObject3D: true }));
+            assert.throws(() => new Entity3D('foo', undefined));
+            assert.throws(() => new Entity3D('foo', { isObject3D: false }));
         });
 
         it('should assign the provided properties', () => {
@@ -31,7 +31,7 @@ describe('GeometryLayer', () => {
                 isObject3D: true,
             };
 
-            const layer = new GeometryLayer(id, obj3d);
+            const layer = new Entity3D(id, obj3d);
 
             assert.throws(() => { layer.id = 'bar'; }, 'id should be immutable');
             assert.throws(() => { layer.object3d = {}; }, 'object3d should be immutable');
@@ -49,7 +49,7 @@ describe('GeometryLayer', () => {
                 type: 'Group',
             };
 
-            const layer = new GeometryLayer(id, obj3d);
+            const layer = new Entity3D(id, obj3d);
 
             assert.strictEqual(layer.object3d.name, 'foo');
         });

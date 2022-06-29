@@ -1,5 +1,5 @@
 /**
- * @module Core/Layer/GeometryLayer
+ * @module Core/Layer/Entity3D
  */
 import { Color, EventDispatcher } from 'three';
 
@@ -9,21 +9,21 @@ import AtlasBuilder from '../../Renderer/AtlasBuilder.js';
 import Capabilities from '../System/Capabilities.js';
 
 /**
- * A layer containing a Three.js object.
+ * An entity that display 3D objects.
  *
  * @api
  */
-export default class GeometryLayer extends EventDispatcher {
+class Entity3D extends EventDispatcher {
     /**
-     * Creates a GeometryLayer with the specified parameters.
+     * Creates a Entity3D with the specified parameters.
      *
-     * @param {string} id the unique identifier of this layer
-     * @param {module:three.Object3D} object3d the Three.js object to put in this layer
+     * @param {string} id the unique identifier of this entity
+     * @param {module:three.Object3D} object3d the root Three.js of this entity
      */
     constructor(id, object3d) {
         super();
         if (!id) {
-            throw new Error('Missing id parameter (GeometryLayer must have a unique id defined)');
+            throw new Error('Missing id parameter (Entity3D must have a unique id defined)');
         }
         if (!object3d || !object3d.isObject3D) {
             throw new Error(
@@ -214,3 +214,5 @@ export default class GeometryLayer extends EventDispatcher {
         return result;
     }
 }
+
+export default Entity3D;

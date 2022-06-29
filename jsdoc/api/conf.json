@@ -18,6 +18,7 @@
       "src/Core/Layer/Layer.js",
       "src/Core/Layer/LayerUpdateStrategy.js",
       "src/Core/Layer/GeometryLayer.js",
+      "src/Core/Layer/Entity3D.js",
       "src/Core/Layer/TileLayer.js"
     ]
   },

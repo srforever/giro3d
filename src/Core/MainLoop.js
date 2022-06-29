@@ -2,7 +2,7 @@ import {
     Vector3, Plane, EventDispatcher, Math as ThreeMath, Sphere,
 } from 'three';
 import Layer from './Layer/Layer.js';
-import GeometryLayer from './Layer/GeometryLayer.js';
+import Entity3D from './Layer/Entity3D.js';
 import Cache from './Scheduler/Cache.js';
 
 export const RENDERING_PAUSED = 0;
@@ -166,7 +166,7 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
     updateSources.forEach(src => {
         const layer = src.layer || src;
         if (layer instanceof Layer) {
-            if (!(layer instanceof GeometryLayer)) {
+            if (!(layer instanceof Entity3D)) {
                 // add the parent layer to update sources
                 updateSources.add(instance.getParentLayer(layer));
             }
