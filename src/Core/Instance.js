@@ -9,7 +9,7 @@ import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../Renderer/c3DEngine.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import Layer, { defineLayerProperty } from './Layer/Layer.js';
-import Entity3D from './Layer/Entity3D.js';
+import Entity3D from '../entities/Entity3D.js';
 import Scheduler from './Scheduler/Scheduler.js';
 import Picking from './Picking.js';
 import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh.js';
@@ -41,8 +41,9 @@ export const INSTANCE_EVENTS = {
 const _eventCoords = new Vector2();
 
 /**
- * The instance is the core component of Giro3D. It encapsulates the 3D scene, the current camera
- * and one or more 3D objects, like a {@link module:Core/Map~Map Map}.
+ * The instance is the core component of Giro3D. It encapsulates the 3D scene,
+ * the current camera and one or more {@link module:entities/Entity~Entity entities},
+ * such as a {@link module:entities/Map~Map Map}.
  *
  *     // example of Giro3D instanciation
  *     let instance = new giro3d.Instance(viewerDiv, extent.crs(), {camera: camera})

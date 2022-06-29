@@ -12,14 +12,12 @@
     "excludePattern": "(^|\\/|\\\\)_",
     "include": [
       "src/Core/Instance.js",
-      "src/Core/Map.js",
       "src/Core/Geographic/Extent.js",
       "src/Core/Geographic/Coordinates.js",
       "src/Core/Layer/Layer.js",
       "src/Core/Layer/LayerUpdateStrategy.js",
-      "src/Core/Layer/GeometryLayer.js",
-      "src/Core/Layer/Entity3D.js",
-      "src/Core/Layer/TileLayer.js"
+      "src/Core/Layer/TileLayer.js",
+      "src/entities"
     ]
   },
   "plugins": [

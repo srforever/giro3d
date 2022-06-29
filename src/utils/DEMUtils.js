@@ -21,7 +21,7 @@ export const ELEVATION_FORMAT = {
 /**
  * Return current displayed elevation at coord in meters.
  *
- * @param {module:Entities/Entity3D~Entity3D} layer The tile layer owning
+ * @param {module:Entity3D~Entity3D} layer The tile layer owning
  * the elevation textures we're going to query.
  * This is typically the globeLayer or a planeLayer.
  * @param {Coordinates} coord The coordinates that we're interested in
@@ -44,7 +44,7 @@ function getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
 /**
  * Helper method that will position an object directly on the ground.
  *
- * @param {module:Entities/Entity3D~Entity3D} layer The tile layer owning
+ * @param {module:Entity3D~Entity3D} layer The tile layer owning
  * the elevation textures we're going to query.
  * This is typically the globeLayer or a planeLayer.
  * @param {string} objectCRS the CRS used by the object coordinates. You probably want to use

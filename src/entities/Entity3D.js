@@ -1,19 +1,20 @@
 /**
- * @module Core/Layer/Entity3D
+ * @module entities/Entity3D
  */
-import { Color, EventDispatcher } from 'three';
+import { Color } from 'three';
 
-import { defineLayerProperty } from './Layer.js';
-import Picking from '../Picking.js';
-import AtlasBuilder from '../../Renderer/AtlasBuilder.js';
-import Capabilities from '../System/Capabilities.js';
+import { defineLayerProperty } from '../Core/Layer/Layer.js';
+import Picking from '../Core/Picking.js';
+import AtlasBuilder from '../Renderer/AtlasBuilder.js';
+import Capabilities from '../Core/System/Capabilities.js';
+import Entity from './Entity.js';
 
 /**
- * An entity that display 3D objects.
+ * An {@link module:Entity~Entity entities} that display 3D objects.
  *
  * @api
  */
-class Entity3D extends EventDispatcher {
+class Entity3D extends Entity {
     /**
      * Creates a Entity3D with the specified parameters.
      *
@@ -21,10 +22,7 @@ class Entity3D extends EventDispatcher {
      * @param {module:three.Object3D} object3d the root Three.js of this entity
      */
     constructor(id, object3d) {
-        super();
-        if (!id) {
-            throw new Error('Missing id parameter (Entity3D must have a unique id defined)');
-        }
+        super(id);
         if (!object3d || !object3d.isObject3D) {
             throw new Error(
                 'Missing/Invalid object3d parameter (must be a three.js Object3D instance)',
@@ -41,11 +39,6 @@ class Entity3D extends EventDispatcher {
 
         Object.defineProperty(this, 'object3d', {
             value: object3d,
-            writable: false,
-        });
-
-        Object.defineProperty(this, 'id', {
-            value: id,
             writable: false,
         });
 

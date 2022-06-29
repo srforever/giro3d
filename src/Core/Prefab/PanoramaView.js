@@ -2,7 +2,7 @@ import * as THREE from 'three';
 
 import Instance from '../Instance.js';
 
-import Entity3D from '../Layer/Entity3D.js';
+import Entity3D from '../../entities/Entity3D.js';
 import Extent from '../Geographic/Extent.js';
 import PanoramaTileBuilder from './Panorama/PanoramaTileBuilder.js';
 import ProjectionType from './Panorama/Constants.js';

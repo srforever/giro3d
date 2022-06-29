@@ -1,21 +1,21 @@
 /**
- * @module Core/Map
+ * @module entities/Map
  */
 import * as THREE from 'three';
 
-import Coordinates from './Geographic/Coordinates.js';
-import Extent from './Geographic/Extent.js';
-import Layer, { defineLayerProperty } from './Layer/Layer.js';
-import Entity3D from './Layer/Entity3D.js';
-import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
-import PlanarTileBuilder from './Prefab/Planar/PlanarTileBuilder.js';
+import Coordinates from '../Core/Geographic/Coordinates.js';
+import Extent from '../Core/Geographic/Extent.js';
+import Layer, { defineLayerProperty } from '../Core/Layer/Layer.js';
+import Entity3D from './Entity3D.js';
+import { STRATEGY_MIN_NETWORK_TRAFFIC } from '../Core/Layer/LayerUpdateStrategy.js';
+import PlanarTileBuilder from '../Core/Prefab/Planar/PlanarTileBuilder.js';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
 import ElevationTextureProcessing, { minMaxFromTexture } from '../Process/ElevationTextureProcessing.js';
 import SubdivisionControl from '../Process/SubdivisionControl.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
-import Picking from './Picking.js';
-import ScreenSpaceError from './ScreenSpaceError.js';
+import Picking from '../Core/Picking.js';
+import ScreenSpaceError from '../Core/ScreenSpaceError.js';
 
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = (tileCount * x) / layerDimension.x;
@@ -212,7 +212,11 @@ function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
 }
 
 /**
- * a Map object: base object to add map layers
+ * A map is an {@link module:entities/Entity~Entity Entity} that represents a flat
+ * surface displaying one or more {@link module:Core/Layer/Layer~Layer Layers}.
+ *
+ * If an elevation layer is added, the surface of the map is deformed to
+ * display terrain.
  *
  * @api
  */
@@ -537,6 +541,8 @@ class Map extends Entity3D {
     }
 
     /**
+     * Adds a layer from the specified options, then returns the created layer.
+     *
      * @param {object} layer an object describing the layer options creation
      * @param {string} layer.id the unique identifier of the layer
      * @param {string} layer.type the layer type (<code>'color'</code> or <code>'elevation'</code>)

@@ -1,6 +1,6 @@
 import assert from 'assert';
 import { Color, Object3D } from 'three';
-import Entity3D from '../../src/Core/Layer/Entity3D.js';
+import Entity3D from '../../../src/entities/Entity3D.js';
 
 /**
  * Creates a valid {@link Entity3D} for unit testing.
@@ -13,8 +13,8 @@ function sut(obj3d = undefined) {
         isObject3D: true,
     };
 
-    const layer = new Entity3D(id, object3d);
-    return layer;
+    const entity = new Entity3D(id, object3d);
+    return entity;
 }
 
 describe('Entity3D', () => {
@@ -31,14 +31,14 @@ describe('Entity3D', () => {
                 isObject3D: true,
             };
 
-            const layer = new Entity3D(id, obj3d);
+            const entity = new Entity3D(id, obj3d);
 
-            assert.throws(() => { layer.id = 'bar'; }, 'id should be immutable');
-            assert.throws(() => { layer.object3d = {}; }, 'object3d should be immutable');
+            assert.throws(() => { entity.id = 'bar'; }, 'id should be immutable');
+            assert.throws(() => { entity.object3d = {}; }, 'object3d should be immutable');
 
-            assert.strictEqual(layer.type, 'geometry');
-            assert.strictEqual(layer.object3d, obj3d);
-            assert.strictEqual(layer.id, 'foo');
+            assert.strictEqual(entity.type, 'geometry');
+            assert.strictEqual(entity.object3d, obj3d);
+            assert.strictEqual(entity.id, 'foo');
         });
 
         it('should assign the object3d.name with id if it is a group', () => {
@@ -49,35 +49,35 @@ describe('Entity3D', () => {
                 type: 'Group',
             };
 
-            const layer = new Entity3D(id, obj3d);
+            const entity = new Entity3D(id, obj3d);
 
-            assert.strictEqual(layer.object3d.name, 'foo');
+            assert.strictEqual(entity.object3d.name, 'foo');
         });
 
         it('should define the "opacity" property with default value 1.0', () => {
-            const layer = sut();
+            const entity = sut();
 
-            assert.strictEqual(layer.opacity, 1.0);
+            assert.strictEqual(entity.opacity, 1.0);
         });
 
         it('should define the "noTextureOpacity" property with default value 1.0', () => {
-            const layer = sut();
+            const entity = sut();
 
-            assert.strictEqual(layer.noTextureOpacity, 1.0);
+            assert.strictEqual(entity.noTextureOpacity, 1.0);
         });
 
         it('should define the "noTextureColor" property with default value', () => {
-            const layer = sut();
+            const entity = sut();
 
-            assert.deepEqual(layer.noTextureColor, new Color(0.04, 0.23, 0.35));
+            assert.deepEqual(entity.noTextureColor, new Color(0.04, 0.23, 0.35));
         });
     });
 
     describe('opacity', () => {
         it('should traverse the object3d', () => {
             const o3d = { traverse: jest.fn(), isObject3D: true };
-            const layer = sut(o3d);
-            layer.opacity = 0.5;
+            const entity = sut(o3d);
+            entity.opacity = 0.5;
             expect(o3d.traverse).toHaveBeenCalled();
         });
     });

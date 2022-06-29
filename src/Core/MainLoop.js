@@ -2,7 +2,7 @@ import {
     Vector3, Plane, EventDispatcher, Math as ThreeMath, Sphere,
 } from 'three';
 import Layer from './Layer/Layer.js';
-import Entity3D from './Layer/Entity3D.js';
+import Entity3D from '../entities/Entity3D.js';
 import Cache from './Scheduler/Cache.js';
 
 export const RENDERING_PAUSED = 0;
