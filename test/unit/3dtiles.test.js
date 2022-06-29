@@ -1,4 +1,3 @@
-/* global describe, it, expect */
 import proj4 from 'proj4';
 import { Matrix4, Object3D } from 'three';
 import Camera from '../../src/Renderer/Camera.js';

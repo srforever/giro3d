@@ -1,4 +1,3 @@
-/* global describe, it */
 import assert from 'assert';
 import { Box3, Vector3 } from 'three';
 import Coordinates from '../../src/Core/Geographic/Coordinates.js';

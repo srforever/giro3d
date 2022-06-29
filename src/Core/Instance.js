@@ -1,6 +1,5 @@
 /**
  * @module Core/Instance
- *
  */
 import {
     Scene, Group, EventDispatcher, Vector2, Object3D,
@@ -17,31 +16,39 @@ import TiledNodeProcessing from '../Process/TiledNodeProcessing.js';
 import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
 
-export const VIEW_EVENTS = {
+/**
+ * The names of events supported by
+ * [`Instance.addEventListener()`](https://threejs.org/docs/#api/en/core/EventDispatcher.addEventListener)
+ * and
+ * [`Instance.removeEventListener()`](https://threejs.org/docs/#api/en/core/EventDispatcher.removeEventListener)
+ *
+ * @api
+ */
+export const INSTANCE_EVENTS = {
     /**
-     * Fires when all the layers of the view are considered initialized.
+     * Fires when all the layers of the instance are considered initialized.
      * Initialized in this context means: all layers are ready to be
      * displayed (no pending network access, no visual improvement to be
      * expected, ...).
      * If you add new layers, the event will be fired again when all
      * layers are ready.
-     * @event View#layers-initialized
-     * @property type {string} layers-initialized
+     *
+     * @api
+     * @event Instance#layers-initialized
      */
     LAYERS_INITIALIZED: 'layers-initialized',
 };
 
 const _eventCoords = new Vector2();
+
 /**
  * The instance is the core component of Giro3D. It encapsulates the 3D scene, the current camera
- * and one or more 3D objects, like a {@link module:Core/map~Map}.
- *
+ * and one or more 3D objects, like a {@link module:Core/Map~Map Map}.
  *
  *     // example of Giro3D instanciation
  *     let instance = new giro3d.Instance(viewerDiv, extent.crs(), {camera: camera})
  *     let map = new giro3d.Map('planar', null, extent, { maxSubdivisionLevel: 10 });
  *     instance.add(map);
- *
  *
  * @api
  */
@@ -49,18 +56,22 @@ class Instance extends EventDispatcher {
     /**
      * Constructs a giro3d Instance
      *
-     *
-     * @param {HTMLElement} viewerDiv - Where to instanciate the Three.js scene in the DOM
-     * @param {Object=} options - Optional properties.
-     * @param {?string} [options.crs='EPSG:3857'] - The default CRS of Three.js coordinates. Should
+     * @param {HTMLElement} viewerDiv Where to instanciate the Three.js scene in the DOM
+     * @param {object=} options Optional properties.
+     * @param {?string} [options.crs='EPSG:3857'] The default CRS of Three.js coordinates. Should
      * be a cartesian CRS.
-     * @param {?Scene} options.scene3D - {@link Scene} Three.js scene instance to use, otherwise a
-     * default one will
-     * be constructed
-     *
+     * @param {?Scene} options.scene3D the [Three.js Scene](https://threejs.org/docs/#api/en/scenes/Scene) instance to use,
+     * otherwise a default one will be constructed
+     * @example
+     * let opts = {
+     *  camera: camera,
+     *  crs = exent.crs()
+     * };
+     * let instance = new giro3d.Instance(viewerDiv, opts);
+     * let map = new giro3d.Map('planar', null, extent, { maxSubdivisionLevel: 10 });
+     * instance.add(map);
      * @api
-     *
-     * */
+     */
     constructor(viewerDiv, options = {}) {
         super();
         Object3D.DefaultUp.set(0, 0, 1);
@@ -131,7 +142,7 @@ class Instance extends EventDispatcher {
             if (allReady
                 && this.mainLoop.scheduler.commandsWaitingExecutionCount() === 0
                 && this.mainLoop.renderingState === RENDERING_PAUSED) {
-                this.dispatchEvent({ type: VIEW_EVENTS.LAYERS_INITIALIZED });
+                this.dispatchEvent({ type: INSTANCE_EVENTS.LAYERS_INITIALIZED });
                 this.removeFrameRequester(
                     MAIN_LOOP_EVENTS.UPDATE_END, this._allLayersAreReadyCallback,
                 );
@@ -140,16 +151,15 @@ class Instance extends EventDispatcher {
     }
 
     /**
-     * @typedef {Object} LayerOptions
      * @property {string} id Unique layer's id
      * @property {string} type the layer's type : 'color', 'elevation', 'geometry'
      * @property {string} protocol wmts and wms (wmtsc for custom deprecated)
      * @property {string} url Base URL of the repository or of the file(s) to load
      * @property {string} format Format of this layer. See individual providers to check which
      * formats are supported for a given layer type.
-     * @property {NetworkOptions} networkOptions Options for fetching resources over network
-     * @property {Object} updateStrategy strategy to load imagery files
-     * @property {OptionsWmts|OptionsWms} options WMTS or WMS options
+     * @property {object} networkOptions Options for fetching resources over network
+     * @property {object} updateStrategy strategy to load imagery files
+     * @property {object} options WMTS or WMS options
      */
 
     /**
@@ -193,10 +203,8 @@ class Instance extends EventDispatcher {
      *
      * // One can also attach a callback to the same promise with a layer instance.
      * layer.whenReady.then(() => { ... });
-     *
-     * @param {LayerOptions|Layer|GeometryLayer} object
-     * @param {Layer=} parentLayer
-     * @return {Promise} a promise resolved with the new layer object when it is fully initialized
+     * @param {object|Layer|GeometryLayer} object the layer to add
+     * @returns {Promise} a promise resolved with the new layer object when it is fully initialized
      * or rejected if any error occurred.
      * @api
      */
@@ -325,8 +333,9 @@ class Instance extends EventDispatcher {
      * Notifies the scene it needs to be updated due to changes exterior to the
      * scene itself (e.g. camera movement).
      * non-interactive events (e.g: texture loaded)
-     * @param {*} changeSource
-     * @param {boolean} needsRedraw - indicates if notified change requires a full scene redraw.
+     *
+     * @param {*} changeSource the source of the change
+     * @param {boolean} needsRedraw indicates if notified change requires a full scene redraw.
      */
     notifyChange(changeSource = undefined, needsRedraw = true) {
         if (changeSource) {
@@ -336,15 +345,16 @@ class Instance extends EventDispatcher {
     }
 
     /**
-     * Get all opjects, with an optionnal filter applied.
+     * Get all opjects, with an optional filter applied.
      * The filter method allows to get only a subset of objects
+     *
      * @example
      * // get all objects
-     * view.getObjects();
+     * instance.getObjects();
      * // get one layer with id
-     * view.getObjects(layer => layer.id === 'itt');
-     * @param {function(GeometryLayer):boolean} filter
-     * @returns {Array<Layer>}
+     * instance.getObjects(layer => layer.id === 'itt');
+     * @param {function(GeometryLayer):boolean} filter the optional query filter
+     * @returns {Array<Layer>} an array containing the queried layers
      */
     getObjects(filter) {
         const result = [];
@@ -358,8 +368,9 @@ class Instance extends EventDispatcher {
 
     /**
      * Get all the layers attached to all the GeometryLayer of this objects
+     *
      * @param {function(Layer):boolean} filter Optional filter function for attached layers
-     * @return {Array<Layer>}
+     * @returns {Array<Layer>} the layers attached to the geometry layers
      */
     getLayers(filter) {
         let result = [];
@@ -370,7 +381,7 @@ class Instance extends EventDispatcher {
     }
 
     /**
-     * @param {Layer} layer
+     * @param {Layer} layer the layer to test
      * @returns {GeometryLayer} the parent layer of the given layer or undefined.
      */
     getParentLayer(layer) {
@@ -386,14 +397,12 @@ class Instance extends EventDispatcher {
 
     /**
      * @name FrameRequester
-     * @function
-     *
      * @description
      * Method that will be called each time the <code>MainLoop</code> updates. This
      * function will be given as parameter the delta (in ms) between this update and
      * the previous one, and whether or not we just started to render again. This
-     * update is considered as the "next" update if <code>view.notifyChange</code>
-     * was called during a precedent update. If <code>view.notifyChange</code> has
+     * update is considered as the "next" update if <code>instance.notifyChange</code>
+     * was called during a precedent update. If <code>instance.notifyChange</code> has
      * been called by something else (other micro/macrotask, UI events etc...), then
      * this update is considered as being the "first". It can also receive optional
      * arguments, depending on the attach point of this function.  Currently only
@@ -402,7 +411,7 @@ class Instance extends EventDispatcher {
      * <br><br>
      *
      * This means that if a <code>frameRequester</code> function wants to animate something, it
-     * should keep on calling <code>view.notifyChange</code> until its task is done.
+     * should keep on calling <code>instance.notifyChange</code> until its task is done.
      * <br><br>
      *
      * Implementors of <code>frameRequester</code> should keep in mind that this
@@ -413,19 +422,19 @@ class Instance extends EventDispatcher {
      * Typical frameRequesters are controls, module wanting to animate moves or UI
      * elements etc... Basically anything that would want to call
      * requestAnimationFrame.
-     *
      * @param {number} dt
      * @param {boolean} updateLoopRestarted
      * @param {...*} args
      */
     /**
-     * Add a frame requester to this view.
+     * Add a frame requester to this instance.
      *
-     * FrameRequesters can activate the MainLoop update by calling view.notifyChange.
+     * FrameRequesters can activate the MainLoop update by calling instance.notifyChange.
      *
-     * @param {String} when - decide when the frameRequester should be called during
-     * the update cycle. Can be any of {@link MAIN_LOOP_EVENTS}.
-     * @param {FrameRequester} frameRequester - this function will be called at each
+     * @api
+     * @param {string} when decide when the frameRequester should be called during
+     * the update cycle. Can be any of {@link module:Core/Instance.INSTANCE_EVENTS INSTANCE_EVENTS}.
+     * @param {FrameRequester} frameRequester this function will be called at each
      * MainLoop update with the time delta between last update, or 0 if the MainLoop
      * has just been relaunched.
      */
@@ -446,9 +455,9 @@ class Instance extends EventDispatcher {
      * The effective removal will happen either later; at worst it'll be at
      * the beginning of the next frame.
      *
-     * @param {String} when - attach point of this requester. Can be any of
+     * @param {string} when attach point of this requester. Can be any of
      * {@link MAIN_LOOP_EVENTS}.
-     * @param {FrameRequester} frameRequester
+     * @param {FrameRequester} frameRequester the frameRequester to remove
      */
     removeFrameRequester(when, frameRequester) {
         const index = this._frameRequesters[when].indexOf(frameRequester);
@@ -474,11 +483,11 @@ class Instance extends EventDispatcher {
     /**
      * Execute a frameRequester.
      *
-     * @param {String} when - attach point of this (these) requester(s). Can be any
+     * @param {string} when attach point of this (these) requester(s). Can be any
      * of {@link MAIN_LOOP_EVENTS}.
-     * @param {Number} dt - delta between this update and the previous one
-     * @param {boolean} updateLoopRestarted
-     * @param {...*} args - optional arguments
+     * @param {number} dt delta between this update and the previous one
+     * @param {boolean} updateLoopRestarted <code>true</code> if giro3d' update loop just restarted
+     * @param {...*} args optional arguments
      */
     execFrameRequesters(when, dt, updateLoopRestarted, ...args) {
         if (!this._frameRequesters[when]) {
@@ -500,9 +509,10 @@ class Instance extends EventDispatcher {
 
     /**
      * Extract view coordinates from a mouse-event / touch-event
-     * @param {event} event - event can be a MouseEvent or a TouchEvent
-     * @param {number} touchIdx - finger index when using a TouchEvent (default: 0)
-     * @return {THREE.Vector2} - view coordinates (in pixels, 0-0 = top-left of the View)
+     *
+     * @param {event} event event can be a MouseEvent or a TouchEvent
+     * @param {number} touchIdx finger index when using a TouchEvent (default: 0)
+     * @returns {Vector2} view coordinates (in pixels, 0-0 = top-left of the view)
      */
     eventToViewCoords(event, touchIdx = 0) {
         if (event.touches === undefined || !event.touches.length) {
@@ -517,9 +527,10 @@ class Instance extends EventDispatcher {
 
     /**
      * Extract normalized coordinates (NDC) from a mouse-event / touch-event
-     * @param {event} event - event can be a MouseEvent or a TouchEvent
-     * @param {number} touchIdx - finger index when using a TouchEvent (default: 0)
-     * @return {THREE.Vector2} - NDC coordinates (x and y are [-1, 1])
+     *
+     * @param {event} event event can be a MouseEvent or a TouchEvent
+     * @param {number} touchIdx finger index when using a TouchEvent (default: 0)
+     * @returns {Vector2} NDC coordinates (x and y are [-1, 1])
      */
     eventToNormalizedCoords(event, touchIdx = 0) {
         return this.viewToNormalizedCoords(this.eventToViewCoords(event, touchIdx));
@@ -527,8 +538,9 @@ class Instance extends EventDispatcher {
 
     /**
      * Convert view coordinates to normalized coordinates (NDC)
+     *
      * @param {Vector2} viewCoords (in pixels, 0-0 = top-left of the View)
-     * @return {THREE.Vector2} - NDC coordinates (x and y are [-1, 1])
+     * @returns {Vector2} NDC coordinates (x and y are [-1, 1])
      */
     viewToNormalizedCoords(viewCoords) {
         _eventCoords.x = 2 * (viewCoords.x / this.camera.width) - 1;
@@ -538,8 +550,9 @@ class Instance extends EventDispatcher {
 
     /**
      * Convert NDC coordinates to view coordinates
-     * @param {Vector2} ndcCoords
-     * @return {THREE.Vector2} - view coordinates (in pixels, 0-0 = top-left of the View)
+     *
+     * @param {Vector2} ndcCoords the NDC coordinates to convert
+     * @returns {Vector2} view coordinates (in pixels, 0-0 = top-left of the View)
      */
     normalizedToViewCoords(ndcCoords) {
         _eventCoords.x = (ndcCoords.x + 1) * 0.5 * this.camera.width;
@@ -550,22 +563,21 @@ class Instance extends EventDispatcher {
     /**
      * Return objects from some layers/objects3d under the mouse in this view.
      *
-     * @param {Object} mouseOrEvt - mouse position in window coordinates (0, 0 = top-left)
+     * @param {object} mouseOrEvt mouse position in window coordinates (0, 0 = top-left)
      * or MouseEvent or TouchEvent
-     * @param {number} radius - picking will happen in a circle centered on mouseOrEvt. Radius
+     * @param {number} radius picking will happen in a circle centered on mouseOrEvt. Radius
      * is the radius of this circle, in pixels
-     * @param {...*} where - where to look for objects. Can be either: empty (= look
+     * @param {...*} where where to look for objects. Can be either: empty (= look
      * in all layers with type === 'geometry'), layer ids or layers or a mix of all
      * the above.
-     * @return {Array} - an array of objects. Each element contains at least an object
+     * @returns {Array} an array of objects. Each element contains at least an object
      * property which is the Object3D under the cursor. Then depending on the queried
      * layer/source, there may be additionnal properties (coming from THREE.Raycaster
      * for instance).
-     *
      * @example
-     * view.pickObjectsAt({ x, y })
-     * view.pickObjectsAt({ x, y }, 1, 'wfsBuilding')
-     * view.pickObjectsAt({ x, y }, 3, 'wfsBuilding', myLayer)
+     * instance.pickObjectsAt({ x, y })
+     * instance.pickObjectsAt({ x, y }, 1, 'wfsBuilding')
+     * instance.pickObjectsAt({ x, y }, 3, 'wfsBuilding', myLayer)
      */
     pickObjectsAt(mouseOrEvt, radius, ...where) {
         const results = [];
@@ -624,21 +636,21 @@ class Instance extends EventDispatcher {
     }
 }
 
-const _syncGeometryLayerVisibility = function _syncGeometryLayerVisibility(layer, view) {
+const _syncGeometryLayerVisibility = function _syncGeometryLayerVisibility(layer, instance) {
     if (layer.object3d) {
         layer.object3d.visible = layer.visible;
     }
 
     if (layer.threejsLayer) {
         if (layer.visible) {
-            view.camera.camera3D.layers.enable(layer.threejsLayer);
+            instance.camera.camera3D.layers.enable(layer.threejsLayer);
         } else {
-            view.camera.camera3D.layers.disable(layer.threejsLayer);
+            instance.camera.camera3D.layers.disable(layer.threejsLayer);
         }
     }
 };
 
-function _preprocessObject(view, layer, provider, parentLayer) {
+function _preprocessObject(instance, layer, provider, parentLayer) {
     if (!(layer instanceof Layer) && !(layer instanceof GeometryLayer)) {
         const nlayer = new Layer(layer.id);
         // nlayer.id is read-only so delete it from layer before Object.assign
@@ -675,12 +687,12 @@ function _preprocessObject(view, layer, provider, parentLayer) {
         if (!layer.object3d) {
             // layer.threejsLayer *must* be assigned before preprocessing,
             // because TileProvider.preprocessDataLayer function uses it.
-            layer.threejsLayer = view.mainLoop.gfxEngine.getUniqueThreejsLayer();
+            layer.threejsLayer = instance.mainLoop.gfxEngine.getUniqueThreejsLayer();
         }
         let providerPreprocessing = Promise.resolve();
         if (provider && provider.preprocessDataLayer) {
             providerPreprocessing = provider.preprocessDataLayer(
-                layer, view, view.mainLoop.scheduler, parentLayer,
+                layer, instance, instance.mainLoop.scheduler, parentLayer,
             );
             if (!(providerPreprocessing && providerPreprocessing.then)) {
                 providerPreprocessing = Promise.resolve();
@@ -695,14 +707,14 @@ function _preprocessObject(view, layer, provider, parentLayer) {
     }
 
     // probably not the best place to do this
-    defineLayerProperty(layer, 'visible', true, () => _syncGeometryLayerVisibility(layer, view));
+    defineLayerProperty(layer, 'visible', true, () => _syncGeometryLayerVisibility(layer, instance));
     defineLayerProperty(layer, 'frozen', false);
-    _syncGeometryLayerVisibility(layer, view);
+    _syncGeometryLayerVisibility(layer, instance);
     return layer;
 }
 
-function objectIdToObject(view, layerId) {
-    const lookup = view.getObjects(l => l.id === layerId);
+function objectIdToObject(instance, layerId) {
+    const lookup = instance.getObjects(l => l.id === layerId);
     if (!lookup.length) {
         throw new Error(`Invalid layer id used as where argument (value = ${layerId})`);
     }

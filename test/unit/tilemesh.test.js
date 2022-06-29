@@ -1,4 +1,3 @@
-/* global describe, it */
 import assert from 'assert';
 import TileMesh from '../../src/Core/TileMesh.js';
 

@@ -12,7 +12,7 @@ export { default as Panorama } from './Core/Prefab/Panorama/Constants.js';
 export { default as Fetcher } from './Provider/Fetcher.js';
 export { MAIN_LOOP_EVENTS } from './Core/MainLoop.js';
 export { default as Instance } from './Core/Instance.js';
-export { VIEW_EVENTS } from './Core/Instance.js';
+export { INSTANCE_EVENTS } from './Core/Instance.js';
 export { default as GpxParser } from './Parser/GpxParser.js';
 export { default as GeoJsonParser } from './Parser/GeoJsonParser.js';
 export {

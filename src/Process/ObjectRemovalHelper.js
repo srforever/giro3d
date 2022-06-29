@@ -1,6 +1,10 @@
+import { Object3D } from 'three';
+import Layer from '../Core/Layer/Layer.js';
+
 export default {
     /**
      * Cleanup obj to release three.js allocated resources
+     *
      * @param {Object3D} obj object to release
      */
     cleanup(obj) {
@@ -23,9 +27,10 @@ export default {
     /**
      * Remove obj's children belonging to a layer.
      * Neither obj nor its children will be disposed!
+     *
      * @param {Layer} layer The layer that objects must belong to. Other object are ignored
      * @param {Object3D} obj The Object3D we want to clean
-     * @return {Array} an array of removed Object3D from obj (not including the recursive removals)
+     * @returns {Array} an array of removed Object3D from obj (not including the recursive removals)
      */
     removeChildren(layer, obj) {
         const toRemove = obj.children.filter(c => c.layer === layer);
@@ -36,9 +41,10 @@ export default {
     /**
      * Remove obj's children belonging to a layer and cleanup objexts.
      * obj will be disposed but its children **won't**!
+     *
      * @param {Layer} layer The layer that objects must belong to. Other object are ignored
      * @param {Object3D} obj The Object3D we want to clean
-     * @return {Array} an array of removed Object3D from obj (not including the recursive removals)
+     * @returns {Array} an array of removed Object3D from obj (not including the recursive removals)
      */
     removeChildrenAndCleanup(layer, obj) {
         const toRemove = obj.children.filter(c => c.layer === layer);
@@ -54,9 +60,10 @@ export default {
     /**
      * Recursively remove obj's children belonging to a layer.
      * All removed obj will have their geometry/material disposed.
+     *
      * @param {Layer} layer The layer that objects must belong to. Other object are ignored
      * @param {Object3D} obj The Object3D we want to clean
-     * @return {Array} an array of removed Object3D from obj (not including the recursive removals)
+     * @returns {Array} an array of removed Object3D from obj (not including the recursive removals)
      */
     removeChildrenAndCleanupRecursively(layer, obj) {
         const toRemove = obj.children.filter(c => c.layer === layer);
