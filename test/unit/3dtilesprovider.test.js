@@ -1,4 +1,3 @@
-/* global describe, it */
 import assert from 'assert';
 import { Group, Mesh } from 'three';
 import { getObjectToUpdateForAttachedLayers } from '../../src/Provider/3dTilesProvider.js';

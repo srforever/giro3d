@@ -8,8 +8,8 @@ const path = require('path');
 /**
  * Publish hook for the JSDoc template.  Writes to JSON stdout.
  * @param {function} data The root of the Taffy DB containing doclet records.
- * @param {Object} opts Options.
- * @return {Promise} A promise that resolves when writing is complete.
+ * @param {object} opts Options.
+ * @returns {Promise} A promise that resolves when writing is complete.
  */
 exports.publish = function (data, opts) {
   function getTypes(data) {

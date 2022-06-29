@@ -9,7 +9,7 @@ const DEFAULT_VALUE = /default\s+is\s+`?(true|false)`?/i;
 
 /**
  * Hook to define new tags.
- * @param {Object} dictionary The tag dictionary.
+ * @param {object} dictionary The tag dictionary.
  */
 exports.defineTags = function (dictionary) {
   dictionary.defineTag('define', {

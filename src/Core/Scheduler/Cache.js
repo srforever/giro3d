@@ -9,7 +9,6 @@ const stats = new Map();
  * single instance.
  *
  * @module Cache
- *
  * @example
  * import Cache from './Cache.js';
  *
@@ -28,13 +27,12 @@ const Cache = {
      * [set]{@link Cache.set} into the Cache, as the lifetime property.
      *
      * @name module:Cache
-     * @typedef {Object} module:Cache.POLICIES
-     *
-     * @property INFINITE - The entry is never flushed, except when the
+     * @typedef {object} module:Cache.POLICIES
+     * @property {number} INFINITE - The entry is never flushed, except when the
      * <code>all</code> flag is set to <code>true</code> when calling {@link
      * Cache.flush}.
-     * @property TEXTURE - Shortcut for texture resources. Time is 15 minutes.
-     * @property ELEVATION - Shortcut for elevation resources. Time is 15
+     * @property {number} TEXTURE - Shortcut for texture resources. Time is 15 minutes.
+     * @property {number} ELEVATION - Shortcut for elevation resources. Time is 15
      * minutes.
      */
     POLICIES: {
@@ -49,11 +47,8 @@ const Cache = {
      * entry.
      *
      * @name module:Cache.get
-     * @function
-     *
-     * @param {string} key
-     *
-     * @return {Object}
+     * @param {string} key the entry to get
+     * @returns {object} the queried entry, or undefined if not found
      */
     get: key => {
         const entry = data.get(key);
@@ -78,13 +73,10 @@ const Cache = {
      * values. By default an entry has an infinite lifetime.
      *
      * @name module:Cache.set
-     * @function
-     *
-     * @param {string} key
-     * @param {Object} value
-     * @param {number} [lifetime]
-     *
-     * @return {Object} the added value
+     * @param {string} key the entry key to query
+     * @param {object} value the entry value
+     * @param {number} [lifetime] the lifetime of this entry, in milliseconds
+     * @returns {object} the added value
      */
     set: (key, value, lifetime = Infinity) => {
         const entry = {
@@ -108,11 +100,8 @@ const Cache = {
      * Deletes the specified entry from the cache.
      *
      * @name module:Cache.delete
-     * @function
-     *
-     * @param {string} key
-     *
-     * @return {boolean} - Confirmation that the entry has been deleted.
+     * @param {string} key the entry key
+     * @returns {boolean} - Confirmation that the entry has been deleted.
      */
     delete: key => data.delete(key),
 
@@ -132,11 +121,8 @@ const Cache = {
      * you want to clear the whole cache, use {@link Cache.clear} instead.
      *
      * @name module:Cache.flush
-     * @function
-     *
-     * @param {number} [time]
-     *
-     * @return {Object} Statistics about the flush: <code>before</code>
+     * @param {number} [time] the timestamp to compare the lifetime of the entries
+     * @returns {object} Statistics about the flush: <code>before</code>
      * gives the number of entries before flushing, <code>after</code> the
      * number after flushing, <code>hit</code> the number of total successful
      * hit on resources in the cache, and </code>miss</code> the number of

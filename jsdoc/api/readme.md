@@ -7,6 +7,7 @@ This directory contains configuration (`conf.json`), static content (`index.md`)
 JSDoc annotations are used for metadata used by the compiler, for defining the user facing API, and for user documentation.
 
 In the simplest case, a JSDoc block can look like this:
+
 ```js
 /**
  * Add the given control to the map.
@@ -17,6 +18,7 @@ ol.Map.prototype.addControl = function(control) {
   // ...
 };
 ```
+
 The first line is text for the user documentation. This can be long, and it can
 contain Markdown.
 
@@ -29,6 +31,7 @@ In general, `@api` annotations should never be used on abstract methods (only on
 ### Events
 
 Events are documented using `@fires` and `@event` annotations:
+
 ```js
 /**
  * Constants for event names.
@@ -45,9 +48,11 @@ ol.MapBrowserEventType = {
   // ...
 };
 ```
+
 Note the value of the `@event` annotation. The text before the hash refers to the event class that the event belongs to, and the text after the hash is the type of the event.
 
 To document which events are fired by a class or method, the `@fires` annotation is used:
+
 ```js
 /**
  * @fires ol.MapBrowserEvent

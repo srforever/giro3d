@@ -1,7 +1,8 @@
 /**
  * Custom error thrown when cancelling commands. Allows the caller to act differently if needed.
+ *
  * @class
- * @param {Command} command
+ * @param {object} command
  */
 class CancelledCommandException {
     constructor(command) {

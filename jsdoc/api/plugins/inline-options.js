@@ -8,7 +8,7 @@ const properties = {};
 exports.handlers = {
   /**
    * Collects all typedefs, keyed by longname
-   * @param {Object} e Event object.
+   * @param {object} e Event object.
    */
   newDoclet: function (e) {
     if (e.doclet.kind == 'typedef' && e.doclet.properties) {
@@ -19,7 +19,7 @@ exports.handlers = {
   /**
    * Adds `options.*` params for options that match the longname of one of the
    * collected typedefs.
-   * @param {Object} e Event object.
+   * @param {object} e Event object.
    */
   parseComplete: function (e) {
     const doclets = e.doclets;
