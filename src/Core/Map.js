@@ -11,10 +11,12 @@ import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import PlanarTileBuilder from './Prefab/Planar/PlanarTileBuilder.js';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
 import ElevationTextureProcessing, { minMaxFromTexture } from '../Process/ElevationTextureProcessing.js';
+import SubdivisionControl from '../Process/SubdivisionControl.js';
+import TiledNodeProcessing from '../Process/TiledNodeProcessing.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
-import TiledNodeProcessing from '../Process/TiledNodeProcessing.js';
 import Picking from './Picking.js';
+import ScreenSpaceError from './ScreenSpaceError.js';
 
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = (tileCount * x) / layerDimension.x;
@@ -120,6 +122,75 @@ function findNeighbours(node) {
     return borders.map(border => findSmallestExtentCovering(node, border));
 }
 
+const tmpVector = new THREE.Vector3();
+
+function updateMinMaxDistance(context, layer, node) {
+    const bbox = node.OBB().box3D.clone()
+        .applyMatrix4(node.OBB().matrixWorld);
+    const distance = context.distance.plane
+        .distanceToPoint(bbox.getCenter(tmpVector));
+    const radius = bbox.getSize(tmpVector).length() * 0.5;
+    layer._distance.min = Math.min(layer._distance.min, distance - radius);
+    layer._distance.max = Math.max(layer._distance.max, distance + radius);
+}
+
+// TODO: maxLevel should be deduced from layers
+function testTileSSE(tile, sse, maxLevel) {
+    if (maxLevel > 0 && maxLevel <= tile.level) {
+        return false;
+    }
+
+    if (tile.extent.dimensions().x < 5) {
+        return false;
+    }
+
+    if (!sse) {
+        return true;
+    }
+
+    const values = [
+        sse.lengths.x * sse.ratio,
+        sse.lengths.y * sse.ratio,
+    ];
+
+    // TODO: depends on texture size of course
+    // if (values.filter(v => v < 200).length >= 2) {
+    //     return false;
+    // }
+    if (values.filter(v => v < (100 * tile.layer.sseScale)).length >= 1) {
+        return false;
+    }
+    return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
+}
+
+function subdivideNode(context, layer, node) {
+    if (!node.children.some(n => n.layer === layer)) {
+        const extents = node.extent.quadtreeSplit();
+
+        for (const extent of extents) {
+            const child = TiledNodeProcessing.requestNewTile(
+                context.view, context.scheduler, layer, extent, node,
+            );
+            node.add(child);
+
+            // inherit our parent's textures
+            for (const e of context.elevationLayers) {
+                e.update(context, e, child, node, true);
+            }
+            const nodeUniforms = node.material.uniforms;
+            if (nodeUniforms.colorTexture.value.image.width > 0) {
+                for (const c of context.colorLayers) {
+                    c.update(context, c, child, node, true);
+                }
+                child.material.uniforms.colorTexture.value = nodeUniforms.colorTexture.value;
+            }
+
+            child.updateMatrixWorld(true);
+        }
+        context.view.notifyChange(node);
+    }
+}
+
 /**
  * a Map object: base object to add map layers
  *
@@ -160,8 +231,6 @@ class Map extends GeometryLayer {
         this.maxSubdivisionLevel = options.maxSubdivisionLevel;
 
         this.disableSkirt = true;
-        this.preUpdate = TiledNodeProcessing.preUpdate;
-        this.update = TiledNodeProcessing.update;
 
         this.builder = new PlanarTileBuilder();
         this.protocol = 'tile';
@@ -179,6 +248,125 @@ class Map extends GeometryLayer {
             radius,
             this,
         );
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    preUpdate(context, layer, changeSources) {
+        SubdivisionControl.preUpdate(context, layer);
+
+        if (__DEBUG__) {
+            layer._latestUpdateStartingLevel = 0;
+        }
+
+        if (changeSources.has(undefined) || changeSources.size === 0) {
+            return layer.level0Nodes;
+        }
+
+        let commonAncestor;
+        for (const source of changeSources.values()) {
+            if (source.isCamera) {
+                // if the change is caused by a camera move, no need to bother
+                // to find common ancestor: we need to update the whole tree:
+                // some invisible tiles may now be visible
+                return layer.level0Nodes;
+            }
+            if (source.layer === layer.id) {
+                if (!commonAncestor) {
+                    commonAncestor = source;
+                } else {
+                    commonAncestor = source.findCommonAncestor(commonAncestor);
+                    if (!commonAncestor) {
+                        return layer.level0Nodes;
+                    }
+                }
+                if (commonAncestor.material == null) {
+                    commonAncestor = undefined;
+                }
+            }
+        }
+        if (commonAncestor) {
+            if (__DEBUG__) {
+                layer._latestUpdateStartingLevel = commonAncestor.level;
+            }
+            return [commonAncestor];
+        }
+        return layer.level0Nodes;
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    update(context, layer, node) {
+        if (!node.parent) {
+            return ObjectRemovalHelper.removeChildrenAndCleanup(layer, node);
+        }
+
+        if (context.fastUpdateHint) {
+            if (!context.fastUpdateHint.isAncestorOf(node)) {
+                // if visible, children bbox can only be smaller => stop updates
+                if (node.material.visible) {
+                    updateMinMaxDistance(context, layer, node);
+                    return null;
+                }
+                if (node.visible) {
+                    return node.children.filter(n => n.layer === layer);
+                }
+                return null;
+            }
+        }
+
+        // do proper culling
+        if (!layer.frozen) {
+            const isVisible = context.camera.isBox3Visible(
+                node.OBB().box3D, node.OBB().matrixWorld,
+            );
+            node.visible = isVisible;
+        }
+
+        if (node.visible) {
+            let requestChildrenUpdate = false;
+
+            if (!layer.frozen) {
+                const s = node.OBB().box3D.getSize(tmpVector);
+                const obb = node.OBB();
+                const sse = ScreenSpaceError.computeFromBox3(
+                    context.camera,
+                    obb.box3D,
+                    obb.matrixWorld,
+                    Math.max(s.x, s.y),
+                    ScreenSpaceError.MODE_2D,
+                );
+
+                node.sse = sse; // DEBUG
+
+                if (testTileSSE(node, sse, layer.maxSubdivisionLevel || -1)
+                        && SubdivisionControl.hasEnoughTexturesToSubdivide(context, layer, node)) {
+                    subdivideNode(context, layer, node);
+                    // display iff children aren't ready
+                    node.setDisplayed(false);
+                    requestChildrenUpdate = true;
+                } else {
+                    node.setDisplayed(true);
+                }
+            } else {
+                requestChildrenUpdate = true;
+            }
+
+            if (node.material.visible) {
+                node.material.update();
+
+                updateMinMaxDistance(context, layer, node);
+
+                // update uniforms
+                if (!requestChildrenUpdate) {
+                    return ObjectRemovalHelper.removeChildren(layer, node);
+                }
+            }
+
+            // TODO: use Array.slice()
+            return requestChildrenUpdate ? node.children.filter(n => n.layer === layer) : undefined;
+        }
+
+        node.setDisplayed(false);
+        return ObjectRemovalHelper.removeChildren(layer, node);
     }
 
     // eslint-disable-next-line class-methods-use-this
