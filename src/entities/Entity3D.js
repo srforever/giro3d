@@ -147,9 +147,6 @@ class Entity3D extends Entity {
         this._distance = { min: Infinity, max: 0 };
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    postUpdate() {}
-
     /**
      * Picks objects given a position and a radius from the layer.
      *
