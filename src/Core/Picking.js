@@ -346,7 +346,7 @@ export default {
                 && Math.abs(clearG - g) <= 1
                 && Math.abs(clearB - b) <= 1) {
                 // skip because nothing has been rendered here
-                return;
+                return null;
             }
 
             // Perform raycasting
