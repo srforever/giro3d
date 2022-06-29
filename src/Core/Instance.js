@@ -603,7 +603,7 @@ class Instance extends EventDispatcher {
                 for (let i = 0; i < sp.length; i++) {
                     results.push(sp[i]);
                 }
-            } else if (source instanceof Object3D) {
+            } else if (source.isObject3D) {
                 Picking.pickObjectsAt(
                     this,
                     mouse,
