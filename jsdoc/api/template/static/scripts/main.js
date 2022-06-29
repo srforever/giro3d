@@ -281,8 +281,15 @@ $(function () {
   var srcLinks = $('div.tag-source');
   srcLinks.each(function(i, el) {
     var textParts = el.innerHTML.trim().split(', ');
-      // TODO fix me
-      var link = 'https://gitlab.com/giro3d/giro3d/-/tree/' + currentVersion + '/src/' +
+      let gitTag = currentVersion;
+      const semanticVersionRegex = /\b\d+\.\d+\.\d+\b/; // matches X.Y.Z version strings
+      if (semanticVersionRegex.test(currentVersion)) {
+        // this is an actual version number, we need to add
+        // the v prefix to match a valid git tag.
+        // Otherwise use whatever 'currentVersion' is (for example 'master').
+        gitTag = 'v' + gitTag;
+      }
+      var link = 'https://gitlab.com/giro3d/giro3d/-/tree/' + gitTag + '/src/' +
       textParts[0];
     el.innerHTML = '<a href="' + link + '">' + textParts[0] + '</a>, ' +
       '<a href="' + link + textParts[1].replace('line ', '#L') + '">' +
