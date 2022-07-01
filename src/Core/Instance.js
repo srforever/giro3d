@@ -148,6 +148,9 @@ class Instance extends EventDispatcher {
                 );
             }
         };
+
+        this.controls = null;
+        this._controlFunctions = null;
     }
 
     /**
@@ -633,6 +636,48 @@ class Instance extends EventDispatcher {
             this.camera.camera3D.lookAt(lookat);
             this.camera.camera3D.updateMatrixWorld(true);
         }
+    }
+
+    /**
+     * Integrates an instance of THREE controls into giro's update mechanisms.
+     *
+     * @param {object} controls An instance of a THREE controls
+     */
+    useTHREEControls(controls) {
+        if (this.controls) {
+            return;
+        }
+
+        this._controlFunctions = {
+            frameRequester: () => controls.update(),
+            eventListener: () => this.notifyChange(this.camera.camera3D),
+        };
+
+        if (typeof controls.addEventListener === 'function') {
+            controls.addEventListener('change', this._controlFunctions.eventListener);
+        // Some THREE controls don't inherit of EventDispatcher
+        } else {
+            throw new Error('Unsupported control class');
+        }
+
+        this.addFrameRequester('before_camera_update', this._controlFunctions.frameRequester);
+
+        this.controls = controls;
+    }
+
+    /**
+     * Removes a THREE controls previously added. The controls won't be disable.
+     */
+    removeTHREEControls() {
+        if (!this.controls) {
+            return;
+        }
+
+        this.controls.removeEventListener('change', this._controlFunctions.eventListener);
+        this.removeFrameRequester('before_camera_update', this._controlFunctions.frameRequester);
+
+        this.controls = null;
+        this._controlFunctions = null;
     }
 }
 
