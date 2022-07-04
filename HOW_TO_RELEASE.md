@@ -1,5 +1,7 @@
 # How to release Giro3d
 
+- review the changes, with `git log --oneline --no-merges $(git describe --tags --abbrev=0)..` for instance
+- figure out what type of version we release (major, minor, patch)
 - edit version in package.json
 - run `npm i`
 - edit `History.md`, for example with `git changelog` (usually in git-extras package):
