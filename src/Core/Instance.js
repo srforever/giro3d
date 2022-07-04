@@ -639,9 +639,16 @@ class Instance extends EventDispatcher {
     }
 
     /**
-     * Integrates an instance of THREE controls into giro's update mechanisms.
+     * This function allows to use three.js controls (files in `examples/{js,jsm}/controls` folder
+     * of THREE.js) into giro3d 3D scene.
+     *
+     * Giro3d supports the controls that check the following assumptions:
+     *
+     * - they fire 'change' events when something happens
+     * - they have an `update` method
      *
      * @param {object} controls An instance of a THREE controls
+     * @api
      */
     useTHREEControls(controls) {
         if (this.controls) {
@@ -657,7 +664,9 @@ class Instance extends EventDispatcher {
             controls.addEventListener('change', this._controlFunctions.eventListener);
         // Some THREE controls don't inherit of EventDispatcher
         } else {
-            throw new Error('Unsupported control class');
+            throw new Error(
+                'Unsupported control class: only event dispatcher controls are supported.',
+            );
         }
 
         this.addFrameRequester('before_camera_update', this._controlFunctions.frameRequester);
