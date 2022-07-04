@@ -23,7 +23,7 @@ function preprocessDataLayer(layer) {
     layer.opacity = layer.opacity || 1;
     layer.wireframe = layer.wireframe || false;
     if (!(layer.extent instanceof Extent)) {
-        layer.extent = new Extent(layer.projection, layer.extent);
+        layer.extent = new Extent(layer.crs, layer.extent);
     }
     layer.url = `${layer.url
     }SERVICE=WFS&REQUEST=GetFeature&typeName=${layer.typeName
@@ -46,6 +46,15 @@ function executeCommand(command) {
         .then(result => command.resolve(result));
 }
 
+/**
+ * Assigns a Three.js
+ * [layer](https://threejs.org/docs/index.html?q=layer#api/en/core/Layers)
+ * to a {@link THREE.Object3D}.
+ *
+ * @param {module:THREE.Object3D} object the feature to add (converted to a 3D representation)
+ * @param {number} layer the target layer (from `0` to `31`)
+ * @returns {module:THREE.Object3D} the updated object with layer information
+ */
 function assignLayer(object, layer) {
     if (!object) {
         return null;

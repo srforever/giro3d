@@ -11,7 +11,7 @@ function tileTextureCount() {
 
 function preprocessDataLayer(layer) {
     if (!layer.name) {
-        throw new Error('layer.name is required.');
+        throw new Error('layer.name is required');
     }
     if (!layer.extent) {
         throw new Error('layer.extent is required');
@@ -22,6 +22,10 @@ function preprocessDataLayer(layer) {
 
     if (!(layer.extent instanceof Extent)) {
         layer.extent = new Extent(layer.projection, layer.extent);
+    }
+
+    if (!layer.options) {
+        layer.options = {};
     }
 
     if (!layer.options.zoom) {
