@@ -28,6 +28,11 @@
         <script src="/debug.js"></script>
         <script src="js/GUI/GuiTools.js"></script>
         <script type="text/javascript">
+            window.THREE = giro3d.THREE;
+        </script>
+        <script src="https://unpkg.com/three@0.135.0/examples/js/controls/OrbitControls.js"></script>
+
+        <script type="text/javascript">
             // # Planar (EPSG:3946) viewer
 
             var extent;
@@ -99,12 +104,20 @@
             };
 
             instance.camera.camera3D.position.copy(new giro3d.Coordinates('EPSG:3946', extent.west(), extent.south(), 2000).xyz());
-            // Then look at extent's center
-            instance.camera.camera3D.lookAt(extent.center().xyz());
 
-            // instanciate controls
-            // eslint-disable-next-line no-new
-            new giro3d.FirstPersonControls(instance, {});
+            // Creates controls
+            const controls = new giro3d.THREE.MapControls(
+                instance.camera.camera3D,
+                viewerDiv,
+            );
+            controls.target = extent.center().xyz(); // then look at extent's center
+            controls.saveState();
+
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.2;
+            controls.maxPolarAngle = Math.PI / 2.3;
+
+            instance.useTHREEControls(controls);
 
             // Request redraw
             instance.notifyChange();
