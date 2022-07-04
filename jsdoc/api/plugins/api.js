@@ -168,7 +168,6 @@ exports.handlers = {
         // Always document namespaces and items with stability annotation
         continue;
       }
-        console.log(doclet.longname);
       if (doclet.kind == 'module' && doclet.longname in modules) {
         // Document all modules that are referenced by the API
         continue;
