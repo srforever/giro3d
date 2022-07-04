@@ -1,3 +1,32 @@
+
+v0.3.0 / 2022-07-04
+===================
+
+## BREAKING
+
+* Instance, Map: capitalize file names: you might need to change your imports if you reference
+individual files
+
+
+## Features 
+
+* Add helpers method to integrate any THREE controls in giro3d
+* add min/max height options on FirstPersonControls
+
+## Fixes
+
+  * Fix picking with radius on regular THREE.js objects
+
+## Documentation
+
+More classes are now documented. More are even in progress!
+
+The README has been rewritten (fix broken links, add logo, improve readability)
+
+## others
+
+* vscode: add tasks.json
+
 v0.2.0 / 2022-06-15
 ===================
 
