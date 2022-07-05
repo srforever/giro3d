@@ -1,9 +1,10 @@
 import {
-    Vector3, Plane, EventDispatcher, Math as ThreeMath, Sphere,
+    EventDispatcher, Math as ThreeMath, Sphere,
 } from 'three';
 import Layer from './Layer/Layer.js';
 import Entity3D from '../entities/Entity3D.js';
 import Cache from './Scheduler/Cache.js';
+import Context from './Context.js';
 
 export const RENDERING_PAUSED = 0;
 export const RENDERING_SCHEDULED = 1;
@@ -128,29 +129,7 @@ function filterChangeSources(updateSources, geometryLayer) {
 }
 
 MainLoop.prototype._update = function _update(instance, updateSources, dt) {
-    const context = {
-        // Instance's camera
-        camera: instance.camera,
-        // Command scheduler
-        scheduler: this.scheduler,
-        // The instance
-        view: instance, // TODO change to instance
-        // Min/max distance to the camera, for all rendered objects.
-        // (processing update function are expected to update this)
-        distance: {
-            plane: new Plane()
-                .setFromNormalAndCoplanarPoint(
-                    instance.camera.camera3D.getWorldDirection(new Vector3()),
-                    instance.camera.camera3D.position, /* TODO matrixWorld */
-                ),
-            min: Infinity,
-            max: 0,
-        },
-        // Attribute allowing processing code to remember whether they
-        // did a full update (in which case fastUpdateHint is undefined)
-        // or a partial update and to act accordingly
-        fastUpdateHint: undefined,
-    };
+    const context = new Context(instance.camera, this.scheduler, instance);
 
     // Reset near/far to default value to allow update function to test
     // visibility using camera's frustum; without depending on the near/far
