@@ -8,6 +8,7 @@
 [![npm package](https://img.shields.io/npm/v/@giro3d/giro3d?color=blue)](https://www.npmjs.com/package/@giro3d/giro3d)
 [![Build Status](https://gitlab.com/giro3d/giro3d/badges/master/pipeline.svg)](https://gitlab.com/giro3d/giro3d/-/pipelines)
 [![Coverage](https://gitlab.com/giro3d/giro3d/badges/master/coverage.svg)](https://gitlab.com/giro3d/giro3d/badges/master/coverage.svg)
+[![chat](https://img.shields.io/matrix/giro3d:matrix.org)](https://matrix.to/#/#giro3d:matrix.org)
 
 **[giro3d](https://giro3d.org)** is a versatile [Three.js](https://threejs.org/)-based framework written in Javascript/WebGL for visualizing 3D geospatial data.
 
