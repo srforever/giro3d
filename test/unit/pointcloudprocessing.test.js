@@ -9,7 +9,7 @@ describe('preUpdate', () => {
         const sources = new Set();
         assert.equal(
             layer.root,
-            PointCloudProcessing.preUpdate(context, layer, sources)[0],
+            PointCloudProcessing.preUpdate(layer)(context, sources)[0],
         );
     });
 
@@ -22,7 +22,7 @@ describe('preUpdate', () => {
         sources.add(elt2);
         assert.equal(
             layer.root,
-            PointCloudProcessing.preUpdate(context, layer, sources)[0],
+            PointCloudProcessing.preUpdate(layer)(context, sources)[0],
         );
     });
 
@@ -38,7 +38,7 @@ describe('preUpdate', () => {
         layer.root.findChildrenByName = name => {
             assert.equal('12', name);
         };
-        PointCloudProcessing.preUpdate(context, layer, sources);
+        PointCloudProcessing.preUpdate(layer)(context, sources);
     });
 
     it('should not search ancestors if layer are different root if no common ancestors', () => {
@@ -51,6 +51,6 @@ describe('preUpdate', () => {
         layer.root.findChildrenByName = name => {
             assert.equal('12', name);
         };
-        PointCloudProcessing.preUpdate(context, layer, sources);
+        PointCloudProcessing.preUpdate(layer)(context, sources);
     });
 });

@@ -12,7 +12,6 @@ import Layer, { defineLayerProperty } from './Layer/Layer.js';
 import GeometryLayer from './Layer/GeometryLayer.js';
 import Scheduler from './Scheduler/Scheduler.js';
 import Picking from './Picking.js';
-import TiledNodeProcessing from '../Process/TiledNodeProcessing.js';
 import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
 
@@ -212,21 +211,7 @@ class Instance extends EventDispatcher {
      * @api
      */
     add(object) {
-        // this should be in map or other objects
-        if (object.protocol === 'tile') {
-            // TODO
-            object.disableSkirt = true;
-            object.preUpdate = TiledNodeProcessing.preUpdate;
-            object.update = TiledNodeProcessing.update;
-            // TODO following lines probably shows that this code belong to Map
-            object._instance = this;
-            object.pickObjectsAt = (_instance, mouse, radius) => Picking.pickTilesAt(
-                _instance,
-                mouse,
-                radius,
-                object,
-            );
-        }
+        object._instance = this;
 
         return new Promise((resolve, reject) => {
             if (!object) {

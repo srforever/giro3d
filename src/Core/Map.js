@@ -11,8 +11,11 @@ import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import PlanarTileBuilder from './Prefab/Planar/PlanarTileBuilder.js';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
 import ElevationTextureProcessing, { minMaxFromTexture } from '../Process/ElevationTextureProcessing.js';
+import SubdivisionControl from '../Process/SubdivisionControl.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
+import Picking from './Picking.js';
+import ScreenSpaceError from './ScreenSpaceError.js';
 
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = (tileCount * x) / layerDimension.x;
@@ -118,6 +121,96 @@ function findNeighbours(node) {
     return borders.map(border => findSmallestExtentCovering(node, border));
 }
 
+const tmpVector = new THREE.Vector3();
+
+function updateMinMaxDistance(context, layer, node) {
+    const bbox = node.OBB().box3D.clone()
+        .applyMatrix4(node.OBB().matrixWorld);
+    const distance = context.distance.plane
+        .distanceToPoint(bbox.getCenter(tmpVector));
+    const radius = bbox.getSize(tmpVector).length() * 0.5;
+    layer._distance.min = Math.min(layer._distance.min, distance - radius);
+    layer._distance.max = Math.max(layer._distance.max, distance + radius);
+}
+
+// TODO: maxLevel should be deduced from layers
+function testTileSSE(tile, sse, maxLevel) {
+    if (maxLevel > 0 && maxLevel <= tile.level) {
+        return false;
+    }
+
+    if (tile.extent.dimensions().x < 5) {
+        return false;
+    }
+
+    if (!sse) {
+        return true;
+    }
+
+    const values = [
+        sse.lengths.x * sse.ratio,
+        sse.lengths.y * sse.ratio,
+    ];
+
+    // TODO: depends on texture size of course
+    // if (values.filter(v => v < 200).length >= 2) {
+    //     return false;
+    // }
+    if (values.filter(v => v < (100 * tile.layer.sseScale)).length >= 1) {
+        return false;
+    }
+    return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
+}
+
+function subdivideNode(context, layer, node) {
+    if (!node.children.some(n => n.layer === layer)) {
+        const extents = node.extent.quadtreeSplit();
+
+        for (const extent of extents) {
+            const child = requestNewTile(
+                context.view, context.scheduler, layer, extent, node,
+            );
+            node.add(child);
+
+            // inherit our parent's textures
+            for (const e of context.elevationLayers) {
+                e.update(context, e, child, node, true);
+            }
+            const nodeUniforms = node.material.uniforms;
+            if (nodeUniforms.colorTexture.value.image.width > 0) {
+                for (const c of context.colorLayers) {
+                    c.update(context, c, child, node, true);
+                }
+                child.material.uniforms.colorTexture.value = nodeUniforms.colorTexture.value;
+            }
+
+            child.updateMatrixWorld(true);
+        }
+        context.view.notifyChange(node);
+    }
+}
+
+function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
+    const command = {
+        /* mandatory */
+        view,
+        requester: parent,
+        layer: geometryLayer,
+        priority: 10000,
+        /* specific params */
+        extent,
+        level,
+        redraw: false,
+        threejsLayer: geometryLayer.threejsLayer,
+    };
+
+    const node = scheduler.execute(command);
+    node.add(node.OBB());
+    geometryLayer.onTileCreated(geometryLayer, parent, node);
+
+    return node;
+}
+
 /**
  * a Map object: base object to add map layers
  *
@@ -157,65 +250,7 @@ class Map extends GeometryLayer {
         this.sseScale = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel;
 
-        // TODO make that a class method ?
-        this.postUpdate = (context, layer) => {
-            for (const r of layer.level0Nodes) {
-                r.traverse(node => {
-                    if (node.layer !== layer || !node.material.visible) {
-                        return;
-                    }
-                    node.material.uniforms.neighbourdiffLevel.value.set(0, 0, 0, 1);
-                    const n = findNeighbours(node);
-                    if (n) {
-                        const dimensions = node.extent.dimensions();
-                        const elevationNeighbours = node.material.texturesInfo.elevation.neighbours;
-                        for (let i = 0; i < 4; i++) {
-                            if (!n[i] || !n[i][0].material.visible) {
-                                // neighbour is missing or smaller => don't do anything
-                                node.material.uniforms
-                                    .neighbourdiffLevel.value.setComponent(i, 1);
-                            } else {
-                                const nn = n[i][0];
-                                const targetExtent = n[i][1];
-
-                                // We want to compute the diff level, but can't directly
-                                // use nn.level - node.level, because there's no garuantee
-                                // that we're on a regular grid.
-                                // The only thing we can assume is their shared edge are
-                                // equal with a power of 2 factor.
-                                const diff = Math.log2((i % 2)
-                                    ? Math.round(nn.extent.dimensions().y / dimensions.y)
-                                    : Math.round(nn.extent.dimensions().x / dimensions.x));
-
-                                node.material.uniforms
-                                    .neighbourdiffLevel.value.setComponent(i, -diff);
-                                elevationNeighbours.texture[i] = nn
-                                    .material
-                                    .texturesInfo
-                                    .elevation
-                                    .texture;
-
-                                const offscale = targetExtent.offsetToParent(nn.extent);
-
-                                elevationNeighbours.offsetScale[i] = nn
-                                    .material
-                                    .texturesInfo
-                                    .elevation
-                                    .offsetScale
-                                    .clone();
-
-                                elevationNeighbours.offsetScale[i].x
-                                    += offscale.x * elevationNeighbours.offsetScale[i].z;
-                                elevationNeighbours.offsetScale[i].y
-                                    += offscale.y * elevationNeighbours.offsetScale[i].w;
-                                elevationNeighbours.offsetScale[i].z *= offscale.z;
-                                elevationNeighbours.offsetScale[i].w *= offscale.w;
-                            }
-                        }
-                    }
-                });
-            }
-        };
+        this.disableSkirt = true;
 
         this.builder = new PlanarTileBuilder();
         this.protocol = 'tile';
@@ -224,6 +259,191 @@ class Map extends GeometryLayer {
             enable: false,
             position: { x: -0.5, y: 0.0, z: 1.0 },
         };
+    }
+
+    pickObjectsAt(_instance, mouse, radius) {
+        return Picking.pickTilesAt(
+            _instance,
+            mouse,
+            radius,
+            this,
+        );
+    }
+
+    preUpdate(context, changeSources) {
+        SubdivisionControl.preUpdate(context, this);
+
+        if (__DEBUG__) {
+            this._latestUpdateStartingLevel = 0;
+        }
+
+        if (changeSources.has(undefined) || changeSources.size === 0) {
+            return this.level0Nodes;
+        }
+
+        let commonAncestor;
+        for (const source of changeSources.values()) {
+            if (source.isCamera) {
+                // if the change is caused by a camera move, no need to bother
+                // to find common ancestor: we need to update the whole tree:
+                // some invisible tiles may now be visible
+                return this.level0Nodes;
+            }
+            if (source.layer === this.id) {
+                if (!commonAncestor) {
+                    commonAncestor = source;
+                } else {
+                    commonAncestor = source.findCommonAncestor(commonAncestor);
+                    if (!commonAncestor) {
+                        return this.level0Nodes;
+                    }
+                }
+                if (commonAncestor.material == null) {
+                    commonAncestor = undefined;
+                }
+            }
+        }
+        if (commonAncestor) {
+            if (__DEBUG__) {
+                this._latestUpdateStartingLevel = commonAncestor.level;
+            }
+            return [commonAncestor];
+        }
+        return this.level0Nodes;
+    }
+
+    update(context, node) {
+        if (!node.parent) {
+            return ObjectRemovalHelper.removeChildrenAndCleanup(this, node);
+        }
+
+        if (context.fastUpdateHint) {
+            if (!context.fastUpdateHint.isAncestorOf(node)) {
+                // if visible, children bbox can only be smaller => stop updates
+                if (node.material.visible) {
+                    updateMinMaxDistance(context, this, node);
+                    return null;
+                }
+                if (node.visible) {
+                    return node.children.filter(n => n.layer === this);
+                }
+                return null;
+            }
+        }
+
+        // do proper culling
+        if (!this.frozen) {
+            const isVisible = context.camera.isBox3Visible(
+                node.OBB().box3D, node.OBB().matrixWorld,
+            );
+            node.visible = isVisible;
+        }
+
+        if (node.visible) {
+            let requestChildrenUpdate = false;
+
+            if (!this.frozen) {
+                const s = node.OBB().box3D.getSize(tmpVector);
+                const obb = node.OBB();
+                const sse = ScreenSpaceError.computeFromBox3(
+                    context.camera,
+                    obb.box3D,
+                    obb.matrixWorld,
+                    Math.max(s.x, s.y),
+                    ScreenSpaceError.MODE_2D,
+                );
+
+                node.sse = sse; // DEBUG
+
+                if (testTileSSE(node, sse, this.maxSubdivisionLevel || -1)
+                        && SubdivisionControl.hasEnoughTexturesToSubdivide(context, this, node)) {
+                    subdivideNode(context, this, node);
+                    // display iff children aren't ready
+                    node.setDisplayed(false);
+                    requestChildrenUpdate = true;
+                } else {
+                    node.setDisplayed(true);
+                }
+            } else {
+                requestChildrenUpdate = true;
+            }
+
+            if (node.material.visible) {
+                node.material.update();
+
+                updateMinMaxDistance(context, this, node);
+
+                // update uniforms
+                if (!requestChildrenUpdate) {
+                    return ObjectRemovalHelper.removeChildren(this, node);
+                }
+            }
+
+            // TODO: use Array.slice()
+            return requestChildrenUpdate ? node.children.filter(n => n.layer === this) : undefined;
+        }
+
+        node.setDisplayed(false);
+        return ObjectRemovalHelper.removeChildren(this, node);
+    }
+
+    postUpdate() {
+        for (const r of this.level0Nodes) {
+            r.traverse(node => {
+                if (node.layer !== this || !node.material.visible) {
+                    return;
+                }
+                node.material.uniforms.neighbourdiffLevel.value.set(0, 0, 0, 1);
+                const n = findNeighbours(node);
+                if (n) {
+                    const dimensions = node.extent.dimensions();
+                    const elevationNeighbours = node.material.texturesInfo.elevation.neighbours;
+                    for (let i = 0; i < 4; i++) {
+                        if (!n[i] || !n[i][0].material.visible) {
+                            // neighbour is missing or smaller => don't do anything
+                            node.material.uniforms
+                                .neighbourdiffLevel.value.setComponent(i, 1);
+                        } else {
+                            const nn = n[i][0];
+                            const targetExtent = n[i][1];
+
+                            // We want to compute the diff level, but can't directly
+                            // use nn.level - node.level, because there's no garuantee
+                            // that we're on a regular grid.
+                            // The only thing we can assume is their shared edge are
+                            // equal with a power of 2 factor.
+                            const diff = Math.log2((i % 2)
+                                ? Math.round(nn.extent.dimensions().y / dimensions.y)
+                                : Math.round(nn.extent.dimensions().x / dimensions.x));
+
+                            node.material.uniforms
+                                .neighbourdiffLevel.value.setComponent(i, -diff);
+                            elevationNeighbours.texture[i] = nn
+                                .material
+                                .texturesInfo
+                                .elevation
+                                .texture;
+
+                            const offscale = targetExtent.offsetToParent(nn.extent);
+
+                            elevationNeighbours.offsetScale[i] = nn
+                                .material
+                                .texturesInfo
+                                .elevation
+                                .offsetScale
+                                .clone();
+
+                            elevationNeighbours.offsetScale[i].x
+                                += offscale.x * elevationNeighbours.offsetScale[i].z;
+                            elevationNeighbours.offsetScale[i].y
+                                += offscale.y * elevationNeighbours.offsetScale[i].w;
+                            elevationNeighbours.offsetScale[i].z *= offscale.z;
+                            elevationNeighbours.offsetScale[i].w *= offscale.w;
+                        }
+                    }
+                }
+            });
+        }
     }
 
     // TODO this whole function should be either in providers or in layers
@@ -479,4 +699,4 @@ class Map extends GeometryLayer {
     }
 }
 
-export default Map;
+export { Map, requestNewTile };

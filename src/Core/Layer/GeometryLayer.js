@@ -135,11 +135,6 @@ export default class GeometryLayer extends EventDispatcher {
 
         this.atlasInfo = { maxX: 0, maxY: 0 };
 
-        // Setup default picking method
-        this.pickObjectsAt = (view, mouse, radius) => Picking.pickObjectsAt(
-            view, mouse, radius, this.object3d,
-        );
-
         // Attached layers expect to receive the visual representation of a layer (= THREE object
         // with a material).  So if a layer's update function don't process this kind of object, the
         // layer must provide a getObjectToUpdateForAttachedLayers function that returns the correct
@@ -155,10 +150,23 @@ export default class GeometryLayer extends EventDispatcher {
             };
         };
 
-        this.postUpdate = () => {};
-
         // processing can overwrite that with values calculating from this layer's Object3D
         this._distance = { min: Infinity, max: 0 };
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    postUpdate() {}
+
+    /**
+     * Picks objects given a position and a radius from the layer.
+     *
+     * @param {module:Core/Instance~Instance} instance The instance
+     * @param {object} coordinates The x/y position in the layer
+     * @param {number} radius The size in pixels of the radius of picking
+     * @returns {object[]} Picked objects (node)
+     */
+    pickObjectsAt(instance, coordinates, radius) { // TODO use this._instance, not the parameter
+        return Picking.pickObjectsAt(instance, coordinates, radius, this.object3d);
     }
 
     attach(layer) {
