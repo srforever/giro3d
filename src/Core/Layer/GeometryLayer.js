@@ -157,9 +157,16 @@ export default class GeometryLayer extends EventDispatcher {
     // eslint-disable-next-line class-methods-use-this
     postUpdate() {}
 
-    // Setup default picking method
-    pickObjectsAt(view, mouse, radius) {
-        Picking.pickObjectsAt(view, mouse, radius, this.object3d);
+    /**
+     * Picks objects given a position and a radius from the layer.
+     *
+     * @param {module:Core/Instance~Instance} instance The instance
+     * @param {object} coordinates The x/y position in the layer
+     * @param {number} radius The size in pixels of the radius of picking
+     * @returns {object[]} Picked objects (node)
+     */
+    pickObjectsAt(instance, coordinates, radius) { // TODO use this._instance, not the parameter
+        return Picking.pickObjectsAt(instance, coordinates, radius, this.object3d);
     }
 
     attach(layer) {
