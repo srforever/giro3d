@@ -5,6 +5,7 @@
 </div>
 
 [![Latest release](https://gitlab.com/giro3d/giro3d/-/badges/release.svg)](https://gitlab.com/giro3d/giro3d/-/tags)
+[![npm package](https://img.shields.io/npm/v/@giro3d/giro3d?color=blue)](https://www.npmjs.com/package/@giro3d/giro3d)
 [![Build Status](https://gitlab.com/giro3d/giro3d/badges/master/pipeline.svg)](https://gitlab.com/giro3d/giro3d/-/pipelines)
 [![Coverage](https://gitlab.com/giro3d/giro3d/badges/master/coverage.svg)](https://gitlab.com/giro3d/giro3d/badges/master/coverage.svg)
 
