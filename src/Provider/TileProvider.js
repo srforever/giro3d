@@ -8,7 +8,7 @@ import TileGeometry from '../Core/TileGeometry.js';
 import TileMesh from '../Core/TileMesh.js';
 import LayeredMaterial from '../Renderer/LayeredMaterial.js';
 import Cache from '../Core/Scheduler/Cache.js';
-import TiledNodeProcessing from '../Process/TiledNodeProcessing.js';
+import { requestNewTile } from '../Core/Map.js';
 
 function preprocessDataLayer(layer, view, scheduler) {
     if (!layer.schemeTile) {
@@ -22,7 +22,7 @@ function preprocessDataLayer(layer, view, scheduler) {
 
     for (const root of layer.schemeTile) {
         promises.push(
-            TiledNodeProcessing.requestNewTile(view, scheduler, layer, root, undefined, 0),
+            requestNewTile(view, scheduler, layer, root, undefined, 0),
         );
     }
     return Promise.all(promises).then(level0s => {

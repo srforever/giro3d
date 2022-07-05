@@ -12,7 +12,6 @@ import PlanarTileBuilder from './Prefab/Planar/PlanarTileBuilder.js';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
 import ElevationTextureProcessing, { minMaxFromTexture } from '../Process/ElevationTextureProcessing.js';
 import SubdivisionControl from '../Process/SubdivisionControl.js';
-import TiledNodeProcessing from '../Process/TiledNodeProcessing.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
 import Picking from './Picking.js';
@@ -168,7 +167,7 @@ function subdivideNode(context, layer, node) {
         const extents = node.extent.quadtreeSplit();
 
         for (const extent of extents) {
-            const child = TiledNodeProcessing.requestNewTile(
+            const child = requestNewTile(
                 context.view, context.scheduler, layer, extent, node,
             );
             node.add(child);
@@ -189,6 +188,27 @@ function subdivideNode(context, layer, node) {
         }
         context.view.notifyChange(node);
     }
+}
+
+function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
+    const command = {
+        /* mandatory */
+        view,
+        requester: parent,
+        layer: geometryLayer,
+        priority: 10000,
+        /* specific params */
+        extent,
+        level,
+        redraw: false,
+        threejsLayer: geometryLayer.threejsLayer,
+    };
+
+    const node = scheduler.execute(command);
+    node.add(node.OBB());
+    geometryLayer.onTileCreated(geometryLayer, parent, node);
+
+    return node;
 }
 
 /**
@@ -679,4 +699,4 @@ class Map extends GeometryLayer {
     }
 }
 
-export default Map;
+export { Map, requestNewTile };
