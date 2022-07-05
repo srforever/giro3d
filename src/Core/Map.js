@@ -250,16 +250,15 @@ class Map extends GeometryLayer {
         );
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    preUpdate(context, layer, changeSources) {
-        SubdivisionControl.preUpdate(context, layer);
+    preUpdate(context, changeSources) {
+        SubdivisionControl.preUpdate(context, this);
 
         if (__DEBUG__) {
-            layer._latestUpdateStartingLevel = 0;
+            this._latestUpdateStartingLevel = 0;
         }
 
         if (changeSources.has(undefined) || changeSources.size === 0) {
-            return layer.level0Nodes;
+            return this.level0Nodes;
         }
 
         let commonAncestor;
@@ -268,15 +267,15 @@ class Map extends GeometryLayer {
                 // if the change is caused by a camera move, no need to bother
                 // to find common ancestor: we need to update the whole tree:
                 // some invisible tiles may now be visible
-                return layer.level0Nodes;
+                return this.level0Nodes;
             }
-            if (source.layer === layer.id) {
+            if (source.layer === this.id) {
                 if (!commonAncestor) {
                     commonAncestor = source;
                 } else {
                     commonAncestor = source.findCommonAncestor(commonAncestor);
                     if (!commonAncestor) {
-                        return layer.level0Nodes;
+                        return this.level0Nodes;
                     }
                 }
                 if (commonAncestor.material == null) {
@@ -286,35 +285,34 @@ class Map extends GeometryLayer {
         }
         if (commonAncestor) {
             if (__DEBUG__) {
-                layer._latestUpdateStartingLevel = commonAncestor.level;
+                this._latestUpdateStartingLevel = commonAncestor.level;
             }
             return [commonAncestor];
         }
-        return layer.level0Nodes;
+        return this.level0Nodes;
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    update(context, layer, node) {
+    update(context, node) {
         if (!node.parent) {
-            return ObjectRemovalHelper.removeChildrenAndCleanup(layer, node);
+            return ObjectRemovalHelper.removeChildrenAndCleanup(this, node);
         }
 
         if (context.fastUpdateHint) {
             if (!context.fastUpdateHint.isAncestorOf(node)) {
                 // if visible, children bbox can only be smaller => stop updates
                 if (node.material.visible) {
-                    updateMinMaxDistance(context, layer, node);
+                    updateMinMaxDistance(context, this, node);
                     return null;
                 }
                 if (node.visible) {
-                    return node.children.filter(n => n.layer === layer);
+                    return node.children.filter(n => n.layer === this);
                 }
                 return null;
             }
         }
 
         // do proper culling
-        if (!layer.frozen) {
+        if (!this.frozen) {
             const isVisible = context.camera.isBox3Visible(
                 node.OBB().box3D, node.OBB().matrixWorld,
             );
@@ -324,7 +322,7 @@ class Map extends GeometryLayer {
         if (node.visible) {
             let requestChildrenUpdate = false;
 
-            if (!layer.frozen) {
+            if (!this.frozen) {
                 const s = node.OBB().box3D.getSize(tmpVector);
                 const obb = node.OBB();
                 const sse = ScreenSpaceError.computeFromBox3(
@@ -337,9 +335,9 @@ class Map extends GeometryLayer {
 
                 node.sse = sse; // DEBUG
 
-                if (testTileSSE(node, sse, layer.maxSubdivisionLevel || -1)
-                        && SubdivisionControl.hasEnoughTexturesToSubdivide(context, layer, node)) {
-                    subdivideNode(context, layer, node);
+                if (testTileSSE(node, sse, this.maxSubdivisionLevel || -1)
+                        && SubdivisionControl.hasEnoughTexturesToSubdivide(context, this, node)) {
+                    subdivideNode(context, this, node);
                     // display iff children aren't ready
                     node.setDisplayed(false);
                     requestChildrenUpdate = true;
@@ -353,27 +351,26 @@ class Map extends GeometryLayer {
             if (node.material.visible) {
                 node.material.update();
 
-                updateMinMaxDistance(context, layer, node);
+                updateMinMaxDistance(context, this, node);
 
                 // update uniforms
                 if (!requestChildrenUpdate) {
-                    return ObjectRemovalHelper.removeChildren(layer, node);
+                    return ObjectRemovalHelper.removeChildren(this, node);
                 }
             }
 
             // TODO: use Array.slice()
-            return requestChildrenUpdate ? node.children.filter(n => n.layer === layer) : undefined;
+            return requestChildrenUpdate ? node.children.filter(n => n.layer === this) : undefined;
         }
 
         node.setDisplayed(false);
-        return ObjectRemovalHelper.removeChildren(layer, node);
+        return ObjectRemovalHelper.removeChildren(this, node);
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    postUpdate(context, layer) {
-        for (const r of layer.level0Nodes) {
+    postUpdate() {
+        for (const r of this.level0Nodes) {
             r.traverse(node => {
-                if (node.layer !== layer || !node.material.visible) {
+                if (node.layer !== this || !node.material.visible) {
                     return;
                 }
                 node.material.uniforms.neighbourdiffLevel.value.set(0, 0, 0, 1);
