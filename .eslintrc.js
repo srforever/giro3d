@@ -27,6 +27,9 @@ module.exports = {
             globals: true,
         },
     },
+    ignorePatterns: [
+        'webpack.config.js',
+    ],
     rules: {
         'jest/no-disabled-tests': 'warn',
         'jest/no-focused-tests': 'error',
