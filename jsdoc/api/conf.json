@@ -17,6 +17,7 @@
       "src/Core/Layer/Layer.js",
       "src/Core/Layer/LayerUpdateStrategy.js",
       "src/Core/Layer/TileLayer.js",
+      "src/Renderer/Camera.js",
       "src/entities"
     ]
   },
