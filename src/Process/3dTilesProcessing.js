@@ -301,29 +301,32 @@ function _cleanupObject3D(n) {
     n.remove(...n.children);
 }
 
-export function pre3dTilesUpdate(context, layer) {
-    if (!layer.visible) {
-        return [];
-    }
+export function pre3dTilesUpdate(layer) {
+    // eslint-disable-next-line no-unused-vars
+    return function _pre3dTilesUpdate(context) {
+        if (!layer.visible) {
+            return [];
+        }
 
-    // Elements removed are added in the layer._cleanableTiles list.
-    // Since we simply push in this array, the first item is always
-    // the oldest one.
-    const now = Date.now();
-    if (layer._cleanableTiles.length
-        && (now - layer._cleanableTiles[0].cleanableSince) > layer.cleanupDelay) {
-        while (layer._cleanableTiles.length) {
-            const elt = layer._cleanableTiles[0];
-            if ((now - elt.cleanableSince) > layer.cleanupDelay) {
-                cleanup3dTileset(layer, elt);
-            } else {
-                // later entries are younger
-                break;
+        // Elements removed are added in the layer._cleanableTiles list.
+        // Since we simply push in this array, the first item is always
+        // the oldest one.
+        const now = Date.now();
+        if (layer._cleanableTiles.length
+            && (now - layer._cleanableTiles[0].cleanableSince) > layer.cleanupDelay) {
+            while (layer._cleanableTiles.length) {
+                const elt = layer._cleanableTiles[0];
+                if ((now - elt.cleanableSince) > layer.cleanupDelay) {
+                    cleanup3dTileset(layer, elt);
+                } else {
+                    // later entries are younger
+                    break;
+                }
             }
         }
-    }
 
-    return [layer.root];
+        return [layer.root];
+    };
 }
 
 export function computeNodeSSE(context, node) {
@@ -426,9 +429,9 @@ function calculateCameraDistance(camera, node) {
 }
 
 export function process3dTilesNode(
-    cullingTest = $3dTilesCulling, subdivisionTest = $3dTilesSubdivisionControl,
+    layer, cullingTest = $3dTilesCulling, subdivisionTest = $3dTilesSubdivisionControl,
 ) {
-    return function _process3dTilesNodes(context, layer, node) {
+    return function _process3dTilesNodes(context, node) {
         // Remove deleted children (?)
         node.remove(...node.children.filter(c => c.deleted));
 
