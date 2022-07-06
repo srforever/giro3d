@@ -73,6 +73,38 @@ describe('Entity3D', () => {
         });
     });
 
+    describe('mixin from EventDispatcher', () => {
+        it('contains the dispatchEvent method', () => {
+            const entity = sut();
+            expect(entity.dispatchEvent).toBeDefined();
+        });
+
+        it('contains the addEventListener method', () => {
+            const entity = sut();
+            expect(entity.addEventListener).toBeDefined();
+        });
+
+        it('contains the hasEventListener method', () => {
+            const entity = sut();
+            expect(entity.hasEventListener).toBeDefined();
+        });
+
+        it('contains the removeEventListener method', () => {
+            const entity = sut();
+            expect(entity.removeEventListener).toBeDefined();
+        });
+
+        it('should dispatch the opacity-property-changed event', () => {
+            const o3d = { traverse: jest.fn(), isObject3D: true };
+            const entity = sut(o3d);
+            const listener = jest.fn();
+
+            entity.addEventListener('opacity-property-changed', listener);
+            entity.opacity = 0;
+            expect(listener).toHaveBeenCalled();
+        });
+    });
+
     describe('opacity', () => {
         it('should traverse the object3d', () => {
             const o3d = { traverse: jest.fn(), isObject3D: true };

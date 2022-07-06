@@ -8,6 +8,7 @@ import Picking from '../Core/Picking.js';
 import AtlasBuilder from '../Renderer/AtlasBuilder.js';
 import Capabilities from '../Core/System/Capabilities.js';
 import Entity from './Entity.js';
+import eventDispatcher from '../Core/eventDispatcher.js';
 
 /**
  * An {@link module:Entity~Entity entities} that display 3D objects.
@@ -204,5 +205,7 @@ class Entity3D extends Entity {
         return result;
     }
 }
+
+Object.assign(Entity3D.prototype, eventDispatcher);
 
 export default Entity3D;

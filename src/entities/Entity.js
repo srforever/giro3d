@@ -2,8 +2,6 @@
  * @module entities/Entity
  */
 
-import { EventDispatcher } from 'three';
-
 /* eslint class-methods-use-this: 0 */
 /* eslint no-unused-vars: 0 */
 
@@ -19,7 +17,7 @@ import { EventDispatcher } from 'three';
  *
  * @api
  */
-class Entity extends EventDispatcher {
+class Entity {
     /**
      * Creates an entity with the specified unique identifier.
      *
@@ -36,8 +34,6 @@ class Entity extends EventDispatcher {
      * @param {string} id the unique identifier of this entity.
      */
     constructor(id) {
-        super();
-
         if (!id) {
             throw new Error('Missing id parameter (Entity must have a unique id defined)');
         }
