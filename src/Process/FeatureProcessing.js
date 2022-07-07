@@ -32,102 +32,104 @@ function applyOffset(obj, offset, quaternion, offsetAltitude) {
 
 const quaternion = new THREE.Quaternion();
 export default {
-    update(context, layer, node) {
-        if (!node.parent && node.children.length) {
-            // if node has been removed dispose three.js resource
-            ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, node);
-            return null;
-        }
-        if (!node.visible) {
-            return null;
-        }
+    update(layer) {
+        return function _update(context, node) {
+            if (!node.parent && node.children.length) {
+                // if node has been removed dispose three.js resource
+                ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, node);
+                return null;
+            }
+            if (!node.visible) {
+                return null;
+            }
 
-        const features = node.children.filter(n => n.layer === layer);
-        for (const feat of features) {
-            feat.traverse(o => {
-                if (o.material) {
-                    o.material.transparent = layer.opacity < 1.0;
-                    o.material.opacity = layer.opacity;
-                    o.material.wireframe = layer.wireframe;
+            const features = node.children.filter(n => n.layer === layer);
+            for (const feat of features) {
+                feat.traverse(o => {
+                    if (o.material) {
+                        o.material.transparent = layer.opacity < 1.0;
+                        o.material.opacity = layer.opacity;
+                        o.material.wireframe = layer.wireframe;
 
-                    if (layer.size) {
-                        o.material.size = layer.size;
+                        if (layer.size) {
+                            o.material.size = layer.size;
+                        }
+                        if (layer.linewidth) {
+                            o.material.linewidth = layer.linewidth;
+                        }
                     }
-                    if (layer.linewidth) {
-                        o.material.linewidth = layer.linewidth;
+                });
+            }
+            if (features.length > 0) {
+                return features;
+            }
+
+            if (!layer.tileInsideLimit(node, layer)) {
+                return null;
+            }
+
+            if (node.layerUpdateState[layer.id] === undefined) {
+                node.layerUpdateState[layer.id] = new LayerUpdateState();
+            }
+
+            const ts = Date.now();
+
+            if (!node.layerUpdateState[layer.id].canTryUpdate(ts)) {
+                return null;
+            }
+
+            node.layerUpdateState[layer.id].newTry();
+
+            const command = {
+                layer,
+                view: context.view,
+                threejsLayer: layer.threejsLayer,
+                requester: node,
+            };
+
+            return context.scheduler.execute(command).then(result => {
+                // if request return empty json, WFSProvider.getFeatures return undefined
+                if (result) {
+                    // call onMeshCreated callback if needed
+                    if (layer.onMeshCreated) {
+                        layer.onMeshCreated(result);
                     }
+                    node.layerUpdateState[layer.id].success();
+                    if (!node.parent) {
+                        ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, result);
+                        return;
+                    }
+                    // We don't use node.matrixWorld here, because feature coordinates are
+                    // expressed in crs coordinates (which may be different than world coordinates,
+                    // if node's layer is attached to an Object with a non-identity transformation)
+                    const tmp = node.extent.center().as(context.view.referenceCrs).xyz().negate();
+                    quaternion.setFromRotationMatrix(node.matrixWorld).invert();
+                    // const quaternion = new THREE.Quaternion().setFromUnitVectors(
+                    // new THREE.Vector3(0, 0, 1), node.extent.center().geodesicNormal).invert();
+                    applyOffset(result, tmp, quaternion, result.minAltitude);
+                    if (result.minAltitude) {
+                        result.position.z = result.minAltitude;
+                    }
+                    result.layer = layer;
+                    node.add(result);
+                    node.updateMatrixWorld();
+                } else {
+                    node.layerUpdateState[layer.id].failure(1, true);
+                }
+            },
+            err => {
+                if (err instanceof CancelledCommandException) {
+                    node.layerUpdateState[layer.id].success();
+                } else if (err instanceof SyntaxError) {
+                    node.layerUpdateState[layer.id].failure(0, true);
+                } else {
+                    node.layerUpdateState[layer.id].failure(Date.now());
+                    setTimeout(node.layerUpdateState[layer.id].secondsUntilNextTry() * 1000,
+                        () => {
+                            context.view.notifyChange(layer, false);
+                        });
                 }
             });
-        }
-        if (features.length > 0) {
-            return features;
-        }
-
-        if (!layer.tileInsideLimit(node, layer)) {
-            return null;
-        }
-
-        if (node.layerUpdateState[layer.id] === undefined) {
-            node.layerUpdateState[layer.id] = new LayerUpdateState();
-        }
-
-        const ts = Date.now();
-
-        if (!node.layerUpdateState[layer.id].canTryUpdate(ts)) {
-            return null;
-        }
-
-        node.layerUpdateState[layer.id].newTry();
-
-        const command = {
-            layer,
-            view: context.view,
-            threejsLayer: layer.threejsLayer,
-            requester: node,
         };
-
-        return context.scheduler.execute(command).then(result => {
-            // if request return empty json, WFSProvider.getFeatures return undefined
-            if (result) {
-                // call onMeshCreated callback if needed
-                if (layer.onMeshCreated) {
-                    layer.onMeshCreated(result);
-                }
-                node.layerUpdateState[layer.id].success();
-                if (!node.parent) {
-                    ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, result);
-                    return;
-                }
-                // We don't use node.matrixWorld here, because feature coordinates are
-                // expressed in crs coordinates (which may be different than world coordinates,
-                // if node's layer is attached to an Object with a non-identity transformation)
-                const tmp = node.extent.center().as(context.view.referenceCrs).xyz().negate();
-                quaternion.setFromRotationMatrix(node.matrixWorld).invert();
-                // const quaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,
-                // 0, 1), node.extent.center().geodesicNormal).invert();
-                applyOffset(result, tmp, quaternion, result.minAltitude);
-                if (result.minAltitude) {
-                    result.position.z = result.minAltitude;
-                }
-                result.layer = layer;
-                node.add(result);
-                node.updateMatrixWorld();
-            } else {
-                node.layerUpdateState[layer.id].failure(1, true);
-            }
-        },
-        err => {
-            if (err instanceof CancelledCommandException) {
-                node.layerUpdateState[layer.id].success();
-            } else if (err instanceof SyntaxError) {
-                node.layerUpdateState[layer.id].failure(0, true);
-            } else {
-                node.layerUpdateState[layer.id].failure(Date.now());
-                setTimeout(node.layerUpdateState[layer.id].secondsUntilNextTry() * 1000,
-                    () => {
-                        context.view.notifyChange(layer, false);
-                    });
-            }
-        });
     },
 };

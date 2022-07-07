@@ -73,7 +73,7 @@ function updateElements(context, geometryLayer, elements) {
         // update element
         // TODO find a way to notify attachedLayers when geometryLayer deletes some elements
         // and then update Debug.js:addGeometryLayerDebugFeatures
-        const newElementsToUpdate = geometryLayer.update(context, geometryLayer, element);
+        const newElementsToUpdate = geometryLayer.update(context, element);
 
         const sub = geometryLayer.getObjectToUpdateForAttachedLayers(element);
 
@@ -191,11 +191,11 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
                 geometryLayer._distance.min = Infinity;
                 geometryLayer._distance.max = 0;
                 // `preUpdate` returns an array of elements to update
-                const elementsToUpdate = geometryLayer.preUpdate(context, geometryLayer, srcs);
+                const elementsToUpdate = geometryLayer.preUpdate(context, srcs);
                 // `update` is called in `updateElements`.
                 updateElements(context, geometryLayer, elementsToUpdate);
                 // `postUpdate` is called when this geom layer update process is finished
-                geometryLayer.postUpdate(context, geometryLayer, updateSources);
+                geometryLayer.postUpdate(context, updateSources);
             }
             if (geometryLayer._distance) {
                 context.distance.min = Math.min(context.distance.min, geometryLayer._distance.min);
