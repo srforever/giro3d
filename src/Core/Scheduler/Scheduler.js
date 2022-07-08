@@ -11,6 +11,7 @@ import StaticProvider from '../../Provider/StaticProvider.js';
 import OLTileProvider from '../../Provider/OLTileProvider.js';
 import OLVectorTileProvider from '../../Provider/OLVectorTileProvider.js';
 import OLVectorProvider from '../../Provider/OLVectorProvider.js';
+import COGProvider from '../../Provider/COGProvider.js';
 import CancelledCommandException from './CancelledCommandException.js';
 import Cache from './Cache.js';
 
@@ -141,6 +142,7 @@ Scheduler.prototype.initDefaultProviders = function initDefaultProviders() {
     this.addProtocolProvider('oltile', OLTileProvider);
     this.addProtocolProvider('olvectortile', OLVectorTileProvider);
     this.addProtocolProvider('olvector', OLVectorProvider);
+    this.addProtocolProvider('cog', COGProvider);
 };
 
 Scheduler.prototype.runCommand = function runCommand(command, queue, recurse = true) {
