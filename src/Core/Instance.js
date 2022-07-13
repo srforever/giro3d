@@ -371,9 +371,9 @@ class Instance extends EventDispatcher {
 
     /**
      * @param {Layer} layer the layer to test
-     * @returns {Entity3D} the parent layer of the given layer or undefined.
+     * @returns {Entity3D} the parent entity of the given layer or null if no owner was found.
      */
-    getParentLayer(layer) {
+    getOwner(layer) {
         for (const geometryLayer of this._objects) {
             for (const attached of geometryLayer._attachedLayers) {
                 if (attached === layer) {

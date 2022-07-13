@@ -146,8 +146,8 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
         const layer = src.layer || src;
         if (layer instanceof Layer) {
             if (!(layer instanceof Entity3D)) {
-                // add the parent layer to update sources
-                updateSources.add(instance.getParentLayer(layer));
+                // add the layer owner to update sources
+                updateSources.add(instance.getOwner(layer));
             }
         }
     });
