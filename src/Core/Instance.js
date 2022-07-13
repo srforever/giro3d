@@ -81,17 +81,21 @@ class Instance extends EventDispatcher {
 
         this.referenceCrs = options.crs || 'EPSG:3857';
 
-        let engine;
-        // options.renderer can be 2 separate things:
-        //   - an actual renderer (in this case we don't use viewerDiv)
-        //   - options for the renderer to be created
-        if (options.renderer && options.renderer.domElement) {
-            engine = new C3DEngine(options.renderer);
+        if (options.mainLoop) {
+            this.mainLoop = options.mainLoop;
         } else {
-            engine = new C3DEngine(viewerDiv, options.renderer);
-        }
+            let engine;
 
-        this.mainLoop = options.mainLoop || new MainLoop(new Scheduler(), engine);
+            // options.renderer can be 2 separate things:
+            //   - an actual renderer (in this case we don't use viewerDiv)
+            //   - options for the renderer to be created
+            if (options.renderer && options.renderer.domElement) {
+                engine = new C3DEngine(options.renderer);
+            } else {
+                engine = new C3DEngine(viewerDiv, options.renderer);
+            }
+            this.mainLoop = new MainLoop(new Scheduler(), engine);
+        }
 
         this.scene = options.scene3D || new Scene();
         // will contain simple three objects that need to be taken into
@@ -154,59 +158,16 @@ class Instance extends EventDispatcher {
     }
 
     /**
-     * @property {string} id Unique layer's id
-     * @property {string} type the layer's type : 'color', 'elevation', 'geometry'
-     * @property {string} protocol wmts and wms (wmtsc for custom deprecated)
-     * @property {string} url Base URL of the repository or of the file(s) to load
-     * @property {string} format Format of this layer. See individual providers to check which
-     * formats are supported for a given layer type.
-     * @property {object} networkOptions Options for fetching resources over network
-     * @property {object} updateStrategy strategy to load imagery files
-     * @property {object} options WMTS or WMS options
-     */
-
-    /**
-     * Add layer in instance.
-     * The layer id must be unique.
-     *
-     * This function calls `preprocessDataLayer` of the relevant provider with this
-     * layer and set `layer.whenReady` to a promise that resolves when
-     * the preprocessing operation is done. This promise is also returned by
-     * `addLayer` allowing to chain call.
+     * Add THREE object or Entity to the instance.
+     * The entity `id` must be unique.
      *
      * @example
-     * // Add Color Layer
-     * instance.addLayer({
-     *      type: 'elevation',
-     *      id: 'iElevation',
-     * });
+     * // Add Map to instance
+     * instance.add(new Map('myMap', myMapExtent));
      *
-     * // Example to add an OPENSM Layer
-     * instance.addLayer({
-     *   type: 'color',
-     *   protocol:   'xyz',
-     *   id:         'OPENSM',
-     *   fx: 2.5,
-     *   url:  'http://b.tile.openstreetmap.fr/osmfr/${z}/${x}/${y}.png',
-     *   format: 'image/png',
-     *   options: {
-     *       attribution : {
-     *           name: 'OpenStreetMap',
-     *           url: 'http://www.openstreetmap.org/',
-     *       },
-     *       tileMatrixSet: 'PM',
-     *    },
-     * });
-     *
-     * // Add Elevation Layer and do something once it's ready
-     * var layer = instance.addLayer({
-     *      type: 'elevation',
-     *      id: 'iElevation',
-     * }).then(() => { .... });
-     *
-     * // One can also attach a callback to the same promise with a layer instance.
-     * layer.whenReady.then(() => { ... });
-     * @param {object|Layer|Entity3D} object the layer to add
+     * // Add Map to instance then wait for the map to be ready.
+     * instance.add(new Map('myMap', myMapExtent)).then(...);
+     * @param {Object3D|Entity3D} object the object to add
      * @returns {Promise} a promise resolved with the new layer object when it is fully initialized
      * or rejected if any error occurred.
      * @api
