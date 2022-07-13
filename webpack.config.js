@@ -39,7 +39,7 @@ module.exports = {
         giro3d: ['babel-polyfill', 'url-polyfill', 'whatwg-fetch', path.resolve(__dirname, 'src/MainBundle.js')],
         debug: [path.resolve(__dirname, 'utils/debug/Main.js')],
     },
-    devtool: 'source-map',
+    devtool: 'eval-source-map',
     output: {
         path: path.resolve(__dirname, 'dist'),
         filename: '[name].js',

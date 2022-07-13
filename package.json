@@ -14,7 +14,7 @@
     "test-with-coverage": "jest test/unit --coverage",
     "build": "webpack --mode=production",
     "transpile": "cross-env BABEL_DISABLE_CACHE=1 babel src --source-maps --out-dir lib",
-    "start": "cross-env NODE_ENV=development BABEL_DISABLE_CACHE=1 webpack serve --devtool eval --hot true",
+    "start": "cross-env NODE_ENV=development BABEL_DISABLE_CACHE=1 webpack serve --hot true",
     "prepack": "npm run build && npm run transpile"
   },
   "files": [
