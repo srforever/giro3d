@@ -100,5 +100,10 @@
       "node_modules/(?!ol|three|quick-lru)"
     ],
     "testEnvironment": "jsdom"
+  },
+  "config": {
+    "commitizen": {
+      "path": "@commitlint/cz-commitlint"
+    }
   }
 }
