@@ -141,7 +141,7 @@ export default {
             if (parent
                 && parent.material
                 && initNodeElevationTextureFromParent(node, parent, layer)) {
-                context.view.notifyChange(node, false);
+                context.instance.notifyChange(node, false);
                 return null;
             }
         }
@@ -174,7 +174,7 @@ export default {
 
         const command = {
             /* mandatory */
-            view: context.view,
+            view: context.instance,
             layer,
             requester: node,
             priority: nodeCommandQueuePriorityFunction(node),
@@ -202,7 +202,7 @@ export default {
                     node.layerUpdateState[layer.id].failure(Date.now(), definitiveError, err);
                     if (!definitiveError) {
                         window.setTimeout(() => {
-                            context.view.notifyChange(node, false);
+                            context.instance.notifyChange(node, false);
                         }, node.layerUpdateState[layer.id].secondsUntilNextTry() * 1000);
                     }
                 }

@@ -21,7 +21,7 @@ describe('Context', () => {
 
             expect(context.camera).toBe(camera);
             expect(context.scheduler).toBe(scheduler);
-            expect(context.view).toBe(instance);
+            expect(context.instance).toBe(instance);
             expect(context.fastUpdateHint).toBeUndefined();
             expect(context.distance.min).toBe(Infinity);
             expect(context.distance.max).toBe(0);

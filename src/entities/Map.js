@@ -168,7 +168,7 @@ function subdivideNode(context, map, node) {
 
         for (const extent of extents) {
             const child = requestNewTile(
-                context.view, context.scheduler, map, extent, node,
+                context.instance, context.scheduler, map, extent, node,
             );
             node.add(child);
 
@@ -186,7 +186,7 @@ function subdivideNode(context, map, node) {
 
             child.updateMatrixWorld(true);
         }
-        context.view.notifyChange(node);
+        context.instance.notifyChange(node);
     }
 }
 

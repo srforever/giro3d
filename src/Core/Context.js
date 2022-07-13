@@ -34,7 +34,7 @@ class Context {
          * @type {module:Core/Instance~Instance}
          * @api
          */
-        this.view = instance;
+        this.instance = instance;
         /**
          * Contains clipping plane distances.
          *
