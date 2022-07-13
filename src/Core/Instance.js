@@ -302,30 +302,30 @@ class Instance extends EventDispatcher {
      * // get all objects
      * instance.getObjects();
      * // get one layer with id
-     * instance.getObjects(layer => layer.id === 'itt');
+     * instance.getObjects(obj => obj.id === 'itt');
      * @param {function(Entity3D):boolean} filter the optional query filter
      * @returns {Array<Layer>} an array containing the queried layers
      */
     getObjects(filter) {
         const result = [];
-        for (const geometryLayer of this._objects) {
-            if (!filter || filter(geometryLayer)) {
-                result.push(geometryLayer);
+        for (const obj of this._objects) {
+            if (!filter || filter(obj)) {
+                result.push(obj);
             }
         }
         return result;
     }
 
     /**
-     * Get all the layers attached to all the Entity3D of this objects
+     * Get all the layers attached to all the entities in this instance.
      *
      * @param {function(Layer):boolean} filter Optional filter function for attached layers
      * @returns {Array<Layer>} the layers attached to the geometry layers
      */
     getLayers(filter) {
         let result = [];
-        for (const geometryLayer of this._objects) {
-            result = result.concat(geometryLayer.getLayers(filter));
+        for (const obj of this._objects) {
+            result = result.concat(obj.getLayers(filter));
         }
         return result;
     }
@@ -335,10 +335,10 @@ class Instance extends EventDispatcher {
      * @returns {Entity3D} the parent entity of the given layer or null if no owner was found.
      */
     getOwner(layer) {
-        for (const geometryLayer of this._objects) {
-            for (const attached of geometryLayer._attachedLayers) {
+        for (const obj of this._objects) {
+            for (const attached of obj._attachedLayers) {
                 if (attached === layer) {
-                    return geometryLayer;
+                    return obj;
                 }
             }
         }
@@ -637,63 +637,63 @@ class Instance extends EventDispatcher {
     }
 }
 
-const _syncGeometryLayerVisibility = function _syncGeometryLayerVisibility(layer, instance) {
-    if (layer.object3d) {
-        layer.object3d.visible = layer.visible;
+const _syncEntityVisibility = function _syncEntityVisibility(entity, instance) {
+    if (entity.object3d) {
+        entity.object3d.visible = entity.visible;
     }
 
-    if (layer.threejsLayer) {
-        if (layer.visible) {
-            instance.camera.camera3D.layers.enable(layer.threejsLayer);
+    if (entity.threejsLayer) {
+        if (entity.visible) {
+            instance.camera.camera3D.layers.enable(entity.threejsLayer);
         } else {
-            instance.camera.camera3D.layers.disable(layer.threejsLayer);
+            instance.camera.camera3D.layers.disable(entity.threejsLayer);
         }
     }
 };
 
-function _preprocessObject(instance, layer, provider, parentLayer) {
-    if (!(layer instanceof Layer) && !(layer instanceof Entity3D)) {
-        const nlayer = new Layer(layer.id);
+function _preprocessObject(instance, obj, provider, parentLayer) {
+    if (!(obj instanceof Layer) && !(obj instanceof Entity3D)) {
+        const nlayer = new Layer(obj.id);
         // nlayer.id is read-only so delete it from layer before Object.assign
-        const tmp = layer;
+        const tmp = obj;
         delete tmp.id;
-        layer = Object.assign(nlayer, layer);
+        obj = Object.assign(nlayer, obj);
         // restore layer.id in user provider layer object
-        tmp.id = layer.id;
+        tmp.id = obj.id;
     }
 
-    layer.options = layer.options || {};
+    obj.options = obj.options || {};
 
-    if (!layer.updateStrategy) {
-        layer.updateStrategy = {
+    if (!obj.updateStrategy) {
+        obj.updateStrategy = {
             type: STRATEGY_MIN_NETWORK_TRAFFIC,
         };
     }
 
     if (provider) {
         if (provider.tileInsideLimit) {
-            layer.tileInsideLimit = provider.tileInsideLimit.bind(provider);
+            obj.tileInsideLimit = provider.tileInsideLimit.bind(provider);
         }
         if (provider.getPossibleTextureImprovements) {
-            layer.getPossibleTextureImprovements = provider
+            obj.getPossibleTextureImprovements = provider
                 .getPossibleTextureImprovements
                 .bind(provider);
         }
         if (provider.tileTextureCount) {
-            layer.tileTextureCount = provider.tileTextureCount.bind(provider);
+            obj.tileTextureCount = provider.tileTextureCount.bind(provider);
         }
     }
 
-    if (!layer.whenReady) {
-        if (!layer.object3d) {
+    if (!obj.whenReady) {
+        if (!obj.object3d) {
             // layer.threejsLayer *must* be assigned before preprocessing,
             // because TileProvider.preprocessDataLayer function uses it.
-            layer.threejsLayer = instance.mainLoop.gfxEngine.getUniqueThreejsLayer();
+            obj.threejsLayer = instance.mainLoop.gfxEngine.getUniqueThreejsLayer();
         }
         let providerPreprocessing = Promise.resolve();
         if (provider && provider.preprocessDataLayer) {
             providerPreprocessing = provider.preprocessDataLayer(
-                layer, instance, instance.mainLoop.scheduler, parentLayer,
+                obj, instance, instance.mainLoop.scheduler, parentLayer,
             );
             if (!(providerPreprocessing && providerPreprocessing.then)) {
                 providerPreprocessing = Promise.resolve();
@@ -701,17 +701,17 @@ function _preprocessObject(instance, layer, provider, parentLayer) {
         }
 
         // the last promise in the chain must return the layer
-        layer.whenReady = providerPreprocessing.then(() => {
-            layer.ready = true;
-            return layer;
+        obj.whenReady = providerPreprocessing.then(() => {
+            obj.ready = true;
+            return obj;
         });
     }
 
     // probably not the best place to do this
-    defineLayerProperty(layer, 'visible', true, () => _syncGeometryLayerVisibility(layer, instance));
-    defineLayerProperty(layer, 'frozen', false);
-    _syncGeometryLayerVisibility(layer, instance);
-    return layer;
+    defineLayerProperty(obj, 'visible', true, () => _syncEntityVisibility(obj, instance));
+    defineLayerProperty(obj, 'frozen', false);
+    _syncEntityVisibility(obj, instance);
+    return obj;
 }
 
 function objectIdToObject(instance, layerId) {

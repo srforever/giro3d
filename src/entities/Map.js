@@ -123,14 +123,14 @@ function findNeighbours(node) {
 
 const tmpVector = new THREE.Vector3();
 
-function updateMinMaxDistance(context, layer, node) {
+function updateMinMaxDistance(context, map, node) {
     const bbox = node.OBB().box3D.clone()
         .applyMatrix4(node.OBB().matrixWorld);
     const distance = context.distance.plane
         .distanceToPoint(bbox.getCenter(tmpVector));
     const radius = bbox.getSize(tmpVector).length() * 0.5;
-    layer._distance.min = Math.min(layer._distance.min, distance - radius);
-    layer._distance.max = Math.max(layer._distance.max, distance + radius);
+    map._distance.min = Math.min(map._distance.min, distance - radius);
+    map._distance.max = Math.max(map._distance.max, distance + radius);
 }
 
 // TODO: maxLevel should be deduced from layers
@@ -162,13 +162,13 @@ function testTileSSE(tile, sse, maxLevel) {
     return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
 }
 
-function subdivideNode(context, layer, node) {
-    if (!node.children.some(n => n.layer === layer)) {
+function subdivideNode(context, map, node) {
+    if (!node.children.some(n => n.layer === map)) {
         const extents = node.extent.quadtreeSplit();
 
         for (const extent of extents) {
             const child = requestNewTile(
-                context.view, context.scheduler, layer, extent, node,
+                context.view, context.scheduler, map, extent, node,
             );
             node.add(child);
 
@@ -190,23 +190,23 @@ function subdivideNode(context, layer, node) {
     }
 }
 
-function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
+function requestNewTile(view, scheduler, map, extent, parent, level) {
     const command = {
         /* mandatory */
         view,
         requester: parent,
-        layer: geometryLayer,
+        layer: map,
         priority: 10000,
         /* specific params */
         extent,
         level,
         redraw: false,
-        threejsLayer: geometryLayer.threejsLayer,
+        threejsLayer: map.threejsLayer,
     };
 
     const node = scheduler.execute(command);
     node.add(node.OBB());
-    geometryLayer.onTileCreated(geometryLayer, parent, node);
+    map.onTileCreated(map, parent, node);
 
     return node;
 }

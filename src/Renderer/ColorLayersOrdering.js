@@ -1,6 +1,6 @@
 import { ImageryLayers } from '../Core/Layer/Layer.js';
 
-function updateLayersOrdering(geometryLayer, imageryLayers) {
+function updateLayersOrdering(entity, imageryLayers) {
     const sequence = ImageryLayers.getColorLayersIdOrderedBySequence(imageryLayers);
     const cO = function cO(object) {
         if (object.changeSequenceLayers) {
@@ -8,7 +8,7 @@ function updateLayersOrdering(geometryLayer, imageryLayers) {
         }
     };
 
-    for (const node of geometryLayer.level0Nodes) {
+    for (const node of entity.level0Nodes) {
         node.traverse(cO);
     }
 }
