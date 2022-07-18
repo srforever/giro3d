@@ -103,10 +103,12 @@ export default {
     // Compute a "visible" error: project geometricError in meter on screen,
     // based on a bounding box and a transformation matrix.
     computeFromBox3(camera, box3, matrix, geometricError, mode) {
-        const distance = findBox3Distance(camera, box3, matrix);
-
-        if (distance <= geometricError) {
-            return null;
+        // If the camera is orthographic, there is no need to do this check.
+        if (!camera.camera3D.isOrthographicCamera) {
+            const distance = findBox3Distance(camera, box3, matrix);
+            if (distance <= geometricError) {
+                return null;
+            }
         }
 
         const size = computeSizeFromGeometricError(
