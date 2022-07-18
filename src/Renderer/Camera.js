@@ -2,9 +2,21 @@
  * Wrapper around three.js camera to expose some geographic helpers.
  */
 
+/** @module Renderer/Camera */
+
 import * as THREE from 'three';
 import Coordinates from '../Core/Geographic/Coordinates.js';
 
+/**
+ * A giro3d camera
+ *
+ * @api
+ * @param {string} crs the CRD of this camera
+ * @param {number} width the width in pixels of the camera viewport
+ * @param {number} height the height in pixels of the camera viewport
+ * @param {object} options optional values
+ * @param {THREE.Camera} options.camera the THREE camera to use
+ */
 function Camera(crs, width, height, options = {}) {
     Object.defineProperty(this, 'crs', { get: () => crs });
 

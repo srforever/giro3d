@@ -74,33 +74,51 @@ export const defineLayerProperty = function defineLayerProperty(layer,
 };
 
 /**
- * Layers are objects that can be added to the scene.
+ * Layers are components of {@link module:entities/Map~Map Maps}.
+ * A layer type can be either `color` (such as satellite imagery or maps),
+ * or `elevation` (to describe terrain elevation).
+ *
+ * Layer objects are not directly added to the map, but returned with
+ * {@link module:entities/Map~Map#addLayer addLayer()}.
+ *
+ *     // Create a layer source
+ *     var source = new giro3d.olsource.TileWMS({options});
+ *
+ *     // Add and create a new Layer to a map.
+ *     const newLayer = map.addLayer({
+ *         id: 'myColorLayer',
+ *         type: 'color',
+ *         protocol: 'oltile',
+ *         source: source,
+ *         updateStrategy: {
+ *             type: giro3d.STRATEGY_DICHOTOMY,
+ *             options: {},
+ *         }
+ *     });
+ *
+ *     // Change layer's visibilty
+ *     const layerToChange = map.getLayers(layer => layer.id === 'idLayerToChange')[0];
+ *     layerToChange.visible = false;
+ *     instance.notifyChange(); // update viewer
+ *
+ *     // Change layer's opacity
+ *     const layerToChange = view.getLayers(layer => layer.id === 'idLayerToChange')[0];
+ *     layerToChange.opacity = 0.5;
+ *     instance.notifyChange(); // update viewer
+ *
+ *     // Listen to properties
+ *     const layerToListen = map.getLayers(layer => layer.id === 'idLayerToListen')[0];
+ *     layerToListen.addEventListener('visible-property-changed', (event) => console.log(event));
+ *     layerToListen.addEventListener('opacity-property-changed', (event) => console.log(event));
  *
  * @api
  */
 class Layer extends EventDispatcher {
     /**
-     * Internal use only. To create a layer,
-     * use {@link module:Core/Instance~Instance#add Instance.add()}
+     * **Internal use only**. To create a layer,
+     * use {@link module:entities/Map~Map#addLayer Map.addLayer()}.
+     * See the example for more information on layer creation.
      *
-     * @example
-     * // add and create a new Layer
-     * const newLayer = view.addLayer({options});
-     *
-     * // Change layer's visibilty
-     * const layerToChange = view.getLayers(layer => layer.id === 'idLayerToChange')[0];
-     * layerToChange.visible = false;
-     * view.notifyChange(); // update viewer
-     *
-     * // Change layer's opacity
-     * const layerToChange = view.getLayers(layer => layer.id === 'idLayerToChange')[0];
-     * layerToChange.opacity = 0.5;
-     * view.notifyChange(); // update viewer
-     *
-     * // Listen properties
-     * const layerToListen = view.getLayers(layer => layer.id === 'idLayerToListen')[0];
-     * layerToListen.addEventListener('visible-property-changed', (event) => console.log(event));
-     * layerToListen.addEventListener('opacity-property-changed', (event) => console.log(event));
      * @protected
      * @param      {string}  id the unique identifier of the layer
      */

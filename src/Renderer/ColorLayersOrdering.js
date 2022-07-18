@@ -1,6 +1,6 @@
 import { ImageryLayers } from '../Core/Layer/Layer.js';
 
-function updateLayersOrdering(geometryLayer, imageryLayers) {
+function updateLayersOrdering(entity, imageryLayers) {
     const sequence = ImageryLayers.getColorLayersIdOrderedBySequence(imageryLayers);
     const cO = function cO(object) {
         if (object.changeSequenceLayers) {
@@ -8,7 +8,7 @@ function updateLayersOrdering(geometryLayer, imageryLayers) {
         }
     };
 
-    for (const node of geometryLayer.level0Nodes) {
+    for (const node of entity.level0Nodes) {
         node.traverse(cO);
     }
 }
@@ -27,7 +27,7 @@ export const ColorLayersOrdering = {
      * @example
      * giro3d.ColorLayersOrdering.moveLayerUp(viewer, 'idLayerToUp');
      */
-    // TODO this should be done per Map / GeometryLayer, not for every color layers
+    // TODO this should be done per Map / Entity3D, not for every color layers
     moveLayerUp: function moveLayerUp(instance, layerId) {
         // TODO should be in map
         const imageryLayers = instance.getLayers(l => l.type === 'color');

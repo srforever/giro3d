@@ -115,8 +115,8 @@ export function getObjectToUpdateForAttachedLayers(meta) {
 }
 
 function preprocessDataLayer(layer, view, scheduler) {
-    layer.preUpdate = layer.preUpdate || pre3dTilesUpdate(layer);
-    layer.update = layer.update || process3dTilesNode(layer);
+    layer.preUpdate = pre3dTilesUpdate(layer);
+    layer.update = process3dTilesNode(layer);
     layer.sseThreshold = layer.sseThreshold || 16;
     layer.cleanupDelay = layer.cleanupDelay || 1000;
     // override the default method, since updated objects are metadata in this case

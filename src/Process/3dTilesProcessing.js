@@ -109,7 +109,7 @@ function boundingVolumeToExtent(crs, volume, transform) {
 }
 
 const tmpMatrix = new THREE.Matrix4();
-function _subdivideNodeAdditive(context, layer, node, cullingTest) {
+function _subdivideNodeAdditive(ctx, layer, node, cullingTest) {
     for (const child of layer.tileIndex.index[node.tileId].children) {
         // child being downloaded or already added => skip
         if (child.promise || node.children.filter(n => n.tileId === child.tileId).length > 0) {
@@ -124,14 +124,14 @@ function _subdivideNodeAdditive(context, layer, node, cullingTest) {
         }
 
         const isVisible = cullingTest
-            ? !cullingTest(context.camera, child, overrideMatrixWorld) : true;
+            ? !cullingTest(ctx.camera, child, overrideMatrixWorld) : true;
 
         // child is not visible => skip
         if (!isVisible) {
             continue;
         }
 
-        child.promise = requestNewTile(context.view, context.scheduler, layer, child, node, true)
+        child.promise = requestNewTile(ctx.instance, ctx.scheduler, layer, child, node, true)
             .then(tile => {
                 if (!tile || !node.parent) {
                     // cancelled promise or node has been deleted
@@ -146,7 +146,7 @@ function _subdivideNodeAdditive(context, layer, node, cullingTest) {
                         obj.extent = extent;
                     });
 
-                    context.view.notifyChange(child);
+                    ctx.instance.notifyChange(child);
                 }
                 delete child.promise;
             }, () => {
@@ -175,7 +175,7 @@ function _subdivideNodeSubstractive(context, layer, node) {
     // Substractive (refine = 'REPLACE') is an all or nothing subdivision mode
     const promises = [];
     for (const child of layer.tileIndex.index[node.tileId].children) {
-        const p = requestNewTile(context.view, context.scheduler, layer, child, node, false)
+        const p = requestNewTile(context.instance, context.scheduler, layer, child, node, false)
             .then(tile => {
                 node.add(tile);
                 tile.updateMatrixWorld();
@@ -191,7 +191,7 @@ function _subdivideNodeSubstractive(context, layer, node) {
     }
     Promise.all(promises).then(() => {
         node.pendingSubdivision = false;
-        context.view.notifyChange(node);
+        context.instance.notifyChange(node);
     }, () => {
         node.pendingSubdivision = false;
 

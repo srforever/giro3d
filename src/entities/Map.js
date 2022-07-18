@@ -1,21 +1,21 @@
 /**
- * @module Core/Map
+ * @module entities/Map
  */
 import * as THREE from 'three';
 
-import Coordinates from './Geographic/Coordinates.js';
-import Extent from './Geographic/Extent.js';
-import Layer, { defineLayerProperty } from './Layer/Layer.js';
-import GeometryLayer from './Layer/GeometryLayer.js';
-import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
-import PlanarTileBuilder from './Prefab/Planar/PlanarTileBuilder.js';
+import Coordinates from '../Core/Geographic/Coordinates.js';
+import Extent from '../Core/Geographic/Extent.js';
+import Layer, { defineLayerProperty } from '../Core/Layer/Layer.js';
+import Entity3D from './Entity3D.js';
+import { STRATEGY_MIN_NETWORK_TRAFFIC } from '../Core/Layer/LayerUpdateStrategy.js';
+import PlanarTileBuilder from '../Core/Prefab/Planar/PlanarTileBuilder.js';
 import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
 import ElevationTextureProcessing, { minMaxFromTexture } from '../Process/ElevationTextureProcessing.js';
 import SubdivisionControl from '../Process/SubdivisionControl.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
-import Picking from './Picking.js';
-import ScreenSpaceError from './ScreenSpaceError.js';
+import Picking from '../Core/Picking.js';
+import ScreenSpaceError from '../Core/ScreenSpaceError.js';
 
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = (tileCount * x) / layerDimension.x;
@@ -123,14 +123,14 @@ function findNeighbours(node) {
 
 const tmpVector = new THREE.Vector3();
 
-function updateMinMaxDistance(context, layer, node) {
+function updateMinMaxDistance(context, map, node) {
     const bbox = node.OBB().box3D.clone()
         .applyMatrix4(node.OBB().matrixWorld);
     const distance = context.distance.plane
         .distanceToPoint(bbox.getCenter(tmpVector));
     const radius = bbox.getSize(tmpVector).length() * 0.5;
-    layer._distance.min = Math.min(layer._distance.min, distance - radius);
-    layer._distance.max = Math.max(layer._distance.max, distance + radius);
+    map._distance.min = Math.min(map._distance.min, distance - radius);
+    map._distance.max = Math.max(map._distance.max, distance + radius);
 }
 
 // TODO: maxLevel should be deduced from layers
@@ -162,13 +162,13 @@ function testTileSSE(tile, sse, maxLevel) {
     return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
 }
 
-function subdivideNode(context, layer, node) {
-    if (!node.children.some(n => n.layer === layer)) {
+function subdivideNode(context, map, node) {
+    if (!node.children.some(n => n.layer === map)) {
         const extents = node.extent.quadtreeSplit();
 
         for (const extent of extents) {
             const child = requestNewTile(
-                context.view, context.scheduler, layer, extent, node,
+                context.instance, context.scheduler, map, extent, node,
             );
             node.add(child);
 
@@ -186,37 +186,41 @@ function subdivideNode(context, layer, node) {
 
             child.updateMatrixWorld(true);
         }
-        context.view.notifyChange(node);
+        context.instance.notifyChange(node);
     }
 }
 
-function requestNewTile(view, scheduler, geometryLayer, extent, parent, level) {
+function requestNewTile(view, scheduler, map, extent, parent, level) {
     const command = {
         /* mandatory */
         view,
         requester: parent,
-        layer: geometryLayer,
+        layer: map,
         priority: 10000,
         /* specific params */
         extent,
         level,
         redraw: false,
-        threejsLayer: geometryLayer.threejsLayer,
+        threejsLayer: map.threejsLayer,
     };
 
     const node = scheduler.execute(command);
     node.add(node.OBB());
-    geometryLayer.onTileCreated(geometryLayer, parent, node);
+    map.onTileCreated(map, parent, node);
 
     return node;
 }
 
 /**
- * a Map object: base object to add map layers
+ * A map is an {@link module:entities/Entity~Entity Entity} that represents a flat
+ * surface displaying one or more {@link module:Core/Layer/Layer~Layer Layers}.
+ *
+ * If an elevation layer is added, the surface of the map is deformed to
+ * display terrain.
  *
  * @api
  */
-class Map extends GeometryLayer {
+class Map extends Entity3D {
     /**
      * Constructs a Map object.
      *
@@ -448,7 +452,7 @@ class Map extends GeometryLayer {
 
     // TODO this whole function should be either in providers or in layers
     _preprocessLayer(layer, provider) {
-        if (!(layer instanceof Layer) && !(layer instanceof GeometryLayer)) {
+        if (!(layer instanceof Layer) && !(layer instanceof Entity3D)) {
             const nlayer = new Layer(layer.id);
             // nlayer.id is read-only so delete it from layer before Object.assign
             const tmp = layer;
@@ -537,6 +541,8 @@ class Map extends GeometryLayer {
     }
 
     /**
+     * Adds a layer from the specified options, then returns the created layer.
+     *
      * @param {object} layer an object describing the layer options creation
      * @param {string} layer.id the unique identifier of the layer
      * @param {string} layer.type the layer type (<code>'color'</code> or <code>'elevation'</code>)
