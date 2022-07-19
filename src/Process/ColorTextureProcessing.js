@@ -35,7 +35,7 @@ function initColorTexturesFromParent(context, node, parent, layer) {
     node.material.setLayerTextures(layer, {
         texture,
         pitch: extent.offsetToParent(texture.extent),
-    }, true, context.view);
+    }, true, context.instance);
     return true;
 }
 
@@ -102,7 +102,7 @@ export default {
             material.pushLayer(layer, node.getExtentForLayer(layer));
 
             if (parent && initColorTexturesFromParent(context, node, parent, layer)) {
-                context.view.notifyChange(node, false);
+                context.instance.notifyChange(node, false);
                 return null;
             }
         }
@@ -148,7 +148,7 @@ export default {
         node.layerUpdateState[layer.id].newTry();
         const command = {
             /* mandatory */
-            view: context.view,
+            view: context.instance,
             layer,
             requester: node,
             priority: nodeCommandQueuePriorityFunction(node),
@@ -162,7 +162,7 @@ export default {
                     return null;
                 }
 
-                return node.material.setLayerTextures(layer, result, false, context.view)
+                return node.material.setLayerTextures(layer, result, false, context.instance)
                     .then(() => {
                         node.layerUpdateState[layer.id].success();
                     });
@@ -176,7 +176,7 @@ export default {
                     node.layerUpdateState[layer.id].failure(Date.now(), definitiveError, err);
                     if (!definitiveError) {
                         window.setTimeout(() => {
-                            context.view.notifyChange(node, false);
+                            context.instance.notifyChange(node, false);
                         }, node.layerUpdateState[layer.id].secondsUntilNextTry() * 1000);
                     }
                 }

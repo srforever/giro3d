@@ -8,7 +8,7 @@ import TileGeometry from '../Core/TileGeometry.js';
 import TileMesh from '../Core/TileMesh.js';
 import LayeredMaterial from '../Renderer/LayeredMaterial.js';
 import Cache from '../Core/Scheduler/Cache.js';
-import { requestNewTile } from '../Core/Map.js';
+import { requestNewTile } from '../entities/Map.js';
 
 function preprocessDataLayer(layer, view, scheduler) {
     if (!layer.schemeTile) {

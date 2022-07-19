@@ -24,7 +24,7 @@ describe('ColorTextureProcessing.updateLayerElement', () => {
 
     // Mock scheduler
     const context = {
-        view: {
+        instance: {
             notifyChange: () => true,
             getLayers: () => [layer],
         },

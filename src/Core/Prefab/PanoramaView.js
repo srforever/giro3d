@@ -2,13 +2,13 @@ import * as THREE from 'three';
 
 import Instance from '../Instance.js';
 
-import GeometryLayer from '../Layer/GeometryLayer.js';
+import Entity3D from '../../entities/Entity3D.js';
 import Extent from '../Geographic/Extent.js';
 import PanoramaTileBuilder from './Panorama/PanoramaTileBuilder.js';
 import ProjectionType from './Panorama/Constants.js';
 
 export function createPanoramaLayer(id, coordinates, type, options = {}) {
-    const tileLayer = new GeometryLayer(id, options.object3d || new THREE.Group());
+    const tileLayer = new Entity3D(id, options.object3d || new THREE.Group());
 
     coordinates.xyz(tileLayer.object3d.position);
     tileLayer.object3d.quaternion.setFromUnitVectors(

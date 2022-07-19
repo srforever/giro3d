@@ -1,9 +1,10 @@
 import {
-    Vector3, Plane, EventDispatcher, Math as ThreeMath, Sphere,
+    EventDispatcher, Math as ThreeMath, Sphere,
 } from 'three';
 import Layer from './Layer/Layer.js';
-import GeometryLayer from './Layer/GeometryLayer.js';
+import Entity3D from '../entities/Entity3D.js';
 import Cache from './Scheduler/Cache.js';
+import Context from './Context.js';
 
 export const RENDERING_PAUSED = 0;
 export const RENDERING_SCHEDULED = 1;
@@ -65,17 +66,17 @@ MainLoop.prototype.scheduleUpdate = function scheduleUpdate(instance, forceRedra
     }
 };
 
-function updateElements(context, geometryLayer, elements) {
+function updateElements(context, entity, elements) {
     if (!elements) {
         return;
     }
     for (const element of elements) {
         // update element
-        // TODO find a way to notify attachedLayers when geometryLayer deletes some elements
+        // TODO find a way to notify attachedLayers when entity deletes some elements
         // and then update Debug.js:addGeometryLayerDebugFeatures
-        const newElementsToUpdate = geometryLayer.update(context, element);
+        const newElementsToUpdate = entity.update(context, element);
 
-        const sub = geometryLayer.getObjectToUpdateForAttachedLayers(element);
+        const sub = entity.getObjectToUpdateForAttachedLayers(element);
 
         if (sub) {
             if (sub.element) {
@@ -87,7 +88,7 @@ function updateElements(context, geometryLayer, elements) {
                     }
                 }
                 // update attached layers
-                for (const attachedLayer of geometryLayer._attachedLayers) {
+                for (const attachedLayer of entity._attachedLayers) {
                     if (attachedLayer.ready) {
                         attachedLayer.update(context, attachedLayer, sub.element, sub.parent);
                     }
@@ -100,7 +101,7 @@ function updateElements(context, geometryLayer, elements) {
                             Must be a THREE.Object and have a THREE.Material`);
                     }
                     // update attached layers
-                    for (const attachedLayer of geometryLayer._attachedLayers) {
+                    for (const attachedLayer of entity._attachedLayers) {
                         if (attachedLayer.ready) {
                             attachedLayer.update(
                                 context, attachedLayer, sub.elements[i], sub.parent,
@@ -110,47 +111,25 @@ function updateElements(context, geometryLayer, elements) {
                 }
             }
         }
-        updateElements(context, geometryLayer, newElementsToUpdate);
+        updateElements(context, entity, newElementsToUpdate);
     }
 }
 
-function filterChangeSources(updateSources, geometryLayer) {
+function filterChangeSources(updateSources, entity) {
     let fullUpdate = false;
     const filtered = new Set();
     updateSources.forEach(src => {
-        if (src === geometryLayer || src.isCamera) {
+        if (src === entity || src.isCamera) {
             fullUpdate = true;
-        } else if (src.layer === geometryLayer) {
+        } else if (src.layer === entity) {
             filtered.add(src);
         }
     });
-    return fullUpdate ? new Set([geometryLayer]) : filtered;
+    return fullUpdate ? new Set([entity]) : filtered;
 }
 
 MainLoop.prototype._update = function _update(instance, updateSources, dt) {
-    const context = {
-        // Instance's camera
-        camera: instance.camera,
-        // Command scheduler
-        scheduler: this.scheduler,
-        // The instance
-        view: instance, // TODO change to instance
-        // Min/max distance to the camera, for all rendered objects.
-        // (processing update function are expected to update this)
-        distance: {
-            plane: new Plane()
-                .setFromNormalAndCoplanarPoint(
-                    instance.camera.camera3D.getWorldDirection(new Vector3()),
-                    instance.camera.camera3D.position, /* TODO matrixWorld */
-                ),
-            min: Infinity,
-            max: 0,
-        },
-        // Attribute allowing processing code to remember whether they
-        // did a full update (in which case fastUpdateHint is undefined)
-        // or a partial update and to act accordingly
-        fastUpdateHint: undefined,
-    };
+    const context = new Context(instance.camera, this.scheduler, instance);
 
     // Reset near/far to default value to allow update function to test
     // visibility using camera's frustum; without depending on the near/far
@@ -166,49 +145,49 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
     updateSources.forEach(src => {
         const layer = src.layer || src;
         if (layer instanceof Layer) {
-            if (!(layer instanceof GeometryLayer)) {
-                // add the parent layer to update sources
-                updateSources.add(instance.getParentLayer(layer));
+            if (!(layer instanceof Entity3D)) {
+                // add the layer owner to update sources
+                updateSources.add(instance.getOwner(layer));
             }
         }
     });
 
-    for (const geometryLayer of instance.getObjects()) {
+    for (const entity of instance.getObjects()) {
         context.fastUpdateHint = undefined;
-        context.geometryLayer = geometryLayer;
-        if (geometryLayer.ready && geometryLayer.visible) {
+        context.entity = entity;
+        if (entity.ready && entity.visible) {
             instance.execFrameRequesters(
-                MAIN_LOOP_EVENTS.BEFORE_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer,
+                MAIN_LOOP_EVENTS.BEFORE_LAYER_UPDATE, dt, this._updateLoopRestarted, entity,
             );
 
-            // Filter updateSources that are relevant for the geometryLayer
-            const srcs = filterChangeSources(updateSources, geometryLayer);
+            // Filter updateSources that are relevant for the entity
+            const srcs = filterChangeSources(updateSources, entity);
             if (srcs.size > 0) {
                 // if we don't have any element in srcs, it means we don't need to update our layer
                 // to display it correctly.  but in this case we still need to use layer._distance
                 // to calculate near / far hence the reset is here, and the update of
                 // context.distance is outside of this if
-                geometryLayer._distance.min = Infinity;
-                geometryLayer._distance.max = 0;
+                entity._distance.min = Infinity;
+                entity._distance.max = 0;
                 // `preUpdate` returns an array of elements to update
-                const elementsToUpdate = geometryLayer.preUpdate(context, srcs);
+                const elementsToUpdate = entity.preUpdate(context, srcs);
                 // `update` is called in `updateElements`.
-                updateElements(context, geometryLayer, elementsToUpdate);
+                updateElements(context, entity, elementsToUpdate);
                 // `postUpdate` is called when this geom layer update process is finished
-                geometryLayer.postUpdate(context, updateSources);
+                entity.postUpdate(context, updateSources);
             }
-            if (geometryLayer._distance) {
-                context.distance.min = Math.min(context.distance.min, geometryLayer._distance.min);
-                if (geometryLayer._distance.max === Infinity) {
+            if (entity._distance) {
+                context.distance.min = Math.min(context.distance.min, entity._distance.min);
+                if (entity._distance.max === Infinity) {
                     context.distance.max = this.maxFar;
                 } else {
                     context.distance.max = Math.max(
-                        context.distance.max, geometryLayer._distance.max,
+                        context.distance.max, entity._distance.max,
                     );
                 }
             }
             instance.execFrameRequesters(
-                MAIN_LOOP_EVENTS.AFTER_LAYER_UPDATE, dt, this._updateLoopRestarted, geometryLayer,
+                MAIN_LOOP_EVENTS.AFTER_LAYER_UPDATE, dt, this._updateLoopRestarted, entity,
             );
         }
     }

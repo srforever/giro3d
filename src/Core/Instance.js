@@ -9,7 +9,7 @@ import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../Renderer/c3DEngine.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
 import Layer, { defineLayerProperty } from './Layer/Layer.js';
-import GeometryLayer from './Layer/GeometryLayer.js';
+import Entity3D from '../entities/Entity3D.js';
 import Scheduler from './Scheduler/Scheduler.js';
 import Picking from './Picking.js';
 import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh.js';
@@ -41,8 +41,9 @@ export const INSTANCE_EVENTS = {
 const _eventCoords = new Vector2();
 
 /**
- * The instance is the core component of Giro3D. It encapsulates the 3D scene, the current camera
- * and one or more 3D objects, like a {@link module:Core/Map~Map Map}.
+ * The instance is the core component of Giro3D. It encapsulates the 3D scene,
+ * the current camera and one or more {@link module:entities/Entity~Entity entities},
+ * such as a {@link module:entities/Map~Map Map}.
  *
  *     // example of Giro3D instanciation
  *     let instance = new giro3d.Instance(viewerDiv, extent.crs(), {camera: camera})
@@ -80,17 +81,21 @@ class Instance extends EventDispatcher {
 
         this.referenceCrs = options.crs || 'EPSG:3857';
 
-        let engine;
-        // options.renderer can be 2 separate things:
-        //   - an actual renderer (in this case we don't use viewerDiv)
-        //   - options for the renderer to be created
-        if (options.renderer && options.renderer.domElement) {
-            engine = new C3DEngine(options.renderer);
+        if (options.mainLoop) {
+            this.mainLoop = options.mainLoop;
         } else {
-            engine = new C3DEngine(viewerDiv, options.renderer);
-        }
+            let engine;
 
-        this.mainLoop = options.mainLoop || new MainLoop(new Scheduler(), engine);
+            // options.renderer can be 2 separate things:
+            //   - an actual renderer (in this case we don't use viewerDiv)
+            //   - options for the renderer to be created
+            if (options.renderer && options.renderer.domElement) {
+                engine = new C3DEngine(options.renderer);
+            } else {
+                engine = new C3DEngine(viewerDiv, options.renderer);
+            }
+            this.mainLoop = new MainLoop(new Scheduler(), engine);
+        }
 
         this.scene = options.scene3D || new Scene();
         // will contain simple three objects that need to be taken into
@@ -153,59 +158,16 @@ class Instance extends EventDispatcher {
     }
 
     /**
-     * @property {string} id Unique layer's id
-     * @property {string} type the layer's type : 'color', 'elevation', 'geometry'
-     * @property {string} protocol wmts and wms (wmtsc for custom deprecated)
-     * @property {string} url Base URL of the repository or of the file(s) to load
-     * @property {string} format Format of this layer. See individual providers to check which
-     * formats are supported for a given layer type.
-     * @property {object} networkOptions Options for fetching resources over network
-     * @property {object} updateStrategy strategy to load imagery files
-     * @property {object} options WMTS or WMS options
-     */
-
-    /**
-     * Add layer in instance.
-     * The layer id must be unique.
-     *
-     * This function calls `preprocessDataLayer` of the relevant provider with this
-     * layer and set `layer.whenReady` to a promise that resolves when
-     * the preprocessing operation is done. This promise is also returned by
-     * `addLayer` allowing to chain call.
+     * Add THREE object or Entity to the instance.
+     * The entity `id` must be unique.
      *
      * @example
-     * // Add Color Layer
-     * instance.addLayer({
-     *      type: 'elevation',
-     *      id: 'iElevation',
-     * });
+     * // Add Map to instance
+     * instance.add(new Map('myMap', myMapExtent));
      *
-     * // Example to add an OPENSM Layer
-     * instance.addLayer({
-     *   type: 'color',
-     *   protocol:   'xyz',
-     *   id:         'OPENSM',
-     *   fx: 2.5,
-     *   url:  'http://b.tile.openstreetmap.fr/osmfr/${z}/${x}/${y}.png',
-     *   format: 'image/png',
-     *   options: {
-     *       attribution : {
-     *           name: 'OpenStreetMap',
-     *           url: 'http://www.openstreetmap.org/',
-     *       },
-     *       tileMatrixSet: 'PM',
-     *    },
-     * });
-     *
-     * // Add Elevation Layer and do something once it's ready
-     * var layer = instance.addLayer({
-     *      type: 'elevation',
-     *      id: 'iElevation',
-     * }).then(() => { .... });
-     *
-     * // One can also attach a callback to the same promise with a layer instance.
-     * layer.whenReady.then(() => { ... });
-     * @param {object|Layer|GeometryLayer} object the layer to add
+     * // Add Map to instance then wait for the map to be ready.
+     * instance.add(new Map('myMap', myMapExtent)).then(...);
+     * @param {Object3D|Entity3D} object the object to add
      * @returns {Promise} a promise resolved with the new layer object when it is fully initialized
      * or rejected if any error occurred.
      * @api
@@ -239,11 +201,11 @@ class Instance extends EventDispatcher {
             this._objects.push(object);
             object.whenReady.then(l => {
                 if (typeof (l.update) !== 'function') {
-                    reject(new Error('Cant add GeometryLayer: missing a update function'));
+                    reject(new Error('Cant add Entity3D: missing a update function'));
                     return;
                 }
                 if (typeof (l.preUpdate) !== 'function') {
-                    reject(new Error('Cant add GeometryLayer: missing a preUpdate function'));
+                    reject(new Error('Cant add Entity3D: missing a preUpdate function'));
                     return;
                 }
 
@@ -340,43 +302,43 @@ class Instance extends EventDispatcher {
      * // get all objects
      * instance.getObjects();
      * // get one layer with id
-     * instance.getObjects(layer => layer.id === 'itt');
-     * @param {function(GeometryLayer):boolean} filter the optional query filter
+     * instance.getObjects(obj => obj.id === 'itt');
+     * @param {function(Entity3D):boolean} filter the optional query filter
      * @returns {Array<Layer>} an array containing the queried layers
      */
     getObjects(filter) {
         const result = [];
-        for (const geometryLayer of this._objects) {
-            if (!filter || filter(geometryLayer)) {
-                result.push(geometryLayer);
+        for (const obj of this._objects) {
+            if (!filter || filter(obj)) {
+                result.push(obj);
             }
         }
         return result;
     }
 
     /**
-     * Get all the layers attached to all the GeometryLayer of this objects
+     * Get all the layers attached to all the entities in this instance.
      *
      * @param {function(Layer):boolean} filter Optional filter function for attached layers
      * @returns {Array<Layer>} the layers attached to the geometry layers
      */
     getLayers(filter) {
         let result = [];
-        for (const geometryLayer of this._objects) {
-            result = result.concat(geometryLayer.getLayers(filter));
+        for (const obj of this._objects) {
+            result = result.concat(obj.getLayers(filter));
         }
         return result;
     }
 
     /**
      * @param {Layer} layer the layer to test
-     * @returns {GeometryLayer} the parent layer of the given layer or undefined.
+     * @returns {Entity3D} the parent entity of the given layer or null if no owner was found.
      */
-    getParentLayer(layer) {
-        for (const geometryLayer of this._objects) {
-            for (const attached of geometryLayer._attachedLayers) {
+    getOwner(layer) {
+        for (const obj of this._objects) {
+            for (const attached of obj._attachedLayers) {
                 if (attached === layer) {
-                    return geometryLayer;
+                    return obj;
                 }
             }
         }
@@ -576,7 +538,7 @@ class Instance extends EventDispatcher {
         radius = radius || 0;
 
         for (const source of sources) {
-            if (source instanceof GeometryLayer
+            if (source instanceof Entity3D
                 || source instanceof Layer
                 || typeof (source) === 'string') {
                 const object = (typeof (source) === 'string')
@@ -675,63 +637,63 @@ class Instance extends EventDispatcher {
     }
 }
 
-const _syncGeometryLayerVisibility = function _syncGeometryLayerVisibility(layer, instance) {
-    if (layer.object3d) {
-        layer.object3d.visible = layer.visible;
+const _syncEntityVisibility = function _syncEntityVisibility(entity, instance) {
+    if (entity.object3d) {
+        entity.object3d.visible = entity.visible;
     }
 
-    if (layer.threejsLayer) {
-        if (layer.visible) {
-            instance.camera.camera3D.layers.enable(layer.threejsLayer);
+    if (entity.threejsLayer) {
+        if (entity.visible) {
+            instance.camera.camera3D.layers.enable(entity.threejsLayer);
         } else {
-            instance.camera.camera3D.layers.disable(layer.threejsLayer);
+            instance.camera.camera3D.layers.disable(entity.threejsLayer);
         }
     }
 };
 
-function _preprocessObject(instance, layer, provider, parentLayer) {
-    if (!(layer instanceof Layer) && !(layer instanceof GeometryLayer)) {
-        const nlayer = new Layer(layer.id);
+function _preprocessObject(instance, obj, provider, parentLayer) {
+    if (!(obj instanceof Layer) && !(obj instanceof Entity3D)) {
+        const nlayer = new Layer(obj.id);
         // nlayer.id is read-only so delete it from layer before Object.assign
-        const tmp = layer;
+        const tmp = obj;
         delete tmp.id;
-        layer = Object.assign(nlayer, layer);
+        obj = Object.assign(nlayer, obj);
         // restore layer.id in user provider layer object
-        tmp.id = layer.id;
+        tmp.id = obj.id;
     }
 
-    layer.options = layer.options || {};
+    obj.options = obj.options || {};
 
-    if (!layer.updateStrategy) {
-        layer.updateStrategy = {
+    if (!obj.updateStrategy) {
+        obj.updateStrategy = {
             type: STRATEGY_MIN_NETWORK_TRAFFIC,
         };
     }
 
     if (provider) {
         if (provider.tileInsideLimit) {
-            layer.tileInsideLimit = provider.tileInsideLimit.bind(provider);
+            obj.tileInsideLimit = provider.tileInsideLimit.bind(provider);
         }
         if (provider.getPossibleTextureImprovements) {
-            layer.getPossibleTextureImprovements = provider
+            obj.getPossibleTextureImprovements = provider
                 .getPossibleTextureImprovements
                 .bind(provider);
         }
         if (provider.tileTextureCount) {
-            layer.tileTextureCount = provider.tileTextureCount.bind(provider);
+            obj.tileTextureCount = provider.tileTextureCount.bind(provider);
         }
     }
 
-    if (!layer.whenReady) {
-        if (!layer.object3d) {
+    if (!obj.whenReady) {
+        if (!obj.object3d) {
             // layer.threejsLayer *must* be assigned before preprocessing,
             // because TileProvider.preprocessDataLayer function uses it.
-            layer.threejsLayer = instance.mainLoop.gfxEngine.getUniqueThreejsLayer();
+            obj.threejsLayer = instance.mainLoop.gfxEngine.getUniqueThreejsLayer();
         }
         let providerPreprocessing = Promise.resolve();
         if (provider && provider.preprocessDataLayer) {
             providerPreprocessing = provider.preprocessDataLayer(
-                layer, instance, instance.mainLoop.scheduler, parentLayer,
+                obj, instance, instance.mainLoop.scheduler, parentLayer,
             );
             if (!(providerPreprocessing && providerPreprocessing.then)) {
                 providerPreprocessing = Promise.resolve();
@@ -739,17 +701,17 @@ function _preprocessObject(instance, layer, provider, parentLayer) {
         }
 
         // the last promise in the chain must return the layer
-        layer.whenReady = providerPreprocessing.then(() => {
-            layer.ready = true;
-            return layer;
+        obj.whenReady = providerPreprocessing.then(() => {
+            obj.ready = true;
+            return obj;
         });
     }
 
     // probably not the best place to do this
-    defineLayerProperty(layer, 'visible', true, () => _syncGeometryLayerVisibility(layer, instance));
-    defineLayerProperty(layer, 'frozen', false);
-    _syncGeometryLayerVisibility(layer, instance);
-    return layer;
+    defineLayerProperty(obj, 'visible', true, () => _syncEntityVisibility(obj, instance));
+    defineLayerProperty(obj, 'frozen', false);
+    _syncEntityVisibility(obj, instance);
+    return obj;
 }
 
 function objectIdToObject(instance, layerId) {

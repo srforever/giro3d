@@ -1,9 +1,9 @@
 export default {
     preUpdate: (context, layer) => {
-        context.colorLayers = context.view.getLayers(
+        context.colorLayers = context.instance.getLayers(
             (l, a) => a && a.id === layer.id && l.type === 'color',
         );
-        context.elevationLayers = context.view.getLayers(
+        context.elevationLayers = context.instance.getLayers(
             (l, a) => a && a.id === layer.id && l.type === 'elevation',
         );
     },

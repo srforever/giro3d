@@ -1,30 +1,29 @@
 /**
- * @module Core/Layer/GeometryLayer
+ * @module entities/Entity3D
  */
-import { Color, EventDispatcher } from 'three';
+import { Color } from 'three';
 
-import { defineLayerProperty } from './Layer.js';
-import Picking from '../Picking.js';
-import AtlasBuilder from '../../Renderer/AtlasBuilder.js';
-import Capabilities from '../System/Capabilities.js';
+import { defineLayerProperty } from '../Core/Layer/Layer.js';
+import Picking from '../Core/Picking.js';
+import AtlasBuilder from '../Renderer/AtlasBuilder.js';
+import Capabilities from '../Core/System/Capabilities.js';
+import Entity from './Entity.js';
+import eventDispatcher from '../Core/eventDispatcher.js';
 
 /**
- * A layer containing a Three.js object.
+ * An {@link module:Entity~Entity entities} that display 3D objects.
  *
  * @api
  */
-export default class GeometryLayer extends EventDispatcher {
+class Entity3D extends Entity {
     /**
-     * Creates a GeometryLayer with the specified parameters.
+     * Creates a Entity3D with the specified parameters.
      *
-     * @param {string} id the unique identifier of this layer
-     * @param {module:three.Object3D} object3d the Three.js object to put in this layer
+     * @param {string} id the unique identifier of this entity
+     * @param {module:three.Object3D} object3d the root Three.js of this entity
      */
     constructor(id, object3d) {
-        super();
-        if (!id) {
-            throw new Error('Missing id parameter (GeometryLayer must have a unique id defined)');
-        }
+        super(id);
         if (!object3d || !object3d.isObject3D) {
             throw new Error(
                 'Missing/Invalid object3d parameter (must be a three.js Object3D instance)',
@@ -41,11 +40,6 @@ export default class GeometryLayer extends EventDispatcher {
 
         Object.defineProperty(this, 'object3d', {
             value: object3d,
-            writable: false,
-        });
-
-        Object.defineProperty(this, 'id', {
-            value: id,
             writable: false,
         });
 
@@ -154,9 +148,6 @@ export default class GeometryLayer extends EventDispatcher {
         this._distance = { min: Infinity, max: 0 };
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    postUpdate() {}
-
     /**
      * Picks objects given a position and a radius from the layer.
      *
@@ -214,3 +205,7 @@ export default class GeometryLayer extends EventDispatcher {
         return result;
     }
 }
+
+Object.assign(Entity3D.prototype, eventDispatcher);
+
+export default Entity3D;

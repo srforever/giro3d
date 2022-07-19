@@ -196,7 +196,7 @@
 
                     // Configure Point Cloud layer
                     // TODO create a pointcloud object
-                    pointcloud = new giro3d.GeometryLayer('pointcloud', new giro3d.THREE.Group());
+                    pointcloud = new giro3d.Entity3D('pointcloud', new giro3d.THREE.Group());
                     pointcloud.file = fileName || 'infos/sources';
                     pointcloud.protocol = potree ? 'potreeconverter' : '3d-tiles';
                     pointcloud.url = serverUrl;

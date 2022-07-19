@@ -33,7 +33,7 @@ function applyOffset(obj, offset, quaternion, offsetAltitude) {
 const quaternion = new THREE.Quaternion();
 export default {
     update(layer) {
-        return function _update(context, node) {
+        return function _update(ctx, node) {
             if (!node.parent && node.children.length) {
                 // if node has been removed dispose three.js resource
                 ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, node);
@@ -82,12 +82,12 @@ export default {
 
             const command = {
                 layer,
-                view: context.view,
+                view: ctx.instance,
                 threejsLayer: layer.threejsLayer,
                 requester: node,
             };
 
-            return context.scheduler.execute(command).then(result => {
+            return ctx.scheduler.execute(command).then(result => {
                 // if request return empty json, WFSProvider.getFeatures return undefined
                 if (result) {
                     // call onMeshCreated callback if needed
@@ -102,7 +102,7 @@ export default {
                     // We don't use node.matrixWorld here, because feature coordinates are
                     // expressed in crs coordinates (which may be different than world coordinates,
                     // if node's layer is attached to an Object with a non-identity transformation)
-                    const tmp = node.extent.center().as(context.view.referenceCrs).xyz().negate();
+                    const tmp = node.extent.center().as(ctx.instance.referenceCrs).xyz().negate();
                     quaternion.setFromRotationMatrix(node.matrixWorld).invert();
                     // const quaternion = new THREE.Quaternion().setFromUnitVectors(
                     // new THREE.Vector3(0, 0, 1), node.extent.center().geodesicNormal).invert();
@@ -126,7 +126,7 @@ export default {
                     node.layerUpdateState[layer.id].failure(Date.now());
                     setTimeout(node.layerUpdateState[layer.id].secondsUntilNextTry() * 1000,
                         () => {
-                            context.view.notifyChange(layer, false);
+                            ctx.instance.notifyChange(layer, false);
                         });
                 }
             });
