@@ -25,7 +25,7 @@ class OrthoCameraControls {
         camera3d.top = cy + halfNewHeight;
         camera3d.bottom = cy - halfNewHeight;
 
-        this.instance.notifyChange(true);
+        this.instance.notifyChange(camera3d, true);
     }
 
     onMouseDown(event) {
@@ -51,7 +51,7 @@ class OrthoCameraControls {
             camera3d.right = this.dragCameraStart.right + deltaX;
             camera3d.top = this.dragCameraStart.top + deltaY;
             camera3d.bottom = this.dragCameraStart.bottom + deltaY;
-            this.instance.notifyChange(true);
+            this.instance.notifyChange(camera3d, true);
             return true;
         }
         return false;
