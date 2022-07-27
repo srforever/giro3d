@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>giro3d - COG as Color Layer</title>
+
+        <meta charset="UTF-8">
+        <link rel="stylesheet" type="text/css" href="css/example.css">
+        <link rel="stylesheet" type="text/css" href="css/loading_screen.css">
+
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div id="viewerDiv">
+            <select id="myList" onchange="changeLayer()" style="position:absolute;">
+                <option>UINT8 3-band RGB Data</option>
+                <option>UINT16 1-band NIR Data </option>
+            </select>
+        </div>
+        <script src="/giro3d.js"></script>
+        <script src="js/loading_screen.js"></script>
+        <script type="text/javascript">
+            window.THREE = giro3d.THREE;
+        </script>
+        <script src="https://unpkg.com/three@0.135.0/examples/js/controls/OrbitControls.js"></script>
+        <script type="text/javascript">
+            // Define projection that we will use (taken from https://epsg.io/32633, Proj4js section)
+            giro3d.proj4.defs("EPSG:32633","+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs");
+            giro3d.register(giro3d.proj4);
+
+            // Define geographic extent: CRS, min/max X, min/max Y
+            var extent = new giro3d.Extent(
+                'EPSG:32633',
+                499980, 609780,
+                1790220, 1900020,
+            );
+            const center = extent.center().xyz();
+
+            // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+            var viewerDiv = document.getElementById('viewerDiv');
+
+            // Instanciate Giro3D
+
+            let instance = new giro3d.Instance(viewerDiv, {crs: extent.crs()});
+            instance.mainLoop.gfxEngine.renderer.setClearColor(0x0a3b59);
+
+            // Instanciate the camera
+
+            instance.camera.camera3D.position.set(center.x, center.y, 250000);
+
+            // Instanciate the controls
+
+            var controls = new giro3d.THREE.OrbitControls(
+                instance.camera.camera3D,
+                viewerDiv,
+            );
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.2;
+            controls.target.set(center.x, center.y, center.z);
+
+            instance.useTHREEControls(controls);
+
+            // Construct a map and add it to the instance
+
+            let map = new giro3d.Map('planar', { extent });
+            map.disableSkirt = true;
+            instance.add(map);
+
+            // Source urls for the example
+
+            const cogs = [
+                'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/2020/S2A_36QWD_20200701_0_L2A/TCI.tif',
+                'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/2020/S2A_36QWD_20200701_0_L2A/B08.tif',
+            ]
+
+            // Add the COG Layer as 'color' type to the map
+            // See https://docs.sentinel-hub.com/api/latest/data/
+
+            map.addLayer({
+                id: '0',
+                protocol: 'cog',
+                type: 'color',
+                url: cogs[0],
+            });
+
+            // Load other layers and change visibility 
+
+            function changeLayer() {
+                const mylist = document.getElementById("myList");
+                map.getLayers().forEach(layer => {
+                    layer.visible = false;
+                });
+                instance.notifyChange(map, true);
+                const selectedLayer = map._attachedLayers[mylist.selectedIndex];
+                if (selectedLayer) {
+                    selectedLayer.visible = true;
+                } else {
+                    map.addLayer({
+                        id: mylist.selectedIndex.toString(),
+                        protocol: 'cog',
+                        type: 'color',
+                        url: cogs[mylist.selectedIndex],
+                    });
+                }
+            }
+        </script>
+    </body>
+</html>
