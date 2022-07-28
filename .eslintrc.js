@@ -28,7 +28,7 @@ module.exports = {
         },
     },
     ignorePatterns: [
-        'webpack.config.js',
+        'webpack.*.js',
     ],
     rules: {
         'jest/no-disabled-tests': 'warn',
