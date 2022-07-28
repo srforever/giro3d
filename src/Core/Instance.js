@@ -45,9 +45,10 @@ const _eventCoords = new Vector2();
  * the current camera and one or more {@link module:entities/Entity~Entity entities},
  * such as a {@link module:entities/Map~Map Map}.
  *
- *     // example of Giro3D instanciation
- *     let instance = new giro3d.Instance(viewerDiv, extent.crs(), {camera: camera})
- *     let map = new giro3d.Map('planar', null, extent, { maxSubdivisionLevel: 10 });
+ *     // example of Giro3D instantiation
+ *
+ *     let instance = new Instance(viewerDiv, extent.crs(), {camera: camera})
+ *     let map = new Map('planar', null, extent, { maxSubdivisionLevel: 10 });
  *     instance.add(map);
  *
  * @api
@@ -67,8 +68,8 @@ class Instance extends EventDispatcher {
      *  camera: camera,
      *  crs = exent.crs()
      * };
-     * let instance = new giro3d.Instance(viewerDiv, opts);
-     * let map = new giro3d.Map('planar', null, extent, { maxSubdivisionLevel: 10 });
+     * let instance = new Instance(viewerDiv, opts);
+     * let map = new Map('planar', null, extent, { maxSubdivisionLevel: 10 });
      * instance.add(map);
      * @api
      */
