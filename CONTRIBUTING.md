@@ -48,6 +48,6 @@ Code quality matters. Here are some advices to read before submitting a Pull Req
 * If you added new identifiers to the giro3d API:
    * Include reference documentation with code examples
    * If your change adds significant features, provide a demo
-* Write meaningful commit messages
+* Write commit message that follow the [Angular convention](https://github.com/angular/angular/blob/main/CONTRIBUTING.md#-commit-message-format). To help you doing so, you can use the `commitizen` CLI to write commit messages (use the `git cz` command instead of `git commit`). Alternatively, you can set [git hooks](https://github.com/commitizen/cz-cli#optional-running-commitizen-on-git-commit) and use the `git commit` command.
 * Keep the git history clean, rebase your work when necessary
 * Delete unused and obsolete branches
