@@ -17,6 +17,7 @@
     "transpile": "shx rm -rf build/giro3d && shx mkdir -p build/giro3d && shx cp -rf src build/giro3d/src && cross-env BABEL_DISABLE_CACHE=1 babel src --source-maps --out-dir build/giro3d",
     "serve-examples": "webpack serve --config examples/webpack/config.mjs --mode=development",
     "build-examples": "webpack --config examples/webpack/config.mjs --mode=production",
+    "generate-examples": "node tasks/generate-examples.mjs",
     "prepack": "npm run build && npm run transpile"
   },
   "repository": {
@@ -78,12 +79,14 @@
     "jest-environment-jsdom": "^28.0.2",
     "jsdoc": "3.6.3",
     "jsdoc-plugin-typescript": "^2.0.5",
+    "jsdom": "^20.0.0",
     "marked": "^0.3.9",
     "node-notifier": "^10.0.1",
     "nyc": "^12.0.2",
     "ol": "^6.14.1",
     "proj4": "^2.8.0",
     "puppeteer": "^1.5.0",
+    "query-selector": "^2.0.0",
     "shx": "^0.3.2",
     "three": "^0.135.0",
     "three.meshline": "^1.0.3",

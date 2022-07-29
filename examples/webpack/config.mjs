@@ -1,11 +1,12 @@
 import CopyPlugin from 'copy-webpack-plugin';
 import path, {dirname} from 'path';
 import {fileURLToPath} from 'url';
-
+import ExampleBuilder from './example-builder.mjs';
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 
 const src = path.join(baseDir, '..');
+const buildDir = path.join(baseDir, "..", "..", "build", "site", "examples");
 
 export default {
     watchOptions: {
@@ -23,7 +24,7 @@ export default {
     output: {
         filename: "[name].js",
         clean: true,
-        path: path.join(baseDir, "..", "..", "build", "site", "examples"),
+        path: buildDir,
         library: '[name]',
         libraryTarget: 'umd',
         umdNamedDefine: true,
@@ -53,16 +54,18 @@ export default {
         ],
     },
     plugins: [
+        new ExampleBuilder({
+            templates: path.join(baseDir, '..', 'templates'),
+            examplesDir: path.join(baseDir, '..'),
+            buildDir: buildDir,
+        }),
         new CopyPlugin({
             patterns: [
                 { from: "css", to: "css" },
                 { from: "js", to: "js" },
                 { from: "layers", to: "layers" },
                 { from: "screenshots", to: "screenshots" },
-                "**/*.html",
-                {
-                    from: "**/*.html",
-                },
+                { from: "**/*.html"},
             ],
         }),
     ],
