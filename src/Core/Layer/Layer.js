@@ -81,8 +81,10 @@ export const defineLayerProperty = function defineLayerProperty(layer,
  * Layer objects are not directly added to the map, but returned with
  * {@link module:entities/Map~Map#addLayer addLayer()}.
  *
+ *     import TileWMS from 'ol/source/TileWMS.js';
+ *
  *     // Create a layer source
- *     var source = new giro3d.olsource.TileWMS({options});
+ *     var source = new TileWMS({options});
  *
  *     // Add and create a new Layer to a map.
  *     const newLayer = map.addLayer({
@@ -91,7 +93,7 @@ export const defineLayerProperty = function defineLayerProperty(layer,
  *         protocol: 'oltile',
  *         source: source,
  *         updateStrategy: {
- *             type: giro3d.STRATEGY_DICHOTOMY,
+ *             type: STRATEGY_DICHOTOMY,
  *             options: {},
  *         }
  *     });
