@@ -20,7 +20,6 @@
 #
 
 stages:
-    - check
     - build
     - lint
     - test-unit
@@ -32,7 +31,7 @@ cache:
         - node_modules/
 
 check-commit-message:
-    stage: check
+    stage: lint
     image: node:lts-alpine
     script:
         - apk add --no-cache git
@@ -43,7 +42,6 @@ check-commit-message:
 build_lts:
     stage: build
     image: node:lts-alpine
-    when: on_success
     script:
         - npm i
         - npm run build
@@ -57,7 +55,6 @@ build_lts:
 build_current:
     stage: build
     image: node:current-alpine
-    when: on_success
     script:
         - export NODE_OPTIONS=--openssl-legacy-provider
         - npm i
