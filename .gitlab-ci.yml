@@ -37,7 +37,8 @@ check-commit-message:
     script:
         - apk add --no-cache git
         - git fetch origin master
-        - npx commitlint -x @commitlint/config-conventional --from=origin/master --to=${CI_COMMIT_SHA}
+        - git remote set-head origin -a
+        - npx commitlint -x @commitlint/config-conventional --from=origin/HEAD --to=${CI_COMMIT_SHA}
 
 build_lts:
     stage: build
