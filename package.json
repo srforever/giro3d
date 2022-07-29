@@ -4,6 +4,8 @@
   "description": "A JS/WebGL framework for 3D geospatial data visualization",
   "main": "lib/Main.js",
   "scripts": {
+    "commit": "npx git-cz",
+    "lint-commit": "commitlint -x @commitlint/config-conventional --from=origin/HEAD --to=HEAD",
     "lint": "eslint \"src/**/*.js\" \"utils/**/*.js\" \"test/**/*.js\" \"examples/**/*.js\"",
     "apidoc": "shx rm -rf build/apidoc && jsdoc -R jsdoc/api/index.md -c jsdoc/api/conf.json -P package.json -d build/apidoc",
     "build-site": "mkdir -p build && cp -v site/index.html build/ && cp -rv examples build/ && cp -rv dist/* build && npm run apidoc",
