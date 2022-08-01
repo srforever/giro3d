@@ -18,6 +18,7 @@ export default {
     devtool: "source-map",
     entry: {
         giro3d: ['babel-polyfill', 'url-polyfill', 'whatwg-fetch', path.join(baseDir, 'giro3d.js')],
+        index: [path.join(baseDir, '..', 'index.js')],
         debug: [path.join(baseDir, '..', '..', 'utils/debug/Main.js')],
     },
     target: ["web", "es5"],
