@@ -44,7 +44,7 @@
         <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
         <script type="text/javascript">
 
-            // Define geographic extent: CRS, min/max X, min/max Y
+            // Defines geographic extent: CRS, min/max X, min/max Y
             var extent = new giro3d.Extent(
                 'EPSG:3857',
                 -20037508.342789244, 20037508.342789244,
@@ -53,53 +53,45 @@
             // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
-            // Instanciate Giro3D
-
+            // Creates a giro3d instace
             let instance = new giro3d.Instance(viewerDiv, {crs: 'EPSG:3857'});
             instance.mainLoop.gfxEngine.renderer.setClearColor(0xffffff);
+
+            setupLoadingScreen(viewerDiv, instance);
 
             let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 15 });
             instance.add(map);
 
-            setupLoadingScreen(viewerDiv, instance);
-
-            // Instanciate camera
+            // Instanciates camera
             instance.camera.camera3D.position.set(0, 0, 10000000);
 
-            // Instanciate controls
-            // eslint-disable-next-line no-new
+            // Instanciates controls
             var controls = new THREE.MapControls(
                 instance.camera.camera3D,
                 instance.mainLoop.gfxEngine.renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.25;
 
-            instance.addFrameRequester('before_camera_update', () => {
-                controls.update();
-            });
-            controls.addEventListener('change', () => {
-                instance.notifyChange(instance.camera.camera3D);
-            });
+            instance.useTHREEControls(controls);
 
+            // Adds a color layer from a VectorTile source
             const key = 'pk.eyJ1IjoibWljaGFlbG51bm4iLCJhIjoiY2pudTk4czFuMDJ6NDNrcG56bG5xeWk4byJ9.R5dzdzAM5kaxa1gXjOQQrw';
 
-            // eslint-disable-next-line no-unused-vars
             var vectorTileSource = new giro3d.olsource.VectorTile({
                 format: new giro3d.olformat.MVT(),
                 url: 'https://{a-d}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/' +
                     '{z}/{x}/{y}.vector.pbf?access_token=' + key
             });
 
-            // Add a base layer
-            map.addLayer({
-                id: 'osm',
-                type: 'color',
-                protocol: 'olvectortile',
-                source: vectorTileSource,
-                style: createMapboxStreetsV6Style,
-                backgroundColor: 'hsl(47, 26%, 88%)'
-            });
-
+            const vectorTileLayer = new giro3d.ColorLayer(
+                'osm',
+                {
+                    source: vectorTileSource,
+                    backgroundColor: 'hsl(47, 26%, 88%)'
+                },
+            );
+            vectorTileLayer.style = createMapboxStreetsV6Style
+            map.addLayer(vectorTileLayer);
         </script>
     </body>
 </html>

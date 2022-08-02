@@ -16,10 +16,7 @@
         <script src="giro3d.js"></script>
         <script src="js/loading_screen.js"></script>
         <script type="text/javascript">
-
-            /* global giro3d, renderer */
-            // # Orthographic viewer
-            // Define geographic extent: CRS, min/max X, min/max Y
+            // Defines geographic extent: CRS, min/max X, min/max Y
             var extent = new giro3d.Extent(
                 'EPSG:3857',
                 -20037508.342789244, 20037508.342789244,
@@ -28,9 +25,16 @@
             // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
+            // Creates a giro3d instance
+            let instance = new giro3d.Instance(viewerDiv, {crs: extent.crs()});
+            instance.mainLoop.gfxEngine.renderer.setClearColor(0x0a3b59);
+
+            setupLoadingScreen(viewerDiv, instance);
+
+            // Instanciates the camera
             let center = { x: 328745, y: 5904608 };
             let halfHeight = (6800000 - 5000000) / 2;
-            let camera = new giro3d.THREE.OrthographicCamera(
+            instance.camera.camera3D = new giro3d.THREE.OrthographicCamera(
                     // left and right determined empirically
                     -628337.4524312895,
                     2111620.264270613,
@@ -39,30 +43,29 @@
                     -1,
                     1000);
             // put the camera above the plane
-            camera.position.z = 1;
+            instance.camera.camera3D.position.z = 1;
 
-            // Instanciate Giro3D
-            let instance = new giro3d.Instance(viewerDiv, {crs: extent.crs(), camera: camera});
-            instance.mainLoop.gfxEngine.renderer.setClearColor(0x0a3b59);
+            // Creates a map that will contain the layer
             let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 10 });
-            instance.add(map);
-
-            var dragStartPosition;
-            var dragCameraStart;
 
             // By default giro3d' tiles geometry have a "skirt" (ie they have a height),
             // but in case of orthographic we don't need this feature, so disable it
             map.disableSkirt = true;
 
-            // Add an TMS imagery layer
+            instance.add(map);
+
+            // Adds an TMS imagery layer
             var stamenSource = new giro3d.olsource.Stamen({ layer: 'watercolor', wrapX: false });
-            // Add a base layer
-            map.addLayer(new giro3d.TileLayer({
-                id: 'osm',
-                type: 'color',
-                protocol: 'oltile',
-                source: stamenSource,
-            })).catch(e => console.error(e));
+            map.addLayer(new giro3d.ColorLayer(
+                'osm',
+                {
+                    source: stamenSource,
+                },
+            )).catch(e => console.error(e));
+
+            // Creates the controls
+            var dragStartPosition;
+            var dragCameraStart;
 
             var onMouseWheel = function onMouseWheel(event) {
                 var change = 1 - (Math.sign(event.wheelDelta || -event.detail) * 0.1);

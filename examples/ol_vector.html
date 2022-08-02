@@ -20,7 +20,7 @@
         <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
         <script type="text/javascript">
 
-            // Define geographic extent: CRS, min/max X, min/max Y
+            // Defines geographic extent: CRS, min/max X, min/max Y
             var extent = new giro3d.Extent(
                 'EPSG:3857',
                 -20037508.342789244, 20037508.342789244,
@@ -29,20 +29,16 @@
             // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
-            // Instanciate Giro3D
+            // Creates a giro3d instance
             let instance = new giro3d.Instance(viewerDiv, {crs: 'EPSG:3857'});
             instance.mainLoop.gfxEngine.renderer.setClearColor(0xFFFFFF);
 
-            let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 15 });
-            instance.add(map);
-
             setupLoadingScreen(viewerDiv, instance);
 
-            // Instanciate camera
+            // Instanciates camera
             instance.camera.camera3D.position.set(0, 0, 10000000);
 
-            // Instanciate controls
-            // eslint-disable-next-line no-new
+            // Instanciates controls
             var controls = new THREE.MapControls(
                 instance.camera.camera3D,
                 instance.mainLoop.gfxEngine.renderer.domElement);
@@ -56,63 +52,62 @@
                 instance.notifyChange(instance.camera.camera3D);
             });
 
-            // Add a vector layer
+            // Adds layers in a map
 
-            var format = new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' });
-            var vectorSource = new giro3d.olsource.Vector({ });
+            let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 15 });
+            instance.add(map);
 
-            giro3d.Fetcher.json('https://openlayers.org/data/vector/ecoregions.json')
-                .then(geojson => {
-                var features = format.readFeatures(geojson, {
-                    featureProjection: 'EPSG:3857'
+            // Creates the ecoregion layer
+            const vectorSource1 = new giro3d.olsource.Vector({ 
+                url: 'https://openlayers.org/data/vector/ecoregions.json',
+                format: new giro3d.olformat.GeoJSON({}),
+             });
+            vectorSource1.loadFeatures();
+
+            const ecoRegionLayer = new giro3d.ColorLayer(
+                'vec',
+                {
+                    source: vectorSource1,
+                },
+            );
+
+            ecoRegionLayer.style = (Style, Fill, Stroke) => function (feature) {
+                const color = feature.get('COLOR') || '#eeeeee';
+                return new Style({
+                    fill: new Fill({
+                      color: color
+                    }),
                 });
-                vectorSource.addFeatures(features);
-            });
+            };
 
-            map.addLayer({
-                id: 'vec',
-                type: 'color',
-                protocol: 'olvector',
-                projection: 'EPSG:3857',
-                source: vectorSource,
-                style: (Style, Fill, Stroke) => function (feature) {
-                    const color = feature.get('COLOR') || '#eeeeee';
-                    return new Style({
-                        fill: new Fill({
-                          color: color
-                        }),
-                    });
-                }
-            });
+            map.addLayer(ecoRegionLayer);
 
-            var vectorSource2 = new giro3d.olsource.Vector({ });
+            // Creates the country layer
+            var vectorSource2 = new giro3d.olsource.Vector({ 
+                url: 'https://openlayers.org/en/latest/examples/data/geojson/countries.geojson',
+                format: new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' }),
+             });
+            vectorSource2.loadFeatures();
 
-            giro3d.Fetcher.json('https://openlayers.org/en/latest/examples/data/geojson/countries.geojson')
-                .then(geojson => {
-                var features = format.readFeatures(geojson, {
-                    featureProjection: 'EPSG:3857'
+            const countryLayer = new giro3d.ColorLayer(
+                'vec2',
+                {
+                    source: vectorSource2,
+                },
+            );
+            countryLayer.style = (Style, Fill, Stroke) => function (feature) {
+                return new Style({
+                    stroke: new Stroke({
+                        color: 'black',
+                        width: 1,
+                    }),
                 });
-                vectorSource2.addFeatures(features);
-            });
+            };
 
-            map.addLayer({
-                id: 'vec2',
-                type: 'color',
-                protocol: 'olvector',
-                projection: 'EPSG:3857',
-                source: vectorSource2,
-                style: (Style, Fill, Stroke) => function (feature) {
-                    return new Style({
-                        stroke: new Stroke({
-                            color: 'black',
-                            width: 1,
-                        }),
-                    });
-                }
-            });
+            map.addLayer(countryLayer);
 
             /* // WARNING: THE APPROACH BELOW IS WORKING BUT BLEEPING !!
-
+                        ???
             // eslint-disable-next-line no-unused-vars
             var vectorSource = new giro3d.olsource.Vector({
                 url: 'https://openlayers.org/en/latest/examples/data/geojson/countries.geojson',
@@ -126,31 +121,18 @@
             // add the vector source
             instance.addVector(vector); */
 
+            // Creates a custom vector layer
+            const format = new giro3d.olformat.GeoJSON({ featureProjection: 'EPSG:3857' })
             const feature = format.readFeature({ type: 'Feature', geometry: {
                 "type": "MultiPolygon",
                 "coordinates": [
                   [
                     [
-                      [
-                        -46,
-                        -30
-                      ],
-                      [
-                        -41,
-                        -30
-                      ],
-                      [
-                        -41,
-                        -35
-                      ],
-                      [
-                        -46,
-                        -35
-                      ],
-                      [
-                        -46,
-                        -30
-                      ]
+                      [ -46, -30],
+                      [ -41, -30],
+                      [ -41, -35],
+                      [ -46, -35],
+                      [ -46, -30 ]
                     ],
                     [
                       [ -45, -31],
@@ -162,75 +144,29 @@
                   ],
                   [
                     [
-                      [
-                        -47.900390625,
-                        -14.944784875088372
-                      ],
-                      [
-                        -51.591796875,
-                        -19.91138351415555
-                      ],
-                      [
-                        -41.11083984375,
-                        -21.309846141087192
-                      ],
-                      [
-                        -43.39599609375,
-                        -15.390135715305204
-                      ],
-                      [
-                        -47.900390625,
-                        -14.944784875088372
-                      ]
+                      [ -47.900390625, -14.944784875088372],
+                      [ -51.591796875, -19.91138351415555],
+                      [ -41.11083984375, -21.309846141087192],
+                      [ -43.39599609375, -15.390135715305204],
+                      [ -47.900390625, -14.944784875088372]
                     ],
                     [
-                      [
-                        -46.6259765625,
-                        -17.14079039331664
-                      ],
-                      [
-                        -47.548828125,
-                        -16.804541076383455
-                      ],
-                      [
-                        -46.23046874999999,
-                        -16.699340234594537
-                      ],
-                      [
-                        -45.3515625,
-                        -19.31114335506464
-                      ],
-                      [
-                        -46.6259765625,
-                        -17.14079039331664
-                      ]
+                      [ -46.6259765625, -17.14079039331664],
+                      [ -47.548828125, -16.804541076383455],
+                      [ -46.23046874999999, -16.699340234594537],
+                      [ -45.3515625, -19.31114335506464],
+                      [ -46.6259765625, -17.14079039331664]
                     ],
                     [
-                      [
-                        -44.40673828125,
-                        -18.375379094031825
-                      ],
-                      [
-                        -44.4287109375,
-                        -20.097206227083888
-                      ],
-                      [
-                        -42.9345703125,
-                        -18.979025953255267
-                      ],
-                      [
-                        -43.52783203125,
-                        -17.602139123350838
-                      ],
-                      [
-                        -44.40673828125,
-                        -18.375379094031825
-                      ]
-                    ]
+                      [ -44.40673828125, -18.375379094031825],
+                      [ -44.4287109375, -20.097206227083888],
+                      [ -42.9345703125, -18.979025953255267],
+                      [ -43.52783203125, -17.602139123350838],
+                      [ -44.40673828125, -18.375379094031825]
                     ]
                   ]
-
-                }
+                ]
+              }
             });
 
             const featureLine = format.readFeature({ type: 'Feature', geometry: {
@@ -243,29 +179,28 @@
               "coordinates": [[-25, -25], [-15, -15], [-30, -30]]
             }});
 
-            var vectorSource3 = new giro3d.olsource.Vector({ });
+            var vectorSource3 = new giro3d.olsource.Vector({});
             vectorSource3.addFeatures([feature, featureLine, featurePoints]);
 
-            map.addLayer({
-                id: 'vec3',
-                type: 'color',
-                protocol: 'olvector',
-                projection: 'EPSG:3857',
-                source: vectorSource3,
-                // transparent: true,
-                style: (Style, Fill, Stroke) => function (feature) {
-                    return new Style({
-                        fill: new Fill({
-                          color: 'cyan'
-                        }),
-                        stroke: new Stroke({
-                            color: 'orange',
-                            width: 1,
-                        }),
-                    });
-                }
-            });
+            const customVectorLayer = new giro3d.ColorLayer(
+                'vec3',
+                {
+                    source: vectorSource3,
+                },
+            );
+            customVectorLayer.style = (Style, Fill, Stroke) => function (feature) {
+                return new Style({
+                    fill: new Fill({
+                      color: 'cyan'
+                    }),
+                    stroke: new Stroke({
+                        color: 'orange',
+                        width: 1,
+                    }),
+                });
+            };
 
+            map.addLayer(customVectorLayer);
         </script>
     </body>
 </html>
