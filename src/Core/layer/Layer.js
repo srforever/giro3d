@@ -1,7 +1,14 @@
 /**
- * @module Core/Layer/Layer
+ * @module Core/layer/Layer
  */
 import { EventDispatcher } from 'three';
+
+import TileWMS from 'ol/source/TileWMS.js';
+import Vector from 'ol/source/Vector.js';
+import VectorTile from 'ol/source/VectorTile.js';
+import Stamen from 'ol/source/Stamen.js';
+
+import { STRATEGY_MIN_NETWORK_TRAFFIC } from './LayerUpdateStrategy.js';
 
 /**
  * Fires when layer sequence change (meaning when the order of the layer changes in the view)
@@ -42,7 +49,7 @@ import { EventDispatcher } from 'three';
  * @property {string} type visible-property-changed
  */
 
-export const defineLayerProperty = function defineLayerProperty(layer,
+const defineLayerProperty = function defineLayerProperty(layer,
     propertyName,
     defaultValue,
     onChange) {
@@ -73,30 +80,48 @@ export const defineLayerProperty = function defineLayerProperty(layer,
     }
 };
 
+function nodeCommandQueuePriorityFunction(node) {
+    const dim = node.extent.dimensions();
+    return dim.x * dim.y;
+}
+
+function refinementCommandCancellationFn(cmd) {
+    if (!cmd.requester.parent || !cmd.requester.material) {
+        return true;
+    }
+    if (cmd.force) {
+        return false;
+    }
+
+    return !cmd.requester.material.visible;
+}
+
+// max retry loading before changing the status to definitiveError
+const MAX_RETRY = 4;
+
 /**
- * Layers are components of {@link module:entities/Map~Map Maps}.
+ * Base class of layers. Layers are components of {@link module:entities/Map~Map Maps}.
  * A layer type can be either `color` (such as satellite imagery or maps),
  * or `elevation` (to describe terrain elevation).
  *
- * Layer objects are not directly added to the map, but returned with
- * {@link module:entities/Map~Map#addLayer addLayer()}.
- *
- *     import TileWMS from 'ol/source/TileWMS.js';
+ * Layer is normaly not directly instanciate,
+ * {@link module:Core/layer/ColorLayer~ColorLayer ColorLayer} or
+ * {@link module:Core/layer/ElevationLayer~ElevationLayer ElevationLayer} are used.
  *
  *     // Create a layer source
- *     var source = new TileWMS({options});
+ *     var source = new giro3d.olsource.TileWMS({options});
  *
  *     // Add and create a new Layer to a map.
- *     const newLayer = map.addLayer({
- *         id: 'myColorLayer',
- *         type: 'color',
- *         protocol: 'oltile',
- *         source: source,
- *         updateStrategy: {
- *             type: STRATEGY_DICHOTOMY,
- *             options: {},
+ *     const newLayer = ColorLayer(
+ *         'myColorLayerId',
+ *         {
+ *             source: source,
+ *             updateStrategy: {
+ *                 type: giro3d.STRATEGY_DICHOTOMY,
+ *             }
  *         }
  *     });
+ *     map.addLayer(newLayer);
  *
  *     // Change layer's visibilty
  *     const layerToChange = map.getLayers(layer => layer.id === 'idLayerToChange')[0];
@@ -117,20 +142,138 @@ export const defineLayerProperty = function defineLayerProperty(layer,
  */
 class Layer extends EventDispatcher {
     /**
-     * **Internal use only**. To create a layer,
-     * use {@link module:entities/Map~Map#addLayer Map.addLayer()}.
+     * Creates a layer. The method `update` should be set.
+     * It should be added in {@link module:entities/Map~Map Maps} to be displayed in the instance.
      * See the example for more information on layer creation.
      *
-     * @protected
-     * @param      {string}  id the unique identifier of the layer
+     * @param {string} id the unique identifier of the layer
+     * @param {object} options the layer options
+     * @param {
+     * module:ol.TileWMS|module:ol.Stamen|module:ol.Vector|module:ol.VectorTile
+     * } options.source an OpenLayers source
+     * @param {object} [options.extent=undefined] the geographic extent of the layer. If it is
+     * undefined, the extent will be the same as the map where the layer will be added.
+     * @param {string} [options.projection=undefined] the layer projection. Like extent, if
+     * extent is not provided, the layer projection will be the map projection.
+     * @param {object} [options.updateStrategy=undefined] the strategy to load new tiles, if it is
+     * undefined, the layer will use the STRATEGY_MIN_NETWORK_TRAFFIC.
+     * @param {string} [options.backgroundColor=undefined] the background color of the layer
      */
-    constructor(id) {
+    constructor(id, options) {
         super();
         Object.defineProperty(this, 'id', {
             value: id,
             writable: false,
         });
+
+        this.standalone = options.standalone ? options.standalone : false;
+
+        // If the mode is standalone, no protocol is provided.
+        // The update function should be manually set.
+        if (!this.standalone) {
+            // Temp patch. Currently, all protocols don't use source
+            // (some use layer properties or entity properties).
+            // But at the moment where all protocols use source,
+            // we can remove protocol name and check the source type.
+            this.source = options.source;
+            switch (this.source.constructor) {
+                case TileWMS:
+                case Stamen:
+                    this.protocol = 'oltile';
+                    break;
+                case Vector:
+                    this.protocol = 'olvector';
+                    break;
+                case VectorTile:
+                    this.protocol = 'olvectortile';
+                    break;
+                default:
+                    throw Error('Unsupported OpenLayers source');
+            }
+        }
+
+        this.extent = options.extent;
+
+        if (options.updateStrategy) {
+            this.updateStrategy = options.updateStrategy;
+        } else {
+            this.updateStrategy = {
+                type: STRATEGY_MIN_NETWORK_TRAFFIC,
+            };
+        }
+
+        this.projection = options.projection;
+        this.backgroundColor = options.backgroundColor;
     }
+
+    _preprocessLayer(map, instance) {
+        if (this.standalone) {
+            this.whenReady = Promise.resolve().then(() => {
+                this.ready = true;
+                return this;
+            });
+            return this;
+        }
+
+        this.provider = instance.mainLoop.scheduler.getProtocolProvider(this.protocol);
+
+        if (this.provider) {
+            if (this.provider.tileInsideLimit) {
+                // TODO remove bind ?
+                this.tileInsideLimit = this.provider.tileInsideLimit.bind(this.provider);
+            }
+            if (this.provider.getPossibleTextureImprovements) {
+                this.getPossibleTextureImprovements = this.provider
+                    .getPossibleTextureImprovements
+                    .bind(this.provider);
+            }
+            if (this.provider.tileTextureCount) {
+                this.tileTextureCount = this.provider.tileTextureCount.bind(this.provider);
+            }
+        }
+
+        if (!this.whenReady) {
+            let providerPreprocessing = Promise.resolve();
+            if (this.provider && this.provider.preprocessDataLayer) {
+                providerPreprocessing = this.provider.preprocessDataLayer(this);
+                if (!(providerPreprocessing && providerPreprocessing.then)) {
+                    providerPreprocessing = Promise.resolve();
+                }
+            }
+
+            // the last promise in the chain must return the layer
+            this.whenReady = providerPreprocessing.then(() => {
+                this.ready = true;
+                return this;
+            });
+        }
+        return this;
+    }
+
+    /**
+     * Performs the update of the layer. This method must be overwritten
+     * for the layer to be displayed and updated.
+     *
+     * @param {module:Core/Context~Context} context the context
+     * @param {module:Core/TileMesh~TileMesh} node the node to update
+     * @param {module:entities/Map~Map} parent the map where the layers have been added
+     * @param {boolean} [initOnly = false] if true, the update is stopped before the update command
+     * there is only a check that the layer state is defined in the node.
+     * @returns {null|Promise} null if the update is not done,
+     * else, that succeeds if the update is made. Currently, only null is returned
+     * since the method is empty.
+     */
+    // eslint-disable-next-line
+    update(context, node, parent, initOnly = false) {return null;}
+
+    /**
+     * Cleans the layer from a map
+     *
+     * @param {module:entities/Map~Map} object The map where the layer is added
+     * @api
+     */
+    // eslint-disable-next-line
+    clean(object) {} // TODO
 }
 
 /**
@@ -215,4 +358,7 @@ class ImageryLayers {
 }
 
 export default Layer;
-export { ImageryLayers };
+export {
+    ImageryLayers, defineLayerProperty, nodeCommandQueuePriorityFunction,
+    refinementCommandCancellationFn, MAX_RETRY,
+};

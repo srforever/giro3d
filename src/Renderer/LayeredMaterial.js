@@ -6,6 +6,8 @@ import PrecisionQualifier from './Shader/Chunk/PrecisionQualifier.glsl';
 import GetElevation from './Shader/Chunk/GetElevation.glsl';
 import ComputeUV from './Shader/Chunk/ComputeUV.glsl';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
+import ColorLayer from '../Core/layer/ColorLayer.js';
+import ElevationLayer from '../Core/layer/ElevationLayer.js';
 
 // Declaring our own chunks
 THREE.ShaderChunk.PrecisionQualifier = PrecisionQualifier;
@@ -141,7 +143,7 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
     }
 
     getLayerTexture(layer) {
-        if (layer.type === 'elevation') {
+        if (layer instanceof ElevationLayer) {
             return {
                 texture: this.texturesInfo.elevation.texture,
                 offsetScale: this.texturesInfo.elevation.offsetScale,
@@ -168,7 +170,7 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
             textures = textures[0];
         }
 
-        if (layer.type === 'elevation') {
+        if (layer instanceof ElevationLayer) {
             if (layer.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
                 if (!this.defines.MAPBOX_RGB_ELEVATION) {
                     this.defines.MAPBOX_RGB_ELEVATION = 1;
@@ -200,7 +202,7 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
 
             return Promise.resolve(true);
         }
-        if (layer.type === 'color') {
+        if (layer instanceof ColorLayer) {
             const index = this.indexOfColorLayer(layer);
             this.texturesInfo.color.originalOffsetScale[index].copy(textures.pitch);
             this.texturesInfo.color.textures[index] = textures.texture;
@@ -267,7 +269,7 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
 
             return Promise.resolve();
         }
-        throw new Error(`Unsupported layer type '${layer.type}'`);
+        throw new Error('Unsupported layer, it should be either ColorLayer or ElevationLayer');
     }
 
     pushLayer(newLayer) {
@@ -369,18 +371,16 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
         this.texturesInfo.color.visible[index] = visible;
     }
 
-    isLayerTextureLoaded(layer) {
-        if (layer.type === 'color') {
-            const index = this.indexOfColorLayer(layer);
-            if (index < 0) {
-                return null;
-            }
-            return this.texturesInfo.color.textures[index] !== emptyTexture;
+    isElevationLayerTextureLoaded() {
+        return this.texturesInfo.elevation.texture !== emptyTexture;
+    }
+
+    isColorLayerTextureLoaded(layer) {
+        const index = this.indexOfColorLayer(layer);
+        if (index < 0) {
+            return null;
         }
-        if (layer.type === 'elevation') {
-            return this.texturesInfo.elevation.texture !== emptyTexture;
-        }
-        return null; // TODO throw?
+        return this.texturesInfo.color.textures[index] !== emptyTexture;
     }
 
     setUuid(uuid) {

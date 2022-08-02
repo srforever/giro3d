@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import Instance from '../Instance.js';
 
 import Entity3D from '../../entities/Entity3D.js';
+import ColorLayer from '../layer/ColorLayer.js';
 import Extent from '../Geographic/Extent.js';
 import PanoramaTileBuilder from './Panorama/PanoramaTileBuilder.js';
 import ProjectionType from './Panorama/Constants.js';
@@ -113,8 +114,8 @@ PanoramaView.prototype.addLayer = function addLayer(layer) {
     if (!layer) {
         return new Promise((resolve, reject) => reject(new Error('layer is undefined')));
     }
-    if (layer.type !== 'color') {
-        throw new Error(`Unsupported layer type ${layer.type} (PanoramaView only support 'color' layers)`);
+    if (!(layer instanceof ColorLayer)) {
+        throw new Error('Unsupported layer type (PanoramaView only support ColorLayer)');
     }
     return Instance.prototype.addLayer.call(this, layer, this.baseLayer);
 };

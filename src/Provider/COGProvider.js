@@ -3,6 +3,8 @@ import * as GeoTIFF from 'geotiff';
 
 import Cache from '../Core/Scheduler/Cache.js';
 
+import ColorLayer from '../Core/layer/ColorLayer.js';
+
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
     let min = Infinity;
@@ -210,7 +212,7 @@ function executeCommand(command) {
         window: makeWindowFromExtent(layer, extent, levelImage.resolution),
         fillValue: layer.nodata,
     }).then(arrayData => {
-        if (layer.type === 'color') {
+        if (layer instanceof ColorLayer) {
             // Process the downloaded data
             const { data, width, height } = processData(layer, arrayData);
             // We have to convert the texture image data to a proper image

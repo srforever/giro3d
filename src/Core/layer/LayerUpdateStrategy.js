@@ -4,7 +4,7 @@
  * Default strategy is STRATEGY_MIN_NETWORK_TRAFFIC which aims
  * to reduce the amount of network traffic.
  *
- * @module Core/Layer/LayerUpdateStrategy
+ * @module Core/layer/LayerUpdateStrategy
  */
 
 /**
