@@ -53,16 +53,18 @@ If you're using a module bundler (like [wepback](https://webpack.js.org/)) or pl
 directly import it as such:
 
 ```js
-import Instance from '@giro3d/giro3d/Core/Instance.js';
+import Instance from '@giro3d/giro3d/lib/Core/Instance.js';
+// it's also possible to do this, but this will import everything.
+import * as giro3d from '@giro3d/giro3d';
 ```
 
-You can also import the original, untranspiled sources, by adding `src` after `@giro3d/giro3d/` :
+Alternatively, we provide a bundle you can directly include in your html files that exposes `giro3d` in  `window`:
 
-```js
-import Instance from '@giro3d/giro3d/src/Core/Instance.js';
+```html
+<script src="node_modules/giro3d/dist/giro3d.js"></script>
 ```
 
-Note that to use unstranspiled sources you need a bundler and you need to inline non `.js` files (such as `.glsl` files).
+❗ This bundle also contains the dependencies.
 
 ## From a release bundle
 
