@@ -51,7 +51,7 @@ const tmpCoords = new Coordinates('EPSG:4326', 0, 0, 0);
  *     proj4.defs('EPSG:3946',
             '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 + \
             ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
- *     extent = new giro3d.Extent(
+ *     extent = new Extent(
  *                  'EPSG:3946',
  *                  1837816.94334, 1847692.32501,
  *                  5170036.4587, 5178412.82698);
@@ -64,8 +64,8 @@ class Extent {
      *
      * @param {string} crs The CRS code the coordinates are expressed in. Every EPSG code known by
      * [proj4js](https://github.com/proj4js/proj4js) can be used directly.
-     * For others, you must manually register them. The proj4 instance used by giro3d is available
-     * at giro3d.proj4. Please refer to [proj4js](https://github.com/proj4js/proj4js) doc for more information.
+     * For others, you must manually register them.
+     * Please refer to [proj4js](https://github.com/proj4js/proj4js) doc for more information.
      * @param {number|object|Coordinates} values Variable number of arguments. The following
      * combinations are supported:
      * - 2 {@link module:Core/Geographic/Coordinates Coordinates}
