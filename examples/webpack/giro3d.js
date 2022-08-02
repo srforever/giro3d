@@ -48,6 +48,8 @@ export { default as FeaturesUtils } from '../../src/Renderer/ThreeExtended/Featu
 export { default as Picking } from '../../src/Core/Picking.js';
 export { default as OBB } from '../../src/Renderer/ThreeExtended/OBB.js';
 
+export { default as CogSource } from '../../src/sources/CogSource.js';
+
 export { default as DeformationChain } from '../../src/DeformationChain.js';
 export { default as HoverHelper } from '../../src/HoverHelper.js';
 export { default as OrthoCameraControls } from '../../src/OrthoCameraControls.js';

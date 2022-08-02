@@ -65,7 +65,7 @@ async function processSmallestOverview(layer, levelImage) {
 
 async function getImages(layer) {
     // Get the COG informations
-    const tiff = await GeoTIFF.fromUrl(layer.url);
+    const tiff = await GeoTIFF.fromUrl(layer.source.url);
     // Number of images (original + overviews)
     const count = await tiff.getImageCount();
     // Get original image header

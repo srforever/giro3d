@@ -9,6 +9,7 @@ import VectorTile from 'ol/source/VectorTile.js';
 import Stamen from 'ol/source/Stamen.js';
 
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './LayerUpdateStrategy.js';
+import CogSource from '../../sources/CogSource.js';
 
 /**
  * Fires when layer sequence change (meaning when the order of the layer changes in the view)
@@ -186,6 +187,9 @@ class Layer extends EventDispatcher {
                     break;
                 case VectorTile:
                     this.protocol = 'olvectortile';
+                    break;
+                case CogSource:
+                    this.protocol = 'cog';
                     break;
                 default:
                     throw Error('Unsupported OpenLayers source');
