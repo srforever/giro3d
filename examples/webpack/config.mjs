@@ -11,6 +11,11 @@ const src = path.join(baseDir, '..');
 const buildDir = path.join(baseDir, "..", "..", "build", "site", "examples");
 
 export default (env, argv) => {
+
+    const babelConfFile = argv.mode === 'production' ? 'babel.config.json' : 'babel.config.dev.json';
+    const babelrc = fs.readFileSync(path.join(baseDir, '..', '..', babelConfFile));
+    const babelConf = JSON.parse(babelrc);
+
     return {
         watchOptions: {
             ignored: /node_modules/,
@@ -52,7 +57,10 @@ export default (env, argv) => {
             rules: [
                 {
                     test: /\.js$/,
-                    use: "babel-loader",
+                    use: {
+                        loader: "babel-loader",
+                        options: babelConf
+                    },
                     exclude: /node_modules/,
                 }
             ],
