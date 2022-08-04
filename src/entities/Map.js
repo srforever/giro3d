@@ -134,35 +134,6 @@ function updateMinMaxDistance(context, map, node) {
     map._distance.max = Math.max(map._distance.max, distance + radius);
 }
 
-// TODO: maxLevel should be deduced from layers
-function testTileSSE(tile, sse, maxLevel) {
-    if (maxLevel > 0 && maxLevel <= tile.level) {
-        return false;
-    }
-
-    if (tile.extent.dimensions().x < 5) {
-        return false;
-    }
-
-    if (!sse) {
-        return true;
-    }
-
-    const values = [
-        sse.lengths.x * sse.ratio,
-        sse.lengths.y * sse.ratio,
-    ];
-
-    // TODO: depends on texture size of course
-    // if (values.filter(v => v < 200).length >= 2) {
-    //     return false;
-    // }
-    if (values.filter(v => v < (100 * tile.layer.sseScale)).length >= 1) {
-        return false;
-    }
-    return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
-}
-
 function subdivideNode(context, map, node) {
     if (!node.children.some(n => n.layer === map)) {
         const extents = node.extent.quadtreeSplit();
@@ -328,7 +299,7 @@ class Map extends Entity3D {
         }
 
         this.sseScale = 1.5;
-        this.maxSubdivisionLevel = options.maxSubdivisionLevel;
+        this.maxSubdivisionLevel = options.maxSubdivisionLevel || -1;
 
         this.disableSkirt = true;
 
@@ -442,8 +413,8 @@ class Map extends Entity3D {
 
                 node.sse = sse; // DEBUG
 
-                if (testTileSSE(node, sse, this.maxSubdivisionLevel || -1)
-                        && this.hasEnoughTexturesToSubdivide(context, node)) {
+                if (this.testTileSSE(node, sse)
+                    && this.hasEnoughTexturesToSubdivide(context, node)) {
                     subdivideNode(context, this, node);
                     // display iff children aren't ready
                     node.setDisplayed(false);
@@ -688,6 +659,34 @@ class Map extends Entity3D {
             }
             } */
         return true;
+    }
+
+    testTileSSE(tile, sse) {
+        if (this.maxSubdivisionLevel > 0 && this.maxSubdivisionLevel <= tile.level) {
+            return false;
+        }
+
+        if (tile.extent.dimensions().x < 5) {
+            return false;
+        }
+
+        if (!sse) {
+            return true;
+        }
+
+        const values = [
+            sse.lengths.x * sse.ratio,
+            sse.lengths.y * sse.ratio,
+        ];
+
+        // TODO: depends on texture size of course
+        // if (values.filter(v => v < 200).length >= 2) {
+        //     return false;
+        // }
+        if (values.filter(v => v < (100 * tile.layer.sseScale)).length >= 1) {
+            return false;
+        }
+        return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
     }
 }
 
