@@ -20,7 +20,7 @@
         <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
         <script type="text/javascript">
 
-            // Define geographic extent: CRS, min/max X, min/max Y
+            // Defines geographic extent: CRS, min/max X, min/max Y
             var extent = new giro3d.Extent(
                 'EPSG:3857',
                 -20037508.342789244, 20037508.342789244,
@@ -29,19 +29,15 @@
             // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
             var viewerDiv = document.getElementById('viewerDiv');
 
-            // Instanciate Giro3D
+            // Creates a giro3d instance
             let instance = new giro3d.Instance(viewerDiv, {crs: extent.crs()});
-
-            let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 15 });
-            instance.add(map);
 
             setupLoadingScreen(viewerDiv, instance);
 
-            // Instanciate camera
+            // Instanciates camera
             instance.camera.camera3D.position.set(0, 0, 10000000);
 
-            // Instanciate controls
-
+            // Instanciates controls
             var controls = new THREE.MapControls(
                 instance.camera.camera3D,
                 instance.mainLoop.gfxEngine.renderer.domElement);
@@ -55,22 +51,24 @@
                 instance.notifyChange(instance.camera.camera3D);
             });
 
-            // Add a base layer
+            // Creates a map that will contain layers
+            let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 15 });
+            instance.add(map);
 
+            // Adds a base layer
             var stamenSource = new giro3d.olsource.Stamen({ layer: 'toner', wrapX: false });
 
-            map.addLayer({
-                id: 'osm',
-                type: 'color',
-                protocol: 'oltile',
-                source: stamenSource
-            }).catch(e => console.error(e));
+            map.addLayer(new giro3d.ColorLayer(
+                'osm',
+                {
+                    source: stamenSource,
+                },
+            )).catch(e => console.error(e));
 
-            // Add a WMS layer
-
+            // Adds a WMS layer
             var wmsSource = new giro3d.olsource.TileWMS({
                 url: 'https://ahocevar.com/geoserver/wms',
-                params: {'LAYERS': 'topp:states', 'TILED': true},
+                params: {'LAYERS': 'topp:states', 'TILED': true, 'TRANSPARENT': true},
                 projection: 'EPSG:3857',
                 crossOrigin: '*',
                 serverType: 'geoserver',
@@ -78,16 +76,14 @@
                 wrapX: false
             })
 
-            map.addLayer({
-                id: 'wms',
-                type: 'color',
-                protocol: 'oltile',
-                source: wmsSource,
-                transparent: true,
-            }).catch(e => console.error(e));
+            map.addLayer(new giro3d.ColorLayer(
+                'wms',
+                {
+                    source: wmsSource,
+                },
+            )).catch(e => console.error(e));
 
-            // Add a vector layer
-
+            // Adds a vector layer
             var format = new giro3d.olformat.GeoJSON();
             var vectorSource = new giro3d.olsource.Vector({ });
             giro3d.Fetcher.json('https://cdn.jsdelivr.net/gh/gregoiredavid/france-geojson@master/departements.geojson')
@@ -98,22 +94,24 @@
                 });
                 vectorSource.addFeatures(features);
             });
-            map.addLayer({
-                id: 'vec',
-                type: 'color',
-                protocol: 'olvector',
-                projection: 'EPSG:3857',
-                source: vectorSource,
-                transparent: false,
-                style: (Style, Fill, Stroke) => function _(feature) {
-                    return new Style({
-                        stroke: new Stroke({
-                            color: 'cyan',
-                            width: 1,
-                        }),
-                    });
-                }
-            });
+
+            const departementLayer = new giro3d.ColorLayer(
+                'vec',
+                {
+                    source: vectorSource,
+                },
+            );
+
+            departementLayer.style = (Style, Fill, Stroke) => function _(feature) {
+                return new Style({
+                    stroke: new Stroke({
+                        color: 'cyan',
+                        width: 1,
+                    }),
+                });
+            };
+
+            map.addLayer(departementLayer);
 
         </script>
     </body>

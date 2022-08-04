@@ -5,7 +5,7 @@ import Extent from '../Core/Geographic/Extent.js';
 import VectorTileHelper from './VectorTileHelper.js';
 import {
     STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY, STRATEGY_GROUP,
-} from '../Core/Layer/LayerUpdateStrategy.js';
+} from '../Core/layer/LayerUpdateStrategy.js';
 
 function preprocessDataLayer(layer) {
     if (!layer.extent) {

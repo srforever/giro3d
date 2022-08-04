@@ -5,17 +5,18 @@ import * as THREE from 'three';
 
 import Coordinates from '../Core/Geographic/Coordinates.js';
 import Extent from '../Core/Geographic/Extent.js';
-import Layer, { defineLayerProperty } from '../Core/Layer/Layer.js';
+import Layer from '../Core/layer/Layer.js';
+import ColorLayer from '../Core/layer/ColorLayer.js';
+import ElevationLayer from '../Core/layer/ElevationLayer.js';
 import Entity3D from './Entity3D.js';
-import { STRATEGY_MIN_NETWORK_TRAFFIC } from '../Core/Layer/LayerUpdateStrategy.js';
 import PlanarTileBuilder from '../Core/Prefab/Planar/PlanarTileBuilder.js';
-import ColorTextureProcessing from '../Process/ColorTextureProcessing.js';
-import ElevationTextureProcessing, { minMaxFromTexture } from '../Process/ElevationTextureProcessing.js';
-import SubdivisionControl from '../Process/SubdivisionControl.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
-import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
 import Picking from '../Core/Picking.js';
 import ScreenSpaceError from '../Core/ScreenSpaceError.js';
+import LayeredMaterial from '../Renderer/LayeredMaterial.js';
+import TileMesh from '../Core/TileMesh.js';
+import TileGeometry from '../Core/TileGeometry.js';
+import Cache from '../Core/Scheduler/Cache.js';
 
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = (tileCount * x) / layerDimension.x;
@@ -168,7 +169,7 @@ function subdivideNode(context, map, node) {
 
         for (const extent of extents) {
             const child = requestNewTile(
-                context.instance, context.scheduler, map, extent, node,
+                map, extent, node,
             );
             node.add(child);
 
@@ -190,30 +191,105 @@ function subdivideNode(context, map, node) {
     }
 }
 
-function requestNewTile(view, scheduler, map, extent, parent, level) {
-    const command = {
-        /* mandatory */
-        view,
-        requester: parent,
-        layer: map,
-        priority: 10000,
-        /* specific params */
-        extent,
-        level,
-        redraw: false,
-        threejsLayer: map.threejsLayer,
-    };
+function requestNewTile(map, extent, parent, level) {
+    if (parent && !parent.material) {
+        return null;
+    }
+    const { builder } = map;
+    level = (level === undefined) ? (parent.level + 1) : level;
 
-    const node = scheduler.execute(command);
-    node.add(node.OBB());
-    map.onTileCreated(map, parent, node);
+    const { sharableExtent, quaternion, position } = builder.computeSharableExtent(extent);
+    const segment = map.segments || 8;
+    const key = `${builder.type}_${segment}_${level}_${sharableExtent._values.join(',')}`;
 
-    return node;
+    let geometry = Cache.get(key);
+    // build geometry if doesn't exist
+    if (!geometry) {
+        const paramsGeometry = {
+            extent: sharableExtent,
+            level,
+            segment,
+            disableSkirt: map.disableSkirt,
+        };
+
+        geometry = new TileGeometry(paramsGeometry, builder);
+        Cache.set(key, geometry);
+
+        geometry._count = 0;
+        geometry.dispose = () => {
+            geometry._count--;
+            if (geometry._count === 0) {
+                THREE.BufferGeometry.prototype.dispose.call(geometry);
+                Cache.delete(key);
+            }
+        };
+    }
+
+    // build tile
+    geometry._count++;
+    const material = new LayeredMaterial(
+        map.materialOptions, segment, map.atlasInfo,
+    );
+    const tile = new TileMesh(map, geometry, material, extent, level);
+    tile.layers.set(map.threejsLayer);
+    if (map.renderOrder !== undefined) {
+        tile.renderOrder = map.renderOrder;
+    }
+    material.opacity = map.opacity;
+
+    if (parent && parent instanceof TileMesh) {
+        // get parent extent transformation
+        const pTrans = builder.computeSharableExtent(parent.extent);
+        // place relative to his parent
+        position.sub(pTrans.position).applyQuaternion(pTrans.quaternion.invert());
+        quaternion.premultiply(pTrans.quaternion);
+    }
+
+    tile.position.copy(position);
+    tile.quaternion.copy(quaternion);
+
+    tile.material.transparent = map.opacity < 1.0;
+    tile.material.uniforms.opacity.value = map.opacity;
+    tile.setVisibility(false);
+    tile.updateMatrix();
+
+    if (map.noTextureColor) {
+        tile.material.uniforms.noTextureColor.value.copy(map.noTextureColor);
+    }
+
+    // no texture opacity
+    if (map.noTextureOpacity !== undefined) {
+        tile.material.uniforms.noTextureOpacity.value = map.noTextureOpacity;
+    }
+
+    if (__DEBUG__) {
+        tile.material.uniforms.showOutline = { value: map.showOutline || false };
+        tile.material.wireframe = map.wireframe || false;
+    }
+
+    if (parent) {
+        tile.setBBoxZ(parent.OBB().z.min, parent.OBB().z.max);
+    } else {
+        // TODO: probably not here
+        // TODO get parentGeometry from layer
+        const elevation = map.getLayers(l => l instanceof ElevationLayer);
+        if (elevation.length > 0) {
+            if (!elevation[0].minmax) {
+                console.error('fix the provider');
+            }
+            tile.setBBoxZ(elevation[0].minmax.min, elevation[0].minmax.max);
+        }
+    }
+
+    tile.add(tile.OBB());
+    map.onTileCreated(map, parent, tile);
+
+    return tile;
 }
 
 /**
  * A map is an {@link module:entities/Entity~Entity Entity} that represents a flat
- * surface displaying one or more {@link module:Core/Layer/Layer~Layer Layers}.
+ * surface displaying one or more {@link module:Core/layer/Layer~Layer Layers}.
  *
  * If an elevation layer is added, the surface of the map is deformed to
  * display terrain.
@@ -263,11 +339,13 @@ class Map extends Entity3D {
             enable: false,
             position: { x: -0.5, y: 0.0, z: 1.0 },
         };
+
+        this.currentAddedLayerIds = [];
     }
 
-    pickObjectsAt(_instance, mouse, radius) {
+    pickObjectsAt(instance, mouse, radius) {
         return Picking.pickTilesAt(
-            _instance,
+            instance,
             mouse,
             radius,
             this,
@@ -275,7 +353,12 @@ class Map extends Entity3D {
     }
 
     preUpdate(context, changeSources) {
-        SubdivisionControl.preUpdate(context, this);
+        context.colorLayers = context.instance.getLayers(
+            (l, a) => a && a.id === this.id && l instanceof ColorLayer,
+        );
+        context.elevationLayers = context.instance.getLayers(
+            (l, a) => a && a.id === this.id && l instanceof ElevationLayer,
+        );
 
         if (__DEBUG__) {
             this._latestUpdateStartingLevel = 0;
@@ -360,7 +443,7 @@ class Map extends Entity3D {
                 node.sse = sse; // DEBUG
 
                 if (testTileSSE(node, sse, this.maxSubdivisionLevel || -1)
-                        && SubdivisionControl.hasEnoughTexturesToSubdivide(context, this, node)) {
+                        && this.hasEnoughTexturesToSubdivide(context, node)) {
                     subdivideNode(context, this, node);
                     // display iff children aren't ready
                     node.setDisplayed(false);
@@ -451,192 +534,52 @@ class Map extends Entity3D {
     }
 
     // TODO this whole function should be either in providers or in layers
-    _preprocessLayer(layer, provider) {
-        if (!(layer instanceof Layer) && !(layer instanceof Entity3D)) {
-            const nlayer = new Layer(layer.id);
-            // nlayer.id is read-only so delete it from layer before Object.assign
-            const tmp = layer;
-            delete tmp.id;
-            layer = Object.assign(nlayer, layer);
-            // restore layer.id in user provider layer object
-            tmp.id = layer.id;
-        }
-
-        layer.options = layer.options || {};
-
-        if (!layer.updateStrategy) {
-            layer.updateStrategy = {
-                type: STRATEGY_MIN_NETWORK_TRAFFIC,
-            };
-        }
-
-        if (provider) {
-            if (provider.tileInsideLimit) {
-                layer.tileInsideLimit = provider.tileInsideLimit.bind(provider);
-            }
-            if (provider.getPossibleTextureImprovements) {
-                layer.getPossibleTextureImprovements = provider
-                    .getPossibleTextureImprovements
-                    .bind(provider);
-            }
-            if (provider.tileTextureCount) {
-                layer.tileTextureCount = provider.tileTextureCount.bind(provider);
-            }
-        }
-
-        if (!layer.whenReady) {
-            let providerPreprocessing = Promise.resolve();
-            if (provider && provider.preprocessDataLayer) {
-                providerPreprocessing = provider.preprocessDataLayer(
-                    layer, this._instance, this._instance.mainLoop.scheduler, this,
-                );
-                if (!(providerPreprocessing && providerPreprocessing.then)) {
-                    providerPreprocessing = Promise.resolve();
-                }
-            }
-
-            if (layer.type === 'elevation') {
-                providerPreprocessing = providerPreprocessing.then(() => {
-                    const down = provider.getPossibleTextureImprovements(layer, layer.extent);
-                    return provider.executeCommand({
-                        layer,
-                        toDownload: down,
-                    }).then(result => {
-                        const minmax = minMaxFromTexture(layer, result.texture, result.pitch);
-                        result.texture.min = minmax.min;
-                        result.texture.max = minmax.max;
-                        layer.minmax = minmax;
-                    });
-                });
-            }
-
-            // the last promise in the chain must return the layer
-            layer.whenReady = providerPreprocessing.then(() => {
-                if (layer.type === 'elevation') {
-                    if (!layer.minmax) {
-                        throw new Error('At this point the whole min/max should be known');
-                    }
-                    this.object3d.traverse(n => {
-                        if (n.setBBoxZ) {
-                            n.setBBoxZ(layer.minmax.min, layer.minmax.max);
-                        }
-                    });
-                }
-
-                layer.ready = true;
-                return layer;
-            });
-        }
-
-        // probably not the best place to do this
-        if (layer.type === 'color') {
-            defineLayerProperty(layer, 'frozen', false);
-            defineLayerProperty(layer, 'visible', true);
-            defineLayerProperty(layer, 'opacity', 1.0);
-            defineLayerProperty(layer, 'sequence', 0);
-        } else if (layer.type === 'elevation') {
-            defineLayerProperty(layer, 'frozen', false);
-        }
-        return layer;
-    }
 
     /**
-     * Adds a layer from the specified options, then returns the created layer.
+     * Adds a layer , then returns the created layer.
+     * Before use this method, add the map in an instance.
+     * If the extent or the projection of the layer is not provided,
+     * the values from map will be used.
      *
-     * @param {object} layer an object describing the layer options creation
-     * @param {string} layer.id the unique identifier of the layer
-     * @param {string} layer.type the layer type (<code>'color'</code> or <code>'elevation'</code>)
-     * @param {Extent} layer.extent the layer extent
-     * @param {string=} layer.projection the optional layer projection.
-     * If none, defaults to the map's projection.
-     * @param {string} [layer.protocol=undefined] the optional layer protocol. Can be any of:
-     * - <code>'tile'</code>
-     * - <code>'wms'</code>
-     * - <code>'3d-tiles'</code>
-     * - <code>'tms'</code>
-     * - <code>'xyz'</code>
-     * - <code>'potreeconverter'</code>
-     * - <code>'wfs'</code>
-     * - <code>'rasterizer'</code>
-     * - <code>'static'</code>
-     * - <code>'oltile'</code>
-     * - <code>'olvectortile'</code>
-     * - <code>'olvector'</code>
-     * @param {string} layer.elevationFormat if layer.type is<code>'elevation'</code>,
-     * specifies the elevation format.
-     * @param {string} layer.update the update function of this layer.If none provided,
-     * use default update functions for color and elevation layers
-     * (depending on <code>layer.elevationFormat</code>).
-     * @param {string} layer.heightFieldOffset if <code>layer.type</code> is<code>'elevation'</code>
-     * and <code>layer.elevationFormat</code> is <code>ELEVATION_FORMAT.HEIGHFIELD</code>,
-     * specifies the offset to use for scalar values in the height field. Default is <code>0</code>.
-     * @param {string} layer.heightFieldScale if <code>layer.type</code> is<code>'elevation'</code>
-     * and <code>layer.elevationFormat</code> is <code>ELEVATION_FORMAT.HEIGHFIELD</code>,
-     * specifies the scale to use for scalar values in the height field.
-     * Default is <code>255</code>.
-     * @returns {Layer} a promise resolving when the layer is ready
+     * @param {module:Core/layer/Layer~Layer} layer an object describing the layer options creation
+     * @returns {Promise} a promise resolving when the layer is ready
      * @api
      */
     addLayer(layer) {
-        if (layer.type === 'color') {
-            layer.update = layer.update || ColorTextureProcessing.updateLayerElement;
-        } else if (layer.type === 'elevation') {
-            layer.update = layer.update || ElevationTextureProcessing.updateLayerElement;
-            if (layer.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
-                layer.heightFieldOffset = layer.heightFieldOffset || 0;
-                layer.heightFieldScale = layer.heightFieldScale || 255;
-            }
-        }
-
         return new Promise((resolve, reject) => {
-            if (!layer) {
-                reject(new Error('layer is undefined'));
+            if (!this._instance) {
+                reject(new Error('map is not attached to an instance'));
                 return;
             }
-            const duplicate = this._instance.getLayers((l => l.id === layer.id));
-            if (duplicate.length > 0) {
+
+            if (!(layer instanceof Layer)) {
+                reject(new Error('layer is not an instance of Layer'));
+                return;
+            }
+            const duplicate = this.getLayers((l => l.id === layer.id));
+            if (duplicate.length > 0 || this.currentAddedLayerIds.includes(layer.id)) {
                 reject(new Error(`Invalid id '${layer.id}': id already used`));
                 return;
             }
+            this.currentAddedLayerIds.push(layer.id);
 
             if (!layer.extent) {
                 layer.extent = this.extent;
             }
-
-            const provider = this._instance.mainLoop.scheduler.getProtocolProvider(layer.protocol);
-            if (layer.protocol && !provider) {
-                reject(new Error(`${layer.protocol} is not a recognized protocol name.`));
-                return;
-            }
-
-            layer = this._preprocessLayer(layer, provider);
-
             if (!layer.projection) {
                 layer.projection = this.projection;
             }
 
+            layer = layer._preprocessLayer(this, this._instance);
+
             layer.whenReady.then(l => {
-                if (l.type === 'elevation') {
-                    this.minMaxFromElevationLayer = {
-                        min: l.minmax.min,
-                        max: l.minmax.max,
-                    };
-                    for (const node of this.level0Nodes) {
-                        node.traverse(n => {
-                            if (n.setBBoxZ) {
-                                n.setBBoxZ(
-                                    this.minMaxFromElevationLayer.min,
-                                    this.minMaxFromElevationLayer.max,
-                                );
-                            }
-                        });
-                    }
-                }
-
                 this.attach(l);
-
                 this._instance.notifyChange(this, false);
                 resolve(l);
+            }).catch(r => {
+                reject(r);
+            }).then(() => {
+                this.currentAddedLayerIds = this.currentAddedLayerIds.filter(l => l !== layer.id);
             });
         });
     }
@@ -648,17 +591,17 @@ class Map extends Entity3D {
      * @api
      */
     removeLayer(layer) {
-        if (layer.object3d) {
+        if (layer.object3d) { // TODO layer can have object3d ?
             ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, layer.object3d);
             this.scene.remove(layer.object3d);
         }
-        const parentLayer = this.getLayers(
+        const parentLayer = this.getLayers( // TODO layer can have _attachedLayers ?
             l => l._attachedLayers && l._attachedLayers.includes(layer),
         )[0];
         if (parentLayer) {
             parentLayer.detach(layer);
         }
-        this._cleanLayer(layer);
+        this._cleanLayer(layer); // TODO this method doesn't exist.
         // TODO clean also this layer's children
         this.notifyChange(parentLayer || this._instance.camera.camera3D, true);
     }
@@ -682,26 +625,69 @@ class Map extends Entity3D {
     }
 
     /**
-     * Clean all layers in the map.
+     * Gets all color layers
+     *
+     * @api
+     * @returns {Array<object>} the color layers
+     */
+    getColorLayers() {
+        return this.getLayers(l => l instanceof ColorLayer);
+    }
+
+    /**
+     * Gets all elevation layers
+     *
+     * @api
+     * @returns {Array<object>} the color layers
+     */
+    getElevationLayers() {
+        return this.getLayers(l => l instanceof ElevationLayer);
+    }
+
+    /**
+     * Cleans all layers in the map.
      *
      * @api
      */
     clean() {
-        for (const l of this.getLayers()) {
-            this._cleanLayer(l);
+        for (const layer of this.getLayers()) {
+            layer.clean(this);
         }
     }
 
-    _cleanLayer(layer) {
-        // XXX do providers needs to clean their layers ? Usually it's just some properties
-        // initialisation...  - YES they do, because Providers use Cache, and they know which key
-        // they use. (this behaviour is dangerous and we should change this)
-        if (layer.type === 'color') {
-            ColorTextureProcessing.cleanLayer(layer, this);
-        } else if (layer.type === 'elevation') {
-            // TODO
-            // ElevationTextureProcessing.clean(layer, parentLayer.object3d);
+    hasEnoughTexturesToSubdivide(context, node) {
+        // Prevent subdivision if node is covered by at least one elevation layer
+        // and if node doesn't have a elevation texture yet.
+        for (const e of context.elevationLayers) {
+            if (!e.frozen && e.ready && e.tileInsideLimit(node, e)
+                && !node.material.isElevationLayerTextureLoaded(e)) {
+                // no stop subdivision in the case of a loading error
+                if (node.layerUpdateState[e.id] && node.layerUpdateState[e.id].inError()) {
+                    continue;
+                }
+                return false;
+            }
         }
+
+        if (node.children.some(n => n.layer === this)) {
+            // No need to prevent subdivision, since we've already done it before
+            return true;
+        }
+
+        // Prevent subdivision if missing color texture
+        /* for (const c of context.colorLayers) {
+            if (c.frozen || !c.visible || !c.ready) {
+                continue;
+            }
+            // no stop subdivision in the case of a loading error
+            if (node.layerUpdateState[c.id] && node.layerUpdateState[c.id].inError()) {
+                continue;
+            }
+            if (c.tileInsideLimit(node, c) && !node.material.isColorLayerTextureLoaded(c)) {
+                return false;
+            }
+            } */
+        return true;
     }
 }
 

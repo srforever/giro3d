@@ -3,7 +3,8 @@
  */
 import { Color } from 'three';
 
-import { defineLayerProperty } from '../Core/Layer/Layer.js';
+import { defineLayerProperty } from '../Core/layer/Layer.js';
+import ColorLayer from '../Core/layer/ColorLayer.js';
 import Picking from '../Core/Picking.js';
 import AtlasBuilder from '../Renderer/AtlasBuilder.js';
 import Capabilities from '../Core/System/Capabilities.js';
@@ -166,8 +167,8 @@ class Entity3D extends Entity {
         }
         this._attachedLayers.push(layer);
 
-        if (layer.type === 'color') {
-            const colorLayers = this._attachedLayers.filter(l => l.type === 'color');
+        if (layer instanceof ColorLayer) {
+            const colorLayers = this._attachedLayers.filter(l => l instanceof ColorLayer);
 
             // rebuild color textures atlas
             const { atlas, maxX, maxY } = AtlasBuilder.pack(

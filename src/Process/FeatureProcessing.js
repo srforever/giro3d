@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import LayerUpdateState from '../Core/Layer/LayerUpdateState.js';
+import LayerUpdateState from '../Core/layer/LayerUpdateState.js';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException.js';
 import ObjectRemovalHelper from './ObjectRemovalHelper.js';
 

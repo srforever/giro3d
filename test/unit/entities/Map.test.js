@@ -1,18 +1,48 @@
 import { Group } from 'three';
 import Extent from '../../../src/Core/Geographic/Extent.js';
+import Instance from '../../../src/Core/Instance.js';
 import { Map } from '../../../src/entities/Map.js';
+import Layer from '../../../src/Core/layer/Layer.js';
+import MainLoop from '../../../src/Core/MainLoop.js';
 
 describe('Map', () => {
+    /** @type {HTMLDivElement} */
+    let viewerDiv;
+
+    /** @type {Instance} */
+    let instance;
+
+    /** @type {MainLoop} */
+    let mainLoop;
+
+    /** @type {Map} */
     let map;
+
     const extent = new Extent('EPSG:4326', {
         west: 0, east: 10, south: 0, north: 10,
     });
 
     beforeEach(() => {
+        viewerDiv = {};
+        viewerDiv.appendChild = jest.fn;
+        mainLoop = {
+            gfxEngine: {
+                getWindowSize: jest.fn,
+            },
+            scheduleUpdate: jest.fn,
+            scheduler: {
+                getProtocolProvider: jest.fn,
+            },
+        };
+        const options = { mainLoop };
+        instance = new Instance(viewerDiv, options);
+
         map = new Map('myEntity', {
             extent,
             maxSubdivisionLevel: 15,
         });
+
+        instance.add(map);
     });
 
     describe('constructor', () => {
@@ -36,6 +66,33 @@ describe('Map', () => {
             expect(map.update).toBeDefined();
             expect(map.preUpdate).toBeDefined();
             expect(map.postUpdate).toBeDefined();
+        });
+    });
+
+    describe('addLayers', () => {
+        it('should accept only Layer object', async () => {
+            await expect(map.addLayer()).rejects.toThrowError('layer is not an instance of Layer');
+            await expect(map.addLayer(null)).rejects.toThrowError('layer is not an instance of Layer');
+            await expect(map.addLayer([])).rejects.toThrowError('layer is not an instance of Layer');
+            await expect(map.addLayer(map)).rejects.toThrowError('layer is not an instance of Layer');
+
+            expect(map.getLayers()).toStrictEqual([]);
+        });
+
+        it('should add a layer', () => {
+            const layer = new Layer('layer', { standalone: true });
+
+            map.addLayer(layer).then(() => {
+                expect(map.getLayers()).toStrictEqual([layer]);
+            });
+        });
+
+        it('should not add 2 layers with the same id', async () => {
+            const layer1 = new Layer('layer', { standalone: true });
+            const layer2 = new Layer('layer', { standalone: true });
+
+            map.addLayer(layer1);
+            await expect(map.addLayer(layer2)).rejects.toThrowError('id already used');
         });
     });
 });
