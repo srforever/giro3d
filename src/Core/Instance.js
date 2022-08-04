@@ -7,8 +7,8 @@ import {
 import Camera from '../Renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../Renderer/c3DEngine.js';
-import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
-import Layer, { defineLayerProperty } from './Layer/Layer.js';
+import { STRATEGY_MIN_NETWORK_TRAFFIC } from './layer/LayerUpdateStrategy.js';
+import Layer, { defineLayerProperty } from './layer/Layer.js';
 import Entity3D from '../entities/Entity3D.js';
 import Scheduler from './Scheduler/Scheduler.js';
 import Picking from './Picking.js';

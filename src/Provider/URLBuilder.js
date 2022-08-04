@@ -1,5 +1,5 @@
 import Extent from '../Core/Geographic/Extent.js';
-import Layer from '../Core/Layer/Layer.js';
+import Layer from '../Core/layer/Layer.js';
 
 /**
  * @module Provider/URLBuilder

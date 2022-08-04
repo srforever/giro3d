@@ -12,11 +12,13 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <div id="viewerDiv">
-            <select id="myList" onchange="changeLayer()" style="position:absolute;">
+        <div style="position: absolute; top: 0; left: 0;">
+            <select id="cogLayerOptions" onchange="changeLayer()" style="position:absolute;">
                 <option>UINT8 3-band RGB Data</option>
                 <option>UINT16 1-band NIR Data </option>
             </select>
+        </div>
+        <div id="viewerDiv">
         </div>
         <script src="giro3d.js"></script>
         <script src="js/loading_screen.js"></script>
@@ -70,38 +72,33 @@
             // Source urls for the example
 
             const cogs = [
-                'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/2020/S2A_36QWD_20200701_0_L2A/TCI.tif',
-                'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/2020/S2A_36QWD_20200701_0_L2A/B08.tif',
+                new giro3d.CogSource({
+                    url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/2020/S2A_36QWD_20200701_0_L2A/TCI.tif'
+                }),
+                new giro3d.CogSource({
+                    url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/2020/S2A_36QWD_20200701_0_L2A/B08.tif'
+                }),
             ]
 
-            // Add the COG Layer as 'color' type to the map
-            // See https://docs.sentinel-hub.com/api/latest/data/
-
-            map.addLayer({
-                id: '0',
-                protocol: 'cog',
-                type: 'color',
-                url: cogs[0],
-            });
+            // Load the current selected layer
+            changeLayer();
 
             // Load other layers and change visibility 
-
             function changeLayer() {
-                const mylist = document.getElementById("myList");
+                const cogLayerOptions = document.getElementById("cogLayerOptions");
+                const cogOptionIndex = cogLayerOptions.selectedIndex;
                 map.getLayers().forEach(layer => {
                     layer.visible = false;
                 });
                 instance.notifyChange(map, true);
-                const selectedLayer = map._attachedLayers[mylist.selectedIndex];
-                if (selectedLayer) {
+                const selectedLayer = map.getLayers(l => l.id === cogOptionIndex)[0];
+                if (selectedLayer) { // if the layer is already loaded
                     selectedLayer.visible = true;
                 } else {
-                    map.addLayer({
-                        id: mylist.selectedIndex.toString(),
-                        protocol: 'cog',
-                        type: 'color',
-                        url: cogs[mylist.selectedIndex],
-                    });
+                    // Add the COG Layer as a color layer to the map
+                    // See https://docs.sentinel-hub.com/api/latest/data/
+                    const cogLayer = new giro3d.ColorLayer(cogOptionIndex, { source: cogs[cogOptionIndex] });
+                    map.addLayer(cogLayer);
                 }
             }
         </script>

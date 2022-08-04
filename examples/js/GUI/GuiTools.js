@@ -41,7 +41,7 @@ function GuiTools(domId, instance, w) {
         // TODO should be on map
         instance.addEventListener('layers-order-changed', () => {
             let i;
-            const colorLayers = instance.getLayers(l => l.type === 'color');
+            const colorLayers = instance.getLayers(l => l instanceof giro3d.ColorLayer);
             for (i = 0; i < colorLayers.length; i++) {
                 this.removeLayersGUI(colorLayers[i].id);
             }
@@ -52,8 +52,8 @@ function GuiTools(domId, instance, w) {
 }
 
 GuiTools.prototype.addLayersGUI = function fnAddLayersGUI() {
-    function filterColor(l) { return l.type === 'color'; }
-    function filterElevation(l) { return l.type === 'elevation'; }
+    function filterColor(l) { return l instanceof giro3d.ColorLayer; }
+    function filterElevation(l) { return l instanceof giro3d.ElevationLayer; }
     // TODO should be on map
     this.addImageryLayersGUI(this.instance.getLayers(filterColor));
     this.addElevationLayersGUI(this.instance.getLayers(filterElevation));

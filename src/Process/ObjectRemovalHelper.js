@@ -1,5 +1,5 @@
 import { Object3D } from 'three';
-import Layer from '../Core/Layer/Layer.js';
+import Layer from '../Core/layer/Layer.js';
 
 export default {
     /**

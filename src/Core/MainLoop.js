@@ -1,7 +1,7 @@
 import {
     EventDispatcher, Math as ThreeMath, Sphere,
 } from 'three';
-import Layer from './Layer/Layer.js';
+import Layer from './layer/Layer.js';
 import Entity3D from '../entities/Entity3D.js';
 import Cache from './Scheduler/Cache.js';
 import Context from './Context.js';
@@ -90,7 +90,7 @@ function updateElements(context, entity, elements) {
                 // update attached layers
                 for (const attachedLayer of entity._attachedLayers) {
                     if (attachedLayer.ready) {
-                        attachedLayer.update(context, attachedLayer, sub.element, sub.parent);
+                        attachedLayer.update(context, sub.element, sub.parent);
                     }
                 }
             } else if (sub.elements) {
@@ -103,9 +103,7 @@ function updateElements(context, entity, elements) {
                     // update attached layers
                     for (const attachedLayer of entity._attachedLayers) {
                         if (attachedLayer.ready) {
-                            attachedLayer.update(
-                                context, attachedLayer, sub.elements[i], sub.parent,
-                            );
+                            attachedLayer.update(context, sub.elements[i], sub.parent);
                         }
                     }
                 }

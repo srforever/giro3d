@@ -14,13 +14,14 @@ export { ollayer };
 
 export { default as Coordinates, UNIT } from '../../src/Core/Geographic/Coordinates.js';
 export { default as Extent } from '../../src/Core/Geographic/Extent.js';
-export { ImageryLayers } from '../../src/Core/Layer/Layer.js';
+export { ImageryLayers } from '../../src/Core/layer/Layer.js';
+export { default as ColorLayer } from '../../src/Core/layer/ColorLayer.js';
+export { default as ElevationLayer } from '../../src/Core/layer/ElevationLayer.js';
 export { default as Entity3D } from '../../src/entities/Entity3D.js';
 export { default as Entity } from '../../src/entities/Entity.js';
-export { default as TileLayer } from '../../src/Core/Layer/TileLayer.js';
 export {
     STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_GROUP, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY,
-} from '../../src/Core/Layer/LayerUpdateStrategy.js';
+} from '../../src/Core/layer/LayerUpdateStrategy.js';
 export { Map, requestNewTile } from '../../src/entities/Map.js';
 export { default as PanoramaView, createPanoramaLayer } from '../../src/Core/Prefab/PanoramaView.js';
 export { default as Panorama } from '../../src/Core/Prefab/Panorama/Constants.js';
@@ -38,8 +39,6 @@ export {
     pre3dTilesUpdate,
 } from '../../src/Process/3dTilesProcessing.js';
 export { default as FeatureProcessing } from '../../src/Process/FeatureProcessing.js';
-export { default as ColorTextureProcessing } from '../../src/Process/ColorTextureProcessing.js';
-export { default as ElevationTextureProcessing } from '../../src/Process/ElevationTextureProcessing.js';
 export { ColorLayersOrdering } from '../../src/Renderer/ColorLayersOrdering.js';
 export { default as PointsMaterial } from '../../src/Renderer/PointsMaterial.js';
 export { default as PointCloudProcessing } from '../../src/Process/PointCloudProcessing.js';
@@ -48,6 +47,8 @@ export { default as FirstPersonControls } from '../../src/Renderer/ThreeExtended
 export { default as FeaturesUtils } from '../../src/Renderer/ThreeExtended/FeaturesUtils.js';
 export { default as Picking } from '../../src/Core/Picking.js';
 export { default as OBB } from '../../src/Renderer/ThreeExtended/OBB.js';
+
+export { default as CogSource } from '../../src/sources/CogSource.js';
 
 export { default as DeformationChain } from '../../src/DeformationChain.js';
 export { default as HoverHelper } from '../../src/HoverHelper.js';
