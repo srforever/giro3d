@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import * as GeoTIFF from 'geotiff';
+import { Vector4, Texture } from 'three';
+import { fromUrl, Pool } from 'geotiff';
 
 import Cache from '../Core/Scheduler/Cache.js';
 import C3DEngine from '../Renderer/c3DEngine.js';
@@ -48,7 +48,7 @@ async function processSmallestOverview(layer, levelImage) {
     layer.dataMin = min;
     layer.dataMax = max;
     // While we are at it let's cache the texture
-    const result = { pitch: new THREE.Vector4(0, 0, 1, 1), texture: new THREE.Texture() };
+    const result = { pitch: new Vector4(0, 0, 1, 1), texture: new Texture() };
     // Process the downloaded data
     const { data, width, height } = processData(layer, arrayData);
     // We have to convert the texture image data to a proper image
@@ -65,7 +65,7 @@ async function processSmallestOverview(layer, levelImage) {
 
 async function getImages(layer) {
     // Get the COG informations
-    const tiff = await GeoTIFF.fromUrl(layer.source.url);
+    const tiff = await fromUrl(layer.source.url);
     // Number of images (original + overviews)
     const count = await tiff.getImageCount();
     // Get original image header
@@ -107,7 +107,7 @@ async function getImages(layer) {
 
 function preprocessDataLayer(layer) {
     // Initiate a pool of workers to decode COG chunks
-    layer.pool = new GeoTIFF.Pool();
+    layer.pool = new Pool();
     // Set the tiles size threshold to switch between overviews
     layer.imageSize = { w: 256, h: 256 };
     // Precompute the layer dimensions to later calculate data windows
@@ -200,7 +200,7 @@ function executeCommand(command) {
     }
     // If not, prepare an empty texture
     result = {
-        pitch: new THREE.Vector4(0, 0, 1, 1), texture: new THREE.Texture(),
+        pitch: new Vector4(0, 0, 1, 1), texture: new Texture(),
     };
     // Get the requested extent to download and the image at the appropriate
     // overview level

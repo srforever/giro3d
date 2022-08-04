@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Vector3, ShapeUtils } from 'three';
 import proj4 from 'proj4';
 import assert from 'assert';
 import GeoJsonParser from '../../src/Parser/GeoJsonParser.js';
@@ -21,12 +21,12 @@ function computeAreaOfMesh(mesh) {
         for (let j = 0; j < 3; j++) {
             const index = mesh.geometry.index.array[i + j];
             contour.push(
-                new THREE.Vector3().fromArray(
+                new Vector3().fromArray(
                     mesh.geometry.attributes.position.array, 3 * index,
                 ),
             );
         }
-        area += THREE.ShapeUtils.area(contour);
+        area += ShapeUtils.area(contour);
     }
     return area;
 }

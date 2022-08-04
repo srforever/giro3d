@@ -1,4 +1,7 @@
-import * as THREE from 'three';
+import {
+    BufferAttribute,
+    BufferGeometry,
+} from 'three';
 
 // See the different constants holding ordinal, name, numElements, byteSize in PointAttributes.cpp
 // in PotreeConverter
@@ -66,12 +69,12 @@ export default {
     /** @module PotreeBinParser */
 
     /**
-     * Parse .bin PotreeConverter format and convert to a THREE.BufferGeometry
+     * Parse .bin PotreeConverter format and convert to a BufferGeometry
      *
      * @param {ArrayBuffer} buffer the bin buffer.
      * @param {object} pointAttributes the point attributes information contained in
      * layer.metadata coming from cloud.js
-     * @returns {Promise} - a promise that resolves with a THREE.BufferGeometry.
+     * @returns {Promise} - a promise that resolves with a BufferGeometry.
      */
     parse: function parse(buffer, pointAttributes) {
         if (!buffer) {
@@ -86,7 +89,7 @@ export default {
         }
         const numPoints = Math.floor(buffer.byteLength / pointByteSize);
 
-        const geometry = new THREE.BufferGeometry();
+        const geometry = new BufferGeometry();
         let elemOffset = 0;
         let attrOffset = 0;
         for (const potreeName of pointAttributes) {
@@ -105,7 +108,7 @@ export default {
             attrOffset = elemOffset;
             geometry.setAttribute(
                 attr.attributeName,
-                new THREE.BufferAttribute(array, attr.numElements, attr.normalized),
+                new BufferAttribute(array, attr.numElements, attr.normalized),
             );
         }
 

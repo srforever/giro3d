@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Vector3, Group } from 'three';
 
 import Instance from '../Instance.js';
 
@@ -9,11 +9,11 @@ import PanoramaTileBuilder from './Panorama/PanoramaTileBuilder.js';
 import ProjectionType from './Panorama/Constants.js';
 
 export function createPanoramaLayer(id, coordinates, type, options = {}) {
-    const tileLayer = new Entity3D(id, options.object3d || new THREE.Group());
+    const tileLayer = new Entity3D(id, options.object3d || new Group());
 
     coordinates.xyz(tileLayer.object3d.position);
     tileLayer.object3d.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, 0, 1), coordinates.geodesicNormal,
+        new Vector3(0, 0, 1), coordinates.geodesicNormal,
     );
     tileLayer.object3d.updateMatrixWorld(true);
 
@@ -92,7 +92,7 @@ function PanoramaView(viewerDiv, coordinates, type, options = {}) {
     camera.far = 1000;
     camera.up = coordinates.geodesicNormal;
     // look at to the north
-    camera.lookAt(new THREE.Vector3(0, 1, 0).add(camera.position));
+    camera.lookAt(new Vector3(0, 1, 0).add(camera.position));
 
     if (camera.updateProjectionMatrix) {
         camera.updateProjectionMatrix();

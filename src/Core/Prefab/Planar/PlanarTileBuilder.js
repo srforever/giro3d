@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Vector3, Quaternion } from 'three';
 import OBB from '../../../Renderer/ThreeExtended/OBB.js';
 import Coordinates from '../../Geographic/Coordinates.js';
 import Extent from '../../Geographic/Extent.js';
@@ -6,7 +6,7 @@ import Extent from '../../Geographic/Extent.js';
 function PlanarTileBuilder() {
     this.tmp = {
         coords: new Coordinates('EPSG:4326', 0, 0),
-        position: new THREE.Vector3(),
+        position: new Vector3(),
     };
 
     this.type = 'p';
@@ -18,11 +18,11 @@ PlanarTileBuilder.prototype.constructor = PlanarTileBuilder;
 // init projected object -> params.projected
 PlanarTileBuilder.prototype.Prepare = function Prepare(params) {
     params.nbRow = 2.0 ** (params.zoom + 1.0);
-    params.projected = new THREE.Vector3();
+    params.projected = new Vector3();
 };
 
 // get center tile in cartesian 3D
-const center = new THREE.Vector3();
+const center = new Vector3();
 PlanarTileBuilder.prototype.Center = function Center(extent) {
     extent.center(this.tmp.coords);
     center.set(this.tmp.coords.x(), this.tmp.coords.y(), 0);
@@ -51,7 +51,7 @@ PlanarTileBuilder.prototype.OBB = function OBBFn(boundingBox) {
     return new OBB(boundingBox.min, boundingBox.max);
 };
 
-const quaternion = new THREE.Quaternion();
+const quaternion = new Quaternion();
 PlanarTileBuilder.prototype.computeSharableExtent = function fnComputeSharableExtent(extent) {
     // compute sharable extent to pool the geometries
     // the geometry in common extent is identical to the existing input

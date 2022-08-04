@@ -1,16 +1,20 @@
-import * as THREE from 'three';
+import {
+    Box3,
+    Object3D,
+    Vector3,
+} from 'three';
 
-class OBB extends THREE.Object3D {
+class OBB extends Object3D {
     constructor(min, max) {
         super();
-        this.box3D = new THREE.Box3(min.clone(), max.clone());
+        this.box3D = new Box3(min.clone(), max.clone());
         this.natBox = this.box3D.clone();
         this.z = { min: 0, max: 0 };
         this.topPointsWorld = [
-            new THREE.Vector3(),
-            new THREE.Vector3(),
-            new THREE.Vector3(),
-            new THREE.Vector3(),
+            new Vector3(),
+            new Vector3(),
+            new Vector3(),
+            new Vector3(),
         ];
         this.update();
     }

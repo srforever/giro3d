@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { CanvasTexture } from 'three';
 import fit from './Packer.js';
 
 /**
@@ -7,14 +7,14 @@ import fit from './Packer.js';
  * We use a classic 2D Bin Packing algorithm to assign each individual image a
  * location in the resulting texture.
  * Then this texture is created using a <canvas>,  onto which we draw all images.
- * In the end we return a THREE.CanvasTexture and an array 'uv' of Vector4, describing
+ * In the end we return a THREE CanvasTexture and an array 'uv' of Vector4, describing
  * the position/size of each input images in the atlas.
  *
  * @param {Array} images an array of <img>
  * @param {Array} uvs an array of coordinates indicating what part of the image we should keep
  * @param {boolean} needsPixelSeparation does this atlas need to use a anti color bleed pixel
  * between images
- * @returns {THREE.CanvasTexture} the texture atlas
+ * @returns {CanvasTexture} the texture atlas
  */
 export default {
     pack(maxSize, layerIds, imageSizes, oldAtlas) {
