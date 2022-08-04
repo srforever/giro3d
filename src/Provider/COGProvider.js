@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import * as GeoTIFF from 'geotiff';
 
 import Cache from '../Core/Scheduler/Cache.js';
+import C3DEngine from '../Renderer/c3DEngine.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -35,7 +36,7 @@ function makeWindowFromExtent(layer, extent, resolution) {
     ];
 }
 
-async function processSmallestOverview(layer, instance, levelImage) {
+async function processSmallestOverview(layer, levelImage) {
     const arrayData = await levelImage.image.readRasters({
         window: makeWindowFromExtent(layer, layer.extent, levelImage.resolution),
         fillValue: layer.nodata,
@@ -50,7 +51,7 @@ async function processSmallestOverview(layer, instance, levelImage) {
     const { data, width, height } = processData(layer, arrayData);
     // We have to convert the texture image data to a proper image
     // to display it on the tile
-    result.texture.image = instance.mainLoop.gfxEngine.bufferToImage(
+    result.texture.image = C3DEngine.bufferToImage(
         data, width, height,
     );
     // Put the extent to indicate the overview has been processed
@@ -60,7 +61,7 @@ async function processSmallestOverview(layer, instance, levelImage) {
     Cache.set(key, result);
 }
 
-async function getImages(layer, instance) {
+async function getImages(layer) {
     // Get the COG informations
     const tiff = await GeoTIFF.fromUrl(layer.url);
     // Number of images (original + overviews)
@@ -98,11 +99,11 @@ async function getImages(layer, instance) {
     // performances, we use the latest image, meaning the highest overview
     // (lowest resolution)
     if (image.getSamplesPerPixel() === 1) {
-        await processSmallestOverview(layer, instance, levelImage);
+        await processSmallestOverview(layer, levelImage);
     }
 }
 
-function preprocessDataLayer(layer, instance) {
+function preprocessDataLayer(layer) {
     // Initiate a pool of workers to decode COG chunks
     layer.pool = new GeoTIFF.Pool();
     // Set the tiles size threshold to switch between overviews
@@ -110,7 +111,7 @@ function preprocessDataLayer(layer, instance) {
     // Precompute the layer dimensions to later calculate data windows
     layer.dimension = layer.extent.dimensions();
     // Get and store needed metadata
-    return getImages(layer, instance);
+    return getImages(layer);
 }
 
 function getPossibleTextureImprovements(layer, extent, texture) {
@@ -215,7 +216,7 @@ function executeCommand(command) {
             const { data, width, height } = processData(layer, arrayData);
             // We have to convert the texture image data to a proper image
             // to display it on the tile
-            result.texture.image = command.view.mainLoop.gfxEngine.bufferToImage(
+            result.texture.image = C3DEngine.bufferToImage(
                 data, width, height,
             );
             // Attach the extent to the texture to check for possible improvements

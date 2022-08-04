@@ -1,12 +1,9 @@
 import PriorityQueue from 'js-priority-queue';
 import TileState from 'ol/TileState.js';
-import WMSProvider from '../../Provider/WMSProvider.js';
 import TileProvider from '../../Provider/TileProvider.js';
 import $3dTilesProvider from '../../Provider/3dTilesProvider.js';
 import TMSProvider from '../../Provider/TMSProvider.js';
 import PointCloudProvider from '../../Provider/PointCloudProvider.js';
-import WFSProvider from '../../Provider/WFSProvider.js';
-import RasterProvider from '../../Provider/RasterProvider.js';
 import StaticProvider from '../../Provider/StaticProvider.js';
 import OLTileProvider from '../../Provider/OLTileProvider.js';
 import OLVectorTileProvider from '../../Provider/OLVectorTileProvider.js';
@@ -131,13 +128,10 @@ Scheduler.prototype.constructor = Scheduler;
 Scheduler.prototype.initDefaultProviders = function initDefaultProviders() {
     // Register all providers
     this.addProtocolProvider('tile', TileProvider);
-    this.addProtocolProvider('wms', WMSProvider);
     this.addProtocolProvider('3d-tiles', $3dTilesProvider);
     this.addProtocolProvider('tms', TMSProvider);
     this.addProtocolProvider('xyz', TMSProvider);
     this.addProtocolProvider('potreeconverter', PointCloudProvider);
-    this.addProtocolProvider('wfs', WFSProvider);
-    this.addProtocolProvider('rasterizer', RasterProvider);
     this.addProtocolProvider('static', StaticProvider);
     this.addProtocolProvider('oltile', OLTileProvider);
     this.addProtocolProvider('olvectortile', OLVectorTileProvider);

@@ -1,6 +1,6 @@
 import Extent from '../../../src/Core/Geographic/Extent.js';
 import Instance from '../../../src/Core/Instance.js';
-import Layer from '../../../src/Core/Layer/Layer.js';
+import Layer from '../../../src/Core/layer/Layer.js';
 import MainLoop from '../../../src/Core/MainLoop.js';
 import { Map } from '../../../src/entities/Map.js';
 
@@ -32,7 +32,7 @@ describe('Instance', () => {
 
     describe('getOwner', () => {
         it('should return null if there are no entities', () => {
-            const layer = new Layer();
+            const layer = new Layer('foo', { standalone: true });
             expect(instance.getOwner(layer)).toBeNull();
         });
 
@@ -46,9 +46,71 @@ describe('Instance', () => {
             instance.add(notOwner);
             instance.add(owner);
 
-            const layer = await owner.addLayer({ id: 'my-layer' });
+            const layer = await owner.addLayer(new Layer('foo', { standalone: true }));
 
             expect(instance.getOwner(layer)).toBe(owner);
+        });
+    });
+
+    describe('getLayers', () => {
+        it('should return empty array if there is no layer', () => {
+            const layers = instance.getLayers();
+            expect(layers).toStrictEqual([]);
+        });
+
+        it('should return an array with one layer if there is one layer in instance', () => {
+            const layer = new Layer('fooaaaaa', { standalone: true });
+
+            const map = new Map('myEntity', {
+                extent: new Extent('EPSG:4326', {
+                    west: 0, east: 10, south: 0, north: 10,
+                }),
+                maxSubdivisionLevel: 15,
+            });
+            instance.add(map);
+
+            map.addLayer(layer).then(() => {
+                const layers = instance.getLayers();
+                expect(layers).toStrictEqual([layer]);
+            });
+        });
+
+        it('should return an array with all layers from all map entities in instance', () => {
+            const map1 = new Map('map1', {
+                extent: new Extent('EPSG:4326', {
+                    west: 0, east: 10, south: 0, north: 10,
+                }),
+                maxSubdivisionLevel: 15,
+            });
+            instance.add(map1);
+
+            const layer11 = new Layer('layer11', { standalone: true });
+            const addLayer11Promise = map1.addLayer(layer11);
+
+            const layer12 = new Layer('layer12', { standalone: true });
+            const addLayer12Promise = map1.addLayer(layer12);
+
+            const map2 = new Map('map2', {
+                extent: new Extent('EPSG:4326', {
+                    west: 0, east: 10, south: 0, north: 10,
+                }),
+                maxSubdivisionLevel: 15,
+            });
+            instance.add(map2);
+
+            const layer21 = new Layer('layer21', { standalone: true });
+            const addLayer21Promise = map2.addLayer(layer21);
+
+            const layer22 = new Layer('layer22', { standalone: true });
+            const addLayer22Promise = map2.addLayer(layer22);
+
+            Promise.all([
+                addLayer11Promise, addLayer12Promise,
+                addLayer21Promise, addLayer22Promise,
+            ]).then(() => {
+                const layers = instance.getLayers();
+                expect(layers).toStrictEqual([layer11, layer12, layer21, layer22]);
+            });
         });
     });
 });
