@@ -1,6 +1,18 @@
+/**
+ * Class used as a source to create a {@linkcode module:Core/layer/Layer~Layer layer}
+ * when the data is a COG.
+ *
+ * @api
+ */
 class CogSource {
-    constructor(opitons = {}) {
-        this.url = opitons.url;
+    /**
+     * Creates a COG source.
+     *
+     * @param {object} [options={}] options
+     * @param {string} options.url the url of the cog image
+     */
+    constructor(options = {}) {
+        this.url = options.url;
     }
 }
 
