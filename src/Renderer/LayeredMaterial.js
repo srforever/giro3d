@@ -388,7 +388,6 @@ function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revi
     const ctx = canvas.getContext('2d');
 
     if (image !== undefined && layer.transparent) {
-        // TODO: only if !opaque
         ctx.clearRect(
             atlasInfo.x, atlasInfo.y, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset,
         );
@@ -418,26 +417,7 @@ function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revi
             );
         }
     }
-    // else {
-    //     ctx.moveTo(atlasInfo.x, atlasInfo.y);
-    //     ctx.lineTo(atlasInfo.x + layer.imageSize.w, atlasInfo.y + layer.imageSize.h);
-    //     ctx.moveTo(atlasInfo.x + layer.imageSize.w, atlasInfo.y);
-    //     ctx.lineTo(atlasInfo.x, atlasInfo.y + layer.imageSize.h);
-    //     ctx.stroke();
-    // }
 
-    // draw area of interest
-    // ctx.strokeStyle = "green";
-    // ctx.strokeRect(
-    //     interest.x * canvas.width,
-    //     interest.y * canvas.height,
-    //     interest.z * canvas.width,
-    //     interest.w * canvas.height);
-
-    // ctx.font = '24px serif';
-    // ctx.fillText(`${revision}:${atlasInfo.x},${atlasInfo.y}
-    // ${layer.imageSize.w}x${layer.imageSize.h}`, atlasInfo.x, atlasInfo.y + layer.imageSize.h *
-    // 0.5);
     atlasTexture.needsUpdate = true;
     return revision + 1;
 }
