@@ -53,7 +53,6 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
         this.uniforms.renderingState = new THREE.Uniform(RendererConstant.FINAL);
 
         this.defines.TEX_UNITS = 0;
-        this.defines.INSERT_TEXTURE_READING_CODE = '';
 
         if (__DEBUG__) {
             this.defines.DEBUG = 1;
@@ -287,8 +286,6 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
         }
         this.defines.TEX_UNITS = this.colorLayers.length;
         this.needsUpdate = true;
-
-        this.onBeforeCompile = rebuildFragmentShader.bind(this);
     }
 
     removeLayer(layer) {
@@ -308,8 +305,6 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
         this.defines.TEX_UNITS = this.colorLayers.length;
 
         this.needsUpdate = true;
-
-        this.onBeforeCompile = rebuildFragmentShader.bind(this);
     }
 
     update() {
@@ -462,89 +457,6 @@ function updateOffsetScale(imageSize, atlas, originalOffsetScale, canvas, target
         originalOffsetScale.z * xRatio,
         originalOffsetScale.w * yRatio,
     );
-}
-
-function zIndexSort(a, b) {
-    if (a.zIndex === b.zIndex) {
-        return 0;
-    }
-    if (!a.zIndex) {
-        return -1;
-    }
-    return a.zIndex - b.zIndex;
-}
-
-function rebuildFragmentShader(shader) {
-    const material = this;
-    const _atlas = material.atlasInfo.atlas;
-    let textureReadingCode = '';
-    const w = material.atlasInfo.maxX;
-    const h = material.atlasInfo.maxY;
-    const sortedLayers = [...material.colorLayers].sort(zIndexSort);
-    for (const layer of sortedLayers) {
-        const i = this.indexOfColorLayer(layer);
-        const atlas = _atlas[layer.id];
-        const validArea = {
-            x1: atlas.x / w,
-            x2: atlas.x / w + layer.imageSize.w / w,
-            y2: 1 - (atlas.y + atlas.offset) / h,
-            y1: 1 - ((atlas.y + atlas.offset) / h + layer.imageSize.h / h),
-        };
-
-        textureReadingCode += `
-            if (colorVisible[${i}] && colorOpacity[${i}] > 0.0 && colorOffsetScale[${i}].zw != vec2(0.0)) {
-        `;
-        // Use premultiplied-alpha blending formula because source textures are either:
-        //     - fully opaque (layer.transparent = false)
-        //     - or use premultiplied alpha (texture.premultiplyAlpha = true)
-        // Note: using material.premultipliedAlpha doesn't make sense since we're manually blending
-        // the multiple colors in the shader.
-        if (material.colorLayers[i].discardOutsideUV) {
-            const epsilon = 0.001;
-            textureReadingCode += `
-                vec2 uv = computeUv(vUv, colorOffsetScale[${i}].xy, colorOffsetScale[${i}].zw);
-                if (uv.x < ${validArea.x1 - epsilon} ||
-                    uv.x > ${validArea.x2 + epsilon} ||
-                    uv.y > ${validArea.y2 + epsilon} ||
-                    uv.y < ${validArea.y1 - epsilon}) {
-
-                } else {
-                    vec4 layerColor = texture2D(colorTexture, uv);
-                    if (layerColor.a > 0.0) {
-                        hasTexture = true;
-                    }
-                    layerColor.rgb *= colors[${i}];
-                    diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[${i}]) + layerColor * colorOpacity[${i}];
-                }`;
-        } else {
-            textureReadingCode += `
-                vec2 uv = clamp(
-                    computeUv(vUv, colorOffsetScale[${i}].xy, colorOffsetScale[${i}].zw),
-                    vec2(${validArea.x1}, ${validArea.y1}), vec2(${validArea.x2}, ${validArea.y2}));
-                vec4 layerColor = texture2D(colorTexture, uv);
-                if (layerColor.a > 0.0) {
-                    hasTexture = true;
-                }
-                layerColor.rgb *= colors[${i}];
-                diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[${i}]) + layerColor * colorOpacity[${i}];
-            `;
-        }
-        textureReadingCode += '}';
-
-        // debug code: draw in green discarded texture
-        // textureReadingCode += `
-        //    if (colorOffsetScale[${i}].zw == vec2(0.0)) {
-        //        gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
-        //        return;
-        // }`;
-    }
-    material.fragmentShader = TileFS.replace(
-        'INSERT_TEXTURE_READING_CODE',
-        textureReadingCode,
-    );
-    shader.fragmentShader = material.fragmentShader;
-    material.onBeforeCompile = function noop() {};
-    return material.fragmentShader;
 }
 
 export function initDebugTool(view) {
