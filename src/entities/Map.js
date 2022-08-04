@@ -122,18 +122,6 @@ function findNeighbours(node) {
     return borders.map(border => findSmallestExtentCovering(node, border));
 }
 
-const tmpVector = new Vector3();
-
-function updateMinMaxDistance(context, map, node) {
-    const bbox = node.OBB().box3D.clone()
-        .applyMatrix4(node.OBB().matrixWorld);
-    const distance = context.distance.plane
-        .distanceToPoint(bbox.getCenter(tmpVector));
-    const radius = bbox.getSize(tmpVector).length() * 0.5;
-    map._distance.min = Math.min(map._distance.min, distance - radius);
-    map._distance.max = Math.max(map._distance.max, distance + radius);
-}
-
 function subdivideNode(context, map, node) {
     if (!node.children.some(n => n.layer === map)) {
         const extents = node.extent.quadtreeSplit();
@@ -258,6 +246,8 @@ function requestNewTile(map, extent, parent, level) {
     return tile;
 }
 
+const tmpVector = new Vector3();
+
 /**
  * A map is an {@link module:entities/Entity~Entity Entity} that represents a flat
  * surface displaying one or more {@link module:Core/layer/Layer~Layer Layers}.
@@ -379,7 +369,7 @@ class Map extends Entity3D {
             if (!context.fastUpdateHint.isAncestorOf(node)) {
                 // if visible, children bbox can only be smaller => stop updates
                 if (node.material.visible) {
-                    updateMinMaxDistance(context, this, node);
+                    this.updateMinMaxDistance(context, node);
                     return null;
                 }
                 if (node.visible) {
@@ -429,7 +419,7 @@ class Map extends Entity3D {
             if (node.material.visible) {
                 node.material.update();
 
-                updateMinMaxDistance(context, this, node);
+                this.updateMinMaxDistance(context, node);
 
                 // update uniforms
                 if (!requestChildrenUpdate) {
@@ -687,6 +677,16 @@ class Map extends Entity3D {
             return false;
         }
         return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
+    }
+
+    updateMinMaxDistance(context, node) {
+        const bbox = node.OBB().box3D.clone()
+            .applyMatrix4(node.OBB().matrixWorld);
+        const distance = context.distance.plane
+            .distanceToPoint(bbox.getCenter(tmpVector));
+        const radius = bbox.getSize(tmpVector).length() * 0.5;
+        this._distance.min = Math.min(this._distance.min, distance - radius);
+        this._distance.max = Math.max(this._distance.max, distance + radius);
     }
 }
 
