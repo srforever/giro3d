@@ -188,5 +188,49 @@ class TileMesh extends Mesh {
     isAncestorOf(node) {
         return node.findCommonAncestor(this) === this;
     }
+
+    findSmallestExtentCoveringGoingDown(extent) {
+        if (this.children) {
+            for (const child of this.children) {
+                if (child.extent) {
+                    if (extent.isInside(child.extent)) {
+                        return child.findSmallestExtentCoveringGoingDown(extent);
+                    }
+                }
+            }
+        }
+        return [this, extent];
+    }
+
+    findSmallestExtentCoveringGoingUp(extent) {
+        if (extent.isInside(this.extent)) {
+            return this;
+        }
+        if (!this.parent || !this.parent.extent) {
+            if (this.level === 0 && this.parent.children.length) {
+                for (const sibling of this.parent.children) {
+                    if (sibling.extent && extent.isInside(sibling.extent)) {
+                        return sibling;
+                    }
+                }
+            }
+            return undefined;
+        }
+        return this.parent.findSmallestExtentCoveringGoingUp(extent);
+    }
+
+    findSmallestExtentCovering(extent) {
+        const node = this.findSmallestExtentCoveringGoingUp(extent);
+        if (!node) {
+            return null;
+        }
+        return node.findSmallestExtentCoveringGoingDown(extent);
+    }
+
+    findNeighbours() {
+        // top, right, bottom, left
+        const borders = this.extent.externalBorders(0.1);
+        return borders.map(border => this.findSmallestExtentCovering(border));
+    }
 }
 export default TileMesh;
