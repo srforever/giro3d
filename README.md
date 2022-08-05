@@ -1,16 +1,23 @@
 <div align="center">
   <a href="https://giro3d.org">
-    <img src="graphics/giro3d_logo.svg">
+    <img src="graphics/giro3d_logo.svg" height="120">
   </a>
 </div>
 
-[![Latest release](https://gitlab.com/giro3d/giro3d/-/badges/release.svg)](https://gitlab.com/giro3d/giro3d/-/tags)
-[![npm package](https://img.shields.io/npm/v/@giro3d/giro3d?color=blue)](https://www.npmjs.com/package/@giro3d/giro3d)
-[![Build Status](https://gitlab.com/giro3d/giro3d/badges/master/pipeline.svg)](https://gitlab.com/giro3d/giro3d/-/pipelines)
-[![Coverage](https://gitlab.com/giro3d/giro3d/badges/master/coverage.svg)](https://gitlab.com/giro3d/giro3d/badges/master/coverage.svg)
-[![chat](https://img.shields.io/matrix/giro3d:matrix.org)](https://matrix.to/#/#giro3d:matrix.org)
+<div align="center">
+  Versatile <a href="https://threejs.org">three</a> geospatial framework
+</div>
 
-**[giro3d](https://giro3d.org)** is a versatile [Three.js](https://threejs.org/)-based framework written in Javascript/WebGL for visualizing 3D geospatial data.
+<br>
+
+<div align="center">
+  <a href="https://gitlab.com/giro3d/giro3d/badges/master/pipeline.svg"><img src="https://gitlab.com/giro3d/giro3d/badges/master/pipeline.svg"></a>
+  <a href="https://gitlab.com/giro3d/giro3d/badges/master/coverage.svg"><img src="https://gitlab.com/giro3d/giro3d/badges/master/coverage.svg"></a>
+  <a href="https://www.npmjs.com/package/@giro3d/giro3d"><img src="https://img.shields.io/npm/v/@giro3d/giro3d?color=blue"></a>
+  <a href="https://matrix.to/#/#giro3d:matrix.org"><img src="https://img.shields.io/matrix/giro3d:matrix.org"></a>
+</div>
+
+<hr/>
 
 ## Supported data sources
 
