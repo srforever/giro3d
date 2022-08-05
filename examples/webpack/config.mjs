@@ -26,9 +26,7 @@ export default (env, argv) => {
                 entry[example] = [`./${jsFile}`];
             }
         });
-    entry.giro3d = ['babel-polyfill', 'url-polyfill', 'whatwg-fetch', path.join(baseDir, 'giro3d.js')];
     entry.index = [path.join(baseDir, '..', 'index.js')];
-    entry.debug = [path.join(baseDir, '..', '..', 'utils/debug/Main.js')];
 
     return {
         watchOptions: {
