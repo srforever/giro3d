@@ -1,34 +1,48 @@
 import fse from 'fs-extra';
 import path from 'path';
-import { JSDOM } from 'jsdom';
 import sources from 'webpack-sources';
+import frontMatter from 'front-matter';
 
 const RawSource = sources.RawSource;
 
 function generateExampleCard(pathToHtmlFile, template) {
     const name = path.parse(pathToHtmlFile).name;
-    const values = parseExample(pathToHtmlFile);
+    const { attributes } = parseExample(pathToHtmlFile);
     return template
-        .replaceAll('%title%', values.name)
-        .replaceAll('%description%', values.description)
+        .replaceAll('%title%', attributes.title)
+        .replaceAll('%description%', attributes.shortdesc)
         .replaceAll('%name%', name);
+}
+
+function generateExample(pathToHtmlFile, template) {
+    const filename = path.basename(pathToHtmlFile);
+    const js = filename.replace('.html', '.js');
+    const name = path.parse(pathToHtmlFile).name;
+    const { attributes, body } = parseExample(pathToHtmlFile);
+    const html = template
+        .replaceAll('%title%', `${attributes.title} - Giro3D`)
+        .replaceAll('%description%', attributes.shortdesc)
+        .replaceAll('%name%', name)
+        .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/master/examples/${js}`)
+        .replaceAll('%js%', js)
+        .replaceAll('%content%', body);
+
+    return { filename, html };
 }
 
 function parseExample(pathToHtmlFile) {
     const html = fse.readFileSync(pathToHtmlFile, 'utf-8');
-    const document = new JSDOM(html).window.document;
 
-    const name = document.querySelector('meta[name=name]')?.getAttribute('content');
-    const description = document.querySelector('meta[name=description]')?.getAttribute('content');
+    const { attributes, body } = frontMatter(html);
 
-    if (!name) {
-        throw new Error(`${pathToHtmlFile}: missing <meta name="name"> element`);
+    if (!attributes.title) {
+        throw new Error(`${pathToHtmlFile}: missing <title> YAML attribute`);
     }
-    if (!description) {
-        throw new Error(`${pathToHtmlFile}: missing <meta name="description"> element`);
+    if (!attributes.shortdesc) {
+        throw new Error(`${pathToHtmlFile}: missing <shortdesc> YAML attribute`);
     }
 
-    return { name, description };
+    return { attributes, body };
 }
 
 export default class ExampleBuilder {
@@ -74,5 +88,13 @@ export default class ExampleBuilder {
         const html = index.replace('%examples%', thumbnails.join('\n\n'));
 
         assets['index.html'] = new RawSource(html);
+
+        const exampleTemplate = await fse.readFile(path.resolve(this.examplesDir, 'templates/example.tmpl'), 'utf-8');
+
+        htmlFiles
+            .map(f => generateExample(f, exampleTemplate))
+            .forEach(ex => {
+                assets[ex.filename] = new RawSource(ex.html);
+            });
     }
 }
