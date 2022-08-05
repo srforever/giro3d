@@ -44,10 +44,4 @@ camera.position.set(0, 0, 25000000);
 // Instanciates controls
 const controls = new MapControls(camera, viewerDiv);
 
-instance.addFrameRequester('before_camera_update', () => {
-    controls.update();
-});
-
-controls.addEventListener('change', () => {
-    instance.notifyChange(camera);
-});
+instance.useTHREEControls(controls);

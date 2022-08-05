@@ -7,7 +7,6 @@ import Fetcher from '../src/Provider/Fetcher.js';
 import Extent from '../src/Core/Geographic/Extent.js';
 import Instance from '../src/Core/Instance.js';
 import ColorLayer from '../src/Core/layer/ColorLayer.js';
-import setupLoadingScreen from './js/loading_screen.js';
 import { Map } from '../src/entities/Map.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
@@ -22,8 +21,6 @@ const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates a giro3d instance
 const instance = new Instance(viewerDiv, { crs: extent.crs() });
-
-setupLoadingScreen(viewerDiv, instance);
 
 // Instanciates camera
 instance.camera.camera3D.position.set(0, 0, 10000000);
