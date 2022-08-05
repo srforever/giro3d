@@ -1,7 +1,7 @@
 /**
  * @module entities/Map
  */
-import { Vector3, BufferGeometry, Group } from 'three';
+import { Vector3, BufferGeometry, Group, Object3D } from 'three';
 
 import Coordinates from '../Core/Geographic/Coordinates.js';
 import Extent from '../Core/Geographic/Extent.js';
@@ -304,10 +304,12 @@ class Map extends Entity3D {
      * @param {object=} options Optional properties.
      * @param {Extent} options.extent geographic extent of the map
      * @param {Extent} options.maxSubdivisionLevel Maximum subdivision level of the current map
+     * @param {Object3D=} options.object3d The optional 3d object to use as the root
+     *  object of this map. If none provided, a new one will be created.
      * @api
      */
     constructor(id, options = {}) {
-        super(id, new Group());
+        super(id, options.object3d || new Group());
 
         const extent = options.extent;
         const crs = Array.isArray(extent) ? extent[0].crs() : extent.crs();
