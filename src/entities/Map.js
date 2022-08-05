@@ -1,7 +1,12 @@
 /**
  * @module entities/Map
  */
-import { Vector3, BufferGeometry, Group, Object3D } from 'three';
+import {
+    Vector3,
+    BufferGeometry,
+    Group,
+    Object3D,
+} from 'three';
 
 import Coordinates from '../Core/Geographic/Coordinates.js';
 import Extent from '../Core/Geographic/Extent.js';
