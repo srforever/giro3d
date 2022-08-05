@@ -4,7 +4,6 @@ import { register } from 'ol/proj/proj4.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '../src/Core/Geographic/Extent.js';
 import Instance from '../src/Core/Instance.js';
-import setupLoadingScreen from './js/loading_screen.js';
 import ColorLayer from '../src/Core/layer/ColorLayer.js';
 import ElevationLayer from '../src/Core/layer/ElevationLayer.js';
 import { STRATEGY_DICHOTOMY } from '../src/Core/layer/LayerUpdateStrategy.js';
@@ -31,7 +30,6 @@ const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates the giro3d instance
 const instance = new Instance(viewerDiv);
-setupLoadingScreen(viewerDiv, instance);
 
 // Adds the map that will contain the layers.
 const map = new Map('planar', { extent });

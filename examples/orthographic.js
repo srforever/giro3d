@@ -3,7 +3,6 @@ import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '../src/Core/Geographic/Extent.js';
 import Instance from '../src/Core/Instance.js';
 import ColorLayer from '../src/Core/layer/ColorLayer.js';
-import setupLoadingScreen from './js/loading_screen.js';
 import { Map } from '../src/entities/Map.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
@@ -19,8 +18,6 @@ const viewerDiv = document.getElementById('viewerDiv');
 // Creates a giro3d instance
 const instance = new Instance(viewerDiv, { crs: extent.crs() });
 instance.mainLoop.gfxEngine.renderer.setClearColor(0x0a3b59);
-
-setupLoadingScreen(viewerDiv, instance);
 
 // Creates a map that will contain the layer
 const map = new Map('planar', { extent, maxSubdivisionLevel: 10 });
