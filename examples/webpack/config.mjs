@@ -16,6 +16,20 @@ export default (env, argv) => {
     const babelrc = fs.readFileSync(path.join(baseDir, '..', '..', babelConfFile));
     const babelConf = JSON.parse(babelrc);
 
+    // Collect all example javscript code
+    const entry = {};
+    fs.readdirSync(src)
+        .map((name) => name.replace(/\.html$/, ''))
+        .forEach((example) => {
+            const jsFile = `${example}.js`;
+            if (fs.existsSync(path.join(src, jsFile))) {
+                entry[example] = [`./${jsFile}`];
+            }
+        });
+    entry.giro3d = ['babel-polyfill', 'url-polyfill', 'whatwg-fetch', path.join(baseDir, 'giro3d.js')];
+    entry.index = [path.join(baseDir, '..', 'index.js')];
+    entry.debug = [path.join(baseDir, '..', '..', 'utils/debug/Main.js')];
+
     return {
         watchOptions: {
             ignored: /node_modules/,
@@ -24,11 +38,7 @@ export default (env, argv) => {
         },
         context: src,
         devtool: "source-map",
-        entry: {
-            giro3d: ['babel-polyfill', 'url-polyfill', 'whatwg-fetch', path.join(baseDir, 'giro3d.js')],
-            index: [path.join(baseDir, '..', 'index.js')],
-            debug: [path.join(baseDir, '..', '..', 'utils/debug/Main.js')],
-        },
+        entry,
         target: ["web", "es5"],
         output: {
             filename: "[name].js",
