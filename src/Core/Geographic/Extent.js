@@ -1,7 +1,7 @@
 /**
  * @module Core/Geographic/Extent
  */
-import { MathUtils, Vector4 } from 'three';
+import { MathUtils, Vector2, Vector4 } from 'three';
 import Coordinates, {
     crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCRS, is4326,
 } from './Coordinates.js';

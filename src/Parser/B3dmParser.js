@@ -1,4 +1,4 @@
-import { Matrix4, MeshLambertMaterial } from 'three';
+import { Matrix4, MeshLambertMaterial, Material } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import LegacyGLTFLoader from './LegacyGLTFLoader.js';

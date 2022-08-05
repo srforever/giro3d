@@ -3,6 +3,7 @@ import {
     MathUtils,
     BufferGeometry,
     Vector3,
+    Object3D,
     Triangle,
     Vector2,
 } from 'three';
