@@ -83,7 +83,6 @@ export default (env, argv) => {
                 patterns: [
                     { from: "css", to: "css" },
                     { from: "js", to: "js" },
-                    { from: "layers", to: "layers" },
                     { from: "screenshots", to: "screenshots" },
                     { from: "**/*.html"},
                 ],
