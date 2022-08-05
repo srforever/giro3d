@@ -1,7 +1,6 @@
-/* global giro3d */
+import { INSTANCE_EVENTS } from '../../src/Core/Instance.js';
 
-// eslint-disable-next-line no-unused-vars
-function setupLoadingScreen(viewerDiv, view) {
+export default function setupLoadingScreen(viewerDiv, view) {
     let loadingScreenContainer;
 
     if (view.isDebugMode) {
@@ -32,11 +31,11 @@ function setupLoadingScreen(viewerDiv, view) {
         });
         loadingScreenContainer = null;
         view.removeEventListener(
-            giro3d.INSTANCE_EVENTS.LAYERS_INITIALIZED,
+            INSTANCE_EVENTS.LAYERS_INITIALIZED,
             hideLoader,
         );
     }
 
-    view.addEventListener(giro3d.INSTANCE_EVENTS.LAYERS_INITIALIZED, hideLoader);
+    view.addEventListener(INSTANCE_EVENTS.LAYERS_INITIALIZED, hideLoader);
     setTimeout(hideLoader, 3000);
 }
