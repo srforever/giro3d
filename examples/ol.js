@@ -94,7 +94,7 @@ const departementLayer = new ColorLayer(
     },
 );
 
-departementLayer.style = (Style, Fill, Stroke) => function _(feature) {
+departementLayer.style = (Style, Fill, Stroke) => function _() {
     return new Style({
         stroke: new Stroke({
             color: 'cyan',
