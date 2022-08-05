@@ -264,7 +264,7 @@ class ElevationLayer extends Layer {
 
         const command = {
             /* mandatory */
-            view: context.instance,
+            instance: context.instance,
             layer: this,
             requester: node,
             priority: nodeCommandQueuePriorityFunction(node),

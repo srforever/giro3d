@@ -26,7 +26,7 @@ export const ColorLayersOrdering = {
      * @param      {module:Core/Instance~Instance} instance the giro3d instance
      * @param      {string}  layerId   The layer's idendifiant
      * @example
-     * ColorLayersOrdering.moveLayerUp(viewer, 'idLayerToUp');
+     * ColorLayersOrdering.moveLayerUp(instance, 'idLayerToUp');
      */
     // TODO this should be done per Map / Entity3D, not for every color layers
     moveLayerUp: function moveLayerUp(instance, layerId) {
@@ -55,7 +55,7 @@ export const ColorLayersOrdering = {
      * @param      {module:Core/Instance~Instance} instance the giro3d instance
      * @param      {string}  layerId   The layer's idendifiant
      * @example
-     * ColorLayersOrdering.moveLayerDown(viewer, 'idLayerToDown');
+     * ColorLayersOrdering.moveLayerDown(instance, 'idLayerToDown');
      */
     moveLayerDown: function moveLayerDown(instance, layerId) {
         const imageryLayers = instance.getLayers(l => l instanceof ColorLayer);
@@ -83,7 +83,7 @@ export const ColorLayersOrdering = {
      * @param      {string}  layerId   The layer's idendifiant
      * @param      {number}  newIndex   The new index
      * @example
-     * ColorLayersOrdering.moveLayerToIndex(viewer, 'idLayerToChangeIndex', 2);
+     * ColorLayersOrdering.moveLayerToIndex(instance, 'idLayerToChangeIndex', 2);
      */
     moveLayerToIndex: function moveLayerToIndex(instance, layerId, newIndex) {
         const imageryLayers = instance.getLayers(l => l instanceof ColorLayer);

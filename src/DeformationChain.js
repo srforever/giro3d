@@ -296,7 +296,7 @@ class DeformationChain {
             .slice(0, this.rectangles.reserve.used);
     }
 
-    updateVisualRepresentation(view) {
+    updateVisualRepresentation(instance) {
         this.redPoints.reset();
         this.yellowPoints.reset();
         this.dashedLines.reset();
@@ -326,7 +326,7 @@ class DeformationChain {
                 red.onSelect = () => {
                     this.active.chain = k;
                     this.active.point = i;
-                    view.notifyChange(true);
+                    instance.notifyChange(true);
                 };
                 red.onDelete = () => {
                     const deleted = chain.splice(i, 1);
@@ -340,7 +340,7 @@ class DeformationChain {
                             }
                         }
                     }
-                    view.notifyChange(true);
+                    instance.notifyChange(true);
                 };
                 if (this.active.chain === k && this.active.point === i) {
                     this.greenPoint.visible = true;

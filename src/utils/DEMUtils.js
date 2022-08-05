@@ -56,7 +56,7 @@ function getElevationValueAt(entity, coord, method = FAST_READ_Z, tileHint) {
  * the elevation textures we're going to query.
  * This is typically the globeLayer or a planeLayer.
  * @param {string} objectCRS the CRS used by the object coordinates. You probably want to use
- * view.referenceCRS here.
+ * instance.referenceCRS here.
  * @param {Object3D} obj
  * the [Object3D](https://threejs.org/docs/index.html?q=object3#api/en/core/Object3D) we want to modify.
  * @param {object} options additional options

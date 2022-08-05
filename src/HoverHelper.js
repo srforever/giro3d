@@ -2,17 +2,17 @@ import { Raycaster } from 'three';
 
 const raycaster = new Raycaster();
 
-function eventToMouse(view, event) {
+function eventToMouse(instance, event) {
     return {
-        x: (event.offsetX / view.mainLoop.gfxEngine.renderer.domElement.clientWidth) * 2 - 1,
-        y: -(event.offsetY / view.mainLoop.gfxEngine.renderer.domElement.clientHeight) * 2 + 1,
+        x: (event.offsetX / instance.mainLoop.gfxEngine.renderer.domElement.clientWidth) * 2 - 1,
+        y: -(event.offsetY / instance.mainLoop.gfxEngine.renderer.domElement.clientHeight) * 2 + 1,
     };
 }
 
-function objectUnderMouseEvent(event, view, objects) {
-    const mouse = eventToMouse(view, event);
+function objectUnderMouseEvent(event, instance, objects) {
+    const mouse = eventToMouse(instance, event);
 
-    raycaster.setFromCamera(mouse, view.camera.camera3D);
+    raycaster.setFromCamera(mouse, instance.camera.camera3D);
     const intersects = raycaster.intersectObjects(objects, false);
 
     if (intersects.length === 0) {
@@ -22,8 +22,8 @@ function objectUnderMouseEvent(event, view, objects) {
 }
 
 class HoverHelper {
-    constructor(view) {
-        this.view = view;
+    constructor(instance) {
+        this.instance = instance;
     }
 
     declareHoverableObjects(objects) {
@@ -38,7 +38,7 @@ class HoverHelper {
         if (this.hoveredObject) {
             this.hoveredObject.onMouseOver(true);
             this.hoveredObject = undefined;
-            this.view.notifyChange(true);
+            this.instance.notifyChange(true);
         }
     }
 
@@ -50,7 +50,7 @@ class HoverHelper {
         this.clear();
 
         const old = this.hoveredObject;
-        this.hoveredObject = objectUnderMouseEvent(event, this.view, this.hoverableObjects);
+        this.hoveredObject = objectUnderMouseEvent(event, this.instance, this.hoverableObjects);
 
         if (old === this.hoveredObject) {
             return;
@@ -60,7 +60,7 @@ class HoverHelper {
         }
         if (this.hoveredObject) {
             this.hoveredObject.onMouseOver();
-            this.view.notifyChange(true);
+            this.instance.notifyChange(true);
         }
     }
 }

@@ -197,7 +197,7 @@ export function getObjectToUpdateForAttachedLayers(meta) {
 }
 
 export default {
-    preprocessDataLayer(layer, view) {
+    preprocessDataLayer(layer, instance) {
         if (!layer.file) {
             layer.file = 'cloud.js';
         }
@@ -237,8 +237,8 @@ export default {
 
         // TODO this probably needs to be moved to somewhere else
         // Also see 3DTilesProvider that basically does this too
-        layer.pickObjectsAt = (view2, mouse, radius, filter) => Picking.pickPointsAt(
-            view2,
+        layer.pickObjectsAt = (instance2, mouse, radius, filter) => Picking.pickPointsAt(
+            instance2,
             mouse,
             radius,
             layer,
@@ -259,7 +259,7 @@ export default {
                 console.log('LAYER metadata:', root);
                 layer.root = root;
                 root.findChildrenByName = findChildrenByName.bind(root, root);
-                layer.extent = Extent.fromBox3(view.referenceCrs, root.bbox);
+                layer.extent = Extent.fromBox3(instance.referenceCrs, root.bbox);
 
                 return layer;
             });
@@ -272,7 +272,7 @@ export default {
         // Query HRC if we don't have children metadata yet.
         if (metadata.childrenBitField && metadata.children.length === 0) {
             parseOctree(layer, layer.metadata.hierarchyStepSize, metadata)
-                .then(() => command.view.notifyChange(layer, false));
+                .then(() => command.instance.notifyChange(layer, false));
         }
 
         // `isLeaf` is for lopocs and allows the pointcloud server to consider that the current
@@ -295,7 +295,7 @@ export default {
                 points.tightbbox = geometry.boundingBox.applyMatrix4(points.matrix);
                 points.layers.set(layer.threejsLayer);
                 points.layer = layer;
-                points.extent = Extent.fromBox3(command.view.referenceCrs, metadata.bbox);
+                points.extent = Extent.fromBox3(command.instance.referenceCrs, metadata.bbox);
                 points.userData.metadata = metadata;
                 return points;
             });
