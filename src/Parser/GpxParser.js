@@ -4,13 +4,23 @@
  * Description: Parse Gpx file to get [lat, lon, alt]
  */
 
-import * as THREE from 'three';
+import {
+    Mesh,
+    Color,
+    Vector2,
+    BoxGeometry,
+    MeshBasicMaterial,
+    Vector3,
+    Group,
+    Object3D,
+    BufferGeometry,
+} from 'three';
 import Line from 'three.meshline';
 import Coordinates from '../Core/Geographic/Coordinates.js';
 import Capabilities from '../Core/System/Capabilities.js';
 import shaderUtils from '../Renderer/Shader/ShaderUtils.js';
 
-const tmpVec2 = new THREE.Vector2();
+const tmpVec2 = new Vector2();
 
 function _gpxToWayPointsArray(gpxXML) {
     return gpxXML.getElementsByTagName('wpt');
@@ -34,9 +44,9 @@ function _gpxPtToCartesian(pt, crs) {
     return new Coordinates('EPSG:4326', longitude, latitude, elevation).as(crs).xyz();
 }
 
-const geometryPoint = new THREE.BoxGeometry(1, 1, 80);
-const materialPoint = new THREE.MeshBasicMaterial({ color: 0xffffff });
-const positionCamera = new THREE.Vector3();
+const geometryPoint = new BoxGeometry(1, 1, 80);
+const materialPoint = new MeshBasicMaterial({ color: 0xffffff });
+const positionCamera = new Vector3();
 
 function getDistance(object, camera) {
     const point = object.geometry.boundingSphere.center.clone().applyMatrix4(object.matrixWorld);
@@ -55,7 +65,7 @@ function _gpxToWayPointsMesh(gpxXML, crs) {
     const wayPts = _gpxToWayPointsArray(gpxXML);
 
     if (wayPts.length) {
-        const points = new THREE.Group();
+        const points = new Group();
 
         gpxXML.center = gpxXML.center || _gpxPtToCartesian(wayPts[0], crs);
 
@@ -64,7 +74,7 @@ function _gpxToWayPointsMesh(gpxXML, crs) {
         for (const wayPt of wayPts) {
             const position = _gpxPtToCartesian(wayPt, crs).sub(gpxXML.center);
             // use Pin to make it more visible
-            const mesh = new THREE.Mesh(geometryPoint, materialPoint);
+            const mesh = new Mesh(geometryPoint, materialPoint);
             mesh.position.copy(position);
             mesh.lookAt(lookAt);
 
@@ -87,7 +97,7 @@ function updatePath(renderer, scene, camera) {
 
 function _gpxToWTrackPointsMesh(gpxXML, options) {
     const trackSegs = _gGpxToWTrackSegmentsArray(gpxXML);
-    const masterObject = new THREE.Object3D();
+    const masterObject = new Object3D();
 
     if (trackSegs.length) {
         for (const trackSeg of trackSegs) {
@@ -101,7 +111,7 @@ function _gpxToWTrackPointsMesh(gpxXML, options) {
                     const point = _gpxPtToCartesian(trackPt, options.crs).sub(gpxXML.center);
                     points.push(point);
                 }
-                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                const geometry = new BufferGeometry().setFromPoints(points);
                 const line = new Line.MeshLine();
                 line.setGeometry(geometry);
                 // Due to limitations in the ANGLE layer,
@@ -111,7 +121,7 @@ function _gpxToWTrackPointsMesh(gpxXML, options) {
                 const material = new Line.MeshLineMaterial({
                     lineWidth: options.lineWidth || 12,
                     sizeAttenuation: 0,
-                    color: new THREE.Color(0xFF0000),
+                    color: new Color(0xFF0000),
                 });
 
                 if (Capabilities.isLogDepthBufferSupported()) {
@@ -122,7 +132,7 @@ function _gpxToWTrackPointsMesh(gpxXML, options) {
                     );
                 }
 
-                const pathMesh = new THREE.Mesh(line.geometry, material);
+                const pathMesh = new Mesh(line.geometry, material);
                 // update size screen uniform
                 // update depth test for visibilty path, because of the proximity of the terrain and
                 // gpx mesh
@@ -146,7 +156,7 @@ function _gpxToMesh(gpxXML, options = {}) {
         options.enablePin = true;
     }
 
-    const gpxMesh = new THREE.Object3D();
+    const gpxMesh = new Object3D();
 
     // Getting the track points
     const trackPts = _gpxToWTrackPointsMesh(gpxXML, options);
@@ -176,7 +186,7 @@ export default {
     /** @module GpxParser */
 
     /**
-     * Parse gpx file and convert to THREE.Mesh
+     * Parse gpx file and convert to Mesh
      *
      * @param {string} xml the gpx file or xml.
      * @param {object=} options additional properties.
@@ -185,7 +195,7 @@ export default {
      * @param {boolean=} [options.enablePin=true] draw pin for way points.
      * @param {object=} options.networkOptions options for fetching resources over network.
      * @param {number=} [options.lineWidth=12] set line width to track line.
-     * @returns {THREE.Mesh} a promise that resolves with a Three.js Mesh (see
+     * @returns {Mesh} a promise that resolves with a Three.js Mesh (see
      * {@link https://threejs.org/docs/#api/objects/Mesh}).
      * @example
      * // How to add a gpx object

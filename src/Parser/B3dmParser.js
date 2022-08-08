@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Matrix4, MeshLambertMaterial, Material } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import LegacyGLTFLoader from './LegacyGLTFLoader.js';
@@ -7,9 +7,9 @@ import Capabilities from '../Core/System/Capabilities.js';
 import shaderUtils from '../Renderer/Shader/ShaderUtils.js';
 import utf8Decoder from '../utils/Utf8Decoder.js';
 
-const matrixChangeUpVectorZtoY = (new THREE.Matrix4()).makeRotationX(Math.PI / 2);
+const matrixChangeUpVectorZtoY = (new Matrix4()).makeRotationX(Math.PI / 2);
 // For gltf rotation
-const matrixChangeUpVectorZtoX = (new THREE.Matrix4()).makeRotationZ(-Math.PI / 2);
+const matrixChangeUpVectorZtoX = (new Matrix4()).makeRotationZ(-Math.PI / 2);
 
 const glTFLoader = new GLTFLoader();
 
@@ -53,7 +53,7 @@ export default {
     /** @module B3dmParser */
 
     /**
-     * Parse b3dm buffer and extract THREE.Scene and batch table
+     * Parse b3dm buffer and extract Scene and batch table
      *
      * @param {ArrayBuffer} buffer the b3dm buffer.
      * @param {object} options additional properties.
@@ -63,11 +63,11 @@ export default {
      * @param {boolean=} [options.doNotPatchMaterial='false'] disable patching material with
      * logarithmic depth buffer support.
      * @param {number} [options.opacity=1.0] the b3dm opacity.
-     * @param {boolean|THREE.Material} [options.overrideMaterials='false'] override b3dm's embedded
+     * @param {boolean|Material} [options.overrideMaterials='false'] override b3dm's embedded
      * glTF materials. If overrideMaterials is a three.js material, it will be the material used to
      * override.
      * @returns {Promise} - a promise that resolves with an object containig
-     * a THREE.Scene (gltf) and a batch table (batchTable).
+     * a Scene (gltf) and a batch table (batchTable).
      */
     parse(buffer, options) {
         const { gltfUpAxis } = options;
@@ -146,7 +146,7 @@ export default {
                                 && options.overrideMaterials.isMaterial) {
                                 mesh.material = options.overrideMaterials.clone();
                             } else {
-                                mesh.material = new THREE.MeshLambertMaterial({ color: 0xffffff });
+                                mesh.material = new MeshLambertMaterial({ color: 0xffffff });
                             }
                         } else if (Capabilities.isLogDepthBufferSupported()
                                     && mesh.material.isRawShaderMaterial

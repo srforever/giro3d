@@ -4,7 +4,16 @@
  * Description: 3DEngine est l'interface avec le framework webGL.
  */
 
-import * as THREE from 'three';
+import {
+    DepthTexture,
+    LinearFilter,
+    NearestFilter,
+    RenderTarget,
+    UnsignedShortType,
+    Vector2,
+    WebGLRenderer,
+    WebGLRenderTarget,
+} from 'three';
 import Capabilities from '../Core/System/Capabilities.js';
 
 class C3DEngine {
@@ -33,17 +42,17 @@ class C3DEngine {
         this.positionBuffer = null;
         this._nextThreejsLayer = 1;
 
-        this.fullSizeRenderTarget = new THREE.WebGLRenderTarget(this.width, this.height);
-        this.fullSizeRenderTarget.texture.minFilter = THREE.LinearFilter;
-        this.fullSizeRenderTarget.texture.magFilter = THREE.NearestFilter;
+        this.fullSizeRenderTarget = new WebGLRenderTarget(this.width, this.height);
+        this.fullSizeRenderTarget.texture.minFilter = LinearFilter;
+        this.fullSizeRenderTarget.texture.magFilter = NearestFilter;
         this.fullSizeRenderTarget.texture.generateMipmaps = false;
         this.fullSizeRenderTarget.depthBuffer = true;
-        this.fullSizeRenderTarget.depthTexture = new THREE.DepthTexture();
-        this.fullSizeRenderTarget.depthTexture.type = THREE.UnsignedShortType;
+        this.fullSizeRenderTarget.depthTexture = new DepthTexture();
+        this.fullSizeRenderTarget.depthTexture.type = UnsignedShortType;
 
         // Create renderer
         try {
-            this.renderer = renderer || new THREE.WebGLRenderer({
+            this.renderer = renderer || new WebGLRenderer({
                 canvas: document.createElement('canvas'),
                 antialias: options.antialias,
                 alpha: options.alpha,
@@ -86,7 +95,7 @@ class C3DEngine {
             if (!this.renderer.extensions.get('EXT_frag_depth')) {
                 const _canvas = this.renderer.domElement;
                 this.renderer.dispose();
-                this.renderer = new THREE.WebGLRenderer({
+                this.renderer = new WebGLRenderer({
                     canvas: _canvas,
                     antialias: options.antialias,
                     alpha: options.alpha,
@@ -141,13 +150,13 @@ class C3DEngine {
     * return
     */
     getWindowSize() {
-        return new THREE.Vector2(this.width, this.height);
+        return new Vector2(this.width, this.height);
     }
 
     /**
-     * return renderer THREE.js
+     * return renderer js
      *
-     * @returns {C3DEngine.THREE.WebGLRenderer} the Three.js WebGL renderer,
+     * @returns {C3DEngine.WebGLRenderer} the js WebGL renderer,
      * if any. Otherwise <code>undefined</code>
      */
     getRenderer() {
@@ -163,7 +172,7 @@ class C3DEngine {
      * @param {number} zone.y y (in view coordinate)
      * @param {number} zone.width width of area to render (in pixels)
      * @param {number} zone.height height of area to render (in pixels)
-     * @returns {THREE.RenderTarget} - Uint8Array, 4 bytes per pixel. The first pixel in
+     * @returns {RenderTarget} - Uint8Array, 4 bytes per pixel. The first pixel in
      * the array is the bottom-left pixel.
      */
     renderViewToBuffer(instance, zone) {
@@ -191,14 +200,14 @@ class C3DEngine {
     }
 
     /**
-     * Render view to a THREE.RenderTarget.
+     * Render view to a RenderTarget.
      *
      * @param {module:Core/Instance~Instance} instance The giro3d instance to render
-     * @param {THREE.RenderTarget} [target] destination render target. Default value: full size
+     * @param {RenderTarget} [target] destination render target. Default value: full size
      * render target owned by C3DEngine.
      * @param {object} [zone] partial zone to render (zone x/y uses view coordinates) Note: target
      * must contain complete zone
-     * @returns {THREE.RenderTarget} - the destination render target
+     * @returns {RenderTarget} - the destination render target
      */
     renderViewToRenderTarget(instance, target, zone) {
         if (!target) {
@@ -279,12 +288,12 @@ class C3DEngine {
     }
 
     getUniqueThreejsLayer() {
-        // We use three.js Object3D.layers feature to manage visibility of
+        // We use js Object3D.layers feature to manage visibility of
         // geometry layers; so we need an internal counter to assign a new
         // one to each new geometry layer.
         // Warning: only 32 ([0, 31]) different layers can exist.
         if (this._nextThreejsLayer > 31) {
-            console.warn('Too much three.js layers. Starting from now all of them will use layerMask = 31');
+            console.warn('Too much js layers. Starting from now all of them will use layerMask = 31');
             this._nextThreejsLayer = 31;
         }
 

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { AxesHelper } from 'three';
 import OBBHelper from './OBBHelper.js';
 import TileObjectChart from './charts/TileObjectChart.js';
 import TileVisibilityChart from './charts/TileVisibilityChart.js';
@@ -41,7 +41,7 @@ function debugIdUpdate(context, layer, node) {
             node.add(helper);
             helper.updateMatrixWorld(true);
 
-            const foo = new THREE.AxesHelper(10);
+            const foo = new AxesHelper(10);
             // foo.layers.set(l3js);
             node.add(foo);
             foo.material.depthTest = false;

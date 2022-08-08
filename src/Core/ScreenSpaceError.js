@@ -1,13 +1,17 @@
-import * as THREE from 'three';
+import {
+    Matrix4,
+    Vector3,
+    ShapeUtils,
+} from 'three';
 
-const m = new THREE.Matrix4();
+const m = new Matrix4();
 const temp = [
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
 ];
 
 function easeInOutQuad(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
@@ -42,7 +46,7 @@ function computeSSE(offset, size, matrix, camera, _3d) {
     }
 
     // compute the real area
-    const area = Math.abs(THREE.ShapeUtils.area([temp[0], temp[2], temp[3], temp[1]]));
+    const area = Math.abs(ShapeUtils.area([temp[0], temp[2], temp[3], temp[1]]));
 
     const result = {
         origin: temp[0].clone(),
@@ -69,7 +73,7 @@ function findBox3Distance(camera, box3, matrix) {
     // Move camera position in box3 basis
     // (we don't transform box3 to camera basis because box3 are AABB,
     // so instead we apply the inverse transformation to the camera)
-    const pt = new THREE.Vector3(0, 0, 0)
+    const pt = new Vector3(0, 0, 0)
         .applyMatrix4(camera.camera3D.matrixWorld)
         .applyMatrix4(m);
     // Compute distance between the camera / box3
