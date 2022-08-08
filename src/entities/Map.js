@@ -77,92 +77,6 @@ function compute3857Extent(tileExtent) {
     return extents;
 }
 
-function findSmallestExtentCoveringGoingDown(node, extent) {
-    if (node.children) {
-        for (const c of node.children) {
-            if (c.extent) {
-                if (extent.isInside(c.extent)) {
-                    return findSmallestExtentCoveringGoingDown(c, extent);
-                }
-            }
-        }
-    }
-    return [node, extent];
-}
-
-function findSmallestExtentCoveringGoingUp(node, extent) {
-    if (extent.isInside(node.extent)) {
-        return node;
-    }
-    if (!node.parent || !node.parent.extent) {
-        if (node.level === 0 && node.parent.children.length) {
-            for (const sibling of node.parent.children) {
-                if (sibling.extent
-                    && extent.isInside(sibling.extent)) {
-                    return sibling;
-                }
-            }
-        }
-        return undefined;
-    }
-    return findSmallestExtentCoveringGoingUp(node.parent, extent);
-}
-
-function findSmallestExtentCovering(node, extent) {
-    const n = findSmallestExtentCoveringGoingUp(node, extent);
-    if (!n) {
-        return null;
-    }
-    return findSmallestExtentCoveringGoingDown(n, extent);
-}
-
-function findNeighbours(node) {
-    // top, right, bottom, left
-    const borders = node.extent.externalBorders(0.1);
-    return borders.map(border => findSmallestExtentCovering(node, border));
-}
-
-const tmpVector = new Vector3();
-
-function updateMinMaxDistance(context, map, node) {
-    const bbox = node.OBB().box3D.clone()
-        .applyMatrix4(node.OBB().matrixWorld);
-    const distance = context.distance.plane
-        .distanceToPoint(bbox.getCenter(tmpVector));
-    const radius = bbox.getSize(tmpVector).length() * 0.5;
-    map._distance.min = Math.min(map._distance.min, distance - radius);
-    map._distance.max = Math.max(map._distance.max, distance + radius);
-}
-
-// TODO: maxLevel should be deduced from layers
-function testTileSSE(tile, sse, maxLevel) {
-    if (maxLevel > 0 && maxLevel <= tile.level) {
-        return false;
-    }
-
-    if (tile.extent.dimensions().x < 5) {
-        return false;
-    }
-
-    if (!sse) {
-        return true;
-    }
-
-    const values = [
-        sse.lengths.x * sse.ratio,
-        sse.lengths.y * sse.ratio,
-    ];
-
-    // TODO: depends on texture size of course
-    // if (values.filter(v => v < 200).length >= 2) {
-    //     return false;
-    // }
-    if (values.filter(v => v < (100 * tile.layer.sseScale)).length >= 1) {
-        return false;
-    }
-    return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
-}
-
 function subdivideNode(context, map, node) {
     if (!node.children.some(n => n.layer === map)) {
         const extents = node.extent.quadtreeSplit();
@@ -287,6 +201,8 @@ function requestNewTile(map, extent, parent, level) {
     return tile;
 }
 
+const tmpVector = new Vector3();
+
 /**
  * A map is an {@link module:entities/Entity~Entity Entity} that represents a flat
  * surface displaying one or more {@link module:Core/layer/Layer~Layer Layers}.
@@ -328,7 +244,7 @@ class Map extends Entity3D {
         }
 
         this.sseScale = 1.5;
-        this.maxSubdivisionLevel = options.maxSubdivisionLevel;
+        this.maxSubdivisionLevel = options.maxSubdivisionLevel || -1;
 
         this.disableSkirt = true;
 
@@ -408,7 +324,7 @@ class Map extends Entity3D {
             if (!context.fastUpdateHint.isAncestorOf(node)) {
                 // if visible, children bbox can only be smaller => stop updates
                 if (node.material.visible) {
-                    updateMinMaxDistance(context, this, node);
+                    this.updateMinMaxDistance(context, node);
                     return null;
                 }
                 if (node.visible) {
@@ -442,8 +358,8 @@ class Map extends Entity3D {
 
                 node.sse = sse; // DEBUG
 
-                if (testTileSSE(node, sse, this.maxSubdivisionLevel || -1)
-                        && this.hasEnoughTexturesToSubdivide(context, node)) {
+                if (this.testTileSSE(node, sse)
+                    && this.hasEnoughTexturesToSubdivide(context, node)) {
                     subdivideNode(context, this, node);
                     // display iff children aren't ready
                     node.setDisplayed(false);
@@ -458,7 +374,7 @@ class Map extends Entity3D {
             if (node.material.visible) {
                 node.material.update();
 
-                updateMinMaxDistance(context, this, node);
+                this.updateMinMaxDistance(context, node);
 
                 // update uniforms
                 if (!requestChildrenUpdate) {
@@ -481,7 +397,7 @@ class Map extends Entity3D {
                     return;
                 }
                 node.material.uniforms.neighbourdiffLevel.value.set(0, 0, 0, 1);
-                const n = findNeighbours(node);
+                const n = node.findNeighbours();
                 if (n) {
                     const dimensions = node.extent.dimensions();
                     const elevationNeighbours = node.material.texturesInfo.elevation.neighbours;
@@ -688,6 +604,44 @@ class Map extends Entity3D {
             }
             } */
         return true;
+    }
+
+    testTileSSE(tile, sse) {
+        if (this.maxSubdivisionLevel > 0 && this.maxSubdivisionLevel <= tile.level) {
+            return false;
+        }
+
+        if (tile.extent.dimensions().x < 5) {
+            return false;
+        }
+
+        if (!sse) {
+            return true;
+        }
+
+        const values = [
+            sse.lengths.x * sse.ratio,
+            sse.lengths.y * sse.ratio,
+        ];
+
+        // TODO: depends on texture size of course
+        // if (values.filter(v => v < 200).length >= 2) {
+        //     return false;
+        // }
+        if (values.filter(v => v < (100 * tile.layer.sseScale)).length >= 1) {
+            return false;
+        }
+        return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
+    }
+
+    updateMinMaxDistance(context, node) {
+        const bbox = node.OBB().box3D.clone()
+            .applyMatrix4(node.OBB().matrixWorld);
+        const distance = context.distance.plane
+            .distanceToPoint(bbox.getCenter(tmpVector));
+        const radius = bbox.getSize(tmpVector).length() * 0.5;
+        this._distance.min = Math.min(this._distance.min, distance - radius);
+        this._distance.max = Math.max(this._distance.max, distance + radius);
     }
 }
 
