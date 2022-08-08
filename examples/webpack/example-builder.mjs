@@ -60,20 +60,18 @@ export default class ExampleBuilder {
     }
 
     async addAssets(assets, dir) {
-        const template = await fse.readFile(path.resolve(this.examplesDir, 'templates/example.tmpl'), 'utf-8');
+        const template = await fse.readFile(path.resolve(this.examplesDir, 'templates/thumbnail.tmpl'), 'utf-8');
         const index = await fse.readFile(path.resolve(this.examplesDir, 'templates/index.tmpl'), 'utf-8');
 
-        // generate an example card fragment for each example file
-        const files = (await fse.readdir(this.examplesDir))
+        const htmlFiles = (await fse.readdir(this.examplesDir))
             .filter(f => f.endsWith('.html'))
             .map(f => path.resolve(this.examplesDir, f))
-            .map(f => generateExampleCard(f, template));
+
+        // generate an example card fragment for each example file
+        const thumbnails = htmlFiles.map(f => generateExampleCard(f, template));
 
         // Fill the index.html file with the example cards
-        const html = index.replace('%examples%', files.join('\n\n'));
-
-        // const outputFile = path.resolve(this.buildDir, 'index.html');
-        // await fse.writeFile(outputFile, html);
+        const html = index.replace('%examples%', thumbnails.join('\n\n'));
 
         assets['index.html'] = new RawSource(html);
     }
