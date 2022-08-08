@@ -4,7 +4,7 @@
  * Description: Tuile de maillage, noeud du quadtree MNT. Le Materiel est issus du QuadTree ORTHO.
  */
 
-import * as THREE from 'three';
+import { Mesh } from 'three';
 import RendererConstant from '../Renderer/RendererConstant.js';
 import OGCWebServiceHelper from '../Provider/OGCWebServiceHelper.js';
 
@@ -14,7 +14,7 @@ function applyChangeState(n, s) {
     }
 }
 
-class TileMesh extends THREE.Mesh {
+class TileMesh extends Mesh {
     constructor(layer, geometry, material, extent, level) {
         super(geometry, material);
 

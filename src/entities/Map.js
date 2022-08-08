@@ -1,7 +1,7 @@
 /**
  * @module entities/Map
  */
-import * as THREE from 'three';
+import { Vector3, BufferGeometry, Group } from 'three';
 
 import Coordinates from '../Core/Geographic/Coordinates.js';
 import Extent from '../Core/Geographic/Extent.js';
@@ -122,7 +122,7 @@ function findNeighbours(node) {
     return borders.map(border => findSmallestExtentCovering(node, border));
 }
 
-const tmpVector = new THREE.Vector3();
+const tmpVector = new Vector3();
 
 function updateMinMaxDistance(context, map, node) {
     const bbox = node.OBB().box3D.clone()
@@ -219,7 +219,7 @@ function requestNewTile(map, extent, parent, level) {
         geometry.dispose = () => {
             geometry._count--;
             if (geometry._count === 0) {
-                THREE.BufferGeometry.prototype.dispose.call(geometry);
+                BufferGeometry.prototype.dispose.call(geometry);
                 Cache.delete(key);
             }
         };
@@ -307,7 +307,7 @@ class Map extends Entity3D {
      * @api
      */
     constructor(id, options = {}) {
-        super(id, new THREE.Group());
+        super(id, new Group());
 
         const extent = options.extent;
         const crs = Array.isArray(extent) ? extent[0].crs() : extent.crs();

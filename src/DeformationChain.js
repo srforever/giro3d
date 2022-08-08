@@ -1,22 +1,36 @@
-import * as THREE from 'three';
+import {
+    Color,
+    BufferGeometry,
+    BufferAttribute,
+    Points, Line,
+    LineDashedMaterial,
+    Mesh,
+    LineLoop,
+    Matrix4,
+    Vector2,
+    Vector3,
+    Box2,
+    Group,
+    Line3,
+} from 'three';
 
 import PointsMaterial from './Renderer/PointsMaterial.js';
 
 // create empty point
 function createPoint(color) {
-    const cc = new THREE.Color(color);
+    const cc = new Color(color);
     return function _createPoint() {
         const p = Float32Array.of(0, 0, 0);
         const c = Uint8Array.of(cc.r * 255, cc.g * 255, cc.b * 255, 255);
-        const g = new THREE.BufferGeometry();
+        const g = new BufferGeometry();
 
-        g.setAttribute('position', new THREE.BufferAttribute(p, 3));
-        g.setAttribute('color', new THREE.BufferAttribute(c, 4, true));
+        g.setAttribute('position', new BufferAttribute(p, 3));
+        g.setAttribute('color', new BufferAttribute(c, 4, true));
 
         const m = new PointsMaterial(5);
         m.depthTest = false;
 
-        const pt = new THREE.Points(g, m);
+        const pt = new Points(g, m);
         pt.frustumCulled = false;
         pt.material.transparent = true;
 
@@ -29,12 +43,12 @@ function createDashedLine() {
         0, 0, 0,
         0, 0, 0,
     ]);
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new BufferAttribute(vertices, 3));
 
-    const dashedLine = new THREE.Line(
+    const dashedLine = new Line(
         geometry,
-        new THREE.LineDashedMaterial({ dashSize: 0.5, gapSize: 0.5 }),
+        new LineDashedMaterial({ dashSize: 0.5, gapSize: 0.5 }),
     );
     dashedLine.material.depthTest = false;
     dashedLine.frustumCulled = false;
@@ -47,10 +61,10 @@ function createLine() {
         0, 0, 0,
         0, 0, 0,
     ]);
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new BufferAttribute(vertices, 3));
 
-    const dashedLine = new THREE.Line(geometry);
+    const dashedLine = new Line(geometry);
     dashedLine.material.depthTest = false;
     dashedLine.material.linewidth = 2;
     dashedLine.material.transparent = true;
@@ -69,19 +83,19 @@ function createRectangle() {
         0, 1, 2,
         2, 3, 0,
     ];
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new BufferAttribute(vertices, 3));
     geometry.setIndex(indices);
 
-    const rect = new THREE.Mesh(geometry);
+    const rect = new Mesh(geometry);
     rect.material.transparent = true;
     rect.material.opacity = 0.1;
     rect.material.transparent = true;
     rect.frustumCulled = false;
 
     // add line
-    const outline = new THREE.LineLoop(geometry);
-    outline.material.color = new THREE.Color(0xff0000);
+    const outline = new LineLoop(geometry);
+    outline.material.color = new Color(0xff0000);
     outline.frustumCulled = false;
     rect.add(outline);
 
@@ -95,25 +109,25 @@ function angleFromLine(l) {
 
 function computeTransformation(originalLine, modifiedLine, scale, camera3D) {
     // Compute matrix
-    const m1 = new THREE.Matrix4().makeTranslation(
+    const m1 = new Matrix4().makeTranslation(
         -originalLine.getCenter().x, -originalLine.getCenter().y, 0,
     );
 
     const angle1 = angleFromLine(originalLine);
     const angle2 = angleFromLine(modifiedLine);
 
-    const m2 = new THREE.Matrix4().makeRotationZ(
+    const m2 = new Matrix4().makeRotationZ(
         -angle1,
     );
 
     const s = modifiedLine.distance() / originalLine.distance();
-    const m3 = new THREE.Matrix4().makeScale(s, 1.0, 1.0);
+    const m3 = new Matrix4().makeScale(s, 1.0, 1.0);
 
-    const m4 = new THREE.Matrix4().makeRotationZ(
+    const m4 = new Matrix4().makeRotationZ(
         angle2,
     );
 
-    const m5 = new THREE.Matrix4().makeTranslation(
+    const m5 = new Matrix4().makeTranslation(
         modifiedLine.getCenter().x, modifiedLine.getCenter().y, 0.0,
     );
 
@@ -125,7 +139,7 @@ function computeTransformation(originalLine, modifiedLine, scale, camera3D) {
     // Compute Box2 containing the original segment
     const vec = originalLine.delta().normalize();
     const length = originalLine.distance();
-    const transfoBox = new THREE.Box2();
+    const transfoBox = new Box2();
     // TODO there *must be* a better way (check if getCenter creates an instance)
     transfoBox.expandByPoint(
         originalLine.getCenter().add(vec.clone().multiplyScalar(length * scale.x * -0.5)),
@@ -134,7 +148,7 @@ function computeTransformation(originalLine, modifiedLine, scale, camera3D) {
         originalLine.getCenter().add(vec.clone().multiplyScalar(length * scale.x * 0.5)),
     );
 
-    const normal = new THREE.Vector2(-vec.y, vec.x);
+    const normal = new Vector2(-vec.y, vec.x);
     const scaleVec = normal.multiplyScalar(scale.y);
     transfoBox.min.x -= Math.abs(scaleVec.x);
     transfoBox.max.x += Math.abs(scaleVec.x);
@@ -156,7 +170,7 @@ class Catalog {
     constructor(buildElement, parent) {
         this.build = buildElement;
         this.reserve = [];
-        this.parent = new THREE.Group();
+        this.parent = new Group();
         parent.add(this.parent);
         this.used = 0;
     }
@@ -235,7 +249,7 @@ class DeformationChain {
             // no support for branch -> new chain
             this.newChain(this._activeChain()[this.active.point]);
         }
-        color = color || new THREE.Color(
+        color = color || new Color(
             Math.random(), Math.random(), Math.random(),
         );
 
@@ -247,7 +261,7 @@ class DeformationChain {
                     color,
                     original: pt.clone().setZ(0),
                     modified: pt.clone().setZ(0),
-                    scale: new THREE.Vector3(1, 3, 1),
+                    scale: new Vector3(1, 3, 1),
                 },
             );
         } else {
@@ -258,7 +272,7 @@ class DeformationChain {
                     color,
                     original: pt.original,
                     modified: pt.modified,
-                    scale: new THREE.Vector3(1, 3, 1),
+                    scale: new Vector3(1, 3, 1),
                 },
             );
         }
@@ -355,7 +369,7 @@ class DeformationChain {
                     const eltA = chain[i];
                     const eltB = chain[i + 1];
 
-                    const line = new THREE.Line3(eltA.original, eltB.original);
+                    const line = new Line3(eltA.original, eltB.original);
                     const length = line.distance();
 
                     // draw a rectangular influence area
@@ -372,7 +386,7 @@ class DeformationChain {
                     rect.geometry.verticesNeedUpdate = true;
                     const highlight = eltA.highlight === 'rect' || eltA.highlight === 'both' || eltB.highlight === 'both';
                     if (highlight) {
-                        rect.children[0].material.color = new THREE.Color(0xff0000);
+                        rect.children[0].material.color = new Color(0xff0000);
                         rect.material.opacity = 0.35;
                     } else {
                         rect.children[0].material.color.copy(chain[0].color);
@@ -398,7 +412,7 @@ class DeformationChain {
                     rect2.material.color.copy(chain[0].color);
                     rect2.geometry.verticesNeedUpdate = true;
                     if (highlight) {
-                        rect2.children[0].material.color = new THREE.Color(0xff0000);
+                        rect2.children[0].material.color = new Color(0xff0000);
                         rect2.material.opacity = 0.35;
                     } else {
                         rect2.children[0].material.color.copy(chain[0].color);
@@ -429,22 +443,22 @@ class DeformationChain {
                             if (o === 0 || o === 3) {
                                 // line from eltB side
                                 if (eltB.highlight === 'both') {
-                                    dashed.material.color = new THREE.Color(0x881111);
+                                    dashed.material.color = new Color(0x881111);
                                 } else if (eltA.highlight === 'both') {
-                                    dashed.material.color = new THREE.Color(0xffcccc);
+                                    dashed.material.color = new Color(0xffcccc);
                                 } else if (eltA.highlight === 'rect') {
-                                    dashed.material.color = new THREE.Color(0xffcccc);
+                                    dashed.material.color = new Color(0xffcccc);
                                 } else {
                                     dashed.visible = false;
                                 }
                             } else if (o) {
                                 // line from eltA side
                                 if (eltA.highlight === 'both') {
-                                    dashed.material.color = new THREE.Color(0x111188);
+                                    dashed.material.color = new Color(0x111188);
                                 } else if (eltB.highlight === 'both') {
-                                    dashed.material.color = new THREE.Color(0xccccff);
+                                    dashed.material.color = new Color(0xccccff);
                                 } else if (eltA.highlight === 'rect') {
-                                    dashed.material.color = new THREE.Color(0xccccff);
+                                    dashed.material.color = new Color(0xccccff);
                                 } else {
                                     dashed.visible = false;
                                 }
@@ -467,8 +481,8 @@ class DeformationChain {
                 const eltA = chain[i];
                 const eltB = chain[i + 1];
 
-                const originalLine = new THREE.Line3(eltA.original, eltB.original);
-                const modifiedLine = new THREE.Line3(eltA.modified, eltB.modified);
+                const originalLine = new Line3(eltA.original, eltB.original);
+                const modifiedLine = new Line3(eltA.modified, eltB.modified);
 
                 const transfo = computeTransformation(
                     originalLine, modifiedLine,
@@ -500,24 +514,24 @@ class DeformationChain {
             for (let i = 0; i < chain.length; i++) {
                 const segment = chain[i];
 
-                const v1 = new THREE.Vector3(segment.v1.x, segment.v1.y, segment.v1.z);
+                const v1 = new Vector3(segment.v1.x, segment.v1.y, segment.v1.z);
                 this.addPoint(v1);
 
                 // load matrix
-                const m = new THREE.Matrix4();
+                const m = new Matrix4();
                 m.elements = segment.matrix.elements;
 
                 this._activeChain()[this.active.point].modified = v1.clone().applyMatrix4(m);
-                this._activeChain()[this.active.point].scale = new THREE.Vector3(
+                this._activeChain()[this.active.point].scale = new Vector3(
                     segment.influence.x, segment.influence.y, 1,
                 );
 
                 if (i === chain.length - 1) {
-                    const v2 = new THREE.Vector3(segment.v2.x, segment.v2.y, segment.v2.z);
+                    const v2 = new Vector3(segment.v2.x, segment.v2.y, segment.v2.z);
                     this.addPoint(v2);
 
                     this._activeChain()[this.active.point].modified = v2.clone().applyMatrix4(m);
-                    this._activeChain()[this.active.point].scale = new THREE.Vector3(
+                    this._activeChain()[this.active.point].scale = new Vector3(
                         segment.influence.x, segment.influence.y, 1,
                     );
                 }

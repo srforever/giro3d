@@ -1,4 +1,12 @@
-import * as THREE from 'three';
+import {
+    Color,
+    BufferGeometry,
+    BufferAttribute,
+    Mesh,
+    Group,
+    Points,
+    Line,
+} from 'three';
 import Earcut from 'earcut';
 
 function getProperty(name, options, defaultValue, ...args) {
@@ -20,7 +28,7 @@ function getProperty(name, options, defaultValue, ...args) {
 
 // TODO duplicate code with Feature2Mesh
 function randomColor() {
-    const color = new THREE.Color();
+    const color = new Color();
     color.setHex(Math.random() * 0xffffff);
     return color;
 }
@@ -53,9 +61,9 @@ function prepareBufferGeometry(geom, color, altitude) {
         colors, geom.flatCoordinates.length, color.r * 255, color.g * 255, color.b * 255, 0,
     );
 
-    const threeGeom = new THREE.BufferGeometry();
-    threeGeom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    threeGeom.setAttribute('color', new THREE.BufferAttribute(colors, 3, true));
+    const threeGeom = new BufferGeometry();
+    threeGeom.setAttribute('position', new BufferAttribute(vertices, 3));
+    threeGeom.setAttribute('color', new BufferAttribute(colors, 3, true));
     threeGeom.computeBoundingSphere();
     return threeGeom;
 }
@@ -68,7 +76,7 @@ function featureToPoint(feature, properties, options) {
     const geom = feature.getGeometry();
     const threeGeom = prepareBufferGeometry(geom, color, altitude);
 
-    return new THREE.Points(threeGeom);
+    return new Points(threeGeom);
 }
 
 function featureToLine(feature, properties, options) {
@@ -79,7 +87,7 @@ function featureToLine(feature, properties, options) {
     const geom = feature.getGeometry();
     const threeGeom = prepareBufferGeometry(geom, color, altitude);
 
-    return new THREE.Line(threeGeom);
+    return new Line(threeGeom);
 }
 
 function featureToPolygon(feature, properties, options) {
@@ -94,8 +102,8 @@ function featureToPolygon(feature, properties, options) {
 
     const triangles = Earcut(threeGeom.attributes.position.array, ends.slice(0, -1), 3);
 
-    threeGeom.setIndex(new THREE.BufferAttribute(new Uint16Array(triangles), 1));
-    return new THREE.Mesh(threeGeom);
+    threeGeom.setIndex(new BufferAttribute(new Uint16Array(triangles), 1));
+    return new Mesh(threeGeom);
 }
 
 function featureToMultiPolygon(feature, properties, options) {
@@ -130,8 +138,8 @@ function featureToMultiPolygon(feature, properties, options) {
         start = polyNormEnd;
     }
 
-    threeGeom.setIndex(new THREE.BufferAttribute(new Uint16Array(indices), 1));
-    return new THREE.Mesh(threeGeom);
+    threeGeom.setIndex(new BufferAttribute(new Uint16Array(indices), 1));
+    return new Mesh(threeGeom);
 }
 
 /**
@@ -143,7 +151,7 @@ function featureToMultiPolygon(feature, properties, options) {
  * @param {number|Function} options.extrude if defined, polygons will be extruded by the specified
  * amount
  * @param {object|Function} options.color define per feature color
- * @returns {THREE.Mesh} mesh
+ * @returns {Mesh} mesh
  */
 function featureToMesh(feature, options) {
     let mesh;
@@ -174,7 +182,7 @@ function featureToMesh(feature, options) {
 
     // set mesh material
     mesh.material.vertexColors = true;
-    mesh.material.color = new THREE.Color(0xffffff);
+    mesh.material.color = new Color(0xffffff);
 
     mesh.properties = feature.properties;
 
@@ -188,7 +196,7 @@ function featuresToThree(features, options) {
         return featureToMesh(features[0], options);
     }
 
-    const group = new THREE.Group();
+    const group = new Group();
     group.minAltitude = Infinity;
 
     for (const feature of features) {
@@ -207,7 +215,7 @@ export default {
     /**
      * Return a function that converts [Features]{@link module:GeoJsonParser} to Meshes. Feature
      * collection will be converted to a
-     * a THREE.Group.
+     * a Group.
      *
      * @param {object} options options controlling the conversion
      * @param {number|Function} options.altitude define the base altitude of the mesh

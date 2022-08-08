@@ -1,4 +1,4 @@
-import { Texture } from 'three/src/textures/Texture.js';
+import { Texture } from 'three';
 
 import TileState from 'ol/TileState.js';
 import { listenOnce } from 'ol/events.js';

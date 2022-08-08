@@ -1,7 +1,7 @@
 /**
  * @module Core/Geographic/Coordinates
  */
-import * as THREE from 'three';
+import { Vector2, Vector3, MathUtils } from 'three';
 import proj4 from 'proj4';
 
 const projectionCache = {};
@@ -120,7 +120,7 @@ export function is4326(crs) {
     return crs.indexOf('EPSG:4326') === 0;
 }
 
-const planarNormal = new THREE.Vector3(0, 0, 1);
+const planarNormal = new Vector3(0, 0, 1);
 
 /**
  * Represents coordinates associated with a coordinate reference system (CRS).
@@ -130,13 +130,13 @@ const planarNormal = new THREE.Vector3(0, 0, 1);
 class Coordinates {
     /**
      * Build a {@link Coordinates} object, given a [CRS](http://inspire.ec.europa.eu/theme/rs) and a number of coordinates value.
-     * Coordinates can be geocentric, geographic, or an instance of [THREE.Vector3](https://threejs.org/docs/#api/math/Vector3).
+     * Coordinates can be geocentric, geographic, or an instance of [Vector3](https://threejs.org/docs/#api/math/Vector3).
      * - If <code>crs</code> is <code>'EPSG:4326'</code>, coordinates must be in [geographic system](https://en.wikipedia.org/wiki/Geographic_coordinate_system).
      * - If <code>crs</code> is <code>'EPSG:4978'</code>, coordinates must be in [geocentric system](https://en.wikipedia.org/wiki/Earth-centered,_Earth-fixed_coordinate_system).
      *
      * @api
      * @param       {string} crs Geographic or Geocentric coordinates system.
-     * @param       {number|THREE.Vector3} coordinates The globe coordinates to aim to.
+     * @param       {number|Vector3} coordinates The globe coordinates to aim to.
      * @param       {number} coordinates.longitude Geographic Coordinate longitude
      * @param       {number} coordinates.latitude Geographic Coordinate latitude
      * @param       {number} coordinates.altitude Geographic Coordinate altiude
@@ -163,7 +163,7 @@ class Coordinates {
         _crsToUnitWithError(crs);
         this.crs = crs;
 
-        if (coordinates.length === 1 && coordinates[0] instanceof THREE.Vector3) {
+        if (coordinates.length === 1 && coordinates[0] instanceof Vector3) {
             this._values[0] = coordinates[0].x;
             this._values[1] = coordinates[0].y;
             this._values[2] = coordinates[0].z;
@@ -389,12 +389,12 @@ class Coordinates {
      * // y: 849862
      * // z: 23385912
      * @param {Coordinates} target the geocentric coordinate
-     * @returns     {THREE.Vector3 | Coordinates} target position
+     * @returns     {Vector3 | Coordinates} target position
      * @api
      */
     xyz(target) {
         _assertIsGeocentric(this.crs);
-        const v = target || new THREE.Vector3();
+        const v = target || new Vector3();
         v.fromArray(this._values);
         return v;
     }
@@ -413,8 +413,8 @@ class Coordinates {
      *     new Coordinates('EPSG:4326', position.longitude, position.latitude, position.altitude);
      * const coordinates = coords.as('EPSG:4978'); // Geocentric system
      * @param   {string} crs the [CRS](http://inspire.ec.europa.eu/theme/rs) EPSG string
-     * @param   {Coordinates|THREE.Vector3} target the object that is returned
-     * @returns {Coordinates|THREE.Vector3} the converted coordinate
+     * @param   {Coordinates|Vector3} target the object that is returned
+     * @returns {Coordinates|Vector3} the converted coordinate
      * @api
      */
     as(crs, target) {
@@ -439,7 +439,7 @@ class Coordinates {
             // https://github.com/proj4js/proj4js/issues/195
             // the workaround is to use an intermediate projection, like EPSG:4326
             if (is4326(crsIn) && newCrs === 'EPSG:3857') {
-                val1 = THREE.MathUtils.clamp(val1, -89.999999, 89.999999);
+                val1 = MathUtils.clamp(val1, -89.999999, 89.999999);
                 const p = instanceProj4(crsIn, newCrs).forward([val0, val1]);
                 return target.set(newCrs, p[0], p[1], this._values[2]);
             }
@@ -460,9 +460,9 @@ class Coordinates {
      *  would return `(0.5, 0.5)`.
      *
      * @param {module:Core/Geographic/Extent~Extent} extent the extent to test
-     * @param {THREE.Vector2} target optional Vector2 target.
+     * @param {Vector2} target optional Vector2 target.
      * If not present a new one will be created
-     * @returns {THREE.Vector2} normalized offset in extent
+     * @returns {Vector2} normalized offset in extent
      * @api
      */
     offsetInExtent(extent, target) {
@@ -481,7 +481,7 @@ class Coordinates {
         const originX = (x - extent.west()) / dimension.x;
         const originY = (extent.north() - y) / dimension.y;
 
-        target = target || new THREE.Vector2();
+        target = target || new Vector2();
         target.set(originX, originY);
         return target;
     }

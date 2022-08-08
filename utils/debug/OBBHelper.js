@@ -1,4 +1,14 @@
-import * as THREE from 'three';
+import {
+    BufferAttribute,
+    BufferGeometry,
+    Color,
+    DoubleSide,
+    LineBasicMaterial,
+    LineSegments,
+    Mesh,
+    MeshBasicMaterial,
+    Vector3,
+} from 'three';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
 import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 
@@ -6,32 +16,32 @@ import { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 import fontJS from './fonts/optimer_regular.json';
 
 const font = new Font(fontJS);
-const tmpVec3 = new THREE.Vector3();
+const tmpVec3 = new Vector3();
 const points = [
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
 ];
 
-class OBBHelper extends THREE.LineSegments {
+class OBBHelper extends LineSegments {
     constructor(OBB, text) {
         const indices = new Uint16Array(
             [0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7],
         );
         const positions = new Float32Array(8 * 3);
 
-        const geometry = new THREE.BufferGeometry();
-        geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+        const geometry = new BufferGeometry();
+        geometry.setIndex(new BufferAttribute(indices, 1));
+        geometry.setAttribute('position', new BufferAttribute(positions, 3));
 
-        const color = new THREE.Color(Math.random(), Math.random(), Math.random());
+        const color = new Color(Math.random(), Math.random(), Math.random());
 
-        super(geometry, new THREE.LineBasicMaterial({
+        super(geometry, new LineBasicMaterial({
             color: color.getHex(),
             linewidth: 3,
         }));
@@ -49,9 +59,9 @@ class OBBHelper extends THREE.LineSegments {
 
         });
 
-        this.textMesh = new THREE.Mesh(geometryText, new THREE.MeshBasicMaterial({
-            color: new THREE.Color(1, 0, 0),
-            side: THREE.DoubleSide,
+        this.textMesh = new Mesh(geometryText, new MeshBasicMaterial({
+            color: new Color(1, 0, 0),
+            side: DoubleSide,
         }));
 
         this.add(this.textMesh);

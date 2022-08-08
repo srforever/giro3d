@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Vector3, BufferGeometry } from 'three';
 
 import ColorLayer from '../../../../src/Core/layer/ColorLayer.js';
 import TileMesh from '../../../../src/Core/TileMesh.js';
@@ -27,8 +27,8 @@ describe('ColorLayer', () => {
 
     describe('update', () => {
         // Misc var to initialize a TileMesh instance
-        const geom = new THREE.BufferGeometry();
-        geom.OBB = new OBB(new THREE.Vector3(), new THREE.Vector3(1, 1, 1));
+        const geom = new BufferGeometry();
+        geom.OBB = new OBB(new Vector3(), new Vector3(1, 1, 1));
 
         const extent = new Extent('EPSG:4326', 0, 2, 0, 2);
 

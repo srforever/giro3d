@@ -1,4 +1,11 @@
-import * as THREE from 'three';
+import {
+    Vector2,
+    Vector3,
+    Vector4,
+    Raycaster,
+    Color,
+    BufferAttribute,
+} from 'three';
 import TileMesh from './TileMesh.js';
 import RendererConstant from '../Renderer/RendererConstant.js';
 import { unpack1K } from '../Renderer/LayeredMaterial.js';
@@ -20,17 +27,17 @@ function hideEverythingElse(view, object, threejsLayer = 0) {
 
 function unpackHalfRGBA(v, target) {
     if (!target || !target.isVector2) {
-        target = new THREE.Vector2();
+        target = new Vector2();
     }
     return target.set(v.x + (v.y / 255.0), v.z + (v.w / 255.0));
 }
 
-const depthRGBA = new THREE.Vector4();
+const depthRGBA = new Vector4();
 // TileMesh picking support function
 function screenCoordsToNodeId(view, tileLayer, viewCoords, radius) {
     const dim = view.mainLoop.gfxEngine.getWindowSize();
 
-    viewCoords = viewCoords || new THREE.Vector2(Math.floor(dim.x / 2), Math.floor(dim.y / 2));
+    viewCoords = viewCoords || new Vector2(Math.floor(dim.x / 2), Math.floor(dim.y / 2));
 
     const restore = tileLayer.level0Nodes.map(n => n.pushRenderState(RendererConstant.ID));
 
@@ -112,9 +119,9 @@ function findLayerInParent(obj) {
     return null;
 }
 
-const raycaster = new THREE.Raycaster();
+const raycaster = new Raycaster();
 const tmpCoords = new Coordinates('EPSG:3857', 0, 0, 0);
-const tmpColor = new THREE.Color();
+const tmpColor = new Color();
 
 /**
  * @module Picking
@@ -178,7 +185,7 @@ export default {
                         const coord = tmpCoords.as(
                             _instance.referenceCrs, new Coordinates(_instance.referenceCrs),
                         );
-                        const point = tmpCoords.xyz(new THREE.Vector3());
+                        const point = tmpCoords.xyz(new Vector3());
                         results.push({
                             object: node,
                             layer,
@@ -281,7 +288,7 @@ export default {
             if (o.isPoints && o.visible && o.material.visible) {
                 for (let i = 0; i < candidates.length; i++) {
                     if (candidates[i].pickingId === o.material.pickingId) {
-                        const position = new THREE.Vector3()
+                        const position = new Vector3()
                             .fromArray(
                                 o.geometry.attributes.position.array, 3 * candidates[i].index,
                             )
@@ -305,7 +312,7 @@ export default {
     },
 
     /*
-     * Default picking method. Uses THREE.Raycaster
+     * Default picking method. Uses Raycaster
      */
     pickObjectsAt(view, viewCoords, radius, object, target = []) {
         // Instead of doing N raycast (1 per x,y returned by traversePickingCircle),
@@ -384,6 +391,6 @@ export default {
             ids[4 * i + 2] = (i & 0x0000ff00) >> 8;
             ids[4 * i + 3] = (i & 0x000000ff) >> 0;
         }
-        pointsGeometry.setAttribute('unique_id', new THREE.BufferAttribute(ids, 4, true));
+        pointsGeometry.setAttribute('unique_id', new BufferAttribute(ids, 4, true));
     },
 };

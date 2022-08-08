@@ -1,6 +1,12 @@
-import * as THREE from 'three';
+import {
+    Vector2,
+    Texture,
+    LinearFilter,
+    RGBFormat,
+    DataTexture,
+} from 'three';
 
-const pt = new THREE.Vector2();
+const pt = new Vector2();
 
 function _moveTo(ctx, coord, scale, origin) {
     pt.x = coord._values[0] - origin.x;
@@ -91,7 +97,7 @@ function drawFeature(ctx, feature, origin, scale, extent, style = {}) {
 }
 
 export default {
-    // backgroundColor is a THREE.Color to specify a color to fill the texture
+    // backgroundColor is a Color to specify a color to fill the texture
     // with, given there is no feature passed in parameter
     createTextureFromFeature(collection, extent, sizeTexture, style, backgroundColor) {
         let texture;
@@ -100,7 +106,7 @@ export default {
             // A texture is instancied drawn canvas origin and dimension are used to transform the
             // feature's coordinates to canvas's space
             // NOTE: canvas y axes is top to bottom
-            const origin = new THREE.Vector2(extent.west(), extent.north());
+            const origin = new Vector2(extent.west(), extent.north());
             const dimension = extent.dimensions();
             const c = document.createElement('canvas');
 
@@ -113,7 +119,7 @@ export default {
             }
             ctx.globalCompositeOperation = style.globalCompositeOperation || 'source-over';
 
-            const scale = new THREE.Vector2(
+            const scale = new Vector2(
                 ctx.canvas.width / dimension.x, ctx.canvas.width / dimension.y,
             );
 
@@ -122,21 +128,21 @@ export default {
                 drawFeature(ctx, feature, origin, scale, extent, style);
             }
 
-            texture = new THREE.Texture(c);
+            texture = new Texture(c);
             texture.flipY = false;
             texture.generateMipmaps = false;
-            texture.magFilter = THREE.LinearFilter;
-            texture.minFilter = THREE.LinearFilter;
+            texture.magFilter = LinearFilter;
+            texture.minFilter = LinearFilter;
             texture.needsUpdate = true;
         } else if (backgroundColor) {
             const data = new Uint8Array(3);
             data[0] = backgroundColor.r * 255;
             data[1] = backgroundColor.g * 255;
             data[2] = backgroundColor.b * 255;
-            texture = new THREE.DataTexture(data, 1, 1, THREE.RGBFormat);
+            texture = new DataTexture(data, 1, 1, RGBFormat);
             texture.needsUpdate = true;
         } else {
-            texture = new THREE.Texture();
+            texture = new Texture();
         }
 
         return texture;
@@ -149,12 +155,12 @@ export default {
 
         // We can only calculate the scale from the full tile
         const dimension = extent.dimensions();
-        const scale = new THREE.Vector2(sizeTexture / dimension.x, sizeTexture / dimension.y);
+        const scale = new Vector2(sizeTexture / dimension.x, sizeTexture / dimension.y);
 
         // A texture is instancied drawn canvas
         // origin and dimension are used to transform the feature's coordinates to canvas's space
         // NOTE: canvas y axes is top to bottom
-        const origin = new THREE.Vector2(point.x - radius / scale.x, point.y + radius / scale.y);
+        const origin = new Vector2(point.x - radius / scale.x, point.y + radius / scale.y);
 
         const c = document.createElement('canvas');
 
