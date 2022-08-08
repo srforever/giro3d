@@ -14,6 +14,21 @@ function generateExampleCard(pathToHtmlFile, template) {
         .replaceAll('%name%', name);
 }
 
+function generateExample(pathToHtmlFile, template) {
+    const filename = path.basename(pathToHtmlFile);
+    const js = filename.replace('.html', '.js');
+    const name = path.parse(pathToHtmlFile).name;
+    const values = parseExample(pathToHtmlFile);
+    const html = template
+        .replaceAll('%title%', values.name)
+        .replaceAll('%description%', values.description)
+        .replaceAll('%name%', name)
+        .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/master/examples/${js}`)
+        .replaceAll('%js%', js);
+
+    return { filename, html };
+}
+
 function parseExample(pathToHtmlFile) {
     const html = fse.readFileSync(pathToHtmlFile, 'utf-8');
     const document = new JSDOM(html).window.document;
@@ -74,5 +89,13 @@ export default class ExampleBuilder {
         const html = index.replace('%examples%', thumbnails.join('\n\n'));
 
         assets['index.html'] = new RawSource(html);
+
+        const exampleTemplate = await fse.readFile(path.resolve(this.examplesDir, 'templates/example.tmpl'), 'utf-8');
+
+        htmlFiles
+            .map(f => generateExample(f, exampleTemplate))
+            .forEach(ex => {
+                assets[ex.filename] = new RawSource(ex.html);
+            });
     }
 }
