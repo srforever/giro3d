@@ -29,7 +29,7 @@ export const ELEVATION_FORMAT = {
 /**
  * Return current displayed elevation at coord in meters.
  *
- * @param {module:Entity3D~Entity3D} layer The tile layer owning
+ * @param {module:Entity3D~Entity3D} entity The tile entity owning
  * the elevation textures we're going to query.
  * This is typically the globeLayer or a planeLayer.
  * @param {Coordinates} coord The coordinates that we're interested in
@@ -41,8 +41,8 @@ export const ELEVATION_FORMAT = {
  * @returns {object}  undefined if no result or z: displayed elevation in meters, texture: where
  * the z value comes from, tile: owner of the texture
  */
-function getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
-    const result = _readZ(layer, method, coord, tileHint || layer.level0Nodes);
+function getElevationValueAt(entity, coord, method = FAST_READ_Z, tileHint) {
+    const result = _readZ(entity, method, coord, tileHint || entity.level0Nodes);
     if (!result) {
         return null;
     }
@@ -52,7 +52,7 @@ function getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
 /**
  * Helper method that will position an object directly on the ground.
  *
- * @param {module:Entity3D~Entity3D} layer The tile layer owning
+ * @param {module:Entity3D~Entity3D} entity The tile entity owning
  * the elevation textures we're going to query.
  * This is typically the globeLayer or a planeLayer.
  * @param {string} objectCRS the CRS used by the object coordinates. You probably want to use
@@ -68,12 +68,12 @@ function getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
  * @returns {boolean} true if successful, false if we couldn't lookup the elevation at the given
  * coords
  */
-function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
+function placeObjectOnGround(entity, objectCRS, obj, options = {}, tileHint) {
     let tiles;
     if (tileHint) {
-        tiles = tileHint.concat(layer.level0Nodes);
+        tiles = tileHint.concat(entity.level0Nodes);
     } else {
-        tiles = layer.level0Nodes;
+        tiles = entity.level0Nodes;
     }
 
     if (!options.modifyGeometry) {
@@ -86,7 +86,7 @@ function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
                 ? new Matrix4().copy(obj.parent.matrixWorld).invert() : undefined,
         };
         const result = _updateVector3(
-            layer,
+            entity,
             options.method || FAST_READ_Z,
             tiles,
             objectCRS,
@@ -124,7 +124,7 @@ function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
             const cached = options.cache ? options.cache[i] : undefined;
 
             const result = _updateVector3(
-                layer,
+                entity,
                 options.method || FAST_READ_Z,
                 tiles,
                 objectCRS,
@@ -159,7 +159,7 @@ function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
             tmp.fromBufferAttribute(geometry.attributes.position, i);
             const prev = tmp.z;
             const result = _updateVector3(
-                layer,
+                entity,
                 options.method || FAST_READ_Z,
                 tiles,
                 objectCRS,
@@ -410,8 +410,8 @@ const temp = {
     offset: new Vector2(),
 };
 
-function _readZ(layer, method, coord, nodes, cache) {
-    const pt = coord.as(layer.extent.crs(), temp.coord1);
+function _readZ(entity, method, coord, nodes, cache) {
+    const pt = coord.as(entity.extent.crs(), temp.coord1);
 
     let tileWithValidElevationTexture = null;
     // first check in cache
@@ -460,26 +460,26 @@ function _readZ(layer, method, coord, nodes, cache) {
     //   - the correct one: emulate the vertex shader code
     if (method === PRECISE_READ_Z) {
         pt._values[2] = _readZCorrect(
-            layer,
+            entity,
             textureInfo,
             offset,
             tile.extent.dimensions(),
             tileWithValidElevationTexture.extent.dimensions(),
         );
     } else {
-        pt._values[2] = _readZFast(layer, textureInfo, offset);
+        pt._values[2] = _readZFast(entity, textureInfo, offset);
     }
     return { coord: pt, texture: src, tile };
 }
 
-function _updateVector3(layer, method, nodes, vecCRS, vec, offset, matrices = {}, coords, cache) {
+function _updateVector3(entity, method, nodes, vecCRS, vec, offset, matrices = {}, coords, cache) {
     const coord = coords || new Coordinates(vecCRS);
     if (matrices.worldFromLocal) {
         coord.set(vecCRS, temp.v.copy(vec).applyMatrix4(matrices.worldFromLocal));
     } else {
         coord.set(vecCRS, vec);
     }
-    const result = _readZ(layer, method, coord, nodes, cache);
+    const result = _readZ(entity, method, coord, nodes, cache);
     if (!result) {
         return null;
     }
