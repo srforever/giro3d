@@ -170,14 +170,14 @@ class PointsMaterial extends RawShaderMaterial {
         this.uniforms.extentSize = new Uniform(new Vector2(dim.x, dim.y));
     }
 
-    getLayerTexture(layer) {
+    getColorTexture(layer) {
         if (layer !== this.colorLayer) {
             return null;
         }
-        return { texture: this.uniforms.overlayTexture.value };
+        return this.uniforms.overlayTexture.value;
     }
 
-    setLayerTextures(layer, textures) {
+    setColorTextures(layer, textures) {
         if (Array.isArray(textures)) {
             textures = textures[0];
         }
