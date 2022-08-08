@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>giro3d - COG as Color Layer</title>
-
+        <title>Cloud Optimized GeoTIFF - Giro3D</title>
         <meta charset="UTF-8">
         <meta name="name" content="Cloud Optimized GeoTIFF (COG)">
         <meta name="description" content="Load a COG image.">
         <link rel="stylesheet" type="text/css" href="css/example.css">
-        <link rel="stylesheet" type="text/css" href="css/loading_screen.css">
-
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
@@ -18,89 +15,7 @@
                 <option>UINT16 1-band NIR Data </option>
             </select>
         </div>
-        <div id="viewerDiv">
-        </div>
-        <script src="giro3d.js"></script>
-        <script src="js/loading_screen.js"></script>
-        <script type="text/javascript">
-            window.THREE = giro3d.THREE;
-        </script>
-        <script src="https://unpkg.com/three@0.135.0/examples/js/controls/OrbitControls.js"></script>
-        <script type="text/javascript">
-            // Define projection that we will use (taken from https://epsg.io/32633, Proj4js section)
-            giro3d.proj4.defs("EPSG:32633","+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs");
-            giro3d.register(giro3d.proj4);
-
-            // Define geographic extent: CRS, min/max X, min/max Y
-            var extent = new giro3d.Extent(
-                'EPSG:32633',
-                499980, 609780,
-                1790220, 1900020,
-            );
-            const center = extent.center().xyz();
-
-            // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
-            var viewerDiv = document.getElementById('viewerDiv');
-
-            // Instanciate Giro3D
-
-            let instance = new giro3d.Instance(viewerDiv, {crs: extent.crs()});
-            instance.mainLoop.gfxEngine.renderer.setClearColor(0x0a3b59);
-
-            // Instanciate the camera
-
-            instance.camera.camera3D.position.set(center.x, center.y, 250000);
-
-            // Instanciate the controls
-
-            var controls = new giro3d.THREE.OrbitControls(
-                instance.camera.camera3D,
-                viewerDiv,
-            );
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.2;
-            controls.target.set(center.x, center.y, center.z);
-
-            instance.useTHREEControls(controls);
-
-            // Construct a map and add it to the instance
-
-            let map = new giro3d.Map('planar', { extent });
-            map.disableSkirt = true;
-            instance.add(map);
-
-            // Source urls for the example
-
-            const cogs = [
-                new giro3d.CogSource({
-                    url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/2020/S2A_36QWD_20200701_0_L2A/TCI.tif'
-                }),
-                new giro3d.CogSource({
-                    url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/2020/S2A_36QWD_20200701_0_L2A/B08.tif'
-                }),
-            ]
-
-            // Load the current selected layer
-            changeLayer();
-
-            // Load other layers and change visibility 
-            function changeLayer() {
-                const cogLayerOptions = document.getElementById("cogLayerOptions");
-                const cogOptionIndex = cogLayerOptions.selectedIndex;
-                map.getLayers().forEach(layer => {
-                    layer.visible = false;
-                });
-                instance.notifyChange(map, true);
-                const selectedLayer = map.getLayers(l => l.id === cogOptionIndex)[0];
-                if (selectedLayer) { // if the layer is already loaded
-                    selectedLayer.visible = true;
-                } else {
-                    // Add the COG Layer as a color layer to the map
-                    // See https://docs.sentinel-hub.com/api/latest/data/
-                    const cogLayer = new giro3d.ColorLayer(cogOptionIndex, { source: cogs[cogOptionIndex] });
-                    map.addLayer(cogLayer);
-                }
-            }
-        </script>
+        <div id="viewerDiv"></div>
+        <script type="module" src="cog_color.js"></script>
     </body>
 </html>

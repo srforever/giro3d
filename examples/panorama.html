@@ -1,12 +1,11 @@
+<!DOCTYPE html>
 <html>
     <head>
-        <title>giro3d - Panorama example</title>
-
+        <title>Panorama - Giro3D</title>
         <meta charset="UTF-8">
         <meta name="name" content="Panoramas">
         <meta name="description" content="Display panoramas.">
         <link rel="stylesheet" type="text/css" href="css/example.css">
-        <link rel="stylesheet" type="text/css" href="css/loading_screen.css">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style type="text/css">
             .maa {
@@ -21,108 +20,6 @@
     <body>
         <svg class="maa"></svg>
         <div id="viewerDiv"></div>
-
-        <script src="giro3d.js"></script>
-        <script src="js/loading_screen.js"></script>
-
-        <script src="/debug.js"></script>
-        <script src="js/GUI/dat.gui/dat.gui.min.js"></script>
-        <script type="text/javascript">
-            var viewerDiv;
-            var view;
-
-            viewerDiv = document.getElementById('viewerDiv');
-
-            // Declare 5 panoramas
-            var urls = [
-                'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/panoramas/arles/metadata1.json',
-                'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/panoramas/arles/metadata2.json',
-                'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/panoramas/arles/metadata3.json',
-                'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/panoramas/arles/metadata4.json',
-                'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/panoramas/arles/metadata5.json'];
-            var promises = urls.map(function(url) { return giro3d.Fetcher.json(url, { crossOrigin: 'anonymous' }); });
-
-            var activeIndex = 3;
-            Promise.all(promises).then(function _(panoramas) {
-                // Create a giro3d PanoramaView
-                view = new giro3d.PanoramaView(viewerDiv,
-                    new giro3d.Coordinates('EPSG:3857'),
-                    giro3d.Panorama.SPHERICAL);
-                setupLoadingScreen(viewerDiv, view);
-
-                var index = 0;
-                var layers = [];
-
-                // Add one color layer per panorama
-                for (var i = 0; i < panoramas.length; i++) {
-                    var pano = panoramas[i];
-                    var url = new URL(pano['images'], urls[index]);
-                    var _id = url.pathname;
-                    view.addLayer({
-                        visible: index == activeIndex,
-                        url: url.href,
-                        networkOptions: { crossOrigin: 'anonymous' },
-                        type: 'color',
-                        protocol: 'static',
-                        id: _id,
-                        projection: 'EPSG:4326',
-                        updateStrategy: {
-                            type: giro3d.STRATEGY_DICHOTOMY,
-                        }
-                    }).then(l => {
-                        layers.push(l);
-                        index++;
-                    });
-
-                }
-                view.camera.camera3D.far = 10000;
-                view.notifyChange();
-
-                // Setup debug menu
-                var gui = new dat.GUI();
-                var ddd = new debug.Debug(view, gui);
-                debug.createTileDebugUI(gui, view, view.baseLayer, ddd);
-
-                // Add controls
-                new giro3d.FirstPersonControls(view, {
-                    focusOnClick: true,
-                    panoramaRatio: panoramas[0]['ratio'],
-                    moveSpeed: 0,
-                });
-
-                // Change displayed panorama on mouse right-click
-                document.addEventListener('contextmenu', function (evt) {
-                    evt.preventDefault();
-                    layers[activeIndex].visible = false;
-                    activeIndex = (activeIndex + 1) % 5;
-                    layers[activeIndex].visible = true;
-                    view.notifyChange();
-                });
-                window.view = view;
-
-                document.addEventListener('click', (evt) => {
-                    const r = view._objects[0].pickObjectsAt(view, view.eventToViewCoords(evt), 1);
-                    if (!r.length) return;
-                    const obj = r[0].object;
-                    console.log(obj)
-                    const svg = document.getElementsByClassName('maa')[0];
-                    while (svg.firstChild) {
-                        svg.removeChild(svg.firstChild);
-                    }
-                    const colors = ['red', 'green', 'purple'];
-                    for (let i = 1; i<4; i++) {
-                        const line = document.createElementNS('http://www.w3.org/2000/svg','line');
-                        line.setAttribute('x1', obj._a.sse[0].x.toFixed());
-                        line.setAttribute('y1', obj._a.sse[0].y.toFixed())
-                        line.setAttribute('x2', obj._a.sse[i].x.toFixed())
-                        line.setAttribute('y2', obj._a.sse[i].y.toFixed())
-                        line.setAttribute('stroke', colors[i-1]);
-                        svg.append(line);
-                    }
-                });
-
-            }).catch(console.error);
-        </script>
-
+        <script type="module" src="panorama.js"></script>
     </body>
 </html>

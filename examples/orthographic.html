@@ -1,122 +1,15 @@
+<!DOCTYPE html>
 <html>
     <head>
-        <title>giro3d - Orthographic Camera Example</title>
-
+        <title>2D Map - Giro3D</title>
         <meta charset="UTF-8">
         <meta name="name" content="2D Map">
         <meta name="description" content="Display a 2D map using an orthographic camera.">
         <link rel="stylesheet" type="text/css" href="css/example.css">
-        <link rel="stylesheet" type="text/css" href="css/loading_screen.css">
-
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
-        <div id="viewerDiv">
-        </div>
-        <script src="giro3d.js"></script>
-        <script src="js/loading_screen.js"></script>
-        <script type="text/javascript">
-            // Defines geographic extent: CRS, min/max X, min/max Y
-            var extent = new giro3d.Extent(
-                'EPSG:3857',
-                -20037508.342789244, 20037508.342789244,
-                -20037508.342789244, 20037508.342789244);
-
-            // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
-            var viewerDiv = document.getElementById('viewerDiv');
-
-            // Creates a giro3d instance
-            let instance = new giro3d.Instance(viewerDiv, {crs: extent.crs()});
-            instance.mainLoop.gfxEngine.renderer.setClearColor(0x0a3b59);
-
-            setupLoadingScreen(viewerDiv, instance);
-
-            // Instanciates the camera
-            let center = { x: 328745, y: 5904608 };
-            let halfHeight = (6800000 - 5000000) / 2;
-            instance.camera.camera3D = new giro3d.THREE.OrthographicCamera(
-                    // left and right determined empirically
-                    -628337.4524312895,
-                    2111620.264270613,
-                    center.y + halfHeight,
-                    center.y - halfHeight,
-                    -1,
-                    1000);
-            // put the camera above the plane
-            instance.camera.camera3D.position.z = 1;
-
-            // Creates a map that will contain the layer
-            let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 10 });
-
-            // By default giro3d' tiles geometry have a "skirt" (ie they have a height),
-            // but in case of orthographic we don't need this feature, so disable it
-            map.disableSkirt = true;
-
-            instance.add(map);
-
-            // Adds an TMS imagery layer
-            var stamenSource = new giro3d.olsource.Stamen({ layer: 'watercolor', wrapX: false });
-            map.addLayer(new giro3d.ColorLayer(
-                'osm',
-                {
-                    source: stamenSource,
-                },
-            )).catch(e => console.error(e));
-
-            // Creates the controls
-            var dragStartPosition;
-            var dragCameraStart;
-
-            var onMouseWheel = function onMouseWheel(event) {
-                var change = 1 - (Math.sign(event.wheelDelta || -event.detail) * 0.1);
-
-                var halfNewWidth = (instance.camera.camera3D.right - instance.camera.camera3D.left) * change * 0.5;
-                var halfNewHeight = (instance.camera.camera3D.top - instance.camera.camera3D.bottom) * change * 0.5;
-                var cx = (instance.camera.camera3D.right + instance.camera.camera3D.left) * 0.5;
-                var cy = (instance.camera.camera3D.top + instance.camera.camera3D.bottom) * 0.5;
-
-                instance.camera.camera3D.left = cx - halfNewWidth;
-                instance.camera.camera3D.right = cx + halfNewWidth;
-                instance.camera.camera3D.top = cy + halfNewHeight;
-                instance.camera.camera3D.bottom = cy - halfNewHeight;
-
-                instance.notifyChange(instance.camera.camera3D, true);
-            };
-
-            viewerDiv.addEventListener('DOMMouseScroll', onMouseWheel);
-            viewerDiv.addEventListener('mousewheel', onMouseWheel);
-
-            viewerDiv.addEventListener('mousedown', function mouseDown(event) {
-                dragStartPosition = instance.eventToViewCoords(event).clone();
-                dragCameraStart = {
-                    left: instance.camera.camera3D.left,
-                    right: instance.camera.camera3D.right,
-                    top: instance.camera.camera3D.top,
-                    bottom: instance.camera.camera3D.bottom,
-                };
-            });
-            const infoDiv = document.getElementById('info')
-            viewerDiv.addEventListener('mousemove', function mouseMove(event) {
-                var width;
-                var deltaX;
-                var deltaY;
-                var newpos;
-                if (dragStartPosition) {
-                    newpos = instance.eventToViewCoords(event);
-                    width = instance.camera.camera3D.right - instance.camera.camera3D.left;
-                    deltaX = width * (newpos.x - dragStartPosition.x) / -viewerDiv.clientWidth;
-                    deltaY = width * (newpos.y - dragStartPosition.y) / viewerDiv.clientHeight;
-
-                    instance.camera.camera3D.left = dragCameraStart.left + deltaX;
-                    instance.camera.camera3D.right = dragCameraStart.right + deltaX;
-                    instance.camera.camera3D.top = dragCameraStart.top + deltaY;
-                    instance.camera.camera3D.bottom = dragCameraStart.bottom + deltaY;
-                    instance.notifyChange(instance.camera.camera3D, true);
-                }
-            });
-            viewerDiv.addEventListener('mouseup', function mouseUp() {
-                dragStartPosition = undefined;
-            });
-        </script>
+        <div id="viewerDiv"></div>
+        <script type="module" src="orthographic.js"></script>
     </body>
 </html>

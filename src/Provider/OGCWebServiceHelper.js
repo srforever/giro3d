@@ -1,4 +1,5 @@
-import * as THREE from 'three';
+import { LinearFilter, AlphaFormat, FloatType } from 'three';
+import { DataTexture } from 'three/src/textures/DataTexture.js';
 import Fetcher from './Fetcher.js';
 import Cache from '../Core/Scheduler/Cache.js';
 import Projection from '../Core/Geographic/Projection.js';
@@ -7,8 +8,8 @@ import Extent from '../Core/Geographic/Extent.js';
 export const SIZE_TEXTURE_TILE = 256;
 
 const getTextureFloat = function getTextureFloat(buffer) {
-    const texture = new THREE.DataTexture(
-        buffer, SIZE_TEXTURE_TILE, SIZE_TEXTURE_TILE, THREE.AlphaFormat, THREE.FloatType,
+    const texture = new DataTexture(
+        buffer, SIZE_TEXTURE_TILE, SIZE_TEXTURE_TILE, AlphaFormat, FloatType,
     );
     texture.needsUpdate = true;
     return texture;
@@ -21,8 +22,8 @@ export default {
         return Cache.get(url) || Cache.set(url, Fetcher.texture(url, networkOptions)
             .then(texture => {
                 texture.generateMipmaps = false;
-                texture.magFilter = THREE.LinearFilter;
-                texture.minFilter = THREE.LinearFilter;
+                texture.magFilter = LinearFilter;
+                texture.minFilter = LinearFilter;
                 texture.anisotropy = 16;
                 return texture;
             }), Cache.POLICIES.TEXTURE);
@@ -32,8 +33,8 @@ export default {
             .then(buffer => {
                 const texture = getTextureFloat(buffer);
                 texture.generateMipmaps = false;
-                texture.magFilter = THREE.LinearFilter;
-                texture.minFilter = THREE.LinearFilter;
+                texture.magFilter = LinearFilter;
+                texture.minFilter = LinearFilter;
                 return texture;
             }), Cache.POLICIES.TEXTURE);
     },

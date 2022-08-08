@@ -1,8 +1,14 @@
-import * as THREE from 'three';
+import {
+    Euler,
+    EventDispatcher,
+    MathUtils,
+    Quaternion,
+    Vector3,
+} from 'three';
 import { MAIN_LOOP_EVENTS } from '../../Core/MainLoop.js';
 
-// Note: we could use existing three.js controls (like
-// https://github.com/mrdoob/three.js/blob/dev/examples/js/controls/FirstPersonControls.js) but
+// Note: we could use existing js controls (like
+// https://github.com/mrdoob/js/blob/dev/examples/js/controls/FirstPersonControls.js) but
 // including these controls in giro3d allows use to integrate them tightly with giro3d.  Especially
 // the existing controls are expecting a continuous update loop while we have a pausable one (so our
 // controls use .notifyChange when needed)
@@ -10,14 +16,14 @@ import { MAIN_LOOP_EVENTS } from '../../Core/MainLoop.js';
 function limitRotation(camera3D, rot /* , verticalFOV */) {
     // Limit vertical rotation (look up/down) to make sure the user cannot see
     // outside of the cone defined by verticalFOV
-    // const limit = THREE.MathUtils.degToRad(verticalFOV - camera3D.fov * 0.5) * 0.5;
+    // const limit = MathUtils.degToRad(verticalFOV - camera3D.fov * 0.5) * 0.5;
     const limit = Math.PI * 0.5 - 0.01;
-    return THREE.MathUtils.clamp(rot, -limit, limit);
+    return MathUtils.clamp(rot, -limit, limit);
 }
 
 function applyRotation(view, camera3D, state) {
     camera3D.quaternion.setFromUnitVectors(
-        new THREE.Vector3(0, 1, 0), camera3D.up,
+        new Vector3(0, 1, 0), camera3D.up,
     );
 
     camera3D.rotateY(state.rotateY);
@@ -35,7 +41,7 @@ const MOVEMENTS = {
     34: { method: 'translateY', sign: -1 }, // DOWN: PageDown key
 };
 
-class FirstPersonControls extends THREE.EventDispatcher {
+class FirstPersonControls extends EventDispatcher {
     /**
      * @param {module:Core/Instance~Instance} view the giro3d instance to control
      * @param {object} options additional options
@@ -64,7 +70,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
         if (options.panoramaRatio) {
             const radius = (options.panoramaRatio * 200) / (2 * Math.PI);
             options.verticalFOV = options.panoramaRatio === 2
-                ? 180 : THREE.MathUtils.radToDeg(2 * Math.atan(200 / (2 * radius)));
+                ? 180 : MathUtils.radToDeg(2 * Math.atan(200 / (2 * radius)));
         }
         options.verticalFOV = options.verticalFOV || 180;
 
@@ -132,14 +138,14 @@ class FirstPersonControls extends THREE.EventDispatcher {
         // cam.quaternion = q * r
         // => r = invert(q) * cam.quaterion
         // q is the quaternion derived from the up vector
-        const q = new THREE.Quaternion().setFromUnitVectors(
-            new THREE.Vector3(0, 1, 0), this.camera.up,
+        const q = new Quaternion().setFromUnitVectors(
+            new Vector3(0, 1, 0), this.camera.up,
         );
         q.invert();
         // compute r
         const r = this.camera.quaternion.clone().premultiply(q);
         // tranform it to euler
-        const e = new THREE.Euler(0, 0, 0, 'YXZ').setFromQuaternion(r);
+        const e = new Euler(0, 0, 0, 'YXZ').setFromQuaternion(r);
 
         if (!preserveRotationOnX) {
             this._state.rotateX = e.x;
@@ -222,7 +228,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
             // in rigor we have tan(theta) = tan(cameraFOV) * deltaH / H
             // (where deltaH is the vertical amount we moved, and H the renderer height)
             // we loosely approximate tan(x) by x
-            const pxToAngleRatio = THREE.MathUtils.degToRad(this.camera.fov)
+            const pxToAngleRatio = MathUtils.degToRad(this.camera.fov)
                 / this.view.mainLoop.gfxEngine.height;
 
             const coords = this.view.eventToViewCoords(event);
@@ -254,7 +260,7 @@ class FirstPersonControls extends THREE.EventDispatcher {
             delta = event.detail;
         }
 
-        this.camera.fov = THREE.MathUtils.clamp(this.camera.fov + Math.sign(delta),
+        this.camera.fov = MathUtils.clamp(this.camera.fov + Math.sign(delta),
             10,
             Math.min(100, this.options.verticalFOV));
 

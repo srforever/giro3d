@@ -1,4 +1,12 @@
-import * as THREE from 'three';
+import {
+    Matrix4,
+    MathUtils,
+    BufferGeometry,
+    Vector3,
+    Object3D,
+    Triangle,
+    Vector2,
+} from 'three';
 import Coordinates from '../Core/Geographic/Coordinates.js';
 
 const FAST_READ_Z = 0;
@@ -49,8 +57,8 @@ function getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
  * This is typically the globeLayer or a planeLayer.
  * @param {string} objectCRS the CRS used by the object coordinates. You probably want to use
  * view.referenceCRS here.
- * @param {THREE.Object3D} obj
- * the [THREE.Object3D](https://threejs.org/docs/index.html?q=object3#api/en/core/Object3D) we want to modify.
+ * @param {Object3D} obj
+ * the [Object3D](https://threejs.org/docs/index.html?q=object3#api/en/core/Object3D) we want to modify.
  * @param {object} options additional options
  * @param {number} options.method see getElevationValueAt documentation
  * @param {boolean} options.modifyGeometry if unset/false, this function will modify
@@ -75,7 +83,7 @@ function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
         const matrices = {
             worldFromLocal: obj.parent ? obj.parent.matrixWorld : undefined,
             localFromWorld: obj.parent
-                ? new THREE.Matrix4().copy(obj.parent.matrixWorld).invert() : undefined,
+                ? new Matrix4().copy(obj.parent.matrixWorld).invert() : undefined,
         };
         const result = _updateVector3(
             layer,
@@ -101,7 +109,7 @@ function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
     }
     const matrices = {
         worldFromLocal: obj.matrixWorld,
-        localFromWorld: new THREE.Matrix4().copy(obj.matrixWorld).invert(),
+        localFromWorld: new Matrix4().copy(obj.matrixWorld).invert(),
     };
 
     const { geometry } = obj;
@@ -137,13 +145,13 @@ function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
         geometry.verticesNeedUpdate = true;
         return success;
     }
-    if (geometry instanceof THREE.BufferGeometry) {
+    if (geometry instanceof BufferGeometry) {
         if (options.cache) {
             options.cache.length = geometry.attributes.position.count;
         }
         let success = true;
 
-        const tmp = new THREE.Vector3();
+        const tmp = new Vector3();
         const coord = new Coordinates(objectCRS);
         for (let i = 0; i < geometry.attributes.position.count; i++) {
             const cached = options.cache ? options.cache[i] : undefined;
@@ -214,8 +222,8 @@ let ctx;
 function _readTextureValueAt(layer, textureInfo, ...uv) {
     const { texture, elevationFormat: format } = textureInfo;
     for (let i = 0; i < uv.length; i += 2) {
-        uv[i] = THREE.MathUtils.clamp(uv[i], 0, texture.image.width - 1);
-        uv[i + 1] = THREE.MathUtils.clamp(uv[i + 1], 0, texture.image.height - 1);
+        uv[i] = MathUtils.clamp(uv[i], 0, texture.image.width - 1);
+        uv[i + 1] = MathUtils.clamp(uv[i + 1], 0, texture.image.height - 1);
     }
 
     if (texture.image.data) {
@@ -325,10 +333,10 @@ function _readTextureValueWithBilinearFiltering(layer, textureInfo, vertexU, ver
         coords.u2, coords.v2);
 
     // horizontal filtering
-    const zu1 = THREE.MathUtils.lerp(z11, z21, coords.wu);
-    const zu2 = THREE.MathUtils.lerp(z12, z22, coords.wu);
+    const zu1 = MathUtils.lerp(z11, z21, coords.wu);
+    const zu2 = MathUtils.lerp(z12, z22, coords.wu);
     // then vertical filtering
-    return THREE.MathUtils.lerp(zu1, zu2, coords.wv);
+    return MathUtils.lerp(zu1, zu2, coords.wv);
 }
 
 function _readZFast(layer, textureInfo, uv) {
@@ -377,14 +385,14 @@ function _readZCorrect(layer, textureInfo, uv, tileDimensions, tileOwnerDimensio
     // (low-right = on the line 21-22 or under the diagonal lu = 1 - lv)
     const lowerRightTriangle = (lv === 1) || lu / (1 - lv) >= 1;
 
-    const tri = new THREE.Triangle(
-        new THREE.Vector3(u1, v2),
-        new THREE.Vector3(u2, v1),
-        lowerRightTriangle ? new THREE.Vector3(u2, v2) : new THREE.Vector3(u1, v1),
+    const tri = new Triangle(
+        new Vector3(u1, v2),
+        new Vector3(u2, v1),
+        lowerRightTriangle ? new Vector3(u2, v2) : new Vector3(u1, v1),
     );
 
     // bary holds the respective weight of each vertices of the triangles
-    const bary = tri.barycoordFromPoint(new THREE.Vector3(uv.x, uv.y));
+    const bary = tri.barycoordFromPoint(new Vector3(uv.x, uv.y));
 
     // read the 3 interesting values
     const z1 = _readTextureValueWithBilinearFiltering(layer, textureInfo, tri.a.x, tri.a.y);
@@ -396,10 +404,10 @@ function _readZCorrect(layer, textureInfo, uv, tileDimensions, tileOwnerDimensio
 }
 
 const temp = {
-    v: new THREE.Vector3(),
+    v: new Vector3(),
     coord1: new Coordinates('EPSG:4978'),
     coord2: new Coordinates('EPSG:4978'),
-    offset: new THREE.Vector2(),
+    offset: new Vector2(),
 };
 
 function _readZ(layer, method, coord, nodes, cache) {

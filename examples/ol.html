@@ -1,118 +1,15 @@
+<!DOCTYPE html>
 <html>
     <head>
-        <title>giro3d - OpenLayers Example</title>
-
+        <title>OpenLayers sources - Giro3D</title>
         <meta charset="UTF-8">
         <meta name="name" content="OpenLayers sources">
         <meta name="description" content="Display various OpenLayers sources on a Map.">
         <link rel="stylesheet" type="text/css" href="css/example.css">
-        <link rel="stylesheet" type="text/css" href="css/loading_screen.css">
-
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
     </head>
     <body>
         <div id="viewerDiv"></div>
-        <script src="giro3d.js"></script>
-        <script src="js/loading_screen.js"></script>
-        <script type="text/javascript">
-            window.THREE = giro3d.THREE;
-        </script>
-        <script src="https://unpkg.com/three@0.95.0/examples/js/controls/MapControls.js"></script>
-        <script type="text/javascript">
-
-            // Defines geographic extent: CRS, min/max X, min/max Y
-            var extent = new giro3d.Extent(
-                'EPSG:3857',
-                -20037508.342789244, 20037508.342789244,
-                -20037508.342789244, 20037508.342789244);
-
-            // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
-            var viewerDiv = document.getElementById('viewerDiv');
-
-            // Creates a giro3d instance
-            let instance = new giro3d.Instance(viewerDiv, {crs: extent.crs()});
-
-            setupLoadingScreen(viewerDiv, instance);
-
-            // Instanciates camera
-            instance.camera.camera3D.position.set(0, 0, 10000000);
-
-            // Instanciates controls
-            var controls = new THREE.MapControls(
-                instance.camera.camera3D,
-                instance.mainLoop.gfxEngine.renderer.domElement);
-            controls.enableDamping = true;
-            controls.dampingFactor = 0.25;
-
-            instance.addFrameRequester('before_camera_update', () => {
-                controls.update();
-            });
-            controls.addEventListener('change', () => {
-                instance.notifyChange(instance.camera.camera3D);
-            });
-
-            // Creates a map that will contain layers
-            let map = new giro3d.Map('planar', { extent, maxSubdivisionLevel: 15 });
-            instance.add(map);
-
-            // Adds a base layer
-            var stamenSource = new giro3d.olsource.Stamen({ layer: 'toner', wrapX: false });
-
-            map.addLayer(new giro3d.ColorLayer(
-                'osm',
-                {
-                    source: stamenSource,
-                },
-            )).catch(e => console.error(e));
-
-            // Adds a WMS layer
-            var wmsSource = new giro3d.olsource.TileWMS({
-                url: 'https://ahocevar.com/geoserver/wms',
-                params: {'LAYERS': 'topp:states', 'TILED': true, 'TRANSPARENT': true},
-                projection: 'EPSG:3857',
-                crossOrigin: '*',
-                serverType: 'geoserver',
-                transition: 0,
-                wrapX: false
-            })
-
-            map.addLayer(new giro3d.ColorLayer(
-                'wms',
-                {
-                    source: wmsSource,
-                },
-            )).catch(e => console.error(e));
-
-            // Adds a vector layer
-            var format = new giro3d.olformat.GeoJSON();
-            var vectorSource = new giro3d.olsource.Vector({ });
-            giro3d.Fetcher.json('https://cdn.jsdelivr.net/gh/gregoiredavid/france-geojson@master/departements.geojson')
-                .then(geojson => {
-                var features = format.readFeatures(geojson, {
-                    dataProjection: 'EPSG:4326',
-                    featureProjection: 'EPSG:3857'
-                });
-                vectorSource.addFeatures(features);
-            });
-
-            const departementLayer = new giro3d.ColorLayer(
-                'vec',
-                {
-                    source: vectorSource,
-                },
-            );
-
-            departementLayer.style = (Style, Fill, Stroke) => function _(feature) {
-                return new Style({
-                    stroke: new Stroke({
-                        color: 'cyan',
-                        width: 1,
-                    }),
-                });
-            };
-
-            map.addLayer(departementLayer);
-
-        </script>
+        <script type="module" src="ol.js"></script>
     </body>
 </html>

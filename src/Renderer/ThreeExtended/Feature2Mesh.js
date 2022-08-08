@@ -1,4 +1,15 @@
-import * as THREE from 'three';
+import {
+    BufferAttribute,
+    BufferGeometry,
+    Color,
+    Group,
+    Line,
+    LineSegments,
+    Mesh,
+    Points,
+    ShapeUtils,
+    Vector3,
+} from 'three';
 import Earcut from 'earcut';
 
 function getProperty(name, options, defaultValue, ...args) {
@@ -19,7 +30,7 @@ function getProperty(name, options, defaultValue, ...args) {
 }
 
 function randomColor() {
-    const color = new THREE.Color();
+    const color = new Color();
     color.setHex(Math.random() * 0xffffff);
     return color;
 }
@@ -33,14 +44,14 @@ function fillColorArray(colors, length, r, g, b, offset) {
     }
 }
 
-const vec = new THREE.Vector3();
+const vec = new Vector3();
 
 /**
  * Converts coordinates to vertices positionned at a given altitude
  *
  * @param {module:Coree/Geographic/Coordinates~Coordinates[]} contour Coordinates of a feature
  * @param {number | number[]} altitude Altitude of the feature
- * @param {THREE.Vector3[]} target the array to fill with vertices
+ * @param {Vector3[]} target the array to fill with vertices
  * @param {number} offset the offset in the target array
  * @param {boolean} [extrude] should we extrude the object to the specified altitude ?
  */
@@ -127,9 +138,9 @@ function prepareBufferGeometry(vert, color, altitude, extrude) {
         );
     }
 
-    const geom = new THREE.BufferGeometry();
-    geom.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    geom.setAttribute('color', new THREE.BufferAttribute(colors, 3, true));
+    const geom = new BufferGeometry();
+    geom.setAttribute('position', new BufferAttribute(vertices, 3));
+    geom.setAttribute('color', new BufferAttribute(colors, 3, true));
     return geom;
 }
 
@@ -144,7 +155,7 @@ function featureToPoint(feature, properties, options) {
         altitude,
     );
 
-    return new THREE.Points(geom);
+    return new Points(geom);
 }
 
 function featureToLine(feature, properties, options) {
@@ -169,10 +180,10 @@ function featureToLine(feature, properties, options) {
                 indices.push(j + 1);
             }
         }
-        geom.setIndex(new THREE.BufferAttribute(new Uint16Array(indices), 1));
-        return new THREE.LineSegments(geom);
+        geom.setIndex(new BufferAttribute(new Uint16Array(indices), 1));
+        return new LineSegments(geom);
     }
-    return new THREE.Line(geom);
+    return new Line(geom);
 }
 
 function featureToPolygon(feature, properties, options) {
@@ -200,8 +211,8 @@ function featureToPolygon(feature, properties, options) {
         indices = indices.concat(triangles.map(i => i + start));
     }
 
-    geom.setIndex(new THREE.BufferAttribute(new Uint16Array(indices), 1));
-    return new THREE.Mesh(geom);
+    geom.setIndex(new BufferAttribute(new Uint16Array(indices), 1));
+    return new Mesh(geom);
 }
 
 function featureToExtrudedPolygon(feature, properties, options) {
@@ -220,7 +231,7 @@ function featureToExtrudedPolygon(feature, properties, options) {
         extrude,
     );
 
-    const isClockWise = THREE.ShapeUtils.isClockWise(
+    const isClockWise = ShapeUtils.isClockWise(
         feature.vertices.slice(feature.geometry[0].indices[0].offset,
             feature.geometry[0].indices[0].offset
             + feature.geometry[0].indices[0].count).map(c => c.xyz()),
@@ -250,8 +261,8 @@ function featureToExtrudedPolygon(feature, properties, options) {
         }
     }
 
-    geom.setIndex(new THREE.BufferAttribute(new Uint16Array(indices), 1));
-    return new THREE.Mesh(geom);
+    geom.setIndex(new BufferAttribute(new Uint16Array(indices), 1));
+    return new Mesh(geom);
 }
 
 /**
@@ -263,7 +274,7 @@ function featureToExtrudedPolygon(feature, properties, options) {
  * @param {number|Function} options.extrude if defined, polygons will be extruded by the specified
  * amount
  * @param {object|Function} options.color define per feature color
- * @returns {THREE.Mesh} mesh
+ * @returns {Mesh} mesh
  */
 function featureToMesh(feature, options) {
     if (!feature.vertices) {
@@ -304,7 +315,7 @@ function featureToMesh(feature, options) {
 
     // set mesh material
     mesh.material.vertexColors = true;
-    mesh.material.color = new THREE.Color(0xffffff);
+    mesh.material.color = new Color(0xffffff);
 
     mesh.userData.properties = feature.properties;
 
@@ -318,7 +329,7 @@ function featuresToThree(features, options) {
         return featureToMesh(features[0], options);
     }
 
-    const group = new THREE.Group();
+    const group = new Group();
     group.minAltitude = Infinity;
 
     for (const feature of features) {
@@ -337,7 +348,7 @@ export default {
     /**
      * Returns a function that converts
      * {@link module:Parser/GeoJsonParser~FeatureCollection features} to a
-     * [THREE.Group](https://threejs.org/docs/index.html?q=group#api/en/objects/Group).
+     * [Group](https://threejs.org/docs/index.html?q=group#api/en/objects/Group).
      *
      * @param {object} options options controlling the conversion
      * @param {number|Function} options.altitude define the base altitude of the mesh

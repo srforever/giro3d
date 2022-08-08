@@ -67,6 +67,7 @@
     "chart.js": "^2.4.0",
     "copy-webpack-plugin": "^11.0.0",
     "cross-env": "^3.1.4",
+    "dat.gui": "^0.7.9",
     "es-main": "^1.2.0",
     "eslint": "^7.14.0",
     "eslint-config-airbnb-base": "^14.2.1",

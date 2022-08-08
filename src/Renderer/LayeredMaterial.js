@@ -1,4 +1,14 @@
-import * as THREE from 'three';
+import {
+    CanvasTexture,
+    Color,
+    LinearFilter,
+    RawShaderMaterial,
+    ShaderChunk,
+    Texture,
+    Uniform,
+    Vector2,
+    Vector4,
+} from 'three';
 import RendererConstant from './RendererConstant.js';
 import TileVS from './Shader/TileVS.glsl';
 import TileFS from './Shader/TileFS.glsl';
@@ -10,17 +20,17 @@ import ColorLayer from '../Core/layer/ColorLayer.js';
 import ElevationLayer from '../Core/layer/ElevationLayer.js';
 
 // Declaring our own chunks
-THREE.ShaderChunk.PrecisionQualifier = PrecisionQualifier;
-THREE.ShaderChunk.GetElevation = GetElevation;
-THREE.ShaderChunk.ComputeUV = ComputeUV;
+ShaderChunk.PrecisionQualifier = PrecisionQualifier;
+ShaderChunk.GetElevation = GetElevation;
+ShaderChunk.ComputeUV = ComputeUV;
 
-const emptyTexture = new THREE.Texture();
-const vector4 = new THREE.Vector4(0.0, 0.0, 0.0, 0.0);
+const emptyTexture = new Texture();
+const vector4 = new Vector4(0.0, 0.0, 0.0, 0.0);
 
-// from three.js packDepthToRGBA
+// from js packDepthToRGBA
 const UnpackDownscale = 255 / 256; // 0..1 -> fraction (excluding 1)
 export function unpack1K(color, factor) {
-    const bitSh = new THREE.Vector4(
+    const bitSh = new Vector4(
         UnpackDownscale / (256.0 * 256.0 * 256.0),
         UnpackDownscale / (256.0 * 256.0),
         UnpackDownscale / 256.0,
@@ -42,24 +52,24 @@ function fillArray(array, remp) {
 //   - useColorTextureElevation: declare that the elevation texture is an RGB textures.
 //   - colorTextureElevationMinZ: altitude value mapped on the (0, 0, 0) color
 //   - colorTextureElevationMaxZ: altitude value mapped on the (255, 255, 255) color
-class LayeredMaterial extends THREE.RawShaderMaterial {
+class LayeredMaterial extends RawShaderMaterial {
     constructor(options = {}, segments, atlasInfo) {
         super();
 
         this.atlasInfo = atlasInfo;
         this.defines.STITCHING = 1;
-        this.uniforms.segments = new THREE.Uniform(segments);
+        this.uniforms.segments = new Uniform(segments);
         if (options.side) {
             this.side = options.side;
         }
-        this.uniforms.renderingState = new THREE.Uniform(RendererConstant.FINAL);
+        this.uniforms.renderingState = new Uniform(RendererConstant.FINAL);
 
         this.defines.TEX_UNITS = 0;
         this.defines.INSERT_TEXTURE_READING_CODE = '';
 
         if (__DEBUG__) {
             this.defines.DEBUG = 1;
-            this.uniforms.showOutline = new THREE.Uniform(true);
+            this.uniforms.showOutline = new Uniform(true);
         }
 
         this.fragmentShader = TileFS;
@@ -75,7 +85,7 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
             color: {
                 offsetScale: [],
                 originalOffsetScale: [],
-                atlasTexture: new THREE.CanvasTexture(this.canvas),
+                atlasTexture: new CanvasTexture(this.canvas),
                 parentAtlasTexture: null,
                 textures: [],
                 opacity: [],
@@ -83,7 +93,7 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
                 colors: [],
             },
             elevation: {
-                offsetScale: new THREE.Vector4(0, 0, 0, 0),
+                offsetScale: new Vector4(0, 0, 0, 0),
                 texture: emptyTexture,
                 neighbours: {
                     offsetScale: Array(4),
@@ -97,36 +107,36 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
 
         this.canvasRevision = 0;
 
-        this.uniforms.tileDimensions = new THREE.Uniform(new THREE.Vector2());
-        this.uniforms.neighbourdiffLevel = new THREE.Uniform(new THREE.Vector4());
+        this.uniforms.tileDimensions = new Uniform(new Vector2());
+        this.uniforms.neighbourdiffLevel = new Uniform(new Vector4());
 
         // Elevation texture
-        this.uniforms.elevationTexture = new THREE.Uniform(this.texturesInfo.elevation.texture);
-        this.uniforms.elevationOffsetScale = new THREE.Uniform(
+        this.uniforms.elevationTexture = new Uniform(this.texturesInfo.elevation.texture);
+        this.uniforms.elevationOffsetScale = new Uniform(
             this.texturesInfo.elevation.offsetScale,
         );
-        this.uniforms.nTex = new THREE.Uniform(this.texturesInfo.elevation.neighbours.texture);
-        this.uniforms.nOff = new THREE.Uniform(this.texturesInfo.elevation.neighbours.offsetScale);
+        this.uniforms.nTex = new Uniform(this.texturesInfo.elevation.neighbours.texture);
+        this.uniforms.nOff = new Uniform(this.texturesInfo.elevation.neighbours.offsetScale);
 
         // Color textures's layer
-        this.uniforms.colorTexture = new THREE.Uniform(this.texturesInfo.color.atlasTexture);
+        this.uniforms.colorTexture = new Uniform(this.texturesInfo.color.atlasTexture);
         // this.texturesInfo.color.offsetScale);
-        this.uniforms.colorOffsetScale = new THREE.Uniform();
-        this.uniforms.colorOpacity = new THREE.Uniform(); // this.texturesInfo.color.opacity);
-        this.uniforms.colorVisible = new THREE.Uniform(); // this.texturesInfo.color.visible);
-        this.uniforms.colors = new THREE.Uniform(this.texturesInfo.color.colors);
+        this.uniforms.colorOffsetScale = new Uniform();
+        this.uniforms.colorOpacity = new Uniform(); // this.texturesInfo.color.opacity);
+        this.uniforms.colorVisible = new Uniform(); // this.texturesInfo.color.visible);
+        this.uniforms.colors = new Uniform(this.texturesInfo.color.colors);
 
-        this.uniforms.uuid = new THREE.Uniform(0);
+        this.uniforms.uuid = new Uniform(0);
 
-        this.uniforms.noTextureColor = new THREE.Uniform(new THREE.Color());
-        this.uniforms.noTextureOpacity = new THREE.Uniform(1.0);
+        this.uniforms.noTextureColor = new Uniform(new Color());
+        this.uniforms.noTextureOpacity = new Uniform(1.0);
 
-        this.uniforms.opacity = new THREE.Uniform(1.0);
+        this.uniforms.opacity = new Uniform(1.0);
 
         this.colorLayers = [];
         this.texturesInfo.color.atlasTexture.generateMipmaps = false;
-        this.texturesInfo.color.atlasTexture.magFilter = THREE.LinearFilter;
-        this.texturesInfo.color.atlasTexture.minFilter = THREE.LinearFilter;
+        this.texturesInfo.color.atlasTexture.magFilter = LinearFilter;
+        this.texturesInfo.color.atlasTexture.minFilter = LinearFilter;
         this.texturesInfo.color.atlasTexture.anisotropy = 1;
         this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
         this.texturesInfo.color.atlasTexture.needsUpdate = false;
@@ -182,10 +192,10 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
 
                     const heightFieldOffset = layer.heightFieldOffset || 0.0;
                     this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
-                    this.uniforms.heightFieldOffset = new THREE.Uniform(heightFieldOffset);
+                    this.uniforms.heightFieldOffset = new Uniform(heightFieldOffset);
                     const heightFieldScale = layer.heightFieldScale || 255.0;
                     this.texturesInfo.elevation.heightFieldScale = heightFieldScale;
-                    this.uniforms.heightFieldScale = new THREE.Uniform(heightFieldScale);
+                    this.uniforms.heightFieldScale = new Uniform(heightFieldScale);
                     this.needsUpdate = true;
                 }
             } else if (layer.elevationFormat === ELEVATION_FORMAT.RATP_GEOL) {
@@ -275,17 +285,17 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
     pushLayer(newLayer) {
         this.texturesInfo.color.opacity.push(newLayer.opacity);
         this.texturesInfo.color.visible.push(newLayer.visible);
-        this.texturesInfo.color.offsetScale.push(new THREE.Vector4(0, 0, 0, 0));
-        this.texturesInfo.color.originalOffsetScale.push(new THREE.Vector4(0, 0, 0, 0));
+        this.texturesInfo.color.offsetScale.push(new Vector4(0, 0, 0, 0));
+        this.texturesInfo.color.originalOffsetScale.push(new Vector4(0, 0, 0, 0));
         this.texturesInfo.color.textures.push(emptyTexture);
-        this.texturesInfo.color.colors.push(newLayer.color || new THREE.Color(1, 1, 1));
+        this.texturesInfo.color.colors.push(newLayer.color || new Color(1, 1, 1));
         this.colorLayers.push(newLayer);
 
         if (this.colorLayers.length === 1) {
             // init uniforms
-            this.uniforms.colorOffsetScale = new THREE.Uniform(this.texturesInfo.color.offsetScale);
-            this.uniforms.colorOpacity = new THREE.Uniform(this.texturesInfo.color.opacity);
-            this.uniforms.colorVisible = new THREE.Uniform(this.texturesInfo.color.visible);
+            this.uniforms.colorOffsetScale = new Uniform(this.texturesInfo.color.offsetScale);
+            this.uniforms.colorOpacity = new Uniform(this.texturesInfo.color.opacity);
+            this.uniforms.colorVisible = new Uniform(this.texturesInfo.color.visible);
         }
         this.defines.TEX_UNITS = this.colorLayers.length;
         this.needsUpdate = true;
@@ -329,9 +339,9 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
             }
 
             this.texturesInfo.color.atlasTexture.dispose();
-            this.texturesInfo.color.atlasTexture = new THREE.CanvasTexture(newCanvas);
-            this.texturesInfo.color.atlasTexture.magFilter = THREE.LinearFilter;
-            this.texturesInfo.color.atlasTexture.minFilter = THREE.LinearFilter;
+            this.texturesInfo.color.atlasTexture = new CanvasTexture(newCanvas);
+            this.texturesInfo.color.atlasTexture.magFilter = LinearFilter;
+            this.texturesInfo.color.atlasTexture.minFilter = LinearFilter;
             this.texturesInfo.color.atlasTexture.anisotropy = 1;
             this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
             this.texturesInfo.color.atlasTexture.needsUpdate = true;
@@ -344,7 +354,7 @@ class LayeredMaterial extends THREE.RawShaderMaterial {
                 // compute offset / scale
                 const xRatio = layer.imageSize.w / newCanvas.width;
                 const yRatio = layer.imageSize.h / newCanvas.height;
-                this.texturesInfo.color.offsetScale[i] = new THREE.Vector4(
+                this.texturesInfo.color.offsetScale[i] = new Vector4(
                     atlas.x / newCanvas.width + pitch.x * xRatio,
                     (atlas.y + atlas.offset) / newCanvas.height + pitch.y * yRatio,
                     pitch.z * xRatio,

@@ -1,7 +1,7 @@
-import * as THREE from 'three';
+import { Points as ThreePoints } from 'three';
 import PointsMaterial from '../Renderer/PointsMaterial.js';
 
-class Points extends THREE.Points {
+class Points extends ThreePoints {
     constructor(layer, geometry, material = new PointsMaterial()) {
         super(geometry, material);
         this._layer = layer;

@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Matrix4, Vector3 } from 'three';
 import proj4 from 'proj4';
 import assert from 'assert';
 import Extent from '../../src/Core/Geographic/Extent.js';
@@ -6,10 +6,10 @@ import PlanarTileBuilder from '../../src/Core/Prefab/Planar/PlanarTileBuilder.js
 import TileGeometry from '../../src/Core/TileGeometry.js';
 import OBB from '../../src/Renderer/ThreeExtended/OBB.js';
 
-const max = new THREE.Vector3(10, 10, 10);
-const min = new THREE.Vector3(-10, -10, -10);
-const lookAt = new THREE.Vector3(1, 0, 0);
-const translate = new THREE.Vector3(0, 0, 20);
+const max = new Vector3(10, 10, 10);
+const min = new Vector3(-10, -10, -10);
+const lookAt = new Vector3(1, 0, 0);
+const translate = new Vector3(0, 0, 20);
 const obb = new OBB(min, max);
 obb.lookAt(lookAt);
 obb.translateX(translate.x);
@@ -33,10 +33,10 @@ function assertVerticesAreInOBB(builder, extent) {
     };
 
     const geom = new TileGeometry(params, builder);
-    const inverse = new THREE.Matrix4().copy(geom.OBB.matrix).invert();
+    const inverse = new Matrix4().copy(geom.OBB.matrix).invert();
 
     let failing = 0;
-    const vec = new THREE.Vector3();
+    const vec = new Vector3();
     for (let i = 0; i < geom.attributes.position.count; i++) {
         vec.fromArray(geom.attributes.position.array, 3 * i);
 

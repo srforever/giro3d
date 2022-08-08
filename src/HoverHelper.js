@@ -1,6 +1,6 @@
-import * as THREE from 'three';
+import { Raycaster } from 'three';
 
-const raycaster = new THREE.Raycaster();
+const raycaster = new Raycaster();
 
 function eventToMouse(view, event) {
     return {

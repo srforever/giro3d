@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { BufferAttribute, BufferGeometry } from 'three';
 
 function Buffers() {
     this.index = null;
@@ -19,7 +19,7 @@ function bufferize(outBuffers, va, vb, vc, idVertex) {
     return idVertex + 3;
 }
 
-class TileGeometry extends THREE.BufferGeometry {
+class TileGeometry extends BufferGeometry {
     constructor(params, builder) {
         super();
 
@@ -46,11 +46,11 @@ class TileGeometry extends THREE.BufferGeometry {
         const nVertex = (nSeg + 1) * (nSeg + 1);
         const triangles = (nSeg) * (nSeg) * 2;
 
-        outBuffers.position = new THREE.BufferAttribute(new Float32Array(nVertex * 3), 3);
-        outBuffers.index = new THREE.BufferAttribute(
+        outBuffers.position = new BufferAttribute(new Float32Array(nVertex * 3), 3);
+        outBuffers.index = new BufferAttribute(
             new Uint32Array(triangles * 3), 1,
         );
-        outBuffers.uv = new THREE.BufferAttribute(
+        outBuffers.uv = new BufferAttribute(
             new Float32Array(nVertex * 2), 2,
         );
 

@@ -1,11 +1,17 @@
-import * as THREE from 'three';
+import {
+    Vector3,
+    Box3,
+    Sphere,
+    MathUtils,
+    Matrix4,
+} from 'three';
 import Extent from '../Core/Geographic/Extent.js';
 import ScreenSpaceError from '../Core/ScreenSpaceError.js';
 
 const tmp = {
-    v: new THREE.Vector3(),
-    b: new THREE.Box3(),
-    s: new THREE.Sphere(),
+    v: new Vector3(),
+    b: new Box3(),
+    s: new Sphere(),
 };
 
 function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
@@ -90,10 +96,10 @@ function subdivideNode(context, layer, node, cullingTest) {
 function boundingVolumeToExtent(crs, volume, transform) {
     if (volume.region) {
         return new Extent('EPSG:4326',
-            THREE.MathUtils.radToDeg(volume.region[0]),
-            THREE.MathUtils.radToDeg(volume.region[2]),
-            THREE.MathUtils.radToDeg(volume.region[1]),
-            THREE.MathUtils.radToDeg(volume.region[3]));
+            MathUtils.radToDeg(volume.region[0]),
+            MathUtils.radToDeg(volume.region[2]),
+            MathUtils.radToDeg(volume.region[1]),
+            MathUtils.radToDeg(volume.region[3]));
     }
     if (volume.box) {
         const box = tmp.b.copy(volume.box).applyMatrix4(transform);
@@ -108,7 +114,7 @@ function boundingVolumeToExtent(crs, volume, transform) {
     });
 }
 
-const tmpMatrix = new THREE.Matrix4();
+const tmpMatrix = new Matrix4();
 function _subdivideNodeAdditive(ctx, layer, node, cullingTest) {
     for (const child of layer.tileIndex.index[node.tileId].children) {
         // child being downloaded or already added => skip
@@ -116,7 +122,7 @@ function _subdivideNodeAdditive(ctx, layer, node, cullingTest) {
             continue;
         }
 
-        // 'child' is only metadata (it's *not* a THREE.Object3D). 'cullingTest' needs
+        // 'child' is only metadata (it's *not* a Object3D). 'cullingTest' needs
         // a matrixWorld, so we compute it: it's node's matrixWorld x child's transform
         let overrideMatrixWorld = node.matrixWorld;
         if (child.transform) {

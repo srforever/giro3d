@@ -1,36 +1,48 @@
-import * as THREE from 'three';
+import {
+    Matrix4,
+    Vector3,
+    BufferGeometry,
+    BufferAttribute,
+    SphereGeometry,
+    LineBasicMaterial,
+    Color,
+    LineSegments,
+    Group,
+    MeshBasicMaterial,
+    Mesh,
+} from 'three';
 import OBBHelper from './OBBHelper.js';
 import Instance from '../../src/Core/Instance.js';
 import GeometryDebug from './GeometryDebug.js';
 
-const invMatrixChangeUpVectorZtoY = new THREE.Matrix4().makeRotationX(Math.PI / 2).invert();
-const invMatrixChangeUpVectorZtoX = new THREE.Matrix4().makeRotationZ(-Math.PI / 2).invert();
+const invMatrixChangeUpVectorZtoY = new Matrix4().makeRotationX(Math.PI / 2).invert();
+const invMatrixChangeUpVectorZtoX = new Matrix4().makeRotationZ(-Math.PI / 2).invert();
 
 const unitBoxMesh = (function _() {
     const indices = new Uint16Array(
         [0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7],
     );
     const positions = new Float32Array(8 * 3);
-    new THREE.Vector3(+0.5, +0.5, +0.5).toArray(positions, 0);
-    new THREE.Vector3(-0.5, +0.5, +0.5).toArray(positions, 3);
-    new THREE.Vector3(-0.5, -0.5, +0.5).toArray(positions, 6);
-    new THREE.Vector3(+0.5, -0.5, +0.5).toArray(positions, 9);
-    new THREE.Vector3(+0.5, +0.5, -0.5).toArray(positions, 12);
-    new THREE.Vector3(-0.5, +0.5, -0.5).toArray(positions, 15);
-    new THREE.Vector3(-0.5, -0.5, -0.5).toArray(positions, 18);
-    new THREE.Vector3(+0.5, -0.5, -0.5).toArray(positions, 21);
-    const geometry = new THREE.BufferGeometry();
-    geometry.setIndex(new THREE.BufferAttribute(indices, 1));
-    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    new Vector3(+0.5, +0.5, +0.5).toArray(positions, 0);
+    new Vector3(-0.5, +0.5, +0.5).toArray(positions, 3);
+    new Vector3(-0.5, -0.5, +0.5).toArray(positions, 6);
+    new Vector3(+0.5, -0.5, +0.5).toArray(positions, 9);
+    new Vector3(+0.5, +0.5, -0.5).toArray(positions, 12);
+    new Vector3(-0.5, +0.5, -0.5).toArray(positions, 15);
+    new Vector3(-0.5, -0.5, -0.5).toArray(positions, 18);
+    new Vector3(+0.5, -0.5, -0.5).toArray(positions, 21);
+    const geometry = new BufferGeometry();
+    geometry.setIndex(new BufferAttribute(indices, 1));
+    geometry.setAttribute('position', new BufferAttribute(positions, 3));
 
     return function _unitBoxMesh() {
-        const color = new THREE.Color(Math.random(), Math.random(), Math.random());
-        const material = new THREE.LineBasicMaterial({
+        const color = new Color(Math.random(), Math.random(), Math.random());
+        const material = new LineBasicMaterial({
             color: color.getHex(),
             linewidth: 3,
         });
 
-        const box = new THREE.LineSegments(geometry, material);
+        const box = new LineSegments(geometry, material);
         box.frustumCulled = false;
         return box;
     };
@@ -39,7 +51,7 @@ const unitBoxMesh = (function _() {
 export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) {
     const gui = GeometryDebug.createGeometryDebugUI(datDebugTool, view, _3dTileslayer);
 
-    const regionBoundingBoxParent = new THREE.Group();
+    const regionBoundingBoxParent = new Group();
     view.scene.add(regionBoundingBoxParent);
 
     // add wireframe
@@ -47,7 +59,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
 
     // Bounding box control
     const obbLayerId = `${_3dTileslayer.id}_obb_debug`;
-    const tmpVec3 = new THREE.Vector3();
+    const tmpVec3 = new Vector3();
 
     const debugIdUpdate = function debugIdUpdate(context, layer, node) {
         const enabled = context.camera.camera3D.layers.test({ mask: 1 << layer.threejsLayer });
@@ -76,11 +88,11 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
                 }
                 // 3dtiles with Sphere
                 if (metadata.boundingVolume.sphere) {
-                    const geometry = new THREE.SphereGeometry(
+                    const geometry = new SphereGeometry(
                         metadata.boundingVolume.sphere.radius, 32, 32,
                     );
-                    const material = new THREE.MeshBasicMaterial({ wireframe: true });
-                    helper = new THREE.Mesh(geometry, material);
+                    const material = new MeshBasicMaterial({ wireframe: true });
+                    helper = new Mesh(geometry, material);
                     helper.position.copy(metadata.boundingVolume.sphere.center);
                 }
 
@@ -105,7 +117,7 @@ export default function create3dTilesDebugUI(datDebugTool, view, _3dTileslayer) 
                     } else if (gltfUpAxis === 'X') {
                         helper.matrix.premultiply(invMatrixChangeUpVectorZtoX);
                     }
-                    helper.applyMatrix4(new THREE.Matrix4());
+                    helper.applyMatrix4(new Matrix4());
                 }
                 node.add(helper);
                 helper.updateMatrixWorld();
