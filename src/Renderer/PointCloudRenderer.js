@@ -1,4 +1,20 @@
-import * as THREE from 'three';
+import {
+    BufferGeometry,
+    Color,
+    DepthTexture,
+    Float32BufferAttribute,
+    LinearFilter,
+    Matrix4,
+    Mesh,
+    NearestFilter,
+    OrthographicCamera,
+    RGBAFormat,
+    Scene,
+    ShaderMaterial,
+    UnsignedShortType,
+    Vector2,
+    WebGLRenderTarget,
+} from 'three';
 import BasicVS from './Shader/BasicVS.glsl';
 import EDLPassZeroFS from './Shader/PointCloud/EDLPassZeroFS.glsl';
 import EDLPassOneFS from './Shader/PointCloud/EDLPassOneFS.glsl';
@@ -16,21 +32,20 @@ const RT = {
 };
 
 function PointCloudRenderer(view) {
-    this.scene = new THREE.Scene();
+    this.scene = new Scene();
 
     // create 1 big triangle covering the screen
-    const geom = new THREE.BufferGeometry();
+    const geom = new BufferGeometry();
     const vertices = [0, 0, -3, 2, 0, -3, 0, 2, -3];
     const uvs = [0, 0, 2, 0, 0, 2];
-    geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-    geom.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-    this.mesh = new THREE.Mesh(geom, null);
-    // this.mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(2, 2), null);
+    geom.setAttribute('position', new Float32BufferAttribute(vertices, 3));
+    geom.setAttribute('uv', new Float32BufferAttribute(uvs, 2));
+    this.mesh = new Mesh(geom, null);
     this.mesh.frustumCulled = false;
     this.scene.add(this.mesh);
 
     // our camera
-    this.camera = new THREE.OrthographicCamera(0, 1, 1, 0, 0, 10);
+    this.camera = new OrthographicCamera(0, 1, 1, 0, 0, 10);
 
     this.classic = {
         passes: [undefined],
@@ -43,7 +58,7 @@ function PointCloudRenderer(view) {
     //    - Potree (https://github.com/potree/potree/)
     this.edl = {
         passes: [
-            new THREE.ShaderMaterial({
+            new ShaderMaterial({
                 uniforms: {
                     depthTexture: { value: null },
                 },
@@ -54,10 +69,10 @@ function PointCloudRenderer(view) {
             // EDL 1st pass material
             // This pass is writing a single value per pixel, describing the depth
             // difference between one pixel and its neighbours.
-            new THREE.ShaderMaterial({
+            new ShaderMaterial({
                 uniforms: {
                     depthTexture: { value: null },
-                    resolution: { value: new THREE.Vector2(256, 256) },
+                    resolution: { value: new Vector2(256, 256) },
                     cameraNear: { value: 0.01 },
                     cameraFar: { value: 100 },
                     radius: { value: 0 },
@@ -72,7 +87,7 @@ function PointCloudRenderer(view) {
             // EDL 2nd pass material
             // This pass combines the EDL value computed in pass 1 with pixels
             // colors from a normal rendering to compose the final pixel color
-            new THREE.ShaderMaterial({
+            new ShaderMaterial({
                 uniforms: {
                     depthTexture: { value: null },
                     textureColor: { value: null },
@@ -128,17 +143,17 @@ function PointCloudRenderer(view) {
             // EDL 1st pass material
             // This pass is writing a single value per pixel, describing the depth
             // difference between one pixel and its neighbours.
-            new THREE.ShaderMaterial({
+            new ShaderMaterial({
                 uniforms: {
                     depthTexture: { value: null },
                     colorTexture: { value: null },
                     m43: { value: 0 },
                     m33: { value: 0 },
-                    resolution: { value: new THREE.Vector2(256, 256) },
-                    invPersMatrix: { value: new THREE.Matrix4() },
+                    resolution: { value: new Vector2(256, 256) },
+                    invPersMatrix: { value: new Matrix4() },
                     threshold: { value: 0 },
                     showRemoved: { value: false },
-                    clearColor: { value: new THREE.Color() },
+                    clearColor: { value: new Color() },
                     opacity: { value: 1.0 },
                 },
                 vertexShader: BasicVS,
@@ -159,7 +174,7 @@ function PointCloudRenderer(view) {
             const f = renderer.view.camera.camera3D.far;
             const m43 = -(2 * f * n) / (f - n);
             const m33 = -(f + n) / (f - n);
-            const mat = new THREE.Matrix4();
+            const mat = new Matrix4();
             mat.copy(renderer.view.camera.camera3D.projectionMatrix).invert();
 
             const mU = m.uniforms;
@@ -186,11 +201,11 @@ function PointCloudRenderer(view) {
             // EDL 1st pass material
             // This pass is writing a single value per pixel, describing the depth
             // difference between one pixel and its neighbours.
-            new THREE.ShaderMaterial({
+            new ShaderMaterial({
                 uniforms: {
                     depthTexture: { value: null },
                     colorTexture: { value: null },
-                    resolution: { value: new THREE.Vector2(256, 256) },
+                    resolution: { value: new Vector2(256, 256) },
                     depth_contrib: { value: 0.5 },
                     opacity: { value: 1.0 },
                     m43: { value: 0 },
@@ -329,48 +344,48 @@ PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.
 
 function _createRenderTargets(view) {
     const renderTargets = [];
-    renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width, view.camera.height));
-    renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width, view.camera.height));
-    renderTargets.push(new THREE.WebGLRenderTarget(view.camera.width, view.camera.height));
+    renderTargets.push(new WebGLRenderTarget(view.camera.width, view.camera.height));
+    renderTargets.push(new WebGLRenderTarget(view.camera.width, view.camera.height));
+    renderTargets.push(new WebGLRenderTarget(view.camera.width, view.camera.height));
     renderTargets.push(
-        new THREE.WebGLRenderTarget(view.camera.width * 0.5, view.camera.height * 0.5),
+        new WebGLRenderTarget(view.camera.width * 0.5, view.camera.height * 0.5),
     );
 
-    renderTargets[RT.FULL_RES_0].texture.minFilter = THREE.LinearFilter;
+    renderTargets[RT.FULL_RES_0].texture.minFilter = LinearFilter;
     renderTargets[RT.FULL_RES_0].texture.generateMipmaps = false;
     renderTargets[RT.FULL_RES_0].depthBuffer = true;
-    renderTargets[RT.FULL_RES_0].texture.format = THREE.RGBAFormat;
-    renderTargets[RT.FULL_RES_0].texture.minFilter = THREE.NearestFilter;
-    renderTargets[RT.FULL_RES_0].texture.magFilter = THREE.NearestFilter;
-    renderTargets[RT.FULL_RES_0].depthTexture = new THREE.DepthTexture();
-    renderTargets[RT.FULL_RES_0].depthTexture.type = THREE.UnsignedShortType;
+    renderTargets[RT.FULL_RES_0].texture.format = RGBAFormat;
+    renderTargets[RT.FULL_RES_0].texture.minFilter = NearestFilter;
+    renderTargets[RT.FULL_RES_0].texture.magFilter = NearestFilter;
+    renderTargets[RT.FULL_RES_0].depthTexture = new DepthTexture();
+    renderTargets[RT.FULL_RES_0].depthTexture.type = UnsignedShortType;
 
-    renderTargets[RT.FULL_RES_1].texture.minFilter = THREE.LinearFilter;
+    renderTargets[RT.FULL_RES_1].texture.minFilter = LinearFilter;
     renderTargets[RT.FULL_RES_1].texture.generateMipmaps = false;
     renderTargets[RT.FULL_RES_1].depthBuffer = true;
-    renderTargets[RT.FULL_RES_1].texture.format = THREE.RGBAFormat;
-    renderTargets[RT.FULL_RES_1].texture.minFilter = THREE.NearestFilter;
-    renderTargets[RT.FULL_RES_1].texture.magFilter = THREE.NearestFilter;
-    renderTargets[RT.FULL_RES_1].depthTexture = new THREE.DepthTexture();
-    renderTargets[RT.FULL_RES_1].depthTexture.type = THREE.UnsignedShortType;
+    renderTargets[RT.FULL_RES_1].texture.format = RGBAFormat;
+    renderTargets[RT.FULL_RES_1].texture.minFilter = NearestFilter;
+    renderTargets[RT.FULL_RES_1].texture.magFilter = NearestFilter;
+    renderTargets[RT.FULL_RES_1].depthTexture = new DepthTexture();
+    renderTargets[RT.FULL_RES_1].depthTexture.type = UnsignedShortType;
 
-    renderTargets[RT.EDL_VALUES] = new THREE.WebGLRenderTarget(
+    renderTargets[RT.EDL_VALUES] = new WebGLRenderTarget(
         view.camera.width, view.camera.height,
     );
     renderTargets[RT.EDL_VALUES].texture.generateMipmaps = false;
     renderTargets[RT.EDL_VALUES].depthBuffer = false;
-    renderTargets[RT.EDL_VALUES].texture.format = THREE.RGBAFormat;
-    renderTargets[RT.EDL_VALUES].texture.minFilter = THREE.NearestFilter;
-    renderTargets[RT.EDL_VALUES].texture.magFilter = THREE.NearestFilter;
+    renderTargets[RT.EDL_VALUES].texture.format = RGBAFormat;
+    renderTargets[RT.EDL_VALUES].texture.minFilter = NearestFilter;
+    renderTargets[RT.EDL_VALUES].texture.magFilter = NearestFilter;
 
-    renderTargets[RT.HALF_RES].texture.minFilter = THREE.LinearFilter;
+    renderTargets[RT.HALF_RES].texture.minFilter = LinearFilter;
     renderTargets[RT.HALF_RES].texture.generateMipmaps = false;
     renderTargets[RT.HALF_RES].depthBuffer = true;
-    renderTargets[RT.HALF_RES].texture.format = THREE.RGBAFormat;
-    renderTargets[RT.HALF_RES].texture.minFilter = THREE.NearestFilter;
-    renderTargets[RT.HALF_RES].texture.magFilter = THREE.NearestFilter;
-    renderTargets[RT.HALF_RES].depthTexture = new THREE.DepthTexture();
-    renderTargets[RT.HALF_RES].depthTexture.type = THREE.UnsignedShortType;
+    renderTargets[RT.HALF_RES].texture.format = RGBAFormat;
+    renderTargets[RT.HALF_RES].texture.minFilter = NearestFilter;
+    renderTargets[RT.HALF_RES].texture.magFilter = NearestFilter;
+    renderTargets[RT.HALF_RES].depthTexture = new DepthTexture();
+    renderTargets[RT.HALF_RES].depthTexture.type = UnsignedShortType;
 
     return renderTargets;
 }

@@ -1,4 +1,8 @@
-import * as THREE from 'three';
+import {
+    Box3,
+    Group,
+    Vector3,
+} from 'three';
 import Fetcher from './Fetcher.js';
 import PointCloudProcessing from '../Process/PointCloudProcessing.js';
 import PotreeBinParser from '../Parser/PotreeBinParser.js';
@@ -15,41 +19,41 @@ function createChildAABB(aabb, childIndex) {
     // Code taken from potree
     let { min } = aabb;
     let { max } = aabb;
-    const dHalfLength = new THREE.Vector3().copy(max).sub(min).multiplyScalar(0.5);
-    const xHalfLength = new THREE.Vector3(dHalfLength.x, 0, 0);
-    const yHalfLength = new THREE.Vector3(0, dHalfLength.y, 0);
-    const zHalfLength = new THREE.Vector3(0, 0, dHalfLength.z);
+    const dHalfLength = new Vector3().copy(max).sub(min).multiplyScalar(0.5);
+    const xHalfLength = new Vector3(dHalfLength.x, 0, 0);
+    const yHalfLength = new Vector3(0, dHalfLength.y, 0);
+    const zHalfLength = new Vector3(0, 0, dHalfLength.z);
 
     const cmin = min;
-    const cmax = new THREE.Vector3().add(min).add(dHalfLength);
+    const cmax = new Vector3().add(min).add(dHalfLength);
 
     if (childIndex === 1) {
-        min = new THREE.Vector3().copy(cmin).add(zHalfLength);
-        max = new THREE.Vector3().copy(cmax).add(zHalfLength);
+        min = new Vector3().copy(cmin).add(zHalfLength);
+        max = new Vector3().copy(cmax).add(zHalfLength);
     } else if (childIndex === 3) {
-        min = new THREE.Vector3().copy(cmin).add(zHalfLength).add(yHalfLength);
-        max = new THREE.Vector3().copy(cmax).add(zHalfLength).add(yHalfLength);
+        min = new Vector3().copy(cmin).add(zHalfLength).add(yHalfLength);
+        max = new Vector3().copy(cmax).add(zHalfLength).add(yHalfLength);
     } else if (childIndex === 0) {
         min = cmin;
         max = cmax;
     } else if (childIndex === 2) {
-        min = new THREE.Vector3().copy(cmin).add(yHalfLength);
-        max = new THREE.Vector3().copy(cmax).add(yHalfLength);
+        min = new Vector3().copy(cmin).add(yHalfLength);
+        max = new Vector3().copy(cmax).add(yHalfLength);
     } else if (childIndex === 5) {
-        min = new THREE.Vector3().copy(cmin).add(zHalfLength).add(xHalfLength);
-        max = new THREE.Vector3().copy(cmax).add(zHalfLength).add(xHalfLength);
+        min = new Vector3().copy(cmin).add(zHalfLength).add(xHalfLength);
+        max = new Vector3().copy(cmax).add(zHalfLength).add(xHalfLength);
     } else if (childIndex === 7) {
-        min = new THREE.Vector3().copy(cmin).add(dHalfLength);
-        max = new THREE.Vector3().copy(cmax).add(dHalfLength);
+        min = new Vector3().copy(cmin).add(dHalfLength);
+        max = new Vector3().copy(cmax).add(dHalfLength);
     } else if (childIndex === 4) {
-        min = new THREE.Vector3().copy(cmin).add(xHalfLength);
-        max = new THREE.Vector3().copy(cmax).add(xHalfLength);
+        min = new Vector3().copy(cmin).add(xHalfLength);
+        max = new Vector3().copy(cmax).add(xHalfLength);
     } else if (childIndex === 6) {
-        min = new THREE.Vector3().copy(cmin).add(xHalfLength).add(yHalfLength);
-        max = new THREE.Vector3().copy(cmax).add(xHalfLength).add(yHalfLength);
+        min = new Vector3().copy(cmin).add(xHalfLength).add(yHalfLength);
+        max = new Vector3().copy(cmax).add(xHalfLength).add(yHalfLength);
     }
 
-    return new THREE.Box3(min, max);
+    return new Box3(min, max);
 }
 
 function parseOctree(layer, hierarchyStepSize, root) {
@@ -122,9 +126,9 @@ function computeBbox(layer) {
     let bbox;
     if (layer.isFromPotreeConverter) {
         const layerBbox = layer.metadata.boundingBox;
-        bbox = new THREE.Box3(
-            new THREE.Vector3(layerBbox.lx, layerBbox.ly, layerBbox.lz),
-            new THREE.Vector3(layerBbox.ux, layerBbox.uy, layerBbox.uz),
+        bbox = new Box3(
+            new Vector3(layerBbox.lx, layerBbox.ly, layerBbox.lz),
+            new Vector3(layerBbox.ux, layerBbox.uy, layerBbox.uz),
         );
     } else {
         // lopocs
@@ -136,9 +140,9 @@ function computeBbox(layer) {
             idx++;
         }
         const layerBbox = layer.metadata[idx].bbox;
-        bbox = new THREE.Box3(
-            new THREE.Vector3(layerBbox.xmin, layerBbox.ymin, layerBbox.zmin),
-            new THREE.Vector3(layerBbox.xmax, layerBbox.ymax, layerBbox.zmax),
+        bbox = new Box3(
+            new Vector3(layerBbox.xmin, layerBbox.ymin, layerBbox.zmin),
+            new Vector3(layerBbox.xmax, layerBbox.ymax, layerBbox.zmax),
         );
     }
     return bbox;
@@ -198,13 +202,13 @@ export default {
             layer.file = 'cloud.js';
         }
         if (!layer.group) {
-            layer.group = new THREE.Group();
+            layer.group = new Group();
             layer.object3d.add(layer.group);
             layer.group.updateMatrixWorld();
         }
 
         if (!layer.bboxes) {
-            layer.bboxes = new THREE.Group();
+            layer.bboxes = new Group();
             layer.object3d.add(layer.bboxes);
             layer.bboxes.updateMatrixWorld();
             layer.bboxes.visible = false;

@@ -1,4 +1,12 @@
-import * as THREE from 'three';
+import {
+    BufferAttribute,
+    BufferGeometry,
+    LineBasicMaterial,
+    LineDashedMaterial,
+    LineSegments,
+    MathUtils,
+    Vector3,
+} from 'three';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException.js';
 
 // Draw a cube with lines (12 lines).
@@ -30,21 +38,21 @@ function cube(size) {
         h.x, -h.y, -h.z,
         h.x, -h.y, h.z,
     ]);
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+    const geometry = new BufferGeometry();
+    geometry.setAttribute('position', new BufferAttribute(vertices, 3));
     return geometry;
 }
 
 const tmp = {
-    v: new THREE.Vector3(),
+    v: new Vector3(),
 };
 
 function initBoundingBox(elt, layer) {
     const size = elt.tightbbox.getSize(tmp.v);
     const lineMaterial = elt.childrenBitField
-        ? new THREE.LineDashedMaterial({ color: 0, dashSize: 0.25, gapSize: 0.25 })
-        : new THREE.LineBasicMaterial({ color: 0 });
-    elt.obj.boxHelper = new THREE.LineSegments(cube(size), lineMaterial);
+        ? new LineDashedMaterial({ color: 0, dashSize: 0.25, gapSize: 0.25 })
+        : new LineBasicMaterial({ color: 0 });
+    elt.obj.boxHelper = new LineSegments(cube(size), lineMaterial);
     elt.obj.boxHelper.computeLineDistances();
 
     elt.obj.boxHelper.frustumCulled = false;
@@ -112,7 +120,7 @@ export default {
             // See https://cesiumjs.org/hosted-apps/massiveworlds/downloads/Ring/WorldScaleTerrainRendering.pptx
             // slide 17
             context.camera.preSSE = context.camera.height
-                    / (2 * Math.tan(THREE.MathUtils.degToRad(context.camera.camera3D.fov) * 0.5));
+                    / (2 * Math.tan(MathUtils.degToRad(context.camera.camera3D.fov) * 0.5));
 
             if (layer.material) {
                 layer.material.visible = layer.visible;

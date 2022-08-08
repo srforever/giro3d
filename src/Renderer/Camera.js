@@ -4,7 +4,15 @@
 
 /** @module Renderer/Camera */
 
-import * as THREE from 'three';
+import {
+    Box3,
+    Camera as ThreeCamera,
+    Frustum,
+    Matrix4,
+    OrthographicCamera,
+    PerspectiveCamera,
+    Vector3,
+} from 'three';
 import Coordinates from '../Core/Geographic/Coordinates.js';
 
 /**
@@ -15,18 +23,18 @@ import Coordinates from '../Core/Geographic/Coordinates.js';
  * @param {number} width the width in pixels of the camera viewport
  * @param {number} height the height in pixels of the camera viewport
  * @param {object} options optional values
- * @param {THREE.Camera} options.camera the THREE camera to use
+ * @param {ThreeCamera} options.camera the THREE camera to use
  */
 function Camera(crs, width, height, options = {}) {
     Object.defineProperty(this, 'crs', { get: () => crs });
 
     this.camera3D = options.camera
-        ? options.camera : new THREE.PerspectiveCamera(30, width / height);
+        ? options.camera : new PerspectiveCamera(30, width / height);
     this.camera3D.near = 0.1;
     this.camera3D.far = 2000000000;
     this.camera3D.updateProjectionMatrix();
-    this.camera2D = new THREE.OrthographicCamera(0, 1, 0, 1, 0, 10);
-    this._viewMatrix = new THREE.Matrix4();
+    this.camera2D = new OrthographicCamera(0, 1, 0, 1, 0, 10);
+    this._viewMatrix = new Matrix4();
     this.width = width;
     this.height = height;
 
@@ -83,20 +91,20 @@ Camera.prototype.position = function position(crs) {
 };
 
 const tmp = {
-    frustum: new THREE.Frustum(),
-    matrix: new THREE.Matrix4(),
-    box3: new THREE.Box3(),
+    frustum: new Frustum(),
+    matrix: new Matrix4(),
+    box3: new Box3(),
 };
 
 const points = [
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
-    new THREE.Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
+    new Vector3(),
 ];
 
 function projectBox3PointsInCameraSpace(camera, box3, matrixWorld) {
@@ -131,9 +139,9 @@ function projectBox3PointsInCameraSpace(camera, box3, matrixWorld) {
     return atLeastOneInFrontOfNearPlane ? points : undefined;
 }
 
-const ndcBox3 = new THREE.Box3(
-    new THREE.Vector3(-1, -1, -1),
-    new THREE.Vector3(1, 1, 1),
+const ndcBox3 = new Box3(
+    new Vector3(-1, -1, -1),
+    new Vector3(1, 1, 1),
 );
 
 Camera.prototype.isBox3Visible = function isBox3Visible(box3, matrixWorld) {
