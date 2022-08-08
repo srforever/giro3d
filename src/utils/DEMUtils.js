@@ -219,7 +219,7 @@ function tileAt(pt, tile) {
 
 let _canvas;
 let ctx;
-function _readTextureValueAt(layer, textureInfo, ...uv) {
+function _readTextureValueAt(textureInfo, ...uv) {
     const { texture, elevationFormat: format } = textureInfo;
     for (let i = 0; i < uv.length; i += 2) {
         uv[i] = MathUtils.clamp(uv[i], 0, texture.image.width - 1);
@@ -314,19 +314,19 @@ function _convertUVtoTextureCoords(texture, u, v) {
     };
 }
 
-function _readTextureValueNearestFiltering(layer, textureInfo, vertexU, vertexV) {
+function _readTextureValueNearestFiltering(textureInfo, vertexU, vertexV) {
     const coords = _convertUVtoTextureCoords(textureInfo.texture, vertexU, vertexV);
 
     const u = (coords.wu <= 0) ? coords.u1 : coords.u2;
     const v = (coords.wv <= 0) ? coords.v1 : coords.v2;
 
-    return _readTextureValueAt(layer, textureInfo, u, v);
+    return _readTextureValueAt(textureInfo, u, v);
 }
 
-function _readTextureValueWithBilinearFiltering(layer, textureInfo, vertexU, vertexV) {
+function _readTextureValueWithBilinearFiltering(textureInfo, vertexU, vertexV) {
     const coords = _convertUVtoTextureCoords(textureInfo.texture, vertexU, vertexV);
 
-    const [z11, z21, z12, z22] = _readTextureValueAt(layer, textureInfo,
+    const [z11, z21, z12, z22] = _readTextureValueAt(textureInfo,
         coords.u1, coords.v1,
         coords.u2, coords.v1,
         coords.u1, coords.v2,
@@ -339,11 +339,11 @@ function _readTextureValueWithBilinearFiltering(layer, textureInfo, vertexU, ver
     return MathUtils.lerp(zu1, zu2, coords.wv);
 }
 
-function _readZFast(layer, textureInfo, uv) {
-    return _readTextureValueNearestFiltering(layer, textureInfo, uv.x, uv.y);
+function _readZFast(textureInfo, uv) {
+    return _readTextureValueNearestFiltering(textureInfo, uv.x, uv.y);
 }
 
-function _readZCorrect(layer, textureInfo, uv, tileDimensions, tileOwnerDimensions) {
+function _readZCorrect(textureInfo, uv, tileDimensions, tileOwnerDimensions) {
     // We need to emulate the vertex shader code that does 2 thing:
     //   - interpolate (u, v) between triangle vertices: u,v will be multiple of 1/nsegments
     //     (for now assume nsegments === 16)
@@ -395,9 +395,9 @@ function _readZCorrect(layer, textureInfo, uv, tileDimensions, tileOwnerDimensio
     const bary = tri.barycoordFromPoint(new Vector3(uv.x, uv.y));
 
     // read the 3 interesting values
-    const z1 = _readTextureValueWithBilinearFiltering(layer, textureInfo, tri.a.x, tri.a.y);
-    const z2 = _readTextureValueWithBilinearFiltering(layer, textureInfo, tri.b.x, tri.b.y);
-    const z3 = _readTextureValueWithBilinearFiltering(layer, textureInfo, tri.c.x, tri.c.y);
+    const z1 = _readTextureValueWithBilinearFiltering(textureInfo, tri.a.x, tri.a.y);
+    const z2 = _readTextureValueWithBilinearFiltering(textureInfo, tri.b.x, tri.b.y);
+    const z3 = _readTextureValueWithBilinearFiltering(textureInfo, tri.c.x, tri.c.y);
 
     // Blend with bary
     return z1 * bary.x + z2 * bary.y + z3 * bary.z;
@@ -460,14 +460,13 @@ function _readZ(entity, method, coord, nodes, cache) {
     //   - the correct one: emulate the vertex shader code
     if (method === PRECISE_READ_Z) {
         pt._values[2] = _readZCorrect(
-            entity,
             textureInfo,
             offset,
             tile.extent.dimensions(),
             tileWithValidElevationTexture.extent.dimensions(),
         );
     } else {
-        pt._values[2] = _readZFast(entity, textureInfo, offset);
+        pt._values[2] = _readZFast(textureInfo, offset);
     }
     return { coord: pt, texture: src, tile };
 }
