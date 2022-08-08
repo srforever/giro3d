@@ -1,4 +1,5 @@
 import { Group } from 'three';
+import proj4 from 'proj4';
 import Extent from '../../../src/Core/Geographic/Extent.js';
 import Instance from '../../../src/Core/Instance.js';
 import Layer from '../../../src/Core/layer/Layer.js';
@@ -140,6 +141,26 @@ describe('Instance', () => {
                 const layers = instance.getLayers();
                 expect(layers).toStrictEqual([layer11, layer12, layer21, layer22]);
             });
+        });
+    });
+
+    describe('registerCRS', () => {
+        it('should throw if name or value is undefined', () => {
+            expect(() => Instance.registerCRS(undefined, '')).toThrow(/missing CRS name/);
+            expect(() => Instance.registerCRS('', '')).toThrow(/missing CRS name/);
+            expect(() => Instance.registerCRS('EPSG:foo', '')).toThrow(/missing CRS PROJ string/);
+            expect(() => Instance.registerCRS('EPSG:foo', undefined)).toThrow(/missing CRS PROJ string/);
+        });
+
+        it('should remember previously registered CRSes', () => {
+            Instance.registerCRS('EPSG:3946', '+proj=lcc +lat_0=46 +lon_0=3 +lat_1=45.25 +lat_2=46.75 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
+
+            expect(Object.keys(proj4.defs).includes('EPSG:3946')).toBeTruthy();
+
+            Instance.registerCRS('EPSG:5011', '+proj=geocent +ellps=GRS80 +units=m +no_defs +type=crs');
+
+            expect(Object.keys(proj4.defs).includes('EPSG:3946')).toBeTruthy();
+            expect(Object.keys(proj4.defs).includes('EPSG:5011')).toBeTruthy();
         });
     });
 });
