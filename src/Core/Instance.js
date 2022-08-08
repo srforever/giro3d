@@ -4,6 +4,8 @@
 import {
     Scene, Group, EventDispatcher, Vector2, Object3D,
 } from 'three';
+import proj4 from 'proj4';
+import { register } from 'ol/proj/proj4.js';
 import Camera from '../Renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../Renderer/c3DEngine.js';
@@ -295,6 +297,38 @@ class Instance extends EventDispatcher {
             this._changeSources.add(changeSource);
         }
         this.mainLoop.scheduleUpdate(this, needsRedraw);
+    }
+
+    /**
+     * Registers a new coordinate reference system.
+     * This should be done before creating the instance.
+     * This method can be called several times to add multiple CRS.
+     *
+     * @api
+     * @static
+     * @example
+     * // register the CRS first...
+     * Instance.registerCRS(
+     *  'EPSG:102115',
+     *  '+proj=utm +zone=5 +ellps=clrk66 +units=m +no_defs +type=crs');
+     *
+     * // ...then create the instance
+     * const instance = new Instance(div, { crs: 'EPSG:102115' });
+     * @param {string} name the short name, or EPSG code to identify this CRS.
+     * @param {string} value the proj string describing this CRS.
+     */
+    static registerCRS(name, value) {
+        if (!name || name === '') {
+            throw new Error('missing CRS name');
+        }
+        if (!value || value === '') {
+            throw new Error('missing CRS PROJ string');
+        }
+
+        // define the CRS with PROJ
+        proj4.defs(name, value);
+        // register this CRS with OpenLayers
+        register(proj4);
     }
 
     /**
