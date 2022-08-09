@@ -10,6 +10,7 @@ import Stamen from 'ol/source/Stamen.js';
 
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './LayerUpdateStrategy.js';
 import CogSource from '../../sources/CogSource.js';
+import StaticSource from '../../sources/StaticSource.js';
 
 /**
  * Fires when layer sequence change (meaning when the order of the layer changes in the view)
@@ -190,6 +191,9 @@ class Layer extends EventDispatcher {
                     break;
                 case CogSource:
                     this.protocol = 'cog';
+                    break;
+                case StaticSource:
+                    this.protocol = 'static';
                     break;
                 default:
                     throw Error('Unsupported OpenLayers source');
