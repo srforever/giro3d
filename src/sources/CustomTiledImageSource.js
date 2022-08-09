@@ -6,9 +6,9 @@ import Fetcher from '../Provider/Fetcher.js';
  *
  * @api
  */
-class StaticSource {
+class CustomTiledImageSource {
     /**
-     * Creates a Static source.
+     * Creates a CustomTiledImageSource source.
      *
      * @param {object} [options={}] options
      * @param {string} options.url the url of the tileset metadata
@@ -28,4 +28,4 @@ class StaticSource {
     }
 }
 
-export default StaticSource;
+export default CustomTiledImageSource;
