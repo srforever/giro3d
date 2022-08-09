@@ -114,7 +114,8 @@ export default {
             );
         }
         layer.canTileTextureBeImproved = this.canTileTextureBeImproved;
-        layer.url = new URL(layer.url, window.location);
+        layer.url = new URL(layer.source.url, window.location);
+        layer.networkOptions = layer.source.networkOptions;
         return Fetcher.json(layer.url.href, layer.networkOptions).then(metadata => {
             layer.images = [];
             // eslint-disable-next-line guard-for-in
