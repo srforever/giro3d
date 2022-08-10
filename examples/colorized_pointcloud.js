@@ -38,6 +38,12 @@ pointcloud.material = new PointsMaterial({
     mode: MODE.TEXTURE,
 });
 
+document.getElementById('pointcloud_mode').addEventListener('change', e => {
+    const newMode = parseInt(e.target.value, 10);
+    pointcloud.material.mode = newMode;
+    instance.notifyChange(pointcloud, true);
+});
+
 function placeCamera(position, lookAt) {
     instance.camera.camera3D.position.set(position.x, position.y, position.z);
     instance.camera.camera3D.lookAt(lookAt);
