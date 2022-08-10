@@ -48,6 +48,9 @@ export default (env, argv) => {
             devtoolModuleFilenameTemplate: 'webpack://[namespace]/[resource-path]?[loaders]',
             devtoolNamespace: 'giro3d',
         },
+        optimization: {
+            minimize: false,
+        },
         devServer: {
             hot: true,
             client: {
