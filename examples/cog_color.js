@@ -54,9 +54,6 @@ const cogs = [
     }),
 ];
 
-// Load the current selected layer
-changeLayer();
-
 // Load other layers and change visibility
 function changeLayer() {
     const cogLayerOptions = document.getElementById('cogLayerOptions');
@@ -75,3 +72,7 @@ function changeLayer() {
         map.addLayer(cogLayer);
     }
 }
+document.getElementById('cogLayerOptions').addEventListener('change', () => changeLayer());
+
+// Load the current selected layer
+changeLayer();
