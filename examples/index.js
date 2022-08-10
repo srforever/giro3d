@@ -1,7 +1,7 @@
 const examples = [];
 
 function executeSearchQuery(elem) {
-    const query = elem.target.value.trim();
+    const query = elem.target.value.toLowerCase().trim();
 
     // an empty query shows all examples
     if (!query || query === '') {
