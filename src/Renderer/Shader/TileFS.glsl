@@ -88,12 +88,21 @@ void main() {
         vec4 diffuseColor = vec4(noTextureColor, 0.0);
 
         bool hasTexture = false;
-        // We can't loop here over textures since Firefox doesn't support
-        // reading from a sampler array without a constant index
-        // (ie texture2D(texture[i], uv) is disallowed).
-        INSERT_TEXTURE_READING_CODE
-        // Instead we generate the unrolled loop when needed and insert it
-        // here (see LayeredMaterial.js).
+
+        #pragma unroll_loop_start
+        for (int i = 0; i < TEX_UNITS; i++) {
+            if (colorVisible[i] && colorOpacity[i] > 0.0 && colorOffsetScale[i].zw != vec2(0.0)) {
+                vec2 uv = computeUv(vUv, colorOffsetScale[i].xy, colorOffsetScale[i].zw);
+                vec4 layerColor = texture2D(colorTexture, uv);
+                if (layerColor.a > 0.0) {
+                    hasTexture = true;
+                }
+                layerColor.rgb *= colors[i];
+                diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[i]) + layerColor * colorOpacity[i];
+            }
+        }
+        #pragma unroll_loop_end
+
 
         gl_FragColor = diffuseColor;
 
