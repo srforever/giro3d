@@ -1,12 +1,13 @@
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4.js';
-import { Group, PointsMaterial, Vector3 } from 'three';
+import { Group, Vector3 } from 'three';
 import TileWMS from 'ol/source/TileWMS.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Instance from '../src/Core/Instance.js';
 import Entity3D from '../src/entities/Entity3D.js';
 import { STRATEGY_DICHOTOMY } from '../src/Core/layer/LayerUpdateStrategy.js';
 import ColorLayer from '../src/Core/layer/ColorLayer.js';
+import PointsMaterial, { MODE } from '../src/Renderer/PointsMaterial.js';
 
 const tmpVec3 = new Vector3();
 
@@ -32,8 +33,9 @@ pointcloud.protocol = '3d-tiles';
 pointcloud.url = 'https://3d.oslandia.com/3dtiles/lyon.3dtiles/tileset.json';
 pointcloud.material = new PointsMaterial({
     sizeAttenuation: false,
-    size: 1,
+    size: 4,
     vertexColors: true,
+    mode: MODE.TEXTURE,
 });
 
 function placeCamera(position, lookAt) {
