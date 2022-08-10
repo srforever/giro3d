@@ -76,6 +76,7 @@
     "eslint-plugin-jest": "^26.5.3",
     "eslint-plugin-jsdoc": "^39.3.3",
     "eslint-webpack-plugin": "^2.4.1",
+    "front-matter": "^4.0.2",
     "jest": "^28.0.3",
     "jest-environment-jsdom": "^28.0.2",
     "jsdoc": "3.6.3",
