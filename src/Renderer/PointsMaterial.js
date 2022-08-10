@@ -137,7 +137,7 @@ class PointsMaterial extends RawShaderMaterial {
         this.updateUniforms();
 
         this.colorLayer = layer;
-        this.uniforms.texture = new Uniform();
+        this.uniforms.overlayTexture = new Uniform();
         this.uniforms.offsetScale = new Uniform(new Vector4(0, 0, 1, 1));
         this.uniforms.extentTopLeft = new Uniform(new Vector2(extent.west(), extent.north()));
         const dim = extent.dimensions();
@@ -148,7 +148,7 @@ class PointsMaterial extends RawShaderMaterial {
         if (layer !== this.colorLayer) {
             return null;
         }
-        return { texture: this.uniforms.texture.value };
+        return { texture: this.uniforms.overlayTexture.value };
     }
 
     setLayerTextures(layer, textures) {
@@ -156,9 +156,10 @@ class PointsMaterial extends RawShaderMaterial {
             textures = textures[0];
         }
         if (layer === this.colorLayer) {
-            this.uniforms.texture.value = textures.texture;
+            this.uniforms.overlayTexture.value = textures.texture;
             this.uniforms.offsetScale.value.copy(textures.pitch);
         }
+        return Promise.resolve();
     }
 
     // eslint-disable-next-line class-methods-use-this
