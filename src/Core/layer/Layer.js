@@ -106,9 +106,9 @@ const MAX_RETRY = 4;
  * A layer type can be either `color` (such as satellite imagery or maps),
  * or `elevation` (to describe terrain elevation).
  *
- * Layer is normaly not directly instanciate,
+ * Layer is an abstract class. Use
  * {@link module:Core/layer/ColorLayer~ColorLayer ColorLayer} or
- * {@link module:Core/layer/ElevationLayer~ElevationLayer ElevationLayer} are used.
+ * {@link module:Core/layer/ElevationLayer~ElevationLayer ElevationLayer} instead to create layers.
  *
  *     // Create a layer source
  *     var source = new giro3d.olsource.TileWMS({options});
