@@ -1,6 +1,6 @@
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4.js';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '../src/Core/Geographic/Extent.js';
 import CogSource from '../src/sources/CogSource.js';
 import Instance from '../src/Core/Instance.js';
@@ -30,7 +30,7 @@ instance.mainLoop.gfxEngine.renderer.setClearColor(0x0a3b59);
 instance.camera.camera3D.position.set(center.x, center.y, 250000);
 
 // Instantiate the controls
-const controls = new OrbitControls(
+const controls = new MapControls(
     instance.camera.camera3D,
     viewerDiv,
 );
