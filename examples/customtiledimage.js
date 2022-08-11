@@ -10,7 +10,7 @@ import { STRATEGY_DICHOTOMY } from '../src/Core/layer/LayerUpdateStrategy.js';
 import Coordinates from '../src/Core/Geographic/Coordinates.js';
 import { ELEVATION_FORMAT } from '../src/utils/DEMUtils.js';
 import { Map } from '../src/entities/Map.js';
-import StaticSource from '../src/sources/StaticSource.js';
+import CustomTiledImageSource from '../src/sources/CustomTiledImageSource.js';
 
 proj4.defs('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 register(proj4);
@@ -33,7 +33,7 @@ instance.add(map);
 
 // Adds our Elevation source & layer
 // Source data from IGN BD ALTI https://geoservices.ign.fr/bdalti
-const demSource = new StaticSource({
+const demSource = new CustomTiledImageSource({
     url: 'https://3d.oslandia.com/ecrins/ecrins-dem.json',
     networkOptions: { crossOrigin: 'same-origin' },
 });
@@ -51,7 +51,7 @@ map.addLayer(new ElevationLayer('dem', {
 
 // Adds our Imagery source & layer
 // Source data from Copernicus https://land.copernicus.eu/imagery-in-situ/european-image-mosaics/very-high-resolution/vhr-2012
-const imagerySource = new StaticSource({
+const imagerySource = new CustomTiledImageSource({
     url: 'https://3d.oslandia.com/ecrins/ecrins.json',
     networkOptions: { crossOrigin: 'same-origin' },
 });
