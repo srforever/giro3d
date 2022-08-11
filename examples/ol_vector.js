@@ -17,8 +17,12 @@ const extent = new Extent(
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates a giro3d instance
-const instance = new Instance(viewerDiv, { crs: 'EPSG:3857' });
-instance.mainLoop.gfxEngine.renderer.setClearColor(0xFFFFFF);
+const instance = new Instance(viewerDiv, {
+    crs: extent.crs(),
+    renderer: {
+        clearColor: 0xFFFFFF,
+    },
+});
 
 // Instanciates camera
 instance.camera.camera3D.position.set(0, 0, 10000000);

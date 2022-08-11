@@ -71,9 +71,12 @@ const viewerDiv = document.getElementById('viewerDiv');
 const scale = new Vector3(1, 1, 1).divideScalar(extent.dimensions().x);
 
 // Instantiate giro3d
-const instance = new Instance(viewerDiv, extent);
-
-instance.mainLoop.gfxEngine.renderer.setClearColor(0x999999);
+const instance = new Instance(viewerDiv, {
+    crs: extent.crs(),
+    renderer: {
+        clearColor: 0x999999,
+    },
+});
 
 const cube = new Mesh(
     new BoxGeometry(8000, 8000, 8000),

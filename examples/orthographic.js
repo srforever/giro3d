@@ -16,8 +16,12 @@ const extent = new Extent(
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates a giro3d instance
-const instance = new Instance(viewerDiv, { crs: extent.crs() });
-instance.mainLoop.gfxEngine.renderer.setClearColor(0x0a3b59);
+const instance = new Instance(viewerDiv, {
+    crs: extent.crs(),
+    renderer: {
+        clearColor: 0x0a3b59,
+    },
+});
 
 // Creates a map that will contain the layer
 const map = new Map('planar', { extent, maxSubdivisionLevel: 10 });
