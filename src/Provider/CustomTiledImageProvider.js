@@ -2,7 +2,7 @@ import Flatbush from 'flatbush';
 import { Vector4 } from 'three';
 import Extent from '../Core/Geographic/Extent.js';
 import OGCWebServiceHelper from './OGCWebServiceHelper.js';
-import Fetcher from './Fetcher.js';
+import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
 
 function _selectImagesFromSpatialIndex(index, images, extent) {
     return index.search(
@@ -71,17 +71,16 @@ function selectBestImageForExtent(layer, extent) {
     return selection;
 }
 
-function buildUrl(layer, image) {
-    return layer.url.href.substr(0, layer.url.href.lastIndexOf('/') + 1)
-        + image;
-}
-
 function getTexture(toDownload, layer) {
     let textureP;
-    if (layer.elevationFormat === 2) {
-        textureP = OGCWebServiceHelper.getXBilTextureByUrl(toDownload.url, layer.networkOptions);
+    if (layer.elevationFormat === ELEVATION_FORMAT.XBIL) {
+        textureP = OGCWebServiceHelper.getXBilTextureByUrl(
+            toDownload.url, layer.source.networkOptions,
+        );
     } else {
-        textureP = OGCWebServiceHelper.getColorTextureByUrl(toDownload.url, layer.networkOptions);
+        textureP = OGCWebServiceHelper.getColorTextureByUrl(
+            toDownload.url, layer.source.networkOptions,
+        );
     }
     return textureP.then(texture => {
         // adjust pitch
@@ -114,9 +113,7 @@ export default {
             );
         }
         layer.canTileTextureBeImproved = this.canTileTextureBeImproved;
-        layer.url = new URL(layer.source.url, window.location);
-        layer.networkOptions = layer.source.networkOptions;
-        return Fetcher.json(layer.url.href, layer.networkOptions).then(metadata => {
+        return layer.source.fetchMetadata().then(metadata => {
             layer.images = [];
             // eslint-disable-next-line guard-for-in
             for (const image of Object.keys(metadata)) {
@@ -145,7 +142,7 @@ export default {
 
             const s = selectBestImageForExtent(layer, layer.extent);
             return getTexture({
-                url: buildUrl(layer, s.image),
+                url: layer.source.buildUrl(s.image),
                 selection: s,
             }, layer).then(result => {
                 layer.imageSize = {
@@ -180,7 +177,7 @@ export default {
         return {
             selection: s,
             pitch: extent.offsetToParent(s.extent),
-            url: buildUrl(layer, s.image),
+            url: layer.source.buildUrl(s.image),
         };
     },
 
