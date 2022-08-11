@@ -1,5 +1,3 @@
-import proj4 from 'proj4';
-import { register } from 'ol/proj/proj4.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '../src/Core/Geographic/Extent.js';
 import Instance from '../src/Core/Instance.js';
@@ -12,8 +10,7 @@ import { ELEVATION_FORMAT } from '../src/utils/DEMUtils.js';
 import { Map } from '../src/entities/Map.js';
 import CustomTiledImageSource from '../src/sources/CustomTiledImageSource.js';
 
-proj4.defs('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
-register(proj4);
+Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 
 const extent = new Extent(
     'EPSG:2154',
