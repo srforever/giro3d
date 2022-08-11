@@ -37,12 +37,7 @@ function placeCamera(position, lookAt) {
     controls.enableDamping = true;
     controls.dampingFactor = 0.25;
 
-    instance.addFrameRequester('before_camera_update', () => {
-        controls.update();
-    });
-    controls.addEventListener('change', () => {
-        instance.notifyChange(instance.camera.camera3D);
-    });
+    instance.useTHREEControls(controls);
 
     instance.notifyChange(instance.camera.camera3D);
 }
