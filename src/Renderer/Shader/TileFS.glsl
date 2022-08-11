@@ -89,6 +89,7 @@ void main() {
 
         bool hasTexture = false;
 
+        #if TEX_UNITS
         #pragma unroll_loop_start
         for (int i = 0; i < TEX_UNITS; i++) {
             if (colorVisible[i] && colorOpacity[i] > 0.0 && colorOffsetScale[i].zw != vec2(0.0)) {
@@ -102,6 +103,7 @@ void main() {
             }
         }
         #pragma unroll_loop_end
+        #endif
 
 
         gl_FragColor = diffuseColor;
