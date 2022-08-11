@@ -63,8 +63,14 @@ class Instance extends EventDispatcher {
      * @param {object=} options Optional properties.
      * @param {?string} [options.crs='EPSG:3857'] The default CRS of Three.js coordinates. Should
      * be a cartesian CRS.
-     * @param {?Scene} options.scene3D the [Three.js Scene](https://threejs.org/docs/#api/en/scenes/Scene) instance to use,
+     * @param {?Scene} options.scene3D The [Three.js Scene](https://threejs.org/docs/#api/en/scenes/Scene) instance to use,
      * otherwise a default one will be constructed
+     * @param {object=} options.renderer The options for the renderer.
+     * @param {number|boolean} options.renderer.clearColor The background color.
+     * Can be a hex color or `false` for transparent backgrounds.
+     * @param {boolean} options.renderer.antialias Enables antialiasing.
+     * @param {boolean} options.renderer.logarithmicDepthBuffer Enables the
+     * [logarithmic depth buffer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.logarithmicDepthBuffer).
      * @example
      * let opts = {
      *  camera: camera,

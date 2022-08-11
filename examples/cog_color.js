@@ -20,8 +20,12 @@ const center = extent.center().xyz();
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Instantiate Giro3D
-const instance = new Instance(viewerDiv, { crs: extent.crs() });
-instance.mainLoop.gfxEngine.renderer.setClearColor(0x0a3b59);
+const instance = new Instance(viewerDiv, {
+    crs: extent.crs(),
+    renderer: {
+        clearColor: 0x0a3b59,
+    },
+});
 
 // Instantiate the camera
 instance.camera.camera3D.position.set(center.x, center.y, 250000);

@@ -24,8 +24,12 @@ const extent = new Extent(
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Instantiate Giro3D
-const instance = new Instance(viewerDiv, { crs: extent.crs() });
-instance.mainLoop.gfxEngine.renderer.setClearColor(0x0a3b59);
+const instance = new Instance(viewerDiv, {
+    crs: extent.crs(),
+    renderer: {
+        clearColor: 0x0a3b59,
+    },
+});
 
 const map = new Map('map', { extent });
 instance.add(map);
