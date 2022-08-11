@@ -16,17 +16,21 @@ const extent = new Extent(
 // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
 const viewerDiv = document.getElementById('viewerDiv');
 
-// Creates a giro3d instace
-const instance = new Instance(viewerDiv, { crs: 'EPSG:3857' });
-instance.mainLoop.gfxEngine.renderer.setClearColor(0xffffff);
+// Creates a giro3d instance
+const instance = new Instance(viewerDiv, {
+    crs: extent.crs(),
+    renderer: {
+        clearColor: 0xffffff,
+    },
+});
 
 const map = new Map('planar', { extent, maxSubdivisionLevel: 15 });
 instance.add(map);
 
-// Instanciates camera
+// Instantiates camera
 instance.camera.camera3D.position.set(0, 0, 10000000);
 
-// Instanciates controls
+// Instantiates controls
 const controls = new MapControls(
     instance.camera.camera3D,
     instance.mainLoop.gfxEngine.renderer.domElement,
