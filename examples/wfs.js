@@ -1,5 +1,3 @@
-import proj4 from 'proj4';
-import { register } from 'ol/proj/proj4.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import Vector from 'ol/source/Vector.js';
@@ -12,9 +10,8 @@ import ColorLayer from '../src/Core/layer/ColorLayer.js';
 import { STRATEGY_DICHOTOMY } from '../src/Core/layer/LayerUpdateStrategy.js';
 
 // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)
-proj4.defs('EPSG:3946',
+Instance.registerCRS('EPSG:3946',
     '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
-register(proj4);
 
 // Define geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(

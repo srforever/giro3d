@@ -1,5 +1,3 @@
-import proj4 from 'proj4';
-import { register } from 'ol/proj/proj4.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '../src/Core/Geographic/Extent.js';
 import CogSource from '../src/sources/CogSource.js';
@@ -8,8 +6,7 @@ import ColorLayer from '../src/Core/layer/ColorLayer.js';
 import { Map } from '../src/entities/Map.js';
 
 // Define projection that we will use (taken from https://epsg.io/32633, Proj4js section)
-proj4.defs('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs');
-register(proj4);
+Instance.registerCRS('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs');
 
 // Define geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
