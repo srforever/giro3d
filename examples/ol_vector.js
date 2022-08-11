@@ -31,12 +31,7 @@ const controls = new MapControls(
 controls.enableDamping = true;
 controls.dampingFactor = 0.25;
 
-instance.addFrameRequester('before_camera_update', () => {
-    controls.update();
-});
-controls.addEventListener('change', () => {
-    instance.notifyChange(instance.camera.camera3D);
-});
+instance.useTHREEControls(controls);
 
 // Adds layers in a map
 
