@@ -173,6 +173,9 @@ class Instance extends EventDispatcher {
      * @api
      */
     add(object) {
+        if (!(object instanceof Object3D) && !(object instanceof Entity3D)) {
+            return Promise.reject(new Error('object is not an instance of THREE.Object3D or Giro3d.Entity3D'));
+        }
         object._instance = this;
 
         return new Promise((resolve, reject) => {
