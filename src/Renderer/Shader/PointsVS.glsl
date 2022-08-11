@@ -26,7 +26,7 @@ attribute vec2 sphereMappedNormal;
 attribute vec3 normal;
 #endif
 
-// uniform sampler2D texture;
+uniform sampler2D overlayTexture;
 uniform vec4 offsetScale;
 uniform vec2 extentTopLeft;
 uniform vec2 extentSize;
@@ -106,7 +106,6 @@ void main() {
     } else if (mode == MODE_NORMAL) {
         vColor = vec4(abs(normal), opacity);
     } else if (mode == MODE_TEXTURE) {
-        /*
         vec2 pp = (modelMatrix * vec4(position, 1.0)).xy;
         // offsetScale is from topleft
         pp.x -= extentTopLeft.x;
@@ -114,9 +113,8 @@ void main() {
         pp *= offsetScale.zw / extentSize;
         pp += offsetScale.xy;
         pp.y = 1.0 - pp.y;
-        vec3 textureColor = texture2D(texture, pp).rgb;
+        vec3 textureColor = texture2D(overlayTexture, pp).rgb;
         vColor = vec4(mix(textureColor, overlayColor.rgb, overlayColor.a), opacity);
-        */
     } else if (mode == MODE_ELEVATION) {
         float z = (modelMatrix * vec4(position, 1.0)).z;
         // colors from OGC EL.GridCoverage.Default style
