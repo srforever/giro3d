@@ -1,3 +1,4 @@
+import { Group } from 'three';
 import Extent from '../../../src/Core/Geographic/Extent.js';
 import Instance from '../../../src/Core/Instance.js';
 import Layer from '../../../src/Core/layer/Layer.js';
@@ -28,6 +29,34 @@ describe('Instance', () => {
         };
         const options = { mainLoop };
         instance = new Instance(viewerDiv, options);
+    });
+
+    describe('add', () => {
+        it('should return a rejected promise if not of correct type', async () => {
+            const layer = new Layer('foo', { standalone: true });
+            await expect(instance.add(layer)).rejects.toThrowError('object is not an instance of THREE.Object3D or Giro3d.Entity3D');
+        });
+
+        it('should add a map', () => {
+            const map = new Map('myEntity', {
+                extent: new Extent('EPSG:4326', {
+                    west: 0, east: 10, south: 0, north: 10,
+                }),
+                maxSubdivisionLevel: 15,
+            });
+            instance.add(map).then(() => {
+                expect(instance.getObjects()).toStrictEqual([map]);
+            });
+        });
+
+        // FIXME: requires full THREE.js support
+        // eslint-disable-next-line jest/no-disabled-tests
+        it.skip('should add a THREE.js Object3D', () => {
+            const obj = new Group();
+            instance.add(obj).then(() => {
+                expect(instance.getObjects()).toStrictEqual([obj]);
+            });
+        });
     });
 
     describe('getOwner', () => {
