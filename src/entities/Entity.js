@@ -85,7 +85,6 @@ class Entity {
      *
      * @api
      * @param {module:Core/Context~Context} context the update context.
-     * This is the same object that the entity whose `update()` is being called.
      * @param {Array<object>} changeSources the objects that triggered an update step.
      * This is useful to filter out unnecessary updates if no sources are
      * relevant to this entity. For example, if one of the sources is a
