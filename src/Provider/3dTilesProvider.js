@@ -9,12 +9,12 @@ import {
 import B3dmParser from '../Parser/B3dmParser.js';
 import PntsParser from '../Parser/PntsParser.js';
 import Fetcher from './Fetcher.js';
-import { pre3dTilesUpdate, process3dTilesNode, init3dTilesLayer } from '../Process/3dTilesProcessing.js';
 import utf8Decoder from '../utils/Utf8Decoder.js';
 import Picking from '../Core/Picking.js';
 import Points from '../Core/Points.js';
 import PointsMaterial from '../Renderer/PointsMaterial.js';
 import Cache from '../Core/Scheduler/Cache.js';
+import { init3dTilesEntity } from '../entities/Tiles3D.js';
 
 const identity = new Matrix4();
 
@@ -24,20 +24,6 @@ export class $3dTilesIndex {
         this.index = {};
         this._inverseTileTransform = new Matrix4();
         this._recurse(tileset.root, baseURL);
-
-        // Add a special tileId = 0 which acts as root of the tileset but has
-        // no content.
-        // This way we can safely cleanup the root of the tileset in the processing
-        // code, and keep a valid layer.root tile.
-        // this.index[0] = {
-        //     baseURL: this.index[1].baseURL,
-        //     viewerRequestVolume: this.index[1].viewerRequestVolume,
-        //     boundingVolume: this.index[1].boundingVolume,
-        //     children: [1],
-        //     transform: this.index[1].transform,
-        //     refine: this.index[1].refine,
-        //     geometricError: this.index[1].geometricError,
-        // };
     }
 
     _recurse(node, baseURL, parent) {
@@ -121,26 +107,24 @@ export function getObjectToUpdateForAttachedLayers(meta) {
     };
 }
 
-function preprocessDataLayer(layer, view, scheduler) {
-    layer.preUpdate = pre3dTilesUpdate(layer);
-    layer.update = process3dTilesNode(layer);
-    layer.sseThreshold = layer.sseThreshold || 16;
-    layer.cleanupDelay = layer.cleanupDelay || 1000;
+function preprocessDataLayer(entity, instance, scheduler) {
     // override the default method, since updated objects are metadata in this case
-    layer.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
+    entity.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
 
     // TODO: find a better way to know that this layer is about pointcloud ?
-    if (layer.material && layer.material.enablePicking) {
-        layer.pickObjectsAt = (view2, mouse, radius) => Picking.pickPointsAt(
-            view2,
+    if (entity.material && entity.material.enablePicking) {
+        entity.pickObjectsAt = (instance2, mouse, radius) => Picking.pickPointsAt(
+            instance2,
             mouse,
             radius,
-            layer,
+            entity,
         );
     }
 
-    layer._cleanableTiles = [];
-    return Fetcher.json(layer.url, layer.networkOptions).then(tileset => {
+    const url = entity.url;
+
+    // Download the root tileset to complete the preparation.
+    return Fetcher.json(url, entity.networkOptions).then(tileset => {
         if (!tileset.root.refine) {
             tileset.root.refine = tileset.refine;
         }
@@ -159,11 +143,11 @@ function preprocessDataLayer(layer, view, scheduler) {
         tileset.root.transform = undefined;
         // Replace root
         tileset.root = fakeroot;
-        layer.tileset = tileset;
-        const urlPrefix = layer.url.slice(0, layer.url.lastIndexOf('/') + 1);
-        layer.tileIndex = new $3dTilesIndex(tileset, urlPrefix);
-        layer.asset = tileset.asset;
-        return init3dTilesLayer(view, scheduler, layer, tileset.root);
+        entity.tileset = tileset;
+        const urlPrefix = url.slice(0, url.lastIndexOf('/') + 1);
+        entity.tileIndex = new $3dTilesIndex(tileset, urlPrefix);
+        entity.asset = tileset.asset;
+        return init3dTilesEntity(instance, scheduler, entity, tileset.root);
     });
 }
 
@@ -232,7 +216,6 @@ function pntsParse(data, layer) {
     return PntsParser.parse(data).then(result => {
         const material = layer.material
             ? layer.material.clone()
-            // new PointsMaterial({ size: 3 });
             : new PointsMaterial();
 
         if (material.enablePicking) {

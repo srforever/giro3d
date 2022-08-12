@@ -1,12 +1,195 @@
+/**
+ * @module entities/Tiles3D
+ */
 import {
     Vector3,
     Box3,
     Sphere,
     MathUtils,
+    Group,
     Matrix4,
 } from 'three';
 import Extent from '../Core/Geographic/Extent.js';
 import ScreenSpaceError from '../Core/ScreenSpaceError.js';
+import Entity3D from './Entity3D.js';
+
+/**
+ * Options to create a Tiles3D object.
+ *
+ * @typedef {object} Options
+ * @property {number} [cleanupDelay=1000] The delay, in milliseconds,
+ * to cleanup unused objects.
+ * @property {number} [sseThreshold=16] The Screen Space Error (SSE) threshold
+ * to use for this tileset.
+ * @property {module:THREE.Object3D} [object3d=new Group()] The optional 3d object to use
+ * as the root object of this entity. If none provided, a new one will be created.
+ * @property {module:THREE.Material} [material=undefined] The optional material to use.
+ */
+
+/**
+ * A [3D Tiles](https://www.ogc.org/standards/3DTiles) dataset.
+ *
+ * @api
+ */
+class Tiles3D extends Entity3D {
+    /**
+     * Constructs a Tiles3D object.
+     *
+     * @param {string} id The unique identifier of the entity.
+     * @param {module:sources/Tiles3DSource~Tiles3DSource} source The data source.
+     * @param {Options} [options={}] Optional properties.
+     * @api
+     */
+    constructor(id, source, options = {}) {
+        super(id, options.object3d || new Group());
+
+        if (!source) {
+            throw new Error('missing source');
+        }
+
+        if (!source.url) {
+            throw new Error('missing source.url');
+        }
+
+        /** @type {string} */
+        this.protocol = '3d-tiles';
+        /** @type {string} */
+        this.url = source.url;
+        /** @type {object} */
+        this.networkOptions = source.networkOptions;
+        /** @type {number} */
+        this.sseThreshold = options.sseThreshold || 16;
+        /** @type {number} */
+        this.cleanupDelay = options.cleanupDelay || 1000;
+        /** @type {module:THREE.Material} */
+        this.material = options.material || undefined;
+
+        /** @type {Array} */
+        this._cleanableTiles = [];
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    preUpdate(context, changeSources) {
+        if (!this.visible) {
+            return [];
+        }
+
+        // Elements removed are added in the this._cleanableTiles list.
+        // Since we simply push in this array, the first item is always
+        // the oldest one.
+        const now = Date.now();
+        if (this._cleanableTiles.length
+            && (now - this._cleanableTiles[0].cleanableSince) > this.cleanupDelay) {
+            while (this._cleanableTiles.length) {
+                const elt = this._cleanableTiles[0];
+                if ((now - elt.cleanableSince) > this.cleanupDelay) {
+                    cleanup3dTileset(this, elt);
+                } else {
+                    // later entries are younger
+                    break;
+                }
+            }
+        }
+
+        return [this.root];
+    }
+
+    update(context, node) {
+        // Remove deleted children (?)
+        node.remove(...node.children.filter(c => c.deleted));
+
+        // early exit if parent's subdivision is in progress
+        if (node.parent.pendingSubdivision && !node.parent.additiveRefinement) {
+            node.visible = false;
+            return undefined;
+        }
+        let returnValue;
+
+        // do proper culling
+        const isVisible = !cullingTest(context.camera, node, node.matrixWorld);
+        node.visible = isVisible;
+
+        if (isVisible) {
+            unmarkForDeletion(this, node);
+
+            // We need distance for 2 things:
+            // - subdivision testing
+            // - near / far calculation in MainLoop. For this one, we need the distance for *all*
+            // displayed tiles.
+            // For this last reason, we need to calculate this here, and not in subdivisionControl
+            calculateCameraDistance(context.camera.camera3D, node);
+            if (node.pendingSubdivision || subdivisionTest(context, this, node)) {
+                subdivideNode(context, this, node, cullingTest);
+                // display iff children aren't ready
+                if (node.additiveRefinement || node.pendingSubdivision) {
+                    setDisplayed(node, true);
+                } else {
+                    // If one of our child is a tileset, this node must be displayed until this
+                    // child content is ready, to avoid hiding our content too early (= when our
+                    // child is loaded but its content is not)
+                    const subtilesets = this.tileIndex.index[node.tileId].children.filter(
+                        tile => tile.isTileset,
+                    );
+
+                    if (subtilesets.length) {
+                        let allReady = true;
+                        for (const tileset of subtilesets) {
+                            const subTilesetNode = node.children.filter(
+                                n => n.tileId === tileset.tileId,
+                            )[0];
+                            if (!isTilesetContentReady(tileset, subTilesetNode)) {
+                                allReady = false;
+                                break;
+                            }
+                        }
+                        setDisplayed(node, allReady);
+                    } else {
+                        setDisplayed(node, true);
+                    }
+                }
+                returnValue = getChildTiles(node);
+            } else {
+                setDisplayed(node, true);
+
+                for (const n of getChildTiles(node)) {
+                    n.visible = false;
+                    markForDeletion(this, n);
+                }
+            }
+            // update material
+            if (node.content && node.content.visible) {
+                // it will therefore contribute to near / far calculation
+                if (node.boundingVolume.region) {
+                    throw new Error('boundingVolume.region is not yet supported');
+                } else if (node.boundingVolume.box) {
+                    this._distance.min = Math.min(this._distance.min, node.distance.min);
+                    this._distance.max = Math.max(this._distance.max, node.distance.max);
+                } else if (node.boundingVolume.sphere) {
+                    this._distance.min = Math.min(this._distance.min, node.distance.min);
+                    this._distance.max = Math.max(this._distance.max, node.distance.max);
+                }
+                node.content.traverse(o => {
+                    if (o.layer === this && o.material) {
+                        o.material.wireframe = this.wireframe;
+                        if (o.isPoints) {
+                            if (o.material.update) {
+                                o.material.update(this.material);
+                            } else {
+                                o.material.copy(this.material);
+                            }
+                        }
+                    }
+                });
+            }
+        } else if (node !== this.root) {
+            if (node.parent && node.parent.additiveRefinement) {
+                markForDeletion(this, node);
+            }
+        }
+
+        return returnValue;
+    }
+}
 
 const tmp = {
     v: new Vector3(),
@@ -82,10 +265,10 @@ function getChildTiles(tile) {
     return tile.children.filter(n => n.layer === tile.layer && n.tileId);
 }
 
-function subdivideNode(context, layer, node, cullingTest) {
+function subdivideNode(context, layer, node, cullingTestFn) {
     if (node.additiveRefinement) {
         // Additive refinement can only fetch visible children.
-        _subdivideNodeAdditive(context, layer, node, cullingTest);
+        _subdivideNodeAdditive(context, layer, node, cullingTestFn);
     } else {
         // Substractive refinement on the other hand requires to replace
         // node with all of its children
@@ -115,7 +298,7 @@ function boundingVolumeToExtent(crs, volume, transform) {
 }
 
 const tmpMatrix = new Matrix4();
-function _subdivideNodeAdditive(ctx, layer, node, cullingTest) {
+function _subdivideNodeAdditive(ctx, layer, node, cullingTestFn) {
     for (const child of layer.tileIndex.index[node.tileId].children) {
         // child being downloaded or already added => skip
         if (child.promise || node.children.filter(n => n.tileId === child.tileId).length > 0) {
@@ -129,8 +312,8 @@ function _subdivideNodeAdditive(ctx, layer, node, cullingTest) {
             overrideMatrixWorld = tmpMatrix.multiplyMatrices(node.matrixWorld, child.transform);
         }
 
-        const isVisible = cullingTest
-            ? !cullingTest(ctx.camera, child, overrideMatrixWorld) : true;
+        const isVisible = cullingTestFn
+            ? !cullingTestFn(ctx.camera, child, overrideMatrixWorld) : true;
 
         // child is not visible => skip
         if (!isVisible) {
@@ -209,7 +392,7 @@ function _subdivideNodeSubstractive(context, layer, node) {
     });
 }
 
-export function $3dTilesCulling(camera, node, tileMatrixWorld) {
+function cullingTest(camera, node, tileMatrixWorld) {
     // For viewer Request Volume https://github.com/AnalyticalGraphicsInc/3d-tiles-samples/tree/master/tilesets/TilesetWithRequestVolume
     if (node.viewerRequestVolume) {
         const nodeViewer = node.viewerRequestVolume;
@@ -307,35 +490,7 @@ function _cleanupObject3D(n) {
     n.remove(...n.children);
 }
 
-export function pre3dTilesUpdate(layer) {
-    // eslint-disable-next-line no-unused-vars
-    return function _pre3dTilesUpdate(context) {
-        if (!layer.visible) {
-            return [];
-        }
-
-        // Elements removed are added in the layer._cleanableTiles list.
-        // Since we simply push in this array, the first item is always
-        // the oldest one.
-        const now = Date.now();
-        if (layer._cleanableTiles.length
-            && (now - layer._cleanableTiles[0].cleanableSince) > layer.cleanupDelay) {
-            while (layer._cleanableTiles.length) {
-                const elt = layer._cleanableTiles[0];
-                if ((now - elt.cleanableSince) > layer.cleanupDelay) {
-                    cleanup3dTileset(layer, elt);
-                } else {
-                    // later entries are younger
-                    break;
-                }
-            }
-        }
-
-        return [layer.root];
-    };
-}
-
-export function computeNodeSSE(context, node) {
+function computeNodeSSE(context, node) {
     if (node.boundingVolume.region) {
         throw new Error('boundingVolume.region is unsupported');
     } else if (node.boundingVolume.box) {
@@ -364,7 +519,7 @@ export function computeNodeSSE(context, node) {
     }
 }
 
-export function init3dTilesLayer(view, scheduler, layer) {
+export function init3dTilesEntity(view, scheduler, layer) {
     return requestNewTile(view, scheduler, layer, layer.tileset.root, undefined, true).then(
         tile => {
             delete layer.tileset;
@@ -407,7 +562,7 @@ function isTilesetContentReady(tileset, node) {
         && node.children[0].children.length > 0;
 }
 
-function calculateCameraDistance(camera, node) {
+export function calculateCameraDistance(camera, node) {
     node.distance.min = 0;
     node.distance.max = 0;
     if (node.boundingVolume.region) {
@@ -434,108 +589,7 @@ function calculateCameraDistance(camera, node) {
     }
 }
 
-export function process3dTilesNode(
-    layer, cullingTest = $3dTilesCulling, subdivisionTest = $3dTilesSubdivisionControl,
-) {
-    return function _process3dTilesNodes(context, node) {
-        // Remove deleted children (?)
-        node.remove(...node.children.filter(c => c.deleted));
-
-        // early exit if parent's subdivision is in progress
-        if (node.parent.pendingSubdivision && !node.parent.additiveRefinement) {
-            node.visible = false;
-            return undefined;
-        }
-        let returnValue;
-
-        // do proper culling
-        const isVisible = cullingTest
-            ? (!cullingTest(context.camera, node, node.matrixWorld)) : true;
-        node.visible = isVisible;
-
-        if (isVisible) {
-            unmarkForDeletion(layer, node);
-
-            // We need distance for 2 things:
-            // - subdivision testing
-            // - near / far calculation in MainLoop. For this one, we need the distance for *all*
-            // displayed tiles.
-            // For this last reason, we need to calculate this here, and not in subdivisionControl
-            calculateCameraDistance(context.camera.camera3D, node);
-            if (node.pendingSubdivision || subdivisionTest(context, layer, node)) {
-                subdivideNode(context, layer, node, cullingTest);
-                // display iff children aren't ready
-                if (node.additiveRefinement || node.pendingSubdivision) {
-                    setDisplayed(node, true);
-                } else {
-                    // If one of our child is a tileset, this node must be displayed until this
-                    // child content is ready, to avoid hiding our content too early (= when our
-                    // child is loaded but its content is not)
-                    const subtilesets = layer.tileIndex.index[node.tileId].children.filter(
-                        tile => tile.isTileset,
-                    );
-
-                    if (subtilesets.length) {
-                        let allReady = true;
-                        for (const tileset of subtilesets) {
-                            const subTilesetNode = node.children.filter(
-                                n => n.tileId === tileset.tileId,
-                            )[0];
-                            if (!isTilesetContentReady(tileset, subTilesetNode)) {
-                                allReady = false;
-                                break;
-                            }
-                        }
-                        setDisplayed(node, allReady);
-                    } else {
-                        setDisplayed(node, true);
-                    }
-                }
-                returnValue = getChildTiles(node);
-            } else {
-                setDisplayed(node, true);
-
-                for (const n of getChildTiles(node)) {
-                    n.visible = false;
-                    markForDeletion(layer, n);
-                }
-            }
-            // update material
-            if (node.content && node.content.visible) {
-                // it will therefore contribute to near / far calculation
-                if (node.boundingVolume.region) {
-                    throw new Error('boundingVolume.region is not yet supported');
-                } else if (node.boundingVolume.box) {
-                    layer._distance.min = Math.min(layer._distance.min, node.distance.min);
-                    layer._distance.max = Math.max(layer._distance.max, node.distance.max);
-                } else if (node.boundingVolume.sphere) {
-                    layer._distance.min = Math.min(layer._distance.min, node.distance.min);
-                    layer._distance.max = Math.max(layer._distance.max, node.distance.max);
-                }
-                node.content.traverse(o => {
-                    if (o.layer === layer && o.material) {
-                        o.material.wireframe = layer.wireframe;
-                        if (o.isPoints) {
-                            if (o.material.update) {
-                                o.material.update(layer.material);
-                            } else {
-                                o.material.copy(layer.material);
-                            }
-                        }
-                    }
-                });
-            }
-        } else if (node !== layer.root) {
-            if (node.parent && node.parent.additiveRefinement) {
-                markForDeletion(layer, node);
-            }
-        }
-
-        return returnValue;
-    };
-}
-
-export function $3dTilesSubdivisionControl(context, layer, node) {
+function subdivisionTest(context, layer, node) {
     if (layer.tileIndex.index[node.tileId].children === undefined) {
         return false;
     }
@@ -549,6 +603,4 @@ export function $3dTilesSubdivisionControl(context, layer, node) {
     return sse > layer.sseThreshold;
 }
 
-export const _testing = {
-    calculateCameraDistance,
-};
+export default Tiles3D;
