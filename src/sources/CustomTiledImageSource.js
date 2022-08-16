@@ -1,3 +1,7 @@
+/**
+ * @module sources/CustomTiledImageSource
+ */
+
 import Fetcher from '../Provider/Fetcher.js';
 
 /**
