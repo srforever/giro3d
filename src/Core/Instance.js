@@ -16,6 +16,7 @@ import Scheduler from './Scheduler/Scheduler.js';
 import Picking from './Picking.js';
 import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
+import Entity from '../entities/Entity.js';
 
 /**
  * The names of events supported by
@@ -238,7 +239,13 @@ class Instance extends EventDispatcher {
         });
     }
 
-    removeObject(object) {
+    /**
+     * Removes the entity or THREE object from the scene.
+     *
+     * @api
+     * @param {Object3D|Entity} object the object to remove.
+     */
+    remove(object) {
         if (object.object3d) {
             ObjectRemovalHelper.removeChildrenAndCleanupRecursively(object, object.object3d);
             this.scene.remove(object.object3d);

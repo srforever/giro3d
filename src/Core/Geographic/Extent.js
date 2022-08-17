@@ -71,7 +71,7 @@ class Extent {
      * - 2 {@link module:Core/Geographic/Coordinates Coordinates}
      * (one representing the min coords, another containing the max coords)
      * - an object with `west`, `east`, `south`, `north` properties
-     * - an array of the form of the form or <code>[minx, maxx, miny, maxy]</code>
+     * - an array of the form `[minx, maxx, miny, maxy]`
      */
     constructor(crs, ...values) {
         this._crs = crs;
