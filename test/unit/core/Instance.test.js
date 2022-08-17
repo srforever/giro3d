@@ -60,6 +60,30 @@ describe('Instance', () => {
         });
     });
 
+    describe('remove', () => {
+        it('should remove the object from the list', () => {
+            const map = new Map('owner', { extent: new Extent('EPSG:4326', 0, 0, 0, 0) });
+            instance.add(map);
+
+            expect(instance._objects.includes(map)).toBeTruthy();
+
+            instance.remove(map);
+
+            expect(instance._objects.includes(map)).toBeFalsy();
+        });
+
+        it('should call the clean() method if it exists', () => {
+            const map = new Map('owner', { extent: new Extent('EPSG:4326', 0, 0, 0, 0) });
+            instance.add(map);
+
+            map.clean = jest.fn();
+
+            instance.remove(map);
+
+            expect(map.clean).toHaveBeenCalled();
+        });
+    });
+
     describe('getOwner', () => {
         it('should return null if there are no entities', () => {
             const layer = new Layer('foo', { standalone: true });
