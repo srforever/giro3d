@@ -38,10 +38,9 @@ map.addLayer(new ColorLayer(
 )).catch(e => console.error(e));
 
 // Instanciates camera
-const camera = instance.camera.camera3D;
-camera.position.set(0, 0, 25000000);
+instance.camera.camera3D.position.set(0, 0, 25000000);
 
 // Instanciates controls
-const controls = new MapControls(camera, viewerDiv);
+const controls = new MapControls(instance.camera.camera3D, viewerDiv);
 
 instance.useTHREEControls(controls);

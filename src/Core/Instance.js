@@ -49,11 +49,21 @@ const _eventCoords = new Vector2();
  * such as a {@link module:entities/Map~Map Map}.
  *
  *     // example of Giro3D instantiation
- *
  *     let instance = new Instance(viewerDiv, extent.crs(), {camera: camera})
  *     let map = new Map('planar', null, extent, { maxSubdivisionLevel: 10 });
  *     instance.add(map);
  *
+ *     // Bind an event listener on double click
+ *     instance.domElement.addEventListener('dblclick', dblClickHandler);
+ *
+ *     // Get the camera position
+ *     let myvector = instance.camera.camera3D.position;
+ *     // Set the camera position
+ *     instance.camera.camera3D.position.set(newPosition);
+ *     instance.camera.camera3D.lookAt(lookAt);
+ *
+ * @property {HTMLElement} domElement DOM Element where the rendering is done (by default, a child
+ * of ̀`viewerDiv`)
  * @api
  */
 class Instance extends EventDispatcher {
@@ -165,6 +175,11 @@ class Instance extends EventDispatcher {
 
         this.controls = null;
         this._controlFunctions = null;
+
+        Object.defineProperty(this, 'domElement', {
+            value: this.mainLoop.gfxEngine.renderer.domElement,
+            writable: false,
+        });
     }
 
     /**
