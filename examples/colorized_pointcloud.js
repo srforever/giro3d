@@ -1,20 +1,20 @@
-import { Group, Vector3 } from 'three';
+import { Vector3 } from 'three';
 import TileWMS from 'ol/source/TileWMS.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Instance from '../src/Core/Instance.js';
-import Entity3D from '../src/entities/Entity3D.js';
+import Tiles3D from '../src/entities/Tiles3D.js';
 import { STRATEGY_DICHOTOMY } from '../src/Core/layer/LayerUpdateStrategy.js';
 import ColorLayer from '../src/Core/layer/ColorLayer.js';
 import PointsMaterial, { MODE } from '../src/Renderer/PointsMaterial.js';
+import Tiles3DSource from '../src/sources/Tiles3DSource.js';
 
 const tmpVec3 = new Vector3();
 
-const viewerDiv = document.getElementById('viewerDiv');
-viewerDiv.style.display = 'block';
-
 Instance.registerCRS('EPSG:3946',
     '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 '
-        + '+y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+    + '+y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+
+const viewerDiv = document.getElementById('viewerDiv');
 
 const instance = new Instance(viewerDiv, {
     crs: 'EPSG:3946',
@@ -23,21 +23,24 @@ const instance = new Instance(viewerDiv, {
     },
 });
 
-// Configure Point Cloud
-const pointcloud = new Entity3D('pointcloud', new Group());
-pointcloud.file = 'https://3d.oslandia.com/3dtiles/lyon.3dtiles/tileset.json';
-pointcloud.protocol = '3d-tiles';
-pointcloud.url = 'https://3d.oslandia.com/3dtiles/lyon.3dtiles/tileset.json';
-pointcloud.material = new PointsMaterial({
-    sizeAttenuation: false,
+// Create a custom material for our point cloud.
+const material = new PointsMaterial({
     size: 4,
-    vertexColors: true,
     mode: MODE.TEXTURE,
 });
 
+// Create the 3D tiles entity
+const pointcloud = new Tiles3D(
+    'pointcloud',
+    new Tiles3DSource('https://3d.oslandia.com/3dtiles/lyon.3dtiles/tileset.json'),
+    {
+        material,
+    },
+);
+
 document.getElementById('pointcloud_mode').addEventListener('change', e => {
     const newMode = parseInt(e.target.value, 10);
-    pointcloud.material.mode = newMode;
+    material.mode = newMode;
     instance.notifyChange(pointcloud, true);
 });
 

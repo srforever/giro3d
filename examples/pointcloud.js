@@ -1,12 +1,12 @@
-import { Group, Vector3 } from 'three';
+import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Instance from '../src/Core/Instance.js';
-import Entity3D from '../src/entities/Entity3D.js';
+import Tiles3D from '../src/entities/Tiles3D.js';
+import Tiles3DSource from '../src/sources/Tiles3DSource.js';
 
 const tmpVec3 = new Vector3();
 
 const viewerDiv = document.getElementById('viewerDiv');
-viewerDiv.style.display = 'block';
 
 Instance.registerCRS('EPSG:3946',
     '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 '
@@ -20,10 +20,10 @@ const instance = new Instance(viewerDiv, {
 });
 
 // Configure Point Cloud
-const pointcloud = new Entity3D('pointcloud', new Group());
-pointcloud.file = 'https://3d.oslandia.com/3dtiles/eglise_saint_blaise_arles/tileset.json';
-pointcloud.protocol = '3d-tiles';
-pointcloud.url = 'https://3d.oslandia.com/3dtiles/eglise_saint_blaise_arles/tileset.json';
+const pointcloud = new Tiles3D(
+    'pointcloud',
+    new Tiles3DSource('https://3d.oslandia.com/3dtiles/eglise_saint_blaise_arles/tileset.json'),
+);
 
 function placeCamera(position, lookAt) {
     instance.camera.camera3D.position.set(position.x, position.y, position.z);

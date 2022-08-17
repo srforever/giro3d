@@ -12,7 +12,7 @@ import Entity from './Entity.js';
 import eventDispatcher from '../Core/eventDispatcher.js';
 
 /**
- * An {@link module:Entity~Entity entities} that display 3D objects.
+ * An {@link module:entities/Entity~Entity entity} that display 3D objects.
  *
  * @api
  */
