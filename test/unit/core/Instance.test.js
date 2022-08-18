@@ -22,6 +22,9 @@ describe('Instance', () => {
         mainLoop = {
             gfxEngine: {
                 getWindowSize: jest.fn,
+                renderer: {
+                    domElement: viewerDiv,
+                },
             },
             scheduleUpdate: jest.fn,
             scheduler: {

@@ -30,7 +30,7 @@ instance.camera.camera3D.position.set(0, 0, 10000000);
 // Instanciates controls
 const controls = new MapControls(
     instance.camera.camera3D,
-    instance.mainLoop.gfxEngine.renderer.domElement,
+    instance.domElement,
 );
 controls.enableDamping = true;
 controls.dampingFactor = 0.25;

@@ -155,12 +155,11 @@ for (let i = 0; i < wmsLayers.length; i++) {
     };
 }
 
-const camera = instance.camera.camera3D;
-camera.position.set(3, 2, 3);
-camera.updateMatrixWorld(true);
-camera.lookAt(new Vector3(0, 0, 0));
+instance.camera.camera3D.position.set(3, 2, 3);
+instance.camera.camera3D.updateMatrixWorld(true);
+instance.camera.camera3D.lookAt(new Vector3(0, 0, 0));
 
-const controls = new OrbitControls(camera, viewerDiv);
+const controls = new OrbitControls(instance.camera.camera3D, viewerDiv);
 controls.minDistance = 1;
 
 instance.useTHREEControls(controls);
