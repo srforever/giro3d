@@ -54,6 +54,8 @@ class Tiles3D extends Entity3D {
         /** @type {string} */
         this.protocol = '3d-tiles';
         /** @type {string} */
+        this.type = 'Tiles3D';
+        /** @type {string} */
         this.url = source.url;
         /** @type {object} */
         this.networkOptions = source.networkOptions;

@@ -33,6 +33,7 @@ class ColorLayer extends Layer {
      */
     constructor(id, options = {}) {
         super(id, options);
+        this.type = 'ColorLayer';
         defineLayerProperty(this, 'frozen', false);
         defineLayerProperty(this, 'visible', true);
         defineLayerProperty(this, 'opacity', 1.0);

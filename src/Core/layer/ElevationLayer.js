@@ -51,6 +51,7 @@ class ElevationLayer extends Layer {
             this.heightFieldOffset = options.heightFieldOffset || 0;
             this.heightFieldScale = options.heightFieldScale || 255;
         }
+        this.type = 'ElevationLayer';
         defineLayerProperty(this, 'frozen', false);
     }
 

@@ -271,6 +271,7 @@ class Map extends Entity3D {
 
         this.disableSkirt = true;
 
+        this.type = 'Map';
         this.builder = new PlanarTileBuilder();
         this.protocol = 'tile';
         this.visible = true;
