@@ -31,7 +31,7 @@ function placeCamera(position, lookAt) {
     // create controls
     const controls = new MapControls(
         instance.camera.camera3D,
-        instance.mainLoop.gfxEngine.renderer.domElement,
+        instance.domElement,
     );
     controls.target.copy(lookAt);
     controls.enableDamping = true;
