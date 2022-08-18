@@ -8,6 +8,7 @@ import Coordinates from '@giro3d/giro3d/Core/Geographic/Coordinates.js';
 import { ELEVATION_FORMAT } from '@giro3d/giro3d/utils/DEMUtils.js';
 import { Map } from '@giro3d/giro3d/entities/Map.js';
 import CustomTiledImageSource from '@giro3d/giro3d/sources/CustomTiledImageSource.js';
+import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 
@@ -81,3 +82,5 @@ controls.dampingFactor = 0.2;
 controls.maxPolarAngle = Math.PI / 2.3;
 
 instance.useTHREEControls(controls);
+
+Inspector.attach(document.getElementById('panelDiv'), instance);

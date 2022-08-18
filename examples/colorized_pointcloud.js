@@ -7,6 +7,7 @@ import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrateg
 import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
 import PointsMaterial, { MODE } from '@giro3d/giro3d/Renderer/PointsMaterial.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
+import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 const tmpVec3 = new Vector3();
 
@@ -103,3 +104,5 @@ function initializeCamera() {
 }
 
 instance.add(pointcloud).then(initializeCamera);
+
+Inspector.attach(document.getElementById('panelDiv'), instance);
