@@ -20,7 +20,9 @@
       "src/Core/layer/ElevationLayer.js",
       "src/Core/layer/LayerUpdateStrategy.js",
       "src/Renderer/Camera.js",
-      "src/entities"
+      "src/Renderer/PointsMaterial.js",
+      "src/entities",
+      "src/sources"
     ]
   },
   "plugins": [
