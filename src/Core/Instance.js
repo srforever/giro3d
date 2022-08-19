@@ -141,6 +141,8 @@ class Instance extends EventDispatcher {
         // calculation but actually I'm not even sure near far calculation is
         // worthy of this.
         this.threeObjects = new Group();
+        this.threeObjects.name = 'threeObjects';
+
         this.scene.add(this.threeObjects);
         this.scene2D = new Scene();
         if (!options.scene3D) {
