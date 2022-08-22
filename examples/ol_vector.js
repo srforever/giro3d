@@ -70,7 +70,7 @@ map.addLayer(ecoRegionLayer);
 
 // Creates the country layer
 const vectorSource2 = new Vector({
-    url: 'https://openlayers.org/en/latest/examples/data/geojson/countries.geojson',
+    url: 'https://openlayers.org/en/v5.3.0/examples/data/geojson/countries.geojson',
     format: new GeoJSON({ featureProjection: 'EPSG:3857' }),
 });
 vectorSource2.loadFeatures();
