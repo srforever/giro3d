@@ -39,6 +39,22 @@ export const INSTANCE_EVENTS = {
      * @event Instance#layers-initialized
      */
     LAYERS_INITIALIZED: 'layers-initialized',
+
+    /**
+     * Fires when an entity is added to the instance.
+     *
+     * @api
+     * @event Instance#entity-added
+     */
+    ENTITY_ADDED: 'entity-added',
+
+    /**
+     * Fires when an entity is removed from the instance.
+     *
+     * @api
+     * @event Instance#entity-added
+     */
+    ENTITY_REMOVED: 'entity-removed',
 };
 
 const _eventCoords = new Vector2();
@@ -249,6 +265,7 @@ class Instance extends EventDispatcher {
                         this._allLayersAreReadyCallback,
                     );
                 }
+                this.dispatchEvent({ type: INSTANCE_EVENTS.ENTITY_ADDED });
                 resolve(l);
             });
         });
@@ -270,6 +287,7 @@ class Instance extends EventDispatcher {
         }
         this._objects.splice(this._objects.indexOf(object, 1));
         this.notifyChange(this.camera.camera3D, true);
+        this.dispatchEvent({ type: INSTANCE_EVENTS.ENTITY_REMOVED });
     }
 
     addVector(vector) {

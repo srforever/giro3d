@@ -1,7 +1,7 @@
 import { Group } from 'three';
 import proj4 from 'proj4';
 import Extent from '../../../src/Core/Geographic/Extent.js';
-import Instance from '../../../src/Core/Instance.js';
+import Instance, { INSTANCE_EVENTS } from '../../../src/Core/Instance.js';
 import Layer from '../../../src/Core/layer/Layer.js';
 import MainLoop from '../../../src/Core/MainLoop.js';
 import { Map } from '../../../src/entities/Map.js';
@@ -61,6 +61,25 @@ describe('Instance', () => {
                 expect(instance.getObjects()).toStrictEqual([obj]);
             });
         });
+
+        it('should fire the entity-added event', () => {
+            let eventFired = false;
+
+            const map = new Map('myEntity', {
+                extent: new Extent('EPSG:4326', {
+                    west: 0, east: 10, south: 0, north: 10,
+                }),
+                maxSubdivisionLevel: 15,
+            });
+
+            instance.addEventListener(INSTANCE_EVENTS.ENTITY_ADDED, () => { eventFired = true; });
+
+            expect(eventFired).toBeFalsy();
+
+            instance.add(map).then(() => {
+                expect(eventFired).toBeTruthy();
+            });
+        });
     });
 
     describe('remove', () => {
@@ -84,6 +103,26 @@ describe('Instance', () => {
             instance.remove(map);
 
             expect(map.dispose).toHaveBeenCalled();
+        });
+
+        it('should fire the entity-removed event', () => {
+            let eventFired = false;
+
+            const map = new Map('myEntity', {
+                extent: new Extent('EPSG:4326', {
+                    west: 0, east: 10, south: 0, north: 10,
+                }),
+                maxSubdivisionLevel: 15,
+            });
+
+            instance.addEventListener(INSTANCE_EVENTS.ENTITY_REMOVED, () => { eventFired = true; });
+
+            expect(eventFired).toBeFalsy();
+
+            instance.add(map).then(() => {
+                instance.remove(map);
+                expect(eventFired).toBeTruthy();
+            });
         });
     });
 
