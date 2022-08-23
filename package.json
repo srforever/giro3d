@@ -29,7 +29,7 @@
     "type": "git",
     "url": "git+https://gitlab.com/giro3d/giro3d.git"
   },
-  "license": "(CECILL-B OR MIT)",
+  "license": "MIT",
   "bugs": {
     "url": "https://gitlab.com/giro3d/giro3d/-/issues"
   },
