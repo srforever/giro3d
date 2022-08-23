@@ -69,7 +69,9 @@ You can also import the original, untranspiled sources, by adding `src` after `@
 import Instance from '@giro3d/giro3d/src/Core/Instance.js';
 ```
 
-Note that to use unstranspiled sources you need a bundler and you need to inline non `.js` files (such as `.glsl` files).
+This will probably limit browser compatibility though, without application specific process or
+loader. Also, non `.js` files (such as `.glsl` files) will need to be inlined at client application
+level.
 
 ## From a release bundle
 
