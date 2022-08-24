@@ -15,6 +15,9 @@ git changelog --start-commit v0.1.1 -t v0.2.0 History.md
 ```
 # check authentification
 npm who
+# prepare the package
+npm run build-package
+cd build/giro3d
 npm publish --access public
 ```
 - Edit the version to <version +1>-next or something like that
