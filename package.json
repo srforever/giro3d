@@ -29,7 +29,7 @@
   "scripts": {
     "commit": "npx git-cz",
     "lint-commit": "commitlint -x @commitlint/config-conventional --from=origin/HEAD --to=HEAD",
-    "lint": "eslint \"src/**/*.js\" \"utils/**/*.js\" \"test/**/*.js\" \"examples/**/*.js\"",
+    "lint": "eslint \"src/**/*.js\" \"test/**/*.js\" \"examples/**/*.js\"",
     "apidoc": "shx rm -rf build/site/apidoc && jsdoc -R jsdoc/api/index.html -c jsdoc/api/conf.json -P package.json -d build/site/apidoc",
     "build-site": "mkdir -p build/site && cp -v site/index.html build/site/ && cp -v site/favicon* build/site/ && npm run build-examples && npm run apidoc",
     "build-package": "npm run transpile && node tasks/prepare-package.mjs",

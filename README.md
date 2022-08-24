@@ -115,7 +115,6 @@ Browse the [API Documentation](http://giro3d.org/apidoc/index.html) documentatio
 - `src/Process`: processing functions such as algorithms to select the tiles to load/unload
 - `src/Provider`: classes to access remote data
 - `src/Renderer`: 3D related code (including `Three.js` extensions), and GLSL shaders
-- `utils/debug`: debugging helpers, such as wireframes and outlines
 
 ## Contributors
 
