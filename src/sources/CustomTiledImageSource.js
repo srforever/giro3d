@@ -5,6 +5,10 @@
 import Fetcher from '../Provider/Fetcher.js';
 
 /**
+ * @module sources/CustomTiledImageSource
+ */
+
+/**
  * Class used as a source to create a {@linkcode module:Core/layer/Layer~Layer layer}
  * when the data is a custom tileset.
  *
