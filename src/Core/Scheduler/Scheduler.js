@@ -3,7 +3,7 @@ import TileState from 'ol/TileState.js';
 import TileProvider from '../../Provider/TileProvider.js';
 import $3dTilesProvider from '../../Provider/3dTilesProvider.js';
 import TMSProvider from '../../Provider/TMSProvider.js';
-import PointCloudProvider from '../../Provider/PointCloudProvider.js';
+import PointCloudProvider from '../../Provider/PotreePointCloudProvider.js';
 import CustomTiledImageProvider from '../../Provider/CustomTiledImageProvider.js';
 import OLTileProvider from '../../Provider/OLTileProvider.js';
 import OLVectorTileProvider from '../../Provider/OLVectorTileProvider.js';
