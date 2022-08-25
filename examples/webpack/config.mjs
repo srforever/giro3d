@@ -81,6 +81,7 @@ export default (env, argv) => {
                 templates: path.join(baseDir, '..', 'templates'),
                 examplesDir: path.join(baseDir, '..'),
                 buildDir: buildDir,
+                strictMode: argv.mode === 'production'
             }),
             new CopyPlugin({
                 patterns: [
