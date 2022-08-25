@@ -77,6 +77,25 @@ Alternatively, we provide a bundle you can directly include in your html files t
 
 See our [release page](https://gitlab.com/giro3d/giro3d/-/releases).
 
+## With npm link
+
+This is handy if you need to develop on giro3d alongside your project. You need to first prepare the
+package folder and link from there:
+
+```bash
+npm run build-package
+cd build/giro3d
+npm link
+# then in your project folder
+npm link @giro3d/giro3d
+```
+
+To ease development, transpiled file can be refreshed automatically with a small python script in
+this repository:
+
+```bash
+python3 observer.py ./src
+```
 ## Tests
 
 To run the test suite:
