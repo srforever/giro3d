@@ -211,10 +211,7 @@ function tileAt(pt, tile) {
             return t;
         }
     }
-    if (tile.material.isElevationLayerTextureLoaded()) {
-        return tile;
-    }
-    return undefined;
+    return tile;
 }
 
 let _canvas;
@@ -413,22 +410,26 @@ const temp = {
 function _readZ(entity, method, coord, nodes, cache) {
     const pt = coord.as(entity.extent.crs(), temp.coord1);
 
-    let tileWithValidElevationTexture = null;
+    let tile = null;
     // first check in cache
     if (cache && cache.tile && cache.tile.material) {
-        tileWithValidElevationTexture = tileAt(pt, cache.tile);
+        tile = tileAt(pt, cache.tile);
     }
-    for (let i = 0; !tileWithValidElevationTexture && i < nodes.length; i++) {
-        tileWithValidElevationTexture = tileAt(pt, nodes[i]);
+    for (let i = 0; !tile && i < nodes.length; i++) {
+        tile = tileAt(pt, nodes[i]);
     }
 
-    if (!tileWithValidElevationTexture) {
+    if (!tile) {
         // failed to find a tile, abort
         return null;
     }
 
-    const tile = tileWithValidElevationTexture;
-    const textureInfo = tileWithValidElevationTexture.material.getElevationTextureInfo();
+    const textureInfo = tile.material.getElevationTextureInfo();
+
+    // case when there is no elevation layer
+    if (!textureInfo) {
+        return { coord: pt, tile };
+    }
 
     const src = textureInfo.texture;
     // check cache value if existing
@@ -440,6 +441,7 @@ function _readZ(entity, method, coord, nodes, cache) {
 
     // Assuming that tiles are split in 4 children, we lookup the parent that
     // really owns this texture
+    let tileWithValidElevationTexture = tile;
     const stepsUpInHierarchy = Math.round(Math.log2(1.0
         / textureInfo.offsetScale.z));
     for (let i = 0; i < stepsUpInHierarchy; i++) {
