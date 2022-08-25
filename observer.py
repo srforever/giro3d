@@ -6,7 +6,7 @@ from watchdog.observers import Observer
 from watchdog.events import PatternMatchingEventHandler
 
 def transpile_file(file):
-    cmd = 'npx babel {} --source-maps -o {}'.format(file, file.replace('./src', './lib'))
+    cmd = 'npx babel {} --source-maps -o {}'.format(file, file.replace('./src', './build/giro3d'))
     print(cmd)
     os.system(cmd)
 
