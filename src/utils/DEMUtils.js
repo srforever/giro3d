@@ -440,21 +440,14 @@ function _readZ(entity, method, coord, nodes, cache) {
         }
     }
 
-    // Assuming that tiles are split in 4 children, we lookup the parent that
-    // really owns this texture
-    let tileWithValidElevationTexture = tile;
-    const stepsUpInHierarchy = Math.round(Math.log2(1.0
-        / textureInfo.offsetScale.z));
-    for (let i = 0; i < stepsUpInHierarchy; i++) {
-        tileWithValidElevationTexture = tileWithValidElevationTexture.parent;
-    }
-
+    // Note: at this point, the code makes the assumption that each tile always inherit its texture
+    // from the parent.
     // offset = offset from top-left
-    const offset = pt.offsetInExtent(tileWithValidElevationTexture.extent, temp.offset);
+    const offset = pt.offsetInExtent(textureInfo.texture.extent);
 
     // At this point we have:
-    //   - tileWithValidElevationTexture.texture.image which is the current image
-    //     used for rendering
+    //   - textureInfo.texture.image which is the current image
+    //     used for rendering, guaranteed to be valid (we return earlier if no texture)
     //   - offset which is the offset in this texture for the coordinate we're
     //     interested in
     // We now have 2 options:
@@ -466,7 +459,7 @@ function _readZ(entity, method, coord, nodes, cache) {
             textureInfo,
             offset,
             tile.extent.dimensions(),
-            tileWithValidElevationTexture.extent.dimensions(),
+            textureInfo.texture.extent.dimensions(),
         );
     } else {
         pt._values[2] = _readZFast(textureInfo, offset);
