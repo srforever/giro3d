@@ -316,13 +316,8 @@ class ElevationLayer extends Layer {
             if (this.elevationFormat === 'cog') {
                 const bbox = node.geometry.OBB;
                 const key = `mesh_${this.id}_${node.extent._values.join(',')}`;
-                const parentMatrix = node.parent.matrixWorld.elements;
-                const parentKey = `${parentMatrix[12]}${parentMatrix[13]}`;
-                const nodeMatrix = node.matrixWorld.elements;
-                const nodeKey = `${nodeMatrix[12]}${nodeMatrix[13]}`;
                 let mesh = Cache.get(key);
                 if (!mesh) {
-                    console.log('processing', this.id);
                     const smartGeometry = new SmartGrid(
                         this, elevation.arrayData, node.extent.dimensions(),
                     );
@@ -336,63 +331,37 @@ class ElevationLayer extends Layer {
                     node.geometry.OBB = bbox;
                     node.userData.smart = true;
                     Cache.set(`smart_${node.extent._values.join(',')}`, node.geometry);
-                    // Cache.set(key, false);
-                    // if (smartGeometry.attributes.position.count > 0) {
                     if (this.useAsObject) {
                         mesh = new Mesh(
                             smartGeometry,
                             this.object3d.material ?? new MeshBasicMaterial(),
                         );
-                        const positions = mesh.geometry.attributes.position.array;
-                        for (let i=0; i < positions.length; i += 3) {
-                            positions[i] -= 0.000001;
-                        }
-                        mesh.geometry.attributes.position.needsUpdate = true;
                         mesh.material.side = 2;
+                        mesh.material.wireframe = true;
                         mesh.geometry.OBB = bbox;
-                        mesh.matrix.copy(node.matrix);
                         mesh.matrixWorld.copy(node.matrixWorld);
-                        mesh.position.copy(node.position);
-                        mesh.quaternion.copy(node.quaternion);
-                        mesh.extent = node.extent;
-                        mesh.level = node.level;
-                        mesh.forNode = parentKey;
-                        mesh.node = nodeKey;
                         Cache.set(key, mesh);
                     } else {
-                        Cache.set(key, false);
+                        Cache.set(key, true);
                     }
-                    // }
                 }
 
-                if (mesh) {
+                if (mesh instanceof Mesh) {
+                    mesh.layer = node;
+                    for (const c of this.object3d.children) {
+                        if (c.layer === node.parent) {
+                            c.visible = false;
+                            mesh.parentLayer = c;
+                        }
+                    }
+                    mesh.matrixWorld.elements[14] = 0.1;
                     this.object3d.add(mesh);
-                    console.log(this.object3d);
-                    // if (this.object3d.children.filter((c) => c.forNode === parentKey).length === 4) {
-                    let toHide;
-                    for (const n of node.parent.children) {
-                        if (!n.material) {
-                            toHide = `${n.matrixWorld.elements[12]}${n.matrixWorld.elements[13]}`;
-                        }
-                    }
-                    if (toHide) {
-                        for (const c of this.object3d.children) {
-                            if (c.node === toHide) {
-                                c.visible = false;
-                            }
-                        }
-                    }
-                    // }
                 }
-                if (texture.usedForInit) {
-                    texture.usedForInit = false;
-                }
+                texture.usedForInit = false;
             }
-
             const { min, max } = this.minMaxFromTexture(elevation.texture, elevation.pitch);
             elevation.min = min;
             elevation.max = max;
-            // node.setBBoxZ(min, max);
             node.setTextureElevation(this, elevation);
             node.layerUpdateState[this.id].success();
         });

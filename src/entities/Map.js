@@ -125,7 +125,6 @@ function requestNewTile(map, extent, parent, level) {
 
     const cached = Cache.get(`smart_${extent._values.join(',')}`);
     if (cached) {
-        console.log('CACHED');
         geometry = cached;
         geometry._count = 0;
     }
@@ -335,6 +334,22 @@ class Map extends Entity3D {
 
     update(context, node) {
         if (!node.parent) {
+            if (this.smart) {
+                const nodeMatrix = node.matrixWorld.elements;
+                const nodeKey = `${nodeMatrix[12]}${nodeMatrix[13]}`;
+                for (const e of this.getLayers(
+                    (l) => l.protocol === 'cog' && l instanceof ElevationLayer && l.useAsObject
+                )) {
+                    for (const c of e.object3d.children) {
+                        if (c.layer === node) {
+                            if (c.parentLayer) {
+                                c.parentLayer.visible = true;
+                            }
+                            e.object3d.remove(c);
+                        }
+                    }
+                }
+            }
             return ObjectRemovalHelper.removeChildrenAndCleanup(this, node);
         }
 
