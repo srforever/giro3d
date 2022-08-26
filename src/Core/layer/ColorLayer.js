@@ -83,6 +83,7 @@ class ColorLayer extends Layer {
             return false;
         }
 
+        node.material.uniforms.colorTexture.value = parent.material.uniforms.colorTexture.value;
         node.material.setColorTextures(this, {
             texture,
             pitch: extent.offsetToParent(texture.extent),

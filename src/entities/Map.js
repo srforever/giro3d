@@ -92,15 +92,14 @@ function subdivideNode(context, map, node) {
             node.add(child);
 
             // inherit our parent's textures
-            for (const e of context.elevationLayers) {
-                e.update(context, e, child, node, true);
+            for (const e of map.getElevationLayers()) {
+                e.update(context, child, node, true);
             }
             const nodeUniforms = node.material.uniforms;
             if (nodeUniforms.colorTexture.value.image.width > 0) {
-                for (const c of context.colorLayers) {
-                    c.update(context, c, child, node, true);
+                for (const c of map.getColorLayers()) {
+                    c.update(context, child, node, true);
                 }
-                child.material.uniforms.colorTexture.value = nodeUniforms.colorTexture.value;
             }
 
             child.updateMatrixWorld(true);
