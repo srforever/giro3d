@@ -428,7 +428,7 @@ function _readZ(layer, method, coord, nodes, cache) {
     }
 
     const tile = tileWithValidElevationTexture;
-    const textureInfo = tileWithValidElevationTexture.material.getLayerTexture({ type: 'elevation' });
+    const textureInfo = tileWithValidElevationTexture.material.getElevationTextureInfo();
 
     const src = textureInfo.texture;
     // check cache value if existing

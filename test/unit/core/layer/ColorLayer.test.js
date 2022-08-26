@@ -118,10 +118,8 @@ describe('ColorLayer', () => {
             tile.parent = {
                 material: {
                     // eslint-disable-next-line arrow-body-style
-                    getLayerTexture: () => {
-                        return {
-                            texture: { extent },
-                        };
+                    getColorTexture: () => {
+                        return { extent };
                     },
                     uniforms: { colorTexture: { value: 'dummy' } },
                     texturesInfo: { color: { atlasTexture: 'dummy' } },

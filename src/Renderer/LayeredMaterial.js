@@ -16,8 +16,6 @@ import PrecisionQualifier from './Shader/Chunk/PrecisionQualifier.glsl';
 import GetElevation from './Shader/Chunk/GetElevation.glsl';
 import ComputeUV from './Shader/Chunk/ComputeUV.glsl';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
-import ColorLayer from '../Core/layer/ColorLayer.js';
-import ElevationLayer from '../Core/layer/ElevationLayer.js';
 
 // Declaring our own chunks
 ShaderChunk.PrecisionQualifier = PrecisionQualifier;
@@ -151,8 +149,96 @@ class LayeredMaterial extends RawShaderMaterial {
         this.texturesInfo.elevation.texture.dispose();
     }
 
-    getLayerTexture(layer) {
-        if (layer instanceof ElevationLayer) {
+    getColorTexture(layer) {
+        const index = this.indexOfColorLayer(layer);
+
+        if (index === -1) {
+            return null;
+        }
+        return this.texturesInfo.color.textures[index];
+    }
+
+    setColorTextures(layer, textures, shortcut, view) {
+        if (Array.isArray(textures)) {
+            // console.warn(`Provider should return a single texture and not an Array.
+            // See layer id = ${layer.id}`);
+            textures = textures[0];
+        }
+
+        const index = this.indexOfColorLayer(layer);
+        this.texturesInfo.color.originalOffsetScale[index].copy(textures.pitch);
+        this.texturesInfo.color.textures[index] = textures.texture;
+
+        if (shortcut) {
+            updateOffsetScale(
+                layer.imageSize,
+                this.atlasInfo.atlas[layer.id],
+                this.texturesInfo.color.originalOffsetScale[index],
+                this.uniforms.colorTexture.value.image,
+                this.texturesInfo.color.offsetScale[index],
+            );
+            // we already got our texture (needsUpdate is done in TiledNodeProcessing)
+            return Promise.resolve();
+        }
+
+        this.pendingUpdates.push(layer);
+
+        if (this.setTimeoutId !== null) {
+            clearTimeout(this.setTimeoutId);
+        }
+        this.setTimeoutId = setTimeout(() => {
+            if (this.uniforms.colorTexture.value !== this.texturesInfo.color.atlasTexture) {
+                this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
+                for (const l of this.colorLayers) {
+                    if (this.pendingUpdates.indexOf(l) === -1) {
+                        console.warn('no new texture for ', l.id, '. Redrawing the old one');
+                        this.pendingUpdates.push(l);
+                    }
+                }
+            }
+
+            // Draw scheduled textures in canvas
+            for (const l of this.pendingUpdates) {
+                const idx = this.indexOfColorLayer(l);
+                const atlas = this.atlasInfo.atlas[l.id];
+
+                updateOffsetScale(
+                    l.imageSize,
+                    this.atlasInfo.atlas[l.id],
+                    this.texturesInfo.color.originalOffsetScale[idx],
+                    this.uniforms.colorTexture.value.image,
+                    this.texturesInfo.color.offsetScale[idx],
+                );
+
+                const srcImage = this.texturesInfo.color.textures[idx].image;
+
+                this.canvasRevision = drawLayerOnCanvas(
+                    l,
+                    this.texturesInfo.color.atlasTexture,
+                    atlas,
+                    (srcImage === this.canvas) ? null : srcImage,
+                    this.texturesInfo.color.offsetScale[idx],
+                    this.canvasRevision,
+                );
+            }
+            this.pendingUpdates.length = 0;
+            this.texturesInfo.color.atlasTexture.needsUpdate = true;
+            if (this.visible) {
+                view.notifyChange();
+            }
+            this.setTimeoutId = null;
+        }, 1);
+
+        return Promise.resolve();
+    }
+
+    /**
+     * Gets the elevation texture if an elevation layer texture has been loaded in this material.
+     *
+     * @returns {object|null} Returns the elevation texture or null
+     */
+    getElevationTextureInfo() {
+        if (this.isElevationLayerTextureLoaded()) {
             return {
                 texture: this.texturesInfo.elevation.texture,
                 offsetScale: this.texturesInfo.elevation.offsetScale,
@@ -161,124 +247,40 @@ class LayeredMaterial extends RawShaderMaterial {
                 heightFieldOffset: this.texturesInfo.elevation.heightFieldOffset,
             };
         }
-
-        const index = this.indexOfColorLayer(layer);
-
-        if (index === -1) {
-            return null;
-        }
-        return {
-            texture: this.texturesInfo.color.textures[index],
-        };
+        return null;
     }
 
-    setLayerTextures(layer, textures, shortcut, view) {
-        if (Array.isArray(textures)) {
-            // console.warn(`Provider should return a single texture and not an Array.
-            // See layer id = ${layer.id}`);
-            textures = textures[0];
-        }
-
-        if (layer instanceof ElevationLayer) {
-            if (layer.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
-                if (!this.defines.MAPBOX_RGB_ELEVATION) {
-                    this.defines.MAPBOX_RGB_ELEVATION = 1;
-                    this.needsUpdate = true;
-                }
-            } else if (layer.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
-                if (!this.defines.HEIGHTFIELD_ELEVATION) {
-                    this.defines.HEIGHTFIELD_ELEVATION = 1;
-
-                    const heightFieldOffset = layer.heightFieldOffset || 0.0;
-                    this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
-                    this.uniforms.heightFieldOffset = new Uniform(heightFieldOffset);
-                    const heightFieldScale = layer.heightFieldScale || 255.0;
-                    this.texturesInfo.elevation.heightFieldScale = heightFieldScale;
-                    this.uniforms.heightFieldScale = new Uniform(heightFieldScale);
-                    this.needsUpdate = true;
-                }
-            } else if (layer.elevationFormat === ELEVATION_FORMAT.RATP_GEOL) {
-                if (!this.defines.RATP_GEOL_ELEVATION) {
-                    this.defines.RATP_GEOL_ELEVATION = 1;
-                }
-            } else {
-                throw new Error('Missing layer.elevationFormat handling', layer.elevationFormat);
+    setElevationTexture(layer, textureAndPitch) {
+        if (layer.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
+            if (!this.defines.MAPBOX_RGB_ELEVATION) {
+                this.defines.MAPBOX_RGB_ELEVATION = 1;
+                this.needsUpdate = true;
             }
-            this.uniforms.elevationTexture.value = textures.texture;
-            this.texturesInfo.elevation.texture = textures.texture;
-            this.texturesInfo.elevation.offsetScale.copy(textures.pitch);
-            this.texturesInfo.elevation.format = layer.elevationFormat;
+        } else if (layer.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
+            if (!this.defines.HEIGHTFIELD_ELEVATION) {
+                this.defines.HEIGHTFIELD_ELEVATION = 1;
 
-            return Promise.resolve(true);
-        }
-        if (layer instanceof ColorLayer) {
-            const index = this.indexOfColorLayer(layer);
-            this.texturesInfo.color.originalOffsetScale[index].copy(textures.pitch);
-            this.texturesInfo.color.textures[index] = textures.texture;
-
-            if (shortcut) {
-                updateOffsetScale(
-                    layer.imageSize,
-                    this.atlasInfo.atlas[layer.id],
-                    this.texturesInfo.color.originalOffsetScale[index],
-                    this.uniforms.colorTexture.value.image,
-                    this.texturesInfo.color.offsetScale[index],
-                );
-                // we already got our texture (needsUpdate is done in TiledNodeProcessing)
-                return Promise.resolve();
+                const heightFieldOffset = layer.heightFieldOffset || 0.0;
+                this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
+                this.uniforms.heightFieldOffset = new Uniform(heightFieldOffset);
+                const heightFieldScale = layer.heightFieldScale || 255.0;
+                this.texturesInfo.elevation.heightFieldScale = heightFieldScale;
+                this.uniforms.heightFieldScale = new Uniform(heightFieldScale);
+                this.needsUpdate = true;
             }
-
-            this.pendingUpdates.push(layer);
-
-            if (this.setTimeoutId !== null) {
-                clearTimeout(this.setTimeoutId);
+        } else if (layer.elevationFormat === ELEVATION_FORMAT.RATP_GEOL) {
+            if (!this.defines.RATP_GEOL_ELEVATION) {
+                this.defines.RATP_GEOL_ELEVATION = 1;
             }
-            this.setTimeoutId = setTimeout(() => {
-                if (this.uniforms.colorTexture.value !== this.texturesInfo.color.atlasTexture) {
-                    this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
-                    for (const l of this.colorLayers) {
-                        if (this.pendingUpdates.indexOf(l) === -1) {
-                            console.warn('no new texture for ', l.id, '. Redrawing the old one');
-                            this.pendingUpdates.push(l);
-                        }
-                    }
-                }
-
-                // Draw scheduled textures in canvas
-                for (const l of this.pendingUpdates) {
-                    const idx = this.indexOfColorLayer(l);
-                    const atlas = this.atlasInfo.atlas[l.id];
-
-                    updateOffsetScale(
-                        l.imageSize,
-                        this.atlasInfo.atlas[l.id],
-                        this.texturesInfo.color.originalOffsetScale[idx],
-                        this.uniforms.colorTexture.value.image,
-                        this.texturesInfo.color.offsetScale[idx],
-                    );
-
-                    const srcImage = this.texturesInfo.color.textures[idx].image;
-
-                    this.canvasRevision = drawLayerOnCanvas(
-                        l,
-                        this.texturesInfo.color.atlasTexture,
-                        atlas,
-                        (srcImage === this.canvas) ? null : srcImage,
-                        this.texturesInfo.color.offsetScale[idx],
-                        this.canvasRevision,
-                    );
-                }
-                this.pendingUpdates.length = 0;
-                this.texturesInfo.color.atlasTexture.needsUpdate = true;
-                if (this.visible) {
-                    view.notifyChange();
-                }
-                this.setTimeoutId = null;
-            }, 300 + Math.random() * 300);
-
-            return Promise.resolve();
+        } else {
+            throw new Error('Missing layer.elevationFormat handling', layer.elevationFormat);
         }
-        throw new Error('Unsupported layer, it should be either ColorLayer or ElevationLayer');
+        this.uniforms.elevationTexture.value = textureAndPitch.texture;
+        this.texturesInfo.elevation.texture = textureAndPitch.texture;
+        this.texturesInfo.elevation.offsetScale.copy(textureAndPitch.pitch);
+        this.texturesInfo.elevation.format = layer.elevationFormat;
+
+        return Promise.resolve(true);
     }
 
     pushLayer(newLayer) {
