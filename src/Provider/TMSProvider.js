@@ -1,11 +1,11 @@
-import * as THREE from 'three';
+import { Vector4 } from 'three';
 import OGCWebServiceHelper from './OGCWebServiceHelper.js';
 import URLBuilder from './URLBuilder.js';
 import Extent from '../Core/Geographic/Extent.js';
 import VectorTileHelper from './VectorTileHelper.js';
 import {
     STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY, STRATEGY_GROUP,
-} from '../Core/Layer/LayerUpdateStrategy.js';
+} from '../Core/layer/LayerUpdateStrategy.js';
 
 function preprocessDataLayer(layer) {
     if (!layer.extent) {
@@ -101,7 +101,7 @@ function getPossibleTextureImprovements(layer, extent, texture, previousError) {
 }
 
 function selectAllExtentsToDownload(layer, extent_, texture, previousError) {
-    const pitch = new THREE.Vector4(0, 0, 1, 1);
+    const pitch = new Vector4(0, 0, 1, 1);
     const extent = chooseExtentToDownload(
         extent_,
         (texture && texture.extent) ? texture.extent : null,

@@ -1,3 +1,7 @@
+/**
+ * @module Renderer/PointsMaterial
+ */
+
 import {
     Matrix4,
     Color,
@@ -13,18 +17,40 @@ import PointsVS from './Shader/PointsVS.glsl';
 import PointsFS from './Shader/PointsFS.glsl';
 import Capabilities from '../Core/System/Capabilities.js';
 
+/**
+ * Specifies the way points are colored.
+ *
+ * @api
+ * @readonly
+ * @enum {number}
+ */
 export const MODE = {
+    /** The points are colored using their own color */
     COLOR: 0,
+    /** The points are colored using their intensity */
     INTENSITY: 1,
+    /** The points are colored using their classification */
     CLASSIFICATION: 2,
+    /** The points are colored using their normal */
     NORMAL: 3,
+    /** The points are colored using an external texture, such as a color layer */
     TEXTURE: 4,
+    /** The points are colored using their elevation */
     ELEVATION: 5,
 };
 
 const NUM_TRANSFO = 16;
 
 class PointsMaterial extends RawShaderMaterial {
+    /**
+     * Creates a PointsMaterial using the specified options.
+     *
+     * @param {object} options The options.
+     * @param {number} [options.size=0] The point size.
+     * @param {number} [options.scale] The point scale.
+     * @param {Vector4} [options.overlayColor=new Vector4(0, 0, 0, 0)] An additional color to use.
+     * @param {number} [options.mode=MODE.COLOR] Specifies the criterion to colorize points.
+     */
     constructor(options = {}) {
         super();
         if (__DEBUG__) {
@@ -137,7 +163,7 @@ class PointsMaterial extends RawShaderMaterial {
         this.updateUniforms();
 
         this.colorLayer = layer;
-        this.uniforms.texture = new Uniform();
+        this.uniforms.overlayTexture = new Uniform();
         this.uniforms.offsetScale = new Uniform(new Vector4(0, 0, 1, 1));
         this.uniforms.extentTopLeft = new Uniform(new Vector2(extent.west(), extent.north()));
         const dim = extent.dimensions();
@@ -148,7 +174,7 @@ class PointsMaterial extends RawShaderMaterial {
         if (layer !== this.colorLayer) {
             return null;
         }
-        return { texture: this.uniforms.texture.value };
+        return { texture: this.uniforms.overlayTexture.value };
     }
 
     setLayerTextures(layer, textures) {
@@ -156,9 +182,10 @@ class PointsMaterial extends RawShaderMaterial {
             textures = textures[0];
         }
         if (layer === this.colorLayer) {
-            this.uniforms.texture.value = textures.texture;
+            this.uniforms.overlayTexture.value = textures.texture;
             this.uniforms.offsetScale.value.copy(textures.pitch);
         }
+        return Promise.resolve();
     }
 
     // eslint-disable-next-line class-methods-use-this

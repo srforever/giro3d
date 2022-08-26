@@ -1,11 +1,12 @@
-import * as THREE from 'three';
+import { Color } from 'three';
 import Fetcher from './Fetcher.js';
 import Cache from '../Core/Scheduler/Cache.js';
 import VectorTileParser from '../Parser/VectorTileParser.js';
 import Feature2Texture from '../Renderer/ThreeExtended/Feature2Texture.js';
 import Extent from '../Core/Geographic/Extent.js';
 import TileMesh from '../Core/TileMesh.js';
-import Layer from '../Core/Layer/Layer.js';
+import Layer from '../Core/layer/Layer.js';
+import ColorLayer from '../Core/layer/ColorLayer.js';
 
 const getVectorTileByUrl = function getVectorTileByUrl(url, tile, layer, coords) {
     return Fetcher.arrayBuffer(url, layer.networkOptions)
@@ -46,7 +47,7 @@ export default {
     getVectorTileByUrl,
 
     /**
-     * Get a vector tile, parse it and return a [THREE.Texture]{@link https://threejs.org/docs/#api/textures/Texture}.
+     * Get a vector tile, parse it and return a [Texture]{@link https://threejs.org/docs/#api/textures/Texture}.
      *
      * @param {string} url The URL of the tile to fetch, NOT the template: use a
      * Provider instead if needed.
@@ -57,12 +58,12 @@ export default {
      * resulting texture of the vector tile.
      */
     getVectorTileTextureByUrl(url, tile, layer, coords) {
-        if (layer.type !== 'color') return null;
+        if (layer instanceof ColorLayer) return null;
 
         return Cache.get(url) || Cache.set(url, getVectorTileByUrl(url, tile, layer, coords)
             .then(features => {
                 const backgroundColor = (layer.backgroundLayer && layer.backgroundLayer.paint)
-                    ? new THREE.Color(layer.backgroundLayer.paint['background-color'])
+                    ? new Color(layer.backgroundLayer.paint['background-color'])
                     : undefined;
 
                 let extentTexture;

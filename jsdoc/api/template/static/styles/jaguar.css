@@ -45,9 +45,6 @@
   background-color: #4da6e9;
 }
 
-body {
-  padding-top: 50px;
-}
 .nameContainer .anchor {
   padding-top: 50px;
   margin-top: -50px;
@@ -70,11 +67,6 @@ a {
 }
 
 html,
-body {
-  font-family: "Quattrocento Sans", "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
-  font-size: 1.0em;
-  background-color: #fff;
-}
 ul,
 ol {
   margin: 0;
@@ -376,6 +368,45 @@ span.type-signature.static {
   font-size: 14px;
   font-weight: normal;
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+code,
+kbd,
+pre,
+samp {
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+}
+code {
+  padding: 2px 4px;
+  font-size: 90%;
+  color: #c7254e;
+  white-space: nowrap;
+  background-color: #f9f2f4;
+  border-radius: 4px;
+}
+pre {
+  display: block;
+  padding: 9.5px;
+  margin: 0 0 10px;
+  font-size: 13px;
+  line-height: 1.428571429;
+  color: #333;
+  word-break: break-all;
+  word-wrap: break-word;
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+pre code {
+  padding: 0;
+  font-size: inherit;
+  color: inherit;
+  white-space: pre-wrap;
+  background-color: transparent;
+  border-radius: 0;
+}
+.pre-scrollable {
+  max-height: 340px;
+  overflow-y: scroll;
 }
 .main pre {
   font-size: 12px;

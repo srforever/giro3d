@@ -1,7 +1,7 @@
 /**
  * @module Core/Geographic/Extent
  */
-import * as THREE from 'three';
+import { MathUtils, Vector2, Vector4 } from 'three';
 import Coordinates, {
     crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCRS, is4326,
 } from './Coordinates.js';
@@ -12,7 +12,7 @@ import Coordinates, {
  */
 
 function YToWGS84(y) {
-    return THREE.MathUtils.radToDeg(
+    return MathUtils.radToDeg(
         2 * (Math.atan(Math.exp(-(y - 0.5) * Math.PI * 2)) - Math.PI / 4),
     );
 }
@@ -51,7 +51,7 @@ const tmpCoords = new Coordinates('EPSG:4326', 0, 0, 0);
  *     proj4.defs('EPSG:3946',
             '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 + \
             ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
- *     extent = new giro3d.Extent(
+ *     extent = new Extent(
  *                  'EPSG:3946',
  *                  1837816.94334, 1847692.32501,
  *                  5170036.4587, 5178412.82698);
@@ -64,8 +64,8 @@ class Extent {
      *
      * @param {string} crs The CRS code the coordinates are expressed in. Every EPSG code known by
      * [proj4js](https://github.com/proj4js/proj4js) can be used directly.
-     * For others, you must manually register them. The proj4 instance used by giro3d is available
-     * at giro3d.proj4. Please refer to [proj4js](https://github.com/proj4js/proj4js) doc for more information.
+     * For others, you must manually register them.
+     * Please refer to [proj4js](https://github.com/proj4js/proj4js) doc for more information.
      * @param {number|object|Coordinates} values Variable number of arguments. The following
      * combinations are supported:
      * - 2 {@link module:Core/Geographic/Coordinates Coordinates}
@@ -205,7 +205,7 @@ class Extent {
         return this;
     }
 
-    offsetToParent(other, target = new THREE.Vector4()) {
+    offsetToParent(other, target = new Vector4()) {
         if (this.crs() !== other.crs()) {
             throw new Error('unsupported mix');
         }
@@ -282,11 +282,11 @@ class Extent {
      * Sets `target` with the center of this extent.
      *
      * @api
-     * @param {object|THREE.Vector2} target the object to set with the center's X.
+     * @param {object|Vector2} target the object to set with the center's X.
      * If none provided, a new one is created.
      * @param {number} target.x the `x` component
      * @param {number} target.y the `y` component
-     * @returns {object|THREE.Vector2} the modified object passed in argument.
+     * @returns {object|Vector2} the modified object passed in argument.
      */
     center(target) {
         if (_isTiledCRS(this._crs)) {
@@ -311,8 +311,8 @@ class Extent {
      * and the <code>y</code> property will be set with the height.
      *
      * @api
-     * @param {object|THREE.Vector2} [target] the optional object to set with the width.
-     * @returns {object|THREE.Vector2} the modified object passed in argument,
+     * @param {object|Vector2} [target] the optional object to set with the width.
+     * @returns {object|Vector2} the modified object passed in argument,
      * or a new object if none was provided.
      */
     dimensions(target) {
@@ -396,7 +396,7 @@ class Extent {
         const scaleX = Math.abs(bbox.east() - bbox.west()) / dimension.x;
         const scaleY = Math.abs(bbox.north() - bbox.south()) / dimension.y;
 
-        return new THREE.Vector4(originX, originY, scaleX, scaleY);
+        return new Vector4(originX, originY, scaleX, scaleY);
     }
 
     /**

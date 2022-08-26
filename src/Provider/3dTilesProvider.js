@@ -1,49 +1,42 @@
-import * as THREE from 'three';
+import {
+    Box3,
+    LoaderUtils,
+    Matrix4,
+    Object3D,
+    Sphere,
+    Vector3,
+} from 'three';
 import B3dmParser from '../Parser/B3dmParser.js';
 import PntsParser from '../Parser/PntsParser.js';
 import Fetcher from './Fetcher.js';
-import { pre3dTilesUpdate, process3dTilesNode, init3dTilesLayer } from '../Process/3dTilesProcessing.js';
 import utf8Decoder from '../utils/Utf8Decoder.js';
 import Picking from '../Core/Picking.js';
 import Points from '../Core/Points.js';
 import PointsMaterial from '../Renderer/PointsMaterial.js';
 import Cache from '../Core/Scheduler/Cache.js';
+import { init3dTilesEntity } from '../entities/Tiles3D.js';
 
-const identity = new THREE.Matrix4();
+const identity = new Matrix4();
 
 export class $3dTilesIndex {
     constructor(tileset, baseURL) {
         this._counter = 1;
         this.index = {};
-        this._inverseTileTransform = new THREE.Matrix4();
+        this._inverseTileTransform = new Matrix4();
         this._recurse(tileset.root, baseURL);
-
-        // Add a special tileId = 0 which acts as root of the tileset but has
-        // no content.
-        // This way we can safely cleanup the root of the tileset in the processing
-        // code, and keep a valid layer.root tile.
-        // this.index[0] = {
-        //     baseURL: this.index[1].baseURL,
-        //     viewerRequestVolume: this.index[1].viewerRequestVolume,
-        //     boundingVolume: this.index[1].boundingVolume,
-        //     children: [1],
-        //     transform: this.index[1].transform,
-        //     refine: this.index[1].refine,
-        //     geometricError: this.index[1].geometricError,
-        // };
     }
 
     _recurse(node, baseURL, parent) {
         // compute transform (will become Object3D.matrix when the object is downloaded)
         node.transform = node.transform
-            ? (new THREE.Matrix4()).fromArray(node.transform) : identity;
+            ? (new Matrix4()).fromArray(node.transform) : identity;
 
         // The only reason to store _worldFromLocalTransform is because of extendTileset where we
         // need the transform chain for one node.
         node._worldFromLocalTransform = node.transform;
         if (parent && parent._worldFromLocalTransform) {
             if (node.transform) {
-                node._worldFromLocalTransform = new THREE.Matrix4().multiplyMatrices(
+                node._worldFromLocalTransform = new Matrix4().multiplyMatrices(
                     parent._worldFromLocalTransform, node.transform,
                 );
             } else {
@@ -114,26 +107,24 @@ export function getObjectToUpdateForAttachedLayers(meta) {
     };
 }
 
-function preprocessDataLayer(layer, view, scheduler) {
-    layer.preUpdate = pre3dTilesUpdate(layer);
-    layer.update = process3dTilesNode(layer);
-    layer.sseThreshold = layer.sseThreshold || 16;
-    layer.cleanupDelay = layer.cleanupDelay || 1000;
+function preprocessDataLayer(entity, instance, scheduler) {
     // override the default method, since updated objects are metadata in this case
-    layer.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
+    entity.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
 
     // TODO: find a better way to know that this layer is about pointcloud ?
-    if (layer.material && layer.material.enablePicking) {
-        layer.pickObjectsAt = (view2, mouse, radius) => Picking.pickPointsAt(
-            view2,
+    if (entity.material && entity.material.enablePicking) {
+        entity.pickObjectsAt = (instance2, mouse, radius) => Picking.pickPointsAt(
+            instance2,
             mouse,
             radius,
-            layer,
+            entity,
         );
     }
 
-    layer._cleanableTiles = [];
-    return Fetcher.json(layer.url, layer.networkOptions).then(tileset => {
+    const url = entity.url;
+
+    // Download the root tileset to complete the preparation.
+    return Fetcher.json(url, entity.networkOptions).then(tileset => {
         if (!tileset.root.refine) {
             tileset.root.refine = tileset.refine;
         }
@@ -152,11 +143,11 @@ function preprocessDataLayer(layer, view, scheduler) {
         tileset.root.transform = undefined;
         // Replace root
         tileset.root = fakeroot;
-        layer.tileset = tileset;
-        const urlPrefix = layer.url.slice(0, layer.url.lastIndexOf('/') + 1);
-        layer.tileIndex = new $3dTilesIndex(tileset, urlPrefix);
-        layer.asset = tileset.asset;
-        return init3dTilesLayer(view, scheduler, layer, tileset.root);
+        entity.tileset = tileset;
+        const urlPrefix = url.slice(0, url.lastIndexOf('/') + 1);
+        entity.tileIndex = new $3dTilesIndex(tileset, urlPrefix);
+        entity.asset = tileset.asset;
+        return init3dTilesEntity(instance, scheduler, entity, tileset.root);
     });
 }
 
@@ -170,11 +161,11 @@ function getBox(volume) {
         // box[3], box[4], box[5] = x axis direction and half-length
         // box[6], box[7], box[8] = y axis direction and half-length
         // box[9], box[10], box[11] = z axis direction and half-length
-        const center = new THREE.Vector3(bbox[0], bbox[1], bbox[2]);
+        const center = new Vector3(bbox[0], bbox[1], bbox[2]);
 
-        const halfXVector = new THREE.Vector3(bbox[3], bbox[4], bbox[5]);
-        const halfYVector = new THREE.Vector3(bbox[6], bbox[7], bbox[8]);
-        const halfZVector = new THREE.Vector3(bbox[9], bbox[10], bbox[11]);
+        const halfXVector = new Vector3(bbox[3], bbox[4], bbox[5]);
+        const halfYVector = new Vector3(bbox[6], bbox[7], bbox[8]);
+        const halfZVector = new Vector3(bbox[9], bbox[10], bbox[11]);
         const point1 = center.clone()
             .sub(halfXVector).sub(halfYVector).sub(halfZVector);
         const point2 = center.clone()
@@ -186,14 +177,14 @@ function getBox(volume) {
         const b = Math.min(point1.z, point2.z);
         const t = Math.max(point1.z, point2.z);
 
-        const box = new THREE.Box3(new THREE.Vector3(w, s, b), new THREE.Vector3(e, n, t));
-        if (box.getSize(new THREE.Vector3()).length() === 0) {
+        const box = new Box3(new Vector3(w, s, b), new Vector3(e, n, t));
+        if (box.getSize(new Vector3()).length() === 0) {
             throw new Error('Invalid boundingVolume (0 sized box)');
         }
         return { box };
     } else if (volume.sphere) {
-        const sphere = new THREE.Sphere(
-            new THREE.Vector3(volume.sphere[0], volume.sphere[1], volume.sphere[2]),
+        const sphere = new Sphere(
+            new Vector3(volume.sphere[0], volume.sphere[1], volume.sphere[2]),
             volume.sphere[3],
         );
         return { sphere };
@@ -206,7 +197,7 @@ function getBox(volume) {
 }
 
 function b3dmToMesh(data, layer, url) {
-    const urlBase = THREE.LoaderUtils.extractUrlBase(url);
+    const urlBase = LoaderUtils.extractUrlBase(url);
     const options = {
         gltfUpAxis: layer.asset.gltfUpAxis,
         urlBase,
@@ -225,7 +216,6 @@ function pntsParse(data, layer) {
     return PntsParser.parse(data).then(result => {
         const material = layer.material
             ? layer.material.clone()
-            // new PointsMaterial({ size: 3 });
             : new PointsMaterial();
 
         if (material.enablePicking) {
@@ -270,7 +260,7 @@ export function configureTile(tile, layer, metadata, parent) {
 function executeCommand(command) {
     const { layer } = command;
     const { metadata } = command;
-    const tile = new THREE.Object3D();
+    const tile = new Object3D();
     configureTile(tile, layer, metadata, command.requester);
     // Patch for supporting 3D Tiles pre 1.0 (metadata.content.url) and 1.0
     // (metadata.content.uri)

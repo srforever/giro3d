@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import { Vector3, BufferAttribute, BufferGeometry } from 'three';
 import BatchTableParser from './BatchTableParser.js';
 import utf8Decoder from '../utils/Utf8Decoder.js';
 
@@ -6,10 +6,10 @@ export default {
     /** @module PntsParser */
 
     /**
-     * Parse pnts buffer and extract THREE.Points and batch table
+     * Parse pnts buffer and extract Points and batch table
      *
      * @param {ArrayBuffer} buffer the pnts buffer.
-     * @returns {Promise} - a promise that resolves with an object containig a THREE.Points (point)
+     * @returns {Promise} - a promise that resolves with an object containig a Points (point)
      * and a batch table (batchTable).
      */
     parse: function parse(buffer) {
@@ -70,7 +70,7 @@ export default {
 
 function parseFeatureBinary(array, byteOffset, FTJSONLength) {
     // Init geometry
-    const geometry = new THREE.BufferGeometry();
+    const geometry = new BufferGeometry();
 
     // init Array feature binary
     const subArrayJson = utf8Decoder.decode(new Uint8Array(array, byteOffset, FTJSONLength));
@@ -82,12 +82,12 @@ function parseFeatureBinary(array, byteOffset, FTJSONLength) {
     if (parseJSON.POSITION) {
         const byteOffsetPos = (parseJSON.POSITION.byteOffset + subArrayJson.length + byteOffset);
         const positionArray = new Float32Array(array, byteOffsetPos, lengthFeature * 3);
-        geometry.setAttribute('position', new THREE.BufferAttribute(positionArray, 3));
+        geometry.setAttribute('position', new BufferAttribute(positionArray, 3));
     }
     if (parseJSON.RGB) {
         const byteOffsetCol = parseJSON.RGB.byteOffset + subArrayJson.length + byteOffset;
         const colorArray = new Uint8Array(array, byteOffsetCol, lengthFeature * 3);
-        geometry.setAttribute('color', new THREE.BufferAttribute(colorArray, 3, true));
+        geometry.setAttribute('color', new BufferAttribute(colorArray, 3, true));
     }
     if (parseJSON.POSITION_QUANTIZED) {
         throw new Error('For pnts loader, POSITION_QUANTIZED: not yet managed');
@@ -110,7 +110,7 @@ function parseFeatureBinary(array, byteOffset, FTJSONLength) {
 
     // Add RTC feature
     const offset = parseJSON.RTC_CENTER
-        ? new THREE.Vector3().fromArray(parseJSON.RTC_CENTER) : undefined;
+        ? new Vector3().fromArray(parseJSON.RTC_CENTER) : undefined;
 
     return {
         geometry,

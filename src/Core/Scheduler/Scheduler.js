@@ -4,7 +4,7 @@ import TileProvider from '../../Provider/TileProvider.js';
 import $3dTilesProvider from '../../Provider/3dTilesProvider.js';
 import TMSProvider from '../../Provider/TMSProvider.js';
 import PointCloudProvider from '../../Provider/PointCloudProvider.js';
-import StaticProvider from '../../Provider/StaticProvider.js';
+import CustomTiledImageProvider from '../../Provider/CustomTiledImageProvider.js';
 import OLTileProvider from '../../Provider/OLTileProvider.js';
 import OLVectorTileProvider from '../../Provider/OLVectorTileProvider.js';
 import OLVectorProvider from '../../Provider/OLVectorProvider.js';
@@ -132,7 +132,7 @@ Scheduler.prototype.initDefaultProviders = function initDefaultProviders() {
     this.addProtocolProvider('tms', TMSProvider);
     this.addProtocolProvider('xyz', TMSProvider);
     this.addProtocolProvider('potreeconverter', PointCloudProvider);
-    this.addProtocolProvider('static', StaticProvider);
+    this.addProtocolProvider('customtiledimage', CustomTiledImageProvider);
     this.addProtocolProvider('oltile', OLTileProvider);
     this.addProtocolProvider('olvectortile', OLVectorTileProvider);
     this.addProtocolProvider('olvector', OLVectorProvider);
@@ -165,11 +165,6 @@ Scheduler.prototype.runCommand = function runCommand(command, queue, recurse = t
 };
 
 Scheduler.prototype.execute = function execute(command) {
-    if (command.layer && command.layer.protocol === 'tile') {
-        const provider = this.providers[command.layer.protocol];
-        return provider.executeCommand(command);
-    }
-
     // parse host
     const { layer } = command;
     const host = layer.url ? new URL(layer.url, document.location).host : undefined;

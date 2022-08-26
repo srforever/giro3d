@@ -15,11 +15,14 @@
       "src/Core/Context.js",
       "src/Core/Geographic/Extent.js",
       "src/Core/Geographic/Coordinates.js",
-      "src/Core/Layer/Layer.js",
-      "src/Core/Layer/LayerUpdateStrategy.js",
-      "src/Core/Layer/TileLayer.js",
+      "src/Core/layer/Layer.js",
+      "src/Core/layer/ColorLayer.js",
+      "src/Core/layer/ElevationLayer.js",
+      "src/Core/layer/LayerUpdateStrategy.js",
       "src/Renderer/Camera.js",
-      "src/entities"
+      "src/Renderer/PointsMaterial.js",
+      "src/entities",
+      "src/sources"
     ]
   },
   "plugins": [

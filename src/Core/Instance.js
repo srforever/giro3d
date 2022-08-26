@@ -9,8 +9,8 @@ import { register } from 'ol/proj/proj4.js';
 import Camera from '../Renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../Renderer/c3DEngine.js';
-import { STRATEGY_MIN_NETWORK_TRAFFIC } from './Layer/LayerUpdateStrategy.js';
-import Layer, { defineLayerProperty } from './Layer/Layer.js';
+import { STRATEGY_MIN_NETWORK_TRAFFIC } from './layer/LayerUpdateStrategy.js';
+import Layer, { defineLayerProperty } from './layer/Layer.js';
 import Entity3D from '../entities/Entity3D.js';
 import Scheduler from './Scheduler/Scheduler.js';
 import Picking from './Picking.js';
@@ -48,11 +48,22 @@ const _eventCoords = new Vector2();
  * the current camera and one or more {@link module:entities/Entity~Entity entities},
  * such as a {@link module:entities/Map~Map Map}.
  *
- *     // example of Giro3D instanciation
- *     let instance = new giro3d.Instance(viewerDiv, extent.crs(), {camera: camera})
- *     let map = new giro3d.Map('planar', null, extent, { maxSubdivisionLevel: 10 });
+ *     // example of Giro3D instantiation
+ *     let instance = new Instance(viewerDiv, extent.crs(), {camera: camera})
+ *     let map = new Map('planar', null, extent, { maxSubdivisionLevel: 10 });
  *     instance.add(map);
  *
+ *     // Bind an event listener on double click
+ *     instance.domElement.addEventListener('dblclick', dblClickHandler);
+ *
+ *     // Get the camera position
+ *     let myvector = instance.camera.camera3D.position;
+ *     // Set the camera position
+ *     instance.camera.camera3D.position.set(newPosition);
+ *     instance.camera.camera3D.lookAt(lookAt);
+ *
+ * @property {HTMLElement} domElement DOM Element where the rendering is done (by default, a child
+ * of ̀`viewerDiv`)
  * @api
  */
 class Instance extends EventDispatcher {
@@ -63,15 +74,21 @@ class Instance extends EventDispatcher {
      * @param {object=} options Optional properties.
      * @param {?string} [options.crs='EPSG:3857'] The default CRS of Three.js coordinates. Should
      * be a cartesian CRS.
-     * @param {?Scene} options.scene3D the [Three.js Scene](https://threejs.org/docs/#api/en/scenes/Scene) instance to use,
+     * @param {?Scene} options.scene3D The [Three.js Scene](https://threejs.org/docs/#api/en/scenes/Scene) instance to use,
      * otherwise a default one will be constructed
+     * @param {object=} options.renderer The options for the renderer.
+     * @param {number|boolean} options.renderer.clearColor The background color.
+     * Can be a hex color or `false` for transparent backgrounds.
+     * @param {boolean} options.renderer.antialias Enables antialiasing.
+     * @param {boolean} options.renderer.logarithmicDepthBuffer Enables the
+     * [logarithmic depth buffer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.logarithmicDepthBuffer).
      * @example
      * let opts = {
      *  camera: camera,
      *  crs = exent.crs()
      * };
-     * let instance = new giro3d.Instance(viewerDiv, opts);
-     * let map = new giro3d.Map('planar', null, extent, { maxSubdivisionLevel: 10 });
+     * let instance = new Instance(viewerDiv, opts);
+     * let map = new Map('planar', null, extent, { maxSubdivisionLevel: 10 });
      * instance.add(map);
      * @api
      */
@@ -158,6 +175,11 @@ class Instance extends EventDispatcher {
 
         this.controls = null;
         this._controlFunctions = null;
+
+        Object.defineProperty(this, 'domElement', {
+            value: this.mainLoop.gfxEngine.renderer.domElement,
+            writable: false,
+        });
     }
 
     /**

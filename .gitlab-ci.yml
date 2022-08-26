@@ -44,8 +44,8 @@ build_lts:
     image: node:lts-alpine
     script:
         - npm i
-        - npm run build
-        - npm pack
+        - npm run build-package
+        - npm pack build/giro3d/
     artifacts:
         paths:
             - dist
@@ -58,8 +58,8 @@ build_current:
     script:
         - export NODE_OPTIONS=--openssl-legacy-provider
         - npm i
-        - npm run build
-        - npm pack
+        - npm run build-package
+        - npm pack build/giro3d/
 
 lint:
     stage: lint
@@ -92,7 +92,7 @@ pages:
     image: node:lts-alpine
     script:
         - npm run build-site
-        - mv build public
+        - mv build/site public
     artifacts:
         paths:
             - public

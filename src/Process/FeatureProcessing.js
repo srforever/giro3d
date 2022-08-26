@@ -1,12 +1,12 @@
-import * as THREE from 'three';
-import LayerUpdateState from '../Core/Layer/LayerUpdateState.js';
+import { Vector3, Quaternion, BufferGeometry } from 'three';
+import LayerUpdateState from '../Core/layer/LayerUpdateState.js';
 import CancelledCommandException from '../Core/Scheduler/CancelledCommandException.js';
 import ObjectRemovalHelper from './ObjectRemovalHelper.js';
 
-const vector = new THREE.Vector3();
+const vector = new Vector3();
 function applyOffset(obj, offset, quaternion, offsetAltitude) {
     if (obj.geometry) {
-        if (obj.geometry instanceof THREE.BufferGeometry) {
+        if (obj.geometry instanceof BufferGeometry) {
             for (let i = 0; i < obj.geometry.attributes.position.count; i++) {
                 const i3 = 3 * i;
                 vector.fromArray(obj.geometry.attributes.position.array, i3);
@@ -30,7 +30,7 @@ function applyOffset(obj, offset, quaternion, offsetAltitude) {
     obj.children.forEach(c => applyOffset(c, offset, quaternion, offsetAltitude));
 }
 
-const quaternion = new THREE.Quaternion();
+const quaternion = new Quaternion();
 export default {
     update(layer) {
         return function _update(ctx, node) {
@@ -104,8 +104,8 @@ export default {
                     // if node's layer is attached to an Object with a non-identity transformation)
                     const tmp = node.extent.center().as(ctx.instance.referenceCrs).xyz().negate();
                     quaternion.setFromRotationMatrix(node.matrixWorld).invert();
-                    // const quaternion = new THREE.Quaternion().setFromUnitVectors(
-                    // new THREE.Vector3(0, 0, 1), node.extent.center().geodesicNormal).invert();
+                    // const quaternion = new Quaternion().setFromUnitVectors(
+                    // new Vector3(0, 0, 1), node.extent.center().geodesicNormal).invert();
                     applyOffset(result, tmp, quaternion, result.minAltitude);
                     if (result.minAltitude) {
                         result.position.z = result.minAltitude;

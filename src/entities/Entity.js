@@ -11,8 +11,8 @@
  * object that is added to an {@link module:Core/Instance~Instance Instance}.
  *
  *
- *     const instance = new giro3d.Instance(...);
- *     const entity = new giro3d.Entity('exampleEntity');
+ *     const instance = new Instance(...);
+ *     const entity = new Entity('exampleEntity');
  *     instance.add(entity);
  *
  * @api
