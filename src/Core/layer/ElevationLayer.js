@@ -130,10 +130,11 @@ class ElevationLayer extends Layer {
     }
 
     initNodeElevationTextureFromParent(node, parent) {
-        const parentTexture = parent.material.getLayerTexture(this).texture;
-        if (!parentTexture.extent) {
+        const parentTextureInfo = parent.material.getElevationTextureInfo();
+        if (!parentTextureInfo || !parentTextureInfo.texture.extent) {
             return;
         }
+        const parentTexture = parentTextureInfo.texture;
 
         const extent = node.getExtentForLayer(this);
 
@@ -245,10 +246,11 @@ class ElevationLayer extends Layer {
         }
 
         // Does this tile needs a new texture?
+        const textureInfo = node.material.getElevationTextureInfo();
         const nextDownloads = this.getPossibleTextureImprovements(
             this,
             node.getExtentForLayer(this),
-            node.material.getLayerTexture(this).texture,
+            textureInfo && textureInfo.texture,
             node.layerUpdateState[this.id].failureParams,
         );
 

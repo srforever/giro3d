@@ -112,7 +112,7 @@ class TileMesh extends Mesh {
             return;
         }
         this.setBBoxZ(elevation.min, elevation.max);
-        this.material.setLayerTextures(layer, elevation);
+        this.material.setElevationTexture(layer, elevation);
     }
 
     setBBoxZ(min, max) {

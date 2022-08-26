@@ -57,7 +57,7 @@ class ColorLayer extends Layer {
     }
 
     initColorTexturesFromParent(context, node, parent) {
-        if (!parent.material || !parent.material.getLayerTexture) {
+        if (!parent.material || !parent.material.getColorTexture) {
             return false;
         }
 
@@ -65,7 +65,7 @@ class ColorLayer extends Layer {
         // move up until we have a parent that uses its own atlas
         // This is needed because otherwise we'll get inconsistencies: child will inherit the atlas,
         // but will compute its offset/scale values based on the result of
-        // parent.material.getLayerTexture()
+        // parent.material.getColorTexture()
         while (parent && parent.material && parent.material.uniforms.colorTexture
             && parent.material.uniforms.colorTexture.value
                 !== parent.material.texturesInfo.color.atlasTexture) {
@@ -74,18 +74,17 @@ class ColorLayer extends Layer {
         if (!parent || !parent.material) {
             return false;
         }
-        const parentTexture = parent.material.getLayerTexture(this);
-        if (!parentTexture) {
+        const texture = parent.material.getColorTexture(this);
+        if (!texture) {
             return false;
         }
-
-        const { texture } = parentTexture;
 
         if (!texture || !texture.extent) {
             return false;
         }
 
-        node.material.setLayerTextures(this, {
+        node.material.uniforms.colorTexture.value = parent.material.uniforms.colorTexture.value;
+        node.material.setColorTextures(this, {
             texture,
             pitch: extent.offsetToParent(texture.extent),
         }, true, context.instance);
@@ -121,7 +120,7 @@ class ColorLayer extends Layer {
                 if (!this.noTextureParentOutsideLimit
                     && parent
                     && parent.material
-                    && parent.material.getLayerTexture(this)) {
+                    && parent.material.getColorTexture(this)) {
                     // ok, we're going to inherit our parent's texture
                 } else {
                     node.layerUpdateState[this.id].noMoreUpdatePossible();
@@ -156,11 +155,10 @@ class ColorLayer extends Layer {
         }
 
         // Does this tile needs a new texture?
-        const existing = node.material.getLayerTexture(this);
         const nextDownloads = this.getPossibleTextureImprovements(
             this,
             node.getExtentForLayer(this),
-            existing ? existing.texture : null,
+            node.material.getColorTexture(this),
             node.layerUpdateState[this.id].failureParams,
         );
 
@@ -192,7 +190,7 @@ class ColorLayer extends Layer {
                 if (node.material === null) {
                     return null;
                 }
-                return node.material.setLayerTextures(this, result, false, context.instance)
+                return node.material.setColorTextures(this, result, false, context.instance)
                     .then(() => {
                         node.layerUpdateState[this.id].success();
                     });
