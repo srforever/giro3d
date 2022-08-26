@@ -227,7 +227,7 @@ class LayeredMaterial extends RawShaderMaterial {
                 view.notifyChange();
             }
             this.setTimeoutId = null;
-        }, 300 + Math.random() * 300);
+        }, 1);
 
         return Promise.resolve();
     }
