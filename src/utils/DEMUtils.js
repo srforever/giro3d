@@ -29,7 +29,7 @@ export const ELEVATION_FORMAT = {
 /**
  * Return current displayed elevation at coord in meters.
  *
- * @param {module:Entity3D~Entity3D} layer The tile layer owning
+ * @param {module:Entity3D~Entity3D} entity The tile entity owning
  * the elevation textures we're going to query.
  * This is typically the globeLayer or a planeLayer.
  * @param {Coordinates} coord The coordinates that we're interested in
@@ -41,8 +41,8 @@ export const ELEVATION_FORMAT = {
  * @returns {object}  undefined if no result or z: displayed elevation in meters, texture: where
  * the z value comes from, tile: owner of the texture
  */
-function getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
-    const result = _readZ(layer, method, coord, tileHint || layer.level0Nodes);
+function getElevationValueAt(entity, coord, method = FAST_READ_Z, tileHint) {
+    const result = _readZ(entity, method, coord, tileHint || entity.level0Nodes);
     if (!result) {
         return null;
     }
@@ -52,7 +52,7 @@ function getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
 /**
  * Helper method that will position an object directly on the ground.
  *
- * @param {module:Entity3D~Entity3D} layer The tile layer owning
+ * @param {module:Entity3D~Entity3D} entity The tile entity owning
  * the elevation textures we're going to query.
  * This is typically the globeLayer or a planeLayer.
  * @param {string} objectCRS the CRS used by the object coordinates. You probably want to use
@@ -68,12 +68,12 @@ function getElevationValueAt(layer, coord, method = FAST_READ_Z, tileHint) {
  * @returns {boolean} true if successful, false if we couldn't lookup the elevation at the given
  * coords
  */
-function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
+function placeObjectOnGround(entity, objectCRS, obj, options = {}, tileHint) {
     let tiles;
     if (tileHint) {
-        tiles = tileHint.concat(layer.level0Nodes);
+        tiles = tileHint.concat(entity.level0Nodes);
     } else {
-        tiles = layer.level0Nodes;
+        tiles = entity.level0Nodes;
     }
 
     if (!options.modifyGeometry) {
@@ -86,7 +86,7 @@ function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
                 ? new Matrix4().copy(obj.parent.matrixWorld).invert() : undefined,
         };
         const result = _updateVector3(
-            layer,
+            entity,
             options.method || FAST_READ_Z,
             tiles,
             objectCRS,
@@ -124,7 +124,7 @@ function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
             const cached = options.cache ? options.cache[i] : undefined;
 
             const result = _updateVector3(
-                layer,
+                entity,
                 options.method || FAST_READ_Z,
                 tiles,
                 objectCRS,
@@ -159,7 +159,7 @@ function placeObjectOnGround(layer, objectCRS, obj, options = {}, tileHint) {
             tmp.fromBufferAttribute(geometry.attributes.position, i);
             const prev = tmp.z;
             const result = _updateVector3(
-                layer,
+                entity,
                 options.method || FAST_READ_Z,
                 tiles,
                 objectCRS,
@@ -211,15 +211,12 @@ function tileAt(pt, tile) {
             return t;
         }
     }
-    if (tile.material.isElevationLayerTextureLoaded()) {
-        return tile;
-    }
-    return undefined;
+    return tile;
 }
 
 let _canvas;
 let ctx;
-function _readTextureValueAt(layer, textureInfo, ...uv) {
+function _readTextureValueAt(textureInfo, ...uv) {
     const { texture, elevationFormat: format } = textureInfo;
     for (let i = 0; i < uv.length; i += 2) {
         uv[i] = MathUtils.clamp(uv[i], 0, texture.image.width - 1);
@@ -314,19 +311,19 @@ function _convertUVtoTextureCoords(texture, u, v) {
     };
 }
 
-function _readTextureValueNearestFiltering(layer, textureInfo, vertexU, vertexV) {
+function _readTextureValueNearestFiltering(textureInfo, vertexU, vertexV) {
     const coords = _convertUVtoTextureCoords(textureInfo.texture, vertexU, vertexV);
 
     const u = (coords.wu <= 0) ? coords.u1 : coords.u2;
     const v = (coords.wv <= 0) ? coords.v1 : coords.v2;
 
-    return _readTextureValueAt(layer, textureInfo, u, v);
+    return _readTextureValueAt(textureInfo, u, v);
 }
 
-function _readTextureValueWithBilinearFiltering(layer, textureInfo, vertexU, vertexV) {
+function _readTextureValueWithBilinearFiltering(textureInfo, vertexU, vertexV) {
     const coords = _convertUVtoTextureCoords(textureInfo.texture, vertexU, vertexV);
 
-    const [z11, z21, z12, z22] = _readTextureValueAt(layer, textureInfo,
+    const [z11, z21, z12, z22] = _readTextureValueAt(textureInfo,
         coords.u1, coords.v1,
         coords.u2, coords.v1,
         coords.u1, coords.v2,
@@ -339,11 +336,12 @@ function _readTextureValueWithBilinearFiltering(layer, textureInfo, vertexU, ver
     return MathUtils.lerp(zu1, zu2, coords.wv);
 }
 
-function _readZFast(layer, textureInfo, uv) {
-    return _readTextureValueNearestFiltering(layer, textureInfo, uv.x, uv.y);
+function _readZFast(textureInfo, uv) {
+    return _readTextureValueNearestFiltering(textureInfo, uv.x, uv.y);
 }
 
-function _readZCorrect(layer, textureInfo, uv, tileDimensions, tileOwnerDimensions) {
+const bary = new Vector3();
+function _readZCorrect(textureInfo, uv, tileDimensions, tileOwnerDimensions) {
     // We need to emulate the vertex shader code that does 2 thing:
     //   - interpolate (u, v) between triangle vertices: u,v will be multiple of 1/nsegments
     //     (for now assume nsegments === 16)
@@ -392,12 +390,12 @@ function _readZCorrect(layer, textureInfo, uv, tileDimensions, tileOwnerDimensio
     );
 
     // bary holds the respective weight of each vertices of the triangles
-    const bary = tri.barycoordFromPoint(new Vector3(uv.x, uv.y));
+    tri.getBarycoord(new Vector3(uv.x, uv.y), bary);
 
     // read the 3 interesting values
-    const z1 = _readTextureValueWithBilinearFiltering(layer, textureInfo, tri.a.x, tri.a.y);
-    const z2 = _readTextureValueWithBilinearFiltering(layer, textureInfo, tri.b.x, tri.b.y);
-    const z3 = _readTextureValueWithBilinearFiltering(layer, textureInfo, tri.c.x, tri.c.y);
+    const z1 = _readTextureValueWithBilinearFiltering(textureInfo, tri.a.x, tri.a.y);
+    const z2 = _readTextureValueWithBilinearFiltering(textureInfo, tri.b.x, tri.b.y);
+    const z3 = _readTextureValueWithBilinearFiltering(textureInfo, tri.c.x, tri.c.y);
 
     // Blend with bary
     return z1 * bary.x + z2 * bary.y + z3 * bary.z;
@@ -410,25 +408,29 @@ const temp = {
     offset: new Vector2(),
 };
 
-function _readZ(layer, method, coord, nodes, cache) {
-    const pt = coord.as(layer.extent.crs(), temp.coord1);
+function _readZ(entity, method, coord, nodes, cache) {
+    const pt = coord.as(entity.extent.crs(), temp.coord1);
 
-    let tileWithValidElevationTexture = null;
+    let tile = null;
     // first check in cache
     if (cache && cache.tile && cache.tile.material) {
-        tileWithValidElevationTexture = tileAt(pt, cache.tile);
+        tile = tileAt(pt, cache.tile);
     }
-    for (let i = 0; !tileWithValidElevationTexture && i < nodes.length; i++) {
-        tileWithValidElevationTexture = tileAt(pt, nodes[i]);
+    for (let i = 0; !tile && i < nodes.length; i++) {
+        tile = tileAt(pt, nodes[i]);
     }
 
-    if (!tileWithValidElevationTexture) {
+    if (!tile) {
         // failed to find a tile, abort
         return null;
     }
 
-    const tile = tileWithValidElevationTexture;
-    const textureInfo = tileWithValidElevationTexture.material.getElevationTextureInfo();
+    const textureInfo = tile.material.getElevationTextureInfo();
+
+    // case when there is no elevation layer
+    if (!textureInfo) {
+        return { coord: pt, tile };
+    }
 
     const src = textureInfo.texture;
     // check cache value if existing
@@ -438,20 +440,14 @@ function _readZ(layer, method, coord, nodes, cache) {
         }
     }
 
-    // Assuming that tiles are split in 4 children, we lookup the parent that
-    // really owns this texture
-    const stepsUpInHierarchy = Math.round(Math.log2(1.0
-        / textureInfo.offsetScale.z));
-    for (let i = 0; i < stepsUpInHierarchy; i++) {
-        tileWithValidElevationTexture = tileWithValidElevationTexture.parent;
-    }
-
+    // Note: at this point, the code makes the assumption that each tile always inherit its texture
+    // from the parent.
     // offset = offset from top-left
-    const offset = pt.offsetInExtent(tileWithValidElevationTexture.extent, temp.offset);
+    const offset = pt.offsetInExtent(textureInfo.texture.extent);
 
     // At this point we have:
-    //   - tileWithValidElevationTexture.texture.image which is the current image
-    //     used for rendering
+    //   - textureInfo.texture.image which is the current image
+    //     used for rendering, guaranteed to be valid (we return earlier if no texture)
     //   - offset which is the offset in this texture for the coordinate we're
     //     interested in
     // We now have 2 options:
@@ -460,26 +456,25 @@ function _readZ(layer, method, coord, nodes, cache) {
     //   - the correct one: emulate the vertex shader code
     if (method === PRECISE_READ_Z) {
         pt._values[2] = _readZCorrect(
-            layer,
             textureInfo,
             offset,
             tile.extent.dimensions(),
-            tileWithValidElevationTexture.extent.dimensions(),
+            textureInfo.texture.extent.dimensions(),
         );
     } else {
-        pt._values[2] = _readZFast(layer, textureInfo, offset);
+        pt._values[2] = _readZFast(textureInfo, offset);
     }
     return { coord: pt, texture: src, tile };
 }
 
-function _updateVector3(layer, method, nodes, vecCRS, vec, offset, matrices = {}, coords, cache) {
+function _updateVector3(entity, method, nodes, vecCRS, vec, offset, matrices = {}, coords, cache) {
     const coord = coords || new Coordinates(vecCRS);
     if (matrices.worldFromLocal) {
         coord.set(vecCRS, temp.v.copy(vec).applyMatrix4(matrices.worldFromLocal));
     } else {
         coord.set(vecCRS, vec);
     }
-    const result = _readZ(layer, method, coord, nodes, cache);
+    const result = _readZ(entity, method, coord, nodes, cache);
     if (!result) {
         return null;
     }
