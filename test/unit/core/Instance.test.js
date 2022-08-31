@@ -75,15 +75,15 @@ describe('Instance', () => {
             expect(instance._objects.includes(map)).toBeFalsy();
         });
 
-        it('should call the clean() method if it exists', () => {
+        it('should call the dispose() method if it exists', () => {
             const map = new Map('owner', { extent: new Extent('EPSG:4326', 0, 0, 0, 0) });
             instance.add(map);
 
-            map.clean = jest.fn();
+            map.dispose = jest.fn();
 
             instance.remove(map);
 
-            expect(map.clean).toHaveBeenCalled();
+            expect(map.dispose).toHaveBeenCalled();
         });
     });
 

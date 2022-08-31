@@ -532,7 +532,7 @@ class Map extends Entity3D {
      *
      * @api
      * @param {Function} [filter] the optional filter
-     * @returns {Array<object>} the layers that matched the predicate,
+     * @returns {Array<Layer>} the layers that matched the predicate,
      * or all layers if no predicate was provided.
      */
     getLayers(filter) {
@@ -549,7 +549,7 @@ class Map extends Entity3D {
      * Gets all color layers
      *
      * @api
-     * @returns {Array<object>} the color layers
+     * @returns {Array<Layer>} the color layers
      */
     getColorLayers() {
         return this.getLayers(l => l instanceof ColorLayer);
@@ -559,20 +559,18 @@ class Map extends Entity3D {
      * Gets all elevation layers
      *
      * @api
-     * @returns {Array<object>} the color layers
+     * @returns {Array<Layer>} the color layers
      */
     getElevationLayers() {
         return this.getLayers(l => l instanceof ElevationLayer);
     }
 
     /**
-     * Cleans all layers in the map.
-     *
-     * @api
+     * Disposes all layers in the map.
      */
-    clean() {
+    dispose() {
         for (const layer of this.getLayers()) {
-            layer.clean(this);
+            layer.dispose(this);
         }
     }
 
