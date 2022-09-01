@@ -275,13 +275,12 @@ class Layer extends EventDispatcher {
     update(context, node, parent, initOnly = false) {return null;}
 
     /**
-     * Cleans the layer from a map
+     * Disposes the layer.
      *
-     * @param {module:entities/Map~Map} object The map where the layer is added
-     * @api
+     * @param {module:entities/Map~Map} map The map where the layer is added
      */
     // eslint-disable-next-line
-    clean(object) {} // TODO
+    dispose(map) {}
 }
 
 /**

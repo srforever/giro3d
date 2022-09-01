@@ -494,6 +494,10 @@ class Map extends Entity3D {
             layer = layer._preprocessLayer(this, this._instance);
 
             layer.whenReady.then(l => {
+                if (!this.currentAddedLayerIds.includes(layer.id)) {
+                    // The layer was removed, stop attaching it.
+                    return;
+                }
                 this.attach(l);
                 this._instance.notifyChange(this, false);
                 resolve(l);
@@ -508,23 +512,19 @@ class Map extends Entity3D {
     /**
      * Removes a layer from the map.
      *
-     * @param {object} layer the layer to remove
+     * @param {Layer} layer the layer to remove
+     * @returns {boolean} `true` if the layer was present, `false` otherwise.
      * @api
      */
     removeLayer(layer) {
-        if (layer.object3d) { // TODO layer can have object3d ?
-            ObjectRemovalHelper.removeChildrenAndCleanupRecursively(layer, layer.object3d);
-            this.scene.remove(layer.object3d);
+        this.currentAddedLayerIds = this.currentAddedLayerIds.filter(l => l !== layer.id);
+        if (this.detach(layer)) {
+            layer.dispose(this);
+            this._instance.notifyChange(this, true);
+            return true;
         }
-        const parentLayer = this.getLayers( // TODO layer can have _attachedLayers ?
-            l => l._attachedLayers && l._attachedLayers.includes(layer),
-        )[0];
-        if (parentLayer) {
-            parentLayer.detach(layer);
-        }
-        this._cleanLayer(layer); // TODO this method doesn't exist.
-        // TODO clean also this layer's children
-        this.notifyChange(parentLayer || this._instance.camera.camera3D, true);
+
+        return false;
     }
 
     /**
@@ -532,7 +532,7 @@ class Map extends Entity3D {
      *
      * @api
      * @param {Function} [filter] the optional filter
-     * @returns {Array<object>} the layers that matched the predicate,
+     * @returns {Array<Layer>} the layers that matched the predicate,
      * or all layers if no predicate was provided.
      */
     getLayers(filter) {
@@ -549,7 +549,7 @@ class Map extends Entity3D {
      * Gets all color layers
      *
      * @api
-     * @returns {Array<object>} the color layers
+     * @returns {Array<Layer>} the color layers
      */
     getColorLayers() {
         return this.getLayers(l => l instanceof ColorLayer);
@@ -559,20 +559,18 @@ class Map extends Entity3D {
      * Gets all elevation layers
      *
      * @api
-     * @returns {Array<object>} the color layers
+     * @returns {Array<Layer>} the color layers
      */
     getElevationLayers() {
         return this.getLayers(l => l instanceof ElevationLayer);
     }
 
     /**
-     * Cleans all layers in the map.
-     *
-     * @api
+     * Disposes all layers in the map.
      */
-    clean() {
+    dispose() {
         for (const layer of this.getLayers()) {
-            layer.clean(this);
+            layer.dispose(this);
         }
     }
 

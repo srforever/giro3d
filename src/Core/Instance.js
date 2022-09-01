@@ -265,8 +265,8 @@ class Instance extends EventDispatcher {
             ObjectRemovalHelper.removeChildrenAndCleanupRecursively(object, object.object3d);
             this.scene.remove(object.object3d);
         }
-        if (typeof object.clean === 'function') {
-            object.clean();
+        if (typeof object.dispose === 'function') {
+            object.dispose();
         }
         this._objects.splice(this._objects.indexOf(object, 1));
         this.notifyChange(this.camera.camera3D, true);

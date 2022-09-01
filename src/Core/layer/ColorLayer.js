@@ -39,11 +39,10 @@ class ColorLayer extends Layer {
         defineLayerProperty(this, 'sequence', 0);
     }
 
-    clean(object) {
-        object.object3d.traverse(o => {
+    dispose(map) {
+        map.object3d.traverse(o => {
             // TODO rename o.layer to o.giroobject, or o.object?
-            // object is not a great name too...
-            if (o.layer === object) {
+            if (o.layer === map) {
                 // clean object of layer
                 delete o.layerUpdateState[this.id];
                 // delete texture in material
