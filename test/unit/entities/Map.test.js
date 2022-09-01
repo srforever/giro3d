@@ -98,4 +98,49 @@ describe('Map', () => {
             await expect(map.addLayer(layer2)).rejects.toThrowError('id already used');
         });
     });
+
+    describe('removeLayer', () => {
+        it('should call dispose() on the removed layer', async () => {
+            const layer = new Layer('layer', { standalone: true });
+            layer.dispose = jest.fn();
+            layer.whenReady = Promise.resolve();
+
+            await map.addLayer(layer);
+
+            map.removeLayer(layer);
+
+            expect(layer.dispose).toHaveBeenCalled();
+        });
+
+        it('should return true if the layer was present', async () => {
+            const layer = new Layer('layer', { standalone: true });
+            layer.dispose = jest.fn();
+            layer.whenReady = Promise.resolve();
+
+            await map.addLayer(layer);
+
+            expect(map.removeLayer(layer)).toBeTruthy();
+            expect(map.removeLayer(layer)).toBeFalsy();
+        });
+    });
+
+    describe('dispose', () => {
+        it('should call dispose on underlying layers', async () => {
+            const layer1 = new Layer('layer1', { standalone: true });
+            layer1.dispose = jest.fn();
+            layer1.whenReady = Promise.resolve();
+
+            const layer2 = new Layer('layer2', { standalone: true });
+            layer2.whenReady = Promise.resolve();
+            layer2.dispose = jest.fn();
+
+            await map.addLayer(layer1);
+            await map.addLayer(layer2);
+
+            map.dispose();
+
+            expect(layer1.dispose).toHaveBeenCalledTimes(1);
+            expect(layer2.dispose).toHaveBeenCalledTimes(1);
+        });
+    });
 });
