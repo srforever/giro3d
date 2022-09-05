@@ -485,6 +485,22 @@ class Coordinates {
         target.set(originX, originY);
         return target;
     }
+
+    /**
+     * Returns the boolean result of the check if this coordinate is geographic (true)
+     * or geocentric (false).
+     *
+     * @example
+     * const position = { x: 20885167, y: 849862, z: 23385912 };
+     * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
+     * coordinates.isGeographic();  // Geocentric system
+     * // returns :  false
+     * @returns {boolean} If the coordinate is geographic.
+     * @api
+     */
+    isGeographic() {
+        return crsIsGeographic(this.crs);
+    }
 }
 
 export const C = {
