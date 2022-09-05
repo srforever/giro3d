@@ -25,7 +25,11 @@ PlanarTileBuilder.prototype.Prepare = function Prepare(params) {
 const center = new Vector3();
 PlanarTileBuilder.prototype.Center = function Center(extent) {
     extent.center(this.tmp.coords);
-    center.set(this.tmp.coords.x(), this.tmp.coords.y(), 0);
+    if (this.tmp.coords.isGeographic()) {
+        center.set(this.tmp.coords.longitude(), this.tmp.coords.latitude(), 0);
+    } else {
+        center.set(this.tmp.coords.x(), this.tmp.coords.y(), 0);
+    }
     return center;
 };
 
