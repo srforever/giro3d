@@ -1,6 +1,6 @@
 import { Vector3, Quaternion } from 'three';
 import OBB from '../../../Renderer/ThreeExtended/OBB.js';
-import Coordinates, { crsIsGeographic } from '../../Geographic/Coordinates.js';
+import Coordinates from '../../Geographic/Coordinates.js';
 import Extent from '../../Geographic/Extent.js';
 
 function PlanarTileBuilder() {
