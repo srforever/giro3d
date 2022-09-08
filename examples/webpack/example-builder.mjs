@@ -5,46 +5,6 @@ import frontMatter from 'front-matter';
 
 const RawSource = sources.RawSource;
 
-function generateExampleCard(pathToHtmlFile, template) {
-    const name = path.parse(pathToHtmlFile).name;
-    const { attributes } = parseExample(pathToHtmlFile);
-    return template
-        .replaceAll('%title%', attributes.title)
-        .replaceAll('%description%', attributes.shortdesc)
-        .replaceAll('%name%', name);
-}
-
-function generateExample(pathToHtmlFile, template) {
-    const filename = path.basename(pathToHtmlFile);
-    const js = filename.replace('.html', '.js');
-    const name = path.parse(pathToHtmlFile).name;
-    const { attributes, body } = parseExample(pathToHtmlFile);
-    const html = template
-        .replaceAll('%title%', `${attributes.title} - Giro3D`)
-        .replaceAll('%description%', attributes.shortdesc)
-        .replaceAll('%name%', name)
-        .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/master/examples/${js}`)
-        .replaceAll('%js%', js)
-        .replaceAll('%content%', body);
-
-    return { filename, html };
-}
-
-function parseExample(pathToHtmlFile) {
-    const html = fse.readFileSync(pathToHtmlFile, 'utf-8');
-
-    const { attributes, body } = frontMatter(html);
-
-    if (!attributes.title) {
-        throw new Error(`${pathToHtmlFile}: missing <title> YAML attribute`);
-    }
-    if (!attributes.shortdesc) {
-        throw new Error(`${pathToHtmlFile}: missing <shortdesc> YAML attribute`);
-    }
-
-    return { attributes, body };
-}
-
 export default class ExampleBuilder {
     /**
      * A webpack plugin that builds the html files for our examples.
@@ -58,6 +18,7 @@ export default class ExampleBuilder {
         this.templates = config.templates;
         this.examplesDir = config.examplesDir;
         this.buildDir = config.buildDir;
+        this.strictMode = config.strictMode;
     }
 
     /**
@@ -82,7 +43,7 @@ export default class ExampleBuilder {
             .map(f => path.resolve(this.examplesDir, f))
 
         // generate an example card fragment for each example file
-        const thumbnails = htmlFiles.map(f => generateExampleCard(f, template));
+        const thumbnails = htmlFiles.map(f => this._generateExampleCard(f, template)).filter(v => !!v);
 
         // Fill the index.html file with the example cards
         const html = index.replace('%examples%', thumbnails.join('\n\n'));
@@ -92,9 +53,70 @@ export default class ExampleBuilder {
         const exampleTemplate = await fse.readFile(path.resolve(this.examplesDir, 'templates/example.tmpl'), 'utf-8');
 
         htmlFiles
-            .map(f => generateExample(f, exampleTemplate))
+            .map(f => this._generateExample(f, exampleTemplate))
             .forEach(ex => {
-                assets[ex.filename] = new RawSource(ex.html);
+                if (ex) {
+                    assets[ex.filename] = new RawSource(ex.html);
+                }
             });
+    }
+
+    _generateExampleCard(pathToHtmlFile, template) {
+        const name = path.parse(pathToHtmlFile).name;
+        const info = this._parseExample(pathToHtmlFile);
+        if (!info) {
+            return null;
+        }
+        return template
+            .replaceAll('%title%', info.attributes.title)
+            .replaceAll('%description%', info.attributes.shortdesc)
+            .replaceAll('%name%', name);
+    }
+
+    _generateExample(pathToHtmlFile, template) {
+        const filename = path.basename(pathToHtmlFile);
+        const js = filename.replace('.html', '.js');
+        const name = path.parse(pathToHtmlFile).name;
+        const info  = this._parseExample(pathToHtmlFile);
+        if (!info) {
+            return null;
+        }
+        const { attributes, body } = info;
+        const html = template
+            .replaceAll('%title%', `${attributes.title} - Giro3D`)
+            .replaceAll('%description%', attributes.shortdesc)
+            .replaceAll('%name%', name)
+            .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/master/examples/${js}`)
+            .replaceAll('%js%', js)
+            .replaceAll('%content%', body);
+
+        return { filename, html };
+    }
+
+    _parseExample(pathToHtmlFile) {
+        const html = fse.readFileSync(pathToHtmlFile, 'utf-8');
+
+        const { attributes, body } = frontMatter(html);
+
+        let errMsg;
+        if (!attributes.title) {
+            errMsg = `${pathToHtmlFile}: missing <title> YAML attribute`;
+            if (this.strictMode) {
+                throw new Error(errMsg);
+            }
+            console.warn(errMsg);
+        }
+        if (!attributes.shortdesc) {
+            errMsg = `${pathToHtmlFile}: missing <shortdesc> YAML attribute`;
+            if (this.strictMode) {
+                throw new Error(errMsg);
+            }
+            console.warn(errMsg);
+        }
+        if (errMsg) {
+            return null;
+        }
+
+        return { attributes, body };
     }
 }
