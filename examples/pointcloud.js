@@ -1,8 +1,8 @@
 import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Instance from '../src/Core/Instance.js';
-import Tiles3D from '../src/entities/Tiles3D.js';
-import Tiles3DSource from '../src/sources/Tiles3DSource.js';
+import Instance from '@giro3d/giro3d/Core/Instance.js';
+import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
+import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 
 const tmpVec3 = new Vector3();
 

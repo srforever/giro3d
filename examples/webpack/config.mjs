@@ -35,6 +35,11 @@ export default (env, argv) => {
             poll: true,
         },
         context: src,
+        resolve: {
+            alias: {
+                '@giro3d/giro3d': '../src'
+            }
+        },
         devtool: "source-map",
         entry,
         target: ["web", "es5"],
