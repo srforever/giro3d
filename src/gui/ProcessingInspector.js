@@ -4,6 +4,8 @@
 import GUI from 'lil-gui';
 import Panel from './Panel.js';
 import Instance from '../Core/Instance.js';
+import FrameDuration from './charts/FrameDuration.js';
+import MemoryUsage from './charts/MemoryUsage.js';
 
 class ProcessingInspector extends Panel {
     /**
@@ -18,12 +20,17 @@ class ProcessingInspector extends Panel {
 
         this.pending = 0;
         this.running = 0;
+        this.charts = [];
 
         this.addController(this, 'pending').name('Pending commands');
         this.addController(this, 'running').name('Running commands');
+
+        this.charts.push(new FrameDuration(this.gui, instance));
+        this.charts.push(new MemoryUsage(this.gui, instance));
     }
 
     updateValues() {
+        this.charts.forEach(c => c.update());
         this.pending = this.scheduler.commandsWaitingExecutionCount();
         this.running = this.scheduler.commandsRunningCount();
     }
