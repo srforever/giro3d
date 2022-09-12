@@ -135,19 +135,19 @@ describe('Layer', () => {
         });
 
         it('should not accept all sources', () => {
-            let layer = new Layer('id', { source: { constructor: TileWMS } });
+            let layer = new Layer('id', { source: new TileWMS({}) });
             assert.strictEqual(layer.protocol, 'oltile');
             assert.strictEqual(layer.standalone, false);
 
-            layer = new Layer('id', { source: { constructor: Stamen } });
+            layer = new Layer('id', { source: new Stamen({ layer: 'watercolor', wrapX: false }) });
             assert.strictEqual(layer.protocol, 'oltile');
             assert.strictEqual(layer.standalone, false);
 
-            layer = new Layer('id', { source: { constructor: Vector } });
+            layer = new Layer('id', { source: new Vector() });
             assert.strictEqual(layer.protocol, 'olvector');
             assert.strictEqual(layer.standalone, false);
 
-            layer = new Layer('id', { source: { constructor: VectorTile } });
+            layer = new Layer('id', { source: new VectorTile({ url: 'https://domain.tld/{z}/{x}/{y}.pbf' }) });
             assert.strictEqual(layer.protocol, 'olvectortile');
             assert.strictEqual(layer.standalone, false);
 
