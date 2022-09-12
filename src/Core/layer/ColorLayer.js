@@ -177,7 +177,7 @@ class ColorLayer extends Layer {
         node.layerUpdateState[this.id].newTry();
         const command = {
             /* mandatory */
-            view: context.instance,
+            instance: context.instance,
             layer: this,
             requester: node,
             priority: nodeCommandQueuePriorityFunction(node),

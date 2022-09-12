@@ -1,9 +1,9 @@
 /* global giro3d */
 // eslint-disable-next-line no-unused-vars
 // TODO remove this (or refacto heavily)
-window.ToolTip = function ToolTip(viewer, viewerDiv, tooltip, precisionPx) {
+window.ToolTip = function ToolTip(instance, viewerDiv, tooltip, precisionPx) {
     let mouseDown = 0;
-    const layers = viewer.getLayers(l => l.protocol === 'rasterizer');
+    const layers = instance.getLayers(l => l.protocol === 'rasterizer');
 
     document.body.onmousedown = function onmousedown() {
         ++mouseDown;
@@ -14,7 +14,7 @@ window.ToolTip = function ToolTip(viewer, viewerDiv, tooltip, precisionPx) {
 
     function buildToolTip(geoCoord, e) {
         let visible = false;
-        const precision = viewer.controls.pixelsToDegrees(precisionPx || 5);
+        const precision = instance.controls.pixelsToDegrees(precisionPx || 5);
         let i = 0;
         let p = 0;
         let id = 0;
@@ -72,8 +72,8 @@ window.ToolTip = function ToolTip(viewer, viewerDiv, tooltip, precisionPx) {
                 }
             }
             if (visible) {
-                tooltip.style.left = `${viewer.eventToViewCoords(e).x}px`;
-                tooltip.style.top = `${viewer.eventToViewCoords(e).y}px`;
+                tooltip.style.left = `${instance.eventToCanvasCoords(e).x}px`;
+                tooltip.style.top = `${instance.eventToCanvasCoords(e).y}px`;
                 tooltip.style.display = 'block';
             }
         }
@@ -81,15 +81,15 @@ window.ToolTip = function ToolTip(viewer, viewerDiv, tooltip, precisionPx) {
 
     function readPosition(e) {
         if (!mouseDown) {
-            buildToolTip(viewer.controls.pickGeoPosition(viewer.eventToViewCoords(e)), e);
+            buildToolTip(instance.controls.pickGeoPosition(instance.eventToCanvasCoords(e)), e);
         } else {
-            tooltip.style.left = `${viewer.eventToViewCoords(e).x}px`;
-            tooltip.style.top = `${viewer.eventToViewCoords(e).y}px`;
+            tooltip.style.left = `${instance.eventToCanvasCoords(e).x}px`;
+            tooltip.style.top = `${instance.eventToCanvasCoords(e).y}px`;
         }
     }
 
     function pickPosition(e) {
-        buildToolTip(viewer.controls.pickGeoPosition(viewer.eventToViewCoords(e)), e);
+        buildToolTip(instance.controls.pickGeoPosition(instance.eventToCanvasCoords(e)), e);
     }
 
     document.addEventListener('mousemove', readPosition, false);

@@ -158,7 +158,7 @@ class LayeredMaterial extends RawShaderMaterial {
         return this.texturesInfo.color.textures[index];
     }
 
-    setColorTextures(layer, textures, shortcut, view) {
+    setColorTextures(layer, textures, shortcut, instance) {
         if (Array.isArray(textures)) {
             // console.warn(`Provider should return a single texture and not an Array.
             // See layer id = ${layer.id}`);
@@ -224,7 +224,7 @@ class LayeredMaterial extends RawShaderMaterial {
             this.pendingUpdates.length = 0;
             this.texturesInfo.color.atlasTexture.needsUpdate = true;
             if (this.visible) {
-                view.notifyChange();
+                instance.notifyChange();
             }
             this.setTimeoutId = null;
         }, 1);

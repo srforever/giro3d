@@ -82,7 +82,7 @@ export default {
 
             const command = {
                 layer,
-                view: ctx.instance,
+                instance: ctx.instance,
                 threejsLayer: layer.threejsLayer,
                 requester: node,
             };

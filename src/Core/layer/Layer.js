@@ -13,7 +13,7 @@ import CogSource from '../../sources/CogSource.js';
 import CustomTiledImageSource from '../../sources/CustomTiledImageSource.js';
 
 /**
- * Fires when layer sequence change (meaning when the order of the layer changes in the view)
+ * Fires when layer sequence change (meaning when the order of the layer changes in the map)
  *
  * @api
  * @event Layer#sequence-property-changed
@@ -128,12 +128,12 @@ const MAX_RETRY = 4;
  *     // Change layer's visibilty
  *     const layerToChange = map.getLayers(layer => layer.id === 'idLayerToChange')[0];
  *     layerToChange.visible = false;
- *     instance.notifyChange(); // update viewer
+ *     instance.notifyChange(); // update instance
  *
  *     // Change layer's opacity
- *     const layerToChange = view.getLayers(layer => layer.id === 'idLayerToChange')[0];
+ *     const layerToChange = instance.getLayers(layer => layer.id === 'idLayerToChange')[0];
  *     layerToChange.opacity = 0.5;
- *     instance.notifyChange(); // update viewer
+ *     instance.notifyChange(); // update instance
  *
  *     // Listen to properties
  *     const layerToListen = map.getLayers(layer => layer.id === 'idLayerToListen')[0];

@@ -98,22 +98,22 @@ before(async () => {
         await page.goto(url);
         await page.waitFor('#viewerDiv > canvas');
 
-        // install a globally available __getView helper
+        // install a globally available __getInstance helper
         await page.evaluate(() => {
-            window.__getView = function _() {
-                if (typeof (view) === 'object') {
-                    return Promise.resolve(view);
+            window.__getInstance = function _() {
+                if (typeof (instance) === 'object') {
+                    return Promise.resolve(instance);
                 }
-                if (typeof (globeView) === 'object') {
-                    return Promise.resolve(globeView);
-                }
+                // if (typeof (globeView) === 'object') {
+                //     return Promise.resolve(globeView);
+                // }
                 resolve(false);
                 return Promise.reject();
             };
         });
 
         const result = await page.evaluate(() => new Promise((resolve) => {
-            __getView().then((v) => {
+            __getInstance().then((v) => {
                 function resolveWhenReady() {
                     v.removeEventListener(
                         giro3d.INSTANCE_EVENTS.LAYERS_INITIALIZED,
@@ -135,7 +135,7 @@ before(async () => {
     // Use waitUntilgiro3dIsIdle to wait until giro3d has finished all its work (= layer updates)
     global.waitUntilgiro3dIsIdle = async (page, screenshotName) => {
         const result = await page.evaluate(() => new Promise((resolve) => {
-            __getView().then((v) => {
+            __getInstance().then((v) => {
                 function resolveWhenReady() {
                     if (v.mainLoop.renderingState === 0) {
                         v.removeEventListener('command-queue-empty', resolveWhenReady);
@@ -154,7 +154,7 @@ before(async () => {
     };
 
     global.waitNextRender = (page) => page.evaluate(() => new Promise((resolve) => {
-        __getView().then((v) => {
+        __getInstance().then((v) => {
             function resolveWhenDrawn() {
                 v.removeFrameRequester(giro3d.MAIN_LOOP_EVENTS.AFTER_RENDER, resolveWhenDrawn);
 

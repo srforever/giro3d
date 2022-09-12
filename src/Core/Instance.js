@@ -544,13 +544,13 @@ class Instance extends EventDispatcher {
     }
 
     /**
-     * Extract view coordinates from a mouse-event / touch-event
+     * Extract canvas coordinates from a mouse-event / touch-event
      *
      * @param {event} event event can be a MouseEvent or a TouchEvent
      * @param {number} touchIdx finger index when using a TouchEvent (default: 0)
-     * @returns {Vector2} view coordinates (in pixels, 0-0 = top-left of the view)
+     * @returns {Vector2} canvas coordinates (in pixels, 0-0 = top-left of the instance)
      */
-    eventToViewCoords(event, touchIdx = 0) {
+    eventToCanvasCoords(event, touchIdx = 0) {
         if (event.touches === undefined || !event.touches.length) {
             return _eventCoords.set(event.offsetX, event.offsetY);
         }
@@ -569,35 +569,35 @@ class Instance extends EventDispatcher {
      * @returns {Vector2} NDC coordinates (x and y are [-1, 1])
      */
     eventToNormalizedCoords(event, touchIdx = 0) {
-        return this.viewToNormalizedCoords(this.eventToViewCoords(event, touchIdx));
+        return this.canvasToNormalizedCoords(this.eventToCanvasCoords(event, touchIdx));
     }
 
     /**
-     * Convert view coordinates to normalized coordinates (NDC)
+     * Convert canvas coordinates to normalized coordinates (NDC)
      *
-     * @param {Vector2} viewCoords (in pixels, 0-0 = top-left of the View)
+     * @param {Vector2} canvasCoords (in pixels, 0-0 = top-left of the instance)
      * @returns {Vector2} NDC coordinates (x and y are [-1, 1])
      */
-    viewToNormalizedCoords(viewCoords) {
-        _eventCoords.x = 2 * (viewCoords.x / this.camera.width) - 1;
-        _eventCoords.y = -2 * (viewCoords.y / this.camera.height) + 1;
+    canvasToNormalizedCoords(canvasCoords) {
+        _eventCoords.x = 2 * (canvasCoords.x / this.camera.width) - 1;
+        _eventCoords.y = -2 * (canvasCoords.y / this.camera.height) + 1;
         return _eventCoords;
     }
 
     /**
-     * Convert NDC coordinates to view coordinates
+     * Convert NDC coordinates to canvas coordinates
      *
      * @param {Vector2} ndcCoords the NDC coordinates to convert
-     * @returns {Vector2} view coordinates (in pixels, 0-0 = top-left of the View)
+     * @returns {Vector2} canvas coordinates (in pixels, 0-0 = top-left of the instance)
      */
-    normalizedToViewCoords(ndcCoords) {
+    normalizedToCanvasCoords(ndcCoords) {
         _eventCoords.x = (ndcCoords.x + 1) * 0.5 * this.camera.width;
         _eventCoords.y = (ndcCoords.y - 1) * -0.5 * this.camera.height;
         return _eventCoords;
     }
 
     /**
-     * Return objects from some layers/objects3d under the mouse in this view.
+     * Return objects from some layers/objects3d under the mouse in this instance.
      *
      * @param {object} mouseOrEvt mouse position in window coordinates (0, 0 = top-left)
      * or MouseEvent or TouchEvent
@@ -620,7 +620,7 @@ class Instance extends EventDispatcher {
         const sources = where.length === 0
             ? this.getObjects().concat(this.threeObjects) : [...where];
         const mouse = (mouseOrEvt instanceof Event)
-            ? this.eventToViewCoords(mouseOrEvt) : mouseOrEvt;
+            ? this.eventToCanvasCoords(mouseOrEvt) : mouseOrEvt;
         radius = radius || 0;
 
         for (const source of sources) {

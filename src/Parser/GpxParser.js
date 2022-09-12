@@ -199,10 +199,10 @@ export default {
      * {@link https://threejs.org/docs/#api/objects/Mesh}).
      * @example
      * // How to add a gpx object
-     * GpxParser.parse(file, { crs: viewer.referenceCrs }).then((gpx) => {
+     * GpxParser.parse(file, { crs: instance.referenceCrs }).then((gpx) => {
      *      if (gpx) {
-     *         viewer.scene.add(gpx);
-     *         viewer.notifyChange();
+     *         instance.scene.add(gpx);
+     *         instance.notifyChange();
      *      }
      * });
      */
