@@ -12,16 +12,16 @@ import { unpack1K } from '../Renderer/LayeredMaterial.js';
 import Coordinates from './Geographic/Coordinates.js';
 import DEMUtils from '../utils/DEMUtils.js';
 
-function hideEverythingElse(view, object, threejsLayer = 0) {
+function hideEverythingElse(instance, object, threejsLayer = 0) {
     // We want to render only 'object' and its hierarchy.
     // So if it uses threejsLayer defined -> force it on the camera
     // (or use the default one: 0)
-    const prev = view.camera.camera3D.layers.mask;
+    const prev = instance.camera.camera3D.layers.mask;
 
-    view.camera.camera3D.layers.mask = 1 << threejsLayer;
+    instance.camera.camera3D.layers.mask = 1 << threejsLayer;
 
     return () => {
-        view.camera.camera3D.layers.mask = prev;
+        instance.camera.camera3D.layers.mask = prev;
     };
 }
 
@@ -34,20 +34,20 @@ function unpackHalfRGBA(v, target) {
 
 const depthRGBA = new Vector4();
 // TileMesh picking support function
-function screenCoordsToNodeId(view, tileLayer, viewCoords, radius) {
-    const dim = view.mainLoop.gfxEngine.getWindowSize();
+function screenCoordsToNodeId(instance, tileLayer, canvasCoords, radius) {
+    const dim = instance.mainLoop.gfxEngine.getWindowSize();
 
-    viewCoords = viewCoords || new Vector2(Math.floor(dim.x / 2), Math.floor(dim.y / 2));
+    canvasCoords = canvasCoords || new Vector2(Math.floor(dim.x / 2), Math.floor(dim.y / 2));
 
     const restore = tileLayer.level0Nodes.map(n => n.pushRenderState(RendererConstant.ID));
 
-    const undoHide = hideEverythingElse(view, tileLayer.object3d, tileLayer.threejsLayer);
+    const undoHide = hideEverythingElse(instance, tileLayer.object3d, tileLayer.threejsLayer);
 
-    const buffer = view.mainLoop.gfxEngine.renderViewToBuffer(
-        { camera: view.camera, scene: tileLayer.object3d },
+    const buffer = instance.mainLoop.gfxEngine.renderToBuffer(
+        { camera: instance.camera, scene: tileLayer.object3d },
         {
-            x: viewCoords.x - radius,
-            y: viewCoords.y - radius,
+            x: canvasCoords.x - radius,
+            y: canvasCoords.y - radius,
             width: 1 + radius * 2,
             height: 1 + radius * 2,
         },
@@ -132,19 +132,19 @@ const tmpColor = new Color();
  *
  * All the methods here takes the same parameters:
  *   - the instance
- *   - view coordinates (in pixels) where picking should be done
+ *   - canvas coordinates (in pixels) where picking should be done
  *   - radius (in pixels) of the picking circle
  *   - layer: the geometry layer used for picking
  */
 export default {
-    pickTilesAt: (_instance, viewCoords, radius, layer) => {
+    pickTilesAt: (_instance, canvasCoords, radius, layer) => {
         const results = [];
         // TODO is there a way to get the node id AND uv on the same render pass ?
         // We would need to get a upper bound to the tile ids, and not use the three.js uuid
         // We need to assess how much precision will be left for the uv, and if it is acceptable
         // do we really gain something, considering the fact that render in UV
         // mode will be fast (we only render one object) ?
-        const _ids = screenCoordsToNodeId(_instance, layer, viewCoords, radius);
+        const _ids = screenCoordsToNodeId(_instance, layer, canvasCoords, radius);
 
         const extractResult = node => {
             // for each node (normally no more than 4 of them) we do a render
@@ -153,11 +153,11 @@ export default {
             // render needed, but maybe a draw on canvas ? Check that).
             if (_ids.indexOf(node.id) >= 0 && node instanceof TileMesh) {
                 const restore = node.pushRenderState(RendererConstant.UV);
-                const buffer = _instance.mainLoop.gfxEngine.renderViewToBuffer(
+                const buffer = _instance.mainLoop.gfxEngine.renderToBuffer(
                     { camera: _instance.camera, scene: node },
                     {
-                        x: Math.max(0, viewCoords.x - radius),
-                        y: Math.max(0, viewCoords.y - radius),
+                        x: Math.max(0, canvasCoords.x - radius),
+                        y: Math.max(0, canvasCoords.y - radius),
                         width: 1 + radius * 2,
                         height: 1 + radius * 2,
                     },
@@ -180,7 +180,7 @@ export default {
                     );
                     if (result) {
                         tmpCoords._values[2] = result.z;
-                        // convert to view crs
+                        // convert to instance crs
                         // here (and only here) should be the Coordinates instance creation
                         const coord = tmpCoords.as(
                             _instance.referenceCrs, new Coordinates(_instance.referenceCrs),
@@ -204,7 +204,7 @@ export default {
         return results;
     },
 
-    pickPointsAt: (view, viewCoords, radius, layer, filter) => {
+    pickPointsAt: (instance, canvasCoords, radius, layer, filter) => {
         radius = Math.floor(radius);
 
         // Enable picking mode for points material, by assigning
@@ -222,14 +222,14 @@ export default {
             }
         });
 
-        const undoHide = hideEverythingElse(view, layer.object3d, layer.threejsLayer);
+        const undoHide = hideEverythingElse(instance, layer.object3d, layer.threejsLayer);
 
         // render 1 pixel
-        const buffer = view.mainLoop.gfxEngine.renderViewToBuffer(
-            { camera: view.camera, scene: layer.object3d },
+        const buffer = instance.mainLoop.gfxEngine.renderToBuffer(
+            { camera: instance.camera, scene: layer.object3d },
             {
-                x: Math.max(0, viewCoords.x - radius),
-                y: Math.max(0, viewCoords.y - radius),
+                x: Math.max(0, canvasCoords.x - radius),
+                y: Math.max(0, canvasCoords.y - radius),
                 width: 1 + radius * 2,
                 height: 1 + radius * 2,
             },
@@ -241,8 +241,8 @@ export default {
 
         traversePickingCircle(radius, (x, y, idx) => {
             const coord = {
-                x: x + viewCoords.x,
-                y: y + viewCoords.y,
+                x: x + canvasCoords.x,
+                y: y + canvasCoords.y,
                 z: 0,
             };
             if (filter && !filter(coord)) {
@@ -299,7 +299,7 @@ export default {
                             layer,
                             point: position,
                             coord: candidates[i].coord,
-                            distance: view.camera.camera3D.position.distanceTo(position),
+                            distance: instance.camera.camera3D.position.distanceTo(position),
                         });
                     }
                 }
@@ -314,28 +314,28 @@ export default {
     /*
      * Default picking method. Uses Raycaster
      */
-    pickObjectsAt(view, viewCoords, radius, object, target = []) {
+    pickObjectsAt(instance, canvasCoords, radius, object, target = []) {
         // Instead of doing N raycast (1 per x,y returned by traversePickingCircle),
         // we force render the zone of interest.
         // Then we'll only do raycasting for the pixels where something was drawn.
         const zone = {
-            x: viewCoords.x - radius,
-            y: viewCoords.y - radius,
+            x: canvasCoords.x - radius,
+            y: canvasCoords.y - radius,
             width: 1 + radius * 2,
             height: 1 + radius * 2,
         };
-        const pixels = view.mainLoop.gfxEngine.renderViewToBuffer(
-            { scene: object, camera: view.camera },
+        const pixels = instance.mainLoop.gfxEngine.renderToBuffer(
+            { scene: object, camera: instance.camera },
             zone,
         );
 
-        const clearColor = view.mainLoop.gfxEngine.renderer.getClearColor(tmpColor);
+        const clearColor = instance.mainLoop.gfxEngine.renderer.getClearColor(tmpColor);
         const clearR = Math.round(255 * clearColor.r);
         const clearG = Math.round(255 * clearColor.g);
         const clearB = Math.round(255 * clearColor.b);
 
         // Raycaster use NDC coordinate
-        const normalized = view.viewToNormalizedCoords(viewCoords);
+        const normalized = instance.canvasToNormalizedCoords(canvasCoords);
         const tmp = normalized.clone();
         traversePickingCircle(radius, (x, y) => {
             // x, y are offset from the center of the picking circle,
@@ -357,11 +357,11 @@ export default {
             }
 
             // Perform raycasting
-            tmp.setX(normalized.x + x / view.camera.width)
-                .setY(normalized.y + y / view.camera.height);
+            tmp.setX(normalized.x + x / instance.camera.width)
+                .setY(normalized.y + y / instance.camera.height);
             raycaster.setFromCamera(
                 tmp,
-                view.camera.camera3D,
+                instance.camera.camera3D,
             );
 
             const intersects = raycaster.intersectObject(object, true);

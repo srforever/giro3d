@@ -209,7 +209,7 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
     let minDistance = context.distance.min;
     if (instance.camera.camera3D.isPerspective) {
         // NOTE: if the object responsible of this value of minDistance is near one
-        // end of the field of view, the near plane must be at near = minDistance *
+        // end of the field of instance, the near plane must be at near = minDistance *
         // cos(fov)
         minDistance *= minDistance * Math.cos(ThreeMath.degToRad(instance.camera.camera3D.fov / 2));
     }
@@ -300,7 +300,7 @@ MainLoop.prototype._renderInstance = function _renderInstance(instance, dt) {
         instance.render();
     } else {
         // use default rendering method
-        this.gfxEngine.renderView(instance);
+        this.gfxEngine.render(instance);
     }
 
     instance.execFrameRequesters(MAIN_LOOP_EVENTS.AFTER_RENDER, dt, this._updateLoopRestarted);

@@ -17,7 +17,7 @@ scheduler.addProtocolProvider('test', {
     },
 });
 
-const view = {
+const instance = {
     notifyChange: () => {},
 };
 
@@ -28,7 +28,7 @@ function makeCmd(layerId = 'foo', prio = 0) {
             protocol: 'test',
             priority: prio,
         },
-        view,
+        instance,
     };
 }
 

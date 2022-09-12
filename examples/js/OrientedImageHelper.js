@@ -33,17 +33,17 @@ function transformTexturedPlane(camera, distance, plane) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function initCamera(view, image, coord, EnhToOrientationUp, EnhToOrientationLookAt, rotMatrix,
+function initCamera(instance, image, coord, EnhToOrientationUp, EnhToOrientationLookAt, rotMatrix,
     orientationToCameraUp, orientationToCameraLookAt, distance, size, focale) {
     const fov = giro3d.THREE.MathUtils.radToDeg((2 * Math.atan((size[1] / 2) / focale)));
 
-    const coordView = coord.as(view.referenceCrs);
+    const coordInstance = coord.as(instance.referenceCrs);
 
     // create 'local space', with the origin placed on 'coord',
     // with Y axis to the north, X axis to the east and Z axis as the geodesic normal.
     const localSpace = new giro3d.THREE.Object3D();
-    view.scene.add(localSpace);
-    placeObjectFromCoordinate(localSpace, coordView);
+    instance.scene.add(localSpace);
+    placeObjectFromCoordinate(localSpace, coordInstance);
 
     // add second object : 'oriented image'
     const orientedImage = new giro3d.THREE.Object3D();
@@ -83,46 +83,46 @@ function setupPictureFromCamera(camera, imageUrl, opacity, distance) {
     return plane;
 }
 
-// set camera settings to view.camera,
+// set camera settings to instance.camera,
 // BUT keep the geodesic normal as Up vector
 // eslint-disable-next-line no-unused-vars
-function setupViewCameraLookingAtObject(camera, coord, objectToLookAt) {
+function setupCameraLookingAtObject(camera, coord, objectToLookAt) {
     camera.position.copy(coord.xyz());
     camera.up.copy(coord.geodesicNormal);
     camera.lookAt(objectToLookAt.getWorldPosition());
 }
 
-// set camera settings to view.camera, even the up vector !
+// set camera settings to instance.camera, even the up vector !
 // eslint-disable-next-line no-unused-vars
-function setupViewCameraDecomposing(view, camera) {
+function setupCameraDecomposing(instance, camera) {
     let upWorld;
-    const viewCamera = view.camera.camera3D;
-    camera.matrixWorld.decompose(viewCamera.position, viewCamera.quaternion, viewCamera.scale);
+    const camera3D = instance.camera.camera3D;
+    camera.matrixWorld.decompose(camera3D.position, camera3D.quaternion, camera3D.scale);
 
     // setup up vector
     upWorld = camera.localToWorld(camera.up.clone());
-    upWorld = viewCamera.position.clone().sub(upWorld);
-    viewCamera.up.copy(upWorld);
+    upWorld = camera.position.clone().sub(upWorld);
+    camera.up.copy(upWorld);
 }
 
 // add a camera helper to debug camera position..
 // eslint-disable-next-line no-unused-vars
-function addCameraHelper(view, camera) {
+function addCameraHelper(instance, camera) {
     const cameraHelper = new giro3d.THREE.CameraHelper(camera);
-    view.scene.add(cameraHelper);
+    instance.scene.add(cameraHelper);
     cameraHelper.updateMatrixWorld(true);
 }
 
 // eslint-disable-next-line no-unused-vars
-function setupPictureUI(menu, pictureInfos, plane, updateDistanceCallback, view, min, max) {
+function setupPictureUI(menu, pictureInfos, plane, updateDistanceCallback, instance, min, max) {
     const orientedImageGUI = menu.gui.addFolder('Oriented Image');
     orientedImageGUI.add(pictureInfos, 'distance', min, max).name('Distance').onChange(value => {
         pictureInfos.distance = value;
         updateDistanceCallback();
-        view.notifyChange();
+        instance.notifyChange();
     });
     orientedImageGUI.add(pictureInfos, 'opacity', 0, 1).name('Opacity').onChange(value => {
         plane.material.opacity = value;
-        view.notifyChange();
+        instance.notifyChange();
     });
 }

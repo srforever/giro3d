@@ -31,7 +31,7 @@ const RT = {
     HALF_RES: 3,
 };
 
-function PointCloudRenderer(view) {
+function PointCloudRenderer(instance) {
     this.scene = new Scene();
 
     // create 1 big triangle covering the screen
@@ -120,8 +120,8 @@ function PointCloudRenderer(view) {
             if (passIdx === 1) {
                 m.uniforms.depthTexture.value = renderer.renderTargets[RT.HALF_RES].depthTexture;
                 m.uniforms.resolution.value.set(input.width, input.height);
-                m.uniforms.cameraNear.value = renderer.view.camera.camera3D.near;
-                m.uniforms.cameraFar.value = renderer.view.camera.camera3D.far;
+                m.uniforms.cameraNear.value = renderer.instance.camera.camera3D.near;
+                m.uniforms.cameraFar.value = renderer.instance.camera.camera3D.far;
                 m.uniforms.radius.value = this.parameters.radius;
                 m.uniforms.strength.value = this.parameters.strength;
                 m.uniforms.directions.value = this.parameters.directions;
@@ -170,12 +170,12 @@ function PointCloudRenderer(view) {
         },
         setup(renderer, input) {
             const m = this.passes[0];
-            const n = renderer.view.camera.camera3D.near;
-            const f = renderer.view.camera.camera3D.far;
+            const n = renderer.instance.camera.camera3D.near;
+            const f = renderer.instance.camera.camera3D.far;
             const m43 = -(2 * f * n) / (f - n);
             const m33 = -(f + n) / (f - n);
             const mat = new Matrix4();
-            mat.copy(renderer.view.camera.camera3D.projectionMatrix).invert();
+            mat.copy(renderer.instance.camera.camera3D.projectionMatrix).invert();
 
             const mU = m.uniforms;
             mU.colorTexture.value = input.texture;
@@ -187,8 +187,9 @@ function PointCloudRenderer(view) {
             mU.m33.value = m33;
             mU.threshold.value = this.parameters.threshold;
             mU.showRemoved.value = this.parameters.showRemoved;
-            mU.invPersMatrix.value.copy(renderer.view.camera.camera3D.projectionMatrix).invert();
-            renderer.view.mainLoop.gfxEngine.renderer.getClearColor(mU.clearColor.value);
+            mU.invPersMatrix.value.copy(renderer.instance.camera.camera3D.projectionMatrix)
+                .invert();
+            renderer.instance.mainLoop.gfxEngine.renderer.getClearColor(mU.clearColor.value);
 
             return { material: m };
         },
@@ -231,8 +232,8 @@ function PointCloudRenderer(view) {
         },
         setup(renderer, input) {
             const m = this.passes[0];
-            const n = renderer.view.camera.camera3D.near;
-            const f = renderer.view.camera.camera3D.far;
+            const n = renderer.instance.camera.camera3D.near;
+            const f = renderer.instance.camera.camera3D.far;
             const m43 = -(2 * f * n) / (f - n);
             const m33 = -(f + n) / (f - n);
 
@@ -251,24 +252,24 @@ function PointCloudRenderer(view) {
         },
     };
 
-    this.renderTargets = _createRenderTargets(view);
+    this.renderTargets = _createRenderTargets(instance);
 
-    this.view = view;
-    view.addFrameRequester(MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, this.update.bind(this));
+    this.instance = instance;
+    instance.addFrameRequester(MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, this.update.bind(this));
 }
 
 PointCloudRenderer.prototype.update = function update() {
-    if (this.view.camera.width !== this.renderTargets[RT.FULL_RES_0].width
-        || this.view.camera.height !== this.renderTargets[RT.FULL_RES_0].height) {
+    if (this.instance.camera.width !== this.renderTargets[RT.FULL_RES_0].width
+        || this.instance.camera.height !== this.renderTargets[RT.FULL_RES_0].height) {
         // release old render targets
         this.renderTargets.forEach(rt => rt.dispose());
         // build new ones
-        this.renderTargets = _createRenderTargets(this.view);
+        this.renderTargets = _createRenderTargets(this.instance);
     }
 };
 
-PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.0) {
-    const g = view.mainLoop.gfxEngine;
+PointCloudRenderer.prototype.render = function render(instance, opacity = 1.0) {
+    const g = instance.mainLoop.gfxEngine;
     const r = g.renderer;
 
     const stages = [];
@@ -317,8 +318,8 @@ PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.
             }
             r.setViewport(
                 0, 0,
-                output ? output.width : view.camera.width,
-                output ? output.height : view.camera.height,
+                output ? output.width : instance.camera.width,
+                output ? output.height : instance.camera.height,
             );
 
             if (material) {
@@ -333,7 +334,7 @@ PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.
                 }
                 r.render(this.scene, this.camera);
             } else {
-                r.render(view.scene, view.camera.camera3D);
+                r.render(instance.scene, instance.camera.camera3D);
             }
         }
         previousStageOutput = stageOutput;
@@ -342,13 +343,13 @@ PointCloudRenderer.prototype.renderView = function renderView(view, opacity = 1.
     r.setClearAlpha(oldClearAlpha);
 };
 
-function _createRenderTargets(view) {
+function _createRenderTargets(instance) {
     const renderTargets = [];
-    renderTargets.push(new WebGLRenderTarget(view.camera.width, view.camera.height));
-    renderTargets.push(new WebGLRenderTarget(view.camera.width, view.camera.height));
-    renderTargets.push(new WebGLRenderTarget(view.camera.width, view.camera.height));
+    renderTargets.push(new WebGLRenderTarget(instance.camera.width, instance.camera.height));
+    renderTargets.push(new WebGLRenderTarget(instance.camera.width, instance.camera.height));
+    renderTargets.push(new WebGLRenderTarget(instance.camera.width, instance.camera.height));
     renderTargets.push(
-        new WebGLRenderTarget(view.camera.width * 0.5, view.camera.height * 0.5),
+        new WebGLRenderTarget(instance.camera.width * 0.5, instance.camera.height * 0.5),
     );
 
     renderTargets[RT.FULL_RES_0].texture.minFilter = LinearFilter;
@@ -370,7 +371,7 @@ function _createRenderTargets(view) {
     renderTargets[RT.FULL_RES_1].depthTexture.type = UnsignedShortType;
 
     renderTargets[RT.EDL_VALUES] = new WebGLRenderTarget(
-        view.camera.width, view.camera.height,
+        instance.camera.width, instance.camera.height,
     );
     renderTargets[RT.EDL_VALUES].texture.generateMipmaps = false;
     renderTargets[RT.EDL_VALUES].depthBuffer = false;

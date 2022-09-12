@@ -21,7 +21,7 @@ function limitRotation(camera3D, rot /* , verticalFOV */) {
     return MathUtils.clamp(rot, -limit, limit);
 }
 
-function applyRotation(view, camera3D, state) {
+function applyRotation(instance, camera3D, state) {
     camera3D.quaternion.setFromUnitVectors(
         new Vector3(0, 1, 0), camera3D.up,
     );
@@ -29,7 +29,7 @@ function applyRotation(view, camera3D, state) {
     camera3D.rotateY(state.rotateY);
     camera3D.rotateX(state.rotateX);
 
-    view.notifyChange(view.camera.camera3D);
+    instance.notifyChange(instance.camera.camera3D);
 }
 
 const MOVEMENTS = {
@@ -43,7 +43,7 @@ const MOVEMENTS = {
 
 class FirstPersonControls extends EventDispatcher {
     /**
-     * @param {module:Core/Instance~Instance} view the giro3d instance to control
+     * @param {module:Core/Instance~Instance} instance the giro3d instance to control
      * @param {object} options additional options
      * @param {boolean} options.focusOnClick whether or not to focus the renderer domElement on
      * click
@@ -58,13 +58,13 @@ class FirstPersonControls extends EventDispatcher {
      * @param {boolean} options.disableEventListeners if true, the controls will not self listen
      * to mouse/key events.  You'll have to manually forward the events to the appropriate
      * functions: onMouseDown, onMouseMove, onMouseUp, onKeyUp, onKeyDown and onMouseWheel.
-     * @param {number} options.minHeight the minimal height of the view camera
-     * @param {number} options.maxHeight the maximal height of the view camera
+     * @param {number} options.minHeight the minimal height of the instance camera
+     * @param {number} options.maxHeight the maximal height of the instance camera
      */
-    constructor(view, options = {}) {
+    constructor(instance, options = {}) {
         super();
-        this.camera = view.camera.camera3D;
-        this.view = view;
+        this.camera = instance.camera.camera3D;
+        this.instance = instance;
         this.enabled = true;
         this.moves = new Set();
         if (options.panoramaRatio) {
@@ -97,7 +97,7 @@ class FirstPersonControls extends EventDispatcher {
         };
         this.reset();
 
-        const { domElement } = view.mainLoop.gfxEngine.renderer;
+        const { domElement } = instance.mainLoop.gfxEngine.renderer;
         if (!options.disableEventListeners) {
             domElement.addEventListener('mousedown', this.onMouseDown.bind(this), false);
             domElement.addEventListener('touchstart', this.onMouseDown.bind(this), false);
@@ -111,7 +111,9 @@ class FirstPersonControls extends EventDispatcher {
             domElement.addEventListener('DOMMouseScroll', this.onMouseWheel.bind(this), false); // firefox
         }
 
-        this.view.addFrameRequester(MAIN_LOOP_EVENTS.AFTER_CAMERA_UPDATE, this.update.bind(this));
+        this.instance.addFrameRequester(
+            MAIN_LOOP_EVENTS.AFTER_CAMERA_UPDATE, this.update.bind(this),
+        );
 
         // focus policy
         if (options.focusOnMouseOver) {
@@ -189,11 +191,11 @@ class FirstPersonControls extends EventDispatcher {
         }
 
         if (this._isMouseDown === true || force === true) {
-            applyRotation(this.view, this.camera, this._state);
+            applyRotation(this.instance, this.camera, this._state);
         }
 
         if (this.moves.size) {
-            this.view.notifyChange(this.view.camera.camera3D);
+            this.instance.notifyChange(this.instance.camera.camera3D);
         }
     }
 
@@ -206,7 +208,7 @@ class FirstPersonControls extends EventDispatcher {
         event.preventDefault();
         this._isMouseDown = true;
 
-        const coords = this.view.eventToViewCoords(event);
+        const coords = this.instance.eventToCanvasCoords(event);
         this._onMouseDownMouseX = coords.x;
         this._onMouseDownMouseY = coords.y;
 
@@ -229,9 +231,9 @@ class FirstPersonControls extends EventDispatcher {
             // (where deltaH is the vertical amount we moved, and H the renderer height)
             // we loosely approximate tan(x) by x
             const pxToAngleRatio = MathUtils.degToRad(this.camera.fov)
-                / this.view.mainLoop.gfxEngine.height;
+                / this.instance.mainLoop.gfxEngine.height;
 
-            const coords = this.view.eventToViewCoords(event);
+            const coords = this.instance.eventToCanvasCoords(event);
 
             // update state based on pointer movement
             this._state.rotateY = ((coords.x - this._onMouseDownMouseX) * pxToAngleRatio)
@@ -243,7 +245,7 @@ class FirstPersonControls extends EventDispatcher {
                 this.options.verticalFOV,
             );
 
-            applyRotation(this.view, this.camera, this._state);
+            applyRotation(this.instance, this.camera, this._state);
         }
     }
 
@@ -272,7 +274,7 @@ class FirstPersonControls extends EventDispatcher {
             this.options.verticalFOV,
         );
 
-        applyRotation(this.view, this.camera, this._state);
+        applyRotation(this.instance, this.camera, this._state);
     }
 
     // Keyboard handling
@@ -283,7 +285,7 @@ class FirstPersonControls extends EventDispatcher {
         const move = MOVEMENTS[e.keyCode];
         if (move) {
             this.moves.delete(move);
-            this.view.notifyChange(undefined, false);
+            this.instance.notifyChange(undefined, false);
             e.preventDefault();
         }
     }
@@ -295,7 +297,7 @@ class FirstPersonControls extends EventDispatcher {
         const move = MOVEMENTS[e.keyCode];
         if (move) {
             this.moves.add(move);
-            this.view.notifyChange(undefined, false);
+            this.instance.notifyChange(undefined, false);
             e.preventDefault();
         }
     }

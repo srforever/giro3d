@@ -104,7 +104,7 @@ function _instanciateQueue() {
  * The Scheduler is in charge of managing the [Providers]{@link Provider} that
  * are used to gather resources needed to display the layers on a {@link Instance}.
  * There is only one instance of a Scheduler per webview, and it is instanciated
- * with the creation of the first view.
+ * with the creation of the first instance.
  */
 function Scheduler() {
     // Constructor
@@ -147,8 +147,8 @@ Scheduler.prototype.runCommand = function runCommand(command, queue, recurse = t
     }
 
     return queue.execute(command, provider, recurse ? 1 : 0).then(() => {
-        // notify view that one command ended.
-        command.view.notifyChange(command.requester, command.redraw);
+        // notify instance that one command ended.
+        command.instance.notifyChange(command.requester, command.redraw);
 
         if (recurse) {
             this.flush(queue, command.layer.id);
@@ -260,7 +260,7 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
  */
 
 /**
- * When adding a layer to a view, some preprocessing can be done on it, before
+ * When adding a layer to a instance, some preprocessing can be done on it, before
  * fetching or creating resources attached to it. For example, in the WMTS and
  * WFS providers (included in giro3d), default options to the layer are added if
  * some are missing.
@@ -280,7 +280,7 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
  * like a GPX trace, it gets the data once.
  * <br><br>
  * It passes a <code>command</code> object as a parameter, with the
- * <code>view</code> and the <code>layer</code> always present. The other
+ * <code>instance</code> and the <code>layer</code> always present. The other
  * parameters are optional.
  *
  * @function

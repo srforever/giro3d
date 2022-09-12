@@ -199,10 +199,10 @@ const tmp = {
     s: new Sphere(),
 };
 
-function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
+function requestNewTile(instance, scheduler, layer, metadata, parent, redraw) {
     if (metadata.obj) {
         unmarkForDeletion(layer, metadata.obj);
-        view.notifyChange(parent);
+        instance.notifyChange(parent);
         return Promise.resolve(metadata.obj);
     }
 
@@ -229,7 +229,7 @@ function requestNewTile(view, scheduler, layer, metadata, parent, redraw) {
 
     const command = {
         /* mandatory */
-        view,
+        instance,
         requester: parent,
         layer,
         priority,
@@ -521,15 +521,15 @@ function computeNodeSSE(context, node) {
     }
 }
 
-export function init3dTilesEntity(view, scheduler, layer) {
-    return requestNewTile(view, scheduler, layer, layer.tileset.root, undefined, true).then(
+export function init3dTilesEntity(instance, scheduler, layer) {
+    return requestNewTile(instance, scheduler, layer, layer.tileset.root, undefined, true).then(
         tile => {
             delete layer.tileset;
             layer.object3d.add(tile);
             tile.updateMatrixWorld();
             layer.tileIndex.index[tile.tileId].obj = tile;
             layer.root = tile;
-            layer.extent = boundingVolumeToExtent(layer.projection || view.referenceCrs,
+            layer.extent = boundingVolumeToExtent(layer.projection || instance.referenceCrs,
                 tile.boundingVolume, tile.matrixWorld);
         },
     );

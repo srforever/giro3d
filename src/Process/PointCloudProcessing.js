@@ -220,7 +220,7 @@ export default {
                         elt.promise = context.scheduler.execute({
                             layer,
                             requester: elt,
-                            view: context.instance,
+                            instance: context.instance,
                             priority,
                             redraw: true,
                             isLeaf: elt.childrenBitField === 0,

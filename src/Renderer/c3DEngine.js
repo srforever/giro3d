@@ -128,14 +128,14 @@ class C3DEngine {
         }
     }
 
-    renderView(view, include2d) {
+    render(instance, include2d) {
         this.renderer.setViewport(0, 0, this.width, this.height);
         this.renderer.clear();
-        this.renderer.render(view.scene, view.camera.camera3D);
+        this.renderer.render(instance.scene, instance.camera.camera3D);
 
         if (include2d !== false) {
             this.renderer.clearDepth();
-            this.renderer.render(view.scene2D, view.camera.camera2D);
+            this.renderer.render(instance.scene2D, instance.camera.camera2D);
         }
     }
 
@@ -164,18 +164,18 @@ class C3DEngine {
     }
 
     /**
-     * Render view to a Uint8Array.
+     * Render instance to a Uint8Array.
      *
      * @param {module:Core/Instance~Instance} instance The giro3d instance to render
      * @param {object} [zone] partial zone to render
-     * @param {number} zone.x x (in view coordinate)
-     * @param {number} zone.y y (in view coordinate)
+     * @param {number} zone.x x (in instance coordinate)
+     * @param {number} zone.y y (in instance coordinate)
      * @param {number} zone.width width of area to render (in pixels)
      * @param {number} zone.height height of area to render (in pixels)
      * @returns {RenderTarget} - Uint8Array, 4 bytes per pixel. The first pixel in
      * the array is the bottom-left pixel.
      */
-    renderViewToBuffer(instance, zone) {
+    renderToBuffer(instance, zone) {
         if (!zone) {
             zone = {
                 x: 0,
@@ -185,7 +185,7 @@ class C3DEngine {
             };
         }
 
-        this.renderViewToRenderTarget(instance, this.fullSizeRenderTarget, zone);
+        this.renderInstanceToRenderTarget(instance, this.fullSizeRenderTarget, zone);
 
         zone.x = Math.max(0, Math.min(zone.x, this.width));
         zone.y = Math.max(0, Math.min(zone.y, this.height));
@@ -205,11 +205,11 @@ class C3DEngine {
      * @param {module:Core/Instance~Instance} instance The giro3d instance to render
      * @param {RenderTarget} [target] destination render target. Default value: full size
      * render target owned by C3DEngine.
-     * @param {object} [zone] partial zone to render (zone x/y uses view coordinates) Note: target
-     * must contain complete zone
+     * @param {object} [zone] partial zone to render (zone x/y uses canvas coordinates)
+     * Note: target must contain complete zone
      * @returns {RenderTarget} - the destination render target
      */
-    renderViewToRenderTarget(instance, target, zone) {
+    renderInstanceToRenderTarget(instance, target, zone) {
         if (!target) {
             target = this.fullSizeRenderTarget;
         }
@@ -237,11 +237,11 @@ class C3DEngine {
         return target;
     }
 
-    renderLayerTobuffer(view, layer, buffer, x, y, width, height) {
+    renderLayerTobuffer(instance, layer, buffer, x, y, width, height) {
         // hide all layers but the requested one
         // TODO restore the ability to hide layers (not only objects)
-        const previousVisibility = view._objects.map(l => l.visible);
-        for (const v of view._objects) {
+        const previousVisibility = instance._objects.map(l => l.visible);
+        for (const v of instance._objects) {
             v.visible = false;
         }
         layer.visible = true;
@@ -252,14 +252,14 @@ class C3DEngine {
         this.renderer.setScissor(x, y, width, height);
         this.renderer.setScissorTest(true);
         this.renderer.clear();
-        this.renderer.render(layer.object3d, view.camera.camera3D);
+        this.renderer.render(layer.object3d, instance.camera.camera3D);
         this.renderer.setScissorTest(false);
         const pixelBuffer = new Uint8Array(4 * width * height);
         this.renderer.readRenderTargetPixels(buffer, x, y, width, height, pixelBuffer);
         this.renderer.setRenderTarget(current);
 
         for (let i = 0; i < previousVisibility.length; i++) {
-            view._objects[i].visible = previousVisibility[i];
+            instance._objects[i].visible = previousVisibility[i];
         }
 
         return pixelBuffer;
