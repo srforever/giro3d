@@ -51,7 +51,7 @@ and **Three.js** for 3d assets, and can be easily extended to support more. Belo
 To install with [npm](https://www.npmjs.com/) (recommended method):
 
 ```bash
-npm install --save giro3d
+npm install --save @giro3d/giro3d
 ```
 
 This package contains transpiled sources of giro3d (compatible with most browsers).
