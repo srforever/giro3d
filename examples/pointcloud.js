@@ -3,6 +3,7 @@ import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Instance from '@giro3d/giro3d/Core/Instance.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
+import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 const tmpVec3 = new Vector3();
 
@@ -60,3 +61,5 @@ function initializeCamera() {
 }
 
 instance.add(pointcloud).then(initializeCamera);
+
+Inspector.attach(document.getElementById('panelDiv'), instance);

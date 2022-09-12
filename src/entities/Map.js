@@ -22,6 +22,24 @@ import TileMesh from '../Core/TileMesh.js';
 import TileGeometry from '../Core/TileGeometry.js';
 import Cache from '../Core/Scheduler/Cache.js';
 
+/**
+ * Fires when a layer is added to the map.
+ *
+ * @api
+ * @event Map#layer-added
+ * @example
+ * map.addEventListener('layer-added', () => console.log('layer added!'));
+ */
+
+/**
+ * Fires when a layer is added to the map.
+ *
+ * @api
+ * @event Map#layer-removed
+ * @example
+ * map.addEventListener('layer-removed', () => console.log('layer removed!'));
+ */
+
 function findCellWith(x, y, layerDimension, tileCount) {
     const tx = (tileCount * x) / layerDimension.x;
     const ty = (tileCount * y) / layerDimension.y;
@@ -253,6 +271,7 @@ class Map extends Entity3D {
 
         this.disableSkirt = true;
 
+        this.type = 'Map';
         this.builder = new PlanarTileBuilder();
         this.protocol = 'tile';
         this.visible = true;
@@ -500,6 +519,7 @@ class Map extends Entity3D {
                 }
                 this.attach(l);
                 this._instance.notifyChange(this, false);
+                this.dispatchEvent({ type: 'layer-added' });
                 resolve(l);
             }).catch(r => {
                 reject(r);
@@ -520,6 +540,7 @@ class Map extends Entity3D {
         this.currentAddedLayerIds = this.currentAddedLayerIds.filter(l => l !== layer.id);
         if (this.detach(layer)) {
             layer.dispose(this);
+            this.dispatchEvent({ type: 'layer-removed' });
             this._instance.notifyChange(this, true);
             return true;
         }

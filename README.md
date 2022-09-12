@@ -108,15 +108,6 @@ npm run test-unit
 
 Browse the [API Documentation](http://giro3d.org/apidoc/index.html) documentation or check the [examples](http://giro3d.org/examples/index.html).
 
-### Folder overview
-
-- `src/Core`: core functionality, such as the `Instance`  class, coordinates and math functions
-- `src/Parser`: parsers for various file formats (3D Tiles, GPX, vector tiles)
-- `src/Process`: processing functions such as algorithms to select the tiles to load/unload
-- `src/Provider`: classes to access remote data
-- `src/Renderer`: 3D related code (including `Three.js` extensions), and GLSL shaders
-- `utils/debug`: debugging helpers, such as wireframes and outlines
-
 ## Contributors
 
 giro3d has received contributions from people listed in [CONTRIBUTORS.md](CONTRIBUTORS.md).

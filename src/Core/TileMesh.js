@@ -30,6 +30,9 @@ class TileMesh extends Mesh {
 
         this.obb = this.geometry.OBB.clone();
 
+        this.name = `tile @${level}`;
+        this.obb.name = 'obb';
+
         this.frustumCulled = false;
 
         // Layer

@@ -63,7 +63,7 @@ module.exports = {
         'one-var': ['error', 'never'],
         'import/extensions': ['error', 'always'],
         'import/no-extraneous-dependencies': ['error', {
-            devDependencies: ['test/**', 'utils/**', 'examples/**'],
+            devDependencies: ['test/**', 'examples/**'],
         }],
         'no-underscore-dangle': 'off',
         // we make heavy use of for loop, and continue is very handy when used correctly

@@ -22,7 +22,9 @@
       "src/Renderer/Camera.js",
       "src/Renderer/PointsMaterial.js",
       "src/entities",
-      "src/sources"
+      "src/sources",
+      "src/helpers",
+      "src/gui"
     ]
   },
   "plugins": [

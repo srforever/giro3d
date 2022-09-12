@@ -7,6 +7,8 @@ import {
 class OBB extends Object3D {
     constructor(min, max) {
         super();
+        this.type = 'OBB';
+        this.isHelper = true;
         this.box3D = new Box3(min.clone(), max.clone());
         this.natBox = this.box3D.clone();
         this.z = { min: 0, max: 0 };

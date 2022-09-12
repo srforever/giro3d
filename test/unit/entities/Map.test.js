@@ -97,6 +97,20 @@ describe('Map', () => {
             map.addLayer(layer1);
             await expect(map.addLayer(layer2)).rejects.toThrowError('id already used');
         });
+
+        it('should fire the layer-added event', async () => {
+            const layer = new Layer('layer', { standalone: true });
+            layer.dispose = jest.fn();
+            layer.whenReady = Promise.resolve();
+
+            const listener = jest.fn();
+
+            map.addEventListener('layer-added', listener);
+
+            await map.addLayer(layer);
+
+            expect(listener).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('removeLayer', () => {
@@ -110,6 +124,22 @@ describe('Map', () => {
             map.removeLayer(layer);
 
             expect(layer.dispose).toHaveBeenCalled();
+        });
+
+        it('should fire the layer-removed event', async () => {
+            const layer = new Layer('layer', { standalone: true });
+            layer.dispose = jest.fn();
+            layer.whenReady = Promise.resolve();
+
+            const listener = jest.fn();
+
+            await map.addLayer(layer);
+
+            map.addEventListener('layer-removed', listener);
+
+            map.removeLayer(layer);
+
+            expect(listener).toHaveBeenCalledTimes(1);
         });
 
         it('should return true if the layer was present', async () => {

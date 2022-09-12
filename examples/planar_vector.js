@@ -12,6 +12,7 @@ import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
 import { Map } from '@giro3d/giro3d/entities/Map.js';
 import Coordinates from '@giro3d/giro3d/Core/Geographic/Coordinates.js';
 import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
+import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 // # Planar (EPSG:3946) viewer
 
@@ -185,3 +186,5 @@ controls.dampingFactor = 0.2;
 controls.maxPolarAngle = Math.PI / 2.3;
 
 instance.useTHREEControls(controls);
+
+Inspector.attach(document.getElementById('panelDiv'), instance);
