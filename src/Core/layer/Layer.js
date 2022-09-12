@@ -168,6 +168,7 @@ class Layer extends EventDispatcher {
             writable: false,
         });
 
+        this.type = 'Layer';
         this.standalone = options.standalone ? options.standalone : false;
 
         // If the mode is standalone, no protocol is provided.

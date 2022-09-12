@@ -451,31 +451,4 @@ function updateOffsetScale(imageSize, atlas, originalOffsetScale, canvas, target
     );
 }
 
-export function initDebugTool(view) {
-    // Should move to a proper debug tool.. later
-    const div = document.createElement('div');
-    div.style.top = '0';
-    div.style.right = '0';
-    div.style.width = '100%';
-    div.style.position = 'absolute';
-    div.style.backgroundColor = 'lightgray';
-    document.getElementById('viewerDiv').appendChild(div);
-
-    document.addEventListener('click', evt => {
-        const r = view.tileLayer.pickObjectsAt(view, view.eventToViewCoords(evt), 1);
-        if (!r.length) return;
-        const obj = r[0].object;
-
-        while (div.firstChild) {
-            div.removeChild(div.firstChild);
-        }
-        if (obj.material.canvas) {
-            obj.material.uniforms.colorTexture.value.image.style.width = '100%';
-            div.appendChild(obj.material.uniforms.colorTexture.value.image);
-            obj.material.canvas.style.width = '100%';
-            div.appendChild(obj.material.canvas);
-        }
-    });
-}
-
 export default LayeredMaterial;

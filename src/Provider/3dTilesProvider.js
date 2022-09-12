@@ -261,6 +261,8 @@ function executeCommand(command) {
     const { layer } = command;
     const { metadata } = command;
     const tile = new Object3D();
+    tile.name = '3D tile';
+
     configureTile(tile, layer, metadata, command.requester);
     // Patch for supporting 3D Tiles pre 1.0 (metadata.content.url) and 1.0
     // (metadata.content.uri)
@@ -307,6 +309,8 @@ function executeCommand(command) {
                     // TODO: request should be delayed if there is a viewerRequestVolume
                     return func(result, layer, url).then(content => {
                         tile.content = content.object3d;
+                        content.object3d.name = path;
+
                         if (content.batchTable) {
                             tile.batchTable = content.batchTable;
                         }
