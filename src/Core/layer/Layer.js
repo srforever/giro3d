@@ -3,10 +3,9 @@
  */
 import { EventDispatcher } from 'three';
 
-import TileWMS from 'ol/source/TileWMS.js';
 import Vector from 'ol/source/Vector.js';
 import VectorTile from 'ol/source/VectorTile.js';
-import Stamen from 'ol/source/Stamen.js';
+import TileImage from 'ol/source/TileImage.js';
 
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './LayerUpdateStrategy.js';
 import CogSource from '../../sources/CogSource.js';
@@ -178,25 +177,18 @@ class Layer extends EventDispatcher {
             // But at the moment where all protocols use source,
             // we can remove protocol name and check the source type.
             this.source = options.source;
-            switch (this.source.constructor) {
-                case TileWMS:
-                case Stamen:
-                    this.protocol = 'oltile';
-                    break;
-                case Vector:
-                    this.protocol = 'olvector';
-                    break;
-                case VectorTile:
-                    this.protocol = 'olvectortile';
-                    break;
-                case CogSource:
-                    this.protocol = 'cog';
-                    break;
-                case CustomTiledImageSource:
-                    this.protocol = 'customtiledimage';
-                    break;
-                default:
-                    throw Error('Unsupported OpenLayers source');
+            if (this.source instanceof TileImage) {
+                this.protocol = 'oltile';
+            } else if (this.source instanceof VectorTile) {
+                this.protocol = 'olvectortile';
+            } else if (this.source instanceof Vector) {
+                this.protocol = 'olvector';
+            } else if (this.source instanceof CogSource) {
+                this.protocol = 'cog';
+            } else if (this.source instanceof CustomTiledImageSource) {
+                this.protocol = 'customtiledimage';
+            } else {
+                throw Error('Unsupported OpenLayers source');
             }
         }
 
