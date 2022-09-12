@@ -1,9 +1,9 @@
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Extent from '../src/Core/Geographic/Extent.js';
-import CogSource from '../src/sources/CogSource.js';
-import Instance from '../src/Core/Instance.js';
-import ColorLayer from '../src/Core/layer/ColorLayer.js';
-import { Map } from '../src/entities/Map.js';
+import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
+import CogSource from '@giro3d/giro3d/sources/CogSource.js';
+import Instance from '@giro3d/giro3d/Core/Instance.js';
+import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
+import { Map } from '@giro3d/giro3d/entities/Map.js';
 
 // Define projection that we will use (taken from https://epsg.io/32633, Proj4js section)
 Instance.registerCRS('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs');

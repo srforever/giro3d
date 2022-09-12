@@ -1,10 +1,10 @@
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import VectorTile from 'ol/source/VectorTile.js';
 import MVT from 'ol/format/MVT.js';
-import ColorLayer from '../src/Core/layer/ColorLayer.js';
-import Extent from '../src/Core/Geographic/Extent.js';
-import Instance from '../src/Core/Instance.js';
-import { Map } from '../src/entities/Map.js';
+import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
+import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
+import Instance from '@giro3d/giro3d/Core/Instance.js';
+import { Map } from '@giro3d/giro3d/entities/Map.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
