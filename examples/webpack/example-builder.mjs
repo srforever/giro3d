@@ -4,6 +4,7 @@ import sources from 'webpack-sources';
 import frontMatter from 'front-matter';
 
 const RawSource = sources.RawSource;
+const relativeImportRegex = /\.\.\/src/;
 
 function generateExampleCard(pathToHtmlFile, template) {
     const name = path.parse(pathToHtmlFile).name;
@@ -28,6 +29,17 @@ function generateExample(pathToHtmlFile, template) {
         .replaceAll('%content%', body);
 
     return { filename, html };
+}
+
+function validateExample(pathToHtmlFile) {
+    const jsFile = pathToHtmlFile.replace('.html', '.js');
+    const html = fse.readFileSync(jsFile, 'utf-8');
+    if (relativeImportRegex.test(html)) {
+        const filename = path.basename(jsFile);
+        throw new Error(
+            `${filename}: relative import path detected. Use absolute path in the form @giro3d\\giro3d`,
+        );
+    }
 }
 
 function parseExample(pathToHtmlFile) {
@@ -79,7 +91,9 @@ export default class ExampleBuilder {
 
         const htmlFiles = (await fse.readdir(this.examplesDir))
             .filter(f => f.endsWith('.html'))
-            .map(f => path.resolve(this.examplesDir, f))
+            .map(f => path.resolve(this.examplesDir, f));
+
+        htmlFiles.forEach(f => validateExample(f));
 
         // generate an example card fragment for each example file
         const thumbnails = htmlFiles.map(f => generateExampleCard(f, template));

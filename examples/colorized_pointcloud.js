@@ -1,12 +1,12 @@
 import { Vector3 } from 'three';
 import TileWMS from 'ol/source/TileWMS.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Instance from '../src/Core/Instance.js';
-import Tiles3D from '../src/entities/Tiles3D.js';
-import { STRATEGY_DICHOTOMY } from '../src/Core/layer/LayerUpdateStrategy.js';
-import ColorLayer from '../src/Core/layer/ColorLayer.js';
-import PointsMaterial, { MODE } from '../src/Renderer/PointsMaterial.js';
-import Tiles3DSource from '../src/sources/Tiles3DSource.js';
+import Instance from '@giro3d/giro3d/Core/Instance.js';
+import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
+import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
+import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
+import PointsMaterial, { MODE } from '@giro3d/giro3d/Renderer/PointsMaterial.js';
+import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 
 const tmpVec3 = new Vector3();
 

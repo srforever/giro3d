@@ -3,11 +3,11 @@ import Vector from 'ol/source/Vector.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Fetcher from '../src/Provider/Fetcher.js';
-import Extent from '../src/Core/Geographic/Extent.js';
-import Instance from '../src/Core/Instance.js';
-import ColorLayer from '../src/Core/layer/ColorLayer.js';
-import { Map } from '../src/entities/Map.js';
+import Fetcher from '@giro3d/giro3d/Provider/Fetcher.js';
+import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
+import Instance from '@giro3d/giro3d/Core/Instance.js';
+import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
+import { Map } from '@giro3d/giro3d/entities/Map.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
