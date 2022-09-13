@@ -12,6 +12,7 @@
     "excludePattern": "(^|\\/|\\\\)_",
     "include": [
       "src/Core/Instance.js",
+      "src/Core/Points.js",
       "src/Core/Context.js",
       "src/Core/Geographic/Extent.js",
       "src/Core/Geographic/Coordinates.js",

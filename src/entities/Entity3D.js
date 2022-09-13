@@ -1,7 +1,7 @@
 /**
  * @module entities/Entity3D
  */
-import { Color } from 'three';
+import { Color, Box3 } from 'three';
 
 import { defineLayerProperty } from '../Core/layer/Layer.js';
 import ColorLayer from '../Core/layer/ColorLayer.js';
@@ -147,6 +147,20 @@ class Entity3D extends Entity {
 
         // processing can overwrite that with values calculating from this layer's Object3D
         this._distance = { min: Infinity, max: 0 };
+    }
+
+    /**
+     * Returns an approximated bounding box of this entity in the scene.
+     *
+     * @returns {Box3|null} the resulting bounding box, or `null` if it could not be computed.
+     */
+    getBoundingBox() {
+        if (this.object3d) {
+            const box = new Box3().setFromObject(this.object3d);
+            return box;
+        }
+
+        return null;
     }
 
     /**

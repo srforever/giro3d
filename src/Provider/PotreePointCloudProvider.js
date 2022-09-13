@@ -1,13 +1,10 @@
 import {
     Box3,
-    Group,
     Vector3,
 } from 'three';
 import Fetcher from './Fetcher.js';
-import PointCloudProcessing from '../Process/PointCloudProcessing.js';
 import PotreeBinParser from '../Parser/PotreeBinParser.js';
 import PotreeCinParser from '../Parser/PotreeCinParser.js';
-import PointsMaterial, { MODE } from '../Renderer/PointsMaterial.js';
 import Picking from '../Core/Picking.js';
 import Extent from '../Core/Geographic/Extent.js';
 import Points from '../Core/Points.js';
@@ -56,16 +53,16 @@ function createChildAABB(aabb, childIndex) {
     return new Box3(min, max);
 }
 
-function parseOctree(layer, hierarchyStepSize, root) {
-    return Fetcher.arrayBuffer(`${root.baseurl}/r${root.name}.hrc`, layer.networkOptions).then(blob => {
-        const view = new DataView(blob);
+function parseOctree(entity, hierarchyStepSize, root) {
+    return Fetcher.arrayBuffer(`${root.baseurl}/r${root.name}.hrc`, entity.networkOptions).then(blob => {
+        const dataView = new DataView(blob);
 
         const stack = [];
 
         let offset = 0;
 
-        root.childrenBitField = view.getUint8(0); offset += 1;
-        root.numPoints = view.getUint32(1, true); offset += 4;
+        root.childrenBitField = dataView.getUint8(0); offset += 1;
+        root.numPoints = dataView.getUint32(1, true); offset += 4;
         root.children = [];
 
         stack.push(root);
@@ -76,8 +73,8 @@ function parseOctree(layer, hierarchyStepSize, root) {
             for (let i = 0; i < 8; i++) {
                 // does snode have a #i child ?
                 if (snode.childrenBitField & (1 << i) && (offset + 5) <= blob.byteLength) {
-                    const c = view.getUint8(offset); offset += 1;
-                    let n = view.getUint32(offset, true); offset += 4;
+                    const c = dataView.getUint8(offset); offset += 1;
+                    let n = dataView.getUint32(offset, true); offset += 4;
                     if (n === 0) {
                         n = root.numPoints;
                     }
@@ -96,7 +93,7 @@ function parseOctree(layer, hierarchyStepSize, root) {
                         name: childname,
                         baseurl: url,
                         bbox: bounds,
-                        layer,
+                        layer: entity,
                         parent: snode,
                     };
                     snode.children.push(item);
@@ -122,34 +119,34 @@ function findChildrenByName(node, name) {
     throw new Error(`Cannot find node with name '${name}'`);
 }
 
-function computeBbox(layer) {
+function computeBbox(entity) {
     let bbox;
-    if (layer.isFromPotreeConverter) {
-        const layerBbox = layer.metadata.boundingBox;
+    if (entity.isFromPotreeConverter) {
+        const entityBbox = entity.metadata.boundingBox;
         bbox = new Box3(
-            new Vector3(layerBbox.lx, layerBbox.ly, layerBbox.lz),
-            new Vector3(layerBbox.ux, layerBbox.uy, layerBbox.uz),
+            new Vector3(entityBbox.lx, entityBbox.ly, entityBbox.lz),
+            new Vector3(entityBbox.ux, entityBbox.uy, entityBbox.uz),
         );
     } else {
         // lopocs
         let idx = 0;
-        for (const entry of layer.metadata) {
-            if (entry.table === layer.table) {
+        for (const entry of entity.metadata) {
+            if (entry.table === entity.table) {
                 break;
             }
             idx++;
         }
-        const layerBbox = layer.metadata[idx].bbox;
+        const entityBbox = entity.metadata[idx].bbox;
         bbox = new Box3(
-            new Vector3(layerBbox.xmin, layerBbox.ymin, layerBbox.zmin),
-            new Vector3(layerBbox.xmax, layerBbox.ymax, layerBbox.zmax),
+            new Vector3(entityBbox.xmin, entityBbox.ymin, entityBbox.zmin),
+            new Vector3(entityBbox.xmax, entityBbox.ymax, entityBbox.zmax),
         );
     }
     return bbox;
 }
 
-function parseMetadata(metadata, layer) {
-    layer.metadata = metadata;
+function parseMetadata(metadata, entity) {
+    entity.metadata = metadata;
 
     let customBinFormat = true;
 
@@ -157,111 +154,48 @@ function parseMetadata(metadata, layer) {
     // The only difference is the metadata root file (cloud.js vs infos/sources), and we can
     // check for the existence of a `scale` field.
     // (if `scale` is defined => we're fetching files from PotreeConverter)
-    if (layer.metadata.scale !== undefined) {
-        layer.isFromPotreeConverter = true;
+    if (entity.metadata.scale !== undefined) {
+        entity.isFromPotreeConverter = true;
         // PotreeConverter format
-        customBinFormat = layer.metadata.pointAttributes === 'CIN';
+        customBinFormat = entity.metadata.pointAttributes === 'CIN';
         // do we have normal information
-        const normal = Array.isArray(layer.metadata.pointAttributes)
-            && layer.metadata.pointAttributes.find(elem => elem.startsWith('NORMAL'));
+        const normal = Array.isArray(entity.metadata.pointAttributes)
+            && entity.metadata.pointAttributes.find(elem => elem.startsWith('NORMAL'));
         if (normal) {
-            layer.material.defines[normal] = 1;
+            entity.material.defines[normal] = 1;
         }
     } else {
         // Lopocs
-        layer.metadata.scale = 1;
-        layer.metadata.octreeDir = `giro3d/${layer.table}.points`;
-        layer.metadata.hierarchyStepSize = 1000000; // ignore this with lopocs
+        entity.metadata.scale = 1;
+        entity.metadata.octreeDir = `giro3d/${entity.table}.points`;
+        entity.metadata.hierarchyStepSize = 1000000; // ignore this with lopocs
         customBinFormat = true;
     }
 
-    layer.parse = customBinFormat ? PotreeCinParser.parse : PotreeBinParser.parse;
-    layer.extension = customBinFormat ? 'cin' : 'bin';
-    layer.supportsProgressiveDisplay = customBinFormat;
-}
-
-export function getObjectToUpdateForAttachedLayers(meta) {
-    if (!meta.obj) {
-        return null;
-    }
-    const p = meta.parent;
-    if (p && p.obj) {
-        return {
-            element: meta.obj,
-            parent: p.obj,
-        };
-    }
-    return {
-        element: meta.obj,
-    };
+    entity.parse = customBinFormat ? PotreeCinParser.parse : PotreeBinParser.parse;
+    entity.extension = customBinFormat ? 'cin' : 'bin';
+    entity.supportsProgressiveDisplay = customBinFormat;
 }
 
 export default {
-    preprocessDataLayer(layer, instance) {
-        if (!layer.file) {
-            layer.file = 'cloud.js';
-        }
-        if (!layer.group) {
-            layer.group = new Group();
-            layer.object3d.add(layer.group);
-            layer.group.updateMatrixWorld();
-        }
-
-        if (!layer.bboxes) {
-            layer.bboxes = new Group();
-            layer.object3d.add(layer.bboxes);
-            layer.bboxes.updateMatrixWorld();
-            layer.bboxes.visible = false;
-        }
-
-        // default options
-        layer.networkOptions = layer.networkOptions || {};
-        layer.octreeDepthLimit = layer.octreeDepthLimit || -1;
-        layer.pointBudget = layer.pointBudget || 2000000;
-        layer.pointSize = layer.pointSize === 0
-            || !Number.isNaN(layer.pointSize) ? layer.pointSize : 4;
-        layer.sseThreshold = layer.sseThreshold || 2;
-        layer.material = layer.material || {};
-        layer.material = layer.material.isMaterial
-            ? layer.material : new PointsMaterial(layer.material);
-        layer.material.defines = layer.material.defines || {};
-        layer.mode = MODE.COLOR;
-
-        // default update methods
-        layer.preUpdate = PointCloudProcessing.preUpdate;
-        layer.update = PointCloudProcessing.update;
-        layer.postUpdate = PointCloudProcessing.postUpdate;
-
-        // override the default method, since updated objects are metadata in this case
-        layer.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
-
-        // TODO this probably needs to be moved to somewhere else
-        // Also see 3DTilesProvider that basically does this too
-        layer.pickObjectsAt = (instance2, mouse, radius, filter) => Picking.pickPointsAt(
-            instance2,
-            mouse,
-            radius,
-            layer,
-            filter,
-        );
-
-        return Fetcher.json(`${layer.url}/${layer.file}`, layer.networkOptions)
+    preprocessDataLayer(entity, instance) {
+        const source = entity.source;
+        return Fetcher.json(`${source.url}/${source.filename}`, source.networkOptions)
             .then(metadata => {
-                parseMetadata(metadata, layer);
-                const bbox = computeBbox(layer);
+                parseMetadata(metadata, entity);
+                const bbox = computeBbox(entity);
                 return parseOctree(
-                    layer,
-                    layer.metadata.hierarchyStepSize,
-                    { baseurl: `${layer.url}/${layer.metadata.octreeDir}/r`, name: '', bbox },
+                    entity,
+                    entity.metadata.hierarchyStepSize,
+                    { baseurl: `${source.url}/${entity.metadata.octreeDir}/r`, name: '', bbox },
                 );
             })
             .then(root => {
-                console.log('LAYER metadata:', root);
-                layer.root = root;
+                entity.root = root;
                 root.findChildrenByName = findChildrenByName.bind(root, root);
-                layer.extent = Extent.fromBox3(instance.referenceCrs, root.bbox);
+                entity.extent = Extent.fromBox3(instance.referenceCrs, root.bbox);
 
-                return layer;
+                return entity;
             });
     },
 
@@ -281,9 +215,10 @@ export default {
         // fly when we request .hrc files)
         const url = `${metadata.baseurl}/r${metadata.name}.${layer.extension}?isleaf=${command.isLeaf ? 1 : 0}`;
 
-        return Fetcher.arrayBuffer(url, layer.networkOptions)
+        return Fetcher.arrayBuffer(url, layer.source.networkOptions)
             .then(buffer => layer.parse(buffer, layer.metadata.pointAttributes)).then(geometry => {
                 const points = new Points(layer, geometry, layer.material.clone());
+                points.name = `r${metadata.name}.${layer.extension}`;
                 if (points.material.enablePicking) {
                     Picking.preparePointGeometryForPicking(points.geometry);
                 }
@@ -298,6 +233,9 @@ export default {
                 points.extent = Extent.fromBox3(command.instance.referenceCrs, metadata.bbox);
                 points.userData.metadata = metadata;
                 return points;
+            })
+            .catch(e => {
+                console.error(e);
             });
     },
 };
