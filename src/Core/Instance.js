@@ -2,7 +2,7 @@
  * @module Core/Instance
  */
 import {
-    Scene, Group, EventDispatcher, Vector2, Object3D,
+    Scene, Group, EventDispatcher, Vector2, Vector3, Object3D, Box3,
 } from 'three';
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4.js';
@@ -17,6 +17,11 @@ import Picking from './Picking.js';
 import OlFeature2Mesh from '../Renderer/ThreeExtended/OlFeature2Mesh.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
 import Entity from '../entities/Entity.js';
+
+const vectors = {
+    pos: new Vector3(),
+    size: new Vector3(),
+};
 
 /**
  * The names of events supported by
@@ -656,6 +661,7 @@ class Instance extends EventDispatcher {
     }
 
     focusObject(obj) {
+        const cam = this.camera.camera3D;
         if (obj instanceof Map) {
             // Configure camera
             // TODO support different CRS
@@ -665,9 +671,21 @@ class Instance extends EventDispatcher {
             const lookat = positionCamera.xyz();
             lookat.z = 0; // TODO this supposes there is no terrain, nor z-displacement
 
-            this.camera.camera3D.position.copy(positionCamera.xyz());
-            this.camera.camera3D.lookAt(lookat);
-            this.camera.camera3D.updateMatrixWorld(true);
+            cam.position.copy(positionCamera.xyz());
+            cam.lookAt(lookat);
+            cam.updateMatrixWorld(true);
+        } else if (obj.getBoundingBox) {
+            /** @type {Box3} */
+            const box = obj.getBoundingBox();
+            if (box) {
+                const center = box.getCenter(vectors.pos);
+                const size = box.getSize(vectors.size);
+                const positionCamera = center.clone();
+                positionCamera.x = Math.max(size.x, size.y);
+                cam.position.copy(positionCamera);
+                cam.lookAt(center);
+                cam.updateMatrixWorld(true);
+            }
         }
     }
 

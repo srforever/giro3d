@@ -8,6 +8,7 @@ import MapInspector from './MapInspector.js';
 import Panel from './Panel.js';
 import Tiles3dInspector from './Tiles3dInspector.js';
 import { MAIN_LOOP_EVENTS } from '../Core/MainLoop.js';
+import PotreePointCloudInspector from './PotreePointCloudInspector.js';
 
 const customInspectors = {};
 
@@ -28,6 +29,7 @@ class EntityPanel extends Panel {
 
         EntityPanel.registerInspector('Map', MapInspector);
         EntityPanel.registerInspector('Tiles3D', Tiles3dInspector);
+        EntityPanel.registerInspector('PotreePointCloud', PotreePointCloudInspector);
 
         this.instance.addFrameRequester(
             MAIN_LOOP_EVENTS.UPDATE_START,
