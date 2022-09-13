@@ -152,6 +152,20 @@ class PotreePointCloud extends Entity3D {
             this,
             filter,
         );
+
+        /**
+         * Optional hook called when a new point tile is loaded.
+         * The parameter is a {@link module:Core/Points~Points Points} object.
+         *
+         * @api
+         * @type {Function}
+         * @example
+         * const cloud = new PotreePointCloud('myCloud', source);
+         * cloud.onPointsCreated = function(pnts) {
+         *  // Do something with the points.
+         * }
+         */
+        this.onPointsCreated = null;
     }
 
     updateMinMaxDistance(context, bbox) {
