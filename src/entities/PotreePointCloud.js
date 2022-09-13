@@ -239,7 +239,9 @@ class PotreePointCloud extends Entity3D {
         //     <--------------------->      = pointsSpacing (in world coordinates)
         //                                  ~ onScreenSpacing (in pixels)
         // <------>                         = layer.pointSize (in pixels)
-        return Math.max(0.0, onScreenSpacing - this.pointSize);
+        // we are interested in the radius of the points, not their total size.
+        const pointRadius = this.pointSize / 2;
+        return Math.max(0.0, onScreenSpacing - pointRadius);
     }
 
     initBoundingBox(elt) {
