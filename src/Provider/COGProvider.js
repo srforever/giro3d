@@ -1,8 +1,7 @@
-import { Vector4, Texture } from 'three';
+import { Vector4, Texture, DataTexture } from 'three';
 import { fromUrl, Pool } from 'geotiff';
 
 import Cache from '../Core/Scheduler/Cache.js';
-import C3DEngine from '../Renderer/c3DEngine.js';
 
 import ColorLayer from '../Core/layer/ColorLayer.js';
 
@@ -51,11 +50,8 @@ async function processSmallestOverview(layer, levelImage) {
     const result = { pitch: new Vector4(0, 0, 1, 1), texture: new Texture() };
     // Process the downloaded data
     const { data, width, height } = processData(layer, arrayData);
-    // We have to convert the texture image data to a proper image
-    // to display it on the tile
-    result.texture.image = C3DEngine.bufferToImage(
-        data, width, height,
-    );
+    const imageData = new ImageData(data, width, height);
+    result.texture = new DataTexture(imageData, width, height);
     // Put the extent to indicate the overview has been processed
     result.texture.extent = layer.extent;
     // Assuming everything went fine, put the texture in cache
@@ -216,11 +212,9 @@ function executeCommand(command) {
         if (layer instanceof ColorLayer) {
             // Process the downloaded data
             const { data, width, height } = processData(layer, arrayData);
-            // We have to convert the texture image data to a proper image
-            // to display it on the tile
-            result.texture.image = C3DEngine.bufferToImage(
-                data, width, height,
-            );
+            const imageData = new ImageData(data, width, height);
+            const texture = new DataTexture(imageData, width, height);
+            result.texture = texture;
             // Attach the extent to the texture to check for possible improvements
             result.texture.extent = requester.extent;
             // Everything went fine, put the texture in cache
