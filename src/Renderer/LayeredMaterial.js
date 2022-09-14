@@ -210,19 +210,21 @@ class LayeredMaterial extends RawShaderMaterial {
                     this.texturesInfo.color.offsetScale[idx],
                 );
 
-                const srcImage = this.texturesInfo.color.textures[idx].image;
+                const texture = this.texturesInfo.color.textures[idx];
 
-                this.canvasRevision = drawLayerOnCanvas(
+                drawLayerOnCanvas(
                     l,
                     this.texturesInfo.color.atlasTexture,
                     atlas,
-                    (srcImage === this.canvas) ? null : srcImage,
+                    (texture.image === this.canvas) ? null : texture,
                     this.texturesInfo.color.offsetScale[idx],
                     this.canvasRevision,
-                );
+                ).then(() => this.canvasRevision++);
             }
+
             this.pendingUpdates.length = 0;
             this.texturesInfo.color.atlasTexture.needsUpdate = true;
+
             if (this.visible) {
                 instance.notifyChange();
             }
@@ -395,43 +397,36 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 }
 
-function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, image, interest, revision) {
+async function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, texture) {
+    /** @type {HTMLCanvasElement} */
     const canvas = atlasTexture.image;
     const ctx = canvas.getContext('2d');
 
-    if (image !== undefined && layer.transparent) {
+    if (texture !== undefined && layer.transparent) {
         ctx.clearRect(
             atlasInfo.x, atlasInfo.y, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset,
         );
     }
 
-    if (image) {
-        // draw the whole image
-        ctx.drawImage(
-            image,
-            atlasInfo.x, atlasInfo.y + atlasInfo.offset,
-            layer.imageSize.w, layer.imageSize.h,
-        );
+    if (texture && texture.image) {
+        const dx = atlasInfo.x;
+        const dy = atlasInfo.y + atlasInfo.offset;
+        const dw = layer.imageSize.w;
+        const dh = layer.imageSize.h;
 
-        if (atlasInfo.offset) {
-            // avoid texture bleeding: repeat the first/last row
-            ctx.drawImage(
-                image,
-                0, 0, layer.imageSize.w, atlasInfo.offset,
-                atlasInfo.x, atlasInfo.y,
-                layer.imageSize.w, atlasInfo.offset,
-            );
-            ctx.drawImage(
-                image,
-                0, layer.imageSize.h - 1 - atlasInfo.offset, layer.imageSize.w, atlasInfo.offset,
-                atlasInfo.x, atlasInfo.y + layer.imageSize.h + atlasInfo.offset,
-                layer.imageSize.w, atlasInfo.offset,
-            );
+        let bitmap = texture.image;
+
+        // draw the whole image
+        if (texture.isDataTexture) {
+            // DataTexture.image is not an actual image that can be rendered into a canvas.
+            // We have to create an ImageBitmap from the underlying data.
+            bitmap = await createImageBitmap(texture.image.data);
         }
+
+        ctx.drawImage(bitmap, dx, dy, dw, dh);
     }
 
     atlasTexture.needsUpdate = true;
-    return revision + 1;
 }
 
 function updateOffsetScale(imageSize, atlas, originalOffsetScale, canvas, target) {
