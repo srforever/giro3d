@@ -5,14 +5,33 @@ describe('GeographicCanvas', () => {
     function makeMockCanvas(width = 256, height = 256) {
         const context = {
             drawImage: jest.fn(),
+            getImageData: jest.fn(),
         };
         const result = {
             width,
             height,
+            _ctx: context,
             getContext: () => context,
         };
         return result;
     }
+
+    describe('getImageData', () => {
+        it('should return the correct size', () => {
+            const canvas = new GeographicCanvas(
+                {
+                    canvas: makeMockCanvas(256, 256),
+                    extent: new Extent('EPSG:4326', 0, 0, 0, 0),
+                },
+            );
+
+            const expected = {};
+            canvas.canvas._ctx.getImageData.mockReturnValueOnce(expected);
+            const actual = canvas.getImageData();
+            expect(canvas.canvas._ctx.getImageData).toHaveBeenCalledWith(0, 0, 256, 256);
+            expect(actual).toBe(expected);
+        });
+    });
 
     describe('draw', () => {
         it('should call drawImage with correct values', () => {
