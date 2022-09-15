@@ -29,7 +29,6 @@ proj4.defs('EPSG:3946', '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 
 function assertVerticesAreInOBB(builder, extent) {
     const params = {
         extent,
-        disableSkirt: true,
     };
 
     const geom = new TileGeometry(params, builder);

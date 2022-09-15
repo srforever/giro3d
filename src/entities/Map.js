@@ -144,7 +144,6 @@ function requestNewTile(map, extent, parent, level) {
             extent: sharableExtent,
             level,
             segment,
-            disableSkirt: map.disableSkirt,
         };
 
         geometry = new TileGeometry(paramsGeometry, builder);
@@ -268,8 +267,6 @@ class Map extends Entity3D {
 
         this.sseScale = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel || -1;
-
-        this.disableSkirt = true;
 
         this.type = 'Map';
         this.builder = new PlanarTileBuilder();
