@@ -163,9 +163,9 @@ async function combineImages(sourceImages, layer, targetExtent) {
  * @param {Extent} extent The tile extent.
  * @param {number} zoom The zoom level.
  * @param {Layer} layer The target layer.
- * @returns {Promise<HTMLImageElement|HTMLCanvasElement|HTMLVideoElement>[]} The loaded tile images.
+ * @returns {Promise<HTMLImageElement[]>} The loaded tile images.
  */
-async function loadTiles(extent, zoom, layer) {
+function loadTiles(extent, zoom, layer) {
     /** @type {TileSource} */
     const source = layer.source;
     const tileGrid = layer.tileGrid;
