@@ -355,22 +355,6 @@ class Extent {
      * @returns {boolean} true if this extent is contained in the other extent.
      */
     isInside(other, epsilon) {
-        if (_isTiledCRS(this.crs())) {
-            if (this.zoom === other.zoom) {
-                return this.row === other.row
-                && this.col === other.col;
-            }
-            if (this.zoom < other.zoom) {
-                return false;
-            }
-            const diffLevel = this.zoom - other.zoom;
-            const diff = 2 ** diffLevel;
-            const invDiff = 1 / diff;
-
-            const r = (this.row - (this.row % diff)) * invDiff;
-            const c = (this.col - (this.col % diff)) * invDiff;
-            return r === other.row && c === other.col;
-        }
         const o = other.as(this._crs);
         // 0 is an acceptable value for epsilon:
         epsilon = epsilon == null ? reasonnableEpsilonForCRS(this._crs, this) : epsilon;

@@ -59,6 +59,7 @@ describe('Map', () => {
             expect(map.validityExtent).toEqual(extent);
             expect(map.protocol).toEqual('tile');
             expect(map.visible).toBe(true);
+            expect(map.extent).toEqual(extent);
         });
 
         it('should create a THREE Group for the object3D property', () => {
@@ -69,6 +70,12 @@ describe('Map', () => {
             expect(map.update).toBeDefined();
             expect(map.preUpdate).toBeDefined();
             expect(map.postUpdate).toBeDefined();
+        });
+
+        it('should honor the provided extent', () => {
+            const ex = new Extent('EPSG:3857', -10000, 242444, 34000, 100000);
+            const sut = new Map('foo', { extent: ex });
+            expect(sut.extent).toEqual(ex);
         });
     });
 
