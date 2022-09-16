@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { Box3, Vector3 } from 'three';
-import Coordinates from '../../src/Core/Geographic/Coordinates.js';
-import Extent from '../../src/Core/Geographic/Extent.js';
+import Coordinates from '../../../../src/Core/Geographic/Coordinates.js';
+import Extent from '../../../../src/Core/Geographic/Extent.js';
 
 const BOUNDS_EPSG4326 = new Extent('EPSG:4326', {
     south: -90, north: +90, east: +180, west: -180,
