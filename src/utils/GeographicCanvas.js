@@ -120,9 +120,12 @@ class GeographicCanvas {
     }
 
     /**
-     * Gets the image content of the canvas.
+     * Gets the {@link HTMLImageElement} content of the canvas.
      *
-     * @returns {Promise<Image>} The resulting image.
+     * Note: if this image is meant to be drawn into another canvas, use {@link getBitmap()}
+     * instead, that provides much faster conversion times.
+     *
+     * @returns {Promise<HTMLImageElement>} The resulting image.
      */
     getImage() {
         // We need a promise because loading an image is asynchronous
@@ -133,6 +136,17 @@ class GeographicCanvas {
             result.onerror = reject;
             result.src = data;
         });
+    }
+
+    /**
+     * Gets the {@link ImageData} content of the canvas.
+     *
+     * This bitmap is suitable to be drawn into another canvas.
+     *
+     * @returns {ImageData} The data.
+     */
+    getImageData() {
+        return this.context.getImageData(0, 0, this.size.w, this.size.h);
     }
 }
 

@@ -1,4 +1,9 @@
-import { Texture, Vector4 } from 'three';
+import {
+    DataTexture,
+    RGBAFormat,
+    Texture,
+    Vector4,
+} from 'three';
 
 import TileSource from 'ol/source/Tile.js';
 import TileState from 'ol/TileState.js';
@@ -136,11 +141,16 @@ async function combineImages(sourceImages, layer, targetExtent) {
         canvas.draw(img, img.extent);
     });
 
-    const image = await canvas.getImage();
+    // This is much, much faster than actually creating an HTMLImageElement.
+    const imageData = canvas.getImageData();
+    const bitmap = await createImageBitmap(imageData);
 
-    const texture = new Texture(image);
-    texture.needsUpdate = true;
-    texture.premultiplyAlpha = layer.transparent;
+    // In the case of color layers, the texture is not used, because the image will be drawn into
+    // the tile atlas. However, in the case of elevation layers, the texture is directly used
+    // since there can only be one elevation layer per tile.
+    // DataTexture is faster to create since it uses the pixel buffer instead of an image element.
+    const texture = new DataTexture(imageData, bitmap.width, bitmap.height, RGBAFormat);
+    texture.flipY = true;
     texture.extent = targetExtent;
     texture.revision = layer.source.getRevision();
 
@@ -153,9 +163,9 @@ async function combineImages(sourceImages, layer, targetExtent) {
  * @param {Extent} extent The tile extent.
  * @param {number} zoom The zoom level.
  * @param {Layer} layer The target layer.
- * @returns {Promise<HTMLImageElement|HTMLCanvasElement|HTMLVideoElement>[]} The loaded tile images.
+ * @returns {Promise<HTMLImageElement[]>} The loaded tile images.
  */
-async function loadTiles(extent, zoom, layer) {
+function loadTiles(extent, zoom, layer) {
     /** @type {TileSource} */
     const source = layer.source;
     const tileGrid = layer.tileGrid;
