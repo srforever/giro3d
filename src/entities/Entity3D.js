@@ -180,6 +180,9 @@ class Entity3D extends Entity {
             throw new Error(`Missing 'update' function -> can't attach layer ${layer.id}`);
         }
         layer = layer._preprocessLayer(this, this._instance);
+        if (!layer.imageSize) {
+            layer.imageSize = { w: 256, h: 256 };
+        }
 
         this._attachedLayers.push(layer);
 

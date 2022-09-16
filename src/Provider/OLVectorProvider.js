@@ -36,8 +36,6 @@ emptyTexture.empty = true;
 const tmpTransform_ = createTransform();
 
 function preprocessDataLayer(layer) {
-    layer.imageSize = { w: 256, h: 256 };
-
     const format = layer.source.getFormat();
     if (format && format.dataProjection.getCode() !== layer.projection) {
         for (const f of layer.source.getFeatures()) {

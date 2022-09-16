@@ -113,4 +113,24 @@ describe('Entity3D', () => {
             expect(o3d.traverse).toHaveBeenCalled();
         });
     });
+
+    describe('attach', () => {
+        function makeLayer() {
+            const layer = { update: jest.fn(), _preprocessLayer: () => layer };
+            return layer;
+        }
+
+        it('should assign a default image size if none is present', () => {
+            const entity = sut();
+            const layer1 = makeLayer();
+            entity.attach(layer1);
+
+            expect(layer1.imageSize).toEqual({ w: 256, h: 256 });
+
+            const layer2 = makeLayer();
+            layer2.imageSize = { w: 3, h: 114 };
+            entity.attach(layer2);
+            expect(layer2.imageSize).toEqual({ w: 3, h: 114 });
+        });
+    });
 });

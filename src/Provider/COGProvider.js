@@ -104,8 +104,6 @@ async function getImages(layer) {
 function preprocessDataLayer(layer) {
     // Initiate a pool of workers to decode COG chunks
     layer.pool = new Pool();
-    // Set the tiles size threshold to switch between overviews
-    layer.imageSize = { w: 256, h: 256 };
     // Precompute the layer dimensions to later calculate data windows
     layer.dimension = layer.extent.dimensions();
     // Get and store needed metadata

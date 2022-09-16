@@ -449,6 +449,7 @@ class Map extends Entity3D {
             if (!layer.projection) {
                 layer.projection = this.projection;
             }
+            layer.imageSize = this.imageSize;
 
             layer = layer._preprocessLayer(this, this._instance);
 

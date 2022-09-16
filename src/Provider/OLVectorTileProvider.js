@@ -47,6 +47,12 @@ function preprocessDataLayer(layer) {
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
     const sizePixel = source.getTilePixelSize(0/* z */, 1/* pixelRatio */, projection);
+    // Normally we should let the map decide of the layer image size,
+    // But in the case of vector tiles, it's a bit problematic.
+    // Currently, vector tiles don't work well when source tiles and target tiles have
+    // different extents. The solution would be to allow arbitrary number of vector tiles
+    // for a single map tile (like other image tile providers do), but it's a bit more complicated
+    // to do for vector tiles. See #73 for a possible fix.
     layer.imageSize = { w: sizePixel[0], h: sizePixel[1] };
     const extent = tileGrid.getExtent();
     layer.extent = fromOLExtent(extent, projection.getCode());

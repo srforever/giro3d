@@ -1,3 +1,4 @@
+import Extent from '../Core/Geographic/Extent.js';
 import { Map, requestNewTile } from '../entities/Map.js';
 
 /**
@@ -11,6 +12,8 @@ function preprocessDataLayer(map) {
     // root tile to avoid elongated tiles that hurt visual quality and SSE computation.
     const subdivs = selectBestSubdivisions(map.extent);
     const rootExtents = map.extent.split(subdivs.x, subdivs.y);
+
+    map.imageSize = computeImageSize(rootExtents[0]);
 
     const promises = [];
 
@@ -26,6 +29,30 @@ function preprocessDataLayer(map) {
             level0.updateMatrixWorld();
         }
     });
+}
+
+/**
+ * Compute the best image size for tiles, taking into account the extent ratio.
+ * In other words, rectangular tiles will have more pixels in their longest side.
+ *
+ * @param {Extent} extent The map extent.
+ */
+function computeImageSize(extent) {
+    const baseSize = 256;
+    const dims = extent.dimensions();
+    const ratio = dims.x / dims.y;
+    if (Math.abs(ratio - 1) < 0.01) {
+        // We have a square tile
+        return { w: baseSize, h: baseSize };
+    }
+
+    if (ratio > 1) {
+        // We have an horizontal tile
+        return { w: Math.round(baseSize * ratio), h: baseSize };
+    }
+
+    // We have a vertical tile
+    return { w: baseSize, h: Math.round(baseSize * (1 / ratio)) };
 }
 
 function selectBestSubdivisions(extent) {

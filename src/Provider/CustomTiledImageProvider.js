@@ -139,17 +139,6 @@ export default {
                 );
             }
             layer._spatialIndex.finish();
-
-            const s = selectBestImageForExtent(layer, layer.extent);
-            return getTexture({
-                url: layer.source.buildUrl(s.image),
-                selection: s,
-            }, layer).then(result => {
-                layer.imageSize = {
-                    w: result.texture.image.width,
-                    h: result.texture.image.height,
-                };
-            });
         });
     },
 
