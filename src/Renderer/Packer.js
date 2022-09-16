@@ -1,8 +1,6 @@
 // original code from https://github.com/jakesgordon/bin-packing
 // MIT License
 
-import { MathUtils } from 'three';
-
 // 2D Bin Packing algorithm (fit N random dimension blocks in a w * h rectangle) implementation
 function fit(blocks, w, h, previousRoot) {
     const root = previousRoot || {
@@ -18,12 +16,7 @@ function fit(blocks, w, h, previousRoot) {
             maxY = Math.max(maxY, node.y + block.h);
         }
     }
-    if (!MathUtils.isPowerOfTwo(maxX)) {
-        maxX = MathUtils.ceilPowerOfTwo(maxX);
-    }
-    if (!MathUtils.isPowerOfTwo(maxY)) {
-        maxY = MathUtils.ceilPowerOfTwo(maxY);
-    }
+
     return { maxX, maxY };
 }
 
