@@ -549,6 +549,55 @@ class Extent {
         });
     }
 
+    /**
+     * Subdivides this extents into x and y subdivisions.
+     *
+     * Notes:
+     * - Subdivisions must be strictly positive.
+     * - If both subvisions are `1`, an array of one element is returned,
+     *  containing a copy of this extent.
+     *
+     * @api
+     * @param {number} xSubdivs The number of subdivisions on the X/longitude axis.
+     * @param {number} ySubdivs The number of subdivisions on the Y/latitude axis.
+     * @returns {Extent[]} the resulting extents.
+     * @example
+     * const extent = new Extent('EPSG:3857', 0, 100, 0, 100);
+     * extent.split(2, 1);
+     * // [0, 50, 0, 50], [50, 100, 50, 100]
+     */
+    split(xSubdivs, ySubdivs) {
+        if (xSubdivs < 1 || ySubdivs < 1) {
+            throw new Error('Invalid subdivisions. Must be strictly positive.');
+        }
+
+        if (xSubdivs === 1 && ySubdivs === 1) {
+            return [this.clone()];
+        }
+
+        const dims = this.dimensions();
+        const minX = this.west();
+        const minY = this.south();
+        const w = dims.x / xSubdivs;
+        const h = dims.y / ySubdivs;
+        const crs = this.crs();
+
+        const result = [];
+
+        for (let x = 0; x < xSubdivs; x++) {
+            for (let y = 0; y < ySubdivs; y++) {
+                const west = minX + x * w;
+                const south = minY + y * h;
+                const east = west + w;
+                const north = south + h;
+                const extent = new Extent(crs, west, east, south, north);
+                result.push(extent);
+            }
+        }
+
+        return result;
+    }
+
     quadtreeSplit() {
         this.center(tmpCoords);
 
