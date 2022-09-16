@@ -11,7 +11,7 @@ import Layer, {
 } from './Layer.js';
 
 // get image data
-let fooCanvas;
+let canvas;
 
 /**
  * The ElevationLayer provides data to display terrain on a map.
@@ -55,20 +55,25 @@ class ElevationLayer extends Layer {
         defineLayerProperty(this, 'frozen', false);
     }
 
-    static colorImageSetup(texture) {
-        if (!fooCanvas) {
-            fooCanvas = document.createElement('canvas');
-            fooCanvas.width = 256;
-            fooCanvas.height = 256;
-        }
+    static getBufferData(texture) {
         const w = texture.image.width;
         const h = texture.image.height;
-        const fooCtx = fooCanvas.getContext('2d');
-        fooCanvas.width = w;
-        fooCanvas.height = h;
-        fooCtx.drawImage(texture.image, 0, 0);
-        const { data } = fooCtx.getImageData(0, 0, w, h);
         const stride = w * 4;
+
+        if (texture.isDataTexture) {
+            // DataTextures already have an ImageData available
+            return { data: texture.image.data.data, stride, h };
+        }
+
+        if (!canvas) {
+            canvas = document.createElement('canvas');
+        }
+        const ctx = canvas.getContext('2d');
+        canvas.width = w;
+        canvas.height = h;
+
+        ctx.drawImage(texture.image, 0, 0);
+        const { data } = ctx.getImageData(0, 0, w, h);
         return { data, stride, h };
     }
 
@@ -83,7 +88,7 @@ class ElevationLayer extends Layer {
         let min = Infinity;
         let max = -Infinity;
         if (this.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
-            const { data, stride, h } = ElevationLayer.colorImageSetup(texture);
+            const { data, stride, h } = ElevationLayer.getBufferData(texture);
             for (let i = 0; i < h; i++) {
                 for (let j = 0; j < stride; j += 4) {
                     const val = DEMUtils.decodeMapboxElevation(
@@ -100,7 +105,7 @@ class ElevationLayer extends Layer {
                 }
             }
         } else if (this.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
-            const { data, stride, h } = ElevationLayer.colorImageSetup(texture);
+            const { data, stride, h } = ElevationLayer.getBufferData(texture);
             for (let i = 0; i < h; i++) {
                 for (let j = 0; j < stride; j += 4) {
                     min = Math.min(min, data[i * stride + j]);
