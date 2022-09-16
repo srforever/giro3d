@@ -27,7 +27,6 @@ function preprocessDataLayer(layer) {
             max: 18,
         };
     }
-    layer.fx = layer.fx || 0.0;
 }
 
 // Maps nodeLevel to groups defined in layer's options

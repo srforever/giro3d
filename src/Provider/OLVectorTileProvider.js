@@ -51,7 +51,6 @@ function preprocessDataLayer(layer) {
     const extent = tileGrid.getExtent();
     layer.extent = fromOLExtent(extent, projection.getCode());
     layer.getStyleFunction = () => layer.style(Style, Fill, Stroke, Icon, Text);
-    layer.fx = 0.0;
     layer.usedTiles = {};
 }
 
