@@ -5,6 +5,7 @@ import Instance from '@giro3d/giro3d/Core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
 import { Map } from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Helpers from '@giro3d/giro3d/helpers/Helpers.js';
 import { Vector3, Object3D } from 'three';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
@@ -29,7 +30,7 @@ const instance = new Instance(viewerDiv, {
 
 // Instanciates controls
 const controls = new MapControls(instance.camera.camera3D, viewerDiv);
-instance.camera.camera3D.position.set(0, 0, 50000000);
+instance.camera.camera3D.position.set(0, 0, 100000000);
 
 instance.useTHREEControls(controls);
 
@@ -41,6 +42,10 @@ const layers = ['watercolor', 'toner', 'terrain'];
 
 let mapCount = 0;
 
+// Create a grid that encompasses the whole EPSG:3857 bounds.
+const grid = Helpers.createGrid(new Vector3(0, 0, 0), EPSG3857_BOUNDS.dimensions().x, 20);
+instance.threeObjects.add(grid);
+
 function createMap(extent) {
     if (currentMap) {
         instance.remove(currentMap);
@@ -51,6 +56,7 @@ function createMap(extent) {
     const object3d = new Object3D();
     // Creates a map that will contain the layer
     currentMap = new Map(`${mapCount}`, { extent, maxSubdivisionLevel: 10, object3d });
+    currentMap.showOutline = true;
 
     currentMap.object3d.position.set(new Vector3(0, 0, mapCount * 10000));
 
