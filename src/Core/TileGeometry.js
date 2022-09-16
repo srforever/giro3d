@@ -2,113 +2,121 @@ import { BufferAttribute, BufferGeometry, Vector3 } from 'three';
 
 import OBB from '../Renderer/ThreeExtended/OBB.js';
 
-function Buffers() {
-    this.index = null;
-    this.position = null;
-    this.uv = null;
-}
-
-// Define UV computation functions if needed
-function UV_WGS84(out, id, u, v) {
-    out.uv.array[id * 2 + 0] = u;
-    out.uv.array[id * 2 + 1] = v;
-}
-
-function bufferize(outBuffers, va, vb, vc, idVertex) {
-    outBuffers.index.array[idVertex + 0] = va;
-    outBuffers.index.array[idVertex + 1] = vb;
-    outBuffers.index.array[idVertex + 2] = vc;
-    return idVertex + 3;
-}
-
 class TileGeometry extends BufferGeometry {
     constructor(params) {
         super();
 
-        this.center = new Vector3(...params.extent.center()._values);
         this.extent = params.extent;
+        this.center = new Vector3(...this.extent.center()._values);
 
-        const bufferAttribs = this.computeBuffers(params);
-
-        this.setIndex(bufferAttribs.index);
-        this.setAttribute('position', bufferAttribs.position);
-        this.setAttribute('uv', bufferAttribs.uv);
+        this.computeBuffers(params.segment);
 
         this.computeBoundingBox();
         this.OBB = new OBB(this.boundingBox.min, this.boundingBox.max);
     }
 
-    computeBuffers(params) {
-        // Create output buffers.
-        const outBuffers = new Buffers();
-
-        const nSeg = params.segment;
+    computeBuffers(nSeg) {
         // segments count :
         // Tile : (nSeg + 1) * (nSeg + 1)
         const nVertex = (nSeg + 1) * (nSeg + 1);
-        const triangles = (nSeg) * (nSeg) * 2;
+        const triangles = nSeg * nSeg * 2;
 
-        outBuffers.position = new BufferAttribute(new Float32Array(nVertex * 3), 3);
-        outBuffers.index = new BufferAttribute(
-            new Uint32Array(triangles * 3), 1,
-        );
-        outBuffers.uv = new BufferAttribute(
-            new Float32Array(nVertex * 2), 2,
-        );
+        const dimension = this.extent.dimensions();
 
-        const widthSegments = Math.max(2, Math.floor(nSeg) || 2);
-        const heightSegments = Math.max(2, Math.floor(nSeg) || 2);
+        const nSegp = nSeg + 1;
+        const wl = nSeg;
+        const hl = nSeg;
+        const uvStepX = 1 / wl;
+        const uvStepY = 1 / hl;
+        const rowStep = uvStepX * dimension.x;
+        const columnStep = uvStepY * -dimension.y;
+        const translateX = -nSeg * 0.5 * rowStep;
+        const translateY = -nSeg * 0.5 * columnStep;
 
-        let idVertex = 0;
-        const vertices = [];
+        const uvs = new Float32Array(nVertex * 2);
+        const indices = new Uint32Array(triangles * 3);
+        const positions = new Float32Array(nVertex * 3);
 
-        params.nbRow = 2.0 ** (params.zoom + 1.0);
-        params.projected = new Vector3();
+        let i;
+        let iPos = 0;
+        let uvY = 1.0;
+        let posNdx = 0;
+        let posY = 0.0;
+        let indicesStop = 0;
 
-        for (let y = 0; y <= heightSegments; y++) {
-            const verticesRow = [];
-
-            const v = y / heightSegments;
-
-            params.projected.y = params.extent.south() + v * (params.extent.north() - params.extent.south());
-
-            for (let x = 0; x <= widthSegments; x++) {
-                const u = x / widthSegments;
-                const idM3 = idVertex * 3;
-
-                params.projected.x = params.extent.west() + u * (params.extent.east() - params.extent.west());
-
-                const vertex = new Vector3(params.projected.x, params.projected.y, 0);
-
-                // move geometry to center world
-                vertex.sub(this.center);
-
-                vertex.toArray(outBuffers.position.array, idM3);
-
-                UV_WGS84(outBuffers, idVertex, u, v);
-                verticesRow.push(idVertex);
-
-                idVertex++;
-            }
-
-            vertices.push(verticesRow);
+        function handleCell(posX) {
+            positions[posNdx] = posX * rowStep + translateX;
+            posNdx += 1;
+            positions[posNdx] = posY + translateY;
+            posNdx += 1;
+            positions[posNdx] = 0.0;
+            posNdx += 1;
+            const uvNdx = iPos * 2;
+            uvs[uvNdx] = posX * uvStepX;
+            uvs[uvNdx + 1] = uvY;
+            iPos += 1;
         }
 
-        let idVertex2 = 0;
-
-        for (let y = 0; y < heightSegments; y++) {
-            for (let x = 0; x < widthSegments; x++) {
-                const v1 = vertices[y][x + 1];
-                const v2 = vertices[y][x];
-                const v3 = vertices[y + 1][x];
-                const v4 = vertices[y + 1][x + 1];
-
-                idVertex2 = bufferize(outBuffers, v4, v2, v1, idVertex2);
-                idVertex2 = bufferize(outBuffers, v4, v3, v2, idVertex2);
-            }
+        function indicesSimple() {
+            const above = i - nSegp;
+            const previousPos = iPos - 1;
+            const previousAbove = above - 1;
+            indices[indicesStop + 0] = above;
+            indices[indicesStop + 1] = previousPos;
+            indices[indicesStop + 2] = iPos;
+            indices[indicesStop + 3] = above;
+            indices[indicesStop + 4] = previousAbove;
+            indices[indicesStop + 5] = previousPos;
+            indicesStop += 6;
         }
 
-        return outBuffers;
+        // Top border
+        //
+        for (i = 0; i <= wl; i++) {
+            handleCell(i);
+        }
+        // Next rows
+        //
+        for (let h = 1; h < hl; h++) {
+            const hw = h * nSegp;
+            posY = h * columnStep;
+            uvY = 1 - h * uvStepY;
+            // First cell (left border)
+            i = hw;
+            handleCell(0);
+            // Next cells
+            for (let w = 1; w < wl; w++) {
+                i = hw + w;
+                indicesSimple();
+                handleCell(w);
+            }
+            // Last cell (right border)
+            i = hw + wl;
+            indicesSimple();
+            handleCell(wl);
+        }
+        // Bottom border
+        //
+        const hw = hl * nSegp;
+        posY = hl * columnStep;
+        uvY = 1 - hl * uvStepY;
+        // First cell (left border)
+        i = hw;
+        handleCell(0);
+        // Next cells
+        for (let w = 1; w < wl; w++) {
+            i = hw + w;
+            indicesSimple();
+            handleCell(w);
+        }
+        // Last cell (right border)
+        i = hw + wl;
+        indicesSimple();
+        handleCell(wl);
+
+        this.setAttribute('uv', new BufferAttribute(uvs, 2));
+        this.setAttribute('position', new BufferAttribute(positions, 3));
+        this.setIndex(new BufferAttribute(indices.slice(0, indicesStop), 1));
     }
 }
 
