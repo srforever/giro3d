@@ -1,4 +1,6 @@
-import { BufferAttribute, BufferGeometry } from 'three';
+import { BufferAttribute, BufferGeometry, Vector3 } from 'three';
+
+import OBB from '../Renderer/ThreeExtended/OBB.js';
 
 function Buffers() {
     this.index = null;
@@ -20,23 +22,23 @@ function bufferize(outBuffers, va, vb, vc, idVertex) {
 }
 
 class TileGeometry extends BufferGeometry {
-    constructor(params, builder) {
+    constructor(params) {
         super();
 
-        this.center = builder.Center(params.extent).clone();
+        this.center = new Vector3(...params.extent.center()._values);
         this.extent = params.extent;
 
-        const bufferAttribs = this.computeBuffers(params, builder);
+        const bufferAttribs = this.computeBuffers(params);
 
         this.setIndex(bufferAttribs.index);
         this.setAttribute('position', bufferAttribs.position);
         this.setAttribute('uv', bufferAttribs.uv);
 
         this.computeBoundingBox();
-        this.OBB = builder.OBB(this.boundingBox);
+        this.OBB = new OBB(this.boundingBox.min, this.boundingBox.max);
     }
 
-    computeBuffers(params, builder) {
+    computeBuffers(params) {
         // Create output buffers.
         const outBuffers = new Buffers();
 
@@ -60,22 +62,23 @@ class TileGeometry extends BufferGeometry {
         let idVertex = 0;
         const vertices = [];
 
-        builder.Prepare(params);
+        params.nbRow = 2.0 ** (params.zoom + 1.0);
+        params.projected = new Vector3();
 
         for (let y = 0; y <= heightSegments; y++) {
             const verticesRow = [];
 
             const v = y / heightSegments;
 
-            builder.vProjecte(v, params);
+            params.projected.y = params.extent.south() + v * (params.extent.north() - params.extent.south());
 
             for (let x = 0; x <= widthSegments; x++) {
                 const u = x / widthSegments;
                 const idM3 = idVertex * 3;
 
-                builder.uProjecte(u, params);
+                params.projected.x = params.extent.west() + u * (params.extent.east() - params.extent.west());
 
-                const vertex = builder.VertexPosition(params, params.projected);
+                const vertex = new Vector3(params.projected.x, params.projected.y, 0);
 
                 // move geometry to center world
                 vertex.sub(this.center);

@@ -3,6 +3,7 @@
  */
 import {
     Vector3,
+    Quaternion,
     BufferGeometry,
     Group,
     Color,
@@ -13,7 +14,6 @@ import Layer from '../Core/layer/Layer.js';
 import ColorLayer from '../Core/layer/ColorLayer.js';
 import ElevationLayer from '../Core/layer/ElevationLayer.js';
 import Entity3D from './Entity3D.js';
-import PlanarTileBuilder from '../Core/Prefab/Planar/PlanarTileBuilder.js';
 import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
 import Picking from '../Core/Picking.js';
 import ScreenSpaceError from '../Core/ScreenSpaceError.js';
@@ -71,12 +71,21 @@ function requestNewTile(map, extent, parent, level) {
     if (parent && !parent.material) {
         return null;
     }
-    const { builder } = map;
     level = (level === undefined) ? (parent.level + 1) : level;
 
-    const { sharableExtent, quaternion, position } = builder.computeSharableExtent(extent);
+    const quaternion = new Quaternion();
+    const position = new Vector3(...extent.center()._values);
+    // compute sharable extent to pool the geometries
+    // the geometry in common extent is identical to the existing input
+    // with a translation
+    const dim = extent.dimensions();
+    const sharableExtent = new Extent(
+        extent.crs(),
+        -dim.x * 0.5, dim.x * 0.5,
+        -dim.y * 0.5, dim.y * 0.5,
+    );
     const segment = map.segments || 8;
-    const key = `${builder.type}_${segment}_${level}_${sharableExtent._values.join(',')}`;
+    const key = `${segment}_${level}_${sharableExtent._values.join(',')}`;
 
     let geometry = Cache.get(key);
     // build geometry if doesn't exist
@@ -87,7 +96,7 @@ function requestNewTile(map, extent, parent, level) {
             segment,
         };
 
-        geometry = new TileGeometry(paramsGeometry, builder);
+        geometry = new TileGeometry(paramsGeometry);
         Cache.set(key, geometry);
 
         geometry._count = 0;
@@ -113,11 +122,11 @@ function requestNewTile(map, extent, parent, level) {
     material.opacity = map.opacity;
 
     if (parent && parent instanceof TileMesh) {
-        // get parent extent transformation
-        const pTrans = builder.computeSharableExtent(parent.extent);
+        // get parent position from extent
+        const positionParent = new Vector3(...parent.extent.center()._values);
         // place relative to his parent
-        position.sub(pTrans.position).applyQuaternion(pTrans.quaternion.invert());
-        quaternion.premultiply(pTrans.quaternion);
+        position.sub(positionParent).applyQuaternion(parent.quaternion.invert());
+        quaternion.premultiply(parent.quaternion);
     }
 
     tile.position.copy(position);
@@ -211,7 +220,6 @@ class Map extends Entity3D {
         this.maxSubdivisionLevel = options.maxSubdivisionLevel || -1;
 
         this.type = 'Map';
-        this.builder = new PlanarTileBuilder();
         this.protocol = 'tile';
         this.visible = true;
         this.lighting = {
