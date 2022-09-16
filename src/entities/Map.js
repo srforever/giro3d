@@ -203,7 +203,6 @@ class Map extends Entity3D {
 
         const extent = options.extent;
 
-        this.validityExtent = extent;
         if (Array.isArray(extent)) {
             this.schemeTile = extent;
         } else {
