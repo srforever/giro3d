@@ -67,7 +67,6 @@ function selectBestImageForExtent(layer, extent) {
             }
         }
     }
-    layer.discardOutsideUV = true;
     return selection;
 }
 
@@ -148,7 +147,6 @@ export default {
         }
 
         return selectBestImageForExtent(layer, tile.extent);
-        // layer._spatialIndex, layer.images, tile.extent.as(layer.extent.crs())).length > 0;
     },
 
     getPossibleTextureImprovements(layer, extent, currentTexture) {
