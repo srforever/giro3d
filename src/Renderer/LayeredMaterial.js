@@ -44,6 +44,18 @@ function fillArray(array, remp) {
     }
 }
 
+class TextureInfo {
+    constructor(layer) {
+        this.layer = layer;
+        this.offsetScale = null;
+        this.originalOffsetScale = null;
+        this.texture = null;
+        this.opacity = null;
+        this.visible = null;
+        this.color = null;
+    }
+}
+
 // 'options' allows to define what is the datatype of the elevation textures used.
 // By default, we assume floating-point textures.
 // If the elevation textures are RGB, then 3 values must be set:
@@ -84,14 +96,9 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.texturesInfo = {
             color: {
-                offsetScale: [],
-                originalOffsetScale: [],
+                infos: [],
                 atlasTexture: new CanvasTexture(this._canvas),
                 parentAtlasTexture: null,
-                textures: [],
-                opacity: [],
-                visible: [],
-                colors: [],
             },
             elevation: {
                 offsetScale: new Vector4(0, 0, 0, 0),
@@ -121,11 +128,13 @@ class LayeredMaterial extends RawShaderMaterial {
 
         // Color textures's layer
         this.uniforms.colorTexture = new Uniform(this.texturesInfo.color.atlasTexture);
-        // this.texturesInfo.color.offsetScale);
+
         this.uniforms.colorOffsetScale = new Uniform();
-        this.uniforms.colorOpacity = new Uniform(); // this.texturesInfo.color.opacity);
-        this.uniforms.colorVisible = new Uniform(); // this.texturesInfo.color.visible);
-        this.uniforms.colors = new Uniform(this.texturesInfo.color.colors);
+        this.uniforms.colorOpacity = new Uniform();
+        this.uniforms.colorVisible = new Uniform();
+        this.uniforms.colors = new Uniform();
+
+        this.updateLayerUniforms();
 
         this.uniforms.uuid = new Uniform(0);
 
@@ -149,6 +158,18 @@ class LayeredMaterial extends RawShaderMaterial {
         return this._canvas;
     }
 
+    updateLayerUniforms() {
+        const infos = this.texturesInfo.color.infos;
+        this.uniforms.colorOffsetScale.value = infos.map(x => x.offsetScale);
+        this.updateOpacityUniform();
+        this.uniforms.colorVisible.value = infos.map(x => x.visible);
+        this.uniforms.colors.value = infos.map(x => x.color);
+    }
+
+    updateOpacityUniform() {
+        this.uniforms.colorOpacity.value = this.texturesInfo.color.infos.map(x => x.opacity);
+    }
+
     dispose() {
         this.dispatchEvent({
             type: 'dispose',
@@ -165,7 +186,7 @@ class LayeredMaterial extends RawShaderMaterial {
         if (index === -1) {
             return null;
         }
-        return this.texturesInfo.color.textures[index];
+        return this.texturesInfo.color.infos[index].texture;
     }
 
     setColorTextures(layer, textures, shortcut, instance) {
@@ -176,16 +197,16 @@ class LayeredMaterial extends RawShaderMaterial {
         }
 
         const index = this.indexOfColorLayer(layer);
-        this.texturesInfo.color.originalOffsetScale[index].copy(textures.pitch);
-        this.texturesInfo.color.textures[index] = textures.texture;
+        this.texturesInfo.color.infos[index].originalOffsetScale.copy(textures.pitch);
+        this.texturesInfo.color.infos[index].texture = textures.texture;
 
         if (shortcut) {
             updateOffsetScale(
                 layer.imageSize,
                 this.atlasInfo.atlas[layer.id],
-                this.texturesInfo.color.originalOffsetScale[index],
+                this.texturesInfo.color.infos[index].originalOffsetScale,
                 this.uniforms.colorTexture.value.image,
-                this.texturesInfo.color.offsetScale[index],
+                this.texturesInfo.color.infos[index].offsetScale,
             );
             // we already got our texture (needsUpdate is done in TiledNodeProcessing)
             return Promise.resolve();
@@ -217,19 +238,19 @@ class LayeredMaterial extends RawShaderMaterial {
                 updateOffsetScale(
                     l.imageSize,
                     this.atlasInfo.atlas[l.id],
-                    this.texturesInfo.color.originalOffsetScale[idx],
+                    this.texturesInfo.color.infos[idx].originalOffsetScale,
                     this.uniforms.colorTexture.value.image,
-                    this.texturesInfo.color.offsetScale[idx],
+                    this.texturesInfo.color.infos[idx].offsetScale,
                 );
 
-                const texture = this.texturesInfo.color.textures[idx];
+                const texture = this.texturesInfo.color.infos[idx].texture;
 
                 drawLayerOnCanvas(
                     l,
                     this.texturesInfo.color.atlasTexture,
                     atlas,
                     (texture.image === this._canvas) ? null : texture,
-                    this.texturesInfo.color.offsetScale[idx],
+                    this.texturesInfo.color.infos[idx].offsetScale,
                     this.canvasRevision,
                 ).then(() => this.canvasRevision++);
             }
@@ -298,20 +319,26 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     pushLayer(newLayer) {
-        this.texturesInfo.color.opacity.push(newLayer.opacity);
-        this.texturesInfo.color.visible.push(newLayer.visible);
-        this.texturesInfo.color.offsetScale.push(new Vector4(0, 0, 0, 0));
-        this.texturesInfo.color.originalOffsetScale.push(new Vector4(0, 0, 0, 0));
-        this.texturesInfo.color.textures.push(emptyTexture);
-        this.texturesInfo.color.colors.push(newLayer.color || new Color(1, 1, 1));
-        this.colorLayers.push(newLayer);
-
-        if (this.colorLayers.length === 1) {
-            // init uniforms
-            this.uniforms.colorOffsetScale = new Uniform(this.texturesInfo.color.offsetScale);
-            this.uniforms.colorOpacity = new Uniform(this.texturesInfo.color.opacity);
-            this.uniforms.colorVisible = new Uniform(this.texturesInfo.color.visible);
+        if (this.colorLayers.includes(newLayer)) {
+            return;
         }
+        this.colorLayers.push(newLayer);
+        this.colorLayers.sort((a, b) => a.index - b.index);
+
+        const info = new TextureInfo(newLayer);
+
+        info.opacity = newLayer.opacity;
+        info.visible = newLayer.visible;
+        info.offsetScale = new Vector4(0, 0, 0, 0);
+        info.originalOffsetScale = new Vector4(0, 0, 0, 0);
+        info.texture = emptyTexture;
+        info.color = newLayer.color || new Color(1, 1, 1);
+
+        this.texturesInfo.color.infos.push(info);
+        this.texturesInfo.color.infos.sort((a, b) => a.index - b.index);
+
+        this.updateLayerUniforms();
+
         this.defines.TEX_UNITS = this.colorLayers.length;
         this.needsUpdate = true;
     }
@@ -322,12 +349,7 @@ class LayeredMaterial extends RawShaderMaterial {
             console.warn(`Layer ${layer.id} not found, so not removed...`);
             return;
         }
-        this.texturesInfo.color.opacity.splice(index, 1);
-        this.texturesInfo.color.visible.splice(index, 1);
-        this.texturesInfo.color.offsetScale.splice(index, 1);
-        this.texturesInfo.color.originalOffsetScale.splice(index, 1);
-        this.texturesInfo.color.textures.splice(index, 1);
-        this.texturesInfo.color.colors.splice(index, 1);
+        this.texturesInfo.color.infos.splice(index, 1);
         this.colorLayers.splice(index, 1);
 
         this.defines.TEX_UNITS = this.colorLayers.length;
@@ -365,12 +387,12 @@ class LayeredMaterial extends RawShaderMaterial {
             for (let i = 0; i < this.colorLayers.length; i++) {
                 const layer = this.colorLayers[i];
                 const atlas = this.atlasInfo.atlas[layer.id];
-                const pitch = this.texturesInfo.color.originalOffsetScale[i];
+                const pitch = this.texturesInfo.color.infos[i].originalOffsetScale;
 
                 // compute offset / scale
                 const xRatio = layer.imageSize.w / newCanvas.width;
                 const yRatio = layer.imageSize.h / newCanvas.height;
-                this.texturesInfo.color.offsetScale[i] = new Vector4(
+                this.texturesInfo.color.infos[i].offsetScale = new Vector4(
                     atlas.x / newCanvas.width + pitch.x * xRatio,
                     (atlas.y + atlas.offset) / newCanvas.height + pitch.y * yRatio,
                     pitch.z * xRatio,
@@ -389,12 +411,14 @@ class LayeredMaterial extends RawShaderMaterial {
 
     setLayerOpacity(layer, opacity) {
         const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
-        this.texturesInfo.color.opacity[index] = opacity;
+        this.texturesInfo.color.infos[index].opacity = opacity;
+        this.updateOpacityUniform();
     }
 
     setLayerVisibility(layer, visible) {
         const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
-        this.texturesInfo.color.visible[index] = visible;
+        this.texturesInfo.color.infos[index].visible = visible;
+        this.updateLayerUniforms();
     }
 
     isElevationLayerTextureLoaded() {
@@ -406,7 +430,7 @@ class LayeredMaterial extends RawShaderMaterial {
         if (index < 0) {
             return null;
         }
-        return this.texturesInfo.color.textures[index] !== emptyTexture;
+        return this.texturesInfo.color.infos[index].texture !== emptyTexture;
     }
 
     setUuid(uuid) {

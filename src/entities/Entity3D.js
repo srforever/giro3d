@@ -185,6 +185,7 @@ class Entity3D extends Entity {
         }
 
         this._attachedLayers.push(layer);
+        this.reindexLayers();
 
         if (layer instanceof ColorLayer) {
             const colorLayers = this._attachedLayers.filter(l => l instanceof ColorLayer);
@@ -199,6 +200,13 @@ class Entity3D extends Entity {
             this.atlasInfo.atlas = atlas;
             this.atlasInfo.maxX = Math.max(this.atlasInfo.maxX, maxX);
             this.atlasInfo.maxY = Math.max(this.atlasInfo.maxY, maxY);
+        }
+    }
+
+    reindexLayers() {
+        for (let i = 0; i < this._attachedLayers.length; i++) {
+            const element = this._attachedLayers[i];
+            element.index = i;
         }
     }
 

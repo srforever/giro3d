@@ -11,8 +11,10 @@ describe('material state vs layer state', () => {
         layerUpdateState: {
             test: new LayerUpdateState(),
         },
+        getExtentForLayer: () => undefined,
         material: {
             visible: true,
+            pushLayer: () => {},
             indexOfColorLayer: () => 0,
             setLayerVisibility: (idx, v) => { visible = v; },
             setLayerOpacity: (idx, o) => { opacity = o; },

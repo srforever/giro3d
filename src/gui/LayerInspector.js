@@ -19,7 +19,7 @@ class LayerInspector extends Panel {
      * @param {Layer} layer The layer to inspect
      */
     constructor(gui, instance, layer) {
-        super(gui, instance, `${layer.id} (${layer.type})`);
+        super(gui, instance, `[${layer.index}] ${layer.id} (${layer.type})`);
 
         /**
          * The inspected layer.
