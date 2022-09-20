@@ -56,6 +56,9 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.atlasInfo = atlasInfo;
         this.defines.STITCHING = 1;
+        if (options.hillshading) {
+            this.defines.HILLSHADE = 1;
+        }
         this.uniforms.segments = new Uniform(segments);
         if (options.side) {
             this.side = options.side;
