@@ -113,7 +113,7 @@ void main() {
 
         vec2 vVv = vec2(
                 vUv.x * elevationOffsetScale.z + elevationOffsetScale.x,
-                (1.0 - vUv.y) * elevationOffsetScale.w + elevationOffsetScale.y);
+                vUv.y * elevationOffsetScale.w + elevationOffsetScale.y);
 
         float a = getElevation(elevationTexture, vVv + onePixel * vec2(-1.0, 1.0));
         float b = getElevation(elevationTexture, vVv + onePixel * vec2( 0.0, 1.0));
