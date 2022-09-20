@@ -180,6 +180,8 @@ class Map extends Entity3D {
      * @param {Extent} options.maxSubdivisionLevel Maximum subdivision level of the current map
      * @param {boolean} [options.hillshading=false] Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
      * Note: for hillshading to work, there must be an elevation layer in the map.
+     * @param {number} [options.segments=8] The number of geometry segments in each map tile.
+     * The higher the better. For better visual results, it is recommended to use a power of two.
      * @param {module:three.Object3D=} options.object3d The optional 3d object to use as the root
      *  object of this map. If none provided, a new one will be created.
      * @api
@@ -200,6 +202,7 @@ class Map extends Entity3D {
             this.extent.union(this.schemeTile[i]);
         }
 
+        this.segments = options.segments || 8;
         this.sseScale = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel || -1;
 
