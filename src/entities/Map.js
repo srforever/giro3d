@@ -175,10 +175,11 @@ class Map extends Entity3D {
     /**
      * Constructs a Map object.
      *
-     * @param {string} id The unique identifier of the Map
-     * @param {object=} options Optional properties.
-     * @param {Extent} options.extent geographic extent of the map
-     * @param {Extent} options.maxSubdivisionLevel Maximum subdivision level of the current map
+     * @param {string} id The unique identifier of the map.
+     * @param {object=} options Constructor options.
+     * @param {Extent} options.extent The geographic extent of the map.
+     * @param {number} [options.maxSubdivisionLevel=-1] Maximum tile depth of the map.
+     * A value of `-1` does not limit the depth of the tile hierarchy.
      * @param {boolean} [options.hillshading=false] Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
      * Note: for hillshading to work, there must be an elevation layer in the map.
      * @param {number} [options.segments=8] The number of geometry segments in each map tile.
