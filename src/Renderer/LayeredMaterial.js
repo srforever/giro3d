@@ -72,9 +72,9 @@ class LayeredMaterial extends RawShaderMaterial {
         this.fragmentShader = TileFS;
         this.vertexShader = TileVS;
 
-        this.canvas = document.createElement('canvas');
-        this.canvas.width = atlasInfo.maxX;
-        this.canvas.height = atlasInfo.maxY;
+        this._canvas = document.createElement('canvas');
+        this._canvas.width = atlasInfo.maxX;
+        this._canvas.height = atlasInfo.maxY;
 
         this.pendingUpdates = [];
 
@@ -82,7 +82,7 @@ class LayeredMaterial extends RawShaderMaterial {
             color: {
                 offsetScale: [],
                 originalOffsetScale: [],
-                atlasTexture: new CanvasTexture(this.canvas),
+                atlasTexture: new CanvasTexture(this._canvas),
                 parentAtlasTexture: null,
                 textures: [],
                 opacity: [],
@@ -137,6 +137,12 @@ class LayeredMaterial extends RawShaderMaterial {
         this.texturesInfo.color.atlasTexture.anisotropy = 1;
         this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
         this.texturesInfo.color.atlasTexture.needsUpdate = false;
+    }
+
+    get canvas() {
+        // This ensure that the canvas is properly initialized.
+        this.rebuildAtlasIfNecessary();
+        return this._canvas;
     }
 
     dispose() {
@@ -197,6 +203,8 @@ class LayeredMaterial extends RawShaderMaterial {
                 }
             }
 
+            this.rebuildAtlasIfNecessary();
+
             // Draw scheduled textures in canvas
             for (const l of this.pendingUpdates) {
                 const idx = this.indexOfColorLayer(l);
@@ -216,7 +224,7 @@ class LayeredMaterial extends RawShaderMaterial {
                     l,
                     this.texturesInfo.color.atlasTexture,
                     atlas,
-                    (texture.image === this.canvas) ? null : texture,
+                    (texture.image === this._canvas) ? null : texture,
                     this.texturesInfo.color.offsetScale[idx],
                     this.canvasRevision,
                 ).then(() => this.canvasRevision++);
@@ -327,14 +335,19 @@ class LayeredMaterial extends RawShaderMaterial {
         if (this.colorLayers.length === 0) {
             return true;
         }
-        if (this.atlasInfo.maxX > this.canvas.width || this.atlasInfo.maxY > this.canvas.height) {
-            // TODO: test this and then make providers draw directly in this.canvas
+        return this.rebuildAtlasIfNecessary();
+    }
+
+    rebuildAtlasIfNecessary() {
+        if (this.atlasInfo.maxX > this._canvas.width || this.atlasInfo.maxY > this._canvas.height) {
+            // TODO: test this and then make providers draw directly in this._canvas
             const newCanvas = document.createElement('canvas');
             newCanvas.width = this.atlasInfo.maxX;
             newCanvas.height = this.atlasInfo.maxY;
-            if (this.canvas.width > 0) {
+            if (this._canvas.width > 0) {
+                // repaint the old canvas into the new one.
                 const ctx = newCanvas.getContext('2d');
-                ctx.drawImage(this.canvas, 0, 0, this.canvas.width, this.canvas.height);
+                ctx.drawImage(this._canvas, 0, 0, this._canvas.width, this._canvas.height);
             }
 
             this.texturesInfo.color.atlasTexture.dispose();
@@ -360,10 +373,10 @@ class LayeredMaterial extends RawShaderMaterial {
                     pitch.w * yRatio,
                 );
             }
-            this.canvas = newCanvas;
+            this._canvas = newCanvas;
             this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
         }
-        return this.canvas.width > 0;
+        return this._canvas.width > 0;
     }
 
     indexOfColorLayer(layer) {
