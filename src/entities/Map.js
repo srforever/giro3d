@@ -7,7 +7,6 @@ import {
     Group,
 } from 'three';
 
-import Coordinates from '../Core/Geographic/Coordinates.js';
 import Extent from '../Core/Geographic/Extent.js';
 import Layer from '../Core/layer/Layer.js';
 import ColorLayer from '../Core/layer/ColorLayer.js';
@@ -39,65 +38,6 @@ import Cache from '../Core/Scheduler/Cache.js';
  * @example
  * map.addEventListener('layer-removed', () => console.log('layer removed!'));
  */
-
-function findCellWith(x, y, layerDimension, tileCount) {
-    const tx = (tileCount * x) / layerDimension.x;
-    const ty = (tileCount * y) / layerDimension.y;
-    // if the user configures an extent with exact same dimension as the "reference" extent of the
-    // crs, they won't expect this function to return the tile immediately to the bottom right.
-    // therefore, if tx or ty is exactly one, we need to give back 0 instead.  we consider inclusive
-    // bounds actually.
-    return { x: tx === 1 ? 0 : Math.floor(tx), y: ty === 1 ? 0 : Math.floor(ty) };
-}
-
-// return the 3857 tile that fully contains the given extent
-function compute3857Extent(tileExtent) {
-    const extent = new Extent('EPSG:3857',
-        -20037508.342789244, 20037508.342789244,
-        -20037508.342789244, 20037508.342789244);
-    const layerDimension = extent.dimensions();
-
-    // Each level has 2^n * 2^n tiles...
-    // ... so we count how many tiles of the same width as tile we can fit in the layer
-    const tileCount = Math.min(
-        Math.floor(layerDimension.x / tileExtent.dimensions().x),
-        Math.floor(layerDimension.y / tileExtent.dimensions().y),
-    );
-    // ... 2^zoom = tilecount => zoom = log2(tilecount)
-    const zoom = Math.floor(Math.max(0, Math.log2(tileCount)));
-
-    const tl = new Coordinates('EPSG:3857', tileExtent.west(), tileExtent.north());
-    const br = new Coordinates('EPSG:3857', tileExtent.east(), tileExtent.south());
-    const realTileCount = 2 ** zoom;
-
-    // compute tile that contains the center
-    const topLeft = findCellWith(
-        tl.x() - extent.west(), extent.north() - tl.y(),
-        layerDimension, realTileCount,
-    );
-    const bottomRight = findCellWith(
-        br.x() - extent.west(), extent.north() - br.y(),
-        layerDimension, realTileCount,
-    );
-
-    const tileSize = {
-        x: layerDimension.x / realTileCount,
-        y: layerDimension.y / realTileCount,
-    };
-
-    const extents = [];
-    for (let i = topLeft.x; i <= bottomRight.x; i++) {
-        for (let j = topLeft.y; j <= bottomRight.y; j++) {
-            const west = extent.west() + i * tileSize.x;
-            const north = extent.north() - j * tileSize.y;
-
-            extents.push(new Extent('EPSG:3857',
-                west, west + tileSize.x,
-                north - tileSize.y, north));
-        }
-    }
-    return extents;
-}
 
 function subdivideNode(context, map, node) {
     if (!node.children.some(n => n.layer === map)) {
@@ -248,14 +188,9 @@ class Map extends Entity3D {
         super(id, options.object3d || new Group());
 
         const extent = options.extent;
-        const crs = Array.isArray(extent) ? extent[0].crs() : extent.crs();
 
         this.validityExtent = extent;
-        if (crs === 'EPSG:3857') {
-            // align quadtree on EPSG:3857 full extent
-            const aligned = compute3857Extent(extent);
-            this.schemeTile = aligned;
-        } else if (Array.isArray(extent)) {
+        if (Array.isArray(extent)) {
             this.schemeTile = extent;
         } else {
             this.schemeTile = [extent];
