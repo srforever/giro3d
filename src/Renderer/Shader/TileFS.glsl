@@ -130,11 +130,10 @@ void main() {
         gl_FragColor.rgb *= hillshade;
 #endif
 
-        // gl_FragColor.rgb = mix(gl_FragColor.rgb, vColor.rgb, vColor.a);
         if (hasTexture) {
             gl_FragColor.a = max(gl_FragColor.a, noTextureOpacity);
         } else {
-            gl_FragColor = vec4(noTextureColor, noTextureOpacity);
+            gl_FragColor = vec4(gl_FragColor.rgb, noTextureOpacity);
         }
 
 #if defined(DEBUG)
