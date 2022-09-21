@@ -5,6 +5,7 @@ import {
     Vector3,
     BufferGeometry,
     Group,
+    Color,
 } from 'three';
 
 import Extent from '../Core/Geographic/Extent.js';
@@ -184,6 +185,8 @@ class Map extends Entity3D {
      * The higher the better. For better visual results, it is recommended to use a power of two.
      * @param {module:three.Object3D=} options.object3d The optional 3d object to use as the root
      *  object of this map. If none provided, a new one will be created.
+     * @param {string} [options.backgroundColor=undefined] The color of the map when no color layers
+     * are present.
      * @api
      */
     constructor(id, options = {}) {
@@ -215,6 +218,9 @@ class Map extends Entity3D {
             position: { x: -0.5, y: 0.0, z: 1.0 },
         };
         this.materialOptions = { hillshading: options.hillshading };
+        if (options.backgroundColor) {
+            this.noTextureColor = new Color(options.backgroundColor);
+        }
 
         this.currentAddedLayerIds = [];
     }

@@ -1,4 +1,4 @@
-import { Group } from 'three';
+import { Color, Group } from 'three';
 import Extent from '../../../src/Core/Geographic/Extent.js';
 import Instance from '../../../src/Core/Instance.js';
 import { Map } from '../../../src/entities/Map.js';
@@ -51,6 +51,15 @@ describe('Map', () => {
     describe('constructor', () => {
         it('should throw on undefined id', () => {
             expect(() => new Map(undefined)).toThrow(/Missing id parameter/);
+        });
+
+        it('should assign the noTextureColor property', () => {
+            const m1 = new Map('foo', { extent, backgroundColor: 'red' });
+            expect(m1.noTextureColor).toEqual(new Color('red'));
+
+            // Check default value
+            const m2 = new Map('foo', { extent });
+            expect(m2.noTextureColor).toEqual(new Color(0.04, 0.23, 0.35));
         });
 
         it('should assign passed values', () => {
