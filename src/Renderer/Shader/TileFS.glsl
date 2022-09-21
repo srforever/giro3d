@@ -113,7 +113,7 @@ void main() {
 
         vec2 vVv = vec2(
                 vUv.x * elevationOffsetScale.z + elevationOffsetScale.x,
-                (1.0 - vUv.y) * elevationOffsetScale.w + elevationOffsetScale.y);
+                vUv.y * elevationOffsetScale.w + elevationOffsetScale.y);
 
         float a = getElevation(elevationTexture, vVv + onePixel * vec2(-1.0, 1.0));
         float b = getElevation(elevationTexture, vVv + onePixel * vec2( 0.0, 1.0));
@@ -130,11 +130,10 @@ void main() {
         gl_FragColor.rgb *= hillshade;
 #endif
 
-        // gl_FragColor.rgb = mix(gl_FragColor.rgb, vColor.rgb, vColor.a);
         if (hasTexture) {
             gl_FragColor.a = max(gl_FragColor.a, noTextureOpacity);
         } else {
-            gl_FragColor = vec4(noTextureColor, noTextureOpacity);
+            gl_FragColor = vec4(gl_FragColor.rgb, noTextureOpacity);
         }
 
 #if defined(DEBUG)

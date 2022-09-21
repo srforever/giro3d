@@ -5,6 +5,7 @@ import {
     Vector3,
     BufferGeometry,
     Group,
+    Color,
 } from 'three';
 
 import Extent from '../Core/Geographic/Extent.js';
@@ -174,12 +175,19 @@ class Map extends Entity3D {
     /**
      * Constructs a Map object.
      *
-     * @param {string} id The unique identifier of the Map
-     * @param {object=} options Optional properties.
-     * @param {Extent} options.extent geographic extent of the map
-     * @param {Extent} options.maxSubdivisionLevel Maximum subdivision level of the current map
+     * @param {string} id The unique identifier of the map.
+     * @param {object=} options Constructor options.
+     * @param {Extent} options.extent The geographic extent of the map.
+     * @param {number} [options.maxSubdivisionLevel=-1] Maximum tile depth of the map.
+     * A value of `-1` does not limit the depth of the tile hierarchy.
+     * @param {boolean} [options.hillshading=false] Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
+     * Note: for hillshading to work, there must be an elevation layer in the map.
+     * @param {number} [options.segments=8] The number of geometry segments in each map tile.
+     * The higher the better. For better visual results, it is recommended to use a power of two.
      * @param {module:three.Object3D=} options.object3d The optional 3d object to use as the root
      *  object of this map. If none provided, a new one will be created.
+     * @param {string} [options.backgroundColor=undefined] The color of the map when no color layers
+     * are present.
      * @api
      */
     constructor(id, options = {}) {
@@ -198,6 +206,7 @@ class Map extends Entity3D {
             this.extent.union(this.schemeTile[i]);
         }
 
+        this.segments = options.segments || 8;
         this.sseScale = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel || -1;
 
@@ -209,6 +218,10 @@ class Map extends Entity3D {
             enable: false,
             position: { x: -0.5, y: 0.0, z: 1.0 },
         };
+        this.materialOptions = { hillshading: options.hillshading };
+        if (options.backgroundColor) {
+            this.noTextureColor = new Color(options.backgroundColor);
+        }
 
         this.currentAddedLayerIds = [];
     }
