@@ -231,6 +231,15 @@ class Instance extends EventDispatcher {
                 reject(new Error('object is undefined'));
                 return;
             }
+
+            if (object.isObject3D) {
+                // case of a simple THREE.js object3D
+                this.threeObjects.add(object);
+                this.notifyChange(object);
+                resolve(object);
+                return;
+            }
+
             const duplicate = this.getObjects((l => l.id === object.id));
             if (duplicate.length > 0) {
                 reject(new Error(`Invalid id '${object.id}': id already used`));
@@ -285,7 +294,9 @@ class Instance extends EventDispatcher {
      * @param {Object3D|Entity} object the object to remove.
      */
     remove(object) {
-        if (object.object3d) {
+        if (object.isObject3D) {
+            this.threeObjects.remove(object);
+        } else if (object.object3d) {
             ObjectRemovalHelper.removeChildrenAndCleanupRecursively(object, object.object3d);
             this.scene.remove(object.object3d);
         }

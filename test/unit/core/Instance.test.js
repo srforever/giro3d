@@ -1,4 +1,4 @@
-import { Group } from 'three';
+import { Group, Object3D } from 'three';
 import proj4 from 'proj4';
 import Extent from '../../../src/Core/Geographic/Extent.js';
 import Instance, { INSTANCE_EVENTS } from '../../../src/Core/Instance.js';
@@ -39,6 +39,12 @@ describe('Instance', () => {
         it('should return a rejected promise if not of correct type', async () => {
             const layer = new Layer('foo', { standalone: true });
             await expect(instance.add(layer)).rejects.toThrowError('object is not an instance of THREE.Object3D or Giro3d.Entity3D');
+        });
+
+        it('should add the object to threeObjects if it is a native three.js object', () => {
+            const o = new Object3D();
+            instance.add(o);
+            expect(instance.threeObjects.children).toContain(o);
         });
 
         it('should add a map', () => {
@@ -92,6 +98,15 @@ describe('Instance', () => {
             instance.remove(map);
 
             expect(instance._objects.includes(map)).toBeFalsy();
+        });
+
+        it('should remove the object from threeObjects if it is a native three.js object', () => {
+            const o = new Object3D();
+            instance.add(o);
+            expect(instance.threeObjects.children).toContain(o);
+
+            instance.remove(o);
+            expect(instance.threeObjects.children).not.toContain(o);
         });
 
         it('should call the dispose() method if it exists', () => {
