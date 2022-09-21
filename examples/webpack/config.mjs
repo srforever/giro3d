@@ -90,7 +90,8 @@ export default (env, argv) => {
                 patterns: [
                     { from: "css", to: "css" },
                     { from: "js", to: "js" },
-                    { from: "screenshots", to: "screenshots" }
+                    { from: "screenshots", to: "screenshots" },
+                    { from: path.resolve(path.join(baseDir, "..", "..", "node_modules", "three", "examples", "jsm", "loaders", "ifc/web-ifc.wasm"))}
                 ],
             }),
         ],
