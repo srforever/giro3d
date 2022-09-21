@@ -1,122 +1,148 @@
+/**
+ * @module Core/TileGeometry
+ */
+
 import { BufferAttribute, BufferGeometry, Vector3 } from 'three';
 
 import OBB from '../Renderer/ThreeExtended/OBB.js';
 
+/**
+ * The TileGeometry provides a new buffer geometry for each
+ * {@link module:Core/TileMesh~TileMesh TileMesh} of a
+ * {@link module:entities/Map~Map Map} object.
+ * 
+ * It is implemented for performance and produces simple planar geometries.
+ * By default it produces square geometries but providing different width and height
+ * allows for rectangular tiles creation.
+ *
+ * @example
+ * // Inspired from Map@requestNewTile
+ * const level = 0;
+ * const segment = 8;
+ * const extent = new Extent('EPSG:3857', -1000, -1000, 1000, 1000);
+ * const paramsGeometry = { extent, level, segment };
+ * const geometry = new TileGeometry(paramsGeometry);
+ * 
+ * @param {object} Parameters to construct the grid. Should contain an extent
+ *  and a size, either a number of segment or a width and an height in pixels.
+ * @api
+ */
 class TileGeometry extends BufferGeometry {
     constructor(params) {
         super();
-
+        // Still mandatory to have on the geometry ?
         this.extent = params.extent;
         this.center = new Vector3(...this.extent.center()._values);
-
-        this.computeBuffers(params.segment);
-
+        // Compute properties of the grid, square or rectangular.
+        this.props = this.prepare(params);
+        // Compute buffers (no normals because the z displacement is in the shader)
+        this.computeBuffers(this.props);
+        // Compute the Oriented Bounding Box for spatial operations
         this.computeBoundingBox();
         this.OBB = new OBB(this.boundingBox.min, this.boundingBox.max);
     }
 
-    computeBuffers(nSeg) {
-        // segments count :
-        // Tile : (nSeg + 1) * (nSeg + 1)
-        const nVertex = (nSeg + 1) * (nSeg + 1);
-        const triangles = nSeg * nSeg * 2;
-
+    /**
+     * Prepare the grid properties from parameters.
+     * 
+     * @api
+    */
+    prepare(params) {
+        const width = params.width || params.segment + 1;
+        const height = params.height || params.segment + 1;
+        const segmentX = width - 1;
+        const segmentY = height - 1;
+        const uvStepX = 1 / segmentX;
+        const uvStepY = 1 / segmentY;
         const dimension = this.extent.dimensions();
-
-        const nSegp = nSeg + 1;
-        const wl = nSeg;
-        const hl = nSeg;
-        const uvStepX = 1 / wl;
-        const uvStepY = 1 / hl;
         const rowStep = uvStepX * dimension.x;
         const columnStep = uvStepY * -dimension.y;
-        const translateX = -nSeg * 0.5 * rowStep;
-        const translateY = -nSeg * 0.5 * columnStep;
+        const translateX = -segmentX * 0.5 * rowStep;
+        const translateY = -segmentY * 0.5 * columnStep;
+        return {
+            width,
+            height,
+            segmentX,
+            segmentY,
+            uvStepX,
+            uvStepY,
+            rowStep,
+            columnStep,
+            translateX,
+            translateY,
+        }
+    }
 
-        const uvs = new Float32Array(nVertex * 2);
+    /**
+     * Construct the buffer geometry using a fast rolling approach.
+     * 
+     * @api
+    */
+    computeBuffers(props) {
+        const numVertices = props.width * props.height;
+        const triangles = props.segmentX * props.segmentY * 2;
+
+        const uvs = new Float32Array(numVertices * 2);
         const indices = new Uint32Array(triangles * 3);
-        const positions = new Float32Array(nVertex * 3);
+        const positions = new Float32Array(numVertices * 3);
 
-        let i;
+        let posX;
         let iPos = 0;
         let uvY = 1.0;
-        let posNdx = 0;
-        let posY = 0.0;
-        let indicesStop = 0;
+        let indicesNdx = 0;
+        let posY = props.translateY;
 
-        function handleCell(posX) {
-            positions[posNdx] = posX * rowStep + translateX;
-            posNdx += 1;
-            positions[posNdx] = posY + translateY;
-            posNdx += 1;
-            positions[posNdx] = 0.0;
-            posNdx += 1;
+        // Store xyz position and and corresponding uv of a pixel data. 
+        function handleCell() {
+            const posNdx = iPos * 3;
+            positions[posNdx + 0] = posX * props.rowStep + props.translateX;
+            positions[posNdx + 1] = posY;
+            positions[posNdx + 2] = 0.0;
             const uvNdx = iPos * 2;
-            uvs[uvNdx] = posX * uvStepX;
+            uvs[uvNdx + 0] = posX * props.uvStepX;
             uvs[uvNdx + 1] = uvY;
             iPos += 1;
         }
 
+        // Construct indices as two different triangles from a particular vertex.
+        // Use previous and aboves while rolling so discard first row (top border)
+        // and first data of each row (left border).
         function indicesSimple() {
-            const above = i - nSegp;
+            const above = iPos - props.width;
             const previousPos = iPos - 1;
             const previousAbove = above - 1;
-            indices[indicesStop + 0] = above;
-            indices[indicesStop + 1] = previousPos;
-            indices[indicesStop + 2] = iPos;
-            indices[indicesStop + 3] = above;
-            indices[indicesStop + 4] = previousAbove;
-            indices[indicesStop + 5] = previousPos;
-            indicesStop += 6;
+            indices[indicesNdx + 0] = above;
+            indices[indicesNdx + 1] = previousPos;
+            indices[indicesNdx + 2] = iPos;
+            indices[indicesNdx + 3] = above;
+            indices[indicesNdx + 4] = previousAbove;
+            indices[indicesNdx + 5] = previousPos;
+            indicesNdx += 6;
         }
 
         // Top border
         //
-        for (i = 0; i <= wl; i++) {
-            handleCell(i);
+        for (posX = 0; posX < props.width; posX++) {
+            handleCell();
         }
         // Next rows
         //
-        for (let h = 1; h < hl; h++) {
-            const hw = h * nSegp;
-            posY = h * columnStep;
-            uvY = 1 - h * uvStepY;
-            // First cell (left border)
-            i = hw;
-            handleCell(0);
+        for (let h = 1; h < props.height; h++) {
+            posY = h * props.columnStep + props.translateY;
+            uvY = 1 - h * props.uvStepY;
+            // First cell
+            posX = 0;
+            handleCell();
             // Next cells
-            for (let w = 1; w < wl; w++) {
-                i = hw + w;
+            for (posX = 1; posX < props.width; posX++) {
                 indicesSimple();
-                handleCell(w);
+                handleCell();
             }
-            // Last cell (right border)
-            i = hw + wl;
-            indicesSimple();
-            handleCell(wl);
         }
-        // Bottom border
-        //
-        const hw = hl * nSegp;
-        posY = hl * columnStep;
-        uvY = 1 - hl * uvStepY;
-        // First cell (left border)
-        i = hw;
-        handleCell(0);
-        // Next cells
-        for (let w = 1; w < wl; w++) {
-            i = hw + w;
-            indicesSimple();
-            handleCell(w);
-        }
-        // Last cell (right border)
-        i = hw + wl;
-        indicesSimple();
-        handleCell(wl);
 
         this.setAttribute('uv', new BufferAttribute(uvs, 2));
         this.setAttribute('position', new BufferAttribute(positions, 3));
-        this.setIndex(new BufferAttribute(indices.slice(0, indicesStop), 1));
+        this.setIndex(new BufferAttribute(indices, 1));
     }
 }
 
