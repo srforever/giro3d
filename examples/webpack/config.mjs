@@ -31,8 +31,7 @@ export default (env, argv) => {
     return {
         watchOptions: {
             ignored: /node_modules/,
-            aggregateTimeout: 100,
-            poll: true,
+            poll: false,
         },
         context: src,
         resolve: {
