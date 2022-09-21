@@ -5,7 +5,7 @@
 </div>
 
 <div align="center">
-  Versatile <a href="https://threejs.org">three</a> geospatial framework
+  A versatile framework to visualize geospatial data in the browser.
 </div>
 
 <br>
@@ -21,8 +21,8 @@
 
 ## Supported data sources
 
-giro3d is powered by **[OpenLayers](https://openlayers.org/)** for maps,
-and **Three.js** for 3d assets, and can be easily extended to support more. Below is a non-exhaustive list of supported data sources.
+[giro3d](https://giro3d.org) is powered by **[OpenLayers](https://openlayers.org/)** for maps,
+and **[Three.js](https://threejs.org)** for 3d assets, and can be easily extended to support more. Below is a non-exhaustive list of supported data sources.
 
 ### Maps
 
