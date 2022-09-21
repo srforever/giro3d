@@ -136,10 +136,8 @@ function requestNewTile(map, extent, parent, level) {
         tile.material.uniforms.noTextureOpacity.value = map.noTextureOpacity;
     }
 
-    if (__DEBUG__) {
-        tile.material.uniforms.showOutline = { value: map.showOutline || false };
-        tile.material.wireframe = map.wireframe || false;
-    }
+    tile.material.uniforms.showOutline = { value: map.showOutline || false };
+    tile.material.wireframe = map.wireframe || false;
 
     if (parent) {
         tile.setBBoxZ(parent.OBB().z.min, parent.OBB().z.max);

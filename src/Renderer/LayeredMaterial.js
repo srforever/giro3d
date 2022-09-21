@@ -64,9 +64,10 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.defines.TEX_UNITS = 0;
 
+        this.uniforms.showOutline = new Uniform(false);
+
         if (__DEBUG__) {
             this.defines.DEBUG = 1;
-            this.uniforms.showOutline = new Uniform(true);
         }
 
         this.fragmentShader = TileFS;
