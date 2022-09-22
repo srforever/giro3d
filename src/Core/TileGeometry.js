@@ -88,7 +88,7 @@ class TileGeometry extends BufferGeometry {
 
         let posX;
         let iPos = 0;
-        let uvY = 1.0;
+        let uvY = 0.0;
         let indicesNdx = 0;
         let posY = props.translateY;
 
@@ -96,7 +96,7 @@ class TileGeometry extends BufferGeometry {
         function handleCell() {
             const posNdx = iPos * 3;
             positions[posNdx + 0] = posX * props.rowStep + props.translateX;
-            positions[posNdx + 1] = posY;
+            positions[posNdx + 1] = -posY;
             positions[posNdx + 2] = 0.0;
             const uvNdx = iPos * 2;
             uvs[uvNdx + 0] = posX * props.uvStepX;
@@ -111,12 +111,12 @@ class TileGeometry extends BufferGeometry {
             const above = iPos - props.width;
             const previousPos = iPos - 1;
             const previousAbove = above - 1;
-            indices[indicesNdx + 0] = above;
-            indices[indicesNdx + 1] = previousPos;
-            indices[indicesNdx + 2] = iPos;
-            indices[indicesNdx + 3] = above;
-            indices[indicesNdx + 4] = previousAbove;
-            indices[indicesNdx + 5] = previousPos;
+            indices[indicesNdx + 0] = iPos;
+            indices[indicesNdx + 1] = previousAbove;
+            indices[indicesNdx + 2] = above;
+            indices[indicesNdx + 3] = iPos;
+            indices[indicesNdx + 4] = previousPos;
+            indices[indicesNdx + 5] = previousAbove;
             indicesNdx += 6;
         }
 
@@ -129,7 +129,7 @@ class TileGeometry extends BufferGeometry {
         //
         for (let h = 1; h < props.height; h++) {
             posY = h * props.columnStep + props.translateY;
-            uvY = 1 - h * props.uvStepY;
+            uvY = h * props.uvStepY;
             // First cell
             posX = 0;
             handleCell();

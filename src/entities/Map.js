@@ -92,7 +92,6 @@ function requestNewTile(map, extent, parent, level) {
     if (!geometry) {
         const paramsGeometry = {
             extent: sharableExtent,
-            level,
             segment,
         };
 
