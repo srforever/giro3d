@@ -9,30 +9,30 @@ const extent = new Extent('EPSG:3857', -1000, 1000, -1000, 1000);
 const geometry1 = new TileGeometry({ extent, segment: 2 });
 // Actual buffer arrays to prevent regression
 const uvsSquare = new Float32Array([
-	0, 0,
-	0.5, 0,
-	1, 0,
-	0, 0.5,
-	0.5, 0.5,
-	1, 0.5,
-	0, 1,
-	0.5, 1,
-	1, 1,
+    0, 0,
+    0.5, 0,
+    1, 0,
+    0, 0.5,
+    0.5, 0.5,
+    1, 0.5,
+    0, 1,
+    0.5, 1,
+    1, 1,
 ]);
 const positionsSquare = new Float32Array([
-	-1000, -1000, 0,
-	0, -1000, 0,
-	1000, -1000, 0,
-	-1000, 0, 0,
-	0, 0, 0,
-	1000, 0, 0,
-	-1000, 1000, 0,
-	0, 1000, 0,
-	1000, 1000, 0,
+    -1000, -1000, 0,
+    0, -1000, 0,
+    1000, -1000, 0,
+    -1000, 0, 0,
+    0, 0, 0,
+    1000, 0, 0,
+    -1000, 1000, 0,
+    0, 1000, 0,
+    1000, 1000, 0,
 ]);
 const indicesSquare = new Uint32Array([
-	4, 0, 1,
-	4, 3, 0,
+    4, 0, 1,
+    4, 3, 0,
     5, 1, 2,
     5, 4, 1,
     7, 3, 4,
@@ -44,24 +44,24 @@ const indicesSquare = new Uint32Array([
 // 3x2 rectangular grid
 const geometry2 = new TileGeometry({ extent, width: 3, height: 2 });
 const uvsRectangle = new Float32Array([
-	0, 0,
-	0.5, 0,
-	1, 0,
-	0, 1,
-	0.5, 1,
-	1, 1,
+    0, 0,
+    0.5, 0,
+    1, 0,
+    0, 1,
+    0.5, 1,
+    1, 1,
 ]);
 const positionsRectangle = new Float32Array([
-	-1000, -1000, 0,
-	0, -1000, 0,
-	1000, -1000, 0,
-	-1000, 1000, 0,
-	0, 1000, 0,
-	1000, 1000, 0,
+    -1000, -1000, 0,
+    0, -1000, 0,
+    1000, -1000, 0,
+    -1000, 1000, 0,
+    0, 1000, 0,
+    1000, 1000, 0,
 ]);
 const indicesRectangle = new Uint32Array([
-	4, 0, 1,
-	4, 3, 0,
+    4, 0, 1,
+    4, 3, 0,
     5, 1, 2,
     5, 4, 1,
 ]);
@@ -77,4 +77,4 @@ describe('TileGeometry', () => {
         assert.deepEqual(geometry2.attributes.uv.array, uvsRectangle);
         assert.deepEqual(geometry2.index.array, indicesRectangle);
     });
-})
+});

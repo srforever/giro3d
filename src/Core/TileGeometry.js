@@ -10,7 +10,7 @@ import OBB from '../Renderer/ThreeExtended/OBB.js';
  * The TileGeometry provides a new buffer geometry for each
  * {@link module:Core/TileMesh~TileMesh TileMesh} of a
  * {@link module:entities/Map~Map Map} object.
- * 
+ *
  * It is implemented for performance and produces simple planar geometries.
  * By default it produces square geometries but providing different width and height
  * allows for rectangular tiles creation.
@@ -22,7 +22,6 @@ import OBB from '../Renderer/ThreeExtended/OBB.js';
  * const extent = new Extent('EPSG:3857', -1000, -1000, 1000, 1000);
  * const paramsGeometry = { extent, level, segment };
  * const geometry = new TileGeometry(paramsGeometry);
- * 
  * @param {object} Parameters to construct the grid. Should contain an extent
  *  and a size, either a number of segment or a width and an height in pixels.
  * @api
@@ -44,9 +43,11 @@ class TileGeometry extends BufferGeometry {
 
     /**
      * Prepare the grid properties from parameters.
-     * 
+     *
+     * @param {object} params : Parameters to construct the grid. Should contain an extent
+     *  and a size, either a number of segment or a width and an height in pixels.
      * @api
-    */
+     */
     prepare(params) {
         const width = params.width || params.segment + 1;
         const height = params.height || params.segment + 1;
@@ -70,14 +71,15 @@ class TileGeometry extends BufferGeometry {
             columnStep,
             translateX,
             translateY,
-        }
+        };
     }
 
     /**
      * Construct the buffer geometry using a fast rolling approach.
-     * 
+     *
+     * @param {object} props : Properties of the TileGeometry grid, as prepared by this.prepare.
      * @api
-    */
+     */
     computeBuffers(props) {
         const numVertices = props.width * props.height;
         const triangles = props.segmentX * props.segmentY * 2;
@@ -92,7 +94,7 @@ class TileGeometry extends BufferGeometry {
         let indicesNdx = 0;
         let posY = props.translateY;
 
-        // Store xyz position and and corresponding uv of a pixel data. 
+        // Store xyz position and and corresponding uv of a pixel data.
         function handleCell() {
             const posNdx = iPos * 3;
             positions[posNdx + 0] = posX * props.rowStep + props.translateX;
