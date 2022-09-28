@@ -1,7 +1,7 @@
 import assert from 'assert';
 
-import Extent from '../../src/Core/Geographic/Extent.js';
-import TileGeometry from '../../src/Core/TileGeometry.js';
+import Extent from '../../../src/Core/Geographic/Extent.js';
+import TileGeometry from '../../../src/Core/TileGeometry.js';
 
 const extent = new Extent('EPSG:3857', -1000, 1000, -1000, 1000);
 
