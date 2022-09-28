@@ -69,6 +69,10 @@ class MapInspector extends EntityInspector {
 
         this.addController(this.map, 'projection')
             .name('Projection');
+        this.addController(this.map.imageSize, 'w')
+            .name('Tile width  (pixels)');
+        this.addController(this.map.imageSize, 'h')
+            .name('Tile height  (pixels)');
         this.addController(this, 'showGrid')
             .name('Show grid')
             .onChange(v => this.toggleGrid(v));

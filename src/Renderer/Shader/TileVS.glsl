@@ -23,8 +23,6 @@ varying vec2        vUv;
 varying vec4 vColor;
 varying vec4 vPosition;
 
-uniform vec4 validityExtent;
-
 #include <GetElevation>
 #include <ComputeUV>
 

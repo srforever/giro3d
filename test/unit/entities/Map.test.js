@@ -65,7 +65,6 @@ describe('Map', () => {
         it('should assign passed values', () => {
             expect(map.maxSubdivisionLevel).toBe(15);
             expect(map.sseScale).toBe(1.5);
-            expect(map.validityExtent).toEqual(extent);
             expect(map.protocol).toEqual('tile');
             expect(map.visible).toBe(true);
             expect(map.extent).toEqual(extent);

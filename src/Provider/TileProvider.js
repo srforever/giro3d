@@ -1,22 +1,23 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+import Extent from '../Core/Geographic/Extent.js';
+import { Map, requestNewTile } from '../entities/Map.js';
+
+/**
+ * @param {Map} map The map.
  */
-import { requestNewTile } from '../entities/Map.js';
-
-// eslint-disable-next-line no-unused-vars
 function preprocessDataLayer(map) {
-    if (!map.schemeTile) {
-        throw new Error(`Cannot init tiled layer without schemeTile for layer ${map.id}`);
-    }
-
     map.level0Nodes = [];
     map.onTileCreated = map.onTileCreated || (() => {});
 
+    // If the map is not square, we want to have more than a single
+    // root tile to avoid elongated tiles that hurt visual quality and SSE computation.
+    const subdivs = selectBestSubdivisions(map.extent);
+    const rootExtents = map.extent.split(subdivs.x, subdivs.y);
+
+    map.imageSize = computeImageSize(rootExtents[0]);
+
     const promises = [];
 
-    for (const root of map.schemeTile) {
+    for (const root of rootExtents) {
         promises.push(
             requestNewTile(map, root, undefined, 0),
         );
@@ -28,6 +29,48 @@ function preprocessDataLayer(map) {
             level0.updateMatrixWorld();
         }
     });
+}
+
+/**
+ * Compute the best image size for tiles, taking into account the extent ratio.
+ * In other words, rectangular tiles will have more pixels in their longest side.
+ *
+ * @param {Extent} extent The map extent.
+ */
+function computeImageSize(extent) {
+    const baseSize = 256;
+    const dims = extent.dimensions();
+    const ratio = dims.x / dims.y;
+    if (Math.abs(ratio - 1) < 0.01) {
+        // We have a square tile
+        return { w: baseSize, h: baseSize };
+    }
+
+    if (ratio > 1) {
+        // We have an horizontal tile
+        return { w: Math.round(baseSize * ratio), h: baseSize };
+    }
+
+    // We have a vertical tile
+    return { w: baseSize, h: Math.round(baseSize * (1 / ratio)) };
+}
+
+function selectBestSubdivisions(extent) {
+    const dims = extent.dimensions();
+    const ratio = dims.x / dims.y;
+    let x; let y;
+
+    if (ratio > 1) {
+        // Our extent is an horizontal rectangle
+        x = Math.round(ratio);
+        y = 1;
+    } else {
+        // Our extent is an vertical rectangle
+        x = 1;
+        y = Math.round(1 / ratio);
+    }
+
+    return { x, y };
 }
 
 function executeCommand() {

@@ -47,11 +47,8 @@ function preprocessDataLayer(layer) {
     const tileGrid = source.getTileGridForProjection(projection);
     // Cache the tilegrid because it is constant
     layer.tileGrid = tileGrid;
-    const sizePixel = source.getTilePixelSize(0/* z */, 1/* pixelRatio */, projection);
-    layer.imageSize = { w: sizePixel[0], h: sizePixel[1] };
     const extent = tileGrid.getExtent();
     layer.extent = fromOLExtent(extent, projection.getCode());
-    layer.fx = 0.0;
 }
 
 function fromOLExtent(extent, projectionCode) {

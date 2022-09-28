@@ -201,18 +201,8 @@ class Map extends Entity3D {
     constructor(id, options = {}) {
         super(id, options.object3d || new Group());
 
-        const extent = options.extent;
-
-        this.validityExtent = extent;
-        if (Array.isArray(extent)) {
-            this.schemeTile = extent;
-        } else {
-            this.schemeTile = [extent];
-        }
-        this.extent = this.schemeTile[0].clone();
-        for (let i = 1; i < this.schemeTile.length; i++) {
-            this.extent.union(this.schemeTile[i]);
-        }
+        /** @type {Extent} */
+        this.extent = options.extent;
 
         this.segments = options.segments || 8;
         this.sseScale = 1.5;
@@ -459,6 +449,7 @@ class Map extends Entity3D {
             if (!layer.projection) {
                 layer.projection = this.projection;
             }
+            layer.imageSize = this.imageSize;
 
             layer = layer._preprocessLayer(this, this._instance);
 

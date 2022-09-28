@@ -1,7 +1,7 @@
 import assert from 'assert';
 import { Box3, Vector3 } from 'three';
-import Coordinates from '../../src/Core/Geographic/Coordinates.js';
-import Extent from '../../src/Core/Geographic/Extent.js';
+import Coordinates from '../../../../src/Core/Geographic/Coordinates.js';
+import Extent from '../../../../src/Core/Geographic/Extent.js';
 
 const BOUNDS_EPSG4326 = new Extent('EPSG:4326', {
     south: -90, north: +90, east: +180, west: -180,
@@ -254,6 +254,40 @@ describe('Extent', () => {
             expect(extent.east()).toBe(box.max.x);
             expect(extent.north()).toBe(box.max.y);
             expect(extent.south()).toBe(box.min.y);
+        });
+    });
+
+    describe('split', () => {
+        it('should throw on invalid subdivisions', () => {
+            expect(() => BOUNDS_EPSG3857.split(0, 1)).toThrow(/Invalid subdivisions/);
+            expect(() => BOUNDS_EPSG3857.split(1, 0)).toThrow(/Invalid subdivisions/);
+        });
+
+        it('should return a copy of the original extent if subdivisions are 1, 1', () => {
+            const result = BOUNDS_EPSG3857.split(1, 1);
+            expect(result).toHaveLength(1);
+            expect(result[0]).not.toBe(BOUNDS_EPSG3857);
+            expect(result[0]).toEqual(BOUNDS_EPSG3857);
+        });
+
+        it('should return the correct value', () => {
+            const extent = new Extent('foo', 0, 100, 0, 100);
+
+            const splitHorizontally = extent.split(4, 1);
+            const splitVertically = extent.split(1, 4);
+
+            expect(splitHorizontally).toHaveLength(4);
+            expect(splitVertically).toHaveLength(4);
+
+            expect(splitHorizontally[0]).toEqual(new Extent('foo', 0, 25, 0, 100));
+            expect(splitHorizontally[1]).toEqual(new Extent('foo', 25, 50, 0, 100));
+            expect(splitHorizontally[2]).toEqual(new Extent('foo', 50, 75, 0, 100));
+            expect(splitHorizontally[3]).toEqual(new Extent('foo', 75, 100, 0, 100));
+
+            expect(splitVertically[0]).toEqual(new Extent('foo', 0, 100, 0, 25));
+            expect(splitVertically[1]).toEqual(new Extent('foo', 0, 100, 25, 50));
+            expect(splitVertically[2]).toEqual(new Extent('foo', 0, 100, 50, 75));
+            expect(splitVertically[3]).toEqual(new Extent('foo', 0, 100, 75, 100));
         });
     });
 });
