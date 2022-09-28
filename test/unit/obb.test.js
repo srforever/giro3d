@@ -2,7 +2,6 @@ import { Matrix4, Vector3 } from 'three';
 import proj4 from 'proj4';
 import assert from 'assert';
 import Extent from '../../src/Core/Geographic/Extent.js';
-import PlanarTileBuilder from '../../src/Core/Prefab/Planar/PlanarTileBuilder.js';
 import TileGeometry from '../../src/Core/TileGeometry.js';
 import OBB from '../../src/Renderer/ThreeExtended/OBB.js';
 
@@ -26,12 +25,12 @@ describe('OBB', () => {
 
 // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)
 proj4.defs('EPSG:3946', '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
-function assertVerticesAreInOBB(builder, extent) {
+function assertVerticesAreInOBB(extent) {
     const params = {
         extent,
     };
 
-    const geom = new TileGeometry(params, builder);
+    const geom = new TileGeometry(params);
     const inverse = new Matrix4().copy(geom.OBB.matrix).invert();
 
     let failing = 0;
@@ -48,10 +47,8 @@ function assertVerticesAreInOBB(builder, extent) {
 }
 
 describe('Planar tiles OBB computation', () => {
-    const builder = new PlanarTileBuilder();
-
     it('should compute OBB correctly', () => {
         const extent = new Extent('EPSG:3946', -100, 100, -50, 50);
-        assertVerticesAreInOBB(builder, extent);
+        assertVerticesAreInOBB(extent);
     });
 });
