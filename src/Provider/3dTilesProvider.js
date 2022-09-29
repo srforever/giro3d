@@ -113,11 +113,11 @@ function preprocessDataLayer(entity, instance, scheduler) {
 
     // TODO: find a better way to know that this layer is about pointcloud ?
     if (entity.material && entity.material.enablePicking) {
-        entity.pickObjectsAt = (instance2, mouse, radius) => Picking.pickPointsAt(
+        entity.pickObjectsAt = (instance2, mouse, options) => Picking.pickPointsAt(
             instance2,
             mouse,
-            radius,
             entity,
+            options,
         );
     }
 

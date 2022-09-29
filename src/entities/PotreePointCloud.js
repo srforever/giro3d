@@ -145,12 +145,11 @@ class PotreePointCloud extends Entity3D {
         this.material.defines = this.material.defines || {};
         this.mode = MODE.COLOR;
 
-        this.pickObjectsAt = (view2, mouse, radius, filter) => Picking.pickPointsAt(
+        this.pickObjectsAt = (view2, mouse, options) => Picking.pickPointsAt(
             view2,
             mouse,
-            radius,
             this,
-            filter,
+            options,
         );
 
         /**

@@ -137,7 +137,8 @@ const tmpColor = new Color();
  *   - layer: the geometry layer used for picking
  */
 export default {
-    pickTilesAt: (_instance, canvasCoords, radius, layer) => {
+    pickTilesAt: (_instance, canvasCoords, layer, options = {}) => {
+        const radius = options.radius || 0;
         const results = [];
         // TODO is there a way to get the node id AND uv on the same render pass ?
         // We would need to get a upper bound to the tile ids, and not use the three.js uuid
@@ -204,8 +205,9 @@ export default {
         return results;
     },
 
-    pickPointsAt: (instance, canvasCoords, radius, layer, filter) => {
-        radius = Math.floor(radius);
+    pickPointsAt: (instance, canvasCoords, layer, options = {}) => {
+        const radius = Math.floor(options.radius || 0);
+        const filter = options.filter;
 
         // Enable picking mode for points material, by assigning
         // a unique id to each Points instance.
@@ -314,7 +316,8 @@ export default {
     /*
      * Default picking method. Uses Raycaster
      */
-    pickObjectsAt(instance, canvasCoords, radius, object, target = []) {
+    pickObjectsAt(instance, canvasCoords, object, options = {}, target = []) {
+        const radius = options.radius || 0;
         // Instead of doing N raycast (1 per x,y returned by traversePickingCircle),
         // we force render the zone of interest.
         // Then we'll only do raycasting for the pixels where something was drawn.

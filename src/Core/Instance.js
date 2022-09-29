@@ -644,27 +644,30 @@ class Instance extends EventDispatcher {
      *
      * @param {object} mouseOrEvt mouse position in window coordinates (0, 0 = top-left)
      * or MouseEvent or TouchEvent
-     * @param {number} radius picking will happen in a circle centered on mouseOrEvt. Radius
-     * is the radius of this circle, in pixels
-     * @param {...*} where where to look for objects. Can be either: empty (= look
+     * @param {object=} options Optional properties.
+     * @param {?number} [options.radius=0] picking will happen in a circle centered on mouseOrEvt.
+     * Radius is the radius of this circle, in pixels
+     * @param {?Array} options.where where to look for objects. Can be either: empty (= look
      * in all layers with type === 'geometry'), layer ids or layers or a mix of all
      * the above.
+     * @param {?object} options.filter Filter on X,Y,Z coordinates on canvas (only supported
+     * by pointclouds)
      * @returns {Array} an array of objects. Each element contains at least an object
      * property which is the Object3D under the cursor. Then depending on the queried
      * layer/source, there may be additionnal properties (coming from THREE.Raycaster
      * for instance).
      * @example
      * instance.pickObjectsAt({ x, y })
-     * instance.pickObjectsAt({ x, y }, 1, 'wfsBuilding')
-     * instance.pickObjectsAt({ x, y }, 3, 'wfsBuilding', myLayer)
+     * instance.pickObjectsAt({ x, y }, { radius: 1, where: ['wfsBuilding'] })
+     * instance.pickObjectsAt({ x, y }, { radius: 3, where: ['wfsBuilding', myLayer] })
      */
-    pickObjectsAt(mouseOrEvt, radius, ...where) {
+    pickObjectsAt(mouseOrEvt, options = {}) {
         const results = [];
-        const sources = where.length === 0
-            ? this.getObjects().concat(this.threeObjects) : [...where];
+        const sources = options.where && options.where.length > 0
+            ? [...options.where] : this.getObjects().concat(this.threeObjects);
         const mouse = (mouseOrEvt instanceof Event)
             ? this.eventToCanvasCoords(mouseOrEvt) : mouseOrEvt;
-        radius = radius || 0;
+        const radius = options.radius || 0;
 
         for (const source of sources) {
             if (source instanceof Entity3D
@@ -675,7 +678,7 @@ class Instance extends EventDispatcher {
                     : source;
 
                 // TODO ability to pick on a layer instead of a geometric object?
-                const sp = object.pickObjectsAt(this, mouse, radius);
+                const sp = object.pickObjectsAt(this, mouse, options);
                 // warning: sp might be very large, so we can't use '...sp' (we'll hit
                 // 'javascript maximum call stack size exceeded' error) nor
                 // Array.prototype.push.apply(result, sp)
@@ -686,12 +689,12 @@ class Instance extends EventDispatcher {
                 Picking.pickObjectsAt(
                     this,
                     mouse,
-                    radius,
                     source,
+                    { radius },
                     results,
                 );
             } else {
-                throw new Error(`Invalid where arg (value = ${where}). Expected layers, layer ids or Object3Ds`);
+                throw new Error(`Invalid where arg (value = ${options.where}). Expected layers, layer ids or Object3Ds`);
             }
         }
 
