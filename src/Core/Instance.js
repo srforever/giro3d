@@ -677,13 +677,10 @@ class Instance extends EventDispatcher {
                 filterCanvas: options.filterCanvas,
                 filter: options.filter,
             };
-            if (source instanceof Entity3D
-                || source instanceof Layer
-                || typeof (source) === 'string') {
-                const object = (typeof (source) === 'string')
-                    ? objectIdToObject(this, source)
-                    : source;
-
+            const object = (typeof (source) === 'string')
+                ? objectIdToObject(this, source)
+                : source;
+            if (object instanceof Entity3D || typeof object.pickObjectsAt === 'function') {
                 // TODO ability to pick on a layer instead of a geometric object?
                 const sp = object.pickObjectsAt(this, mouse, pickOptions);
                 // warning: sp might be very large, so we can't use '...sp' (we'll hit
@@ -692,16 +689,16 @@ class Instance extends EventDispatcher {
                 for (let i = 0; i < sp.length; i++) {
                     results.push(sp[i]);
                 }
-            } else if (source.isObject3D) {
+            } else if (object.isObject3D) {
                 Picking.pickObjectsAt(
                     this,
                     mouse,
-                    source,
+                    object,
                     pickOptions,
                     results,
                 );
             } else {
-                throw new Error(`Invalid where arg (value = ${options.where}). Expected layers, layer ids or Object3Ds`);
+                throw new Error(`Invalid where arg (value = ${source}). Expected layers, layer ids or Object3Ds`);
             }
             if (results.length >= limit) { break; }
         }
@@ -867,10 +864,10 @@ function _preprocessObject(instance, obj, provider, parentLayer) {
     return obj;
 }
 
-function objectIdToObject(instance, layerId) {
-    const lookup = instance.getObjects(l => l.id === layerId);
+function objectIdToObject(instance, objectId) {
+    const lookup = instance.getObjects(l => l.id === objectId);
     if (!lookup.length) {
-        throw new Error(`Invalid layer id used as where argument (value = ${layerId})`);
+        throw new Error(`Invalid object id used as where argument (value = ${objectId})`);
     }
     return lookup[0];
 }
