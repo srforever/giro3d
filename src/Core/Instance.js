@@ -256,9 +256,6 @@ class Instance extends EventDispatcher {
         }
         this.scene.remove(this.threeObjects);
 
-        // TODO should cache be shared between Instance objects?
-        Cache.clear();
-
         this.mainLoop.gfxEngine.dispose();
         this.viewport.remove();
     }
