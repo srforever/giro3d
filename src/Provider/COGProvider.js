@@ -2,8 +2,8 @@ import { Vector4, Texture, DataTexture } from 'three';
 import { fromUrl, Pool } from 'geotiff';
 
 import Cache from '../Core/Scheduler/Cache.js';
-
 import ColorLayer from '../Core/layer/ColorLayer.js';
+import ElevationLayer from '../Core/layer/ElevationLayer.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -43,15 +43,29 @@ async function processSmallestOverview(layer, levelImage) {
         fillValue: layer.nodata,
     });
     // Initiate min and max data values to normalize 1 band files
-    const { min, max } = getMinMax(arrayData[0], layer.nodata);
-    layer.dataMin = min;
-    layer.dataMax = max;
-    // While we are at it let's cache the texture
-    const result = { pitch: new Vector4(0, 0, 1, 1), texture: new Texture() };
-    // Process the downloaded data
-    const { data, width, height } = processData(layer, arrayData);
-    const imageData = new ImageData(data, width, height);
-    result.texture = new DataTexture(imageData, width, height);
+    layer.minmax = getMinMax(arrayData[0], layer.nodata);
+    // While we are at it let's cache the requested data
+    // Prepare an empty texture
+    const result = {
+        pitch: new Vector4(0, 0, 1, 1), texture: new Texture(),
+    };
+    if (layer instanceof ColorLayer) {
+        // Process the downloaded data
+        const { data, width, height } = processData(layer, arrayData);
+        const imageData = new ImageData(data, width, height);
+        const texture = new DataTexture(imageData, width, height);
+        result.texture = texture;
+    } else if (layer instanceof ElevationLayer) {
+        // Force the pitch.z to be 0 in case of elevation to circumvent the if
+        // (elevationOffsetScale.z > 0.) in TileVS.js. We do so because the
+        // texture-based approach for elevation/stiching doesn't work with nodata
+        // and irregular border grids. We have to have pitch.z = 1 for the color
+        // textures to be correctly applied on elevation ones.
+        result.pitch.z = 0;
+        result.arrayData = arrayData;
+    } else {
+        throw new Error('The COG layer should be a ColorLayer or ElevationLayer');
+    }
     // Put the extent to indicate the overview has been processed
     result.texture.extent = layer.extent;
     // Assuming everything went fine, put the texture in cache
@@ -71,15 +85,15 @@ async function getImages(layer) {
     // Get the nodata value
     layer.nodata = firstImage.getGDALNoData();
     // Prepare the different images and their corresponding sizes
-    layer.images = [{
+    // Go through the different overviews in order
+    let image = firstImage;
+    let levelImage = {
         image: firstImage,
         width: firstImage.getWidth(),
         height: firstImage.getHeight(),
         resolution: firstImage.getResolution(),
-    }];
-    // Go through the different overviews in order
-    let image;
-    let levelImage;
+    };
+    layer.images = [levelImage];
     // We want to preserve the order of the overviews so we await them inside
     // the loop not to have the smallest overviews coming before the biggest
     /* eslint-disable no-await-in-loop */
@@ -156,6 +170,16 @@ function processData(layer, arrayData) {
             data[i4 + 2] = b[i];
             data[i4 + 3] = 255;
         }
+    // If there are 4 bands, assume that it's RGBA
+    } else if (arrayData.length === 4) {
+        const [r, g, b, a] = arrayData;
+        for (let i = 0, l = r.length; i < l; i++) {
+            const i4 = i * 4;
+            data[i4 + 0] = r[i];
+            data[i4 + 1] = g[i];
+            data[i4 + 2] = b[i];
+            data[i4 + 3] = a[i];
+        }
     // Else if there is only one band, assume that it's not colored and
     // normalize it.
     } else {
@@ -167,8 +191,8 @@ function processData(layer, arrayData) {
         }
         const [v] = arrayData;
         const nodata = layer.nodata;
-        const dataMin = layer.dataMin;
-        const dataFactor = 255 / (layer.dataMax - dataMin);
+        const dataMin = layer.minmax.min;
+        const dataFactor = 255 / (layer.minmax.max - dataMin);
         for (let i = 0, l = v.length; i < l; i++) {
             const vi = v[i];
             const value = Math.round((vi - dataMin) * dataFactor);
@@ -184,23 +208,19 @@ function processData(layer, arrayData) {
 
 function executeCommand(command) {
     const { layer } = command;
-    const { requester } = command;
+    // Get the image at the appropriate overview level
+    const { extent, levelImage } = command.toDownload;
     // Make the key to store the texture in cache with the subdivised tilednode extent
-    const key = `${layer.id}${requester.extent._values.join(',')}`;
+    const key = `${layer.id}${extent._values.join(',')}`;
     // Get the texture if it already exists
     let result = Cache.get(key);
     if (result) {
         return Promise.resolve(result);
     }
-    // If not, prepare an empty texture
+    // Prepare an empty texture
     result = {
         pitch: new Vector4(0, 0, 1, 1), texture: new Texture(),
     };
-    // Get the requested extent to download and the image at the appropriate
-    // overview level
-    const {
-        extent, levelImage,
-    } = command.toDownload;
     // Read and return the raster data
     return levelImage.image.readRasters({
         pool: layer.pool, // Use the pool of workers to decode faster
@@ -213,13 +233,22 @@ function executeCommand(command) {
             const imageData = new ImageData(data, width, height);
             const texture = new DataTexture(imageData, width, height);
             result.texture = texture;
-            // Attach the extent to the texture to check for possible improvements
-            result.texture.extent = requester.extent;
-            // Everything went fine, put the texture in cache
-            Cache.set(key, result);
-            return result;
+        } else if (layer instanceof ElevationLayer) {
+            // Force the pitch.z to be 0 in case of elevation to circumvent the if
+            // (elevationOffsetScale.z > 0.) in TileVS.js. We do so because the
+            // texture-based approach for elevation/stiching doesn't work with nodata
+            // and irregular border grids. We have to have pitch.z = 1 for the color
+            // textures to be correctly applied on elevation ones.
+            result.pitch.z = 0;
+            result.arrayData = arrayData;
+        } else {
+            throw new Error('The COG layer should be a ColorLayer or ElevationLayer');
         }
-        throw new Error('Elevation support for COG not yet implemented');
+        // Everything went fine, put the texture in cache
+        Cache.set(key, result);
+        // Attach the extent to the texture to check for possible improvements
+        result.texture.extent = extent;
+        return result;
     // Problem with the source that is blocked by another fetch
     // (request failed in readRasters). See the conversation in
     // https://github.com/geotiffjs/geotiff.js/issues/218

@@ -1,10 +1,10 @@
 /**
  * @module Core/layer/ElevationLayer
  */
+import Cache from '../Scheduler/Cache.js';
+import CancelledCommandException from '../Scheduler/CancelledCommandException.js';
 import DEMUtils, { ELEVATION_FORMAT } from '../../utils/DEMUtils.js';
 import LayerUpdateState from './LayerUpdateState.js';
-import CancelledCommandException from '../Scheduler/CancelledCommandException.js';
-
 import Layer, {
     defineLayerProperty, nodeCommandQueuePriorityFunction,
     refinementCommandCancellationFn, MAX_RETRY,
@@ -126,6 +126,9 @@ class ElevationLayer extends Layer {
             // TODO
             min = -1000;
             max = 1000;
+        } else if (this.elevationFormat === 'cog') {
+            min = this.minmax.min;
+            max = this.minmax.max;
         } else {
             throw new Error(`Unsupported layer.elevationFormat "${this.elevationFormat}'`);
         }
@@ -306,12 +309,32 @@ class ElevationLayer extends Layer {
             if (!elevation) {
                 return;
             }
-            const { min, max } = this.minMaxFromTexture(elevation.texture, elevation.pitch);
-            elevation.min = min;
-            elevation.max = max;
-
-            node.setTextureElevation(this, elevation);
-            node.layerUpdateState[this.id].success();
+            if (this.elevationFormat === 'cog') {
+                if (elevation.arrayData) {
+                    const key = `${node.extent._values.join(',')}`;
+                    const geometry = Cache.get(key);
+                    if (!geometry) {
+                        const { width, height } = elevation.arrayData;
+                        const propsGeometry = node.geometry.prepare({
+                            extent: node.extent,
+                            width,
+                            height,
+                            nodata: this.nodata,
+                            direction: 'bottom',
+                        });
+                        node.geometry.updateGeometry(propsGeometry, elevation.arrayData[0]);
+                        node.geometry.userData.updated = true;
+                        Cache.set(key, node.geometry);
+                        node.layerUpdateState[this.id].success();
+                    }
+                }
+            } else {
+                const { min, max } = this.minMaxFromTexture(elevation.texture, elevation.pitch);
+                elevation.min = min;
+                elevation.max = max;
+                node.setTextureElevation(this, elevation);
+                node.layerUpdateState[this.id].success();
+            }
         });
     }
 }
