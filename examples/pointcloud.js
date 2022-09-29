@@ -63,4 +63,4 @@ function initializeCamera() {
 instance.add(pointcloud).then(initializeCamera);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e, { radius: 5 })));
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e, { radius: 5, limit: 10 })));

@@ -139,6 +139,7 @@ const tmpColor = new Color();
 export default {
     pickTilesAt: (_instance, canvasCoords, layer, options = {}) => {
         const radius = options.radius || 0;
+        const limit = options.limit || Infinity;
         const results = [];
         // TODO is there a way to get the node id AND uv on the same render pass ?
         // We would need to get a upper bound to the tile ids, and not use the three.js uuid
@@ -148,6 +149,8 @@ export default {
         const _ids = screenCoordsToNodeId(_instance, layer, canvasCoords, radius);
 
         const extractResult = node => {
+            if (results.length >= limit) return;
+
             // for each node (normally no more than 4 of them) we do a render
             // in UV mode to get the uv under the mouse. This'll give us the
             // x,y coordinates, and we use DEMUtils to get z (normally no
@@ -194,6 +197,7 @@ export default {
                             coord,
                             distance: _instance.camera.camera3D.position.distanceTo(point),
                         });
+                        if (results.length >= limit) break;
                     }
                 }
                 restore();
@@ -207,6 +211,7 @@ export default {
 
     pickPointsAt: (instance, canvasCoords, layer, options = {}) => {
         const radius = Math.floor(options.radius || 0);
+        const limit = options.limit || Infinity;
         const filter = options.filter;
 
         // Enable picking mode for points material, by assigning
@@ -288,7 +293,7 @@ export default {
         const result = [];
         layer.object3d.traverse(o => {
             if (o.isPoints && o.visible && o.material.visible) {
-                for (let i = 0; i < candidates.length; i++) {
+                for (let i = 0; i < candidates.length && result.length < limit; i++) {
                     if (candidates[i].pickingId === o.material.pickingId) {
                         const position = new Vector3()
                             .fromArray(
@@ -318,6 +323,7 @@ export default {
      */
     pickObjectsAt(instance, canvasCoords, object, options = {}, target = []) {
         const radius = options.radius || 0;
+        const limit = options.limit || Infinity;
         // Instead of doing N raycast (1 per x,y returned by traversePickingCircle),
         // we force render the zone of interest.
         // Then we'll only do raycasting for the pixels where something was drawn.
@@ -371,6 +377,7 @@ export default {
             for (const inter of intersects) {
                 inter.layer = findLayerInParent(inter.object);
                 target.push(inter);
+                if (target.length >= limit) return false;
             }
 
             // Stop at first hit

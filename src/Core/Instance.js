@@ -647,6 +647,7 @@ class Instance extends EventDispatcher {
      * @param {object=} options Optional properties.
      * @param {?number} [options.radius=0] picking will happen in a circle centered on mouseOrEvt.
      * Radius is the radius of this circle, in pixels
+     * @param {?number} [options.limit=Infinity] maximum number of objects to return
      * @param {?Array} options.where where to look for objects. Can be either: empty (= look
      * in all layers with type === 'geometry'), layer ids or layers or a mix of all
      * the above.
@@ -668,8 +669,10 @@ class Instance extends EventDispatcher {
         const mouse = (mouseOrEvt instanceof Event)
             ? this.eventToCanvasCoords(mouseOrEvt) : mouseOrEvt;
         const radius = options.radius || 0;
+        const limit = options.limit || Infinity;
 
         for (const source of sources) {
+            const pickOptions = { radius, limit: limit - results.length };
             if (source instanceof Entity3D
                 || source instanceof Layer
                 || typeof (source) === 'string') {
@@ -678,7 +681,7 @@ class Instance extends EventDispatcher {
                     : source;
 
                 // TODO ability to pick on a layer instead of a geometric object?
-                const sp = object.pickObjectsAt(this, mouse, options);
+                const sp = object.pickObjectsAt(this, mouse, pickOptions);
                 // warning: sp might be very large, so we can't use '...sp' (we'll hit
                 // 'javascript maximum call stack size exceeded' error) nor
                 // Array.prototype.push.apply(result, sp)
@@ -690,12 +693,13 @@ class Instance extends EventDispatcher {
                     this,
                     mouse,
                     source,
-                    { radius },
+                    pickOptions,
                     results,
                 );
             } else {
                 throw new Error(`Invalid where arg (value = ${options.where}). Expected layers, layer ids or Object3Ds`);
             }
+            if (results.length >= limit) { break; }
         }
 
         return results;
