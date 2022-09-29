@@ -666,7 +666,7 @@ class Instance extends EventDispatcher {
         const sources = options.where && options.where.length > 0
             ? [...options.where] : this.getObjects().concat(this.threeObjects);
         const mouse = (mouseOrEvt instanceof Event)
-            ? this.eventToCanvasCoords(mouseOrEvt) : mouseOrEvt;
+            ? this.eventToCanvasCoords(mouseOrEvt).clone() : mouseOrEvt;
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;
 
