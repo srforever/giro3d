@@ -148,4 +148,7 @@ controls.saveState();
 instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e, {
+    // Let the user pick only points from IFC model
+    filter: p => p.object.ifcManager,
+})));

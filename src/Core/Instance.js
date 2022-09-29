@@ -651,6 +651,7 @@ class Instance extends EventDispatcher {
      * @param {?Array} options.where where to look for objects. Can be either: empty (= look
      * in all layers with type === 'geometry'), layer ids or layers or a mix of all
      * the above.
+     * @param {?object} options.filter Filter on resulting objects
      * @returns {Array} an array of objects. Each element contains at least an object
      * property which is the Object3D under the cursor. Then depending on the queried
      * layer/source, there may be additionnal properties (coming from THREE.Raycaster
@@ -674,6 +675,7 @@ class Instance extends EventDispatcher {
                 radius,
                 limit: limit - results.length,
                 filterCanvas: options.filterCanvas,
+                filter: options.filter,
             };
             if (source instanceof Entity3D
                 || source instanceof Layer

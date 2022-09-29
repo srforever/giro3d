@@ -141,6 +141,8 @@ export default {
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;
         const filterCanvas = options.filterCanvas;
+        const filter = options.filter;
+
         const results = [];
         // TODO is there a way to get the node id AND uv on the same render pass ?
         // We would need to get a upper bound to the tile ids, and not use the three.js uuid
@@ -202,14 +204,17 @@ export default {
                             _instance.referenceCrs, new Coordinates(_instance.referenceCrs),
                         );
                         const point = tmpCoords.xyz(new Vector3());
-                        results.push({
+                        const p = {
                             object: node,
                             layer,
                             point,
                             coord,
                             distance: _instance.camera.camera3D.position.distanceTo(point),
-                        });
-                        if (results.length >= limit) break;
+                        };
+                        if (!filter || filter(p)) {
+                            results.push(p);
+                            if (results.length >= limit) break;
+                        }
                     }
                 }
                 restore();
@@ -225,6 +230,7 @@ export default {
         const radius = Math.floor(options.radius || 0);
         const limit = options.limit || Infinity;
         const filterCanvas = options.filterCanvas;
+        const filter = options.filter;
 
         // Enable picking mode for points material, by assigning
         // a unique id to each Points instance.
@@ -312,14 +318,17 @@ export default {
                                 o.geometry.attributes.position.array, 3 * candidates[i].index,
                             )
                             .applyMatrix4(o.matrixWorld);
-                        result.push({
+                        const p = {
                             object: o,
                             index: candidates[i].index,
                             layer,
                             point: position,
                             coord: candidates[i].coord,
                             distance: instance.camera.camera3D.position.distanceTo(position),
-                        });
+                        };
+                        if (!filter || filter(p)) {
+                            result.push(p);
+                        }
                     }
                 }
                 // disable picking mode
@@ -337,6 +346,7 @@ export default {
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;
         const filterCanvas = options.filterCanvas;
+        const filter = options.filter;
 
         // Instead of doing N raycast (1 per x,y returned by traversePickingCircle),
         // we force render the zone of interest.
@@ -401,8 +411,10 @@ export default {
             const intersects = raycaster.intersectObject(object, true);
             for (const inter of intersects) {
                 inter.layer = findLayerInParent(inter.object);
-                target.push(inter);
-                if (target.length >= limit) return false;
+                if (!filter || filter(inter)) {
+                    target.push(inter);
+                    if (target.length >= limit) return false;
+                }
             }
 
             // Stop at first hit
