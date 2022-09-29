@@ -70,3 +70,4 @@ inspector.addPanel(myCustomPanel);
 
 // Trigger the first render
 instance.notifyChange(map);
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));

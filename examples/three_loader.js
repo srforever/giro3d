@@ -143,3 +143,4 @@ loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', gltf => {
 });
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));

@@ -41,9 +41,6 @@ controls.dampingFactor = 0.2;
 controls.target.set(center.x, center.y, center.z);
 instance.useTHREEControls(controls);
 
-// Attach the inspector
-Inspector.attach(document.getElementById('panelDiv'), instance);
-
 // Construct a map and add it to the instance
 const map = new Map('planar', { extent });
 instance.add(map);
@@ -56,3 +53,7 @@ const source = new CogSource({
 // Display it as elevation and color
 map.addLayer(new ElevationLayer('elevation', { source }));
 map.addLayer(new ColorLayer('color', { source }));
+
+// Attach the inspector
+Inspector.attach(document.getElementById('panelDiv'), instance);
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));

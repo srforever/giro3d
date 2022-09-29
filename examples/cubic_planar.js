@@ -169,3 +169,4 @@ instance.useTHREEControls(controls);
 instance.notifyChange();
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));

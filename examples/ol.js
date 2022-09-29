@@ -99,3 +99,4 @@ departementLayer.style = (Style, Fill, Stroke) => function _() {
 map.addLayer(departementLayer);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
