@@ -140,6 +140,7 @@ export default {
     pickTilesAt: (_instance, canvasCoords, layer, options = {}) => {
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;
+        const filterCanvas = options.filterCanvas;
         const results = [];
         // TODO is there a way to get the node id AND uv on the same render pass ?
         // We would need to get a upper bound to the tile ids, and not use the three.js uuid
@@ -168,6 +169,17 @@ export default {
                 );
                 const uvs = [];
                 traversePickingCircle(radius, (x, y, idx) => {
+                    if (filterCanvas) {
+                        const coord = {
+                            x: x + canvasCoords.x,
+                            y: y + canvasCoords.y,
+                            z: 0,
+                        };
+                        if (!filterCanvas(coord)) {
+                            return;
+                        }
+                    }
+
                     const data = buffer.slice(idx * 4, idx * 4 + 4);
                     depthRGBA.fromArray(data).divideScalar(255.0);
                     uvs.push(unpackHalfRGBA(depthRGBA));
@@ -212,7 +224,7 @@ export default {
     pickPointsAt: (instance, canvasCoords, layer, options = {}) => {
         const radius = Math.floor(options.radius || 0);
         const limit = options.limit || Infinity;
-        const filter = options.filter;
+        const filterCanvas = options.filterCanvas;
 
         // Enable picking mode for points material, by assigning
         // a unique id to each Points instance.
@@ -252,7 +264,7 @@ export default {
                 y: y + canvasCoords.y,
                 z: 0,
             };
-            if (filter && !filter(coord)) {
+            if (filterCanvas && !filterCanvas(coord)) {
                 return;
             }
 
@@ -324,6 +336,8 @@ export default {
     pickObjectsAt(instance, canvasCoords, object, options = {}, target = []) {
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;
+        const filterCanvas = options.filterCanvas;
+
         // Instead of doing N raycast (1 per x,y returned by traversePickingCircle),
         // we force render the zone of interest.
         // Then we'll only do raycasting for the pixels where something was drawn.
@@ -347,6 +361,17 @@ export default {
         const normalized = instance.canvasToNormalizedCoords(canvasCoords);
         const tmp = normalized.clone();
         traversePickingCircle(radius, (x, y) => {
+            if (filterCanvas) {
+                const coord = {
+                    x: x + canvasCoords.x,
+                    y: y + canvasCoords.y,
+                    z: 0,
+                };
+                if (!filterCanvas(coord)) {
+                    return null;
+                }
+            }
+
             // x, y are offset from the center of the picking circle,
             // and pixels is a square where 0, 0 is the top-left corner.
             // So we need to shift x,y by radius.
