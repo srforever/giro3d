@@ -145,14 +145,6 @@ class PotreePointCloud extends Entity3D {
         this.material.defines = this.material.defines || {};
         this.mode = MODE.COLOR;
 
-        this.pickObjectsAt = (view2, mouse, options, target) => Picking.pickPointsAt(
-            view2,
-            mouse,
-            this,
-            options,
-            target,
-        );
-
         /**
          * Optional hook called when a new point tile is loaded.
          * The parameter is a {@link module:Core/Points~Points Points} object.
@@ -166,6 +158,10 @@ class PotreePointCloud extends Entity3D {
          * }
          */
         this.onPointsCreated = null;
+    }
+
+    pickObjectsAt(instance, coordinates, options, target) {
+        return Picking.pickPointsAt(instance, coordinates, this, options, target);
     }
 
     updateMinMaxDistance(context, bbox) {
