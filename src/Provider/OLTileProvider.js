@@ -1,6 +1,5 @@
 import {
-    DataTexture,
-    RGBAFormat,
+    CanvasTexture,
     Texture,
     Vector4,
 } from 'three';
@@ -15,28 +14,10 @@ import Extent from '../Core/Geographic/Extent.js';
 import Layer from '../Core/layer/Layer.js';
 import GeographicCanvas from '../utils/GeographicCanvas.js';
 
-// Recycling canvases is interesting because most if not all layers will use square tiles
-// At the same resolution (256px). So it's very likely that we are using a single canvas for all
-// operations.
-
-const cachedCanvases = new Map();
-
 function createCanvas(width, height) {
     const newCanvas = document.createElement('canvas');
     newCanvas.width = width;
     newCanvas.height = height;
-    return newCanvas;
-}
-
-function getCanvas(width, height) {
-    const key = width + height << 16;
-    const result = cachedCanvases.get(key);
-    if (result) {
-        return result;
-    }
-
-    const newCanvas = createCanvas(width, height);
-    cachedCanvases.set(key, newCanvas);
     return newCanvas;
 }
 
@@ -129,24 +110,14 @@ async function executeCommand(command) {
 async function combineImages(sourceImages, layer, targetExtent) {
     const canvas = new GeographicCanvas({
         extent: targetExtent,
-        canvas: getCanvas(layer.imageSize.w, layer.imageSize.h),
+        canvas: createCanvas(layer.imageSize.w, layer.imageSize.h),
     });
-
-    canvas.clear();
 
     sourceImages.forEach(img => {
         canvas.draw(img, img.extent);
     });
 
-    // This is much, much faster than actually creating an HTMLImageElement.
-    const imageData = canvas.getImageData();
-    const bitmap = await createImageBitmap(imageData);
-
-    // In the case of color layers, the texture is not used, because the image will be drawn into
-    // the tile atlas. However, in the case of elevation layers, the texture is directly used
-    // since there can only be one elevation layer per tile.
-    // DataTexture is faster to create since it uses the pixel buffer instead of an image element.
-    const texture = new DataTexture(imageData, bitmap.width, bitmap.height, RGBAFormat);
+    const texture = new CanvasTexture(canvas.canvas);
     texture.flipY = true;
     texture.extent = targetExtent;
     texture.revision = layer.source.getRevision();
