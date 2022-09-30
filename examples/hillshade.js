@@ -88,7 +88,7 @@ const mapCenter = extent.center().xyz();
 // Sets the camera position
 const cameraPosition = new Coordinates(
     'EPSG:3946',
-    mapCenter.x, mapCenter.y, 10000,
+    mapCenter.x, mapCenter.y - 1, 10000,
 ).xyz();
 instance.camera.camera3D.position.copy(cameraPosition);
 
