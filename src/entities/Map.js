@@ -86,7 +86,7 @@ function requestNewTile(map, extent, parent, level) {
     );
     const segment = map.segments || 8;
 
-    let key = `${extent._values.join(',')}`;
+    let key = `${map.id}${extent._values.join(',')}`;
     let geometry = Cache.get(key);
     if (!geometry) {
         key = `${sharableExtent._values.join(',')}`;

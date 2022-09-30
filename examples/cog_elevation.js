@@ -54,5 +54,5 @@ const source = new CogSource({
     url: 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/OPR/Projects/LA_Chenier_Plain_Lidar_2017_B16/LA_Chenier_Plain_2017/TIFF/USGS_OPR_LA_Chenier_Plain_Lidar_2017_B16_15RWN835805.tif',
 });
 // Display it as elevation and color
-map.addLayer(new ElevationLayer('elevation', { source, elevationFormat: 'cog' }));
+map.addLayer(new ElevationLayer('elevation', { source }));
 map.addLayer(new ColorLayer('color', { source }));

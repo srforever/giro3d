@@ -1,8 +1,12 @@
 /**
  * @module Core/layer/ColorLayer
  */
-import LayerUpdateState from './LayerUpdateState.js';
+import { Vector4, DataTexture } from 'three';
+
+import Cache from '../Scheduler/Cache.js';
 import CancelledCommandException from '../Scheduler/CancelledCommandException.js';
+import CogSource from '../../sources/CogSource.js';
+import LayerUpdateState from './LayerUpdateState.js';
 
 import Layer, {
     defineLayerProperty, nodeCommandQueuePriorityFunction,
@@ -91,6 +95,59 @@ class ColorLayer extends Layer {
             pitch: extent.offsetToParent(texture.extent),
         }, true, context.instance);
         return true;
+    }
+
+    processArrayData(arrayData) {
+        // Width and height in pixels of the returned data
+        const { width, height } = arrayData;
+        // We have to check wether it is an array of colors because we
+        // want to handle floating point intensity files as color
+        // layers too
+        const data = new Uint8ClampedArray(width * height * 4);
+        // If there are 3 bands, assume that it's RGB
+        if (arrayData.length === 3) {
+            const [r, g, b] = arrayData;
+            for (let i = 0, l = r.length; i < l; i++) {
+                const i4 = i * 4;
+                data[i4 + 0] = r[i];
+                data[i4 + 1] = g[i];
+                data[i4 + 2] = b[i];
+                data[i4 + 3] = 255;
+            }
+        // If there are 4 bands, assume that it's RGBA
+        } else if (arrayData.length === 4) {
+            const [r, g, b, a] = arrayData;
+            for (let i = 0, l = r.length; i < l; i++) {
+                const i4 = i * 4;
+                data[i4 + 0] = r[i];
+                data[i4 + 1] = g[i];
+                data[i4 + 2] = b[i];
+                data[i4 + 3] = a[i];
+            }
+        // Else if there is only one band, assume that it's not colored and
+        // normalize it.
+        } else {
+            if (arrayData.length !== 1) {
+                console.warn(
+                    "Band selection isn't implemented yet.",
+                    'Processing the first one as if it was a 1-band file.',
+                );
+            }
+            const [v] = arrayData;
+            const nodata = this.nodata;
+            const dataMin = this.minmax.min;
+            const dataFactor = 255 / (this.minmax.max - dataMin);
+            for (let i = 0, l = v.length; i < l; i++) {
+                const vi = v[i];
+                const value = Math.round((vi - dataMin) * dataFactor);
+                const i4 = i * 4;
+                data[i4 + 0] = value;
+                data[i4 + 1] = value;
+                data[i4 + 2] = value;
+                data[i4 + 3] = vi === nodata ? 0 : 255;
+            }
+        }
+        return { data, width, height };
     }
 
     /**
@@ -191,6 +248,16 @@ class ColorLayer extends Layer {
             result => {
                 if (node.material === null) {
                     return null;
+                }
+                if (this.source instanceof CogSource && !result.texture) {
+                    result.pitch = new Vector4(0, 0, 1, 1);
+                    // Process the downloaded data
+                    const { data, width, height } = this.processArrayData(result.arrayData);
+                    const imageData = new ImageData(data, width, height);
+                    result.texture = new DataTexture(imageData, width, height);
+                    // Attach the extent to the texture to check for possible improvements
+                    result.texture.extent = node.extent;
+                    Cache.set(`${this.id}${node.extent._values.join(',')}`, result);
                 }
                 return node.material.setColorTextures(this, result, false, context.instance)
                     .then(() => {

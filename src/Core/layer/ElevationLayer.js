@@ -1,8 +1,11 @@
 /**
  * @module Core/layer/ElevationLayer
  */
+import { Vector4, Texture } from 'three';
+
 import Cache from '../Scheduler/Cache.js';
 import CancelledCommandException from '../Scheduler/CancelledCommandException.js';
+import CogSource from '../../sources/CogSource.js';
 import DEMUtils, { ELEVATION_FORMAT } from '../../utils/DEMUtils.js';
 import LayerUpdateState from './LayerUpdateState.js';
 import Layer, {
@@ -77,7 +80,7 @@ class ElevationLayer extends Layer {
         return { data, stride, h };
     }
 
-    minMaxFromTexture(texture) { // no pitch ???
+    minMaxFromTexture(texture) {
         if (texture.min != null && texture.max != null) {
             return {
                 min: texture.min,
@@ -126,9 +129,6 @@ class ElevationLayer extends Layer {
             // TODO
             min = -1000;
             max = 1000;
-        } else if (this.elevationFormat === 'cog') {
-            min = this.minmax.min;
-            max = this.minmax.max;
         } else {
             throw new Error(`Unsupported layer.elevationFormat "${this.elevationFormat}'`);
         }
@@ -173,10 +173,12 @@ class ElevationLayer extends Layer {
                 layer: this,
                 toDownload: down,
             }).then(result => {
-                const minmax = this.minMaxFromTexture(result.texture, result.pitch);
-                result.texture.min = minmax.min;
-                result.texture.max = minmax.max;
-                this.minmax = minmax;
+                if (!this.minmax) {
+                    const minmax = this.minMaxFromTexture(result.texture, result.pitch);
+                    result.texture.min = minmax.min;
+                    result.texture.max = minmax.max;
+                    this.minmax = minmax;
+                }
             });
         });
 
@@ -309,11 +311,25 @@ class ElevationLayer extends Layer {
             if (!elevation) {
                 return;
             }
-            if (this.elevationFormat === 'cog') {
+            if (this.source instanceof CogSource && !elevation.texture) {
+                this.elevationFormat = ELEVATION_FORMAT.NUMERIC;
+                // Set the pitch.z = 0 to deactivate elevationTexture in TileVS.js.
+                elevation.pitch = new Vector4(0, 0, 0, 1);
+                // Initiate an empty texture
+                elevation.texture = new Texture();
+                // Add min and max to the texture for this.MinMaxFromTexture
+                elevation.texture.min = this.minmax.min;
+                elevation.texture.max = this.minmax.max;
+            }
+            if (this.elevationFormat === ELEVATION_FORMAT.NUMERIC) {
                 if (elevation.arrayData) {
-                    const key = `${node.extent._values.join(',')}`;
+                    const key = `${node.layer.id}${node.extent._values.join(',')}`;
                     const geometry = Cache.get(key);
                     if (!geometry) {
+                        // Attach the extent to the texture to check for possible improvements
+                        elevation.texture.extent = node.extent;
+                        Cache.set(`${this.id}${node.extent._values.join(',')}`, elevation);
+                        // Construct the node geometry with nodata
                         const { width, height } = elevation.arrayData;
                         const propsGeometry = node.geometry.prepare({
                             extent: node.extent,
@@ -323,13 +339,15 @@ class ElevationLayer extends Layer {
                             direction: 'bottom',
                         });
                         node.geometry.updateGeometry(propsGeometry, elevation.arrayData[0]);
-                        node.geometry.userData.updated = true;
                         Cache.set(key, node.geometry);
                         node.layerUpdateState[this.id].success();
                     }
                 }
             } else {
-                const { min, max } = this.minMaxFromTexture(elevation.texture, elevation.pitch);
+                // TODO ? Also handle COG z elevation in shader ?
+                // Note: this should not broke outside of the else block, it
+                // is here to not do any unnecessary processing
+                const { min, max } = this.minMaxFromTexture(elevation.texture);
                 elevation.min = min;
                 elevation.max = max;
                 node.setTextureElevation(this, elevation);

@@ -286,7 +286,7 @@ class LayeredMaterial extends RawShaderMaterial {
             if (!this.defines.RATP_GEOL_ELEVATION) {
                 this.defines.RATP_GEOL_ELEVATION = 1;
             }
-        } else {
+        } else if (layer.elevationFormat !== ELEVATION_FORMAT.NUMERIC) {
             throw new Error('Missing layer.elevationFormat handling', layer.elevationFormat);
         }
         this.uniforms.elevationTexture.value = textureAndPitch.texture;
