@@ -137,13 +137,12 @@ const tmpColor = new Color();
  *   - layer: the geometry layer used for picking
  */
 export default {
-    pickTilesAt: (_instance, canvasCoords, layer, options = {}) => {
+    pickTilesAt: (_instance, canvasCoords, layer, options = {}, target = []) => {
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;
         const filterCanvas = options.filterCanvas;
         const filter = options.filter;
 
-        const results = [];
         // TODO is there a way to get the node id AND uv on the same render pass ?
         // We would need to get a upper bound to the tile ids, and not use the three.js uuid
         // We need to assess how much precision will be left for the uv, and if it is acceptable
@@ -152,7 +151,7 @@ export default {
         const _ids = screenCoordsToNodeId(_instance, layer, canvasCoords, radius);
 
         const extractResult = node => {
-            if (results.length >= limit) return;
+            if (target.length >= limit) return;
 
             // for each node (normally no more than 4 of them) we do a render
             // in UV mode to get the uv under the mouse. This'll give us the
@@ -212,8 +211,8 @@ export default {
                             distance: _instance.camera.camera3D.position.distanceTo(point),
                         };
                         if (!filter || filter(p)) {
-                            results.push(p);
-                            if (results.length >= limit) break;
+                            target.push(p);
+                            if (target.length >= limit) break;
                         }
                     }
                 }
@@ -223,10 +222,10 @@ export default {
         for (const n of layer.level0Nodes) {
             n.traverse(extractResult);
         }
-        return results;
+        return target;
     },
 
-    pickPointsAt: (instance, canvasCoords, layer, options = {}) => {
+    pickPointsAt: (instance, canvasCoords, layer, options = {}, target = []) => {
         const radius = Math.floor(options.radius || 0);
         const limit = options.limit || Infinity;
         const filterCanvas = options.filterCanvas;
@@ -308,10 +307,9 @@ export default {
             candidates.push(r);
         });
 
-        const result = [];
         layer.object3d.traverse(o => {
             if (o.isPoints && o.visible && o.material.visible) {
-                for (let i = 0; i < candidates.length && result.length < limit; i++) {
+                for (let i = 0; i < candidates.length && target.length < limit; i++) {
                     if (candidates[i].pickingId === o.material.pickingId) {
                         const position = new Vector3()
                             .fromArray(
@@ -327,7 +325,7 @@ export default {
                             distance: instance.camera.camera3D.position.distanceTo(position),
                         };
                         if (!filter || filter(p)) {
-                            result.push(p);
+                            target.push(p);
                         }
                     }
                 }
@@ -336,7 +334,7 @@ export default {
             }
         });
 
-        return result;
+        return target;
     },
 
     /*

@@ -673,7 +673,7 @@ class Instance extends EventDispatcher {
         for (const source of sources) {
             const pickOptions = {
                 radius,
-                limit: limit - results.length,
+                limit, // Use same limit as requested, since we pass the results array
                 filterCanvas: options.filterCanvas,
                 filter: options.filter,
             };
@@ -682,13 +682,7 @@ class Instance extends EventDispatcher {
                 : source;
             if (object instanceof Entity3D || typeof object.pickObjectsAt === 'function') {
                 // TODO ability to pick on a layer instead of a geometric object?
-                const sp = object.pickObjectsAt(this, mouse, pickOptions);
-                // warning: sp might be very large, so we can't use '...sp' (we'll hit
-                // 'javascript maximum call stack size exceeded' error) nor
-                // Array.prototype.push.apply(result, sp)
-                for (let i = 0; i < sp.length; i++) {
-                    results.push(sp[i]);
-                }
+                object.pickObjectsAt(this, mouse, pickOptions, results);
             } else if (object.isObject3D) {
                 Picking.pickObjectsAt(
                     this,
