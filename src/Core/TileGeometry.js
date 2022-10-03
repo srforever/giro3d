@@ -12,8 +12,17 @@ import OBB from '../Renderer/ThreeExtended/OBB.js';
  * {@link module:entities/Map~Map Map} object.
  *
  * It is implemented for performance using a rolling approach.
+ * The rolling approach is a special case of the sliding window algorithm with
+ * a single value window where we iterate (roll, slide) over the data array to
+ * compute everything in a single pass (complexity O(n)).
  * By default it produces square geometries but providing different width and height
  * allows for rectangular tiles creation.
+ *
+ * - If there is no elevation data, compute a simple grid.
+ * - If there is no nodata value specified, or no value of the data is nodata,
+ *   compute a simple grid with the elevation data.
+ * - If all the values of the data are no data, empty the geometry buffers.
+ * - If a geometry is supplied, copy it
  *
  * @example
  * // Inspired from Map@requestNewTile
@@ -22,64 +31,64 @@ import OBB from '../Renderer/ThreeExtended/OBB.js';
  * const geometry = new TileGeometry(paramsGeometry);
  * @param {object} params : Parameters to construct the grid. Should contain an extent
  *  and a size, either a number of segment or a width and an height in pixels.
+ * @param {Array} data : Array of elevation data to update vertices z with.
+ * @param {BufferGeometry} geometry : A geometry to copy.
  * @api
  */
 class TileGeometry extends BufferGeometry {
-    constructor(params, geometry = undefined) {
+    constructor(params, data = undefined, geometry = undefined) {
         super();
-        // Compute properties of the grid, square or rectangular.
-        this.props = this.prepare(params);
-        // Compute buffers (no normals because the z displacement is in the shader)
-        if (!geometry) {
-            this.computeBuffers(this.props);
-        } else {
-            this.copy(geometry);
-        }
-        // Compute the Oriented Bounding Box for spatial operations
-        this.computeBoundingBox();
-        this.OBB = new OBB(this.boundingBox.min, this.boundingBox.max);
-    }
-
-    /**
-     * Prepare the grid properties from parameters.
-     *
-     * @param {object} params : Parameters to construct the grid. Should contain an extent
-     *  and a size, either a number of segment or a width and an height in pixels.
-     * @api
-     */
-    prepare(params) {
         // Still mandatory to have on the geometry ?
         this.extent = params.extent;
         this.center = new Vector3(...this.extent.center()._values);
-        const nodata = params.nodata;
+        // Compute properties of the grid, square or rectangular.
         const width = params.width || params.segment + 1;
         const height = params.height || params.segment + 1;
-        const numVertices = width * height;
+        const dimension = this.extent.dimensions();
         const segmentX = width - 1;
         const segmentY = height - 1;
         const uvStepX = 1 / segmentX;
         const uvStepY = 1 / segmentY;
-        const triangles = segmentX * segmentY * 2;
-        const dimension = this.extent.dimensions();
         const rowStep = uvStepX * dimension.x;
         const columnStep = uvStepY * -dimension.y;
-        const translateX = -segmentX * 0.5 * rowStep;
-        const translateY = -segmentY * 0.5 * columnStep;
-        const direction = params.direction || 'top';
-        return {
+        const props = {
             width,
             height,
             uvStepX,
             uvStepY,
             rowStep,
             columnStep,
-            translateX,
-            translateY,
-            nodata,
-            direction,
-            triangles,
-            numVertices,
+            translateX: -segmentX * 0.5 * rowStep,
+            translateY: -segmentY * 0.5 * columnStep,
+            nodata: params.nodata,
+            direction: params.direction || 'top',
+            triangles: segmentX * segmentY * 2,
+            numVertices: width * height,
         };
+        // Compute buffers (no normals because the z displacement is in the shader)
+        if (!geometry) {
+            if (data && props.nodata !== undefined) {
+                props.numVertices = data.filter(x => x !== props.nodata).length;
+                if (props.numVertices === props.width * props.height) {
+                    // No nodata values, simple grid with elevation
+                    this.computeBuffers(props, data);
+                } else if (props.numVertices === 0) {
+                    // Only nodata values so empty the BufferGeometry
+                    this.setAttribute('uv', new BufferAttribute(new Float32Array([]), 2));
+                    this.setAttribute('position', new BufferAttribute(new Float32Array([]), 3));
+                    this.setIndex(new BufferAttribute(new Uint16Array([]), 1));
+                } else {
+                    this.computeBuffersNoData(props, data);
+                }
+            } else {
+                this.computeBuffers(props, data);
+            }
+        } else {
+            this.copy(geometry);
+        }
+        // Compute the Oriented Bounding Box for spatial operations
+        this.computeBoundingBox();
+        this.OBB = new OBB(this.boundingBox.min, this.boundingBox.max);
     }
 
     /**
@@ -168,7 +177,6 @@ class TileGeometry extends BufferGeometry {
                 handleCell();
             }
         }
-
         this.setAttribute('uv', new BufferAttribute(uvs, 2));
         this.setAttribute('position', new BufferAttribute(positions, 3));
         this.setIndex(new BufferAttribute(indices, 1));
@@ -300,43 +308,9 @@ class TileGeometry extends BufferGeometry {
                 i++;
             }
         }
-
         this.setAttribute('uv', new BufferAttribute(uvs, 2));
         this.setAttribute('position', new BufferAttribute(positions, 3));
         this.setIndex(new BufferAttribute(indices.slice(0, indicesNdx), 1));
-    }
-
-    /**
-     * Update the geometry with new properties, elevation data and possible nodata.
-     *
-     * - If there is no elevation data, compute a simple grid with the new properties.
-     * - If there is no nodata value specified, or no value of the data is nodata,
-     *   compute a simple grid with the elevation data.
-     * - If all the values of the data are no data, empty the geometry buffers.
-     *
-     * @param {object} props : Properties of the TileGeometry grid, as prepared by this.prepare.
-     * @param {Array} data : Array of elevation data to update vertices z with.
-     * @api
-     */
-    updateGeometry(props, data = undefined) {
-        if (data && props.nodata !== undefined) {
-            props.numVertices = data.filter(x => x !== props.nodata).length;
-            if (props.numVertices === props.width * props.height) {
-                // No nodata values, simple grid with elevation
-                this.computeBuffers(props, data);
-                return;
-            }
-            if (props.numVertices === 0) {
-                // Only nodata values so empty the BufferGeometry
-                this.setAttribute('uv', new BufferAttribute(new Float32Array([]), 2));
-                this.setAttribute('position', new BufferAttribute(new Float32Array([]), 3));
-                this.setIndex(new BufferAttribute(new Uint16Array([]), 1));
-                return;
-            }
-            this.computeBuffersNoData(props, data);
-        } else {
-            this.computeBuffers(props, data);
-        }
     }
 }
 

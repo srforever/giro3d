@@ -12,6 +12,7 @@ import Layer, {
     defineLayerProperty, nodeCommandQueuePriorityFunction,
     refinementCommandCancellationFn, MAX_RETRY,
 } from './Layer.js';
+import TileGeometry from '../TileGeometry.js';
 
 // get image data
 let canvas;
@@ -331,14 +332,14 @@ class ElevationLayer extends Layer {
                         Cache.set(`${this.id}${node.extent._values.join(',')}`, elevation);
                         // Construct the node geometry with nodata
                         const { width, height } = elevation.arrayData;
-                        const propsGeometry = node.geometry.prepare({
+                        const propsGeometry = {
                             extent: node.extent,
                             width,
                             height,
                             nodata: this.nodata,
                             direction: 'bottom',
-                        });
-                        node.geometry.updateGeometry(propsGeometry, elevation.arrayData[0]);
+                        };
+                        node.geometry = new TileGeometry(propsGeometry, elevation.arrayData[0]);
                         Cache.set(key, node.geometry);
                         node.layerUpdateState[this.id].success();
                     }

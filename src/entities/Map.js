@@ -101,7 +101,7 @@ function requestNewTile(map, extent, parent, level) {
             Cache.set(key, geometry);
         } else {
             // copy from cache
-            geometry = new TileGeometry(paramsGeometry, geometry);
+            geometry = new TileGeometry(paramsGeometry, undefined, geometry);
         }
     }
     geometry._count = 0;
