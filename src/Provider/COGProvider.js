@@ -1,9 +1,6 @@
-import { Vector4, Texture, DataTexture } from 'three';
 import { fromUrl, Pool } from 'geotiff';
 
 import Cache from '../Core/Scheduler/Cache.js';
-
-import ColorLayer from '../Core/layer/ColorLayer.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -37,28 +34,6 @@ function makeWindowFromExtent(layer, extent, resolution) {
     ];
 }
 
-async function processSmallestOverview(layer, levelImage) {
-    const arrayData = await levelImage.image.readRasters({
-        window: makeWindowFromExtent(layer, layer.extent, levelImage.resolution),
-        fillValue: layer.nodata,
-    });
-    // Initiate min and max data values to normalize 1 band files
-    const { min, max } = getMinMax(arrayData[0], layer.nodata);
-    layer.dataMin = min;
-    layer.dataMax = max;
-    // While we are at it let's cache the texture
-    const result = { pitch: new Vector4(0, 0, 1, 1), texture: new Texture() };
-    // Process the downloaded data
-    const { data, width, height } = processData(layer, arrayData);
-    const imageData = new ImageData(data, width, height);
-    result.texture = new DataTexture(imageData, width, height);
-    // Put the extent to indicate the overview has been processed
-    result.texture.extent = layer.extent;
-    // Assuming everything went fine, put the texture in cache
-    const key = `${layer.id}${layer.extent._values.join(',')}`;
-    Cache.set(key, result);
-}
-
 async function getImages(layer) {
     // Get the COG informations
     const tiff = await fromUrl(layer.source.url);
@@ -71,15 +46,15 @@ async function getImages(layer) {
     // Get the nodata value
     layer.nodata = firstImage.getGDALNoData();
     // Prepare the different images and their corresponding sizes
-    layer.images = [{
+    // Go through the different overviews in order
+    let image = firstImage;
+    let levelImage = {
         image: firstImage,
         width: firstImage.getWidth(),
         height: firstImage.getHeight(),
         resolution: firstImage.getResolution(),
-    }];
-    // Go through the different overviews in order
-    let image;
-    let levelImage;
+    };
+    layer.images = [levelImage];
     // We want to preserve the order of the overviews so we await them inside
     // the loop not to have the smallest overviews coming before the biggest
     /* eslint-disable no-await-in-loop */
@@ -97,7 +72,15 @@ async function getImages(layer) {
     // performances, we use the latest image, meaning the highest overview
     // (lowest resolution)
     if (image.getSamplesPerPixel() === 1) {
-        await processSmallestOverview(layer, levelImage);
+        const arrayData = await levelImage.image.readRasters({
+            window: makeWindowFromExtent(layer, layer.extent, levelImage.resolution),
+            fillValue: layer.nodata,
+        });
+        // Initiate min and max data values to normalize 1 band files
+        layer.minmax = getMinMax(arrayData[0], layer.nodata);
+        // While we are at it let's cache the requested data
+        const key = `${layer.id}${layer.extent._values.join(',')}`;
+        Cache.set(key, { arrayData });
     }
 }
 
@@ -139,97 +122,30 @@ function getPossibleTextureImprovements(layer, extent, texture) {
     };
 }
 
-function processData(layer, arrayData) {
-    // Width and height in pixels of the returned data
-    const { width, height } = arrayData;
-    // We have to check wether it is an array of colors because we
-    // want to handle floating point intensity files as color
-    // layers too
-    const data = new Uint8ClampedArray(width * height * 4);
-    // If there are 3 bands, assume that it's RGB
-    if (arrayData.length === 3) {
-        const [r, g, b] = arrayData;
-        for (let i = 0, l = r.length; i < l; i++) {
-            const i4 = i * 4;
-            data[i4 + 0] = r[i];
-            data[i4 + 1] = g[i];
-            data[i4 + 2] = b[i];
-            data[i4 + 3] = 255;
-        }
-    // Else if there is only one band, assume that it's not colored and
-    // normalize it.
-    } else {
-        if (arrayData.length !== 1) {
-            console.warn(
-                "Band selection isn't implemented yet.",
-                'Processing the first one as if it was a 1-band file.',
-            );
-        }
-        const [v] = arrayData;
-        const nodata = layer.nodata;
-        const dataMin = layer.dataMin;
-        const dataFactor = 255 / (layer.dataMax - dataMin);
-        for (let i = 0, l = v.length; i < l; i++) {
-            const vi = v[i];
-            const value = Math.round((vi - dataMin) * dataFactor);
-            const i4 = i * 4;
-            data[i4 + 0] = value;
-            data[i4 + 1] = value;
-            data[i4 + 2] = value;
-            data[i4 + 3] = vi === nodata ? 0 : 255;
-        }
-    }
-    return { data, width, height };
-}
-
 function executeCommand(command) {
     const { layer } = command;
-    const { requester } = command;
+    // Get the image at the appropriate overview level
+    const { extent, levelImage } = command.toDownload;
     // Make the key to store the texture in cache with the subdivised tilednode extent
-    const key = `${layer.id}${requester.extent._values.join(',')}`;
-    // Get the texture if it already exists
-    let result = Cache.get(key);
+    const key = `${layer.id}${extent._values.join(',')}`;
+    // Get the result with data and texture if it already exists
+    const result = Cache.get(key);
     if (result) {
         return Promise.resolve(result);
     }
-    // If not, prepare an empty texture
-    result = {
-        pitch: new Vector4(0, 0, 1, 1), texture: new Texture(),
-    };
-    // Get the requested extent to download and the image at the appropriate
-    // overview level
-    const {
-        extent, levelImage,
-    } = command.toDownload;
     // Read and return the raster data
     return levelImage.image.readRasters({
         pool: layer.pool, // Use the pool of workers to decode faster
         window: makeWindowFromExtent(layer, extent, levelImage.resolution),
         fillValue: layer.nodata,
-    }).then(arrayData => {
-        if (layer instanceof ColorLayer) {
-            // Process the downloaded data
-            const { data, width, height } = processData(layer, arrayData);
-            const imageData = new ImageData(data, width, height);
-            const texture = new DataTexture(imageData, width, height);
-            result.texture = texture;
-            // Attach the extent to the texture to check for possible improvements
-            result.texture.extent = requester.extent;
-            // Everything went fine, put the texture in cache
-            Cache.set(key, result);
-            return result;
-        }
-        throw new Error('Elevation support for COG not yet implemented');
-    // Problem with the source that is blocked by another fetch
-    // (request failed in readRasters). See the conversation in
-    // https://github.com/geotiffjs/geotiff.js/issues/218
-    // https://github.com/geotiffjs/geotiff.js/issues/221
-    // https://github.com/geotiffjs/geotiff.js/pull/224
-    // Bypassing the error so that it doesn't break the rendering by
-    // catching it and returning the empty texture. It displays an empty
-    // tile until the request is relaunched and works.
-    }).catch(error => {
+    }).then(arrayData => ({ arrayData })).catch(error => {
         if (error.toString() === 'AggregateError: Request failed') {
+            // Problem with the source that is blocked by another fetch
+            // (request failed in readRasters). See the conversations in
+            // https://github.com/geotiffjs/geotiff.js/issues/218
+            // https://github.com/geotiffjs/geotiff.js/issues/221
+            // https://github.com/geotiffjs/geotiff.js/pull/224
+            // Bypassing the error so that it doesn't break the rendering.
             return result;
         }
         throw new Error(error);

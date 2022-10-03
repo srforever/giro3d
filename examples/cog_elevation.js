@@ -1,0 +1,58 @@
+import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
+import CogSource from '@giro3d/giro3d/sources/CogSource.js';
+import Instance from '@giro3d/giro3d/Core/Instance.js';
+import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
+import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
+import { Map } from '@giro3d/giro3d/entities/Map.js';
+import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+
+// Define projection that we will use (taken from https://epsg.io/6345, Proj4js section)
+Instance.registerCRS('EPSG:6345', '+proj=utm +zone=16 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
+const extent = new Extent(
+    'EPSG:6345',
+    583500, 584762,
+    3280500, 3282000,
+);
+
+const center = extent.center().xyz();
+
+// `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+const viewerDiv = document.getElementById('viewerDiv');
+
+// Instantiate Giro3D
+const instance = new Instance(viewerDiv, {
+    crs: extent.crs(),
+    renderer: {
+        clearColor: 0x0a3b59,
+    },
+});
+
+// Instantiate the camera
+instance.camera.camera3D.position.set(center.x, center.y, 4000);
+
+// Instantiate the controls
+const controls = new MapControls(
+    instance.camera.camera3D,
+    viewerDiv,
+);
+controls.enableDamping = true;
+controls.dampingFactor = 0.2;
+controls.target.set(center.x, center.y, center.z);
+instance.useTHREEControls(controls);
+
+// Attach the inspector
+Inspector.attach(document.getElementById('panelDiv'), instance);
+
+// Construct a map and add it to the instance
+const map = new Map('planar', { extent });
+instance.add(map);
+
+// Use an elevation COG with nodata values
+const source = new CogSource({
+    // https://www.sciencebase.gov/catalog/item/624d95e3d34e21f827660b53
+    url: 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/OPR/Projects/LA_Chenier_Plain_Lidar_2017_B16/LA_Chenier_Plain_2017/TIFF/USGS_OPR_LA_Chenier_Plain_Lidar_2017_B16_15RWN835805.tif',
+});
+// Display it as elevation and color
+map.addLayer(new ElevationLayer('elevation', { source }));
+map.addLayer(new ColorLayer('color', { source }));

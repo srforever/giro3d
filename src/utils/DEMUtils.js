@@ -17,6 +17,7 @@ export const ELEVATION_FORMAT = {
     HEIGHFIELD: 1,
     XBIL: 2,
     RATP_GEOL: 3,
+    NUMERIC: 4,
 };
 
 /**
