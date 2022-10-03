@@ -51,7 +51,7 @@ class TileGeometry extends BufferGeometry {
         const uvStepY = 1 / segmentY;
         const rowStep = uvStepX * dimension.x;
         const columnStep = uvStepY * -dimension.y;
-        const props = {
+        this.props = {
             width,
             height,
             uvStepX,
@@ -67,21 +67,21 @@ class TileGeometry extends BufferGeometry {
         };
         // Compute buffers (no normals because the z displacement is in the shader)
         if (!geometry) {
-            if (data && props.nodata !== undefined) {
-                props.numVertices = data.filter(x => x !== props.nodata).length;
-                if (props.numVertices === props.width * props.height) {
+            if (data && this.props.nodata !== undefined) {
+                this.props.numVertices = data.filter(x => x !== this.props.nodata).length;
+                if (this.props.numVertices === this.props.width * this.props.height) {
                     // No nodata values, simple grid with elevation
-                    this.computeBuffers(props, data);
-                } else if (props.numVertices === 0) {
+                    this.computeBuffers(this.props, data);
+                } else if (this.props.numVertices === 0) {
                     // Only nodata values so empty the BufferGeometry
                     this.setAttribute('uv', new BufferAttribute(new Float32Array([]), 2));
                     this.setAttribute('position', new BufferAttribute(new Float32Array([]), 3));
                     this.setIndex(new BufferAttribute(new Uint16Array([]), 1));
                 } else {
-                    this.computeBuffersNoData(props, data);
+                    this.computeBuffersNoData(this.props, data);
                 }
             } else {
-                this.computeBuffers(props, data);
+                this.computeBuffers(this.props, data);
             }
         } else {
             this.copy(geometry);

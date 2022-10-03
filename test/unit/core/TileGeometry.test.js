@@ -137,38 +137,34 @@ describe('TileGeometry', () => {
         assert.deepEqual(geometry2.attributes.uv.array, uvsRectangle);
         assert.deepEqual(geometry2.index.array, indicesRectangle);
     });
-    it('should update geometry according to new properties', () => {
-        const geometry = new TileGeometry({ extent, segment: 2 });
-        const newProps = geometry.prepare({ extent, width: 3, height: 2 });
-        geometry.updateGeometry(newProps);
+    it('should copy a geometry if provided', () => {
+        const geometry0 = new TileGeometry({ extent, width: 3, height: 2 });
+        const geometry = new TileGeometry({ extent, segment: 2 }, undefined, geometry0);
         assert.deepEqual(geometry.attributes.position.array, positionsRectangle);
         assert.deepEqual(geometry.attributes.uv.array, uvsRectangle);
         assert.deepEqual(geometry.index.array, indicesRectangle);
     });
-    it('should update elevation data with simple approach if no nodata value', () => {
+    it('should handle elevation data with simple approach if no nodata value', () => {
         const elevation = [1, 2, 3, 4, 5, 6];
-        const geometry = new TileGeometry({ extent, width: 3, height: 2 });
-        geometry.updateGeometry(geometry.props, elevation);
+        const geometry = new TileGeometry({ extent, width: 3, height: 2 }, elevation);
         assert.deepEqual(geometry.attributes.position.array, positionsZSimple);
         assert.deepEqual(geometry.attributes.uv.array, uvsRectangle);
         assert.deepEqual(geometry.index.array, indicesRectangle);
     });
-    it('should update elevation data with simple approach if no data is nodata', () => {
+    it('should handle elevation data with simple approach if no data is nodata', () => {
         const elevation = [1, 2, 3, 4, 5, 6];
         const geometry = new TileGeometry({
             extent, width: 3, height: 2, nodata,
-        });
-        geometry.updateGeometry(geometry.props, elevation);
+        }, elevation);
         assert.deepEqual(geometry.attributes.position.array, positionsZSimple);
         assert.deepEqual(geometry.attributes.uv.array, uvsRectangle);
         assert.deepEqual(geometry.index.array, indicesRectangle);
     });
-    it('should update elevation data with simple approach from top to bottom', () => {
+    it('should handle elevation data with simple approach from top to bottom', () => {
         const elevation1 = [1, 2, 3, 4, 5, 6];
         const geometry = new TileGeometry({
             extent, width: 3, height: 2, nodata, direction: 'bottom',
-        });
-        geometry.updateGeometry(geometry.props, elevation1);
+        }, elevation1);
         const elevation2 = [4, 5, 6, 1, 2, 3];
         const positions = geometry.attributes.position.array;
         for (let i = 0; i < elevation2.length; i++) {
@@ -176,15 +172,13 @@ describe('TileGeometry', () => {
         }
     });
     it('should empty its buffers when computing with only nodata', () => {
-        const geometry = new TileGeometry({ extent, segment: 5, nodata });
-        geometry.updateGeometry(geometry.props, new Float32Array(36));
+        const geometry = new TileGeometry({ extent, segment: 5, nodata }, new Float32Array(36));
         assert.deepEqual(geometry.attributes.position.array, new Float32Array([]));
         assert.deepEqual(geometry.attributes.uv.array, new Float32Array([]));
         assert.deepEqual(geometry.index.array, new Uint16Array([]));
     });
     it('should have same results from both approaches', () => {
-        const geometry = new TileGeometry({ extent, segment: 5, nodata: -1 });
-        geometry.updateGeometry(geometry.props, fakeData); // Simple because no nodata
+        const geometry = new TileGeometry({ extent, segment: 5, nodata: -1 }, fakeData);
         const positions = geometry.attributes.position.array;
         const uvs = geometry.attributes.uv.array;
         const indices = geometry.index.array;
@@ -197,8 +191,7 @@ describe('TileGeometry', () => {
         assert.deepEqual(geometry.index.array, indices);
     });
     it('should triangulate properly given nodata values', () => {
-        const geometry = new TileGeometry({ extent, segment: 5, nodata });
-        geometry.updateGeometry(geometry.props, fakeData);
+        const geometry = new TileGeometry({ extent, segment: 5, nodata }, fakeData);
         assert.deepEqual(geometry.attributes.position.array, positionsNoData);
         assert.deepEqual(geometry.attributes.uv.array, uvsNoData);
         assert.deepEqual(geometry.index.array, indicesNoData);
@@ -206,8 +199,7 @@ describe('TileGeometry', () => {
     it('should triangulate properly from top to bottom', () => {
         const geometry = new TileGeometry({
             extent, segment: 5, nodata, direction: 'bottom',
-        });
-        geometry.updateGeometry(geometry.props, fakeDataB);
+        }, fakeDataB);
         assert.deepEqual(geometry.attributes.position.array, positionsNoData);
         assert.deepEqual(geometry.attributes.uv.array, uvsNoData);
         assert.deepEqual(geometry.index.array, indicesNoData);
