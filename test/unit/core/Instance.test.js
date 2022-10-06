@@ -5,6 +5,7 @@ import Instance, { INSTANCE_EVENTS } from '../../../src/Core/Instance.js';
 import Layer from '../../../src/Core/layer/Layer.js';
 import MainLoop from '../../../src/Core/MainLoop.js';
 import { Map } from '../../../src/entities/Map.js';
+import { setupGlobalMocks, resizeObservers } from '../mocks.js';
 
 describe('Instance', () => {
     /** @type {HTMLDivElement} */
@@ -17,6 +18,7 @@ describe('Instance', () => {
     let mainLoop;
 
     beforeEach(() => {
+        setupGlobalMocks();
         viewerDiv = {};
         viewerDiv.appendChild = jest.fn;
         mainLoop = {
@@ -33,6 +35,13 @@ describe('Instance', () => {
         };
         const options = { mainLoop };
         instance = new Instance(viewerDiv, options);
+    });
+
+    describe('constructor', () => {
+        it('should observe the resizing of the DOM element', () => {
+            const lastObserver = resizeObservers[resizeObservers.length - 1];
+            expect(lastObserver.observe).toHaveBeenCalledWith(viewerDiv);
+        });
     });
 
     describe('add', () => {

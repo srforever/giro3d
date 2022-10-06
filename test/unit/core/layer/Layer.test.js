@@ -11,6 +11,7 @@ import {
     STRATEGY_DICHOTOMY, STRATEGY_MIN_NETWORK_TRAFFIC,
 } from '../../../../src/Core/layer/LayerUpdateStrategy.js';
 import Extent from '../../../../src/Core/Geographic/Extent.js';
+import { setupGlobalMocks } from '../../mocks.js';
 
 describe('defineLayerProperty', () => {
     it('should do nothing if the property already exists', () => {
@@ -65,6 +66,10 @@ describe('defineLayerProperty', () => {
 });
 
 describe('Layer', () => {
+    beforeEach(() => {
+        setupGlobalMocks();
+    });
+
     describe('constructor', () => {
         it('should assign the provided properties', () => {
             const id = 'foo';

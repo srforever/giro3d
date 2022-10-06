@@ -161,17 +161,14 @@ class Instance extends EventDispatcher {
             options,
         );
 
+        this._resizeCounter = 0;
         this._frameRequesters = { };
         this._objects = [];
 
-        window.addEventListener('resize', () => {
-            // using boundingRect because clientWidth/height round the result (at least in chrome)
-            // resulting in unwanted scrollbars
-            const boundingRect = viewerDiv.getBoundingClientRect();
-            const newSize = new Vector2(boundingRect.width, boundingRect.height);
-            this.mainLoop.gfxEngine.onWindowResize(newSize.x, newSize.y);
-            this.notifyChange(this.camera.camera3D);
-        }, false);
+        this.resizeObserver = new ResizeObserver(() => {
+            this._updateRendererSize(viewerDiv);
+        });
+        this.resizeObserver.observe(viewerDiv);
 
         this._changeSources = new Set();
 
@@ -203,6 +200,26 @@ class Instance extends EventDispatcher {
             value: this.mainLoop.gfxEngine.renderer.domElement,
             writable: false,
         });
+    }
+
+    _updateRendererSize(div) {
+        this._resizeCounter++;
+        const currentCounter = this._resizeCounter;
+
+        setTimeout(() => {
+            if (currentCounter !== this._resizeCounter) {
+                // Each time a canvas is resized, its content is erased and must be re-rendered.
+                // Since we are only interested in the last size, we must discard intermediate
+                // resizes to avoid the flickering effect due to the canvas going blank.
+                return;
+            }
+            // using boundingRect because clientWidth/height round the result (at least in chrome)
+            // resulting in unwanted scrollbars
+            const boundingRect = div.getBoundingClientRect();
+            const newSize = new Vector2(boundingRect.width, boundingRect.height);
+            this.mainLoop.gfxEngine.onWindowResize(newSize.x, newSize.y);
+            this.notifyChange(this.camera.camera3D);
+        }, 100);
     }
 
     /**

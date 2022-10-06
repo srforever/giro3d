@@ -4,6 +4,7 @@ import Instance from '../../../src/Core/Instance.js';
 import { Map } from '../../../src/entities/Map.js';
 import Layer from '../../../src/Core/layer/Layer.js';
 import MainLoop from '../../../src/Core/MainLoop.js';
+import { setupGlobalMocks } from '../mocks.js';
 
 describe('Map', () => {
     /** @type {HTMLDivElement} */
@@ -23,6 +24,7 @@ describe('Map', () => {
     });
 
     beforeEach(() => {
+        setupGlobalMocks();
         viewerDiv = {};
         viewerDiv.appendChild = jest.fn;
         mainLoop = {
