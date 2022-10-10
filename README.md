@@ -90,10 +90,10 @@ npm link
 npm link @giro3d/giro3d
 ```
 
-To ease development, files can be automatically transpiled on modification using the `observer.py` script in this repository:
+To ease development, files can be automatically transpiled on modification with the `watch` script :
 
 ```bash
-python3 observer.py ./src
+npm run watch
 ```
 
 Each time a source file is modified, this script will transpile it in the build folder.
