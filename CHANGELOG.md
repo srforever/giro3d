@@ -1,5 +1,78 @@
 # Changelog
 
+## v0.5.0 (2022-10-10)
+
+This releases contain many bugfixes and improvements related to maps and layers, as well as the Inspector class to inspect and help debug the Giro3D instance.
+
+### BREAKING CHANGE
+
+- PlanarTileBuilder, PanoramaTileBuilder and PanoramaView are removed. All tiles are
+now considered planar (including terrain deformation). Note: PanoramaView may be restored in a future release.
+- PotreePointCloud: computeScreenSpaceError() uses point radius instead of diameter. Some adjustment may be needed in existing code to take into account the change in the resulting SSE.
+
+### Feat
+
+- **COGProvider/ElevationLayer**: add elevation cog processing to demonstrate nodata triangulation
+- **TileGeometry**: update tile geometry with elevation data, triangulate according to nodata
+- **Map**: let the map select the best tile size
+- **Map**: subdivide extent into level 0 tiles to minimize distortion
+- **Extent**: add the split() method
+- **Instance.js**: support adding and removing threejs objects
+- **Map**: expose the backgroundColor option
+- **Map**: expose the segments property in the options
+- **Map**: supports hillshading through options
+- **GeographicCanvas**: add the getImageData() method
+- **Inspector**: add custom inspector for PotreePointCloud
+- add PotreePointCloud entity
+- **Instance**: improve focusObject() to be more generic
+- **Inspector**: add the Inspector
+- **Helpers**: add Helpers class
+- **Instance**: add events when an entity is added/removed
+- **Map**: fire events layer-added and layer-removed
+
+### Fix
+
+- **Instance**: handle resizing the containing DOM element
+- **TileGeometry.test**: adapt the tests to the latest changes
+- **TileGeometry/ElevationLayer**: create a new geometry instead of updating buffers
+- **hillshade**: fix camera orientation issue in example
+- **Packer**: stop forcing the image sizes in power of two
+- **examples**: fix broken URL after release of OL7
+- **TileFS.glsl**: fix absence of hillshading when no color layer is present
+- **TileFS.glsl**: fix reversed sampling of elevation texture
+- enable wireframe and tile outlines in __DEBUG__
+- **Map**: allow arbitrary EPSG:3857 extents
+- **LayeredMaterial**: ensure the atlas is correctly initialized before drawing into it
+- **ColorLayer**: fix undefined error if parent has no color texture
+- **PotreePointCloud**: computeScreenSpaceError() uses point radius instead of diameter
+- **Layer.js**: allow more openlayers sources
+- **OLTileProvider**: support arbitrary number of tiles per Map tile
+- **planartilebuilder**: center correctly planar map tiles when using geographic extents
+- **Map**: rewrite removeLayer() to actually remove the layer
+
+### Refactor
+
+- **COGProvider/ColorLayer/ElevationLayer**: architecture changes for the review
+- **providers**: remove unused fx property
+- **Map**: remove unused property validityExtent
+- **TileGeometry**: simplify, comment and accelerate TileGeometry creation
+- **Prefab/**: remove Prefab/ (PlanarTileBuilder, PanoramaTileBuilder and PanoramaView)
+- **OLTileProvider**: fix type signature of loadTiles()
+- **Map**: remove disableSkirt property
+- rename view in instance
+- add names to THREE objects
+- **entities/layers**: add 'type' property to help with Inspector
+- **LayerUpdateStrategy**: create an object that contains all strategies
+- **Layer**: rename clean() -> dispose()
+
+### Perf
+
+- **OLTileProvider**: further optimize the generation of tile textures
+- **TileGeometry**: rewrote TileGeometry in the fashion of SmartGrid
+- **COGProvider**: produce DataTextures instead of Textures
+- **OLTileProvider**: produce DataTextures instead of Textures
+- **LayeredMaterial**: support DataTextures
+
 ## v0.4.0 (2022-08-29)
 
 ### BREAKING CHANGE
