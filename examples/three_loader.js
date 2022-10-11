@@ -25,7 +25,7 @@ const viewerDiv = document.getElementById('viewerDiv');
 // Here, this is necessary to render the glb correctly.
 const renderer = new WebGLRenderer({ antialias: true });
 renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(viewerDiv.clientWidth, viewerDiv.clientHeight);
 renderer.outputEncoding = sRGBEncoding;
 renderer.shadowMap.enabled = true;
 viewerDiv.appendChild(renderer.domElement);

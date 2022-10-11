@@ -126,6 +126,9 @@ class C3DEngine {
             this.renderer.setSize(viewerDiv.clientWidth, viewerDiv.clientHeight);
             viewerDiv.appendChild(this.renderer.domElement);
         }
+
+        // Ensure display is OK whatever the page layout is
+        this.renderer.domElement.style.display = 'block';
     }
 
     render(instance, include2d) {
