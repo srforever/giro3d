@@ -111,7 +111,7 @@ const Cache = {
      * @name module:Cache.clear
      * @function
      */
-    clear: data.clear(),
+    clear: () => data.clear(),
 
     /**
      * Flush the cache: entries that have been present for too long since the
