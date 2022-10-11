@@ -1,6 +1,8 @@
 const data = new Map();
 const stats = new Map();
 
+let now = () => Date.now();
+
 /**
  * This is a copy of the Map object, except that it also store a value for last
  * time used. This value is used for cache expiration mechanism.
@@ -42,6 +44,13 @@ const Cache = {
     },
 
     /**
+     * Overrides the defaut now() function.
+     *
+     * @param {Function} f The new function that returns the current time.
+     */
+    setTimeFunction: f => { now = f; },
+
+    /**
      * Returns the entry related to the specified key from the cache. The last
      * time used property of the entry is updated to extend the longevity of the
      * entry.
@@ -59,7 +68,7 @@ const Cache = {
 
         if (entry) {
             stat.hit++;
-            entry.lastTimeUsed = Date.now();
+            entry.lastTimeUsed = now();
             return entry.value;
         }
 
@@ -81,7 +90,7 @@ const Cache = {
     set: (key, value, lifetime = Infinity) => {
         const entry = {
             value,
-            lastTimeUsed: Date.now(),
+            lastTimeUsed: now(),
             lifetime,
         };
         data.set(key, entry);
@@ -129,7 +138,7 @@ const Cache = {
      * failed hit. The hit and miss are based since the last flush, and are
      * reset on every flush.
      */
-    flush: (time = Date.now()) => {
+    flush: (time = now()) => {
         const before = data.size;
 
         data.forEach((entry, key) => {
