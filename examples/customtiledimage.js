@@ -9,6 +9,9 @@ import { ELEVATION_FORMAT } from '@giro3d/giro3d/utils/DEMUtils.js';
 import { Map } from '@giro3d/giro3d/entities/Map.js';
 import CustomTiledImageSource from '@giro3d/giro3d/sources/CustomTiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import { Collection, Feature } from 'ol';
+import VectorSource from 'ol/source/Vector.js';
+import { LineString } from 'ol/geom.js';
 
 Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 
@@ -59,6 +62,55 @@ map.addLayer(new ColorLayer('copernicus', {
     source: imagerySource,
     projection: 'EPSG:2154',
 }));
+
+const gridFeatures = new Collection();
+const gridsource = new VectorSource({ features: gridFeatures });
+
+const gridLayer = new ColorLayer(
+    'grid',
+    {
+        source: gridsource,
+        projection: 'EPSG:2154',
+    },
+);
+gridLayer.style = (Style, Fill, Stroke) => () => new Style({
+    stroke: new Stroke({
+        color: '#FF0000',
+        width: 0.5,
+    }),
+});
+map.addLayer(gridLayer);
+
+const gridSize = 500;
+for (
+    let x = map.extent.west();
+    x <= map.extent.east();
+    x += gridSize
+) {
+    gridFeatures.push(
+        new Feature({
+            geometry: new LineString([
+                [x, map.extent.south()],
+                [x, map.extent.north()],
+            ]),
+        }),
+    );
+}
+for (
+    let y = map.extent.south();
+    y <= map.extent.north();
+    y += gridSize
+) {
+    gridFeatures.push(
+        new Feature({
+            geometry: new LineString([
+                [map.extent.west(), y],
+                [map.extent.east(), y],
+            ]),
+        }),
+    );
+}
+instance.notifyChange(map);
 
 // Sets the camera position
 const cameraPosition = new Coordinates(

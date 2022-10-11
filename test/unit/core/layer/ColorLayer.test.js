@@ -69,6 +69,7 @@ describe('ColorLayer', () => {
             // reset default layer state
             layer.tileInsideLimit = () => true;
             layer.visible = true;
+            layer.ready = true;
             layer.updateStrategy = STRATEGY_MIN_NETWORK_TRAFFIC;
             layer.options = {
                 zoom: {

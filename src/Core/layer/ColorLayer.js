@@ -169,8 +169,11 @@ class ColorLayer extends Layer {
         }
 
         // Initialisation
-        if (node.layerUpdateState[this.id] === undefined) {
+        if (this.ready && node.layerUpdateState[this.id] === undefined) {
             node.layerUpdateState[this.id] = new LayerUpdateState();
+
+            // INIT TEXTURE
+            material.pushLayer(this, node.getExtentForLayer(this));
 
             if (!this.tileInsideLimit(node, this)) {
                 // we also need to check that tile's parent doesn't have a texture for this layer,
@@ -186,9 +189,6 @@ class ColorLayer extends Layer {
                     return null;
                 }
             }
-
-            // INIT TEXTURE
-            material.pushLayer(this, node.getExtentForLayer(this));
 
             if (parent && this.initColorTexturesFromParent(context, node, parent, this)) {
                 context.instance.notifyChange(node, false);

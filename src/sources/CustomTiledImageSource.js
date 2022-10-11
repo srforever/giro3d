@@ -28,7 +28,7 @@ class CustomTiledImageSource {
     }
 
     buildUrl(image) {
-        return this.url.href.substr(0, this.url.href.lastIndexOf('/') + 1) + image;
+        return this.url.href.substring(0, this.url.href.lastIndexOf('/') + 1) + image;
     }
 
     fetchMetadata() {

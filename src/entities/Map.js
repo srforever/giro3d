@@ -456,6 +456,8 @@ class Map extends Entity3D {
             }
             layer.imageSize = this.imageSize;
 
+            this.attach(layer);
+
             layer = layer._preprocessLayer(this, this._instance);
 
             layer.whenReady.then(l => {
@@ -463,7 +465,7 @@ class Map extends Entity3D {
                     // The layer was removed, stop attaching it.
                     return;
                 }
-                this.attach(l);
+
                 this._instance.notifyChange(this, false);
                 this.dispatchEvent({ type: 'layer-added' });
                 resolve(l);

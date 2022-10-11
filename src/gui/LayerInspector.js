@@ -19,7 +19,7 @@ class LayerInspector extends Panel {
      * @param {Layer} layer The layer to inspect
      */
     constructor(gui, instance, layer) {
-        super(gui, instance, `${layer.id} (${layer.type})`);
+        super(gui, instance, `[${layer.index}] ${layer.id} (${layer.type})`);
 
         /**
          * The inspected layer.
@@ -29,7 +29,14 @@ class LayerInspector extends Panel {
          */
         this.layer = layer;
 
-        this.backgroundColor = this.layer.backgroundColor || 'none';
+        this.updateValues();
+
+        this.addController(this, 'visible')
+            .name('Visible')
+            .onChange(() => {
+                this.layer.visible = this.visible;
+                this.notify(layer);
+            });
 
         this.addController(this.layer, 'projection')
             .name('Projection');
@@ -50,6 +57,11 @@ class LayerInspector extends Panel {
 
         this.addController(this.layer.updateStrategy, 'type', UPDATE_STRATEGIES)
             .name('Update strategy');
+    }
+
+    updateValues() {
+        this.backgroundColor = this.layer.backgroundColor || 'none';
+        this.visible = this.layer.visible || true;
     }
 }
 
