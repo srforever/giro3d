@@ -111,9 +111,7 @@ void main() {
 #if defined(HILLSHADE)
         vec2 onePixel = vec2(1.0) / 256.0;
 
-        vec2 vVv = vec2(
-                vUv.x * elevationOffsetScale.z + elevationOffsetScale.x,
-                vUv.y * elevationOffsetScale.w + elevationOffsetScale.y);
+        vec2 vVv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
 
         float a = getElevation(elevationTexture, vVv + onePixel * vec2(-1.0, 1.0));
         float b = getElevation(elevationTexture, vVv + onePixel * vec2( 0.0, 1.0));
