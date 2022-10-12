@@ -161,7 +161,6 @@ class Instance extends EventDispatcher {
             options,
         );
 
-        this._resizeCounter = 0;
         this._frameRequesters = { };
         this._objects = [];
 
@@ -202,39 +201,41 @@ class Instance extends EventDispatcher {
         });
     }
 
+    _doUpdateRendererSize(div) {
+        // using boundingRect because clientWidth/height round the result
+        // resulting in unwanted scrollbars
+        const boundingRect = div.getBoundingClientRect();
+
+        // BoundingClientRect includes borders & padding, but we want the real available size
+        // So we have to compute the actual style and retrieve these values...
+        const styling = getComputedStyle(div);
+        const bordersWidth = parseFloat(styling.getPropertyValue('border-left-width'))
+            + parseFloat(styling.getPropertyValue('border-right-width'))
+            + parseFloat(styling.getPropertyValue('padding-left'))
+            + parseFloat(styling.getPropertyValue('padding-right'));
+        const bordersHeight = parseFloat(styling.getPropertyValue('border-top-width'))
+            + parseFloat(styling.getPropertyValue('border-top-width'))
+            + parseFloat(styling.getPropertyValue('padding-top'))
+            + parseFloat(styling.getPropertyValue('padding-bottom'));
+        const width = boundingRect.width - bordersWidth;
+        const height = boundingRect.height - bordersHeight;
+
+        this.mainLoop.gfxEngine.onWindowResize(width, height);
+        this.notifyChange(this.camera.camera3D);
+    }
+
     _updateRendererSize(div) {
-        this._resizeCounter++;
-        const currentCounter = this._resizeCounter;
+        // Each time a canvas is resized, its content is erased and must be re-rendered.
+        // Since we are only interested in the last size, we must discard intermediate
+        // resizes to avoid the flickering effect due to the canvas going blank.
 
-        setTimeout(() => {
-            if (currentCounter !== this._resizeCounter) {
-                // Each time a canvas is resized, its content is erased and must be re-rendered.
-                // Since we are only interested in the last size, we must discard intermediate
-                // resizes to avoid the flickering effect due to the canvas going blank.
-                return;
-            }
+        if (this._resizeTimeout) {
+            // If there's already a timeout in progress, discard it
+            clearTimeout(this._resizeTimeout);
+        }
 
-            // using boundingRect because clientWidth/height round the result
-            // resulting in unwanted scrollbars
-            const boundingRect = div.getBoundingClientRect();
-
-            // BoundingClientRect includes borders & padding, but we want the real available size
-            // So we have to compute the actual style and retrieve these values...
-            const styling = getComputedStyle(div);
-            const bordersWidth = parseFloat(styling.getPropertyValue('border-left-width'))
-                + parseFloat(styling.getPropertyValue('border-right-width'))
-                + parseFloat(styling.getPropertyValue('padding-left'))
-                + parseFloat(styling.getPropertyValue('padding-right'));
-            const bordersHeight = parseFloat(styling.getPropertyValue('border-top-width'))
-                + parseFloat(styling.getPropertyValue('border-top-width'))
-                + parseFloat(styling.getPropertyValue('padding-top'))
-                + parseFloat(styling.getPropertyValue('padding-bottom'));
-            const width = boundingRect.width - bordersWidth;
-            const height = boundingRect.height - bordersHeight;
-
-            this.mainLoop.gfxEngine.onWindowResize(width, height);
-            this.notifyChange(this.camera.camera3D);
-        }, 100);
+        // And add another one
+        this._resizeTimeout = setTimeout(() => this._doUpdateRendererSize(div), 50);
     }
 
     /**
