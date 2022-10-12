@@ -116,8 +116,8 @@ class Instance extends EventDispatcher {
     constructor(viewerDiv, options = {}) {
         super();
         Object3D.DefaultUp.set(0, 0, 1);
-        if (!viewerDiv) {
-            throw new Error('Invalid viewerDiv parameter (must non be null/undefined)');
+        if (!viewerDiv || !(viewerDiv instanceof Element)) {
+            throw new Error('Invalid viewerDiv parameter (must be a valid Element)');
         }
 
         this.referenceCrs = options.crs || 'EPSG:3857';
@@ -133,6 +133,9 @@ class Instance extends EventDispatcher {
             if (options.renderer && options.renderer.domElement) {
                 engine = new C3DEngine(options.renderer);
             } else {
+                if (viewerDiv.childElementCount > 0) {
+                    console.warn('viewerDiv has children; Giro3D expects an empty element - this can lead to unexpected behaviors');
+                }
                 engine = new C3DEngine(viewerDiv, options.renderer);
             }
             this.mainLoop = new MainLoop(new Scheduler(), engine);

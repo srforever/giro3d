@@ -103,8 +103,7 @@ describe('Layer', () => {
                 extent,
             });
 
-            const viewerDiv = {};
-            viewerDiv.appendChild = jest.fn;
+            const viewerDiv = document.createElement('div');
             const mainLoop = {
                 gfxEngine: {
                     getWindowSize: jest.fn,
