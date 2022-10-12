@@ -139,6 +139,25 @@ class ElevationLayer extends Layer {
         return { min, max };
     }
 
+    initNodeFromRootTexture(node) {
+        const extent = node.getExtentForLayer(this);
+        const pitch = extent.offsetToParent(this.extent);
+
+        const elevation = {
+            texture: this.rootTexture,
+            pitch,
+        };
+
+        let { min, max } = elevation.texture;
+        if (!min || !max) {
+            ({ min, max } = this.minMaxFromTexture(elevation.texture, pitch));
+        }
+        elevation.min = min;
+        elevation.max = max;
+
+        node.setTextureElevation(this, elevation);
+    }
+
     initNodeElevationTextureFromParent(node, parent) {
         let parentTexture;
 
@@ -185,6 +204,13 @@ class ElevationLayer extends Layer {
                 layer: this,
                 toDownload: down,
             }).then(result => {
+                const p = result.pitch;
+                if (p.x === 0 && p.y === 0 && p.z === 1 && p.w === 1) {
+                    // Store this texture as a wildcard texture for tiles
+                    // that have no texture available (not event their ancestors).
+                    // The only condition is that the root texture matches the extent of the layer.
+                    this.rootTexture = result.texture;
+                }
                 if (!this.minmax) {
                     const minmax = this.minMaxFromTexture(result.texture, result.pitch);
                     result.texture.min = minmax.min;
@@ -256,6 +282,13 @@ class ElevationLayer extends Layer {
             // When the tile is created, we try to inherit the texture from a parent or ancestor,
             // to be able to display something until our own texture is loaded.
             if (this.initNodeElevationTextureFromParent(node, parent)) {
+                context.instance.notifyChange(node, false);
+                return null;
+            }
+
+            // When no ancestor has an available texture, let's use the low resolution root texture
+            if (this.rootTexture) {
+                this.initNodeFromRootTexture(node);
                 context.instance.notifyChange(node, false);
                 return null;
             }
