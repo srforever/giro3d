@@ -140,11 +140,20 @@ class ElevationLayer extends Layer {
     }
 
     initNodeElevationTextureFromParent(node, parent) {
-        const parentTextureInfo = parent.material.getElevationTextureInfo();
-        if (!parentTextureInfo || !parentTextureInfo.texture.extent) {
-            return;
+        let parentTexture;
+
+        while (parent && parent.material) {
+            const parentTextureInfo = parent.material.getElevationTextureInfo();
+            if (parentTextureInfo && parentTextureInfo.texture.extent) {
+                parentTexture = parentTextureInfo.texture;
+                break;
+            }
+            parent = parent.parent;
         }
-        const parentTexture = parentTextureInfo.texture;
+
+        if (!parentTexture) {
+            return false;
+        }
 
         const extent = node.getExtentForLayer(this);
 
@@ -162,6 +171,8 @@ class ElevationLayer extends Layer {
         elevation.max = max;
 
         node.setTextureElevation(this, elevation);
+
+        return true;
     }
 
     _preprocessLayer(map, instance) {
@@ -242,9 +253,9 @@ class ElevationLayer extends Layer {
         if (node.layerUpdateState[this.id] === undefined) {
             node.layerUpdateState[this.id] = new LayerUpdateState();
 
-            if (parent
-                && parent.material
-                && this.initNodeElevationTextureFromParent(node, parent)) {
+            // When the tile is created, we try to inherit the texture from a parent or ancestor,
+            // to be able to display something until our own texture is loaded.
+            if (this.initNodeElevationTextureFromParent(node, parent)) {
                 context.instance.notifyChange(node, false);
                 return null;
             }
