@@ -18,6 +18,7 @@ import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/Core/MainLoop.js';
 import Instance from '@giro3d/giro3d/Core/Instance.js';
+import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 const viewerDiv = document.getElementById('viewerDiv');
 
@@ -140,3 +141,5 @@ loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', gltf => {
 
     instance.notifyChange();
 });
+
+Inspector.attach(document.getElementById('panelDiv'), instance);

@@ -9,7 +9,7 @@ shortdesc: Displays multiples instances with different layouts (flex, sticky, fi
     - Bootstrap classes and embedded <style> for pure styling (borders, padding, margin, backgrounds, etc.).
 -->
 
-<div id="legendSticky" style="position: sticky; z-index: 1020; top: 0;" class="ps-2">Sticky position</div>
+<div id="legendSticky" style="position: sticky; z-index: 1021; top: 0;" class="ps-2">Sticky position</div>
 <!-- A container must have a size (height+width), and can have any style applied-->
 <div
     id="viewerDivSticky"
@@ -48,8 +48,8 @@ shortdesc: Displays multiples instances with different layouts (flex, sticky, fi
 <!-- You can also have containers that are at fixed positions -->
 <div
     id="viewerDivFixed"
-    style="position: fixed; z-index: 1020; left:0; bottom: 0; height: 200px; width: 50vw;"
-    class="viewer p-2 border border-3 border-dark border-top-0">
+    style="position: fixed; left:0; bottom: 0; height: 200px; width: 50vw;"
+    class="viewer p-2 border border-3 border-dark">
 </div>
 <!-- Any Giro3D container can have overlays, as long as they are after in the DOM (or using z-index) -->
 <span
@@ -83,8 +83,10 @@ body { height: auto; }
     margin-bottom: 250px;
 }
 
-#legendFixed, #viewerDivFixed {
+#viewerDivFixed {
     background: linear-gradient(to right, rgb(65, 80, 95), rgb(36, 37, 38));
+}
+#legendFixed {
     color: #fff;
 }
 </style>
