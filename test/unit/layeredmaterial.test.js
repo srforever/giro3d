@@ -29,6 +29,10 @@ describe('material state vs layer state', () => {
         },
     );
 
+    beforeEach(() => {
+        layer.ready = true;
+    });
+
     it('should correctly initialize opacity & visibility', () => {
         node.layerUpdateState.test.failure(new Date());
         layer.update(null, node);

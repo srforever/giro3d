@@ -224,6 +224,10 @@ class ElevationLayer extends Layer {
      * else, that succeeds if the update is made.
      */
     update(context, node, parent, initOnly = false) {
+        if (!this.ready) {
+            return null;
+        }
+
         const { material } = node;
 
         if (!node.parent || !material) {
