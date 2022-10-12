@@ -1,0 +1,90 @@
+---
+title: Multiple instances in different layouts
+shortdesc: Displays multiples instances with different layouts (flex, sticky, fixed, etc.)
+---
+<!--
+    In all examples we are using Bootstrap classes for styling.
+    Here, we are using:
+    - plain-old styles to show how to use different layouts,
+    - Bootstrap classes and embedded <style> for pure styling (borders, padding, margin, backgrounds, etc.).
+-->
+
+<div id="legendSticky" style="position: sticky; z-index: 1020; top: 0;" class="ps-2">Sticky position</div>
+<!-- A container must have a size (height+width), and can have any style applied-->
+<div
+    id="viewerDivSticky"
+    style="position: sticky; z-index: 1020; top: 0; height: 300px; width: 100%;"
+    class="viewer p-2 border-bottom border-5 border-dark">
+</div>
+
+<div id="containerFlex" style="display: flex; align-items: stretch; height: 50vh;" class="mt-5">
+    <div id="legendNestedFlex" class="pt-2">Nested flex layouts</div>
+    <!-- In flex display, a container can have a flex property instead of a size -->
+    <div id="viewerDivNestedFlex1" style="flex: 1 1 auto;" class="viewer ps-2 pe-2"></div>
+
+    <!--
+        In case you are using your own renderer, you are responsible for the layout, for instance:
+        - a parent div to set the element size - this is were you would want to apply borders, padding, backgrounds, etc.
+        - a viewport div that fills it parent and has "position: relative" and "overflow: hidden"
+            - this is to ensure a correct sizing of the renderer when the parent div is resized
+        - the div that will hold your renderer, that fills its parent
+    -->
+    <div style="min-width: 20vw; height: 100%;" class="p-5 border border-3 border-dark">
+        <div id="customViewDivContainer" style="position: relative; overflow: hidden; width: 100%; height: 100%;">
+            <div id="customViewerDiv" style="width: 100%; height: 100%;" class="viewer-custom-renderer"></div>
+        </div>
+        <span class="position-absolute">Custom WebGL Renderer</span>
+    </div>
+</div>
+
+<div id="legendOverflow" class="mt-5 ps-2">Overflow</div>
+<!-- You can also have containers that are larger than the viewport -->
+<div
+    id="viewerDivOverflow"
+    style="width: 100%; height: 200vh;"
+    class="viewer p-2">
+</div>
+
+<!-- You can also have containers that are at fixed positions -->
+<div
+    id="viewerDivFixed"
+    style="position: fixed; z-index: 1020; left:0; bottom: 0; height: 200px; width: 50vw;"
+    class="viewer p-2 border border-3 border-dark border-top-0">
+</div>
+<!-- Any Giro3D container can have overlays, as long as they are after in the DOM (or using z-index) -->
+<span
+    id="legendFixed"
+    style="position: fixed; left: 0; bottom: 0;"
+    class="ps-2">
+    Fixed position
+</span>
+
+<style>
+/* Reset page height so we can scroll */
+html { height: auto; }
+body { height: auto; }
+
+#legendSticky, #viewerDivSticky {
+    background: linear-gradient(to right, rgb(125, 199, 144), rgb(11, 59, 23));
+}
+
+#legendNestedFlex {
+    writing-mode: vertical-rl;
+}
+#containerFlex {
+    background: linear-gradient(to right, rgb(251, 165, 116), rgb(216, 245, 251));
+}
+
+#legendOverflow, #viewerDivOverflow {
+    background: linear-gradient(to right, rgb(251, 251, 255), rgb(215, 223, 252));
+}
+
+#viewerDivOverflow {
+    margin-bottom: 250px;
+}
+
+#legendFixed, #viewerDivFixed {
+    background: linear-gradient(to right, rgb(65, 80, 95), rgb(36, 37, 38));
+    color: #fff;
+}
+</style>

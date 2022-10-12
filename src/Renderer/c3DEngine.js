@@ -36,8 +36,27 @@ class C3DEngine {
         const renderer = rendererOrDiv.domElement ? rendererOrDiv : undefined;
         const viewerDiv = renderer ? undefined : rendererOrDiv;
 
-        this.width = (renderer ? renderer.domElement : viewerDiv).clientWidth;
-        this.height = (renderer ? renderer.domElement : viewerDiv).clientHeight;
+        if (renderer) {
+            // We assume the DOM element doesn't have padding or borders
+            this.width = renderer.domElement.clientWidth;
+            this.height = renderer.domElement.clientHeight;
+        } else {
+            // Here we are using viewerDiv, which may have padding/borders
+            // As BoundingClientRect includes borders & padding, we have to
+            // compute the actual style and retrieve these values...
+            const boundingRect = viewerDiv.getBoundingClientRect();
+            const styling = getComputedStyle(viewerDiv);
+            const bordersWidth = parseFloat(styling.getPropertyValue('border-left-width'))
+                + parseFloat(styling.getPropertyValue('border-right-width'))
+                + parseFloat(styling.getPropertyValue('padding-left'))
+                + parseFloat(styling.getPropertyValue('padding-right'));
+            const bordersHeight = parseFloat(styling.getPropertyValue('border-top-width'))
+                + parseFloat(styling.getPropertyValue('border-top-width'))
+                + parseFloat(styling.getPropertyValue('padding-top'))
+                + parseFloat(styling.getPropertyValue('padding-bottom'));
+            this.width = boundingRect.width - bordersWidth;
+            this.height = boundingRect.height - bordersHeight;
+        }
 
         this.positionBuffer = null;
         this._nextThreejsLayer = 1;
@@ -121,14 +140,27 @@ class C3DEngine {
         this.renderer.autoClear = false;
         this.renderer.sortObjects = true;
 
-        if (!renderer) {
-            this.renderer.setPixelRatio(viewerDiv.devicePixelRatio);
-            this.renderer.setSize(viewerDiv.clientWidth, viewerDiv.clientHeight);
-            viewerDiv.appendChild(this.renderer.domElement);
-        }
-
         // Ensure display is OK whatever the page layout is
-        this.renderer.domElement.style.display = 'block';
+        // By default canvas has "display: inline-block", which makes it affected by
+        // its parent's line-height, so it will take more space than it's actual size
+        this.renderer.domElement.style.position = 'absolute';
+
+        if (!renderer) {
+            // Wrap our canvas in a new div so we make sure the display
+            // is correct whatever the page layout is
+            // (especially when skrinking so there is no scrollbar/bleading)
+            // (inspired from OpenLayers way)
+            const viewport = document.createElement('div');
+            viewport.style.position = 'relative';
+            viewport.style.overflow = 'hidden'; // Hide overflow during resizing
+            viewport.style.width = '100%'; // Make sure it fills the space
+            viewport.style.height = '100%';
+            viewport.appendChild(this.renderer.domElement);
+            viewerDiv.appendChild(viewport);
+
+            this.renderer.setPixelRatio(viewerDiv.devicePixelRatio);
+            this.renderer.setSize(this.width, this.height);
+        }
     }
 
     render(instance, include2d) {
