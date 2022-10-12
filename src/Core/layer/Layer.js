@@ -207,6 +207,12 @@ class Layer extends EventDispatcher {
         this.backgroundColor = options.backgroundColor;
     }
 
+    // eslint-disable-next-line class-methods-use-this, no-unused-vars
+    _customPreprocessLayer(map, instance) {
+        // Implement this in derived classes
+        return Promise.resolve(this);
+    }
+
     _preprocessLayer(map, instance) {
         if (this.standalone) {
             this.whenReady = Promise.resolve().then(() => {
@@ -244,7 +250,9 @@ class Layer extends EventDispatcher {
 
             // the last promise in the chain must return the layer
             this.whenReady = providerPreprocessing.then(() => {
-                this.ready = true;
+                this._customPreprocessLayer(map, instance).then(() => {
+                    this.ready = true;
+                });
                 return this;
             });
         }

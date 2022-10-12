@@ -194,59 +194,60 @@ class ElevationLayer extends Layer {
         return true;
     }
 
-    _preprocessLayer(map, instance) {
-        super._preprocessLayer(map, instance);
+    // eslint-disable-next-line no-unused-vars
+    _customPreprocessLayer(map, instance) {
+        // There is an additional step in the elevation layer preprocessing :
+        // We need to download a root texture that matches the layer extent
+        // to precompute the min/max values of the whole layer, and also store this
+        // root texture to be reused later in texture inheritance scenarios.
+        const down = this.provider.getPossibleTextureImprovements(this, this.extent);
+        return this.provider
+            .executeCommand({ layer: this, toDownload: down })
+            .then(result => this.handleRootTexture(result))
+            .then(() => this.assignMinMaxToTiles(map));
+    }
 
-        // extra processing
-        this.whenReady = this.whenReady.then(() => {
-            const down = this.provider.getPossibleTextureImprovements(this, this.extent);
-            return this.provider.executeCommand({
-                layer: this,
-                toDownload: down,
-            }).then(result => {
-                const p = result.pitch;
-                if (p.x === 0 && p.y === 0 && p.z === 1 && p.w === 1) {
-                    // Store this texture as a wildcard texture for tiles
-                    // that have no texture available (not event their ancestors).
-                    // The only condition is that the root texture matches the extent of the layer.
-                    this.rootTexture = result.texture;
-                }
-                if (!this.minmax) {
-                    const minmax = this.minMaxFromTexture(result.texture, result.pitch);
-                    result.texture.min = minmax.min;
-                    result.texture.max = minmax.max;
-                    this.minmax = minmax;
-                }
-            });
+    assignMinMaxToTiles(map) {
+        if (!this.minmax) {
+            throw new Error('At this point the whole min/max should be known');
+        }
+        map.object3d.traverse(n => {
+            if (n.setBBoxZ) {
+                n.setBBoxZ(this.minmax.min, this.minmax.max);
+            }
         });
 
-        this.whenReady = this.whenReady.then(() => {
-            if (!this.minmax) {
-                throw new Error('At this point the whole min/max should be known');
-            }
-            map.object3d.traverse(n => {
+        map.minMaxFromElevationLayer = {
+            min: this.minmax.min,
+            max: this.minmax.max,
+        };
+        for (const node of map.level0Nodes) {
+            node.traverse(n => {
                 if (n.setBBoxZ) {
-                    n.setBBoxZ(this.minmax.min, this.minmax.max);
+                    n.setBBoxZ(
+                        map.minMaxFromElevationLayer.min,
+                        map.minMaxFromElevationLayer.max,
+                    );
                 }
             });
-
-            map.minMaxFromElevationLayer = {
-                min: this.minmax.min,
-                max: this.minmax.max,
-            };
-            for (const node of map.level0Nodes) {
-                node.traverse(n => {
-                    if (n.setBBoxZ) {
-                        n.setBBoxZ(
-                            map.minMaxFromElevationLayer.min,
-                            map.minMaxFromElevationLayer.max,
-                        );
-                    }
-                });
-            }
-            return this;
-        });
+        }
         return this;
+    }
+
+    handleRootTexture(result) {
+        const p = result.pitch;
+        if (p.x === 0 && p.y === 0 && p.z === 1 && p.w === 1) {
+            // Store this texture as a wildcard texture for tiles
+            // that have no texture available (not event their ancestors).
+            // The only condition is that the root texture matches the extent of the layer.
+            this.rootTexture = result.texture;
+        }
+        if (!this.minmax) {
+            const minmax = this.minMaxFromTexture(result.texture, result.pitch);
+            result.texture.min = minmax.min;
+            result.texture.max = minmax.max;
+            this.minmax = minmax;
+        }
     }
 
     /**
