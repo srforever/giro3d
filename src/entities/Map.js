@@ -458,8 +458,6 @@ class Map extends Entity3D {
 
             this.attach(layer);
 
-            layer = layer._preprocessLayer(this, this._instance);
-
             layer.whenReady.then(l => {
                 if (!this.currentAddedLayerIds.includes(layer.id)) {
                     // The layer was removed, stop attaching it.
