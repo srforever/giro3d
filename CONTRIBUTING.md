@@ -44,7 +44,7 @@ Code quality matters. Here are some advices to read before submitting a Pull Req
 * If your pull request fixes an existing issue, include a link to the issue in the description.
 * If your pull request needs additional work, include a task list, or better, split it in several PR
 * Ping @giro3d to get your code reviewed, and also when you are done making new commits to address feedback
-* Verify your code passes the linter and tests (`npm run test`).
+* Verify your code passes the linter and tests (`npm test`).
 * If you added new identifiers to the giro3d API:
    * Include reference documentation with code examples
    * If your change adds significant features, provide a demo
