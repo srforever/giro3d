@@ -70,6 +70,8 @@ class LayeredMaterial extends RawShaderMaterial {
         this.defines.STITCHING = 1;
         if (options.hillshading) {
             this.defines.HILLSHADE = 1;
+            this.uniforms.zenith = { type: 'f', value: 45 };
+            this.uniforms.azimuth = { type: 'f', value: 315 };
         }
         this.uniforms.segments = new Uniform(segments);
         if (options.side) {
