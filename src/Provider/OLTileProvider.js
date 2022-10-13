@@ -29,7 +29,12 @@ function preprocessDataLayer(layer) {
     // Cache the tilegrid because it is constant
     layer.tileGrid = tileGrid;
     const extent = tileGrid.getExtent();
-    layer.extent = fromOLExtent(extent, projection.getCode());
+    layer.sourceExtent = fromOLExtent(extent, projection.getCode());
+    if (!layer.extent) {
+        // In the case where the layer has no extent (when it is not attached to a map,
+        // but used to colorize a point cloud for example), we can default to the source extent.
+        layer.extent = layer.sourceExtent;
+    }
 }
 
 function fromOLExtent(extent, projectionCode) {
@@ -187,8 +192,7 @@ function tileTextureCount(tile, layer) {
 
 function tileInsideLimit(tile, layer) {
     const extent = tile.getExtentForLayer(layer);
-    // const extent = extents[i].as(layer.extent.crs());
-    return extent.isInside(layer.extent);
+    return extent.isInside(layer.sourceExtent);
 }
 
 export default {

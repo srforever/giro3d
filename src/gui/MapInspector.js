@@ -86,6 +86,7 @@ class MapInspector extends EntityInspector {
             .name('Freeze updates')
             .onChange(v => this.toggleFrozen(v));
         this.addController(this, 'layerCount').name('Layer count');
+        this.addController(this, 'dumpTiles').name('Dump tiles in console');
 
         /**
          * The layer folder.
@@ -106,6 +107,10 @@ class MapInspector extends EntityInspector {
         this.map.addEventListener('layer-removed', () => this.fillLayers());
 
         this.fillLayers();
+    }
+
+    dumpTiles() {
+        console.log(this.map.level0Nodes);
     }
 
     /**
