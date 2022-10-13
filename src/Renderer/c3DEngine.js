@@ -42,20 +42,20 @@ class C3DEngine {
             this.height = renderer.domElement.clientHeight;
         } else {
             // Here we are using viewerDiv, which may have padding/borders
-            // As BoundingClientRect includes borders & padding, we have to
-            // compute the actual style and retrieve these values...
-            const boundingRect = viewerDiv.getBoundingClientRect();
-            const styling = getComputedStyle(viewerDiv);
-            const bordersWidth = parseFloat(styling.getPropertyValue('border-left-width'))
-                + parseFloat(styling.getPropertyValue('border-right-width'))
-                + parseFloat(styling.getPropertyValue('padding-left'))
-                + parseFloat(styling.getPropertyValue('padding-right'));
-            const bordersHeight = parseFloat(styling.getPropertyValue('border-top-width'))
-                + parseFloat(styling.getPropertyValue('border-top-width'))
-                + parseFloat(styling.getPropertyValue('padding-top'))
-                + parseFloat(styling.getPropertyValue('padding-bottom'));
-            this.width = boundingRect.width - bordersWidth;
-            this.height = boundingRect.height - bordersHeight;
+            // Wrap our canvas in a new div so we make sure the display
+            // is correct whatever the page layout is
+            // (especially when skrinking so there is no scrollbar/bleading)
+            this.viewport = document.createElement('div');
+            this.viewport.style.position = 'relative';
+            this.viewport.style.overflow = 'hidden'; // Hide overflow during resizing
+            this.viewport.style.width = '100%'; // Make sure it fills the space
+            this.viewport.style.height = '100%';
+            viewerDiv.appendChild(this.viewport);
+
+            // Take the size of the viewport, so it already take into account
+            // any padding/border applied to viewerDiv
+            this.width = this.viewport.clientWidth;
+            this.height = this.viewport.clientHeight;
         }
 
         this.positionBuffer = null;
@@ -146,18 +146,7 @@ class C3DEngine {
         this.renderer.domElement.style.position = 'absolute';
 
         if (!renderer) {
-            // Wrap our canvas in a new div so we make sure the display
-            // is correct whatever the page layout is
-            // (especially when skrinking so there is no scrollbar/bleading)
-            // (inspired from OpenLayers way)
-            const viewport = document.createElement('div');
-            viewport.style.position = 'relative';
-            viewport.style.overflow = 'hidden'; // Hide overflow during resizing
-            viewport.style.width = '100%'; // Make sure it fills the space
-            viewport.style.height = '100%';
-            viewport.appendChild(this.renderer.domElement);
-            viewerDiv.appendChild(viewport);
-
+            this.viewport.appendChild(this.renderer.domElement);
             this.renderer.setPixelRatio(viewerDiv.devicePixelRatio);
             this.renderer.setSize(this.width, this.height);
         }

@@ -205,24 +205,12 @@ class Instance extends EventDispatcher {
     }
 
     _doUpdateRendererSize(div) {
-        // using boundingRect because clientWidth/height round the result
-        // resulting in unwanted scrollbars
-        const boundingRect = div.getBoundingClientRect();
-
-        // BoundingClientRect includes borders & padding, but we want the real available size
-        // So we have to compute the actual style and retrieve these values...
-        const styling = getComputedStyle(div);
-        const bordersWidth = parseFloat(styling.getPropertyValue('border-left-width'))
-            + parseFloat(styling.getPropertyValue('border-right-width'))
-            + parseFloat(styling.getPropertyValue('padding-left'))
-            + parseFloat(styling.getPropertyValue('padding-right'));
-        const bordersHeight = parseFloat(styling.getPropertyValue('border-top-width'))
-            + parseFloat(styling.getPropertyValue('border-top-width'))
-            + parseFloat(styling.getPropertyValue('padding-top'))
-            + parseFloat(styling.getPropertyValue('padding-bottom'));
-        const width = boundingRect.width - bordersWidth;
-        const height = boundingRect.height - bordersHeight;
-
+        const width = (this.mainLoop.gfxEngine.viewport
+            ? this.mainLoop.gfxEngine.viewport
+            : div).clientWidth;
+        const height = (this.mainLoop.gfxEngine.viewport
+            ? this.mainLoop.gfxEngine.viewport
+            : div).clientHeight;
         this.mainLoop.gfxEngine.onWindowResize(width, height);
         this.notifyChange(this.camera.camera3D);
     }
