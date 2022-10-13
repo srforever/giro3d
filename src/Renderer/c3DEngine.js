@@ -17,7 +17,7 @@ import {
 import Capabilities from '../Core/System/Capabilities.js';
 
 class C3DEngine {
-    constructor(rendererOrDiv, options = {}) {
+    constructor(viewerDiv, options = {}) {
         // pick sensible default options
         if (options.antialias === undefined) {
             options.antialias = true;
@@ -33,30 +33,10 @@ class C3DEngine {
             options.clearColor = 0x030508;
         }
 
-        const renderer = rendererOrDiv.domElement ? rendererOrDiv : undefined;
-        const viewerDiv = renderer ? undefined : rendererOrDiv;
+        const renderer = options.renderer;
 
-        if (renderer) {
-            // We assume the DOM element doesn't have padding or borders
-            this.width = renderer.domElement.clientWidth;
-            this.height = renderer.domElement.clientHeight;
-        } else {
-            // Here we are using viewerDiv, which may have padding/borders
-            // Wrap our canvas in a new div so we make sure the display
-            // is correct whatever the page layout is
-            // (especially when skrinking so there is no scrollbar/bleading)
-            this.viewport = document.createElement('div');
-            this.viewport.style.position = 'relative';
-            this.viewport.style.overflow = 'hidden'; // Hide overflow during resizing
-            this.viewport.style.width = '100%'; // Make sure it fills the space
-            this.viewport.style.height = '100%';
-            viewerDiv.appendChild(this.viewport);
-
-            // Take the size of the viewport, so it already take into account
-            // any padding/border applied to viewerDiv
-            this.width = this.viewport.clientWidth;
-            this.height = this.viewport.clientHeight;
-        }
+        this.width = viewerDiv.clientWidth;
+        this.height = viewerDiv.clientHeight;
 
         this.positionBuffer = null;
         this._nextThreejsLayer = 1;
@@ -140,16 +120,19 @@ class C3DEngine {
         this.renderer.autoClear = false;
         this.renderer.sortObjects = true;
 
+        // Finalize DOM insertion:
         // Ensure display is OK whatever the page layout is
-        // By default canvas has "display: inline-block", which makes it affected by
+        // - By default canvas has `display: inline-block`, which makes it affected by
         // its parent's line-height, so it will take more space than it's actual size
+        // - Setting `display: block` is not enough in flex displays
         this.renderer.domElement.style.position = 'absolute';
 
-        if (!renderer) {
-            this.viewport.appendChild(this.renderer.domElement);
-            this.renderer.setPixelRatio(viewerDiv.devicePixelRatio);
-            this.renderer.setSize(this.width, this.height);
-        }
+        // Set default size
+        this.renderer.setPixelRatio(viewerDiv.devicePixelRatio);
+        this.renderer.setSize(this.width, this.height);
+
+        // Append renderer to the DOM
+        viewerDiv.appendChild(this.renderer.domElement);
     }
 
     render(instance, include2d) {

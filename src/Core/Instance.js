@@ -2,7 +2,7 @@
  * @module Core/Instance
  */
 import {
-    Scene, Group, EventDispatcher, Vector2, Vector3, Object3D, Box3,
+    Scene, Group, EventDispatcher, Vector2, Vector3, Object3D, Box3, WebGLRenderer,
 } from 'three';
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4.js';
@@ -99,10 +99,16 @@ class Instance extends EventDispatcher {
      * otherwise a default one will be constructed
      * @param {object=} options.renderer The options for the renderer.
      * @param {number|boolean} options.renderer.clearColor The background color.
-     * Can be a hex color or `false` for transparent backgrounds.
-     * @param {boolean} options.renderer.antialias Enables antialiasing.
+     * Can be a hex color or `false` for transparent backgrounds (requires alpha true).
+     * @param {boolean} options.renderer.alpha Enables transparency (default true).
+     * Not used if renderer is provided.
+     * @param {boolean} options.renderer.antialias Enables antialiasing (default true).
+     * Not used if renderer is provided.
      * @param {boolean} options.renderer.logarithmicDepthBuffer Enables the
-     * [logarithmic depth buffer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.logarithmicDepthBuffer).
+     * [logarithmic depth buffer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.logarithmicDepthBuffer)
+     * (default false). Not used if renderer is provided.
+     * @param {WebGLRenderer} options.renderer.renderer Custom renderer to be used.
+     * If provided, it will be automatically added in the DOM in viewerDiv.
      * @example
      * let opts = {
      *  camera: camera,
@@ -119,25 +125,28 @@ class Instance extends EventDispatcher {
         if (!viewerDiv || !(viewerDiv instanceof Element)) {
             throw new Error('Invalid viewerDiv parameter (must be a valid Element)');
         }
+        if (viewerDiv.childElementCount > 0) {
+            console.warn('viewerDiv has children; Giro3D expects an empty element - this can lead to unexpected behaviors');
+        }
 
         this.referenceCrs = options.crs || 'EPSG:3857';
+        this.viewport = viewerDiv;
 
         if (options.mainLoop) {
             this.mainLoop = options.mainLoop;
         } else {
-            let engine;
+            // viewerDiv may have padding/borders, which is annoying when retrieving its size
+            // Wrap our canvas in a new div so we make sure the display
+            // is correct whatever the page layout is
+            // (especially when skrinking so there is no scrollbar/bleading)
+            this.viewport = document.createElement('div');
+            this.viewport.style.position = 'relative';
+            this.viewport.style.overflow = 'hidden'; // Hide overflow during resizing
+            this.viewport.style.width = '100%'; // Make sure it fills the space
+            this.viewport.style.height = '100%';
+            viewerDiv.appendChild(this.viewport);
 
-            // options.renderer can be 2 separate things:
-            //   - an actual renderer (in this case we don't use viewerDiv)
-            //   - options for the renderer to be created
-            if (options.renderer && options.renderer.domElement) {
-                engine = new C3DEngine(options.renderer);
-            } else {
-                if (viewerDiv.childElementCount > 0) {
-                    console.warn('viewerDiv has children; Giro3D expects an empty element - this can lead to unexpected behaviors');
-                }
-                engine = new C3DEngine(viewerDiv, options.renderer);
-            }
+            const engine = new C3DEngine(this.viewport, options.renderer);
             this.mainLoop = new MainLoop(new Scheduler(), engine);
         }
 
@@ -168,7 +177,7 @@ class Instance extends EventDispatcher {
         this._objects = [];
 
         this.resizeObserver = new ResizeObserver(() => {
-            this._updateRendererSize(viewerDiv);
+            this._updateRendererSize(this.viewport);
         });
         this.resizeObserver.observe(viewerDiv);
 
@@ -205,13 +214,7 @@ class Instance extends EventDispatcher {
     }
 
     _doUpdateRendererSize(div) {
-        const width = (this.mainLoop.gfxEngine.viewport
-            ? this.mainLoop.gfxEngine.viewport
-            : div).clientWidth;
-        const height = (this.mainLoop.gfxEngine.viewport
-            ? this.mainLoop.gfxEngine.viewport
-            : div).clientHeight;
-        this.mainLoop.gfxEngine.onWindowResize(width, height);
+        this.mainLoop.gfxEngine.onWindowResize(div.clientWidth, div.clientHeight);
         this.notifyChange(this.camera.camera3D);
     }
 

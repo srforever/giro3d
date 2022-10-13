@@ -24,15 +24,15 @@ const viewerDiv = document.getElementById('viewerDiv');
 
 // we can customize the renderer THREE will use
 // Here, this is necessary to render the glb correctly.
+// Giro3D will handle:
+// - adding it in the DOM within viewerDiv
+// - resizing it when the window or viewerDiv is resized
 const renderer = new WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(viewerDiv.clientWidth, viewerDiv.clientHeight);
 renderer.outputEncoding = sRGBEncoding;
 renderer.shadowMap.enabled = true;
-viewerDiv.appendChild(renderer.domElement);
 
 // Create the giro3d instance
-const instance = new Instance(viewerDiv, { renderer });
+const instance = new Instance(viewerDiv, { renderer: { renderer } });
 const camera = instance.camera.camera3D;
 
 // Creates controls

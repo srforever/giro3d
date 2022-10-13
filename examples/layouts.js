@@ -2,7 +2,7 @@
  * This code uses the same one as the customtiledimage example; see that one for explanations.
  */
 
-import { Color, WebGLRenderer } from 'three';
+import { WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
 import Instance from '@giro3d/giro3d/Core/Instance.js';
@@ -39,18 +39,11 @@ const cameraPosition = new Coordinates(
 ).xyz();
 
 function buildViewer(viewerDiv, defaultRenderer = true) {
-    let renderer = { clearColor: false };
+    const renderer = { clearColor: false };
     if (!defaultRenderer) {
-        renderer = new WebGLRenderer({ antialias: true });
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.setSize(viewerDiv.clientWidth, viewerDiv.clientHeight);
-        viewerDiv.appendChild(renderer.domElement);
+        renderer.renderer = new WebGLRenderer({ antialias: true, alpha: true });
     }
     const instance = new Instance(viewerDiv, { renderer });
-
-    if (!defaultRenderer) {
-        renderer.setClearColor(new Color(0xa0a0a0));
-    }
 
     const map = new Map('planar', { extent });
     instance.add(map);
