@@ -1,5 +1,36 @@
 # Changelog
 
+## v0.6.0 (2022-10-13)
+
+This release contains mainly bugfixes around HTML layout and map display. No breaking changes.
+
+### Feat
+
+- **Instance**: warn if the supplied host div is not an Element or has children
+- **Inspector**: add button to dump map tiles in the console
+- **ElevationLayer**: inherit from root texture when none available
+- **Inspector**: expose the .visible property of layers
+
+### Fix
+
+- **styling**: make sure canvas resizing works well for any layout
+- **Layer**: ensure that all preprocessings are finished before setting ready = true
+- **ElevationLayer**: find ancestor with a reusable texture instead of only the direct parent
+- **ColorLayer,ElevationLayer**: don't update anything until the layer is ready
+- **Map**: don't preprocess the layer twice
+- **OLTileProvider**: don't override layer.extent
+- **Map**: enforce layer ordering in an async context
+- **TileFS/HillShading**: correct UV for hillshading
+- **Cache**: fix clear() that was not a valid function
+
+### Refactor
+
+- **styling**: always create viewport in instance
+- **styling**: simplify size computation
+- **Instance**: better resize observer
+- **ColorLayerOrdering**: remove unused class
+- **CustomTiledImage**: fix dead/deprecated code
+
 ## v0.5.0 (2022-10-10)
 
 This releases contain many bugfixes and improvements related to maps and layers, as well as the Inspector class to inspect and help debug the Giro3D instance.
