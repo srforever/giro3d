@@ -216,11 +216,9 @@ class Map extends Entity3D {
         this.type = 'Map';
         this.protocol = 'tile';
         this.visible = true;
-        this.lighting = {
-            enable: false,
-            position: { x: -0.5, y: 0.0, z: 1.0 },
-        };
-        this.materialOptions = { hillshading: options.hillshading };
+
+        this.materialOptions = { hillshade: options.hillshading ? {} : undefined };
+
         if (options.backgroundColor) {
             this.noTextureColor = new Color(options.backgroundColor);
         }
@@ -341,7 +339,7 @@ class Map extends Entity3D {
             }
 
             if (node.material.visible) {
-                node.material.update();
+                node.material.update(this.materialOptions);
 
                 this.updateMinMaxDistance(context, node);
 

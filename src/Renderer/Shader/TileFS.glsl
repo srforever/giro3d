@@ -47,10 +47,10 @@ float calcHillshade(float a, float b, float c, float d, float e, float f, float 
         aspect = aspect +  2.0 * M_PI;
     }
 
-    float ZENITH = zenith * M_PI / 180.0; // in radians
-    float AZIMUTH = azimuth * M_PI / 180.0; // in radians
+    float zenith_rad = zenith * M_PI / 180.0; // in radians
+    float azimuth_rad = azimuth * M_PI / 180.0; // in radians
 
-    float hillshade = ((cos(ZENITH) * cos(slope)) + (sin(ZENITH) * sin(slope) * cos(AZIMUTH - aspect)));
+    float hillshade = ((cos(zenith_rad) * cos(slope)) + (sin(zenith_rad) * sin(slope) * cos(azimuth_rad - aspect)));
     return clamp(hillshade, 0., 1.);
 }
 #endif
