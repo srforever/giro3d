@@ -195,6 +195,7 @@ class Map extends Entity3D {
      * A value of `-1` does not limit the depth of the tile hierarchy.
      * @param {boolean} [options.hillshading=false] Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
      * Note: for hillshading to work, there must be an elevation layer in the map.
+     * @param {object} [options.colormap] Enables [colormapping](https://threejs.org/examples/webgl_geometry_colors_lookuptable.html).
      * @param {number} [options.segments=8] The number of geometry segments in each map tile.
      * The higher the better. For better visual results, it is recommended to use a power of two.
      * @param {module:three.Object3D=} options.object3d The optional 3d object to use as the root
@@ -216,8 +217,12 @@ class Map extends Entity3D {
         this.type = 'Map';
         this.protocol = 'tile';
         this.visible = true;
+
         this.lightDirection = { azimuth: 315, zenith: 45 };
-        this.materialOptions = { hillshading: options.hillshading };
+
+        this.materialOptions = {
+            hillshading: options.hillshading, colormap: options.colormap,
+        };
         if (options.backgroundColor) {
             this.noTextureColor = new Color(options.backgroundColor);
         }
@@ -339,7 +344,7 @@ class Map extends Entity3D {
 
             if (node.material.visible) {
                 node.material.lightDirection = this.lightDirection;
-                node.material.update();
+                node.material.update(this.materialOptions);
 
                 this.updateMinMaxDistance(context, node);
 

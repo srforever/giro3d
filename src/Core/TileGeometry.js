@@ -76,6 +76,7 @@ class TileGeometry extends BufferGeometry {
                     // Only nodata values so empty the BufferGeometry
                     this.setAttribute('uv', new BufferAttribute(new Float32Array([]), 2));
                     this.setAttribute('position', new BufferAttribute(new Float32Array([]), 3));
+                    this.setAttribute('normal', new BufferAttribute(new Float32Array([]), 3));
                     this.setIndex(new BufferAttribute(new Uint16Array([]), 1));
                 } else {
                     this.computeBuffersNoData(this.props, data);

@@ -127,6 +127,9 @@ class ElevationLayer extends Layer {
             // TODO
             min = -1000;
             max = 1000;
+        } else if (this.elevationFormat === ELEVATION_FORMAT.NUMERIC) {
+            min = this.minmax.min;
+            max = this.minmax.max;
         } else {
             throw new Error(`Unsupported layer.elevationFormat "${this.elevationFormat}'`);
         }
@@ -233,7 +236,7 @@ class ElevationLayer extends Layer {
 
     handleRootTexture(result) {
         const p = result.pitch;
-        if (p.x === 0 && p.y === 0 && p.z === 1 && p.w === 1) {
+        if (p && p.x === 0 && p.y === 0 && p.z === 1 && p.w === 1) {
             // Store this texture as a wildcard texture for tiles
             // that have no texture available (not event their ancestors).
             // The only condition is that the root texture matches the extent of the layer.
