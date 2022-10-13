@@ -17,7 +17,7 @@ import {
 import Capabilities from '../Core/System/Capabilities.js';
 
 class C3DEngine {
-    constructor(rendererOrDiv, options = {}) {
+    constructor(viewerDiv, options = {}) {
         // pick sensible default options
         if (options.antialias === undefined) {
             options.antialias = true;
@@ -33,11 +33,10 @@ class C3DEngine {
             options.clearColor = 0x030508;
         }
 
-        const renderer = rendererOrDiv.domElement ? rendererOrDiv : undefined;
-        const viewerDiv = renderer ? undefined : rendererOrDiv;
+        const renderer = options.renderer;
 
-        this.width = (renderer ? renderer.domElement : viewerDiv).clientWidth;
-        this.height = (renderer ? renderer.domElement : viewerDiv).clientHeight;
+        this.width = viewerDiv.clientWidth;
+        this.height = viewerDiv.clientHeight;
 
         this.positionBuffer = null;
         this._nextThreejsLayer = 1;
@@ -121,11 +120,19 @@ class C3DEngine {
         this.renderer.autoClear = false;
         this.renderer.sortObjects = true;
 
-        if (!renderer) {
-            this.renderer.setPixelRatio(viewerDiv.devicePixelRatio);
-            this.renderer.setSize(viewerDiv.clientWidth, viewerDiv.clientHeight);
-            viewerDiv.appendChild(this.renderer.domElement);
-        }
+        // Finalize DOM insertion:
+        // Ensure display is OK whatever the page layout is
+        // - By default canvas has `display: inline-block`, which makes it affected by
+        // its parent's line-height, so it will take more space than it's actual size
+        // - Setting `display: block` is not enough in flex displays
+        this.renderer.domElement.style.position = 'absolute';
+
+        // Set default size
+        this.renderer.setPixelRatio(viewerDiv.devicePixelRatio);
+        this.renderer.setSize(this.width, this.height);
+
+        // Append renderer to the DOM
+        viewerDiv.appendChild(this.renderer.domElement);
     }
 
     render(instance, include2d) {

@@ -18,20 +18,21 @@ import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/Core/MainLoop.js';
 import Instance from '@giro3d/giro3d/Core/Instance.js';
+import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 const viewerDiv = document.getElementById('viewerDiv');
 
 // we can customize the renderer THREE will use
 // Here, this is necessary to render the glb correctly.
+// Giro3D will handle:
+// - adding it in the DOM within viewerDiv
+// - resizing it when the window or viewerDiv is resized
 const renderer = new WebGLRenderer({ antialias: true });
-renderer.setPixelRatio(window.devicePixelRatio);
-renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.outputEncoding = sRGBEncoding;
 renderer.shadowMap.enabled = true;
-viewerDiv.appendChild(renderer.domElement);
 
 // Create the giro3d instance
-const instance = new Instance(viewerDiv, { renderer });
+const instance = new Instance(viewerDiv, { renderer: { renderer } });
 const camera = instance.camera.camera3D;
 
 // Creates controls
@@ -140,3 +141,5 @@ loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', gltf => {
 
     instance.notifyChange();
 });
+
+Inspector.attach(document.getElementById('panelDiv'), instance);

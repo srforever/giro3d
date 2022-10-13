@@ -25,8 +25,7 @@ describe('Map', () => {
 
     beforeEach(() => {
         setupGlobalMocks();
-        viewerDiv = {};
-        viewerDiv.appendChild = jest.fn;
+        viewerDiv = document.createElement('div');
         mainLoop = {
             gfxEngine: {
                 getWindowSize: jest.fn,
