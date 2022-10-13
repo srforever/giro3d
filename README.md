@@ -77,7 +77,7 @@ level.
 
 See our [release page](https://gitlab.com/giro3d/giro3d/-/releases).
 
-## With npm link
+## With [npm link](https://docs.npmjs.com/cli/v8/commands/npm-link)
 
 This is handy if you need to develop on giro3d alongside your project. You need to first prepare the
 package folder and link from there:
@@ -90,18 +90,20 @@ npm link
 npm link @giro3d/giro3d
 ```
 
-To ease development, transpiled file can be refreshed automatically with a small python script in
-this repository:
+To ease development, files can be automatically transpiled on modification using the `observer.py` script in this repository:
 
 ```bash
 python3 observer.py ./src
 ```
+
+Each time a source file is modified, this script will transpile it in the build folder.
+
 ## Tests
 
 To run the test suite:
 
 ```bash
-npm run test-unit
+npm test
 ```
 
 ## API documentation and examples
