@@ -22,14 +22,13 @@ varying vec4 vPosition;
 
 #if defined(HILLSHADE)
 // hillshade support
+uniform float       zenith; // degrees (0 - 90)
+uniform float       azimuth; // degrees (0 - 360)
 uniform sampler2D   elevationTexture;
 uniform vec4        elevationOffsetScale;
 uniform vec2 tileDimensions;
 
 #include <GetElevation>
-
-float ZENITH = 0.7857142857;
-float AZIMUTH = 2.3571428571;
 
 #define M_PI 3.1415926535897932384626433832795
 
@@ -48,7 +47,10 @@ float calcHillshade(float a, float b, float c, float d, float e, float f, float 
         aspect = aspect +  2.0 * M_PI;
     }
 
-    float hillshade = ((cos(ZENITH) * cos(slope)) + (sin(ZENITH) * sin(slope) * cos(AZIMUTH - aspect)));
+    float zenith_rad = zenith * M_PI / 180.0; // in radians
+    float azimuth_rad = azimuth * M_PI / 180.0; // in radians
+
+    float hillshade = ((cos(zenith_rad) * cos(slope)) + (sin(zenith_rad) * sin(slope) * cos(azimuth_rad - aspect)));
     return clamp(hillshade, 0., 1.);
 }
 #endif

@@ -110,14 +110,28 @@ controls.maxPolarAngle = Math.PI / 2.3;
 
 instance.useTHREEControls(controls);
 
-const slider = document.getElementById('opacitySlider');
+const opacitySlider = document.getElementById('opacitySlider');
 
-slider.oninput = function oninput() {
-    const percentage = slider.value;
+opacitySlider.oninput = function oninput() {
+    const percentage = opacitySlider.value;
     const opacity = percentage / 100.0;
     colorLayer.opacity = opacity;
     instance.notifyChange(map);
-    slider.innerHTML = `${percentage}%`;
+    opacitySlider.innerHTML = `${percentage}%`;
+};
+
+const azimuthSlider = document.getElementById('azimuthSlider');
+
+azimuthSlider.oninput = function oninput() {
+    map.lightDirection.azimuth = azimuthSlider.value;
+    instance.notifyChange(map);
+};
+
+const zenithSlider = document.getElementById('zenithSlider');
+
+zenithSlider.oninput = function oninput() {
+    map.lightDirection.zenith = zenithSlider.value;
+    instance.notifyChange(map);
 };
 
 Inspector.attach(document.getElementById('panelDiv'), instance);

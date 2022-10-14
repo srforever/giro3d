@@ -71,6 +71,11 @@ class LayeredMaterial extends RawShaderMaterial {
         if (options.hillshading) {
             this.defines.HILLSHADE = 1;
         }
+
+        this.lightDirection = { azimuth: 315, zenith: 45 };
+        this.uniforms.zenith = { type: 'f', value: 45 };
+        this.uniforms.azimuth = { type: 'f', value: 135 };
+
         this.uniforms.segments = new Uniform(segments);
         if (options.side) {
             this.side = options.side;
@@ -358,6 +363,8 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     update() {
+        this.uniforms.zenith.value = this.lightDirection.zenith;
+        this.uniforms.azimuth.value = this.lightDirection.azimuth;
         if (this.colorLayers.length === 0) {
             return true;
         }
