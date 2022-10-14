@@ -71,7 +71,7 @@ class TileGeometry extends BufferGeometry {
                 this.props.numVertices = data.filter(x => x !== this.props.nodata).length;
                 if (this.props.numVertices === this.props.width * this.props.height) {
                     // No nodata values, simple grid with elevation
-                    this.computeBuffers(this.props, data);
+                    this.computeBuffers(this.props);
                 } else if (this.props.numVertices === 0) {
                     // Only nodata values so empty the BufferGeometry
                     this.setAttribute('uv', new BufferAttribute(new Float32Array([]), 2));
@@ -81,7 +81,7 @@ class TileGeometry extends BufferGeometry {
                     this.computeBuffersNoData(this.props, data);
                 }
             } else {
-                this.computeBuffers(this.props, data);
+                this.computeBuffers(this.props);
             }
         } else {
             this.copy(geometry);
@@ -95,10 +95,9 @@ class TileGeometry extends BufferGeometry {
      * Construct a simple grid buffer geometry using a fast rolling approach.
      *
      * @param {object} props : Properties of the TileGeometry grid, as prepared by this.prepare.
-     * @param {Array} data : Array of elevation data to update vertices z with.
      * @api
      */
-    computeBuffers(props, data = undefined) {
+    computeBuffers(props) {
         const width = props.width;
         const height = props.height;
         const rowStep = props.rowStep;
@@ -107,15 +106,11 @@ class TileGeometry extends BufferGeometry {
         const translateY = props.translateY;
         const uvStepX = props.uvStepX;
         const uvStepY = props.uvStepY;
-        const direction = props.direction;
         const numVertices = props.numVertices;
 
         const uvs = new Float32Array(numVertices * 2);
         const positions = new Float32Array(numVertices * 3);
         const indices = new Uint32Array(props.triangles * 3);
-        if (!data) {
-            data = new Float32Array(numVertices);
-        }
 
         let posX;
         let h = 0;
@@ -123,58 +118,67 @@ class TileGeometry extends BufferGeometry {
         let uvY = 0.0;
         let indicesNdx = 0;
         let posY = translateY;
-        let iY = direction === 'top' ? iPos : numVertices - width;
-
-        // Store xyz position and and corresponding uv of a pixel data.
-        function handleCell() {
-            const posNdx = iPos * 3;
-            positions[posNdx + 0] = posX * rowStep + translateX;
-            positions[posNdx + 1] = -posY;
-            positions[posNdx + 2] = data[iY + posX];
-            const uvNdx = iPos * 2;
-            uvs[uvNdx + 0] = posX * uvStepX;
-            uvs[uvNdx + 1] = uvY;
-            iPos += 1;
-        }
-
-        // Construct indices as two different triangles from a particular vertex.
-        // Use previous and aboves while rolling so discard first row (top border)
-        // and first data of each row (left border).
-        // x---x       x   .
-        //  \  |       | \
-        //   \ |       |  \
-        // .   x       x---x
-        function indicesSimple() {
-            const above = iPos - width;
-            const previousPos = iPos - 1;
-            const previousAbove = above - 1;
-            indices[indicesNdx + 0] = iPos;
-            indices[indicesNdx + 1] = previousAbove;
-            indices[indicesNdx + 2] = above;
-            indices[indicesNdx + 3] = iPos;
-            indices[indicesNdx + 4] = previousPos;
-            indices[indicesNdx + 5] = previousAbove;
-            indicesNdx += 6;
-        }
+        let posNdx;
+        let uvNdx;
 
         // Top border
         //
         for (posX = 0; posX < width; posX++) {
-            handleCell();
+            // Store xy position and and corresponding uv of a pixel data.
+            posNdx = iPos * 3;
+            positions[posNdx + 0] = posX * rowStep + translateX;
+            positions[posNdx + 1] = -posY;
+            positions[posNdx + 2] = 0.0;
+            uvNdx = iPos * 2;
+            uvs[uvNdx + 0] = posX * uvStepX;
+            uvs[uvNdx + 1] = uvY;
+            iPos += 1;
         }
         // Next rows
         //
         for (h = 1; h < height; h++) {
             posY = h * columnStep + translateY;
-            iY = direction === 'top' ? iPos : numVertices - (h + 1) * width;
             uvY = h * uvStepY;
-            // First cell
+            // First cell, left border
             posX = 0;
-            handleCell();
+            // Store xy position and and corresponding uv of a pixel data.
+            posNdx = iPos * 3;
+            positions[posNdx + 0] = posX * rowStep + translateX;
+            positions[posNdx + 1] = -posY;
+            positions[posNdx + 2] = 0.0;
+            uvNdx = iPos * 2;
+            uvs[uvNdx + 0] = posX * uvStepX;
+            uvs[uvNdx + 1] = uvY;
+            iPos += 1;
             // Next cells
             for (posX = 1; posX < width; posX++) {
-                indicesSimple();
-                handleCell();
+                // Construct indices as two different triangles from a
+                // particular vertex. Use previous and aboves while rolling
+                // so discard first row (top border) and first data of each
+                // row (left border).
+                // x---x       x   .
+                //  \  |       | \
+                //   \ |       |  \
+                // .   x       x---x
+                const above = iPos - width;
+                const previousPos = iPos - 1;
+                const previousAbove = above - 1;
+                indices[indicesNdx + 0] = iPos;
+                indices[indicesNdx + 1] = previousAbove;
+                indices[indicesNdx + 2] = above;
+                indices[indicesNdx + 3] = iPos;
+                indices[indicesNdx + 4] = previousPos;
+                indices[indicesNdx + 5] = previousAbove;
+                indicesNdx += 6;
+                // Store xy position and and corresponding uv of a pixel data.
+                posNdx = iPos * 3;
+                positions[posNdx + 0] = posX * rowStep + translateX;
+                positions[posNdx + 1] = -posY;
+                positions[posNdx + 2] = 0.0;
+                uvNdx = iPos * 2;
+                uvs[uvNdx + 0] = posX * uvStepX;
+                uvs[uvNdx + 1] = uvY;
+                iPos += 1;
             }
         }
         this.setAttribute('uv', new BufferAttribute(uvs, 2));
@@ -227,24 +231,21 @@ class TileGeometry extends BufferGeometry {
         let posY = translateY;
         let iY = direction === 'top' ? iPos : fullSize - width;
 
-        function handleCell() {
-            const posNdx = iPos * 3;
-            positions[posNdx + 0] = posX * rowStep + translateX;
-            positions[posNdx + 1] = -posY;
-            positions[posNdx + 2] = value;
-            const uvNdx = iPos * 2;
-            uvs[uvNdx] = posX * uvStepX;
-            uvs[uvNdx + 1] = uvY;
-            indicesTable[i] = iPos;
-            iPos += 1;
-        }
-
         // Top border
         //
         for (posX = 0; posX < width; posX++) {
             value = data[iY + posX];
             if (value !== nodata) {
-                handleCell();
+                indicesTable[i] = iPos;
+                // Store xy position and and corresponding uv of a pixel data.
+                const posNdx = iPos * 3;
+                positions[posNdx + 0] = posX * rowStep + translateX;
+                positions[posNdx + 1] = -posY;
+                positions[posNdx + 2] = 0.0;
+                const uvNdx = iPos * 2;
+                uvs[uvNdx + 0] = posX * uvStepX;
+                uvs[uvNdx + 1] = uvY;
+                iPos += 1;
             }
             i++;
         }
@@ -259,7 +260,16 @@ class TileGeometry extends BufferGeometry {
             value = data[iY];
             p2 = false;
             if (value !== nodata) {
-                handleCell();
+                indicesTable[i] = iPos;
+                // Store xy position and and corresponding uv of a pixel data.
+                const posNdx = iPos * 3;
+                positions[posNdx + 0] = posX * rowStep + translateX;
+                positions[posNdx + 1] = -posY;
+                positions[posNdx + 2] = 0.0;
+                const uvNdx = iPos * 2;
+                uvs[uvNdx + 0] = posX * uvStepX;
+                uvs[uvNdx + 1] = uvY;
+                iPos += 1;
                 p2 = true;
             }
             i++;
@@ -294,7 +304,16 @@ class TileGeometry extends BufferGeometry {
                         indices[indicesNdx + 2] = p4; //                  /  |
                         indicesNdx += 3; //                              x---x
                     }
-                    handleCell();
+                    indicesTable[i] = iPos;
+                    // Store xy position and and corresponding uv of a pixel data.
+                    const posNdx = iPos * 3;
+                    positions[posNdx + 0] = posX * rowStep + translateX;
+                    positions[posNdx + 1] = -posY;
+                    positions[posNdx + 2] = 0.0;
+                    const uvNdx = iPos * 2;
+                    uvs[uvNdx + 0] = posX * uvStepX;
+                    uvs[uvNdx + 1] = uvY;
+                    iPos += 1;
                     p2 = true;
                 } else if (p2 && hasP3 && hasP4) {
                     indices[indicesNdx + 0] = previousPos; //            x---x

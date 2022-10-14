@@ -1,6 +1,8 @@
 import { fromUrl, Pool } from 'geotiff';
+import { Vector4, DataTexture } from 'three';
 
 import Cache from '../Core/Scheduler/Cache.js';
+import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -32,6 +34,102 @@ function makeWindowFromExtent(layer, extent, resolution) {
         Math.max(wnd[0], wnd[2]),
         Math.max(wnd[1], wnd[3]),
     ];
+}
+
+function processArrayData(layer, arrayData) {
+    // Width and height in pixels of the returned data
+    const { width, height } = arrayData;
+    // We have to check wether it is an array of colors because we
+    // want to handle floating point intensity files as color
+    // layers too
+    const data = new Uint8ClampedArray(width * height * 4);
+    // If there are 3 bands, assume that it's RGB
+    if (arrayData.length === 3) {
+        const [r, g, b] = arrayData;
+        for (let i = 0, l = r.length; i < l; i++) {
+            const i4 = i * 4;
+            data[i4 + 0] = r[i];
+            data[i4 + 1] = g[i];
+            data[i4 + 2] = b[i];
+            data[i4 + 3] = 255;
+        }
+    // If there are 4 bands, assume that it's RGBA
+    } else if (arrayData.length === 4) {
+        const [r, g, b, a] = arrayData;
+        for (let i = 0, l = r.length; i < l; i++) {
+            const i4 = i * 4;
+            data[i4 + 0] = r[i];
+            data[i4 + 1] = g[i];
+            data[i4 + 2] = b[i];
+            data[i4 + 3] = a[i];
+        }
+    // Else if there is only one band, assume that it's not colored and
+    // normalize it.
+    } else {
+        if (arrayData.length !== 1) {
+            console.warn(
+                "Band selection isn't implemented yet.",
+                'Processing the first one as if it was a 1-band file.',
+            );
+        }
+        const [v] = arrayData;
+        const nodata = layer.nodata;
+        const dataMin = layer.minmax.min;
+        const dataFactor = 255 / (layer.minmax.max - dataMin);
+        for (let i = 0, l = v.length; i < l; i++) {
+            const vi = v[i];
+            const value = Math.round((vi - dataMin) * dataFactor);
+            const i4 = i * 4;
+            data[i4 + 0] = value;
+            data[i4 + 1] = value;
+            data[i4 + 2] = value;
+            data[i4 + 3] = vi === nodata ? 0 : 255;
+        }
+    }
+    return { data, width, height };
+}
+
+function createTexture(layer, extent, levelImage, computeMinMax = false) {
+    // Read and return the raster data
+    return levelImage.image.readRasters({
+        pool: layer.pool, // Use the pool of workers to decode faster
+        window: makeWindowFromExtent(layer, extent, levelImage.resolution),
+        fillValue: layer.nodata,
+    }).then(arrayData => {
+        if (computeMinMax) {
+            // Initiate min and max data values to normalize 1 band files.
+            // This is only done during the preprocessing step.
+            layer.minmax = getMinMax(arrayData[0], layer.nodata);
+        }
+        // Attach arrayData to the result to recreate TileGeometry in ElevationLayer
+        const result = { arrayData, pitch: new Vector4(0, 0, 1, 1) };
+        // Process the downloaded data
+        const { data, width, height } = processArrayData(layer, arrayData);
+        const imageData = new ImageData(data, width, height);
+        result.texture = new DataTexture(imageData, width, height);
+        result.texture.flipY = true;
+        // Attach the extent to the texture to check for possible improvements
+        result.texture.extent = extent;
+        if (layer.minmax) {
+            // Add min and max to the texture for this.MinMaxFromTexture
+            result.texture.min = layer.minmax.min;
+            result.texture.max = layer.minmax.max;
+        }
+        // Cache the result not to have to fetch the data again
+        Cache.set(`${layer.id}${extent._values.join(',')}`, result);
+        return result;
+    }).catch(error => {
+        if (error.toString() === 'AggregateError: Request failed') {
+            // Problem with the source that is blocked by another fetch
+            // (request failed in readRasters). See the conversations in
+            // https://github.com/geotiffjs/geotiff.js/issues/218
+            // https://github.com/geotiffjs/geotiff.js/issues/221
+            // https://github.com/geotiffjs/geotiff.js/pull/224
+            // Retry until it is not blocked.
+            return createTexture(layer, extent, levelImage, computeMinMax);
+        }
+        throw new Error(error);
+    });
 }
 
 async function getImages(layer) {
@@ -72,15 +170,8 @@ async function getImages(layer) {
     // performances, we use the latest image, meaning the highest overview
     // (lowest resolution)
     if (image.getSamplesPerPixel() === 1) {
-        const arrayData = await levelImage.image.readRasters({
-            window: makeWindowFromExtent(layer, layer.extent, levelImage.resolution),
-            fillValue: layer.nodata,
-        });
-        // Initiate min and max data values to normalize 1 band files
-        layer.minmax = getMinMax(arrayData[0], layer.nodata);
-        // While we are at it let's cache the requested data
-        const key = `${layer.id}${layer.extent._values.join(',')}`;
-        Cache.set(key, { arrayData });
+        layer.elevationFormat = ELEVATION_FORMAT.NUMERIC;
+        await createTexture(layer, layer.extent, levelImage, true);
     }
 }
 
@@ -133,23 +224,7 @@ function executeCommand(command) {
     if (result) {
         return Promise.resolve(result);
     }
-    // Read and return the raster data
-    return levelImage.image.readRasters({
-        pool: layer.pool, // Use the pool of workers to decode faster
-        window: makeWindowFromExtent(layer, extent, levelImage.resolution),
-        fillValue: layer.nodata,
-    }).then(arrayData => ({ arrayData })).catch(error => {
-        if (error.toString() === 'AggregateError: Request failed') {
-            // Problem with the source that is blocked by another fetch
-            // (request failed in readRasters). See the conversations in
-            // https://github.com/geotiffjs/geotiff.js/issues/218
-            // https://github.com/geotiffjs/geotiff.js/issues/221
-            // https://github.com/geotiffjs/geotiff.js/pull/224
-            // Bypassing the error so that it doesn't break the rendering.
-            return result;
-        }
-        throw new Error(error);
-    });
+    return Promise.resolve(createTexture(layer, extent, levelImage));
 }
 
 function tileInsideLimit(tile, layer) {

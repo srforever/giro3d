@@ -312,7 +312,16 @@ class LayeredMaterial extends RawShaderMaterial {
             if (!this.defines.RATP_GEOL_ELEVATION) {
                 this.defines.RATP_GEOL_ELEVATION = 1;
             }
-        } else if (layer.elevationFormat !== ELEVATION_FORMAT.NUMERIC) {
+        } else if (layer.elevationFormat === ELEVATION_FORMAT.NUMERIC) {
+            this.defines.HEIGHTFIELD_ELEVATION = 1;
+            const heightFieldOffset = layer.minmax.min;
+            this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
+            this.uniforms.heightFieldOffset = new Uniform(heightFieldOffset);
+            const heightFieldScale = layer.minmax.max;
+            this.texturesInfo.elevation.heightFieldScale = heightFieldScale;
+            this.uniforms.heightFieldScale = new Uniform(heightFieldScale);
+            this.needsUpdate = true;
+        } else {
             throw new Error('Missing layer.elevationFormat handling', layer.elevationFormat);
         }
         this.uniforms.elevationTexture.value = textureAndPitch.texture;
