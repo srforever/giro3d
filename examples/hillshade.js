@@ -78,6 +78,8 @@ const elevationLayer = new ElevationLayer(
     {
         source: wmsSource2,
         elevationFormat: ELEVATION_FORMAT.HEIGHFIELD,
+        heightFieldOffset: 149, // Altitude corresponding to 0 in heightfield
+        heightFieldScale: (621 - 149), // Altitude corresponding to 255 in heightfield
     },
 );
 
