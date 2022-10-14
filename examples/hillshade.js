@@ -123,14 +123,14 @@ opacitySlider.oninput = function oninput() {
 const azimuthSlider = document.getElementById('azimuthSlider');
 
 azimuthSlider.oninput = function oninput() {
-    map.materialOptions.hillshade.azimuth = azimuthSlider.value;
+    map.lightDirection.azimuth = azimuthSlider.value;
     instance.notifyChange(map);
 };
 
 const zenithSlider = document.getElementById('zenithSlider');
 
 zenithSlider.oninput = function oninput() {
-    map.materialOptions.hillshade.zenith = zenithSlider.value;
+    map.lightDirection.zenith = zenithSlider.value;
     instance.notifyChange(map);
 };
 

@@ -68,12 +68,14 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.atlasInfo = atlasInfo;
         this.defines.STITCHING = 1;
-        if (options.hillshade) {
+        if (options.hillshading) {
             this.defines.HILLSHADE = 1;
-            this.hillshade = options.hillshade;
-            this.uniforms.zenith = { type: 'f', value: this.hillshade.zenith };
-            this.uniforms.azimuth = { type: 'f', value: this.hillshade.azimuth };
         }
+
+        this.lightDirection = { azimuth: 315, zenith: 45 };
+        this.uniforms.zenith = { type: 'f', value: 45 };
+        this.uniforms.azimuth = { type: 'f', value: 135 };
+
         this.uniforms.segments = new Uniform(segments);
         if (options.side) {
             this.side = options.side;
@@ -360,11 +362,9 @@ class LayeredMaterial extends RawShaderMaterial {
         this.needsUpdate = true;
     }
 
-    update(materialOptions = {}) {
-        if (materialOptions.hillshade) {
-            this.uniforms.zenith.value = materialOptions.hillshade.zenith;
-            this.uniforms.azimuth.value = materialOptions.hillshade.azimuth;
-        }
+    update() {
+        this.uniforms.zenith.value = this.lightDirection.zenith;
+        this.uniforms.azimuth.value = this.lightDirection.azimuth;
         if (this.colorLayers.length === 0) {
             return true;
         }
