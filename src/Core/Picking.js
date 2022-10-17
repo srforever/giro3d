@@ -137,8 +137,12 @@ const tmpColor = new Color();
  *   - layer: the geometry layer used for picking
  */
 export default {
-    pickTilesAt: (_instance, canvasCoords, radius, layer) => {
-        const results = [];
+    pickTilesAt: (_instance, canvasCoords, layer, options = {}, target = []) => {
+        const radius = options.radius || 0;
+        const limit = options.limit || Infinity;
+        const filterCanvas = options.filterCanvas;
+        const filter = options.filter;
+
         // TODO is there a way to get the node id AND uv on the same render pass ?
         // We would need to get a upper bound to the tile ids, and not use the three.js uuid
         // We need to assess how much precision will be left for the uv, and if it is acceptable
@@ -147,6 +151,8 @@ export default {
         const _ids = screenCoordsToNodeId(_instance, layer, canvasCoords, radius);
 
         const extractResult = node => {
+            if (target.length >= limit) return;
+
             // for each node (normally no more than 4 of them) we do a render
             // in UV mode to get the uv under the mouse. This'll give us the
             // x,y coordinates, and we use DEMUtils to get z (normally no
@@ -164,6 +170,17 @@ export default {
                 );
                 const uvs = [];
                 traversePickingCircle(radius, (x, y, idx) => {
+                    if (filterCanvas) {
+                        const coord = {
+                            x: x + canvasCoords.x,
+                            y: y + canvasCoords.y,
+                            z: 0,
+                        };
+                        if (!filterCanvas(coord)) {
+                            return;
+                        }
+                    }
+
                     const data = buffer.slice(idx * 4, idx * 4 + 4);
                     depthRGBA.fromArray(data).divideScalar(255.0);
                     uvs.push(unpackHalfRGBA(depthRGBA));
@@ -186,13 +203,17 @@ export default {
                             _instance.referenceCrs, new Coordinates(_instance.referenceCrs),
                         );
                         const point = tmpCoords.xyz(new Vector3());
-                        results.push({
+                        const p = {
                             object: node,
                             layer,
                             point,
                             coord,
                             distance: _instance.camera.camera3D.position.distanceTo(point),
-                        });
+                        };
+                        if (!filter || filter(p)) {
+                            target.push(p);
+                            if (target.length >= limit) break;
+                        }
                     }
                 }
                 restore();
@@ -201,11 +222,14 @@ export default {
         for (const n of layer.level0Nodes) {
             n.traverse(extractResult);
         }
-        return results;
+        return target;
     },
 
-    pickPointsAt: (instance, canvasCoords, radius, layer, filter) => {
-        radius = Math.floor(radius);
+    pickPointsAt: (instance, canvasCoords, layer, options = {}, target = []) => {
+        const radius = Math.floor(options.radius || 0);
+        const limit = options.limit || Infinity;
+        const filterCanvas = options.filterCanvas;
+        const filter = options.filter;
 
         // Enable picking mode for points material, by assigning
         // a unique id to each Points instance.
@@ -245,7 +269,7 @@ export default {
                 y: y + canvasCoords.y,
                 z: 0,
             };
-            if (filter && !filter(coord)) {
+            if (filterCanvas && !filterCanvas(coord)) {
                 return;
             }
 
@@ -283,24 +307,26 @@ export default {
             candidates.push(r);
         });
 
-        const result = [];
         layer.object3d.traverse(o => {
             if (o.isPoints && o.visible && o.material.visible) {
-                for (let i = 0; i < candidates.length; i++) {
+                for (let i = 0; i < candidates.length && target.length < limit; i++) {
                     if (candidates[i].pickingId === o.material.pickingId) {
                         const position = new Vector3()
                             .fromArray(
                                 o.geometry.attributes.position.array, 3 * candidates[i].index,
                             )
                             .applyMatrix4(o.matrixWorld);
-                        result.push({
+                        const p = {
                             object: o,
                             index: candidates[i].index,
                             layer,
                             point: position,
                             coord: candidates[i].coord,
                             distance: instance.camera.camera3D.position.distanceTo(position),
-                        });
+                        };
+                        if (!filter || filter(p)) {
+                            target.push(p);
+                        }
                     }
                 }
                 // disable picking mode
@@ -308,13 +334,18 @@ export default {
             }
         });
 
-        return result;
+        return target;
     },
 
     /*
      * Default picking method. Uses Raycaster
      */
-    pickObjectsAt(instance, canvasCoords, radius, object, target = []) {
+    pickObjectsAt(instance, canvasCoords, object, options = {}, target = []) {
+        const radius = options.radius || 0;
+        const limit = options.limit || Infinity;
+        const filterCanvas = options.filterCanvas;
+        const filter = options.filter;
+
         // Instead of doing N raycast (1 per x,y returned by traversePickingCircle),
         // we force render the zone of interest.
         // Then we'll only do raycasting for the pixels where something was drawn.
@@ -338,6 +369,17 @@ export default {
         const normalized = instance.canvasToNormalizedCoords(canvasCoords);
         const tmp = normalized.clone();
         traversePickingCircle(radius, (x, y) => {
+            if (filterCanvas) {
+                const coord = {
+                    x: x + canvasCoords.x,
+                    y: y + canvasCoords.y,
+                    z: 0,
+                };
+                if (!filterCanvas(coord)) {
+                    return null;
+                }
+            }
+
             // x, y are offset from the center of the picking circle,
             // and pixels is a square where 0, 0 is the top-left corner.
             // So we need to shift x,y by radius.
@@ -367,7 +409,10 @@ export default {
             const intersects = raycaster.intersectObject(object, true);
             for (const inter of intersects) {
                 inter.layer = findLayerInParent(inter.object);
-                target.push(inter);
+                if (!filter || filter(inter)) {
+                    target.push(inter);
+                    if (target.length >= limit) return false;
+                }
             }
 
             // Stop at first hit

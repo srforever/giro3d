@@ -230,12 +230,13 @@ class Map extends Entity3D {
         this.currentAddedLayerIds = [];
     }
 
-    pickObjectsAt(instance, mouse, radius) {
+    pickObjectsAt(instance, mouse, options, target) {
         return Picking.pickTilesAt(
             instance,
             mouse,
-            radius,
             this,
+            options,
+            target,
         );
     }
 

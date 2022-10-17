@@ -644,55 +644,57 @@ class Instance extends EventDispatcher {
      *
      * @param {object} mouseOrEvt mouse position in window coordinates (0, 0 = top-left)
      * or MouseEvent or TouchEvent
-     * @param {number} radius picking will happen in a circle centered on mouseOrEvt. Radius
-     * is the radius of this circle, in pixels
-     * @param {...*} where where to look for objects. Can be either: empty (= look
+     * @param {object=} options Optional properties.
+     * @param {?number} [options.radius=0] picking will happen in a circle centered on mouseOrEvt.
+     * Radius is the radius of this circle, in pixels
+     * @param {?number} [options.limit=Infinity] maximum number of objects to return
+     * @param {?Array} options.where where to look for objects. Can be either: empty (= look
      * in all layers with type === 'geometry'), layer ids or layers or a mix of all
      * the above.
+     * @param {?object} options.filter Filter on resulting objects
      * @returns {Array} an array of objects. Each element contains at least an object
      * property which is the Object3D under the cursor. Then depending on the queried
      * layer/source, there may be additionnal properties (coming from THREE.Raycaster
      * for instance).
      * @example
      * instance.pickObjectsAt({ x, y })
-     * instance.pickObjectsAt({ x, y }, 1, 'wfsBuilding')
-     * instance.pickObjectsAt({ x, y }, 3, 'wfsBuilding', myLayer)
+     * instance.pickObjectsAt({ x, y }, { radius: 1, where: ['wfsBuilding'] })
+     * instance.pickObjectsAt({ x, y }, { radius: 3, where: ['wfsBuilding', myLayer] })
      */
-    pickObjectsAt(mouseOrEvt, radius, ...where) {
+    pickObjectsAt(mouseOrEvt, options = {}) {
         const results = [];
-        const sources = where.length === 0
-            ? this.getObjects().concat(this.threeObjects) : [...where];
+        const sources = options.where && options.where.length > 0
+            ? [...options.where] : this.getObjects().concat(this.threeObjects);
         const mouse = (mouseOrEvt instanceof Event)
-            ? this.eventToCanvasCoords(mouseOrEvt) : mouseOrEvt;
-        radius = radius || 0;
+            ? this.eventToCanvasCoords(mouseOrEvt).clone() : mouseOrEvt;
+        const radius = options.radius || 0;
+        const limit = options.limit || Infinity;
 
         for (const source of sources) {
-            if (source instanceof Entity3D
-                || source instanceof Layer
-                || typeof (source) === 'string') {
-                const object = (typeof (source) === 'string')
-                    ? objectIdToObject(this, source)
-                    : source;
-
+            const pickOptions = {
+                radius,
+                limit, // Use same limit as requested, since we pass the results array
+                filterCanvas: options.filterCanvas,
+                filter: options.filter,
+            };
+            const object = (typeof (source) === 'string')
+                ? objectIdToObject(this, source)
+                : source;
+            if (object instanceof Entity3D || typeof object.pickObjectsAt === 'function') {
                 // TODO ability to pick on a layer instead of a geometric object?
-                const sp = object.pickObjectsAt(this, mouse, radius);
-                // warning: sp might be very large, so we can't use '...sp' (we'll hit
-                // 'javascript maximum call stack size exceeded' error) nor
-                // Array.prototype.push.apply(result, sp)
-                for (let i = 0; i < sp.length; i++) {
-                    results.push(sp[i]);
-                }
-            } else if (source.isObject3D) {
+                object.pickObjectsAt(this, mouse, pickOptions, results);
+            } else if (object.isObject3D) {
                 Picking.pickObjectsAt(
                     this,
                     mouse,
-                    radius,
-                    source,
+                    object,
+                    pickOptions,
                     results,
                 );
             } else {
-                throw new Error(`Invalid where arg (value = ${where}). Expected layers, layer ids or Object3Ds`);
+                throw new Error(`Invalid where arg (value = ${source}). Expected layers, layer ids or Object3Ds`);
             }
+            if (results.length >= limit) { break; }
         }
 
         return results;
@@ -856,10 +858,10 @@ function _preprocessObject(instance, obj, provider, parentLayer) {
     return obj;
 }
 
-function objectIdToObject(instance, layerId) {
-    const lookup = instance.getObjects(l => l.id === layerId);
+function objectIdToObject(instance, objectId) {
+    const lookup = instance.getObjects(l => l.id === objectId);
     if (!lookup.length) {
-        throw new Error(`Invalid layer id used as where argument (value = ${layerId})`);
+        throw new Error(`Invalid object id used as where argument (value = ${objectId})`);
     }
     return lookup[0];
 }

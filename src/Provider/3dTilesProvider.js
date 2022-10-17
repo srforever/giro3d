@@ -111,16 +111,6 @@ function preprocessDataLayer(entity, instance, scheduler) {
     // override the default method, since updated objects are metadata in this case
     entity.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
 
-    // TODO: find a better way to know that this layer is about pointcloud ?
-    if (entity.material && entity.material.enablePicking) {
-        entity.pickObjectsAt = (instance2, mouse, radius) => Picking.pickPointsAt(
-            instance2,
-            mouse,
-            radius,
-            entity,
-        );
-    }
-
     const url = entity.url;
 
     // Download the root tileset to complete the preparation.

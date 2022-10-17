@@ -102,9 +102,12 @@ const ifcPosition = {
 };
 
 const ifcLoader = new IFCLoader();
+let ifcModel;
 ifcLoader.load(
     'data/AC20-FZK-Haus.ifc', // Found at https://www.ifcwiki.org/index.php?title=File:AC20-FZK-Haus.ifc
-    ifcModel => {
+    _ifcModel => {
+        ifcModel = _ifcModel;
+
         // Places the object
         ifcModel.translateY(ifcPosition.y)
             .translateX(ifcPosition.x)
@@ -148,3 +151,22 @@ controls.saveState();
 instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+
+instance.domElement.addEventListener('dblclick', e => {
+    const picked = instance.pickObjectsAt(e, {
+        // Let the user pick only points from IFC model
+        where: (document.getElementById('pick_source').value === '1') ? [ifcModel] : null,
+    });
+    if (picked.length === 0) {
+        document.getElementById('selectedDiv').innerHTML = 'No object found';
+    } else {
+        document.getElementById('selectedDiv').innerHTML = `
+${picked.length} objects found<br>
+First object:
+<ul>
+<li>Point clicked: ${picked[0].point.x.toFixed(2)}, ${picked[0].point.y.toFixed(2)}, ${picked[0].point.z.toFixed(2)}</li>
+<li>Distance to camera: ${picked[0].distance.toFixed(2)}</li>
+</ul>
+        `;
+    }
+});

@@ -95,3 +95,5 @@ button.onclick = () => {
 
     createMap(extent);
 };
+
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));

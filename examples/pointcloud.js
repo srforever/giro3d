@@ -9,12 +9,10 @@ const tmpVec3 = new Vector3();
 
 const viewerDiv = document.getElementById('viewerDiv');
 
-Instance.registerCRS('EPSG:3946',
-    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 '
-        + '+y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 
 const instance = new Instance(viewerDiv, {
-    crs: 'EPSG:3946',
+    crs: 'EPSG:2154',
     renderer: {
         clearColor: 0xcccccc,
     },
@@ -63,3 +61,18 @@ function initializeCamera() {
 instance.add(pointcloud).then(initializeCamera);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+
+instance.domElement.addEventListener('dblclick', e => {
+    const picked = instance.pickObjectsAt(e, { radius: 5, limit: 10, where: ['pointcloud'] });
+    console.log(picked);
+    if (picked.length === 0) {
+        document.getElementById('selectedDiv').innerHTML = 'No object found';
+    } else {
+        document.getElementById('selectedDiv').innerHTML = `
+${picked.length} objects found<br>
+<ol>
+    ${picked.map(p => `<li>${p.point.x.toFixed(2)}, ${p.point.y.toFixed(2)}, ${p.point.z.toFixed(2)} (distance: ${p.distance.toFixed(2)})</li>`).join('')}
+</ol>
+        `;
+    }
+});

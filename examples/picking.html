@@ -1,0 +1,68 @@
+---
+title: Picking objects and raycasting
+shortdesc: Show how to pick objects and raycast programmatically
+---
+<div class="position-relative h-100">
+    <div id="viewerDiv"></div>
+    <div id="panelDiv" class="bg-dark position-absolute top-0 start-0 shadow-sm"></div>
+    <div class="m-2 position-absolute top-0 end-0" style="max-width: 20vw;">
+        <div class="p-2 m-2 card">
+            <form>
+                <div class="row">
+                    <div class="dropdown w-100">
+                        <select class="btn btn-primary dropdown-toggle w-100" id="pickSource">
+                            <option value="0">Pick from whole scene</option>
+                            <option value="1">Pick from pointcloud</option>
+                            <option value="2" selected>Pick from map</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="radiusSlider" class="col-sm-8 col-form-label">Picking radius</label>
+                    <div class="col-sm-4">
+                        <div class="input-group">
+                            <input id="radiusSlider" type="number" min="0" max="10" value="0" class="form-control" />
+                            <span class="input-group-text">px</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <label for="limitSlider" class="col-sm-8 col-form-label">Number of objects (0 for all)</label>
+                    <div class="col-sm-4">
+                        <input id="limitSlider" type="number" min="0" max="100" value="0" class="form-control" />
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="p-2 m-2 card">
+            <span class="badge bg-secondary position-absolute top-0 end-0 m-2" data-bs-toggle="popover" data-bs-content="pickingHelper">?</span>
+            <h5 class="card-title">Picking results</h5>
+            <p class="card-text d-none" id="pickingHelper">Picking lets you pick Giro3d and native THREE.js objects, and get their coordinates in the CRS of the instance.<br>
+            Provides various filtering options to enhance precision and performance.</p>
+            <ul>
+                <li>Time: <span id="pickingTiming"></span></li>
+                <li>Number of objects: <span id="pickingCount"></span></li>
+                <li>First object: <span id="pickingFirstResult"></span></li>
+            </ul>
+        </div>
+        <div class="p-2 m-2 card">
+            <span class="badge bg-secondary position-absolute top-0 end-0 m-2" data-bs-toggle="popover" data-bs-content="raycastingHelper">?</span>
+            <h5 class="card-title">Raycasting results</h5>
+            <p class="card-text d-none" id="raycastingHelper">THREE.js's raycasting lets you pick THREE.js objects (including the ones created by Giro3D). Beware the altitude returned will not always correspond to the real altitude. Performances decrease dramatically as more data is displayed in the view.</p>
+            <ul>
+                <li>Time: <span id="raycastingTiming"></span></li>
+                <li>Number of objects: <span id="raycastingCount"></span></li>
+                <li>First object: <span id="raycastingFirstResult"></span></li>
+            </ul>
+        </div>
+        <div class="p-2 m-2 card">
+            <span class="badge bg-secondary position-absolute top-0 end-0 m-2" data-bs-toggle="popover" data-bs-content="projectingHelper">?</span>
+            <h5 class="card-title">Projecting</h5>
+            <p class="card-text d-none" id="projectingHelper">Projecting assumes a given altitude. This can be useful as a fallback method if there's no data under the mouse.</p>
+            <ul>
+                <li>Time: <span id="projectingTiming"></span></li>
+                <li>Point: <span id="projectingResult"></span></li>
+            </ul>
+        </div>
+    </div>
+</div>

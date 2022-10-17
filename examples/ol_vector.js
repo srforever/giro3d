@@ -180,3 +180,4 @@ customVectorLayer.style = (Style, Fill, Stroke) => () => new Style({
 map.addLayer(customVectorLayer);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));

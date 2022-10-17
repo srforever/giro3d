@@ -46,3 +46,4 @@ instance.add(potree).then(placeCamera);
 instance.notifyChange(instance.camera.camera3D);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e, { radius: 5 })));

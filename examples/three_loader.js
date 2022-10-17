@@ -140,6 +140,37 @@ loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', gltf => {
         });
 
     instance.notifyChange();
+
+    let where = models;
+    document.getElementById('pick_source').addEventListener('change', e => {
+        const newMode = parseInt(e.target.value, 10);
+        if (newMode === 1) {
+            where = [model1];
+        } else if (newMode === 2) {
+            where = [model2];
+        } else if (newMode === 3) {
+            where = [model3];
+        } else {
+            where = models;
+        }
+    });
+
+    instance.domElement.addEventListener('dblclick', e => {
+        const picked = instance.pickObjectsAt(e, { where });
+        if (picked.length === 0) {
+            document.getElementById('selectedDiv').innerHTML = 'No object found';
+        } else {
+            document.getElementById('selectedDiv').innerHTML = `
+${picked.length} objects found<br>
+First object ${picked[0].object.name}:
+<ul>
+<li>Point clicked: ${picked[0].point.x.toFixed(2)}, ${picked[0].point.y.toFixed(2)}, ${picked[0].point.z.toFixed(2)}</li>
+<li>Distance to camera: ${picked[0].distance.toFixed(2)}</li>
+</ul>
+            `;
+        }
+    });
 });
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));

@@ -106,3 +106,12 @@ function initializeCamera() {
 instance.add(pointcloud).then(initializeCamera);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e, {
+    // Specify a radius around where we click so we don't have to precisely be on a point
+    // to select it
+    radius: 5,
+    // Limit the number of results for better performances
+    limit: 10,
+    // Some points are incoherent in the pointcloud, don't pick them
+    filter: p => !Number.isNaN(p.point.z) && p.point.z < 1000,
+})));
