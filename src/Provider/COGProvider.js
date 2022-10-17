@@ -110,11 +110,6 @@ function createTexture(layer, extent, levelImage, computeMinMax = false) {
         result.texture.flipY = true;
         // Attach the extent to the texture to check for possible improvements
         result.texture.extent = extent;
-        if (layer.minmax) {
-            // Add min and max to the texture for this.MinMaxFromTexture
-            result.texture.min = layer.minmax.min;
-            result.texture.max = layer.minmax.max;
-        }
         // Cache the result not to have to fetch the data again
         Cache.set(`${layer.id}${extent._values.join(',')}`, result);
         return result;

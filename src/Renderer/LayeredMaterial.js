@@ -1,8 +1,11 @@
 import {
     CanvasTexture,
     Color,
+    DataTexture,
+    FloatType,
     LinearFilter,
     RawShaderMaterial,
+    RGBFormat,
     ShaderChunk,
     Texture,
     Uniform,
@@ -75,6 +78,16 @@ class LayeredMaterial extends RawShaderMaterial {
         this.lightDirection = { azimuth: 315, zenith: 45 };
         this.uniforms.zenith = { type: 'f', value: 45 };
         this.uniforms.azimuth = { type: 'f', value: 135 };
+
+        if (options.colormap) {
+            this.defines.COLORMAP = 1;
+            this.uniforms.colormapMode = { type: 'i', value: options.colormap.mode };
+            this.uniforms.colormapMin = { type: 'f', value: options.colormap.min };
+            this.uniforms.colormapMax = { type: 'f', value: options.colormap.max };
+            const lut = options.colormap.lut;
+            const vLut = new DataTexture(lut, lut.length / 3, 1, RGBFormat, FloatType);
+            this.uniforms.vLut = new Uniform(vLut);
+        }
 
         this.uniforms.segments = new Uniform(segments);
         if (options.side) {
@@ -354,9 +367,18 @@ class LayeredMaterial extends RawShaderMaterial {
         this.needsUpdate = true;
     }
 
-    update() {
+    update(materialOptions = {}) {
         this.uniforms.zenith.value = this.lightDirection.zenith;
         this.uniforms.azimuth.value = this.lightDirection.azimuth;
+        if (materialOptions.colormap) {
+            this.uniforms.colormapMode.value = materialOptions.colormap.mode;
+            this.uniforms.colormapMin.value = materialOptions.colormap.min;
+            this.uniforms.colormapMax.value = materialOptions.colormap.max;
+            const lut = materialOptions.colormap.lut;
+            this.uniforms.vLut.value = new DataTexture(
+                lut, lut.length / 3, 1, RGBFormat, FloatType,
+            );
+        }
         if (this.colorLayers.length === 0) {
             return true;
         }

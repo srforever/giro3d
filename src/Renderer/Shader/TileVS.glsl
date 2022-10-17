@@ -1,6 +1,7 @@
 #include <PrecisionQualifier>
 
 attribute vec3      position;
+attribute vec3      normal;
 attribute vec2      uv;
 
 uniform sampler2D   elevationTexture;
@@ -21,6 +22,7 @@ uniform vec2 tileDimensions;
 
 varying vec2        vUv;
 varying vec4 vColor;
+varying vec3 vNormal;
 varying vec4 vPosition;
 
 #include <GetElevation>
@@ -45,6 +47,7 @@ float readNeighbourElevation(vec2 uv, int neighbour, sampler2D texture) {
 
 void main() {
     vUv = uv;
+    vNormal = normal;
     vPosition = vec4(position, 1.0);
     vColor = vec4(0., 0., 0., 0.);
 
