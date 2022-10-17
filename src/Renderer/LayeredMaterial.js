@@ -313,7 +313,7 @@ class LayeredMaterial extends RawShaderMaterial {
             const heightFieldOffset = layer.minmax.min;
             this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
             this.uniforms.heightFieldOffset = new Uniform(heightFieldOffset);
-            const heightFieldScale = layer.minmax.max;
+            const heightFieldScale = layer.minmax.max - layer.minmax.min;
             this.texturesInfo.elevation.heightFieldScale = heightFieldScale;
             this.uniforms.heightFieldScale = new Uniform(heightFieldScale);
             this.needsUpdate = true;

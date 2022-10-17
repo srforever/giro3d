@@ -18,7 +18,6 @@ uniform vec3      noTextureColor;
 
 varying vec2        vUv;
 varying vec4 vColor;
-varying vec3 vNormal;
 varying vec4 vPosition;
 
 #include <GetElevation>

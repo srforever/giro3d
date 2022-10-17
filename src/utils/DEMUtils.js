@@ -223,11 +223,18 @@ function _readTextureValueAt(textureInfo, ...uv) {
         uv[i] = MathUtils.clamp(uv[i], 0, texture.image.width - 1);
         uv[i + 1] = MathUtils.clamp(uv[i + 1], 0, texture.image.height - 1);
     }
-
     if (texture.image.data) {
         // read a single value
         if (uv.length === 2) {
-            return texture.image.data[uv[1] * texture.image.width + uv[0]];
+            let raw;
+            if (texture.flipY) {
+                const index = (texture.image.height - uv[1]) * texture.image.width + uv[0];
+                raw = texture.image.data.data[index];
+            } else {
+                raw = texture.image.data[uv[1] * texture.image.width + uv[0]];
+            }
+            const { min, max } = textureInfo.texture;
+            return min + raw * (max - min);
         }
         // or read multiple values
         const result = [];
