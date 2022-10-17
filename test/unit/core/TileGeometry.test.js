@@ -48,12 +48,12 @@ const fakeData = [
 ];
 
 const positionsSquareZ = new Float32Array([
-    -100, -100, 0, -60, -100, 0, -20, -100, 0, 20, -100, 0, 60, -100, 0, 100, -100, 1,
-    -100, -60, 0, -60, -60, 1, -20, -60, 0, 20, -60, 1, 60, -60, 1, 100, -60, 1,
-    -100, -20, 1, -60, -20, 1.5, -20, -20, 1, 20, -20, 0, 60, -20, 0.5, 100, -20, 0.5,
-    -100, 20, 0, -60, 20, 1, -20, 20, 1, 20, 20, 0, 60, 20, 0.5, 100, 20, 0,
-    -100, 60, 1, -60, 60, 1, -20, 60, 1, 20, 60, 0, 60, 60, 1, 100, 60, 1,
-    -100, 100, 1, -60, 100, 1, -20, 100, 1, 20, 100, 1, 60, 100, 1, 100, 100, 0,
+    -100, -100, 0, -60, -100, 0, -20, -100, 0, 20, -100, 0, 60, -100, 0, 100, -100, 0,
+    -100, -60, 0, -60, -60, 0, -20, -60, 0, 20, -60, 0, 60, -60, 0, 100, -60, 0,
+    -100, -20, 0, -60, -20, 0, -20, -20, 0, 20, -20, 0, 60, -20, 0, 100, -20, 0,
+    -100, 20, 0, -60, 20, 0, -20, 20, 0, 20, 20, 0, 60, 20, 0, 100, 20, 0,
+    -100, 60, 0, -60, 60, 0, -20, 60, 0, 20, 60, 0, 60, 60, 0, 100, 60, 0,
+    -100, 100, 0, -60, 100, 0, -20, 100, 0, 20, 100, 0, 60, 100, 0, 100, 100, 0,
 ]);
 
 const fakeDataB = [
@@ -66,12 +66,12 @@ const fakeDataB = [
 ];
 
 const positionsNoData = new Float32Array([
-    100, -100, 1,
-    -60, -60, 1, 20, -60, 1, 60, -60, 1, 100, -60, 1,
-    -100, -20, 1, -60, -20, 1.5, -20, -20, 1, 60, -20, 0.5, 100, -20, 0.5,
-    -60, 20, 1, -20, 20, 1, 60, 20, 0.5,
-    -100, 60, 1, -60, 60, 1, -20, 60, 1, 60, 60, 1, 100, 60, 1,
-    -100, 100, 1, -60, 100, 1, -20, 100, 1, 20, 100, 1, 60, 100, 1,
+    100, -100, 0,
+    -60, -60, 0, 20, -60, 0, 60, -60, 0, 100, -60, 0,
+    -100, -20, 0, -60, -20, 0, -20, -20, 0, 60, -20, 0, 100, -20, 0,
+    -60, 20, 0, -20, 20, 0, 60, 20, 0,
+    -100, 60, 0, -60, 60, 0, -20, 60, 0, 60, 60, 0, 100, 60, 0,
+    -100, 100, 0, -60, 100, 0, -20, 100, 0, 20, 100, 0, 60, 100, 0,
 ]);
 
 const uvsNoData = new Float32Array([
@@ -118,12 +118,12 @@ const indicesRectangle = new Uint32Array([
 ]);
 
 const positionsZSimple = new Float32Array([
-    -100, -100, 1,
-    0, -100, 2,
-    100, -100, 3,
-    -100, 100, 4,
-    0, 100, 5,
-    100, 100, 6,
+    -100, -100, 0,
+    0, -100, 0,
+    100, -100, 0,
+    -100, 100, 0,
+    0, 100, 0,
+    100, 100, 0,
 ]);
 
 describe('TileGeometry', () => {
@@ -159,17 +159,6 @@ describe('TileGeometry', () => {
         assert.deepEqual(geometry.attributes.position.array, positionsZSimple);
         assert.deepEqual(geometry.attributes.uv.array, uvsRectangle);
         assert.deepEqual(geometry.index.array, indicesRectangle);
-    });
-    it('should handle elevation data with simple approach from top to bottom', () => {
-        const elevation1 = [1, 2, 3, 4, 5, 6];
-        const geometry = new TileGeometry({
-            extent, width: 3, height: 2, nodata, direction: 'bottom',
-        }, elevation1);
-        const elevation2 = [4, 5, 6, 1, 2, 3];
-        const positions = geometry.attributes.position.array;
-        for (let i = 0; i < elevation2.length; i++) {
-            assert.equal(elevation2[i], positions[i * 3 + 2]);
-        }
     });
     it('should empty its buffers when computing with only nodata', () => {
         const geometry = new TileGeometry({ extent, segment: 5, nodata }, new Float32Array(36));
