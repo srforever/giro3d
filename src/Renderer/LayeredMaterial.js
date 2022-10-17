@@ -97,8 +97,6 @@ class LayeredMaterial extends RawShaderMaterial {
         this._canvas.width = atlasInfo.maxX;
         this._canvas.height = atlasInfo.maxY;
 
-        this.pendingUpdates = [];
-
         this.texturesInfo = {
             color: {
                 infos: [],
@@ -217,57 +215,42 @@ class LayeredMaterial extends RawShaderMaterial {
             return Promise.resolve();
         }
 
-        this.pendingUpdates.push(layer);
-
-        if (this.setTimeoutId !== null) {
-            clearTimeout(this.setTimeoutId);
+        if (this.uniforms.colorTexture.value !== this.texturesInfo.color.atlasTexture) {
+            this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
         }
-        this.setTimeoutId = setTimeout(() => {
-            if (this.uniforms.colorTexture.value !== this.texturesInfo.color.atlasTexture) {
-                this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
-                for (const l of this.colorLayers) {
-                    if (this.pendingUpdates.indexOf(l) === -1) {
-                        console.warn('no new texture for ', l.id, '. Redrawing the old one');
-                        this.pendingUpdates.push(l);
-                    }
-                }
-            }
 
-            this.rebuildAtlasIfNecessary();
+        this.rebuildAtlasIfNecessary();
 
-            // Draw scheduled textures in canvas
-            for (const l of this.pendingUpdates) {
-                const idx = this.indexOfColorLayer(l);
-                const atlas = this.atlasInfo.atlas[l.id];
+        // Redraw all color layers on the canvas
+        for (const l of this.colorLayers) {
+            const idx = this.indexOfColorLayer(l);
+            const atlas = this.atlasInfo.atlas[l.id];
 
-                updateOffsetScale(
-                    l.imageSize,
-                    this.atlasInfo.atlas[l.id],
-                    this.texturesInfo.color.infos[idx].originalOffsetScale,
-                    this.uniforms.colorTexture.value.image,
-                    this.texturesInfo.color.infos[idx].offsetScale,
-                );
+            updateOffsetScale(
+                l.imageSize,
+                this.atlasInfo.atlas[l.id],
+                this.texturesInfo.color.infos[idx].originalOffsetScale,
+                this.uniforms.colorTexture.value.image,
+                this.texturesInfo.color.infos[idx].offsetScale,
+            );
 
-                const texture = this.texturesInfo.color.infos[idx].texture;
+            const texture = this.texturesInfo.color.infos[idx].texture;
 
-                drawLayerOnCanvas(
-                    l,
-                    this.texturesInfo.color.atlasTexture,
-                    atlas,
-                    (texture.image === this._canvas) ? null : texture,
-                    this.texturesInfo.color.infos[idx].offsetScale,
-                    this.canvasRevision,
-                ).then(() => this.canvasRevision++);
-            }
+            drawLayerOnCanvas(
+                l,
+                this.texturesInfo.color.atlasTexture,
+                atlas,
+                (texture.image === this._canvas) ? null : texture,
+                this.texturesInfo.color.infos[idx].offsetScale,
+                this.canvasRevision,
+            ).then(() => this.canvasRevision++);
+        }
 
-            this.pendingUpdates.length = 0;
-            this.texturesInfo.color.atlasTexture.needsUpdate = true;
+        this.texturesInfo.color.atlasTexture.needsUpdate = true;
 
-            if (this.visible) {
-                instance.notifyChange();
-            }
-            this.setTimeoutId = null;
-        }, 1);
+        if (this.visible) {
+            instance.notifyChange();
+        }
 
         return Promise.resolve();
     }
