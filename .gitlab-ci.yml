@@ -34,6 +34,7 @@ check-commit-message:
     stage: lint
     image: node:lts-alpine
     script:
+        - npm i
         - apk add --no-cache git
         - git fetch origin master
         - git remote set-head origin -a
@@ -65,7 +66,9 @@ lint:
     stage: lint
     needs: [build_lts]
     image: node:lts-alpine
-    script: npm run lint -- --max-warnings=0
+    script:
+        - npm i
+        - npm run lint -- --max-warnings=0
 
 test_unit_lts:
     stage: test-unit
@@ -73,6 +76,7 @@ test_unit_lts:
     needs: [build_lts]
     image: node:lts-alpine
     script:
+        - npm i
         - npm run test-with-coverage
     artifacts:
         paths:
@@ -84,6 +88,7 @@ test_unit_current:
     needs: [build_current]
     image: node:current-alpine
     script:
+        - npm i
         - npm run test-with-coverage
 
 pages:
@@ -91,6 +96,7 @@ pages:
     needs: [test_unit_lts]
     image: node:lts-alpine
     script:
+        - npm i
         - npm run build-site
         - mv build/site public
     artifacts:
