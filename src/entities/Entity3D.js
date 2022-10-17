@@ -169,7 +169,7 @@ class Entity3D extends Entity {
      * @param {module:Core/Instance~Instance} instance The instance
      * @param {object} coordinates The x/y position in the layer
      * @param {object=} options Optional properties. See Instance.pickObjectsAt
-     * @param {object[]=} target Target array to fill
+     * @param {object[]} [target=undefined] Target array to fill
      * @returns {object[]} Picked objects (node)
      */
     pickObjectsAt(instance, coordinates, options, target) {
