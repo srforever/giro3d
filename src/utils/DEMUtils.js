@@ -231,10 +231,10 @@ function _readTextureValueAt(textureInfo, ...uv) {
                 const index = (texture.image.height - uv[1]) * texture.image.width + uv[0];
                 raw = texture.image.data.data[index];
             } else {
-                raw = texture.image.data[uv[1] * texture.image.width + uv[0]];
+                raw = texture.image.data.data[uv[1] * texture.image.width + uv[0]];
             }
             const { min, max } = textureInfo.texture;
-            return min + raw * (max - min);
+            return min + raw / 255.0 * (max - min);
         }
         // or read multiple values
         const result = [];
