@@ -198,6 +198,9 @@ class Map extends Entity3D {
      * @param {object} [options.colormap] Enables [colormapping](https://threejs.org/examples/webgl_geometry_colors_lookuptable.html).
      * @param {number} [options.segments=8] The number of geometry segments in each map tile.
      * The higher the better. For better visual results, it is recommended to use a power of two.
+     * @param {boolean} [options.discardNoData=true] If true, parts of the map that relate to
+     * no-data elevation values are not displayed. Note: you should only set this value to true if
+     * an elevation layer is present, otherwise the map will never be displayed.
      * @param {module:three.Object3D=} options.object3d The optional 3d object to use as the root
      *  object of this map. If none provided, a new one will be created.
      * @param {string} [options.backgroundColor=undefined] The color of the map when no color layers
@@ -221,7 +224,9 @@ class Map extends Entity3D {
         this.lightDirection = { azimuth: 315, zenith: 45 };
 
         this.materialOptions = {
-            hillshading: options.hillshading, colormap: options.colormap,
+            hillshading: options.hillshading,
+            colormap: options.colormap,
+            discardNoData: options.discardNoData,
         };
         if (options.backgroundColor) {
             this.noTextureColor = new Color(options.backgroundColor);

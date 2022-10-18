@@ -111,6 +111,17 @@ const float sLine = 0.003;
 #endif
 
 void main() {
+
+#if defined(DISCARD_NODATA_ELEVATION)
+    // Let's discard transparent pixels in the elevation texture
+    // Important note : if there is no elevation texture, all fragments are discarded
+    // because the default value for texture pixels is zero.
+    vec2 elevUv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
+    if (abs(texture2D(elevationTexture, elevUv).a) < 0.001) {
+        discard;
+    }
+#endif
+
     if (renderingState == 2) {
         gl_FragColor = packDepthToRGBA(float(uuid) / (256.0 * 256.0 * 256.0));
     } else if (renderingState == 1) {
