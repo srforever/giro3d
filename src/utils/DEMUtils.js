@@ -234,12 +234,20 @@ function _readTextureValueAt(textureInfo, ...uv) {
                 raw = texture.image.data.data[uv[1] * texture.image.width + uv[0]];
             }
             const { min, max } = textureInfo.texture;
-            return min + raw / 255.0 * (max - min);
+            return min + (raw / 255.0) * (max - min);
         }
         // or read multiple values
         const result = [];
         for (let i = 0; i < uv.length; i += 2) {
-            result.push(texture.image.data[uv[i + 1] * texture.image.width + uv[i]]);
+            let raw;
+            if (texture.flipY) {
+                const index = (texture.image.height - uv[i + 1]) * texture.image.width + uv[i];
+                raw = texture.image.data.data[index];
+            } else {
+                raw = texture.image.data.data[uv[i + 1] * texture.image.width + uv[i]];
+            }
+            const { min, max } = textureInfo.texture;
+            result.push(min + (raw / 255.0) * (max - min));
         }
         return result;
     }
