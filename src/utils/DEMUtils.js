@@ -226,26 +226,19 @@ function _readTextureValueAt(textureInfo, ...uv) {
     if (texture.image.data) {
         // read a single value
         if (uv.length === 2) {
-            let raw;
-            if (texture.flipY) {
-                const index = (texture.image.height - uv[1]) * texture.image.width + uv[0];
-                raw = texture.image.data.data[index];
-            } else {
-                raw = texture.image.data.data[uv[1] * texture.image.width + uv[0]];
-            }
+            // texture data is RGBA, so we multiply the index by 4
+            const index = (uv[1] * texture.image.width + uv[0]) * 4;
+            const raw = texture.image.data.data[index];
             const { min, max } = textureInfo.texture;
+            // The data is Uint8, normalize it to get it between
+            // 0 (black -> minimum) and 1 (white -> maximum)
             return min + (raw / 255.0) * (max - min);
         }
         // or read multiple values
         const result = [];
         for (let i = 0; i < uv.length; i += 2) {
-            let raw;
-            if (texture.flipY) {
-                const index = (texture.image.height - uv[i + 1]) * texture.image.width + uv[i];
-                raw = texture.image.data.data[index];
-            } else {
-                raw = texture.image.data.data[uv[i + 1] * texture.image.width + uv[i]];
-            }
+            const index = (uv[i + 1] * texture.image.width + uv[i]) * 4;
+            const raw = texture.image.data.data[index];
             const { min, max } = textureInfo.texture;
             result.push(min + (raw / 255.0) * (max - min));
         }
