@@ -309,7 +309,14 @@ class LayeredMaterial extends RawShaderMaterial {
                 this.defines.RATP_GEOL_ELEVATION = 1;
             }
         } else if (layer.elevationFormat === ELEVATION_FORMAT.NUMERIC) {
-            this.defines.HEIGHTFIELD_ELEVATION = 1;
+            if (textureAndPitch.texture.type === FloatType) {
+                // In the case of raw, float textures, we don't want to apply scaling in the shader.
+                this.defines.RAW_ELEVATION = 1;
+                this.defines.HEIGHTFIELD_ELEVATION = 0;
+            } else {
+                this.defines.HEIGHTFIELD_ELEVATION = 1;
+                this.defines.RAW_ELEVATION = 0;
+            }
             const heightFieldOffset = layer.minmax.min;
             this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
             this.uniforms.heightFieldOffset = new Uniform(heightFieldOffset);
