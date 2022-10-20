@@ -110,6 +110,14 @@ controls.maxPolarAngle = Math.PI / 2.3;
 
 instance.useTHREEControls(controls);
 
+const hillshadingCheckbox = document.getElementById('hillshadingCheckbox');
+
+hillshadingCheckbox.oninput = function oninput() {
+    const state = hillshadingCheckbox.checked;
+    map.materialOptions.hillshading = state;
+    instance.notifyChange(map);
+};
+
 const opacitySlider = document.getElementById('opacitySlider');
 
 opacitySlider.oninput = function oninput() {
