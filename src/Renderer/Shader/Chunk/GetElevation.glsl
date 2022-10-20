@@ -30,6 +30,10 @@ float getElevation(sampler2D texture, vec2 uv) {
         }
         val *= zShift;
         return (val.x + val.y + val.z) - 2000.0;
+    #elif defined(RAW_ELEVATION)
+        // No transformation to do
+        vec4 c = texture2D(texture, uv);
+        return c.r;
     #else
     return 0.0;
     #endif

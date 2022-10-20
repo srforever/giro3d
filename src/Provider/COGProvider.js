@@ -1,5 +1,7 @@
 import { fromUrl, Pool } from 'geotiff';
-import { Vector4, DataTexture } from 'three';
+import { Vector4, FloatType, UnsignedByteType } from 'three';
+import ColorLayer from '../Core/layer/ColorLayer.js';
+import createDataTexture from '../utils/TextureGenerator.js';
 
 import Cache from '../Core/Scheduler/Cache.js';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
@@ -36,57 +38,35 @@ function makeWindowFromExtent(layer, extent, resolution) {
     ];
 }
 
-function processArrayData(layer, arrayData) {
+function selectDataType(bytesPerPixel, bandCount) {
+    if (bandCount === bytesPerPixel) {
+        return UnsignedByteType;
+    }
+
+    return FloatType;
+}
+
+function processArrayData(layer, arrayData, compressTo8bit) {
     // Width and height in pixels of the returned data
     const { width, height } = arrayData;
-    // We have to check wether it is an array of colors because we
-    // want to handle floating point intensity files as color
-    // layers too
-    const data = new Uint8ClampedArray(width * height * 4);
-    // If there are 3 bands, assume that it's RGB
-    if (arrayData.length === 3) {
-        const [r, g, b] = arrayData;
-        for (let i = 0, l = r.length; i < l; i++) {
-            const i4 = i * 4;
-            data[i4 + 0] = r[i];
-            data[i4 + 1] = g[i];
-            data[i4 + 2] = b[i];
-            data[i4 + 3] = 255;
-        }
-    // If there are 4 bands, assume that it's RGBA
-    } else if (arrayData.length === 4) {
-        const [r, g, b, a] = arrayData;
-        for (let i = 0, l = r.length; i < l; i++) {
-            const i4 = i * 4;
-            data[i4 + 0] = r[i];
-            data[i4 + 1] = g[i];
-            data[i4 + 2] = b[i];
-            data[i4 + 3] = a[i];
-        }
-    // Else if there is only one band, assume that it's not colored and
-    // normalize it.
-    } else {
-        if (arrayData.length !== 1) {
-            console.warn(
-                "Band selection isn't implemented yet.",
-                'Processing the first one as if it was a 1-band file.',
-            );
-        }
-        const [v] = arrayData;
-        const nodata = layer.nodata;
-        const dataMin = layer.minmax.min;
-        const dataFactor = 255 / (layer.minmax.max - dataMin);
-        for (let i = 0, l = v.length; i < l; i++) {
-            const vi = v[i];
-            const value = Math.round((vi - dataMin) * dataFactor);
-            const i4 = i * 4;
-            data[i4 + 0] = value;
-            data[i4 + 1] = value;
-            data[i4 + 2] = value;
-            data[i4 + 3] = vi === nodata ? 0 : 255;
-        }
-    }
-    return { data, width, height };
+
+    const dataType = selectDataType(layer.bpp, arrayData.length, compressTo8bit);
+
+    const scaling = ((compressTo8bit || dataType === UnsignedByteType) && layer.minmax)
+        ? { min: layer.minmax.min, max: layer.minmax.max }
+        : undefined;
+
+    const texture = createDataTexture(
+        width,
+        height, {
+            nodata: layer.nodata,
+            scaling,
+        },
+        dataType,
+        ...arrayData,
+    );
+
+    return texture;
 }
 
 function createTexture(layer, extent, levelImage, computeMinMax = false) {
@@ -104,9 +84,8 @@ function createTexture(layer, extent, levelImage, computeMinMax = false) {
         // Attach arrayData to the result to recreate TileGeometry in ElevationLayer
         const result = { arrayData, pitch: new Vector4(0, 0, 1, 1) };
         // Process the downloaded data
-        const { data, width, height } = processArrayData(layer, arrayData);
-        const imageData = new ImageData(data, width, height);
-        result.texture = new DataTexture(imageData, width, height);
+        const compressTo8bit = layer instanceof ColorLayer;
+        result.texture = processArrayData(layer, arrayData, compressTo8bit);
         result.texture.flipY = true;
         // Attach the extent to the texture to check for possible improvements
         result.texture.extent = extent;
@@ -136,6 +115,7 @@ async function getImages(layer) {
     const firstImage = await tiff.getImage();
     // Get the origin
     layer.origin = firstImage.getOrigin();
+    layer.bpp = firstImage.getBytesPerPixel();
     // Get the nodata value
     layer.nodata = firstImage.getGDALNoData();
     // Prepare the different images and their corresponding sizes

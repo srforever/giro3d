@@ -6,6 +6,7 @@ import {
     Object3D,
     Triangle,
     Vector2,
+    UnsignedByteType,
 } from 'three';
 import Coordinates from '../Core/Geographic/Coordinates.js';
 
@@ -224,23 +225,43 @@ function _readTextureValueAt(textureInfo, ...uv) {
         uv[i + 1] = MathUtils.clamp(uv[i + 1], 0, texture.image.height - 1);
     }
     if (texture.image.data) {
+        // Explanation : if the texture is a data texture, it can either reference directly a
+        // buffer, or reference an ImageData, that will contain the buffer,
+        // hence the level of indirection.
+        let buf;
+
+        if (texture.image.data.data) {
+            buf = texture.image.data.data;
+        } else {
+            buf = texture.image.data;
+        }
+
         // read a single value
         if (uv.length === 2) {
             // texture data is RGBA, so we multiply the index by 4
             const index = (uv[1] * texture.image.width + uv[0]) * 4;
-            const raw = texture.image.data.data[index];
+            const raw = buf[index];
             const { min, max } = textureInfo.texture;
-            // The data is Uint8, normalize it to get it between
-            // 0 (black -> minimum) and 1 (white -> maximum)
-            return min + (raw / 255.0) * (max - min);
+
+            if (texture.type === UnsignedByteType) {
+                // The data is Uint8, normalize it to get it between
+                // 0 (black -> minimum) and 1 (white -> maximum)
+                return min + (raw / 255.0) * (max - min);
+            }
+
+            return raw;
         }
         // or read multiple values
         const result = [];
         for (let i = 0; i < uv.length; i += 2) {
             const index = (uv[i + 1] * texture.image.width + uv[i]) * 4;
-            const raw = texture.image.data.data[index];
-            const { min, max } = textureInfo.texture;
-            result.push(min + (raw / 255.0) * (max - min));
+            const raw = buf[index];
+            if (texture.type === UnsignedByteType) {
+                const { min, max } = textureInfo.texture;
+                result.push(min + (raw / 255.0) * (max - min));
+            } else {
+                result.push(raw);
+            }
         }
         return result;
     }
