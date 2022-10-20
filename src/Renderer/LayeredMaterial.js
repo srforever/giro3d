@@ -299,10 +299,10 @@ class LayeredMaterial extends RawShaderMaterial {
             if (textureAndPitch.texture.type === FloatType) {
                 // In the case of raw, float textures, we don't want to apply scaling in the shader.
                 this.defines.RAW_ELEVATION = 1;
-                this.defines.HEIGHTFIELD_ELEVATION = 0;
+                delete this.defines.HEIGHTFIELD_ELEVATION;
             } else {
                 this.defines.HEIGHTFIELD_ELEVATION = 1;
-                this.defines.RAW_ELEVATION = 0;
+                delete this.defines.RAW_ELEVATION;
             }
             const heightFieldOffset = layer.minmax.min;
             this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
