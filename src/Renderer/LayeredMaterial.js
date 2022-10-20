@@ -71,23 +71,10 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.atlasInfo = atlasInfo;
         this.defines.STITCHING = 1;
-        if (options.hillshading) {
-            this.defines.HILLSHADE = 1;
-        }
 
         this.lightDirection = { azimuth: 315, zenith: 45 };
         this.uniforms.zenith = { type: 'f', value: 45 };
         this.uniforms.azimuth = { type: 'f', value: 135 };
-
-        if (options.colormap) {
-            this.defines.COLORMAP = 1;
-            this.uniforms.colormapMode = { type: 'i', value: options.colormap.mode };
-            this.uniforms.colormapMin = { type: 'f', value: options.colormap.min };
-            this.uniforms.colormapMax = { type: 'f', value: options.colormap.max };
-            const lut = options.colormap.lut;
-            const vLut = new DataTexture(lut, lut.length / 3, 1, RGBFormat, FloatType);
-            this.uniforms.vLut = new Uniform(vLut);
-        }
 
         this.uniforms.segments = new Uniform(segments);
         if (options.side) {
@@ -312,10 +299,10 @@ class LayeredMaterial extends RawShaderMaterial {
             if (textureAndPitch.texture.type === FloatType) {
                 // In the case of raw, float textures, we don't want to apply scaling in the shader.
                 this.defines.RAW_ELEVATION = 1;
-                this.defines.HEIGHTFIELD_ELEVATION = 0;
+                delete this.defines.HEIGHTFIELD_ELEVATION;
             } else {
                 this.defines.HEIGHTFIELD_ELEVATION = 1;
-                this.defines.RAW_ELEVATION = 0;
+                delete this.defines.RAW_ELEVATION;
             }
             const heightFieldOffset = layer.minmax.min;
             this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
@@ -375,9 +362,22 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     update(materialOptions = {}) {
+        let recompileShaders = false;
         this.uniforms.zenith.value = this.lightDirection.zenith;
         this.uniforms.azimuth.value = this.lightDirection.azimuth;
+
         if (materialOptions.colormap) {
+            if (!this.defines.COLORMAP) {
+                this.defines.COLORMAP = 1;
+                recompileShaders = true;
+            }
+            // Recreate uniforms if necessary
+            if (!this.uniforms.colormapMode) {
+                this.uniforms.colormapMode = { type: 'i', value: materialOptions.colormap.mode };
+                this.uniforms.colormapMin = { type: 'f', value: materialOptions.colormap.min };
+                this.uniforms.colormapMax = { type: 'f', value: materialOptions.colormap.max };
+                this.uniforms.vLut = new Uniform();
+            }
             this.uniforms.colormapMode.value = materialOptions.colormap.mode;
             this.uniforms.colormapMin.value = materialOptions.colormap.min;
             this.uniforms.colormapMax.value = materialOptions.colormap.max;
@@ -385,7 +385,21 @@ class LayeredMaterial extends RawShaderMaterial {
             this.uniforms.vLut.value = new DataTexture(
                 lut, lut.length / 3, 1, RGBFormat, FloatType,
             );
+        } else if (this.defines.COLORMAP) {
+            delete this.defines.COLORMAP;
+            recompileShaders = true;
         }
+
+        if (materialOptions.hillshading && !this.defines.HILLSHADE) {
+            this.defines.HILLSHADE = 1;
+            recompileShaders = true;
+        } else if (!materialOptions.hillshading && this.defines.HILLSHADE) {
+            delete this.defines.HILLSHADE;
+            recompileShaders = true;
+        }
+
+        this.needsUpdate = recompileShaders;
+
         if (this.colorLayers.length === 0) {
             return true;
         }

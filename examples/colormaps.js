@@ -118,21 +118,28 @@ map.addLayer(new ElevationLayer('dem', {
     projection: 'EPSG:2154',
 }));
 
-function changeColoring() {
-    map.materialOptions.colormap.mode = coloringModes[coloringOptions.value];
-    map.materialOptions.colormap.min = coloringBounds[coloringOptions.value][0];
-    map.materialOptions.colormap.max = coloringBounds[coloringOptions.value][1];
+const colorMapCheckbox = document.getElementById('colorMapCheckbox');
+
+colorMapCheckbox.oninput = function oninput() {
+    updateColorMap();
+};
+
+function updateColorMap() {
+    if (colorMapCheckbox.checked) {
+        map.materialOptions.colormap = {};
+        map.materialOptions.colormap.lut = luts[colormapOptions.value];
+        map.materialOptions.colormap.mode = coloringModes[coloringOptions.value];
+        map.materialOptions.colormap.min = coloringBounds[coloringOptions.value][0];
+        map.materialOptions.colormap.max = coloringBounds[coloringOptions.value][1];
+    } else {
+        map.materialOptions.colormap = undefined;
+    }
     instance.notifyChange(map);
 }
-document.getElementById('coloringOptions').addEventListener('change', () => changeColoring());
+document.getElementById('coloringOptions').addEventListener('change', () => updateColorMap());
 
-function changeColormap() {
-    map.materialOptions.colormap.lut = luts[colormapOptions.value];
-    instance.notifyChange(map);
-}
-colormapOptions.addEventListener('change', () => changeColormap());
+colormapOptions.addEventListener('change', () => updateColorMap());
 
-changeColoring();
-changeColormap();
+updateColorMap();
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
