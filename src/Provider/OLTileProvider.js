@@ -119,7 +119,9 @@ async function combineImages(sourceImages, layer, targetExtent) {
     });
 
     sourceImages.forEach(img => {
-        canvas.draw(img, img.extent);
+        if (img) {
+            canvas.draw(img, img.extent);
+        }
     });
 
     const texture = new CanvasTexture(canvas.canvas);
@@ -149,7 +151,11 @@ function loadTiles(extent, zoom, layer) {
     tileGrid.forEachTileCoord(toOLExtent(extent), zoom, ([z, i, j]) => {
         const tile = source.getTile(z, i, j);
         const tileExtent = fromOLExtent(tileGrid.getTileCoordExtent(tile.tileCoord), crs);
-        const promise = loadTile(tile, tileExtent);
+        const promise = loadTile(tile, tileExtent).catch(e => {
+            if (e) {
+                console.error(e);
+            }
+        });
         promises.push(promise);
     });
 
