@@ -10,6 +10,10 @@ pip install commitizen
 
 This will install the `cz` utility in your python packages folder (by default `$HOME/.local/bin/cz`).
 
+## Create a release branch
+
+Before anything, create a branch `release_vX.Y.Z` where `X.Y.Z` is the release version number.
+
 ## Generate the changelog
 
 - review the changes between the last release and the current `master`, with the following command
