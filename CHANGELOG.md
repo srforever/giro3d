@@ -1,5 +1,44 @@
 # Changelog
 
+## v0.7.0 (2022-10-20)
+
+This release contains a lot of features and bugfixes related to map and terrain rendering, most notably colormapping and hillshading. No breaking changes.
+
+### Feat
+
+- **LayeredMaterial**: hillshading and colormaps can now be toggled
+- handle raw elevation values in shaders
+- **Picking**: add filter options to filter results
+- **Picking**: add support of filter option for all picking methods
+- **Picking**: add limit options to limit the number of items to pick
+- **Colormapping**: colorize elevation, slope and aspect by an color array LUT
+- **Hillshading**: parametrize light directions for hillshade calculation
+
+### Fix
+
+- **LayeredMaterial**: fix incorrect manipulation of elevation defines
+- **OLTileProvider**: handle missing tiles in the source
+- **DEMUtils**: handle non-byte elevation textures
+- **COGProvider**: handle 32-bit float data
+- **DEMUtils**: fix reading value from textures image data
+- **DEMUtils**: normalize pixel value coming from image.data and fix flipY=false
+- **DEMUtils**: correct elevation from textures image data
+- **Picking**: fix where filter to ensure object is supported
+- **Picking**: fix mouse position when picking on multiple sources
+- **LayeredMaterial.js**: remove delayed repaint of the atlas
+- **examples**: fix elevation values
+
+### Refactor
+
+- **Picking**: started cleaning-up pickObjectsAt redefinitions
+- **Picking**: passing radius&filter as options
+- **lightDirection**: expose lightDirection to the Map entity
+- **Hillshading**: change where the hillshade options are set and applied (better API)
+
+### Perf
+
+- **Picking**: avoid creating unnecessary arrays when picking
+
 ## v0.6.0 (2022-10-13)
 
 This release contains mainly bugfixes around HTML layout and map display. No breaking changes.
