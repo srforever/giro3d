@@ -130,6 +130,7 @@ class LayeredMaterial extends RawShaderMaterial {
         this.uniforms.elevationOffsetScale = new Uniform(
             this.texturesInfo.elevation.offsetScale,
         );
+        this.uniforms.elevationTextureSize = new Uniform(new Vector2());
         this.uniforms.nTex = new Uniform(this.texturesInfo.elevation.neighbours.texture);
         this.uniforms.nOff = new Uniform(this.texturesInfo.elevation.neighbours.offsetScale);
 
@@ -318,10 +319,12 @@ class LayeredMaterial extends RawShaderMaterial {
         } else {
             throw new Error('Missing layer.elevationFormat handling', layer.elevationFormat);
         }
-        this.uniforms.elevationTexture.value = textureAndPitch.texture;
-        this.texturesInfo.elevation.texture = textureAndPitch.texture;
+        const texture = textureAndPitch.texture;
+        this.uniforms.elevationTexture.value = texture;
+        this.texturesInfo.elevation.texture = texture;
         this.texturesInfo.elevation.offsetScale.copy(textureAndPitch.pitch);
         this.texturesInfo.elevation.format = layer.elevationFormat;
+        this.uniforms.elevationTextureSize.value.set(texture.image.width, texture.image.height);
 
         return Promise.resolve(true);
     }
