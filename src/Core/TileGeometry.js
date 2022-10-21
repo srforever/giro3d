@@ -6,6 +6,17 @@ import { BufferAttribute, BufferGeometry, Vector3 } from 'three';
 
 import OBB from '../Renderer/ThreeExtended/OBB.js';
 
+function computeVertexCount(array, nodata) {
+    let count = 0;
+    for (let i = 0; i < array.length; i++) {
+        if (array[i] !== nodata) {
+            ++count;
+        }
+    }
+
+    return count;
+}
+
 /**
  * The TileGeometry provides a new buffer geometry for each
  * {@link module:Core/TileMesh~TileMesh TileMesh} of a
@@ -68,7 +79,7 @@ class TileGeometry extends BufferGeometry {
         // Compute buffers (no normals because the z displacement is in the shader)
         if (!geometry) {
             if (data && this.props.nodata !== undefined) {
-                this.props.numVertices = data.filter(x => x !== this.props.nodata).length;
+                this.props.numVertices = computeVertexCount(data, this.props.nodata);
                 if (this.props.numVertices === this.props.width * this.props.height) {
                     // No nodata values, simple grid with elevation
                     this.computeBuffers(this.props);
