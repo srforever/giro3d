@@ -43,7 +43,12 @@ controls.target.set(center.x, center.y, center.z);
 instance.useTHREEControls(controls);
 
 // Construct a map and add it to the instance
-const map = new Map('planar', { extent, discardNoData: true, backgroundColor: new Color(0, 0, 0) });
+const map = new Map('planar', {
+    extent,
+    discardNoData: true,
+    backgroundColor: new Color(0, 0, 0),
+    hillshading: true,
+});
 instance.add(map);
 
 // Use an elevation COG with nodata values
