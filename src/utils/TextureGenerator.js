@@ -5,6 +5,7 @@ import {
 export const OPAQUE_BYTE = 255;
 export const OPAQUE_FLOAT = 1.0;
 export const TRANSPARENT = 0;
+export const DEFAULT_NODATA = 0;
 
 // Important note : a lot of code is duplicated to avoid putting
 // conditional branches inside loops, as this can severely reduce performance.
@@ -28,10 +29,20 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
             const length = v.length;
             for (let i = 0; i < length; i++) {
                 const idx = i * 4;
+                const raw = v[i];
                 // and handle no data values
-                const isNodata = v[i] === nodata;
-                const value = getValue(v[i]);
-                const a = isNodata ? TRANSPARENT : opaqueValue;
+                let value;
+                let a;
+                if (Number.isNaN(raw)) {
+                    value = options.nodata;
+                    a = TRANSPARENT;
+                } else if (raw === nodata) {
+                    value = getValue(raw);
+                    a = TRANSPARENT;
+                } else {
+                    value = getValue(raw);
+                    a = opaqueValue;
+                }
                 buf[idx + 0] = value;
                 buf[idx + 1] = value;
                 buf[idx + 2] = value;
@@ -41,12 +52,21 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
             const v = pixelData[0];
             const length = v.length;
             for (let i = 0; i < length; i++) {
-                const value = getValue(v[i]);
                 const idx = i * 4;
+                let value;
+                let a;
+                const raw = v[i];
+                if (Number.isNaN(raw)) {
+                    value = DEFAULT_NODATA;
+                    a = TRANSPARENT;
+                } else {
+                    value = getValue(raw);
+                    a = opaqueValue;
+                }
                 buf[idx + 0] = value;
                 buf[idx + 1] = value;
                 buf[idx + 2] = value;
-                buf[idx + 3] = opaqueValue;
+                buf[idx + 3] = a;
             }
         }
     }
