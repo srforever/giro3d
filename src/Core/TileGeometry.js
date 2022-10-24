@@ -17,6 +17,10 @@ function computeVertexCount(array, nodata) {
     return count;
 }
 
+const tmp = {
+    dimensions: { x: 0, y: 0 },
+};
+
 /**
  * The TileGeometry provides a new buffer geometry for each
  * {@link module:Core/TileMesh~TileMesh TileMesh} of a
@@ -55,7 +59,7 @@ class TileGeometry extends BufferGeometry {
         // Compute properties of the grid, square or rectangular.
         const width = params.width || params.segment + 1;
         const height = params.height || params.segment + 1;
-        const dimension = this.extent.dimensions();
+        const dimension = this.extent.dimensions(tmp.dimensions);
         const segmentX = width - 1;
         const segmentY = height - 1;
         const uvStepX = 1 / segmentX;
