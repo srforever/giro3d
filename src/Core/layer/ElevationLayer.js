@@ -283,14 +283,14 @@ class ElevationLayer extends Layer {
             // When the tile is created, we try to inherit the texture from a parent or ancestor,
             // to be able to display something until our own texture is loaded.
             if (this.initNodeElevationTextureFromParent(node, parent)) {
-                context.instance.notifyChange(node, false);
+                context.instance.notifyChange(node);
                 return null;
             }
 
             // When no ancestor has an available texture, let's use the low resolution root texture
             if (this.rootTexture) {
                 this.initNodeFromRootTexture(node);
-                context.instance.notifyChange(node, false);
+                context.instance.notifyChange(node);
                 return null;
             }
         }
@@ -385,6 +385,7 @@ class ElevationLayer extends Layer {
             elevation.max = max;
             node.setTextureElevation(this, elevation);
             node.layerUpdateState[this.id].success();
+            context.instance.notifyChange(node);
         });
     }
 }

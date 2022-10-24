@@ -1,4 +1,5 @@
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { Color } from 'three';
 import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
 import CogSource from '@giro3d/giro3d/sources/CogSource.js';
 import Instance from '@giro3d/giro3d/Core/Instance.js';
@@ -42,7 +43,7 @@ controls.target.set(center.x, center.y, center.z);
 instance.useTHREEControls(controls);
 
 // Construct a map and add it to the instance
-const map = new Map('planar', { extent });
+const map = new Map('planar', { extent, discardNoData: true, backgroundColor: new Color(0, 0, 0) });
 instance.add(map);
 
 // Use an elevation COG with nodata values

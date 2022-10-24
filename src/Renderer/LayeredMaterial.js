@@ -76,6 +76,10 @@ class LayeredMaterial extends RawShaderMaterial {
         this.uniforms.zenith = { type: 'f', value: 45 };
         this.uniforms.azimuth = { type: 'f', value: 135 };
 
+        if (options.discardNoData) {
+            this.defines.DISCARD_NODATA_ELEVATION = 1;
+        }
+
         this.uniforms.segments = new Uniform(segments);
         if (options.side) {
             this.side = options.side;
