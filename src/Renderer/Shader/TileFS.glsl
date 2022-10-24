@@ -24,6 +24,7 @@ varying vec4 vPosition;
 uniform sampler2D elevationTexture;
 uniform vec4      elevationOffsetScale;
 uniform vec2      tileDimensions;
+uniform vec2      elevationTextureSize;
 #define M_PI 3.1415926535897932384626433832795
 
 #include <ComputeUV>
@@ -32,21 +33,39 @@ uniform vec2      tileDimensions;
 uniform int  uuid;
 
 vec2 computeDerivatives() {
-    // Maybe could be done with dFdx and dFdy of the derivatives extension ?
-    vec2 onePixel = vec2(1.0) / 256.0;
+    // Compute pixel dimensions, in normalized coordinates.
+    // Since textures are not necessarily square, we must compute both width and height separately.
+    float texWidth = elevationTextureSize.x;
+    float texHeight = elevationTextureSize.y;
+
+    float width = 1.0 / texWidth;
+    float height = 1.0 / texHeight;
+
     vec2 vVv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
-    float a = getElevation(elevationTexture, vVv + onePixel * vec2(-1.0, 1.0));
-    float b = getElevation(elevationTexture, vVv + onePixel * vec2( 0.0, 1.0));
-    float c = getElevation(elevationTexture, vVv + onePixel * vec2( 1.0, 1.0));
-    float d = getElevation(elevationTexture, vVv + onePixel * vec2(-1.0, 0.0));
-    float e = getElevation(elevationTexture, vVv + onePixel * vec2( 0.0, 0.0));
-    float f = getElevation(elevationTexture, vVv + onePixel * vec2( 1.0, 0.0));
-    float g = getElevation(elevationTexture, vVv + onePixel * vec2(-1.0, -1.0));
-    float h = getElevation(elevationTexture, vVv + onePixel * vec2( 0.0, -1.0));
-    float i = getElevation(elevationTexture, vVv + onePixel * vec2( 1.0, -1.0));
-    vec2 cellsize = tileDimensions / (elevationOffsetScale.zw * 256.0);
-    float dzdx = ((c + 2.0 * f + i) - (a + 2.0 * d + g)) / (8.0 * cellsize.x);
-    float dzdy = ((g + 2.0 * h + i) - (a + 2.0 * b + c)) / (8.0 * cellsize.y);
+
+    // Now compute the elevations for the 8 neigbouring pixels
+    // +---+---+---+
+    // | a | b | c |
+    // +---+---+---+
+    // | d | e | f |
+    // +---+---+---+
+    // | g | h | i |
+    // +---+---+---+
+    // Note: 'e' is the center of the sample. We don't use it for derivative computation.
+    float a = getElevation(elevationTexture, vVv + vec2(-width, height));
+    float b = getElevation(elevationTexture, vVv + vec2( 0.0, height));
+    float c = getElevation(elevationTexture, vVv + vec2( width, height));
+    float d = getElevation(elevationTexture, vVv + vec2(-width, 0.0));
+    float f = getElevation(elevationTexture, vVv + vec2( width, 0.0));
+    float g = getElevation(elevationTexture, vVv + vec2(-width, -height));
+    float h = getElevation(elevationTexture, vVv + vec2( 0.0, -height));
+    float i = getElevation(elevationTexture, vVv + vec2( width, -height));
+
+    float cellWidth = tileDimensions.x / (elevationOffsetScale.z * elevationTextureSize.x);
+    float cellHeight = tileDimensions.y / (elevationOffsetScale.w * elevationTextureSize.y);
+    float dzdx = ((c + 2.0 * f + i) - (a + 2.0 * d + g)) / (8.0 * cellWidth);
+    float dzdy = ((g + 2.0 * h + i) - (a + 2.0 * b + c)) / (8.0 * cellHeight);
+
     return vec2(dzdx, dzdy);
 }
 
