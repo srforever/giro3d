@@ -102,7 +102,9 @@ class Panel {
      * @api
      */
     update() {
-        this.updateControllers();
+        if (!this.gui._closed) {
+            this.updateControllers();
+        }
     }
 
     /**
