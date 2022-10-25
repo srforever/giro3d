@@ -85,33 +85,29 @@ function requestNewTile(map, extent, parent, level) {
         -dim.y * 0.5, dim.y * 0.5,
     );
     const segment = map.segments || 8;
+    const key = `${segment}_${level}_${sharableExtent._values.join(',')}`;
 
-    let key = `${map.id}${extent._values.join(',')}`;
     let geometry = Cache.get(key);
+    // build geometry if doesn't exist
     if (!geometry) {
-        key = `${sharableExtent._values.join(',')}`;
         const paramsGeometry = {
             extent: sharableExtent,
+            level,
             segment,
         };
-        geometry = Cache.get(key);
-        if (!geometry) {
-            // build geometry if doesn't exist
-            geometry = new TileGeometry(paramsGeometry);
-            Cache.set(key, geometry);
-        } else {
-            // copy from cache
-            geometry = new TileGeometry(paramsGeometry, undefined, geometry);
-        }
+
+        geometry = new TileGeometry(paramsGeometry);
+        Cache.set(key, geometry);
+
+        geometry._count = 0;
+        geometry.dispose = () => {
+            geometry._count--;
+            if (geometry._count === 0) {
+                BufferGeometry.prototype.dispose.call(geometry);
+                Cache.delete(key);
+            }
+        };
     }
-    geometry._count = 0;
-    geometry.dispose = () => {
-        geometry._count--;
-        if (geometry._count === 0) {
-            BufferGeometry.prototype.dispose.call(geometry);
-            Cache.delete(key);
-        }
-    };
 
     // build tile
     geometry._count++;
