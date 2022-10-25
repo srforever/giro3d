@@ -116,7 +116,7 @@ function requestNewTile(map, extent, parent, level) {
     // build tile
     geometry._count++;
     const material = new LayeredMaterial(
-        map.materialOptions, segment, map.atlasInfo,
+        map.materialOptions, geometry.props, map.atlasInfo,
     );
     const tile = new TileMesh(map, geometry, material, extent, level);
     tile.layers.set(map.threejsLayer);
