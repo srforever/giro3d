@@ -88,8 +88,6 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.defines.TEX_UNITS = 0;
 
-        this.uniforms.showOutline = new Uniform(false);
-
         if (__DEBUG__) {
             this.defines.DEBUG = 1;
         }
@@ -402,6 +400,14 @@ class LayeredMaterial extends RawShaderMaterial {
             recompileShaders = true;
         } else if (!materialOptions.hillshading && this.defines.HILLSHADE) {
             delete this.defines.HILLSHADE;
+            recompileShaders = true;
+        }
+
+        if (this.showOutline && !this.defines.OUTLINES) {
+            this.defines.OUTLINES = 1;
+            recompileShaders = true;
+        } else if (!this.showOutline && this.defines.OUTLINES) {
+            delete this.defines.OUTLINES;
             recompileShaders = true;
         }
 

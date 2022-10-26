@@ -124,8 +124,7 @@ uniform float     colormapMax;
 uniform sampler2D vLut;
 #endif
 
-#if defined(DEBUG)
-uniform bool showOutline;
+#if defined(OUTLINES)
 const float sLine = 0.003;
 #endif
 
@@ -199,8 +198,8 @@ void main() {
         gl_FragColor.rgb *= hillshade;
 #endif
 
-#if defined(DEBUG)
-        if (showOutline && (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine)) {
+#if defined(OUTLINES)
+        if (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine) {
             gl_FragColor.rgb = mix(vec3(1.0, 0.0, 0.0), gl_FragColor.rgb, 0.2);
         }
 #endif
