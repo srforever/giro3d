@@ -18,6 +18,10 @@ In addition to contributing to core giro3d code, we appreciate many types of con
 * Submitting issues as [described below](#submitting-an-issue)
 * Triaging issues. Browse the [issues](https://gitlab.com/giro3d/giro3d/-/issues) and comment on issues that are no longer reproducible or on issues for which you have additional information
 
+## Good first issue
+
+Browse the [issues](https://gitlab.com/giro3d/giro3d/-/issues) and search for the `good first issue` label, indicating a low-effort issue that is suitable to a newcomer.
+
 ## Submitting an Issue
 
 If you think you've found a bug in giro3d, first search the [giro3d issues](https://gitlab.com/giro3d/giro3d/-/issues). If an issue already exists, you can add a comment with any additional information. Use reactions (not comments) to express your interest. This helps prioritize issues.
