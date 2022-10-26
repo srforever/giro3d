@@ -6,6 +6,21 @@ import { BufferAttribute, BufferGeometry, Vector3 } from 'three';
 
 import OBB from '../Renderer/ThreeExtended/OBB.js';
 
+function computeVertexCount(array, nodata) {
+    let count = 0;
+    for (let i = 0; i < array.length; i++) {
+        if (array[i] !== nodata) {
+            ++count;
+        }
+    }
+
+    return count;
+}
+
+const tmp = {
+    dimensions: { x: 0, y: 0 },
+};
+
 /**
  * The TileGeometry provides a new buffer geometry for each
  * {@link module:Core/TileMesh~TileMesh TileMesh} of a
@@ -44,7 +59,7 @@ class TileGeometry extends BufferGeometry {
         // Compute properties of the grid, square or rectangular.
         const width = params.width || params.segment + 1;
         const height = params.height || params.segment + 1;
-        const dimension = this.extent.dimensions();
+        const dimension = this.extent.dimensions(tmp.dimensions);
         const segmentX = width - 1;
         const segmentY = height - 1;
         const uvStepX = 1 / segmentX;
@@ -68,7 +83,7 @@ class TileGeometry extends BufferGeometry {
         // Compute buffers (no normals because the z displacement is in the shader)
         if (!geometry) {
             if (data && this.props.nodata !== undefined) {
-                this.props.numVertices = data.filter(x => x !== this.props.nodata).length;
+                this.props.numVertices = computeVertexCount(data, this.props.nodata);
                 if (this.props.numVertices === this.props.width * this.props.height) {
                     // No nodata values, simple grid with elevation
                     this.computeBuffers(this.props);
