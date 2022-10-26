@@ -186,6 +186,9 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.texturesInfo.color.atlasTexture.dispose();
         this.texturesInfo.elevation.texture.dispose();
+        if (this.uniforms.vLut) {
+            this.uniforms.vLut.value.dispose();
+        }
     }
 
     getColorTexture(layer) {
@@ -388,10 +391,18 @@ class LayeredMaterial extends RawShaderMaterial {
             this.uniforms.colormapMode.value = materialOptions.colormap.mode;
             this.uniforms.colormapMin.value = materialOptions.colormap.min;
             this.uniforms.colormapMax.value = materialOptions.colormap.max;
+
+            // Update the LUT texture if it has changed
             const lut = materialOptions.colormap.lut;
-            this.uniforms.vLut.value = new DataTexture(
-                lut, lut.length / 3, 1, RGBFormat, FloatType,
-            );
+            if (!this.uniforms.vLut.value
+                || this.uniforms.vLut.value.image.data !== lut) {
+                if (this.uniforms.vLut.value) {
+                    this.uniforms.vLut.value.dispose();
+                }
+                this.uniforms.vLut.value = new DataTexture(
+                    lut, lut.length / 3, 1, RGBFormat, FloatType,
+                );
+            }
         } else if (this.defines.COLORMAP) {
             delete this.defines.COLORMAP;
             recompileShaders = true;
