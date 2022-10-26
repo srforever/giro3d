@@ -70,15 +70,15 @@ const _eventCoords = new Vector2();
  * such as a {@link module:entities/Map~Map Map}.
  *
  *     // example of Giro3D instantiation
- *     let instance = new Instance(viewerDiv, extent.crs(), {camera: camera})
- *     let map = new Map('planar', null, extent, { maxSubdivisionLevel: 10 });
+ *     const instance = new Instance(viewerDiv, extent.crs(), {camera: camera})
+ *     const map = new Map('myMap', null, extent, { maxSubdivisionLevel: 10 });
  *     instance.add(map);
  *
  *     // Bind an event listener on double click
  *     instance.domElement.addEventListener('dblclick', dblClickHandler);
  *
  *     // Get the camera position
- *     let myvector = instance.camera.camera3D.position;
+ *     const myvector = instance.camera.camera3D.position;
  *     // Set the camera position
  *     instance.camera.camera3D.position.set(newPosition);
  *     instance.camera.camera3D.lookAt(lookAt);
@@ -110,12 +110,12 @@ class Instance extends EventDispatcher {
      * @param {WebGLRenderer} options.renderer.renderer Custom renderer to be used.
      * If provided, it will be automatically added in the DOM in viewerDiv.
      * @example
-     * let opts = {
+     * const opts = {
      *  camera: camera,
      *  crs = exent.crs()
      * };
-     * let instance = new Instance(viewerDiv, opts);
-     * let map = new Map('planar', null, extent, { maxSubdivisionLevel: 10 });
+     * const instance = new Instance(viewerDiv, opts);
+     * const map = new Map('myMap', null, extent, { maxSubdivisionLevel: 10 });
      * instance.add(map);
      * @api
      */

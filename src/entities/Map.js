@@ -32,7 +32,7 @@ import Cache from '../Core/Scheduler/Cache.js';
  */
 
 /**
- * Fires when a layer is added to the map.
+ * Fires when a layer is removed from the map.
  *
  * @api
  * @event Map#layer-removed
@@ -199,10 +199,10 @@ class Map extends Entity3D {
      * @param {number} [options.segments=8] The number of geometry segments in each map tile.
      * The higher the better. For better visual results, it is recommended to use a power of two.
      * @param {boolean} [options.discardNoData=true] If true, parts of the map that relate to
-     * no-data elevation values are not displayed. Note: you should only set this value to true if
+     * no-data elevation values are not displayed. Note: you should only set this value to `true` if
      * an elevation layer is present, otherwise the map will never be displayed.
      * @param {module:three.Object3D=} options.object3d The optional 3d object to use as the root
-     *  object of this map. If none provided, a new one will be created.
+     * object of this map. If none provided, a new one will be created.
      * @param {string} [options.backgroundColor=undefined] The color of the map when no color layers
      * are present.
      * @api
@@ -430,10 +430,10 @@ class Map extends Entity3D {
     // TODO this whole function should be either in providers or in layers
 
     /**
-     * Adds a layer , then returns the created layer.
-     * Before use this method, add the map in an instance.
+     * Adds a layer, then returns the created layer.
+     * Before using this method, make sure that the map is added in an instance.
      * If the extent or the projection of the layer is not provided,
-     * the values from map will be used.
+     * those values will be inherited from the map.
      *
      * @param {module:Core/layer/Layer~Layer} layer an object describing the layer options creation
      * @returns {Promise} a promise resolving when the layer is ready
@@ -504,7 +504,7 @@ class Map extends Entity3D {
     }
 
     /**
-     * Gets all layers that satisfy the filter predicate
+     * Gets all layers that satisfy the filter predicate.
      *
      * @api
      * @param {Function} [filter] the optional filter
@@ -522,7 +522,7 @@ class Map extends Entity3D {
     }
 
     /**
-     * Gets all color layers
+     * Gets all color layers in this map.
      *
      * @api
      * @returns {Array<Layer>} the color layers
@@ -532,7 +532,7 @@ class Map extends Entity3D {
     }
 
     /**
-     * Gets all elevation layers
+     * Gets all elevation layers in this map.
      *
      * @api
      * @returns {Array<Layer>} the color layers

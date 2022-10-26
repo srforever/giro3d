@@ -16,20 +16,26 @@ import Layer, {
  */
 class ColorLayer extends Layer {
     /**
-     * Creates an color layer. See the example for more information on layer creation.
+     * Creates a color layer.
+     * It should be added in {@link module:entities/Map~Map Maps} to be displayed in the instance.
+     * See the example for more information on layer creation.
      *
-     * @param {string} id the unique identifier of the layer
-     * @param {object} options the layer options
+     * @param {string} id The unique identifier of the layer.
+     * @param {object} options The layer options.
      * @param {
-     * module:ol.TileWMS|module:ol.Stamen|module:ol.Vector|module:ol.VectorTile
-     * } options.source an OpenLayers source
-     * @param {object} [options.extent=undefined] the geographic extent of the layer. If it is
-     * undefined, the extent will be the same as the map where the layer will be added.
-     * @param {string} [options.projection=undefined] the layer projection. Like extent, if
-     * extent is not provided, the layer projection will be the map projection.
-     * @param {object} [options.updateStrategy=undefined] the strategy to load new tiles, if it is
-     * undefined, the layer will use the STRATEGY_MIN_NETWORK_TRAFFIC.
-     * @param {string} [options.backgroundColor=undefined] the background color of the layer
+     * module:ol~TileImage |
+     * module:ol~Vector |
+     * module:ol~VectorTile |
+     * module:sources/CogSource~CogSource|
+     * module:sources/CustomTiledImageSource~CustomTiledImageSource} options.source
+     * The data source of this layer.
+     * @param {object} [options.extent=undefined] The geographic extent of the layer. If
+     * unspecified, the extent will be inherited from the map.
+     * @param {string} [options.projection=undefined] The layer projection. If unspecified,
+     * the projection will be inherited from the map.
+     * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.
+     * If unspecified, the layer will use the `STRATEGY_MIN_NETWORK_TRAFFIC`.
+     * @param {string} [options.backgroundColor=undefined] The background color of the layer.
      */
     constructor(id, options = {}) {
         super(id, options);
