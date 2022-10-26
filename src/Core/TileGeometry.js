@@ -6,17 +6,6 @@ import { BufferAttribute, BufferGeometry, Vector3 } from 'three';
 
 import OBB from '../Renderer/ThreeExtended/OBB.js';
 
-function computeVertexCount(array, nodata) {
-    let count = 0;
-    for (let i = 0; i < array.length; i++) {
-        if (array[i] !== nodata) {
-            ++count;
-        }
-    }
-
-    return count;
-}
-
 const tmp = {
     dimensions: { x: 0, y: 0 },
 };
@@ -32,12 +21,6 @@ const tmp = {
  * compute everything in a single pass (complexity O(n)).
  * By default it produces square geometries but providing different width and height
  * allows for rectangular tiles creation.
- *
- * - If there is no elevation data, compute a simple grid.
- * - If there is no nodata value specified, or no value of the data is nodata,
- *   compute a simple grid with the elevation data.
- * - If all the values of the data are no data, empty the geometry buffers.
- * - If a geometry is supplied, copy it
  *
  * @example
  * // Inspired from Map@requestNewTile

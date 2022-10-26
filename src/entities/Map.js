@@ -85,20 +85,17 @@ function requestNewTile(map, extent, parent, level) {
         -dim.y * 0.5, dim.y * 0.5,
     );
     const segment = map.segments || 8;
-    const key = `${segment}_${level}_${sharableExtent._values.join(',')}`;
 
+    const key = `${segment}_${level}_${sharableExtent._values.join(',')}`;
     let geometry = Cache.get(key);
     // build geometry if doesn't exist
     if (!geometry) {
         const paramsGeometry = {
             extent: sharableExtent,
-            level,
             segment,
         };
-
         geometry = new TileGeometry(paramsGeometry);
         Cache.set(key, geometry);
-
         geometry._count = 0;
         geometry.dispose = () => {
             geometry._count--;

@@ -5,11 +5,10 @@ attribute vec2      uv;
 
 uniform sampler2D   elevationTexture;
 uniform vec4        elevationOffsetScale;
-uniform vec2        geometryDim;
-
 #if defined(STITCHING)
 uniform sampler2D nTex[4];
 uniform vec4 nOff[4];
+uniform vec2 geometryDim;
 #endif
 
 uniform mat4        projectionMatrix;
@@ -79,7 +78,7 @@ void main() {
         vec4 neighbourFactor = pow(vec4(2.0), abs(neighbourdiffLevel));
         // Interval in current tile is: 1.0 / segments. If a neighbour
         // has less vertices on our shared edges, its interval size is
-        // going to be: modulo = neighbourFactor / geometryDim;
+        // going to be: neighbourFactor / geometryDim;
         // West border
         if (vUv.x < 0.01) {
             if (neighbourdiffLevel.w < 0.0) {

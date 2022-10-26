@@ -82,6 +82,7 @@ class LayeredMaterial extends RawShaderMaterial {
 
         const geometryDim = new Vector2(geometryProps.width - 1, geometryProps.height - 1);
         this.uniforms.geometryDim = new Uniform(geometryDim);
+
         if (options.side) {
             this.side = options.side;
         }

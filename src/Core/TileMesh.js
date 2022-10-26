@@ -28,7 +28,8 @@ class TileMesh extends Mesh {
 
         this.geometry = geometry;
 
-        this.obb = this.geometry.OBB;
+        // Needs to clone it because the geometry is not copied anymore
+        this.obb = this.geometry.OBB.clone();
 
         this.name = `tile @${level}`;
         this.obb.name = 'obb';
