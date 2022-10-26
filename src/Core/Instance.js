@@ -71,7 +71,7 @@ const _eventCoords = new Vector2();
  *
  *     // example of Giro3D instantiation
  *     let instance = new Instance(viewerDiv, extent.crs(), {camera: camera})
- *     let map = new Map('planar', null, extent, { maxSubdivisionLevel: 10 });
+ *     let map = new Map('myMap', null, extent, { maxSubdivisionLevel: 10 });
  *     instance.add(map);
  *
  *     // Bind an event listener on double click
@@ -115,7 +115,7 @@ class Instance extends EventDispatcher {
      *  crs = exent.crs()
      * };
      * let instance = new Instance(viewerDiv, opts);
-     * let map = new Map('planar', null, extent, { maxSubdivisionLevel: 10 });
+     * let map = new Map('myMap', null, extent, { maxSubdivisionLevel: 10 });
      * instance.add(map);
      * @api
      */
