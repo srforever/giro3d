@@ -1,5 +1,9 @@
 import { DataTexture, FloatType, UnsignedByteType } from 'three';
-import createDataTexture, { OPAQUE_BYTE, OPAQUE_FLOAT, TRANSPARENT } from '../../../src/utils/TextureGenerator.js';
+import createDataTexture, {
+    OPAQUE_BYTE, OPAQUE_FLOAT,
+    TRANSPARENT,
+    DEFAULT_NODATA,
+} from '../../../src/utils/TextureGenerator.js';
 
 global.ImageData = function ImageData(buf, w, h) {
     this.data = buf;
@@ -159,6 +163,73 @@ describe('TextureGenerator', () => {
                         expect(buf[idx + 1]).toBeCloseTo(expectedV, 2);
                         expect(buf[idx + 2]).toBeCloseTo(expectedV, 2);
                         expect(buf[idx + 3]).toEqual(OPAQUE_BYTE);
+                    }
+                });
+
+                it('should set apha at transparent if pixel is NaN, and no-data as value', () => {
+                    const data = [5.2, NaN, 5.2, NaN];
+                    const nodata = 5.2;
+                    const w = 2;
+                    const h = 2;
+                    const expectedOutputLength = data.length * 4; // RGBA
+
+                    const result = createDataTexture(w, h, { nodata }, FloatType, data);
+
+                    const buf = result.image.data;
+
+                    expect(result).toBeInstanceOf(DataTexture);
+                    expect(buf).toBeInstanceOf(Float32Array);
+                    expect(buf).toHaveLength(expectedOutputLength);
+
+                    for (let i = 0; i < data.length; i++) {
+                        const v = data[i];
+                        const idx = i * 4;
+                        // We use toBeCloseTo because our input data is made of numbers
+                        // (64-bit floats), whereas the txture only supports 32-bit floats.
+                        const r = buf[idx + 0];
+                        const g = buf[idx + 1];
+                        const b = buf[idx + 2];
+                        const a = buf[idx + 3];
+
+                        expect(r).toBeCloseTo((Number.isNaN(v) ? nodata : v), 2);
+                        expect(g).toBeCloseTo((Number.isNaN(v) ? nodata : v), 2);
+                        expect(b).toBeCloseTo((Number.isNaN(v) ? nodata : v), 2);
+                        expect(a).toEqual((Number.isNaN(v) || v === nodata)
+                            ? TRANSPARENT
+                            : OPAQUE_FLOAT);
+                    }
+                });
+
+                it('should set apha at transparent if pixel is NaN, and default no-data as value is no-data not provided', () => {
+                    const data = [5.2, NaN, 5.2, NaN];
+                    const w = 2;
+                    const h = 2;
+                    const expectedOutputLength = data.length * 4; // RGBA
+
+                    const result = createDataTexture(w, h, {}, FloatType, data);
+
+                    const buf = result.image.data;
+
+                    expect(result).toBeInstanceOf(DataTexture);
+                    expect(buf).toBeInstanceOf(Float32Array);
+                    expect(buf).toHaveLength(expectedOutputLength);
+
+                    for (let i = 0; i < data.length; i++) {
+                        const v = data[i];
+                        const idx = i * 4;
+                        // We use toBeCloseTo because our input data is made of numbers
+                        // (64-bit floats), whereas the txture only supports 32-bit floats.
+                        const r = buf[idx + 0];
+                        const g = buf[idx + 1];
+                        const b = buf[idx + 2];
+                        const a = buf[idx + 3];
+
+                        expect(r).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
+                        expect(g).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
+                        expect(b).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
+                        expect(a).toEqual((Number.isNaN(v))
+                            ? TRANSPARENT
+                            : OPAQUE_FLOAT);
                     }
                 });
 
