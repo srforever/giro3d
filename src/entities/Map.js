@@ -431,9 +431,9 @@ class Map extends Entity3D {
 
     /**
      * Adds a layer, then returns the created layer.
-     * Before using this method, ensure that the map is added in an instance.
+     * Before using this method, make sure that the map is added in an instance.
      * If the extent or the projection of the layer is not provided,
-     * those values will be inherited from the from map.
+     * those values will be inherited from the map.
      *
      * @param {module:Core/layer/Layer~Layer} layer an object describing the layer options creation
      * @returns {Promise} a promise resolving when the layer is ready
