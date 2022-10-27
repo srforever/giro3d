@@ -150,7 +150,7 @@ function requestNewTile(map, extent, parent, level) {
         tile.material.uniforms.noTextureOpacity.value = map.noTextureOpacity;
     }
 
-    tile.material.uniforms.showOutline = { value: map.showOutline || false };
+    tile.material.showOutline = map.showOutline || false;
     tile.material.wireframe = map.wireframe || false;
 
     if (parent) {
@@ -222,6 +222,8 @@ class Map extends Entity3D {
         this.visible = true;
 
         this.lightDirection = { azimuth: 315, zenith: 45 };
+
+        this.showOutline = options.showOutline;
 
         this.materialOptions = {
             hillshading: options.hillshading,

@@ -180,14 +180,11 @@ class MapInspector extends EntityInspector {
 
     toggleOutlines(value) {
         this.map.showOutline = value;
-
         applyToMaterial(this.rootObject, this.map, material => {
-            if (material.uniforms) {
-                material.uniforms.showOutline = { value };
-                material.needsUpdate = true;
-            }
+            material.showOutline = value;
+            material.needsUpdate = true;
         });
-        this.notify();
+        this.notify(this.map);
     }
 
     toggleWireframe(value) {
