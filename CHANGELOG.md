@@ -1,5 +1,28 @@
 # Changelog
 
+## v0.8.0 (2022-10-27)
+
+This release contain mainly bugfixes related to maps and elevation layers, as well as features
+regarding no-data handling in elevation layers.
+
+### Feat
+
+- **TextureGenerator**: consider NaN values as no-data when relevant
+- **Map**: add an option to discard no-data elevation pixels in the fragment shader
+
+### Fix
+
+- **Map**: tile outlines are now available even in non-DEBUG builds
+- **LayeredMaterial**: fix memory leak of colormap textures
+- **LayeredMaterial**: fix issues where semi-transparent tile images would be drawn on top of each other
+- **LayeredMaterial**: use the exact size of the elevation texture for hillshading
+- **ElevationLayer**: fix missing redraw after updating the elevation texture of a tile
+
+### Perf
+
+- **Inspector**: update panels only if they are open
+- **TileGeometry**: recycle object for dimensions computation
+
 ## v0.7.0 (2022-10-20)
 
 This release contains a lot of features and bugfixes related to map and terrain rendering, most notably colormapping and hillshading. No breaking changes.
