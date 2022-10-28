@@ -158,9 +158,8 @@ function createTexture(node, tile, layer) {
     if (!node.material) {
         return null;
     }
-    const _canvas = node.material.canvas;
-    const texture = new CanvasTexture(_canvas);
-    // texture.needsUpdate = true;
+    const canvas = createCanvas(layer);
+    const texture = new CanvasTexture(canvas);
     texture.premultiplyAlpha = layer.transparent;
     texture.extent = tile.tileExtent;
 
@@ -173,14 +172,20 @@ function createTexture(node, tile, layer) {
         };
     }
 
-    const atlas = node.layer.atlasInfo.atlas[layer.id];
-    renderTileImage(_canvas, tile.tile, atlas, layer);
+    renderTileImage(canvas, tile.tile, layer);
 
     const zKey = tile.tile.tileCoord[0].toString();
     delete layer.usedTiles[zKey].storage[tile.tile.tileCoord];
     layer.source.tileCache.expireCache(layer.usedTiles);
 
     return { texture, pitch: tile.pitch };
+}
+
+function createCanvas(layer) {
+    const canvas = document.createElement('canvas');
+    canvas.width = layer.imageSize.w;
+    canvas.height = layer.imageSize.h;
+    return canvas;
 }
 
 function createBuilderGroup(tile, layer) {
@@ -282,7 +287,7 @@ function renderFeature(feature, squaredTolerance, styles, builderGroup) {
 function handleStyleImageChange_() {
 }
 
-function renderTileImage(_canvas, tile, atlasInfo, layer) {
+function renderTileImage(canvas, tile, layer) {
     const pixelRatio = 1;
     const replayState = tile.getReplayState(layer);
     const revision = 1;
@@ -292,19 +297,18 @@ function renderTileImage(_canvas, tile, atlasInfo, layer) {
     const { source } = layer;
     const tileGrid = source.getTileGridForProjection(source.getProjection());
     const resolution = tileGrid.getResolution(z);
-    const ctx = _canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
     ctx.save();
-    ctx.translate(atlasInfo.x, atlasInfo.y);
-    ctx.clearRect(0, 0, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
+    ctx.clearRect(0, 0, layer.imageSize.w, layer.imageSize.h);
     ctx.beginPath();
-    ctx.rect(0, 0, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
+    ctx.rect(0, 0, layer.imageSize.w, layer.imageSize.h);
     ctx.clip();
 
     if (layer.backgroundColor) {
         ctx.fillStyle = layer.backgroundColor;
         ctx.fillRect(
             0, 0,
-            layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset,
+            layer.imageSize.w, layer.imageSize.h,
         );
     }
 

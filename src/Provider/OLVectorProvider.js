@@ -102,15 +102,21 @@ function createTexture(node, extent, layer) {
         texture = new Texture();
         pitch = new Vector4(0, 0, 0, 0);
     } else {
-        const _canvas = node.material.canvas;
-        const atlas = node.layer.atlasInfo.atlas[layer.id];
-        renderTileImage(_canvas, builderGroup, extent, atlas, layer);
-        texture = new CanvasTexture(_canvas);
+        const canvas = createCanvas(layer);
+        renderTileImage(canvas, builderGroup, extent, layer);
+        texture = new CanvasTexture(canvas);
         pitch = new Vector4(0, 0, 1, 1);
     }
     texture.extent = extent;
     texture.revision = layer.source.getRevision();
     return Promise.resolve({ texture, pitch });
+}
+
+function createCanvas(layer) {
+    const canvas = document.createElement('canvas');
+    canvas.width = layer.imageSize.w;
+    canvas.height = layer.imageSize.h;
+    return canvas;
 }
 
 function createBuilderGroup(extent, layer) {
@@ -165,18 +171,17 @@ function renderFeature(feature, squaredTolerance, styles, builderGroup) {
 function handleStyleImageChange_() {
 }
 
-function renderTileImage(_canvas, builderGroup, extent, atlasInfo, layer) {
+function renderTileImage(canvas, builderGroup, extent, layer) {
     const pixelRatio = 1;
     const resolutionX = extent.dimensions().x / layer.imageSize.w;
     const resolutionY = extent.dimensions().y / layer.imageSize.h;
-    const ctx = _canvas.getContext('2d');
+    const ctx = canvas.getContext('2d');
     ctx.save();
     // clipping path
 
-    ctx.translate(atlasInfo.x, atlasInfo.y);
-    ctx.clearRect(0, 0, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
+    ctx.clearRect(0, 0, layer.imageSize.w, layer.imageSize.h);
     ctx.beginPath();
-    ctx.rect(0, 0, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset);
+    ctx.rect(0, 0, layer.imageSize.w, layer.imageSize.h);
     ctx.clip();
     const transform = resetTransform(tmpTransform_);
     scaleTransform(transform, pixelRatio / resolutionX, -pixelRatio / resolutionY);
