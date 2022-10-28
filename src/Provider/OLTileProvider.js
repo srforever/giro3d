@@ -13,6 +13,7 @@ import TileGrid from 'ol/tilegrid/TileGrid.js';
 import Extent from '../Core/Geographic/Extent.js';
 import Layer from '../Core/layer/Layer.js';
 import GeographicCanvas from '../utils/GeographicCanvas.js';
+import DataStatus from './DataStatus.js';
 
 function createCanvas(width, height) {
     const newCanvas = document.createElement('canvas');
@@ -60,7 +61,7 @@ function getPossibleTextureImprovements(layer, extent, texture) {
     if (texture && texture.extent
         && texture.extent.isInside(extent)
         && texture.revision === layer.source.getRevision()) {
-        return null;
+        return DataStatus.DATA_ALREADY_LOADED;
     }
 
     return getTileRange(layer.tileGrid, layer.imageSize, extent);

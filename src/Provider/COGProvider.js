@@ -5,6 +5,7 @@ import createDataTexture from '../utils/TextureGenerator.js';
 
 import Cache from '../Core/Scheduler/Cache.js';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
+import DataStatus from './DataStatus.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -162,7 +163,7 @@ function preprocessDataLayer(layer) {
 function getPossibleTextureImprovements(layer, extent, texture) {
     // If the tile is already displayed, don't update
     if (texture && texture.extent && texture.extent.isInside(extent)) {
-        return null;
+        return DataStatus.DATA_ALREADY_LOADED;
     }
     // Number of images  = original + overviews if any
     const overviewCount = layer.images.length - 1;

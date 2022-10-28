@@ -3,6 +3,7 @@
  */
 import CancelledCommandException from '../Scheduler/CancelledCommandException.js';
 import LayerUpdateState from './LayerUpdateState.js';
+import DataStatus from '../../Provider/DataStatus.js';
 
 import Layer, {
     defineLayerProperty, nodeCommandQueuePriorityFunction,
@@ -174,15 +175,13 @@ class ColorLayer extends Layer {
             node.layerUpdateState[this.id].failureParams,
         );
 
-        // if the provider returns undef, then we konw it will never have any texture
-        // TODO make a superclass and document this behaviour (undefined: I'm done, null or false:
-        // come back later)
-        if (nextDownloads === undefined) {
+        if (nextDownloads === DataStatus.DATA_UNAVAILABLE) {
             node.layerUpdateState[this.id].noMoreUpdatePossible();
             return null;
         }
-        // in this case, the layer might be able to provide a texture later
-        if (nextDownloads === null || nextDownloads === false) {
+
+        if (nextDownloads === DataStatus.DATA_NOT_AVAILABLE_YET
+            || nextDownloads === DataStatus.DATA_ALREADY_LOADED) {
             return null;
         }
 
