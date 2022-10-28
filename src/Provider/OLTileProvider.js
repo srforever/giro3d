@@ -58,6 +58,12 @@ function toOLExtent(extent) {
  * @returns {object} The result
  */
 function getPossibleTextureImprovements(layer, extent, texture) {
+    if (!extent.intersectsExtent(layer.extent)) {
+        // The tile does not even overlap with the layer extent.
+        // This can happen when layers have a different extent from their parent map.
+        return DataStatus.DATA_UNAVAILABLE;
+    }
+
     if (texture && texture.extent
         && texture.extent.isInside(extent)
         && texture.revision === layer.source.getRevision()) {
