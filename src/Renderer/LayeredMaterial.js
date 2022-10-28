@@ -509,7 +509,7 @@ async function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, texture) {
     const canvas = atlasTexture.image;
     const ctx = canvas.getContext('2d');
 
-    if (texture !== undefined) {
+    if (texture) {
         ctx.clearRect(
             atlasInfo.x, atlasInfo.y, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset,
         );
