@@ -86,14 +86,12 @@ const axisGrid = new AxisGrid('axis-grid', {
 
 instance.add(axisGrid);
 
-instance.camera.camera3D.position.set(-13594700, 5819700, 7300);
-
 // Instanciates controls
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
-
-controls.target.set(-13603000, 5811000, 0);
-
 instance.useTHREEControls(controls);
+
+instance.focusObject(axisGrid);
+
 
 // Manage GUI
 

@@ -19,8 +19,6 @@ Instance.registerCRS(
     '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
 );
 
-const tmpVec3 = new Vector3();
-
 const viewerDiv = document.getElementById('viewerDiv');
 
 const instance = new Instance(viewerDiv, { crs: 'EPSG:2154' });
@@ -50,43 +48,27 @@ const pointcloud = new Tiles3D(
     new Tiles3DSource('https://3d.oslandia.com/lidar_hd/tileset.json'),
 );
 // add pointcloud to scene
-function initializeCameraPosition(layer) {
-    const bbox = layer.root.bbox
-        ? layer.root.bbox
-        : layer.root.boundingVolume.box.clone().applyMatrix4(layer.root.matrixWorld);
+instance.add(pointcloud)
+    .then(() => instance.focusObject(pointcloud))
+    .then(() => {
+        const colorLayer = new ColorLayer(
+            'orthophoto-ign',
+            {
+                // The extent is useful to restrict the processing of the image layer
+                // (which is much bigger than our point cloud).
+                extent: Extent.fromBox3('EPSG:2154', pointcloud.getBoundingBox()),
+                source: wmsOthophotoSource,
+            },
+        );
+        pointcloud.attach(colorLayer);
 
-    // configure camera
-    instance.camera.camera3D.far = 2.0 * bbox.getSize(tmpVec3).length();
+        instance.renderingOptions.enableEDL = true;
+        instance.renderingOptions.enableInpainting = true;
+        instance.renderingOptions.enablePointCloudOcclusion = true;
 
-    const ratio = bbox.getSize(tmpVec3).x / bbox.getSize(tmpVec3).z;
-    const position = bbox.min
-        .clone()
-        .add(bbox.getSize(tmpVec3).multiply({ x: 0, y: 0, z: ratio * 0.5 }));
-    const lookAt = bbox.getCenter(tmpVec3);
-    lookAt.z = bbox.min.z;
-    instance.camera.camera3D.position.set(position.x, position.y, position.z);
-    instance.camera.camera3D.lookAt(lookAt);
-    controls.target.copy(lookAt);
-    controls.saveState();
-
-    const colorLayer = new ColorLayer({
-        name: 'orthophoto-ign',
-        // The extent is useful to restrict the processing of the image layer
-        // (which is much bigger than our point cloud).
-        extent: Extent.fromBox3('EPSG:2154', bbox),
-        source: wmsOthophotoSource,
+        // refresh scene
+        instance.notifyChange(instance.camera.camera3D);
     });
-
-    pointcloud.attach(colorLayer);
-
-    instance.renderingOptions.enableEDL = true;
-    instance.renderingOptions.enableInpainting = true;
-    instance.renderingOptions.enablePointCloudOcclusion = true;
-
-    // refresh scene
-    instance.notifyChange(instance.camera.camera3D);
-}
-instance.add(pointcloud).then(initializeCameraPosition);
 
 // add a skybox background
 const cubeTextureLoader = new CubeTextureLoader();

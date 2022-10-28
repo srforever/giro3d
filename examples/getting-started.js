@@ -180,6 +180,9 @@ const cameraPosition = new Vector3(extent.west(), extent.south(), cameraAltitude
 
 camera.position.copy(cameraPosition);
 
+// Alternatively, you can also use `instance.focusObject(map)`, which will automatically place the
+// camera so that the map is fully visible.
+
 // Now we can create the `MapControls` with our camera and the DOM element of our scene.
 const controls = new MapControls(camera, instance.domElement);
 

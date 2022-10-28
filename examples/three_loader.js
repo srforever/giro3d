@@ -4,11 +4,12 @@ import {
     Clock,
     Color,
     Fog,
+    Group,
     HemisphereLight,
     Mesh,
     MeshPhongMaterial,
     PlaneGeometry,
-    Vector3,
+    sRGBEncoding,
     WebGLRenderer,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
@@ -32,7 +33,6 @@ renderer.shadowMap.enabled = true;
 
 // Create the Giro3D instance
 const instance = new Instance(viewerDiv, { crs: 'EPSG:3857', renderer: { renderer } });
-const camera = instance.camera.camera3D;
 
 // Creates controls
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
@@ -103,13 +103,16 @@ loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', gltf => {
 
     model1.position.x = 1;
     model1.rotation.x = Math.PI / 2;
+    model1.rotation.y = Math.PI;
     model1.updateMatrixWorld();
     model2.position.x = 0;
     model2.rotation.x = Math.PI / 2;
+    model2.rotation.y = Math.PI;
     model2.updateMatrixWorld();
     model3.position.x = 2;
     model3.rotation.x = Math.PI / 2;
     model3.updateMatrixWorld();
+    model3.rotation.y = Math.PI;
 
     // except for this part, we add directly to instance to make Giro3D aware of these models
     instance.add(model1);
@@ -117,12 +120,7 @@ loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', gltf => {
     instance.add(model3);
 
     // let's move our camera and control target
-    // We add 1 to z to look at the waist. The 0, 0, 0 is located at the soldier's feet.
-    const lookAt = new Vector3(0, 0, 1).add(model1.position);
-    camera.position.set(2, 6, 3);
-    camera.lookAt(lookAt);
-    controls.target.copy(lookAt);
-    controls.saveState();
+    instance.focusObject(group);
 
     // you can hook yourself to event of the rendering loop.
     instance.addEventListener('after-camera-update', () => {

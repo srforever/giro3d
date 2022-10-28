@@ -1,6 +1,6 @@
 import colormap from 'colormap';
 
-import { MathUtils, Vector3, Color } from 'three';
+import { MathUtils, Color } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import XYZ from 'ol/source/XYZ.js';
@@ -41,16 +41,8 @@ const instance = new Instance(viewerDiv, {
     },
 });
 
-// Sets the camera position
-const cameraPosition = new Vector3(697119, 5543639, 53043);
-instance.camera.camera3D.position.copy(cameraPosition);
-
 // Creates controls
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
-
-// Then looks at extent's center
-controls.target = extent.centerAsVector3();
-controls.saveState();
 
 controls.enableDamping = true;
 controls.dampingFactor = 0.2;
@@ -104,7 +96,7 @@ const map = new Map('planar', {
         elevationLayersOnly: true,
     },
 });
-instance.add(map);
+instance.add(map).then(() => instance.focusObject(map));
 
 const key =
     'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';

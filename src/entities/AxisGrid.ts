@@ -10,7 +10,7 @@ import {
     LineSegments,
     Float32BufferAttribute,
     Sphere,
-    type Box3,
+    Box3,
 } from 'three';
 
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
@@ -985,6 +985,15 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
         this._labelElements.length = 0;
 
         this.deleteArrowHelpers();
+    }
+
+    getBoundingBox(target: Box3 = new Box3()): Box3 | null {
+        if (this._needsRebuild) {
+            this.rebuildObjects();
+            this._needsRebuild = false;
+        }
+        target.copy(this._boundingBox);
+        return target;
     }
 }
 

@@ -266,9 +266,9 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
      *
      * @returns the resulting bounding box, or `null` if it could not be computed.
      */
-    getBoundingBox(): Box3 | null {
+    getBoundingBox(target: Box3 = new Box3()): Box3 | null {
         if (this.object3d) {
-            const box = new Box3().setFromObject(this.object3d);
+            const box = target.setFromObject(this.object3d);
             return box;
         }
 

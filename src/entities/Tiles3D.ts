@@ -826,6 +826,10 @@ class Tiles3D<
         }
         return pickObjectsAt(this._instance, coordinates, this.object3d, options);
     }
+
+    getBoundingVolume() {
+        return this.root.boundingVolume.box.clone().applyMatrix4(this.root.matrixWorld);
+    }
 }
 
 export default Tiles3D;

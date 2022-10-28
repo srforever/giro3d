@@ -1,14 +1,10 @@
-import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 import StatusBar from './widgets/StatusBar.js';
-
-const tmpVec3 = new Vector3();
 
 const viewerDiv = document.getElementById('viewerDiv');
 
@@ -30,40 +26,17 @@ const pointcloud = new Tiles3D(
     new Tiles3DSource('https://3d.oslandia.com/3dtiles/eglise_saint_blaise_arles/tileset.json'),
 );
 
-function placeCamera(position, lookAt) {
-    instance.camera.camera3D.position.set(position.x, position.y, position.z);
-    instance.camera.camera3D.lookAt(lookAt);
-    // create controls
-    const controls = new MapControls(instance.camera.camera3D, instance.domElement);
-    controls.target.copy(lookAt);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.25;
-
-    instance.useTHREEControls(controls);
-
-    instance.notifyChange(instance.camera.camera3D);
-}
-
-// add pointcloud to scene
-function initializeCamera() {
-    const bbox = pointcloud.root.bbox
-        ? pointcloud.root.bbox
-        : pointcloud.root.boundingVolume.box.clone().applyMatrix4(pointcloud.root.matrixWorld);
-
-    instance.camera.camera3D.far = 2.0 * bbox.getSize(tmpVec3).length();
-
-    const ratio = bbox.getSize(tmpVec3).x / bbox.getSize(tmpVec3).z;
-    const position = bbox.min
-        .clone()
-        .add(bbox.getSize(tmpVec3).multiply({ x: 0, y: 0, z: ratio * 0.5 }));
-    const lookAt = bbox.getCenter(tmpVec3);
-    lookAt.z = bbox.min.z;
-    placeCamera(position, lookAt);
-
+instance.add(pointcloud).then(() => {
+    instance.focusObject(pointcloud)
     StatusBar.bind(instance);
-}
+});
 
-instance.add(pointcloud).then(initializeCamera);
+// create controls
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.25;
+
+instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 

@@ -5,7 +5,9 @@ import {
     Vector2,
     Vector3,
     Object3D,
-    type Box3,
+    Box3,
+    MathUtils,
+    type PerspectiveCamera,
     type WebGLRenderer,
     Clock,
 } from 'three';
@@ -35,11 +37,14 @@ import {
 import { GlobalRenderTargetPool } from '../renderer/RenderTargetPool';
 import { GlobalCache } from './Cache';
 
-const vectors = {
+// these variables are used to take advantage of THREE.js API without creating new objects.
+// they should *never* be returned to callers!
+const tmp = {
     pos: new Vector3(),
     size: new Vector3(),
     evtToCanvas: new Vector2(),
     pickVec2: new Vector2(),
+    box: new Box3(),
 };
 
 /** Frame event payload */
@@ -189,6 +194,8 @@ export interface ThreeControls extends CustomCameraControls {
     update: () => void;
     addEventListener: (event: string, callback: unknown) => void;
     removeEventListener: (event: string, callback: unknown) => void;
+    saveState: () => void;
+    target: Vector3;
 }
 
 interface ControlFunctions {
@@ -814,7 +821,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             options.where && options.where.length > 0 ? [...options.where] : this.getObjects();
         const mouse =
             mouseOrEvt instanceof Event
-                ? this.eventToCanvasCoords(mouseOrEvt, vectors.evtToCanvas)
+                ? this.eventToCanvasCoords(mouseOrEvt, tmp.evtToCanvas)
                 : mouseOrEvt;
         const radius = options.radius ?? 0;
         const limit = options.limit ?? Infinity;
@@ -832,7 +839,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
                 ...options,
                 radius,
                 limit: limit - results.length,
-                vec2: vectors.pickVec2,
+                vec2: tmp.pickVec2,
                 sortByDistance: false,
             };
             if (sortByDistance) {
@@ -879,6 +886,51 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         return results;
     }
 
+    /*
+    focusObject2(obj) {
+        let box;
+        if (obj.isObject3D) {
+            box = tmp.box.setFromObject(obj);
+        } else {
+            // assume entities
+            box = obj.getBoundingBox(tmp.box);
+        }
+
+        const size = box.getSize(vectors.size);
+        const maxDim = Math.max(size.x, size.y, size.z);
+        // What dimension gives the most constraint to be fitted?
+        // NOTE: this mainly assumes that camera.UP is aligned with the screen vertical
+        // this is globally the case because we don't have globes
+        const shouldFitZ = (maxDim / this.camera.camera3D.aspect) < size.z;
+        // we want the distance that encompasses the object. The correct formula is:
+        // tan(fov) = (half of maxDim) / fov
+        // here we approximate tan^-1 by x/y, which is correct enough and much faster
+        let distanceToUse = maxDim / (MathUtils.degToRad(this.camera.camera3D.fov));
+        // the fov is a *vertical* fov, we need to correct by aspect if we don't try to fit the z
+        // dimension
+        if (!shouldFitZ) {
+            distanceToUse /= this.camera.camera3D.aspect;
+        }
+        const position = vectors.pos.set(
+            (box.min.x + box.max.x) / 2,
+            box.min.y - distanceToUse,
+            box.min.z + distanceToUse,
+        );
+
+        const lookAt = box.getCenter(size);
+        this.camera.camera3D.position.set(position.x, position.y, position.z);
+        this.camera.camera3D.lookAt(lookAt);
+
+        // support some threejs controls
+        if (this.controls && this.controls.target && this.controls.saveState) {
+            this.controls.target.copy(lookAt);
+            this.controls.saveState();
+        }
+        this.notifyChange(obj);
+    }
+    */
+
+
     /**
      * Moves the camera to look at an object.
      *
@@ -886,29 +938,67 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      */
     focusObject(obj: Object3D | Entity3D) {
         const cam = this._camera.camera3D;
+        let lookAt: Vector3;
+        let position: Vector3;
         if (obj instanceof Map) {
+            // for map, we choose a top-down view
             // Configure camera
             // TODO support different CRS
             const dim = obj.extent.dimensions();
-            const positionCamera = obj.extent.centerAsVector3();
-            positionCamera.z = Math.max(dim.x, dim.y);
-            const lookat = positionCamera;
-            lookat.z = 0; // TODO this supposes there is no terrain, nor z-displacement
+            position = obj.extent.centerAsVector3();
+            position.z = Math.max(dim.x, dim.y);
+            lookAt = position.clone();
+            lookAt.z = 0; // TODO this supposes there is no terrain, nor z-displacement
+        } else {
 
-            cam.position.copy(positionCamera);
-            cam.lookAt(lookat);
-            cam.updateMatrixWorld(true);
-        } else if ('getBoundingBox' in obj && typeof obj.getBoundingBox === 'function') {
-            const box = obj.getBoundingBox() as Box3;
-            if (box && !box.isEmpty()) {
-                const center = box.getCenter(vectors.pos);
-                const size = box.getSize(vectors.size);
-                const positionCamera = center.clone();
-                positionCamera.x = Math.max(size.x, size.y);
-                cam.position.copy(positionCamera);
-                cam.lookAt(center);
-                cam.updateMatrixWorld(true);
+            let box: Box3;
+            if (obj.isObject3D) {
+                box = tmp.box.setFromObject(obj);
+            } else if ('getBoundingBox' in obj && typeof obj.getBoundingBox === 'function') {
+                // assume entities
+                box = obj.getBoundingBox(tmp.box);
+            } else {
+                console.warn(`obj ${obj} is neither a Map, nor an Object3D, nor another Entity. It is not supported by focusObject`)
+                return;
             }
+
+            const size = box.getSize(tmp.size);
+            const maxDim = Math.max(size.x, size.y, size.z);
+            if ((this.camera.camera3D as PerspectiveCamera).isPerspectiveCamera) {
+                let camera = this.camera.camera3D as PerspectiveCamera;
+                // What dimension gives the most constraint to be fitted?
+                // NOTE: this mainly assumes that camera.UP is aligned with the screen vertical
+                // this is globally the case because we don't have globes
+                const shouldFitZ = (maxDim / camera.aspect) < size.z;
+                // we want the distance that encompasses the object. The correct formula is:
+                // tan(fov) = (half of maxDim) / fov
+                // here we approximate tan^-1 by x/y, which is correct enough and much faster
+                let distanceToUse = maxDim / (MathUtils.degToRad(camera.fov));
+                // the fov is a *vertical* fov, we need to correct by aspect if we don't try to fit the z
+                // dimension
+                if (!shouldFitZ) {
+                    distanceToUse /= camera.aspect;
+                }
+                position = tmp.pos.set(
+                    (box.min.x + box.max.x) / 2,
+                    box.min.y - distanceToUse,
+                    box.min.z + distanceToUse,
+                );
+
+                lookAt = box.getCenter(size);
+            }
+        }
+        if (position && lookAt) {
+            cam.position.copy(position);
+            cam.lookAt(lookAt);
+            cam.updateMatrixWorld(true);
+            // support some threejs controls
+            if (this.controls && 'target' in this.controls && 'saveState' in this.controls) {
+                const controls = this.controls as ThreeControls;
+                controls.target.copy(lookAt);
+                controls.saveState();
+            }
+
         }
     }
 
