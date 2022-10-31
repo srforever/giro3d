@@ -225,7 +225,7 @@ class Extent {
         const dim = this.dimensions();
 
         const originX = Math.round((1000 * (this.west() - other.west())) / oDim.x) * 0.001;
-        const originY = Math.round((1000 * (other.north() - this.north())) / oDim.y) * 0.001;
+        const originY = Math.round((1000 * (this.south() - other.south())) / oDim.y) * 0.001;
 
         const scaleX = Math.round((1000 * dim.x) / oDim.x) * 0.001;
         const scaleY = Math.round((1000 * dim.y) / oDim.y) * 0.001;

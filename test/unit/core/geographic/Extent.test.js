@@ -268,31 +268,73 @@ describe('Extent', () => {
     });
 
     describe('offsetToParent', () => {
-        it('works', () => {
-            const right = new Extent('foo', 0, 10, 0, 10);
-            const left = new Extent('foo', -10, 0, 0, 10);
-            const rightBig = new Extent('foo', 0, 20, 0, 20);
+        it('should return 0, 0, 1, 1 for equal extents', () => {
+            const minX = -14;
+            const maxX = 32.5;
+            const minY = -3.54;
+            const maxY = 150.4;
 
-            let offset = left.offsetToParent(right);
+            const a = new Extent('foo', minX, maxX, minY, maxY);
+            const b = new Extent('foo', minX, maxX, minY, maxY);
 
-            expect(offset.y).toEqual(0);
-            expect(offset.x).toEqual(-1);
-            expect(offset.z).toEqual(1);
-            expect(offset.w).toEqual(1);
+            const expected = {
+                x: 0, y: 0, z: 1, w: 1,
+            };
 
-            offset = right.offsetToParent(left);
+            expect(a.offsetToParent(b)).toEqual(expected);
+            expect(b.offsetToParent(a)).toEqual(expected);
+        });
 
-            expect(offset.y).toEqual(0);
-            expect(offset.x).toEqual(1);
-            expect(offset.z).toEqual(1);
-            expect(offset.w).toEqual(1);
+        it('should return 0, -1, 1, 1 for equal extents that share their south/north border', () => {
+            const minX = -14;
+            const maxX = 32.5;
+            const minY = -3.54;
+            const maxY = 150.4;
 
-            offset = left.offsetToParent(rightBig);
+            const top = new Extent('foo', minX, maxX, maxY, maxY + (maxY - minY));
+            const bottom = new Extent('foo', minX, maxX, minY, maxY);
 
-            expect(offset.y).toEqual(0.5);
-            expect(offset.x).toEqual(-0.5);
-            expect(offset.z).toEqual(0.5);
-            expect(offset.w).toEqual(0.5);
+            const bt = bottom.offsetToParent(top);
+            const tb = top.offsetToParent(bottom);
+
+            expect(bt.x).toEqual(0);
+            expect(bt.y).toEqual(-1);
+            expect(bt.z).toEqual(1);
+            expect(bt.w).toEqual(1);
+
+            expect(tb.x).toEqual(0);
+            expect(tb.y).toEqual(1);
+            expect(tb.z).toEqual(1);
+            expect(tb.w).toEqual(1);
+        });
+
+        it('returns correct results for differently sized ajacent extents', () => {
+            const x0 = 10;
+            const x1 = 50;
+            const x2 = 70;
+
+            const y0 = 10;
+            const y1 = 30;
+            const y2 = 50;
+
+            // x0           x1     x2
+            // +------------+        y2
+            // |            |
+            // |            |
+            // |     L      +------+ y1
+            // |            |      |
+            // |            |  R   |
+            // +------------+------+ y0
+
+            const L = new Extent('foo', x0, x1, y0, y2);
+            const R = new Extent('foo', x1, x2, y0, y1);
+
+            const LR = L.offsetScale(R);
+
+            expect(LR.x).toEqual(1);
+            expect(LR.y).toEqual(-0.5);
+            expect(LR.z).toEqual(0.5);
+            expect(LR.w).toEqual(0.5);
         });
     });
 

@@ -1,5 +1,4 @@
 import {
-    CanvasTexture,
     Color,
     DataTexture,
     FloatType,
@@ -9,6 +8,7 @@ import {
     ShaderChunk,
     Texture,
     Uniform,
+    UnsignedByteType,
     Vector2,
     Vector4,
     DoubleSide,
@@ -21,6 +21,8 @@ import PrecisionQualifier from './Shader/Chunk/PrecisionQualifier.glsl';
 import GetElevation from './Shader/Chunk/GetElevation.glsl';
 import ComputeUV from './Shader/Chunk/ComputeUV.glsl';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
+import WebGLComposer from './composition/WebGLComposer.js';
+import Rect from '../Core/Rect.js';
 
 // Declaring our own chunks
 ShaderChunk.PrecisionQualifier = PrecisionQualifier;
@@ -68,11 +70,12 @@ class TextureInfo {
 //   - colorTextureElevationMinZ: altitude value mapped on the (0, 0, 0) color
 //   - colorTextureElevationMaxZ: altitude value mapped on the (255, 255, 255) color
 class LayeredMaterial extends RawShaderMaterial {
-    constructor(options = {}, geometryProps, atlasInfo) {
+    constructor(options = {}, renderer, geometryProps, atlasInfo) {
         super();
 
         this.atlasInfo = atlasInfo;
         this.defines.STITCHING = 1;
+        this.renderer = renderer;
 
         this.lightDirection = { azimuth: 315, zenith: 45 };
         this.uniforms.zenith = { type: 'f', value: 45 };
@@ -98,14 +101,12 @@ class LayeredMaterial extends RawShaderMaterial {
         this.fragmentShader = TileFS;
         this.vertexShader = TileVS;
 
-        this._canvas = document.createElement('canvas');
-        this._canvas.width = atlasInfo.maxX;
-        this._canvas.height = atlasInfo.maxY;
+        this.composer = this.createComposer();
 
         this.texturesInfo = {
             color: {
                 infos: [],
-                atlasTexture: new CanvasTexture(this._canvas),
+                atlasTexture: this.composer.texture,
                 parentAtlasTexture: null,
             },
             elevation: {
@@ -158,13 +159,6 @@ class LayeredMaterial extends RawShaderMaterial {
         this.texturesInfo.color.atlasTexture.minFilter = LinearFilter;
         this.texturesInfo.color.atlasTexture.anisotropy = 1;
         this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
-        this.texturesInfo.color.atlasTexture.needsUpdate = false;
-    }
-
-    get canvas() {
-        // This ensure that the canvas is properly initialized.
-        this.rebuildAtlasIfNecessary();
-        return this._canvas;
     }
 
     updateLayerUniforms() {
@@ -185,6 +179,20 @@ class LayeredMaterial extends RawShaderMaterial {
         });
         this.disposed = true;
 
+        for (const layer of this.colorLayers) {
+            const index = this.indexOfColorLayer(layer);
+            if (index === -1) {
+                continue;
+            }
+            const tex = this.texturesInfo.color.infos[index].texture;
+            if (tex && tex.dispose) {
+                tex.dispose();
+            }
+            delete this.texturesInfo.color.infos[index];
+        }
+
+        this.colorLayers.length = 0;
+        this.composer.dispose();
         this.texturesInfo.color.atlasTexture.dispose();
         this.texturesInfo.elevation.texture.dispose();
         if (this.uniforms.vLut) {
@@ -247,15 +255,15 @@ class LayeredMaterial extends RawShaderMaterial {
 
             drawLayerOnCanvas(
                 l,
-                this.texturesInfo.color.atlasTexture,
+                this.composer,
                 atlas,
-                (texture.image === this._canvas) ? null : texture,
+                (texture.image === this.composer) ? null : texture,
                 this.texturesInfo.color.infos[idx].offsetScale,
                 this.canvasRevision,
-            ).then(() => this.canvasRevision++);
-        }
+            );
 
-        this.texturesInfo.color.atlasTexture.needsUpdate = true;
+            this.canvasRevision++;
+        }
 
         if (this.visible) {
             instance.notifyChange();
@@ -440,25 +448,41 @@ class LayeredMaterial extends RawShaderMaterial {
         return this.rebuildAtlasIfNecessary();
     }
 
+    createComposer() {
+        const newComposer = new WebGLComposer({
+            extent: new Rect(0, this.atlasInfo.maxX, 0, this.atlasInfo.maxY),
+            width: this.atlasInfo.maxX,
+            height: this.atlasInfo.maxY,
+            reuseTexture: true,
+            renderToCanvas: false,
+            pixelType: UnsignedByteType, //  FloatType if we need to support non 8-bit color images
+            webGLRenderer: this.renderer,
+        });
+        return newComposer;
+    }
+
     rebuildAtlasIfNecessary() {
-        if (this.atlasInfo.maxX > this._canvas.width || this.atlasInfo.maxY > this._canvas.height) {
-            // TODO: test this and then make providers draw directly in this._canvas
-            const newCanvas = document.createElement('canvas');
-            newCanvas.width = this.atlasInfo.maxX;
-            newCanvas.height = this.atlasInfo.maxY;
-            if (this._canvas.width > 0) {
+        if (this.atlasInfo.maxX > this.composer.width
+            || this.atlasInfo.maxY > this.composer.height) {
+            const newComposer = this.createComposer();
+
+            if (this.composer.width > 0) {
                 // repaint the old canvas into the new one.
-                const ctx = newCanvas.getContext('2d');
-                ctx.drawImage(this._canvas, 0, 0, this._canvas.width, this._canvas.height);
+                newComposer.draw(
+                    this.composer.texture,
+                    new Rect(0, this.composer.width, 0, this.composer.height),
+                );
+                newComposer.render();
             }
 
+            this.composer.dispose();
             this.texturesInfo.color.atlasTexture.dispose();
-            this.texturesInfo.color.atlasTexture = new CanvasTexture(newCanvas);
+            this.composer = newComposer;
+            this.texturesInfo.color.atlasTexture = this.composer.texture;
             this.texturesInfo.color.atlasTexture.magFilter = LinearFilter;
             this.texturesInfo.color.atlasTexture.minFilter = LinearFilter;
             this.texturesInfo.color.atlasTexture.anisotropy = 1;
             this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
-            this.texturesInfo.color.atlasTexture.needsUpdate = true;
 
             for (let i = 0; i < this.colorLayers.length; i++) {
                 const layer = this.colorLayers[i];
@@ -466,19 +490,18 @@ class LayeredMaterial extends RawShaderMaterial {
                 const pitch = this.texturesInfo.color.infos[i].originalOffsetScale;
 
                 // compute offset / scale
-                const xRatio = layer.imageSize.w / newCanvas.width;
-                const yRatio = layer.imageSize.h / newCanvas.height;
+                const xRatio = layer.imageSize.w / this.composer.width;
+                const yRatio = layer.imageSize.h / this.composer.height;
                 this.texturesInfo.color.infos[i].offsetScale = new Vector4(
-                    atlas.x / newCanvas.width + pitch.x * xRatio,
-                    (atlas.y + atlas.offset) / newCanvas.height + pitch.y * yRatio,
+                    atlas.x / this.composer.width + pitch.x * xRatio,
+                    (atlas.y + atlas.offset) / this.composer.height + pitch.y * yRatio,
                     pitch.z * xRatio,
                     pitch.w * yRatio,
                 );
             }
-            this._canvas = newCanvas;
             this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
         }
-        return this._canvas.width > 0;
+        return this.composer.width > 0;
     }
 
     indexOfColorLayer(layer) {
@@ -514,36 +537,21 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 }
 
-async function drawLayerOnCanvas(layer, atlasTexture, atlasInfo, texture) {
-    /** @type {HTMLCanvasElement} */
-    const canvas = atlasTexture.image;
-    const ctx = canvas.getContext('2d');
-
+function drawLayerOnCanvas(layer, composer, atlasInfo, texture) {
     if (texture) {
-        ctx.clearRect(
-            atlasInfo.x, atlasInfo.y, layer.imageSize.w, layer.imageSize.h + 2 * atlasInfo.offset,
-        );
-    }
-
-    if (texture && texture.image) {
         const dx = atlasInfo.x;
         const dy = atlasInfo.y + atlasInfo.offset;
         const dw = layer.imageSize.w;
         const dh = layer.imageSize.h;
 
-        let bitmap = texture.image;
+        const rect = new Rect(dx, dx + dw, dy, dy + dh);
 
-        // draw the whole image
-        if (texture.isDataTexture) {
-            // DataTexture.image is not an actual image that can be rendered into a canvas.
-            // We have to create an ImageBitmap from the underlying data.
-            bitmap = await createImageBitmap(texture.image.data);
-        }
+        composer.clear(rect);
 
-        ctx.drawImage(bitmap, dx, dy, dw, dh);
+        composer.draw(texture, rect);
+
+        composer.render();
     }
-
-    atlasTexture.needsUpdate = true;
 }
 
 function updateOffsetScale(imageSize, atlas, originalOffsetScale, canvas, target) {

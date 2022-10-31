@@ -28,7 +28,7 @@ attribute vec3 normal;
 
 uniform sampler2D overlayTexture;
 uniform vec4 offsetScale;
-uniform vec2 extentTopLeft;
+uniform vec2 extentBottomLeft;
 uniform vec2 extentSize;
 
 varying vec4 vColor;
@@ -107,12 +107,11 @@ void main() {
         vColor = vec4(abs(normal), opacity);
     } else if (mode == MODE_TEXTURE) {
         vec2 pp = (modelMatrix * vec4(position, 1.0)).xy;
-        // offsetScale is from topleft
-        pp.x -= extentTopLeft.x;
-        pp.y = extentTopLeft.y - pp.y;
+        // offsetScale is from bottomleft
+        pp.x -= extentBottomLeft.x;
+        pp.y -= extentBottomLeft.y;
         pp *= offsetScale.zw / extentSize;
         pp += offsetScale.xy;
-        pp.y = 1.0 - pp.y;
         vec3 textureColor = texture2D(overlayTexture, pp).rgb;
         vColor = vec4(mix(textureColor, overlayColor.rgb, overlayColor.a), opacity);
     } else if (mode == MODE_ELEVATION) {

@@ -1,64 +1,34 @@
-import Extent from '../Core/Geographic/Extent.js';
-
-const tmp = {
-    dim: { x: 0, y: 0 },
-};
+/** @module Renderer/composition/CanvasComposer */
+import { CanvasTexture } from 'three';
+import Rect from '../../Core/Rect.js';
+import MemoryTracker from '../MemoryTracker.js';
 
 /**
- * Returns the equivalent rectangle of `source` normalized over the dimensions of `dest`.
+ * An implementation of the composer that uses an HTML canvas.
+ * This only supports 8-bit images, but is faster than the
+ * {@link module:Renderer/composition/WebGLComposer}
  *
- * @param {Extent} source The source extent.
- * @param {GeographicCanvas} canvas The destination canvas.
+ * @class CanvasComposer
  */
-export function toCanvasNormalizedCoordinates(source, canvas) {
-    const dest = canvas.extent;
-    const dstDim = canvas.dimensions;
-    const srcDim = source.dimensions(tmp.dim);
-    let x = (source.west() - dest.west()) / dstDim.x;
-    // We reverse north and south because canvas coordinates are top left corner based,
-    // whereas extents are bottom left based.
-    let y = (dest.north() - source.north()) / dstDim.y;
-
-    let w = srcDim.x / dstDim.x;
-    let h = srcDim.y / dstDim.y;
-
-    // Necessary to avoid seams between tiles due to problems in
-    // floating point precision when tile size is a multiple of the canvas size.
-    const precision = 10 ** 10;
-
-    x = (Math.round((x + Number.EPSILON) * precision) / precision);
-    y = (Math.round((y + Number.EPSILON) * precision) / precision);
-    w = (Math.round((w + Number.EPSILON) * precision) / precision);
-    h = (Math.round((h + Number.EPSILON) * precision) / precision);
-
-    return {
-        x, y, w, h,
-    };
-}
-
-/**
- * An utility class over a rendering context to draw geographic images.
- */
-class GeographicCanvas {
+class CanvasComposer {
     /**
-     * Creates an instance of GeographicCanvas.
+     * Creates an instance of CanvasComposer.
      *
      * @param {object} [options={}] The options.
      * @param {boolean} options.showImageOutlines If true, yellow image outlines
      * will be drawn on images.
      * @param {HTMLCanvasElement} [options.canvas=undefined] If specified, this canvas will be used.
      * Otherwise a new canvas will be created.
-     * @param {Extent} options.extent The extent of the canvas.
+     * @param {Rect} options.extent The extent of the canvas.
      * @param {number} [options.width=undefined] The canvas width, in pixels.
      * Ignored if a canvas is provided.
      * @param {number} [options.height=undefined] The canvas height, in pixels.
      * Ignored if a canvas is provided.
      * this color, otherwise it is transparent.
-     * @memberof GeographicCanvas
+     * @memberof CanvasComposer
      */
     constructor(options = {}) {
         this.extent = options.extent;
-        this.dimensions = this.extent.dimensions();
         this.showImageOutlines = options.showImageOutlines;
 
         if (options.canvas) {
@@ -94,11 +64,11 @@ class GeographicCanvas {
      * Draws the image into the canvas, using the specified extent.
      *
      * @param {any} image The image to draw.
-     * @param {Extent} extent The image extent.
-     * @memberof GeographicCanvas
+     * @param {Rect} extent The image extent.
+     * @memberof CanvasComposer
      */
     draw(image, extent) {
-        const normalized = toCanvasNormalizedCoordinates(extent, this);
+        const normalized = Rect.getNormalizedRect(extent, this.extent);
 
         // Canvas coordinate are discrete, so we need to floor and ceil
         // to ensure that images are exactly where they are supposed to be.
@@ -113,6 +83,7 @@ class GeographicCanvas {
         // Optionally, display the outline of the images
         if (this.showImageOutlines) {
             this.context.beginPath();
+            this.context.lineWidth = 2;
             this.context.strokeStyle = 'yellow';
             this.context.rect(dx, dy, dw, dh);
             this.context.stroke();
@@ -148,6 +119,19 @@ class GeographicCanvas {
     getImageData() {
         return this.context.getImageData(0, 0, this.size.w, this.size.h);
     }
+
+    render() {
+        const result = new CanvasTexture(this.canvas);
+        if (__DEBUG__) {
+            MemoryTracker.track(result, 'CanvasComposer');
+        }
+        return result;
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    dispose() {
+        // nothing to do.
+    }
 }
 
-export default GeographicCanvas;
+export default CanvasComposer;
