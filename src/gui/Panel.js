@@ -4,10 +4,6 @@
 import GUI, { ColorController, Controller } from 'lil-gui';
 import Instance from '../Core/Instance.js';
 
-export function truncate(string, length, end = '...') {
-    return string.length < length ? string : string.substring(0, length - end.length) + end;
-}
-
 /**
  * Base class for the panels in the inspector.
  *

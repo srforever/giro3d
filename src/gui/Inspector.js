@@ -11,6 +11,20 @@ import Outliner from './outliner/Outliner.js';
 import ProcessingInspector from './ProcessingInspector.js';
 import Panel from './Panel.js';
 
+// Here follows the style adaptation to lil-gui
+const styles = `
+.lil-gui .title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+`;
+
+const styleSheet = document.createElement('style');
+styleSheet.type = 'text/css';
+styleSheet.innerText = styles;
+document.head.appendChild(styleSheet);
+
 /**
  * Provides a user interface to inspect and edit the Giro3D scene.
  * The inspector is made of several {@link module:gui/Panel~Panel panels}.
