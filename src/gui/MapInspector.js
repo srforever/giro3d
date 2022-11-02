@@ -9,7 +9,6 @@ import { Map } from '../entities/Map.js';
 import Helpers from '../helpers/Helpers.js';
 import EntityInspector from './EntityInspector.js';
 import LayerInspector from './LayerInspector.js';
-import { truncate } from './Panel.js';
 
 function applyToMaterial(root, layer, callback) {
     root.traverse(object => {
@@ -30,7 +29,7 @@ class MapInspector extends EntityInspector {
      */
     constructor(parentGui, instance, map) {
         super(parentGui, instance, map, {
-            title: `Map (${truncate(map.id, 30)})`,
+            title: `Map (${map.id})`,
             visibility: true,
             boundingBoxColor: true,
             boundingBoxes: true,
