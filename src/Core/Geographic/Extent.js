@@ -29,9 +29,6 @@ function _isTiledCRS(crs) {
         || crs === 'TMS';
 }
 
-// A temporary globally allocated coordinates
-const tmpCoords = new Coordinates('EPSG:4326', 0, 0, 0);
-
 /**
  * An object representing a spatial extent. It encapsulates a Coordinate Reference System id (CRS)
  * and coordinates.
@@ -596,25 +593,6 @@ class Extent {
         }
 
         return result;
-    }
-
-    quadtreeSplit() {
-        this.center(tmpCoords);
-
-        const northWest = new Extent(this.crs(),
-            this.west(), tmpCoords._values[0],
-            tmpCoords._values[1], this.north());
-        const northEast = new Extent(this.crs(),
-            tmpCoords._values[0], this.east(),
-            tmpCoords._values[1], this.north());
-        const southWest = new Extent(this.crs(),
-            this.west(), tmpCoords._values[0],
-            this.south(), tmpCoords._values[1]);
-        const southEast = new Extent(this.crs(),
-            tmpCoords._values[0], this.east(),
-            this.south(), tmpCoords._values[1]);
-
-        return [northWest, northEast, southWest, southEast];
     }
 
     externalBorders(ratio) {
