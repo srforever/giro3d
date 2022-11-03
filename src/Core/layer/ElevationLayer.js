@@ -5,6 +5,7 @@ import Cache from '../Scheduler/Cache.js';
 import CancelledCommandException from '../Scheduler/CancelledCommandException.js';
 import DEMUtils, { ELEVATION_FORMAT } from '../../utils/DEMUtils.js';
 import LayerUpdateState from './LayerUpdateState.js';
+import DataStatus from '../../Provider/DataStatus.js';
 import Layer, {
     defineLayerProperty, nodeCommandQueuePriorityFunction,
     refinementCommandCancellationFn, MAX_RETRY,
@@ -321,8 +322,13 @@ class ElevationLayer extends Layer {
             node.layerUpdateState[this.id].failureParams,
         );
 
-        if (!nextDownloads) {
+        if (nextDownloads === DataStatus.DATA_UNAVAILABLE) {
             node.layerUpdateState[this.id].noMoreUpdatePossible();
+            return null;
+        }
+
+        if (nextDownloads === DataStatus.DATA_NOT_AVAILABLE_YET
+            || nextDownloads === DataStatus.DATA_ALREADY_LOADED) {
             return null;
         }
 

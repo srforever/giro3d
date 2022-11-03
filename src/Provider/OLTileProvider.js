@@ -13,6 +13,7 @@ import TileGrid from 'ol/tilegrid/TileGrid.js';
 import Extent from '../Core/Geographic/Extent.js';
 import Layer from '../Core/layer/Layer.js';
 import GeographicCanvas from '../utils/GeographicCanvas.js';
+import DataStatus from './DataStatus.js';
 
 function createCanvas(width, height) {
     const newCanvas = document.createElement('canvas');
@@ -57,10 +58,16 @@ function toOLExtent(extent) {
  * @returns {object} The result
  */
 function getPossibleTextureImprovements(layer, extent, texture) {
+    if (!extent.intersectsExtent(layer.extent)) {
+        // The tile does not even overlap with the layer extent.
+        // This can happen when layers have a different extent from their parent map.
+        return DataStatus.DATA_UNAVAILABLE;
+    }
+
     if (texture && texture.extent
         && texture.extent.isInside(extent)
         && texture.revision === layer.source.getRevision()) {
-        return null;
+        return DataStatus.DATA_ALREADY_LOADED;
     }
 
     return getTileRange(layer.tileGrid, layer.imageSize, extent);
@@ -151,12 +158,15 @@ function loadTiles(extent, zoom, layer) {
     tileGrid.forEachTileCoord(toOLExtent(extent), zoom, ([z, i, j]) => {
         const tile = source.getTile(z, i, j);
         const tileExtent = fromOLExtent(tileGrid.getTileCoordExtent(tile.tileCoord), crs);
-        const promise = loadTile(tile, tileExtent).catch(e => {
-            if (e) {
-                console.error(e);
-            }
-        });
-        promises.push(promise);
+        // Don't bother loading tiles that are not in the layer
+        if (tileExtent.intersectsExtent(layer.extent)) {
+            const promise = loadTile(tile, tileExtent).catch(e => {
+                if (e) {
+                    console.error(e);
+                }
+            });
+            promises.push(promise);
+        }
     });
 
     return Promise.all(promises);

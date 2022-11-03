@@ -6,6 +6,7 @@ import VectorTileHelper from './VectorTileHelper.js';
 import {
     STRATEGY_MIN_NETWORK_TRAFFIC, STRATEGY_PROGRESSIVE, STRATEGY_DICHOTOMY, STRATEGY_GROUP,
 } from '../Core/layer/LayerUpdateStrategy.js';
+import DataStatus from './DataStatus.js';
 
 function preprocessDataLayer(layer) {
     if (!layer.extent) {
@@ -83,10 +84,10 @@ function chooseExtentToDownload(extent, currentExtent, layer, pitch, previousErr
 
 function getPossibleTextureImprovements(layer, extent, texture, previousError) {
     if (!extentInsideLimit(extent, layer)) {
-        return null;
+        return DataStatus.DATA_UNAVAILABLE;
     }
     if (extent.zoom > layer.options.zoom.max) {
-        return null;
+        return DataStatus.DATA_UNAVAILABLE;
     }
 
     if (!texture) {

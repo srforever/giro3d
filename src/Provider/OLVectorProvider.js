@@ -25,6 +25,7 @@ import {
 } from 'ol/transform.js';
 
 import Extent from '../Core/Geographic/Extent.js';
+import DataStatus from './DataStatus.js';
 
 function fromOLExtent(extent, projectionCode) {
     return new Extent(projectionCode, extent[0], extent[2], extent[1], extent[3]);
@@ -72,7 +73,7 @@ function getPossibleTextureImprovements(layer, extent, texture, previousError) {
     if (texture && texture.extent
         && texture.extent.isInside(extent)
         && texture.revision === layer.source.getRevision()) {
-        return null;
+        return DataStatus.DATA_ALREADY_LOADED;
     }
 
     const layerExtent = fromOLExtent(layer.source.getExtent(), layer.projection);
@@ -80,7 +81,7 @@ function getPossibleTextureImprovements(layer, extent, texture, previousError) {
         return extent;
     }
     if (texture && texture.empty) {
-        return null;
+        return DataStatus.DATA_NOT_AVAILABLE_YET;
     }
     return extent;
 }

@@ -3,6 +3,7 @@ import { Vector4 } from 'three';
 import Extent from '../Core/Geographic/Extent.js';
 import OGCWebServiceHelper from './OGCWebServiceHelper.js';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
+import DataStatus from './DataStatus.js';
 
 function _selectImagesFromSpatialIndex(index, images, extent) {
     return index.search(
@@ -151,15 +152,16 @@ export default {
 
     getPossibleTextureImprovements(layer, extent, currentTexture) {
         if (!layer.images) {
-            return null;
+            // We may still be loading the images
+            return DataStatus.DATA_NOT_AVAILABLE_YET;
         }
         const s = selectBestImageForExtent(layer, extent);
 
         if (!s) {
-            return null;
+            return DataStatus.DATA_UNAVAILABLE;
         }
         if (currentTexture && currentTexture.file === s.image) {
-            return null;
+            return DataStatus.DATA_ALREADY_LOADED;
         }
         return {
             selection: s,

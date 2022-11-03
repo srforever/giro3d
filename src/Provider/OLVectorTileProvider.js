@@ -33,6 +33,7 @@ import {
 } from 'ol/transform.js';
 
 import Extent from '../Core/Geographic/Extent.js';
+import DataStatus from './DataStatus.js';
 
 const tmpTransform_ = createTransform();
 const emptyTexture = new Texture();
@@ -78,10 +79,10 @@ function getPossibleTextureImprovements(layer, extent, texture, previousError) {
     const ex = extent.as(layer.extent.crs());
     const tile = selectTile(layer, ex);
     if (texture && texture.extent && texture.extent.isInside(tile.tileExtent)) {
-        return null;
+        return DataStatus.DATA_ALREADY_LOADED;
     }
     if (texture === emptyTexture) {
-        return null;
+        return DataStatus.DATA_NOT_AVAILABLE_YET;
     }
     return tile;
 }
