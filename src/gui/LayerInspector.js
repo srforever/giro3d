@@ -44,7 +44,7 @@ class LayerInspector extends Panel {
         this.addController(this.layer, 'protocol')
             .name('Protocol');
 
-        if (this.layer.opacity) {
+        if (this.layer.opacity !== undefined) {
             this.addController(this.layer, 'opacity')
                 .name('Opacity')
                 .min(0)
