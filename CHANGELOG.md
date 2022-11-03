@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.9.0 (2022-11-03)
+
+### Fix
+
+- **OLTileProvider**: skip source tiles outside the layer's extent
+- **OLVector*Provider**: render the image in own canvas instead of tile atlas
+- **LayerInspector**: truncate the layer names when they are too long
+
 ## v0.8.0 (2022-10-27)
 
 This release contain mainly bugfixes related to maps and elevation layers, as well as features
