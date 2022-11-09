@@ -8,7 +8,7 @@ uniform vec4        elevationOffsetScale;
 #if defined(STITCHING)
 uniform sampler2D nTex[4];
 uniform vec4 nOff[4];
-uniform float segments;
+uniform vec2 geometryDim;
 #endif
 
 uniform mat4        projectionMatrix;
@@ -41,7 +41,6 @@ float readNeighbourElevation(vec2 uv, int neighbour, sampler2D texture) {
     return getElevation(texture, vVv);
 }
 #endif
-
 
 void main() {
     vUv = uv;
@@ -79,12 +78,12 @@ void main() {
         vec4 neighbourFactor = pow(vec4(2.0), abs(neighbourdiffLevel));
         // Interval in current tile is: 1.0 / segments. If a neighbour
         // has less vertices on our shared edges, its interval size is
-        // going to be:
-        vec4 modulo = neighbourFactor / segments;
+        // going to be: neighbourFactor / geometryDim;
         // West border
         if (vUv.x < 0.01) {
             if (neighbourdiffLevel.w < 0.0) {
-                float offset = fract(vUv.y / modulo.w) * modulo.w;
+                float modulo = neighbourFactor.w / geometryDim.y;
+                float offset = fract(vUv.y / modulo) * modulo;
                 vPosition.y -= tileDimensions.y * offset;
                 vUv.y -= offset;
 
@@ -99,7 +98,8 @@ void main() {
         // East border
         else if (vUv.x > 0.99) {
             if (neighbourdiffLevel.y < 0.0) {
-                float offset = fract(vUv.y / modulo.y) * modulo.y;
+                float modulo = neighbourFactor.y / geometryDim.y;
+                float offset = fract(vUv.y / modulo) * modulo;
                 vPosition.y -= tileDimensions.y * offset;
                 vUv.y -= offset;
                 elevation = readNeighbourElevation(vUv, 1, nTex[1]);
@@ -113,7 +113,8 @@ void main() {
         // South border
         else if (vUv.y < 0.01) {
             if (neighbourdiffLevel.z < 0.0) {
-                float offset = fract(vUv.x / modulo.z) * modulo.z;
+                float modulo = neighbourFactor.z / geometryDim.x;
+                float offset = fract(vUv.x / modulo) * modulo;
                 // move to the left
                 vPosition.x -= tileDimensions.x * offset;
                 vUv.x -= offset;
@@ -129,7 +130,8 @@ void main() {
         // North border
         else if (vUv.y > 0.99) {
             if (neighbourdiffLevel.x < 0.0) {
-                float offset = fract(vUv.x / modulo.x) * modulo.x;
+                float modulo = neighbourFactor.x / geometryDim.x;
+                float offset = fract(vUv.x / modulo) * modulo;
                 vPosition.x -= tileDimensions.x * offset;
                 vUv.x -= offset;
 

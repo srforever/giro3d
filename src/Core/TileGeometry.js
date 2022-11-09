@@ -6,17 +6,6 @@ import { BufferAttribute, BufferGeometry, Vector3 } from 'three';
 
 import OBB from '../Renderer/ThreeExtended/OBB.js';
 
-function computeVertexCount(array, nodata) {
-    let count = 0;
-    for (let i = 0; i < array.length; i++) {
-        if (array[i] !== nodata) {
-            ++count;
-        }
-    }
-
-    return count;
-}
-
 const tmp = {
     dimensions: { x: 0, y: 0 },
 };
@@ -33,12 +22,6 @@ const tmp = {
  * By default it produces square geometries but providing different width and height
  * allows for rectangular tiles creation.
  *
- * - If there is no elevation data, compute a simple grid.
- * - If there is no nodata value specified, or no value of the data is nodata,
- *   compute a simple grid with the elevation data.
- * - If all the values of the data are no data, empty the geometry buffers.
- * - If a geometry is supplied, copy it
- *
  * @example
  * // Inspired from Map@requestNewTile
  * const extent = new Extent('EPSG:3857', -1000, -1000, 1000, 1000);
@@ -46,12 +29,10 @@ const tmp = {
  * const geometry = new TileGeometry(paramsGeometry);
  * @param {object} params : Parameters to construct the grid. Should contain an extent
  *  and a size, either a number of segment or a width and an height in pixels.
- * @param {Array} data : Array of elevation data to update vertices z with.
- * @param {BufferGeometry} geometry : A geometry to copy.
  * @api
  */
 class TileGeometry extends BufferGeometry {
-    constructor(params, data = undefined, geometry = undefined) {
+    constructor(params) {
         super();
         // Still mandatory to have on the geometry ?
         this.extent = params.extent;
@@ -75,33 +56,10 @@ class TileGeometry extends BufferGeometry {
             columnStep,
             translateX: -segmentX * 0.5 * rowStep,
             translateY: -segmentY * 0.5 * columnStep,
-            nodata: params.nodata,
-            direction: params.direction || 'top',
             triangles: segmentX * segmentY * 2,
             numVertices: width * height,
         };
-        // Compute buffers (no normals because the z displacement is in the shader)
-        if (!geometry) {
-            if (data && this.props.nodata !== undefined) {
-                this.props.numVertices = computeVertexCount(data, this.props.nodata);
-                if (this.props.numVertices === this.props.width * this.props.height) {
-                    // No nodata values, simple grid with elevation
-                    this.computeBuffers(this.props);
-                } else if (this.props.numVertices === 0) {
-                    // Only nodata values so empty the BufferGeometry
-                    this.setAttribute('uv', new BufferAttribute(new Float32Array([]), 2));
-                    this.setAttribute('position', new BufferAttribute(new Float32Array([]), 3));
-                    this.setAttribute('normal', new BufferAttribute(new Float32Array([]), 3));
-                    this.setIndex(new BufferAttribute(new Uint16Array([]), 1));
-                } else {
-                    this.computeBuffersNoData(this.props, data);
-                }
-            } else {
-                this.computeBuffers(this.props);
-            }
-        } else {
-            this.copy(geometry);
-        }
+        this.computeBuffers(this.props);
         // Compute the Oriented Bounding Box for spatial operations
         this.computeBoundingBox();
         this.OBB = new OBB(this.boundingBox.min, this.boundingBox.max);
@@ -200,152 +158,6 @@ class TileGeometry extends BufferGeometry {
         this.setAttribute('uv', new BufferAttribute(uvs, 2));
         this.setAttribute('position', new BufferAttribute(positions, 3));
         this.setIndex(new BufferAttribute(indices, 1));
-    }
-
-    /**
-     * Construct a triangulated buffer geometry based on nodata values.
-     *
-     * Nodata values are discarded and we compute indices triangles according
-     * to the presence or absence of neighbors data points :
-     *  x---x       x   .       x---x      .   x       p3   p4
-     *   \  |       | \         |  /         / |
-     *    \ |       |  \        | /         /  |
-     *  .   x       x---x       x   .      x---x       p2   p1
-     *
-     * @param {object} props : Properties of the TileGeometry grid, as prepared by this.prepare.
-     * @param {Array} data : Array of elevation data to update vertices z with.
-     * @api
-     */
-    computeBuffersNoData(props, data) {
-        // Depile props
-        const width = props.width;
-        const height = props.height;
-        const rowStep = props.rowStep;
-        const columnStep = props.columnStep;
-        const translateX = props.translateX;
-        const translateY = props.translateY;
-        const uvStepX = props.uvStepX;
-        const uvStepY = props.uvStepY;
-        const direction = props.direction;
-        const numVertices = props.numVertices;
-        const nodata = props.nodata;
-
-        const indicesTable = {};
-        const uvs = new Float32Array(numVertices * 2);
-        const positions = new Float32Array(numVertices * 3);
-        const indices = new Uint32Array(props.triangles * 3);
-        const fullSize = width * height;
-
-        let p2;
-        let value;
-        let h = 0;
-        let i = 0;
-        let iPos = 0;
-        let posX = 0;
-        let uvY = 0.0;
-        let indicesNdx = 0;
-        let posY = translateY;
-        let iY = direction === 'top' ? iPos : fullSize - width;
-
-        // Top border
-        //
-        for (posX = 0; posX < width; posX++) {
-            value = data[iY + posX];
-            if (value !== nodata) {
-                indicesTable[i] = iPos;
-                // Store xy position and and corresponding uv of a pixel data.
-                const posNdx = iPos * 3;
-                positions[posNdx + 0] = posX * rowStep + translateX;
-                positions[posNdx + 1] = -posY;
-                positions[posNdx + 2] = 0.0;
-                const uvNdx = iPos * 2;
-                uvs[uvNdx + 0] = posX * uvStepX;
-                uvs[uvNdx + 1] = uvY;
-                iPos += 1;
-            }
-            i++;
-        }
-        // Next rows
-        //
-        for (h = 1; h < height; h++) {
-            posY = h * columnStep + translateY;
-            iY = direction === 'top' ? i : fullSize - (h + 1) * width;
-            uvY = h * uvStepY;
-            // First cell
-            posX = 0;
-            value = data[iY];
-            p2 = false;
-            if (value !== nodata) {
-                indicesTable[i] = iPos;
-                // Store xy position and and corresponding uv of a pixel data.
-                const posNdx = iPos * 3;
-                positions[posNdx + 0] = posX * rowStep + translateX;
-                positions[posNdx + 1] = -posY;
-                positions[posNdx + 2] = 0.0;
-                const uvNdx = iPos * 2;
-                uvs[uvNdx + 0] = posX * uvStepX;
-                uvs[uvNdx + 1] = uvY;
-                iPos += 1;
-                p2 = true;
-            }
-            i++;
-            // Next cells
-            for (posX = 1; posX < width; posX++) {
-                value = data[iY + posX];
-
-                const above = i - width;
-                const previousPos = iPos - 1;
-                const p3 = indicesTable[above - 1];
-                const p4 = indicesTable[above];
-                const hasP3 = p3 !== undefined;
-                const hasP4 = p4 !== undefined;
-
-                if (value !== nodata) { // p1
-                    if (hasP3) {
-                        if (hasP4) {
-                            indices[indicesNdx + 0] = iPos; //           x---x
-                            indices[indicesNdx + 1] = p3; //              \  |
-                            indices[indicesNdx + 2] = p4; //               \ |
-                            indicesNdx += 3; //                          .   x
-                        }
-                        if (p2) {
-                            indices[indicesNdx + 0] = iPos; //           x   .
-                            indices[indicesNdx + 1] = previousPos; //    | \
-                            indices[indicesNdx + 2] = p3; //             |  \
-                            indicesNdx += 3; //                          x---x
-                        }
-                    } else if (p2 && hasP4) {
-                        indices[indicesNdx + 0] = iPos; //               .   x
-                        indices[indicesNdx + 1] = previousPos; //          / |
-                        indices[indicesNdx + 2] = p4; //                  /  |
-                        indicesNdx += 3; //                              x---x
-                    }
-                    indicesTable[i] = iPos;
-                    // Store xy position and and corresponding uv of a pixel data.
-                    const posNdx = iPos * 3;
-                    positions[posNdx + 0] = posX * rowStep + translateX;
-                    positions[posNdx + 1] = -posY;
-                    positions[posNdx + 2] = 0.0;
-                    const uvNdx = iPos * 2;
-                    uvs[uvNdx + 0] = posX * uvStepX;
-                    uvs[uvNdx + 1] = uvY;
-                    iPos += 1;
-                    p2 = true;
-                } else if (p2 && hasP3 && hasP4) {
-                    indices[indicesNdx + 0] = previousPos; //            x---x
-                    indices[indicesNdx + 1] = p3; //                     |  /
-                    indices[indicesNdx + 2] = p4; //                     | /
-                    indicesNdx += 3; //                                  x   .
-                    p2 = false;
-                } else {
-                    p2 = false;
-                }
-                i++;
-            }
-        }
-        this.setAttribute('uv', new BufferAttribute(uvs, 2));
-        this.setAttribute('position', new BufferAttribute(positions, 3));
-        this.setIndex(new BufferAttribute(indices.slice(0, indicesNdx), 1));
     }
 }
 

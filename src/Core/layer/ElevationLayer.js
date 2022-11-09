@@ -1,7 +1,6 @@
 /**
  * @module Core/layer/ElevationLayer
  */
-import Cache from '../Scheduler/Cache.js';
 import CancelledCommandException from '../Scheduler/CancelledCommandException.js';
 import DEMUtils, { ELEVATION_FORMAT } from '../../utils/DEMUtils.js';
 import LayerUpdateState from './LayerUpdateState.js';
@@ -10,7 +9,6 @@ import Layer, {
     defineLayerProperty, nodeCommandQueuePriorityFunction,
     refinementCommandCancellationFn, MAX_RETRY,
 } from './Layer.js';
-import TileGeometry from '../TileGeometry.js';
 
 // get image data
 let canvas;
@@ -372,25 +370,6 @@ class ElevationLayer extends Layer {
         ).then(elevation => {
             if (!elevation) {
                 return;
-            }
-            if (this.elevationFormat === ELEVATION_FORMAT.NUMERIC) {
-                if (elevation.arrayData) {
-                    const key = `${node.layer.id}${node.extent._values.join(',')}`;
-                    const geometry = Cache.get(key);
-                    if (!geometry) {
-                        // Construct the node geometry with nodata
-                        const { width, height } = elevation.arrayData;
-                        const propsGeometry = {
-                            extent: node.extent,
-                            width,
-                            height,
-                            nodata: this.nodata,
-                            direction: 'bottom',
-                        };
-                        node.geometry = new TileGeometry(propsGeometry, elevation.arrayData[0]);
-                        Cache.set(key, node.geometry);
-                    }
-                }
             }
             const { min, max } = this.minMaxFromTexture(elevation.texture);
             elevation.min = min;

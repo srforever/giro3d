@@ -21,7 +21,9 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = data.length * 4; // RGBA
 
-                    const result = createDataTexture(w, h, {}, UnsignedByteType, data);
+                    const result = createDataTexture(
+                        { width: w, height: h }, UnsignedByteType, data,
+                    );
 
                     const buf = result.image.data.data;
 
@@ -49,7 +51,9 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
 
-                    const result = createDataTexture(w, h, {}, UnsignedByteType, r, g, b);
+                    const result = createDataTexture(
+                        { width: w, height: h }, UnsignedByteType, r, g, b,
+                    );
 
                     const buf = result.image.data.data;
 
@@ -82,7 +86,9 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
 
-                    const result = createDataTexture(w, h, {}, UnsignedByteType, r, g, b, a);
+                    const result = createDataTexture(
+                        { width: w, height: h }, UnsignedByteType, r, g, b, a,
+                    );
 
                     const buf = result.image.data.data;
 
@@ -115,7 +121,9 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = data.length * 4; // RGBA
 
-                    const result = createDataTexture(w, h, {}, FloatType, data);
+                    const result = createDataTexture(
+                        { width: w, height: h }, FloatType, data,
+                    );
 
                     const buf = result.image.data;
 
@@ -145,7 +153,9 @@ describe('TextureGenerator', () => {
                     const expectedOutputLength = data.length * 4; // RGBA
                     const type = FloatType;
 
-                    const result = createDataTexture(w, h, { scaling: { min, max } }, type, data);
+                    const result = createDataTexture(
+                        { width: w, height: h, scaling: { min, max } }, type, data,
+                    );
 
                     const buf = result.image.data.data;
 
@@ -166,14 +176,15 @@ describe('TextureGenerator', () => {
                     }
                 });
 
-                it('should set apha at transparent if pixel is NaN, and no-data as value', () => {
+                it('should set apha at transparent if pixel is NaN, and data to default nodata', () => {
                     const data = [5.2, NaN, 5.2, NaN];
-                    const nodata = 5.2;
                     const w = 2;
                     const h = 2;
                     const expectedOutputLength = data.length * 4; // RGBA
 
-                    const result = createDataTexture(w, h, { nodata }, FloatType, data);
+                    const result = createDataTexture(
+                        { width: w, height: h }, FloatType, data,
+                    );
 
                     const buf = result.image.data;
 
@@ -191,10 +202,10 @@ describe('TextureGenerator', () => {
                         const b = buf[idx + 2];
                         const a = buf[idx + 3];
 
-                        expect(r).toBeCloseTo((Number.isNaN(v) ? nodata : v), 2);
-                        expect(g).toBeCloseTo((Number.isNaN(v) ? nodata : v), 2);
-                        expect(b).toBeCloseTo((Number.isNaN(v) ? nodata : v), 2);
-                        expect(a).toEqual((Number.isNaN(v) || v === nodata)
+                        expect(r).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
+                        expect(g).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
+                        expect(b).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
+                        expect(a).toEqual(Number.isNaN(v)
                             ? TRANSPARENT
                             : OPAQUE_FLOAT);
                     }
@@ -206,7 +217,9 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = data.length * 4; // RGBA
 
-                    const result = createDataTexture(w, h, {}, FloatType, data);
+                    const result = createDataTexture(
+                        { width: w, height: h }, FloatType, data,
+                    );
 
                     const buf = result.image.data;
 
@@ -233,14 +246,25 @@ describe('TextureGenerator', () => {
                     }
                 });
 
-                it('should set apha at transparent if no-data is provided', () => {
-                    const data = [5.2, 4.1, 5.2, 13.2];
-                    const nodata = 5.2;
-                    const w = 2;
-                    const h = 2;
+                it('should set apha at transparent and data to the closest valid value if no-data is provided', () => {
+                    const ND = 5.2; // nodata
+                    const A = 3.3;
+                    const B = 5.9;
+                    const C = 137.1;
+                    const data = [
+                        ND, ND, ND,
+                        ND, A, ND,
+                        ND, B, ND,
+                        ND, C, ND,
+                        ND, ND, ND,
+                    ];
+                    const w = 3;
+                    const h = 5;
                     const expectedOutputLength = data.length * 4; // RGBA
 
-                    const result = createDataTexture(w, h, { nodata }, FloatType, data);
+                    const result = createDataTexture(
+                        { width: w, height: h, nodata: ND }, FloatType, data,
+                    );
 
                     const buf = result.image.data;
 
@@ -248,16 +272,37 @@ describe('TextureGenerator', () => {
                     expect(buf).toBeInstanceOf(Float32Array);
                     expect(buf).toHaveLength(expectedOutputLength);
 
-                    for (let i = 0; i < data.length; i++) {
-                        const v = data[i];
-                        const idx = i * 4;
-                        // We use toBeCloseTo because our input data is made of numbers
-                        // (64-bit floats), whereas the txture only supports 32-bit floats.
-                        expect(buf[idx + 0]).toBeCloseTo(v, 2);
-                        expect(buf[idx + 1]).toBeCloseTo(v, 2);
-                        expect(buf[idx + 2]).toBeCloseTo(v, 2);
-                        expect(buf[idx + 3]).toEqual(v === nodata ? TRANSPARENT : OPAQUE_FLOAT);
+                    function testMatrices(color, alpha) {
+                        for (let i = 0; i < color.length; i++) {
+                            const value = color[i];
+                            const a = alpha[i];
+                            const idx = i * 4;
+                            expect(buf[idx + 0]).toBeCloseTo(value);
+                            expect(buf[idx + 1]).toBeCloseTo(value);
+                            expect(buf[idx + 2]).toBeCloseTo(value);
+                            expect(buf[idx + 3]).toEqual(a);
+                        }
                     }
+
+                    const OPAQUE = OPAQUE_FLOAT;
+                    const TRANSP = TRANSPARENT;
+
+                    testMatrices(
+                        [
+                            A, A, A,
+                            A, A, A,
+                            B, B, B,
+                            C, C, C,
+                            C, C, C,
+                        ],
+                        [
+                            TRANSP, TRANSP, TRANSP,
+                            TRANSP, OPAQUE, TRANSP,
+                            TRANSP, OPAQUE, TRANSP,
+                            TRANSP, OPAQUE, TRANSP,
+                            TRANSP, TRANSP, TRANSP,
+                        ],
+                    );
                 });
             });
 
@@ -270,7 +315,9 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
 
-                    const result = createDataTexture(w, h, {}, FloatType, r, g, b);
+                    const result = createDataTexture(
+                        { width: w, height: h }, FloatType, r, g, b,
+                    );
 
                     const buf = result.image.data;
 
@@ -303,7 +350,9 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
 
-                    const result = createDataTexture(w, h, {}, FloatType, r, g, b, a);
+                    const result = createDataTexture(
+                        { width: w, height: h }, FloatType, r, g, b, a,
+                    );
 
                     const buf = result.image.data;
 

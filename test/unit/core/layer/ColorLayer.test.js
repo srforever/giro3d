@@ -83,7 +83,9 @@ describe('ColorLayer', () => {
             const tile = new TileMesh(
                 layerGeom,
                 geom,
-                new LayeredMaterial({}, 8, { maxX: 0, maxY: 0, atlas: {} }),
+                new LayeredMaterial(
+                    {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
+                ),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
             );
             tile.material.visible = false;
@@ -96,7 +98,9 @@ describe('ColorLayer', () => {
             const tile = new TileMesh(
                 layerGeom,
                 geom,
-                new LayeredMaterial({}, 8, { maxX: 0, maxY: 0, atlas: {} }),
+                new LayeredMaterial(
+                    {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
+                ),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
             );
             tile.material.visible = true;
@@ -110,7 +114,9 @@ describe('ColorLayer', () => {
             const tile = new TileMesh(
                 layerGeom,
                 geom,
-                new LayeredMaterial({}, 8, { maxX: 0, maxY: 0, atlas: {} }),
+                new LayeredMaterial(
+                    {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
+                ),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
                 2,
             );

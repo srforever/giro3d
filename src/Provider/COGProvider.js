@@ -58,8 +58,9 @@ function processArrayData(layer, arrayData, compressTo8bit) {
         : undefined;
 
     const texture = createDataTexture(
-        width,
-        height, {
+        {
+            width,
+            height,
             nodata: layer.nodata,
             scaling,
         },
