@@ -178,7 +178,17 @@ describe('Extent', () => {
         it('should return the argument object if provided', () => {
             const target = new Coordinates('EPSG:4326', -1, -1);
             const result = BOUNDS_EPSG4326.center(target);
-            assert.equal(target, result, 'it should be the same object');
+            expect(target).toBe(result);
+            expect(target.longitude()).toBe(0);
+            expect(target.latitude()).toBe(0);
+        });
+
+        it('should center the target if { x, y } provided', () => {
+            const target = { x: -1, y: -1 };
+            const result = BOUNDS_EPSG4326.center(target);
+            expect(target).toBe(result);
+            expect(target.x).toBe(0);
+            expect(target.y).toBe(0);
         });
 
         it('should return (0, 0) if extent is the EPSG:4326 bounds', () => {

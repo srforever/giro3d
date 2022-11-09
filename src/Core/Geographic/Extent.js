@@ -291,14 +291,21 @@ class Extent {
         }
         let c;
         if (target) {
-            Coordinates.call(target, this._crs, this._values[0], this._values[2]);
+            if (target instanceof Coordinates) {
+                Coordinates.call(target, this._crs, this._values[0], this._values[2]);
+            }
             c = target;
         } else {
             c = new Coordinates(this._crs, this._values[0], this._values[2]);
         }
         const dim = this.dimensions();
-        c._values[0] += dim.x * 0.5;
-        c._values[1] += dim.y * 0.5;
+        if (c instanceof Coordinates) {
+            c._values[0] += dim.x * 0.5;
+            c._values[1] += dim.y * 0.5;
+        } else {
+            c.x = this._values[0] + dim.x * 0.5;
+            c.y = this._values[2] + dim.y * 0.5;
+        }
         return c;
     }
 
