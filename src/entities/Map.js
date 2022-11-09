@@ -42,7 +42,7 @@ import Cache from '../Core/Scheduler/Cache.js';
 
 function subdivideNode(context, map, node) {
     if (!node.children.some(n => n.layer === map)) {
-        const extents = node.extent.quadtreeSplit();
+        const extents = node.extent.split(2, 2);
 
         for (const extent of extents) {
             const child = requestNewTile(
