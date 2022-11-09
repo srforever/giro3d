@@ -135,6 +135,10 @@ uniform sampler2D vLut;
 const float sLine = 0.003;
 #endif
 
+vec4 blend(vec3 fore, vec3 back, float a) {
+    return vec4(mix(back.rgb, fore.rgb, a), 1.0);
+}
+
 void main() {
 
 #if defined(DISCARD_NODATA_ELEVATION)
@@ -168,8 +172,9 @@ void main() {
                 if (layerColor.a > 0.0) {
                     hasTexture = true;
                 }
-                layerColor.rgb *= colors[i];
-                diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[i]) + layerColor * colorOpacity[i];
+                vec3 rgb = layerColor.rgb * colors[i];
+                float a = layerColor.a * colorOpacity[i];
+                diffuseColor = blend(rgb, diffuseColor.rgb, a);
             }
         }
         #pragma unroll_loop_end
