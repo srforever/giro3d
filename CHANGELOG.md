@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.10.0 (2022-11-10)
+
+### Feat
+
+- **TextureGenerator**: replace nodata values by valid values to remove interpolation effect
+- **TileGeometry**: remove nodata triangulation
+- **Stiching**: use geometry dimension instead of segments to allow rectangular stiching
+
+### Fix
+
+- **Extent**: proper center to target
+- **Inspector**: fix missing layer opacity slider when opacity is zero
+
+### Refactor
+
+- **Extent**: remove quadTreeSplit, replace by split(2, 2)
+
 ## v0.9.0 (2022-11-03)
 
 ### Fix
