@@ -12,10 +12,6 @@ const buildDir = path.join(baseDir, "..", "..", "build", "site", "examples");
 
 export default (env, argv) => {
 
-    const babelConfFile = argv.mode === 'production' ? 'babel.config.json' : 'babel.config.dev.json';
-    const babelrc = fs.readFileSync(path.join(baseDir, '..', '..', babelConfFile));
-    const babelConf = JSON.parse(babelrc);
-
     // Collect all example javscript code
     const entry = {};
     fs.readdirSync(src)
@@ -71,10 +67,9 @@ export default (env, argv) => {
         module: {
             rules: [
                 {
-                    test: /\.js$/,
+                    test: /\.glsl$/,
                     use: {
-                        loader: "babel-loader",
-                        options: babelConf
+                        loader: "webpack-glsl-loader",
                     },
                     exclude: /node_modules/,
                 }
@@ -85,6 +80,9 @@ export default (env, argv) => {
                 templates: path.join(baseDir, '..', 'templates'),
                 examplesDir: path.join(baseDir, '..'),
                 buildDir: buildDir,
+            }),
+            new webpack.DefinePlugin({
+                __DEBUG__: argv.mode !== 'production'
             }),
             new CopyPlugin({
                 patterns: [
