@@ -6,14 +6,11 @@ import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
 import { Map } from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
-// Define projection that we will use (taken from https://epsg.io/32633, Proj4js section)
-Instance.registerCRS('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs');
-
 // Define geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
-    'EPSG:32633',
-    499980, 609780,
-    1790220, 1900020,
+    'EPSG:3857',      // Full extent of the file
+    1820000, 1970000, // 1818329.448, 1987320.770,
+    6150000, 6200000, // 6062229.082, 6231700.791,
 );
 const center = extent.center().xyz();
 
@@ -46,38 +43,14 @@ instance.useTHREEControls(controls);
 const map = new Map('planar', { extent });
 instance.add(map);
 
-// Source urls for the example
-const cogs = [
-    new CogSource({
-        url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/2020/S2A_36QWD_20200701_0_L2A/TCI.tif',
-    }),
-    new CogSource({
-        url: 'https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/2020/S2A_36QWD_20200701_0_L2A/B08.tif',
-    }),
-];
+// Data coming from the same source as
+// https://openlayers.org/en/latest/examples/cog-math-multisource.html
+const source = new CogSource({
+    url: 'https://s2downloads.eox.at/demo/Sentinel-2/3857/TCI.tif',
+});
+const layer = new ColorLayer('color-layer', { source });
 
-// Load other layers and change visibility
-function changeLayer() {
-    const cogLayerOptions = document.getElementById('cogLayerOptions');
-    const cogOptionIndex = cogLayerOptions.selectedIndex;
-    map.getLayers().forEach(layer => {
-        layer.visible = false;
-    });
-    instance.notifyChange(map, true);
-    const selectedLayer = map.getLayers(l => l.id === cogOptionIndex)[0];
-    if (selectedLayer) { // if the layer is already loaded
-        selectedLayer.visible = true;
-    } else {
-        // Add the COG Layer as a color layer to the map
-        // See https://docs.sentinel-hub.com/api/latest/data/
-        const cogLayer = new ColorLayer(cogOptionIndex, { source: cogs[cogOptionIndex] });
-        map.addLayer(cogLayer);
-    }
-}
-document.getElementById('cogLayerOptions').addEventListener('change', () => changeLayer());
-
-// Load the current selected layer
-changeLayer();
+map.addLayer(layer);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
