@@ -602,6 +602,21 @@ class Extent {
         return result;
     }
 
+    /**
+     * Returns an array of 4 extents that share an edge with this extent, and whose size is defined
+     * by the specified ratio.
+     *        +---------+
+     *        |    0    |
+     *    +---+---------+---+
+     *    |   |         |   |
+     *    | 3 |         | 1 |
+     *    |   |         |   |
+     *    +---+---------+---+
+     *        |    2    |
+     *        +---------+
+     *
+     * @param {number} ratio The ratio of size.
+     */
     externalBorders(ratio) {
         const result = [
             this.clone(),
