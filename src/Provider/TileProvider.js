@@ -10,8 +10,7 @@ function preprocessDataLayer(map) {
 
     // If the map is not square, we want to have more than a single
     // root tile to avoid elongated tiles that hurt visual quality and SSE computation.
-    const subdivs = selectBestSubdivisions(map.extent);
-    const rootExtents = map.extent.split(subdivs.x, subdivs.y);
+    const rootExtents = map.extent.split(map.subdivisions.x, map.subdivisions.y);
 
     map.imageSize = computeImageSize(rootExtents[0]);
 
@@ -53,24 +52,6 @@ function computeImageSize(extent) {
 
     // We have a vertical tile
     return { w: baseSize, h: Math.round(baseSize * (1 / ratio)) };
-}
-
-function selectBestSubdivisions(extent) {
-    const dims = extent.dimensions();
-    const ratio = dims.x / dims.y;
-    let x; let y;
-
-    if (ratio > 1) {
-        // Our extent is an horizontal rectangle
-        x = Math.round(ratio);
-        y = 1;
-    } else {
-        // Our extent is an vertical rectangle
-        x = 1;
-        y = Math.round(1 / ratio);
-    }
-
-    return { x, y };
 }
 
 function executeCommand() {

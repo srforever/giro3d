@@ -8,9 +8,9 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 // Define geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
-    'EPSG:3857',      // Full extent of the file
-    1820000, 1970000, // 1818329.448, 1987320.770,
-    6150000, 6200000, // 6062229.082, 6231700.791,
+    'EPSG:3857',
+    1818329.448, 1987320.770,
+    6062229.082, 6231700.791,
 );
 const center = extent.center().xyz();
 
