@@ -211,8 +211,19 @@ void main() {
     }
 
 #if defined(OUTLINES)
-        if (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine) {
-            gl_FragColor.rgb = mix(vec3(1.0, 0.0, 0.0), gl_FragColor.rgb, 0.2);
+        const vec3 green = vec3(0, 1, 0);
+        const vec3 blue = vec3(0, 0, 1);
+        const vec3 red = vec3(1, 0, 0);
+        const vec3 yellow = vec3(1, 1, 0);
+
+        if (vUv.x < sLine) {
+            gl_FragColor.rgb = red;
+        } else if (vUv.x > 1.0 - sLine) {
+            gl_FragColor.rgb = green;
+        } else if (vUv.y < sLine) {
+            gl_FragColor.rgb = blue;
+        } else if (vUv.y > 1.0 - sLine) {
+            gl_FragColor.rgb = yellow;
         }
 #endif
 
