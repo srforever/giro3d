@@ -80,7 +80,7 @@ void main() {
         // has less vertices on our shared edges, its interval size is
         // going to be: neighbourFactor / geometryDim;
         // West border
-        if (vUv.x < 0.01) {
+        if (vUv.x == 0.0) {
             if (neighbourdiffLevel.w < 0.0) {
                 float modulo = neighbourFactor.w / geometryDim.y;
                 float offset = fract(vUv.y / modulo) * modulo;
@@ -96,7 +96,7 @@ void main() {
             }
         }
         // East border
-        else if (vUv.x > 0.99) {
+        else if (vUv.x == 1.0) {
             if (neighbourdiffLevel.y < 0.0) {
                 float modulo = neighbourFactor.y / geometryDim.y;
                 float offset = fract(vUv.y / modulo) * modulo;
@@ -111,16 +111,19 @@ void main() {
             }
         }
         // South border
-        else if (vUv.y < 0.01) {
+        if (vUv.y == 0.0) {
             if (neighbourdiffLevel.z < 0.0) {
                 float modulo = neighbourFactor.z / geometryDim.x;
                 float offset = fract(vUv.x / modulo) * modulo;
-                // move to the left
-                vPosition.x -= tileDimensions.x * offset;
                 vUv.x -= offset;
-
-                elevation = readNeighbourElevation(vUv, 2, nTex[2]);
-                weight = 1;
+                if (uv.x == 0.0 || uv.x == 1.0) {
+                    elevation += readNeighbourElevation(vUv, 2, nTex[2]);
+                    weight += 1;
+                } else {
+                    vPosition.x -= tileDimensions.x * offset;
+                    elevation = readNeighbourElevation(vUv, 2, nTex[2]);
+                    weight = 1;
+                }
                 // vColor = vec4(0.0, 1.0, 1.0, 0.5);
             } else if (neighbourdiffLevel.z == 0.0) {
                 elevation += readNeighbourElevation(uv, 2, nTex[2]);
@@ -128,15 +131,19 @@ void main() {
             }
         }
         // North border
-        else if (vUv.y > 0.99) {
+        else if (vUv.y == 1.0) {
             if (neighbourdiffLevel.x < 0.0) {
                 float modulo = neighbourFactor.x / geometryDim.x;
                 float offset = fract(vUv.x / modulo) * modulo;
-                vPosition.x -= tileDimensions.x * offset;
                 vUv.x -= offset;
-
-                elevation = readNeighbourElevation(vUv, 0, nTex[0]);
-                weight = 1;
+                if (uv.x == 0.0 || uv.x == 1.0) {
+                    elevation += readNeighbourElevation(vUv, 0, nTex[0]);
+                    weight += 1;
+                } else {
+                    vPosition.x -= tileDimensions.x * offset;
+                    elevation = readNeighbourElevation(vUv, 0, nTex[0]);
+                    weight = 1;
+                }
                 // vColor = vec4(0.0, 0.0, 1.0, 0.5);
             } else if (neighbourdiffLevel.x == 0.0) {
                 elevation += readNeighbourElevation(uv, 0, nTex[0]);
