@@ -79,22 +79,25 @@ function requestNewTile(map, extent, parent, level) {
     // the geometry in common extent is identical to the existing input
     // with a translation
     const dim = extent.dimensions();
+    const halfWidth = dim.x * 0.5;
+    const halfHeight = dim.y * 0.5;
     const sharableExtent = new Extent(
         extent.crs(),
-        -dim.x * 0.5, dim.x * 0.5,
-        -dim.y * 0.5, dim.y * 0.5,
+        -halfWidth, halfWidth,
+        -halfHeight, halfHeight,
     );
-    const segment = map.segments || 8;
 
-    const key = `${segment}_${level}_${sharableExtent._values.join(',')}`;
+    const key = `${map.id}_${sharableExtent._values.join(',')}`;
     let geometry = Cache.get(key);
     // build geometry if doesn't exist
     if (!geometry) {
         const paramsGeometry = {
             extent: sharableExtent,
-            segment,
+            width: map.segmentX + 1,
+            height: map.segmentY + 1,
         };
         geometry = new TileGeometry(paramsGeometry);
+        geometry.cacheKey = key;
         Cache.set(key, geometry);
         geometry._count = 0;
         geometry.dispose = () => {
@@ -168,6 +171,26 @@ function requestNewTile(map, extent, parent, level) {
 
 const tmpVector = new Vector3();
 
+function selectBestSubdivisions(map, extent) {
+    const dims = extent.dimensions();
+    const ratio = dims.x / dims.y;
+    let x = 1; let y = 1;
+    if (ratio > 1) {
+        // Our extent is an horizontal rectangle
+        x = Math.round(ratio);
+    } else if (ratio < 1) {
+        // Our extent is an vertical rectangle
+        y = Math.round(1 / ratio);
+    }
+    const newRatio = (dims.x / x) / (dims.y / y);
+    if (newRatio > 1) {
+        map.segmentX = Math.round(newRatio * map.segmentX);
+    } else if (newRatio < 1) {
+        map.segmentY = Math.round((1 / newRatio) * map.segmentY);
+    }
+    return { x, y };
+}
+
 /**
  * A map is an {@link module:entities/Entity~Entity Entity} that represents a flat
  * surface displaying one or more {@link module:Core/layer/Layer~Layer Layers}.
@@ -206,7 +229,11 @@ class Map extends Entity3D {
         /** @type {Extent} */
         this.extent = options.extent;
 
-        this.segments = options.segments || 8;
+        const segments = options.segments || 8;
+        this.segmentX = options.segmentX || segments;
+        this.segmentY = options.segmentY || segments;
+        this.subdivisions = selectBestSubdivisions(this, this.extent);
+
         this.sseScale = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel || -1;
 
