@@ -41,14 +41,16 @@ class Inspector {
      * @param {Instance} instance The Giro3D instance.
      */
     constructor(div, instance) {
+        this.instance = instance;
         this.gui = new GUI({ autoPlace: false, width: 300, title: 'Inspector' });
         this.gui.close();
         this.gui.add(this, 'collapse');
         div.appendChild(this.gui.domElement);
 
+        this._frameRequesterCb = () => this.update();
         instance.addFrameRequester(
             MAIN_LOOP_EVENTS.UPDATE_START,
-            () => this.update(),
+            this._frameRequesterCb,
         );
 
         this.folders = [];
@@ -95,6 +97,20 @@ class Inspector {
     static attach(div, instance) {
         const inspector = new Inspector(div, instance);
         return inspector;
+    }
+
+    /**
+     * Detach this Inspector from its instance.
+     *
+     * @api
+     */
+    detach() {
+        this.clearPanels();
+        this.instance.removeFrameRequester(
+            MAIN_LOOP_EVENTS.UPDATE_START,
+            this._frameRequesterCb,
+        );
+        this.gui.domElement.remove();
     }
 
     update() {

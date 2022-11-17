@@ -97,15 +97,31 @@ class MapInspector extends EntityInspector {
 
         this.layers = [];
 
+        this._fillLayersCb = () => this.fillLayers();
         this.instance.addEventListener(
             INSTANCE_EVENTS.LAYERS_INITIALIZED,
-            () => this.fillLayers(),
+            this._fillLayersCb,
         );
 
-        this.map.addEventListener('layer-added', () => this.fillLayers());
-        this.map.addEventListener('layer-removed', () => this.fillLayers());
+        this.map.addEventListener('layer-added', this._fillLayersCb);
+        this.map.addEventListener('layer-removed', this._fillLayersCb);
 
         this.fillLayers();
+    }
+
+    removeEventListeners() {
+        this.instance.removeEventListener(
+            INSTANCE_EVENTS.LAYERS_INITIALIZED,
+            this._fillLayersCb,
+        );
+
+        this.map.removeEventListener('layer-added', this._fillLayersCb);
+        this.map.removeEventListener('layer-removed', this._fillLayersCb);
+    }
+
+    dispose() {
+        super.dispose();
+        this.removeEventListeners();
     }
 
     dumpTiles() {
