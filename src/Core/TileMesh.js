@@ -47,6 +47,9 @@ class TileMesh extends Mesh {
 
         if (layer.minMaxFromElevationLayer) {
             this.setBBoxZ(layer.minMaxFromElevationLayer.min, layer.minMaxFromElevationLayer.max);
+        } else {
+            // This is a flat BBOX, let's give it a minimal thickness of 1 meter.
+            this.setBBoxZ(-0.5, +0.5);
         }
     }
 
