@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.11.0 (2022-11-17)
+
+### Feat
+
+- **Map**: adjust the number of subdivisions to fit the tile width/height ratio
+
+### Fix
+
+- **TileMesh**: assign a default bbox thickness of 1 meter
+- **TileVS**: use 2 neighbours instead of 1 for corner vertices while stitching
+- **examples**: support dynamic GLSL recompilation in webpack config
+
 ## v0.10.0 (2022-11-10)
 
 ### Feat
