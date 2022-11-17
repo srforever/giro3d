@@ -135,6 +135,12 @@ class C3DEngine {
         viewerDiv.appendChild(this.renderer.domElement);
     }
 
+    dispose() {
+        this.fullSizeRenderTarget.dispose();
+        this.renderer.domElement.remove();
+        this.renderer.dispose();
+    }
+
     render(instance, include2d) {
         this.renderer.setViewport(0, 0, this.width, this.height);
         this.renderer.clear();
