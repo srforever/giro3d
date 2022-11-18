@@ -205,7 +205,7 @@ class Map extends Entity3D {
      * Constructs a Map object.
      *
      * @param {string} id The unique identifier of the map.
-     * @param {object=} options Constructor options.
+     * @param {object} options Constructor options.
      * @param {Extent} options.extent The geographic extent of the map.
      * @param {number} [options.maxSubdivisionLevel=-1] Maximum tile depth of the map.
      * A value of `-1` does not limit the depth of the tile hierarchy.
@@ -214,7 +214,9 @@ class Map extends Entity3D {
      * @param {object} [options.colormap] Enables [colormapping](https://threejs.org/examples/webgl_geometry_colors_lookuptable.html).
      * @param {number} [options.segments=8] The number of geometry segments in each map tile.
      * The higher the better. For better visual results, it is recommended to use a power of two.
-     * @param {boolean} [options.discardNoData=true] If true, parts of the map that relate to
+     * @param {boolean} [options.doubleSided=false] If `true`, both sides of the map will be
+     * rendered, i.e when looking at the map from underneath.
+     * @param {boolean} [options.discardNoData=true] If `true`, parts of the map that relate to
      * no-data elevation values are not displayed. Note: you should only set this value to `true` if
      * an elevation layer is present, otherwise the map will never be displayed.
      * @param {module:three.Object3D=} options.object3d The optional 3d object to use as the root
@@ -249,6 +251,7 @@ class Map extends Entity3D {
             hillshading: options.hillshading,
             colormap: options.colormap,
             discardNoData: options.discardNoData,
+            doubleSided: options.doubleSided,
         };
         if (options.backgroundColor) {
             this.noTextureColor = new Color(options.backgroundColor);

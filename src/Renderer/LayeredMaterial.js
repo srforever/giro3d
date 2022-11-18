@@ -11,6 +11,8 @@ import {
     Uniform,
     Vector2,
     Vector4,
+    DoubleSide,
+    FrontSide,
 } from 'three';
 import RendererConstant from './RendererConstant.js';
 import TileVS from './Shader/TileVS.glsl';
@@ -83,9 +85,8 @@ class LayeredMaterial extends RawShaderMaterial {
         const geometryDim = new Vector2(geometryProps.width - 1, geometryProps.height - 1);
         this.uniforms.geometryDim = new Uniform(geometryDim);
 
-        if (options.side) {
-            this.side = options.side;
-        }
+        this.side = options.doubleSided ? DoubleSide : FrontSide;
+
         this.uniforms.renderingState = new Uniform(RendererConstant.FINAL);
 
         this.defines.TEX_UNITS = 0;
@@ -425,7 +426,13 @@ class LayeredMaterial extends RawShaderMaterial {
             recompileShaders = true;
         }
 
-        this.needsUpdate = recompileShaders;
+        const newSide = materialOptions.doubleSided ? DoubleSide : FrontSide;
+        if (this.side !== newSide) {
+            this.side = newSide;
+            this.needsUpdate = true;
+        }
+
+        this.needsUpdate |= recompileShaders;
 
         if (this.colorLayers.length === 0) {
             return true;
