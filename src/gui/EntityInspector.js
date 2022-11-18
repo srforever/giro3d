@@ -105,6 +105,10 @@ class EntityInspector extends Panel {
         }
     }
 
+    dispose() {
+        this.toggleBoundingBoxes(false);
+    }
+
     updateValues() {
         if (this.boundingBoxes) {
             this.toggleBoundingBoxes(true);

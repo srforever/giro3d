@@ -363,6 +363,7 @@ class LayeredMaterial extends RawShaderMaterial {
             console.warn(`Layer ${layer.id} not found, so not removed...`);
             return;
         }
+        // NOTE: we cannot dispose the texture here, because it might be cached for later.
         this.texturesInfo.color.infos.splice(index, 1);
         this.colorLayers.splice(index, 1);
 

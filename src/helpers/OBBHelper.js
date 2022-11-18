@@ -48,14 +48,14 @@ class OBBHelper extends LineSegments {
         if (OBB !== undefined) { this.update(OBB); }
     }
 
-    setMaterialVisibility(show) {
-        this.material.visible = show;
-        this.textMesh.material.visible = show;
-    }
-
     dispose() {
         this.material.dispose();
         this.geometry.dispose();
+    }
+
+    setMaterialVisibility(show) {
+        this.material.visible = show;
+        this.textMesh.material.visible = show;
     }
 
     update(OBB) {

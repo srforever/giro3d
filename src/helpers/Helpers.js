@@ -227,6 +227,7 @@ class Helpers {
     static removeOBB(obj) {
         if (obj.volumeHelper) {
             obj.volumeHelper.parent.remove(obj.volumeHelper);
+            obj.volumeHelper.dispose();
             delete obj.volumeHelper;
         }
     }
@@ -343,6 +344,7 @@ class Helpers {
             // The helper is not necessarily attached to the object, in the
             // case of helpers with absolute position.
             obj.boundingVolumeHelper.object3d.parent.remove(obj.boundingVolumeHelper.object3d);
+            obj.boundingVolumeHelper.dispose();
             delete obj.boundingVolumeHelper;
         }
     }
@@ -368,6 +370,7 @@ class Helpers {
     static removeBoundingBox(obj) {
         if (obj.volumeHelper) {
             obj.remove(obj.volumeHelper);
+            obj.volumeHelper.dispose();
             delete obj.volumeHelper;
         }
     }

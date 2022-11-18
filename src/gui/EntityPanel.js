@@ -10,7 +10,11 @@ import Tiles3dInspector from './Tiles3dInspector.js';
 import { MAIN_LOOP_EVENTS } from '../Core/MainLoop.js';
 import PotreePointCloudInspector from './PotreePointCloudInspector.js';
 
-const customInspectors = {};
+const customInspectors = {
+    Map: MapInspector,
+    Tiles3D: Tiles3dInspector,
+    PotreePointCloud: PotreePointCloudInspector,
+};
 
 /**
  * Provides an inspector for the entities in an instance.
@@ -27,28 +31,47 @@ class EntityPanel extends Panel {
     constructor(gui, instance) {
         super(gui, instance, 'Entities');
 
-        EntityPanel.registerInspector('Map', MapInspector);
-        EntityPanel.registerInspector('Tiles3D', Tiles3dInspector);
-        EntityPanel.registerInspector('PotreePointCloud', PotreePointCloudInspector);
-
+        this._frameRequester = () => this.update();
         this.instance.addFrameRequester(
             MAIN_LOOP_EVENTS.UPDATE_START,
-            () => this.update(),
+            this._frameRequester,
         );
 
         // rebuild the inspectors when the instance is updated
+        this._createInspectorsCb = () => this.createInspectors();
         this.instance.addEventListener(
             INSTANCE_EVENTS.ENTITY_ADDED,
-            () => this.createInspectors(),
+            this._createInspectorsCb,
         );
         this.instance.addEventListener(
             INSTANCE_EVENTS.ENTITY_REMOVED,
-            () => this.createInspectors(),
+            this._createInspectorsCb,
         );
 
         this.folders = [];
         this.inspectors = [];
         this.createInspectors();
+    }
+
+    dispose() {
+        this.instance.removeFrameRequester(
+            MAIN_LOOP_EVENTS.UPDATE_START,
+            this._frameRequester,
+        );
+        this.instance.removeEventListener(
+            INSTANCE_EVENTS.ENTITY_ADDED,
+            this._createInspectorsCb,
+        );
+        this.instance.removeEventListener(
+            INSTANCE_EVENTS.ENTITY_REMOVED,
+            this._createInspectorsCb,
+        );
+        while (this.folders.length > 0) {
+            this.folders.pop().destroy();
+        }
+        while (this.inspectors.length > 0) {
+            this.inspectors.pop().dispose();
+        }
     }
 
     /**
@@ -74,7 +97,7 @@ class EntityPanel extends Panel {
             this.folders.pop().destroy();
         }
         while (this.inspectors.length > 0) {
-            this.inspectors.pop();
+            this.inspectors.pop().dispose();
         }
 
         this.instance

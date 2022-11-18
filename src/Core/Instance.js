@@ -233,6 +233,34 @@ class Instance extends EventDispatcher {
     }
 
     /**
+     * Dispose of this instance object. Free all memory used.
+     *
+     * Note: this *will not* dispose the following reusable objects:
+     * - controls (because they can be attached and detached). For THREE.js controls, use
+     * `controls.dispose()`
+     * - Inspectors, use `inspector.detach()`
+     * - any openlayers objects, please see their individual documentation
+     *
+     * @api
+     */
+    dispose() {
+        if (this._isDisposing) {
+            console.warn('This instance is already in the process of being disposed');
+            return;
+        }
+        this._isDisposing = true;
+        this.resizeObserver.disconnect();
+        this.removeTHREEControls();
+        for (const obj of this.getObjects()) {
+            this.remove(obj);
+        }
+        this.scene.remove(this.threeObjects);
+
+        this.mainLoop.gfxEngine.dispose();
+        this.viewport.remove();
+    }
+
+    /**
      * Add THREE object or Entity to the instance.
      * The entity `id` must be unique.
      *
