@@ -71,20 +71,20 @@ class Tiles3D extends Entity3D {
         this._cleanableTiles = [];
     }
 
-    pickObjectsAt(instance, coordinates, options, target) {
+    pickObjectsAt(coordinates, options, target) {
         // If this is a pointcloud but with no default material defined,
         // we don't go in that if, but we could.
         // TODO: find a better way to know that this layer is about pointcloud ?
         if (this.material && this.material.enablePicking) {
             return Picking.pickPointsAt(
-                instance,
+                this._instance,
                 coordinates,
                 this,
                 options,
                 target,
             );
         }
-        return super.pickObjectsAt(instance, coordinates, options, target);
+        return super.pickObjectsAt(coordinates, options, target);
     }
 
     // eslint-disable-next-line no-unused-vars

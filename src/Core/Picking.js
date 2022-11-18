@@ -345,6 +345,7 @@ export default {
         const limit = options.limit || Infinity;
         const filterCanvas = options.filterCanvas;
         const filter = options.filter;
+        const vec2 = options.vec2 || new Vector2();
 
         // Instead of doing N raycast (1 per x,y returned by traversePickingCircle),
         // we force render the zone of interest.
@@ -366,7 +367,7 @@ export default {
         const clearB = Math.round(255 * clearColor.b);
 
         // Raycaster use NDC coordinate
-        const normalized = instance.canvasToNormalizedCoords(canvasCoords);
+        const normalized = instance.canvasToNormalizedCoords(canvasCoords, vec2);
         const tmp = normalized.clone();
         traversePickingCircle(radius, (x, y) => {
             if (filterCanvas) {

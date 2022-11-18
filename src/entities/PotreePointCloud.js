@@ -160,8 +160,8 @@ class PotreePointCloud extends Entity3D {
         this.onPointsCreated = null;
     }
 
-    pickObjectsAt(instance, coordinates, options, target) {
-        return Picking.pickPointsAt(instance, coordinates, this, options, target);
+    pickObjectsAt(coordinates, options, target) {
+        return Picking.pickPointsAt(this._instance, coordinates, this, options, target);
     }
 
     updateMinMaxDistance(context, bbox) {
