@@ -32,6 +32,13 @@ uniform vec2      elevationTextureSize;
 #include <packing>
 uniform int  uuid;
 
+vec3 desaturate(vec3 color, float factor)
+{
+	vec3 lum = vec3(0.299, 0.587, 0.114);
+	vec3 gray = vec3(dot(lum, color));
+	return mix(color, gray, factor);
+}
+
 vec2 computeDerivatives() {
     // Compute pixel dimensions, in normalized coordinates.
     // Since textures are not necessarily square, we must compute both width and height separately.
@@ -197,6 +204,12 @@ void main() {
         float hillshade = calcHillshade();
         gl_FragColor.rgb *= hillshade;
 #endif
+
+    // Display the backside in a desaturated, darker tone, to give visual feedback that
+    // we are, in fact, looking at the map from the "wrong" side.
+    if (!gl_FrontFacing) {
+        gl_FragColor.rgb = desaturate(gl_FragColor.rgb, 1.) * 0.5;
+    }
 
 #if defined(OUTLINES)
         if (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine) {
