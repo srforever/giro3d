@@ -35,7 +35,7 @@ const controls = new MapControls(
 );
 controls.enableDamping = true;
 controls.dampingFactor = 0.2;
-controls.target.set(center.x, center.y, center.z);
+controls.target.set(center.x, center.y + 1, center.z);
 
 instance.useTHREEControls(controls);
 

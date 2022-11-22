@@ -112,7 +112,7 @@ function requestNewTile(map, extent, parent, level) {
     // build tile
     geometry._count++;
     const material = new LayeredMaterial(
-        map.materialOptions, geometry.props, map.atlasInfo,
+        map.materialOptions, map._instance.renderer, geometry.props, map.atlasInfo,
     );
     const tile = new TileMesh(map, geometry, material, extent, level);
     tile.layers.set(map.threejsLayer);
@@ -216,7 +216,7 @@ class Map extends Entity3D {
      * The higher the better. For better visual results, it is recommended to use a power of two.
      * @param {boolean} [options.doubleSided=false] If `true`, both sides of the map will be
      * rendered, i.e when looking at the map from underneath.
-     * @param {boolean} [options.discardNoData=true] If `true`, parts of the map that relate to
+     * @param {boolean} [options.discardNoData=false] If `true`, parts of the map that relate to
      * no-data elevation values are not displayed. Note: you should only set this value to `true` if
      * an elevation layer is present, otherwise the map will never be displayed.
      * @param {module:three.Object3D=} options.object3d The optional 3d object to use as the root
@@ -411,7 +411,6 @@ class Map extends Entity3D {
                                 .neighbourdiffLevel.value.setComponent(i, 1);
                         } else {
                             const nn = n[i][0];
-                            const targetExtent = n[i][1];
 
                             // We want to compute the diff level, but can't directly
                             // use nn.level - node.level, because there's no garuantee
@@ -430,7 +429,7 @@ class Map extends Entity3D {
                                 .elevation
                                 .texture;
 
-                            const offscale = targetExtent.offsetToParent(nn.extent);
+                            const offscale = node.extent.offsetToParent(nn.extent);
 
                             elevationNeighbours.offsetScale[i] = nn
                                 .material

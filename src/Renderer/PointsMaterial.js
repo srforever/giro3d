@@ -165,7 +165,7 @@ class PointsMaterial extends RawShaderMaterial {
         this.colorLayer = layer;
         this.uniforms.overlayTexture = new Uniform();
         this.uniforms.offsetScale = new Uniform(new Vector4(0, 0, 1, 1));
-        this.uniforms.extentTopLeft = new Uniform(new Vector2(extent.west(), extent.north()));
+        this.uniforms.extentBottomLeft = new Uniform(new Vector2(extent.west(), extent.south()));
         const dim = extent.dimensions();
         this.uniforms.extentSize = new Uniform(new Vector2(dim.x, dim.y));
     }

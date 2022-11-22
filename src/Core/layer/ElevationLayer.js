@@ -71,6 +71,10 @@ class ElevationLayer extends Layer {
             return { data: texture.image.data.data, stride, h };
         }
 
+        if (texture.isRenderTargetTexture && texture.data) {
+            return { data: texture.data, stride, h };
+        }
+
         if (!canvas) {
             canvas = document.createElement('canvas');
         }
@@ -163,7 +167,7 @@ class ElevationLayer extends Layer {
         node.setTextureElevation(this, elevation);
     }
 
-    initNodeElevationTextureFromParent(node, parent) {
+    initNodeElevationTextureFromParent(node, instance, parent) {
         let parentTexture;
 
         while (parent && parent.material) {
@@ -207,7 +211,7 @@ class ElevationLayer extends Layer {
         // root texture to be reused later in texture inheritance scenarios.
         const down = this.provider.getPossibleTextureImprovements(this, this.extent);
         return this.provider
-            .executeCommand({ layer: this, toDownload: down })
+            .executeCommand({ layer: this, instance, toDownload: down })
             .then(result => this.handleRootTexture(result))
             .then(() => this.assignMinMaxToTiles(map));
     }
@@ -287,7 +291,7 @@ class ElevationLayer extends Layer {
 
             // When the tile is created, we try to inherit the texture from a parent or ancestor,
             // to be able to display something until our own texture is loaded.
-            if (this.initNodeElevationTextureFromParent(node, parent)) {
+            if (this.initNodeElevationTextureFromParent(node, context.instance, parent)) {
                 context.instance.notifyChange(node);
                 return null;
             }

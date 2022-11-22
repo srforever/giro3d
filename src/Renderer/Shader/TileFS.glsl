@@ -11,14 +11,10 @@ uniform vec3      colors[TEX_UNITS];
 #endif
 
 // backgroundColor
-uniform float      noTextureOpacity;
+uniform float     noTextureOpacity;
 uniform vec3      noTextureColor;
-// tile opacity - UNUSED
-// uniform float     opacity;
 
-varying vec2        vUv;
-varying vec4 vColor;
-varying vec4 vPosition;
+varying vec2      vUv;
 
 #include <GetElevation>
 uniform sampler2D elevationTexture;
@@ -39,7 +35,7 @@ vec3 desaturate(vec3 color, float factor)
 	return mix(color, gray, factor);
 }
 
-vec2 computeDerivatives() {
+vec2 computeDerivatives(vec2 uv) {
     // Compute pixel dimensions, in normalized coordinates.
     // Since textures are not necessarily square, we must compute both width and height separately.
     float texWidth = elevationTextureSize.x;
@@ -47,8 +43,6 @@ vec2 computeDerivatives() {
 
     float width = 1.0 / texWidth;
     float height = 1.0 / texHeight;
-
-    vec2 vVv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
 
     // Now compute the elevations for the 8 neigbouring pixels
     // +---+---+---+
@@ -59,14 +53,14 @@ vec2 computeDerivatives() {
     // | g | h | i |
     // +---+---+---+
     // Note: 'e' is the center of the sample. We don't use it for derivative computation.
-    float a = getElevation(elevationTexture, vVv + vec2(-width, height));
-    float b = getElevation(elevationTexture, vVv + vec2( 0.0, height));
-    float c = getElevation(elevationTexture, vVv + vec2( width, height));
-    float d = getElevation(elevationTexture, vVv + vec2(-width, 0.0));
-    float f = getElevation(elevationTexture, vVv + vec2( width, 0.0));
-    float g = getElevation(elevationTexture, vVv + vec2(-width, -height));
-    float h = getElevation(elevationTexture, vVv + vec2( 0.0, -height));
-    float i = getElevation(elevationTexture, vVv + vec2( width, -height));
+    float a = getElevation(elevationTexture, uv + vec2(-width, height));
+    float b = getElevation(elevationTexture, uv + vec2( 0.0, height));
+    float c = getElevation(elevationTexture, uv + vec2( width, height));
+    float d = getElevation(elevationTexture, uv + vec2(-width, 0.0));
+    float f = getElevation(elevationTexture, uv + vec2( width, 0.0));
+    float g = getElevation(elevationTexture, uv + vec2(-width, -height));
+    float h = getElevation(elevationTexture, uv + vec2( 0.0, -height));
+    float i = getElevation(elevationTexture, uv + vec2( width, -height));
 
     float cellWidth = tileDimensions.x / (elevationOffsetScale.z * elevationTextureSize.x);
     float cellHeight = tileDimensions.y / (elevationOffsetScale.w * elevationTextureSize.y);
@@ -111,9 +105,9 @@ vec2 decodeHalfRGBA( vec4 v ) {
 // hillshade support
 uniform float zenith; // degrees (0 - 90)
 uniform float azimuth; // degrees (0 - 360)
-float calcHillshade(){
+float calcHillshade(vec2 uv){
     // https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-hillshade-works.htm
-    vec2 derivatives = computeDerivatives();
+    vec2 derivatives = computeDerivatives(uv);
     float slope = calcSlope(derivatives);
     float aspect = calcAspect(derivatives);
     float zenith_rad = zenith * M_PI / 180.0; // in radians
@@ -135,13 +129,17 @@ uniform sampler2D vLut;
 const float sLine = 0.003;
 #endif
 
+vec4 blend(vec3 fore, vec3 back, float a) {
+    return vec4(mix(back.rgb, fore.rgb, a), 1.0);
+}
+
 void main() {
+    vec2 elevUv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
 
 #if defined(DISCARD_NODATA_ELEVATION)
     // Let's discard transparent pixels in the elevation texture
     // Important note : if there is no elevation texture, all fragments are discarded
     // because the default value for texture pixels is zero.
-    vec2 elevUv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
     if (abs(texture2D(elevationTexture, elevUv).a) < 0.001) {
         discard;
     }
@@ -162,14 +160,16 @@ void main() {
         #if TEX_UNITS
         #pragma unroll_loop_start
         for (int i = 0; i < TEX_UNITS; i++) {
-            if (colorVisible[i] && colorOpacity[i] > 0.0 && colorOffsetScale[i].zw != vec2(0.0)) {
-                vec2 uv = computeUv(vUv, colorOffsetScale[i].xy, colorOffsetScale[i].zw);
-                vec4 layerColor = texture2D(colorTexture, uv);
+            vec4 pitch = colorOffsetScale[i];
+            vec2 colorUv = computeUv(vUv, pitch.xy, pitch.zw);
+            if (colorVisible[i] && colorOpacity[i] > 0.0 && pitch.zw != vec2(0.0)) {
+                vec4 layerColor = texture2D(colorTexture, colorUv);
                 if (layerColor.a > 0.0) {
                     hasTexture = true;
                 }
-                layerColor.rgb *= colors[i];
-                diffuseColor = diffuseColor * (1.0 - layerColor.a * colorOpacity[i]) + layerColor * colorOpacity[i];
+                vec3 rgb = layerColor.rgb * colors[i];
+                float a = layerColor.a * colorOpacity[i];
+                diffuseColor = blend(rgb, diffuseColor.rgb, a);
             }
         }
         #pragma unroll_loop_end
@@ -183,10 +183,9 @@ void main() {
             #if defined(COLORMAP)
                 float data;
                 if (colormapMode == 0) {
-                    vec2 vVv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
-                    data = getElevation(elevationTexture, vVv);
+                    data = getElevation(elevationTexture, elevUv);
                 } else {
-                    vec2 derivatives = computeDerivatives();
+                    vec2 derivatives = computeDerivatives(elevUv);
                     if (colormapMode == 1) {
                         data = calcSlope(derivatives);
                     } else {
@@ -201,7 +200,7 @@ void main() {
         }
 
 #if defined(HILLSHADE)
-        float hillshade = calcHillshade();
+        float hillshade = calcHillshade(elevUv);
         gl_FragColor.rgb *= hillshade;
 #endif
 
@@ -212,8 +211,19 @@ void main() {
     }
 
 #if defined(OUTLINES)
-        if (vUv.x < sLine || vUv.x > 1.0 - sLine || vUv.y < sLine || vUv.y > 1.0 - sLine) {
-            gl_FragColor.rgb = mix(vec3(1.0, 0.0, 0.0), gl_FragColor.rgb, 0.2);
+        const vec3 green = vec3(0, 1, 0);
+        const vec3 blue = vec3(0, 0, 1);
+        const vec3 red = vec3(1, 0, 0);
+        const vec3 yellow = vec3(1, 1, 0);
+
+        if (vUv.x < sLine) {
+            gl_FragColor.rgb = red;
+        } else if (vUv.x > 1.0 - sLine) {
+            gl_FragColor.rgb = green;
+        } else if (vUv.y < sLine) {
+            gl_FragColor.rgb = blue;
+        } else if (vUv.y > 1.0 - sLine) {
+            gl_FragColor.rgb = yellow;
         }
 #endif
 

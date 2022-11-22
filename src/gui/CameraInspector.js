@@ -27,6 +27,15 @@ class CameraInspector extends Panel {
         this._controllers.push(position.add(this.camera3D.position, 'x'));
         this._controllers.push(position.add(this.camera3D.position, 'y'));
         this._controllers.push(position.add(this.camera3D.position, 'z'));
+
+        if (this.instance.controls
+            && this.instance.controls.target) {
+            const target = this.gui.addFolder('Target');
+            target.close();
+            this._controllers.push(target.add(this.instance.controls.target, 'x'));
+            this._controllers.push(target.add(this.instance.controls.target, 'y'));
+            this._controllers.push(target.add(this.instance.controls.target, 'z'));
+        }
     }
 }
 

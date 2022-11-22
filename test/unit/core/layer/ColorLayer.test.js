@@ -84,7 +84,7 @@ describe('ColorLayer', () => {
                 layerGeom,
                 geom,
                 new LayeredMaterial(
-                    {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
+                    {}, {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
                 ),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
             );
@@ -99,7 +99,7 @@ describe('ColorLayer', () => {
                 layerGeom,
                 geom,
                 new LayeredMaterial(
-                    {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
+                    {}, {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
                 ),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
             );
@@ -115,7 +115,7 @@ describe('ColorLayer', () => {
                 layerGeom,
                 geom,
                 new LayeredMaterial(
-                    {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
+                    {}, {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
                 ),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
                 2,

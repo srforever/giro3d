@@ -267,6 +267,116 @@ describe('Extent', () => {
         });
     });
 
+    describe('offsetToParent', () => {
+        it('should return 0, 0, 1, 1 for equal extents', () => {
+            const minX = -14;
+            const maxX = 32.5;
+            const minY = -3.54;
+            const maxY = 150.4;
+
+            const a = new Extent('foo', minX, maxX, minY, maxY);
+            const b = new Extent('foo', minX, maxX, minY, maxY);
+
+            const expected = {
+                x: 0, y: 0, z: 1, w: 1,
+            };
+
+            expect(a.offsetToParent(b)).toEqual(expected);
+            expect(b.offsetToParent(a)).toEqual(expected);
+        });
+
+        it('should return 0, -1, 1, 1 for equal extents that share their south/north border', () => {
+            const minX = -14;
+            const maxX = 32.5;
+            const minY = -3.54;
+            const maxY = 150.4;
+
+            const top = new Extent('foo', minX, maxX, maxY, maxY + (maxY - minY));
+            const bottom = new Extent('foo', minX, maxX, minY, maxY);
+
+            const bt = bottom.offsetToParent(top);
+            const tb = top.offsetToParent(bottom);
+
+            expect(bt.x).toEqual(0);
+            expect(bt.y).toEqual(-1);
+            expect(bt.z).toEqual(1);
+            expect(bt.w).toEqual(1);
+
+            expect(tb.x).toEqual(0);
+            expect(tb.y).toEqual(1);
+            expect(tb.z).toEqual(1);
+            expect(tb.w).toEqual(1);
+        });
+
+        it('returns correct results for differently sized ajacent extents', () => {
+            const x0 = 10;
+            const x1 = 50;
+            const x2 = 70;
+
+            const y0 = 10;
+            const y1 = 30;
+            const y2 = 50;
+
+            // x0           x1     x2
+            // +------------+        y2
+            // |            |
+            // |            |
+            // |     L      +------+ y1
+            // |            |      |
+            // |            |  R   |
+            // +------------+------+ y0
+
+            const L = new Extent('foo', x0, x1, y0, y2);
+            const R = new Extent('foo', x1, x2, y0, y1);
+
+            const LR = L.offsetScale(R);
+
+            expect(LR.x).toEqual(1);
+            expect(LR.y).toEqual(-0.5);
+            expect(LR.z).toEqual(0.5);
+            expect(LR.w).toEqual(0.5);
+        });
+    });
+
+    describe('externalBorders', () => {
+        it('should return 4 extents sharing an edge with the original extent', () => {
+            const minX = 0;
+            const maxX = 10;
+            const minY = 2;
+            const maxY = 15;
+            const ratio = 0.4;
+
+            const extent = new Extent('foo', minX, maxX, minY, maxY);
+            const borders = extent.externalBorders(ratio);
+
+            expect(borders).toHaveLength(4);
+            const north = borders[0];
+            const east = borders[1];
+            const south = borders[2];
+            const west = borders[3];
+
+            expect(north.west()).toEqual(extent.west());
+            expect(north.east()).toEqual(extent.east());
+            expect(north.south()).toEqual(extent.north());
+            expect(north.north()).toEqual(extent.north() + extent.dimensions().y * ratio);
+
+            expect(east.west()).toEqual(extent.east());
+            expect(east.east()).toEqual(extent.east() + extent.dimensions().x * ratio);
+            expect(east.south()).toEqual(extent.south());
+            expect(east.north()).toEqual(extent.north());
+
+            expect(south.north()).toEqual(extent.south());
+            expect(south.east()).toEqual(extent.east());
+            expect(south.west()).toEqual(extent.west());
+            expect(south.south()).toEqual(extent.south() - extent.dimensions().y * ratio);
+
+            expect(west.west()).toEqual(extent.west() - extent.dimensions().x * ratio);
+            expect(west.east()).toEqual(extent.west());
+            expect(west.south()).toEqual(extent.south());
+            expect(west.north()).toEqual(extent.north());
+        });
+    });
+
     describe('split', () => {
         it('should throw on invalid subdivisions', () => {
             expect(() => BOUNDS_EPSG3857.split(0, 1)).toThrow(/Invalid subdivisions/);

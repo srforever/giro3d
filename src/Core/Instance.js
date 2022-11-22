@@ -213,6 +213,10 @@ class Instance extends EventDispatcher {
         });
     }
 
+    get renderer() {
+        return this.mainLoop.gfxEngine.renderer;
+    }
+
     _doUpdateRendererSize(div) {
         this.mainLoop.gfxEngine.onWindowResize(div.clientWidth, div.clientHeight);
         this.notifyChange(this.camera.camera3D);

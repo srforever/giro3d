@@ -6,6 +6,7 @@ import Panel from './Panel.js';
 import Instance from '../Core/Instance.js';
 import FrameDuration from './charts/FrameDuration.js';
 import MemoryUsage from './charts/MemoryUsage.js';
+import MemoryTracker from '../Renderer/MemoryTracker.js';
 
 class ProcessingInspector extends Panel {
     /**
@@ -27,6 +28,13 @@ class ProcessingInspector extends Panel {
 
         this.charts.push(new FrameDuration(this.gui, instance));
         this.charts.push(new MemoryUsage(this.gui, instance));
+
+        this.addController(this, 'dumpTrackedObjects').name('Dump tracked objects');
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    dumpTrackedObjects() {
+        console.log(MemoryTracker.getTrackedObjects());
     }
 
     updateValues() {

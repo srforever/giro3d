@@ -1,7 +1,7 @@
 import {
-    CanvasTexture,
     Texture,
     Vector4,
+    WebGLRenderer,
 } from 'three';
 
 import TileSource from 'ol/source/Tile.js';
@@ -12,15 +12,10 @@ import TileGrid from 'ol/tilegrid/TileGrid.js';
 
 import Extent from '../Core/Geographic/Extent.js';
 import Layer from '../Core/layer/Layer.js';
-import GeographicCanvas from '../utils/GeographicCanvas.js';
 import DataStatus from './DataStatus.js';
-
-function createCanvas(width, height) {
-    const newCanvas = document.createElement('canvas');
-    newCanvas.width = width;
-    newCanvas.height = height;
-    return newCanvas;
-}
+import Rect from '../Core/Rect.js';
+import ElevationLayer from '../Core/layer/ElevationLayer.js';
+import Composer from '../Renderer/composition/Composer.js';
 
 function preprocessDataLayer(layer) {
     const { source } = layer;
@@ -104,11 +99,11 @@ function getTileRange(tileGrid, imageSize, extent) {
 }
 
 async function executeCommand(command) {
-    const { layer } = command;
+    const { layer, instance } = command;
     const { z, extent } = command.toDownload;
 
     const images = await loadTiles(extent, z, layer);
-    const result = await combineImages(images, layer, extent);
+    const result = combineImages(images, instance.renderer, layer, extent);
     return result;
 }
 
@@ -116,25 +111,32 @@ async function executeCommand(command) {
  * Combines all images into a single texture.
  *
  * @param {Array} sourceImages The images to combine.
+ * @param {WebGLRenderer} renderer The WebGL renderer.
  * @param {Layer} layer The target layer.
  * @param {Extent} targetExtent The extent of the destination texture.
  */
-async function combineImages(sourceImages, layer, targetExtent) {
-    const canvas = new GeographicCanvas({
-        extent: targetExtent,
-        canvas: createCanvas(layer.imageSize.w, layer.imageSize.h),
+function combineImages(sourceImages, renderer, layer, targetExtent) {
+    const isElevationLayer = layer instanceof ElevationLayer;
+    const composer = new Composer({
+        extent: Rect.fromExtent(targetExtent),
+        width: layer.imageSize.w,
+        height: layer.imageSize.h,
+        webGLRenderer: renderer,
+        renderToCanvas: false,
+        createDataCopy: isElevationLayer, // To compute the min/max later
     });
 
     sourceImages.forEach(img => {
         if (img) {
-            canvas.draw(img, img.extent);
+            composer.draw(img, Rect.fromExtent(img.extent));
         }
     });
 
-    const texture = new CanvasTexture(canvas.canvas);
-    texture.flipY = true;
+    const texture = composer.render();
     texture.extent = targetExtent;
     texture.revision = layer.source.getRevision();
+
+    composer.dispose();
 
     return { texture, pitch: new Vector4(0, 0, 1, 1) };
 }
