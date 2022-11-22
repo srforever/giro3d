@@ -1,20 +1,15 @@
-import { CanvasTexture, Texture } from 'three';
-
 const ALLOCATED = new Map();
 let ID = 0;
 
 class MemoryTracker {
-    static getCanvasTexture(canvas, name) {
-        const texture = new CanvasTexture(canvas);
-        MemoryTracker.track(texture, name);
-        return texture;
-    }
-
     static track(obj, name) {
         if (__DEBUG__) {
+            if (ALLOCATED.has(obj)) {
+                return;
+            }
             obj.name = (`${name || obj.id} ${ID++}`);
             // eslint-disable-next-line no-undef
-            ALLOCATED.set(obj.name, new WeakRef(obj));
+            ALLOCATED.set(obj, new WeakRef(obj));
             if (obj.dispose) {
                 obj.addEventListener('dispose', MemoryTracker.onDeleted);
             }
@@ -22,21 +17,24 @@ class MemoryTracker {
     }
 
     static onDeleted(event) {
-        /** @type {Texture} */
-        const texture = event.target;
-        texture.removeEventListener('dispose', MemoryTracker.onDeleted);
-        ALLOCATED.delete(texture.name);
+        const obj = event.target;
+        obj.removeEventListener('dispose', MemoryTracker.onDeleted);
+        ALLOCATED.delete(obj);
     }
 
     static getTrackedObjects() {
-        const result = [];
+        const map = {};
         for (const weakref of ALLOCATED.values()) {
             const value = weakref.deref();
             if (value) {
-                result.push(value);
+                const key = value.constructor.name;
+                if (!map[key]) {
+                    map[key] = [];
+                }
+                map[key].push(value);
             }
         }
-        return result;
+        return map;
     }
 }
 
