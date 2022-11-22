@@ -23,6 +23,7 @@ import ComputeUV from './Shader/Chunk/ComputeUV.glsl';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
 import WebGLComposer from './composition/WebGLComposer.js';
 import Rect from '../Core/Rect.js';
+import MemoryTracker from './MemoryTracker.js';
 
 // Declaring our own chunks
 ShaderChunk.PrecisionQualifier = PrecisionQualifier;
@@ -159,6 +160,10 @@ class LayeredMaterial extends RawShaderMaterial {
         this.texturesInfo.color.atlasTexture.minFilter = LinearFilter;
         this.texturesInfo.color.atlasTexture.anisotropy = 1;
         this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
+
+        if (__DEBUG__) {
+            MemoryTracker.track(this, 'LayeredMaterial');
+        }
     }
 
     updateLayerUniforms() {
