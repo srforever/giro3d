@@ -377,4 +377,13 @@ describe('TextureGenerator', () => {
             });
         });
     });
+
+    describe('decodeBlob', () => {
+        it('throws on unsupported media type', async () => {
+            const blob = new Blob([], { type: 'image/unsupported' });
+            await expect(TextureGenerator.decodeBlob(blob))
+                .rejects
+                .toThrow(/unsupported media type/);
+        });
+    });
 });
