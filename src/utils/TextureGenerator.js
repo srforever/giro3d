@@ -1,5 +1,23 @@
 import {
-    Texture, DataTexture, FloatType, RGBAFormat, UnsignedByteType,
+    Texture,
+    DataTexture,
+    FloatType,
+    PixelFormat,
+    AlphaFormat,
+    LuminanceAlphaFormat,
+    LuminanceFormat,
+    RGBFormat,
+    DepthFormat,
+    RedFormat,
+    RedIntegerFormat,
+    RGFormat,
+    DepthStencilFormat,
+    RGIntegerFormat,
+    RGBAIntegerFormat,
+    RGBAFormat,
+    UnsignedByteType,
+    WebGLRenderTarget,
+    WebGLRenderer,
 } from 'three';
 
 export const OPAQUE_BYTE = 255;
@@ -154,6 +172,51 @@ function create8bitImage(blob) {
 }
 
 /**
+ * Returns the number of channels per pixel.
+ *
+ * @param {PixelFormat} pixelFormat The pixel format.
+ * @returns {number} The number of channels per pixel.
+ */
+function getChannelCount(pixelFormat) {
+    switch (pixelFormat) {
+        case AlphaFormat: return 1;
+        case RGBFormat: return 3;
+        case RGBAFormat: return 4;
+        case LuminanceFormat: return 1;
+        case LuminanceAlphaFormat: return 2;
+        case DepthFormat: return 1;
+        case DepthStencilFormat: return 1;
+        case RedFormat: return 1;
+        case RedIntegerFormat: return 1;
+        case RGFormat: return 2;
+        case RGIntegerFormat: return 2;
+        case RGBAIntegerFormat: return 4;
+        default:
+            throw new Error(`invalid pixel format: ${pixelFormat}`);
+    }
+}
+
+/**
+ * Reads back the render target buffer into CPU memory, then attach this buffer to the `data`
+ * property of the render target's texture.
+ *
+ * This is useful because normally the pixels of a render target are not readable.
+ *
+ * @param {WebGLRenderTarget} target The render target to read back.
+ * @param {WebGLRenderer} renderer The WebGL renderer to perform the operation.
+ */
+function createDataCopy(target, renderer) {
+    // Render target textures don't have data in CPU memory,
+    // we need to transfer their data into a buffer.
+    const bufSize = target.width * target.height * getChannelCount(target.texture.format);
+    const buf = target.texture.type === UnsignedByteType
+        ? new Uint8Array(bufSize)
+        : new Float32Array(bufSize);
+    renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, buf);
+    target.texture.data = buf;
+}
+
+/**
  * Decodes the blob according to its media type, then returns a texture for this blob.
  *
  * @param {Blob} blob The buffer to decode.
@@ -174,10 +237,6 @@ async function decodeBlob(blob) {
             const img = await create8bitImage(blob);
             return new Texture(img);
         }
-
-        case 'image/tiff':
-            // Use geotiff.js to decode the image
-            throw new Error('not implemented');
 
         case 'image/x-bil':
             // Use the BIL decoder
@@ -242,4 +301,9 @@ function createDataTexture(options, sourceDataType, ...pixelData) {
     }
 }
 
-export default { createDataTexture, decodeBlob };
+export default {
+    createDataTexture,
+    decodeBlob,
+    fillBuffer,
+    createDataCopy,
+};

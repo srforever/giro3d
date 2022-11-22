@@ -17,6 +17,7 @@ import {
 } from 'three';
 
 import Rect from '../../Core/Rect.js';
+import TextureGenerator from '../../utils/TextureGenerator.js';
 import MemoryTracker from '../MemoryTracker.js';
 import ComposerTileMaterial from './ComposerTileMaterial.js';
 
@@ -248,14 +249,7 @@ class WebGLComposer {
         this.renderer.setRenderTarget(previousTarget);
 
         if (this.createDataCopy) {
-            // Render target textures don't have data in CPU memory,
-            // we need to transfer their data into a buffer.
-            const bufSize = this.width * this.height * 4; // 4 channels : RGBA
-            const buf = target.texture.type === UnsignedByteType
-                ? new Uint8Array(bufSize)
-                : new Float32Array(bufSize);
-            this.renderer.readRenderTargetPixels(target, 0, 0, this.width, this.height, buf);
-            target.texture.data = buf;
+            TextureGenerator.createDataCopy(target, this.renderer);
         }
 
         target.texture.wrapS = ClampToEdgeWrapping;

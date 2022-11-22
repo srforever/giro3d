@@ -224,14 +224,16 @@ function _readTextureValueAt(textureInfo, ...uv) {
         uv[i] = MathUtils.clamp(uv[i], 0, texture.image.width - 1);
         uv[i + 1] = MathUtils.clamp(uv[i + 1], 0, texture.image.height - 1);
     }
-    if (texture.image.data) {
-        // Explanation : if the texture is a data texture, it can either reference directly a
-        // buffer, or reference an ImageData, that will contain the buffer,
-        // hence the level of indirection.
+    if (texture.image.data || texture.data) {
         let buf;
 
-        if (texture.image.data.data) {
+        // Case 1 : render texture with an attached data property
+        if (texture.data) {
+            buf = texture.data;
+            // Case 2 : data texture with an ImageData attached (that contains the buffer)
+        } else if (texture.image.data.data) {
             buf = texture.image.data.data;
+            // Case 3 : data texture with an buffer attached
         } else {
             buf = texture.image.data;
         }

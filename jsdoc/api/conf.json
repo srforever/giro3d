@@ -24,6 +24,7 @@
       "src/Renderer/PointsMaterial.js",
       "src/entities",
       "src/sources",
+      "src/formats",
       "src/helpers",
       "src/gui"
     ]

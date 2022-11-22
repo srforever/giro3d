@@ -38,4 +38,28 @@ describe('ElevationLayer', () => {
             expect(layer.heightFieldScale).toEqual(1111);
         });
     });
+
+    describe('minMaxFromBuffer', () => {
+        it('should only use the first channel of each pixel', () => {
+            const buf = [1, 999, 999, 999, 2, 999, 999, 999];
+            const minmax = ElevationLayer.minMaxFromBuffer(buf);
+            expect(minmax.min).toEqual(1);
+            expect(minmax.max).toEqual(2);
+        });
+
+        it('should ignore NaN', () => {
+            const buf = [1, 0, 0, 1, 3, 0, 0, 1, NaN, 0, 0, 1];
+            const minmax = ElevationLayer.minMaxFromBuffer(buf);
+            expect(minmax.min).toEqual(1);
+            expect(minmax.max).toEqual(3);
+        });
+
+        it('should ignore no-data', () => {
+            const nodata = 32032.2323;
+            const buf = [1, 0, 0, 1, 3, 0, 0, 1, nodata, 0, 0, 1];
+            const minmax = ElevationLayer.minMaxFromBuffer(buf, nodata);
+            expect(minmax.min).toEqual(1);
+            expect(minmax.max).toEqual(3);
+        });
+    });
 });
