@@ -203,11 +203,6 @@ function loadTile(tile, extent) {
     return promise;
 }
 
-// eslint-disable-next-line no-unused-vars
-function tileTextureCount(tile, layer) {
-    return 1;
-}
-
 function tileInsideLimit(tile, layer) {
     const extent = tile.getExtentForLayer(layer);
     return extent.isInside(layer.sourceExtent);
@@ -216,7 +211,6 @@ function tileInsideLimit(tile, layer) {
 export default {
     preprocessDataLayer,
     executeCommand,
-    tileTextureCount,
     tileInsideLimit,
     getPossibleTextureImprovements,
 };

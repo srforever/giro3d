@@ -147,10 +147,6 @@ function executeCommand(command) {
     });
 }
 
-function tileTextureCount(tile, layer) {
-    return tileInsideLimit(tile, layer) ? 1 : 0;
-}
-
 function tileInsideLimit(tile, layer) {
     // assume 1 TMS texture per tile (ie: tile geometry CRS is the same as layer's CRS)
     return extentInsideLimit(tile.getExtentForLayer(layer), layer);
@@ -164,7 +160,6 @@ function extentInsideLimit(extent, layer) {
 export default {
     preprocessDataLayer,
     executeCommand,
-    tileTextureCount,
     tileInsideLimit,
     getPossibleTextureImprovements,
 };
