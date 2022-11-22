@@ -5,6 +5,7 @@
  */
 
 import { Mesh } from 'three';
+
 import RendererConstant from '../Renderer/RendererConstant.js';
 import OGCWebServiceHelper from '../Provider/OGCWebServiceHelper.js';
 import MemoryTracker from '../Renderer/MemoryTracker.js';
@@ -16,10 +17,10 @@ function applyChangeState(n, s) {
 }
 
 class TileMesh extends Mesh {
-    constructor(layer, geometry, material, extent, level) {
+    constructor(map, geometry, material, extent, level, x = 0, y = 0) {
         super(geometry, material);
 
-        this.layer = layer;
+        this.layer = map;
 
         this.matrixAutoUpdate = false;
         this.rotationAutoUpdate = false;
@@ -32,7 +33,7 @@ class TileMesh extends Mesh {
         // Needs to clone it because the geometry is not copied anymore
         this.obb = this.geometry.OBB.clone();
 
-        this.name = `tile @${level}`;
+        this.name = `tile @ (z=${level}, x=${x}, y=${y})`;
         this.obb.name = 'obb';
 
         this.frustumCulled = false;
@@ -46,15 +47,20 @@ class TileMesh extends Mesh {
         const dim = extent.dimensions();
         this.material.uniforms.tileDimensions.value.set(dim.x, dim.y);
 
-        if (layer.minMaxFromElevationLayer) {
-            this.setBBoxZ(layer.minMaxFromElevationLayer.min, layer.minMaxFromElevationLayer.max);
+        if (map.minMaxFromElevationLayer) {
+            this.setBBoxZ(map.minMaxFromElevationLayer.min, map.minMaxFromElevationLayer.max);
         } else {
             // This is a flat BBOX, let's give it a minimal thickness of 1 meter.
             this.setBBoxZ(-0.5, +0.5);
         }
 
+        this.x = x;
+        this.y = y;
+        this.z = level;
+        map.tileIndex.addTile(this);
+
         if (__DEBUG__) {
-            MemoryTracker.track(this, 'TileMesh');
+            MemoryTracker.track(this, this.name);
         }
     }
 
@@ -199,50 +205,6 @@ class TileMesh extends Mesh {
 
     isAncestorOf(node) {
         return node.findCommonAncestor(this) === this;
-    }
-
-    findSmallestExtentCoveringGoingDown(extent) {
-        if (this.children) {
-            for (const child of this.children) {
-                if (child.extent) {
-                    if (extent.isInside(child.extent)) {
-                        return child.findSmallestExtentCoveringGoingDown(extent);
-                    }
-                }
-            }
-        }
-        return [this, extent];
-    }
-
-    findSmallestExtentCoveringGoingUp(extent) {
-        if (extent.isInside(this.extent)) {
-            return this;
-        }
-        if (!this.parent || !this.parent.extent) {
-            if (this.level === 0 && this.parent.children.length) {
-                for (const sibling of this.parent.children) {
-                    if (sibling.extent && extent.isInside(sibling.extent)) {
-                        return sibling;
-                    }
-                }
-            }
-            return undefined;
-        }
-        return this.parent.findSmallestExtentCoveringGoingUp(extent);
-    }
-
-    findSmallestExtentCovering(extent) {
-        const node = this.findSmallestExtentCoveringGoingUp(extent);
-        if (!node) {
-            return null;
-        }
-        return node.findSmallestExtentCoveringGoingDown(extent);
-    }
-
-    findNeighbours() {
-        // top, right, bottom, left
-        const borders = this.extent.externalBorders(0.1);
-        return borders.map(border => this.findSmallestExtentCovering(border));
     }
 
     dispose() {

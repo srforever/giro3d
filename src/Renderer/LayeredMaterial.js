@@ -114,8 +114,8 @@ class LayeredMaterial extends RawShaderMaterial {
                 offsetScale: new Vector4(0, 0, 0, 0),
                 texture: emptyTexture,
                 neighbours: {
-                    offsetScale: Array(4),
-                    texture: Array(4),
+                    offsetScale: Array(8),
+                    texture: Array(8),
                 },
                 format: null,
             },

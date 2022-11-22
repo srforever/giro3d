@@ -19,6 +19,7 @@ import Picking from '../Core/Picking.js';
 import ScreenSpaceError from '../Core/ScreenSpaceError.js';
 import LayeredMaterial from '../Renderer/LayeredMaterial.js';
 import TileMesh from '../Core/TileMesh.js';
+import TileIndex from '../Core/TileIndex.js';
 import TileGeometry from '../Core/TileGeometry.js';
 import Cache from '../Core/Scheduler/Cache.js';
 
@@ -44,10 +45,27 @@ function subdivideNode(context, map, node) {
     if (!node.children.some(n => n.layer === map)) {
         const extents = node.extent.split(2, 2);
 
+        let i = 0;
+        const { x, y, z } = node;
         for (const extent of extents) {
-            const child = requestNewTile(
-                map, extent, node,
-            );
+            let child;
+            if (i === 0) {
+                child = requestNewTile(
+                    map, extent, node, z + 1, 2 * x + 0, 2 * y + 0,
+                );
+            } else if (i === 1) {
+                child = requestNewTile(
+                    map, extent, node, z + 1, 2 * x + 0, 2 * y + 1,
+                );
+            } else if (i === 2) {
+                child = requestNewTile(
+                    map, extent, node, z + 1, 2 * x + 1, 2 * y + 0,
+                );
+            } else if (i === 3) {
+                child = requestNewTile(
+                    map, extent, node, z + 1, 2 * x + 1, 2 * y + 1,
+                );
+            }
             node.add(child);
 
             // inherit our parent's textures
@@ -62,16 +80,16 @@ function subdivideNode(context, map, node) {
             }
 
             child.updateMatrixWorld(true);
+            i++;
         }
         context.instance.notifyChange(node);
     }
 }
 
-function requestNewTile(map, extent, parent, level) {
+function requestNewTile(map, extent, parent, level, x = 0, y = 0) {
     if (parent && !parent.material) {
         return null;
     }
-    level = (level === undefined) ? (parent.level + 1) : level;
 
     const quaternion = new Quaternion();
     const position = new Vector3(...extent.center()._values);
@@ -97,7 +115,6 @@ function requestNewTile(map, extent, parent, level) {
             height: map.segmentY + 1,
         };
         geometry = new TileGeometry(paramsGeometry);
-        geometry.cacheKey = key;
         Cache.set(key, geometry);
         geometry._count = 0;
         geometry.dispose = () => {
@@ -114,12 +131,14 @@ function requestNewTile(map, extent, parent, level) {
     const material = new LayeredMaterial(
         map.materialOptions, map._instance.renderer, geometry.props, map.atlasInfo,
     );
-    const tile = new TileMesh(map, geometry, material, extent, level);
+
+    const tile = new TileMesh(map, geometry, material, extent, level, x, y);
+
     tile.layers.set(map.threejsLayer);
     if (map.renderOrder !== undefined) {
         tile.renderOrder = map.renderOrder;
     }
-    material.opacity = map.opacity;
+    tile.material.opacity = map.opacity;
 
     if (parent && parent instanceof TileMesh) {
         // get parent position from extent
@@ -258,6 +277,7 @@ class Map extends Entity3D {
         }
 
         this.currentAddedLayerIds = [];
+        this.tileIndex = new TileIndex();
     }
 
     pickObjectsAt(coordinates, options, target) {
@@ -399,19 +419,15 @@ class Map extends Entity3D {
                 if (node.layer !== this || !node.material.visible) {
                     return;
                 }
-                node.material.uniforms.neighbourdiffLevel.value.set(0, 0, 0, 1);
-                const n = node.findNeighbours();
+                node.material.uniforms.neighbourdiffLevel.value.set(1, 1, 1, 1);
+
+                const n = this.tileIndex.getNeighbours(node);
                 if (n) {
                     const dimensions = node.extent.dimensions();
                     const elevationNeighbours = node.material.texturesInfo.elevation.neighbours;
                     for (let i = 0; i < 4; i++) {
-                        if (!n[i] || !n[i][0].material.visible) {
-                            // neighbour is missing or smaller => don't do anything
-                            node.material.uniforms
-                                .neighbourdiffLevel.value.setComponent(i, 1);
-                        } else {
-                            const nn = n[i][0];
-
+                        const nn = n[i * 2];
+                        if (nn && nn.material && nn.material.visible) {
                             // We want to compute the diff level, but can't directly
                             // use nn.level - node.level, because there's no garuantee
                             // that we're on a regular grid.

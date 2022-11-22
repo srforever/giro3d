@@ -3,6 +3,7 @@ import { Vector3, BufferGeometry } from 'three';
 import ColorLayer from '../../../../src/Core/layer/ColorLayer.js';
 import TileMesh from '../../../../src/Core/TileMesh.js';
 import Extent from '../../../../src/Core/Geographic/Extent.js';
+import { Map } from '../../../../src/entities/Map.js';
 import OBB from '../../../../src/Renderer/ThreeExtended/OBB.js';
 import LayeredMaterial from '../../../../src/Renderer/LayeredMaterial.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from '../../../../src/Core/layer/LayerUpdateStrategy.js';
@@ -55,11 +56,10 @@ describe('ColorLayer', () => {
             },
         };
 
-        const layerGeom = new ColorLayer(
+        const map = new Map(
             'foo',
             {
                 extent: new Extent('EPSG:4326', 0, 0, 0, 0),
-                standalone: true,
             },
         );
 
@@ -81,7 +81,7 @@ describe('ColorLayer', () => {
 
         it('hidden tile should not execute commands', () => {
             const tile = new TileMesh(
-                layerGeom,
+                map,
                 geom,
                 new LayeredMaterial(
                     {}, {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
@@ -96,7 +96,7 @@ describe('ColorLayer', () => {
 
         it('tile with best texture should not execute commands', () => {
             const tile = new TileMesh(
-                layerGeom,
+                map,
                 geom,
                 new LayeredMaterial(
                     {}, {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
@@ -112,7 +112,7 @@ describe('ColorLayer', () => {
 
         it('tile with downscaled texture should execute 1 command', () => {
             const tile = new TileMesh(
-                layerGeom,
+                map,
                 geom,
                 new LayeredMaterial(
                     {}, {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
