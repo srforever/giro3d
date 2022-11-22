@@ -63,6 +63,23 @@ describe('Map', () => {
             expect(m2.noTextureColor).toEqual(new Color(0.04, 0.23, 0.35));
         });
 
+        it.each([true, false])('should assign the correct materialOptions', b => {
+            const opts = {
+                extent,
+                doubleSided: b,
+                hillshading: b,
+                discardNoData: b,
+                colormap: {},
+            };
+            const m = new Map('foo', opts);
+
+            expect(m.materialOptions).toBeDefined();
+            expect(m.materialOptions.hillshading).toEqual(opts.hillshading);
+            expect(m.materialOptions.discardNoData).toEqual(opts.discardNoData);
+            expect(m.materialOptions.discardNoData).toEqual(opts.doubleSided);
+            expect(m.materialOptions.colormap).toBe(opts.colormap);
+        });
+
         it('should assign passed values', () => {
             expect(map.maxSubdivisionLevel).toBe(15);
             expect(map.sseScale).toBe(1.5);
