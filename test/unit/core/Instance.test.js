@@ -1,4 +1,4 @@
-import { Group, Object3D } from 'three';
+import { Group, Object3D, Vector2 } from 'three';
 import proj4 from 'proj4';
 import Extent from '../../../src/Core/Geographic/Extent.js';
 import Instance, { INSTANCE_EVENTS } from '../../../src/Core/Instance.js';
@@ -40,6 +40,42 @@ describe('Instance', () => {
         it('should observe the resizing of the DOM element', () => {
             const lastObserver = resizeObservers[resizeObservers.length - 1];
             expect(lastObserver.observe).toHaveBeenCalledWith(viewerDiv);
+        });
+    });
+
+    describe('canvasToNormalizedCoords', () => {
+        it('should return the passed target', () => {
+            const target = new Vector2();
+            const input = new Vector2();
+            const result = instance.canvasToNormalizedCoords(input, target);
+            expect(result).toBe(target);
+        });
+    });
+
+    describe('normalizedToCanvasCoords', () => {
+        it('should return the passed target', () => {
+            const target = new Vector2();
+            const input = new Vector2();
+            const result = instance.normalizedToCanvasCoords(input, target);
+            expect(result).toBe(target);
+        });
+    });
+
+    describe('eventToNormalizedCoords', () => {
+        it('should return the passed target', () => {
+            const target = new Vector2();
+            const event = new TouchEvent('foo');
+            const result = instance.eventToNormalizedCoords(event, target);
+            expect(result).toBe(target);
+        });
+    });
+
+    describe('eventToCanvasCoords', () => {
+        it('should return the passed target', () => {
+            const target = new Vector2();
+            const event = new TouchEvent('foo');
+            const result = instance.eventToCanvasCoords(event, target);
+            expect(result).toBe(target);
         });
     });
 

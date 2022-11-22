@@ -21,6 +21,8 @@ import Entity from '../entities/Entity.js';
 const vectors = {
     pos: new Vector3(),
     size: new Vector3(),
+    evtToCanvas: new Vector2(),
+    pickVec2: new Vector2(),
 };
 
 /**
@@ -61,8 +63,6 @@ export const INSTANCE_EVENTS = {
      */
     ENTITY_REMOVED: 'entity-removed',
 };
-
-const _eventCoords = new Vector2();
 
 /**
  * The instance is the core component of Giro3D. It encapsulates the 3D scene,
@@ -618,15 +618,16 @@ class Instance extends EventDispatcher {
      * Extract canvas coordinates from a mouse-event / touch-event
      *
      * @param {event} event event can be a MouseEvent or a TouchEvent
+     * @param {Vector2} target The target to set with the result.
      * @param {number} touchIdx finger index when using a TouchEvent (default: 0)
      * @returns {Vector2} canvas coordinates (in pixels, 0-0 = top-left of the instance)
      */
-    eventToCanvasCoords(event, touchIdx = 0) {
+    eventToCanvasCoords(event, target, touchIdx = 0) {
         if (event.touches === undefined || !event.touches.length) {
-            return _eventCoords.set(event.offsetX, event.offsetY);
+            return target.set(event.offsetX, event.offsetY);
         }
-        const br = this.mainLoop.gfxEngine.renderer.domElement.getBoundingClientRect();
-        return _eventCoords.set(
+        const br = this.domElement.getBoundingClientRect();
+        return target.set(
             event.touches[touchIdx].clientX - br.x,
             event.touches[touchIdx].clientY - br.y,
         );
@@ -636,40 +637,47 @@ class Instance extends EventDispatcher {
      * Extract normalized coordinates (NDC) from a mouse-event / touch-event
      *
      * @param {event} event event can be a MouseEvent or a TouchEvent
+     * @param {Vector2} target The target to set with the result.
      * @param {number} touchIdx finger index when using a TouchEvent (default: 0)
      * @returns {Vector2} NDC coordinates (x and y are [-1, 1])
      */
-    eventToNormalizedCoords(event, touchIdx = 0) {
-        return this.canvasToNormalizedCoords(this.eventToCanvasCoords(event, touchIdx));
+    eventToNormalizedCoords(event, target, touchIdx = 0) {
+        return this.canvasToNormalizedCoords(
+            this.eventToCanvasCoords(event, target, touchIdx),
+            target,
+        );
     }
 
     /**
-     * Convert canvas coordinates to normalized coordinates (NDC)
+     * Convert canvas coordinates to normalized device coordinates (NDC).
      *
      * @param {Vector2} canvasCoords (in pixels, 0-0 = top-left of the instance)
+     * @param {Vector2} target The target to set with the result.
      * @returns {Vector2} NDC coordinates (x and y are [-1, 1])
      */
-    canvasToNormalizedCoords(canvasCoords) {
-        _eventCoords.x = 2 * (canvasCoords.x / this.camera.width) - 1;
-        _eventCoords.y = -2 * (canvasCoords.y / this.camera.height) + 1;
-        return _eventCoords;
+    canvasToNormalizedCoords(canvasCoords, target) {
+        target.x = 2 * (canvasCoords.x / this.camera.width) - 1;
+        target.y = -2 * (canvasCoords.y / this.camera.height) + 1;
+        return target;
     }
 
     /**
      * Convert NDC coordinates to canvas coordinates
      *
      * @param {Vector2} ndcCoords the NDC coordinates to convert
+     * @param {Vector2} target The target to set with the result.
      * @returns {Vector2} canvas coordinates (in pixels, 0-0 = top-left of the instance)
      */
-    normalizedToCanvasCoords(ndcCoords) {
-        _eventCoords.x = (ndcCoords.x + 1) * 0.5 * this.camera.width;
-        _eventCoords.y = (ndcCoords.y - 1) * -0.5 * this.camera.height;
-        return _eventCoords;
+    normalizedToCanvasCoords(ndcCoords, target) {
+        target.x = (ndcCoords.x + 1) * 0.5 * this.camera.width;
+        target.y = (ndcCoords.y - 1) * -0.5 * this.camera.height;
+        return target;
     }
 
     /**
      * Return objects from some layers/objects3d under the mouse in this instance.
      *
+     * @api
      * @param {object} mouseOrEvt mouse position in window coordinates (0, 0 = top-left)
      * or MouseEvent or TouchEvent
      * @param {object=} options Optional properties.
@@ -694,7 +702,7 @@ class Instance extends EventDispatcher {
         const sources = options.where && options.where.length > 0
             ? [...options.where] : this.getObjects().concat(this.threeObjects);
         const mouse = (mouseOrEvt instanceof Event)
-            ? this.eventToCanvasCoords(mouseOrEvt).clone() : mouseOrEvt;
+            ? this.eventToCanvasCoords(mouseOrEvt, vectors.evtToCanvas) : mouseOrEvt;
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;
 
@@ -704,13 +712,14 @@ class Instance extends EventDispatcher {
                 limit, // Use same limit as requested, since we pass the results array
                 filterCanvas: options.filterCanvas,
                 filter: options.filter,
+                vec2: vectors.pickVec2,
             };
             const object = (typeof (source) === 'string')
                 ? objectIdToObject(this, source)
                 : source;
             if (object instanceof Entity3D || typeof object.pickObjectsAt === 'function') {
                 // TODO ability to pick on a layer instead of a geometric object?
-                object.pickObjectsAt(this, mouse, pickOptions, results);
+                object.pickObjectsAt(mouse, pickOptions, results);
             } else if (object.isObject3D) {
                 Picking.pickObjectsAt(
                     this,

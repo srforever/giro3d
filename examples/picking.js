@@ -1,4 +1,4 @@
-import { Raycaster, Vector3 } from 'three';
+import { Raycaster, Vector3, Vector2 } from 'three';
 import TileWMS from 'ol/source/TileWMS.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
@@ -149,9 +149,11 @@ function findLayerInParent(obj) {
     return null;
 }
 
+const tmp = { vec2: new Vector2() };
+
 function raycast(evt) {
     const results = [];
-    const pointer = instance.eventToNormalizedCoords(evt).clone();
+    const pointer = instance.eventToNormalizedCoords(evt, tmp.vec2).clone();
 
     raycaster.setFromCamera(pointer, instance.camera.camera3D);
     const picked = raycaster.intersectObject(instance.scene, true);
@@ -164,7 +166,7 @@ function raycast(evt) {
 
 function project(evt, zDefault = 0) {
     // Fallback to getting coordinates assuming click is on Z=zDefault
-    const ndc = instance.eventToNormalizedCoords(evt).clone();
+    const ndc = instance.eventToNormalizedCoords(evt, tmp.vec2).clone();
     const vec = new Vector3(ndc.x, ndc.y, 0.5);
     vec.unproject(instance.camera.camera3D);
 
@@ -190,7 +192,7 @@ instance.domElement.addEventListener('dblclick', e => {
     document.getElementById('pickingCount').innerHTML = `${picked.length}`;
     document.getElementById('pickingFirstResult').innerHTML = picked.length > 0
         ? `<ul><li>Point: ${picked[0].point.x.toFixed(2)}, ${picked[0].point.y.toFixed(2)}, ${picked[0].point.z.toFixed(2)}</li>
-<li>Layer: ${picked[0].layer.id} (${picked[0].layer.type})</li>
+<li>Entity: ${picked[0].layer.id} (${picked[0].layer.type})</li>
 </ul>` : '';
 
     t0 = performance.now();
@@ -201,7 +203,7 @@ instance.domElement.addEventListener('dblclick', e => {
     document.getElementById('raycastingCount').innerHTML = `${raycasted.length}`;
     document.getElementById('raycastingFirstResult').innerHTML = raycasted.length > 0
         ? `<ul><li>Point: ${raycasted[0].point.x.toFixed(2)}, ${raycasted[0].point.y.toFixed(2)}, ${raycasted[0].point.z.toFixed(2)}</li>
-<li>Layer: ${raycasted[0].layer.id} (${raycasted[0].layer.type})</li>
+<li>Entity: ${raycasted[0].layer.id} (${raycasted[0].layer.type})</li>
 </ul>` : '';
 
     t0 = performance.now();

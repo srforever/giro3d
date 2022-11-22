@@ -166,15 +166,19 @@ class Entity3D extends Entity {
     /**
      * Picks objects given a position and a radius from the layer.
      *
-     * @param {module:Core/Instance~Instance} instance The instance
      * @param {object} coordinates The x/y position in the layer
      * @param {object=} options Optional properties. See Instance.pickObjectsAt
      * @param {object[]} [target=undefined] Target array to fill
      * @returns {object[]} Picked objects (node)
      */
-    pickObjectsAt(instance, coordinates, options, target) {
-        // TODO use this._instance, not the parameter
-        return Picking.pickObjectsAt(instance, coordinates, this.object3d, options, target);
+    pickObjectsAt(coordinates, options, target) {
+        return Picking.pickObjectsAt(
+            this._instance,
+            coordinates,
+            this.object3d,
+            options,
+            target,
+        );
     }
 
     attach(layer) {
