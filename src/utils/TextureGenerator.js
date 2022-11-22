@@ -1,3 +1,4 @@
+import { Texture } from 'three';
 import {
     DataTexture, FloatType, RGBAFormat, UnsignedByteType,
 } from 'three';
@@ -144,7 +145,7 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
 }
 
 /**
- * Returns a {@type DataTexture} initialized with the specified data.
+ * Returns a @type {DataTexture} initialized with the specified data.
  *
  * @static
  * @param {object} options The creation options.
@@ -197,4 +198,4 @@ function createDataTexture(options, sourceDataType, ...pixelData) {
     }
 }
 
-export default createDataTexture;
+export default { createDataTexture };
