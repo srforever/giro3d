@@ -21,6 +21,20 @@ import MemoryTracker from '../MemoryTracker.js';
 import ComposerTileMaterial from './ComposerTileMaterial.js';
 
 const IMAGE_Z = -10;
+const textureOwners = new Map();
+
+function processTextureDisposal(event) {
+    const texture = event.target;
+    texture.removeEventListener('dispose', processTextureDisposal);
+    const owner = textureOwners.get(texture.uuid);
+    if (owner) {
+        owner.dispose();
+        textureOwners.delete(texture.uuid);
+    } else {
+        // This should never happen
+        console.error('no owner for ', texture);
+    }
+}
 
 /**
  * An implementation of the composer that uses a WebGL renderer.
@@ -70,16 +84,7 @@ class WebGLComposer {
             const target = this.createRenderTarget(options.pixelType || UnsignedByteType);
 
             this.renderTarget = target;
-            if (__DEBUG__) {
-                MemoryTracker.track(this.renderTarget, 'WebGLRenderTarget');
-            }
             this.texture = target.texture;
-        }
-
-        if (this.texture) {
-            if (__DEBUG__) {
-                MemoryTracker.track(this.texture, 'WebGLComposer');
-            }
         }
 
         if (options.clearColor) {
@@ -115,16 +120,6 @@ class WebGLComposer {
         );
     }
 
-    _processTextureDisposal(event) {
-        const texture = event.target;
-        texture.removeEventListener('dispose', this._processTextureDisposal);
-        const owner = texture.owner;
-        if (owner) {
-            owner.dispose();
-            delete texture.owner;
-        }
-    }
-
     createRenderTarget(pixelType) {
         const result = new WebGLRenderTarget(
             this.width,
@@ -140,8 +135,13 @@ class WebGLComposer {
         // is disposed, the texture is disposed with it.
         // However, in our case, we cannot rely on this behaviour because the owner is the composer
         // itself, whose lifetime can be shorter than the texture it created.
-        result.texture.owner = result;
-        result.texture.addEventListener('dispose', this._processTextureDisposal);
+        textureOwners.set(result.texture.uuid, result);
+        result.texture.addEventListener('dispose', processTextureDisposal);
+
+        if (__DEBUG__) {
+            MemoryTracker.track(result, 'WebGLRenderTarget');
+            MemoryTracker.track(result.texture, 'WebGLRenderTarget.texture');
+        }
 
         return result;
     }
@@ -169,6 +169,10 @@ class WebGLComposer {
                 showImageOutlines: this.showImageOutlines,
             },
         );
+        if (__DEBUG__) {
+            MemoryTracker.track(geometry, 'WebGLComposer quad');
+            MemoryTracker.track(material, 'WebGLComposer quad');
+        }
         const plane = new Mesh(geometry, material);
         this.scene.add(plane);
 
@@ -209,7 +213,8 @@ class WebGLComposer {
     }
 
     removeObjects() {
-        for (const child of this.scene.children) {
+        const childrenCopy = [...this.scene.children];
+        for (const child of childrenCopy) {
             child.geometry.dispose();
             child.material.dispose();
             this.scene.remove(child);
@@ -231,7 +236,6 @@ class WebGLComposer {
             // We create a new render target for this render
             const pixelType = selectPixelType(this.textures);
             target = this.createRenderTarget(pixelType);
-            MemoryTracker.track(target.texture);
         } else {
             // We reuse the same render target across all renders
             target = this.renderTarget;

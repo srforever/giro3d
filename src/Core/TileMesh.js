@@ -7,6 +7,7 @@
 import { Mesh } from 'three';
 import RendererConstant from '../Renderer/RendererConstant.js';
 import OGCWebServiceHelper from '../Provider/OGCWebServiceHelper.js';
+import MemoryTracker from '../Renderer/MemoryTracker.js';
 
 function applyChangeState(n, s) {
     if (n.changeState) {
@@ -50,6 +51,10 @@ class TileMesh extends Mesh {
         } else {
             // This is a flat BBOX, let's give it a minimal thickness of 1 meter.
             this.setBBoxZ(-0.5, +0.5);
+        }
+
+        if (__DEBUG__) {
+            MemoryTracker.track(this, 'TileMesh');
         }
     }
 
@@ -238,6 +243,18 @@ class TileMesh extends Mesh {
         // top, right, bottom, left
         const borders = this.extent.externalBorders(0.1);
         return borders.map(border => this.findSmallestExtentCovering(border));
+    }
+
+    dispose() {
+        if (this.disposed) {
+            return;
+        }
+        this.disposed = true;
+        this.material.dispose();
+        this.geometry.dispose();
+        this.material = null;
+        this.geometry = null;
+        this.dispatchEvent({ type: 'dispose' });
     }
 }
 export default TileMesh;
