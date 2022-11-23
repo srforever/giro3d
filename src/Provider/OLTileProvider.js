@@ -125,6 +125,7 @@ function combineImages(sourceImages, renderer, layer, targetExtent) {
         width: layer.imageSize.w,
         height: layer.imageSize.h,
         webGLRenderer: renderer,
+        showImageOutlines: layer.showTileBorders || false,
         renderToCanvas: false,
         createDataCopy: isElevationLayer, // To compute the min/max later
     });

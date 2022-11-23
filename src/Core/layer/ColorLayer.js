@@ -34,6 +34,8 @@ class ColorLayer extends Layer {
      * unspecified, the extent will be inherited from the map.
      * @param {string} [options.projection=undefined] The layer projection. If unspecified,
      * the projection will be inherited from the map.
+     * @param {boolean} [options.showTileBorders=false] If `true`, the borders of the source images
+     * will be shown. Useful for debugging rendering issues.
      * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.
      * If unspecified, the layer will use the `STRATEGY_MIN_NETWORK_TRAFFIC`.
      * @param {string} [options.backgroundColor=undefined] The background color of the layer.
@@ -41,6 +43,7 @@ class ColorLayer extends Layer {
     constructor(id, options = {}) {
         super(id, options);
         this.type = 'ColorLayer';
+        this.showTileBorders = options.showTileBorders || false;
         defineLayerProperty(this, 'frozen', false);
         defineLayerProperty(this, 'visible', true);
         defineLayerProperty(this, 'opacity', 1.0);
