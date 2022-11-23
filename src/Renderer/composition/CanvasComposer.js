@@ -1,5 +1,5 @@
 /** @module Renderer/composition/CanvasComposer */
-import { CanvasTexture } from 'three';
+import { CanvasTexture, Texture } from 'three';
 import Rect from '../../Core/Rect.js';
 import MemoryTracker from '../MemoryTracker.js';
 
@@ -63,11 +63,16 @@ class CanvasComposer {
     /**
      * Draws the image into the canvas, using the specified extent.
      *
-     * @param {any} image The image to draw.
+     * @param {HTMLImageElement|HTMLCanvasElement|Texture|CanvasTexture} image The image to draw.
      * @param {Rect} extent The image extent.
      * @memberof CanvasComposer
      */
     draw(image, extent) {
+        if (image.isTexture) {
+            // If the image is actually the texture, then we are interested in the texture
+            // source which must be a compatible 'image' (canvas or image element).
+            image = image.image;
+        }
         const normalized = Rect.getNormalizedRect(extent, this.extent);
 
         // Canvas coordinate are discrete, so we need to floor and ceil

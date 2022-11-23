@@ -17,6 +17,19 @@ function checkResponse(response) {
 export default {
 
     /**
+     * Wrapper over `fetch`, then returns the blob of the response.
+     *
+     * @param {string} url the URL to fetch
+     * @param {object} options fetch options (passed directly to fetch)
+     * @returns {Promise<Blob>} The response blob.
+     */
+    async blob(url, options = {}) {
+        const response = await fetch(url, options);
+        checkResponse(response);
+        return response.blob();
+    },
+
+    /**
      * Wrapper over `fetch` to get some text
      *
      * @api

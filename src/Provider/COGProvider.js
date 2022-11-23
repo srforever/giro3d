@@ -1,7 +1,7 @@
 import { fromUrl, Pool } from 'geotiff';
 import { Vector4, FloatType, UnsignedByteType } from 'three';
 import ColorLayer from '../Core/layer/ColorLayer.js';
-import createDataTexture from '../utils/TextureGenerator.js';
+import TextureGenerator from '../utils/TextureGenerator.js';
 
 import Cache from '../Core/Scheduler/Cache.js';
 import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
@@ -57,7 +57,7 @@ function processArrayData(layer, arrayData, compressTo8bit) {
         ? { min: layer.minmax.min, max: layer.minmax.max }
         : undefined;
 
-    const texture = createDataTexture(
+    const texture = TextureGenerator.createDataTexture(
         {
             width,
             height,

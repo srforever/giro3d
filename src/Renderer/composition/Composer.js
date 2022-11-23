@@ -6,10 +6,16 @@ import CanvasComposer from './CanvasComposer.js';
 import WebGLComposer from './WebGLComposer.js';
 
 function shouldUseWebGLImpl(commandBuffer) {
-    // The basic rule is that only the WebGL renderer supports non 8-bit images
     for (const { texture } of commandBuffer) {
         if (texture.isTexture) {
+            // Only the WebGL renderer supports non 8-bit images
             if (texture.type !== UnsignedByteType) {
+                return true;
+            }
+            // The Canvas composer only supports those types of underlying images
+            if (!(texture.image instanceof HTMLImageElement
+                || texture.image instanceof HTMLCanvasElement
+                || texture.image instanceof HTMLVideoElement)) {
                 return true;
             }
         }

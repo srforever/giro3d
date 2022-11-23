@@ -5,10 +5,8 @@ import {
 } from 'three';
 
 import TileSource from 'ol/source/Tile.js';
-import TileState from 'ol/TileState.js';
-import { listenOnce } from 'ol/events.js';
-import { ImageTile } from 'ol';
 import TileGrid from 'ol/tilegrid/TileGrid.js';
+import { Tile } from 'ol';
 
 import Extent from '../Core/Geographic/Extent.js';
 import Layer from '../Core/layer/Layer.js';
@@ -16,14 +14,19 @@ import DataStatus from './DataStatus.js';
 import Rect from '../Core/Rect.js';
 import ElevationLayer from '../Core/layer/ElevationLayer.js';
 import Composer from '../Renderer/composition/Composer.js';
+import TextureGenerator from '../utils/TextureGenerator.js';
+import Fetcher from './Fetcher.js';
+import MemoryTracker from '../Renderer/MemoryTracker.js';
 
 function preprocessDataLayer(layer) {
     const { source } = layer;
     const projection = source.getProjection();
+    layer.olprojection = projection;
     /** @type {TileGrid} */
     const tileGrid = source.getTileGridForProjection(projection);
     // Cache the tilegrid because it is constant
     layer.tileGrid = tileGrid;
+    layer.getTileUrl = source.getTileUrlFunction();
     const extent = tileGrid.getExtent();
     layer.sourceExtent = fromOLExtent(extent, projection.getCode());
     if (!layer.extent) {
@@ -138,6 +141,13 @@ function combineImages(sourceImages, renderer, layer, targetExtent) {
 
     composer.dispose();
 
+    // Dispose the textures that were drawn in the composer
+    sourceImages.forEach(img => {
+        if (img.isTexture) {
+            img.dispose();
+        }
+    });
+
     return { texture, pitch: new Vector4(0, 0, 1, 1) };
 }
 
@@ -162,7 +172,8 @@ function loadTiles(extent, zoom, layer) {
         const tileExtent = fromOLExtent(tileGrid.getTileCoordExtent(tile.tileCoord), crs);
         // Don't bother loading tiles that are not in the layer
         if (tileExtent.intersectsExtent(layer.extent)) {
-            const promise = loadTile(tile, tileExtent).catch(e => {
+            const url = layer.getTileUrl(tile.tileCoord, 1, layer.olprojection);
+            const promise = loadTile(tile, url, tileExtent).catch(e => {
                 if (e) {
                     console.error(e);
                 }
@@ -175,37 +186,26 @@ function loadTiles(extent, zoom, layer) {
 }
 
 /**
- * @param {ImageTile} tile The tile to load.
+ * @param {Tile} tile The tile to load.
+ * @param {string} url The tile URL to load.
  * @param {Extent} extent The tile extent.
- * @returns {Promise<HTMLImageElement|HTMLCanvasElement|HTMLVideoElement>} The tile image.
+ * @returns {Promise<Texture>} The tile image.
  */
-function loadTile(tile, extent) {
-    if (tile.getState() === TileState.LOADED) {
-        const image = tile.getImage();
-        image.extent = extent;
-        return Promise.resolve(image);
+async function loadTile(tile, url, extent) {
+    // Avoid downloading the same tile multiple times
+    if (!tile.dataRequest) {
+        tile.dataRequest = Fetcher.blob(url);
     }
-    const promise = new Promise((resolve, reject) => {
-        tile.load();
-        listenOnce(tile, 'change', evt => {
-            const imageTile2 = evt.target;
-            const tileState = imageTile2.getState();
-            if (tileState === TileState.ERROR) {
-                reject();
-            } else if (tileState === TileState.LOADED) {
-                const image = tile.getImage();
-                image.extent = extent;
-                resolve(image);
-            }
-        });
-    });
 
-    return promise;
-}
+    const blob = await tile.dataRequest;
+    const texture = await TextureGenerator.decodeBlob(blob);
+    if (__DEBUG__) {
+        MemoryTracker.track(texture, 'OL tile');
+    }
+    texture.extent = extent;
+    texture.needsUpdate = true;
 
-// eslint-disable-next-line no-unused-vars
-function tileTextureCount(tile, layer) {
-    return 1;
+    return texture;
 }
 
 function tileInsideLimit(tile, layer) {
@@ -216,7 +216,6 @@ function tileInsideLimit(tile, layer) {
 export default {
     preprocessDataLayer,
     executeCommand,
-    tileTextureCount,
     tileInsideLimit,
     getPossibleTextureImprovements,
 };

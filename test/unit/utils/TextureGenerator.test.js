@@ -1,5 +1,5 @@
 import { DataTexture, FloatType, UnsignedByteType } from 'three';
-import createDataTexture, {
+import TextureGenerator, {
     OPAQUE_BYTE, OPAQUE_FLOAT,
     TRANSPARENT,
     DEFAULT_NODATA,
@@ -21,7 +21,7 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = data.length * 4; // RGBA
 
-                    const result = createDataTexture(
+                    const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, UnsignedByteType, data,
                     );
 
@@ -51,7 +51,7 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
 
-                    const result = createDataTexture(
+                    const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, UnsignedByteType, r, g, b,
                     );
 
@@ -86,7 +86,7 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
 
-                    const result = createDataTexture(
+                    const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, UnsignedByteType, r, g, b, a,
                     );
 
@@ -121,7 +121,7 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = data.length * 4; // RGBA
 
-                    const result = createDataTexture(
+                    const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, FloatType, data,
                     );
 
@@ -153,7 +153,7 @@ describe('TextureGenerator', () => {
                     const expectedOutputLength = data.length * 4; // RGBA
                     const type = FloatType;
 
-                    const result = createDataTexture(
+                    const result = TextureGenerator.createDataTexture(
                         { width: w, height: h, scaling: { min, max } }, type, data,
                     );
 
@@ -182,7 +182,7 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = data.length * 4; // RGBA
 
-                    const result = createDataTexture(
+                    const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, FloatType, data,
                     );
 
@@ -217,7 +217,7 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = data.length * 4; // RGBA
 
-                    const result = createDataTexture(
+                    const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, FloatType, data,
                     );
 
@@ -262,7 +262,7 @@ describe('TextureGenerator', () => {
                     const h = 5;
                     const expectedOutputLength = data.length * 4; // RGBA
 
-                    const result = createDataTexture(
+                    const result = TextureGenerator.createDataTexture(
                         { width: w, height: h, nodata: ND }, FloatType, data,
                     );
 
@@ -315,7 +315,7 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
 
-                    const result = createDataTexture(
+                    const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, FloatType, r, g, b,
                     );
 
@@ -350,7 +350,7 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
 
-                    const result = createDataTexture(
+                    const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, FloatType, r, g, b, a,
                     );
 
@@ -375,6 +375,15 @@ describe('TextureGenerator', () => {
                     }
                 });
             });
+        });
+    });
+
+    describe('decodeBlob', () => {
+        it('throws on unsupported media type', async () => {
+            const blob = new Blob([], { type: 'image/unsupported' });
+            await expect(TextureGenerator.decodeBlob(blob))
+                .rejects
+                .toThrow(/unsupported media type/);
         });
     });
 });

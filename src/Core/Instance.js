@@ -864,9 +864,6 @@ function _preprocessObject(instance, obj, provider, parentLayer) {
                 .getPossibleTextureImprovements
                 .bind(provider);
         }
-        if (provider.tileTextureCount) {
-            obj.tileTextureCount = provider.tileTextureCount.bind(provider);
-        }
     }
 
     if (!obj.whenReady) {

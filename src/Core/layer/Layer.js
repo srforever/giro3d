@@ -238,9 +238,6 @@ class Layer extends EventDispatcher {
                     .getPossibleTextureImprovements
                     .bind(this.provider);
             }
-            if (this.provider.tileTextureCount) {
-                this.tileTextureCount = this.provider.tileTextureCount.bind(this.provider);
-            }
         }
 
         if (!this.whenReady) {

@@ -327,11 +327,6 @@ function renderTileImage(canvas, tile, layer) {
     ctx.restore();
 }
 
-// eslint-disable-next-line no-unused-vars
-function tileTextureCount(tile, layer) {
-    return 1;
-}
-
 function tileInsideLimit(tile, layer) {
     const extent = tile.getExtentForLayer(layer).as(layer.extent.crs());
     return extent.isInside(layer.extent);
@@ -340,7 +335,6 @@ function tileInsideLimit(tile, layer) {
 export default {
     preprocessDataLayer,
     executeCommand,
-    tileTextureCount,
     tileInsideLimit,
     getPossibleTextureImprovements,
 };

@@ -1,5 +1,5 @@
 import {
-    DataTexture, FloatType, RGBAFormat, UnsignedByteType,
+    Texture, DataTexture, FloatType, RGBAFormat, UnsignedByteType,
 } from 'three';
 
 export const OPAQUE_BYTE = 255;
@@ -143,8 +143,53 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
     return buf;
 }
 
+function create8bitImage(blob) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        const objUrl = URL.createObjectURL(blob);
+        img.src = objUrl;
+    });
+}
+
 /**
- * Returns a {@type DataTexture} initialized with the specified data.
+ * Decodes the blob according to its media type, then returns a texture for this blob.
+ *
+ * @param {Blob} blob The buffer to decode.
+ * @returns {Promise<Texture>} The generated texture.
+ * @throws {Error} When the media type is unsupported.
+ * @memberof TextureGenerator
+ */
+async function decodeBlob(blob) {
+    // media types are in the form 'type;args', for example: 'text/html; charset=UTF-8;
+    const [type] = blob.type.split(';');
+
+    switch (type) {
+        case 'image/webp':
+        case 'image/png':
+        case 'image/jpg': // not a valid media type, but we support it for compatibility
+        case 'image/jpeg': {
+            // Use the browser capabilities to decode the image
+            const img = await create8bitImage(blob);
+            return new Texture(img);
+        }
+
+        case 'image/tiff':
+            // Use geotiff.js to decode the image
+            throw new Error('not implemented');
+
+        case 'image/x-bil':
+            // Use the BIL decoder
+            throw new Error('not implemented');
+
+        default:
+            throw new Error(`unsupported media type for textures: ${blob.type}`);
+    }
+}
+
+/**
+ * Returns a @type {DataTexture} initialized with the specified data.
  *
  * @static
  * @param {object} options The creation options.
@@ -197,4 +242,4 @@ function createDataTexture(options, sourceDataType, ...pixelData) {
     }
 }
 
-export default createDataTexture;
+export default { createDataTexture, decodeBlob };
