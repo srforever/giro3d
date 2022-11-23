@@ -6,7 +6,6 @@ import {
 
 import TileSource from 'ol/source/Tile.js';
 import TileGrid from 'ol/tilegrid/TileGrid.js';
-import { Tile } from 'ol';
 
 import Extent from '../Core/Geographic/Extent.js';
 import Layer from '../Core/layer/Layer.js';
@@ -17,6 +16,19 @@ import Composer from '../Renderer/composition/Composer.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
 import Fetcher from './Fetcher.js';
 import MemoryTracker from '../Renderer/MemoryTracker.js';
+import Cache from '../Core/Scheduler/Cache.js';
+
+const TEXTURE_CACHE_LIFETIME_MS = 1000 * 60; // 60 seconds
+
+/**
+ * Dispose the texture contained in the promise.
+ *
+ * @param {Promise<Texture>} promise The texture promise.
+ */
+function onDelete(promise) {
+    promise.then(t => t.dispose());
+    promise.catch(e => console.error(e));
+}
 
 function preprocessDataLayer(layer) {
     const { source } = layer;
@@ -141,13 +153,6 @@ function combineImages(sourceImages, renderer, layer, targetExtent) {
 
     composer.dispose();
 
-    // Dispose the textures that were drawn in the composer
-    sourceImages.forEach(img => {
-        if (img.isTexture) {
-            img.dispose();
-        }
-    });
-
     return { texture, pitch: new Vector4(0, 0, 1, 1) };
 }
 
@@ -173,7 +178,7 @@ function loadTiles(extent, zoom, layer) {
         // Don't bother loading tiles that are not in the layer
         if (tileExtent.intersectsExtent(layer.extent)) {
             const url = layer.getTileUrl(tile.tileCoord, 1, layer.olprojection);
-            const promise = loadTile(tile, url, tileExtent).catch(e => {
+            const promise = loadTile(url, tileExtent).catch(e => {
                 if (e) {
                     console.error(e);
                 }
@@ -185,27 +190,37 @@ function loadTiles(extent, zoom, layer) {
     return Promise.all(promises);
 }
 
+async function loadTileOnce(url, extent) {
+    const blob = await Fetcher.blob(url);
+    const texture = await TextureGenerator.decodeBlob(blob);
+    texture.extent = extent;
+    texture.needsUpdate = true;
+    if (__DEBUG__) {
+        MemoryTracker.track(texture, 'OL tile');
+    }
+    return texture;
+}
+
 /**
- * @param {Tile} tile The tile to load.
  * @param {string} url The tile URL to load.
  * @param {Extent} extent The tile extent.
  * @returns {Promise<Texture>} The tile image.
  */
-async function loadTile(tile, url, extent) {
-    // Avoid downloading the same tile multiple times
-    if (!tile.dataRequest) {
-        tile.dataRequest = Fetcher.blob(url);
+async function loadTile(url, extent) {
+    let tilePromise;
+
+    // Fetch and create the texture only once per tile.
+    // Many source tiles are shared across map tiles. We want to save
+    // time by reusing an already processed tile texture.
+    const cached = Cache.get(url);
+    if (cached) {
+        tilePromise = cached;
+    } else {
+        tilePromise = loadTileOnce(url, extent);
+        Cache.set(url, tilePromise, TEXTURE_CACHE_LIFETIME_MS, onDelete);
     }
 
-    const blob = await tile.dataRequest;
-    const texture = await TextureGenerator.decodeBlob(blob);
-    if (__DEBUG__) {
-        MemoryTracker.track(texture, 'OL tile');
-    }
-    texture.extent = extent;
-    texture.needsUpdate = true;
-
-    return texture;
+    return tilePromise;
 }
 
 function tileInsideLimit(tile, layer) {
