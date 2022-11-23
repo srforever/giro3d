@@ -3,7 +3,7 @@ import TileWMS from 'ol/source/TileWMS.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
 import Instance from '@giro3d/giro3d/Core/Instance.js';
-import { Map } from '@giro3d/giro3d/entities/Map.js';
+import Map from '@giro3d/giro3d/entities/Map.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
 import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';

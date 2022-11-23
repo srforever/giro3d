@@ -5,7 +5,7 @@ import VectorTile from 'ol/source/VectorTile.js';
 import Stamen from 'ol/source/Stamen.js';
 
 import Layer, { defineLayerProperty } from '../../../../src/Core/layer/Layer.js';
-import { Map } from '../../../../src/entities/Map.js';
+import Map from '../../../../src/entities/Map.js';
 import Instance from '../../../../src/Core/Instance.js';
 import {
     STRATEGY_DICHOTOMY, STRATEGY_MIN_NETWORK_TRAFFIC,

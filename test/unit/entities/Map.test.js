@@ -1,7 +1,7 @@
 import { Color, Group } from 'three';
 import Extent from '../../../src/Core/Geographic/Extent.js';
 import Instance from '../../../src/Core/Instance.js';
-import { Map } from '../../../src/entities/Map.js';
+import Map from '../../../src/entities/Map.js';
 import Layer from '../../../src/Core/layer/Layer.js';
 import MainLoop from '../../../src/Core/MainLoop.js';
 import { setupGlobalMocks } from '../mocks.js';
@@ -83,7 +83,6 @@ describe('Map', () => {
         it('should assign passed values', () => {
             expect(map.maxSubdivisionLevel).toBe(15);
             expect(map.sseScale).toBe(1.5);
-            expect(map.protocol).toEqual('tile');
             expect(map.visible).toBe(true);
             expect(map.extent).toEqual(extent);
         });

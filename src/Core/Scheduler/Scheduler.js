@@ -1,6 +1,5 @@
 import PriorityQueue from 'js-priority-queue';
 import TileState from 'ol/TileState.js';
-import TileProvider from '../../Provider/TileProvider.js';
 import $3dTilesProvider from '../../Provider/3dTilesProvider.js';
 import TMSProvider from '../../Provider/TMSProvider.js';
 import PointCloudProvider from '../../Provider/PotreePointCloudProvider.js';
@@ -127,7 +126,6 @@ Scheduler.prototype.constructor = Scheduler;
 
 Scheduler.prototype.initDefaultProviders = function initDefaultProviders() {
     // Register all providers
-    this.addProtocolProvider('tile', TileProvider);
     this.addProtocolProvider('3d-tiles', $3dTilesProvider);
     this.addProtocolProvider('tms', TMSProvider);
     this.addProtocolProvider('xyz', TMSProvider);

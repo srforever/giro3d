@@ -4,7 +4,7 @@ import Extent from '../../../src/Core/Geographic/Extent.js';
 import Instance, { INSTANCE_EVENTS } from '../../../src/Core/Instance.js';
 import Layer from '../../../src/Core/layer/Layer.js';
 import MainLoop from '../../../src/Core/MainLoop.js';
-import { Map } from '../../../src/entities/Map.js';
+import Map from '../../../src/entities/Map.js';
 import { setupGlobalMocks, resizeObservers } from '../mocks.js';
 
 describe('Instance', () => {
