@@ -68,7 +68,6 @@ build_current:
 
 lint:
     stage: lint
-    needs: [build_lts]
     image: node:lts-alpine
     script:
         - npm i
@@ -77,7 +76,6 @@ lint:
 test_unit_lts:
     stage: test-unit
     coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
-    needs: [build_lts]
     image: node:lts-alpine
     script:
         - npm i
@@ -89,7 +87,6 @@ test_unit_lts:
 test_unit_current:
     stage: test-unit
     coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
-    needs: [build_current]
     image: node:current-alpine
     script:
         - npm i
@@ -97,7 +94,10 @@ test_unit_current:
 
 pages:
     stage: pages
-    needs: [test_unit_lts]
+    needs:
+        - lint
+        - test_unit_lts
+        - build_lts
     image: node:lts-alpine
     script:
         - npm i
