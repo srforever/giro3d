@@ -250,12 +250,12 @@ class Layer extends EventDispatcher {
             }
 
             // the last promise in the chain must return the layer
-            this.whenReady = providerPreprocessing.then(() => {
-                this._customPreprocessLayer(map, instance).then(() => {
+            this.whenReady = providerPreprocessing
+                .then(() => this._customPreprocessLayer(map, instance))
+                .then(() => {
                     this.ready = true;
+                    return this;
                 });
-                return this;
-            });
         }
         return this;
     }
