@@ -52,6 +52,8 @@ build_lts:
             - dist
             - giro3d-*.tgz
         name: "$CI_COMMIT_REF_SLUG"
+    only:
+        - master
 
 build_current:
     stage: build
@@ -61,10 +63,11 @@ build_current:
         - npm i
         - npm run build-package
         - npm pack build/giro3d/
+    only:
+        - master
 
 lint:
     stage: lint
-    needs: [build_lts]
     image: node:lts-alpine
     script:
         - npm i
@@ -73,7 +76,6 @@ lint:
 test_unit_lts:
     stage: test-unit
     coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
-    needs: [build_lts]
     image: node:lts-alpine
     script:
         - npm i
@@ -85,7 +87,6 @@ test_unit_lts:
 test_unit_current:
     stage: test-unit
     coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
-    needs: [build_current]
     image: node:current-alpine
     script:
         - npm i
@@ -93,7 +94,10 @@ test_unit_current:
 
 pages:
     stage: pages
-    needs: [test_unit_lts]
+    needs:
+        - lint
+        - test_unit_lts
+        - build_lts
     image: node:lts-alpine
     script:
         - npm i
