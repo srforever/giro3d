@@ -85,14 +85,20 @@ const Cache = {
      * @param {string} key the entry key to query
      * @param {object} value the entry value
      * @param {number} [lifetime] the lifetime of this entry, in milliseconds
+     * @param {Function} onDelete optional callback to call when the object is deleted.
      * @returns {object} the added value
      */
-    set: (key, value, lifetime = Infinity) => {
+    set: (key, value, lifetime = Infinity, onDelete = null) => {
         const entry = {
             value,
             lastTimeUsed: now(),
             lifetime,
+            onDelete,
         };
+        const previous = data.get(key);
+        if (previous && previous.onDelete) {
+            previous.onDelete(previous.value);
+        }
         data.set(key, entry);
 
         return value;
@@ -101,10 +107,11 @@ const Cache = {
     deletePrefix: prefix => {
         for (const key of data.keys()) {
             if (key.startsWith && key.startsWith(prefix)) {
-                data.delete(key);
+                Cache.delete(key);
             }
         }
     },
+
     /**
      * Deletes the specified entry from the cache.
      *
@@ -112,7 +119,13 @@ const Cache = {
      * @param {string} key the entry key
      * @returns {boolean} - Confirmation that the entry has been deleted.
      */
-    delete: key => data.delete(key),
+    delete: key => {
+        const entry = data.get(key);
+        if (entry && entry.onDelete) {
+            entry.onDelete(entry.value);
+        }
+        return data.delete(key);
+    },
 
     /**
      * Removes all entries of the cache.
@@ -120,7 +133,15 @@ const Cache = {
      * @name module:Cache.clear
      * @function
      */
-    clear: () => data.clear(),
+    clear: () => {
+        data.forEach(entry => {
+            if (entry.onDelete) {
+                entry.onDelete(entry.value);
+            }
+        });
+
+        data.clear();
+    },
 
     /**
      * Flush the cache: entries that have been present for too long since the
@@ -143,7 +164,7 @@ const Cache = {
 
         data.forEach((entry, key) => {
             if (entry.lifetime < time - entry.lastTimeUsed) {
-                data.delete(key);
+                Cache.delete(key);
             }
         });
 
