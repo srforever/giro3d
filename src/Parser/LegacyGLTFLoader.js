@@ -2,7 +2,7 @@
 /* CUSTOM giro3d */
 /* Add the extention _BATCHID */
 /* eslint-disable */
-import 
+import
 {
     AddEquation,
     AlphaFormat,
@@ -101,6 +101,7 @@ import
  * @author Takahiro / https://github.com/takahirox
  */
 
+/** @type {LegacyGLTFLoader} */
 export default ( function () {
 
 	function LegacyGLTFLoader( manager ) {
