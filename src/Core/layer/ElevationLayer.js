@@ -41,6 +41,8 @@ class ElevationLayer extends Layer {
      * If unspecified, the layer will use the `STRATEGY_MIN_NETWORK_TRAFFIC`.
      * @param {string} [options.backgroundColor=undefined] The background color of the layer.
      * @param {string} [options.elevationFormat=undefined] the elevation format
+     * @param {number} [options.noDataValue=undefined] the optional no-data value to pass to the
+     * provider. Any pixel that matches this value will not be processed.
      * @param {string} [options.heightFieldOffset=undefined] if
      * <code>options.elevationFormat</code> is <code>ELEVATION_FORMAT.HEIGHFIELD</code>,
      * specifies the offset to use for scalar values in the height field.
@@ -56,6 +58,9 @@ class ElevationLayer extends Layer {
         if (this.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
             this.heightFieldOffset = options.heightFieldOffset || 0;
             this.heightFieldScale = options.heightFieldScale || 255;
+        }
+        if (options.noDataValue) {
+            this.noDataValue = options.noDataValue;
         }
         this.type = 'ElevationLayer';
         defineLayerProperty(this, 'frozen', false);
