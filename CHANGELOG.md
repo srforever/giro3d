@@ -1,5 +1,51 @@
 # Changelog
 
+## v0.12.0 (2022-11-24)
+
+Notable features :
+
+- support for high dynamic range textures in maps. This enables native support
+for 32-bit floating point elevation data for example, without compressing the pixels to 8-bit.
+- Maps can now be displayed in double sided with the option `doubleSided` in the constructor. The
+backside is displayed in a desaturated, darker tone.
+- The Giro3D context can be unloaded with the `Instance.dispose()` method.
+
+### BREAKING CHANGE
+
+- In `Instance`, `normalizedToCanvasCoords()`, `canvasToNormalizedCoords()`,
+`eventToNormalizedCoords()` and `eventToCanvasCoords()` now require a `target` vector passed as
+parameter to reduce memory allocations.
+
+### Feat
+
+- Add support for high dynamic range textues
+- `OLTileProvider` : add support for extended tile formats (each new format must be implemented)
+- **Inspector**: add position of camera target, if any
+- **TileFS**: display backside fragments in a desaturated, darker tone
+- **Map**: add the doubleSided option
+- **examples**: add instance disposal example
+- **Instance**: add the dispose() method to unload the Giro3D context
+
+### Fix
+
+- **Layer**: don't resolve whenReady before processing is done
+- **CanvasComposer**: support textures in addition to images
+- **Composer**: improve robustness of implementation selector
+- **WebGLComposer**: fix memory leaks
+- **TileFS**: fix faulty alpha blending
+- make sure Helpers and OBBHelper correctly clean memory
+- make sure panels and inspectors don't leak memory
+
+### Refactor
+
+- **OLTileProvider**: delegate the tile image decoding to TextureGenerator
+- **TextureGenerator**: the default export is now an object
+- **providers**: remove unused tileTextureCount()
+- **TileMesh**: implement dispose()
+- **MemoryTracker**: group tracked objects by type in getTrackedObjects()
+- **TileFS**: display outlines with different colors for each border
+- **Instance**: use target vectors for coordinate related API
+
 ## v0.11.0 (2022-11-17)
 
 ### Feat
