@@ -53,12 +53,12 @@ function fromOLExtent(extent, projectionCode) {
     return new Extent(projectionCode, extent[0], extent[2], extent[1], extent[3]);
 }
 
-function toOLExtent(extent) {
+function toOLExtent(extent, margin = 0) {
     return [
-        Math.ceil(extent.west()),
-        Math.ceil(extent.south()),
-        Math.floor(extent.east()),
-        Math.floor(extent.north()),
+        extent.west() - margin,
+        extent.south() - margin,
+        extent.east() + margin,
+        extent.north() + margin,
     ];
 }
 
@@ -97,7 +97,11 @@ function getPossibleTextureImprovements(layer, extent, texture) {
 function getTileRange(tileGrid, imageSize, extent) {
     const minZoom = tileGrid.getMinZoom();
     const maxZoom = tileGrid.getMaxZoom();
-    const olExtent = toOLExtent(extent);
+    // Use a small margin to solve issues in the case where map tiles are perfecly identical
+    // to source tiles. In some cases, rounding errors lead the selecting of an abnormal zoom
+    // level for some tiles and not others, leading to difference in zoom levels for map tiles
+    // with the same size.
+    const olExtent = toOLExtent(extent, 0.001);
 
     const extentWidth = olExtent[2] - olExtent[0];
     const targetResolution = imageSize.w / extentWidth;
