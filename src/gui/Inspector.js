@@ -10,6 +10,7 @@ import { MAIN_LOOP_EVENTS } from '../Core/MainLoop.js';
 import Outliner from './outliner/Outliner.js';
 import ProcessingInspector from './ProcessingInspector.js';
 import Panel from './Panel.js';
+import PackageInfoInspector from './PackageInfoInspector.js';
 
 // Here follows the style adaptation to lil-gui
 const styles = `
@@ -55,6 +56,7 @@ class Inspector {
 
         this.folders = [];
 
+        this.addPanel(new PackageInfoInspector(this.gui, instance));
         this.addPanel(new CameraInspector(this.gui, instance));
         this.addPanel(new ProcessingInspector(this.gui, instance));
         this.addPanel(new EntityPanel(this.gui, instance));
