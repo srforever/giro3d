@@ -103,6 +103,26 @@ describe('Map', () => {
             const sut = new Map('foo', { extent: ex });
             expect(sut.extent).toEqual(ex);
         });
+
+        it('should have a single root tile if square', () => {
+            expect(map.subdivisions).toEqual({ x: 1, y: 1 });
+        });
+
+        it('should produce multiple horizontal root tiles if needed', () => {
+            const horizontalExtent = new Extent('EPSG:3857', -250, 250, -100, 100);
+            const horizontalMap = new Map('horizontal', { extent: horizontalExtent });
+            expect(horizontalMap.subdivisions).toEqual({ x: 3, y: 1 });
+        });
+
+        it('should produce multiple vertical root tiles if needed', () => {
+            const verticalExtent = new Extent('EPSG:3857', -100, 100, -250, 250);
+            const verticalMap = new Map('horizontal', { extent: verticalExtent });
+            expect(verticalMap.subdivisions).toEqual({ x: 1, y: 3 });
+        });
+
+        it('should have an tileIndex', () => {
+            expect(map.tileIndex).toBeDefined();
+        });
     });
 
     describe('addLayers', () => {

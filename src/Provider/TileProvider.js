@@ -16,10 +16,22 @@ function preprocessDataLayer(map) {
 
     const promises = [];
 
+    let i = 0;
     for (const root of rootExtents) {
-        promises.push(
-            requestNewTile(map, root, undefined, 0),
-        );
+        if (map.subdivisions.x > map.subdivisions.y) {
+            promises.push(
+                requestNewTile(map, root, undefined, 0, i, 0),
+            );
+        } else if (map.subdivisions.y > map.subdivisions.x) {
+            promises.push(
+                requestNewTile(map, root, undefined, 0, 0, i),
+            );
+        } else {
+            promises.push(
+                requestNewTile(map, root, undefined, 0, 0, 0),
+            );
+        }
+        i++;
     }
     return Promise.all(promises).then(level0s => {
         map.level0Nodes = level0s;

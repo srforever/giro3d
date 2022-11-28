@@ -1,14 +1,17 @@
 import { Vector3 } from 'three';
 import Extent from '../../../src/Core/Geographic/Extent.js';
 import TileMesh from '../../../src/Core/TileMesh.js';
+import { Map } from '../../../src/entities/Map.js';
 import OBB from '../../../src/Renderer/ThreeExtended/OBB.js';
+
+const extent = new Extent('foo', 0, 1, 0, 1);
+const map = new Map('map', { extent });
 
 describe('TileMesh', () => {
     describe('dispose', () => {
         const obb = new OBB(new Vector3(), new Vector3());
 
         it('should dispose the material and the geometry', () => {
-            const extent = new Extent('foo', 0, 1, 0, 1);
             const material = {
                 dispose: jest.fn(),
                 setUuid: jest.fn(),
@@ -17,7 +20,7 @@ describe('TileMesh', () => {
                 },
             };
             const geometry = { dispose: jest.fn(), OBB: { clone: () => obb } };
-            const mesh = new TileMesh('whatever', geometry, material, extent, 0);
+            const mesh = new TileMesh(map, geometry, material, extent, 0);
             let eventDispatched = false;
             mesh.addEventListener('dispose', () => { eventDispatched = true; });
 

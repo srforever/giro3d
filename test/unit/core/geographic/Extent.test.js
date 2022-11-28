@@ -338,45 +338,6 @@ describe('Extent', () => {
         });
     });
 
-    describe('externalBorders', () => {
-        it('should return 4 extents sharing an edge with the original extent', () => {
-            const minX = 0;
-            const maxX = 10;
-            const minY = 2;
-            const maxY = 15;
-            const ratio = 0.4;
-
-            const extent = new Extent('foo', minX, maxX, minY, maxY);
-            const borders = extent.externalBorders(ratio);
-
-            expect(borders).toHaveLength(4);
-            const north = borders[0];
-            const east = borders[1];
-            const south = borders[2];
-            const west = borders[3];
-
-            expect(north.west()).toEqual(extent.west());
-            expect(north.east()).toEqual(extent.east());
-            expect(north.south()).toEqual(extent.north());
-            expect(north.north()).toEqual(extent.north() + extent.dimensions().y * ratio);
-
-            expect(east.west()).toEqual(extent.east());
-            expect(east.east()).toEqual(extent.east() + extent.dimensions().x * ratio);
-            expect(east.south()).toEqual(extent.south());
-            expect(east.north()).toEqual(extent.north());
-
-            expect(south.north()).toEqual(extent.south());
-            expect(south.east()).toEqual(extent.east());
-            expect(south.west()).toEqual(extent.west());
-            expect(south.south()).toEqual(extent.south() - extent.dimensions().y * ratio);
-
-            expect(west.west()).toEqual(extent.west() - extent.dimensions().x * ratio);
-            expect(west.east()).toEqual(extent.west());
-            expect(west.south()).toEqual(extent.south());
-            expect(west.north()).toEqual(extent.north());
-        });
-    });
-
     describe('split', () => {
         it('should throw on invalid subdivisions', () => {
             expect(() => BOUNDS_EPSG3857.split(0, 1)).toThrow(/Invalid subdivisions/);

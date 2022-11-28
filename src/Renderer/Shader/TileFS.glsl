@@ -216,13 +216,13 @@ void main() {
         const vec3 red = vec3(1, 0, 0);
         const vec3 yellow = vec3(1, 1, 0);
 
-        if (vUv.x < sLine) {
+        if (vUv.x < sLine) { // WEST
             gl_FragColor.rgb = red;
-        } else if (vUv.x > 1.0 - sLine) {
+        } else if (vUv.x > 1.0 - sLine) { // EAST
             gl_FragColor.rgb = green;
-        } else if (vUv.y < sLine) {
+        } else if (vUv.y < sLine) { // NORTH
             gl_FragColor.rgb = blue;
-        } else if (vUv.y > 1.0 - sLine) {
+        } else if (vUv.y > 1.0 - sLine) { // SOUTH
             gl_FragColor.rgb = yellow;
         }
 #endif
