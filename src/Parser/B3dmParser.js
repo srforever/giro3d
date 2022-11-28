@@ -1,5 +1,6 @@
 import { Matrix4, MeshLambertMaterial, Material } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { DRACOLoader } from 'three/examples/jsm/loaders/DRACOLoader.js';
 
 import LegacyGLTFLoader from './LegacyGLTFLoader.js';
 import BatchTableParser from './BatchTableParser.js';
@@ -7,11 +8,11 @@ import Capabilities from '../Core/System/Capabilities.js';
 import shaderUtils from '../Renderer/Shader/ShaderUtils.js';
 import utf8Decoder from '../utils/Utf8Decoder.js';
 
+let glTFLoader;
+
 const matrixChangeUpVectorZtoY = (new Matrix4()).makeRotationX(Math.PI / 2);
 // For gltf rotation
 const matrixChangeUpVectorZtoX = (new Matrix4()).makeRotationZ(-Math.PI / 2);
-
-const glTFLoader = new GLTFLoader();
 
 const legacyGLTFLoader = new LegacyGLTFLoader();
 
@@ -47,6 +48,15 @@ function applyOptionalCesiumRTC(data, gltf) {
         gltf.position.fromArray(json.extensions.CESIUM_RTC.center);
         gltf.updateMatrixWorld(true);
     }
+}
+
+function initglTFLoader() {
+    glTFLoader = new GLTFLoader();
+    const dracoLoader = new DRACOLoader();
+    // Use the same version between the decoder and three
+    const v = window.__THREE__;
+    dracoLoader.setDecoderPath(`https://unpkg.com/three@0.${v}.0/examples/js/libs/draco/gltf/`);
+    glTFLoader.setDRACOLoader(dracoLoader);
 }
 
 export default {
@@ -173,6 +183,9 @@ export default {
                 if (version === 1) {
                     legacyGLTFLoader.parse(gltfBuffer, onload, urlBase);
                 } else {
+                    if (!glTFLoader) {
+                        initglTFLoader();
+                    }
                     glTFLoader.parse(gltfBuffer, urlBase, onload, onerror);
                 }
             }));
