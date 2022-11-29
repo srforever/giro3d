@@ -231,7 +231,7 @@ class Map extends Entity3D {
             }
             i++;
         }
-        this.whenReady = Promise.all(promises).then(level0s => {
+        return Promise.all(promises).then(level0s => {
             this.level0Nodes = level0s;
             for (const level0 of level0s) {
                 this.object3d.add(level0);
@@ -239,7 +239,6 @@ class Map extends Entity3D {
             }
             return this;
         });
-        return this.whenReady;
     }
 
     requestNewTile(extent, parent, level, x = 0, y = 0) {
