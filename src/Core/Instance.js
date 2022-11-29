@@ -318,22 +318,22 @@ class Instance extends EventDispatcher {
             }
 
             this._objects.push(object);
-            object.whenReady.then(l => {
+            object.whenReady.then(() => {
                 // TODO remove object from this._objects maybe ?
-                if (typeof (l.update) !== 'function') {
+                if (typeof (object.update) !== 'function') {
                     reject(new Error('Cant add Entity3D: missing a update function'));
                     return;
                 }
-                if (typeof (l.preUpdate) !== 'function') {
+                if (typeof (object.preUpdate) !== 'function') {
                     reject(new Error('Cant add Entity3D: missing a preUpdate function'));
                     return;
                 }
 
-                if (l.object3d && !l.object3d.parent && l.object3d !== this.scene) {
-                    this.scene.add(l.object3d);
+                if (object.object3d && !object.object3d.parent && object.object3d !== this.scene) {
+                    this.scene.add(object.object3d);
                 }
 
-                this.notifyChange(l, false);
+                this.notifyChange(object, false);
                 const updateEndFR = this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END];
                 if (!updateEndFR || updateEndFR.indexOf(this._allLayersAreReadyCallback) === -1) {
                     this.addFrameRequester(
@@ -342,7 +342,7 @@ class Instance extends EventDispatcher {
                     );
                 }
                 this.dispatchEvent({ type: INSTANCE_EVENTS.ENTITY_ADDED });
-                resolve(l);
+                resolve(object);
             });
         });
     }
