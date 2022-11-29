@@ -5,6 +5,7 @@ import Instance, { INSTANCE_EVENTS } from '../../../src/Core/Instance.js';
 import Layer from '../../../src/Core/layer/Layer.js';
 import MainLoop from '../../../src/Core/MainLoop.js';
 import Map from '../../../src/entities/Map.js';
+import Tiles3D from '../../../src/entities/Tiles3D.js';
 import { setupGlobalMocks, resizeObservers } from '../mocks.js';
 
 describe('Instance', () => {
@@ -98,8 +99,15 @@ describe('Instance', () => {
                 }),
                 maxSubdivisionLevel: 15,
             });
-            instance.add(map).then(() => {
+            return instance.add(map).then(() => {
                 expect(instance.getObjects()).toStrictEqual([map]);
+            });
+        });
+
+        it('should add a Tiles3D', () => {
+            const tiles3d = new Tiles3D('myEntity', { url: 'https://domain.tld/tileset.json' });
+            return instance.add(tiles3d).then(() => {
+                expect(instance.getObjects()).toStrictEqual([tiles3d]);
             });
         });
 
@@ -107,7 +115,7 @@ describe('Instance', () => {
         // eslint-disable-next-line jest/no-disabled-tests
         it.skip('should add a THREE.js Object3D', () => {
             const obj = new Group();
-            instance.add(obj).then(() => {
+            return instance.add(obj).then(() => {
                 expect(instance.getObjects()).toStrictEqual([obj]);
             });
         });
@@ -126,7 +134,7 @@ describe('Instance', () => {
 
             expect(eventFired).toBeFalsy();
 
-            instance.add(map).then(() => {
+            return instance.add(map).then(() => {
                 expect(eventFired).toBeTruthy();
             });
         });
@@ -155,13 +163,11 @@ describe('Instance', () => {
 
         it('should call the dispose() method if it exists', () => {
             const map = new Map('owner', { extent: new Extent('EPSG:4326', 0, 0, 0, 0) });
-            instance.add(map);
-
             map.dispose = jest.fn();
-
-            instance.remove(map);
-
-            expect(map.dispose).toHaveBeenCalled();
+            return instance.add(map).then(() => {
+                instance.remove(map);
+                expect(map.dispose).toHaveBeenCalled();
+            });
         });
 
         it('should fire the entity-removed event', () => {
