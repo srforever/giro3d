@@ -19,6 +19,7 @@ import MemoryTracker from '../Renderer/MemoryTracker.js';
 import Cache from '../Core/Scheduler/Cache.js';
 
 const TEXTURE_CACHE_LIFETIME_MS = 1000 * 60; // 60 seconds
+const MIN_LEVEL_THRESHOLD = 2;
 
 /**
  * Dispose the texture contained in the promise.
@@ -101,6 +102,15 @@ function getTileRange(tileGrid, imageSize, extent) {
     const extentWidth = olExtent[2] - olExtent[0];
     const targetResolution = imageSize.w / extentWidth;
 
+    const minResolution = 1 / tileGrid.getResolution(minZoom);
+
+    if ((minResolution / targetResolution) > MIN_LEVEL_THRESHOLD) {
+        // The minimum zoom level has more than twice the resolution
+        // than requested. We cannot use this zoom level as it would
+        // trigger too many tile requests to fill the extent.
+        return DataStatus.DATA_UNAVAILABLE;
+    }
+
     // Let's determine the best zoom level for the target tile.
     for (let z = minZoom; z < maxZoom; z++) {
         const sourceResolution = 1 / tileGrid.getResolution(z);
@@ -110,7 +120,7 @@ function getTileRange(tileGrid, imageSize, extent) {
         }
     }
 
-    return null;
+    return { z: maxZoom, extent };
 }
 
 async function executeCommand(command) {
