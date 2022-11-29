@@ -41,11 +41,10 @@ function _isTiledCRS(crs) {
  *     // latitude 1
  *     const extent = new Extent('EPSG:4326', 0, 0, 1, 1);
  *
- * For other EPSG code, you must register to proj4 them before you can use them. Giro3d exposes the
- * instance it uses:
+ * For other EPSG codes, you must register them with
+ * {@link module:Core/Instance~Instance.registerCRS Instance.registerCRS()} :
  *
- *     import { default as proj4 } from 'proj4';
- *     proj4.defs('EPSG:3946',
+ *     Instance.registerCRS('EPSG:3946',
             '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 + \
             ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
  *     extent = new Extent(
