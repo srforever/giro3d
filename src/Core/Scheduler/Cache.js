@@ -180,6 +180,10 @@ const Cache = {
             before, after: data.size, hit, miss,
         };
     },
+
+    count: () => data.size,
+
+    entries: () => data.entries(),
 };
 
 Object.freeze(Cache);
