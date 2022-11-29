@@ -9,7 +9,7 @@ import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
 import Instance from '@giro3d/giro3d/Core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
-import { Map } from '@giro3d/giro3d/entities/Map.js';
+import Map from '@giro3d/giro3d/entities/Map.js';
 import Coordinates from '@giro3d/giro3d/Core/Geographic/Coordinates.js';
 import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';

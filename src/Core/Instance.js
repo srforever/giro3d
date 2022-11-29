@@ -9,7 +9,6 @@ import { register } from 'ol/proj/proj4.js';
 import Camera from '../Renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../Renderer/c3DEngine.js';
-import { STRATEGY_MIN_NETWORK_TRAFFIC } from './layer/LayerUpdateStrategy.js';
 import Layer, { defineLayerProperty } from './layer/Layer.js';
 import Entity3D from '../entities/Entity3D.js';
 import Scheduler from './Scheduler/Scheduler.js';
@@ -305,13 +304,14 @@ class Instance extends EventDispatcher {
                 return;
             }
 
+            // TODO get rid of providers for entity
             const provider = this.mainLoop.scheduler.getProtocolProvider(object.protocol);
             if (object.protocol && !provider) {
                 reject(new Error(`${object.protocol} is not a recognized protocol name.`));
                 return;
             }
 
-            object = _preprocessObject(this, object, provider);
+            object = _preprocessEntity(this, object, provider);
 
             if (!object.projection) {
                 object.projection = this.referenceCrs;
@@ -319,6 +319,7 @@ class Instance extends EventDispatcher {
 
             this._objects.push(object);
             object.whenReady.then(l => {
+                // TODO remove object from this._objects maybe ?
                 if (typeof (l.update) !== 'function') {
                     reject(new Error('Cant add Entity3D: missing a update function'));
                     return;
@@ -836,23 +837,11 @@ const _syncEntityVisibility = function _syncEntityVisibility(entity, instance) {
     }
 };
 
-function _preprocessObject(instance, obj, provider, parentLayer) {
-    if (!(obj instanceof Layer) && !(obj instanceof Entity3D)) {
-        const nlayer = new Layer(obj.id);
-        // nlayer.id is read-only so delete it from layer before Object.assign
-        const tmp = obj;
-        delete tmp.id;
-        obj = Object.assign(nlayer, obj);
-        // restore layer.id in user provider layer object
-        tmp.id = obj.id;
-    }
-
+function _preprocessEntity(instance, obj, provider, parentLayer) {
     obj.options = obj.options || {};
 
-    if (!obj.updateStrategy) {
-        obj.updateStrategy = {
-            type: STRATEGY_MIN_NETWORK_TRAFFIC,
-        };
+    if (obj.preprocess) {
+        obj.preprocess();
     }
 
     if (provider) {
@@ -868,8 +857,9 @@ function _preprocessObject(instance, obj, provider, parentLayer) {
 
     if (!obj.whenReady) {
         if (!obj.object3d) {
+            // TODO get rid of threejs layers
             // layer.threejsLayer *must* be assigned before preprocessing,
-            // because TileProvider.preprocessDataLayer function uses it.
+            // because some preprocessing function uses it.
             obj.threejsLayer = instance.mainLoop.gfxEngine.getUniqueThreejsLayer();
         }
         let providerPreprocessing = Promise.resolve();
@@ -878,16 +868,17 @@ function _preprocessObject(instance, obj, provider, parentLayer) {
                 obj, instance, instance.mainLoop.scheduler, parentLayer,
             );
             if (!(providerPreprocessing && providerPreprocessing.then)) {
-                providerPreprocessing = Promise.resolve();
+                providerPreprocessing = Promise.resolve(obj);
             }
         }
 
         // the last promise in the chain must return the layer
-        obj.whenReady = providerPreprocessing.then(() => {
-            obj.ready = true;
-            return obj;
-        });
+        obj.whenReady = providerPreprocessing;
     }
+    obj.whenReady.then(() => {
+        obj.ready = true;
+        return obj;
+    });
 
     // probably not the best place to do this
     defineLayerProperty(obj, 'visible', true, () => _syncEntityVisibility(obj, instance));

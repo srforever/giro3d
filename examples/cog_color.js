@@ -3,7 +3,7 @@ import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
 import CogSource from '@giro3d/giro3d/sources/CogSource.js';
 import Instance from '@giro3d/giro3d/Core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
-import { Map } from '@giro3d/giro3d/entities/Map.js';
+import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 // Define geographic extent: CRS, min/max X, min/max Y

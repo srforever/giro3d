@@ -23,7 +23,7 @@ const tmp = {
  * allows for rectangular tiles creation.
  *
  * @example
- * // Inspired from Map@requestNewTile
+ * // Inspired from Map.requestNewTile
  * const extent = new Extent('EPSG:3857', -1000, -1000, 1000, 1000);
  * const paramsGeometry = { extent, segment: 8 };
  * const geometry = new TileGeometry(paramsGeometry);

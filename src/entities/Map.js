@@ -41,6 +41,8 @@ import Cache from '../Core/Scheduler/Cache.js';
  * map.addEventListener('layer-removed', () => console.log('layer removed!'));
  */
 
+const tmpVector = new Vector3();
+
 function subdivideNode(context, map, node) {
     if (!node.children.some(n => n.layer === map)) {
         const extents = node.extent.split(2, 2);
@@ -50,20 +52,20 @@ function subdivideNode(context, map, node) {
         for (const extent of extents) {
             let child;
             if (i === 0) {
-                child = requestNewTile(
-                    map, extent, node, z + 1, 2 * x + 0, 2 * y + 0,
+                child = map.requestNewTile(
+                    extent, node, z + 1, 2 * x + 0, 2 * y + 0,
                 );
             } else if (i === 1) {
-                child = requestNewTile(
-                    map, extent, node, z + 1, 2 * x + 0, 2 * y + 1,
+                child = map.requestNewTile(
+                    extent, node, z + 1, 2 * x + 0, 2 * y + 1,
                 );
             } else if (i === 2) {
-                child = requestNewTile(
-                    map, extent, node, z + 1, 2 * x + 1, 2 * y + 0,
+                child = map.requestNewTile(
+                    extent, node, z + 1, 2 * x + 1, 2 * y + 0,
                 );
             } else if (i === 3) {
-                child = requestNewTile(
-                    map, extent, node, z + 1, 2 * x + 1, 2 * y + 1,
+                child = map.requestNewTile(
+                    extent, node, z + 1, 2 * x + 1, 2 * y + 1,
                 );
             }
             node.add(child);
@@ -86,110 +88,6 @@ function subdivideNode(context, map, node) {
     }
 }
 
-function requestNewTile(map, extent, parent, level, x = 0, y = 0) {
-    if (parent && !parent.material) {
-        return null;
-    }
-
-    const quaternion = new Quaternion();
-    const position = new Vector3(...extent.center()._values);
-    // compute sharable extent to pool the geometries
-    // the geometry in common extent is identical to the existing input
-    // with a translation
-    const dim = extent.dimensions();
-    const halfWidth = dim.x * 0.5;
-    const halfHeight = dim.y * 0.5;
-    const sharableExtent = new Extent(
-        extent.crs(),
-        -halfWidth, halfWidth,
-        -halfHeight, halfHeight,
-    );
-
-    const key = `${map.id}_${sharableExtent._values.join(',')}`;
-    let geometry = Cache.get(key);
-    // build geometry if doesn't exist
-    if (!geometry) {
-        const paramsGeometry = {
-            extent: sharableExtent,
-            width: map.segmentX + 1,
-            height: map.segmentY + 1,
-        };
-        geometry = new TileGeometry(paramsGeometry);
-        Cache.set(key, geometry);
-        geometry._count = 0;
-        geometry.dispose = () => {
-            geometry._count--;
-            if (geometry._count === 0) {
-                BufferGeometry.prototype.dispose.call(geometry);
-                Cache.delete(key);
-            }
-        };
-    }
-
-    // build tile
-    geometry._count++;
-    const material = new LayeredMaterial(
-        map.materialOptions, map._instance.renderer, geometry.props, map.atlasInfo,
-    );
-
-    const tile = new TileMesh(map, geometry, material, extent, level, x, y);
-
-    tile.layers.set(map.threejsLayer);
-    if (map.renderOrder !== undefined) {
-        tile.renderOrder = map.renderOrder;
-    }
-    tile.material.opacity = map.opacity;
-
-    if (parent && parent instanceof TileMesh) {
-        // get parent position from extent
-        const positionParent = new Vector3(...parent.extent.center()._values);
-        // place relative to his parent
-        position.sub(positionParent).applyQuaternion(parent.quaternion.invert());
-        quaternion.premultiply(parent.quaternion);
-    }
-
-    tile.position.copy(position);
-    tile.quaternion.copy(quaternion);
-
-    tile.material.transparent = map.opacity < 1.0;
-    tile.material.uniforms.opacity.value = map.opacity;
-    tile.setVisibility(false);
-    tile.updateMatrix();
-
-    if (map.noTextureColor) {
-        tile.material.uniforms.noTextureColor.value.copy(map.noTextureColor);
-    }
-
-    // no texture opacity
-    if (map.noTextureOpacity !== undefined) {
-        tile.material.uniforms.noTextureOpacity.value = map.noTextureOpacity;
-    }
-
-    tile.material.showOutline = map.showOutline || false;
-    tile.material.wireframe = map.wireframe || false;
-
-    if (parent) {
-        tile.setBBoxZ(parent.OBB().z.min, parent.OBB().z.max);
-    } else {
-        // TODO: probably not here
-        // TODO get parentGeometry from layer
-        const elevation = map.getLayers(l => l instanceof ElevationLayer);
-        if (elevation.length > 0) {
-            if (!elevation[0].minmax) {
-                console.error('fix the provider');
-            }
-            tile.setBBoxZ(elevation[0].minmax.min, elevation[0].minmax.max);
-        }
-    }
-
-    tile.add(tile.OBB());
-    map.onTileCreated(map, parent, tile);
-
-    return tile;
-}
-
-const tmpVector = new Vector3();
-
 function selectBestSubdivisions(map, extent) {
     const dims = extent.dimensions();
     const ratio = dims.x / dims.y;
@@ -208,6 +106,30 @@ function selectBestSubdivisions(map, extent) {
         map.segmentY = Math.round((1 / newRatio) * map.segmentY);
     }
     return { x, y };
+}
+
+/**
+ * Compute the best image size for tiles, taking into account the extent ratio.
+ * In other words, rectangular tiles will have more pixels in their longest side.
+ *
+ * @param {Extent} extent The map extent.
+ */
+function computeImageSize(extent) {
+    const baseSize = 256;
+    const dims = extent.dimensions();
+    const ratio = dims.x / dims.y;
+    if (Math.abs(ratio - 1) < 0.01) {
+        // We have a square tile
+        return { w: baseSize, h: baseSize };
+    }
+
+    if (ratio > 1) {
+        // We have an horizontal tile
+        return { w: Math.round(baseSize * ratio), h: baseSize };
+    }
+
+    // We have a vertical tile
+    return { w: baseSize, h: Math.round(baseSize * (1 / ratio)) };
 }
 
 /**
@@ -247,6 +169,8 @@ class Map extends Entity3D {
     constructor(id, options = {}) {
         super(id, options.object3d || new Group());
 
+        this.level0Nodes = [];
+
         /** @type {Extent} */
         this.extent = options.extent;
 
@@ -259,7 +183,6 @@ class Map extends Entity3D {
         this.maxSubdivisionLevel = options.maxSubdivisionLevel || -1;
 
         this.type = 'Map';
-        this.protocol = 'tile';
         this.visible = true;
 
         this.lightDirection = { azimuth: 315, zenith: 45 };
@@ -278,6 +201,147 @@ class Map extends Entity3D {
 
         this.currentAddedLayerIds = [];
         this.tileIndex = new TileIndex();
+    }
+
+    preprocess() {
+        this.onTileCreated = this.onTileCreated || (() => {});
+
+        // If the map is not square, we want to have more than a single
+        // root tile to avoid elongated tiles that hurt visual quality and SSE computation.
+        const rootExtents = this.extent.split(this.subdivisions.x, this.subdivisions.y);
+
+        this.imageSize = computeImageSize(rootExtents[0]);
+
+        const promises = [];
+
+        let i = 0;
+        for (const root of rootExtents) {
+            if (this.subdivisions.x > this.subdivisions.y) {
+                promises.push(
+                    this.requestNewTile(root, undefined, 0, i, 0),
+                );
+            } else if (this.subdivisions.y > this.subdivisions.x) {
+                promises.push(
+                    this.requestNewTile(root, undefined, 0, 0, i),
+                );
+            } else {
+                promises.push(
+                    this.requestNewTile(root, undefined, 0, 0, 0),
+                );
+            }
+            i++;
+        }
+        this.whenReady = Promise.all(promises).then(level0s => {
+            this.level0Nodes = level0s;
+            for (const level0 of level0s) {
+                this.object3d.add(level0);
+                level0.updateMatrixWorld();
+            }
+            return this;
+        });
+        return this.whenReady;
+    }
+
+    requestNewTile(extent, parent, level, x = 0, y = 0) {
+        if (parent && !parent.material) {
+            return null;
+        }
+
+        const quaternion = new Quaternion();
+        const position = new Vector3(...extent.center()._values);
+        // compute sharable extent to pool the geometries
+        // the geometry in common extent is identical to the existing input
+        // with a translation
+        const dim = extent.dimensions();
+        const halfWidth = dim.x * 0.5;
+        const halfHeight = dim.y * 0.5;
+        const sharableExtent = new Extent(
+            extent.crs(),
+            -halfWidth, halfWidth,
+            -halfHeight, halfHeight,
+        );
+
+        const key = `${this.id}_${sharableExtent._values.join(',')}`;
+        let geometry = Cache.get(key);
+        // build geometry if doesn't exist
+        if (!geometry) {
+            const paramsGeometry = {
+                extent: sharableExtent,
+                width: this.segmentX + 1,
+                height: this.segmentY + 1,
+            };
+            geometry = new TileGeometry(paramsGeometry);
+            Cache.set(key, geometry);
+            geometry._count = 0;
+            geometry.dispose = () => {
+                geometry._count--;
+                if (geometry._count === 0) {
+                    BufferGeometry.prototype.dispose.call(geometry);
+                    Cache.delete(key);
+                }
+            };
+        }
+
+        // build tile
+        geometry._count++;
+        const material = new LayeredMaterial(
+            this.materialOptions, this._instance.renderer, geometry.props, this.atlasInfo,
+        );
+
+        const tile = new TileMesh(this, geometry, material, extent, level, x, y);
+
+        tile.layers.set(this.threejsLayer);
+        if (this.renderOrder !== undefined) {
+            tile.renderOrder = this.renderOrder;
+        }
+        tile.material.opacity = this.opacity;
+
+        if (parent && parent instanceof TileMesh) {
+            // get parent position from extent
+            const positionParent = new Vector3(...parent.extent.center()._values);
+            // place relative to his parent
+            position.sub(positionParent).applyQuaternion(parent.quaternion.invert());
+            quaternion.premultiply(parent.quaternion);
+        }
+
+        tile.position.copy(position);
+        tile.quaternion.copy(quaternion);
+
+        tile.material.transparent = this.opacity < 1.0;
+        tile.material.uniforms.opacity.value = this.opacity;
+        tile.setVisibility(false);
+        tile.updateMatrix();
+
+        if (this.noTextureColor) {
+            tile.material.uniforms.noTextureColor.value.copy(this.noTextureColor);
+        }
+
+        // no texture opacity
+        if (this.noTextureOpacity !== undefined) {
+            tile.material.uniforms.noTextureOpacity.value = this.noTextureOpacity;
+        }
+
+        tile.material.showOutline = this.showOutline || false;
+        tile.material.wireframe = this.wireframe || false;
+
+        if (parent) {
+            tile.setBBoxZ(parent.OBB().z.min, parent.OBB().z.max);
+        } else {
+            // TODO: probably not here
+            // TODO get parentGeometry from layer
+            const elevation = this.getLayers(l => l instanceof ElevationLayer);
+            if (elevation.length > 0) {
+                if (!elevation[0].minmax) {
+                    console.error('fix the provider');
+                }
+                tile.setBBoxZ(elevation[0].minmax.min, elevation[0].minmax.max);
+            }
+        }
+
+        tile.add(tile.OBB());
+        this.onTileCreated(this, parent, tile);
+
+        return tile;
     }
 
     pickObjectsAt(coordinates, options, target) {
@@ -664,4 +728,4 @@ class Map extends Entity3D {
     }
 }
 
-export { Map, requestNewTile };
+export default Map;

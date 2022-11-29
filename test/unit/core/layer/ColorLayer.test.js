@@ -3,7 +3,7 @@ import { Vector3, BufferGeometry } from 'three';
 import ColorLayer from '../../../../src/Core/layer/ColorLayer.js';
 import TileMesh from '../../../../src/Core/TileMesh.js';
 import Extent from '../../../../src/Core/Geographic/Extent.js';
-import { Map } from '../../../../src/entities/Map.js';
+import Map from '../../../../src/entities/Map.js';
 import OBB from '../../../../src/Renderer/ThreeExtended/OBB.js';
 import LayeredMaterial from '../../../../src/Renderer/LayeredMaterial.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from '../../../../src/Core/layer/LayerUpdateStrategy.js';

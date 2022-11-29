@@ -1,7 +1,7 @@
 import { Vector3 } from 'three';
 import Extent from '../../../src/Core/Geographic/Extent.js';
 import TileMesh from '../../../src/Core/TileMesh.js';
-import { Map } from '../../../src/entities/Map.js';
+import Map from '../../../src/entities/Map.js';
 import OBB from '../../../src/Renderer/ThreeExtended/OBB.js';
 
 const extent = new Extent('foo', 0, 1, 0, 1);

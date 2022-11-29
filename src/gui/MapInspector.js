@@ -5,7 +5,7 @@ import GUI from 'lil-gui';
 import { Color } from 'three';
 import Instance, { INSTANCE_EVENTS } from '../Core/Instance.js';
 import TileMesh from '../Core/TileMesh.js';
-import { Map } from '../entities/Map.js';
+import Map from '../entities/Map.js';
 import Helpers from '../helpers/Helpers.js';
 import EntityInspector from './EntityInspector.js';
 import LayerInspector from './LayerInspector.js';
