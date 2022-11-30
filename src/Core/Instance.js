@@ -318,22 +318,22 @@ class Instance extends EventDispatcher {
             }
 
             this._objects.push(object);
-            object.whenReady.then(l => {
+            object.whenReady.then(() => {
                 // TODO remove object from this._objects maybe ?
-                if (typeof (l.update) !== 'function') {
+                if (typeof (object.update) !== 'function') {
                     reject(new Error('Cant add Entity3D: missing a update function'));
                     return;
                 }
-                if (typeof (l.preUpdate) !== 'function') {
+                if (typeof (object.preUpdate) !== 'function') {
                     reject(new Error('Cant add Entity3D: missing a preUpdate function'));
                     return;
                 }
 
-                if (l.object3d && !l.object3d.parent && l.object3d !== this.scene) {
-                    this.scene.add(l.object3d);
+                if (object.object3d && !object.object3d.parent && object.object3d !== this.scene) {
+                    this.scene.add(object.object3d);
                 }
 
-                this.notifyChange(l, false);
+                this.notifyChange(object, false);
                 const updateEndFR = this._frameRequesters[MAIN_LOOP_EVENTS.UPDATE_END];
                 if (!updateEndFR || updateEndFR.indexOf(this._allLayersAreReadyCallback) === -1) {
                     this.addFrameRequester(
@@ -342,7 +342,7 @@ class Instance extends EventDispatcher {
                     );
                 }
                 this.dispatchEvent({ type: INSTANCE_EVENTS.ENTITY_ADDED });
-                resolve(l);
+                resolve(object);
             });
         });
     }
@@ -840,8 +840,9 @@ const _syncEntityVisibility = function _syncEntityVisibility(entity, instance) {
 function _preprocessEntity(instance, obj, provider, parentLayer) {
     obj.options = obj.options || {};
 
+    let preprocessingPromise;
     if (obj.preprocess) {
-        obj.preprocess();
+        preprocessingPromise = obj.preprocess();
     }
 
     if (provider) {
@@ -853,34 +854,35 @@ function _preprocessEntity(instance, obj, provider, parentLayer) {
                 .getPossibleTextureImprovements
                 .bind(provider);
         }
-    }
-
-    if (!obj.whenReady) {
         if (!obj.object3d) {
             // TODO get rid of threejs layers
             // layer.threejsLayer *must* be assigned before preprocessing,
             // because some preprocessing function uses it.
             obj.threejsLayer = instance.mainLoop.gfxEngine.getUniqueThreejsLayer();
         }
-        let providerPreprocessing = Promise.resolve();
-        if (provider && provider.preprocessDataLayer) {
-            providerPreprocessing = provider.preprocessDataLayer(
+        if (provider.preprocessDataLayer) {
+            const p = provider.preprocessDataLayer(
                 obj, instance, instance.mainLoop.scheduler, parentLayer,
             );
-            if (!(providerPreprocessing && providerPreprocessing.then)) {
-                providerPreprocessing = Promise.resolve(obj);
+            if (p && p.then) {
+                preprocessingPromise = p;
             }
         }
-
-        // the last promise in the chain must return the layer
-        obj.whenReady = providerPreprocessing;
     }
-    obj.whenReady.then(() => {
+
+    if (!preprocessingPromise) {
+        preprocessingPromise = Promise.resolve();
+    }
+
+    // the last promise in the chain must return the layer
+    obj.whenReady = preprocessingPromise.then(() => {
         obj.ready = true;
         return obj;
     });
 
-    // probably not the best place to do this
+    // definitely not the best place to do this
+    // TODO: this should be done only for object 3D.
+    // Entity should have a getter/setter in their prototype
     defineLayerProperty(obj, 'visible', true, () => _syncEntityVisibility(obj, instance));
     defineLayerProperty(obj, 'frozen', false);
     _syncEntityVisibility(obj, instance);
