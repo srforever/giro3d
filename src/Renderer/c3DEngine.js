@@ -14,6 +14,7 @@ import {
     WebGLRenderer,
     WebGLRenderTarget,
 } from 'three';
+import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Capabilities from '../Core/System/Capabilities.js';
 
 class C3DEngine {
@@ -103,6 +104,8 @@ class C3DEngine {
             }
         }
 
+        this.labelRenderer = new CSS2DRenderer();
+
         // Let's allow our canvas to take focus
         // The condition below looks weird, but it's correct: querying tabIndex
         // returns -1 if not set, but we still need to explicitly set it to force
@@ -126,17 +129,26 @@ class C3DEngine {
         // its parent's line-height, so it will take more space than it's actual size
         // - Setting `display: block` is not enough in flex displays
         this.renderer.domElement.style.position = 'absolute';
+        this.labelRenderer.domElement.style.position = 'absolute';
+        this.labelRenderer.domElement.style.top = '0';
+        this.labelRenderer.domElement.style.pointerEvents = 'none';
+        // Make sure labelRenderer starts a new stacking context, so the labels don't
+        // stay on top of other components (e.g. inspector, etc.)
+        this.labelRenderer.domElement.style.zIndex = 0;
 
         // Set default size
         this.renderer.setPixelRatio(viewerDiv.devicePixelRatio);
         this.renderer.setSize(this.width, this.height);
+        this.labelRenderer.setSize(this.width, this.height);
 
         // Append renderer to the DOM
         viewerDiv.appendChild(this.renderer.domElement);
+        viewerDiv.appendChild(this.labelRenderer.domElement);
     }
 
     dispose() {
         this.fullSizeRenderTarget.dispose();
+        this.labelRenderer.domElement.remove();
         this.renderer.domElement.remove();
         this.renderer.dispose();
     }
@@ -145,6 +157,8 @@ class C3DEngine {
         this.renderer.setViewport(0, 0, this.width, this.height);
         this.renderer.clear();
         this.renderer.render(instance.scene, instance.camera.camera3D);
+
+        this.labelRenderer.render(instance.scene, instance.camera.camera3D);
 
         if (include2d !== false) {
             this.renderer.clearDepth();
@@ -157,6 +171,7 @@ class C3DEngine {
         this.height = h;
         this.fullSizeRenderTarget.setSize(this.width, this.height);
         this.renderer.setSize(this.width, this.height);
+        this.labelRenderer.setSize(this.width, this.height);
     }
 
     /*
