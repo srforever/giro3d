@@ -475,6 +475,11 @@ class Instance extends EventDispatcher {
                 result.push(obj);
             }
         }
+        for (const obj of this.threeObjects.children) {
+            if (!filter || filter(obj)) {
+                result.push(obj);
+            }
+        }
         return result;
     }
 
