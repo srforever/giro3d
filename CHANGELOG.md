@@ -1,5 +1,44 @@
 # Changelog
 
+## v0.13.0 (2022-12-01)
+
+This version adds support for HTML labels, by leveraging THREE's `CSS2DRenderer`, as well as various
+bugfixes and performance improvements.
+
+### BREAKING CHANGE
+
+`Map` is now a default export. Update your imports from :
+
+```js
+import { Map } from '@giro3d/giro3d/entities/Map';
+```
+to
+```js
+import Map from '@giro3d/giro3d/entities/Map';
+```
+
+### Feat
+
+- **Renderer**: add CSS2DRenderer support (see `htmllabels` example)
+- **Inspector**: display the versions of Giro3D, OpenLayers and THREE
+- **Cache**: call an optional callback when an entry is deleted
+- **ColorLayer**: add option to display the image borders
+
+### Fix
+
+- **Instance.js**: make sure we use valid Entity reference when adding object
+- **OLTileProvider**: fix incorrect tile placement due to rounding errors
+- **OLTileProvider**: return DATA_UNAVAILABLE when below the min zoom level
+
+### Refactor
+
+- merge `TileProvider` into `Map`
+
+### Perf
+
+- **Map**: improve performance of neighbour fetching by using a tile index
+- **OLTileProvider**: temporarily cache source tiles
+
 ## v0.12.0 (2022-11-24)
 
 Notable features :
