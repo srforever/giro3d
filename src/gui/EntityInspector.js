@@ -75,7 +75,7 @@ class EntityInspector extends Panel {
          * @type {boolean}
          * @api
          */
-        this.visible = true;
+        this.visible = entity.visible;
 
         /**
          * Toggle the visibility of the bounding boxes.
@@ -124,9 +124,7 @@ class EntityInspector extends Panel {
      * @param {boolean} visible The new visibility.
      */
     toggleVisibility(visible) {
-        // by default, toggle the visibility of the root object.
-        // custom implementations may override this to have a different behaviour.
-        this.rootObject.visible = visible;
+        this.entity.visible = visible;
         this.notify(this.entity);
     }
 
