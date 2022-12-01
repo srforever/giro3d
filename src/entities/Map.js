@@ -99,12 +99,7 @@ function selectBestSubdivisions(map, extent) {
         // Our extent is an vertical rectangle
         y = Math.round(1 / ratio);
     }
-    const newRatio = (dims.x / x) / (dims.y / y);
-    if (newRatio > 1) {
-        map.segmentX = Math.round(newRatio * map.segmentX);
-    } else if (newRatio < 1) {
-        map.segmentY = Math.round((1 / newRatio) * map.segmentY);
-    }
+
     return { x, y };
 }
 
@@ -154,7 +149,8 @@ class Map extends Entity3D {
      * Note: for hillshading to work, there must be an elevation layer in the map.
      * @param {object} [options.colormap] Enables [colormapping](https://threejs.org/examples/webgl_geometry_colors_lookuptable.html).
      * @param {number} [options.segments=8] The number of geometry segments in each map tile.
-     * The higher the better. For better visual results, it is recommended to use a power of two.
+     * The higher the better. It *must* be power of two between `1` included and `256` included.
+     * Note: the number of vertices per tile side is `segments` + 1.
      * @param {boolean} [options.doubleSided=false] If `true`, both sides of the map will be
      * rendered, i.e when looking at the map from underneath.
      * @param {boolean} [options.discardNoData=false] If `true`, parts of the map that relate to
@@ -174,9 +170,6 @@ class Map extends Entity3D {
         /** @type {Extent} */
         this.extent = options.extent;
 
-        const segments = options.segments || 8;
-        this.segmentX = options.segmentX || segments;
-        this.segmentY = options.segmentY || segments;
         this.subdivisions = selectBestSubdivisions(this, this.extent);
 
         this.sseScale = 1.5;
@@ -189,11 +182,14 @@ class Map extends Entity3D {
 
         this.showOutline = options.showOutline;
 
+        this.segments = options.segments || 8;
+
         this.materialOptions = {
             hillshading: options.hillshading,
             colormap: options.colormap,
             discardNoData: options.discardNoData,
             doubleSided: options.doubleSided,
+            segments: this.segments,
         };
         if (options.backgroundColor) {
             this.noTextureColor = new Color(options.backgroundColor);
@@ -266,8 +262,8 @@ class Map extends Entity3D {
         if (!geometry) {
             const paramsGeometry = {
                 extent: sharableExtent,
-                width: this.segmentX + 1,
-                height: this.segmentY + 1,
+                width: this.segments + 1,
+                height: this.segments + 1,
             };
             geometry = new TileGeometry(paramsGeometry);
             Cache.set(key, geometry);
@@ -284,7 +280,7 @@ class Map extends Entity3D {
         // build tile
         geometry._count++;
         const material = new LayeredMaterial(
-            this.materialOptions, this._instance.renderer, geometry.props, this.atlasInfo,
+            this.materialOptions, this._instance.renderer, this.atlasInfo,
         );
 
         const tile = new TileMesh(this, geometry, material, extent, level, x, y);

@@ -71,7 +71,7 @@ class TextureInfo {
 //   - colorTextureElevationMinZ: altitude value mapped on the (0, 0, 0) color
 //   - colorTextureElevationMaxZ: altitude value mapped on the (255, 255, 255) color
 class LayeredMaterial extends RawShaderMaterial {
-    constructor(options = {}, renderer, geometryProps, atlasInfo) {
+    constructor(options = {}, renderer, atlasInfo) {
         super();
 
         this.atlasInfo = atlasInfo;
@@ -86,8 +86,7 @@ class LayeredMaterial extends RawShaderMaterial {
             this.defines.DISCARD_NODATA_ELEVATION = 1;
         }
 
-        const geometryDim = new Vector2(geometryProps.width - 1, geometryProps.height - 1);
-        this.uniforms.geometryDim = new Uniform(geometryDim);
+        this.uniforms.segments = new Uniform(options.segments);
 
         this.side = options.doubleSided ? DoubleSide : FrontSide;
 

@@ -68,6 +68,8 @@ class MapInspector extends EntityInspector {
 
         this.addController(this.map, 'projection')
             .name('Projection');
+        this.addController(this.map, 'segments')
+            .name('Tile subdivisions');
         this.addController(this.map.imageSize, 'w')
             .name('Tile width  (pixels)');
         this.addController(this.map.imageSize, 'h')
