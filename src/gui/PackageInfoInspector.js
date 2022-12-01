@@ -1,3 +1,7 @@
+/**
+ * @module gui/PackageInfoInspector
+ */
+
 import GUI from 'lil-gui';
 import { VERSION as olversion } from 'ol/util.js';
 import Instance from '../Core/Instance.js';
