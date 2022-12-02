@@ -367,25 +367,6 @@ class Extent {
                && o.south() - this.south() <= epsilon;
     }
 
-    offsetScale(bbox) {
-        if (bbox.crs() !== this.crs()) {
-            throw new Error('unsupported offscale between 2 diff crs');
-        }
-
-        const dimension = {
-            x: Math.abs(this.east() - this.west()),
-            y: Math.abs(this.north() - this.south()),
-        };
-
-        const originX = (bbox.west() - this.west()) / dimension.x;
-        const originY = (bbox.north() - this.north()) / dimension.y;
-
-        const scaleX = Math.abs(bbox.east() - bbox.west()) / dimension.x;
-        const scaleY = Math.abs(bbox.north() - bbox.south()) / dimension.y;
-
-        return new Vector4(originX, originY, scaleX, scaleY);
-    }
-
     /**
      * Returns true if this bounding box intersect with the bouding box parameter
      *
