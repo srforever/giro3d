@@ -199,7 +199,11 @@ class LayeredMaterial extends RawShaderMaterial {
         this.colorLayers.length = 0;
         this.composer.dispose();
         this.texturesInfo.color.atlasTexture.dispose();
-        this.texturesInfo.elevation.texture.dispose();
+        const elevTexture = this.texturesInfo.elevation.texture;
+        if (elevTexture.owner === this) {
+            elevTexture.dispose();
+        }
+
         if (this.uniforms.vLut) {
             this.uniforms.vLut.value.dispose();
         }
@@ -295,7 +299,7 @@ class LayeredMaterial extends RawShaderMaterial {
         return null;
     }
 
-    setElevationTexture(layer, textureAndPitch) {
+    setElevationTexture(layer, textureAndPitch, isInherited = false) {
         if (layer.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
             if (!this.defines.MAPBOX_RGB_ELEVATION) {
                 this.defines.MAPBOX_RGB_ELEVATION = 1;
@@ -342,6 +346,9 @@ class LayeredMaterial extends RawShaderMaterial {
         this.texturesInfo.elevation.offsetScale.copy(textureAndPitch.pitch);
         this.texturesInfo.elevation.format = layer.elevationFormat;
         this.uniforms.elevationTextureSize.value.set(texture.image.width, texture.image.height);
+        if (!isInherited) {
+            texture.owner = this;
+        }
 
         return Promise.resolve(true);
     }

@@ -164,7 +164,7 @@ class ElevationLayer extends Layer {
         elevation.min = min;
         elevation.max = max;
 
-        node.setTextureElevation(this, elevation);
+        node.setElevationTexture(this, elevation, true);
     }
 
     initNodeElevationTextureFromParent(node, instance, parent) {
@@ -198,7 +198,7 @@ class ElevationLayer extends Layer {
         elevation.min = min;
         elevation.max = max;
 
-        node.setTextureElevation(this, elevation);
+        node.setElevationTexture(this, elevation, true);
 
         return true;
     }
@@ -378,7 +378,7 @@ class ElevationLayer extends Layer {
             const { min, max } = this.minMaxFromTexture(elevation.texture);
             elevation.min = min;
             elevation.max = max;
-            node.setTextureElevation(this, elevation);
+            node.setElevationTexture(this, elevation, false);
             node.layerUpdateState[this.id].success();
             context.instance.notifyChange(node);
         });

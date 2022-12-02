@@ -125,12 +125,12 @@ class TileMesh extends Mesh {
         this.material.setSelected(select);
     }
 
-    setTextureElevation(layer, elevation) {
+    setElevationTexture(layer, elevation, isInherited = false) {
         if (this.material === null) {
             return;
         }
         this.setBBoxZ(elevation.min, elevation.max);
-        this.material.setElevationTexture(layer, elevation);
+        this.material.setElevationTexture(layer, elevation, isInherited);
     }
 
     setBBoxZ(min, max) {
