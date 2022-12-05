@@ -210,10 +210,17 @@ class ElevationLayer extends Layer {
         // to precompute the min/max values of the whole layer, and also store this
         // root texture to be reused later in texture inheritance scenarios.
         const down = this.provider.getPossibleTextureImprovements(this, this.extent);
-        return this.provider
-            .executeCommand({ layer: this, instance, toDownload: down })
-            .then(result => this.handleRootTexture(result))
-            .then(() => this.assignMinMaxToTiles(map));
+
+        // If there is no data available for the layer extent (e.g out of range zoom level in tiled
+        // images), skip the root texture phase.
+        if (down !== DataStatus.DATA_UNAVAILABLE) {
+            return this.provider
+                .executeCommand({ layer: this, instance, toDownload: down })
+                .then(result => this.handleRootTexture(result))
+                .then(() => this.assignMinMaxToTiles(map));
+        }
+
+        return Promise.resolve();
     }
 
     assignMinMaxToTiles(map) {
