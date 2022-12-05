@@ -1,9 +1,11 @@
 import Flatbush from 'flatbush';
 import { Vector4 } from 'three';
+
 import Extent from '../Core/Geographic/Extent.js';
-import OGCWebServiceHelper from './OGCWebServiceHelper.js';
-import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
 import DataStatus from './DataStatus.js';
+import Fetcher from './Fetcher.js';
+import MemoryTracker from '../Renderer/MemoryTracker.js';
+import TextureGenerator from '../utils/TextureGenerator.js';
 
 function _selectImagesFromSpatialIndex(index, images, extent) {
     return index.search(
@@ -71,32 +73,19 @@ function selectBestImageForExtent(layer, extent) {
     return selection;
 }
 
-function getTexture(toDownload, layer) {
-    let textureP;
-    if (layer.elevationFormat === ELEVATION_FORMAT.XBIL) {
-        textureP = OGCWebServiceHelper.getXBilTextureByUrl(
-            toDownload.url, layer.source.networkOptions,
-        );
-    } else {
-        textureP = OGCWebServiceHelper.getColorTextureByUrl(
-            toDownload.url, layer.source.networkOptions,
-        );
+async function getTexture(toDownload, layer) {
+    const blob = await Fetcher.blob(toDownload.url);
+    const texture = await TextureGenerator.decodeBlob(blob);
+    texture.extent = toDownload.selection.extent;
+    texture.file = toDownload.selection.image;
+    texture.needsUpdate = true;
+    if (layer.transparent) {
+        texture.premultiplyAlpha = true;
     }
-    return textureP.then(texture => {
-        // adjust pitch
-        const result = {
-            texture,
-            pitch: toDownload.pitch || new Vector4(0, 0, 1, 1),
-        };
-
-        result.texture.extent = toDownload.selection.extent;
-        result.texture.file = toDownload.selection.image;
-        if (layer.transparent) {
-            texture.premultiplyAlpha = true;
-        }
-
-        return result;
-    });
+    if (__DEBUG__) {
+        MemoryTracker.track(texture, 'custom tiled image');
+    }
+    return { texture, pitch: toDownload.pitch || new Vector4(0, 0, 1, 1) };
 }
 
 /**
