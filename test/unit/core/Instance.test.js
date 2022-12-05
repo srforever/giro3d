@@ -111,9 +111,7 @@ describe('Instance', () => {
             });
         });
 
-        // FIXME: requires full THREE.js support
-        // eslint-disable-next-line jest/no-disabled-tests
-        it.skip('should add a THREE.js Object3D', () => {
+        it('should add a THREE.js Object3D', () => {
             const obj = new Group();
             return instance.add(obj).then(() => {
                 expect(instance.getObjects()).toStrictEqual([obj]);
