@@ -109,7 +109,7 @@ class Composer {
      * @returns {Texture} The produced texture.
      */
     render() {
-        if (shouldUseWebGLImpl(this.commandBuffer)) {
+        if (this.createDataCopy || shouldUseWebGLImpl(this.commandBuffer)) {
             return this.renderUsingWebGL();
         }
 
