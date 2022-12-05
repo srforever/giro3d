@@ -7,7 +7,6 @@
 import { Mesh } from 'three';
 
 import RendererConstant from '../Renderer/RendererConstant.js';
-import OGCWebServiceHelper from '../Provider/OGCWebServiceHelper.js';
 import MemoryTracker from '../Renderer/MemoryTracker.js';
 
 function applyChangeState(n, s) {
@@ -169,10 +168,6 @@ class TileMesh extends Mesh {
     getExtentForLayer(layer) {
         if (layer.extent.crs() !== this.extent.crs()) {
             throw new Error(`Layer should be in the same CRS of their supporting tile geometry, but layer crs is ${layer.extent.crs()} and tile crs is ${this.extent.crs()}`);
-        }
-        if (layer.protocol === 'tms' || layer.protocol === 'xyz') {
-            return OGCWebServiceHelper
-                .computeTMSCoordinates(this.extent, layer.extent, layer.origin)[0];
         }
         return this.extent;
     }
