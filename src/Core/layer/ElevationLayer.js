@@ -67,34 +67,33 @@ class ElevationLayer extends Layer {
     }
 
     static getBufferData(texture) {
-        const w = texture.image.width;
-        const h = texture.image.height;
-        const stride = w * 4;
-
         if (texture.isDataTexture) {
             if (texture.image.data) {
                 if (texture.image.data.data) {
                     // DataTextures already have an ImageData available
-                    return { data: texture.image.data.data, stride, h };
+                    return texture.image.data.data;
                 }
-                return { data: texture.image.data, stride, h };
+                return texture.image.data;
             }
         }
 
         if (texture.isRenderTargetTexture && texture.data) {
-            return { data: texture.data, stride, h };
+            return texture.data;
         }
 
         if (!canvas) {
             canvas = document.createElement('canvas');
         }
         const ctx = canvas.getContext('2d');
+        const w = texture.image.width;
+        const h = texture.image.height;
+
         canvas.width = w;
         canvas.height = h;
 
         ctx.drawImage(texture.image, 0, 0);
         const { data } = ctx.getImageData(0, 0, w, h);
-        return { data, stride, h };
+        return data;
     }
 
     static minMaxFromBuffer(rgba, nodata) {
@@ -127,24 +126,18 @@ class ElevationLayer extends Layer {
         let min = Infinity;
         let max = -Infinity;
         if (this.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
-            const { data, stride, h } = ElevationLayer.getBufferData(texture);
-            for (let i = 0; i < h; i++) {
-                for (let j = 0; j < stride; j += 4) {
-                    const val = DEMUtils.decodeMapboxElevation(
-                        data[i * stride + j],
-                        data[i * stride + j + 1],
-                        data[i * stride + j + 2],
-                    );
-                    if (val < min) {
-                        min = val;
-                    }
-                    if (val > max) {
-                        max = val;
-                    }
-                }
+            const data = ElevationLayer.getBufferData(texture);
+            for (let i = 0; i < data.length; i += 4) {
+                const val = DEMUtils.decodeMapboxElevation(
+                    data[i + 0],
+                    data[i + 1],
+                    data[i + 2],
+                );
+                min = Math.min(min, val);
+                max = Math.max(max, val);
             }
         } else if (this.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
-            const { data } = ElevationLayer.getBufferData(texture);
+            const data = ElevationLayer.getBufferData(texture);
             const minmax = ElevationLayer.minMaxFromBuffer(data, this.noDataValue);
             min = this.heightFieldOffset + this.heightFieldScale * (minmax.min / 255);
             max = this.heightFieldOffset + this.heightFieldScale * (minmax.max / 255);
@@ -157,7 +150,7 @@ class ElevationLayer extends Layer {
                 }
             }
         } else if (this.elevationFormat === ELEVATION_FORMAT.NUMERIC) {
-            const { data } = ElevationLayer.getBufferData(texture);
+            const data = ElevationLayer.getBufferData(texture);
             const minmax = ElevationLayer.minMaxFromBuffer(data, this.noDataValue);
             min = minmax.min;
             max = minmax.max;
@@ -181,7 +174,7 @@ class ElevationLayer extends Layer {
 
         let { min, max } = elevation.texture;
         if (!min || !max) {
-            ({ min, max } = this.minMaxFromTexture(elevation.texture, pitch));
+            ({ min, max } = this.minMaxFromTexture(elevation.texture));
         }
         elevation.min = min;
         elevation.max = max;
@@ -215,7 +208,7 @@ class ElevationLayer extends Layer {
 
         let { min, max } = parentTexture;
         if (!min || !max) {
-            ({ min, max } = this.minMaxFromTexture(parentTexture, pitch));
+            ({ min, max } = this.minMaxFromTexture(parentTexture));
         }
         elevation.min = min;
         elevation.max = max;
@@ -281,7 +274,7 @@ class ElevationLayer extends Layer {
             this.rootTexture = result.texture;
         }
         if (!this.minmax) {
-            const minmax = this.minMaxFromTexture(result.texture, result.pitch);
+            const minmax = this.minMaxFromTexture(result.texture);
             result.texture.min = minmax.min;
             result.texture.max = minmax.max;
             this.minmax = minmax;
