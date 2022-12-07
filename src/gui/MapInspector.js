@@ -64,6 +64,7 @@ class MapInspector extends EntityInspector {
         this.showOutline = this.map.showOutline || false;
 
         this.showGrid = false;
+        this.renderState = 'Normal';
 
         this.layerCount = this.map._attachedLayers.length;
 
@@ -89,6 +90,9 @@ class MapInspector extends EntityInspector {
             .onChange(v => this.toggleFrozen(v));
         this.addController(this, 'layerCount').name('Layer count');
         this.addController(this, 'dumpTiles').name('Dump tiles in console');
+        this.addController(this, 'renderState', ['Normal', 'Depth', 'UV', 'ID'])
+            .name('Render state')
+            .onChange(v => this.setRenderState(v));
 
         /**
          * The layer folder.
