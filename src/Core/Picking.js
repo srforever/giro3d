@@ -7,7 +7,7 @@ import {
     BufferAttribute,
 } from 'three';
 import TileMesh from './TileMesh.js';
-import RendererConstant from '../Renderer/RendererConstant.js';
+import RenderingState from '../Renderer/RenderingState.js';
 import { unpack1K } from '../Renderer/LayeredMaterial.js';
 import Coordinates from './Geographic/Coordinates.js';
 import DEMUtils from '../utils/DEMUtils.js';
@@ -39,7 +39,7 @@ function screenCoordsToNodeId(instance, tileLayer, canvasCoords, radius) {
 
     canvasCoords = canvasCoords || new Vector2(Math.floor(dim.x / 2), Math.floor(dim.y / 2));
 
-    const restore = tileLayer.level0Nodes.map(n => n.pushRenderState(RendererConstant.ID));
+    const restore = tileLayer.level0Nodes.map(n => n.pushRenderState(RenderingState.ID));
 
     const undoHide = hideEverythingElse(instance, tileLayer.object3d, tileLayer.threejsLayer);
 
@@ -158,7 +158,7 @@ export default {
             // x,y coordinates, and we use DEMUtils to get z (normally no
             // render needed, but maybe a draw on canvas ? Check that).
             if (_ids.indexOf(node.id) >= 0 && node instanceof TileMesh) {
-                const restore = node.pushRenderState(RendererConstant.UV);
+                const restore = node.pushRenderState(RenderingState.UV);
                 const buffer = _instance.mainLoop.gfxEngine.renderToBuffer(
                     { camera: _instance.camera, scene: node },
                     {

@@ -48,16 +48,14 @@ class Entity3D extends Entity {
         // TODO there must be a better way™
         const changeOpacity = o => {
             if (o.material) {
-                // != null: we want the test to pass if opacity is 0
-                if (o.material.opacity != null) {
-                    o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
+                if (o.material.setOpacity) {
+                    o.material.setOpacity(this.opacity);
+                } else if (o.material.opacity != null) {
+                    // != null: we want the test to pass if opacity is 0
+                    o.material.transparent = this.opacity < 1.0;
                     o.material.opacity = this.opacity;
-                }
-                if (o.material.uniforms && o.material.uniforms.opacity != null) {
-                    o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
                     o.material.uniforms.opacity.value = this.opacity;
                 }
-                o.material.depthWrite = !o.material.transparent;
             }
         };
         defineLayerProperty(this, 'opacity', 1.0, () => {
@@ -95,34 +93,6 @@ class Entity3D extends Entity {
                     // 3dtiles layers store scenes in children's content property
                     if (o.content) {
                         o.content.traverse(changeNoTextureColor);
-                    }
-                });
-            }
-        });
-        const changeNoTextureOpacity = o => {
-            if (o.material) {
-                // != undefined: we want the test to pass if noTextureOpacity is 0
-                if (o.material.noTextureOpacity != null) {
-                    o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
-                    o.material.noTextureOpacity = this.noTextureOpacity;
-                }
-                if (o.material.uniforms && o.material.uniforms.noTextureOpacity != null) {
-                    o.material.transparent = this.noTextureOpacity < 1.0 || this.opacity < 1.0;
-                    o.material.uniforms.noTextureOpacity.value = this.noTextureOpacity;
-                }
-                o.material.depthWrite = !o.material.transparent;
-            }
-        };
-        defineLayerProperty(this, 'noTextureOpacity', 1.0, () => {
-            if (this.object3d) {
-                this.object3d.traverse(o => {
-                    if (o.layer !== this) {
-                        return;
-                    }
-                    changeNoTextureOpacity(o);
-                    // 3dtiles layers store scenes in children's content property
-                    if (o.content) {
-                        o.content.traverse(changeNoTextureOpacity);
                     }
                 });
             }

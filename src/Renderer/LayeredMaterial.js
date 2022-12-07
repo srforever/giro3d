@@ -13,8 +13,10 @@ import {
     Vector4,
     DoubleSide,
     FrontSide,
+    NormalBlending,
+    NoBlending,
 } from 'three';
-import RendererConstant from './RendererConstant.js';
+import RenderingState from './RenderingState.js';
 import TileVS from './Shader/TileVS.glsl';
 import TileFS from './Shader/TileFS.glsl';
 import PrecisionQualifier from './Shader/Chunk/PrecisionQualifier.glsl';
@@ -82,7 +84,8 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.side = options.doubleSided ? DoubleSide : FrontSide;
 
-        this.uniforms.renderingState = new Uniform(RendererConstant.FINAL);
+        this.uniforms.renderingState = new Uniform(RenderingState.FINAL);
+        this._updateBlendingMode();
 
         this.defines.TEX_UNITS = 0;
 
@@ -135,8 +138,6 @@ class LayeredMaterial extends RawShaderMaterial {
         this.uniforms.uuid = new Uniform(0);
 
         this.uniforms.noTextureColor = new Uniform(new Color());
-        this.uniforms.noTextureOpacity = new Uniform(1.0);
-
         this.uniforms.opacity = new Uniform(1.0);
 
         this.colorLayers = [];
@@ -501,8 +502,44 @@ class LayeredMaterial extends RawShaderMaterial {
         return this.composer.width > 0;
     }
 
+    changeState(state) {
+        if (this.uniforms.renderingState.value === state) {
+            return;
+        }
+
+        this.uniforms.renderingState.value = state;
+        this._updateOpacityParameters(this.opacity);
+        this._updateBlendingMode();
+
+        this.needsUpdate = true;
+    }
+
+    _updateBlendingMode() {
+        const state = this.uniforms.renderingState.value;
+        if (this.opacity < 1 && state === RenderingState.FINAL) {
+            this.transparent = true;
+            this.blending = NormalBlending;
+        } else {
+            // We cannot use alpha blending with custom rendering states because the alpha component
+            // of the fragment in those modes has nothing to do with transparency at all.
+            this.blending = NoBlending;
+            this.transparent = false;
+        }
+    }
+
     indexOfColorLayer(layer) {
         return this.colorLayers.indexOf(layer);
+    }
+
+    setOpacity(opacity) {
+        this.opacity = opacity;
+
+        this._updateOpacityParameters(opacity);
+    }
+
+    _updateOpacityParameters(opacity) {
+        this.uniforms.opacity.value = opacity;
+        this._updateBlendingMode();
     }
 
     setLayerOpacity(layer, opacity) {

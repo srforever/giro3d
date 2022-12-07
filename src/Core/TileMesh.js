@@ -6,8 +6,10 @@
 
 import { Mesh, Vector4 } from 'three';
 
-import RendererConstant from '../Renderer/RendererConstant.js';
 import MemoryTracker from '../Renderer/MemoryTracker.js';
+import LayeredMaterial from '../Renderer/LayeredMaterial.js';
+import Extent from './Geographic/Extent.js';
+import TileGeometry from './TileGeometry.js';
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
@@ -19,6 +21,18 @@ function applyChangeState(n, s) {
 }
 
 class TileMesh extends Mesh {
+    /**
+     * Creates an instance of TileMesh.
+     *
+     * @param {object} map The Map that owns this tile.
+     * @param {TileGeometry} geometry The geometry.
+     * @param {LayeredMaterial} material The tile material.
+     * @param {Extent} extent The tile extent.
+     * @param {number} level The tile depth level in the hierarchy.
+     * @param {number} [x=0] The tile X coordinate in the grid.
+     * @param {number} [y=0] The tile Y coordinate in the grid.
+     * @memberof TileMesh
+     */
     constructor(map, geometry, material, extent, level, x = 0, y = 0) {
         super(geometry, material);
 
@@ -117,8 +131,13 @@ class TileMesh extends Mesh {
 
     setDisplayed(show) {
         this.material.visible = show && this.material.update();
-        this.material.transparent = this.material.opacity !== 1
-            || this.material.uniforms.noTextureOpacity.value !== 1;
+    }
+
+    /**
+     * @param {number} v The new opacity.
+     */
+    set opacity(v) {
+        this.material.setOpacity(v);
     }
 
     setVisibility(show) {
@@ -129,21 +148,13 @@ class TileMesh extends Mesh {
         return this.material.visible;
     }
 
-    // switch material in function of state
+    /**
+     * Updates the rendering state of the tile's material.
+     *
+     * @param {number} state The new rendering state.
+     */
     changeState(state) {
-        if (state === this.material.uniforms.renderingState.value) {
-            return;
-        }
-        // TODO this is a implicit dep to LayeredMaterial
-        this.material.uniforms.renderingState.value = state;
-        if (state > RendererConstant.FINAL) {
-            this.material.transparent = false;
-        } else {
-            this.material.transparent = this.material.opacity !== 1
-                || this.material.uniforms.noTextureOpacity.value !== 1;
-        }
-
-        this.material.needsUpdate = true;
+        this.material.changeState(state);
     }
 
     pushRenderState(state) {

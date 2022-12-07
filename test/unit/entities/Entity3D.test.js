@@ -60,12 +60,6 @@ describe('Entity3D', () => {
             assert.strictEqual(entity.opacity, 1.0);
         });
 
-        it('should define the "noTextureOpacity" property with default value 1.0', () => {
-            const entity = sut();
-
-            assert.strictEqual(entity.noTextureOpacity, 1.0);
-        });
-
         it('should define the "noTextureColor" property with default value', () => {
             const entity = sut();
 
