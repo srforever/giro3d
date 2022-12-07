@@ -41,6 +41,8 @@ class ElevationLayer extends Layer {
      * If unspecified, the layer will use the `STRATEGY_MIN_NETWORK_TRAFFIC`.
      * @param {string} [options.backgroundColor=undefined] The background color of the layer.
      * @param {string} [options.elevationFormat=undefined] the elevation format
+     * @param {number} [options.noDataValue=undefined] the optional no-data value to pass to the
+     * provider. Any pixel that matches this value will not be processed.
      * @param {string} [options.heightFieldOffset=undefined] if
      * <code>options.elevationFormat</code> is <code>ELEVATION_FORMAT.HEIGHFIELD</code>,
      * specifies the offset to use for scalar values in the height field.
@@ -57,6 +59,9 @@ class ElevationLayer extends Layer {
             this.heightFieldOffset = options.heightFieldOffset || 0;
             this.heightFieldScale = options.heightFieldScale || 255;
         }
+        if (options.noDataValue) {
+            this.noDataValue = options.noDataValue;
+        }
         this.type = 'ElevationLayer';
         defineLayerProperty(this, 'frozen', false);
     }
@@ -67,8 +72,13 @@ class ElevationLayer extends Layer {
         const stride = w * 4;
 
         if (texture.isDataTexture) {
-            // DataTextures already have an ImageData available
-            return { data: texture.image.data.data, stride, h };
+            if (texture.image.data) {
+                if (texture.image.data.data) {
+                    // DataTextures already have an ImageData available
+                    return { data: texture.image.data.data, stride, h };
+                }
+                return { data: texture.image.data, stride, h };
+            }
         }
 
         if (texture.isRenderTargetTexture && texture.data) {
@@ -85,6 +95,25 @@ class ElevationLayer extends Layer {
         ctx.drawImage(texture.image, 0, 0);
         const { data } = ctx.getImageData(0, 0, w, h);
         return { data, stride, h };
+    }
+
+    static minMaxFromBuffer(rgba, nodata) {
+        let min = Infinity;
+        let max = -Infinity;
+
+        const FIRST_CHANNEL = 0;
+        const ALPHA_CHANNEL = 3;
+
+        for (let i = 0; i < rgba.length; i += 4) {
+            const value = rgba[i + FIRST_CHANNEL];
+            const alpha = rgba[i + ALPHA_CHANNEL];
+            if (!Number.isNaN(value) && value !== nodata && alpha !== 0) {
+                min = Math.min(min, value);
+                max = Math.max(max, value);
+            }
+        }
+
+        return { min, max };
     }
 
     minMaxFromTexture(texture) {
@@ -115,15 +144,10 @@ class ElevationLayer extends Layer {
                 }
             }
         } else if (this.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
-            const { data, stride, h } = ElevationLayer.getBufferData(texture);
-            for (let i = 0; i < h; i++) {
-                for (let j = 0; j < stride; j += 4) {
-                    min = Math.min(min, data[i * stride + j]);
-                    max = Math.max(max, data[i * stride + j]);
-                }
-            }
-            min = this.heightFieldOffset + this.heightFieldScale * (min / 255);
-            max = this.heightFieldOffset + this.heightFieldScale * (max / 255);
+            const { data } = ElevationLayer.getBufferData(texture);
+            const minmax = ElevationLayer.minMaxFromBuffer(data, this.noDataValue);
+            min = this.heightFieldOffset + this.heightFieldScale * (minmax.min / 255);
+            max = this.heightFieldOffset + this.heightFieldScale * (minmax.max / 255);
         } else if (this.elevationFormat === ELEVATION_FORMAT.XBIL) {
             for (let i = 0; i < texture.image.data.length; i++) {
                 const val = texture.image.data[i];
@@ -132,13 +156,11 @@ class ElevationLayer extends Layer {
                     max = Math.max(max, val);
                 }
             }
-        } else if (this.elevationFormat === ELEVATION_FORMAT.RATP_GEOL) {
-            // TODO
-            min = -1000;
-            max = 1000;
         } else if (this.elevationFormat === ELEVATION_FORMAT.NUMERIC) {
-            min = this.minmax.min;
-            max = this.minmax.max;
+            const { data } = ElevationLayer.getBufferData(texture);
+            const minmax = ElevationLayer.minMaxFromBuffer(data, this.noDataValue);
+            min = minmax.min;
+            max = minmax.max;
         } else {
             throw new Error(`Unsupported layer.elevationFormat "${this.elevationFormat}'`);
         }
@@ -210,10 +232,17 @@ class ElevationLayer extends Layer {
         // to precompute the min/max values of the whole layer, and also store this
         // root texture to be reused later in texture inheritance scenarios.
         const down = this.provider.getPossibleTextureImprovements(this, this.extent);
-        return this.provider
-            .executeCommand({ layer: this, instance, toDownload: down })
-            .then(result => this.handleRootTexture(result))
-            .then(() => this.assignMinMaxToTiles(map));
+
+        // If there is no data available for the layer extent (e.g out of range zoom level in tiled
+        // images), skip the root texture phase.
+        if (down !== DataStatus.DATA_UNAVAILABLE) {
+            return this.provider
+                .executeCommand({ layer: this, instance, toDownload: down })
+                .then(result => this.handleRootTexture(result))
+                .then(() => this.assignMinMaxToTiles(map));
+        }
+
+        return Promise.resolve();
     }
 
     assignMinMaxToTiles(map) {
