@@ -34,7 +34,7 @@ class MapInspector extends EntityInspector {
             visibility: true,
             boundingBoxColor: true,
             boundingBoxes: true,
-            opacity: false,
+            opacity: true,
         });
 
         /**
