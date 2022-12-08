@@ -1,5 +1,37 @@
 # Changelog
 
+## v0.14.0 (2022-12-08)
+
+### BREAKING CHANGE
+
+- `OGCWebServiceHelper` has been removed. If you need to get textures directly, use `Fetcher` to
+  download images and `TextureGenerator` to process them into textures.
+- `Instance.getObjects()` returned array now contains the Object3D directly added with
+`Instance.add()`. This makes the API more consistent, but could break applications not expecting this.
+- The `TMSProvider` class has been removed. Use the `OLTileProvider` in combination with OpenLayers
+  tiled sources to process tiled layers. See this [example](https://giro3d.org/examples/orthographic.html)
+  for more information.
+
+### Feat
+
+- **OLTileProvider**: support tiles in the `image/tiff` format. See this [example](https://giro3d.org/examples/tifftiles.html)
+  on how to configure it
+- **ElevationLayer**: add the `noDataValue` option. Useful when the no-data value cannot be inferred from the downloaded tiles.
+- **Inspector**: add a Cache panel to track cached entries and manipulate the cache.
+
+### Fix
+
+- **Composer**: always use WebGL implementation if `createDataCopy` is true
+- **ElevationLayer**: handle `DATA_UNAVAILABLE` in preprocessing step
+- **Instance**: make `getObjects()` returns THREE.js objects
+- **Inspector**: fix visibility toggle for Tiles3D
+- **LayeredMaterial**: only dispose the elevation texture if it is not inherited
+
+### Refactor
+
+- **CustomTileProvider**: use `Fetcher` and `TextureGenerator` instead of `OGCWebServiceHelper`
+- **TMSProvider**: remove obsolete `TMSProvider` to use ol sources
+
 ## v0.13.0 (2022-12-01)
 
 This version adds support for HTML labels, by leveraging THREE's `CSS2DRenderer`, as well as various
