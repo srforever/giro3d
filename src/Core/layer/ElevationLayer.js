@@ -141,14 +141,6 @@ class ElevationLayer extends Layer {
             const minmax = ElevationLayer.minMaxFromBuffer(data, this.noDataValue);
             min = this.heightFieldOffset + this.heightFieldScale * (minmax.min / 255);
             max = this.heightFieldOffset + this.heightFieldScale * (minmax.max / 255);
-        } else if (this.elevationFormat === ELEVATION_FORMAT.XBIL) {
-            for (let i = 0; i < texture.image.data.length; i++) {
-                const val = texture.image.data[i];
-                if (val > -1000) {
-                    min = Math.min(min, val);
-                    max = Math.max(max, val);
-                }
-            }
         } else if (this.elevationFormat === ELEVATION_FORMAT.NUMERIC) {
             const data = ElevationLayer.getBufferData(texture);
             const minmax = ElevationLayer.minMaxFromBuffer(data, this.noDataValue);

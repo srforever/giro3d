@@ -237,11 +237,6 @@ async function decodeBlob(blob) {
             const img = await create8bitImage(blob);
             return new Texture(img);
         }
-
-        case 'image/x-bil':
-            // Use the BIL decoder
-            throw new Error('not implemented');
-
         default:
             throw new Error(`unsupported media type for textures: ${blob.type}`);
     }

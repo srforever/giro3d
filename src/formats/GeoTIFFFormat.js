@@ -19,8 +19,19 @@ let geotiffWorkerPool;
  * @api
  */
 class GeoTIFFFormat extends ImageFormat {
+    /**
+     * Decode a tiff blob into a
+     * [DataTexture](https://threejs.org/docs/?q=texture#api/en/textures/DataTexture) containing
+     * the elevation data.
+     *
+     * @param {Blob} blob the data to decode
+     * @param {object} options the decoding options
+     * @param {number} [options.noDataValue] what pixel value should be considered as nodata. If not
+     * present, this format will attempt to get it from the tiff metadata.
+     * @api
+     */
     // eslint-disable-next-line class-methods-use-this
-    async decode(blob, options) {
+    async decode(blob, options = {}) {
         const tiff = await fromBlob(blob);
         const image = await tiff.getImage();
 
@@ -32,7 +43,7 @@ class GeoTIFFFormat extends ImageFormat {
         let dataType;
         let buffer;
         let opaqueValue;
-        const nodata = options?.nodata || image.getGDALNoData() || undefined;
+        const nodata = options.noDataValue || image.getGDALNoData() || undefined;
 
         if (image.getBitsPerSample() === 8) {
             dataType = UnsignedByteType;

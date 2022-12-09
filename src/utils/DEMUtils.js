@@ -16,7 +16,6 @@ const PRECISE_READ_Z = 1;
 export const ELEVATION_FORMAT = {
     MAPBOX_RGB: 0,
     HEIGHFIELD: 1,
-    XBIL: 2,
     RATP_GEOL: 3,
     NUMERIC: 4,
 };
@@ -308,8 +307,9 @@ function _readTextureValueAt(textureInfo, ...uv) {
             const red = (d.data[4 * oy * dw + 4 * ox]) / 256.0;
             const elevation = textureInfo.heightFieldOffset + red * textureInfo.heightFieldScale;
             result.push(elevation);
-        } else if (format === ELEVATION_FORMAT.XBIL) {
-            throw new Error(`Unimplemented reading elevation value for layer.elevationFormat "${format}'`);
+        } else if (format === ELEVATION_FORMAT.NUMERIC) {
+            const red = (d.data[4 * oy * dw + 4 * ox]) / 256.0;
+            result.push(red);
         } else if (format === ELEVATION_FORMAT.RATP_GEOL) {
             throw new Error(`Unimplemented reading elevation value for layer.elevationFormat "${format}'`);
         } else {
