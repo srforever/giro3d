@@ -452,7 +452,7 @@ class Coordinates {
     }
 
     /**
-     * Returns the normalized offset from top-left in extent of this Coordinates
+     * Returns the normalized offset from bottom-left in extent of this Coordinates
      * e.g:
      * ```
      * extent.center().offsetInExtent(extent)
@@ -470,16 +470,14 @@ class Coordinates {
             throw new Error('unsupported mix');
         }
 
-        const dimension = {
-            x: Math.abs(extent.east() - extent.west()),
-            y: Math.abs(extent.north() - extent.south()),
-        };
+        const dimX = Math.abs(extent.east() - extent.west());
+        const dimY = Math.abs(extent.north() - extent.south());
 
         const x = crsIsGeocentric(this.crs) ? this.x() : this.longitude();
         const y = crsIsGeocentric(this.crs) ? this.y() : this.latitude();
 
-        const originX = (x - extent.west()) / dimension.x;
-        const originY = (extent.north() - y) / dimension.y;
+        const originX = (x - extent.west()) / dimX;
+        const originY = (y - extent.south()) / dimY;
 
         target = target || new Vector2();
         target.set(originX, originY);
