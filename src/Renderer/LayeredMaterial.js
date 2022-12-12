@@ -31,7 +31,6 @@ ShaderChunk.GetElevation = GetElevation;
 ShaderChunk.ComputeUV = ComputeUV;
 
 const emptyTexture = new Texture();
-const vector4 = new Vector4(0.0, 0.0, 0.0, 0.0);
 
 // from js packDepthToRGBA
 const UnpackDownscale = 255 / 256; // 0..1 -> fraction (excluding 1)
@@ -43,13 +42,6 @@ export function unpack1K(color, factor) {
         UnpackDownscale,
     );
     return factor ? bitSh.dot(color) * factor : bitSh.dot(color);
-}
-
-// Array not suported in IE
-function fillArray(array, remp) {
-    for (let i = 0; i < array.length; i++) {
-        array[i] = remp;
-    }
 }
 
 class TextureInfo {
@@ -112,29 +104,23 @@ class LayeredMaterial extends RawShaderMaterial {
             elevation: {
                 offsetScale: new Vector4(0, 0, 0, 0),
                 texture: emptyTexture,
-                neighbours: {
-                    offsetScale: Array(8),
-                    texture: Array(8),
-                },
                 format: null,
             },
         };
-        fillArray(this.texturesInfo.elevation.neighbours.texture, emptyTexture);
-        fillArray(this.texturesInfo.elevation.neighbours.offsetScale, vector4);
 
         this.canvasRevision = 0;
 
         this.uniforms.tileDimensions = new Uniform(new Vector2());
-        this.uniforms.neighbourdiffLevel = new Uniform(new Vector4());
+        this.uniforms.neighbours = new Uniform(new Array(8));
+        for (let i = 0; i < 8; i++) {
+            this.uniforms.neighbours.value[i] = {};
+        }
 
         // Elevation texture
-        this.uniforms.elevationTexture = new Uniform(this.texturesInfo.elevation.texture);
-        this.uniforms.elevationOffsetScale = new Uniform(
-            this.texturesInfo.elevation.offsetScale,
-        );
+        const elevInfo = this.texturesInfo.elevation;
+        this.uniforms.elevationTexture = new Uniform(elevInfo.texture);
+        this.uniforms.elevationOffsetScale = new Uniform(elevInfo.offsetScale);
         this.uniforms.elevationTextureSize = new Uniform(new Vector2());
-        this.uniforms.nTex = new Uniform(this.texturesInfo.elevation.neighbours.texture);
-        this.uniforms.nOff = new Uniform(this.texturesInfo.elevation.neighbours.offsetScale);
 
         // Color textures's layer
         this.uniforms.colorTexture = new Uniform(this.texturesInfo.color.atlasTexture);

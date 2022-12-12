@@ -4,10 +4,13 @@
  * Description: Tuile de maillage, noeud du quadtree MNT. Le Materiel est issus du QuadTree ORTHO.
  */
 
-import { Mesh } from 'three';
+import { Mesh, Vector4 } from 'three';
 
 import RendererConstant from '../Renderer/RendererConstant.js';
 import MemoryTracker from '../Renderer/MemoryTracker.js';
+
+const NO_NEIGHBOUR = -99;
+const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
 
 function applyChangeState(n, s) {
     if (n.changeState) {
@@ -60,6 +63,46 @@ class TileMesh extends Mesh {
 
         if (__DEBUG__) {
             MemoryTracker.track(this, this.name);
+        }
+    }
+
+    /**
+     * @param {TileMesh} neighbour The neighbour.
+     * @param {number} location Its location in the neighbour array.
+     */
+    _processNeighbour(neighbour, location) {
+        const diff = neighbour.level - this.level;
+
+        const uniform = this.material.uniforms.neighbours.value[location];
+        const neighbourElevation = neighbour.material.texturesInfo.elevation;
+
+        const offsetScale = this.extent.offsetToParent(neighbour.extent);
+        const nOffsetScale = neighbourElevation.offsetScale.clone();
+
+        nOffsetScale.x += offsetScale.x * nOffsetScale.z;
+        nOffsetScale.y += offsetScale.y * nOffsetScale.w;
+        nOffsetScale.z *= offsetScale.z;
+        nOffsetScale.w *= offsetScale.w;
+
+        uniform.offsetScale = nOffsetScale;
+        uniform.diffLevel = diff;
+        uniform.elevationTexture = neighbourElevation.texture;
+    }
+
+    /**
+     * @param {Array<TileMesh>} neighbours The neighbours.
+     */
+    processNeighbours(neighbours) {
+        for (let i = 0; i < neighbours.length; i++) {
+            const neighbour = neighbours[i];
+            if (neighbour && neighbour.material && neighbour.material.visible) {
+                this._processNeighbour(neighbour, i);
+            } else {
+                const uniform = this.material.uniforms.neighbours.value[i];
+                uniform.diffLevel = NO_NEIGHBOUR;
+                uniform.offsetScale = VECTOR4_ZERO;
+                uniform.elevationTexture = undefined;
+            }
         }
     }
 

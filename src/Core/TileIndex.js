@@ -1,29 +1,36 @@
-const NORTH = 0;
-const NORTH_EAST = 1;
-const EAST = 2;
-const SOUTH_EAST = 3;
-const SOUTH = 4;
-const SOUTH_WEST = 5;
-const WEST = 6;
-const NORTH_WEST = 7;
+const TOP = 0;
+const TOP_RIGHT = 1;
+const RIGHT = 2;
+const BOTTOM_RIGHT = 3;
+const BOTTOM = 4;
+const BOTTOM_LEFT = 5;
+const LEFT = 6;
+const TOP_LEFT = 7;
 
 class TileIndex {
     constructor() {
-        this.indexedTiles = new Map();
+        this.tiles = new Map();
     }
 
     /**
-     * Make a weak reference to a tile in the index
+     * Adds a tile to the index.
      *
-     * @param {object} tile the TileMesh to evaluate
+     * @param {object} tile the tile to add.
+     * @param {number} tile.x the tile's X coordinate.
+     * @param {number} tile.y the tile's Y coordinate.
+     * @param {number} tile.z the tile's Z coordinate.
      */
     addTile(tile) {
-        const key = [tile.x, tile.y, tile.z].join(',');
-        this.indexedTiles.set(key, new WeakRef(tile)); // eslint-disable-line no-undef
+        const key = TileIndex.getKey(tile.x, tile.y, tile.z);
+        this.tiles.set(key, new WeakRef(tile)); // eslint-disable-line no-undef
+    }
+
+    static getKey(x, y, z) {
+        return `${x},${y},${z}`;
     }
 
     /**
-     * Find neighbors for a tile.
+     * Returns an array containing the 8 possible neighbours of a tile.
      * A neighbor is a tile at the same level or higher level located according to the clock order
      * from north:
      * 7 : north west -- 0 : north -- 1 : north east
@@ -31,85 +38,79 @@ class TileIndex {
      * 5 : south west -- 4 : south -- 3 : south east
      * If there is no neighbor, if it isn't visible or if it is a smaller level one, return null.
      *
-     * @param {object} tile the TileMesh to evaluate
+     * @param {object} tile the tile to query
      * @returns {Array} neighbors : Array of found neighbors
      */
     getNeighbours(tile) {
-        let match = false;
         const { x, y, z } = tile;
-        const neighbors = [null, null, null, null, null, null, null, null];
-        for (let i = 0; i < 8; i++) {
-            this.neighbour = i;
-            if (this._searchNeighbour(x, y, z, neighbors)) {
-                match = true;
-            }
-        }
-        if (match) {
-            return neighbors;
-        }
-        return null;
+
+        const result = Array(8);
+
+        result[TOP] = this._searchTileOrAncestor(x, y + 1, z);
+        result[TOP_RIGHT] = this._searchTileOrAncestor(x + 1, y + 1, z);
+        result[RIGHT] = this._searchTileOrAncestor(x + 1, y, z);
+        result[BOTTOM_RIGHT] = this._searchTileOrAncestor(x + 1, y - 1, z);
+        result[BOTTOM] = this._searchTileOrAncestor(x, y - 1, z);
+        result[BOTTOM_LEFT] = this._searchTileOrAncestor(x - 1, y - 1, z);
+        result[LEFT] = this._searchTileOrAncestor(x - 1, y, z);
+        result[TOP_LEFT] = this._searchTileOrAncestor(x - 1, y + 1, z);
+
+        return result;
     }
 
-    _searchNeighbour(x, y, z, neighbors) {
-        let match = false;
-        const key = this._makeKey(x, y, z);
-        const possibleNeighbor = this.indexedTiles.get(key);
-        if (possibleNeighbor !== undefined) {
-            const neighbor = possibleNeighbor.deref();
-            if (neighbor && neighbor.material) {
-                if (neighbor.material.visible) {
-                    neighbors[this.neighbour] = neighbor;
-                    match = true;
-                } else {
-                    return false;
-                }
-            } else {
-                // The neighbor is cleared, empty the ref
-                this.indexedTiles.delete(key);
-            }
+    static getParent(x, y, z) {
+        if (z === 0) {
+            return null;
         }
-        if (!match && z > 0) {
-            x = Math.floor(x / 2);
-            y = Math.floor(y / 2);
-            z -= 1;
-            match = this._searchNeighbour(x, y, z, neighbors);
-        }
-        return match;
+
+        const newX = Math.floor(x / 2);
+        const newY = Math.floor(y / 2);
+        const newZ = z - 1;
+        return { x: newX, y: newY, z: newZ };
     }
 
-    _makeKey(x, y, z) {
-        let key;
-        const l = z === 0 ? 0 : 2 ** z - 1;
-        switch (this.neighbour) {
-            case NORTH:
-                key = [x, y < l ? y + 1 : y, z];
-                break;
-            case NORTH_EAST:
-                key = [x + 1, y < l ? y + 1 : y, z];
-                break;
-            case EAST:
-                key = [x + 1, y, z];
-                break;
-            case SOUTH_EAST:
-                key = [x + 1, y - 1, z];
-                break;
-            case SOUTH:
-                key = [x, y - 1, z];
-                break;
-            case SOUTH_WEST:
-                key = [x > 0 ? x - 1 : 0, y - 1, z];
-                break;
-            case WEST:
-                key = [x > 0 ? x - 1 : 0, y, z];
-                break;
-            case NORTH_WEST:
-                key = [x > 0 ? x - 1 : 0, y < l ? y + 1 : y, z];
-                break;
-            default:
-                return null;
+    update() {
+        // Remove obsolete entries
+        const keys = [...this.tiles.keys()];
+        for (const key of keys) {
+            const entry = this.tiles.get(key);
+            if (!entry.deref()) {
+                this.tiles.delete(key);
+            }
         }
-        return key.join(',');
+    }
+
+    /**
+     * Search for the specific tile by coordinates if any, or any valid ancestor.
+     *
+     * @param {number} x The tile X coordinate.
+     * @param {number} y The tile Y coordinate.
+     * @param {number} z The tile Z coordinate (zoom level).
+     * @returns {object|null} The matching tile if found, null otherwise.
+     * @memberof TileIndex
+     */
+    _searchTileOrAncestor(x, y, z) {
+        const key = TileIndex.getKey(x, y, z);
+        const entry = this.tiles.get(key);
+
+        if (entry) {
+            const n = entry.deref();
+
+            if (n && n.material && n.material.visible) {
+                return n;
+            }
+        }
+
+        const parent = TileIndex.getParent(x, y, z);
+        if (!parent) {
+            return null;
+        }
+
+        return this._searchTileOrAncestor(parent.x, parent.y, parent.z);
     }
 }
 
 export default TileIndex;
+export {
+    TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT,
+};

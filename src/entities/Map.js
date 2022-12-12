@@ -361,6 +361,8 @@ class Map extends Entity3D {
             this._latestUpdateStartingLevel = 0;
         }
 
+        this.tileIndex.update();
+
         if (changeSources.has(undefined) || changeSources.size === 0) {
             return this.level0Nodes;
         }
@@ -474,54 +476,14 @@ class Map extends Entity3D {
 
     postUpdate() {
         for (const r of this.level0Nodes) {
-            r.traverse(node => {
-                if (node.layer !== this || !node.material.visible) {
+            r.traverse(obj => {
+                /** @type {TileMesh} */
+                const tile = obj;
+                if (tile.layer !== this || !tile.material.visible) {
                     return;
                 }
-                node.material.uniforms.neighbourdiffLevel.value.set(1, 1, 1, 1);
-
-                const n = this.tileIndex.getNeighbours(node);
-                if (n) {
-                    const dimensions = node.extent.dimensions();
-                    const elevationNeighbours = node.material.texturesInfo.elevation.neighbours;
-                    for (let i = 0; i < 4; i++) {
-                        const nn = n[i * 2];
-                        if (nn && nn.material && nn.material.visible) {
-                            // We want to compute the diff level, but can't directly
-                            // use nn.level - node.level, because there's no garuantee
-                            // that we're on a regular grid.
-                            // The only thing we can assume is their shared edge are
-                            // equal with a power of 2 factor.
-                            const diff = Math.log2((i % 2)
-                                ? Math.round(nn.extent.dimensions().y / dimensions.y)
-                                : Math.round(nn.extent.dimensions().x / dimensions.x));
-
-                            node.material.uniforms
-                                .neighbourdiffLevel.value.setComponent(i, -diff);
-                            elevationNeighbours.texture[i] = nn
-                                .material
-                                .texturesInfo
-                                .elevation
-                                .texture;
-
-                            const offscale = node.extent.offsetToParent(nn.extent);
-
-                            elevationNeighbours.offsetScale[i] = nn
-                                .material
-                                .texturesInfo
-                                .elevation
-                                .offsetScale
-                                .clone();
-
-                            elevationNeighbours.offsetScale[i].x
-                                += offscale.x * elevationNeighbours.offsetScale[i].z;
-                            elevationNeighbours.offsetScale[i].y
-                                += offscale.y * elevationNeighbours.offsetScale[i].w;
-                            elevationNeighbours.offsetScale[i].z *= offscale.z;
-                            elevationNeighbours.offsetScale[i].w *= offscale.w;
-                        }
-                    }
-                }
+                const neighbours = this.tileIndex.getNeighbours(tile);
+                tile.processNeighbours(neighbours);
             });
         }
     }
