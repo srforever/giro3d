@@ -89,6 +89,7 @@ const coloringBounds = {
 // Adds the map that will contain the layers.
 const map = new Map('planar', {
     extent,
+    segments: 128,
     hillshading: true,
     colormap: {
         mode: coloringModes[coloringOptions.value],
@@ -97,7 +98,6 @@ const map = new Map('planar', {
         lut: luts[colormapOptions.value],
     },
 });
-map.segments = 128;
 instance.add(map);
 
 // Adds our Elevation source & layer
