@@ -100,6 +100,9 @@ class MapInspector extends EntityInspector {
         this.addColorController(this, 'extentColor')
             .name('Extent color')
             .onChange(v => this.updateExtentColor(v));
+        this.addController(this.map.materialOptions, 'hillshading')
+            .name('Hillshading')
+            .onChange(() => this.notify(this.map));
         this.addController(this, 'frozen')
             .name('Freeze updates')
             .onChange(v => this.toggleFrozen(v));
