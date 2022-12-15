@@ -37,6 +37,12 @@ describe('ElevationLayer', () => {
             expect(layer.heightFieldOffset).toEqual(21);
             expect(layer.heightFieldScale).toEqual(1111);
         });
+
+        it('should set the elevationFormat with default value if not provided', () => {
+            const layer = new ElevationLayer('id', { standalone: true });
+
+            expect(layer.elevationFormat).toEqual(4);
+        });
     });
 
     describe('minMaxFromBuffer', () => {

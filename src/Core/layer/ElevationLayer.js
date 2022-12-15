@@ -40,7 +40,7 @@ class ElevationLayer extends Layer {
      * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.
      * If unspecified, the layer will use the `STRATEGY_MIN_NETWORK_TRAFFIC`.
      * @param {string} [options.backgroundColor=undefined] The background color of the layer.
-     * @param {string} [options.elevationFormat=undefined] the elevation format
+     * @param {string} [options.elevationFormat=ELEVATION_FORMAT.NUMERIC] the elevation format
      * @param {number} [options.noDataValue=undefined] the optional no-data value to pass to the
      * provider. Any pixel that matches this value will not be processed.
      * @param {string} [options.heightFieldOffset=undefined] if
@@ -54,7 +54,7 @@ class ElevationLayer extends Layer {
      */
     constructor(id, options = {}) {
         super(id, options);
-        this.elevationFormat = options.elevationFormat;
+        this.elevationFormat = options.elevationFormat ?? ELEVATION_FORMAT.NUMERIC;
         if (this.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
             this.heightFieldOffset = options.heightFieldOffset || 0;
             this.heightFieldScale = options.heightFieldScale || 255;
