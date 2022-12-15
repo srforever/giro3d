@@ -8,9 +8,30 @@ const extent = new Extent('foo', 0, 1, 0, 1);
 const map = new Map('map', { extent });
 
 describe('TileMesh', () => {
-    describe('dispose', () => {
-        const obb = new OBB(new Vector3(), new Vector3());
+    let defaultGeometry;
+    let defaultMaterial;
+    const obb = new OBB(new Vector3(), new Vector3());
 
+    beforeEach(() => {
+        defaultGeometry = { dispose: jest.fn(), OBB: { clone: () => obb } };
+
+        defaultMaterial = {
+            dispose: jest.fn(),
+            setUuid: jest.fn(),
+            uniforms: {
+                tileDimensions: { value: { set: jest.fn() } },
+            },
+        };
+    });
+
+    describe('constructor', () => {
+        it('should register itself to the tile index', () => {
+            const mesh = new TileMesh(map, defaultGeometry, defaultMaterial, extent, 3, 1, 2);
+            expect(map.tileIndex.tiles.get('1,2,3').deref()).toEqual(mesh);
+        });
+    });
+
+    describe('dispose', () => {
         it('should dispose the material and the geometry', () => {
             const material = {
                 dispose: jest.fn(),

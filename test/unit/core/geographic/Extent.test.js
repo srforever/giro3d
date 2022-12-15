@@ -329,10 +329,10 @@ describe('Extent', () => {
             const L = new Extent('foo', x0, x1, y0, y2);
             const R = new Extent('foo', x1, x2, y0, y1);
 
-            const LR = L.offsetScale(R);
+            const LR = R.offsetToParent(L);
 
             expect(LR.x).toEqual(1);
-            expect(LR.y).toEqual(-0.5);
+            expect(LR.y).toEqual(0);
             expect(LR.z).toEqual(0.5);
             expect(LR.w).toEqual(0.5);
         });

@@ -1,186 +1,273 @@
-import { Vector3 } from 'three';
+import TileIndex, {
+    TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT,
+} from '../../../src/Core/TileIndex.js';
 
-import Extent from '../../../src/Core/Geographic/Extent.js';
-import Map from '../../../src/entities/Map.js';
-import OBB from '../../../src/Renderer/ThreeExtended/OBB.js';
-import TileIndex from '../../../src/Core/TileIndex.js';
-import TileMesh from '../../../src/Core/TileMesh.js';
+class MockWeakRef {
+    constructor(obj) {
+        this.obj = obj;
+    }
 
-const NORTH = 0;
-const NORTH_EAST = 1;
-const EAST = 2;
-const SOUTH_EAST = 3;
-const SOUTH = 4;
-const SOUTH_WEST = 5;
-const WEST = 6;
-const NORTH_WEST = 7;
+    collect() {
+        this.collected = true;
+    }
 
-const extent = new Extent('foo', 0, 1, 0, 1);
-const map = new Map('map', { extent });
-const material = {
-    setUuid: jest.fn(),
-    uniforms: {
-        tileDimensions: { value: { set: jest.fn() } },
-    },
-};
-const obb = new OBB(new Vector3(), new Vector3());
-const geometry = { dispose: jest.fn(), OBB: { clone: () => obb } };
+    deref() {
+        if (!this.collected) {
+            return this.obj;
+        }
+
+        return undefined;
+    }
+}
+
+global.WeakRef = MockWeakRef;
+
+function makeTile(x, y, z, visible = true) {
+    return {
+        x, y, z, material: { visible },
+    };
+}
 
 describe('TileIndex', () => {
-    it('should be present on a Map', () => {
-        const tileIndex = new TileIndex();
-        expect(map.tileIndex).toEqual(tileIndex);
-    });
-    it('should update the a Map.tileIndex.indexedTiles at TileMesh creation', () => {
-        const mesh = new TileMesh(map, geometry, material, extent, 3, 1, 2);
-        expect(map.tileIndex.indexedTiles.get('1,2,3').deref()).toEqual(mesh);
-    });
-
     describe('constructor', () => {
-        it('should initiate an indexedTiles object', () => {
+        it('should create a map for the tiles', () => {
             const tileIndex = new TileIndex();
-            expect(tileIndex.indexedTiles).toBeDefined();
+            expect(tileIndex.tiles).toBeInstanceOf(Map);
         });
     });
 
     describe('addTile', () => {
-        it('should keep a reference in the tileIndex at TileMesh creation', () => {
-            const mesh = new TileMesh(map, geometry, material, extent, 0, 0, 0);
-            const key = `${mesh.x},${mesh.y},${mesh.z}`;
-            expect(map.tileIndex.indexedTiles.get(key)).toBeDefined();
+        it('should keep a WeakRef in the tileIndex at TileMesh creation', () => {
+            const tile = makeTile(0, 0, 0);
+            const tileIndex = new TileIndex();
+            tileIndex.addTile(tile);
+            expect(tileIndex.tiles.get('0,0,0').deref()).toBe(tile);
         });
     });
 
-    describe('_makeKey', () => {
-        const x = 1;
-        const y = 2;
-        const z = 3;
-        const tileIndex = new TileIndex();
-        it('should make a key for the NORTH neighbor', () => {
-            tileIndex.neighbour = NORTH;
-            expect(tileIndex._makeKey(x, y, z)).toEqual('1,3,3');
-        });
-        it('should make a key for the NORTH_EAST neighbor', () => {
-            tileIndex.neighbour = NORTH_EAST;
-            expect(tileIndex._makeKey(x, y, z)).toEqual('2,3,3');
-        });
-        it('should make a key for the EAST neighbor', () => {
-            tileIndex.neighbour = EAST;
-            expect(tileIndex._makeKey(x, y, z)).toEqual('2,2,3');
-        });
-        it('should make a key for the SOUTH_EAST neighbor', () => {
-            tileIndex.neighbour = SOUTH_EAST;
-            expect(tileIndex._makeKey(x, y, z)).toEqual('2,1,3');
-        });
-        it('should make a key for the SOUTH neighbor', () => {
-            tileIndex.neighbour = SOUTH;
-            expect(tileIndex._makeKey(x, y, z)).toEqual('1,1,3');
-        });
-        it('should make a key for the SOUTH_WEST neighbor', () => {
-            tileIndex.neighbour = SOUTH_WEST;
-            expect(tileIndex._makeKey(x, y, z)).toEqual('0,1,3');
-        });
-        it('should make a key for the WEST neighbor', () => {
-            tileIndex.neighbour = WEST;
-            expect(tileIndex._makeKey(x, y, z)).toEqual('0,2,3');
-        });
-        it('should make a key for the NORTH_WEST neighbor', () => {
-            tileIndex.neighbour = NORTH_WEST;
-            expect(tileIndex._makeKey(x, y, z)).toEqual('0,3,3');
-        });
-        it('should default to null', () => {
-            tileIndex.neighbour = 'foo';
-            expect(tileIndex._makeKey(x, y, z)).toEqual(null);
+    describe('update', () => {
+        it('should only remove garbage collected tiles from the map', () => {
+            const tile000 = { x: 0, y: 0, z: 0 };
+            const tile001 = { x: 0, y: 0, z: 1 };
+            const tileIndex = new TileIndex();
+
+            tileIndex.addTile(tile000);
+            tileIndex.addTile(tile001);
+
+            const weakref000 = tileIndex.tiles.get('0,0,0');
+            const weakref001 = tileIndex.tiles.get('0,0,1');
+            expect(weakref000.deref()).toBe(tile000);
+            expect(weakref001.deref()).toBe(tile001);
+
+            weakref000.collect();
+            tileIndex.update();
+            expect(tileIndex.tiles.get('0,0,0')).toBeUndefined();
+            expect(tileIndex.tiles.get('0,0,1')).toBe(weakref001);
         });
     });
 
-    describe('_searchNeighbour', () => {
-        const x = 1;
-        const y = 2;
-        const z = 3;
-        it("should return false if the wanted neighbor isn't in the indexedTiles", () => {
-            map.tileIndex.neighbour = EAST;
-            expect(map.tileIndex._searchNeighbour(x, y, z, [])).toEqual(false);
+    describe('_searchTileOrAncestor', () => {
+        it("should return null if the wanted tile isn't in the indexedTiles", () => {
+            const tileIndex = new TileIndex();
+
+            expect(tileIndex._searchTileOrAncestor(1, 1, 1)).toBeNull();
         });
-        it('should empty the weakref in the indexedTiles if no neighbor', () => {
-            map.tileIndex.neighbour = WEST;
-            map.tileIndex.indexedTiles.set('0,2,3', new WeakRef({})); // eslint-disable-line no-undef
-            map.tileIndex._searchNeighbour(x, y, z, []);
-            expect(map.tileIndex.indexedTiles.get('0,2,3')).toEqual(undefined);
+
+        it('should return the requested tile if it is present, and with a visible material', () => {
+            const tileIndex = new TileIndex();
+            const tile = {
+                x: 1, y: 1, z: 1, material: { visible: true },
+            };
+            tileIndex.addTile(tile);
+
+            expect(tileIndex._searchTileOrAncestor(1, 1, 1)).toBe(tile);
         });
-        it("should return the wanted same level tile if it's in the indexedTiles", () => {
-            map.tileIndex.neighbour = WEST;
-            const neighbors = [null, null, null, null, null, null, null, null];
-            const mesh = new TileMesh(map, geometry, material, extent, 3, 0, 2);
-            mesh.material.visible = true;
-            expect(map.tileIndex._searchNeighbour(x, y, z, neighbors)).toEqual(true);
-            expect(neighbors).toEqual([null, null, null, null, null, null, mesh, null]);
+
+        it("should return null if tile's material is not visible", () => {
+            const tileIndex = new TileIndex();
+            const tile = {
+                x: 1, y: 1, z: 1, material: { visible: false },
+            };
+            tileIndex.addTile(tile);
+
+            expect(tileIndex._searchTileOrAncestor(1, 1, 1)).toBeNull();
         });
-        it('should empty the weakref if neighbor has no material', () => {
-            map.tileIndex.neighbour = WEST;
-            const mesh = new TileMesh(map, geometry, material, extent, 3, 0, 2);
-            mesh.material = undefined;
-            expect(map.tileIndex._searchNeighbour(x, y, z, [])).toEqual(false);
-            expect(map.tileIndex.indexedTiles.get('0,2,3')).toEqual(undefined);
+
+        it('should return a parent tile (if its visible) if no same level tile found', () => {
+            const tileIndex = new TileIndex();
+            const tile = {
+                x: 0, y: 0, z: 0, material: { visible: true },
+            };
+            tileIndex.addTile(tile);
+
+            expect(tileIndex._searchTileOrAncestor(1, 1, 1)).toBe(tile);
         });
-        it("should return false if neighbor's material is not visible", () => {
-            map.tileIndex.neighbour = WEST;
-            const mesh = new TileMesh(map, geometry, material, extent, 3, 0, 2);
-            mesh.material.visible = false;
-            expect(map.tileIndex.indexedTiles.get('0,2,3').deref()).toEqual(mesh);
-            expect(map.tileIndex._searchNeighbour(x, y, z, [])).toEqual(false);
+    });
+
+    describe('_getParent', () => {
+        it('should return null if coordinate has no parent', () => {
+            // Level 0
+            expect(TileIndex.getParent(0, 0, 0)).toBeNull();
         });
-        it('should return a parent tile if no same level tile found', () => {
-            map.tileIndex.neighbour = EAST;
-            const neighbors = [null, null, null, null, null, null, null, null];
-            const mesh = new TileMesh(map, geometry, material, extent, 1, 1, 0);
-            mesh.material.visible = true;
-            expect(map.tileIndex._searchNeighbour(x, y, z, neighbors)).toEqual(true);
-            expect(neighbors).toEqual([null, null, mesh, null, null, null, null, null]);
+
+        it('should return a correct value', () => {
+            // Level 1
+            expect(TileIndex.getParent(0, 1, 1)).toEqual({ x: 0, y: 0, z: 0 });
+            expect(TileIndex.getParent(1, 0, 1)).toEqual({ x: 0, y: 0, z: 0 });
+            expect(TileIndex.getParent(0, 0, 1)).toEqual({ x: 0, y: 0, z: 0 });
+            expect(TileIndex.getParent(1, 1, 1)).toEqual({ x: 0, y: 0, z: 0 });
+
+            // Level 2
+            expect(TileIndex.getParent(0, 0, 2)).toEqual({ x: 0, y: 0, z: 1 });
+            expect(TileIndex.getParent(0, 1, 2)).toEqual({ x: 0, y: 0, z: 1 });
+            expect(TileIndex.getParent(0, 2, 2)).toEqual({ x: 0, y: 1, z: 1 });
+            expect(TileIndex.getParent(0, 3, 2)).toEqual({ x: 0, y: 1, z: 1 });
+
+            expect(TileIndex.getParent(1, 0, 2)).toEqual({ x: 0, y: 0, z: 1 });
+            expect(TileIndex.getParent(1, 1, 2)).toEqual({ x: 0, y: 0, z: 1 });
+            expect(TileIndex.getParent(1, 2, 2)).toEqual({ x: 0, y: 1, z: 1 });
+            expect(TileIndex.getParent(1, 3, 2)).toEqual({ x: 0, y: 1, z: 1 });
+
+            expect(TileIndex.getParent(2, 0, 2)).toEqual({ x: 1, y: 0, z: 1 });
+            expect(TileIndex.getParent(2, 1, 2)).toEqual({ x: 1, y: 0, z: 1 });
+            expect(TileIndex.getParent(2, 2, 2)).toEqual({ x: 1, y: 1, z: 1 });
+            expect(TileIndex.getParent(2, 3, 2)).toEqual({ x: 1, y: 1, z: 1 });
+
+            expect(TileIndex.getParent(3, 0, 2)).toEqual({ x: 1, y: 0, z: 1 });
+            expect(TileIndex.getParent(3, 1, 2)).toEqual({ x: 1, y: 0, z: 1 });
+            expect(TileIndex.getParent(3, 2, 2)).toEqual({ x: 1, y: 1, z: 1 });
+            expect(TileIndex.getParent(3, 3, 2)).toEqual({ x: 1, y: 1, z: 1 });
         });
     });
 
     describe('getNeighbours', () => {
-        it('should return null if no neighbors found', () => {
-            const mesh = new TileMesh(map, geometry, material, extent, 0, 0, 0);
-            expect(map.tileIndex.getNeighbours(mesh)).toEqual(null);
+        it('should return an array of 8 elements', () => {
+            const tileIndex = new TileIndex();
+            const tile = makeTile(0, 0, 1, true);
+            expect(tileIndex.getNeighbours(tile)).toHaveLength(8);
         });
-        it('should return all same level neighbors', () => {
-            map.tileIndex.indexedTiles.clear();
-            const mesh = new TileMesh(map, geometry, material, extent, 2, 1, 1);
-            const mesh0 = new TileMesh(map, geometry, material, extent, 2, 1, 2);
-            const mesh1 = new TileMesh(map, geometry, material, extent, 2, 2, 2);
-            const mesh2 = new TileMesh(map, geometry, material, extent, 2, 2, 1);
-            const mesh3 = new TileMesh(map, geometry, material, extent, 2, 2, 0);
-            const mesh4 = new TileMesh(map, geometry, material, extent, 2, 1, 0);
-            const mesh5 = new TileMesh(map, geometry, material, extent, 2, 0, 0);
-            const mesh6 = new TileMesh(map, geometry, material, extent, 2, 0, 1);
-            const mesh7 = new TileMesh(map, geometry, material, extent, 2, 0, 2);
-            material.visible = true;
-            expect(map.tileIndex.getNeighbours(mesh)).toEqual([
-                mesh0, mesh1, mesh2, mesh3, mesh4, mesh5, mesh6, mesh7,
-            ]);
-        });
-        it('should return all appropriate neighbors', () => {
-            map.tileIndex.indexedTiles.clear();
-            const mat = {
-                setUuid: jest.fn(),
-                uniforms: {
-                    tileDimensions: { value: { set: jest.fn() } },
-                },
-            };
-            const m = new TileMesh(map, geometry, material, extent, 2, 1, 2);
-            const m45 = new TileMesh(map, geometry, material, extent, 1, 0, 0);
-            const m0 = new TileMesh(map, geometry, material, extent, 2, 1, 3);
-            const m12 = new TileMesh(map, geometry, material, extent, 1, 1, 1);
-            const m3 = new TileMesh(map, geometry, mat, extent, 1, 1, 0);
-            expect(m3.material.visible).toEqual(false);
-            const m7 = new TileMesh(map, geometry, material, extent, 2, 0, 3);
-            const m6 = new TileMesh(map, geometry, material, extent, 2, 0, 2);
-            material.visible = true;
-            expect(map.tileIndex.getNeighbours(m)).toEqual([
-                m0, m12, m12, null, m45, m45, m6, m7,
-            ]);
+
+        describe('should return elements in the correct windind order', () => {
+            it('should work with arbitrary depth neighbours', () => {
+                const tileIndex = new TileIndex();
+
+                //                      +--------+
+                //                      |        |
+                //                      |   T4   |
+                //                      |        |
+                //                  +---+--------+
+                //                  |T1 |        |
+                //                  +---+    T2  |
+                //                  |T0 |        |
+                //    +-------------+---+--------+--------+
+                //    |                 |                 |
+                //    |                 |                 |
+                //    |                 |                 |
+                //    |       T5        |        T3       |
+                //    |                 |                 |
+                //    |                 |                 |
+                //    |                 |                 |
+                //    +-----------------+-----------------+
+
+                const T0 = makeTile(3, 4, 3);
+                const T1 = makeTile(3, 5, 3);
+                const T2 = makeTile(2, 2, 2);
+                const T3 = makeTile(1, 0, 1);
+                const T4 = makeTile(2, 3, 2);
+                const T5 = makeTile(0, 0, 1);
+
+                tileIndex.addTile(T0);
+                tileIndex.addTile(T1);
+                tileIndex.addTile(T2);
+                tileIndex.addTile(T3);
+                tileIndex.addTile(T4);
+                tileIndex.addTile(T5);
+
+                const t0Neighbours = tileIndex.getNeighbours(T0);
+
+                expect(t0Neighbours[RIGHT]).toBe(T2);
+                expect(t0Neighbours[TOP_RIGHT]).toBe(T2);
+                expect(t0Neighbours[BOTTOM_RIGHT]).toBe(T3);
+                expect(t0Neighbours[TOP]).toBe(T1);
+                expect(t0Neighbours[BOTTOM]).toBe(T5);
+                expect(t0Neighbours[BOTTOM_LEFT]).toBe(T5);
+                expect(t0Neighbours[LEFT]).toBeNull();
+                expect(t0Neighbours[TOP_LEFT]).toBeNull();
+
+                const t1Neighbours = tileIndex.getNeighbours(T1);
+
+                expect(t1Neighbours[RIGHT]).toBe(T2);
+                expect(t1Neighbours[BOTTOM_RIGHT]).toBe(T2);
+                expect(t1Neighbours[TOP_RIGHT]).toBe(T4);
+                expect(t1Neighbours[BOTTOM]).toBe(T0);
+                expect(t1Neighbours[TOP]).toBeNull();
+                expect(t1Neighbours[BOTTOM_LEFT]).toBeNull();
+                expect(t1Neighbours[LEFT]).toBeNull();
+                expect(t1Neighbours[TOP_LEFT]).toBeNull();
+
+                const t3Neighbours = tileIndex.getNeighbours(T3);
+
+                expect(t3Neighbours[LEFT]).toBe(T5);
+                expect(t3Neighbours[RIGHT]).toBeNull();
+                expect(t3Neighbours[BOTTOM_RIGHT]).toBeNull();
+                expect(t3Neighbours[TOP_RIGHT]).toBeNull();
+                expect(t3Neighbours[BOTTOM]).toBeNull();
+                expect(t3Neighbours[TOP]).toBeNull();
+                expect(t3Neighbours[BOTTOM_LEFT]).toBeNull();
+                expect(t3Neighbours[TOP_LEFT]).toBeNull();
+
+                const t5Neighbours = tileIndex.getNeighbours(T5);
+
+                expect(t5Neighbours[RIGHT]).toBe(T3);
+                expect(t5Neighbours[LEFT]).toBeNull();
+                expect(t5Neighbours[BOTTOM_RIGHT]).toBeNull();
+                expect(t5Neighbours[TOP_RIGHT]).toBeNull();
+                expect(t5Neighbours[BOTTOM]).toBeNull();
+                expect(t5Neighbours[TOP]).toBeNull();
+                expect(t5Neighbours[BOTTOM_LEFT]).toBeNull();
+                expect(t5Neighbours[TOP_LEFT]).toBeNull();
+            });
+
+            it('should work for all neighbours in the same grid level', () => {
+                const tileIndex = new TileIndex();
+
+                const x = 2;
+                const y = 2;
+                const z = 2;
+
+                const tile = makeTile(x, y, z);
+
+                const top = makeTile(x, y + 1, z);
+                const topRight = makeTile(x + 1, y + 1, z);
+                const topLeft = makeTile(x - 1, y + 1, z);
+                const bottomRight = makeTile(x + 1, y - 1, z);
+                const bot = makeTile(x, y - 1, z);
+                const bottomLeft = makeTile(x - 1, y - 1, z);
+                const left = makeTile(x - 1, y, z);
+                const right = makeTile(x + 1, y, z);
+
+                tileIndex.addTile(tile);
+                tileIndex.addTile(top);
+                tileIndex.addTile(bot);
+                tileIndex.addTile(left);
+                tileIndex.addTile(right);
+                tileIndex.addTile(bottomLeft);
+                tileIndex.addTile(bottomRight);
+                tileIndex.addTile(topRight);
+                tileIndex.addTile(topLeft);
+
+                const neighbours = tileIndex.getNeighbours(tile);
+
+                expect(neighbours[TOP]).toBe(top);
+                expect(neighbours[RIGHT]).toBe(right);
+                expect(neighbours[BOTTOM]).toBe(bot);
+                expect(neighbours[LEFT]).toBe(left);
+
+                expect(neighbours[TOP_LEFT]).toBe(topLeft);
+                expect(neighbours[TOP_RIGHT]).toBe(topRight);
+                expect(neighbours[BOTTOM_LEFT]).toBe(bottomLeft);
+                expect(neighbours[BOTTOM_RIGHT]).toBe(bottomRight);
+            });
         });
     });
 });

@@ -254,6 +254,7 @@ class WebGLComposer {
 
         target.texture.wrapS = ClampToEdgeWrapping;
         target.texture.wrapT = ClampToEdgeWrapping;
+        target.texture.generateMipmaps = false;
         return target.texture;
     }
 

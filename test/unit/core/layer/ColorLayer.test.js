@@ -115,7 +115,7 @@ describe('ColorLayer', () => {
                 map,
                 geom,
                 new LayeredMaterial(
-                    {}, {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
+                    {}, {}, { maxX: 0, maxY: 0, atlas: {} },
                 ),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
                 2,
