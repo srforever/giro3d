@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.15.0 (2022-12-15)
+
+### BREAKING CHANGE
+
+- The function `Extent.offsetScale()` is removed. Please use `Extent.offsetToParent()` instead.
+- Map: the `segments` option passed in the constructor options MUST be a power of two.
+- Map: the property `noTextureOpacity` is removed. Please use `opacity` instead :
+
+  ```js
+  map.opacity = 0.5;
+  ```
+
+### Feat
+
+- **MapInspector**: add drop-down list to change the render state of the tiles
+- **MapInspector**: enable opacity slider
+
+### Fix
+
+- **Map**: fix opacity issues
+- **Map**: support stitching including the 4 diagonal neighbours
+- **WebGLComposer**: disable mip-maps for generated textures
+- **Coordinates**: fix Y-axis inversion in `offsetToExtent()`
+
+### Refactor
+
+- **Extent**: delete unused and buggy `offsetScale()` function
+
 ## v0.14.0 (2022-12-08)
 
 ### BREAKING CHANGE
