@@ -8,6 +8,7 @@ import TileMesh from '../Core/TileMesh.js';
 import Map from '../entities/Map.js';
 import Helpers from '../helpers/Helpers.js';
 import EntityInspector from './EntityInspector.js';
+import RenderingState from '../Renderer/RenderingState.js';
 import LayerInspector from './LayerInspector.js';
 
 function applyToMaterial(root, layer, callback) {
@@ -33,7 +34,7 @@ class MapInspector extends EntityInspector {
             visibility: true,
             boundingBoxColor: true,
             boundingBoxes: true,
-            opacity: false,
+            opacity: true,
         });
 
         /**
@@ -63,6 +64,7 @@ class MapInspector extends EntityInspector {
         this.showOutline = this.map.showOutline || false;
 
         this.showGrid = false;
+        this.renderState = 'Normal';
 
         this.layerCount = this.map._attachedLayers.length;
 
@@ -88,6 +90,9 @@ class MapInspector extends EntityInspector {
             .onChange(v => this.toggleFrozen(v));
         this.addController(this, 'layerCount').name('Layer count');
         this.addController(this, 'dumpTiles').name('Dump tiles in console');
+        this.addController(this, 'renderState', ['Normal', 'Depth', 'UV', 'ID'])
+            .name('Render state')
+            .onChange(v => this.setRenderState(v));
 
         /**
          * The layer folder.
@@ -109,6 +114,33 @@ class MapInspector extends EntityInspector {
         this.map.addEventListener('layer-removed', this._fillLayersCb);
 
         this.fillLayers();
+    }
+
+    setRenderState(state) {
+        function setState(obj, s) {
+            if (obj.changeState) {
+                obj.changeState(s);
+            }
+        }
+
+        switch (state) {
+            case 'Normal':
+                this.map.object3d.traverse(o => setState(o, RenderingState.FINAL));
+                break;
+            case 'Depth':
+                this.map.object3d.traverse(o => setState(o, RenderingState.DEPTH));
+                break;
+            case 'UV':
+                this.map.object3d.traverse(o => setState(o, RenderingState.UV));
+                break;
+            case 'ID':
+                this.map.object3d.traverse(o => setState(o, RenderingState.ID));
+                break;
+            default:
+                break;
+        }
+
+        this.notify(this.map);
     }
 
     removeEventListeners() {

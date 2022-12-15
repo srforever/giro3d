@@ -302,18 +302,12 @@ class Map extends Entity3D {
         tile.position.copy(position);
         tile.quaternion.copy(quaternion);
 
-        tile.material.transparent = this.opacity < 1.0;
-        tile.material.uniforms.opacity.value = this.opacity;
+        tile.opacity = this.opacity;
         tile.setVisibility(false);
         tile.updateMatrix();
 
         if (this.noTextureColor) {
             tile.material.uniforms.noTextureColor.value.copy(this.noTextureColor);
-        }
-
-        // no texture opacity
-        if (this.noTextureOpacity !== undefined) {
-            tile.material.uniforms.noTextureOpacity.value = this.noTextureOpacity;
         }
 
         tile.material.showOutline = this.showOutline || false;

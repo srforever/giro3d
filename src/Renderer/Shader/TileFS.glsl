@@ -1,5 +1,10 @@
 #include <PrecisionQualifier>
 
+const int STATE_FINAL = 0;
+const int STATE_DEPTH = 1;
+const int STATE_ID = 2;
+const int STATE_UV = 3;
+
 uniform int renderingState;
 uniform sampler2D colorTexture;
 
@@ -11,7 +16,7 @@ uniform vec3      colors[TEX_UNITS];
 #endif
 
 // backgroundColor
-uniform float     noTextureOpacity;
+uniform float     opacity;
 uniform vec3      noTextureColor;
 
 varying vec2      vUv;
@@ -129,11 +134,15 @@ uniform sampler2D vLut;
 const float sLine = 0.003;
 #endif
 
-vec4 blend(vec3 fore, vec3 back, float a) {
-    return vec4(mix(back.rgb, fore.rgb, a), 1.0);
+vec3 blend(vec3 fore, vec3 back, float a) {
+    return mix(back.rgb, fore.rgb, a);
 }
 
 void main() {
+    if (opacity == 0.) {
+        discard;
+    }
+
     vec2 elevUv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
 
 #if defined(DISCARD_NODATA_ELEVATION)
@@ -145,88 +154,82 @@ void main() {
     }
 #endif
 
-    if (renderingState == 2) {
-        gl_FragColor = packDepthToRGBA(float(uuid) / (256.0 * 256.0 * 256.0));
-    } else if (renderingState == 1) {
-        gl_FragColor = packDepthToRGBA(gl_FragCoord.z);
-    } else if (renderingState == 3) {
-        gl_FragColor = encodeHalfRGBA(vUv);
+
+#if TEX_UNITS
+    vec4 diffuseColor = vec4(noTextureColor, 1.);
+    #pragma unroll_loop_start
+    for (int i = 0; i < TEX_UNITS; i++) {
+        vec4 pitch = colorOffsetScale[i];
+        vec2 colorUv = computeUv(vUv, pitch.xy, pitch.zw);
+        if (pitch.zw != vec2(0.0)) {
+            vec4 layerColor = texture2D(colorTexture, colorUv);
+            vec3 rgb = layerColor.rgb * colors[i];
+            float a = layerColor.a * colorOpacity[i];
+            diffuseColor.rgb = blend(rgb, diffuseColor.rgb, a);
+        }
+    }
+    #pragma unroll_loop_end
+    diffuseColor.a *= opacity;
+#else
+    vec4 diffuseColor = vec4(noTextureColor, opacity);
+#endif
+
+#if defined(COLORMAP)
+    float data;
+    if (colormapMode == 0) {
+        data = getElevation(elevationTexture, elevUv);
     } else {
-
-        vec4 diffuseColor = vec4(noTextureColor, 0.0);
-
-        bool hasTexture = false;
-
-        #if TEX_UNITS
-        #pragma unroll_loop_start
-        for (int i = 0; i < TEX_UNITS; i++) {
-            vec4 pitch = colorOffsetScale[i];
-            vec2 colorUv = computeUv(vUv, pitch.xy, pitch.zw);
-            if (colorVisible[i] && colorOpacity[i] > 0.0 && pitch.zw != vec2(0.0)) {
-                vec4 layerColor = texture2D(colorTexture, colorUv);
-                if (layerColor.a > 0.0) {
-                    hasTexture = true;
-                }
-                vec3 rgb = layerColor.rgb * colors[i];
-                float a = layerColor.a * colorOpacity[i];
-                diffuseColor = blend(rgb, diffuseColor.rgb, a);
-            }
-        }
-        #pragma unroll_loop_end
-        #endif
-
-        gl_FragColor = diffuseColor;
-
-        if (hasTexture) {
-            gl_FragColor.a = max(gl_FragColor.a, noTextureOpacity);
+        vec2 derivatives = computeDerivatives(elevUv);
+        if (colormapMode == 1) {
+            data = calcSlope(derivatives);
         } else {
-            #if defined(COLORMAP)
-                float data;
-                if (colormapMode == 0) {
-                    data = getElevation(elevationTexture, elevUv);
-                } else {
-                    vec2 derivatives = computeDerivatives(elevUv);
-                    if (colormapMode == 1) {
-                        data = calcSlope(derivatives);
-                    } else {
-                        data = calcAspect(derivatives);
-                    }
-                    data *= 180.0 / M_PI; // Convert radians to degrees
-                }
-                float normd = clamp((data - colormapMin) / (colormapMax - colormapMin), 0.0, 1.0);
-                gl_FragColor = texture2D(vLut, vec2(normd, 0.0));
-            #endif
-            gl_FragColor = vec4(gl_FragColor.rgb, noTextureOpacity);
+            data = calcAspect(derivatives);
         }
+        data *= 180.0 / M_PI; // Convert radians to degrees
+    }
+    float normd = clamp((data - colormapMin) / (colormapMax - colormapMin), 0.0, 1.0);
+    diffuseColor = texture2D(vLut, vec2(normd, 0.0));
+    diffuseColor = vec4(diffuseColor.rgb, opacity);
+#endif
 
 #if defined(HILLSHADE)
-        float hillshade = calcHillshade(elevUv);
-        gl_FragColor.rgb *= hillshade;
+    float hillshade = calcHillshade(elevUv);
+    diffuseColor.rgb *= hillshade;
 #endif
 
     // Display the backside in a desaturated, darker tone, to give visual feedback that
     // we are, in fact, looking at the map from the "wrong" side.
     if (!gl_FrontFacing) {
-        gl_FragColor.rgb = desaturate(gl_FragColor.rgb, 1.) * 0.5;
+        diffuseColor.rgb = desaturate(diffuseColor.rgb, 1.) * 0.5;
     }
 
 #if defined(OUTLINES)
-        const vec3 green = vec3(0, 1, 0);
-        const vec3 blue = vec3(0, 0, 1);
-        const vec3 red = vec3(1, 0, 0);
-        const vec3 yellow = vec3(1, 1, 0);
+    const vec4 green = vec4(0, 1, 0, 1);
+    const vec4 blue = vec4(0, 0, 1, 1);
+    const vec4 red = vec4(1, 0, 0, 1);
+    const vec4 yellow = vec4(1, 1, 0, 1);
 
-        if (vUv.x < sLine) { // WEST
-            gl_FragColor.rgb = red;
-        } else if (vUv.x > 1.0 - sLine) { // EAST
-            gl_FragColor.rgb = green;
-        } else if (vUv.y < sLine) { // NORTH
-            gl_FragColor.rgb = blue;
-        } else if (vUv.y > 1.0 - sLine) { // SOUTH
-            gl_FragColor.rgb = yellow;
-        }
+    if (vUv.x < sLine) { // WEST
+        diffuseColor = red;
+    } else if (vUv.x > 1.0 - sLine) { // EAST
+        diffuseColor = green;
+    } else if (vUv.y < sLine) { // NORTH
+        diffuseColor = blue;
+    } else if (vUv.y > 1.0 - sLine) { // SOUTH
+        diffuseColor = yellow;
+    }
 #endif
 
+    // The fragment is transparent, discard it to short-circuit rendering state evaluation.
+    if (diffuseColor.a <= 0.) {
+        discard;
+    } else if (renderingState == STATE_FINAL) {
+        gl_FragColor = diffuseColor;
+    } else if (renderingState == STATE_ID) {
+        gl_FragColor = packDepthToRGBA(float(uuid) / (256.0 * 256.0 * 256.0));
+    } else if (renderingState == STATE_DEPTH) {
+        gl_FragColor = packDepthToRGBA(gl_FragCoord.z);
+    } else if (renderingState == STATE_UV) {
+        gl_FragColor = encodeHalfRGBA(vUv);
     }
-
 }
