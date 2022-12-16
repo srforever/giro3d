@@ -235,7 +235,9 @@ async function decodeBlob(blob) {
         case 'image/jpeg': {
             // Use the browser capabilities to decode the image
             const img = await create8bitImage(blob);
-            return new Texture(img);
+            const tex = new Texture(img);
+            tex.needsUpdate = true;
+            return tex;
         }
         default:
             throw new Error(`unsupported media type for textures: ${blob.type}`);
