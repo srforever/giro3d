@@ -27,8 +27,7 @@ const MIN_LEVEL_THRESHOLD = 2;
  * @param {Promise<Texture>} promise The texture promise.
  */
 function onDelete(promise) {
-    promise.then(t => t.dispose());
-    promise.catch(e => console.error(e));
+    promise.then(t => t.dispose(), e => console.error(e));
 }
 
 function preprocessDataLayer(layer) {

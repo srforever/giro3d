@@ -1,5 +1,5 @@
 import Flatbush from 'flatbush';
-import { Vector4 } from 'three';
+import { Texture, Vector2, Vector4 } from 'three';
 
 import Extent from '../Core/Geographic/Extent.js';
 import DataStatus from './DataStatus.js';
@@ -9,77 +9,63 @@ import TextureGenerator from '../utils/TextureGenerator.js';
 import WebGLComposer from '../Renderer/composition/WebGLComposer.js';
 import ElevationLayer from '../Core/layer/ElevationLayer.js';
 import Rect from '../Core/Rect.js';
+import Cache from '../Core/Scheduler/Cache.js';
 
-function _selectImagesFromSpatialIndex(index, images, extent) {
-    return index.search(
-        extent.west(), extent.south(),
-        extent.east(), extent.north(),
-    ).map(i => images[i]);
+const temp = {
+    dim: new Vector2(),
+};
+
+/**
+ * @param {Flatbush} index The spatial index to query.
+ * @param {Array} images The images in the layer.
+ * @param {Extent} extent The extent of the request.
+ * @returns {Array} The candidates, ordered by descending size
+ */
+function getImages(index, images, extent) {
+    const xmin = extent.west();
+    const xmax = extent.east();
+    const ymin = extent.south();
+    const ymax = extent.north();
+
+    const candidates = index.search(xmin, ymin, xmax, ymax).map(i => images[i]);
+
+    candidates.sort((a, b) => (b.size - a.size));
+
+    return candidates;
 }
 
-// select the smallest image entirely covering the tile
-let inter = new Extent('dummy', 0, 0, 0, 0);
-function selectBestImageForExtent(layer, extent) {
-    const candidates = _selectImagesFromSpatialIndex(
-        layer._spatialIndex, layer.images, extent,
-    );
+/**
+ * Dispose the texture contained in the promise.
+ *
+ * @param {Promise<Texture>} promise The texture promise.
+ */
+function onDelete(promise) {
+    promise.then(t => t.dispose());
+}
 
-    let selection;
-    for (const entry of candidates) {
-        if (extent.isInside(entry.extent)) {
-            if (!selection) {
-                selection = entry;
-            } else {
-                const d = selection.extent.dimensions();
-                const e = entry.extent.dimensions();
-                if (e.x <= d.x && e.y <= d.y) {
-                    selection = entry;
-                }
-            }
-        }
+async function loadTexture(url) {
+    let promise = Cache.get(url);
+    if (promise) {
+        return promise;
     }
-    if (selection) {
-        return selection;
+
+    promise = Fetcher.blob(url).then(blob => TextureGenerator.decodeBlob(blob));
+
+    Cache.set(url, promise, Cache.POLICIES.TEXTURE, onDelete);
+
+    return promise;
+}
+
+function getKey(images) {
+    let key = '';
+    for (const img of images) {
+        key += img.image;
     }
-    // nope : doesn't work
-    // return;
-    if (candidates.length === 0) {
-        return null;
-    }
-    // We didn't found an image containing entirely the extent,
-    // but candidates isn't empty so we can return the smallest
-    // that has the biggest coverage of the extent
-    let coverage = 0;
-    for (const entry of candidates) {
-        inter.copy(entry.extent);
-        inter = inter.intersect(extent);
-        const dim = inter.dimensions();
-        const cov = Math.floor(dim.x * dim.y);
-        // console.log(cov, entry.image)
-        if (cov >= coverage) {
-            if (!selection) {
-                selection = entry;
-                coverage = cov;
-            } else if (cov === coverage) {
-                const d1 = entry.extent.dimensions();
-                const d2 = selection.extent.dimensions();
-                if (d1.x < d2.x && d1.y < d2.y) {
-                    selection = entry;
-                    coverage = cov;
-                }
-            } else {
-                selection = entry;
-                coverage = cov;
-            }
-        }
-    }
-    return selection;
+    return key;
 }
 
 async function getTexture(toDownload, instance, layer) {
-    const { extent, url, selection } = toDownload;
-    const blob = await Fetcher.blob(url);
-    const inputTexture = await TextureGenerator.decodeBlob(blob);
+    const { extent, images } = toDownload;
 
     const isElevationLayer = layer instanceof ElevationLayer;
 
@@ -92,13 +78,36 @@ async function getTexture(toDownload, instance, layer) {
         createDataCopy: isElevationLayer,
     });
 
-    const options = { interpretation: layer.interpretation };
-    composer.draw(inputTexture, Rect.fromExtent(selection.extent), options);
+    let z = 0;
+
+    const promises = [];
+
+    for (const img of images) {
+        const options = {
+            interpretation: layer.interpretation,
+            zOrder: z,
+        };
+
+        z += 0.1;
+        const promise = loadTexture(img.url)
+            .then(tex => {
+                composer.draw(tex, Rect.fromExtent(img.extent), options);
+            })
+            .catch(e => {
+                throw e;
+            });
+
+        promises.push(promise);
+    }
+
+    await Promise.all(promises);
 
     const texture = composer.render();
 
     texture.extent = extent;
-    texture.file = toDownload.selection.image;
+    texture.key = getKey(images);
+
+    composer.dispose();
 
     if (__DEBUG__) {
         MemoryTracker.track(texture, 'custom tiled image');
@@ -114,27 +123,20 @@ async function getTexture(toDownload, instance, layer) {
  */
 export default {
     preprocessDataLayer(layer) {
-        if (layer.extent) {
-            console.warn(
-                'Ignoring given layer.extent, and rebuilding it from sources images instead',
-            );
-        }
         layer.canTileTextureBeImproved = this.canTileTextureBeImproved;
         return layer.source.fetchMetadata().then(metadata => {
             layer.images = [];
-            // eslint-disable-next-line guard-for-in
             for (const image of Object.keys(metadata)) {
                 const extent = new Extent(layer.projection, ...metadata[image]);
+                const dim = extent.dimensions(temp.dim);
+                const size = Math.max(dim.x, dim.y);
+                const url = layer.source.buildUrl(image);
                 layer.images.push({
                     image,
                     extent,
+                    size,
+                    url,
                 });
-
-                if (!layer.extent) {
-                    layer.extent = extent.clone();
-                } else {
-                    layer.extent.union(extent);
-                }
             }
             layer._spatialIndex = new Flatbush(layer.images.length);
             for (const image of layer.images) {
@@ -154,7 +156,19 @@ export default {
             return false;
         }
 
-        return selectBestImageForExtent(layer, tile.extent);
+        /** @type {Flatbush} */
+        const index = layer._spatialIndex;
+        const extent = tile.extent;
+
+        const xmin = extent.west();
+        const xmax = extent.east();
+        const ymin = extent.south();
+        const ymax = extent.north();
+
+        const results = index.search(xmin, ymin, xmax, ymax);
+
+        // At least one image must intersect the tile
+        return (results && results.length > 0);
     },
 
     getPossibleTextureImprovements(layer, extent, currentTexture) {
@@ -162,18 +176,20 @@ export default {
             // We may still be loading the images
             return DataStatus.DATA_NOT_AVAILABLE_YET;
         }
-        const s = selectBestImageForExtent(layer, extent);
+        const images = getImages(layer._spatialIndex, layer.images, extent);
 
-        if (!s) {
+        if (!images || images?.length === 0) {
             return DataStatus.DATA_UNAVAILABLE;
         }
-        if (currentTexture && currentTexture.file === s.image) {
+
+        const key = getKey(images);
+
+        if (currentTexture?.key === key) {
             return DataStatus.DATA_ALREADY_LOADED;
         }
         return {
-            selection: s,
+            images,
             extent,
-            url: layer.source.buildUrl(s.image),
         };
     },
 
