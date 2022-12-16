@@ -12,11 +12,11 @@ import Layer from '../Core/layer/Layer.js';
 import DataStatus from './DataStatus.js';
 import Rect from '../Core/Rect.js';
 import ElevationLayer from '../Core/layer/ElevationLayer.js';
-import Composer from '../Renderer/composition/Composer.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
 import Fetcher from './Fetcher.js';
 import MemoryTracker from '../Renderer/MemoryTracker.js';
 import Cache from '../Core/Scheduler/Cache.js';
+import WebGLComposer from '../Renderer/composition/WebGLComposer.js';
 
 const TEXTURE_CACHE_LIFETIME_MS = 1000 * 60; // 60 seconds
 const MIN_LEVEL_THRESHOLD = 2;
@@ -146,19 +146,20 @@ async function executeCommand(command) {
  */
 function combineImages(sourceImages, renderer, layer, targetExtent) {
     const isElevationLayer = layer instanceof ElevationLayer;
-    const composer = new Composer({
+    const composer = new WebGLComposer({
         extent: Rect.fromExtent(targetExtent),
         width: layer.imageSize.w,
         height: layer.imageSize.h,
         webGLRenderer: renderer,
         showImageOutlines: layer.showTileBorders || false,
-        renderToCanvas: false,
         createDataCopy: isElevationLayer, // To compute the min/max later
     });
 
+    const options = { interpretation: layer.interpretation };
+
     sourceImages.forEach(img => {
         if (img) {
-            composer.draw(img, Rect.fromExtent(img.extent));
+            composer.draw(img, Rect.fromExtent(img.extent), options);
         }
     });
 

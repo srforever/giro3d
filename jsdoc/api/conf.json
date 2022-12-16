@@ -17,6 +17,7 @@
       "src/Core/Geographic/Extent.js",
       "src/Core/Geographic/Coordinates.js",
       "src/Core/layer/Layer.js",
+      "src/Core/layer/Interpretation.js",
       "src/Core/layer/ColorLayer.js",
       "src/Core/layer/ElevationLayer.js",
       "src/Core/layer/LayerUpdateStrategy.js",

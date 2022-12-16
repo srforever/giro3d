@@ -6,7 +6,7 @@ import Instance from '@giro3d/giro3d/Core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
 import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
 import Coordinates from '@giro3d/giro3d/Core/Geographic/Coordinates.js';
-import { ELEVATION_FORMAT } from '@giro3d/giro3d/utils/DEMUtils.js';
+import Interpretation from '@giro3d/giro3d/Core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import CustomTiledImageSource from '@giro3d/giro3d/sources/CustomTiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
@@ -112,9 +112,7 @@ map.addLayer(new ElevationLayer('dem', {
         options: {},
     },
     source: demSource,
-    elevationFormat: ELEVATION_FORMAT.HEIGHFIELD,
-    heightFieldOffset: elevationMin,
-    heightFieldScale: elevationMax,
+    interpretation: Interpretation.ScaleToMinMax(elevationMin, elevationMax),
     projection: 'EPSG:2154',
 }));
 

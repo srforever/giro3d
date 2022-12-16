@@ -4,21 +4,12 @@ import {
     BufferGeometry,
     Vector3,
     Object3D,
-    Triangle,
     Vector2,
     UnsignedByteType,
 } from 'three';
 import Coordinates from '../Core/Geographic/Coordinates.js';
 
 const FAST_READ_Z = 0;
-const PRECISE_READ_Z = 1;
-
-export const ELEVATION_FORMAT = {
-    MAPBOX_RGB: 0,
-    HEIGHFIELD: 1,
-    RATP_GEOL: 3,
-    NUMERIC: 4,
-};
 
 /**
  * Utility module to retrieve elevation at a given coordinates.
@@ -218,7 +209,7 @@ function tileAt(pt, tile) {
 let _canvas;
 let ctx;
 function _readTextureValueAt(textureInfo, ...uv) {
-    const { texture, elevationFormat: format } = textureInfo;
+    const { texture } = textureInfo;
     for (let i = 0; i < uv.length; i += 2) {
         uv[i] = MathUtils.clamp(uv[i], 0, texture.image.width - 1);
         uv[i + 1] = MathUtils.clamp(uv[i + 1], 0, texture.image.height - 1);
@@ -295,26 +286,8 @@ function _readTextureValueAt(textureInfo, ...uv) {
     for (let i = 0; i < uv.length; i += 2) {
         const ox = uv[i] - minx;
         const oy = uv[i + 1] - miny;
-        if (format === ELEVATION_FORMAT.MAPBOX_RGB) {
-            // d is 4 bytes per pixel
-            result.push(decodeMapboxElevation(
-                d.data[4 * oy * dw + 4 * ox],
-                d.data[4 * oy * dw + 4 * ox + 1],
-                d.data[4 * oy * dw + 4 * ox + 2],
-            ));
-        } else if (format === ELEVATION_FORMAT.HEIGHFIELD) {
-            // d is 4 bytes per pixel
-            const red = (d.data[4 * oy * dw + 4 * ox]) / 256.0;
-            const elevation = textureInfo.heightFieldOffset + red * textureInfo.heightFieldScale;
-            result.push(elevation);
-        } else if (format === ELEVATION_FORMAT.NUMERIC) {
-            const red = (d.data[4 * oy * dw + 4 * ox]) / 256.0;
-            result.push(red);
-        } else if (format === ELEVATION_FORMAT.RATP_GEOL) {
-            throw new Error(`Unimplemented reading elevation value for layer.elevationFormat "${format}'`);
-        } else {
-            throw new Error(`Unsupported layer.elevationFormat "${format}'`);
-        }
+        const value = d.data[4 * oy * dw + 4 * ox];
+        result.push(value);
     }
 
     if (uv.length === 2) {
@@ -352,85 +325,8 @@ function _readTextureValueNearestFiltering(textureInfo, vertexU, vertexV) {
     return _readTextureValueAt(textureInfo, u, v);
 }
 
-function _readTextureValueWithBilinearFiltering(textureInfo, vertexU, vertexV) {
-    const coords = _convertUVtoTextureCoords(textureInfo.texture, vertexU, vertexV);
-
-    const [z11, z21, z12, z22] = _readTextureValueAt(textureInfo,
-        coords.u1, coords.v1,
-        coords.u2, coords.v1,
-        coords.u1, coords.v2,
-        coords.u2, coords.v2);
-
-    // horizontal filtering
-    const zu1 = MathUtils.lerp(z11, z21, coords.wu);
-    const zu2 = MathUtils.lerp(z12, z22, coords.wu);
-    // then vertical filtering
-    return MathUtils.lerp(zu1, zu2, coords.wv);
-}
-
 function _readZFast(textureInfo, uv) {
     return _readTextureValueNearestFiltering(textureInfo, uv.x, uv.y);
-}
-
-const bary = new Vector3();
-function _readZCorrect(textureInfo, uv, tileDimensions, tileOwnerDimensions) {
-    // We need to emulate the vertex shader code that does 2 thing:
-    //   - interpolate (u, v) between triangle vertices: u,v will be multiple of 1/nsegments
-    //     (for now assume nsegments === 16)
-    //   - read elevation texture at (u, v) for
-
-    // Determine u,v based on the vertices count.
-    // 'modulo' is the gap (in [0, 1]) between 2 successive vertices in the geometry
-    // e.g if you have 5 vertices, the only possible values for u (or v) are: 0, 0.25, 0.5, 0.75, 1
-    // so modulo would be 0.25
-    // note: currently the number of segments is hard-coded to 16 (see TileProvider) => 17 vertices
-    const modulo = (tileDimensions.x / tileOwnerDimensions.x) / (17 - 1);
-    let u = Math.floor(uv.x / modulo) * modulo;
-    let v = Math.floor(uv.y / modulo) * modulo;
-
-    if (u === 1) {
-        u -= modulo;
-    }
-    if (v === 1) {
-        v -= modulo;
-    }
-
-    // Build 4 vertices, 3 of them will be our triangle:
-    //    11---21
-    //    |   / |
-    //    |  /  |
-    //    | /   |
-    //    21---22
-    const u1 = u;
-    const u2 = u + modulo;
-    const v1 = v;
-    const v2 = v + modulo;
-
-    // Our multiple z-value will be weigh-blended, depending on the distance of the real point
-    // so lu (resp. lv) are the weight. When lu -> 0 (resp. 1) the final value -> z at u1 (resp. u2)
-    const lu = (uv.x - u) / modulo;
-    const lv = (uv.y - v) / modulo;
-
-    // Determine if we're going to read the vertices from the top-left or lower-right triangle
-    // (low-right = on the line 21-22 or under the diagonal lu = 1 - lv)
-    const lowerRightTriangle = (lv === 1) || lu / (1 - lv) >= 1;
-
-    const tri = new Triangle(
-        new Vector3(u1, v2),
-        new Vector3(u2, v1),
-        lowerRightTriangle ? new Vector3(u2, v2) : new Vector3(u1, v1),
-    );
-
-    // bary holds the respective weight of each vertices of the triangles
-    tri.getBarycoord(new Vector3(uv.x, uv.y), bary);
-
-    // read the 3 interesting values
-    const z1 = _readTextureValueWithBilinearFiltering(textureInfo, tri.a.x, tri.a.y);
-    const z2 = _readTextureValueWithBilinearFiltering(textureInfo, tri.b.x, tri.b.y);
-    const z3 = _readTextureValueWithBilinearFiltering(textureInfo, tri.c.x, tri.c.y);
-
-    // Blend with bary
-    return z1 * bary.x + z2 * bary.y + z3 * bary.z;
 }
 
 const temp = {
@@ -482,20 +378,7 @@ function _readZ(entity, method, coord, nodes, cache) {
     //     used for rendering, guaranteed to be valid (we return earlier if no texture)
     //   - offset which is the offset in this texture for the coordinate we're
     //     interested in
-    // We now have 2 options:
-    //   - the fast one: read the value of tileWithValidElevationTexture.texture.image
-    //     at (offset.x, offset.y) and we're done
-    //   - the correct one: emulate the vertex shader code
-    if (method === PRECISE_READ_Z) {
-        pt._values[2] = _readZCorrect(
-            textureInfo,
-            offset,
-            tile.extent.dimensions(),
-            textureInfo.texture.extent.dimensions(),
-        );
-    } else {
-        pt._values[2] = _readZFast(textureInfo, offset);
-    }
+    pt._values[2] = _readZFast(textureInfo, offset);
     return { coord: pt, texture: src, tile };
 }
 
@@ -519,5 +402,5 @@ function _updateVector3(entity, method, nodes, vecCRS, vec, offset, matrices = {
 }
 
 export default {
-    getElevationValueAt, placeObjectOnGround, decodeMapboxElevation, FAST_READ_Z, PRECISE_READ_Z,
+    getElevationValueAt, placeObjectOnGround, decodeMapboxElevation, FAST_READ_Z,
 };

@@ -10,6 +10,7 @@ import TileImage from 'ol/source/TileImage.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './LayerUpdateStrategy.js';
 import CogSource from '../../sources/CogSource.js';
 import CustomTiledImageSource from '../../sources/CustomTiledImageSource.js';
+import Interpretation from './Interpretation.js';
 import Extent from '../Geographic/Extent.js';
 
 /**
@@ -159,6 +160,8 @@ class Layer extends EventDispatcher {
      * } options.source The data source of this layer.
      * @param {Extent} [options.extent=undefined] The geographic extent of the layer. If
      * unspecified, the extent will be inherited from the map.
+     * @param {Interpretation} [options.interpretation=Interpretation.Raw] How to interpret the
+     * values in the dataset.
      * @param {string} [options.projection=undefined] The layer projection. If unspecified,
      * the projection will be inherited from the map.
      * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.
@@ -176,6 +179,8 @@ class Layer extends EventDispatcher {
         });
 
         this.type = 'Layer';
+        /** @type {Interpretation} */
+        this.interpretation = options.interpretation ?? Interpretation.Raw;
         this.standalone = options.standalone ? options.standalone : false;
 
         // If the mode is standalone, no protocol is provided.

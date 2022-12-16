@@ -9,7 +9,7 @@ import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrateg
 import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
 import Coordinates from '@giro3d/giro3d/Core/Geographic/Coordinates.js';
 import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
-import { ELEVATION_FORMAT } from '@giro3d/giro3d/utils/DEMUtils.js';
+import Interpretation from '@giro3d/giro3d/Core/layer/Interpretation.js';
 import PointsMaterial, { MODE } from '@giro3d/giro3d/Renderer/PointsMaterial.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
@@ -89,9 +89,7 @@ const elevationLayer = new ElevationLayer(
     'wms_elevation',
     {
         source: wmsSource2,
-        elevationFormat: ELEVATION_FORMAT.HEIGHFIELD,
-        heightFieldOffset: 149, // Altitude corresponding to 0 in heightfield
-        heightFieldScale: (621 - 149), // Altitude corresponding to 255 in heightfield
+        interpretation: Interpretation.ScaleToMinMax(149, 621),
     },
 );
 

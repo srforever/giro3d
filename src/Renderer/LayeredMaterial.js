@@ -8,7 +8,6 @@ import {
     ShaderChunk,
     Texture,
     Uniform,
-    UnsignedByteType,
     Vector2,
     Vector4,
     DoubleSide,
@@ -22,7 +21,6 @@ import TileFS from './Shader/TileFS.glsl';
 import PrecisionQualifier from './Shader/Chunk/PrecisionQualifier.glsl';
 import GetElevation from './Shader/Chunk/GetElevation.glsl';
 import ComputeUV from './Shader/Chunk/ComputeUV.glsl';
-import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
 import WebGLComposer from './composition/WebGLComposer.js';
 import Rect from '../Core/Rect.js';
 import MemoryTracker from './MemoryTracker.js';
@@ -283,7 +281,6 @@ class LayeredMaterial extends RawShaderMaterial {
             return {
                 texture: this.texturesInfo.elevation.texture,
                 offsetScale: this.texturesInfo.elevation.offsetScale,
-                elevationFormat: this.texturesInfo.elevation.format,
                 heightFieldScale: this.texturesInfo.elevation.heightFieldScale,
                 heightFieldOffset: this.texturesInfo.elevation.heightFieldOffset,
             };
@@ -292,51 +289,12 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     setElevationTexture(layer, textureAndPitch, isInherited = false) {
-        if (layer.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
-            if (!this.defines.MAPBOX_RGB_ELEVATION) {
-                this.defines.MAPBOX_RGB_ELEVATION = 1;
-                this.needsUpdate = true;
-            }
-        } else if (layer.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
-            if (!this.defines.HEIGHTFIELD_ELEVATION) {
-                this.defines.HEIGHTFIELD_ELEVATION = 1;
+        this.elevationLayer = layer;
 
-                const heightFieldOffset = layer.heightFieldOffset || 0.0;
-                this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
-                this.uniforms.heightFieldOffset = new Uniform(heightFieldOffset);
-                const heightFieldScale = layer.heightFieldScale || 255.0;
-                this.texturesInfo.elevation.heightFieldScale = heightFieldScale;
-                this.uniforms.heightFieldScale = new Uniform(heightFieldScale);
-                this.needsUpdate = true;
-            }
-        } else if (layer.elevationFormat === ELEVATION_FORMAT.RATP_GEOL) {
-            if (!this.defines.RATP_GEOL_ELEVATION) {
-                this.defines.RATP_GEOL_ELEVATION = 1;
-            }
-        } else if (layer.elevationFormat === ELEVATION_FORMAT.NUMERIC) {
-            if (textureAndPitch.texture.type === FloatType) {
-                // In the case of raw, float textures, we don't want to apply scaling in the shader.
-                this.defines.RAW_ELEVATION = 1;
-                delete this.defines.HEIGHTFIELD_ELEVATION;
-            } else {
-                this.defines.HEIGHTFIELD_ELEVATION = 1;
-                delete this.defines.RAW_ELEVATION;
-            }
-            const heightFieldOffset = layer.minmax.min;
-            this.texturesInfo.elevation.heightFieldOffset = heightFieldOffset;
-            this.uniforms.heightFieldOffset = new Uniform(heightFieldOffset);
-            const heightFieldScale = layer.minmax.max - layer.minmax.min;
-            this.texturesInfo.elevation.heightFieldScale = heightFieldScale;
-            this.uniforms.heightFieldScale = new Uniform(heightFieldScale);
-            this.needsUpdate = true;
-        } else {
-            throw new Error('Missing layer.elevationFormat handling', layer.elevationFormat);
-        }
         const texture = textureAndPitch.texture;
         this.uniforms.elevationTexture.value = texture;
         this.texturesInfo.elevation.texture = texture;
         this.texturesInfo.elevation.offsetScale.copy(textureAndPitch.pitch);
-        this.texturesInfo.elevation.format = layer.elevationFormat;
         this.uniforms.elevationTextureSize.value.set(texture.image.width, texture.image.height);
         if (!isInherited) {
             texture.owner = this;
@@ -456,7 +414,6 @@ class LayeredMaterial extends RawShaderMaterial {
             height: this.atlasInfo.maxY,
             reuseTexture: true,
             renderToCanvas: false,
-            pixelType: UnsignedByteType, //  FloatType if we need to support non 8-bit color images
             webGLRenderer: this.renderer,
         });
         return newComposer;

@@ -1,6 +1,5 @@
 /** @module Renderer/composition/WebGLComposer */
 import {
-    CanvasTexture,
     WebGLRenderer,
     WebGLRenderTarget,
     OrthographicCamera,
@@ -8,13 +7,15 @@ import {
     Mesh,
     Texture,
     PlaneGeometry,
+    TextureDataType,
+    PixelFormat,
     RGBAFormat,
     ColorRepresentation,
     UnsignedByteType,
-    FloatType,
     ClampToEdgeWrapping,
     Vector3,
 } from 'three';
+import Interpretation from '../../Core/layer/Interpretation.js';
 
 import Rect from '../../Core/Rect.js';
 import TextureGenerator from '../../utils/TextureGenerator.js';
@@ -67,8 +68,6 @@ class WebGLComposer {
      * @param {WebGLRenderer} options.webGLRenderer The WebGL renderer to use. This must be the
      * same renderer as the one used to display the rendered textures, because WebGL contexts are
      * isolated from each other.
-     * @param {number} [options.pixelType=UnsignedByteType] If (only if `reuseTexture`is `true`),
-     * this pixel type will be used for the render target. Defaults to `UnsignedByteType`.
      * @param {ColorRepresentation} [options.clearColor=undefined] The clear (background) color.
      */
     constructor(options) {
@@ -82,7 +81,7 @@ class WebGLComposer {
 
         if (options.reuseTexture) {
             // We are going to render into the same target over and over
-            const target = this.createRenderTarget(options.pixelType || UnsignedByteType);
+            const target = this._createRenderTarget(UnsignedByteType, RGBAFormat);
 
             this.renderTarget = target;
             this.texture = target.texture;
@@ -121,11 +120,11 @@ class WebGLComposer {
         );
     }
 
-    createRenderTarget(pixelType) {
+    _createRenderTarget(pixelType, format) {
         const result = new WebGLRenderTarget(
             this.width,
             this.height, {
-                format: RGBAFormat,
+                format,
                 type: pixelType,
                 depthBuffer: false,
                 generateMipmaps: false,
@@ -152,8 +151,10 @@ class WebGLComposer {
      *
      * @param {Texture|HTMLImageElement|HTMLCanvasElement} texture The texture to add.
      * @param {Rect} extent The extent of this texture in the composition space.
+     * @param {object} [options] The options.
+     * @param {Interpretation} [options.interpretation=Interpretation.Raw] The pixel interpretation.
      */
-    draw(texture, extent) {
+    draw(texture, extent, options = {}) {
         const geometry = new PlaneGeometry(extent.width, extent.height, 1, 1);
         if (!texture.isTexture) {
             texture = new Texture(texture);
@@ -164,9 +165,11 @@ class WebGLComposer {
             }
         }
         this.textures.push(texture);
+        const interpretation = options.interpretation ?? Interpretation.Raw;
         const material = new ComposerTileMaterial(
             texture,
             {
+                interpretation,
                 showImageOutlines: this.showImageOutlines,
             },
         );
@@ -186,8 +189,8 @@ class WebGLComposer {
      * @memberof WebGLComposer
      */
     reset() {
-        this.removeTextures();
-        this.removeObjects();
+        this._removeTextures();
+        this._removeObjects();
         this.renderer.clear();
     }
 
@@ -213,7 +216,7 @@ class WebGLComposer {
         }
     }
 
-    removeObjects() {
+    _removeObjects() {
         const childrenCopy = [...this.scene.children];
         for (const child of childrenCopy) {
             child.geometry.dispose();
@@ -223,23 +226,61 @@ class WebGLComposer {
     }
 
     /**
+     * @typedef {object} TypeFormat
+     * @property {TextureDataType} type The data type.
+     * @property {PixelFormat} format The pixel format.
+     */
+
+    /**
+     * @returns {TypeFormat} the type and formats
+     */
+    _selectPixelTypeAndTextureFormat() {
+        let type = UnsignedByteType;
+        let format = RGBAFormat;
+        let currentBpp = -1;
+        let currentChannelCount = -1;
+
+        this.scene.traverse(o => {
+            if (o.material !== undefined && o.material instanceof ComposerTileMaterial) {
+                /** @type {ComposerTileMaterial} */
+                const mat = o.material;
+                const bpp = TextureGenerator.getBytesPerChannel(mat.dataType);
+                if (bpp > currentBpp) {
+                    currentBpp = bpp;
+                    type = mat.dataType;
+                }
+                const channelCount = TextureGenerator.getChannelCount(mat.pixelFormat);
+                if (channelCount > currentChannelCount) {
+                    format = mat.pixelFormat;
+                    currentChannelCount = channelCount;
+                }
+            }
+        });
+
+        return { type, format };
+    }
+
+    /**
      * Renders the composer into a texture.
      *
-     * @returns {CanvasTexture | Texture} Either a CanvasTexture if the canvas was specified,
-     * otherwise the texture of the render target.
+     * @returns {Texture} The texture of the render target.
      */
     render() {
         const previousTarget = this.renderer.getRenderTarget();
+
+        // select the best data type and format according to currently drawn images and constraints
+        const { type, format } = this._selectPixelTypeAndTextureFormat();
 
         // Should we reuse the same render target or create a new one ?
         let target;
         if (!this.renderTarget) {
             // We create a new render target for this render
-            const pixelType = selectPixelType(this.textures);
-            target = this.createRenderTarget(pixelType);
+            target = this._createRenderTarget(type, format);
         } else {
             // We reuse the same render target across all renders
             target = this.renderTarget;
+            target.texture.format = format;
+            target.texture.type = type;
         }
         this.renderer.setRenderTarget(target);
 
@@ -258,7 +299,7 @@ class WebGLComposer {
         return target.texture;
     }
 
-    removeTextures() {
+    _removeTextures() {
         this.ownedTextures.forEach(t => t.dispose());
         this.ownedTextures.length = 0;
 
@@ -269,22 +310,12 @@ class WebGLComposer {
      * Disposes all unmanaged resources in this composer.
      */
     dispose() {
-        this.removeTextures();
-        this.removeObjects();
+        this._removeTextures();
+        this._removeObjects();
         if (this.renderTarget) {
             this.renderTarget.dispose();
         }
     }
-}
-
-function selectPixelType(textures) {
-    for (const texture of textures) {
-        if (texture.type !== UnsignedByteType) {
-            return FloatType;
-        }
-    }
-
-    return UnsignedByteType;
 }
 
 export default WebGLComposer;
