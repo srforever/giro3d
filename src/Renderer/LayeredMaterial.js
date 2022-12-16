@@ -386,14 +386,13 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     update(materialOptions = {}) {
-        let recompileShaders = false;
         this.uniforms.zenith.value = this.lightDirection.zenith;
         this.uniforms.azimuth.value = this.lightDirection.azimuth;
 
         if (materialOptions.colormap) {
             if (!this.defines.COLORMAP) {
                 this.defines.COLORMAP = 1;
-                recompileShaders = true;
+                this.needsUpdate = true;
             }
             // Recreate uniforms if necessary
             if (!this.uniforms.colormapMode) {
@@ -419,23 +418,23 @@ class LayeredMaterial extends RawShaderMaterial {
             }
         } else if (this.defines.COLORMAP) {
             delete this.defines.COLORMAP;
-            recompileShaders = true;
+            this.needsUpdate = true;
         }
 
         if (materialOptions.hillshading && !this.defines.HILLSHADE) {
             this.defines.HILLSHADE = 1;
-            recompileShaders = true;
+            this.needsUpdate = true;
         } else if (!materialOptions.hillshading && this.defines.HILLSHADE) {
             delete this.defines.HILLSHADE;
-            recompileShaders = true;
+            this.needsUpdate = true;
         }
 
         if (this.showOutline && !this.defines.OUTLINES) {
             this.defines.OUTLINES = 1;
-            recompileShaders = true;
+            this.needsUpdate = true;
         } else if (!this.showOutline && this.defines.OUTLINES) {
             delete this.defines.OUTLINES;
-            recompileShaders = true;
+            this.needsUpdate = true;
         }
 
         const newSide = materialOptions.doubleSided ? DoubleSide : FrontSide;
@@ -443,8 +442,6 @@ class LayeredMaterial extends RawShaderMaterial {
             this.side = newSide;
             this.needsUpdate = true;
         }
-
-        this.needsUpdate |= recompileShaders;
 
         if (this.colorLayers.length === 0) {
             return true;
