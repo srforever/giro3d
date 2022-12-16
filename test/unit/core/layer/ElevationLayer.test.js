@@ -4,7 +4,7 @@ import { ELEVATION_FORMAT } from '../../../../src/utils/DEMUtils.js';
 describe('ElevationLayer', () => {
     describe('constructor', () => {
         it('should throw on undefined id', () => {
-            expect(() => new ElevationLayer(undefined)).toThrow();
+            expect(() => new ElevationLayer(undefined)).toThrow('id is undefined');
         });
 
         it('should define layer properties', () => {

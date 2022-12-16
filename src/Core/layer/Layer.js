@@ -166,6 +166,9 @@ class Layer extends EventDispatcher {
      */
     constructor(id, options) {
         super();
+        if (id === undefined || id === null) {
+            throw new Error('id is undefined');
+        }
         Object.defineProperty(this, 'id', {
             value: id,
             writable: false,
