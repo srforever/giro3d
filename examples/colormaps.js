@@ -1,15 +1,18 @@
-import { Lut } from 'three/examples/jsm/math/Lut.js';
+import colormap from 'colormap';
+import { Color } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
 import Instance from '@giro3d/giro3d/Core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
+import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
 import Coordinates from '@giro3d/giro3d/Core/Geographic/Coordinates.js';
 import Interpretation from '@giro3d/giro3d/Core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import CustomTiledImageSource from '@giro3d/giro3d/sources/CustomTiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import ColorMap from '@giro3d/giro3d/Core/layer/ColorMap.js';
+import ColorMapMode from '@giro3d/giro3d/Core/layer/ColorMapMode.js';
 
 Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 
@@ -20,8 +23,13 @@ const extent = new Extent(
 
 // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
 const viewerDiv = document.getElementById('viewerDiv');
-const coloringOptions = document.getElementById('coloringOptions');
-const colormapOptions = document.getElementById('colormapOptions');
+
+const colorLayerMode = document.getElementById('colorLayerMode');
+const elevationLayerMode = document.getElementById('elevationLayerMode');
+const colorLayerGradient = document.getElementById('colorLayerGradient');
+const elevationLayerGradient = document.getElementById('elevationLayerGradient');
+const elevationLayerEnabled = document.getElementById('elevationLayerEnabled');
+const colorLayerEnabled = document.getElementById('colorLayerEnabled');
 
 // Creates the giro3d instance
 const instance = new Instance(viewerDiv);
@@ -49,54 +57,31 @@ controls.maxPolarAngle = Math.PI / 2.3;
 
 instance.useTHREEControls(controls);
 
-// Create the different Look Up Tables (LUT) with 256 colors
-const luts = {};
-const threeLut = new Lut();
-for (const colormap of ['rainbow', 'cooltowarm', 'blackbody', 'grayscale']) {
-    luts[colormap] = new Float32Array(256 * 3);
-    threeLut.setColorMap(colormap, 256);
-    for (let i = 0; i < 256; i++) {
-        const i3 = i * 3;
-        const color = threeLut.getColor(i / 255.0);
-        luts[colormap][i3 + 0] = color.r;
-        luts[colormap][i3 + 1] = color.g;
-        luts[colormap][i3 + 2] = color.b;
-    }
-}
-
-// Add the custom LUT
-luts.custom = new Float32Array([
-    0.0, 0.0, 1.0,
-    0.0, 1.0, 0.0,
-    1.0, 0.0, 0.0,
-    1.0, 1.0, 1.0,
-]);
-
 const elevationMin = 711; // Altitude corresponding to 0 in heightfield
 const elevationMax = 3574; // Altitude corresponding to 255 in heightfield
 
-const coloringModes = {
-    elevation: 0,
-    slope: 1,
-    aspect: 2,
-};
-const coloringBounds = {
-    elevation: [elevationMin, elevationMax],
-    slope: [0, 90],
-    aspect: [0, 360],
-};
+function makeColorRamp(preset) {
+    const values = colormap({ colormap: preset });
+    const colors = values.map(v => new Color(v));
+
+    return colors;
+}
+
+const colorRamps = {};
+
+colorRamps.viridis = makeColorRamp('viridis');
+colorRamps.jet = makeColorRamp('jet');
+colorRamps.blackbody = makeColorRamp('blackbody');
+colorRamps.earth = makeColorRamp('earth');
+colorRamps.bathymetry = makeColorRamp('bathymetry');
+colorRamps.magma = makeColorRamp('magma');
+colorRamps.par = makeColorRamp('par');
 
 // Adds the map that will contain the layers.
 const map = new Map('planar', {
     extent,
     segments: 128,
     hillshading: true,
-    colormap: {
-        mode: coloringModes[coloringOptions.value],
-        min: coloringBounds[coloringOptions.value][0],
-        max: coloringBounds[coloringOptions.value][1],
-        lut: luts[colormapOptions.value],
-    },
 });
 instance.add(map);
 
@@ -106,38 +91,73 @@ const demSource = new CustomTiledImageSource({
     url: 'https://3d.oslandia.com/ecrins/ecrins-dem.json',
     networkOptions: { crossOrigin: 'same-origin' },
 });
-map.addLayer(new ElevationLayer('dem', {
-    updateStrategy: {
-        type: STRATEGY_DICHOTOMY,
-        options: {},
-    },
+
+const elevationLayer = new ElevationLayer('elevation', {
+    colorMap: new ColorMap(
+        colorRamps[elevationLayerGradient.value],
+        elevationMin,
+        elevationMax,
+        getMode(elevationLayerMode.value),
+    ),
     source: demSource,
     interpretation: Interpretation.ScaleToMinMax(elevationMin, elevationMax),
     projection: 'EPSG:2154',
-}));
+});
 
-const colorMapCheckbox = document.getElementById('colorMapCheckbox');
+const colorLayer = new ColorLayer('color', {
+    colorMap: new ColorMap(
+        colorRamps[colorLayerGradient.value],
+        elevationMin,
+        elevationMax,
+        getMode(colorLayerMode.value),
+    ),
+    source: demSource,
+    interpretation: Interpretation.ScaleToMinMax(elevationMin, elevationMax),
+    projection: 'EPSG:2154',
+});
 
-colorMapCheckbox.oninput = function oninput() {
-    updateColorMap();
-};
+map.addLayer(elevationLayer);
+map.addLayer(colorLayer);
 
-function updateColorMap() {
-    if (colorMapCheckbox.checked) {
-        map.materialOptions.colormap = {};
-        map.materialOptions.colormap.lut = luts[colormapOptions.value];
-        map.materialOptions.colormap.mode = coloringModes[coloringOptions.value];
-        map.materialOptions.colormap.min = coloringBounds[coloringOptions.value][0];
-        map.materialOptions.colormap.max = coloringBounds[coloringOptions.value][1];
-    } else {
-        map.materialOptions.colormap = undefined;
+elevationLayerEnabled.onchange = updateColorMaps;
+colorLayerEnabled.onchange = updateColorMaps;
+colorLayerGradient.addEventListener('change', () => updateColorMaps());
+colorLayerMode.addEventListener('change', () => updateColorMaps());
+elevationLayerMode.addEventListener('change', () => updateColorMaps());
+elevationLayerGradient.addEventListener('change', () => updateColorMaps());
+
+function getMode(name) {
+    switch (name) {
+        case 'slope': return { mode: ColorMapMode.Slope, min: 0, max: 50 };
+        case 'aspect': return { mode: ColorMapMode.Aspect, min: 0, max: 360 };
+        default: return { mode: ColorMapMode.Elevation, min: elevationMin, max: elevationMax };
     }
+}
+
+function updateColorMaps() {
+    elevationLayer.colorMap.active = elevationLayerEnabled.checked;
+
+    if (elevationLayerEnabled.checked) {
+        elevationLayer.colorMap.colors = colorRamps[elevationLayerGradient.value];
+        const { mode, min, max } = getMode(elevationLayerMode.value);
+        elevationLayer.colorMap.mode = mode;
+        elevationLayer.colorMap.min = min;
+        elevationLayer.colorMap.max = max;
+    }
+
+    colorLayer.visible = colorLayerEnabled.checked;
+
+    if (colorLayerEnabled.checked) {
+        colorLayer.colorMap.colors = colorRamps[colorLayerGradient.value];
+        const { mode, min, max } = getMode(colorLayerMode.value);
+        colorLayer.colorMap.mode = mode;
+        colorLayer.colorMap.min = min;
+        colorLayer.colorMap.max = max;
+    }
+
     instance.notifyChange(map);
 }
-document.getElementById('coloringOptions').addEventListener('change', () => updateColorMap());
 
-colormapOptions.addEventListener('change', () => updateColorMap());
-
-updateColorMap();
+updateColorMaps();
 
 Inspector.attach(document.getElementById('panelDiv'), instance);

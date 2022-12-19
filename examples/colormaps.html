@@ -5,23 +5,94 @@ shortdesc: Colorize elevation, slope and aspect
 <div class="position-relative h-100">
     <div id="viewerDiv"></div>
     <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
-    <div class="p-2 m-2 position-absolute top-0 end-0 card">
-        <p class="card-text">Enable colormapping</p>
-        <input type="checkbox" checked="true" id="colorMapCheckbox">
-        <p class="card-text">Coloring</p>
-        <select class="btn btn-primary dropdown-toggle d-block" id="coloringOptions">
-            <option>elevation</option>
-            <option>slope</option>
-            <option>aspect</option>
-        </select>
-        <p></p>
-        <p class="card-text">Colormap</p>
-        <select class="btn btn-primary dropdown-toggle d-block" id="colormapOptions">
-            <option>rainbow</option>
-            <option>cooltowarm</option>
-            <option>blackbody</option>
-            <option>grayscale</option>
-            <option>custom</option>
-        </select>
+
+    <div class="p-2 m-2 position-absolute top-0 end-0">
+        <div class="container card p-2 m-2">
+            <h5 class="card-title">Color layer</h5>
+            <div class="container">
+                <div class="row m-2">
+                    <div class="col">
+                        Show layer
+                    </div>
+                    <div class="col" style="width: 100px; align-self: flex-end;">
+                        <input class="form-check-input" type="checkbox" checked="true" id="colorLayerEnabled">
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col">
+                        Mode
+                    </div>
+                    <div class="col">
+                        <select class="btn btn-primary btn-sm dropdown-toggle" style="width: 100px;"
+                            id="colorLayerMode">
+                            <option>elevation</option>
+                            <option>slope</option>
+                            <option>aspect</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col">
+                        Color map
+                    </div>
+                    <div class="col">
+                        <select class="btn btn-primary btn-sm dropdown-toggle" style="width: 100px;"
+                            id="colorLayerGradient">
+                            <option>viridis</option>
+                            <option>jet</option>
+                            <option>blackbody</option>
+                            <option>earth</option>
+                            <option>bathymetry</option>
+                            <option>magma</option>
+                            <option>par</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- container card -->
+
+        <div class="container card p-2 m-2">
+            <h5 class="card-title">Elevation layer</h5>
+            <div class="container">
+                <div class="row m-2">
+                    <div class="col">
+                        Enable color map
+                    </div>
+                    <div class="col" style="width: 100px; align-self: flex-end;">
+                        <input class="form-check-input" type="checkbox" checked="true" id="elevationLayerEnabled">
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col">
+                        Mode
+                    </div>
+                    <div class="col">
+                        <select class="btn btn-primary btn-sm dropdown-toggle" style="width: 100px;"
+                            id="elevationLayerMode">
+                            <option>elevation</option>
+                            <option>slope</option>
+                            <option>aspect</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="row m-2">
+                    <div class="col">
+                        Color map
+                    </div>
+                    <div class="col">
+                        <select class="btn btn-primary btn-sm dropdown-toggle" style="width: 100px;"
+                            id="elevationLayerGradient">
+                            <option>viridis</option>
+                            <option>jet</option>
+                            <option>blackbody</option>
+                            <option>earth</option>
+                            <option>bathymetry</option>
+                            <option>magma</option>
+                            <option>par</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- container card -->
     </div>
 </div>
