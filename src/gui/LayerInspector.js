@@ -7,6 +7,7 @@ import Instance from '../Core/Instance.js';
 import Layer from '../Core/layer/Layer.js';
 import Panel from './Panel.js';
 import { UPDATE_STRATEGIES } from '../Core/layer/LayerUpdateStrategy.js';
+import ColorMapInspector from './ColorMapInspector.js';
 import Helpers from '../helpers/Helpers.js';
 import Map from '../entities/Map.js';
 
@@ -73,11 +74,29 @@ class LayerInspector extends Panel {
             .name('Extent color')
             .onChange(v => this.updateExtentColor(v));
 
-        this.addColorController(this, 'backgroundColor')
-            .name('Background');
-
         this.addController(this.layer.updateStrategy, 'type', UPDATE_STRATEGIES)
             .name('Update strategy');
+
+        /**
+         * The color map inspector.
+         *
+         * @type {GUI}
+         * @api
+         */
+        this.colorMapInspector = new ColorMapInspector(
+            this.gui,
+            instance,
+            layer,
+            layer.colorMap,
+        );
+    }
+
+    get colorMap() {
+        if (this.layer.colorMap) {
+            return this.layer.colorMap;
+        }
+
+        return { min: '-1', max: '-1', mode: 'N/A' };
     }
 
     updateExtentColor() {
@@ -107,7 +126,6 @@ class LayerInspector extends Panel {
     }
 
     updateValues() {
-        this.backgroundColor = this.layer.backgroundColor || 'none';
         this.visible = this.layer.visible || true;
     }
 }
