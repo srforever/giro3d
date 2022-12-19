@@ -9,6 +9,7 @@ import Layer, {
     defineLayerProperty, nodeCommandQueuePriorityFunction,
     refinementCommandCancellationFn, MAX_RETRY,
 } from './Layer.js';
+import ColorMap from './ColorMap.js';
 
 // get image data
 let canvas;
@@ -41,9 +42,9 @@ class ElevationLayer extends Layer {
      * the projection will be inherited from the map.
      * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.
      * If unspecified, the layer will use the `STRATEGY_MIN_NETWORK_TRAFFIC`.
-     * @param {string} [options.backgroundColor=undefined] The background color of the layer.
      * @param {number} [options.noDataValue=undefined] the optional no-data value to pass to the
      * provider. Any pixel that matches this value will not be processed.
+     * @param {ColorMap} [options.colorMap=undefined] An optional color map for this layer.
      */
     constructor(id, options = {}) {
         super(id, options);

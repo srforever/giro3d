@@ -56,22 +56,13 @@ describe('Map', () => {
             expect(() => new Map(undefined)).toThrow(/Missing id parameter/);
         });
 
-        it('should assign the noTextureColor property', () => {
-            const m1 = new Map('foo', { extent, backgroundColor: 'red' });
-            expect(m1.noTextureColor).toEqual(new Color('red'));
-
-            // Check default value
-            const m2 = new Map('foo', { extent });
-            expect(m2.noTextureColor).toEqual(new Color(0.04, 0.23, 0.35));
-        });
-
         it.each([true, false])('should assign the correct materialOptions', b => {
             const opts = {
                 extent,
                 doubleSided: b,
                 hillshading: b,
+                backgroundColor: 'red',
                 discardNoData: b,
-                colormap: {},
             };
             const m = new Map('foo', opts);
 
@@ -79,7 +70,7 @@ describe('Map', () => {
             expect(m.materialOptions.hillshading).toEqual(opts.hillshading);
             expect(m.materialOptions.discardNoData).toEqual(opts.discardNoData);
             expect(m.materialOptions.discardNoData).toEqual(opts.doubleSided);
-            expect(m.materialOptions.colormap).toBe(opts.colormap);
+            expect(m.materialOptions.backgroundColor).toEqual(new Color('red'));
         });
 
         it('should assign passed values', () => {

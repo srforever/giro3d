@@ -76,11 +76,10 @@ describe('Layer', () => {
             const extent = new Extent('EPSG:4326', 0, 0, 0, 0);
             const updateStrategy = { type: STRATEGY_DICHOTOMY };
             const projection = 'EPSG:4326';
-            const backgroundColor = '#00FF00';
             const layer = new Layer(
                 id,
                 {
-                    extent, updateStrategy, projection, backgroundColor, standalone: true,
+                    extent, updateStrategy, projection, standalone: true,
                 },
             );
 
@@ -90,7 +89,6 @@ describe('Layer', () => {
             assert.strictEqual(layer.extent, extent);
             assert.strictEqual(layer.updateStrategy, updateStrategy);
             assert.strictEqual(layer.projection, projection);
-            assert.strictEqual(layer.backgroundColor, backgroundColor);
         });
 
         it('should assign the not provided properties from map or default', () => {
@@ -160,6 +158,17 @@ describe('Layer', () => {
             assert.strictEqual(layer.standalone, true);
 
             assert.throws(() => new Layer('id', { source: { constructor: Instance } }));
+        });
+    });
+
+    describe('dispose', () => {
+        it('should dispose the color map, if any', () => {
+            const colorMap = { dispose: jest.fn() };
+            const layer = new Layer('foo', { standalone: true, colorMap });
+
+            expect(colorMap.dispose).not.toHaveBeenCalled();
+            layer.dispose();
+            expect(colorMap.dispose).toHaveBeenCalled();
         });
     });
 });

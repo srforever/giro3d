@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Color, Object3D } from 'three';
+import { Object3D } from 'three';
 import Entity3D from '../../../src/entities/Entity3D.js';
 
 /**
@@ -58,12 +58,6 @@ describe('Entity3D', () => {
             const entity = sut();
 
             assert.strictEqual(entity.opacity, 1.0);
-        });
-
-        it('should define the "noTextureColor" property with default value', () => {
-            const entity = sut();
-
-            assert.deepEqual(entity.noTextureColor, new Color(0.04, 0.23, 0.35));
         });
     });
 

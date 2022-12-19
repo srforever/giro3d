@@ -45,6 +45,9 @@ class ColorMap {
      * @param {ColorMapMode} [mode=ColorMapMode.Elevation] The mode of the color map.
      */
     constructor(colors, min, max, mode = ColorMapMode.Elevation) {
+        if (colors === undefined) {
+            throw new Error('colors is undefined');
+        }
         this._min = min;
         this._max = max;
         this._mode = mode;

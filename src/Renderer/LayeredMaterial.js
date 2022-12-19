@@ -1,10 +1,7 @@
 import {
     Color,
-    DataTexture,
-    FloatType,
     LinearFilter,
     RawShaderMaterial,
-    RGBFormat,
     ShaderChunk,
     Texture,
     Uniform,
@@ -19,18 +16,34 @@ import RenderingState from './RenderingState.js';
 import TileVS from './Shader/TileVS.glsl';
 import TileFS from './Shader/TileFS.glsl';
 import PrecisionQualifier from './Shader/Chunk/PrecisionQualifier.glsl';
+import ColorMapChunk from './Shader/Chunk/ColorMap.glsl';
+import LayerInfoChunk from './Shader/Chunk/LayerInfo.glsl';
 import GetElevation from './Shader/Chunk/GetElevation.glsl';
 import ComputeUV from './Shader/Chunk/ComputeUV.glsl';
 import WebGLComposer from './composition/WebGLComposer.js';
 import Rect from '../Core/Rect.js';
 import MemoryTracker from './MemoryTracker.js';
+import ElevationLayer from '../Core/layer/ElevationLayer.js';
+import ColorMap from '../Core/layer/ColorMap.js';
 
 // Declaring our own chunks
 ShaderChunk.PrecisionQualifier = PrecisionQualifier;
 ShaderChunk.GetElevation = GetElevation;
 ShaderChunk.ComputeUV = ComputeUV;
+ShaderChunk.LayerInfo = LayerInfoChunk;
+ShaderChunk.ColorMap = ColorMapChunk;
 
 const emptyTexture = new Texture();
+
+function makeArray(size) {
+    const array = new Array(size);
+    for (let i = 0; i < size; i++) {
+        array[i] = {};
+    }
+    return array;
+}
+
+const COLORMAP_DISABLED = 0;
 
 // from js packDepthToRGBA
 const UnpackDownscale = 255 / 256; // 0..1 -> fraction (excluding 1)
@@ -85,7 +98,7 @@ class LayeredMaterial extends RawShaderMaterial {
         this.uniforms.renderingState = new Uniform(RenderingState.FINAL);
         this._updateBlendingMode();
 
-        this.defines.TEX_UNITS = 0;
+        this.defines.COLOR_LAYERS = 0;
 
         if (__DEBUG__) {
             this.defines.DEBUG = 1;
@@ -120,22 +133,21 @@ class LayeredMaterial extends RawShaderMaterial {
         // Elevation texture
         const elevInfo = this.texturesInfo.elevation;
         this.uniforms.elevationTexture = new Uniform(elevInfo.texture);
-        this.uniforms.elevationOffsetScale = new Uniform(elevInfo.offsetScale);
-        this.uniforms.elevationTextureSize = new Uniform(new Vector2());
+        this.uniforms.elevationLayer = new Uniform({});
 
         // Color textures's layer
         this.uniforms.colorTexture = new Uniform(this.texturesInfo.color.atlasTexture);
 
-        this.uniforms.colorOffsetScale = new Uniform();
-        this.uniforms.colorOpacity = new Uniform();
-        this.uniforms.colorVisible = new Uniform();
-        this.uniforms.colors = new Uniform();
+        // Describe the properties of each color layer (offsetScale, color...).
+        this.uniforms.layers = new Uniform([]);
+        this.uniforms.layersColorMaps = new Uniform([]);
+        this.uniforms.luts = new Uniform([]);
 
-        this.updateLayerUniforms();
+        this._updateColorLayerUniforms();
 
         this.uniforms.uuid = new Uniform(0);
 
-        this.uniforms.noTextureColor = new Uniform(new Color());
+        this.uniforms.backgroundColor = new Uniform(new Color());
         this.uniforms.opacity = new Uniform(1.0);
 
         this.colorLayers = [];
@@ -144,6 +156,8 @@ class LayeredMaterial extends RawShaderMaterial {
         this.texturesInfo.color.atlasTexture.minFilter = LinearFilter;
         this.texturesInfo.color.atlasTexture.anisotropy = 1;
         this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
+
+        this.update(options);
 
         if (__DEBUG__) {
             MemoryTracker.track(this, 'LayeredMaterial');
@@ -156,16 +170,30 @@ class LayeredMaterial extends RawShaderMaterial {
         }
     }
 
-    updateLayerUniforms() {
+    _updateColorLayerUniforms() {
+        const layersUniform = [];
         const infos = this.texturesInfo.color.infos;
-        this.uniforms.colorOffsetScale.value = infos.map(x => x.offsetScale);
-        this.updateOpacityUniform();
-        this.uniforms.colorVisible.value = infos.map(x => x.visible);
-        this.uniforms.colors.value = infos.map(x => x.color);
-    }
 
-    updateOpacityUniform() {
-        this.uniforms.colorOpacity.value = this.texturesInfo.color.infos.map(x => x.opacity);
+        for (const info of infos) {
+            const offsetScale = info.offsetScale;
+            const tex = info.texture;
+            let textureSize = new Vector2(0, 0);
+            if (tex.image) {
+                textureSize = new Vector2(tex.image.width, tex.image.height);
+            }
+
+            const rgb = info.color;
+            const a = info.visible ? info.opacity : 0;
+            const color = new Vector4(rgb.r, rgb.g, rgb.b, a);
+
+            layersUniform.push({
+                offsetScale,
+                color,
+                textureSize,
+            });
+        }
+
+        this.uniforms.layers.value = layersUniform;
     }
 
     dispose() {
@@ -192,10 +220,6 @@ class LayeredMaterial extends RawShaderMaterial {
         const elevTexture = this.texturesInfo.elevation.texture;
         if (elevTexture.owner === this) {
             elevTexture.dispose();
-        }
-
-        if (this.uniforms.vLut) {
-            this.uniforms.vLut.value.dispose();
         }
     }
 
@@ -293,16 +317,26 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     setElevationTexture(layer, textureAndPitch, isInherited = false) {
+        /** @type {ElevationLayer} */
         this.elevationLayer = layer;
+
+        this._define('ELEVATION_LAYER', true);
 
         const texture = textureAndPitch.texture;
         this.uniforms.elevationTexture.value = texture;
         this.texturesInfo.elevation.texture = texture;
         this.texturesInfo.elevation.offsetScale.copy(textureAndPitch.pitch);
-        this.uniforms.elevationTextureSize.value.set(texture.image.width, texture.image.height);
+
+        const uniform = this.uniforms.elevationLayer.value;
+        uniform.offsetScale = textureAndPitch.pitch;
+        uniform.textureSize = new Vector2(texture.image.width, texture.image.height);
+        uniform.color = new Vector4(1, 1, 1, 1);
+
         if (!isInherited) {
             texture.owner = this;
         }
+
+        this._updateColorMaps();
 
         return Promise.resolve(true);
     }
@@ -326,9 +360,11 @@ class LayeredMaterial extends RawShaderMaterial {
         this.texturesInfo.color.infos.push(info);
         this.texturesInfo.color.infos.sort((a, b) => a.index - b.index);
 
-        this.updateLayerUniforms();
+        this._updateColorLayerUniforms();
 
-        this.defines.TEX_UNITS = this.colorLayers.length;
+        this._updateColorMaps();
+
+        this.defines.COLOR_LAYERS = this.colorLayers.length;
         this.needsUpdate = true;
     }
 
@@ -342,62 +378,99 @@ class LayeredMaterial extends RawShaderMaterial {
         this.texturesInfo.color.infos.splice(index, 1);
         this.colorLayers.splice(index, 1);
 
-        this.defines.TEX_UNITS = this.colorLayers.length;
+        this._updateColorLayerUniforms();
+
+        this._updateColorMaps();
+
+        this.defines.COLOR_LAYERS = this.colorLayers.length;
 
         this.needsUpdate = true;
+    }
+
+    /**
+     * Returns or create a uniform by name.
+     *
+     * @param {string} name The uniform name.
+     * @param {any} value the value to set
+     * @returns {Uniform} The resulting uniform
+     */
+    getObjectUniform(name, value = {}) {
+        let uniform;
+
+        if (!this.uniforms[name]) {
+            uniform = new Uniform(value);
+            this.uniforms[name] = uniform;
+        } else {
+            uniform = this.uniforms[name];
+            uniform.value = value;
+        }
+        return uniform;
+    }
+
+    _updateColorMaps() {
+        const elevationColorMap = this.elevationLayer?.colorMap;
+
+        const elevationUniform = this.getObjectUniform('elevationColorMap');
+        if (elevationColorMap?.active) {
+            elevationUniform.value.mode = elevationColorMap?.mode ?? COLORMAP_DISABLED;
+            elevationUniform.value.min = elevationColorMap?.min ?? 0;
+            elevationUniform.value.max = elevationColorMap?.max ?? 0;
+            this.getObjectUniform('elevationLut', elevationColorMap?.getTexture() ?? undefined);
+        } else {
+            elevationUniform.value.mode = COLORMAP_DISABLED;
+            elevationUniform.value.min = 0;
+            elevationUniform.value.max = 0;
+        }
+
+        const colorLayers = this.texturesInfo.color.infos;
+        const colorMaps = makeArray(colorLayers.length);
+        const luts = makeArray(colorLayers.length);
+
+        for (let i = 0; i < colorLayers.length; i++) {
+            const texInfo = colorLayers[i];
+            const colorUniform = colorMaps[i];
+            /** @type {ColorMap} */
+            const colorMap = texInfo.layer.colorMap;
+            if (colorMap?.active) {
+                colorUniform.mode = colorMap.mode;
+                colorUniform.min = colorMap.min ?? 0;
+                colorUniform.max = colorMap.max ?? 0;
+                luts[i] = colorMap?.getTexture() ?? undefined;
+            } else {
+                colorUniform.mode = COLORMAP_DISABLED;
+                luts[i] = undefined;
+            }
+        }
+
+        this.uniforms.layersColorMaps = new Uniform(colorMaps);
+        this.uniforms.luts = new Uniform(luts);
+    }
+
+    _define(name, condition) {
+        if (this.defines[name] === undefined) {
+            if (condition) {
+                this.defines[name] = 1;
+                this.needsUpdate = true;
+            }
+        } else if (!condition) {
+            delete this.defines[name];
+            this.needsUpdate = true;
+        }
     }
 
     update(materialOptions = {}) {
         this.uniforms.zenith.value = this.lightDirection.zenith;
         this.uniforms.azimuth.value = this.lightDirection.azimuth;
 
-        if (materialOptions.colormap) {
-            if (!this.defines.COLORMAP) {
-                this.defines.COLORMAP = 1;
-                this.needsUpdate = true;
-            }
-            // Recreate uniforms if necessary
-            if (!this.uniforms.colormapMode) {
-                this.uniforms.colormapMode = { type: 'i', value: materialOptions.colormap.mode };
-                this.uniforms.colormapMin = { type: 'f', value: materialOptions.colormap.min };
-                this.uniforms.colormapMax = { type: 'f', value: materialOptions.colormap.max };
-                this.uniforms.vLut = new Uniform();
-            }
-            this.uniforms.colormapMode.value = materialOptions.colormap.mode;
-            this.uniforms.colormapMin.value = materialOptions.colormap.min;
-            this.uniforms.colormapMax.value = materialOptions.colormap.max;
+        this._updateColorMaps();
 
-            // Update the LUT texture if it has changed
-            const lut = materialOptions.colormap.lut;
-            if (!this.uniforms.vLut.value
-                || this.uniforms.vLut.value.image.data !== lut) {
-                if (this.uniforms.vLut.value) {
-                    this.uniforms.vLut.value.dispose();
-                }
-                this.uniforms.vLut.value = new DataTexture(
-                    lut, lut.length / 3, 1, RGBFormat, FloatType,
-                );
-            }
-        } else if (this.defines.COLORMAP) {
-            delete this.defines.COLORMAP;
-            this.needsUpdate = true;
+        if (materialOptions.backgroundColor) {
+            this.uniforms.backgroundColor.value.copy(materialOptions.backgroundColor);
         }
 
-        if (materialOptions.hillshading && !this.defines.HILLSHADE) {
-            this.defines.HILLSHADE = 1;
-            this.needsUpdate = true;
-        } else if (!materialOptions.hillshading && this.defines.HILLSHADE) {
-            delete this.defines.HILLSHADE;
-            this.needsUpdate = true;
-        }
-
-        if (this.showOutline && !this.defines.OUTLINES) {
-            this.defines.OUTLINES = 1;
-            this.needsUpdate = true;
-        } else if (!this.showOutline && this.defines.OUTLINES) {
-            delete this.defines.OUTLINES;
-            this.needsUpdate = true;
-        }
+        this._define('ELEVATION_LAYER', this.elevationLayer?.visible);
+        this._define('ENABLE_HILLSHADING', materialOptions.hillshading);
+        this._define('ENABLE_OUTLINES', this.showOutline);
 
         const newSide = materialOptions.doubleSided ? DoubleSide : FrontSide;
         if (this.side !== newSide) {
@@ -509,13 +582,13 @@ class LayeredMaterial extends RawShaderMaterial {
     setLayerOpacity(layer, opacity) {
         const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
         this.texturesInfo.color.infos[index].opacity = opacity;
-        this.updateOpacityUniform();
+        this._updateColorLayerUniforms();
     }
 
     setLayerVisibility(layer, visible) {
         const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
         this.texturesInfo.color.infos[index].visible = visible;
-        this.updateLayerUniforms();
+        this._updateColorLayerUniforms();
     }
 
     isElevationLayerTextureLoaded() {

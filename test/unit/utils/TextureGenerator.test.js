@@ -1,4 +1,10 @@
-import { DataTexture, FloatType, UnsignedByteType } from 'three';
+import {
+    Color,
+    DataTexture,
+    FloatType,
+    RGBAFormat,
+    UnsignedByteType,
+} from 'three';
 import TextureGenerator, {
     OPAQUE_BYTE, OPAQUE_FLOAT,
     TRANSPARENT,
@@ -384,6 +390,40 @@ describe('TextureGenerator', () => {
             await expect(TextureGenerator.decodeBlob(blob))
                 .rejects
                 .toThrow(/unsupported media type/);
+        });
+    });
+
+    describe('create1DTexture', () => {
+        it('should return a new texture if cached texture does not exist', () => {
+            const colors = [new Color('red'), new Color('white'), new Color('cyan')];
+
+            const texture = TextureGenerator.create1DTexture(colors);
+
+            expect(texture.image.width).toEqual(3);
+            expect(texture.image.height).toEqual(1);
+            expect(texture.type).toEqual(UnsignedByteType);
+            expect(texture.format).toEqual(RGBAFormat);
+
+            const buf = texture.image.data;
+            expect(buf).toHaveLength(colors.length * 4);
+
+            // red
+            expect(buf[0]).toEqual(255);
+            expect(buf[1]).toEqual(0);
+            expect(buf[2]).toEqual(0);
+            expect(buf[3]).toEqual(255);
+
+            // white
+            expect(buf[4]).toEqual(255);
+            expect(buf[5]).toEqual(255);
+            expect(buf[6]).toEqual(255);
+            expect(buf[7]).toEqual(255);
+
+            // cyan
+            expect(buf[8]).toEqual(0);
+            expect(buf[9]).toEqual(255);
+            expect(buf[10]).toEqual(255);
+            expect(buf[11]).toEqual(255);
         });
     });
 });

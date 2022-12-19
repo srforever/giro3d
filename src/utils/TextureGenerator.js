@@ -28,6 +28,7 @@ import {
     WebGLRenderTarget,
     WebGLRenderer,
     TextureDataType,
+    Color,
 } from 'three';
 
 export const OPAQUE_BYTE = 255;
@@ -336,11 +337,38 @@ function createDataTexture(options, sourceDataType, ...pixelData) {
     }
 }
 
+/**
+ * Returns a 1D texture containing a pixel on the horizontal axis for each color in the array.
+ *
+ * @param {Color[]} colors The color gradient.
+ * @returns {DataTexture} The resulting texture.
+ */
+function create1DTexture(colors) {
+    const size = colors.length;
+    const buf = new Uint8ClampedArray(size * 4);
+
+    for (let i = 0; i < size; i++) {
+        const color = colors[i];
+        const index = i * 4;
+
+        buf[index + 0] = color.r * 255;
+        buf[index + 1] = color.g * 255;
+        buf[index + 2] = color.b * 255;
+        buf[index + 3] = 255;
+    }
+
+    const HEIGHT = 1;
+    const texture = new DataTexture(buf, size, HEIGHT, RGBAFormat, UnsignedByteType);
+
+    return texture;
+}
+
 export default {
     createDataTexture,
     decodeBlob,
     fillBuffer,
     getChannelCount,
     getBytesPerChannel,
+    create1DTexture,
     createDataCopy,
 };
