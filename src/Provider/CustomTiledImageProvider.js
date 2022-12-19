@@ -1,5 +1,5 @@
 import Flatbush from 'flatbush';
-import { Texture, Vector2, Vector4 } from 'three';
+import { Texture, Vector2 } from 'three';
 
 import Extent from '../Core/Geographic/Extent.js';
 import DataStatus from './DataStatus.js';
@@ -65,7 +65,7 @@ function getKey(images) {
 }
 
 async function getTexture(toDownload, instance, layer) {
-    const { extent, images } = toDownload;
+    const { extent, images, pitch } = toDownload;
 
     const isElevationLayer = layer instanceof ElevationLayer;
 
@@ -112,7 +112,7 @@ async function getTexture(toDownload, instance, layer) {
     if (__DEBUG__) {
         MemoryTracker.track(texture, 'custom tiled image');
     }
-    return { texture, pitch: new Vector4(0, 0, 1, 1) };
+    return { texture, pitch };
 }
 
 /**
@@ -171,7 +171,7 @@ export default {
         return (results && results.length > 0);
     },
 
-    getPossibleTextureImprovements(layer, extent, currentTexture) {
+    getPossibleTextureImprovements(layer, extent, currentTexture, pitch) {
         if (!layer.images) {
             // We may still be loading the images
             return DataStatus.DATA_NOT_AVAILABLE_YET;
@@ -187,10 +187,7 @@ export default {
         if (currentTexture?.key === key) {
             return DataStatus.DATA_ALREADY_LOADED;
         }
-        return {
-            images,
-            extent,
-        };
+        return { images, extent, pitch };
     },
 
     executeCommand(command) {

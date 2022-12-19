@@ -297,11 +297,19 @@ class ElevationLayer extends Layer {
 
         // Does this tile needs a new texture?
         const textureInfo = node.material.getElevationTextureInfo();
+
+        const originalExtent = node.getExtentForLayer(this);
+
+        // Add a 2% margin around the tile to mitigate boundary issues
+        const extent = originalExtent.withRelativeMargin(0.02);
+
+        const pitch = originalExtent.offsetToParent(extent);
+
         const nextDownloads = this.getPossibleTextureImprovements(
             this,
-            node.getExtentForLayer(this),
+            extent,
             textureInfo && textureInfo.texture,
-            node.layerUpdateState[this.id].failureParams,
+            pitch,
         );
 
         if (nextDownloads === DataStatus.DATA_UNAVAILABLE) {
