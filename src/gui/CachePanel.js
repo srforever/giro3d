@@ -20,7 +20,7 @@ class CachePanel extends Panel {
 
     // eslint-disable-next-line class-methods-use-this
     dump() {
-        console.log(Cache.entries());
+        console.log([...Cache.entries()]);
     }
 
     flush() {
