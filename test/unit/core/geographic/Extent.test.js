@@ -250,6 +250,22 @@ describe('Extent', () => {
         );
     });
 
+    describe('toBox3', () => {
+        it('should return the correct value', () => {
+            const extent = new Extent('foo', 0, 100, 54, 233);
+            const minHeight = 23.3;
+            const maxHeight = 400.3;
+            const box = extent.toBox3(minHeight, maxHeight);
+
+            expect(box.min.x).toBe(extent.west());
+            expect(box.max.x).toBe(extent.east());
+            expect(box.min.y).toBe(extent.south());
+            expect(box.max.y).toBe(extent.north());
+            expect(box.min.z).toBe(minHeight);
+            expect(box.max.z).toBe(maxHeight);
+        });
+    });
+
     describe('fromBox3', () => {
         it('should return the correct values and CRS', () => {
             const box = {

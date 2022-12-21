@@ -1,7 +1,13 @@
 /**
  * @module Core/Geographic/Extent
  */
-import { MathUtils, Vector2, Vector4 } from 'three';
+import {
+    Box3,
+    MathUtils,
+    Vector2,
+    Vector3,
+    Vector4,
+} from 'three';
 import Coordinates, {
     crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCRS, is4326,
 } from './Coordinates.js';
@@ -531,6 +537,21 @@ class Extent {
             south: box.min.y,
             north: box.max.y,
         });
+    }
+
+    /**
+     * Returns a [Box3](https://threejs.org/docs/?q=box3#api/en/math/Box3) that matches this extent.
+     *
+     * @param {number} minHeight The min height of the box.
+     * @param {number} maxHeight The max height of the box.
+     * @api
+     * @returns {Box3} The box.
+     */
+    toBox3(minHeight, maxHeight) {
+        const min = new Vector3(this.west(), this.south(), minHeight);
+        const max = new Vector3(this.east(), this.north(), maxHeight);
+        const box = new Box3(min, max);
+        return box;
     }
 
     /**
