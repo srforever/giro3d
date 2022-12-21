@@ -1,19 +1,16 @@
-import { Vector3 } from 'three';
 import Extent from '../../../src/Core/Geographic/Extent.js';
+import Cache from '../../../src/Core/Scheduler/Cache.js';
 import TileMesh from '../../../src/Core/TileMesh.js';
 import Map from '../../../src/entities/Map.js';
-import OBB from '../../../src/Renderer/ThreeExtended/OBB.js';
 
 const extent = new Extent('foo', 0, 1, 0, 1);
 const map = new Map('map', { extent });
 
 describe('TileMesh', () => {
-    let defaultGeometry;
     let defaultMaterial;
-    const obb = new OBB(new Vector3(), new Vector3());
 
     beforeEach(() => {
-        defaultGeometry = { dispose: jest.fn(), OBB: { clone: () => obb } };
+        Cache.clear();
 
         defaultMaterial = {
             dispose: jest.fn(),
@@ -27,7 +24,7 @@ describe('TileMesh', () => {
 
     describe('constructor', () => {
         it('should register itself to the tile index', () => {
-            const mesh = new TileMesh(map, defaultGeometry, defaultMaterial, extent, 3, 1, 2);
+            const mesh = new TileMesh(map, defaultMaterial, extent, 8, 3, 1, 2);
             expect(map.tileIndex.tiles.get('1,2,3').deref()).toEqual(mesh);
         });
     });
@@ -42,8 +39,9 @@ describe('TileMesh', () => {
                     tileDimensions: { value: { set: jest.fn() } },
                 },
             };
-            const geometry = { dispose: jest.fn(), OBB: { clone: () => obb } };
-            const mesh = new TileMesh(map, geometry, material, extent, 0);
+            const mesh = new TileMesh(map, material, extent, 8, 0);
+            const geometry = mesh.geometry;
+            geometry.dispose = jest.fn();
             let eventDispatched = false;
             mesh.addEventListener('dispose', () => { eventDispatched = true; });
 

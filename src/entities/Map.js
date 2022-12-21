@@ -4,9 +4,9 @@
 import {
     Vector3,
     Quaternion,
-    BufferGeometry,
     Group,
     Color,
+    MathUtils,
 } from 'three';
 
 import Extent from '../Core/Geographic/Extent.js';
@@ -20,8 +20,6 @@ import ScreenSpaceError from '../Core/ScreenSpaceError.js';
 import LayeredMaterial from '../Renderer/LayeredMaterial.js';
 import TileMesh from '../Core/TileMesh.js';
 import TileIndex from '../Core/TileIndex.js';
-import TileGeometry from '../Core/TileGeometry.js';
-import Cache from '../Core/Scheduler/Cache.js';
 
 /**
  * Fires when a layer is added to the map.
@@ -182,7 +180,7 @@ class Map extends Entity3D {
 
         this.showOutline = options.showOutline;
 
-        this.segments = options.segments || 8;
+        this._segments = options.segments || 8;
 
         this.materialOptions = {
             hillshading: options.hillshading,
@@ -197,6 +195,36 @@ class Map extends Entity3D {
 
         this.currentAddedLayerIds = [];
         this.tileIndex = new TileIndex();
+    }
+
+    get segments() {
+        return this._segments;
+    }
+
+    set segments(v) {
+        if (this._segments !== v) {
+            if (MathUtils.isPowerOfTwo(v) && v >= 1 && v <= 128) {
+                this._segments = v;
+                this._updateGeometries();
+            } else {
+                throw new Error('invalid segments. Must be a power of two between 1 and 128 included');
+            }
+        }
+    }
+
+    _updateGeometries() {
+        for (const r of this.level0Nodes) {
+            r.traverse(obj => {
+                /** @type {TileMesh} */
+                const tile = obj;
+                if (tile.layer !== this) {
+                    return;
+                }
+                if (tile.segments) {
+                    tile.segments = this.segments;
+                }
+            });
+        }
     }
 
     preprocess() {
@@ -244,46 +272,13 @@ class Map extends Entity3D {
 
         const quaternion = new Quaternion();
         const position = new Vector3(...extent.center()._values);
-        // compute sharable extent to pool the geometries
-        // the geometry in common extent is identical to the existing input
-        // with a translation
-        const dim = extent.dimensions();
-        const halfWidth = dim.x * 0.5;
-        const halfHeight = dim.y * 0.5;
-        const sharableExtent = new Extent(
-            extent.crs(),
-            -halfWidth, halfWidth,
-            -halfHeight, halfHeight,
-        );
-
-        const key = `${this.id}_${sharableExtent._values.join(',')}`;
-        let geometry = Cache.get(key);
-        // build geometry if doesn't exist
-        if (!geometry) {
-            const paramsGeometry = {
-                extent: sharableExtent,
-                width: this.segments + 1,
-                height: this.segments + 1,
-            };
-            geometry = new TileGeometry(paramsGeometry);
-            Cache.set(key, geometry);
-            geometry._count = 0;
-            geometry.dispose = () => {
-                geometry._count--;
-                if (geometry._count === 0) {
-                    BufferGeometry.prototype.dispose.call(geometry);
-                    Cache.delete(key);
-                }
-            };
-        }
 
         // build tile
-        geometry._count++;
         const material = new LayeredMaterial(
             this.materialOptions, this._instance.renderer, this.atlasInfo,
         );
 
-        const tile = new TileMesh(this, geometry, material, extent, level, x, y);
+        const tile = new TileMesh(this, material, extent, this.segments, level, x, y);
 
         tile.layers.set(this.threejsLayer);
         if (this.renderOrder !== undefined) {

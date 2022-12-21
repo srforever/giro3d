@@ -2,13 +2,9 @@
  * @module Core/TileGeometry
  */
 
-import { BufferAttribute, BufferGeometry, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry } from 'three';
 
 import OBB from '../Renderer/ThreeExtended/OBB.js';
-
-const tmp = {
-    dimensions: { x: 0, y: 0 },
-};
 
 /**
  * The TileGeometry provides a new buffer geometry for each
@@ -35,34 +31,48 @@ class TileGeometry extends BufferGeometry {
     constructor(params) {
         super();
         // Still mandatory to have on the geometry ?
-        this.extent = params.extent;
-        this.center = new Vector3(...this.extent.center()._values);
+        this.dimensions = params.dimensions;
         // Compute properties of the grid, square or rectangular.
-        const width = params.width || params.segment + 1;
-        const height = params.height || params.segment + 1;
-        const dimension = this.extent.dimensions(tmp.dimensions);
-        const segmentX = width - 1;
-        const segmentY = height - 1;
-        const uvStepX = 1 / segmentX;
-        const uvStepY = 1 / segmentY;
-        const rowStep = uvStepX * dimension.x;
-        const columnStep = uvStepY * -dimension.y;
-        this.props = {
-            width,
-            height,
-            uvStepX,
-            uvStepY,
-            rowStep,
-            columnStep,
-            translateX: -segmentX * 0.5 * rowStep,
-            translateY: -segmentY * 0.5 * columnStep,
-            triangles: segmentX * segmentY * 2,
-            numVertices: width * height,
-        };
+        this._segments = params.segments;
+        this._updateProps();
         this.computeBuffers(this.props);
         // Compute the Oriented Bounding Box for spatial operations
         this.computeBoundingBox();
         this.OBB = new OBB(this.boundingBox.min, this.boundingBox.max);
+    }
+
+    _updateProps() {
+        const width = this._segments + 1;
+        const height = this._segments + 1;
+        const dimension = this.dimensions;
+        const uvStep = 1 / this._segments;
+        const uvStepY = 1 / this._segments;
+        const rowStep = uvStep * dimension.x;
+        const columnStep = uvStepY * -dimension.y;
+        this.props = {
+            width,
+            height,
+            uvStepX: uvStep,
+            uvStepY,
+            rowStep,
+            columnStep,
+            translateX: -this._segments * 0.5 * rowStep,
+            translateY: -this._segments * 0.5 * columnStep,
+            triangles: this._segments * this._segments * 2,
+            numVertices: width * height,
+        };
+    }
+
+    get segments() {
+        return this._segments;
+    }
+
+    set segments(v) {
+        if (this._segments !== v) {
+            this._segments = v;
+            this._updateProps();
+            this.computeBuffers(this.props);
+        }
     }
 
     /**
