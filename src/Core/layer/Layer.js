@@ -10,6 +10,7 @@ import TileImage from 'ol/source/TileImage.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './LayerUpdateStrategy.js';
 import CogSource from '../../sources/CogSource.js';
 import CustomTiledImageSource from '../../sources/CustomTiledImageSource.js';
+import Extent from '../Geographic/Extent.js';
 
 /**
  * Fires when layer sequence change (meaning when the order of the layer changes in the map)
@@ -156,7 +157,7 @@ class Layer extends EventDispatcher {
      * CogSource |
      * CustomTiledImageSource
      * } options.source The data source of this layer.
-     * @param {object} [options.extent=undefined] The geographic extent of the layer. If
+     * @param {Extent} [options.extent=undefined] The geographic extent of the layer. If
      * unspecified, the extent will be inherited from the map.
      * @param {string} [options.projection=undefined] The layer projection. If unspecified,
      * the projection will be inherited from the map.
@@ -200,6 +201,7 @@ class Layer extends EventDispatcher {
             }
         }
 
+        /** @type {Extent} */
         this.extent = options.extent;
 
         if (options.updateStrategy) {
