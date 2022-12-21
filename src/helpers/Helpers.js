@@ -86,15 +86,6 @@ function makeLocalBbox(object, precise = false) {
     return box;
 }
 
-function createBoxHelper(box, color) {
-    const helper = new Box3Helper(box, color);
-    helper.name = 'bounding box';
-    helper.isHelper = true;
-    helper.isvolumeHelper = true;
-    helper.material.transparent = true;
-    return helper;
-}
-
 const unitBoxMesh = (function _() {
     const indices = new Uint16Array(
         [0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7],
@@ -172,11 +163,20 @@ class Helpers {
         if (obj.volumeHelper) {
             obj.volumeHelper.updateMatrixWorld(true);
         } else {
-            const helper = createBoxHelper(makeLocalBbox(obj), getColor(color));
+            const helper = Helpers.createBoxHelper(makeLocalBbox(obj), getColor(color));
             obj.add(helper);
             obj.volumeHelper = helper;
             helper.updateMatrixWorld(true);
         }
+    }
+
+    static createBoxHelper(box, color) {
+        const helper = new Box3Helper(box, color);
+        helper.name = 'bounding box';
+        helper.isHelper = true;
+        helper.isvolumeHelper = true;
+        helper.material.transparent = true;
+        return helper;
     }
 
     /**
@@ -192,7 +192,7 @@ class Helpers {
      * Helpers.createSelectionBox(obj, 'green');
      */
     static createSelectionBox(obj, color) {
-        const helper = createBoxHelper(makeLocalBbox(obj), getColor(color));
+        const helper = Helpers.createBoxHelper(makeLocalBbox(obj), getColor(color));
         obj.selectionHelper = helper;
         obj.add(helper);
         obj.updateMatrixWorld(true);

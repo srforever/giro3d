@@ -68,6 +68,10 @@ class MapInspector extends EntityInspector {
 
         this.layerCount = this.map._attachedLayers.length;
 
+        this.extentColor = new Color('red');
+        this.showExtent = false;
+        this.extentHelper = null;
+
         this.mapSegments = this.map.segments;
 
         this.addController(this.map, 'projection')
@@ -90,6 +94,12 @@ class MapInspector extends EntityInspector {
         this.addController(this, 'showOutline')
             .name('Show tiles outline')
             .onChange(v => this.toggleOutlines(v));
+        this.addController(this, 'showExtent')
+            .name('Show extent')
+            .onChange(() => this.toggleExtent());
+        this.addColorController(this, 'extentColor')
+            .name('Extent color')
+            .onChange(v => this.updateExtentColor(v));
         this.addController(this, 'frozen')
             .name('Freeze updates')
             .onChange(v => this.toggleFrozen(v));
@@ -119,6 +129,32 @@ class MapInspector extends EntityInspector {
         this.map.addEventListener('layer-removed', this._fillLayersCb);
 
         this.fillLayers();
+    }
+
+    updateExtentColor() {
+        if (this.extentHelper) {
+            this.instance.threeObjects.remove(this.extentHelper);
+            this.extentHelper.material.dispose();
+            this.extentHelper.geometry.dispose();
+            this.extentHelper = null;
+        }
+        this.toggleExtent(this.showExtent);
+    }
+
+    toggleExtent() {
+        if (!this.extentHelper && this.showExtent) {
+            const { min, max } = this.map.getElevationMinMax();
+            const box = this.map.extent.toBox3(min, max);
+            this.extentHelper = Helpers.createBoxHelper(box, this.extentColor);
+            this.instance.threeObjects.add(this.extentHelper);
+            this.extentHelper.updateMatrixWorld(true);
+        }
+
+        if (this.extentHelper) {
+            this.extentHelper.visible = this.showExtent;
+        }
+
+        this.notify(this.layer);
     }
 
     updateSegments(v) {
@@ -202,7 +238,7 @@ class MapInspector extends EntityInspector {
             this.layers.pop().dispose();
         }
         this.map.getLayers().forEach(lyr => {
-            const gui = new LayerInspector(this.layerFolder, this.instance, lyr);
+            const gui = new LayerInspector(this.layerFolder, this.instance, this.map, lyr);
             this.layers.push(gui);
         });
     }

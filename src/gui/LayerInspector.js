@@ -2,10 +2,13 @@
  * @module gui/LayerInspector
  */
 import GUI from 'lil-gui';
+import { Color } from 'three';
 import Instance from '../Core/Instance.js';
 import Layer from '../Core/layer/Layer.js';
 import Panel from './Panel.js';
 import { UPDATE_STRATEGIES } from '../Core/layer/LayerUpdateStrategy.js';
+import Helpers from '../helpers/Helpers.js';
+import Map from '../entities/Map.js';
 
 /**
  * Inspector for a {@link module:Core/layer/Layer~Layer Layer}.
@@ -16,9 +19,10 @@ class LayerInspector extends Panel {
     /**
      * @param {GUI} gui The GUI.
      * @param {Instance} instance The Giro3D instance.
+     * @param {Map} map The map.
      * @param {Layer} layer The layer to inspect
      */
-    constructor(gui, instance, layer) {
+    constructor(gui, instance, map, layer) {
         super(gui, instance, `[${layer.index}] ${layer.id} (${layer.type})`);
 
         /**
@@ -28,6 +32,8 @@ class LayerInspector extends Panel {
          * @api
          */
         this.layer = layer;
+
+        this.map = map;
 
         this.updateValues();
 
@@ -52,11 +58,48 @@ class LayerInspector extends Panel {
                 .onChange(() => this.notify(layer));
         }
 
+        this.extentColor = new Color('#52ff00');
+        this.showExtent = false;
+        this.extentHelper = null;
+
+        this.addController(this, 'showExtent')
+            .name('Show extent')
+            .onChange(() => this.toggleExtent());
+        this.addColorController(this, 'extentColor')
+            .name('Extent color')
+            .onChange(v => this.updateExtentColor(v));
+
         this.addColorController(this, 'backgroundColor')
             .name('Background');
 
         this.addController(this.layer.updateStrategy, 'type', UPDATE_STRATEGIES)
             .name('Update strategy');
+    }
+
+    updateExtentColor() {
+        if (this.extentHelper) {
+            this.instance.threeObjects.remove(this.extentHelper);
+            this.extentHelper.material.dispose();
+            this.extentHelper.geometry.dispose();
+            this.extentHelper = null;
+        }
+        this.toggleExtent(this.showExtent);
+    }
+
+    toggleExtent() {
+        if (!this.extentHelper && this.showExtent) {
+            const { min, max } = this.map.getElevationMinMax();
+            const box = this.layer.extent.toBox3(min, max);
+            this.extentHelper = Helpers.createBoxHelper(box, this.extentColor);
+            this.instance.threeObjects.add(this.extentHelper);
+            this.extentHelper.updateMatrixWorld(true);
+        }
+
+        if (this.extentHelper) {
+            this.extentHelper.visible = this.showExtent;
+        }
+
+        this.notify(this.layer);
     }
 
     updateValues() {
