@@ -292,33 +292,27 @@ class Map extends Entity3D {
 
         this.imageSize = computeImageSize(rootExtents[0]);
 
-        const promises = [];
-
         let i = 0;
         for (const root of rootExtents) {
             if (this.subdivisions.x > this.subdivisions.y) {
-                promises.push(
+                this.level0Nodes.push(
                     this.requestNewTile(root, undefined, 0, i, 0),
                 );
             } else if (this.subdivisions.y > this.subdivisions.x) {
-                promises.push(
+                this.level0Nodes.push(
                     this.requestNewTile(root, undefined, 0, 0, i),
                 );
             } else {
-                promises.push(
+                this.level0Nodes.push(
                     this.requestNewTile(root, undefined, 0, 0, 0),
                 );
             }
             i++;
         }
-        return Promise.all(promises).then(level0s => {
-            this.level0Nodes = level0s;
-            for (const level0 of level0s) {
-                this.object3d.add(level0);
-                level0.updateMatrixWorld();
-            }
-            return this;
-        });
+        for (const level0 of this.level0Nodes) {
+            this.object3d.add(level0);
+            level0.updateMatrixWorld();
+        }
     }
 
     requestNewTile(extent, parent, level, x = 0, y = 0) {
