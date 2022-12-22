@@ -4,7 +4,7 @@ import { ELEVATION_FORMAT } from '../../../../src/utils/DEMUtils.js';
 describe('ElevationLayer', () => {
     describe('constructor', () => {
         it('should throw on undefined id', () => {
-            expect(() => new ElevationLayer(undefined)).toThrow();
+            expect(() => new ElevationLayer(undefined)).toThrow('id is undefined');
         });
 
         it('should define layer properties', () => {
@@ -36,6 +36,12 @@ describe('ElevationLayer', () => {
 
             expect(layer.heightFieldOffset).toEqual(21);
             expect(layer.heightFieldScale).toEqual(1111);
+        });
+
+        it('should set the elevationFormat with default value if not provided', () => {
+            const layer = new ElevationLayer('id', { standalone: true });
+
+            expect(layer.elevationFormat).toEqual(4);
         });
     });
 

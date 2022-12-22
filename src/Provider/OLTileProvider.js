@@ -17,7 +17,6 @@ import TextureGenerator from '../utils/TextureGenerator.js';
 import Fetcher from './Fetcher.js';
 import MemoryTracker from '../Renderer/MemoryTracker.js';
 import Cache from '../Core/Scheduler/Cache.js';
-import ImageFormat from '../formats/ImageFormat.js';
 
 const TEXTURE_CACHE_LIFETIME_MS = 1000 * 60; // 60 seconds
 const MIN_LEVEL_THRESHOLD = 2;
@@ -186,11 +185,6 @@ function loadTiles(extent, zoom, layer) {
     const tileGrid = layer.tileGrid;
     const crs = extent.crs();
 
-    const options = {
-        nodata: layer.noDataValue || undefined,
-        format: source.format,
-    };
-
     const promises = [];
 
     tileGrid.forEachTileCoord(toOLExtent(extent), zoom, ([z, i, j]) => {
@@ -199,7 +193,7 @@ function loadTiles(extent, zoom, layer) {
         // Don't bother loading tiles that are not in the layer
         if (tileExtent.intersectsExtent(layer.extent)) {
             const url = layer.getTileUrl(tile.tileCoord, 1, layer.olprojection);
-            const promise = loadTile(url, tileExtent, options).catch(e => {
+            const promise = loadTile(url, tileExtent, layer).catch(e => {
                 if (e) {
                     console.error(e);
                 }
@@ -216,18 +210,28 @@ function loadTiles(extent, zoom, layer) {
  *
  * @param {string} url The URL of the tile.
  * @param {Extent} extent The extent of the tile.
- * @param {object} options Options
- * @param {ImageFormat} options.format An optional format decoder.
+ * @param {module:Core/layer/Layer~Layer} layer the layer to load tile for
  * @returns {Promise<Texture>} The tile texture.
  */
-async function loadTileOnce(url, extent, options) {
+async function loadTileOnce(url, extent, layer) {
     const blob = await Fetcher.blob(url);
 
     let texture;
-    if (options.format) {
-        texture = await options.format.decode(blob, options);
+    if (layer.source && layer.source.format) {
+        let width;
+        let height;
+        if (layer.tileGrid) {
+            const tileSize = layer.tileGrid.getTileSize(0);
+            width = tileSize;
+            height = tileSize;
+        }
+        texture = await layer.source.format.decode(blob, {
+            noDataValue: layer.noDataValue,
+            width,
+            height,
+        });
     } else {
-        texture = await TextureGenerator.decodeBlob(blob, options);
+        texture = await TextureGenerator.decodeBlob(blob);
     }
     texture.extent = extent;
     texture.needsUpdate = true;
@@ -240,11 +244,10 @@ async function loadTileOnce(url, extent, options) {
 /**
  * @param {string} url The tile URL to load.
  * @param {Extent} extent The tile extent.
- * @param {object} options Options to pass to the texture generator.
- * @param {ImageFormat} [options.format] The optional decoder for downloaded images.
+ * @param {module:Core/layer/Layer~Layer} layer the layer to load tile for
  * @returns {Promise<Texture>} The tile image.
  */
-async function loadTile(url, extent, options) {
+async function loadTile(url, extent, layer) {
     let tilePromise;
 
     // Fetch and create the texture only once per tile.
@@ -254,7 +257,7 @@ async function loadTile(url, extent, options) {
     if (cached) {
         tilePromise = cached;
     } else {
-        tilePromise = loadTileOnce(url, extent, options);
+        tilePromise = loadTileOnce(url, extent, layer);
         Cache.set(url, tilePromise, TEXTURE_CACHE_LIFETIME_MS, onDelete);
     }
 
