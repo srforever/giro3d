@@ -151,7 +151,7 @@ class Outliner extends Panel {
         this.treeview.style.background = '#424242';
         this.treeview.id = 'treeview';
         this.treeview.style.height = '350px';
-        this.treeview.style.overflow = 'scroll';
+        this.treeview.style.overflow = 'auto';
 
         this.addController(this.filters, 'showHelpers')
             .name('Show helpers')

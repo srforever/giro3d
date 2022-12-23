@@ -10,8 +10,8 @@ class OutlinerPropertyView extends Panel {
 
         this._folders = [];
 
-        this.gui.domElement.style.overflow = 'scroll';
-        this.gui.domElement.style.height = '200px';
+        this.gui.domElement.style.overflow = 'auto';
+        this.gui.domElement.style.maxHeight = '200px';
         this.gui.open(true);
 
         this.populateProperties(new Object3D());
