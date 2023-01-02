@@ -5,6 +5,7 @@ import Map from '../../../src/entities/Map.js';
 import Layer from '../../../src/Core/layer/Layer.js';
 import MainLoop from '../../../src/Core/MainLoop.js';
 import { setupGlobalMocks } from '../mocks.js';
+import ElevationLayer from '../../../src/Core/layer/ElevationLayer.js';
 
 describe('Map', () => {
     /** @type {HTMLDivElement} */
@@ -162,6 +163,43 @@ describe('Map', () => {
             await map.addLayer(layer);
 
             expect(listener).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('getElevationMinMax', () => {
+        it('should return {0, 0} if no elevation layer is present', () => {
+            const { min, max } = map.getElevationMinMax();
+
+            expect(min).toEqual(0);
+            expect(max).toEqual(0);
+        });
+
+        it('should return the min/max value of the elevation layer if present', async () => {
+            const layer = new ElevationLayer('layer', { standalone: true });
+            layer.minmax = { min: -123, max: 555 };
+
+            await map.addLayer(layer);
+
+            const { min, max } = map.getElevationMinMax();
+
+            expect(min).toEqual(-123);
+            expect(max).toEqual(555);
+        });
+
+        it('should return the computed min/max value of all elevation layers', async () => {
+            const layer1 = new ElevationLayer('layer1', { standalone: true });
+            const layer2 = new ElevationLayer('layer2', { standalone: true });
+
+            layer1.minmax = { min: -123, max: 555 };
+            layer2.minmax = { min: -969, max: 342 };
+
+            await map.addLayer(layer1);
+            await map.addLayer(layer2);
+
+            const { min, max } = map.getElevationMinMax();
+
+            expect(min).toEqual(-969);
+            expect(max).toEqual(555);
         });
     });
 

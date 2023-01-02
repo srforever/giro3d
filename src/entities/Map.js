@@ -600,6 +600,38 @@ class Map extends Entity3D {
         }
     }
 
+    /**
+     * The min/max elevation values.
+     *
+     * @typedef {object} MinMax
+     * @property {number} min The minimum elevation.
+     * @property {number} max The maximum elevation.
+     */
+
+    /**
+     * Returns the minimal and maximal elevation values in this map, in meters.
+     *
+     * If there is no elevation layer present, returns `{ min: 0, max: 0 }`.
+     *
+     * @api
+     * @returns {MinMax} The min/max value.
+     */
+    getElevationMinMax() {
+        const elevationLayers = this.getElevationLayers();
+        if (elevationLayers.length > 0) {
+            let min = Infinity;
+            let max = -Infinity;
+
+            for (const layer of elevationLayers) {
+                min = Math.min(min, layer.minmax.min);
+                max = Math.max(max, layer.minmax.max);
+            }
+
+            return { min, max };
+        }
+        return { min: 0, max: 0 };
+    }
+
     hasEnoughTexturesToSubdivide(context, node) {
         // Prevent subdivision if node is covered by at least one elevation layer
         // and if node doesn't have a elevation texture yet.
