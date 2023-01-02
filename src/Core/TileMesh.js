@@ -10,6 +10,7 @@ import MemoryTracker from '../Renderer/MemoryTracker.js';
 import LayeredMaterial from '../Renderer/LayeredMaterial.js';
 import Extent from './Geographic/Extent.js';
 import TileGeometry from './TileGeometry.js';
+import Cache from './Scheduler/Cache.js';
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
@@ -20,31 +21,43 @@ function applyChangeState(n, s) {
     }
 }
 
+function makeGeometry(mapId, extent, segments) {
+    const dimensions = extent.dimensions();
+    const key = `${mapId}-${dimensions.x}-${dimensions.y}-${segments}`;
+    const cached = Cache.get(key);
+    if (cached) {
+        return cached;
+    }
+
+    const geometry = new TileGeometry({ dimensions, segments });
+    Cache.set(key, geometry);
+    return geometry;
+}
+
 class TileMesh extends Mesh {
     /**
      * Creates an instance of TileMesh.
      *
      * @param {object} map The Map that owns this tile.
-     * @param {TileGeometry} geometry The geometry.
      * @param {LayeredMaterial} material The tile material.
      * @param {Extent} extent The tile extent.
+     * @param {number} segments The subdivisions.
      * @param {number} level The tile depth level in the hierarchy.
      * @param {number} [x=0] The tile X coordinate in the grid.
      * @param {number} [y=0] The tile Y coordinate in the grid.
      * @memberof TileMesh
      */
-    constructor(map, geometry, material, extent, level, x = 0, y = 0) {
-        super(geometry, material);
+    constructor(map, material, extent, segments, level, x = 0, y = 0) {
+        super(makeGeometry(map.id, extent, segments), material);
 
         this.layer = map;
+        this._segments = segments;
 
         this.matrixAutoUpdate = false;
         this.rotationAutoUpdate = false;
 
         this.level = level;
         this.extent = extent;
-
-        this.geometry = geometry;
 
         // Needs to clone it because the geometry is not copied anymore
         this.obb = this.geometry.OBB.clone();
@@ -77,6 +90,18 @@ class TileMesh extends Mesh {
 
         if (__DEBUG__) {
             MemoryTracker.track(this, this.name);
+        }
+    }
+
+    get segments() {
+        return this._segments;
+    }
+
+    set segments(v) {
+        if (this._segments !== v) {
+            this._segments = v;
+            this.geometry = makeGeometry(this.layer.id, this.extent, this._segments);
+            this.material.segments = v;
         }
     }
 

@@ -82,11 +82,11 @@ describe('ColorLayer', () => {
         it('hidden tile should not execute commands', () => {
             const tile = new TileMesh(
                 map,
-                geom,
                 new LayeredMaterial(
                     {}, {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
                 ),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
+                8,
             );
             tile.material.visible = false;
             tile.material.indexOfColorLayer = () => 0;
@@ -97,11 +97,11 @@ describe('ColorLayer', () => {
         it('tile with best texture should not execute commands', () => {
             const tile = new TileMesh(
                 map,
-                geom,
                 new LayeredMaterial(
                     {}, {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
                 ),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
+                8,
             );
             tile.material.visible = true;
             layer.getPossibleTextureImprovements = () => null;
@@ -113,11 +113,11 @@ describe('ColorLayer', () => {
         it('tile with downscaled texture should execute 1 command', () => {
             const tile = new TileMesh(
                 map,
-                geom,
                 new LayeredMaterial(
                     {}, {}, { maxX: 0, maxY: 0, atlas: {} },
                 ),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
+                8,
                 2,
             );
             tile.material.visible = true;

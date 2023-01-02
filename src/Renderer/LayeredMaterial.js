@@ -152,6 +152,12 @@ class LayeredMaterial extends RawShaderMaterial {
         }
     }
 
+    set segments(v) {
+        if (this.uniforms.segments.value !== v) {
+            this.uniforms.segments.value = v;
+        }
+    }
+
     updateLayerUniforms() {
         const infos = this.texturesInfo.color.infos;
         this.uniforms.colorOffsetScale.value = infos.map(x => x.offsetScale);

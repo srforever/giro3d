@@ -2,7 +2,7 @@
  * @module gui/MapInspector
  */
 import GUI from 'lil-gui';
-import { Color } from 'three';
+import { Color, MathUtils } from 'three';
 import Instance, { INSTANCE_EVENTS } from '../Core/Instance.js';
 import TileMesh from '../Core/TileMesh.js';
 import Map from '../entities/Map.js';
@@ -68,10 +68,15 @@ class MapInspector extends EntityInspector {
 
         this.layerCount = this.map._attachedLayers.length;
 
+        this.mapSegments = this.map.segments;
+
         this.addController(this.map, 'projection')
             .name('Projection');
-        this.addController(this.map, 'segments')
-            .name('Tile subdivisions');
+        this.addController(this, 'mapSegments')
+            .name('Tile subdivisions')
+            .min(2)
+            .max(128)
+            .onChange(v => this.updateSegments(v));
         this.addController(this.map.imageSize, 'w')
             .name('Tile width  (pixels)');
         this.addController(this.map.imageSize, 'h')
@@ -114,6 +119,15 @@ class MapInspector extends EntityInspector {
         this.map.addEventListener('layer-removed', this._fillLayersCb);
 
         this.fillLayers();
+    }
+
+    updateSegments(v) {
+        const val = MathUtils.floorPowerOfTwo(v);
+        this.mapSegments = val;
+        if (this.map.segments !== val) {
+            this.map.segments = val;
+            this.notify(this.map);
+        }
     }
 
     setRenderState(state) {
