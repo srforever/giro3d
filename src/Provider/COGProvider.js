@@ -4,7 +4,6 @@ import ColorLayer from '../Core/layer/ColorLayer.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
 
 import Cache from '../Core/Scheduler/Cache.js';
-import { ELEVATION_FORMAT } from '../utils/DEMUtils.js';
 import DataStatus from './DataStatus.js';
 
 function getMinMax(v, nodata) {
@@ -147,7 +146,6 @@ async function getImages(layer) {
     // performances, we use the latest image, meaning the highest overview
     // (lowest resolution)
     if (image.getSamplesPerPixel() === 1) {
-        layer.elevationFormat = ELEVATION_FORMAT.NUMERIC;
         await createTexture(layer, layer.extent, levelImage, true);
     }
 }

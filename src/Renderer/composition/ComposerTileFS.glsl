@@ -1,5 +1,9 @@
-precision lowp float;
-precision lowp int;
+precision highp float;
+precision highp int;
+
+#include <Interpretation>
+
+uniform Interpretation interpretation;
 
 // inputs
 uniform sampler2D texture;
@@ -12,7 +16,7 @@ uniform vec2 textureSize;
 void main() {
     vec2 uv = vUv;
 
-    gl_FragColor = texture2D(texture, uv);
+    gl_FragColor = decode(texture, uv, interpretation);
 
     #if defined(OUTLINES)
     const float outlineThickness = 2.0;

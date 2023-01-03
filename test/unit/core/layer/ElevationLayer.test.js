@@ -1,5 +1,5 @@
 import ElevationLayer from '../../../../src/Core/layer/ElevationLayer.js';
-import { ELEVATION_FORMAT } from '../../../../src/utils/DEMUtils.js';
+import Interpretation from '../../../../src/Core/layer/Interpretation.js';
 
 describe('ElevationLayer', () => {
     describe('constructor', () => {
@@ -8,40 +8,71 @@ describe('ElevationLayer', () => {
         });
 
         it('should define layer properties', () => {
-            const layer = new ElevationLayer('id', { elevationFormat: ELEVATION_FORMAT.MAPBOX_RGB, standalone: true });
+            const layer = new ElevationLayer('id', { interpretation: Interpretation.Raw, standalone: true });
 
             expect(layer.id).toEqual('id');
             expect(layer.frozen).toStrictEqual(false);
-            expect(layer.elevationFormat).toStrictEqual(ELEVATION_FORMAT.MAPBOX_RGB);
+            expect(layer.interpretation).toEqual(Interpretation.Raw);
             expect(layer.type).toEqual('ElevationLayer');
         });
+    });
 
-        it('should set the heightFieldOffset and heightFieldScale with default values if applicable', () => {
-            const layer = new ElevationLayer('id', {
-                elevationFormat: ELEVATION_FORMAT.HEIGHFIELD,
-                standalone: true,
+    describe('minMaxFromTexture', () => {
+        describe('should access the correct data', () => {
+            const min = -13;
+            const max = 9393;
+            const alpha = 1;
+            const data = [
+                min, 0, 0, alpha,
+                1, 0, 0, alpha,
+                max, 0, 0, alpha,
+                3, 0, 0, alpha,
+            ];
+            let layer;
+
+            beforeEach(() => {
+                layer = new ElevationLayer('foo', { standalone: true });
             });
 
-            expect(layer.heightFieldOffset).toEqual(0);
-            expect(layer.heightFieldScale).toEqual(255);
-        });
+            it('already contains a min and max property', () => {
+                const tex = { min, max };
 
-        it('should set the heightFieldOffset and heightFieldScale with passed options if applicable', () => {
-            const layer = new ElevationLayer('id', {
-                elevationFormat: ELEVATION_FORMAT.HEIGHFIELD,
-                heightFieldOffset: 21,
-                heightFieldScale: 1111,
-                standalone: true,
+                const minmax = layer.minMaxFromTexture(tex);
+
+                expect(minmax.min).toEqual(min);
+                expect(minmax.max).toEqual(max);
             });
 
-            expect(layer.heightFieldOffset).toEqual(21);
-            expect(layer.heightFieldScale).toEqual(1111);
-        });
+            it('DataTexture', () => {
+                const tex1 = { isDataTexture: true, image: { data } };
+                const tex2 = { isDataTexture: true, image: { data: { data } } };
 
-        it('should set the elevationFormat with default value if not provided', () => {
-            const layer = new ElevationLayer('id', { standalone: true });
+                const minmax1 = layer.minMaxFromTexture(tex1);
+                const minmax2 = layer.minMaxFromTexture(tex2);
 
-            expect(layer.elevationFormat).toEqual(4);
+                expect(minmax1.min).toEqual(min);
+                expect(minmax1.max).toEqual(max);
+
+                expect(minmax2.min).toEqual(min);
+                expect(minmax2.max).toEqual(max);
+
+                expect(tex1.min).toEqual(min);
+                expect(tex2.min).toEqual(min);
+                expect(tex1.max).toEqual(max);
+                expect(tex2.max).toEqual(max);
+            });
+
+            it('RenderTargetTexture', () => {
+                const tex = { isRenderTargetTexture: true, data };
+
+                const minmax1 = layer.minMaxFromTexture(tex);
+
+                expect(minmax1.min).toEqual(min);
+                expect(minmax1.max).toEqual(max);
+
+                expect(tex.min).toEqual(min);
+                expect(tex.max).toEqual(max);
+            });
         });
     });
 

@@ -2,9 +2,9 @@
  * @module Core/layer/ElevationLayer
  */
 import CancelledCommandException from '../Scheduler/CancelledCommandException.js';
-import DEMUtils, { ELEVATION_FORMAT } from '../../utils/DEMUtils.js';
 import LayerUpdateState from './LayerUpdateState.js';
 import DataStatus from '../../Provider/DataStatus.js';
+import Interpretation from './Interpretation.js';
 import Layer, {
     defineLayerProperty, nodeCommandQueuePriorityFunction,
     refinementCommandCancellationFn, MAX_RETRY,
@@ -33,6 +33,8 @@ class ElevationLayer extends Layer {
      * module:sources/CogSource~CogSource|
      * module:sources/CustomTiledImageSource~CustomTiledImageSource} options.source
      * The data source of this layer.
+     * @param {Interpretation} [options.interpretation=Interpretation.Raw] How to interpret the
+     * values in the dataset.
      * @param {object} [options.extent=undefined] The geographic extent of the layer. If
      * unspecified, the extent will be inherited from the map.
      * @param {string} [options.projection=undefined] The layer projection. If unspecified,
@@ -40,25 +42,12 @@ class ElevationLayer extends Layer {
      * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.
      * If unspecified, the layer will use the `STRATEGY_MIN_NETWORK_TRAFFIC`.
      * @param {string} [options.backgroundColor=undefined] The background color of the layer.
-     * @param {string} [options.elevationFormat=ELEVATION_FORMAT.NUMERIC] the elevation format
      * @param {number} [options.noDataValue=undefined] the optional no-data value to pass to the
      * provider. Any pixel that matches this value will not be processed.
-     * @param {string} [options.heightFieldOffset=undefined] if
-     * <code>options.elevationFormat</code> is <code>ELEVATION_FORMAT.HEIGHFIELD</code>,
-     * specifies the offset to use for scalar values in the height field.
-     * Default is <code>0</code>.
-     * @param {string} [options.heightFieldScale=undefined] if
-     * <code>options.elevationFormat</code> is <code>ELEVATION_FORMAT.HEIGHFIELD</code>,
-     * specifies the scale to use for scalar values in the height field.
-     * Default is <code>255</code>.
      */
     constructor(id, options = {}) {
         super(id, options);
-        this.elevationFormat = options.elevationFormat ?? ELEVATION_FORMAT.NUMERIC;
-        if (this.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
-            this.heightFieldOffset = options.heightFieldOffset || 0;
-            this.heightFieldScale = options.heightFieldScale || 255;
-        }
+
         if (options.noDataValue) {
             this.noDataValue = options.noDataValue;
         }
@@ -123,32 +112,8 @@ class ElevationLayer extends Layer {
             };
         }
 
-        let min = Infinity;
-        let max = -Infinity;
-        if (this.elevationFormat === ELEVATION_FORMAT.MAPBOX_RGB) {
-            const data = ElevationLayer.getBufferData(texture);
-            for (let i = 0; i < data.length; i += 4) {
-                const val = DEMUtils.decodeMapboxElevation(
-                    data[i + 0],
-                    data[i + 1],
-                    data[i + 2],
-                );
-                min = Math.min(min, val);
-                max = Math.max(max, val);
-            }
-        } else if (this.elevationFormat === ELEVATION_FORMAT.HEIGHFIELD) {
-            const data = ElevationLayer.getBufferData(texture);
-            const minmax = ElevationLayer.minMaxFromBuffer(data, this.noDataValue);
-            min = this.heightFieldOffset + this.heightFieldScale * (minmax.min / 255);
-            max = this.heightFieldOffset + this.heightFieldScale * (minmax.max / 255);
-        } else if (this.elevationFormat === ELEVATION_FORMAT.NUMERIC) {
-            const data = ElevationLayer.getBufferData(texture);
-            const minmax = ElevationLayer.minMaxFromBuffer(data, this.noDataValue);
-            min = minmax.min;
-            max = minmax.max;
-        } else {
-            throw new Error(`Unsupported layer.elevationFormat "${this.elevationFormat}'`);
-        }
+        const data = ElevationLayer.getBufferData(texture);
+        const { min, max } = ElevationLayer.minMaxFromBuffer(data, this.noDataValue);
 
         texture.min = min;
         texture.max = max;

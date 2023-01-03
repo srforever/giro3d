@@ -10,7 +10,7 @@ import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
 import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
 import Coordinates from '@giro3d/giro3d/Core/Geographic/Coordinates.js';
-import { ELEVATION_FORMAT } from '@giro3d/giro3d/utils/DEMUtils.js';
+import Interpretation from '@giro3d/giro3d/Core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import CustomTiledImageSource from '@giro3d/giro3d/sources/CustomTiledImageSource.js';
 
@@ -54,9 +54,7 @@ function buildViewer(viewerDiv, defaultRenderer = true) {
             options: {},
         },
         source: demSource,
-        elevationFormat: ELEVATION_FORMAT.HEIGHFIELD,
-        heightFieldOffset: 711,
-        heightFieldScale: 3574,
+        interpretation: Interpretation.ScaleToMinMax(711, 3574),
         projection: 'EPSG:2154',
     }));
 

@@ -13,7 +13,7 @@ import Instance from '@giro3d/giro3d/Core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
 import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
-import { ELEVATION_FORMAT } from '@giro3d/giro3d/utils/DEMUtils.js';
+import Interpretation from '@giro3d/giro3d/Core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
@@ -127,7 +127,7 @@ function createElevationLayer(name, url) {
         'wms_elevation',
         {
             source: wmsSource2,
-            elevationFormat: ELEVATION_FORMAT.HEIGHFIELD,
+            interpretation: Interpretation.ScaleToMinMax(149, 621),
         },
     );
 }
@@ -147,13 +147,6 @@ for (let i = 0; i < wmsLayers.length; i++) {
 
     map.addLayer(createColorLayer(wms, 'https://download.data.grandlyon.com/wms/grandlyon'));
     map.addLayer(createElevationLayer('MNT2012_Altitude_10m_CC46', 'https://download.data.grandlyon.com/wms/grandlyon'));
-
-    // Since the elevation layer use color textures, specify min/max z
-    map.materialOptions = {
-        useColorTextureElevation: true,
-        colorTextureElevationMinZ: -600,
-        colorTextureElevationMaxZ: 400,
-    };
 }
 
 instance.camera.camera3D.position.set(3, 2, 3);

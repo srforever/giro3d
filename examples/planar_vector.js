@@ -4,7 +4,7 @@ import GPX from 'ol/format/GPX.js';
 import KML from 'ol/format/KML.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { ELEVATION_FORMAT } from '@giro3d/giro3d/utils/DEMUtils.js';
+import Interpretation from '@giro3d/giro3d/Core/layer/Interpretation.js';
 import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
 import Instance from '@giro3d/giro3d/Core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
@@ -75,9 +75,7 @@ const elevationLayer = new ElevationLayer(
     'wms_elevation',
     {
         source: wmsSource2,
-        elevationFormat: ELEVATION_FORMAT.HEIGHFIELD,
-        heightFieldOffset: 149, // Altitude corresponding to 0 in heightfield
-        heightFieldScale: (621 - 149), // Altitude corresponding to 255 in heightfield
+        interpretation: Interpretation.ScaleToMinMax(149, 621),
     },
 );
 

@@ -5,7 +5,7 @@ import Instance from '@giro3d/giro3d/Core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import { ELEVATION_FORMAT } from '@giro3d/giro3d/utils/DEMUtils.js';
+import Interpretation from '@giro3d/giro3d/Core/layer/Interpretation.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
 
 const x = -13602618.385789588;
@@ -55,7 +55,7 @@ tmsSource.format = new GeoTIFFFormat();
 map.addLayer(new ElevationLayer(
     'osm',
     {
-        elevationFormat: ELEVATION_FORMAT.NUMERIC,
+        interpretation: Interpretation.Raw,
         source: tmsSource,
     },
 )).catch(e => console.error(e));

@@ -47,6 +47,10 @@ class LayerInspector extends Panel {
         this.addController(this.layer, 'projection')
             .name('Projection');
 
+        this.interpretation = layer.interpretation.toString();
+        this.addController(this, 'interpretation')
+            .name('Interpretation');
+
         this.addController(this.layer, 'protocol')
             .name('Protocol');
 

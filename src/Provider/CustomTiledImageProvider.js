@@ -6,6 +6,9 @@ import DataStatus from './DataStatus.js';
 import Fetcher from './Fetcher.js';
 import MemoryTracker from '../Renderer/MemoryTracker.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
+import WebGLComposer from '../Renderer/composition/WebGLComposer.js';
+import ElevationLayer from '../Core/layer/ElevationLayer.js';
+import Rect from '../Core/Rect.js';
 
 function _selectImagesFromSpatialIndex(index, images, extent) {
     return index.search(
@@ -73,19 +76,34 @@ function selectBestImageForExtent(layer, extent) {
     return selection;
 }
 
-async function getTexture(toDownload, layer) {
-    const blob = await Fetcher.blob(toDownload.url);
-    const texture = await TextureGenerator.decodeBlob(blob);
-    texture.extent = toDownload.selection.extent;
+async function getTexture(toDownload, instance, layer) {
+    const { extent, url, selection } = toDownload;
+    const blob = await Fetcher.blob(url);
+    const inputTexture = await TextureGenerator.decodeBlob(blob);
+
+    const isElevationLayer = layer instanceof ElevationLayer;
+
+    const composer = new WebGLComposer({
+        extent: Rect.fromExtent(extent),
+        width: layer.imageSize.w,
+        height: layer.imageSize.h,
+        webGLRenderer: instance.renderer,
+        showImageOutlines: layer.showTileBorders || false,
+        createDataCopy: isElevationLayer,
+    });
+
+    const options = { interpretation: layer.interpretation };
+    composer.draw(inputTexture, Rect.fromExtent(selection.extent), options);
+
+    const texture = composer.render();
+
+    texture.extent = extent;
     texture.file = toDownload.selection.image;
-    texture.needsUpdate = true;
-    if (layer.transparent) {
-        texture.premultiplyAlpha = true;
-    }
+
     if (__DEBUG__) {
         MemoryTracker.track(texture, 'custom tiled image');
     }
-    return { texture, pitch: toDownload.pitch || new Vector4(0, 0, 1, 1) };
+    return { texture, pitch: new Vector4(0, 0, 1, 1) };
 }
 
 /**
@@ -154,13 +172,13 @@ export default {
         }
         return {
             selection: s,
-            pitch: extent.offsetToParent(s.extent),
+            extent,
             url: layer.source.buildUrl(s.image),
         };
     },
 
     executeCommand(command) {
-        const { layer } = command;
-        return getTexture(command.toDownload, layer);
+        const { layer, instance } = command;
+        return getTexture(command.toDownload, instance, layer);
     },
 };

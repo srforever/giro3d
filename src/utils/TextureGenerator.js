@@ -7,6 +7,7 @@ import {
     LuminanceAlphaFormat,
     LuminanceFormat,
     RGBFormat,
+    HalfFloatType,
     DepthFormat,
     RedFormat,
     RedIntegerFormat,
@@ -16,8 +17,17 @@ import {
     RGBAIntegerFormat,
     RGBAFormat,
     UnsignedByteType,
+    ShortType,
+    UnsignedShortType,
+    IntType,
+    ByteType,
+    UnsignedShort4444Type,
+    UnsignedInt248Type,
+    UnsignedIntType,
+    UnsignedShort5551Type,
     WebGLRenderTarget,
     WebGLRenderer,
+    TextureDataType,
 } from 'three';
 
 export const OPAQUE_BYTE = 255;
@@ -197,6 +207,34 @@ function getChannelCount(pixelFormat) {
 }
 
 /**
+ * Returns the number of bytes per channel.
+ *
+ * @param {TextureDataType} dataType The pixel format.
+ * @returns {number} The number of bytes per channel.
+ */
+function getBytesPerChannel(dataType) {
+    switch (dataType) {
+        case UnsignedByteType:
+        case ByteType:
+            return 1;
+        case ShortType:
+        case UnsignedShortType:
+        case UnsignedShort4444Type:
+        case UnsignedShort5551Type:
+            return 2;
+        case IntType:
+        case UnsignedIntType:
+        case UnsignedInt248Type:
+        case FloatType:
+            return 4;
+        case HalfFloatType:
+            return 2;
+        default:
+            throw new Error(`unknown data type: ${dataType}`);
+    }
+}
+
+/**
  * Reads back the render target buffer into CPU memory, then attach this buffer to the `data`
  * property of the render target's texture.
  *
@@ -235,7 +273,9 @@ async function decodeBlob(blob) {
         case 'image/jpeg': {
             // Use the browser capabilities to decode the image
             const img = await create8bitImage(blob);
-            return new Texture(img);
+            const tex = new Texture(img);
+            tex.needsUpdate = true;
+            return tex;
         }
         default:
             throw new Error(`unsupported media type for textures: ${blob.type}`);
@@ -300,5 +340,7 @@ export default {
     createDataTexture,
     decodeBlob,
     fillBuffer,
+    getChannelCount,
+    getBytesPerChannel,
     createDataCopy,
 };

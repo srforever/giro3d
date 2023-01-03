@@ -183,10 +183,10 @@ class Map extends Entity3D {
         this._segments = options.segments || 8;
 
         this.materialOptions = {
-            hillshading: options.hillshading,
+            hillshading: options.hillshading || false,
             colormap: options.colormap,
-            discardNoData: options.discardNoData,
-            doubleSided: options.doubleSided,
+            discardNoData: options.discardNoData || false,
+            doubleSided: options.doubleSided || false,
             segments: this.segments,
         };
         if (options.backgroundColor) {

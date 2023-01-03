@@ -7,7 +7,7 @@ import Instance from '@giro3d/giro3d/Core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
 import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
-import { ELEVATION_FORMAT } from '@giro3d/giro3d/utils/DEMUtils.js';
+import Interpretation from '@giro3d/giro3d/Core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
@@ -70,7 +70,7 @@ function addElevationLayer(key) {
                 crossOrigin: 'anonymous',
                 projection: extent.crs(),
             }),
-            elevationFormat: ELEVATION_FORMAT.MAPBOX_RGB,
+            interpretation: Interpretation.MapboxTerrainRGB,
         },
     );
     map.addLayer(elevationLayer);
