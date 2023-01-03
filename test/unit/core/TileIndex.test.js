@@ -22,9 +22,9 @@ class MockWeakRef {
 
 global.WeakRef = MockWeakRef;
 
-function makeTile(x, y, z, visible = true) {
+function makeTile(x, y, z, visible = true, id = 'id') {
     return {
-        x, y, z, material: { visible },
+        id, x, y, z, material: { visible },
     };
 }
 
@@ -43,12 +43,22 @@ describe('TileIndex', () => {
             tileIndex.addTile(tile);
             expect(tileIndex.tiles.get('0,0,0').deref()).toBe(tile);
         });
+
+        it('should keep a WeakRef in the tile by ID index at TileMesh creation', () => {
+            const foo = makeTile(0, 0, 0, true, 'foo');
+            const bar = makeTile(0, 0, 1, true, 'bar');
+            const tileIndex = new TileIndex();
+            tileIndex.addTile(foo);
+            tileIndex.addTile(bar);
+            expect(tileIndex.getTile('foo')).toBe(foo);
+            expect(tileIndex.getTile('bar')).toBe(bar);
+        });
     });
 
     describe('update', () => {
         it('should only remove garbage collected tiles from the map', () => {
-            const tile000 = { x: 0, y: 0, z: 0 };
-            const tile001 = { x: 0, y: 0, z: 1 };
+            const tile000 = makeTile(0, 0, 0, true, 'foo');
+            const tile001 = makeTile(0, 0, 1, true, 'bar');
             const tileIndex = new TileIndex();
 
             tileIndex.addTile(tile000);
@@ -58,11 +68,15 @@ describe('TileIndex', () => {
             const weakref001 = tileIndex.tiles.get('0,0,1');
             expect(weakref000.deref()).toBe(tile000);
             expect(weakref001.deref()).toBe(tile001);
+            expect(tileIndex.getTile('foo')).toBe(tile000);
+            expect(tileIndex.getTile('bar')).toBe(tile001);
 
             weakref000.collect();
             tileIndex.update();
             expect(tileIndex.tiles.get('0,0,0')).toBeUndefined();
             expect(tileIndex.tiles.get('0,0,1')).toBe(weakref001);
+            expect(tileIndex.getTile('foo')).toBeUndefined();
+            expect(tileIndex.getTile('bar')).toBe(tile001);
         });
     });
 
