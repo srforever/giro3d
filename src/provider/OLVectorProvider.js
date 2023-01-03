@@ -24,12 +24,8 @@ import {
     translate as translateTransform,
 } from 'ol/transform.js';
 
-import Extent from '../core/geographic/Extent.js';
 import DataStatus from './DataStatus.js';
-
-function fromOLExtent(extent, projectionCode) {
-    return new Extent(projectionCode, extent[0], extent[2], extent[1], extent[3]);
-}
+import OpenLayersUtils from '../utils/OpenLayersUtils.js';
 
 const emptyTexture = new Texture();
 emptyTexture.empty = true;
@@ -59,15 +55,6 @@ function preprocessDataLayer(layer) {
     layer.getStyleFunction = () => layer.style(Style, Fill, Stroke, Icon, Text);
 }
 
-function toOLExtent(extent) {
-    return [
-        Math.floor(extent.west()),
-        Math.floor(extent.south()),
-        Math.ceil(extent.east()),
-        Math.ceil(extent.north()),
-    ];
-}
-
 // eslint-disable-next-line no-unused-vars
 function getPossibleTextureImprovements(layer, extent, texture, pitch) {
     if (texture && texture.extent
@@ -76,7 +63,7 @@ function getPossibleTextureImprovements(layer, extent, texture, pitch) {
         return DataStatus.DATA_ALREADY_LOADED;
     }
 
-    const layerExtent = fromOLExtent(layer.source.getExtent(), layer.projection);
+    const layerExtent = OpenLayersUtils.fromOLExtent(layer.source.getExtent(), layer.projection);
     if (extent.intersectsExtent(layerExtent)) {
         return { extent, pitch };
     }
@@ -92,7 +79,7 @@ function executeCommand(instance, layer, requester, toDownload) {
 }
 
 function createTexture(extent, pitch, layer) {
-    const layerExtent = fromOLExtent(layer.source.getExtent(), layer.projection);
+    const layerExtent = OpenLayersUtils.fromOLExtent(layer.source.getExtent(), layer.projection);
     if (!extent.intersectsExtent(layerExtent)) {
         return Promise.resolve({ texture: emptyTexture, pitch: new Vector4(0, 0, 0, 0) });
     }
@@ -124,7 +111,7 @@ function createBuilderGroup(extent, layer) {
     const { source } = layer;
     const pixelRatio = 1;
     const resolution = (extent.dimensions().x / layer.imageSize.w);
-    const olExtent = toOLExtent(extent);
+    const olExtent = OpenLayersUtils.toOLExtent(extent, 0.001);
     const builderGroup = new CanvasBuilderGroup(0, olExtent, resolution, pixelRatio);
     const squaredTolerance = getSquaredRenderTolerance(resolution, pixelRatio);
 
@@ -187,7 +174,7 @@ function renderTileImage(canvas, builderGroup, extent, layer) {
     const transform = resetTransform(tmpTransform_);
     scaleTransform(transform, pixelRatio / resolutionX, -pixelRatio / resolutionY);
     translateTransform(transform, -extent.west(), -extent.north());
-    const olExtent = toOLExtent(extent);
+    const olExtent = OpenLayersUtils.toOLExtent(extent);
     const resolution = (extent.dimensions().x / layer.imageSize.w);
     const executor = new ExecutorGroup(
         olExtent, resolution, pixelRatio, true, builderGroup.finish(),
