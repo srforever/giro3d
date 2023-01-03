@@ -170,24 +170,18 @@ class MapInspector extends EntityInspector {
     }
 
     setRenderState(state) {
-        function setState(obj, s) {
-            if (obj.changeState) {
-                obj.changeState(s);
-            }
-        }
-
         switch (state) {
             case 'Normal':
-                this.map.object3d.traverse(o => setState(o, RenderingState.FINAL));
+                this.map.setRenderState(RenderingState.FINAL);
                 break;
             case 'Depth':
-                this.map.object3d.traverse(o => setState(o, RenderingState.DEPTH));
+                this.map.setRenderState(RenderingState.DEPTH);
                 break;
             case 'UV':
-                this.map.object3d.traverse(o => setState(o, RenderingState.UV));
+                this.map.setRenderState(RenderingState.UV);
                 break;
             case 'ID':
-                this.map.object3d.traverse(o => setState(o, RenderingState.ID));
+                this.map.setRenderState(RenderingState.ID);
                 break;
             default:
                 break;

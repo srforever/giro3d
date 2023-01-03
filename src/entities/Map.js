@@ -20,6 +20,7 @@ import ScreenSpaceError from '../Core/ScreenSpaceError.js';
 import LayeredMaterial from '../Renderer/LayeredMaterial.js';
 import TileMesh from '../Core/TileMesh.js';
 import TileIndex from '../Core/TileIndex.js';
+import RenderingState from '../Renderer/RenderingState.js';
 
 /**
  * Fires when a layer is added to the map.
@@ -326,6 +327,20 @@ class Map extends Entity3D {
         this.onTileCreated(this, parent, tile);
 
         return tile;
+    }
+
+    /**
+     * Sets the render state of the map.
+     *
+     * @param {RenderingState} state The new state.
+     * @returns {Function} The function to revert to the previous state.
+     */
+    setRenderState(state) {
+        const restores = this.level0Nodes.map(n => n.pushRenderState(state));
+
+        return () => {
+            restores.forEach(r => r());
+        };
     }
 
     pickObjectsAt(coordinates, options, target) {
