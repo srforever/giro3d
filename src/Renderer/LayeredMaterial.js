@@ -180,7 +180,7 @@ class LayeredMaterial extends RawShaderMaterial {
                 continue;
             }
             const tex = this.texturesInfo.color.infos[index].texture;
-            if (tex && tex.dispose) {
+            if (tex && tex.dispose && tex.owner === this) {
                 tex.dispose();
             }
             delete this.texturesInfo.color.infos[index];
@@ -208,11 +208,15 @@ class LayeredMaterial extends RawShaderMaterial {
         return this.texturesInfo.color.infos[index].texture;
     }
 
-    setColorTextures(layer, textures, shortcut, instance) {
+    setColorTextures(layer, textures, shortcut, instance, isInherited = false) {
         if (Array.isArray(textures)) {
             // console.warn(`Provider should return a single texture and not an Array.
             // See layer id = ${layer.id}`);
             textures = textures[0];
+        }
+
+        if (!isInherited) {
+            textures.owner = this;
         }
 
         const index = this.indexOfColorLayer(layer);

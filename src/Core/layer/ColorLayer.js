@@ -99,7 +99,7 @@ class ColorLayer extends Layer {
         node.material.setColorTextures(this, {
             texture,
             pitch: extent.offsetToParent(texture.extent),
-        }, true, context.instance);
+        }, true, context.instance, true);
         return true;
     }
 
