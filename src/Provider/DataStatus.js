@@ -1,4 +1,8 @@
-/** Describe the status of a data request. */
+/**
+ * Describe the status of a data request.
+ *
+ * @enum
+ */
 const DataStatus = {
     /** Data for this tile will *never* be available. */
     DATA_UNAVAILABLE: 1,

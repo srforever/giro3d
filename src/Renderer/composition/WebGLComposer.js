@@ -153,6 +153,7 @@ class WebGLComposer {
      * @param {Rect} extent The extent of this texture in the composition space.
      * @param {object} [options] The options.
      * @param {Interpretation} [options.interpretation=Interpretation.Raw] The pixel interpretation.
+     * @param {number} [options.zOrder=0] The Z-order of the texture in the composition space.
      */
     draw(texture, extent, options = {}) {
         const geometry = new PlaneGeometry(extent.width, extent.height, 1, 1);
@@ -180,7 +181,10 @@ class WebGLComposer {
         const plane = new Mesh(geometry, material);
         this.scene.add(plane);
 
-        plane.position.set(extent.centerX - this.origin.x, extent.centerY - this.origin.y, IMAGE_Z);
+        const x = extent.centerX - this.origin.x;
+        const y = extent.centerY - this.origin.y;
+        const z = IMAGE_Z + (options.zOrder ?? 0);
+        plane.position.set(x, y, z);
     }
 
     /**

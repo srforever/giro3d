@@ -32,6 +32,15 @@ class OutlinerPropertyView extends Panel {
         });
     }
 
+    /**
+     * @param {Object3D} obj The object to update.
+     */
+    updateObject(obj) {
+        obj.updateMatrixWorld(true);
+        obj.updateWorldMatrix(true, true);
+        this.notify();
+    }
+
     populateProperties(obj) {
         while (this._controllers.length > 0) {
             this._controllers.pop().destroy();

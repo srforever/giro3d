@@ -27,7 +27,7 @@ const viewerDiv = document.getElementById('viewerDiv');
 const instance = new Instance(viewerDiv);
 
 // Adds the map that will contain the layers.
-const map = new Map('planar', { extent });
+const map = new Map('planar', { extent, segments: 64 });
 instance.add(map);
 
 // Adds our Elevation source & layer
