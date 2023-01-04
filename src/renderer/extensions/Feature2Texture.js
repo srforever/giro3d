@@ -2,7 +2,7 @@ import {
     Vector2,
     Texture,
     LinearFilter,
-    RGBFormat,
+    RGBAFormat,
     DataTexture,
 } from 'three';
 
@@ -135,11 +135,12 @@ export default {
             texture.minFilter = LinearFilter;
             texture.needsUpdate = true;
         } else if (backgroundColor) {
-            const data = new Uint8Array(3);
+            const data = new Uint8Array(4);
             data[0] = backgroundColor.r * 255;
             data[1] = backgroundColor.g * 255;
             data[2] = backgroundColor.b * 255;
-            texture = new DataTexture(data, 1, 1, RGBFormat);
+            data[3] = 255;
+            texture = new DataTexture(data, 1, 1, RGBAFormat);
             texture.needsUpdate = true;
         } else {
             texture = new Texture();

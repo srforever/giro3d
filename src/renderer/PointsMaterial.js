@@ -144,6 +144,7 @@ class PointsMaterial extends RawShaderMaterial {
             this.visible = source.visible;
             this.opacity = source.opacity;
             this.transparent = source.transparent;
+            this.needsUpdate = true;
             this.size = source.size;
             this.mode = source.mode;
             this.pickingId = source.pickingId;

@@ -6,7 +6,6 @@ import {
     AlphaFormat,
     LuminanceAlphaFormat,
     LuminanceFormat,
-    RGBFormat,
     HalfFloatType,
     DepthFormat,
     RedFormat,
@@ -191,7 +190,6 @@ function create8bitImage(blob) {
 function getChannelCount(pixelFormat) {
     switch (pixelFormat) {
         case AlphaFormat: return 1;
-        case RGBFormat: return 3;
         case RGBAFormat: return 4;
         case LuminanceFormat: return 1;
         case LuminanceAlphaFormat: return 2;

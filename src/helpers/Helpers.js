@@ -176,6 +176,7 @@ class Helpers {
         helper.isHelper = true;
         helper.isvolumeHelper = true;
         helper.material.transparent = true;
+        helper.material.needsUpdate = true;
         return helper;
     }
 

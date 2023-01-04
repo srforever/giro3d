@@ -195,7 +195,9 @@ class PotreePointCloud extends Entity3D {
         if (this.material) {
             this.material.visible = this.visible;
             this.material.opacity = this.opacity;
+            const currentTransparent = this.material.transparent;
             this.material.transparent = this.opacity < 1;
+            this.material.needsUpdate |= (currentTransparent !== this.material.transparent);
             this.material.size = this.pointSize;
         }
 
