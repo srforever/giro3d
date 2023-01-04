@@ -316,6 +316,8 @@ function createDataTexture(options, sourceDataType, ...pixelData) {
         ? sourceDataType
         : UnsignedByteType;
 
+    let result;
+
     switch (targetDataType) {
         case UnsignedByteType:
         {
@@ -324,17 +326,22 @@ function createDataTexture(options, sourceDataType, ...pixelData) {
             // We use an ImageData proxy to support drawing this image into a canvas.
             // This is only possible for 8-bit images.
             const img = new ImageData(data, width, height);
-            return new DataTexture(img, width, height, RGBAFormat, UnsignedByteType);
+            result = new DataTexture(img, width, height, RGBAFormat, UnsignedByteType);
+            break;
         }
         case FloatType:
         {
             const buf = new Float32Array(pixelCount * channelCount);
             const data = fillBuffer(buf, options, OPAQUE_FLOAT, ...pixelData);
-            return new DataTexture(data, width, height, RGBAFormat, FloatType);
+            result = new DataTexture(data, width, height, RGBAFormat, FloatType);
+            break;
         }
         default:
             throw new Error('unsupported data type');
     }
+
+    result.needsUpdate = true;
+    return result;
 }
 
 /**
@@ -359,6 +366,7 @@ function create1DTexture(colors) {
 
     const HEIGHT = 1;
     const texture = new DataTexture(buf, size, HEIGHT, RGBAFormat, UnsignedByteType);
+    texture.needsUpdate = true;
 
     return texture;
 }
