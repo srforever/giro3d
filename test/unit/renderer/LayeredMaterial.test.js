@@ -4,18 +4,16 @@ import LayerUpdateState from '../../../src/Core/layer/LayerUpdateState.js';
 import ColorLayer from '../../../src/Core/layer/ColorLayer.js';
 import LayeredMaterial from '../../../src/Renderer/LayeredMaterial.js';
 
-const defaultProps = { width: 1, height: 1 };
 const defaultAtlasInfo = { minX: 0, maxX: 1 };
 const defaultRenderer = {};
 
 describe('LayeredMaterial', () => {
     describe('constructor', () => {
         it('should assign the correct side', () => {
-            const normal = new LayeredMaterial({}, defaultRenderer, defaultProps, defaultAtlasInfo);
+            const normal = new LayeredMaterial({}, defaultRenderer, defaultAtlasInfo);
             const ds = new LayeredMaterial(
                 { doubleSided: true },
                 defaultRenderer,
-                defaultProps,
                 defaultAtlasInfo,
             );
 
