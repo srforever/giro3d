@@ -1,3 +1,4 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import esMain from 'es-main';
 import fse from 'fs-extra';
 import path, { dirname } from 'path';
@@ -29,12 +30,12 @@ async function main() {
     // copy in readme and license files
     await fse.copyFile(
         path.resolve(baseDir, '../README.md'),
-        path.join(buildDir, 'README.md')
+        path.join(buildDir, 'README.md'),
     );
 
     await fse.copyFile(
         path.resolve(baseDir, '../LICENSE'),
-        path.join(buildDir, 'LICENSE')
+        path.join(buildDir, 'LICENSE'),
     );
 }
 
@@ -43,7 +44,7 @@ async function main() {
  * function, and write the output file.
  */
 if (esMain(import.meta)) {
-    main().catch((err) => {
+    main().catch(err => {
         process.stderr.write(`${err.message}\n`, () => process.exit(1));
     });
 }
