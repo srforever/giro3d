@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { ImageryLayers } from '../../../../src/Core/layer/Layer.js';
+import { ImageryLayers } from '../../../../src/core/layer/Layer.js';
 
 /**
  * Create a pseudolayer for testing purposes

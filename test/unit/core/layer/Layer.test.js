@@ -4,13 +4,13 @@ import Vector from 'ol/source/Vector.js';
 import VectorTile from 'ol/source/VectorTile.js';
 import Stamen from 'ol/source/Stamen.js';
 
-import Layer, { defineLayerProperty } from '../../../../src/Core/layer/Layer.js';
+import Layer, { defineLayerProperty } from '../../../../src/core/layer/Layer.js';
 import Map from '../../../../src/entities/Map.js';
-import Instance from '../../../../src/Core/Instance.js';
+import Instance from '../../../../src/core/Instance.js';
 import {
     STRATEGY_DICHOTOMY, STRATEGY_MIN_NETWORK_TRAFFIC,
-} from '../../../../src/Core/layer/LayerUpdateStrategy.js';
-import Extent from '../../../../src/Core/Geographic/Extent.js';
+} from '../../../../src/core/layer/LayerUpdateStrategy.js';
+import Extent from '../../../../src/core/geographic/Extent.js';
 import { setupGlobalMocks } from '../../mocks.js';
 
 describe('defineLayerProperty', () => {

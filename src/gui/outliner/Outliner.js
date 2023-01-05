@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import { Object3D } from 'three';
-import Instance from '../../Core/Instance.js';
+import Instance from '../../core/Instance.js';
 import Helpers from '../../helpers/Helpers.js';
 import Panel from '../Panel.js';
 import OutlinerPropertyView from './OutlinerPropertyView.js';

@@ -1,8 +1,8 @@
 import assert from 'assert';
 import { DoubleSide, FrontSide } from 'three';
-import LayerUpdateState from '../../../src/Core/layer/LayerUpdateState.js';
-import ColorLayer from '../../../src/Core/layer/ColorLayer.js';
-import LayeredMaterial from '../../../src/Renderer/LayeredMaterial.js';
+import LayerUpdateState from '../../../src/core/layer/LayerUpdateState.js';
+import ColorLayer from '../../../src/core/layer/ColorLayer.js';
+import LayeredMaterial from '../../../src/renderer/LayeredMaterial.js';
 
 const defaultAtlasInfo = { minX: 0, maxX: 1 };
 const defaultRenderer = {};

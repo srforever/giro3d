@@ -1,4 +1,4 @@
-import Cache from '../../../../src/Core/Scheduler/Cache.js';
+import Cache from '../../../../src/core/scheduler/Cache.js';
 
 let now = 0;
 

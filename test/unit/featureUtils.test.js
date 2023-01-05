@@ -1,7 +1,7 @@
 import assert from 'assert';
-import GeoJsonParser from '../../src/Parser/GeoJsonParser.js';
-import FeaturesUtils from '../../src/Renderer/ThreeExtended/FeaturesUtils.js';
-import Coordinates from '../../src/Core/Geographic/Coordinates.js';
+import GeoJsonParser from '../../src/parser/GeoJsonParser.js';
+import FeaturesUtils from '../../src/renderer/extensions/FeaturesUtils.js';
+import Coordinates from '../../src/core/geographic/Coordinates.js';
 
 const geojson = require('../data/geojson/simple.geojson.json');
 

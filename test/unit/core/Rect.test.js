@@ -1,4 +1,4 @@
-import Rect from '../../../src/Core/Rect.js';
+import Rect from '../../../src/core/Rect.js';
 
 describe('Rect', () => {
     describe('constructor', () => {

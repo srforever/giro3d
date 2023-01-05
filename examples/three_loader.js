@@ -16,8 +16,8 @@ import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
-import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/Core/MainLoop.js';
-import Instance from '@giro3d/giro3d/Core/Instance.js';
+import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 const viewerDiv = document.getElementById('viewerDiv');

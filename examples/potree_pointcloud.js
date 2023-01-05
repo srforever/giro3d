@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Instance from '@giro3d/giro3d/Core/Instance.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
 import PotreePointCloud from '@giro3d/giro3d/entities/PotreePointCloud.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import PotreeSource from '@giro3d/giro3d/sources/PotreeSource.js';

@@ -3,7 +3,7 @@
  */
 import { Chart } from 'chart.js';
 import ChartPanel, { pushTrim } from './ChartPanel.js';
-import { MAIN_LOOP_EVENTS } from '../../Core/MainLoop.js';
+import { MAIN_LOOP_EVENTS } from '../../core/MainLoop.js';
 
 const MAX_DATA_POINTS = 30;
 

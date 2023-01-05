@@ -1,5 +1,5 @@
-import CanvasComposer from '../../../../src/Renderer/composition/CanvasComposer.js';
-import Rect from '../../../../src/Core/Rect.js';
+import CanvasComposer from '../../../../src/renderer/composition/CanvasComposer.js';
+import Rect from '../../../../src/core/Rect.js';
 
 describe('CanvasComposer', () => {
     function makeMockCanvas(width = 256, height = 256) {

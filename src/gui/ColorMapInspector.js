@@ -2,10 +2,10 @@
  * @module gui/ColorMapInspector
  */
 import GUI from 'lil-gui';
-import Instance from '../Core/Instance.js';
-import ColorMap, { ColorMapMode } from '../Core/layer/ColorMap.js';
+import Instance from '../core/Instance.js';
+import ColorMap, { ColorMapMode } from '../core/layer/ColorMap.js';
 import Panel from './Panel.js';
-import Layer from '../Core/layer/Layer.js';
+import Layer from '../core/layer/Layer.js';
 
 /**
  * Inspector for a {@see ColorMap}.

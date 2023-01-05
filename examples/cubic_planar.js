@@ -8,12 +8,12 @@ import {
     Object3D,
 } from 'three';
 import TileWMS from 'ol/source/TileWMS.js';
-import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
-import Instance from '@giro3d/giro3d/Core/Instance.js';
-import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
-import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
-import Interpretation from '@giro3d/giro3d/Core/layer/Interpretation.js';
+import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
+import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
+import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
+import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 

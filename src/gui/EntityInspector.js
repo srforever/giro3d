@@ -4,7 +4,7 @@
 import GUI from 'lil-gui';
 import { Object3D, Color } from 'three';
 import Panel from './Panel.js';
-import Instance from '../Core/Instance.js';
+import Instance from '../core/Instance.js';
 import Entity3D from '../entities/Entity3D.js';
 import Helpers from '../helpers/Helpers.js';
 

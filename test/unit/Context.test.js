@@ -1,6 +1,6 @@
 import { PerspectiveCamera, Plane, Vector3 } from 'three';
 
-import Context from '../../src/Core/Context.js';
+import Context from '../../src/core/Context.js';
 
 describe('Context', () => {
     const threeCamera = new PerspectiveCamera(75);

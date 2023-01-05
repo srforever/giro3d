@@ -1,12 +1,12 @@
 import { Vector3, BufferGeometry } from 'three';
 
-import ColorLayer from '../../../../src/Core/layer/ColorLayer.js';
-import TileMesh from '../../../../src/Core/TileMesh.js';
-import Extent from '../../../../src/Core/Geographic/Extent.js';
+import ColorLayer from '../../../../src/core/layer/ColorLayer.js';
+import TileMesh from '../../../../src/core/TileMesh.js';
+import Extent from '../../../../src/core/geographic/Extent.js';
 import Map from '../../../../src/entities/Map.js';
-import OBB from '../../../../src/Renderer/ThreeExtended/OBB.js';
-import LayeredMaterial from '../../../../src/Renderer/LayeredMaterial.js';
-import { STRATEGY_MIN_NETWORK_TRAFFIC } from '../../../../src/Core/layer/LayerUpdateStrategy.js';
+import OBB from '../../../../src/renderer/extensions/OBB.js';
+import LayeredMaterial from '../../../../src/renderer/LayeredMaterial.js';
+import { STRATEGY_MIN_NETWORK_TRAFFIC } from '../../../../src/core/layer/LayerUpdateStrategy.js';
 
 const assert = require('assert');
 

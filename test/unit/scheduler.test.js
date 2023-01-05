@@ -1,5 +1,5 @@
 import assert from 'assert';
-import Scheduler from '../../src/Core/Scheduler/Scheduler.js';
+import Scheduler from '../../src/core/scheduler/Scheduler.js';
 
 const scheduler = new Scheduler();
 

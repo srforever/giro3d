@@ -1,9 +1,9 @@
 import { Matrix4, Vector3 } from 'three';
 import proj4 from 'proj4';
 import assert from 'assert';
-import Extent from '../../src/Core/Geographic/Extent.js';
-import TileGeometry from '../../src/Core/TileGeometry.js';
-import OBB from '../../src/Renderer/ThreeExtended/OBB.js';
+import Extent from '../../src/core/geographic/Extent.js';
+import TileGeometry from '../../src/core/TileGeometry.js';
+import OBB from '../../src/renderer/extensions/OBB.js';
 
 const max = new Vector3(10, 10, 10);
 const min = new Vector3(-10, -10, -10);

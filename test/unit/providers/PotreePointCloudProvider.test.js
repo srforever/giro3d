@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { _testing } from '../../../src/Provider/PotreePointCloudProvider.js';
+import { _testing } from '../../../src/provider/PotreePointCloudProvider.js';
 
 describe('PotreePointCloudProvider', () => {
     describe('parseMetadata', () => {

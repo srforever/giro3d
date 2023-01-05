@@ -2,7 +2,7 @@
  * @module gui/CachePanel
  */
 
-import Cache from '../Core/Scheduler/Cache.js';
+import Cache from '../core/scheduler/Cache.js';
 import Panel from './Panel.js';
 
 class CachePanel extends Panel {

@@ -3,11 +3,11 @@ import GeoJSON from 'ol/format/GeoJSON.js';
 import Vector from 'ol/source/Vector.js';
 import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
-import Instance from '@giro3d/giro3d/Core/Instance.js';
+import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
-import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
+import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
+import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)

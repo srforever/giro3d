@@ -1,8 +1,8 @@
 // eslint-disable-next-line import/no-extraneous-dependencies
 import fs from 'fs';
 import assert from 'assert';
-import VectorTileParser from '../../src/Parser/VectorTileParser.js';
-import Extent from '../../src/Core/Geographic/Extent.js';
+import VectorTileParser from '../../src/parser/VectorTileParser.js';
+import Extent from '../../src/core/geographic/Extent.js';
 
 // this PBF file comes from https://github.com/mapbox/vector-tile-js
 // it contains two square polygons
