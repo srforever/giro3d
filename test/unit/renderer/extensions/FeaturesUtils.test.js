@@ -1,9 +1,9 @@
 import assert from 'assert';
-import GeoJsonParser from '../../src/parser/GeoJsonParser.js';
-import FeaturesUtils from '../../src/renderer/extensions/FeaturesUtils.js';
-import Coordinates from '../../src/core/geographic/Coordinates.js';
+import GeoJsonParser from '../../../../src/parser/GeoJsonParser.js';
+import FeaturesUtils from '../../../../src/renderer/extensions/FeaturesUtils.js';
+import Coordinates from '../../../../src/core/geographic/Coordinates.js';
 
-const geojson = require('../data/geojson/simple.geojson.json');
+const geojson = require('../../../data/geojson/simple.geojson.json');
 
 const promise = GeoJsonParser.parse(geojson, { crsOut: 'EPSG:4326', buildExtent: true });
 
