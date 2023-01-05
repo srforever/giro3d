@@ -27,6 +27,10 @@ uniform mat4        modelViewMatrix;
 // Outputs
 varying vec2        vUv;
 
+const int   NULL = -1;
+const int   NO_CORNER_NEIGHBOUR = 0;
+const int   ALL_NEIGHBOURS_ARE_SAME_SIZE = 1;
+const int   SOME_NEIGHBOURS_ARE_BIGGER = 2;
 const float NO_NEIGHBOUR = -99.;
 const int   INNER_VERTEX = -1;
 
@@ -46,6 +50,11 @@ vec2 clamp01(vec2 uv) {
 }
 
 #if defined(STITCHING)
+struct CornerNeighbour {
+    int location;
+    float diffLevel;
+};
+
 bool isEdge(int location) {
     return mod(float(location), 2.) == 0.;
 }
@@ -171,46 +180,88 @@ bool computeXYStitchingOffsets(
     }
 }
 
-bool getNeighbour(int location) {
+CornerNeighbour getNeighbour(int location) {
     float diffLevel = neighbours[location].diffLevel;
+    CornerNeighbour result;
 
-    return diffLevel != NO_NEIGHBOUR;
+    if (diffLevel != NO_NEIGHBOUR) {
+        result.location = location;
+        result.diffLevel = diffLevel;
+    } else {
+        result.location = NULL;
+        result.diffLevel = NO_NEIGHBOUR;
+    }
+
+    return result;
 }
 
-// Returns the locations of the three possible neighbours of this corner location.
-// If a neighbour is not present, its value is -1.
-// Returns true if at least one corner neighbour exists.
-bool getCornerNeighbours(
-    int location,
-    out int n0,
-    out int n1,
-    out int n2
-) {
-    n0 = -1;
-    n1 = -1;
-    n2 = -1;
+/**
+ * Returns the locations of the three possible neighbours of this corner location.
+ * If a neighbour is not present, its value is NULL.
+ * If a neighbour is bigger than us, short-circuit and return only this neighbour.
+ * Returns true if at least one corner neighbour exists.
+ */
+ivec4 getCornerNeighbours(int location) {
+    int result = ALL_NEIGHBOURS_ARE_SAME_SIZE;
 
-    bool result = false;
+    int n0 = NULL;
+    int n1 = NULL;
+    int n2 = NULL;
+
+    CornerNeighbour cn0;
+    CornerNeighbour cn1;
+    CornerNeighbour cn2;
+
+    float biggerDiffLevel = 0.;
+
+    bool atLeastOne = false;
 
     float floc = float(location);
 
     // one of the neighbour is the location itself of course
-    if (getNeighbour(location)) {
-        n0 = location;
-        result = true;
-    }
-    int next = int(mod(floc + 1., 8.));
-    if (getNeighbour(next)) {
-        n1 = next;
-        result = true;
-    }
-    int prev = int(mod(floc - 1., 8.));
-    if (getNeighbour(prev)) {
-        n2 = prev;
-        result = true;
+    cn0 = getNeighbour(location);
+    if (cn0.diffLevel != NO_NEIGHBOUR) {
+        biggerDiffLevel = min(biggerDiffLevel, cn0.diffLevel);
+        atLeastOne = true;
     }
 
-    return result;
+    int next = int(mod(floc + 1., 8.));
+    cn1 = getNeighbour(next);
+    if (cn1.diffLevel != NO_NEIGHBOUR) {
+        biggerDiffLevel = min(biggerDiffLevel, cn1.diffLevel);
+        atLeastOne = true;
+    }
+
+    int prev = int(mod(floc - 1., 8.));
+    cn2 = getNeighbour(prev);
+    if (cn2.diffLevel != NO_NEIGHBOUR) {
+        biggerDiffLevel = min(biggerDiffLevel, cn2.diffLevel);
+        atLeastOne = true;
+    }
+
+    if (atLeastOne) {
+        // Eliminate corners that are smaller than the others
+        if (cn0.location != NULL && cn0.diffLevel != biggerDiffLevel) {
+            cn0.location = NULL;
+            result = SOME_NEIGHBOURS_ARE_BIGGER;
+        }
+        if (cn1.location != NULL && cn1.diffLevel != biggerDiffLevel) {
+            cn1.location = NULL;
+            result = SOME_NEIGHBOURS_ARE_BIGGER;
+        }
+        if (cn2.location != NULL && cn2.diffLevel != biggerDiffLevel) {
+            cn2.location = NULL;
+            result = SOME_NEIGHBOURS_ARE_BIGGER;
+        }
+
+        n0 = cn0.location;
+        n1 = cn1.location;
+        n2 = cn2.location;
+
+        return ivec4(result, n0, n1, n2);
+    }
+
+    return ivec4(NO_CORNER_NEIGHBOUR, NULL, NULL, NULL);
 }
 
 float computeZStitchedElevation(vec2 uv, int location, float currentElevation) {
@@ -243,22 +294,41 @@ float computeZStitchedElevation(vec2 uv, int location, float currentElevation) {
         // elevation of the biggest neighbour.
 
         // First, we need to collect the theoretical neighbours, then eliminate the absent ones.
-        int n0, n1, n2;
-        // First, check that we have at least one corner neighbour.
-        if (getCornerNeighbours(location, n0, n1, n2)) {
-            // We do ! Now compute the weighted average.
-            float sum = currentElevation;
-            float weight = 1.;
+        ivec4 corners = getCornerNeighbours(location);
 
-            if (n0 != -1) {
+        int cornerSituation = corners[0];
+
+        // First, check that we have at least one corner neighbour.
+        if (cornerSituation != NO_CORNER_NEIGHBOUR) {
+            int n0, n1, n2;
+
+            n0 = corners[1];
+            n1 = corners[2];
+            n2 = corners[3];
+
+            float sum;
+            float weight;
+
+            if (cornerSituation == ALL_NEIGHBOURS_ARE_SAME_SIZE) {
+                // Now compute the weighted average between existing (same level) neighbours.
+                sum = currentElevation;
+                weight = 1.;
+            } else {
+                // If the neighbour(s) are bigger, we don't average with our own elevation, but
+                // we only consider the neighbours' elevation.
+                sum = 0.;
+                weight = 0.;
+            }
+
+            if (n0 != NULL) {
                 sum += readNeighbourElevation(uv, n0);
                 weight += 1.;
             }
-            if (n1 != -1) {
+            if (n1 != NULL) {
                 sum += readNeighbourElevation(uv, n1);
                 weight += 1.;
             }
-            if (n2 != -1) {
+            if (n2 != NULL) {
                 sum += readNeighbourElevation(uv, n2);
                 weight += 1.;
             }
