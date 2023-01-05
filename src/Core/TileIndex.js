@@ -10,6 +10,7 @@ const TOP_LEFT = 7;
 class TileIndex {
     constructor() {
         this.tiles = new Map();
+        this.tilesById = new Map();
     }
 
     /**
@@ -22,7 +23,27 @@ class TileIndex {
      */
     addTile(tile) {
         const key = TileIndex.getKey(tile.x, tile.y, tile.z);
-        this.tiles.set(key, new WeakRef(tile)); // eslint-disable-line no-undef
+        const wr = new WeakRef(tile); // eslint-disable-line no-undef
+        this.tiles.set(key, wr);
+        this.tilesById.set(tile.id, wr);
+    }
+
+    /**
+     * Gets a tile by its ID.
+     *
+     * @param {number} id The ID.
+     * @returns {object|undefined} The found tile, otherwise undefined.
+     */
+    getTile(id) {
+        const entry = this.tilesById.get(id);
+        if (entry) {
+            const value = entry.deref();
+            if (value) {
+                return value;
+            }
+        }
+
+        return undefined;
     }
 
     static getKey(x, y, z) {
@@ -76,6 +97,13 @@ class TileIndex {
             const entry = this.tiles.get(key);
             if (!entry.deref()) {
                 this.tiles.delete(key);
+            }
+        }
+        const ids = [...this.tilesById.keys()];
+        for (const key of ids) {
+            const entry = this.tilesById.get(key);
+            if (!entry.deref()) {
+                this.tilesById.delete(key);
             }
         }
     }

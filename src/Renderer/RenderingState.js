@@ -1,7 +1,9 @@
 /**
  * The various states supported by a material (more precisely its fragment shader).
+ *
+ * @enum
  */
-export default {
+const RenderingState = {
     /** @type {number} The normal state. */
     FINAL: 0,
     /** @type {number} The fragment shader outputs the fragment depth. */
@@ -11,3 +13,5 @@ export default {
     /** @type {number} The fragment shader outputs the UV of the fragment. */
     UV: 3,
 };
+
+export default RenderingState;

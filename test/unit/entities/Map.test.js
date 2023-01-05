@@ -6,6 +6,7 @@ import Layer from '../../../src/Core/layer/Layer.js';
 import MainLoop from '../../../src/Core/MainLoop.js';
 import { setupGlobalMocks } from '../mocks.js';
 import ElevationLayer from '../../../src/Core/layer/ElevationLayer.js';
+import RenderingState from '../../../src/Renderer/RenderingState.js';
 
 describe('Map', () => {
     /** @type {HTMLDivElement} */
@@ -261,6 +262,36 @@ describe('Map', () => {
 
             expect(layer1.dispose).toHaveBeenCalledTimes(1);
             expect(layer2.dispose).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('setRenderState', () => {
+        it('should update the render state of the root nodes', () => {
+            const fn = jest.fn();
+            map.level0Nodes.forEach(n => { n.pushRenderState = fn; });
+
+            const state = RenderingState.DEPTH;
+            map.setRenderState(state);
+
+            expect(fn).toHaveBeenCalledWith(state);
+        });
+
+        it('should return a function that restores the previous state', () => {
+            const restoreFuncs = [];
+
+            map.level0Nodes.forEach(n => {
+                const fn = jest.fn();
+                n.pushRenderState = () => fn;
+                restoreFuncs.push(fn);
+            });
+
+            const restore = map.setRenderState(RenderingState.DEPTH);
+
+            restore();
+
+            for (const fn of restoreFuncs) {
+                expect(fn).toHaveBeenCalled();
+            }
         });
     });
 });

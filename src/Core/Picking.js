@@ -6,7 +6,6 @@ import {
     Color,
     BufferAttribute,
 } from 'three';
-import TileMesh from './TileMesh.js';
 import RenderingState from '../Renderer/RenderingState.js';
 import { unpack1K } from '../Renderer/LayeredMaterial.js';
 import Coordinates from './Geographic/Coordinates.js';
@@ -33,21 +32,39 @@ function unpackHalfRGBA(v, target) {
 }
 
 const depthRGBA = new Vector4();
-// TileMesh picking support function
-function screenCoordsToNodeId(instance, tileLayer, canvasCoords, radius) {
+
+function renderTileBuffers(instance, map, coords, radius, filter) {
+    const idFunc = data => {
+        depthRGBA.fromArray(data).divideScalar(255.0);
+        const unpack = unpack1K(depthRGBA, 256 ** 3);
+        return Math.round(unpack);
+    };
+
+    const uvFunc = data => {
+        depthRGBA.fromArray(data).divideScalar(255.0);
+        return unpackHalfRGBA(depthRGBA);
+    };
+
+    const ids = renderTileBuffer(instance, map, coords, radius, RenderingState.ID, idFunc, filter);
+    const uvs = renderTileBuffer(instance, map, coords, radius, RenderingState.UV, uvFunc, filter);
+
+    return { ids, uvs };
+}
+
+function renderTileBuffer(instance, map, coords, radius, renderState, pixelFunc, filter) {
     const dim = instance.mainLoop.gfxEngine.getWindowSize();
 
-    canvasCoords = canvasCoords || new Vector2(Math.floor(dim.x / 2), Math.floor(dim.y / 2));
+    coords = coords || new Vector2(Math.floor(dim.x / 2), Math.floor(dim.y / 2));
 
-    const restore = tileLayer.level0Nodes.map(n => n.pushRenderState(RenderingState.ID));
+    const restore = map.setRenderState(renderState);
 
-    const undoHide = hideEverythingElse(instance, tileLayer.object3d, tileLayer.threejsLayer);
+    const undoHide = hideEverythingElse(instance, map.object3d, map.threejsLayer);
 
     const buffer = instance.mainLoop.gfxEngine.renderToBuffer(
-        { camera: instance.camera, scene: tileLayer.object3d },
+        { camera: instance.camera, scene: map.object3d },
         {
-            x: canvasCoords.x - radius,
-            y: canvasCoords.y - radius,
+            x: coords.x - radius,
+            y: coords.y - radius,
             width: 1 + radius * 2,
             height: 1 + radius * 2,
         },
@@ -55,21 +72,31 @@ function screenCoordsToNodeId(instance, tileLayer, canvasCoords, radius) {
 
     undoHide();
 
-    restore.forEach(r => r());
+    restore();
 
-    const ids = [];
+    const result = [];
 
     traversePickingCircle(radius, (x, y, idx) => {
-        const data = buffer.slice(idx * 4, idx * 4 + 4);
-        depthRGBA.fromArray(data).divideScalar(255.0);
-        const unpack = unpack1K(depthRGBA, 256 ** 3);
+        if (filter) {
+            const coord = {
+                x: x + coords.x,
+                y: y + coords.y,
+                z: 0,
+            };
 
-        const _id = Math.round(unpack);
-        if (ids.indexOf(_id) < 0) {
-            ids.push(_id);
+            if (!filter(coord)) {
+                return;
+            }
         }
+
+        const data = buffer.slice(idx * 4, idx * 4 + 4);
+
+        const pixelValue = pixelFunc(data);
+
+        result.push(pixelValue);
     });
-    return ids;
+
+    return result;
 }
 
 function traversePickingCircle(radius, callback) {
@@ -137,91 +164,69 @@ const tmpColor = new Color();
  *   - layer: the geometry layer used for picking
  */
 export default {
-    pickTilesAt: (_instance, canvasCoords, layer, options = {}, target = []) => {
+    pickTilesAt: (_instance, canvasCoords, map, options = {}, target = []) => {
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;
         const filterCanvas = options.filterCanvas;
         const filter = options.filter;
 
-        // TODO is there a way to get the node id AND uv on the same render pass ?
-        // We would need to get a upper bound to the tile ids, and not use the three.js uuid
-        // We need to assess how much precision will be left for the uv, and if it is acceptable
-        // do we really gain something, considering the fact that render in UV
-        // mode will be fast (we only render one object) ?
-        const _ids = screenCoordsToNodeId(_instance, layer, canvasCoords, radius);
+        const { ids, uvs } = renderTileBuffers(_instance, map, canvasCoords, radius, filterCanvas);
 
-        const extractResult = node => {
-            if (target.length >= limit) return;
+        const extent = map.extent;
+        const crs = extent.crs();
 
-            // for each node (normally no more than 4 of them) we do a render
-            // in UV mode to get the uv under the mouse. This'll give us the
-            // x,y coordinates, and we use DEMUtils to get z (normally no
-            // render needed, but maybe a draw on canvas ? Check that).
-            if (_ids.indexOf(node.id) >= 0 && node instanceof TileMesh) {
-                const restore = node.pushRenderState(RenderingState.UV);
-                const buffer = _instance.mainLoop.gfxEngine.renderToBuffer(
-                    { camera: _instance.camera, scene: node },
-                    {
-                        x: Math.max(0, canvasCoords.x - radius),
-                        y: Math.max(0, canvasCoords.y - radius),
-                        width: 1 + radius * 2,
-                        height: 1 + radius * 2,
-                    },
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const uv = uvs[i];
+
+            const tile = map.tileIndex.getTile(id);
+
+            if (tile) {
+                const ex = tile.extent;
+                tmpCoords.set(
+                    crs,
+                    ex.west() + uv.x * (ex.east() - ex.west()),
+                    ex.south() + uv.y * (ex.north() - ex.south()),
+                    0,
                 );
-                const uvs = [];
-                traversePickingCircle(radius, (x, y, idx) => {
-                    if (filterCanvas) {
-                        const coord = {
-                            x: x + canvasCoords.x,
-                            y: y + canvasCoords.y,
-                            z: 0,
-                        };
-                        if (!filterCanvas(coord)) {
-                            return;
-                        }
-                    }
 
-                    const data = buffer.slice(idx * 4, idx * 4 + 4);
-                    depthRGBA.fromArray(data).divideScalar(255.0);
-                    uvs.push(unpackHalfRGBA(depthRGBA));
-                });
-                // Reconstruct position from uv
-                for (const uv of uvs) {
-                    tmpCoords.set(layer.extent.crs(),
-                        // TODO this looks a lot like PlanarTileBuilder.uProjecte
-                        node.extent.west() + uv.x * (node.extent.east() - node.extent.west()),
-                        node.extent.south() + uv.y * (node.extent.north() - node.extent.south()),
-                        0);
-                    const result = DEMUtils.getElevationValueAt(
-                        layer, tmpCoords, DEMUtils.FAST_READ_Z, [node],
+                const elevation = DEMUtils.getElevationValueAt(
+                    map,
+                    tmpCoords,
+                    DEMUtils.FAST_READ_Z,
+                    [tile],
+                );
+
+                if (elevation) {
+                    tmpCoords._values[2] = elevation.z;
+                    // convert to instance crs
+                    // here (and only here) should be the Coordinates instance creation
+                    const coord = tmpCoords.as(
+                        _instance.referenceCrs,
+                        new Coordinates(_instance.referenceCrs),
                     );
-                    if (result) {
-                        tmpCoords._values[2] = result.z;
-                        // convert to instance crs
-                        // here (and only here) should be the Coordinates instance creation
-                        const coord = tmpCoords.as(
-                            _instance.referenceCrs, new Coordinates(_instance.referenceCrs),
-                        );
-                        const point = tmpCoords.xyz(new Vector3());
-                        const p = {
-                            object: node,
-                            layer,
-                            point,
-                            coord,
-                            distance: _instance.camera.camera3D.position.distanceTo(point),
-                        };
-                        if (!filter || filter(p)) {
-                            target.push(p);
-                            if (target.length >= limit) break;
+
+                    const point = tmpCoords.xyz(new Vector3());
+
+                    const p = {
+                        object: tile,
+                        layer: map,
+                        point,
+                        coord,
+                        distance: _instance.camera.camera3D.position.distanceTo(point),
+                    };
+
+                    if (!filter || filter(p)) {
+                        target.push(p);
+
+                        if (target.length >= limit) {
+                            break;
                         }
                     }
                 }
-                restore();
             }
-        };
-        for (const n of layer.level0Nodes) {
-            n.traverse(extractResult);
         }
+
         return target;
     },
 
