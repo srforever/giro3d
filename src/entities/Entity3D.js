@@ -1,7 +1,7 @@
 /**
  * @module entities/Entity3D
  */
-import { Color, Box3 } from 'three';
+import { Box3 } from 'three';
 
 import { defineLayerProperty } from '../Core/layer/Layer.js';
 import ColorLayer from '../Core/layer/ColorLayer.js';
@@ -68,31 +68,6 @@ class Entity3D extends Entity {
                     // 3dtiles layers store scenes in children's content property
                     if (o.content) {
                         o.content.traverse(changeOpacity);
-                    }
-                });
-            }
-        });
-        const changeNoTextureColor = o => {
-            if (o.material) {
-                if (o.material.noTextureColor) {
-                    o.material.noTextureColor.value.copy(this.noTextureColor);
-                }
-                if (o.material.uniforms && o.material.uniforms.noTextureColor) {
-                    o.material.uniforms.noTextureColor.value.copy(this.noTextureColor);
-                }
-                o.material.depthWrite = !o.material.transparent;
-            }
-        };
-        defineLayerProperty(this, 'noTextureColor', new Color(0.04, 0.23, 0.35), () => {
-            if (this.object3d) {
-                this.object3d.traverse(o => {
-                    if (o.layer !== this) {
-                        return;
-                    }
-                    changeNoTextureColor(o);
-                    // 3dtiles layers store scenes in children's content property
-                    if (o.content) {
-                        o.content.traverse(changeNoTextureColor);
                     }
                 });
             }

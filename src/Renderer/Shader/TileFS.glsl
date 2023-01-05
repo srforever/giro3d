@@ -1,50 +1,72 @@
 #include <PrecisionQualifier>
+#include <packing>
+#include <ComputeUV>
+#include <GetElevation>
+#include <LayerInfo>
+#include <ColorMap>
 
+#define M_PI    3.1415926535897932384626433832795
+
+/**
+ * Map tile fragment shader.
+ */
+
+/**
+ * Rendering states are modes that change the kind of data that the fragment shader outputs.
+ * - FINAL : the FS outputs the regular object's color and aspect. This is the default.
+ * - DEPTH : the FS outputs the fragment depth.
+ * - ID    : the FS outputs the mesh's ID encoded in a color.
+ * - UV    : the FS outputs the fragment's UV.
+ */
 const int STATE_FINAL = 0;
 const int STATE_DEPTH = 1;
 const int STATE_ID = 2;
 const int STATE_UV = 3;
 
-uniform int renderingState;
-uniform sampler2D colorTexture;
+varying vec2        vUv; // The input UV
 
-#if TEX_UNITS
-uniform vec4      colorOffsetScale[TEX_UNITS];
-uniform float     colorOpacity[TEX_UNITS];
-uniform bool      colorVisible[TEX_UNITS];
-uniform vec3      colors[TEX_UNITS];
+uniform int         renderingState; // Current rendering state (default is STATE_FINAL)
+uniform int         uuid;           // The ID of the tile mesh (used for the STATE_ID rendering state)
+
+#if COLOR_LAYERS
+uniform sampler2D   colorTexture;         // Atlas texture shared among color layers
+uniform LayerInfo   layers[COLOR_LAYERS]; // The color layers' infos
+uniform ColorMap    layersColorMaps[COLOR_LAYERS]; // The color layers' color maps
+uniform sampler2D   luts[COLOR_LAYERS]; // The color layers' color maps LUTs
 #endif
 
-// backgroundColor
-uniform float     opacity;
-uniform vec3      noTextureColor;
+uniform float       opacity;        // The entire map opacity
+uniform vec3        backgroundColor; // The background color
 
-varying vec2      vUv;
+#if defined(ENABLE_OUTLINES)
+const float         OUTLINE_THICKNESS = 0.003;
+#endif
 
-#include <GetElevation>
-uniform sampler2D elevationTexture;
-uniform vec4      elevationOffsetScale;
-uniform vec2      tileDimensions;
-uniform vec2      elevationTextureSize;
-#define M_PI 3.1415926535897932384626433832795
+#if defined(ENABLE_HILLSHADING)
+uniform float       zenith;     // Zenith of sunlight, in degrees (0 - 90)
+uniform float       azimuth;    // Azimuth on sunlight, in degrees (0 - 360)
+#endif
 
-#include <ComputeUV>
+uniform vec2        tileDimensions; // The dimensons of the tile, in CRS units
 
-#include <packing>
-uniform int  uuid;
+#if defined(ELEVATION_LAYER)
+uniform sampler2D   elevationTexture;
+uniform LayerInfo   elevationLayer;
+uniform ColorMap    elevationColorMap;  // The elevation layer's optional color map
+uniform sampler2D   elevationLut;       // The elevation layer's color map LUT
+#endif
 
-vec3 desaturate(vec3 color, float factor)
-{
+vec3 desaturate(vec3 color, float factor) {
 	vec3 lum = vec3(0.299, 0.587, 0.114);
 	vec3 gray = vec3(dot(lum, color));
 	return mix(color, gray, factor);
 }
 
-vec2 computeDerivatives(vec2 uv) {
+vec2 computeDerivatives(vec2 uv, sampler2D texture, vec2 textureSize, vec4 offsetScale) {
     // Compute pixel dimensions, in normalized coordinates.
     // Since textures are not necessarily square, we must compute both width and height separately.
-    float texWidth = elevationTextureSize.x;
-    float texHeight = elevationTextureSize.y;
+    float texWidth = textureSize.x;
+    float texHeight = textureSize.y;
 
     float width = 1.0 / texWidth;
     float height = 1.0 / texHeight;
@@ -58,17 +80,17 @@ vec2 computeDerivatives(vec2 uv) {
     // | g | h | i |
     // +---+---+---+
     // Note: 'e' is the center of the sample. We don't use it for derivative computation.
-    float a = getElevation(elevationTexture, uv + vec2(-width, height));
-    float b = getElevation(elevationTexture, uv + vec2( 0.0, height));
-    float c = getElevation(elevationTexture, uv + vec2( width, height));
-    float d = getElevation(elevationTexture, uv + vec2(-width, 0.0));
-    float f = getElevation(elevationTexture, uv + vec2( width, 0.0));
-    float g = getElevation(elevationTexture, uv + vec2(-width, -height));
-    float h = getElevation(elevationTexture, uv + vec2( 0.0, -height));
-    float i = getElevation(elevationTexture, uv + vec2( width, -height));
+    float a = getElevation(texture, uv + vec2(-width, height));
+    float b = getElevation(texture, uv + vec2( 0.0, height));
+    float c = getElevation(texture, uv + vec2( width, height));
+    float d = getElevation(texture, uv + vec2(-width, 0.0));
+    float f = getElevation(texture, uv + vec2( width, 0.0));
+    float g = getElevation(texture, uv + vec2(-width, -height));
+    float h = getElevation(texture, uv + vec2( 0.0, -height));
+    float i = getElevation(texture, uv + vec2( width, -height));
 
-    float cellWidth = tileDimensions.x / (elevationOffsetScale.z * elevationTextureSize.x);
-    float cellHeight = tileDimensions.y / (elevationOffsetScale.w * elevationTextureSize.y);
+    float cellWidth = tileDimensions.x / (offsetScale.z * textureSize.x);
+    float cellHeight = tileDimensions.y / (offsetScale.w * textureSize.y);
     float dzdx = ((c + 2.0 * f + i) - (a + 2.0 * d + g)) / (8.0 * cellWidth);
     float dzdy = ((g + 2.0 * h + i) - (a + 2.0 * b + c)) / (8.0 * cellHeight);
 
@@ -106,13 +128,10 @@ vec2 decodeHalfRGBA( vec4 v ) {
 	return vec2( v.x + ( v.y / 255.0 ), v.z + ( v.w / 255.0 ) );
 }
 
-#if defined(HILLSHADE)
-// hillshade support
-uniform float zenith; // degrees (0 - 90)
-uniform float azimuth; // degrees (0 - 360)
-float calcHillshade(vec2 uv){
+#if defined(ENABLE_HILLSHADING)
+float calcHillshade(LayerInfo layer, sampler2D texture, vec2 uv){
     // https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-hillshade-works.htm
-    vec2 derivatives = computeDerivatives(uv);
+    vec2 derivatives = computeDerivatives(uv, texture, layer.textureSize, layer.offsetScale);
     float slope = calcSlope(derivatives);
     float aspect = calcAspect(derivatives);
     float zenith_rad = zenith * M_PI / 180.0; // in radians
@@ -122,106 +141,168 @@ float calcHillshade(vec2 uv){
 }
 #endif
 
-#if defined(COLORMAP)
-// attribute vec3 normal;
-uniform int       colormapMode;
-uniform float     colormapMin;
-uniform float     colormapMax;
-uniform sampler2D vLut;
-#endif
-
-#if defined(OUTLINES)
-const float sLine = 0.003;
-#endif
-
 vec3 blend(vec3 fore, vec3 back, float a) {
     return mix(back.rgb, fore.rgb, a);
 }
 
+vec4 computeColor(vec2 rawUv, vec4 offsetScale, sampler2D texture) {
+    vec2 uv = computeUv(rawUv, offsetScale.xy, offsetScale.zw);
+    return texture2D(texture, uv);
+}
+
+float map(float value, float min1, float max1, float min2, float max2) {
+    return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+}
+
+#if defined(ENABLE_OUTLINES)
+vec4 drawTileOutlines(vec2 uv, vec4 color) {
+    const vec4 GREEN = vec4(0, 1, 0, 1);
+    const vec4 BLUE = vec4(0, 0, 1, 1);
+    const vec4 RED = vec4(1, 0, 0, 1);
+    const vec4 YELLOW = vec4(1, 1, 0, 1);
+
+    if (uv.x < OUTLINE_THICKNESS) { // WEST
+        color = RED;
+    } else if (uv.x > 1.0 - OUTLINE_THICKNESS) { // EAST
+        color = GREEN;
+    } else if (uv.y < OUTLINE_THICKNESS) { // NORTH
+        color = BLUE;
+    } else if (uv.y > 1.0 - OUTLINE_THICKNESS) { // SOUTH
+        color = YELLOW;
+    }
+
+    return color;
+}
+#endif
+
+vec3 computeColorMap(
+    LayerInfo layer,
+    sampler2D sampledTexture,
+    ColorMap colorMap,
+    sampler2D lut,
+    vec2 rawUv
+) {
+    float value;
+
+    vec2 uv = computeUv(rawUv, layer.offsetScale.xy, layer.offsetScale.zw);
+
+    if (colorMap.mode == COLORMAP_MODE_ELEVATION) {
+        value = getElevation(sampledTexture, uv);
+    } else {
+        vec2 derivatives = computeDerivatives(uv, sampledTexture, layer.textureSize, layer.offsetScale);
+        if (colorMap.mode == COLORMAP_MODE_SLOPE) {
+            value = calcSlope(derivatives);
+        } else if (colorMap.mode == COLORMAP_MODE_ASPECT) {
+            value = calcAspect(derivatives);
+        }
+        value *= 180.0 / M_PI; // Convert radians to degrees
+    }
+
+    value = clamp(value, colorMap.min, colorMap.max);
+    float t = map(value, colorMap.min, colorMap.max, 0., 1.);
+    vec4 color = texture2D(lut, vec2(t, 0.0));
+    return color.rgb;
+}
+
+vec4 computeColorLayer(
+    sampler2D atlas,
+    sampler2D lut,
+    LayerInfo layer,
+    ColorMap colorMap,
+    vec2 uv
+) {
+    if (layer.offsetScale.zw != vec2(0.0)) {
+        vec4 color;
+        if (colorMap.mode != COLORMAP_MODE_DISABLED) {
+            color.rgb = computeColorMap(layer, atlas, colorMap, lut, uv);
+            color.a = 1.;
+        } else {
+            color = computeColor(uv, layer.offsetScale, atlas);
+        }
+        vec3 rgb = color.rgb * layer.color.rgb;
+        float a = color.a * layer.color.a;
+        return vec4(rgb, a);
+    }
+
+    return vec4(0);
+}
+
 void main() {
+    // Step 0 : discard fragment in trivial cases of transparency
     if (opacity == 0.) {
         discard;
     }
 
-    vec2 elevUv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
+#if defined(ELEVATION_LAYER)
+    vec2 elevUv = computeUv(vUv, elevationLayer.offsetScale.xy, elevationLayer.offsetScale.zw);
+#endif
 
+    // Step 1 : discard fragment if the elevation texture is transparent
 #if defined(DISCARD_NODATA_ELEVATION)
+#if defined(ELEVATION_LAYER)
     // Let's discard transparent pixels in the elevation texture
     // Important note : if there is no elevation texture, all fragments are discarded
     // because the default value for texture pixels is zero.
     if (abs(texture2D(elevationTexture, elevUv).a) < 0.001) {
         discard;
     }
+#else
+    // No elevation layer present, discard completely.
+    discard;
+#endif
 #endif
 
+    // Step 2 : start with the background color
+    vec4 diffuseColor = vec4(backgroundColor, opacity);
 
-#if TEX_UNITS
-    vec4 diffuseColor = vec4(noTextureColor, 1.);
+#if defined(ELEVATION_LAYER)
+    // Step 3 : if the elevation layer has a color map, use it as the background color.
+    if (elevationColorMap.mode != COLORMAP_MODE_DISABLED) {
+        diffuseColor.rgb = computeColorMap(
+            elevationLayer,
+            elevationTexture,
+            elevationColorMap,
+            elevationLut,
+            vUv);
+    }
+#endif
+
+    // Step 4 : process all color layers (either directly sampling the atlas texture, or use a color map).
+#if COLOR_LAYERS
     #pragma unroll_loop_start
-    for (int i = 0; i < TEX_UNITS; i++) {
-        vec4 pitch = colorOffsetScale[i];
-        vec2 colorUv = computeUv(vUv, pitch.xy, pitch.zw);
-        if (pitch.zw != vec2(0.0)) {
-            vec4 layerColor = texture2D(colorTexture, colorUv);
-            vec3 rgb = layerColor.rgb * colors[i];
-            float a = layerColor.a * colorOpacity[i];
-            diffuseColor.rgb = blend(rgb, diffuseColor.rgb, a);
-        }
+    for (int i = 0; i < COLOR_LAYERS; i++) {
+        LayerInfo layer = layers[i];
+        ColorMap colorMap = layersColorMaps[i];
+        vec4 rgba = computeColorLayer(colorTexture, luts[i], layer, colorMap, vUv);
+        diffuseColor.rgb = blend(rgba.rgb, diffuseColor.rgb, rgba.a);
     }
     #pragma unroll_loop_end
     diffuseColor.a *= opacity;
-#else
-    vec4 diffuseColor = vec4(noTextureColor, opacity);
 #endif
 
-#if defined(COLORMAP)
-    float data;
-    if (colormapMode == 0) {
-        data = getElevation(elevationTexture, elevUv);
-    } else {
-        vec2 derivatives = computeDerivatives(elevUv);
-        if (colormapMode == 1) {
-            data = calcSlope(derivatives);
-        } else {
-            data = calcAspect(derivatives);
-        }
-        data *= 180.0 / M_PI; // Convert radians to degrees
-    }
-    float normd = clamp((data - colormapMin) / (colormapMax - colormapMin), 0.0, 1.0);
-    diffuseColor = texture2D(vLut, vec2(normd, 0.0));
-    diffuseColor = vec4(diffuseColor.rgb, opacity);
-#endif
-
-#if defined(HILLSHADE)
-    float hillshade = calcHillshade(elevUv);
+#if defined(ELEVATION_LAYER)
+    // Step 5 : apply shading
+#if defined(ENABLE_HILLSHADING)
+    float hillshade = calcHillshade(elevationLayer, elevationTexture, elevUv);
     diffuseColor.rgb *= hillshade;
 #endif
+#endif
 
-    // Display the backside in a desaturated, darker tone, to give visual feedback that
-    // we are, in fact, looking at the map from the "wrong" side.
+    // Step 6 : apply backface processing.
     if (!gl_FrontFacing) {
+        // Display the backside in a desaturated, darker tone, to give visual feedback that
+        // we are, in fact, looking at the map from the "wrong" side.
         diffuseColor.rgb = desaturate(diffuseColor.rgb, 1.) * 0.5;
     }
 
-#if defined(OUTLINES)
-    const vec4 green = vec4(0, 1, 0, 1);
-    const vec4 blue = vec4(0, 0, 1, 1);
-    const vec4 red = vec4(1, 0, 0, 1);
-    const vec4 yellow = vec4(1, 1, 0, 1);
-
-    if (vUv.x < sLine) { // WEST
-        diffuseColor = red;
-    } else if (vUv.x > 1.0 - sLine) { // EAST
-        diffuseColor = green;
-    } else if (vUv.y < sLine) { // NORTH
-        diffuseColor = blue;
-    } else if (vUv.y > 1.0 - sLine) { // SOUTH
-        diffuseColor = yellow;
-    }
+    // Step 7 : draw tile outlines
+#if defined(ENABLE_OUTLINES)
+    diffuseColor = drawTileOutlines(vUv, diffuseColor);
 #endif
 
-    // The fragment is transparent, discard it to short-circuit rendering state evaluation.
+    // Final step : process rendering states.
     if (diffuseColor.a <= 0.) {
+        // The fragment is transparent, discard it to short-circuit rendering state evaluation.
         discard;
     } else if (renderingState == STATE_FINAL) {
         gl_FragColor = diffuseColor;

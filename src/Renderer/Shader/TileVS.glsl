@@ -1,12 +1,13 @@
 #include <PrecisionQualifier>
 #include <GetElevation>
 #include <ComputeUV>
+#include <LayerInfo>
 
 attribute vec3      position;
 attribute vec2      uv;
 
 uniform sampler2D   elevationTexture;
-uniform vec4        elevationOffsetScale;
+uniform LayerInfo   elevationLayer;
 
 #if defined(STITCHING)
 struct Neighbour {
@@ -275,8 +276,9 @@ void main() {
     vUv = uv;
     vec4 pos = vec4(position, 1.0);
 
-    if(elevationOffsetScale.z > 0.) {
-        vec2 vVv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
+#if defined(ELEVATION_LAYER)
+    if(elevationLayer.offsetScale.z > 0.) {
+        vec2 vVv = computeUv(vUv, elevationLayer.offsetScale.xy, elevationLayer.offsetScale.zw);
 
         float elevation = getElevation(elevationTexture, vVv);
 
@@ -346,7 +348,7 @@ void main() {
             }
 
             // Get the elevation of our vertex in our texture
-            vec2 elevUv = computeUv(vUv, elevationOffsetScale.xy, elevationOffsetScale.zw);
+            vec2 elevUv = computeUv(vUv, elevationLayer.offsetScale.xy, elevationLayer.offsetScale.zw);
             float currentElevation = getElevation(elevationTexture, elevUv);
 
             // Then apply Z-stitching
@@ -356,6 +358,7 @@ void main() {
 
         pos.z = elevation;
     }
+#endif
 
     gl_Position = projectionMatrix * modelViewMatrix * pos;
 }

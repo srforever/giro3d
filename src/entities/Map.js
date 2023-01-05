@@ -22,6 +22,8 @@ import TileMesh from '../Core/TileMesh.js';
 import TileIndex from '../Core/TileIndex.js';
 import RenderingState from '../Renderer/RenderingState.js';
 
+const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
+
 /**
  * Fires when a layer is added to the map.
  *
@@ -146,7 +148,6 @@ class Map extends Entity3D {
      * A value of `-1` does not limit the depth of the tile hierarchy.
      * @param {boolean} [options.hillshading=false] Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
      * Note: for hillshading to work, there must be an elevation layer in the map.
-     * @param {object} [options.colormap] Enables [colormapping](https://threejs.org/examples/webgl_geometry_colors_lookuptable.html).
      * @param {number} [options.segments=8] The number of geometry segments in each map tile.
      * The higher the better. It *must* be power of two between `1` included and `256` included.
      * Note: the number of vertices per tile side is `segments` + 1.
@@ -185,14 +186,13 @@ class Map extends Entity3D {
 
         this.materialOptions = {
             hillshading: options.hillshading || false,
-            colormap: options.colormap,
             discardNoData: options.discardNoData || false,
             doubleSided: options.doubleSided || false,
             segments: this.segments,
+            backgroundColor: options.backgroundColor !== undefined
+                ? new Color(options.backgroundColor)
+                : DEFAULT_BACKGROUND_COLOR.clone(),
         };
-        if (options.backgroundColor) {
-            this.noTextureColor = new Color(options.backgroundColor);
-        }
 
         this.currentAddedLayerIds = [];
         this.tileIndex = new TileIndex();
@@ -301,10 +301,6 @@ class Map extends Entity3D {
         tile.opacity = this.opacity;
         tile.setVisibility(false);
         tile.updateMatrix();
-
-        if (this.noTextureColor) {
-            tile.material.uniforms.noTextureColor.value.copy(this.noTextureColor);
-        }
 
         tile.material.showOutline = this.showOutline || false;
         tile.material.wireframe = this.wireframe || false;

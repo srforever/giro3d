@@ -10,6 +10,7 @@ import TileImage from 'ol/source/TileImage.js';
 import { STRATEGY_MIN_NETWORK_TRAFFIC } from './LayerUpdateStrategy.js';
 import CogSource from '../../sources/CogSource.js';
 import CustomTiledImageSource from '../../sources/CustomTiledImageSource.js';
+import ColorMap from './ColorMap.js';
 import Interpretation from './Interpretation.js';
 import Extent from '../Geographic/Extent.js';
 
@@ -167,6 +168,7 @@ class Layer extends EventDispatcher {
      * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.
      * If unspecified, the layer will use the `STRATEGY_MIN_NETWORK_TRAFFIC`.
      * @param {string} [options.backgroundColor=undefined] The background color of the layer.
+     * @param {ColorMap} [options.colorMap=undefined] An optional color map for this layer.
      */
     constructor(id, options) {
         super();
@@ -182,6 +184,13 @@ class Layer extends EventDispatcher {
         /** @type {Interpretation} */
         this.interpretation = options.interpretation ?? Interpretation.Raw;
         this.standalone = options.standalone ? options.standalone : false;
+
+        defineLayerProperty(this, 'visible', true);
+
+        if (options.colorMap !== undefined) {
+            /** @type {ColorMap} */
+            this.colorMap = options.colorMap;
+        }
 
         // If the mode is standalone, no protocol is provided.
         // The update function should be manually set.
@@ -292,7 +301,9 @@ class Layer extends EventDispatcher {
      * @param {module:entities/Map~Map} map The map where the layer is added
      */
     // eslint-disable-next-line
-    dispose(map) {}
+    dispose(map) {
+        this.colorMap?.dispose();
+    }
 }
 
 /**

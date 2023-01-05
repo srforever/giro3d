@@ -38,14 +38,12 @@ class ColorLayer extends Layer {
      * will be shown. Useful for debugging rendering issues.
      * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.
      * If unspecified, the layer will use the `STRATEGY_MIN_NETWORK_TRAFFIC`.
-     * @param {string} [options.backgroundColor=undefined] The background color of the layer.
      */
     constructor(id, options = {}) {
         super(id, options);
         this.type = 'ColorLayer';
         this.showTileBorders = options.showTileBorders || false;
         defineLayerProperty(this, 'frozen', false);
-        defineLayerProperty(this, 'visible', true);
         defineLayerProperty(this, 'opacity', 1.0);
         defineLayerProperty(this, 'sequence', 0);
     }

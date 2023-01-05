@@ -16,6 +16,8 @@
       "src/Core/Context.js",
       "src/Core/Geographic/Extent.js",
       "src/Core/Geographic/Coordinates.js",
+      "src/Core/layer/ColorMap.js",
+      "src/Core/layer/ColorMapMode.js",
       "src/Core/layer/Layer.js",
       "src/Core/layer/Interpretation.js",
       "src/Core/layer/ColorLayer.js",
