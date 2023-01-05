@@ -3,6 +3,7 @@ import {
     EventDispatcher,
     MathUtils,
     Quaternion,
+    Vector2,
     Vector3,
 } from 'three';
 import { MAIN_LOOP_EVENTS } from '../../Core/MainLoop.js';
@@ -12,6 +13,8 @@ import { MAIN_LOOP_EVENTS } from '../../Core/MainLoop.js';
 // including these controls in giro3d allows use to integrate them tightly with giro3d.  Especially
 // the existing controls are expecting a continuous update loop while we have a pausable one (so our
 // controls use .notifyChange when needed)
+
+const tmpVec2 = new Vector2();
 
 function limitRotation(camera3D, rot /* , verticalFOV */) {
     // Limit vertical rotation (look up/down) to make sure the user cannot see
@@ -208,7 +211,7 @@ class FirstPersonControls extends EventDispatcher {
         event.preventDefault();
         this._isMouseDown = true;
 
-        const coords = this.instance.eventToCanvasCoords(event);
+        const coords = this.instance.eventToCanvasCoords(event, tmpVec2);
         this._onMouseDownMouseX = coords.x;
         this._onMouseDownMouseY = coords.y;
 
@@ -233,7 +236,7 @@ class FirstPersonControls extends EventDispatcher {
             const pxToAngleRatio = MathUtils.degToRad(this.camera.fov)
                 / this.instance.mainLoop.gfxEngine.height;
 
-            const coords = this.instance.eventToCanvasCoords(event);
+            const coords = this.instance.eventToCanvasCoords(event, tmpVec2);
 
             // update state based on pointer movement
             this._state.rotateY = ((coords.x - this._onMouseDownMouseX) * pxToAngleRatio)
