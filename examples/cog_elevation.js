@@ -63,3 +63,4 @@ map.addLayer(new ColorLayer('color', { source }));
 // Attach the inspector
 Inspector.attach(document.getElementById('panelDiv'), instance);
 instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
+instance.domElement.addEventListener('mousemove', e => console.log(instance.pickObjectsAt(e).at(0)?.point));
