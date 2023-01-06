@@ -62,6 +62,13 @@ vec3 desaturate(vec3 color, float factor) {
 	return mix(color, gray, factor);
 }
 
+// This version of atan is numerically stable around zero
+// See https://stackoverflow.com/a/27228836
+// This is used to circumvent a bug on Mac devices where this computation would produce visual artifacts.
+float atan2(in float y, in float x) {
+    return x == 0.0 ? sign(y) * M_PI / 2. : atan(y, x);
+}
+
 vec2 computeDerivatives(vec2 uv, sampler2D texture, vec2 textureSize, vec4 offsetScale) {
     // Compute pixel dimensions, in normalized coordinates.
     // Since textures are not necessarily square, we must compute both width and height separately.
@@ -104,7 +111,7 @@ float calcSlope( vec2 derivatives ) {
 
 float calcAspect ( vec2 derivatives ) {
     // https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-aspect-works.htm
-    float aspect = atan(derivatives.y, -derivatives.x);
+    float aspect = atan2(derivatives.y, -derivatives.x);
     if(aspect < 0.0){
         aspect = M_PI * 0.5 - aspect;
     } else if (aspect > M_PI * 0.5) {
