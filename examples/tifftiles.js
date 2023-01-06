@@ -46,7 +46,6 @@ const tmsSource = new XYZ({
     minZoom: 0,
     maxZoom: 15,
     url: 'https://3d.oslandia.com/dem/tiles/{z}/{x}/{-y}-f32.tif',
-    tileSize: [256, 256],
 });
 
 // Specifies the image format (necessary for for non JPG/PNG images).
