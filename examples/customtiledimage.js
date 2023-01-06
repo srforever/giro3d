@@ -134,5 +134,16 @@ controls.maxPolarAngle = Math.PI / 2.3;
 instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+
+// Bind events
 instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
-instance.domElement.addEventListener('mousemove', e => console.log(instance.pickObjectsAt(e).at(0)?.point));
+const infoDiv = document.getElementById('infoDiv');
+instance.domElement.addEventListener('mousemove', e => {
+    const picked = instance.pickObjectsAt(e, { limit: 1 }).at(0);
+    if (picked) {
+        infoDiv.classList.remove('d-none');
+        infoDiv.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(5)}`;
+    } else {
+        infoDiv.classList.add('d-none');
+    }
+});

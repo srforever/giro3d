@@ -93,3 +93,15 @@ const cubeTexture = cubeTextureLoader.load([
 instance.scene.background = cubeTexture;
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+
+// Bind events
+const infoDiv = document.getElementById('infoDiv');
+instance.domElement.addEventListener('mousemove', e => {
+    const picked = instance.pickObjectsAt(e, { radius: 5, limit: 1, where: [pointcloud] }).at(0);
+    if (picked) {
+        infoDiv.classList.remove('d-none');
+        infoDiv.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(5)}`;
+    } else {
+        infoDiv.classList.add('d-none');
+    }
+});
