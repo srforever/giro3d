@@ -2,6 +2,7 @@ import {
     Matrix4,
     MathUtils,
     BufferGeometry,
+    Texture,
     Vector3,
     Object3D,
     Vector2,
@@ -296,33 +297,31 @@ function _readTextureValueAt(textureInfo, ...uv) {
     return result;
 }
 
-function _convertUVtoTextureCoords(texture, u, v) {
+/**
+ * Converts a texture UV to pixels coords on the texture
+ *
+ * @param {Texture} texture Texture
+ * @param {number} u U value
+ * @param {number} v V value
+ * @returns {object} x and y pixels coordinates
+ */
+function convertUVtoPixelsCoords(texture, u, v) {
     const { width } = texture.image;
     const { height } = texture.image;
 
-    const up = Math.max(0, u * width - 0.5);
-    const vp = Math.max(0, v * height - 0.5);
+    if (texture.flipY) {
+        v = 1 - v;
+    }
 
-    const u1 = Math.floor(up);
-    const u2 = Math.ceil(up);
-    const v1 = Math.floor(vp);
-    const v2 = Math.ceil(vp);
+    const x = MathUtils.clamp(Math.round(u * width), 0, width);
+    const y = MathUtils.clamp(Math.round(v * height), 0, height);
 
-    const wu = up - u1;
-    const wv = vp - v1;
-
-    return {
-        u1, u2, v1, v2, wu, wv,
-    };
+    return { x, y };
 }
 
 function _readTextureValueNearestFiltering(textureInfo, vertexU, vertexV) {
-    const coords = _convertUVtoTextureCoords(textureInfo.texture, vertexU, vertexV);
-
-    const u = (coords.wu <= 0) ? coords.u1 : coords.u2;
-    const v = (coords.wv <= 0) ? coords.v1 : coords.v2;
-
-    return _readTextureValueAt(textureInfo, u, v);
+    const coords = convertUVtoPixelsCoords(textureInfo.texture, vertexU, vertexV);
+    return _readTextureValueAt(textureInfo, coords.x, coords.y);
 }
 
 function _readZFast(textureInfo, uv) {
@@ -370,7 +369,7 @@ function _readZ(entity, method, coord, nodes, cache) {
 
     // Note: at this point, the code makes the assumption that each tile always inherit its texture
     // from the parent.
-    // offset = offset from top-left
+    // offset = offset from bottom-left
     const offset = pt.offsetInExtent(textureInfo.texture.extent);
 
     // At this point we have:
@@ -402,5 +401,9 @@ function _updateVector3(entity, method, nodes, vecCRS, vec, offset, matrices = {
 }
 
 export default {
-    getElevationValueAt, placeObjectOnGround, decodeMapboxElevation, FAST_READ_Z,
+    getElevationValueAt,
+    placeObjectOnGround,
+    decodeMapboxElevation,
+    convertUVtoPixelsCoords,
+    FAST_READ_Z,
 };

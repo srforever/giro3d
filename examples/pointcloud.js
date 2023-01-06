@@ -62,6 +62,7 @@ instance.add(pointcloud).then(initializeCamera);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
+// Bind events
 instance.domElement.addEventListener('dblclick', e => {
     const picked = instance.pickObjectsAt(e, { radius: 5, limit: 10, where: ['pointcloud'] });
     console.log(picked);
@@ -74,5 +75,16 @@ ${picked.length} objects found<br>
     ${picked.map(p => `<li>${p.point.x.toFixed(2)}, ${p.point.y.toFixed(2)}, ${p.point.z.toFixed(2)} (distance: ${p.distance.toFixed(2)})</li>`).join('')}
 </ol>
         `;
+    }
+});
+
+const infoDiv = document.getElementById('infoDiv');
+instance.domElement.addEventListener('mousemove', e => {
+    const picked = instance.pickObjectsAt(e, { radius: 5, limit: 1 }).at(0);
+    if (picked) {
+        infoDiv.classList.remove('d-none');
+        infoDiv.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(2)}`;
+    } else {
+        infoDiv.classList.add('d-none');
     }
 });
