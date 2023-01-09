@@ -24,18 +24,28 @@ function makeWindowFromExtent(layer, extent, resolution) {
     const [oX, oY] = layer.origin;
     const [imageResX, imageResY] = resolution;
     const ext = extent._values;
+
     const wnd = [
         Math.round((ext[0] - oX) / imageResX),
         Math.round((ext[2] - oY) / imageResY),
         Math.round((ext[1] - oX) / imageResX),
         Math.round((ext[3] - oY) / imageResY),
     ];
-    return [
-        Math.min(wnd[0], wnd[2]),
-        Math.min(wnd[1], wnd[3]),
-        Math.max(wnd[0], wnd[2]),
-        Math.max(wnd[1], wnd[3]),
-    ];
+
+    const xmin = Math.min(wnd[0], wnd[2]);
+    let xmax = Math.max(wnd[0], wnd[2]);
+    const ymin = Math.min(wnd[1], wnd[3]);
+    let ymax = Math.max(wnd[1], wnd[3]);
+
+    // prevent zero-sized requests
+    if (Math.abs(xmax - xmin) === 0) {
+        xmax += 1;
+    }
+    if (Math.abs(ymax - ymin) === 0) {
+        ymax += 1;
+    }
+
+    return [xmin, ymin, xmax, ymax];
 }
 
 function selectDataType(bytesPerPixel, bandCount) {
