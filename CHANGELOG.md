@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.17.0 (2023-01-09)
+
+A small bugfix release.
+
+### Feat
+
+- **examples**: add mouse coordinates
+
+### Fix
+
+- **COGProvider**: guarantee that the generated texture is at least one pixel wide
+- **TileFS.glsl**: fix Mac-specific implementation issues around atan()
+- **DEMUtils**: fix reading elevation texture with COGs
+- **TileVS**: fix corner stitching when neighbours are bigger than the current tile
+
 ## v0.16.0 (2023-01-05)
 
 This release generalizes color maps for all layers (and not only the elevation layer), support for
