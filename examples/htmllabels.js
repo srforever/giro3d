@@ -1,4 +1,4 @@
-import { Math as THREEMath, Vector2, Vector3 } from 'three';
+import { MathUtils as THREEMath, Vector2, Vector3 } from 'three';
 import TileWMS from 'ol/source/TileWMS.js';
 import Vector from 'ol/source/Vector.js';
 import GeoJSON from 'ol/format/GeoJSON.js';

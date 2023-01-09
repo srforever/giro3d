@@ -1,7 +1,7 @@
 import TileWMS from 'ol/source/TileWMS.js';
 
 import {
-    AmbientLight, DirectionalLight, Vector3, Math as ThreeMath,
+    AmbientLight, DirectionalLight, Vector3, MathUtils as ThreeMath,
 } from 'three';
 import { IFCLoader } from 'three/examples/jsm/loaders/IFCLoader.js';
 
