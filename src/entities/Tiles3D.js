@@ -9,9 +9,9 @@ import {
     Group,
     Matrix4,
 } from 'three';
-import Extent from '../Core/Geographic/Extent.js';
-import Picking from '../Core/Picking.js';
-import ScreenSpaceError from '../Core/ScreenSpaceError.js';
+import Extent from '../core/geographic/Extent.js';
+import Picking from '../core/Picking.js';
+import ScreenSpaceError from '../core/ScreenSpaceError.js';
 import Entity3D from './Entity3D.js';
 
 /**

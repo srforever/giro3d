@@ -3,10 +3,10 @@
  */
 import GUI from 'lil-gui';
 import Panel from './Panel.js';
-import Instance from '../Core/Instance.js';
+import Instance from '../core/Instance.js';
 import FrameDuration from './charts/FrameDuration.js';
 import MemoryUsage from './charts/MemoryUsage.js';
-import MemoryTracker from '../Renderer/MemoryTracker.js';
+import MemoryTracker from '../renderer/MemoryTracker.js';
 import CachePanel from './CachePanel.js';
 
 class ProcessingInspector extends Panel {

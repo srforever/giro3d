@@ -1,6 +1,6 @@
-import Extent from '../../../src/Core/Geographic/Extent.js';
-import Cache from '../../../src/Core/Scheduler/Cache.js';
-import TileMesh from '../../../src/Core/TileMesh.js';
+import Extent from '../../../src/core/geographic/Extent.js';
+import Cache from '../../../src/core/scheduler/Cache.js';
+import TileMesh from '../../../src/core/TileMesh.js';
 import Map from '../../../src/entities/Map.js';
 
 const extent = new Extent('foo', 0, 1, 0, 1);

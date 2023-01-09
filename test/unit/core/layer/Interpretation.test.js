@@ -1,5 +1,5 @@
 import { NearestFilter } from 'three';
-import Interpretation, { Mode } from '../../../../src/Core/layer/Interpretation.js';
+import Interpretation, { Mode } from '../../../../src/core/layer/Interpretation.js';
 
 describe('Interpretation', () => {
     describe('static constructors', () => {

@@ -1,6 +1,6 @@
 import { Color, RGBAFormat, UnsignedByteType } from 'three';
-import ColorMap from '../../../../src/Core/layer/ColorMap.js';
-import ColorMapMode from '../../../../src/Core/layer/ColorMapMode.js';
+import ColorMap from '../../../../src/core/layer/ColorMap.js';
+import ColorMapMode from '../../../../src/core/layer/ColorMapMode.js';
 
 describe('ColorMap', () => {
     describe('constructor', () => {

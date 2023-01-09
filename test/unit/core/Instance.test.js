@@ -1,9 +1,9 @@
 import { Group, Object3D, Vector2 } from 'three';
 import proj4 from 'proj4';
-import Extent from '../../../src/Core/Geographic/Extent.js';
-import Instance, { INSTANCE_EVENTS } from '../../../src/Core/Instance.js';
-import Layer from '../../../src/Core/layer/Layer.js';
-import MainLoop from '../../../src/Core/MainLoop.js';
+import Extent from '../../../src/core/geographic/Extent.js';
+import Instance, { INSTANCE_EVENTS } from '../../../src/core/Instance.js';
+import Layer from '../../../src/core/layer/Layer.js';
+import MainLoop from '../../../src/core/MainLoop.js';
 import Map from '../../../src/entities/Map.js';
 import Tiles3D from '../../../src/entities/Tiles3D.js';
 import { setupGlobalMocks, resizeObservers } from '../mocks.js';

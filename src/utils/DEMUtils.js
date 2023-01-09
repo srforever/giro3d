@@ -8,7 +8,7 @@ import {
     Vector2,
     UnsignedByteType,
 } from 'three';
-import Coordinates from '../Core/Geographic/Coordinates.js';
+import Coordinates from '../core/geographic/Coordinates.js';
 
 const FAST_READ_Z = 0;
 

@@ -9,18 +9,18 @@ import {
     MathUtils,
 } from 'three';
 
-import Extent from '../Core/Geographic/Extent.js';
-import Layer from '../Core/layer/Layer.js';
-import ColorLayer from '../Core/layer/ColorLayer.js';
-import ElevationLayer from '../Core/layer/ElevationLayer.js';
+import Extent from '../core/geographic/Extent.js';
+import Layer from '../core/layer/Layer.js';
+import ColorLayer from '../core/layer/ColorLayer.js';
+import ElevationLayer from '../core/layer/ElevationLayer.js';
 import Entity3D from './Entity3D.js';
-import ObjectRemovalHelper from '../Process/ObjectRemovalHelper.js';
-import Picking from '../Core/Picking.js';
-import ScreenSpaceError from '../Core/ScreenSpaceError.js';
-import LayeredMaterial from '../Renderer/LayeredMaterial.js';
-import TileMesh from '../Core/TileMesh.js';
-import TileIndex from '../Core/TileIndex.js';
-import RenderingState from '../Renderer/RenderingState.js';
+import ObjectRemovalHelper from '../process/ObjectRemovalHelper.js';
+import Picking from '../core/Picking.js';
+import ScreenSpaceError from '../core/ScreenSpaceError.js';
+import LayeredMaterial from '../renderer/LayeredMaterial.js';
+import TileMesh from '../core/TileMesh.js';
+import TileIndex from '../core/TileIndex.js';
+import RenderingState from '../renderer/RenderingState.js';
 
 const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 

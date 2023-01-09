@@ -1,5 +1,5 @@
-import ElevationLayer from '../../../../src/Core/layer/ElevationLayer.js';
-import Interpretation from '../../../../src/Core/layer/Interpretation.js';
+import ElevationLayer from '../../../../src/core/layer/ElevationLayer.js';
+import Interpretation from '../../../../src/core/layer/Interpretation.js';
 
 describe('ElevationLayer', () => {
     describe('constructor', () => {

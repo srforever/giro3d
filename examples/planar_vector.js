@@ -4,14 +4,14 @@ import GPX from 'ol/format/GPX.js';
 import KML from 'ol/format/KML.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Interpretation from '@giro3d/giro3d/Core/layer/Interpretation.js';
-import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
-import Instance from '@giro3d/giro3d/Core/Instance.js';
-import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
-import ElevationLayer from '@giro3d/giro3d/Core/layer/ElevationLayer.js';
+import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
+import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
+import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
-import Coordinates from '@giro3d/giro3d/Core/Geographic/Coordinates.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
+import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
+import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 // # Planar (EPSG:3946) viewer

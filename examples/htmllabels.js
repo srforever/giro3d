@@ -4,12 +4,12 @@ import Vector from 'ol/source/Vector.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
-import Instance from '@giro3d/giro3d/Core/Instance.js';
-import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
+import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
-import Coordinates from '@giro3d/giro3d/Core/Geographic/Coordinates.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/Core/layer/LayerUpdateStrategy.js';
+import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
+import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 // This example is based on planar_vector example, adding labels on features.

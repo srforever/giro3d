@@ -1,8 +1,8 @@
 import Stamen from 'ol/source/Stamen.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
-import Instance from '@giro3d/giro3d/Core/Instance.js';
-import ColorLayer from '@giro3d/giro3d/Core/layer/ColorLayer.js';
+import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Helpers from '@giro3d/giro3d/helpers/Helpers.js';

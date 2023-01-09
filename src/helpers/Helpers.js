@@ -20,7 +20,7 @@ import {
     GridHelper,
 } from 'three';
 import Tiles3D from '../entities/Tiles3D.js';
-import OBB from '../Renderer/ThreeExtended/OBB.js';
+import OBB from '../renderer/extensions/OBB.js';
 import OBBHelper from './OBBHelper.js';
 
 const _vector = new Vector3();

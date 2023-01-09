@@ -12,9 +12,9 @@ import {
     Vector3,
 } from 'three';
 import Entity3D from './Entity3D.js';
-import PointsMaterial, { MODE } from '../Renderer/PointsMaterial.js';
-import Picking from '../Core/Picking.js';
-import CancelledCommandException from '../Core/Scheduler/CancelledCommandException.js';
+import PointsMaterial, { MODE } from '../renderer/PointsMaterial.js';
+import Picking from '../core/Picking.js';
+import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
 import PotreeSource from '../sources/PotreeSource.js';
 
 // Draw a cube with lines (12 lines).

@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import Panel from './Panel.js';
-import Instance from '../Core/Instance.js';
+import Instance from '../core/Instance.js';
 
 class CameraInspector extends Panel {
     /**

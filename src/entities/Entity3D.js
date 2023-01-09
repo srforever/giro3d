@@ -3,13 +3,13 @@
  */
 import { Box3 } from 'three';
 
-import { defineLayerProperty } from '../Core/layer/Layer.js';
-import ColorLayer from '../Core/layer/ColorLayer.js';
-import Picking from '../Core/Picking.js';
-import AtlasBuilder from '../Renderer/AtlasBuilder.js';
-import Capabilities from '../Core/System/Capabilities.js';
+import { defineLayerProperty } from '../core/layer/Layer.js';
+import ColorLayer from '../core/layer/ColorLayer.js';
+import Picking from '../core/Picking.js';
+import AtlasBuilder from '../renderer/AtlasBuilder.js';
+import Capabilities from '../core/system/Capabilities.js';
 import Entity from './Entity.js';
-import eventDispatcher from '../Core/eventDispatcher.js';
+import eventDispatcher from '../core/eventDispatcher.js';
 
 /**
  * An {@link module:entities/Entity~Entity entity} that display 3D objects.

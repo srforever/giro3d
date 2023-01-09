@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import { Color } from 'three';
-import Instance from '../Core/Instance.js';
+import Instance from '../core/Instance.js';
 import Tiles3D from '../entities/Tiles3D.js';
 import Helpers from '../helpers/Helpers.js';
 import EntityInspector from './EntityInspector.js';

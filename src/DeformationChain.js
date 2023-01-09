@@ -14,7 +14,7 @@ import {
     Line3,
 } from 'three';
 
-import PointsMaterial from './Renderer/PointsMaterial.js';
+import PointsMaterial from './renderer/PointsMaterial.js';
 
 // create empty point
 function createPoint(color) {

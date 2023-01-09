@@ -3,12 +3,12 @@
  */
 import GUI from 'lil-gui';
 import { Color, MathUtils } from 'three';
-import Instance, { INSTANCE_EVENTS } from '../Core/Instance.js';
-import TileMesh from '../Core/TileMesh.js';
+import Instance, { INSTANCE_EVENTS } from '../core/Instance.js';
+import TileMesh from '../core/TileMesh.js';
 import Map from '../entities/Map.js';
 import Helpers from '../helpers/Helpers.js';
 import EntityInspector from './EntityInspector.js';
-import RenderingState from '../Renderer/RenderingState.js';
+import RenderingState from '../renderer/RenderingState.js';
 import LayerInspector from './LayerInspector.js';
 
 function applyToMaterial(root, layer, callback) {

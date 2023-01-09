@@ -1,12 +1,12 @@
 import { Color, Group } from 'three';
-import Extent from '../../../src/Core/Geographic/Extent.js';
-import Instance from '../../../src/Core/Instance.js';
+import Extent from '../../../src/core/geographic/Extent.js';
+import Instance from '../../../src/core/Instance.js';
 import Map from '../../../src/entities/Map.js';
-import Layer from '../../../src/Core/layer/Layer.js';
-import MainLoop from '../../../src/Core/MainLoop.js';
+import Layer from '../../../src/core/layer/Layer.js';
+import MainLoop from '../../../src/core/MainLoop.js';
 import { setupGlobalMocks } from '../mocks.js';
-import ElevationLayer from '../../../src/Core/layer/ElevationLayer.js';
-import RenderingState from '../../../src/Renderer/RenderingState.js';
+import ElevationLayer from '../../../src/core/layer/ElevationLayer.js';
+import RenderingState from '../../../src/renderer/RenderingState.js';
 
 describe('Map', () => {
     /** @type {HTMLDivElement} */

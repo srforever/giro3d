@@ -1,9 +1,9 @@
 import proj4 from 'proj4';
 import { Matrix4, Object3D } from 'three';
 import Tiles3D, { calculateCameraDistance } from '../../../src/entities/Tiles3D.js';
-import Camera from '../../../src/Renderer/Camera.js';
-import Coordinates from '../../../src/Core/Geographic/Coordinates.js';
-import { $3dTilesIndex, configureTile } from '../../../src/Provider/3dTilesProvider.js';
+import Camera from '../../../src/renderer/Camera.js';
+import Coordinates from '../../../src/core/geographic/Coordinates.js';
+import { $3dTilesIndex, configureTile } from '../../../src/provider/3dTilesProvider.js';
 import Tiles3DSource from '../../../src/sources/Tiles3DSource.js';
 
 describe('Tiles3D', () => {

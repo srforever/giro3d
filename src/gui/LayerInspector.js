@@ -3,10 +3,10 @@
  */
 import GUI from 'lil-gui';
 import { Color } from 'three';
-import Instance from '../Core/Instance.js';
-import Layer from '../Core/layer/Layer.js';
+import Instance from '../core/Instance.js';
+import Layer from '../core/layer/Layer.js';
 import Panel from './Panel.js';
-import { UPDATE_STRATEGIES } from '../Core/layer/LayerUpdateStrategy.js';
+import { UPDATE_STRATEGIES } from '../core/layer/LayerUpdateStrategy.js';
 import ColorMapInspector from './ColorMapInspector.js';
 import Helpers from '../helpers/Helpers.js';
 import Map from '../entities/Map.js';
