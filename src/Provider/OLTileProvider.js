@@ -61,13 +61,7 @@ function toOLExtent(extent, margin = 0) {
     ];
 }
 
-/**
- * @param {Layer} layer The target layer.
- * @param {Extent} extent The texture extent.
- * @param {Texture} texture The current texture.
- * @returns {object} The result
- */
-function getPossibleTextureImprovements(layer, extent, texture) {
+function getPossibleTextureImprovements(layer, extent, texture, pitch) {
     if (!extent.intersectsExtent(layer.extent)) {
         // The tile does not even overlap with the layer extent.
         // This can happen when layers have a different extent from their parent map.
@@ -80,20 +74,20 @@ function getPossibleTextureImprovements(layer, extent, texture) {
         return DataStatus.DATA_ALREADY_LOADED;
     }
 
-    return getTileRange(layer.tileGrid, layer.imageSize, extent);
+    return { zoomLevel: getZoomLevel(layer.tileGrid, layer.imageSize, extent), pitch, extent };
 }
 
 /**
- * Selects the best tile range given the provided image size and extent.
+ * Selects the best zoom level given the provided image size and extent.
  *
  * @param {TileGrid} tileGrid The tile grid
  * @param {object} imageSize The image size, in pixels.
  * @param {number} imageSize.w The image width, in pixels.
  * @param {number} imageSize.h The image height, in pixels.
  * @param {Extent} extent The target extent.
- * @returns {object} An object containing the `tileRange`, `z` level, and `extent`.
+ * @returns {number} The ideal zoom level for this particular extent.
  */
-function getTileRange(tileGrid, imageSize, extent) {
+function getZoomLevel(tileGrid, imageSize, extent) {
     const minZoom = tileGrid.getMinZoom();
     const maxZoom = tileGrid.getMaxZoom();
     // Use a small margin to solve issues in the case where map tiles are perfecly identical
@@ -119,19 +113,19 @@ function getTileRange(tileGrid, imageSize, extent) {
         const sourceResolution = 1 / tileGrid.getResolution(z);
 
         if (sourceResolution >= targetResolution) {
-            return { z, extent };
+            return z;
         }
     }
 
-    return { z: maxZoom, extent };
+    return maxZoom;
 }
 
 async function executeCommand(command) {
     const { layer, instance } = command;
-    const { z, extent } = command.toDownload;
+    const { zoomLevel, extent, pitch } = command.toDownload;
 
-    const images = await loadTiles(extent, z, layer);
-    const result = combineImages(images, instance.renderer, layer, extent);
+    const images = await loadTiles(extent, zoomLevel, layer);
+    const result = combineImages(images, instance.renderer, pitch, layer, extent);
     return result;
 }
 
@@ -140,10 +134,11 @@ async function executeCommand(command) {
  *
  * @param {Array} sourceImages The images to combine.
  * @param {WebGLRenderer} renderer The WebGL renderer.
+ * @param {Vector4} pitch The custom pitch.
  * @param {Layer} layer The target layer.
  * @param {Extent} targetExtent The extent of the destination texture.
  */
-function combineImages(sourceImages, renderer, layer, targetExtent) {
+function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
     const isElevationLayer = layer instanceof ElevationLayer;
     const composer = new WebGLComposer({
         extent: Rect.fromExtent(targetExtent),
@@ -168,7 +163,7 @@ function combineImages(sourceImages, renderer, layer, targetExtent) {
 
     composer.dispose();
 
-    return { texture, pitch: new Vector4(0, 0, 1, 1) };
+    return { texture, pitch: pitch ?? new Vector4(0, 0, 1, 1) };
 }
 
 /**

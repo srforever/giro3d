@@ -11,7 +11,7 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 const extent = new Extent(
     'EPSG:3857',
     -20037508.342789244, 20037508.342789244,
-    -20037508.342789244, 20037508.342789244,
+    -20048966.1, 20048966.1,
 );
 
 // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)

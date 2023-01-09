@@ -80,7 +80,7 @@ function processArrayData(layer, arrayData, compressTo8bit) {
     return texture;
 }
 
-function createTexture(layer, extent, levelImage, computeMinMax = false) {
+function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) {
     // Read and return the raster data
     return levelImage.image.readRasters({
         pool: layer.pool, // Use the pool of workers to decode faster
@@ -93,7 +93,7 @@ function createTexture(layer, extent, levelImage, computeMinMax = false) {
             layer.minmax = getMinMax(arrayData[0], layer.nodata);
         }
         // Attach arrayData to the result to recreate TileGeometry in ElevationLayer
-        const result = { arrayData, pitch: new Vector4(0, 0, 1, 1) };
+        const result = { arrayData, pitch: pitch ?? new Vector4(0, 0, 1, 1) };
         // Process the downloaded data
         const compressTo8bit = layer instanceof ColorLayer;
         result.texture = processArrayData(layer, arrayData, compressTo8bit);
@@ -111,7 +111,7 @@ function createTexture(layer, extent, levelImage, computeMinMax = false) {
             // https://github.com/geotiffjs/geotiff.js/issues/221
             // https://github.com/geotiffjs/geotiff.js/pull/224
             // Retry until it is not blocked.
-            return createTexture(layer, extent, levelImage, computeMinMax);
+            return createTexture(layer, extent, levelImage, pitch, computeMinMax);
         }
         throw new Error(error);
     });
@@ -156,7 +156,7 @@ async function getImages(layer) {
     // performances, we use the latest image, meaning the highest overview
     // (lowest resolution)
     if (image.getSamplesPerPixel() === 1) {
-        await createTexture(layer, layer.extent, levelImage, true);
+        await createTexture(layer, layer.extent, levelImage, new Vector4(0, 0, 1, 1), true);
     }
 }
 
@@ -169,7 +169,7 @@ function preprocessDataLayer(layer) {
     return getImages(layer);
 }
 
-function getPossibleTextureImprovements(layer, extent, texture) {
+function getPossibleTextureImprovements(layer, extent, texture, pitch) {
     // If the tile is already displayed, don't update
     if (texture && texture.extent && texture.extent.isInside(extent)) {
         return DataStatus.DATA_ALREADY_LOADED;
@@ -194,14 +194,14 @@ function getPossibleTextureImprovements(layer, extent, texture) {
         tileHeight = levelImage.height * heightRatio;
     }
     return {
-        extent, levelImage,
+        extent, levelImage, pitch,
     };
 }
 
 function executeCommand(command) {
     const { layer } = command;
     // Get the image at the appropriate overview level
-    const { extent, levelImage } = command.toDownload;
+    const { extent, levelImage, pitch } = command.toDownload;
     // Make the key to store the texture in cache with the subdivised tilednode extent
     const key = `${layer.id}${extent._values.join(',')}`;
     // Get the result with data and texture if it already exists
@@ -209,7 +209,7 @@ function executeCommand(command) {
     if (result) {
         return Promise.resolve(result);
     }
-    return Promise.resolve(createTexture(layer, extent, levelImage));
+    return Promise.resolve(createTexture(layer, extent, levelImage, pitch));
 }
 
 function tileInsideLimit(tile, layer) {

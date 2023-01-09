@@ -69,7 +69,7 @@ function toOLExtent(extent) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function getPossibleTextureImprovements(layer, extent, texture, previousError) {
+function getPossibleTextureImprovements(layer, extent, texture, pitch) {
     if (texture && texture.extent
         && texture.extent.isInside(extent)
         && texture.revision === layer.source.getRevision()) {
@@ -78,19 +78,20 @@ function getPossibleTextureImprovements(layer, extent, texture, previousError) {
 
     const layerExtent = fromOLExtent(layer.source.getExtent(), layer.projection);
     if (extent.intersectsExtent(layerExtent)) {
-        return extent;
+        return { extent, pitch };
     }
     if (texture && texture.empty) {
         return DataStatus.DATA_NOT_AVAILABLE_YET;
     }
-    return extent;
+    return { extent, pitch };
 }
 
 function executeCommand(command) {
-    return createTexture(command.requester, command.toDownload, command.layer);
+    const { extent, pitch } = command.toDownload;
+    return createTexture(command.requester, extent, pitch, command.layer);
 }
 
-function createTexture(node, extent, layer) {
+function createTexture(node, extent, pitch, layer) {
     const layerExtent = fromOLExtent(layer.source.getExtent(), layer.projection);
     if (!extent.intersectsExtent(layerExtent)) {
         return Promise.resolve({ texture: emptyTexture, pitch: new Vector4(0, 0, 0, 0) });
@@ -98,7 +99,6 @@ function createTexture(node, extent, layer) {
 
     const builderGroup = createBuilderGroup(extent, layer);
     let texture;
-    let pitch;
     if (!builderGroup) {
         texture = new Texture();
         pitch = new Vector4(0, 0, 0, 0);
@@ -106,7 +106,7 @@ function createTexture(node, extent, layer) {
         const canvas = createCanvas(layer);
         renderTileImage(canvas, builderGroup, extent, layer);
         texture = new CanvasTexture(canvas);
-        pitch = new Vector4(0, 0, 1, 1);
+        pitch = pitch ?? new Vector4(0, 0, 1, 1);
     }
     texture.extent = extent;
     texture.revision = layer.source.getRevision();

@@ -266,6 +266,48 @@ describe('Extent', () => {
         });
     });
 
+    describe('withMargin', () => {
+        it('should returns different objects', () => {
+            const extent = new Extent('EPSG:3857', 5, 1132, 4204.2, 10000.4);
+            const margin = extent.withMargin(10, 10);
+
+            expect(extent).not.toBe(margin);
+        });
+
+        it('should returns correct values', () => {
+            const xmargin = 10.2;
+            const ymargin = 7.4;
+            const extent = new Extent('EPSG:3857', 5, 1132, 4204.2, 10000.4);
+            const result = extent.withMargin(xmargin, ymargin);
+
+            expect(result.west()).toEqual(extent.west() - xmargin);
+            expect(result.east()).toEqual(extent.east() + xmargin);
+            expect(result.south()).toEqual(extent.south() - ymargin);
+            expect(result.north()).toEqual(extent.north() + ymargin);
+        });
+    });
+
+    describe('withRelativeMargin', () => {
+        it('should returns different objects', () => {
+            const extent = new Extent('EPSG:3857', 5, 1132, 4204.2, 10000.4);
+            const margin = extent.withRelativeMargin(0.1);
+
+            expect(extent).not.toBe(margin);
+        });
+
+        it('should returns correct values', () => {
+            const xmargin = 10;
+            const ymargin = 20;
+            const extent = new Extent('EPSG:3857', 0, 100, 0, 200);
+            const result = extent.withRelativeMargin(0.1);
+
+            expect(result.west()).toEqual(extent.west() - xmargin);
+            expect(result.east()).toEqual(extent.east() + xmargin);
+            expect(result.south()).toEqual(extent.south() - ymargin);
+            expect(result.north()).toEqual(extent.north() + ymargin);
+        });
+    });
+
     describe('fromBox3', () => {
         it('should return the correct values and CRS', () => {
             const box = {

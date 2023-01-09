@@ -1,7 +1,12 @@
-import { Texture, Vector4, CanvasTexture } from 'three';
+import {
+    CanvasTexture,
+    Texture,
+    Vector4,
+    WebGLRenderer,
+} from 'three';
 
 import TileState from 'ol/TileState.js';
-import { listenOnce } from 'ol/events.js';
+import { listen, unlistenByKey } from 'ol/events.js';
 import {
     createEmpty as createEmptyExtent,
     getIntersection, equals, buffer, intersects,
@@ -26,6 +31,12 @@ import {
     Fill, Icon, Stroke, Style, Text,
 } from 'ol/style.js';
 import {
+    Tile,
+    VectorRenderTile,
+    TileGrid,
+    TileSource,
+} from 'ol';
+import {
     create as createTransform,
     reset as resetTransform,
     scale as scaleTransform,
@@ -34,29 +45,21 @@ import {
 
 import Extent from '../Core/Geographic/Extent.js';
 import DataStatus from './DataStatus.js';
+import Cache from '../Core/Scheduler/Cache.js';
+import Layer from '../Core/layer/Layer.js';
+import Rect from '../Core/Rect.js';
+import WebGLComposer from '../Renderer/composition/WebGLComposer.js';
 
 const tmpTransform_ = createTransform();
-const emptyTexture = new Texture();
 
-function Foo() {
-    this.storage = {};
-    this.contains = tileCoord => tileCoord in this.storage;
-}
+const MIN_LEVEL_THRESHOLD = 2;
 
 function preprocessDataLayer(layer) {
     const { source } = layer;
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
-    const sizePixel = source.getTilePixelSize(0/* z */, 1/* pixelRatio */, projection);
-    // Normally we should let the map decide of the layer image size,
-    // But in the case of vector tiles, it's a bit problematic.
-    // Currently, vector tiles don't work well when source tiles and target tiles have
-    // different extents. The solution would be to allow arbitrary number of vector tiles
-    // for a single map tile (like other image tile providers do), but it's a bit more complicated
-    // to do for vector tiles. See #73 for a possible fix.
-    layer.imageSize = { w: sizePixel[0], h: sizePixel[1] };
-    const extent = tileGrid.getExtent();
-    layer.extent = fromOLExtent(extent, projection.getCode());
+    layer.tileGrid = tileGrid;
+    layer.olprojection = projection;
     layer.getStyleFunction = () => layer.style(Style, Fill, Stroke, Icon, Text);
     layer.usedTiles = {};
 }
@@ -75,117 +78,206 @@ function toOLExtent(extent) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function getPossibleTextureImprovements(layer, extent, texture, previousError) {
-    const ex = extent.as(layer.extent.crs());
-    const tile = selectTile(layer, ex);
-    if (texture && texture.extent && texture.extent.isInside(tile.tileExtent)) {
+function getPossibleTextureImprovements(layer, extent, texture, pitch) {
+    if (!extent.intersectsExtent(layer.extent)) {
+        // The tile does not even overlap with the layer extent.
+        // This can happen when layers have a different extent from their parent map.
+        return DataStatus.DATA_UNAVAILABLE;
+    }
+
+    if (texture && texture.extent
+        && texture.extent.isInside(extent)
+        && texture.revision === layer.source.getRevision()) {
         return DataStatus.DATA_ALREADY_LOADED;
     }
-    if (texture === emptyTexture) {
-        return DataStatus.DATA_NOT_AVAILABLE_YET;
-    }
-    return tile;
-}
 
-function selectTile(layer, extent) {
     const { source } = layer;
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
-    const tileCoord = tileCoordForExtent(tileGrid, extent);
-    if (!tileCoord) {
-        return null;
-    }
-    const tile = source.getTile(tileCoord[0], tileCoord[1], tileCoord[2], 1, projection);
+    const zoomLevel = getZoomLevel(tileGrid, layer.imageSize, extent);
 
-    const zKey = tile.tileCoord[0].toString();
-    if (!(zKey in layer.usedTiles)) {
-        layer.usedTiles[zKey] = new Foo();
-    }
-    layer.usedTiles[zKey].storage[tile.tileCoord] = tile;
-
-    const tileExtent = fromOLExtent(
-        tileGrid.getTileCoordExtent(tileCoord), projection.getCode(),
-    );
-    // OL assumes square tiles and compute maxY from minY, so recompute maxY with the correct ratio
-    const dim = layer.extent.dimensions();
-    const ratio = dim.y / dim.x;
-    tileExtent._values[3] = tileExtent._values[2] + tileExtent.dimensions().x * ratio;
-    const pitch = extent.offsetToParent(tileExtent);
-    return {
-        extent, pitch, tile, tileExtent,
-    };
+    return { zoomLevel, extent, pitch };
 }
 
-function tileCoordForExtent(tileGrid, extent) {
-    extent = toOLExtent(extent);
+function getZoomLevel(tileGrid, imageSize, extent) {
+    const olExtent = toOLExtent(extent);
     const minZoom = tileGrid.getMinZoom();
     const maxZoom = tileGrid.getMaxZoom();
-    for (let z = maxZoom, tileRange; z >= minZoom; z--) {
-        tileRange = tileGrid.getTileRangeForExtentAndZ(extent, z, tileRange);
-        if (tileRange.getWidth() === 1 && tileRange.getHeight() === 1) {
-            return [z, tileRange.minX, tileRange.minY];
+
+    const extentWidth = olExtent[2] - olExtent[0];
+    const targetResolution = imageSize.w / extentWidth;
+
+    const minResolution = 1 / tileGrid.getResolution(minZoom);
+
+    if ((minResolution / targetResolution) > MIN_LEVEL_THRESHOLD) {
+        // The minimum zoom level has more than twice the resolution
+        // than requested. We cannot use this zoom level as it would
+        // trigger too many tile requests to fill the extent.
+        return DataStatus.DATA_UNAVAILABLE;
+    }
+
+    // Let's determine the best zoom level for the target tile.
+    for (let z = minZoom; z < maxZoom; z++) {
+        const sourceResolution = 1 / tileGrid.getResolution(z);
+
+        if (sourceResolution >= targetResolution) {
+            return z;
         }
     }
-    return null;
+
+    return maxZoom;
 }
 
-function executeCommand(command) {
-    return loadTile(command.requester, command.toDownload, command.layer);
+async function executeCommand(command) {
+    const { layer, instance } = command;
+    const { zoomLevel, extent, pitch } = command.toDownload;
+    const images = await loadTiles(extent, zoomLevel, command.layer);
+    const result = combineImages(images, instance.renderer, pitch, layer, extent);
+    return result;
 }
 
-function loadTile(node, tile, layer) {
+/**
+ * Combines all images into a single texture.
+ *
+ * @param {Array} sourceImages The images to combine.
+ * @param {WebGLRenderer} renderer The WebGL renderer.
+ * @param {Vector4} pitch The custom pitch.
+ * @param {Layer} layer The target layer.
+ * @param {Extent} targetExtent The extent of the destination texture.
+ */
+function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
+    const FACTOR = 2;
+    const composer = new WebGLComposer({
+        extent: Rect.fromExtent(targetExtent),
+        width: layer.imageSize.w * FACTOR,
+        height: layer.imageSize.h * FACTOR,
+        webGLRenderer: renderer,
+        showImageOutlines: layer.showTileBorders || false,
+    });
+
+    const options = { interpretation: layer.interpretation };
+
+    sourceImages.forEach(img => {
+        if (img) {
+            composer.draw(img, Rect.fromExtent(img.extent), options);
+        }
+    });
+
+    const texture = composer.render();
+    texture.extent = targetExtent;
+    texture.revision = layer.source.getRevision();
+
+    composer.dispose();
+
+    return { texture, pitch: pitch ?? new Vector4(0, 0, 1, 1) };
+}
+
+/**
+ * Loads all tiles in the specified extent and zoom level.
+ *
+ * @param {Extent} extent The tile extent.
+ * @param {number} zoom The zoom level.
+ * @param {Layer} layer The target layer.
+ * @returns {Promise<HTMLImageElement[]>} The loaded tile images.
+ */
+function loadTiles(extent, zoom, layer) {
+    /** @type {TileSource} */
+    const source = layer.source;
+    /** @type {TileGrid} */
+    const tileGrid = layer.tileGrid;
+    const crs = extent.crs();
+
+    const promises = [];
+
+    tileGrid.forEachTileCoord(toOLExtent(extent), zoom, ([z, i, j]) => {
+        const tile = source.getTile(z, i, j, 1, layer.olprojection);
+        const coord = tile.getTileCoord();
+        if (coord) {
+            const tileExtent = fromOLExtent(tileGrid.getTileCoordExtent(coord), crs);
+            // Don't bother loading tiles that are not in the layer
+            if (tileExtent.intersectsExtent(layer.extent)) {
+                const promise = loadTile(tile, tileExtent, layer).catch(e => {
+                    console.error(e);
+                });
+                promises.push(promise);
+            }
+        }
+    });
+
+    return Promise.all(promises);
+}
+
+/**
+ * Dispose the texture contained in the promise.
+ *
+ * @param {Promise<Texture>} promise The texture promise.
+ */
+function onDelete(promise) {
+    promise.then(t => t.dispose());
+    promise.catch(e => console.error(e));
+}
+
+/**
+ * @param {Tile} tile The tile to load.
+ * @param {Extent} tileExtent The extent of the tile.
+ * @param {Layer} layer The layer.
+ * @returns {Promise<HTMLCanvasElement>} The promise containing the rasterized tile.
+ */
+function loadTile(tile, tileExtent, layer) {
+    const tileCoord = tile.getTileCoord();
+    const key = `vectortile-${layer.id}-${tileCoord[0]},${tileCoord[1]},${tileCoord[2]}`;
+
+    const cached = Cache.get(key);
+
+    if (cached) {
+        return cached;
+    }
+
     let promise;
-    const imageTile = tile.tile;
-    if (imageTile.getState() === TileState.LOADED) {
-        promise = Promise.resolve(createTexture(node, tile, layer));
+    if (tile.getState() === TileState.EMPTY) {
+        promise = Promise.resolve(null);
+    } else if (tile.getState() === TileState.LOADED) {
+        promise = Promise.resolve(rasterizeTile(tile, tileExtent, layer));
     } else {
         promise = new Promise((resolve, reject) => {
-            imageTile.load();
-            listenOnce(imageTile, 'change', evt => {
-                const imageTile2 = evt.target;
-                const tileState = imageTile2.getState();
+            const eventKey = listen(tile, 'change', evt => {
+                const tile2 = evt.target;
+                const tileState = tile2.getState();
                 if (tileState === TileState.ERROR) {
+                    unlistenByKey(eventKey);
                     reject();
                 } else if (tileState === TileState.LOADED) {
-                    resolve(createTexture(node, tile, layer));
+                    unlistenByKey(eventKey);
+                    resolve(rasterizeTile(tile2, tileExtent, layer));
                 }
             });
+            tile.load();
         });
     }
+
+    Cache.set(key, promise, Cache.POLICIES.TEXTURE, onDelete);
+
     return promise;
 }
 
-function createTexture(node, tile, layer) {
-    if (!node.material) {
-        return null;
-    }
-    const canvas = createCanvas(layer);
-    const texture = new CanvasTexture(canvas);
-    texture.premultiplyAlpha = layer.transparent;
-    texture.extent = tile.tileExtent;
-
-    const empty = createBuilderGroup(tile.tile, layer);
+function rasterizeTile(tile, tileExtent, layer) {
+    const empty = createBuilderGroup(tile, layer);
 
     if (empty) {
-        return {
-            texture,
-            pitch: new Vector4(0, 0, 0, 0),
-        };
+        return null;
     }
 
-    renderTileImage(canvas, tile.tile, layer);
+    const canvas = rasterize(tile, layer);
+    const texture = new CanvasTexture(canvas);
+    texture.extent = tileExtent;
 
-    const zKey = tile.tile.tileCoord[0].toString();
-    delete layer.usedTiles[zKey].storage[tile.tile.tileCoord];
-    layer.source.tileCache.expireCache(layer.usedTiles);
-
-    return { texture, pitch: tile.pitch };
+    return texture;
 }
 
-function createCanvas(layer) {
+function createCanvas(width, height) {
     const canvas = document.createElement('canvas');
-    canvas.width = layer.imageSize.w;
-    canvas.height = layer.imageSize.h;
+    canvas.width = width;
+    canvas.height = height;
     return canvas;
 }
 
@@ -195,7 +287,7 @@ function createBuilderGroup(tile, layer) {
     const sourceTileGrid = source.getTileGrid();
     const sourceProjection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(sourceProjection);
-    const resolution = tileGrid.getResolution(tile.tileCoord[0]);
+    const resolution = tileGrid.getResolution(tile.getTileCoord()[0]);
     const tileExtent = tileGrid.getTileCoordExtent(tile.wrappedTileCoord);
     const renderOrder = null;
     const pixelRatio = 1;
@@ -211,7 +303,7 @@ function createBuilderGroup(tile, layer) {
             console.warn('not loaded !!!', sourceTile);
             continue;
         }
-        const sourceTileCoord = sourceTile.tileCoord;
+        const sourceTileCoord = sourceTile.getTileCoord();
         const sourceTileExtent = sourceTileGrid.getTileCoordExtent(sourceTileCoord);
         const sharedExtent = getIntersection(tileExtent, sourceTileExtent);
         const renderBuffer = 100;
@@ -288,28 +380,33 @@ function renderFeature(feature, squaredTolerance, styles, builderGroup) {
 function handleStyleImageChange_() {
 }
 
-function renderTileImage(canvas, tile, layer) {
+/**
+ * @param {VectorRenderTile} tile The tile to render.
+ * @param {Layer} layer The layer.
+ * @returns {HTMLCanvasElement} The canvas.
+ */
+function rasterize(tile, layer) {
+    const tileCoord = tile.getTileCoord();
+
+    const width = 512;
+    const height = 512;
+    const canvas = createCanvas(width, height);
     const pixelRatio = 1;
     const replayState = tile.getReplayState(layer);
     const revision = 1;
     replayState.renderedTileRevision = revision;
-    const tileCoord = tile.wrappedTileCoord;
+
     const z = tileCoord[0];
     const { source } = layer;
     const tileGrid = source.getTileGridForProjection(source.getProjection());
     const resolution = tileGrid.getResolution(z);
     const ctx = canvas.getContext('2d');
-    ctx.save();
-    ctx.clearRect(0, 0, layer.imageSize.w, layer.imageSize.h);
-    ctx.beginPath();
-    ctx.rect(0, 0, layer.imageSize.w, layer.imageSize.h);
-    ctx.clip();
 
     if (layer.backgroundColor) {
         ctx.fillStyle = layer.backgroundColor;
         ctx.fillRect(
             0, 0,
-            layer.imageSize.w, layer.imageSize.h,
+            width, height,
         );
     }
 
@@ -325,6 +422,8 @@ function renderTileImage(canvas, tile, layer) {
     }
 
     ctx.restore();
+
+    return canvas;
 }
 
 function tileInsideLimit(tile, layer) {

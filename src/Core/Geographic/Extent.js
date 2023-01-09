@@ -126,6 +126,46 @@ class Extent {
     }
 
     /**
+     * Returns an extent with a relative margin added.
+     *
+     * @param {number} marginRatio The margin, in normalized value ([0, 1]).
+     * A margin of 1 means 100% of the width or height of the extent.
+     * @example
+     * const extent = new Extent('EPSG:3857', 0, 100, 0, 100);
+     * const margin = extent.withRelativeMargin(0.1);
+     * //  new Extent('EPSG:3857', -10, 110, -10, 110);
+     * @api
+     * @returns {Extent} a new extent with a specified margin applied.
+     */
+    withRelativeMargin(marginRatio) {
+        const w = Math.abs(this.west() - this.east());
+        const h = Math.abs(this.north() - this.south());
+
+        return this.withMargin(marginRatio * w, marginRatio * h);
+    }
+
+    /**
+     * Returns an extent with a margin.
+     *
+     * @param {number} x The horizontal margin, in CRS units.
+     * @param {number} y The vertical margin, in CRS units.
+     * @example
+     * const extent = new Extent('EPSG:3857', 0, 100, 0, 100);
+     * const margin = extent.withMargin(10, 15);
+     * //  new Extent('EPSG:3857', -10, 110, -15, 115);
+     * @api
+     * @returns {Extent} a new extent with a specified margin applied.
+     */
+    withMargin(x, y) {
+        const w = this.west() - x;
+        const e = this.east() + x;
+        const n = this.north() + y;
+        const s = this.south() - y;
+
+        return new Extent(this.crs(), w, e, s, n);
+    }
+
+    /**
      * Converts this extent into another CRS.
      * If `crs` is the same as the current CRS, the original object is returned.
      *
