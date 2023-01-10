@@ -40,10 +40,16 @@ class Inspector {
      *
      * @param {HTMLDivElement} div The div element to attach the panel to.
      * @param {Instance} instance The Giro3D instance.
+     * @param {object} options The options.
+     * @param {number} [options.width=450] The panel width, in pixels.
      */
-    constructor(div, instance) {
+    constructor(div, instance, options = {}) {
         this.instance = instance;
-        this.gui = new GUI({ autoPlace: false, width: 300, title: 'Inspector' });
+        this.gui = new GUI({
+            autoPlace: false,
+            width: options.width || 450,
+            title: 'Inspector',
+        });
         this.gui.close();
         this.gui.add(this, 'collapse');
         div.appendChild(this.gui.domElement);
