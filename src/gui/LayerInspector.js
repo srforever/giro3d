@@ -10,6 +10,7 @@ import { UPDATE_STRATEGIES } from '../core/layer/LayerUpdateStrategy.js';
 import ColorMapInspector from './ColorMapInspector.js';
 import Helpers from '../helpers/Helpers.js';
 import Map from '../entities/Map.js';
+import SourceInspector from './SourceInspector.js';
 
 /**
  * Inspector for a {@link module:Core/layer/Layer~Layer Layer}.
@@ -89,6 +90,20 @@ class LayerInspector extends Panel {
             layer,
             layer.colorMap,
         );
+
+        if (this.layer.source) {
+            /**
+             * The source inspector.
+             *
+             * @type {GUI}
+             * @api
+             */
+            this.sourceInspector = new SourceInspector(
+                this.gui,
+                instance,
+                layer.source,
+            );
+        }
     }
 
     get colorMap() {
