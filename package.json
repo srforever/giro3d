@@ -46,7 +46,8 @@
     "watch": "node observer.mjs ./src ./build/giro3d",
     "serve-examples": "webpack serve --config examples/webpack/config.mjs --mode=development",
     "build-examples": "webpack --config examples/webpack/config.mjs --mode=production",
-    "prepack": "npm run build"
+    "prepack": "npm run build",
+    "start": "npm run serve-examples"
   },
   "repository": {
     "type": "git",
