@@ -396,6 +396,33 @@ describe('Extent', () => {
         });
     });
 
+    describe('topLeft, topRight, bottomLeft, bottomRight', () => {
+        it('should return the correct values', () => {
+            const xmin = -100;
+            const xmax = 2323;
+            const ymin = -3424;
+            const ymax = 901;
+
+            const extent = new Extent('EPSG:3857', xmin, xmax, ymin, ymax);
+
+            const tl = extent.topLeft();
+            expect(tl.x()).toEqual(xmin);
+            expect(tl.y()).toEqual(ymax);
+
+            const tr = extent.topRight();
+            expect(tr.x()).toEqual(xmax);
+            expect(tr.y()).toEqual(ymax);
+
+            const bl = extent.bottomLeft();
+            expect(bl.x()).toEqual(xmin);
+            expect(bl.y()).toEqual(ymin);
+
+            const br = extent.bottomRight();
+            expect(br.x()).toEqual(xmax);
+            expect(br.y()).toEqual(ymin);
+        });
+    });
+
     describe('split', () => {
         it('should throw on invalid subdivisions', () => {
             expect(() => BOUNDS_EPSG3857.split(0, 1)).toThrow(/Invalid subdivisions/);
