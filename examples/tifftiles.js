@@ -61,7 +61,7 @@ map.addLayer(new ElevationLayer(
 )).catch(e => console.error(e));
 
 const center = extent.center().xyz();
-instance.camera.camera3D.position.set(center.x, center.y, 25000);
+instance.camera.camera3D.position.set(center.x, center.y - 1, 50000);
 
 // Instanciates controls
 const controls = new MapControls(instance.camera.camera3D, viewerDiv);
