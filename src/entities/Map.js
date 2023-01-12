@@ -75,8 +75,7 @@ function subdivideNode(context, map, node) {
             for (const e of map.getElevationLayers()) {
                 e.update(context, child, node, true);
             }
-            const nodeUniforms = node.material.uniforms;
-            if (nodeUniforms.colorTexture.value.image.width > 0) {
+            if (node.material.pixelWidth > 0) {
                 for (const c of map.getColorLayers()) {
                     c.update(context, child, node, true);
                 }
