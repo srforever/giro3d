@@ -1,3 +1,4 @@
+/* eslint-disable no-lone-blocks */
 import colormap from 'colormap';
 import { Color } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
@@ -23,13 +24,6 @@ const extent = new Extent(
 
 // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
 const viewerDiv = document.getElementById('viewerDiv');
-
-const colorLayerMode = document.getElementById('colorLayerMode');
-const elevationLayerMode = document.getElementById('elevationLayerMode');
-const colorLayerGradient = document.getElementById('colorLayerGradient');
-const elevationLayerGradient = document.getElementById('elevationLayerGradient');
-const elevationLayerEnabled = document.getElementById('elevationLayerEnabled');
-const colorLayerEnabled = document.getElementById('colorLayerEnabled');
 
 // Creates the giro3d instance
 const instance = new Instance(viewerDiv);
@@ -77,6 +71,8 @@ colorRamps.bathymetry = makeColorRamp('bathymetry');
 colorRamps.magma = makeColorRamp('magma');
 colorRamps.par = makeColorRamp('par');
 
+colorRamps.slope = makeColorRamp('RdBu');
+
 // Adds the map that will contain the layers.
 const map = new Map('planar', {
     extent,
@@ -94,22 +90,34 @@ const demSource = new CustomTiledImageSource({
 
 const elevationLayer = new ElevationLayer('elevation', {
     colorMap: new ColorMap(
-        colorRamps[elevationLayerGradient.value],
+        colorRamps.viridis,
         elevationMin,
         elevationMax,
-        getMode(elevationLayerMode.value),
+        ColorMapMode.Elevation,
     ),
     source: demSource,
     interpretation: Interpretation.ScaleToMinMax(elevationMin, elevationMax),
     projection: 'EPSG:2154',
 });
 
-const colorLayer = new ColorLayer('color', {
+const bottomLayer = new ColorLayer('color', {
     colorMap: new ColorMap(
-        colorRamps[colorLayerGradient.value],
+        colorRamps.viridis,
         elevationMin,
         elevationMax,
-        getMode(colorLayerMode.value),
+        ColorMapMode.Elevation,
+    ),
+    source: demSource,
+    interpretation: Interpretation.ScaleToMinMax(elevationMin, elevationMax),
+    projection: 'EPSG:2154',
+});
+
+const topLayer = new ColorLayer('color2', {
+    colorMap: new ColorMap(
+        colorRamps.viridis,
+        elevationMin,
+        elevationMax,
+        ColorMapMode.Elevation,
     ),
     source: demSource,
     interpretation: Interpretation.ScaleToMinMax(elevationMin, elevationMax),
@@ -117,47 +125,66 @@ const colorLayer = new ColorLayer('color', {
 });
 
 map.addLayer(elevationLayer);
-map.addLayer(colorLayer);
+map.addLayer(bottomLayer);
+map.addLayer(topLayer);
 
-elevationLayerEnabled.onchange = updateColorMaps;
-colorLayerEnabled.onchange = updateColorMaps;
-colorLayerGradient.addEventListener('change', () => updateColorMaps());
-colorLayerMode.addEventListener('change', () => updateColorMaps());
-elevationLayerMode.addEventListener('change', () => updateColorMaps());
-elevationLayerGradient.addEventListener('change', () => updateColorMaps());
+function bindControls(prefix, layer) {
+    const notify = () => instance.notifyChange(map);
 
-function getMode(name) {
-    switch (name) {
-        case 'slope': return { mode: ColorMapMode.Slope, min: 0, max: 50 };
-        case 'aspect': return { mode: ColorMapMode.Aspect, min: 0, max: 360 };
-        default: return { mode: ColorMapMode.Elevation, min: elevationMin, max: elevationMax };
+    const colorMap = layer.colorMap;
+
+    const enableLayer = document.getElementById(`${prefix}-layer-enable`);
+    enableLayer.onchange = () => { layer.visible = enableLayer.checked; notify(); };
+
+    const enableColorMap = document.getElementById(`${prefix}-colormap-enable`);
+    enableColorMap.onchange = () => { colorMap.active = enableColorMap.checked; notify(); };
+
+    const gradient = document.getElementById(`${prefix}-gradient`);
+    gradient.onchange = () => {
+        colorMap.colors = colorRamps[gradient.value];
+        notify();
+    };
+
+    function updateMode(value) {
+        switch (value) {
+            case 'slope':
+                gradient.disabled = true;
+                colorMap.colors = colorRamps.slope;
+                colorMap.mode = ColorMapMode.Slope;
+                colorMap.min = 0;
+                colorMap.max = 50;
+                break;
+            case 'aspect':
+                gradient.disabled = true;
+                colorMap.colors = colorRamps.slope;
+                colorMap.mode = ColorMapMode.Aspect;
+                colorMap.min = 0;
+                colorMap.max = 360;
+                break;
+            default:
+                gradient.disabled = false;
+                colorMap.colors = colorRamps[gradient.value];
+                colorMap.mode = ColorMapMode.Elevation;
+                colorMap.min = elevationMin;
+                colorMap.max = elevationMax;
+                break;
+        }
     }
+
+    const mode = document.getElementById(`${prefix}-mode`);
+    mode.onchange = () => { updateMode(mode.value); notify(); };
+
+    // initialize
+    colorMap.colors = colorRamps[gradient.value];
+    colorMap.active = enableColorMap.checked;
+    layer.visible = enableLayer.checked;
+    updateMode(mode.value);
+
+    notify();
 }
 
-function updateColorMaps() {
-    elevationLayer.colorMap.active = elevationLayerEnabled.checked;
-
-    if (elevationLayerEnabled.checked) {
-        elevationLayer.colorMap.colors = colorRamps[elevationLayerGradient.value];
-        const { mode, min, max } = getMode(elevationLayerMode.value);
-        elevationLayer.colorMap.mode = mode;
-        elevationLayer.colorMap.min = min;
-        elevationLayer.colorMap.max = max;
-    }
-
-    colorLayer.visible = colorLayerEnabled.checked;
-
-    if (colorLayerEnabled.checked) {
-        colorLayer.colorMap.colors = colorRamps[colorLayerGradient.value];
-        const { mode, min, max } = getMode(colorLayerMode.value);
-        colorLayer.colorMap.mode = mode;
-        colorLayer.colorMap.min = min;
-        colorLayer.colorMap.max = max;
-    }
-
-    instance.notifyChange(map);
-}
-
-updateColorMaps();
+bindControls('elevation', elevationLayer);
+bindControls('bottom', bottomLayer);
+bindControls('top', topLayer);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
