@@ -30,7 +30,7 @@ vec4 decode(sampler2D texture, vec2 coord, Interpretation interpretation) {
             min + raw.r * scale,
             min + raw.g * scale,
             min + raw.b * scale,
-            1.);
+            raw.a);
     }
 
     // This should not happen, but there is no way to "fail" a shader.
