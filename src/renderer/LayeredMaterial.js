@@ -490,7 +490,6 @@ class LayeredMaterial extends RawShaderMaterial {
             width: this.atlasInfo.maxX,
             height: this.atlasInfo.maxY,
             reuseTexture: true,
-            renderToCanvas: false,
             webGLRenderer: this.renderer,
         });
         return newComposer;
