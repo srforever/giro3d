@@ -47,7 +47,7 @@ uniform float       zenith;     // Zenith of sunlight, in degrees (0 - 90)
 uniform float       azimuth;    // Azimuth on sunlight, in degrees (0 - 360)
 #endif
 
-uniform vec2        tileDimensions; // The dimensons of the tile, in CRS units
+uniform vec2        tileDimensions; // The dimensions of the tile, in CRS units
 
 #if defined(ELEVATION_LAYER)
 uniform sampler2D   elevationTexture;
@@ -279,9 +279,11 @@ void main() {
     #pragma unroll_loop_start
     for (int i = 0; i < COLOR_LAYERS; i++) {
         LayerInfo layer = layers[i];
-        ColorMap colorMap = layersColorMaps[i];
-        vec4 rgba = computeColorLayer(colorTexture, luts[i], layer, colorMap, vUv);
-        diffuseColor.rgb = blend(rgba.rgb, diffuseColor.rgb, rgba.a);
+        if (layer.color.a > 0.) {
+            ColorMap colorMap = layersColorMaps[i];
+            vec4 rgba = computeColorLayer(colorTexture, luts[i], layer, colorMap, vUv);
+            diffuseColor.rgb = blend(rgba.rgb, diffuseColor.rgb, rgba.a);
+        }
     }
     #pragma unroll_loop_end
     diffuseColor.a *= opacity;
