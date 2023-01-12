@@ -87,8 +87,11 @@ class Interpretation {
     }
 
     /**
-     * Applies a scaling processing to pixels with the provided min/max values. Input can be either
-     * color or grayscale, and output will be either color or grayscale, depending on input.
+     * Applies a scaling processing to pixels with the provided min/max values with the following
+     * formula : `output = min + input * (max - min)`.
+     *
+     * Input can be either color or grayscale, and output will be either color or grayscale,
+     * depending on input.
      *
      * Note: this is typically used to encode elevation data into a 8-bit grayscale image.
      *
