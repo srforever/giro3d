@@ -2,9 +2,11 @@ import {
     Matrix4,
     Vector3,
     ShapeUtils,
+    Box3,
 } from 'three';
 
 const m = new Matrix4();
+const tmpBox3 = new Box3();
 const temp = [
     new Vector3(),
     new Vector3(),
@@ -66,7 +68,7 @@ function computeSSE(offset, size, matrix, camera, _3d) {
     return result;
 }
 
-function findBox3Distance(camera, box3, matrix) {
+function findBox3Distance(camera, box3, matrix, _3d) {
     // TODO: can be cached
     // TODO: what about matrix scale component
     m.copy(matrix).invert();
@@ -77,7 +79,13 @@ function findBox3Distance(camera, box3, matrix) {
         .applyMatrix4(camera.camera3D.matrixWorld)
         .applyMatrix4(m);
     // Compute distance between the camera / box3
-    return box3.distanceToPoint(pt);
+    tmpBox3.copy(box3);
+    if (!_3d) {
+        const avgZ = (box3.min.z + box3.max.z) / 2;
+        tmpBox3.min.z = avgZ - 0.1;
+        tmpBox3.max.z = avgZ + 0.1;
+    }
+    return tmpBox3.distanceToPoint(pt);
 }
 
 function computeSizeFromGeometricError(box3, geometricError, _3d) {
@@ -109,7 +117,7 @@ export default {
     computeFromBox3(camera, box3, matrix, geometricError, mode) {
         // If the camera is orthographic, there is no need to do this check.
         if (!camera.camera3D.isOrthographicCamera) {
-            const distance = findBox3Distance(camera, box3, matrix);
+            const distance = findBox3Distance(camera, box3, matrix, mode === this.MODE_3D);
             if (distance <= geometricError) {
                 return null;
             }
