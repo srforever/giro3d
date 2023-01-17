@@ -192,7 +192,7 @@ class Map extends Entity3D {
         this.subdivisions = selectBestSubdivisions(this, this.extent);
 
         this.sseScale = 1.5;
-        this.maxSubdivisionLevel = options.maxSubdivisionLevel || -1;
+        this.maxSubdivisionLevel = options.maxSubdivisionLevel || 30;
 
         this.type = 'Map';
         this.visible = true;
@@ -748,10 +748,6 @@ class Map extends Entity3D {
 
     testTileSSE(tile, sse) {
         if (this.maxSubdivisionLevel > 0 && this.maxSubdivisionLevel <= tile.level) {
-            return false;
-        }
-
-        if (tile.extent.dimensions().x < 5) {
             return false;
         }
 
