@@ -37,6 +37,9 @@ class TileGeometry extends BufferGeometry {
         this._updateProps();
         this.computeBuffers(this.props);
         // Compute the Oriented Bounding Box for spatial operations
+        // TODO this is not very useful for planar maps.
+        // this was useful when we had a Globe
+        // but then, it'll probably be another geometry object now.
         this.computeBoundingBox();
         this.OBB = new OBB(this.boundingBox.min, this.boundingBox.max);
     }
