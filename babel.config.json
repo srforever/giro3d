@@ -1,13 +1,12 @@
 {
-    "presets": ["@babel/preset-env"],
     "plugins": [
+        // Necessary to import text files (shaders)
         ["babel-plugin-inline-import", {
             "extensions": [
                 ".json",
                 ".glsl"
             ]
         }],
-        "@babel/plugin-transform-runtime",
         ["minify-replace", {
             "replacements": [{
                 "identifierName": "__DEBUG__",

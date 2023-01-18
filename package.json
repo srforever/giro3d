@@ -42,7 +42,7 @@
     "test-unit": "jest test/unit",
     "test-examples": "mocha -t 300000 --recursive test/examples",
     "test-with-coverage": "jest test/unit --coverage",
-    "transpile": "shx rm -rf build/giro3d && shx mkdir -p build/giro3d && shx cp -rf src build/giro3d/src && cross-env BABEL_DISABLE_CACHE=1 babel src --source-maps --out-dir build/giro3d",
+    "transpile": "shx rm -rf build/giro3d && shx mkdir -p build/giro3d && shx cp -rf src build/giro3d/src && cross-env BABEL_DISABLE_CACHE=1 babel src --out-dir build/giro3d",
     "watch": "node observer.mjs ./src ./build/giro3d",
     "serve-examples": "webpack serve --config examples/webpack/config.mjs --mode=development",
     "build-examples": "webpack --config examples/webpack/config.mjs --mode=production",
