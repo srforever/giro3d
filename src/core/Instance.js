@@ -176,10 +176,12 @@ class Instance extends EventDispatcher {
         this._frameRequesters = { };
         this._objects = [];
 
-        this.resizeObserver = new ResizeObserver(() => {
-            this._updateRendererSize(this.viewport);
-        });
-        this.resizeObserver.observe(viewerDiv);
+        if (window.ResizeObserver) {
+            this.resizeObserver = new ResizeObserver(() => {
+                this._updateRendererSize(this.viewport);
+            });
+            this.resizeObserver.observe(viewerDiv);
+        }
 
         this._changeSources = new Set();
 
@@ -253,7 +255,7 @@ class Instance extends EventDispatcher {
             return;
         }
         this._isDisposing = true;
-        this.resizeObserver.disconnect();
+        this.resizeObserver?.disconnect();
         this.removeTHREEControls();
         for (const obj of this.getObjects()) {
             this.remove(obj);
