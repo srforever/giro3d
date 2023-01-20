@@ -30,4 +30,8 @@ describe('GeoJsonParser', () => {
     }).then(collection => {
         assert.ok(collection.features.length === 0);
     }));
+
+    it('should default crsOut to crsIn', () => {
+        GeoJsonParser.parse(holes, { crsIn: 'EPSG:3946', buildExtent: true });
+    });
 });
