@@ -44,36 +44,7 @@ class Entity3D extends Entity {
             writable: false,
         });
 
-        // layer parameters
-        // TODO there must be a better way™
-        const changeOpacity = o => {
-            if (o.material) {
-                if (o.material.setOpacity) {
-                    o.material.setOpacity(this.opacity);
-                } else if (o.material.opacity != null) {
-                    // != null: we want the test to pass if opacity is 0
-                    const currentTransparent = o.material.transparent;
-                    o.material.transparent = this.opacity < 1.0;
-                    o.material.needsUpdate |= (currentTransparent !== o.material.transparent);
-                    o.material.opacity = this.opacity;
-                    o.material.uniforms.opacity.value = this.opacity;
-                }
-            }
-        };
-        defineLayerProperty(this, 'opacity', 1.0, () => {
-            if (this.object3d) {
-                this.object3d.traverse(o => {
-                    if (o.layer !== this) {
-                        return;
-                    }
-                    changeOpacity(o);
-                    // 3dtiles layers store scenes in children's content property
-                    if (o.content) {
-                        o.content.traverse(changeOpacity);
-                    }
-                });
-            }
-        });
+        defineLayerProperty(this, 'opacity', 1.0, () => this.updateOpacity());
 
         this.atlasInfo = { maxX: 0, maxY: 0 };
 
@@ -94,6 +65,42 @@ class Entity3D extends Entity {
 
         // processing can overwrite that with values calculating from this layer's Object3D
         this._distance = { min: Infinity, max: 0 };
+    }
+
+    /**
+     * Updates the opacity of the entity.
+     *
+     * @api
+     */
+    updateOpacity() {
+        // Default implementation
+        const changeOpacity = o => {
+            if (o.material) {
+                if (o.material.setOpacity) {
+                    o.material.setOpacity(this.opacity);
+                } else if (o.material.opacity != null) {
+                    // != null: we want the test to pass if opacity is 0
+                    const currentTransparent = o.material.transparent;
+                    o.material.transparent = this.opacity < 1.0;
+                    o.material.needsUpdate |= (currentTransparent !== o.material.transparent);
+                    o.material.opacity = this.opacity;
+                    o.material.uniforms.opacity.value = this.opacity;
+                }
+            }
+        };
+
+        if (this.object3d) {
+            this.object3d.traverse(o => {
+                if (o.layer !== this) {
+                    return;
+                }
+                changeOpacity(o);
+                // 3dtiles layers store scenes in children's content property
+                if (o.content) {
+                    o.content.traverse(changeOpacity);
+                }
+            });
+        }
     }
 
     /**
