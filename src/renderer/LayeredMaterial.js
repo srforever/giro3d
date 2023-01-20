@@ -1,6 +1,5 @@
 import {
     Color,
-    LinearFilter,
     RawShaderMaterial,
     ShaderChunk,
     Texture,
@@ -112,7 +111,7 @@ class LayeredMaterial extends RawShaderMaterial {
         this.texturesInfo = {
             color: {
                 infos: [],
-                atlasTexture: this.composer.texture,
+                atlasTexture: null,
                 parentAtlasTexture: null,
             },
             elevation: {
@@ -151,17 +150,20 @@ class LayeredMaterial extends RawShaderMaterial {
         this.uniforms.opacity = new Uniform(1.0);
 
         this.colorLayers = [];
-        this.texturesInfo.color.atlasTexture.generateMipmaps = false;
-        this.texturesInfo.color.atlasTexture.magFilter = LinearFilter;
-        this.texturesInfo.color.atlasTexture.minFilter = LinearFilter;
-        this.texturesInfo.color.atlasTexture.anisotropy = 1;
-        this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
 
         this.update(options);
 
         if (__DEBUG__) {
             MemoryTracker.track(this, 'LayeredMaterial');
         }
+    }
+
+    get pixelWidth() {
+        return this.composer.width;
+    }
+
+    get pixelHeight() {
+        return this.composer.height;
     }
 
     set segments(v) {
@@ -216,7 +218,7 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.colorLayers.length = 0;
         this.composer.dispose();
-        this.texturesInfo.color.atlasTexture.dispose();
+        this.texturesInfo.color.atlasTexture?.dispose();
         const elevTexture = this.texturesInfo.elevation.texture;
         if (elevTexture.owner === this) {
             elevTexture.dispose();
@@ -252,15 +254,12 @@ class LayeredMaterial extends RawShaderMaterial {
                 layer.imageSize,
                 this.atlasInfo.atlas[layer.id],
                 this.texturesInfo.color.infos[index].originalOffsetScale,
-                this.uniforms.colorTexture.value.image,
+                this.composer.width,
+                this.composer.height,
                 this.texturesInfo.color.infos[index].offsetScale,
             );
             // we already got our texture (needsUpdate is done in TiledNodeProcessing)
             return Promise.resolve();
-        }
-
-        if (this.uniforms.colorTexture.value !== this.texturesInfo.color.atlasTexture) {
-            this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
         }
 
         this.rebuildAtlasIfNecessary();
@@ -274,23 +273,29 @@ class LayeredMaterial extends RawShaderMaterial {
                 l.imageSize,
                 this.atlasInfo.atlas[l.id],
                 this.texturesInfo.color.infos[idx].originalOffsetScale,
-                this.uniforms.colorTexture.value.image,
+                this.composer.width,
+                this.composer.height,
                 this.texturesInfo.color.infos[idx].offsetScale,
             );
 
             const texture = this.texturesInfo.color.infos[idx].texture;
 
-            drawLayerOnCanvas(
-                l,
-                this.composer,
-                atlas,
-                (texture.image === this.composer) ? null : texture,
-                this.texturesInfo.color.infos[idx].offsetScale,
-                this.canvasRevision,
-            );
+            if (texture) {
+                drawLayerOnCanvas(l, this.composer, atlas, texture);
+            }
 
             this.canvasRevision++;
         }
+
+        const texture = this.composer.render();
+
+        // Even though we asked the composer to reuse the same texture, sometimes it has
+        // to recreate a new texture when some parameters change, such as pixel format.
+        if (texture.uuid !== this.texturesInfo.color.atlasTexture?.uuid) {
+            this._rebuildAtlasTexture(texture);
+        }
+
+        this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
 
         if (this.visible) {
             instance.notifyChange();
@@ -490,7 +495,6 @@ class LayeredMaterial extends RawShaderMaterial {
             width: this.atlasInfo.maxX,
             height: this.atlasInfo.maxY,
             reuseTexture: true,
-            renderToCanvas: false,
             webGLRenderer: this.renderer,
         });
         return newComposer;
@@ -501,23 +505,21 @@ class LayeredMaterial extends RawShaderMaterial {
             || this.atlasInfo.maxY > this.composer.height) {
             const newComposer = this.createComposer();
 
-            if (this.composer.width > 0) {
+            let newTexture;
+
+            const currentTexture = this.texturesInfo.color.atlasTexture;
+
+            if (currentTexture && this.composer.width > 0) {
                 // repaint the old canvas into the new one.
                 newComposer.draw(
-                    this.composer.texture,
+                    currentTexture,
                     new Rect(0, this.composer.width, 0, this.composer.height),
                 );
-                newComposer.render();
+                newTexture = newComposer.render();
             }
 
             this.composer.dispose();
-            this.texturesInfo.color.atlasTexture.dispose();
             this.composer = newComposer;
-            this.texturesInfo.color.atlasTexture = this.composer.texture;
-            this.texturesInfo.color.atlasTexture.magFilter = LinearFilter;
-            this.texturesInfo.color.atlasTexture.minFilter = LinearFilter;
-            this.texturesInfo.color.atlasTexture.anisotropy = 1;
-            this.texturesInfo.color.atlasTexture.premultiplyAlpha = true;
 
             for (let i = 0; i < this.colorLayers.length; i++) {
                 const layer = this.colorLayers[i];
@@ -534,9 +536,16 @@ class LayeredMaterial extends RawShaderMaterial {
                     pitch.w * yRatio,
                 );
             }
-            this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
+
+            this._rebuildAtlasTexture(newTexture);
         }
         return this.composer.width > 0;
+    }
+
+    _rebuildAtlasTexture(newTexture) {
+        this.texturesInfo.color.atlasTexture?.dispose();
+        this.texturesInfo.color.atlasTexture = newTexture;
+        this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
     }
 
     changeState(state) {
@@ -611,34 +620,30 @@ class LayeredMaterial extends RawShaderMaterial {
 }
 
 function drawLayerOnCanvas(layer, composer, atlasInfo, texture) {
-    if (texture) {
-        const dx = atlasInfo.x;
-        const dy = atlasInfo.y + atlasInfo.offset;
-        const dw = layer.imageSize.w;
-        const dh = layer.imageSize.h;
+    const dx = atlasInfo.x;
+    const dy = atlasInfo.y + atlasInfo.offset;
+    const dw = layer.imageSize.w;
+    const dh = layer.imageSize.h;
 
-        const rect = new Rect(dx, dx + dw, dy, dy + dh);
+    const rect = new Rect(dx, dx + dw, dy, dy + dh);
 
-        composer.clear(rect);
+    composer.clear(rect);
 
-        composer.draw(texture, rect);
-
-        composer.render();
-    }
+    composer.draw(texture, rect);
 }
 
-function updateOffsetScale(imageSize, atlas, originalOffsetScale, canvas, target) {
+function updateOffsetScale(imageSize, atlas, originalOffsetScale, width, height, target) {
     if (originalOffsetScale.z === 0 || originalOffsetScale.w === 0) {
         target.set(0, 0, 0, 0);
         return;
     }
     // compute offset / scale
-    const xRatio = imageSize.w / canvas.width;
-    const yRatio = imageSize.h / canvas.height;
+    const xRatio = imageSize.w / width;
+    const yRatio = imageSize.h / height;
 
     target.set(
-        atlas.x / canvas.width + originalOffsetScale.x * xRatio,
-        (atlas.y + atlas.offset) / canvas.height + originalOffsetScale.y * yRatio,
+        atlas.x / width + originalOffsetScale.x * xRatio,
+        (atlas.y + atlas.offset) / height + originalOffsetScale.y * yRatio,
         originalOffsetScale.z * xRatio,
         originalOffsetScale.w * yRatio,
     );

@@ -14,6 +14,7 @@ import {
     UnsignedByteType,
     ClampToEdgeWrapping,
     Vector3,
+    LinearFilter,
 } from 'three';
 import Interpretation from '../../core/layer/Interpretation.js';
 
@@ -60,8 +61,11 @@ class WebGLComposer {
      * Ignored if a canvas is provided.
      * @param {boolean} [options.showImageOutlines=false] If true, yellow image outlines
      * will be drawn on images.
-     * @param {boolean} [options.reuseTexture=false] If true, this composer will reuse the same
-     * texture accross renders.
+     * @param {boolean} [options.reuseTexture=false] If true, this composer will try to reuse the
+     * same texture accross renders. Note that this may not be always possible if the texture format
+     * has to change due to incompatible images to draw. For example, if the current target is
+     * has 8-bit pixels, and a 32-bit texture must be drawn onto the canvas, the underlying target
+     * will have to be recreated in 32-bit format.
      * @param {boolean} [options.createDataCopy=false] If true, rendered textures will have a `data`
      * property containing the texture data (an array of either floats or bytes).
      * This is useful to read back the texture content.
@@ -78,14 +82,7 @@ class WebGLComposer {
         this.height = options.height;
         this.renderer = options.webGLRenderer;
         this.createDataCopy = options.createDataCopy;
-
-        if (options.reuseTexture) {
-            // We are going to render into the same target over and over
-            const target = this._createRenderTarget(UnsignedByteType, RGBAFormat);
-
-            this.renderTarget = target;
-            this.texture = target.texture;
-        }
+        this.reuseTexture = options.reuseTexture;
 
         if (options.clearColor) {
             this.renderer.setClearColor(options.clearColor);
@@ -125,6 +122,8 @@ class WebGLComposer {
             this.width,
             this.height, {
                 format,
+                magFilter: LinearFilter,
+                minFilter: LinearFilter,
                 type: pixelType,
                 depthBuffer: false,
                 generateMipmaps: false,
@@ -277,14 +276,20 @@ class WebGLComposer {
 
         // Should we reuse the same render target or create a new one ?
         let target;
-        if (!this.renderTarget) {
+        if (!this.reuseTexture) {
             // We create a new render target for this render
             target = this._createRenderTarget(type, format);
         } else {
-            // We reuse the same render target across all renders
+            // We reuse the same render target across all renders, but if the format changes,
+            // we still have to recreate a new texture.
+            if (this.renderTarget === undefined
+                || type !== this.renderTarget.texture.type
+                || format !== this.renderTarget.texture.format) {
+                this.renderTarget?.dispose();
+                this.renderTarget = this._createRenderTarget(type, format);
+            }
+
             target = this.renderTarget;
-            target.texture.format = format;
-            target.texture.type = type;
         }
         this.renderer.setRenderTarget(target);
 
