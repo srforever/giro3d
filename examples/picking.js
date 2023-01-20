@@ -45,6 +45,7 @@ const pointcloud = new Tiles3D(
     },
 );
 pointcloud.material.transparent = true;
+pointcloud.material.needsUpdate = true;
 pointcloud.material.opacity = 0.5;
 instance.add(pointcloud);
 

@@ -149,6 +149,7 @@ class Instance extends EventDispatcher {
             this.mainLoop = new MainLoop(new Scheduler(), engine);
         }
 
+        /** @type {Scene} */
         this.scene = options.scene3D || new Scene();
         // will contain simple three objects that need to be taken into
         // account, for example camera near / far calculation maybe it'll be
@@ -162,7 +163,7 @@ class Instance extends EventDispatcher {
         this.scene.add(this.threeObjects);
         this.scene2D = new Scene();
         if (!options.scene3D) {
-            this.scene.autoUpdate = false;
+            this.scene.matrixWorldAutoUpdate = false;
         }
 
         this.camera = new Camera(
@@ -175,10 +176,12 @@ class Instance extends EventDispatcher {
         this._frameRequesters = { };
         this._objects = [];
 
-        this.resizeObserver = new ResizeObserver(() => {
-            this._updateRendererSize(this.viewport);
-        });
-        this.resizeObserver.observe(viewerDiv);
+        if (window.ResizeObserver) {
+            this.resizeObserver = new ResizeObserver(() => {
+                this._updateRendererSize(this.viewport);
+            });
+            this.resizeObserver.observe(viewerDiv);
+        }
 
         this._changeSources = new Set();
 
@@ -252,7 +255,7 @@ class Instance extends EventDispatcher {
             return;
         }
         this._isDisposing = true;
-        this.resizeObserver.disconnect();
+        this.resizeObserver?.disconnect();
         this.removeTHREEControls();
         for (const obj of this.getObjects()) {
             this.remove(obj);

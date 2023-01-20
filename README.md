@@ -54,7 +54,7 @@ To install with [npm](https://www.npmjs.com/) (recommended method):
 npm install --save @giro3d/giro3d
 ```
 
-This package contains transpiled sources of giro3d (compatible with most browsers).
+This package contains both original sources (under `src/`) and slightly processed sources (dead code elimination, inlining shader code...).
 
 If you're using a module bundler (like [wepback](https://webpack.js.org/)) or plan on targeting recent enough browser, you can
 directly import it as such:

@@ -555,12 +555,14 @@ class LayeredMaterial extends RawShaderMaterial {
         const state = this.uniforms.renderingState.value;
         if (this.opacity < 1 && state === RenderingState.FINAL) {
             this.transparent = true;
+            this.needsUpdate = true;
             this.blending = NormalBlending;
         } else {
             // We cannot use alpha blending with custom rendering states because the alpha component
             // of the fragment in those modes has nothing to do with transparency at all.
             this.blending = NoBlending;
             this.transparent = false;
+            this.needsUpdate = true;
         }
     }
 

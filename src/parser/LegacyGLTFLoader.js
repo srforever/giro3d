@@ -86,7 +86,6 @@ import
     UnsignedByteType,
     UnsignedShort4444Type,
     UnsignedShort5551Type,
-    UnsignedShort565Type,
     Vector2,
     Vector3,
     Vector4,
@@ -576,7 +575,6 @@ export default ( function () {
 		5121: UnsignedByteType,
 		32819: UnsignedShort4444Type,
 		32820: UnsignedShort5551Type,
-		33635: UnsignedShort565Type
 	};
 
 	var WEBGL_SIDES = {
@@ -1298,6 +1296,7 @@ export default ( function () {
 					if ( khr_material.transparent || materialValues.transparent ) {
 
 						materialParams.transparent = true;
+						materialParams.needsUpdate = true;
 						materialParams.opacity = ( materialValues.transmission !== undefined ) ? materialValues.transmission : 1;
 
 					}
@@ -1370,6 +1369,7 @@ export default ( function () {
 										if ( pname === "transmission" ) {
 
 											materialParams.transparent = true;
+											materialParams.needsUpdate = true;
 
 										}
 
@@ -1547,6 +1547,7 @@ export default ( function () {
 
 						materialParams.blending = enableBlend ? CustomBlending : NoBlending;
 						materialParams.transparent = enableBlend;
+						materialParams.needsUpdate |= enableBlend;
 
 						var blendEquationSeparate = functions.blendEquationSeparate;
 

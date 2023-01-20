@@ -33,6 +33,7 @@ function createPoint(color) {
         const pt = new Points(g, m);
         pt.frustumCulled = false;
         pt.material.transparent = true;
+        pt.material.needsUpdate = true;
 
         return pt;
     };
@@ -68,6 +69,7 @@ function createLine() {
     dashedLine.material.depthTest = false;
     dashedLine.material.linewidth = 2;
     dashedLine.material.transparent = true;
+    dashedLine.material.needsUpdate = true;
     dashedLine.frustumCulled = false;
     return dashedLine;
 }
@@ -91,6 +93,7 @@ function createRectangle() {
     rect.material.transparent = true;
     rect.material.opacity = 0.1;
     rect.material.transparent = true;
+    rect.material.needsUpdate = true;
     rect.frustumCulled = false;
 
     // add line

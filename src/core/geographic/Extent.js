@@ -12,6 +12,8 @@ import Coordinates, {
     crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCRS, is4326,
 } from './Coordinates.js';
 
+const tmpXY = { x: 0, y: 0 };
+
 /**
  * Extent is a SIG-area (so 2D)
  * It can use explicit coordinates (e.g: lon/lat) or implicit (WMTS coordinates)
@@ -334,22 +336,25 @@ class Extent {
         if (_isTiledCRS(this._crs)) {
             throw new Error('Invalid operation for WMTS bbox');
         }
+
         let c;
+
         if (target) {
-            if (target instanceof Coordinates) {
-                Coordinates.call(target, this._crs, this._values[0], this._values[2]);
-            }
             c = target;
         } else {
-            c = new Coordinates(this._crs, this._values[0], this._values[2]);
+            c = new Coordinates(this._crs, 0, 0, 0);
         }
-        const dim = this.dimensions();
+
+        const dim = this.dimensions(tmpXY);
+
+        const x = this._values[0] + dim.x * 0.5;
+        const y = this._values[2] + dim.y * 0.5;
+
         if (c instanceof Coordinates) {
-            c._values[0] += dim.x * 0.5;
-            c._values[1] += dim.y * 0.5;
+            c.set(this._crs, x, y, 0);
         } else {
-            c.x = this._values[0] + dim.x * 0.5;
-            c.y = this._values[2] + dim.y * 0.5;
+            c.x = x;
+            c.y = y;
         }
         return c;
     }

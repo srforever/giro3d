@@ -1,7 +1,8 @@
 module.exports = {
     root: true,
-    plugins: ['jsdoc', 'jest'],
+    plugins: ['jsdoc', 'jest', 'compat'],
     extends: [
+        'plugin:compat/recommended',
         'eslint-config-airbnb-base',
         'eslint-config-airbnb-base/rules/strict',
         'plugin:jsdoc/recommended',

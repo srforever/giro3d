@@ -327,9 +327,11 @@ PointCloudRenderer.prototype.render = function render(instance, opacity = 1.0) {
                 this.mesh.material = material;
                 if (output) {
                     this.mesh.material.transparent = false;
+                    this.mesh.material.needsUpdate = true;
                     this.mesh.material.opacity = 1.0;
                 } else {
                     this.mesh.material.transparent = true;
+                    this.mesh.material.needsUpdate = true;
                     this.mesh.material.uniforms.opacity.value = opacity;
                 }
                 r.render(this.scene, this.camera);

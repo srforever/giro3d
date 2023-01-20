@@ -157,6 +157,7 @@ export default {
                             );
                         }
                         mesh.material.transparent = options.opacity < 1.0;
+                        mesh.material.needsUpdate = true;
                         mesh.material.opacity = options.opacity;
                     };
                     gltf.scene.traverse(initMesh);

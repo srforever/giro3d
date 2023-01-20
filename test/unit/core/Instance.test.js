@@ -64,19 +64,23 @@ describe('Instance', () => {
 
     describe('eventToNormalizedCoords', () => {
         it('should return the passed target', () => {
-            const target = new Vector2();
-            const event = new TouchEvent('foo');
-            const result = instance.eventToNormalizedCoords(event, target);
-            expect(result).toBe(target);
+            if (window.TouchEvent) {
+                const target = new Vector2();
+                const event = new TouchEvent('foo');
+                const result = instance.eventToNormalizedCoords(event, target);
+                expect(result).toBe(target);
+            }
         });
     });
 
     describe('eventToCanvasCoords', () => {
         it('should return the passed target', () => {
-            const target = new Vector2();
-            const event = new TouchEvent('foo');
-            const result = instance.eventToCanvasCoords(event, target);
-            expect(result).toBe(target);
+            if (window.TouchEvent) {
+                const target = new Vector2();
+                const event = new TouchEvent('foo');
+                const result = instance.eventToCanvasCoords(event, target);
+                expect(result).toBe(target);
+            }
         });
     });
 

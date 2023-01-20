@@ -47,7 +47,9 @@ export default {
             for (const feat of features) {
                 feat.traverse(o => {
                     if (o.material) {
+                        const currentTransparent = o.material.transparent;
                         o.material.transparent = layer.opacity < 1.0;
+                        o.material.needsUpdate |= (currentTransparent !== o.material.transparent);
                         o.material.opacity = layer.opacity;
                         o.material.wireframe = layer.wireframe;
 

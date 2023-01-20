@@ -1,5 +1,5 @@
 import {
-    EventDispatcher, Math as ThreeMath, Sphere,
+    EventDispatcher, MathUtils as ThreeMath, Sphere,
 } from 'three';
 import Layer from './layer/Layer.js';
 import Entity3D from '../entities/Entity3D.js';
