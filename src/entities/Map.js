@@ -344,6 +344,21 @@ class Map extends Entity3D {
         }
     }
 
+    getNodeImportance(cmdA, cmdB) {
+        const sseA = cmdA.requester.sse;
+        const sseB =  cmdB.requester.sse;
+
+        if (!sseA) {
+            return -1;
+        }
+        if (!sseB) {
+            return 1;
+        }
+        return  sseB.area - sseA.area;
+
+
+    }
+
     requestNewTile(extent, parent, level, x = 0, y = 0) {
         if (parent && !parent.material) {
             return null;
