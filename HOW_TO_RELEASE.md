@@ -39,7 +39,6 @@ For the `BREAKING CHANGE` section, edit the text to add a migration guide.
 
 ## Bump the version number
 
-- bump version in `cz.json` config file with `cz bump`, you can specify which release type with `--increment MINOR` for instance.
 - bump version in package.json and run `npm i`
 
 ## Open a MR

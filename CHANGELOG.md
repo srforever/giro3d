@@ -1,5 +1,46 @@
 # Changelog
 
+## v0.18.0 (2023-01-20)
+
+### BREAKING CHANGE
+
+- All source folders are now in lowercase (#130). For example:
+    ```js
+    import Instance from '@giro3d/giro3d/Core/Instance.js';
+    import Extent from '@giro3d/giro3d/Core/Geographic/Extent.js';
+    ```
+    Becomes
+    ```js
+    import Instance from '@giro3d/giro3d/core/Instance.js';
+    import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+    ```
+
+- Upgrade THREE to v0.148. If you are using THREE in your application along Giro3D, you will need
+  the [THREE migration guide](https://github.com/mrdoob/three.js/wiki/Migration-Guide) (#153).
+
+- We no longer transpile Giro3D to support older browsers. Instead, we support the browsers list in `package.json` directly from the source code (#89)
+
+### Feat
+
+- **Inspector**: make width an option and increase default width to 450px
+- **Inspector**: add inspector for the sources
+- **Extent**: add `withMargin()` and `withRelativeMargin()` methods to add margins to extents.
+
+### Fix
+
+- **LayeredMaterial**: support changing the type of the atlas texture (#192)
+- **Interpretation.glsl**: honor texture alpha in scaling mode
+- **TileFS.glsl**: don't process the color layer if its opacity is zero
+- **Extent**: fix weird construct in `center()` that trigger errors
+- **Instance**: only use `ResizeObserver` if it is available
+- fix import to `THREE.MathUtils`
+- **CachePanel**: fix `dump()` to output an array instead of an iterator
+- **Map**: create texture slightly biggers than tile to artifacts in atlas and hillshading (#27, #156)
+
+### Refactor
+
+- set all folders to lowercase
+
 ## v0.17.0 (2023-01-09)
 
 A small bugfix release.
