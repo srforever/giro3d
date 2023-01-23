@@ -60,13 +60,13 @@ If you're using a module bundler (like [wepback](https://webpack.js.org/)) or pl
 directly import it as such:
 
 ```js
-import Instance from '@giro3d/giro3d/Core/Instance.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
 ```
 
 You can also import the original, untranspiled sources, by adding `src` after `@giro3d/giro3d/` :
 
 ```js
-import Instance from '@giro3d/giro3d/src/Core/Instance.js';
+import Instance from '@giro3d/giro3d/src/core/Instance.js';
 ```
 
 This will probably limit browser compatibility though, without application specific process or
