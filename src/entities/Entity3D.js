@@ -45,6 +45,7 @@ class Entity3D extends Entity {
         });
 
         defineLayerProperty(this, 'opacity', 1.0, () => this.updateOpacity());
+        defineLayerProperty(this, 'visible', true, () => this.updateVisibility());
 
         this.atlasInfo = { maxX: 0, maxY: 0 };
 
@@ -65,6 +66,26 @@ class Entity3D extends Entity {
 
         // processing can overwrite that with values calculating from this layer's Object3D
         this._distance = { min: Infinity, max: 0 };
+    }
+
+    /**
+     * Updates the visibility of the entity.
+     *
+     * @api
+     */
+    updateVisibility() {
+        // Default implementation
+        if (this.object3d) {
+            this.object3d.visible = this.visible;
+        }
+
+        if (this.threejsLayer) {
+            if (this.visible) {
+                this._instance.camera.camera3D.layers.enable(this.threejsLayer);
+            } else {
+                this._instance.camera.camera3D.layers.disable(this.threejsLayer);
+            }
+        }
     }
 
     /**
