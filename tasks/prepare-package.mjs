@@ -12,7 +12,7 @@ async function main() {
 
     // update the version number in version.js
     const versionPath = path.join(buildDir, 'version.js');
-    const versionRegEx = /var VERSION = '(.*)';/g;
+    const versionRegEx = /const VERSION = '(.*)';/g;
     let versionSrc = await fse.readFile(versionPath, 'utf-8');
     versionSrc = versionSrc.replace(versionRegEx, `var VERSION = '${pkg.version}';`);
     await fse.writeFile(versionPath, versionSrc, 'utf-8');
