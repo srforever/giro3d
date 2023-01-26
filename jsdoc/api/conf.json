@@ -28,6 +28,7 @@
       "src/entities/AxisGrid.js",
       "src/entities/Entity.js",
       "src/entities/Entity3D.js",
+      "src/entities/FeatureCollection.js",
       "src/entities/Map.js",
       "src/entities/PotreePointCloud.js",
       "src/entities/Tiles3D.js",
