@@ -10,12 +10,11 @@ import Camera from '../renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../renderer/c3DEngine.js';
 import Layer, { defineLayerProperty } from './layer/Layer.js';
-import Entity3D from '../entities/Entity3D.js';
+import Entity from '../entities/Entity.js';
 import Scheduler from './scheduler/Scheduler.js';
 import Picking from './Picking.js';
 import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh.js';
 import ObjectRemovalHelper from '../process/ObjectRemovalHelper.js';
-import Entity from '../entities/Entity.js';
 
 const vectors = {
     pos: new Vector3(),
@@ -276,14 +275,14 @@ class Instance extends EventDispatcher {
      *
      * // Add Map to instance then wait for the map to be ready.
      * instance.add(new Map('myMap', myMapExtent)).then(...);
-     * @param {Object3D|Entity3D} object the object to add
+     * @param {Object3D|Entity} object the object to add
      * @returns {Promise} a promise resolved with the new layer object when it is fully initialized
      * or rejected if any error occurred.
      * @api
      */
     add(object) {
-        if (!(object instanceof Object3D) && !(object instanceof Entity3D)) {
-            return Promise.reject(new Error('object is not an instance of THREE.Object3D or Giro3d.Entity3D'));
+        if (!(object instanceof Object3D) && !(object instanceof Entity)) {
+            return Promise.reject(new Error('object is not an instance of THREE.Object3D or Giro3d.Entity'));
         }
         object._instance = this;
 
@@ -324,11 +323,11 @@ class Instance extends EventDispatcher {
             object.whenReady.then(() => {
                 // TODO remove object from this._objects maybe ?
                 if (typeof (object.update) !== 'function') {
-                    reject(new Error('Cant add Entity3D: missing a update function'));
+                    reject(new Error('Cant add Entity: missing a update function'));
                     return;
                 }
                 if (typeof (object.preUpdate) !== 'function') {
-                    reject(new Error('Cant add Entity3D: missing a preUpdate function'));
+                    reject(new Error('Cant add Entity: missing a preUpdate function'));
                     return;
                 }
 
@@ -468,8 +467,8 @@ class Instance extends EventDispatcher {
      * instance.getObjects();
      * // get one layer with id
      * instance.getObjects(obj => obj.id === 'itt');
-     * @param {function(Entity3D):boolean} filter the optional query filter
-     * @returns {Array<Layer>} an array containing the queried layers
+     * @param {function(Entity):boolean} filter the optional query filter
+     * @returns {Array<Entity>} an array containing the queried layers
      */
     getObjects(filter) {
         const result = [];
@@ -489,7 +488,8 @@ class Instance extends EventDispatcher {
     /**
      * Get all the layers attached to all the entities in this instance.
      *
-     * @param {function(Layer):boolean} filter Optional filter function for attached layers
+     * @param {function(Layer):boolean} filter Optional filter function for
+     * attached layers
      * @returns {Array<Layer>} the layers attached to the geometry layers
      */
     getLayers(filter) {
@@ -502,7 +502,8 @@ class Instance extends EventDispatcher {
 
     /**
      * @param {Layer} layer the layer to test
-     * @returns {Entity3D} the parent entity of the given layer or null if no owner was found.
+     * @returns {Entity} the parent entity of the given layer or null if no
+     * owner was found.
      */
     getOwner(layer) {
         for (const obj of this._objects) {
@@ -730,7 +731,7 @@ class Instance extends EventDispatcher {
             const object = (typeof (source) === 'string')
                 ? objectIdToObject(this, source)
                 : source;
-            if (object instanceof Entity3D || typeof object.pickObjectsAt === 'function') {
+            if (typeof object.pickObjectsAt === 'function') {
                 // TODO ability to pick on a layer instead of a geometric object?
                 object.pickObjectsAt(mouse, pickOptions, results);
             } else if (object.isObject3D) {

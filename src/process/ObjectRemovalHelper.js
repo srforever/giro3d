@@ -1,5 +1,5 @@
 import { Object3D } from 'three';
-import Layer from '../core/layer/Layer.js';
+import Entity from '../entities/Entity.js';
 
 export default {
     /**
@@ -28,7 +28,8 @@ export default {
      * Remove obj's children belonging to a layer.
      * Neither obj nor its children will be disposed!
      *
-     * @param {Layer} layer The layer that objects must belong to. Other object are ignored
+     * @param {Entity} layer The layer that objects must belong to. Other
+     * object are ignored
      * @param {Object3D} obj The Object3D we want to clean
      * @returns {Array} an array of removed Object3D from obj (not including the recursive removals)
      */
@@ -42,7 +43,8 @@ export default {
      * Remove obj's children belonging to a layer and cleanup objexts.
      * obj will be disposed but its children **won't**!
      *
-     * @param {Layer} layer The layer that objects must belong to. Other object are ignored
+     * @param {Entity} layer The layer that objects must belong to. Other
+     * object are ignored
      * @param {Object3D} obj The Object3D we want to clean
      * @returns {Array} an array of removed Object3D from obj (not including the recursive removals)
      */
@@ -61,7 +63,8 @@ export default {
      * Recursively remove obj's children belonging to a layer.
      * All removed obj will have their geometry/material disposed.
      *
-     * @param {Layer} layer The layer that objects must belong to. Other object are ignored
+     * @param {Entity} layer The layer that objects must belong to. Other
+     * object are ignored
      * @param {Object3D} obj The Object3D we want to clean
      * @returns {Array} an array of removed Object3D from obj (not including the recursive removals)
      */
