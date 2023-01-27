@@ -1,3 +1,4 @@
+import assert from 'assert';
 import PotreePointCloud from '../../../src/entities/PotreePointCloud.js';
 
 const context = { camera: { height: 1, camera3D: { fov: 1 } } };
@@ -78,6 +79,53 @@ describe('PotreePointCloud', () => {
             const result = entity.getObjectToUpdateForAttachedLayers(meta);
             expect(result.element).toEqual('a');
             expect(result.parent).toEqual('b');
+        });
+    });
+
+    describe('parseMetadata', () => {
+        it('should correctly parse normal information in metadata', () => {
+            const entity = new PotreePointCloud('a', 'http://example.com', 'cloud.js');
+
+            // no normals
+            const metadata = {
+                boundingBox: {
+                    lx: 0,
+                    ly: 1,
+                    ux: 2,
+                    uy: 3,
+                },
+                scale: 1.0,
+                pointAttributes: ['POSITION', 'RGB'],
+            };
+
+            entity.parseMetadata(metadata);
+            const normalDefined = entity.material.defines.NORMAL
+            || entity.material.defines.NORMAL_SPHEREMAPPED
+            || entity.material.defines.NORMAL_OCT16;
+            assert.ok(!normalDefined);
+
+            // normals as vector
+            metadata.pointAttributes = ['POSITION', 'NORMAL', 'CLASSIFICATION'];
+            entity.parseMetadata(metadata, entity);
+            assert.ok(entity.material.defines.NORMAL);
+            assert.ok(!entity.material.defines.NORMAL_SPHEREMAPPED);
+            assert.ok(!entity.material.defines.NORMAL_OCT16);
+
+            // spheremapped normals
+            entity.material = { defines: {} };
+            metadata.pointAttributes = ['POSITION', 'COLOR_PACKED', 'NORMAL_SPHEREMAPPED'];
+            entity.parseMetadata(metadata, entity);
+            assert.ok(!entity.material.defines.NORMAL);
+            assert.ok(entity.material.defines.NORMAL_SPHEREMAPPED);
+            assert.ok(!entity.material.defines.NORMAL_OCT16);
+
+            // oct16 normals
+            entity.material = { defines: {} };
+            metadata.pointAttributes = ['POSITION', 'COLOR_PACKED', 'CLASSIFICATION', 'NORMAL_OCT16'];
+            entity.parseMetadata(metadata, entity);
+            assert.ok(!entity.material.defines.NORMAL);
+            assert.ok(!entity.material.defines.NORMAL_SPHEREMAPPED);
+            assert.ok(entity.material.defines.NORMAL_OCT16);
         });
     });
 });

@@ -37,9 +37,7 @@ describe('Map', () => {
                 },
             },
             scheduleUpdate: jest.fn,
-            scheduler: {
-                getProtocolProvider: jest.fn,
-            },
+            scheduler: {},
         };
         const options = { mainLoop };
         instance = new Instance(viewerDiv, options);

@@ -176,7 +176,7 @@ class ElevationLayer extends Layer {
         // images), skip the root texture phase.
         if (down !== DataStatus.DATA_UNAVAILABLE) {
             return this.provider
-                .executeCommand({ layer: this, instance, toDownload: down })
+                .executeCommand(instance, this, null, down)
                 .then(result => this.handleRootTexture(result))
                 .then(() => this.assignMinMaxToTiles(map));
         }
@@ -322,9 +322,15 @@ class ElevationLayer extends Layer {
             layer: this,
             requester: node,
             priority: nodeCommandQueuePriorityFunction(node),
-            earlyDropFunction: refinementCommandCancellationFn,
-            toDownload: nextDownloads,
         };
+        command.earlyDropFunction = () => refinementCommandCancellationFn({ requester: node });
+        command.fn = () => this.provider.executeCommand(
+            context.instance,
+            this,
+            node,
+            nextDownloads,
+            command.earlyDropFunction,
+        );
 
         this._opCounter.increment();
 

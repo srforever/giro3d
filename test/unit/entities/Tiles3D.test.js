@@ -1,9 +1,12 @@
+import assert from 'assert';
 import proj4 from 'proj4';
-import { Matrix4, Object3D } from 'three';
-import Tiles3D, { calculateCameraDistance } from '../../../src/entities/Tiles3D.js';
+import {
+    Group, Matrix4, Mesh, Object3D,
+} from 'three';
+import Tiles3D, { calculateCameraDistance, configureTile } from '../../../src/entities/Tiles3D.js';
+import $3dTilesIndex from '../../../src/entities/3dtiles/3dTilesIndex.js';
 import Camera from '../../../src/renderer/Camera.js';
 import Coordinates from '../../../src/core/geographic/Coordinates.js';
-import { $3dTilesIndex, configureTile } from '../../../src/provider/3dTilesProvider.js';
 import Tiles3DSource from '../../../src/sources/Tiles3DSource.js';
 
 describe('Tiles3D', () => {
@@ -15,11 +18,6 @@ describe('Tiles3D', () => {
             expect(() => new Tiles3D(undefined)).toThrow(/Missing id parameter/);
             expect(() => new Tiles3D('')).toThrow(/Missing id parameter/);
             expect(() => new Tiles3D(null)).toThrow(/Missing id parameter/);
-        });
-
-        it('should assign the protocol to 3d-tiles', () => {
-            const sut = new Tiles3D('foo', defaultSource);
-            expect(sut.protocol).toBe('3d-tiles');
         });
 
         it('should assign the source', () => {
@@ -141,6 +139,28 @@ describe('Tiles3D', () => {
             // floats...
             expect(tile.distance.min).toBeCloseTo(89.99, 12);
             expect(tile.distance.max).toBeCloseTo(90.01, 12);
+        });
+    });
+
+    describe('getObjectToUpdateForAttachedLayers', () => {
+        it('should correctly return all children', () => {
+            const layer = { };
+            const tile = {
+                content: new Group(),
+                layer,
+            };
+
+            for (let i = 0; i < 3; i++) {
+                const mesh = new Mesh();
+                mesh.layer = layer;
+                tile.content.add(mesh);
+            }
+
+            const tiles3D = new Tiles3D('foo', defaultSource);
+
+            const result = tiles3D.getObjectToUpdateForAttachedLayers(tile);
+            assert.ok(Array.isArray(result.elements));
+            assert.ok(result.elements.length, 3);
         });
     });
 });

@@ -13,6 +13,11 @@ import CustomTiledImageSource from '../../sources/CustomTiledImageSource.js';
 import ColorMap from './ColorMap.js';
 import Interpretation from './Interpretation.js';
 import Extent from '../geographic/Extent.js';
+import CustomTiledImageProvider from '../../provider/CustomTiledImageProvider.js';
+import OLTileProvider from '../../provider/OLTileProvider.js';
+import OLVectorTileProvider from '../../provider/OLVectorTileProvider.js';
+import OLVectorProvider from '../../provider/OLVectorProvider.js';
+import COGProvider from '../../provider/COGProvider.js';
 import EventUtils from '../../utils/EventUtils.js';
 import OperationCounter from '../OperationCounter.js';
 
@@ -142,24 +147,20 @@ class Layer extends EventDispatcher {
             this.colorMap = options.colorMap;
         }
 
-        // If the mode is standalone, no protocol is provided.
+        // If the mode is standalone, no provider is provided.
         // The update function should be manually set.
         if (!this.standalone) {
-            // Temp patch. Currently, all protocols don't use source
-            // (some use layer properties or entity properties).
-            // But at the moment where all protocols use source,
-            // we can remove protocol name and check the source type.
             this.source = options.source;
             if (this.source instanceof TileImage) {
-                this.protocol = 'oltile';
+                this.provider = OLTileProvider;
             } else if (this.source instanceof VectorTile) {
-                this.protocol = 'olvectortile';
+                this.provider = OLVectorTileProvider;
             } else if (this.source instanceof Vector) {
-                this.protocol = 'olvector';
+                this.provider = OLVectorProvider;
             } else if (this.source instanceof CogSource) {
-                this.protocol = 'cog';
+                this.provider = COGProvider;
             } else if (this.source instanceof CustomTiledImageSource) {
-                this.protocol = 'customtiledimage';
+                this.provider = CustomTiledImageProvider;
             } else {
                 throw Error('Unsupported OpenLayers source');
             }
@@ -214,8 +215,6 @@ class Layer extends EventDispatcher {
             });
             return this;
         }
-
-        this.provider = instance.mainLoop.scheduler.getProtocolProvider(this.protocol);
 
         if (this.provider) {
             if (this.provider.tileInsideLimit) {

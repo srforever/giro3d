@@ -9,7 +9,6 @@ import TileSource from 'ol/source/Tile.js';
 import TileGrid from 'ol/tilegrid/TileGrid.js';
 
 import Extent from '../core/geographic/Extent.js';
-import Layer from '../core/layer/Layer.js';
 import DataStatus from './DataStatus.js';
 import Rect from '../core/Rect.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
@@ -134,13 +133,12 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-async function executeCommand(command) {
-    const { layer, instance, earlyDropFunction } = command;
-    const { zoomLevel, extent, pitch } = command.toDownload;
+async function executeCommand(instance, layer, requester, toDownload, earlyDropFunction) {
+    const { zoomLevel, extent, pitch } = toDownload;
 
     function throwIfCancelled() {
-        if (earlyDropFunction && earlyDropFunction(command)) {
-            throw new CancelledCommandException(command);
+        if (earlyDropFunction && earlyDropFunction()) {
+            throw new CancelledCommandException(layer, requester);
         }
     }
 
@@ -168,7 +166,7 @@ async function executeCommand(command) {
  * @param {Array} sourceImages The images to combine.
  * @param {WebGLRenderer} renderer The WebGL renderer.
  * @param {Vector4} pitch The custom pitch.
- * @param {Layer} layer The target layer.
+ * @param {module:Core/layer/Layer~Layer} layer The target layer.
  * @param {Extent} targetExtent The extent of the destination texture.
  */
 function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
@@ -227,8 +225,7 @@ function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
  *
  * @param {Extent} extent The tile extent.
  * @param {number} zoom The zoom level.
- * @param {Layer} layer The target layer.
- * @returns {Promise<HTMLImageElement[]>} The loaded tile images.
+ * @param {module:Core/layer/Layer~Layer} layer The loaded tile images.
  */
 function loadTiles(extent, zoom, layer) {
     /** @type {TileSource} */

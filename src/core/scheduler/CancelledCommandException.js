@@ -5,12 +5,13 @@
  * @param {object} command
  */
 class CancelledCommandException {
-    constructor(command) {
-        this.command = command;
+    constructor(layer, requester) {
+        this.layer = layer;
+        this.requester = requester;
     }
 
     toString() {
-        return `Cancelled command ${this.command.requester.id}/${this.command.layer.id}`;
+        return `Cancelled command ${this.requester.id}/${this.layer.id}`;
     }
 }
 export default CancelledCommandException;

@@ -1,12 +1,16 @@
-import { Group, Object3D, Vector2 } from 'three';
+import {
+    Group, Object3D, Vector2,
+} from 'three';
 import proj4 from 'proj4';
 import Extent from '../../../src/core/geographic/Extent.js';
 import Instance, { INSTANCE_EVENTS } from '../../../src/core/Instance.js';
-import Layer from '../../../src/core/layer/Layer.js';
 import MainLoop from '../../../src/core/MainLoop.js';
+import Scheduler from '../../../src/core/scheduler/Scheduler.js';
+import Layer from '../../../src/core/layer/Layer.js';
 import Map from '../../../src/entities/Map.js';
 import Tiles3D from '../../../src/entities/Tiles3D.js';
 import { setupGlobalMocks, resizeObservers } from '../mocks.js';
+import Fetcher from '../../../src/utils/Fetcher.js';
 
 describe('Instance', () => {
     /** @type {HTMLDivElement} */
@@ -15,26 +19,18 @@ describe('Instance', () => {
     /** @type {Instance} */
     let instance;
 
-    /** @type {MainLoop} */
-    let mainLoop;
-
     beforeEach(() => {
         setupGlobalMocks();
         viewerDiv = document.createElement('div');
-        mainLoop = {
-            gfxEngine: {
-                getWindowSize: jest.fn,
-                renderer: {
-                    domElement: viewerDiv,
-                },
-            },
-            scheduleUpdate: jest.fn,
-            scheduler: {
-                getProtocolProvider: jest.fn,
+        const gfxEngine = {
+            getWindowSize: () => ({ x: 1200, y: 800 }),
+            renderer: {
+                domElement: viewerDiv,
             },
         };
-        const options = { mainLoop };
+        const options = { mainLoop: new MainLoop(new Scheduler(), gfxEngine) };
         instance = new Instance(viewerDiv, options);
+        Fetcher.json = jest.fn();
     });
 
     describe('constructor', () => {
@@ -109,6 +105,16 @@ describe('Instance', () => {
         });
 
         it('should add a Tiles3D', () => {
+            const tileset = {
+                root: {
+                    refine: 'ADD',
+                    boundingVolume: { box: [0, 0, 0, 7.0955, 0, 0, 0, 3.1405, 0, 0, 0, 5.0375] },
+                },
+                geometricError: 50,
+            };
+            Fetcher.json.mockReturnValueOnce({
+                then: () => Promise.resolve(tileset),
+            });
             const tiles3d = new Tiles3D('myEntity', { url: 'https://domain.tld/tileset.json' });
             return instance.add(tiles3d).then(() => {
                 expect(instance.getObjects()).toStrictEqual([tiles3d]);

@@ -2,6 +2,7 @@
  * @module entities/PotreePointCloud
  */
 import {
+    Box3,
     Group,
     BufferAttribute,
     BufferGeometry,
@@ -13,10 +14,15 @@ import {
 } from 'three';
 import Entity3D from './Entity3D.js';
 import PointsMaterial, { MODE } from '../renderer/PointsMaterial.js';
-import Picking from '../core/Picking.js';
 import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
 import PotreeSource from '../sources/PotreeSource.js';
 import OperationCounter from '../core/OperationCounter.js';
+import PotreeBinParser from '../parser/PotreeBinParser.js';
+import PotreeCinParser from '../parser/PotreeCinParser.js';
+import Fetcher from '../utils/Fetcher.js';
+import Picking from '../core/Picking.js';
+import Extent from '../core/geographic/Extent.js';
+import Points from '../core/Points.js';
 
 // Draw a cube with lines (12 lines).
 function cube(size) {
@@ -92,6 +98,19 @@ function markForDeletion(elt) {
     }
 }
 
+function findChildrenByName(node, name) {
+    if (node.name === name) {
+        return node;
+    }
+    const charIndex = node.name.length;
+    for (let i = 0; i < node.children.length; i++) {
+        if (node.children[i].name[charIndex] === name[charIndex]) {
+            return findChildrenByName(node.children[i], name);
+        }
+    }
+    throw new Error(`Cannot find node with name '${name}'`);
+}
+
 /**
  * A [Potree](https://github.com/potree/potree) point cloud.
  *
@@ -111,7 +130,6 @@ class PotreePointCloud extends Entity3D {
     constructor(id, source) {
         super(id, new Group());
         this.source = source;
-        this.protocol = 'potreeconverter';
         this.type = 'PotreePointCloud';
 
         this._opCounter = new OperationCounter();
@@ -161,6 +179,85 @@ class PotreePointCloud extends Entity3D {
          * }
          */
         this.onPointsCreated = null;
+    }
+
+    computeBbox() {
+        let bbox;
+        if (this.isFromPotreeConverter) {
+            const entityBbox = this.metadata.boundingBox;
+            bbox = new Box3(
+                new Vector3(entityBbox.lx, entityBbox.ly, entityBbox.lz),
+                new Vector3(entityBbox.ux, entityBbox.uy, entityBbox.uz),
+            );
+        } else {
+            // lopocs
+            let idx = 0;
+            for (const entry of this.metadata) {
+                if (entry.table === this.table) {
+                    break;
+                }
+                idx++;
+            }
+            const entityBbox = this.metadata[idx].bbox;
+            bbox = new Box3(
+                new Vector3(entityBbox.xmin, entityBbox.ymin, entityBbox.zmin),
+                new Vector3(entityBbox.xmax, entityBbox.ymax, entityBbox.zmax),
+            );
+        }
+        return bbox;
+    }
+
+    parseMetadata(metadata) {
+        this.metadata = metadata;
+
+        let customBinFormat = true;
+
+        // Lopocs pointcloud server can expose the same file structure as PotreeConverter output.
+        // The only difference is the metadata root file (cloud.js vs infos/sources), and we can
+        // check for the existence of a `scale` field.
+        // (if `scale` is defined => we're fetching files from PotreeConverter)
+        if (this.metadata.scale !== undefined) {
+            this.isFromPotreeConverter = true;
+            // PotreeConverter format
+            customBinFormat = this.metadata.pointAttributes === 'CIN';
+            // do we have normal information
+            const normal = Array.isArray(this.metadata.pointAttributes)
+                && this.metadata.pointAttributes.find(elem => elem.startsWith('NORMAL'));
+            if (normal) {
+                this.material.defines[normal] = 1;
+            }
+        } else {
+            // Lopocs
+            this.metadata.scale = 1;
+            this.metadata.octreeDir = `giro3d/${this.table}.points`;
+            this.metadata.hierarchyStepSize = 1000000; // ignore this with lopocs
+            customBinFormat = true;
+        }
+
+        this.parse = customBinFormat ? PotreeCinParser.parse : PotreeBinParser.parse;
+        this.extension = customBinFormat ? 'cin' : 'bin';
+        this.supportsProgressiveDisplay = customBinFormat;
+    }
+
+    preprocess() {
+        const source = this.source;
+        return Fetcher.json(`${source.url}/${source.filename}`, source.networkOptions)
+            .then(metadata => {
+                this.parseMetadata(metadata);
+                const bbox = this.computeBbox();
+                return parseOctree(
+                    this,
+                    this.metadata.hierarchyStepSize,
+                    { baseurl: `${source.url}/${this.metadata.octreeDir}/r`, name: '', bbox },
+                );
+            })
+            .then(root => {
+                this.root = root;
+                root.findChildrenByName = findChildrenByName.bind(root, root);
+                this.extent = Extent.fromBox3(this._instance.referenceCrs, root.bbox);
+
+                return this;
+            });
     }
 
     pickObjectsAt(coordinates, options, target) {
@@ -330,12 +427,12 @@ class PotreePointCloud extends Entity3D {
 
                     elt.promise = context.scheduler.execute({
                         layer: this,
+                        fn: () => this.executeCommand(elt, elt.childrenBitField === 0),
                         requester: elt,
                         instance: context.instance,
                         priority,
                         redraw: true,
-                        isLeaf: elt.childrenBitField === 0,
-                        earlyDropFunction: cmd => !cmd.requester.visible || !this.visible,
+                        earlyDropFunction: () => !elt.visible || !this.visible,
                     }).then(pts => {
                         if (this.onPointsCreated) {
                             this.onPointsCreated(this, pts);
@@ -471,6 +568,139 @@ class PotreePointCloud extends Entity3D {
             this.bboxes.children = this.bboxes.children.filter(b => !b.removeMe);
         }
     }
+
+    executeCommand(metadata, isLeaf) {
+        // Query HRC if we don't have children metadata yet.
+        if (metadata.childrenBitField && metadata.children.length === 0) {
+            parseOctree(this, this.metadata.hierarchyStepSize, metadata)
+                .then(() => this._instance.notifyChange(this, false));
+        }
+
+        // `isLeaf` is for lopocs and allows the pointcloud server to consider that the current
+        // node is the last one, even if we could subdivide even further.
+        // It's necessary because lopocs doens't know about the hierarchy (it generates it on the
+        // fly when we request .hrc files)
+        const url = `${metadata.baseurl}/r${metadata.name}.${this.extension}?isleaf=${isLeaf ? 1 : 0}`;
+
+        return Fetcher.arrayBuffer(url, this.source.networkOptions)
+            .then(buffer => this.parse(buffer, this.metadata.pointAttributes)).then(geometry => {
+                const points = new Points(this, geometry, this.material.clone());
+                points.name = `r${metadata.name}.${this.extension}`;
+                if (points.material.enablePicking) {
+                    Picking.preparePointGeometryForPicking(points.geometry);
+                }
+                points.frustumCulled = false;
+                points.matrixAutoUpdate = false;
+                points.position.copy(metadata.bbox.min);
+                points.scale.set(this.metadata.scale, this.metadata.scale, this.metadata.scale);
+                points.updateMatrix();
+                points.tightbbox = geometry.boundingBox.applyMatrix4(points.matrix);
+                points.layer = this;
+                points.extent = Extent.fromBox3(this._instance.referenceCrs, metadata.bbox);
+                points.userData.metadata = metadata;
+                return points;
+            })
+            .catch(e => {
+                console.error(e);
+            });
+    }
+}
+
+// Create an A(xis)A(ligned)B(ounding)B(ox) for the child `childIndex` of one aabb.
+// (PotreeConverter protocol builds implicit octree hierarchy by applying the same
+// subdivision algo recursively)
+function createChildAABB(aabb, childIndex) {
+    // Code taken from potree
+    let { min } = aabb;
+    let { max } = aabb;
+    const dHalfLength = new Vector3().copy(max).sub(min).multiplyScalar(0.5);
+    const xHalfLength = new Vector3(dHalfLength.x, 0, 0);
+    const yHalfLength = new Vector3(0, dHalfLength.y, 0);
+    const zHalfLength = new Vector3(0, 0, dHalfLength.z);
+
+    const cmin = min;
+    const cmax = new Vector3().add(min).add(dHalfLength);
+
+    if (childIndex === 1) {
+        min = new Vector3().copy(cmin).add(zHalfLength);
+        max = new Vector3().copy(cmax).add(zHalfLength);
+    } else if (childIndex === 3) {
+        min = new Vector3().copy(cmin).add(zHalfLength).add(yHalfLength);
+        max = new Vector3().copy(cmax).add(zHalfLength).add(yHalfLength);
+    } else if (childIndex === 0) {
+        min = cmin;
+        max = cmax;
+    } else if (childIndex === 2) {
+        min = new Vector3().copy(cmin).add(yHalfLength);
+        max = new Vector3().copy(cmax).add(yHalfLength);
+    } else if (childIndex === 5) {
+        min = new Vector3().copy(cmin).add(zHalfLength).add(xHalfLength);
+        max = new Vector3().copy(cmax).add(zHalfLength).add(xHalfLength);
+    } else if (childIndex === 7) {
+        min = new Vector3().copy(cmin).add(dHalfLength);
+        max = new Vector3().copy(cmax).add(dHalfLength);
+    } else if (childIndex === 4) {
+        min = new Vector3().copy(cmin).add(xHalfLength);
+        max = new Vector3().copy(cmax).add(xHalfLength);
+    } else if (childIndex === 6) {
+        min = new Vector3().copy(cmin).add(xHalfLength).add(yHalfLength);
+        max = new Vector3().copy(cmax).add(xHalfLength).add(yHalfLength);
+    }
+
+    return new Box3(min, max);
+}
+
+function parseOctree(entity, hierarchyStepSize, root) {
+    return Fetcher.arrayBuffer(`${root.baseurl}/r${root.name}.hrc`, entity.networkOptions).then(blob => {
+        const dataView = new DataView(blob);
+
+        const stack = [];
+
+        let offset = 0;
+
+        root.childrenBitField = dataView.getUint8(0); offset += 1;
+        root.numPoints = dataView.getUint32(1, true); offset += 4;
+        root.children = [];
+
+        stack.push(root);
+
+        while (stack.length && offset < blob.byteLength) {
+            const snode = stack.shift();
+            // look up 8 children
+            for (let i = 0; i < 8; i++) {
+                // does snode have a #i child ?
+                if (snode.childrenBitField & (1 << i) && (offset + 5) <= blob.byteLength) {
+                    const c = dataView.getUint8(offset); offset += 1;
+                    let n = dataView.getUint32(offset, true); offset += 4;
+                    if (n === 0) {
+                        n = root.numPoints;
+                    }
+                    const childname = snode.name + i;
+                    const bounds = createChildAABB(snode.bbox, i);
+
+                    let url = root.baseurl;
+                    if ((childname.length % hierarchyStepSize) === 0) {
+                        const myname = childname.substr(root.name.length);
+                        url = `${root.baseurl}/${myname}`;
+                    }
+                    const item = {
+                        numPoints: n,
+                        childrenBitField: c,
+                        children: [],
+                        name: childname,
+                        baseurl: url,
+                        bbox: bounds,
+                        layer: entity,
+                        parent: snode,
+                    };
+                    snode.children.push(item);
+                    stack.push(item);
+                }
+            }
+        }
+
+        return root;
+    });
 }
 
 export default PotreePointCloud;
