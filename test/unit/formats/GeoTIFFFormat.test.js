@@ -11,6 +11,12 @@ global.TextDecoder = TextDecoder;
 describe('GeoTIFFFormat', () => {
     const decoder = new GeoTIFFFormat();
 
+    describe('constructor', () => {
+        it('should set flipY to true', () => {
+            expect(decoder.flipY).toBeTruthy();
+        });
+    });
+
     describe('decode', () => {
         function readFile(dataPath) {
             const buf = fs.readFileSync(path.join(cwd(), 'test/data', dataPath));

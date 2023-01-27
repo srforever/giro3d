@@ -14,7 +14,11 @@ uniform vec2 textureSize;
 #endif
 
 void main() {
+#if defined(FLIP_Y)
+    vec2 uv = vec2(vUv.x, 1.0 - vUv.y);
+#else
     vec2 uv = vUv;
+#endif
 
     gl_FragColor = decode(texture, uv, interpretation);
 

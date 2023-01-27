@@ -44,6 +44,10 @@ import TextureGenerator from '../utils/TextureGenerator.js';
  * @api
  */
 class BilFormat extends ImageFormat {
+    constructor() {
+        super(true);
+    }
+
     /**
      * Decode a Bil blob into a
      * [DataTexture](https://threejs.org/docs/?q=texture#api/en/textures/DataTexture) containing
@@ -78,7 +82,6 @@ class BilFormat extends ImageFormat {
         };
         const texture = TextureGenerator.createDataTexture(opts, FloatType, floatArray);
         texture.generateMipmaps = false;
-        texture.flipY = true;
         return texture;
     }
 }

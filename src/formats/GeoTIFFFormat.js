@@ -19,6 +19,10 @@ let geotiffWorkerPool;
  * @api
  */
 class GeoTIFFFormat extends ImageFormat {
+    constructor() {
+        super(true);
+    }
+
     /**
      * Decode a tiff blob into a
      * [DataTexture](https://threejs.org/docs/?q=texture#api/en/textures/DataTexture) containing
@@ -94,7 +98,6 @@ class GeoTIFFFormat extends ImageFormat {
 
         const texture = new DataTexture(buffer, width, height, RGBAFormat, dataType);
         texture.needsUpdate = true;
-        texture.flipY = true;
         if (minmax) {
             texture.min = minmax.min;
             texture.max = minmax.max;

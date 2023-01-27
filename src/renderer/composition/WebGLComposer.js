@@ -153,6 +153,7 @@ class WebGLComposer {
      * @param {object} [options] The options.
      * @param {Interpretation} [options.interpretation=Interpretation.Raw] The pixel interpretation.
      * @param {number} [options.zOrder=0] The Z-order of the texture in the composition space.
+     * @param {boolean} [options.flipY] Flip the image vertically.
      */
     draw(texture, extent, options = {}) {
         const geometry = new PlaneGeometry(extent.width, extent.height, 1, 1);
@@ -170,6 +171,7 @@ class WebGLComposer {
             texture,
             {
                 interpretation,
+                flipY: options.flipY,
                 showImageOutlines: this.showImageOutlines,
             },
         );

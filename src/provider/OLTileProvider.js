@@ -39,6 +39,7 @@ function preprocessDataLayer(layer) {
     // Cache the tilegrid because it is constant
     layer.tileGrid = tileGrid;
     layer.getTileUrl = source.getTileUrlFunction();
+    layer.flipY = layer.source.format?.flipY || false;
     const extent = tileGrid.getExtent();
     layer.sourceExtent = fromOLExtent(extent, projection.getCode());
     if (!layer.extent) {
@@ -149,7 +150,7 @@ function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
         createDataCopy: isElevationLayer, // To compute the min/max later
     });
 
-    const options = { interpretation: layer.interpretation };
+    const options = { interpretation: layer.interpretation, flipY: layer.flipY };
 
     sourceImages.forEach(img => {
         if (img) {
