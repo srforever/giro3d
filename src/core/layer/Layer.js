@@ -13,76 +13,7 @@ import CustomTiledImageSource from '../../sources/CustomTiledImageSource.js';
 import ColorMap from './ColorMap.js';
 import Interpretation from './Interpretation.js';
 import Extent from '../geographic/Extent.js';
-
-/**
- * Fires when layer sequence change (meaning when the order of the layer changes in the map)
- *
- * @api
- * @event Layer#sequence-property-changed
- * @property {object} new the new value of the property
- * @property {number} new.sequence the new value of the layer sequence
- * @property {object} previous the previous value of the property
- * @property {number} previous.sequence the previous value of the layer sequence
- * @property {Layer} target dispatched on layer
- * @property {string} type sequence-property-changed
- */
-
-/**
- * Fires when layer opacity change
- *
- * @api
- * @event Layer#opacity-property-changed
- * @property {object} new the new value of the property
- * @property {object} new.opacity the new value of the layer opacity
- * @property {object} previous the previous value of the property
- * @property {object} previous.opacity  the previous value of the layer opacity
- * @property {Layer} target  dispatched on layer
- * @property {string} type opacity-property-changed
- */
-
-/**
- * Fires when layer visibility change
- *
- * @api
- * @event Layer#visible-property-changed
- * @property {object} new the new value of the property
- * @property {object} new.visible the new value of the layer visibility
- * @property {object} previous the previous value of the property
- * @property {object} previous.visible the previous value of the layer visibility
- * @property {Layer} target dispatched on layer
- * @property {string} type visible-property-changed
- */
-
-const defineLayerProperty = function defineLayerProperty(layer,
-    propertyName,
-    defaultValue,
-    onChange) {
-    const existing = Object.getOwnPropertyDescriptor(layer, propertyName);
-    if (!existing || !existing.set) {
-        let property = layer[propertyName] === undefined ? defaultValue : layer[propertyName];
-        Object.defineProperty(layer,
-            propertyName,
-            {
-                get: () => property,
-                set: newValue => {
-                    if (property !== newValue) {
-                        const event = {
-                            type: `${propertyName}-property-changed`,
-                            previous: {},
-                            new: {},
-                        };
-                        event.previous[propertyName] = property;
-                        event.new[propertyName] = newValue;
-                        property = newValue;
-                        if (onChange) {
-                            onChange(layer, propertyName);
-                        }
-                        layer.dispatchEvent(event);
-                    }
-                },
-            });
-    }
-};
+import EventUtils from '../../utils/EventUtils.js';
 
 function nodeCommandQueuePriorityFunction(node) {
     const dim = node.extent.dimensions();
@@ -102,6 +33,19 @@ function refinementCommandCancellationFn(cmd) {
 
 // max retry loading before changing the status to definitiveError
 const MAX_RETRY = 4;
+
+/**
+ * Fires when layer visibility change
+ *
+ * @api
+ * @event Layer#visible-property-changed
+ * @property {object} new the new value of the property
+ * @property {object} new.visible the new value of the layer visibility
+ * @property {object} previous the previous value of the property
+ * @property {object} previous.visible the previous value of the layer visibility
+ * @property {Layer} target dispatched on layer
+ * @property {string} type visible-property-changed
+ */
 
 /**
  * Base class of layers. Layers are components of {@link module:entities/Map~Map Maps}.
@@ -140,7 +84,6 @@ const MAX_RETRY = 4;
  *     // Listen to properties
  *     const layerToListen = map.getLayers(layer => layer.id === 'idLayerToListen')[0];
  *     layerToListen.addEventListener('visible-property-changed', (event) => console.log(event));
- *     layerToListen.addEventListener('opacity-property-changed', (event) => console.log(event));
  *
  * @api
  */
@@ -185,7 +128,7 @@ class Layer extends EventDispatcher {
         this.interpretation = options.interpretation ?? Interpretation.Raw;
         this.standalone = options.standalone ? options.standalone : false;
 
-        defineLayerProperty(this, 'visible', true);
+        EventUtils.definePropertyWithChangeEvent(this, 'visible', true);
 
         if (options.colorMap !== undefined) {
             /** @type {ColorMap} */
@@ -389,6 +332,6 @@ class ImageryLayers {
 
 export default Layer;
 export {
-    ImageryLayers, defineLayerProperty, nodeCommandQueuePriorityFunction,
+    ImageryLayers, nodeCommandQueuePriorityFunction,
     refinementCommandCancellationFn, MAX_RETRY,
 };

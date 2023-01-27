@@ -3,13 +3,12 @@
  */
 import { Box3 } from 'three';
 
-import { defineLayerProperty } from '../core/layer/Layer.js';
+import EventUtils from '../utils/EventUtils.js';
 import ColorLayer from '../core/layer/ColorLayer.js';
 import Picking from '../core/Picking.js';
 import AtlasBuilder from '../renderer/AtlasBuilder.js';
 import Capabilities from '../core/system/Capabilities.js';
 import Entity from './Entity.js';
-import eventDispatcher from '../core/eventDispatcher.js';
 
 /**
  * An {@link module:entities/Entity~Entity entity} that display 3D objects.
@@ -44,8 +43,8 @@ class Entity3D extends Entity {
             writable: false,
         });
 
-        defineLayerProperty(this, 'opacity', 1.0, () => this.updateOpacity());
-        defineLayerProperty(this, 'visible', true, () => this.updateVisibility());
+        EventUtils.definePropertyWithChangeEvent(this, 'opacity', 1.0, () => this.updateOpacity());
+        EventUtils.definePropertyWithChangeEvent(this, 'visible', true, () => this.updateVisibility());
 
         this.atlasInfo = { maxX: 0, maxY: 0 };
 
@@ -208,7 +207,5 @@ class Entity3D extends Entity {
         return result;
     }
 }
-
-Object.assign(Entity3D.prototype, eventDispatcher);
 
 export default Entity3D;

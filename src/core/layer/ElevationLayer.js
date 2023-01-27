@@ -6,11 +6,12 @@ import LayerUpdateState from './LayerUpdateState.js';
 import DataStatus from '../../provider/DataStatus.js';
 import Interpretation from './Interpretation.js';
 import Layer, {
-    defineLayerProperty, nodeCommandQueuePriorityFunction,
+    nodeCommandQueuePriorityFunction,
     refinementCommandCancellationFn, MAX_RETRY,
 } from './Layer.js';
 import ColorMap from './ColorMap.js';
 import Extent from '../geographic/Extent.js';
+import EventUtils from '../../utils/EventUtils.js';
 
 // get image data
 let canvas;
@@ -60,7 +61,7 @@ class ElevationLayer extends Layer {
             this.minmax = options.minmax;
         }
         this.type = 'ElevationLayer';
-        defineLayerProperty(this, 'frozen', false);
+        EventUtils.definePropertyWithChangeEvent(this, 'frozen', false);
     }
 
     static getBufferData(texture) {
