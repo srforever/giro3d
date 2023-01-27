@@ -92,6 +92,18 @@ class Entity {
      * on the camera's field of view should be updated.
      */
     postUpdate(context, changeSources) {}
+
+    /**
+     * Disposes this entity and all resources associated with it.
+     *
+     * The default implementation of this method does nothing.
+     * You should implement it in your custom entities to handle any special logic of disposal.
+     *
+     * For example: disposing materials, geometries, stopping HTTP requests, etc.
+     *
+     * @api
+     */
+    dispose() {}
 }
 
 export default Entity;
