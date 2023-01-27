@@ -309,12 +309,14 @@ export default {
      * module:GeoJsonParser~FeatureCollection}.
      */
     parse(json, options = {}) {
-        const { crsOut } = options;
+        let { crsOut } = options;
+
         const { filteringExtent } = options;
         if (typeof (json) === 'string') {
             json = JSON.parse(json);
         }
         options.crsIn = options.crsIn || readCRS(json);
+        crsOut = crsOut ?? options.crsIn;
         switch (json.type.toLowerCase()) {
             case 'featurecollection':
                 return Promise.resolve(
