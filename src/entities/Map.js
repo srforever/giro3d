@@ -280,7 +280,6 @@ class Map extends Entity3D {
 
         const tile = new TileMesh(this, material, extent, this.segments, level, x, y);
 
-        tile.layers.set(this.threejsLayer);
         if (this.renderOrder !== undefined) {
             tile.renderOrder = this.renderOrder;
         }

@@ -228,7 +228,6 @@ export default {
                 points.scale.set(layer.metadata.scale, layer.metadata.scale, layer.metadata.scale);
                 points.updateMatrix();
                 points.tightbbox = geometry.boundingBox.applyMatrix4(points.matrix);
-                points.layers.set(layer.threejsLayer);
                 points.layer = layer;
                 points.extent = Extent.fromBox3(command.instance.referenceCrs, metadata.bbox);
                 points.userData.metadata = metadata;

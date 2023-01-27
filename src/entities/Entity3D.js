@@ -78,14 +78,6 @@ class Entity3D extends Entity {
         if (this.object3d) {
             this.object3d.visible = this.visible;
         }
-
-        if (this.threejsLayer) {
-            if (this.visible) {
-                this._instance.camera.camera3D.layers.enable(this.threejsLayer);
-            } else {
-                this._instance.camera.camera3D.layers.disable(this.threejsLayer);
-            }
-        }
     }
 
     /**
