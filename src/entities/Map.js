@@ -522,6 +522,7 @@ class Map extends Entity3D {
             if (!layer.projection) {
                 layer.projection = this.projection;
             }
+            layer.instance = this._instance;
             layer.imageSize = this.imageSize;
 
             this.attach(layer);

@@ -3,8 +3,10 @@ import { Vector4, FloatType, UnsignedByteType } from 'three';
 import ColorLayer from '../core/layer/ColorLayer.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
 
-import Cache from '../core/scheduler/Cache.js';
 import DataStatus from './DataStatus.js';
+import WebGLComposer from '../renderer/composition/WebGLComposer.js';
+import ElevationLayer from '../core/layer/ElevationLayer.js';
+import Rect from '../core/Rect.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -96,12 +98,25 @@ function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) 
         const result = { arrayData, pitch: pitch ?? new Vector4(0, 0, 1, 1) };
         // Process the downloaded data
         const compressTo8bit = layer instanceof ColorLayer;
-        result.texture = processArrayData(layer, arrayData, compressTo8bit);
-        result.texture.flipY = true;
+        const { width, height } = arrayData;
+        const inputTexture = processArrayData(layer, arrayData, compressTo8bit);
+
+        const composer = new WebGLComposer({
+            extent: Rect.fromExtent(extent),
+            width,
+            height,
+            showImageOutlines: true,
+            webGLRenderer: layer.instance.renderer,
+            createDataCopy: layer instanceof ElevationLayer,
+        });
+        composer.draw(inputTexture, Rect.fromExtent(extent), { flipY: true });
+        result.texture = composer.render();
+        composer.dispose();
+        inputTexture.dispose();
+
         // Attach the extent to the texture to check for possible improvements
         result.texture.extent = extent;
-        // Cache the result not to have to fetch the data again
-        Cache.set(`${layer.id}${extent._values.join(',')}`, result);
+
         return result;
     }).catch(error => {
         if (error.toString() === 'AggregateError: Request failed') {
@@ -202,13 +217,7 @@ function executeCommand(command) {
     const { layer } = command;
     // Get the image at the appropriate overview level
     const { extent, levelImage, pitch } = command.toDownload;
-    // Make the key to store the texture in cache with the subdivised tilednode extent
-    const key = `${layer.id}${extent._values.join(',')}`;
-    // Get the result with data and texture if it already exists
-    const result = Cache.get(key);
-    if (result) {
-        return Promise.resolve(result);
-    }
+
     return Promise.resolve(createTexture(layer, extent, levelImage, pitch));
 }
 

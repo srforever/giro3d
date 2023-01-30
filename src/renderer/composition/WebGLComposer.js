@@ -307,7 +307,6 @@ class WebGLComposer {
         target.texture.wrapS = ClampToEdgeWrapping;
         target.texture.wrapT = ClampToEdgeWrapping;
         target.texture.generateMipmaps = false;
-        target.texture.flipY = false; // TODO: remove me in three.js 139 (https://github.com/mrdoob/three.js/pull/23607)
         return target.texture;
     }
 
