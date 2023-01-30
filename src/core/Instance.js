@@ -346,7 +346,7 @@ class Instance extends EventDispatcher {
                 }
                 this.dispatchEvent({ type: INSTANCE_EVENTS.ENTITY_ADDED });
                 resolve(object);
-            });
+            }).catch(e => reject(e));
         });
     }
 
