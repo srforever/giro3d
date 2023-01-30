@@ -7,6 +7,7 @@ import DataStatus from './DataStatus.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
 import ElevationLayer from '../core/layer/ElevationLayer.js';
 import Rect from '../core/Rect.js';
+import Cache from '../core/scheduler/Cache.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -82,25 +83,46 @@ function processArrayData(layer, arrayData, compressTo8bit) {
     return texture;
 }
 
-function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) {
-    // Read and return the raster data
-    return levelImage.image.readRasters({
+function getCacheKey(layer, extent) {
+    return `buffer:${layer.id}${extent._values.join(',')}`;
+}
+
+function readBuffer(layer, extent, levelImage) {
+    const key = getCacheKey(layer, extent);
+
+    const cached = Cache.get(key);
+    if (cached) {
+        return Promise.resolve(cached);
+    }
+
+    const promise = levelImage.image.readRasters({
         pool: layer.pool, // Use the pool of workers to decode faster
         window: makeWindowFromExtent(layer, extent, levelImage.resolution),
         fillValue: layer.nodata,
     }).then(arrayData => {
+        Cache.set(key, arrayData, Cache.POLICIES.TEXTURE);
+        return arrayData;
+    });
+
+    return promise;
+}
+
+function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) {
+    // Read and return the raster data
+    return readBuffer(layer, extent, levelImage).then(arrayData => {
         if (computeMinMax) {
             // Initiate min and max data values to normalize 1 band files.
             // This is only done during the preprocessing step.
             layer.minmax = getMinMax(arrayData[0], layer.nodata);
         }
-        // Attach arrayData to the result to recreate TileGeometry in ElevationLayer
-        const result = { arrayData, pitch: pitch ?? new Vector4(0, 0, 1, 1) };
+
         // Process the downloaded data
         const compressTo8bit = layer instanceof ColorLayer;
         const { width, height } = arrayData;
         const inputTexture = processArrayData(layer, arrayData, compressTo8bit);
 
+        // Flip the texture using the composer instead of flipping during upload
+        // See https://bugzilla.mozilla.org/show_bug.cgi?id=1400077
         const composer = new WebGLComposer({
             extent: Rect.fromExtent(extent),
             width,
@@ -110,14 +132,13 @@ function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) 
             createDataCopy: layer instanceof ElevationLayer,
         });
         composer.draw(inputTexture, Rect.fromExtent(extent), { flipY: true });
-        result.texture = composer.render();
+        const texture = composer.render();
+        // Attach the extent to the texture to check for possible improvements
+        texture.extent = extent;
         composer.dispose();
         inputTexture.dispose();
 
-        // Attach the extent to the texture to check for possible improvements
-        result.texture.extent = extent;
-
-        return result;
+        return { texture, pitch: pitch ?? new Vector4(0, 0, 1, 1) };
     }).catch(error => {
         if (error.toString() === 'AggregateError: Request failed') {
             // Problem with the source that is blocked by another fetch
