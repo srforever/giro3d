@@ -242,7 +242,7 @@ class LayeredMaterial extends RawShaderMaterial {
         }
 
         if (!isInherited) {
-            textures.owner = this;
+            textures.texture.owner = this;
         }
 
         const index = this.indexOfColorLayer(layer);
