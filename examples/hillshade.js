@@ -73,11 +73,15 @@ const wmsSource2 = new TileWMS({
     version: '1.3.0',
 });
 
+const min = 149;
+const max = 621;
+
 const elevationLayer = new ElevationLayer(
     'wms_elevation',
     {
+        minmax: { min, max },
         source: wmsSource2,
-        interpretation: Interpretation.ScaleToMinMax(149, 621),
+        interpretation: Interpretation.ScaleToMinMax(min, max),
     },
 );
 
