@@ -8,12 +8,17 @@ describe('ElevationLayer', () => {
         });
 
         it('should define layer properties', () => {
-            const layer = new ElevationLayer('id', { interpretation: Interpretation.Raw, standalone: true });
+            const layer = new ElevationLayer('id', {
+                interpretation: Interpretation.Raw,
+                standalone: true,
+                minmax: { min: 111, max: 333 },
+            });
 
             expect(layer.id).toEqual('id');
             expect(layer.frozen).toStrictEqual(false);
             expect(layer.interpretation).toEqual(Interpretation.Raw);
             expect(layer.type).toEqual('ElevationLayer');
+            expect(layer.minmax).toEqual({ min: 111, max: 333 });
         });
     });
 
