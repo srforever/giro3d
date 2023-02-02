@@ -18,6 +18,7 @@ import {
     MeshBasicMaterial,
     AxesHelper,
     GridHelper,
+    ArrowHelper,
 } from 'three';
 import Tiles3D from '../entities/Tiles3D.js';
 import OBB from '../renderer/extensions/OBB.js';
@@ -26,6 +27,7 @@ import OBBHelper from './OBBHelper.js';
 const _vector = new Vector3();
 const invMatrixChangeUpVectorZtoY = new Matrix4().makeRotationX(Math.PI / 2).invert();
 const invMatrixChangeUpVectorZtoX = new Matrix4().makeRotationZ(-Math.PI / 2).invert();
+let _axisSize = 500;
 
 /**
  * @param {Color|string} colorDesc A THREE color or hex string.
@@ -178,6 +180,14 @@ class Helpers {
         helper.material.transparent = true;
         helper.material.needsUpdate = true;
         return helper;
+    }
+
+    static set axisSize(v) {
+        _axisSize = v;
+    }
+
+    static get axisSize() {
+        return _axisSize;
     }
 
     /**
@@ -357,6 +367,20 @@ class Helpers {
         if (properties.color) {
             obj.boundingVolumeHelper.object3d.material.color = properties.color;
         }
+    }
+
+    /**
+     * Creates an arrow between the two points.
+     *
+     * @api
+     * @param {Vector3} start The starting point.
+     * @param {Vector3} end The end point.
+     */
+    static createArrow(start, end) {
+        const length = start.distanceTo(end);
+        const dir = end.sub(start).normalize();
+        const arrow = new ArrowHelper(dir, start, length);
+        return arrow;
     }
 
     /**
