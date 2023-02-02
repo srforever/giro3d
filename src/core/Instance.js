@@ -831,20 +831,6 @@ class Instance extends EventDispatcher {
     }
 }
 
-const _syncEntityVisibility = function _syncEntityVisibility(entity, instance) {
-    if (entity.object3d) {
-        entity.object3d.visible = entity.visible;
-    }
-
-    if (entity.threejsLayer) {
-        if (entity.visible) {
-            instance.camera.camera3D.layers.enable(entity.threejsLayer);
-        } else {
-            instance.camera.camera3D.layers.disable(entity.threejsLayer);
-        }
-    }
-};
-
 function _preprocessEntity(instance, obj, provider, parentLayer) {
     obj.options = obj.options || {};
 
@@ -891,9 +877,8 @@ function _preprocessEntity(instance, obj, provider, parentLayer) {
     // definitely not the best place to do this
     // TODO: this should be done only for object 3D.
     // Entity should have a getter/setter in their prototype
-    defineLayerProperty(obj, 'visible', true, () => _syncEntityVisibility(obj, instance));
     defineLayerProperty(obj, 'frozen', false);
-    _syncEntityVisibility(obj, instance);
+
     return obj;
 }
 

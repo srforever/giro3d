@@ -313,6 +313,30 @@ class Extent {
     }
 
     /**
+     * @api
+     * @returns {Coordinates} the coordinates of the top left corner
+     */
+    topLeft() { return new Coordinates(this.crs(), this.west(), this.north(), 0); }
+
+    /**
+     * @api
+     * @returns {Coordinates} the coordinates of the top right corner
+     */
+    topRight() { return new Coordinates(this.crs(), this.east(), this.north(), 0); }
+
+    /**
+     * @api
+     * @returns {Coordinates} the coordinates of the bottom right corner
+     */
+    bottomRight() { return new Coordinates(this.crs(), this.east(), this.south(), 0); }
+
+    /**
+     * @api
+     * @returns {Coordinates} the coordinates of the bottom right corner
+     */
+    bottomLeft() { return new Coordinates(this.crs(), this.west(), this.south(), 0); }
+
+    /**
      * Gets the coordinate reference system of this extent.
      *
      * @api
