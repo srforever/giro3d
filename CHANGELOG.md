@@ -1,5 +1,24 @@
 # Changelog
 
+## v0.19.0 (2023-02-02)
+
+### Feat
+
+- **AxisGrid**: add the AxisGrid entity (#165). See the [example](https://giro3d.org/examples/axisgrid.html).
+- **Extent**: add `topLeft()`, `topRight()`, `bottomLeft()`, `bottomRight()`
+- **Helpers**: add a function to create an `ArrowHelper`
+- **geojsonparser**: make `crsOut` parameter default to `crsIn`
+
+### Fix
+
+- **LayeredMaterial**: fix memory leak where color textures were not properly disposed.
+- **Instance**: properly propagate preprocessing error
+
+### Refactor
+
+- **Entity3d**: make the `visible` property overiddable
+- **Entity3D**: make the `opacity` property overridable
+
 ## v0.18.0 (2023-01-20)
 
 ### BREAKING CHANGE
