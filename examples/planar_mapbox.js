@@ -1,12 +1,9 @@
-import WMTSCapabilities from 'ol/format/WMTSCapabilities.js';
-import WMTS, { optionsFromCapabilities } from 'ol/source/WMTS.js';
 import XYZ from 'ol/source/XYZ.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
@@ -27,42 +24,14 @@ const instance = new Instance(viewerDiv);
 const map = new Map('planar', { extent, segments: 128 });
 instance.add(map);
 
-// Fetch WMTS capabilities for our ColorLayer
-fetch('https://wxs.ign.fr/cartes/geoportail/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities', {
-    crossOrigin: 'anonymous',
-})
-    .then(response => response.text())
-    .then(text => {
-        const parser = new WMTSCapabilities();
-        const result = parser.read(text);
-        const options = optionsFromCapabilities(result, {
-            layer: 'GEOGRAPHICALGRIDSYSTEMS.MAPS.SCAN50.1950',
-            matrixSet: 'EPSG:3857',
-            crossOrigin: 'anonymous',
-        });
-
-        // Add our layer
-        map.addLayer(new ColorLayer(
-            'wmts_imagery',
-            {
-                source: new WMTS(options),
-                updateStrategy: {
-                    type: STRATEGY_DICHOTOMY,
-                    options: {},
-                },
-            },
-        ));
-    });
-
-let elevationLayer;
-
-function addElevationLayer(key) {
-    if (elevationLayer) {
-        map.removeLayer(elevationLayer);
+function addLayers(key) {
+    const layers = map.getLayers();
+    for (const current of layers) {
+        map.removeLayer(current);
     }
 
-    // Adds a XYZ elevation layer with MapBox elevation format
-    elevationLayer = new ElevationLayer(
+    // Adds a XYZ elevation layer with MapBox terrain RGB tileset
+    const elevationLayer = new ElevationLayer(
         'xyz_elevation',
         {
             source: new XYZ({
@@ -74,10 +43,23 @@ function addElevationLayer(key) {
         },
     );
     map.addLayer(elevationLayer);
+
+    // Adds a XYZ color layer with MapBox satellite tileset
+    const satelliteLayer = new ColorLayer(
+        'xyz_color',
+        {
+            source: new XYZ({
+                url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.pngraw?access_token=${key}`,
+                crossOrigin: 'anonymous',
+                projection: extent.crs(),
+            }),
+        },
+    );
+    map.addLayer(satelliteLayer);
 }
 
 // Create our elevation layer using giro3d's default mapbox api key
-addElevationLayer('pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A');
+addLayers('pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A');
 
 // Sets the camera position
 instance.camera.camera3D.position.set(extent.east(), extent.south(), 2000);
@@ -102,7 +84,7 @@ Inspector.attach(document.getElementById('panelDiv'), instance);
 
 document.getElementById('mapboxApi').addEventListener('submit', e => {
     e.preventDefault();
-    addElevationLayer(document.getElementById('mapboxApiKey').value);
+    addLayers(document.getElementById('mapboxApiKey').value);
 });
 
 // Bind events
