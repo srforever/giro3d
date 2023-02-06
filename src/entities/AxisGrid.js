@@ -359,6 +359,8 @@ class AxisGrid extends Entity3D {
         this.boundingBox.getBoundingSphere(this.boundingSphere);
 
         this.boundingBox.getCenter(this.boundingBoxCenter);
+
+        this.updateVisibility();
     }
 
     removeLabels() {
