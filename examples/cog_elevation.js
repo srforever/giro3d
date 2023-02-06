@@ -1,3 +1,4 @@
+import colormap from 'colormap';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { Color } from 'three';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -7,6 +8,7 @@ import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
 
 // Define projection that we will use (taken from https://epsg.io/6345, Proj4js section)
 Instance.registerCRS('EPSG:6345', '+proj=utm +zone=16 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
@@ -56,9 +58,23 @@ const source = new CogSource({
     // https://www.sciencebase.gov/catalog/item/624d95e3d34e21f827660b53
     url: 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/OPR/Projects/LA_Chenier_Plain_Lidar_2017_B16/LA_Chenier_Plain_2017/TIFF/USGS_OPR_LA_Chenier_Plain_Lidar_2017_B16_15RWN835805.tif',
 });
+
+const values = colormap({ colormap: 'viridis' });
+const colors = values.map(v => new Color(v));
+
+const min = 0.2;
+const max = 1;
+
 // Display it as elevation and color
-map.addLayer(new ElevationLayer('elevation', { source }));
-map.addLayer(new ColorLayer('color', { source }));
+map.addLayer(new ElevationLayer('elevation', { source, minmax: { min, max } }));
+
+const colorMap = new ColorMap(colors, min, max, ColorMapMode.Elevation);
+
+// Add a colormap to the color layer
+map.addLayer(new ColorLayer('color', {
+    source,
+    colorMap,
+}));
 
 // Attach the inspector
 Inspector.attach(document.getElementById('panelDiv'), instance);
@@ -75,3 +91,9 @@ instance.domElement.addEventListener('mousemove', e => {
         infoDiv.classList.add('d-none');
     }
 });
+
+const toggle = document.getElementById('colormap-enable');
+toggle.onchange = () => {
+    colorMap.active = toggle.checked;
+    instance.notifyChange(map);
+};
