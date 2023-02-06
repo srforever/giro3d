@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.19.1 (2023-02-06)
+
+### Feat
+
+- **ElevationLayer**: expose `minmax` in constructor (#190)
+- **Entity**: add `dispose()` method. This method was previously undocumented.
+
+### Fix
+
+- **AxisGrid**: honors visibility in `refresh()` (#214)
+- **TileFS**: honor layer alpha with color maps (#212)
+
 ## v0.19.0 (2023-02-02)
 
 ### Feat
