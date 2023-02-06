@@ -207,10 +207,23 @@ function loadTiles(extent, zoom, layer) {
  * @param {string} url The URL of the tile.
  * @param {Extent} extent The extent of the tile.
  * @param {module:Core/layer/Layer~Layer} layer the layer to load tile for
- * @returns {Promise<Texture>} The tile texture.
+ * @returns {Promise<Texture>|Promise<null>} The tile texture, or null if there is no data.
  */
 async function loadTileOnce(url, extent, layer) {
-    const blob = await Fetcher.blob(url);
+    const response = await Fetcher.fetch(url);
+
+    // If the response is 204 No Content for example, we have nothing to do.
+    // This happens when a tile request is valid, but points to a region with no data.
+    // Note: we let the HTTP handler do the logging for us in case of 4XX errors.
+    if (response.status !== 200) {
+        return Promise.resolve(null);
+    }
+
+    const blob = await response.blob();
+
+    if (!blob) {
+        return Promise.resolve(null);
+    }
 
     let texture;
     if (layer.source && layer.source.format) {

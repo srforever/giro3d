@@ -15,6 +15,18 @@ function checkResponse(response) {
 }
 
 export default {
+    /**
+     * Wrapper over `fetch`.
+     *
+     * @param {string} url the URL to fetch
+     * @param {object} options fetch options (passed directly to fetch)
+     * @returns {Promise<Response>} The response blob.
+     */
+    async fetch(url, options = {}) {
+        const response = await fetch(url, options);
+        checkResponse(response);
+        return response;
+    },
 
     /**
      * Wrapper over `fetch`, then returns the blob of the response.
