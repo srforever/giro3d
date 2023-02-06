@@ -10,6 +10,7 @@ import Layer, {
     refinementCommandCancellationFn, MAX_RETRY,
 } from './Layer.js';
 import ColorMap from './ColorMap.js';
+import Extent from '../geographic/Extent.js';
 
 // get image data
 let canvas;
@@ -36,10 +37,13 @@ class ElevationLayer extends Layer {
      * The data source of this layer.
      * @param {Interpretation} [options.interpretation=Interpretation.Raw] How to interpret the
      * values in the dataset.
-     * @param {object} [options.extent=undefined] The geographic extent of the layer. If
+     * @param {Extent} [options.extent=undefined] The geographic extent of the layer. If
      * unspecified, the extent will be inherited from the map.
      * @param {string} [options.projection=undefined] The layer projection. If unspecified,
      * the projection will be inherited from the map.
+     * If unspecified, the layer will attempt to compute an approximation using downsampled data.
+     * @param {number} [options.minmax.min] The minimal elevation of this layer.
+     * @param {number} [options.minmax.max] The maximal elevation of this layer.
      * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.
      * If unspecified, the layer will use the `STRATEGY_MIN_NETWORK_TRAFFIC`.
      * @param {number} [options.noDataValue=undefined] the optional no-data value to pass to the
@@ -51,6 +55,9 @@ class ElevationLayer extends Layer {
 
         if (options.noDataValue) {
             this.noDataValue = options.noDataValue;
+        }
+        if (options.minmax) {
+            this.minmax = options.minmax;
         }
         this.type = 'ElevationLayer';
         defineLayerProperty(this, 'frozen', false);
