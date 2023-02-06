@@ -182,7 +182,7 @@ vec4 drawTileOutlines(vec2 uv, vec4 color) {
 }
 #endif
 
-vec3 computeColorMap(
+vec4 computeColorMap(
     LayerInfo layer,
     sampler2D sampledTexture,
     ColorMap colorMap,
@@ -207,8 +207,9 @@ vec3 computeColorMap(
 
     value = clamp(value, colorMap.min, colorMap.max);
     float t = map(value, colorMap.min, colorMap.max, 0., 1.);
-    vec4 color = texture2D(lut, vec2(t, 0.0));
-    return color.rgb;
+    vec3 rgb = texture2D(lut, vec2(t, 0.0)).rgb;
+    float a = texture2D(sampledTexture, uv).a;
+    return vec4(rgb, a);
 }
 
 vec4 computeColorLayer(
@@ -221,8 +222,7 @@ vec4 computeColorLayer(
     if (layer.offsetScale.zw != vec2(0.0)) {
         vec4 color;
         if (colorMap.mode != COLORMAP_MODE_DISABLED) {
-            color.rgb = computeColorMap(layer, atlas, colorMap, lut, uv);
-            color.a = 1.;
+            color = computeColorMap(layer, atlas, colorMap, lut, uv);
         } else {
             color = computeColor(uv, layer.offsetScale, atlas);
         }
@@ -270,7 +270,7 @@ void main() {
             elevationTexture,
             elevationColorMap,
             elevationLut,
-            vUv);
+            vUv).rgb;
     }
 #endif
 
