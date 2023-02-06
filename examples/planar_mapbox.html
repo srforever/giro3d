@@ -5,16 +5,10 @@ shortdesc: Display a 2.5D map with WMTS color layer and Mapbox elevation.
 <div class="position-relative h-100">
     <div id="viewerDiv"></div>
     <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
-    <div class="m-3 position-absolute top-0 end-0 card">
+    <div class="m-3 position-absolute top-0 end-0">
         <form class="row row-cols-lg-auto g-3 align-items-center" id="mapboxApi">
-            <div class="col-12">
-                <div class="form-floating">
-                    <input type="text" class="form-control" id="mapboxApiKey" placeholder="pk.ey****************">
-                    <label for="mapboxApiKey">Mapbox API key</label>
-                </div>
-            </div>
-            <div class="col-12">
-              <button type="submit" class="btn btn-primary">Apply</button>
+            <div class="input-group">
+                <input type="text" class="form-control" id="mapboxApiKey" placeholder="Custom Mapbox API key">
             </div>
         </form>
     </div>
