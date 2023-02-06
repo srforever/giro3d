@@ -55,6 +55,7 @@ const wmsSource = new TileWMS({
     crossOrigin: 'anonymous',
     params: {
         LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
+        FORMAT: 'image/jpeg',
     },
     version: '1.3.0',
 });
@@ -78,6 +79,7 @@ const wmsSource2 = new TileWMS({
     crossOrigin: 'anonymous',
     params: {
         LAYERS: ['MNT2018_Altitude_2m'],
+        FORMAT: 'image/jpeg',
     },
     version: '1.3.0',
 });

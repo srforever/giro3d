@@ -93,6 +93,7 @@ function createColorLayer(name, url) {
         url,
         params: {
             LAYERS: name,
+            FORMAT: 'image/jpeg',
         },
         projection: 'EPSG:3946',
         crossOrigin: 'anonymous',
