@@ -42,6 +42,7 @@ const wmsSource = new TileWMS({
     crossOrigin: 'anonymous',
     params: {
         LAYERS: ['Ortho2009_vue_ensemble_16cm_CC46'],
+        FORMAT: 'image/jpeg',
     },
     version: '1.3.0',
 });

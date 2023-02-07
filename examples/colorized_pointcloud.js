@@ -83,6 +83,7 @@ function initializeCamera() {
         url: 'https://download.data.grandlyon.com/wms/grandlyon',
         params: {
             LAYERS: 'Ortho2009_vue_ensemble_16cm_CC46',
+            FORMAT: 'image/jpeg',
         },
         projection: 'EPSG:3946',
         crossOrigin: 'anonymous',

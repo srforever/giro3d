@@ -38,6 +38,7 @@ const wmsOthophotoSource = new TileWMS({
     crossOrigin: 'anonymous',
     params: {
         LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
+        FORMAT: 'image/jpeg',
     },
     version: '1.3.0',
 });
