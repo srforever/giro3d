@@ -348,10 +348,10 @@ class Map extends Entity3D {
     }
 
     preUpdate(context, changeSources) {
-        context.colorLayers = context.instance.getLayers(
+        context.colorLayers = this.getLayers(
             (l, a) => a && a.id === this.id && l instanceof ColorLayer,
         );
-        context.elevationLayers = context.instance.getLayers(
+        context.elevationLayers = this.getLayers(
             (l, a) => a && a.id === this.id && l instanceof ElevationLayer,
         );
 

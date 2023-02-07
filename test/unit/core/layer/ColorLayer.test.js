@@ -45,7 +45,6 @@ describe('ColorLayer', () => {
         const context = {
             instance: {
                 notifyChange: () => true,
-                getLayers: () => [layer],
             },
             scheduler: {
                 commands: [],

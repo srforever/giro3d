@@ -133,7 +133,7 @@ const MAX_RETRY = 4;
  *     instance.notifyChange(); // update instance
  *
  *     // Change layer's opacity
- *     const layerToChange = instance.getLayers(layer => layer.id === 'idLayerToChange')[0];
+ *     const layerToChange = map.getLayers(layer => layer.id === 'idLayerToChange')[0];
  *     layerToChange.opacity = 0.5;
  *     instance.notifyChange(); // update instance
  *
