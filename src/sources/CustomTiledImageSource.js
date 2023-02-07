@@ -2,7 +2,7 @@
  * @module sources/CustomTiledImageSource
  */
 
-import Fetcher from '../provider/Fetcher.js';
+import Fetcher from '../utils/Fetcher.js';
 
 /**
  * @module sources/CustomTiledImageSource

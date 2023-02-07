@@ -1,5 +1,5 @@
 import { Color } from 'three';
-import Fetcher from './Fetcher.js';
+import Fetcher from '../utils/Fetcher.js';
 import Cache from '../core/scheduler/Cache.js';
 import VectorTileParser from '../parser/VectorTileParser.js';
 import Feature2Texture from '../renderer/extensions/Feature2Texture.js';

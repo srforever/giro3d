@@ -1,5 +1,5 @@
 /**
- * @module Provider/Fetcher
+ * @module utils/Fetcher
  */
 
 import { TextureLoader } from 'three';

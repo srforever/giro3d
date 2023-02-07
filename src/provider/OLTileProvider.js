@@ -13,7 +13,7 @@ import Layer from '../core/layer/Layer.js';
 import DataStatus from './DataStatus.js';
 import Rect from '../core/Rect.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
-import Fetcher from './Fetcher.js';
+import Fetcher from '../utils/Fetcher.js';
 import MemoryTracker from '../renderer/MemoryTracker.js';
 import Cache from '../core/scheduler/Cache.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';

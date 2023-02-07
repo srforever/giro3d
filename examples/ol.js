@@ -3,7 +3,7 @@ import Vector from 'ol/source/Vector.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Fetcher from '@giro3d/giro3d/provider/Fetcher.js';
+import Fetcher from '@giro3d/giro3d/utils/Fetcher.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
