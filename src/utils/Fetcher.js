@@ -2,9 +2,14 @@
  * @module utils/Fetcher
  */
 
+/**
+ * Throws an exception if the response ended with an error HTTP code.
+ *
+ * @param {Response} response The response.
+ */
 function checkResponse(response) {
     if (!response.ok) {
-        const error = new Error(`Error loading ${response.url}: status ${response.status}`);
+        const error = new Error(`${response.status} ${response.statusText} - ${response.url}`);
         error.response = response;
         throw error;
     }
