@@ -140,9 +140,8 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
     // replace layer with their parent where needed
     updateSources.forEach(src => {
         const layer = src.layer || src;
-        const owner = instance.getOwner(layer);
-        if (owner) {
-            updateSources.add(owner);
+        if (layer.owner) {
+            updateSources.add(layer.owner);
         }
     });
 

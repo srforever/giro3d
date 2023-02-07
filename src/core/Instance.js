@@ -9,8 +9,8 @@ import { register } from 'ol/proj/proj4.js';
 import Camera from '../renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../renderer/c3DEngine.js';
-import Layer, { defineLayerProperty } from './layer/Layer.js';
 import Entity from '../entities/Entity.js';
+import { defineLayerProperty } from './layer/Layer.js';
 import Scheduler from './scheduler/Scheduler.js';
 import Picking from './Picking.js';
 import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh.js';
@@ -191,10 +191,12 @@ class Instance extends EventDispatcher {
         this._delayedFrameRequesterRemoval = [];
 
         this._allLayersAreReadyCallback = () => {
-            // all layers must be ready
-            // TODO should check
-            const allReady = this.getObjects().every(obj => obj.ready)
-                && this.getLayers().every(layer => layer.ready);
+            const allReady = this.getObjects().every(obj => {
+                if (!obj.getLayers) {
+                    return obj.ready;
+                }
+                return obj.ready && obj.getLayers().every(layer => layer.ready);
+            });
             if (allReady
                 && this.mainLoop.scheduler.commandsWaitingExecutionCount() === 0
                 && this.mainLoop.renderingState === RENDERING_PAUSED) {
@@ -483,37 +485,6 @@ class Instance extends EventDispatcher {
             }
         }
         return result;
-    }
-
-    /**
-     * Get all the layers attached to all the entities in this instance.
-     *
-     * @param {function(Layer):boolean} filter Optional filter function for
-     * attached layers
-     * @returns {Array<Layer>} the layers attached to the geometry layers
-     */
-    getLayers(filter) {
-        let result = [];
-        for (const obj of this._objects) {
-            result = result.concat(obj.getLayers(filter));
-        }
-        return result;
-    }
-
-    /**
-     * @param {Layer} layer the layer to test
-     * @returns {Entity} the parent entity of the given layer or null if no
-     * owner was found.
-     */
-    getOwner(layer) {
-        for (const obj of this._objects) {
-            for (const attached of obj._attachedLayers) {
-                if (attached === layer) {
-                    return obj;
-                }
-            }
-        }
-        return null;
     }
 
     /**
