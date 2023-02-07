@@ -848,12 +848,6 @@ function _preprocessEntity(instance, obj, provider, parentLayer) {
                 .getPossibleTextureImprovements
                 .bind(provider);
         }
-        if (!obj.object3d) {
-            // TODO get rid of threejs layers
-            // layer.threejsLayer *must* be assigned before preprocessing,
-            // because some preprocessing function uses it.
-            obj.threejsLayer = instance.mainLoop.gfxEngine.getUniqueThreejsLayer();
-        }
         if (provider.preprocessDataLayer) {
             const p = provider.preprocessDataLayer(
                 obj, instance, instance.mainLoop.scheduler, parentLayer,

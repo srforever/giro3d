@@ -40,7 +40,6 @@ class C3DEngine {
         this.height = viewerDiv.clientHeight;
 
         this.positionBuffer = null;
-        this._nextThreejsLayer = 1;
 
         this.fullSizeRenderTarget = new WebGLRenderTarget(this.width, this.height);
         this.fullSizeRenderTarget.texture.minFilter = LinearFilter;
@@ -313,21 +312,6 @@ class C3DEngine {
         image.src = canvas.toDataURL();
 
         return image;
-    }
-
-    getUniqueThreejsLayer() {
-        // We use js Object3D.layers feature to manage visibility of
-        // geometry layers; so we need an internal counter to assign a new
-        // one to each new geometry layer.
-        // Warning: only 32 ([0, 31]) different layers can exist.
-        if (this._nextThreejsLayer > 31) {
-            console.warn('Too much js layers. Starting from now all of them will use layerMask = 31');
-            this._nextThreejsLayer = 31;
-        }
-
-        const result = this._nextThreejsLayer++;
-
-        return result;
     }
 }
 

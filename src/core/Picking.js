@@ -11,16 +11,18 @@ import { unpack1K } from '../renderer/LayeredMaterial.js';
 import Coordinates from './geographic/Coordinates.js';
 import DEMUtils from '../utils/DEMUtils.js';
 
-function hideEverythingElse(instance, object, threejsLayer = 0) {
-    // We want to render only 'object' and its hierarchy.
-    // So if it uses threejsLayer defined -> force it on the camera
-    // (or use the default one: 0)
-    const prev = instance.camera.camera3D.layers.mask;
-
-    instance.camera.camera3D.layers.mask = 1 << threejsLayer;
+function hideEverythingElse(instance, object) {
+    const visibilityMap = new Map();
+    for (const obj of instance.getObjects()) {
+        visibilityMap.set(obj, obj.visible);
+        obj.visible = false;
+    }
+    object.visible = true;
 
     return () => {
-        instance.camera.camera3D.layers.mask = prev;
+        for (const obj of instance.getObjects()) {
+            obj.visible = visibilityMap.get(obj);
+        }
     };
 }
 
@@ -58,7 +60,7 @@ function renderTileBuffer(instance, map, coords, radius, renderState, pixelFunc,
 
     const restore = map.setRenderState(renderState);
 
-    const undoHide = hideEverythingElse(instance, map.object3d, map.threejsLayer);
+    const undoHide = hideEverythingElse(instance, map.object3d);
 
     const buffer = instance.mainLoop.gfxEngine.renderToBuffer(
         { camera: instance.camera, scene: map.object3d },
@@ -251,7 +253,7 @@ export default {
             }
         });
 
-        const undoHide = hideEverythingElse(instance, layer.object3d, layer.threejsLayer);
+        const undoHide = hideEverythingElse(instance, layer.object3d);
 
         // render 1 pixel
         const buffer = instance.mainLoop.gfxEngine.renderToBuffer(

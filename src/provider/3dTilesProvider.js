@@ -266,7 +266,6 @@ function executeCommand(command) {
     }
 
     const setLayer = obj => {
-        obj.layers.set(layer.threejsLayer);
         obj.userData.metadata = metadata;
         obj.layer = layer;
     };

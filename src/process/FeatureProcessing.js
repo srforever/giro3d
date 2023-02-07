@@ -85,7 +85,6 @@ export default {
             const command = {
                 layer,
                 instance: ctx.instance,
-                threejsLayer: layer.threejsLayer,
                 requester: node,
             };
 
