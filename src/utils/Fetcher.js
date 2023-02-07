@@ -2,10 +2,6 @@
  * @module utils/Fetcher
  */
 
-import { TextureLoader } from 'three';
-
-const textureLoader = new TextureLoader();
-
 function checkResponse(response) {
     if (!response.ok) {
         const error = new Error(`Error loading ${response.url}: status ${response.status}`);
@@ -84,31 +80,6 @@ export default {
             checkResponse(response);
             return response.text();
         }).then(text => new window.DOMParser().parseFromString(text, 'text/xml'));
-    },
-
-    /**
-     * Wrapper around TextureLoader.
-     *
-     * @api
-     * @param {string} url the URL to fetch
-     * @param {object} options options to pass to TextureLoader. Note that
-     * THREE.js docs mention withCredentials, but it is not actually used in TextureLoader.js.
-     * @param {string} options.crossOrigin passed directly to html elements supporting it
-     * @returns {Promise} the promiose containing the texture.
-     */
-    texture(url, options = {}) {
-        let res;
-        let rej;
-
-        textureLoader.crossOrigin = options.crossOrigin;
-
-        const promise = new Promise((resolve, reject) => {
-            res = resolve;
-            rej = reject;
-        });
-
-        textureLoader.load(url, res, () => {}, rej);
-        return promise;
     },
 
     /**
