@@ -1,8 +1,6 @@
 import {
     EventDispatcher, MathUtils as ThreeMath, Sphere,
 } from 'three';
-import Layer from './layer/Layer.js';
-import Entity3D from '../entities/Entity3D.js';
 import Cache from './scheduler/Cache.js';
 import Context from './Context.js';
 
@@ -142,11 +140,9 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
     // replace layer with their parent where needed
     updateSources.forEach(src => {
         const layer = src.layer || src;
-        if (layer instanceof Layer) {
-            if (!(layer instanceof Entity3D)) {
-                // add the layer owner to update sources
-                updateSources.add(instance.getOwner(layer));
-            }
+        const owner = instance.getOwner(layer);
+        if (owner) {
+            updateSources.add(owner);
         }
     });
 

@@ -44,18 +44,6 @@ function makeArray(size) {
 
 const COLORMAP_DISABLED = 0;
 
-// from js packDepthToRGBA
-const UnpackDownscale = 255 / 256; // 0..1 -> fraction (excluding 1)
-export function unpack1K(color, factor) {
-    const bitSh = new Vector4(
-        UnpackDownscale / (256.0 * 256.0 * 256.0),
-        UnpackDownscale / (256.0 * 256.0),
-        UnpackDownscale / 256.0,
-        UnpackDownscale,
-    );
-    return factor ? bitSh.dot(color) * factor : bitSh.dot(color);
-}
-
 class TextureInfo {
     constructor(layer) {
         this.layer = layer;

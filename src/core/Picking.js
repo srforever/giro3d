@@ -7,7 +7,6 @@ import {
     BufferAttribute,
 } from 'three';
 import RenderingState from '../renderer/RenderingState.js';
-import { unpack1K } from '../renderer/LayeredMaterial.js';
 import Coordinates from './geographic/Coordinates.js';
 import DEMUtils from '../utils/DEMUtils.js';
 
@@ -24,6 +23,18 @@ function hideEverythingElse(instance, object) {
             obj.visible = visibilityMap.get(obj);
         }
     };
+}
+
+// from js packDepthToRGBA
+const UnpackDownscale = 255 / 256; // 0..1 -> fraction (excluding 1)
+function unpack1K(color, factor) {
+    const bitSh = new Vector4(
+        UnpackDownscale / (256.0 * 256.0 * 256.0),
+        UnpackDownscale / (256.0 * 256.0),
+        UnpackDownscale / 256.0,
+        UnpackDownscale,
+    );
+    return factor ? bitSh.dot(color) * factor : bitSh.dot(color);
 }
 
 function unpackHalfRGBA(v, target) {

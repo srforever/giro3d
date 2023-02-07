@@ -87,7 +87,7 @@ describe('Instance', () => {
     describe('add', () => {
         it('should return a rejected promise if not of correct type', async () => {
             const layer = new Layer('foo', { standalone: true });
-            await expect(instance.add(layer)).rejects.toThrowError('object is not an instance of THREE.Object3D or Giro3d.Entity3D');
+            await expect(instance.add(layer)).rejects.toThrowError('object is not an instance of THREE.Object3D or Giro3d.Entity');
         });
 
         it('should add the object to threeObjects if it is a native three.js object', () => {
