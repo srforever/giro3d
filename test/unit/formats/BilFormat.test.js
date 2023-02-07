@@ -7,6 +7,12 @@ import BilFormat from '../../../src/formats/BilFormat.js';
 describe('BilFormat', () => {
     const format = new BilFormat();
 
+    describe('constructor', () => {
+        it('should set flipY to true', () => {
+            expect(format.flipY).toBeTruthy();
+        });
+    });
+
     describe('decode', () => {
         it('should return a correctly constructed texture', async () => {
             // NOTE: file generated with
@@ -23,7 +29,6 @@ describe('BilFormat', () => {
             };
             const texture = await format.decode(blob, options);
 
-            expect(texture.flipY).toBe(true);
             expect(texture.image.data).toEqual(new Float32Array([
                 1.0, 1.0, 1.0, 1,
                 2.5, 2.5, 2.5, 1,
@@ -58,7 +63,6 @@ describe('BilFormat', () => {
             };
             const texture = await format.decode(blob, options);
 
-            expect(texture.flipY).toBe(true);
             expect(texture.image.data).toEqual(new Float32Array([
                 11.5, 11.5, 11.5, 0,
                 11.5, 11.5, 11.5, 0,

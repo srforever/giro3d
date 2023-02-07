@@ -9,6 +9,10 @@ import { Texture } from 'three';
  * @api
  */
 class ImageFormat {
+    constructor(flipY) {
+        this.flipY = flipY;
+    }
+
     /**
      * Decodes the blob into a texture.
      *

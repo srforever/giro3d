@@ -153,6 +153,7 @@ class WebGLComposer {
      * @param {object} [options] The options.
      * @param {Interpretation} [options.interpretation=Interpretation.Raw] The pixel interpretation.
      * @param {number} [options.zOrder=0] The Z-order of the texture in the composition space.
+     * @param {boolean} [options.flipY] Flip the image vertically.
      */
     draw(texture, extent, options = {}) {
         const geometry = new PlaneGeometry(extent.width, extent.height, 1, 1);
@@ -170,6 +171,7 @@ class WebGLComposer {
             texture,
             {
                 interpretation,
+                flipY: options.flipY,
                 showImageOutlines: this.showImageOutlines,
             },
         );
@@ -305,7 +307,6 @@ class WebGLComposer {
         target.texture.wrapS = ClampToEdgeWrapping;
         target.texture.wrapT = ClampToEdgeWrapping;
         target.texture.generateMipmaps = false;
-        target.texture.flipY = false; // TODO: remove me in three.js 139 (https://github.com/mrdoob/three.js/pull/23607)
         return target.texture;
     }
 

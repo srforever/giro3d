@@ -3,8 +3,11 @@ import { Vector4, FloatType, UnsignedByteType } from 'three';
 import ColorLayer from '../core/layer/ColorLayer.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
 
-import Cache from '../core/scheduler/Cache.js';
 import DataStatus from './DataStatus.js';
+import WebGLComposer from '../renderer/composition/WebGLComposer.js';
+import ElevationLayer from '../core/layer/ElevationLayer.js';
+import Rect from '../core/Rect.js';
+import Cache from '../core/scheduler/Cache.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -80,29 +83,62 @@ function processArrayData(layer, arrayData, compressTo8bit) {
     return texture;
 }
 
-function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) {
-    // Read and return the raster data
-    return levelImage.image.readRasters({
+function getCacheKey(layer, extent) {
+    return `buffer:${layer.id}${extent._values.join(',')}`;
+}
+
+function readBuffer(layer, extent, levelImage) {
+    const key = getCacheKey(layer, extent);
+
+    const cached = Cache.get(key);
+    if (cached) {
+        return Promise.resolve(cached);
+    }
+
+    const promise = levelImage.image.readRasters({
         pool: layer.pool, // Use the pool of workers to decode faster
         window: makeWindowFromExtent(layer, extent, levelImage.resolution),
         fillValue: layer.nodata,
     }).then(arrayData => {
+        Cache.set(key, arrayData, Cache.POLICIES.TEXTURE);
+        return arrayData;
+    });
+
+    return promise;
+}
+
+function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) {
+    // Read and return the raster data
+    return readBuffer(layer, extent, levelImage).then(arrayData => {
         if (computeMinMax) {
             // Initiate min and max data values to normalize 1 band files.
             // This is only done during the preprocessing step.
             layer.minmax = getMinMax(arrayData[0], layer.nodata);
         }
-        // Attach arrayData to the result to recreate TileGeometry in ElevationLayer
-        const result = { arrayData, pitch: pitch ?? new Vector4(0, 0, 1, 1) };
+
         // Process the downloaded data
         const compressTo8bit = layer instanceof ColorLayer;
-        result.texture = processArrayData(layer, arrayData, compressTo8bit);
-        result.texture.flipY = true;
+        const { width, height } = arrayData;
+        const inputTexture = processArrayData(layer, arrayData, compressTo8bit);
+
+        // Flip the texture using the composer instead of flipping during upload
+        // See https://bugzilla.mozilla.org/show_bug.cgi?id=1400077
+        const composer = new WebGLComposer({
+            extent: Rect.fromExtent(extent),
+            width,
+            height,
+            showImageOutlines: true,
+            webGLRenderer: layer.instance.renderer,
+            createDataCopy: layer instanceof ElevationLayer,
+        });
+        composer.draw(inputTexture, Rect.fromExtent(extent), { flipY: true });
+        const texture = composer.render();
         // Attach the extent to the texture to check for possible improvements
-        result.texture.extent = extent;
-        // Cache the result not to have to fetch the data again
-        Cache.set(`${layer.id}${extent._values.join(',')}`, result);
-        return result;
+        texture.extent = extent;
+        composer.dispose();
+        inputTexture.dispose();
+
+        return { texture, pitch: pitch ?? new Vector4(0, 0, 1, 1) };
     }).catch(error => {
         if (error.toString() === 'AggregateError: Request failed') {
             // Problem with the source that is blocked by another fetch
@@ -202,13 +238,7 @@ function executeCommand(command) {
     const { layer } = command;
     // Get the image at the appropriate overview level
     const { extent, levelImage, pitch } = command.toDownload;
-    // Make the key to store the texture in cache with the subdivised tilednode extent
-    const key = `${layer.id}${extent._values.join(',')}`;
-    // Get the result with data and texture if it already exists
-    const result = Cache.get(key);
-    if (result) {
-        return Promise.resolve(result);
-    }
+
     return Promise.resolve(createTexture(layer, extent, levelImage, pitch));
 }
 
