@@ -8,6 +8,7 @@ import Rect from '../core/Rect.js';
 import Cache from '../core/scheduler/Cache.js';
 import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
 import { Mode } from '../core/layer/Interpretation.js';
+import HttpConfiguration from '../utils/HttpConfiguration.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -217,7 +218,9 @@ async function createTexture(
 
 async function getImages(layer) {
     // Get the COG informations
-    const tiff = await fromUrl(layer.source.url);
+    const opts = {};
+    HttpConfiguration.applyConfiguration(layer.source.url, opts);
+    const tiff = await fromUrl(layer.source.url, opts);
     // Number of images (original + overviews)
     const count = await tiff.getImageCount();
     // Get original image header
