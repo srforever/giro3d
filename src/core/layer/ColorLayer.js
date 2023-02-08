@@ -15,6 +15,8 @@ import EventUtils from '../../utils/EventUtils.js';
 /**
  * ColorLayer is used to add textures to a map.
  *
+ * @property {number} [opacity=1.0] The opacity of this ColorLayer. Note: this only affects color
+ * mixing between ColorLayers, not the opacity of the Entity this layer is attached to.
  * @api
  */
 class ColorLayer extends Layer {

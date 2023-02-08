@@ -18,6 +18,8 @@ import EventUtils from '../utils/EventUtils.js';
  *     const entity = new Entity('exampleEntity');
  *     instance.add(entity);
  *
+ * @property {boolean} frozen if true, updates on this entity will be inhibited. Useful for
+ * debugging a certain state, as moving the camera won't trigger texture changes.
  * @api
  */
 class Entity extends EventDispatcher {

@@ -85,6 +85,9 @@ const MAX_RETRY = 4;
  *     const layerToListen = map.getLayers(layer => layer.id === 'idLayerToListen')[0];
  *     layerToListen.addEventListener('visible-property-changed', (event) => console.log(event));
  *
+ * @property {boolean} visible Whether this ColorLayer will be displayed on parent entity.
+ * @property {boolean} frozen if true, updates on this layer will be inhibited. Useful for debugging
+ * a certain state, as moving the camera won't trigger texture changes.
  * @api
  */
 class Layer extends EventDispatcher {
