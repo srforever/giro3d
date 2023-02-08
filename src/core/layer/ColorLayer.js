@@ -45,7 +45,6 @@ class ColorLayer extends Layer {
         super(id, options);
         this.type = 'ColorLayer';
         this.showTileBorders = options.showTileBorders || false;
-        EventUtils.definePropertyWithChangeEvent(this, 'frozen', false);
         EventUtils.definePropertyWithChangeEvent(this, 'opacity', 1.0);
         EventUtils.definePropertyWithChangeEvent(this, 'sequence', 0);
     }

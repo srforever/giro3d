@@ -129,6 +129,7 @@ class Layer extends EventDispatcher {
         this.standalone = options.standalone ? options.standalone : false;
 
         EventUtils.definePropertyWithChangeEvent(this, 'visible', true);
+        this.frozen = false;
 
         if (options.colorMap !== undefined) {
             /** @type {ColorMap} */

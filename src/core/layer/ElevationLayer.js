@@ -11,7 +11,6 @@ import Layer, {
 } from './Layer.js';
 import ColorMap from './ColorMap.js';
 import Extent from '../geographic/Extent.js';
-import EventUtils from '../../utils/EventUtils.js';
 
 // get image data
 let canvas;
@@ -61,7 +60,6 @@ class ElevationLayer extends Layer {
             this.minmax = options.minmax;
         }
         this.type = 'ElevationLayer';
-        EventUtils.definePropertyWithChangeEvent(this, 'frozen', false);
     }
 
     static getBufferData(texture) {
