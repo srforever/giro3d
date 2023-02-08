@@ -127,7 +127,6 @@ function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) 
             extent: Rect.fromExtent(extent),
             width,
             height,
-            showImageOutlines: true,
             webGLRenderer: layer.instance.renderer,
             createDataCopy: layer instanceof ElevationLayer,
         });
