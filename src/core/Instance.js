@@ -10,7 +10,6 @@ import Camera from '../renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../renderer/c3DEngine.js';
 import Entity from '../entities/Entity.js';
-import { defineLayerProperty } from './layer/Layer.js';
 import Scheduler from './scheduler/Scheduler.js';
 import Picking from './Picking.js';
 import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh.js';
@@ -839,11 +838,6 @@ function _preprocessEntity(instance, obj, provider, parentLayer) {
         obj.ready = true;
         return obj;
     });
-
-    // definitely not the best place to do this
-    // TODO: this should be done only for object 3D.
-    // Entity should have a getter/setter in their prototype
-    defineLayerProperty(obj, 'frozen', false);
 
     return obj;
 }

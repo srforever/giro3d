@@ -2,8 +2,11 @@
  * @module entities/Entity
  */
 
-/* eslint class-methods-use-this: 0 */
+import { EventDispatcher } from 'three';
+import EventUtils from '../utils/EventUtils.js';
+
 /* eslint no-unused-vars: 0 */
+/* eslint class-methods-use-this: 0 */
 
 /**
  * Abstract base class for all entities in giro3d.
@@ -15,9 +18,11 @@
  *     const entity = new Entity('exampleEntity');
  *     instance.add(entity);
  *
+ * @property {boolean} frozen if true, updates on this entity will be inhibited. Useful for
+ * debugging a certain state, as moving the camera won't trigger texture changes.
  * @api
  */
-class Entity {
+class Entity extends EventDispatcher {
     /**
      * Creates an entity with the specified unique identifier.
      *
@@ -34,6 +39,7 @@ class Entity {
      * @param {string} id the unique identifier of this entity.
      */
     constructor(id) {
+        super();
         if (!id) {
             throw new Error('Missing id parameter (Entity must have a unique id defined)');
         }
@@ -42,6 +48,8 @@ class Entity {
             value: id,
             writable: false,
         });
+
+        EventUtils.definePropertyWithChangeEvent(this, 'frozen', false);
     }
 
     /**

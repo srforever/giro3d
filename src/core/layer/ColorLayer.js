@@ -6,13 +6,17 @@ import LayerUpdateState from './LayerUpdateState.js';
 import DataStatus from '../../provider/DataStatus.js';
 
 import Layer, {
-    defineLayerProperty, nodeCommandQueuePriorityFunction,
-    refinementCommandCancellationFn, MAX_RETRY,
+    nodeCommandQueuePriorityFunction,
+    refinementCommandCancellationFn,
+    MAX_RETRY,
 } from './Layer.js';
+import EventUtils from '../../utils/EventUtils.js';
 
 /**
  * ColorLayer is used to add textures to a map.
  *
+ * @property {number} [opacity=1.0] The opacity of this ColorLayer. Note: this only affects color
+ * mixing between ColorLayers, not the opacity of the Entity this layer is attached to.
  * @api
  */
 class ColorLayer extends Layer {
@@ -43,9 +47,8 @@ class ColorLayer extends Layer {
         super(id, options);
         this.type = 'ColorLayer';
         this.showTileBorders = options.showTileBorders || false;
-        defineLayerProperty(this, 'frozen', false);
-        defineLayerProperty(this, 'opacity', 1.0);
-        defineLayerProperty(this, 'sequence', 0);
+        EventUtils.definePropertyWithChangeEvent(this, 'opacity', 1.0);
+        EventUtils.definePropertyWithChangeEvent(this, 'sequence', 0);
     }
 
     dispose(map) {
@@ -156,8 +159,6 @@ class ColorLayer extends Layer {
             return null;
         }
 
-        // TODO: move this to defineLayerProperty() declaration
-        // to avoid mixing layer's network updates and layer's params
         // Update material parameters
         material.setLayerVisibility(this, this.visible);
         material.setLayerOpacity(this, this.opacity);
