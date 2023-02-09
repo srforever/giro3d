@@ -15,6 +15,7 @@ import {
     ClampToEdgeWrapping,
     Vector3,
     LinearFilter,
+    Color,
 } from 'three';
 import Interpretation from '../../core/layer/Interpretation.js';
 
@@ -25,6 +26,10 @@ import ComposerTileMaterial from './ComposerTileMaterial.js';
 
 const IMAGE_Z = -10;
 const textureOwners = new Map();
+
+const tmp = {
+    clearColor: new Color(),
+};
 
 function processTextureDisposal(event) {
     const texture = event.target;
@@ -83,10 +88,7 @@ class WebGLComposer {
         this.renderer = options.webGLRenderer;
         this.createDataCopy = options.createDataCopy;
         this.reuseTexture = options.reuseTexture;
-
-        if (options.clearColor) {
-            this.renderer.setClearColor(options.clearColor);
-        }
+        this.clearColor = options.clearColor;
 
         // An array containing textures that this composer has created, to be disposed later.
         this.ownedTextures = [];
@@ -196,29 +198,6 @@ class WebGLComposer {
     reset() {
         this._removeTextures();
         this._removeObjects();
-        this.renderer.clear();
-    }
-
-    /**
-     * Clears the canvas.
-     *
-     * @param {Rect} [rect=undefined] The region of the canvas to clear.
-     * If undefined, the whole canvas is cleared.
-     */
-    clear(rect) {
-        if (rect) {
-            const {
-                x, y, w, h,
-            } = Rect.getNormalizedRect(rect, this.extent);
-            this.renderer.setScissorTest(true);
-            this.renderer.setScissor(x, y, w, h);
-        }
-        this.renderer.clear();
-        if (rect) {
-            // Reset the scissors to the whole canvas
-            this.renderer.setScissorTest(false);
-            this.renderer.setScissor(0, 0, this.width, this.height);
-        }
     }
 
     _removeObjects() {
@@ -271,8 +250,6 @@ class WebGLComposer {
      * @returns {Texture} The texture of the render target.
      */
     render() {
-        const previousTarget = this.renderer.getRenderTarget();
-
         // select the best data type and format according to currently drawn images and constraints
         const { type, format } = this._selectPixelTypeAndTextureFormat();
 
@@ -293,16 +270,23 @@ class WebGLComposer {
 
             target = this.renderTarget;
         }
+
+        const previousTarget = this.renderer.getRenderTarget();
+        const previousClearColor = this.renderer.getClearColor(tmp.clearColor);
+        if (this.clearColor) {
+            this.renderer.setClearColor(this.clearColor);
+        }
         this.renderer.setRenderTarget(target);
 
         this.renderer.render(this.scene, this.camera);
 
-        // Restore whatever render target was set on the renderer
-        this.renderer.setRenderTarget(previousTarget);
-
         if (this.createDataCopy) {
             TextureGenerator.createDataCopy(target, this.renderer);
         }
+
+        // Restore whatever render target was set on the renderer
+        this.renderer.setRenderTarget(previousTarget);
+        this.renderer.setClearColor(previousClearColor);
 
         target.texture.wrapS = ClampToEdgeWrapping;
         target.texture.wrapT = ClampToEdgeWrapping;
