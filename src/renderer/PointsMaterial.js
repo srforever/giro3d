@@ -118,6 +118,21 @@ class PointsMaterial extends RawShaderMaterial {
         this.updateUniforms();
     }
 
+    dispose() {
+        if (this.disposed) {
+            return;
+        }
+        this.dispatchEvent({
+            type: 'dispose',
+        });
+        this.disposed = true;
+
+        const texture = this.getColorTexture(this.colorLayer);
+        if (texture?.owner === this) {
+            texture.dispose();
+        }
+    }
+
     clone() {
         const cl = super.clone(this);
         cl.update(this);
@@ -176,14 +191,18 @@ class PointsMaterial extends RawShaderMaterial {
         if (layer !== this.colorLayer) {
             return null;
         }
-        return this.uniforms.overlayTexture.value;
+        return this.uniforms.overlayTexture?.value;
     }
 
-    setColorTextures(layer, textures) {
+    setColorTextures(layer, textures, shortcut, instance, isInherited = false) {
         if (Array.isArray(textures)) {
             textures = textures[0];
         }
         if (layer === this.colorLayer) {
+            const texture = textures.texture;
+            if (!isInherited) {
+                texture.owner = this;
+            }
             this.uniforms.overlayTexture.value = textures.texture;
             this.uniforms.hasOverlayTexture.value = 1;
             this.uniforms.offsetScale.value.copy(textures.pitch);
