@@ -148,7 +148,7 @@ class ColorLayer extends Layer {
                 }
             }
 
-            if (parent && this.initColorTexturesFromParent(context, node, parent, this)) {
+            if (parent && this.initColorTexturesFromParent(context, node, parent)) {
                 context.instance.notifyChange(node, false);
                 return null;
             }
