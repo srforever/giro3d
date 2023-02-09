@@ -4,8 +4,13 @@ precision highp int;
 #include <logdepthbuf_pars_fragment>
 
 varying vec4 vColor;
+uniform int mode;
 
 void main() {
+    if (mode == MODE_TEXTURE && vColor.a < 0.001) {
+        discard;
+    }
+
     // circular point rendering
     if(length(gl_PointCoord - 0.5) > 0.5){
         discard;

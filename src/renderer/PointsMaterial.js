@@ -165,6 +165,7 @@ class PointsMaterial extends RawShaderMaterial {
 
         this.colorLayer = layer;
         this.uniforms.overlayTexture = new Uniform();
+        this.uniforms.hasOverlayTexture = new Uniform(0);
         this.uniforms.offsetScale = new Uniform(new Vector4(0, 0, 1, 1));
         this.uniforms.extentBottomLeft = new Uniform(new Vector2(extent.west(), extent.south()));
         const dim = extent.dimensions();
@@ -184,6 +185,7 @@ class PointsMaterial extends RawShaderMaterial {
         }
         if (layer === this.colorLayer) {
             this.uniforms.overlayTexture.value = textures.texture;
+            this.uniforms.hasOverlayTexture.value = 1;
             this.uniforms.offsetScale.value.copy(textures.pitch);
         }
         return Promise.resolve();
