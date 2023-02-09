@@ -120,6 +120,25 @@ describe('Extent', () => {
         });
     });
 
+    describe('check', () => {
+        it('should return false if extent has infinite values', () => {
+            expect(new Extent('EPSG:3857', NaN, 1, 0, 1).isValid()).toEqual(false);
+            expect(new Extent('EPSG:3857', Infinity, 1, 0, 1).isValid()).toEqual(false);
+            expect(new Extent('EPSG:3857', 0, 1, Infinity, 1).isValid()).toEqual(false);
+        });
+
+        it('should return false if extent is invalid', () => {
+            const invalidX = new Extent('EPSG:3857', +10, -10, 0, 10);
+            const invalidY = new Extent('EPSG:3857', 0, 10, +10, -10);
+            expect(invalidX.isValid()).toEqual(false);
+            expect(invalidY.isValid()).toEqual(false);
+        });
+
+        it('should return true if the extent is valid', () => {
+            expect(new Extent('EPSG:3857', 0, 10, -12, 223).isValid()).toEqual(true);
+        });
+    });
+
     describe('as', () => {
         it('should throw if target CRS is invalid', () => {
             const original = new Extent('EPSG:4326', {

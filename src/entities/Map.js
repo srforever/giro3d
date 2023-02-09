@@ -164,9 +164,13 @@ class Map extends Entity3D {
     constructor(id, options = {}) {
         super(id, options.object3d || new Group());
 
+        /** @type {Array<TileMesh>} */
         this.level0Nodes = [];
 
         /** @type {Extent} */
+        if (!options.extent.isValid()) {
+            throw new Error('Invalid extent: minX must be less than maxX and minY must be less than maxY.');
+        }
         this.extent = options.extent;
 
         this.subdivisions = selectBestSubdivisions(this, this.extent);

@@ -56,6 +56,13 @@ describe('Map', () => {
             expect(() => new Map(undefined)).toThrow(/Missing id parameter/);
         });
 
+        it('should throw if the extent is invalid', () => {
+            // reversed extent (min values are greater than max values)
+            const invalid = new Extent('EPSG:3857', +10, -10, +5, -5);
+
+            expect(() => new Map('foo', { extent: invalid })).toThrow(/Invalid extent/);
+        });
+
         it.each([true, false])('should assign the correct materialOptions', b => {
             const opts = {
                 extent,
