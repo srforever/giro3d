@@ -43,7 +43,7 @@ const layers = ['watercolor', 'toner', 'terrain'];
 let mapCount = 0;
 
 // Create a grid that encompasses the whole EPSG:3857 bounds.
-const grid = Helpers.createGrid(new Vector3(0, 0, 0), EPSG3857_BOUNDS.dimensions().x, 20);
+const grid = Helpers.createGrid(new Vector3(0, 0, -10000), EPSG3857_BOUNDS.dimensions().x, 20);
 instance.threeObjects.add(grid);
 
 function createMap(extent) {
