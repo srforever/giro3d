@@ -185,6 +185,7 @@ class PointsMaterial extends RawShaderMaterial {
         this.uniforms.extentBottomLeft = new Uniform(new Vector2(extent.west(), extent.south()));
         const dim = extent.dimensions();
         this.uniforms.extentSize = new Uniform(new Vector2(dim.x, dim.y));
+        this.needsUpdate = true;
     }
 
     getColorTexture(layer) {
