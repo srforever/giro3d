@@ -1,42 +1,22 @@
 /*
- * This code uses the same one as the customtiledimage example; see that one for explanations.
+ * This code uses the same one as the orthographic example; see that one for explanations.
  */
 
 import { WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import Stamen from 'ol/source/Stamen.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
-import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
-import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
-import CustomTiledImageSource from '@giro3d/giro3d/sources/CustomTiledImageSource.js';
-
-Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 
 const extent = new Extent(
-    'EPSG:2154',
-    929748, 974519, 6400582, 6444926,
+    'EPSG:3857',
+    -20037508.342789244, 20037508.342789244,
+    -20037508.342789244, 20037508.342789244,
 );
 
-// Source data from IGN BD ALTI https://geoservices.ign.fr/bdalti
-const demSource = new CustomTiledImageSource({
-    url: 'https://3d.oslandia.com/ecrins/ecrins-dem.json',
-    networkOptions: { crossOrigin: 'same-origin' },
-});
-
-// Source data from Copernicus https://land.copernicus.eu/imagery-in-situ/european-image-mosaics/very-high-resolution/vhr-2012
-const imagerySource = new CustomTiledImageSource({
-    url: 'https://3d.oslandia.com/ecrins/ecrins.json',
-    networkOptions: { crossOrigin: 'same-origin' },
-});
-
-const cameraPosition = new Coordinates(
-    'EPSG:2154',
-    extent.west(), extent.south(), 2000,
-).xyz();
+const stamenSource = new Stamen({ layer: 'watercolor', wrapX: false });
 
 function buildViewer(viewerDiv, defaultRenderer = true) {
     const renderer = { clearColor: false };
@@ -44,42 +24,22 @@ function buildViewer(viewerDiv, defaultRenderer = true) {
         renderer.renderer = new WebGLRenderer({ antialias: true, alpha: true });
     }
     const instance = new Instance(viewerDiv, { renderer });
+    // Creates a map that will contain the layer
+    const map = new Map('planar', { extent, maxSubdivisionLevel: 10 });
 
-    const map = new Map('planar', { extent });
     instance.add(map);
 
-    map.addLayer(new ElevationLayer('dem', {
-        updateStrategy: {
-            type: STRATEGY_DICHOTOMY,
-            options: {},
+    // Adds an TMS imagery layer
+    map.addLayer(new ColorLayer(
+        'osm',
+        {
+            source: stamenSource,
         },
-        source: demSource,
-        interpretation: Interpretation.ScaleToMinMax(711, 3574),
-        projection: 'EPSG:2154',
-    }));
+    )).catch(e => console.error(e));
 
-    map.addLayer(new ColorLayer('copernicus', {
-        updateStrategy: {
-            type: STRATEGY_DICHOTOMY,
-            options: {},
-        },
-        source: imagerySource,
-        projection: 'EPSG:2154',
-    }));
+    instance.camera.camera3D.position.set(0, 0, 25000000);
 
-    instance.camera.camera3D.position.copy(cameraPosition);
-
-    const controls = new MapControls(
-        instance.camera.camera3D,
-        viewerDiv,
-    );
-
-    controls.target = extent.center().xyz();
-    controls.saveState();
-
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.2;
-    controls.maxPolarAngle = Math.PI / 2.3;
+    const controls = new MapControls(instance.camera.camera3D, viewerDiv);
 
     instance.useTHREEControls(controls);
 
