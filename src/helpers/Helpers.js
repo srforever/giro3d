@@ -354,8 +354,11 @@ class Helpers {
         if (obj.boundingVolumeHelper) {
             // The helper is not necessarily attached to the object, in the
             // case of helpers with absolute position.
-            obj.boundingVolumeHelper.object3d.parent.remove(obj.boundingVolumeHelper.object3d);
-            obj.boundingVolumeHelper.dispose();
+            /** @type {Object3D} */
+            const obj3d = obj.boundingVolumeHelper.object3d;
+            obj3d.parent.remove(obj3d);
+            obj3d.geometry?.dispose();
+            obj3d.material?.dispose();
             delete obj.boundingVolumeHelper;
         }
     }

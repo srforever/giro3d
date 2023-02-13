@@ -27,6 +27,7 @@ attribute vec3 normal;
 #endif
 
 uniform sampler2D overlayTexture;
+uniform float hasOverlayTexture;
 uniform vec4 offsetScale;
 uniform vec2 extentBottomLeft;
 uniform vec2 extentSize;
@@ -113,7 +114,7 @@ void main() {
         pp *= offsetScale.zw / extentSize;
         pp += offsetScale.xy;
         vec3 textureColor = texture2D(overlayTexture, pp).rgb;
-        vColor = vec4(mix(textureColor, overlayColor.rgb, overlayColor.a), opacity);
+        vColor = vec4(mix(textureColor, overlayColor.rgb, overlayColor.a), opacity * hasOverlayTexture);
     } else if (mode == MODE_ELEVATION) {
         float z = (modelMatrix * vec4(position, 1.0)).z;
         // colors from OGC EL.GridCoverage.Default style

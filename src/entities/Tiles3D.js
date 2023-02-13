@@ -71,6 +71,10 @@ class Tiles3D extends Entity3D {
         this._cleanableTiles = [];
     }
 
+    preprocess() {
+        this.imageSize = { w: 128, h: 128 };
+    }
+
     pickObjectsAt(coordinates, options, target) {
         // If this is a pointcloud but with no default material defined,
         // we don't go in that if, but we could.

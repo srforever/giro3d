@@ -155,7 +155,11 @@ class Entity3D extends Entity {
         layer.owner = this;
         layer._instance = this._instance;
         if (!layer.imageSize) {
-            layer.imageSize = { w: 256, h: 256 };
+            if (this.imageSize) {
+                layer.imageSize = this.imageSize;
+            } else {
+                layer.imageSize = { w: 256, h: 256 };
+            }
         }
 
         this._attachedLayers.push(layer);

@@ -615,8 +615,6 @@ function drawLayerOnCanvas(layer, composer, atlasInfo, texture) {
 
     const rect = new Rect(dx, dx + dw, dy, dy + dh);
 
-    composer.clear(rect);
-
     composer.draw(texture, rect);
 }
 
