@@ -1,11 +1,9 @@
 import { fromUrl, Pool } from 'geotiff';
 import { Vector4, FloatType, UnsignedByteType } from 'three';
-import ColorLayer from '../core/layer/ColorLayer.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
 
 import DataStatus from './DataStatus.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
-import ElevationLayer from '../core/layer/ElevationLayer.js';
 import Rect from '../core/Rect.js';
 import Cache from '../core/scheduler/Cache.js';
 
@@ -59,22 +57,17 @@ function selectDataType(bytesPerPixel, bandCount) {
     return FloatType;
 }
 
-function processArrayData(layer, arrayData, compressTo8bit) {
+function processArrayData(layer, arrayData) {
     // Width and height in pixels of the returned data
     const { width, height } = arrayData;
 
-    const dataType = selectDataType(layer.bpp, arrayData.length, compressTo8bit);
-
-    const scaling = ((compressTo8bit || dataType === UnsignedByteType) && layer.minmax)
-        ? { min: layer.minmax.min, max: layer.minmax.max }
-        : undefined;
+    const dataType = selectDataType(layer.bpp, arrayData.length);
 
     const texture = TextureGenerator.createDataTexture(
         {
             width,
             height,
             nodata: layer.nodata,
-            scaling,
         },
         dataType,
         ...arrayData,
@@ -117,9 +110,8 @@ function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) 
         }
 
         // Process the downloaded data
-        const compressTo8bit = layer instanceof ColorLayer;
         const { width, height } = arrayData;
-        const inputTexture = processArrayData(layer, arrayData, compressTo8bit);
+        const inputTexture = processArrayData(layer, arrayData);
 
         // Flip the texture using the composer instead of flipping during upload
         // See https://bugzilla.mozilla.org/show_bug.cgi?id=1400077
@@ -128,9 +120,12 @@ function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) 
             width,
             height,
             webGLRenderer: layer.instance.renderer,
-            createDataCopy: layer instanceof ElevationLayer,
+            createDataCopy: layer.type === 'ElevationLayer',
         });
-        composer.draw(inputTexture, Rect.fromExtent(extent), { flipY: true });
+        composer.draw(inputTexture, Rect.fromExtent(extent), {
+            flipY: true,
+            interpretation: layer.interpretation,
+        });
         const texture = composer.render();
         // Attach the extent to the texture to check for possible improvements
         texture.extent = extent;
