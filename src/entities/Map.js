@@ -25,6 +25,14 @@ import RenderingState from '../renderer/RenderingState.js';
 const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 
 /**
+ * The maximum supported aspect ratio for the map tiles, before we stop trying to create square
+ * tiles. This is a safety measure to avoid huge number of root tiles when the extent is a very
+ * elongated rectangle. If the map extent has a greater ratio than this value, the generated tiles
+ * will not be square-ish anymore.
+ */
+const MAX_SUPPORTED_ASPECT_RATIO = 10;
+
+/**
  * Fires when a layer is added to the map.
  *
  * @api
@@ -94,10 +102,10 @@ function selectBestSubdivisions(map, extent) {
     let x = 1; let y = 1;
     if (ratio > 1) {
         // Our extent is an horizontal rectangle
-        x = Math.round(ratio);
+        x = Math.min(Math.round(ratio), MAX_SUPPORTED_ASPECT_RATIO);
     } else if (ratio < 1) {
         // Our extent is an vertical rectangle
-        y = Math.round(1 / ratio);
+        y = Math.min(Math.round(1 / ratio), MAX_SUPPORTED_ASPECT_RATIO);
     }
 
     return { x, y };
@@ -119,12 +127,15 @@ function computeImageSize(extent) {
     }
 
     if (ratio > 1) {
+        const actualRatio = Math.min(ratio, MAX_SUPPORTED_ASPECT_RATIO);
         // We have an horizontal tile
-        return { w: Math.round(baseSize * ratio), h: baseSize };
+        return { w: Math.round(baseSize * actualRatio), h: baseSize };
     }
 
+    const actualRatio = Math.min(1 / ratio, MAX_SUPPORTED_ASPECT_RATIO);
+
     // We have a vertical tile
-    return { w: baseSize, h: Math.round(baseSize * (1 / ratio)) };
+    return { w: baseSize, h: Math.round(baseSize * actualRatio) };
 }
 
 /**

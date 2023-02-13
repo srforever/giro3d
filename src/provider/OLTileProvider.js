@@ -1,5 +1,6 @@
 import {
     Texture,
+    Vector2,
     Vector4,
     WebGLRenderer,
 } from 'three';
@@ -20,6 +21,9 @@ import WebGLComposer from '../renderer/composition/WebGLComposer.js';
 
 const TEXTURE_CACHE_LIFETIME_MS = 1000 * 60; // 60 seconds
 const MIN_LEVEL_THRESHOLD = 2;
+const tmp = {
+    dims: new Vector2(),
+};
 
 /**
  * Dispose the texture contained in the promise.
@@ -97,8 +101,18 @@ function getZoomLevel(tileGrid, imageSize, extent) {
     // with the same size.
     const olExtent = toOLExtent(extent, 0.001);
 
-    const extentWidth = olExtent[2] - olExtent[0];
-    const targetResolution = imageSize.w / extentWidth;
+    let targetResolution;
+
+    const dims = extent.dimensions(tmp.dims);
+    // If tiles are not square, we want to use the biggest side to compute the zoom level,
+    // otherwise we may generate way too many tile requests to the underlying OL source.
+    if (dims.x > dims.y) {
+        const extentSize = olExtent[2] - olExtent[0];
+        targetResolution = imageSize.w / extentSize;
+    } else {
+        const extentSize = olExtent[3] - olExtent[1];
+        targetResolution = imageSize.h / extentSize;
+    }
 
     const minResolution = 1 / tileGrid.getResolution(minZoom);
 
