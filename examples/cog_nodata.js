@@ -1,8 +1,6 @@
 import colormap from 'colormap';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import {
-    Color,
-} from 'three';
+import { Color } from 'three';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import CogSource from '@giro3d/giro3d/sources/CogSource.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
@@ -11,11 +9,15 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
 
+// Define projection that we will use (taken from https://epsg.io/6345, Proj4js section)
+Instance.registerCRS('EPSG:6345', '+proj=utm +zone=16 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 const extent = new Extent(
-    'EPSG:3857',
-    -13581040.085, -13469591.026,
-    5780261.830, 5942165.048,
+    'EPSG:6345',
+    583500, 584762,
+    3280500, 3282000,
 );
+
+const center = extent.center().xyz();
 
 // `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
 const viewerDiv = document.getElementById('viewerDiv');
@@ -23,10 +25,13 @@ const viewerDiv = document.getElementById('viewerDiv');
 // Instantiate Giro3D
 const instance = new Instance(viewerDiv, {
     crs: extent.crs(),
+    renderer: {
+        clearColor: 0x0a3b59,
+    },
 });
 
 // Instantiate the camera
-instance.camera.camera3D.position.set(-13656319, 5735451, 88934);
+instance.camera.camera3D.position.set(center.x, center.y - 1, 3000);
 
 // Instantiate the controls
 const controls = new MapControls(
@@ -35,30 +40,29 @@ const controls = new MapControls(
 );
 controls.enableDamping = true;
 controls.dampingFactor = 0.2;
-controls.target.set(-13545408, 5837154, 0);
+controls.target.set(center.x, center.y, center.z);
 instance.useTHREEControls(controls);
 
 // Construct a map and add it to the instance
 const map = new Map('planar', {
     extent,
-    segments: 128,
     discardNoData: true,
-    backgroundColor: 'gray',
+    backgroundColor: new Color(0, 0, 0),
     hillshading: true,
 });
 instance.add(map);
 
 // Use an elevation COG with nodata values
 const source = new CogSource({
-    // https://www.sciencebase.gov/catalog/item/632a9a9ad34e71c6d67b95a3
-    url: 'https://3d.oslandia.com/cog_data/COG_EPSG3857_USGS_13_n47w122_20220919.tif',
+    // https://www.sciencebase.gov/catalog/item/624d95e3d34e21f827660b53
+    url: 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/OPR/Projects/LA_Chenier_Plain_Lidar_2017_B16/LA_Chenier_Plain_2017/TIFF/USGS_OPR_LA_Chenier_Plain_Lidar_2017_B16_15RWN835805.tif',
 });
 
-const values = colormap({ colormap: 'viridis' });
+const values = colormap({ colormap: 'greys' });
 const colors = values.map(v => new Color(v));
 
-const min = 263;
-const max = 4347;
+const min = -0.2;
+const max = 1.3;
 
 // Display it as elevation and color
 const colorMap = new ColorMap(colors, min, max, ColorMapMode.Elevation);
