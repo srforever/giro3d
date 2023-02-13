@@ -3,7 +3,7 @@ import Cache from '../../../src/core/scheduler/Cache.js';
 import TileMesh from '../../../src/core/TileMesh.js';
 import Map from '../../../src/entities/Map.js';
 
-const extent = new Extent('foo', 0, 1, 0, 1);
+const extent = new Extent('EPSG:3857', 0, 1, 0, 1);
 const map = new Map('map', { extent });
 
 describe('TileMesh', () => {

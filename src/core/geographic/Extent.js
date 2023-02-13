@@ -114,6 +114,37 @@ class Extent {
     }
 
     /**
+     * Checks the validity of the extent.
+     *
+     * @api
+     * @returns {boolean} `true` if the extent is valid, `false` otherwise.
+     */
+    isValid() {
+        if (!(
+            Number.isFinite(this.west())
+            && Number.isFinite(this.east())
+            && Number.isFinite(this.south())
+            && Number.isFinite(this.north())
+        )) {
+            return false;
+        }
+
+        // Geographic coordinate systems may allow a greater "west" than "east"
+        // to account for the wrap around the 180° longitude line.
+        if (!crsIsGeographic(this.crs())) {
+            if (this.west() > this.east()) {
+                return false;
+            }
+        }
+
+        if (this.south() > this.north()) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Clones this object.
      *
      * @api
