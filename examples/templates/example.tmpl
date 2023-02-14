@@ -31,7 +31,7 @@
         %customcss%
         </style>
     </head>
-    <body class="p-0 m-0 border-0 d-flex flex-column">
+    <body class="p-0 m-0 border-0 d-flex flex-column bg-light">
 
         <!-- navbar -->
         <header class="navbar navbar-expand-lg bg-light sticky-top shadow-sm">
@@ -64,21 +64,22 @@
                         </li>
                     </ul>
                 </div>
-
-                <a href="%source_url%" target="_blank">
-                    <button type="button" class="btn btn-outline-secondary">Source</button>
-                </a>
             </div>
         </header>
 
-        <div class="m-0 p-0">
+        <div class="m-3">
+
+            <!-- Short description (same as in the example card) -->
+            <div>
+                <p class="text-muted">%description%</p>
+            </div>
 
             <!-- 3D view -->
-            <div class="position-relative vh-100 vw-100">
+            <div class="border position-relative">
                 <!-- Viewer -->
-                <div id="viewerDiv"></div>
-                <!-- Inspector (visible by default) -->
-                <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
+                <div id="viewerDiv" style="height: 65vh"></div>
+                <!-- Inspector (hidden by default) -->
+                <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto" style="display:none"></div>
                 <!-- Optional additional content from the example (custom buttons, etc.) -->
                 %content%
                 <!-- Coordinate bar -->
@@ -88,6 +89,13 @@
                 </div>
             </div>
 
+            <!-- Long description (optional) -->
+            <div class="my-3">
+                <p>%long_description%</p>
+            </div>
+
+            <!-- Source code -->
+            <div class="border rounded p-3 my-3" id="source" style="background-color: #ffffff">%code%</div>
         </div>
 
         <!-- The code of the example -->

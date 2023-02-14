@@ -17,7 +17,7 @@ const EPSG3857_BOUNDS = new Extent(
 
 let currentMap;
 
-// `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+// `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates a giro3d instance

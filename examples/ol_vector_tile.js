@@ -14,7 +14,7 @@ const extent = new Extent(
     -20048966.1, 20048966.1,
 );
 
-// `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+// `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates a giro3d instance

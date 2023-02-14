@@ -16,7 +16,7 @@ Instance.registerCRS('EPSG:3857', '+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +l
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent('EPSG:3857', 659030, 735596, 5535152, 5647497);
 
-// `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+// `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates the giro3d instance
