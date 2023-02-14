@@ -21,12 +21,12 @@ function executeSearchQuery(elem) {
 
 function collectExamples() {
     document
-        .querySelectorAll('.col')
+        .querySelectorAll("[id^='example-card']")
         .forEach(e => {
             const obj = {};
             obj.element = e;
-            obj.name = e.querySelector('.card-title').innerHTML.toLowerCase();
-            obj.description = e.querySelector('.card-text').innerHTML.toLowerCase();
+            obj.name = e.querySelector("[id^='example-title'").innerHTML.toLowerCase();
+            obj.description = e.querySelector("[id^='example-desc'").innerHTML.toLowerCase();
             obj.display = e.style.display;
             examples.push(obj);
         });

@@ -1,17 +1,23 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import fse from 'fs-extra';
 import path from 'path';
 import sources from 'webpack-sources';
 import frontMatter from 'front-matter';
+import shiki from 'shiki';
 
 const RawSource = sources.RawSource;
 const relativeImportRegex = /\.\.\/src/;
 
+let exampleId = 0;
+
 function generateExampleCard(pathToHtmlFile, template) {
     const name = path.parse(pathToHtmlFile).name;
     const { attributes } = parseExample(pathToHtmlFile);
+    exampleId++;
     return template
         .replaceAll('%title%', attributes.title)
         .replaceAll('%description%', attributes.shortdesc)
+        .replaceAll('%id%', exampleId)
         .replaceAll('%name%', name);
 }
 
