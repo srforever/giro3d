@@ -26,7 +26,7 @@ function generateExample(pathToHtmlFile, template) {
         customCss = fse.readFileSync(css);
     }
     const html = template
-        .replaceAll('%title%', `${attributes.title} - Giro3D`)
+        .replaceAll('%title%', `${attributes.title}`)
         .replaceAll('%description%', attributes.shortdesc)
         .replaceAll('%name%', name)
         .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/master/examples/${js}`)
