@@ -1,16 +1,24 @@
 ---
-title: Picking objects and raycasting
-shortdesc: Show how to pick objects and raycast programmatically
+title: Picking
+shortdesc: Pick objects with various methods (GPU picking, raycasting...)
 ---
-<div class="position-relative h-100">
-    <div id="viewerDiv"></div>
-    <div id="panelDiv" class="bg-dark position-absolute top-0 start-0 shadow-sm"></div>
-    <div class="m-2 position-absolute top-0 end-0" style="max-width: 20vw;">
-        <div class="p-2 m-2 card">
+<div class="m-2 position-absolute top-0 end-0">
+    <div class="card">
+        <h5 class="card-header">Picking</h5>
+
+        <!-- tooltip -->
+        <span class="badge bg-secondary position-absolute top-0 end-0 m-2" data-bs-toggle="popover"
+            data-bs-content="pickingHelper">?</span>
+        <p class="card-text d-none" id="pickingHelper">Picking lets you pick Giro3d and native THREE.js objects, and get
+            their coordinates in the CRS of the instance.<br>
+            Provides various filtering options to enhance precision and performance.</p>
+
+        <div class="card-body">
+            <!-- Parameters -->
             <form>
                 <div class="row">
-                    <div class="dropdown w-100">
-                        <select class="btn btn-primary dropdown-toggle w-100" id="pickSource">
+                    <div class="dropdown">
+                        <select class="btn btn-primary dropdown-toggle" id="pickSource">
                             <option value="0">Pick from whole scene</option>
                             <option value="1">Pick from pointcloud</option>
                             <option value="2" selected>Pick from map</option>
@@ -33,36 +41,42 @@ shortdesc: Show how to pick objects and raycast programmatically
                     </div>
                 </div>
             </form>
-        </div>
-        <div class="p-2 m-2 card">
-            <span class="badge bg-secondary position-absolute top-0 end-0 m-2" data-bs-toggle="popover" data-bs-content="pickingHelper">?</span>
-            <h5 class="card-title">Picking results</h5>
-            <p class="card-text d-none" id="pickingHelper">Picking lets you pick Giro3d and native THREE.js objects, and get their coordinates in the CRS of the instance.<br>
-            Provides various filtering options to enhance precision and performance.</p>
-            <ul>
-                <li>Time: <span id="pickingTiming"></span></li>
-                <li>Number of objects: <span id="pickingCount"></span></li>
-                <li>First object: <span id="pickingFirstResult"></span></li>
-            </ul>
-        </div>
-        <div class="p-2 m-2 card">
-            <span class="badge bg-secondary position-absolute top-0 end-0 m-2" data-bs-toggle="popover" data-bs-content="raycastingHelper">?</span>
-            <h5 class="card-title">Raycasting results</h5>
-            <p class="card-text d-none" id="raycastingHelper">THREE.js's raycasting lets you pick THREE.js objects (including the ones created by Giro3D). Beware the altitude returned will not always correspond to the real altitude. Performances decrease dramatically as more data is displayed in the view.</p>
-            <ul>
-                <li>Time: <span id="raycastingTiming"></span></li>
-                <li>Number of objects: <span id="raycastingCount"></span></li>
-                <li>First object: <span id="raycastingFirstResult"></span></li>
-            </ul>
-        </div>
-        <div class="p-2 m-2 card">
-            <span class="badge bg-secondary position-absolute top-0 end-0 m-2" data-bs-toggle="popover" data-bs-content="projectingHelper">?</span>
-            <h5 class="card-title">Projecting</h5>
-            <p class="card-text d-none" id="projectingHelper">Projecting assumes a given altitude. This can be useful as a fallback method if there's no data under the mouse.</p>
-            <ul>
-                <li>Time: <span id="projectingTiming"></span></li>
-                <li>Point: <span id="projectingResult"></span></li>
-            </ul>
+
+            <!-- Result table -->
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Mode</th>
+                        <th scope="col">Time (ms)</th>
+                        <th scope="col"># Objects</th>
+                        <th scope="col">First object</th>
+                        <th scope="col">Coordinate</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">Picking</th>
+                        <td><span id="pickingTiming"></span></td>
+                        <td><span id="pickingCount"></span></td>
+                        <td><span id="pickingFirstResult"></span></td>
+                        <td><span id="pickingCoord"></span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Raycasting</th>
+                        <td><span id="raycastingTiming"></span></td>
+                        <td><span id="raycastingCount"></span></td>
+                        <td><span id="raycastingFirstResult"></span></td>
+                        <td><span id="raycastingCoord"></span></td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Projection</th>
+                        <td><span id="projectingTiming"></span></td>
+                        <td><span id="projectingCount">1</span></td>
+                        <td><span id="projectingFirstResult">-</span></td>
+                        <td><span id="projectingCoord"></span></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

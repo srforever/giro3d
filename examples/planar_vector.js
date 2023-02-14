@@ -14,6 +14,8 @@ import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
+import CoordinateBar from './widgets/CoordinateBar.js';
+
 // # Planar (EPSG:3946) viewer
 
 // Defines projection that we will use (taken from https://epsg.io/3946, Proj4js section)
@@ -192,14 +194,4 @@ instance.useTHREEControls(controls);
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
 // Bind events
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
-const infoDiv = document.getElementById('infoDiv');
-instance.domElement.addEventListener('mousemove', e => {
-    const picked = instance.pickObjectsAt(e, { limit: 1 }).at(0);
-    if (picked) {
-        infoDiv.classList.remove('d-none');
-        infoDiv.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(5)}`;
-    } else {
-        infoDiv.classList.add('d-none');
-    }
-});
+CoordinateBar.bind(instance);

@@ -61,7 +61,9 @@ const controls = new MapControls(instance.camera.camera3D, viewerDiv);
 instance.useTHREEControls(controls);
 
 // Attach the inspector to the DOM
-const inspector = Inspector.attach(document.getElementById('panelDiv'), instance);
+const inspectorDiv = document.getElementById('panelDiv');
+inspectorDiv.style.display = 'block';
+const inspector = Inspector.attach(inspectorDiv, instance);
 
 const myCustomPanel = new MyCustomPanel(inspector.gui, map, instance);
 

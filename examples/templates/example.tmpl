@@ -71,8 +71,26 @@
             </div>
         </header>
 
-        %content%
+        <div class="m-0 p-0">
 
+            <!-- 3D view -->
+            <div class="position-relative vh-100 vw-100">
+                <!-- Viewer -->
+                <div id="viewerDiv"></div>
+                <!-- Inspector (visible by default) -->
+                <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
+                <!-- Optional additional content from the example (custom buttons, etc.) -->
+                %content%
+                <!-- Coordinate bar -->
+                <div id="coordinates"
+                    style="border-radius: 4px 0 0; font-size: 12px;"
+                    class="position-absolute bottom-0 end-0 bg-light text-secondary px-2">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- The code of the example -->
         <script type="module" src="%js%"></script>
     </body>
 </html>

@@ -5,6 +5,8 @@ import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
+import CoordinateBar from './widgets/CoordinateBar.js';
+
 const tmpVec3 = new Vector3();
 
 const viewerDiv = document.getElementById('viewerDiv');
@@ -78,13 +80,4 @@ ${picked.length} objects found<br>
     }
 });
 
-const infoDiv = document.getElementById('infoDiv');
-instance.domElement.addEventListener('mousemove', e => {
-    const picked = instance.pickObjectsAt(e, { radius: 5, limit: 1 }).at(0);
-    if (picked) {
-        infoDiv.classList.remove('d-none');
-        infoDiv.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(2)}`;
-    } else {
-        infoDiv.classList.add('d-none');
-    }
-});
+CoordinateBar.bind(instance);

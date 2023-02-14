@@ -1,140 +1,135 @@
 ---
-title: Colormaps
-shortdesc: Colorize elevation, slope and aspect
+title: Color maps
+shortdesc: Create color maps to interpret elevation, slope and aspect with custom color ramps.
 ---
-<div class="position-relative h-100">
-    <div id="viewerDiv"></div>
-    <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
+<div class="m-2 position-absolute top-0 end-0">
 
-    <div class="m-2 position-absolute top-0 end-0">
-
-        <!-- Top color layer -->
-        <div class="card m-1">
-            <div class="card-header">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" checked="true" type="checkbox" role="switch" id="top-layer-enable">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Top color layer</label>
-                </div>
-            </div>
-
-            <div class="container m-1">
-
-                <!-- Activate color map -->
-                <div class="row p-1">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" checked="true" type="checkbox" role="switch" id="top-colormap-enable">
-                        <label class="form-check-label" for="flexSwitchCheckDefault">Color map</label>
-                    </div>
-                </div>
-
-                <!-- Select color map mode -->
-                <div class="row p-1">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Mode</span>
-                        <select class="btn btn-outline-primary btn-sm" id="top-mode">
-                            <option>elevation</option>
-                            <option>slope</option>
-                            <option>aspect</option>
-                        </select>
-                        <select class="btn btn-outline-primary btn-sm" id="top-gradient">
-                            <option selected="selected">viridis</option>
-                            <option>jet</option>
-                            <option>blackbody</option>
-                            <option>earth</option>
-                            <option>bathymetry</option>
-                            <option>magma</option>
-                            <option>par</option>
-                        </select>
-                    </div>
-                </div>
-
+    <!-- Top color layer -->
+    <div class="card m-1">
+        <div class="card-header">
+            <div class="form-check form-switch">
+                <input class="form-check-input" checked="true" type="checkbox" role="switch" id="top-layer-enable">
+                <label class="form-check-label" for="flexSwitchCheckDefault">Top color layer</label>
             </div>
         </div>
 
-        <!-- Bottom color layer -->
-        <div class="card m-1">
-            <div class="card-header">
+        <div class="container m-1">
+
+            <!-- Activate color map -->
+            <div class="row p-1">
                 <div class="form-check form-switch">
-                    <input class="form-check-input" checked="true" type="checkbox" role="switch" id="bottom-layer-enable">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Bottom color layer</label>
+                    <input class="form-check-input" checked="true" type="checkbox" role="switch" id="top-colormap-enable">
+                    <label class="form-check-label" for="flexSwitchCheckDefault">Color map</label>
                 </div>
             </div>
 
-            <div class="container m-1">
-
-                <!-- Activate color map -->
-                <div class="row p-1">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" checked="true" type="checkbox" role="switch" id="bottom-colormap-enable">
-                        <label class="form-check-label" for="flexSwitchCheckDefault">Color map</label>
-                    </div>
+            <!-- Select color map mode -->
+            <div class="row p-1">
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Mode</span>
+                    <select class="btn btn-outline-primary btn-sm" id="top-mode">
+                        <option>elevation</option>
+                        <option>slope</option>
+                        <option>aspect</option>
+                    </select>
+                    <select class="btn btn-outline-primary btn-sm" id="top-gradient">
+                        <option selected="selected">viridis</option>
+                        <option>jet</option>
+                        <option>blackbody</option>
+                        <option>earth</option>
+                        <option>bathymetry</option>
+                        <option>magma</option>
+                        <option>par</option>
+                    </select>
                 </div>
+            </div>
 
-                <!-- Select color map mode -->
-                <div class="row p-1">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Mode</span>
-                        <select class="btn btn-outline-primary btn-sm" id="bottom-mode">
-                            <option>elevation</option>
-                            <option>slope</option>
-                            <option>aspect</option>
-                        </select>
-                        <select class="btn btn-outline-primary btn-sm" id="bottom-gradient">
-                            <option>viridis</option>
-                            <option selected="selected">jet</option>
-                            <option>blackbody</option>
-                            <option>earth</option>
-                            <option>bathymetry</option>
-                            <option>magma</option>
-                            <option>par</option>
-                        </select>
-                    </div>
-                </div>
+        </div>
+    </div>
 
+    <!-- Bottom color layer -->
+    <div class="card m-1">
+        <div class="card-header">
+            <div class="form-check form-switch">
+                <input class="form-check-input" checked="true" type="checkbox" role="switch" id="bottom-layer-enable">
+                <label class="form-check-label" for="flexSwitchCheckDefault">Bottom color layer</label>
             </div>
         </div>
 
-        <!-- Elevation layer -->
-        <div class="card m-1">
-            <div class="card-header">
+        <div class="container m-1">
+
+            <!-- Activate color map -->
+            <div class="row p-1">
                 <div class="form-check form-switch">
-                    <input class="form-check-input" checked="true" type="checkbox" role="switch" id="elevation-layer-enable">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Elevation layer</label>
+                    <input class="form-check-input" checked="true" type="checkbox" role="switch" id="bottom-colormap-enable">
+                    <label class="form-check-label" for="flexSwitchCheckDefault">Color map</label>
                 </div>
             </div>
 
-            <div class="container m-1">
-
-                <!-- Activate color map -->
-                <div class="row p-1">
-                    <div class="form-check form-switch">
-                        <input class="form-check-input" checked="true" type="checkbox" role="switch" id="elevation-colormap-enable">
-                        <label class="form-check-label" for="flexSwitchCheckDefault">Color map</label>
-                    </div>
+            <!-- Select color map mode -->
+            <div class="row p-1">
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Mode</span>
+                    <select class="btn btn-outline-primary btn-sm" id="bottom-mode">
+                        <option>elevation</option>
+                        <option>slope</option>
+                        <option>aspect</option>
+                    </select>
+                    <select class="btn btn-outline-primary btn-sm" id="bottom-gradient">
+                        <option>viridis</option>
+                        <option selected="selected">jet</option>
+                        <option>blackbody</option>
+                        <option>earth</option>
+                        <option>bathymetry</option>
+                        <option>magma</option>
+                        <option>par</option>
+                    </select>
                 </div>
-
-                <!-- Select color map mode -->
-                <div class="row p-1">
-                    <div class="input-group mb-3">
-                        <span class="input-group-text">Mode</span>
-                        <select class="btn btn-outline-primary btn-sm" id="elevation-mode">
-                            <option>elevation</option>
-                            <option>slope</option>
-                            <option>aspect</option>
-                        </select>
-                        <select class="btn btn-outline-primary btn-sm" id="elevation-gradient">
-                            <option>viridis</option>
-                            <option>jet</option>
-                            <option>blackbody</option>
-                            <option selected="selected">earth</option>
-                            <option>bathymetry</option>
-                            <option>magma</option>
-                            <option>par</option>
-                        </select>
-                    </div>
-                </div>
-
             </div>
+
+        </div>
+    </div>
+
+    <!-- Elevation layer -->
+    <div class="card m-1">
+        <div class="card-header">
+            <div class="form-check form-switch">
+                <input class="form-check-input" checked="true" type="checkbox" role="switch" id="elevation-layer-enable">
+                <label class="form-check-label" for="flexSwitchCheckDefault">Elevation layer</label>
+            </div>
+        </div>
+
+        <div class="container m-1">
+
+            <!-- Activate color map -->
+            <div class="row p-1">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" checked="true" type="checkbox" role="switch" id="elevation-colormap-enable">
+                    <label class="form-check-label" for="flexSwitchCheckDefault">Color map</label>
+                </div>
+            </div>
+
+            <!-- Select color map mode -->
+            <div class="row p-1">
+                <div class="input-group mb-3">
+                    <span class="input-group-text">Mode</span>
+                    <select class="btn btn-outline-primary btn-sm" id="elevation-mode">
+                        <option>elevation</option>
+                        <option>slope</option>
+                        <option>aspect</option>
+                    </select>
+                    <select class="btn btn-outline-primary btn-sm" id="elevation-gradient">
+                        <option>viridis</option>
+                        <option>jet</option>
+                        <option>blackbody</option>
+                        <option selected="selected">earth</option>
+                        <option>bathymetry</option>
+                        <option>magma</option>
+                        <option>par</option>
+                    </select>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>

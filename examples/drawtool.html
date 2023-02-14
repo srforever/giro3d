@@ -2,85 +2,81 @@
 title: Draw shapes
 shortdesc: Enables the user to draw points, lines and polygons
 ---
-<div class="position-relative h-100">
-    <div id="viewerDiv"></div>
-    <div class="m-3 position-absolute top-0 end-0" style="width: 20vw;">
-        <div class="row">
-            <button class="col btn btn-primary" id="addPoint">Points</button>
-            <button class="col mx-1 btn btn-primary" id="addLine">Line</button>
-            <button class="col btn btn-primary" id="addPolygon">Polygon</button>
+<div class="m-3 position-absolute top-0 end-0" style="width: 20vw;">
+    <div class="row">
+        <button class="col btn btn-primary" id="addPoint">Points</button>
+        <button class="col mx-1 btn btn-primary" id="addLine">Line</button>
+        <button class="col btn btn-primary" id="addPolygon">Polygon</button>
+    </div>
+    <div class="row mt-2">
+        <div class="p-2 card d-none helper" id="addPointHelper">
+            Click on the map to add points. Right-click to end the shape.
         </div>
-        <div class="row mt-2">
-            <div class="p-2 card d-none helper" id="addPointHelper">
-                Click on the map to add points. Right-click to end the shape.
-            </div>
-            <div class="p-2 card d-none helper" id="addLineHelper">
-                Click on the map to add points to the line. Right-click to end the shape.
-            </div>
-            <div class="p-2 card d-none helper" id="addPolygonHelper">
-                Click on the map to add points to the polygon. Click on the first point or right-click to end the shape.
-            </div>
-            <div class="p-2 card d-none helper" id="editHelper">
-                Click on a point and drag it to move it. Click on an edge to create a new point and drag it to move it. Right-click to end.
-            </div>
-            <div class="p-2 card d-none helper" id="mainHelper">
-                Click on a drawn shape to edit it.
-            </div>
+        <div class="p-2 card d-none helper" id="addLineHelper">
+            Click on the map to add points to the line. Right-click to end the shape.
         </div>
-        <div class="row mt-2 card">
-            <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#options" aria-expanded="false" aria-controls="options">
-                Options
-            </button>
-            <fieldset id="options" class="p-2 collapse">
-                <div class="container">
-                    <div class="row mt-1">
-                        <select class="btn btn-light border border-dark dropdown-toggle w-100" id="dragging">
-                            <option value="0" selected>Move points via drag-and-drop</option>
-                            <option value="1">Move points on click</option>
-                        </select>
-                    </div>
-                    <div class="row mt-1">
-                        <div class="input-group p-0">
-                            <div class="input-group-text">
-                                <input class="form-check-input mt-0" type="checkbox" value="" id="splicingtoleranceEnabled">
-                            </div>
-                            <label class="input-group-text" for="splicingtoleranceEnabled" title="Unit in 3D world space (when disabled, auto)">Splicing hit tolerance</label>
-                            <input type="number" class="form-control" min="0" max="100" value="15" id="splicingtolerance">
-                        </div>
-                    </div>
-                    <div class="row mt-1">
-                        <div class="input-group p-0">
-                            <div class="input-group-text">
-                                <input class="form-check-input mt-0" type="checkbox" value="" id="minpointsEnabled">
-                            </div>
-                            <label for="minpointsEnabled" class="input-group-text" title="Minimum points before the geometry can be finished (when disabled, auto)">Minimum points</label>
-                            <input type="number" class="form-control" min="0" max="10" value="0" id="minpoints">
-                        </div>
-                    </div>
-                    <div class="row mt-1">
-                        <div class="input-group p-0">
-                            <div class="input-group-text">
-                                <input class="form-check-input mt-0" type="checkbox" value="" id="maxpointsEnabled">
-                            </div>
-                            <label for="maxpointsEnabled" class="input-group-text" title="Number of points at which the geometry is automatically considered as finished">Maximum points</label>
-                            <input type="number" class="form-control" min="0" max="10" value="10" id="maxpoints">
-                        </div>
-                    </div>
-                    <div class="row mt-1">
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" value="" id="addpointsEnabled" checked>
-                            <label class="form-check-label" for="addpointsEnabled">Add new points when editing</label>
-                        </div>
-                    </div>
-                    <div class="row mt-1">
-                        <select class="btn btn-light border border-dark dropdown-toggle w-100" id="pointsrendering">
-                            <option value="0" selected>Render points as 3D objects</option>
-                            <option value="1">Render points via CSS2DRenderer</option>
-                        </select>
-                    </div>
-                </div>
-            </fieldset>
+        <div class="p-2 card d-none helper" id="addPolygonHelper">
+            Click on the map to add points to the polygon. Click on the first point or right-click to end the shape.
+        </div>
+        <div class="p-2 card d-none helper" id="editHelper">
+            Click on a point and drag it to move it. Click on an edge to create a new point and drag it to move it. Right-click to end.
+        </div>
+        <div class="p-2 card d-none helper" id="mainHelper">
+            Click on a drawn shape to edit it.
         </div>
     </div>
-    <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
+    <div class="row mt-2 card">
+        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#options" aria-expanded="false" aria-controls="options">
+            Options
+        </button>
+        <fieldset id="options" class="p-2 collapse">
+            <div class="container">
+                <div class="row mt-1">
+                    <select class="btn btn-light border border-dark dropdown-toggle w-100" id="dragging">
+                        <option value="0" selected>Move points via drag-and-drop</option>
+                        <option value="1">Move points on click</option>
+                    </select>
+                </div>
+                <div class="row mt-1">
+                    <div class="input-group p-0">
+                        <div class="input-group-text">
+                            <input class="form-check-input mt-0" type="checkbox" value="" id="splicingtoleranceEnabled">
+                        </div>
+                        <label class="input-group-text" for="splicingtoleranceEnabled" title="Unit in 3D world space (when disabled, auto)">Splicing hit tolerance</label>
+                        <input type="number" class="form-control" min="0" max="100" value="15" id="splicingtolerance">
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="input-group p-0">
+                        <div class="input-group-text">
+                            <input class="form-check-input mt-0" type="checkbox" value="" id="minpointsEnabled">
+                        </div>
+                        <label for="minpointsEnabled" class="input-group-text" title="Minimum points before the geometry can be finished (when disabled, auto)">Minimum points</label>
+                        <input type="number" class="form-control" min="0" max="10" value="0" id="minpoints">
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="input-group p-0">
+                        <div class="input-group-text">
+                            <input class="form-check-input mt-0" type="checkbox" value="" id="maxpointsEnabled">
+                        </div>
+                        <label for="maxpointsEnabled" class="input-group-text" title="Number of points at which the geometry is automatically considered as finished">Maximum points</label>
+                        <input type="number" class="form-control" min="0" max="10" value="10" id="maxpoints">
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="addpointsEnabled" checked>
+                        <label class="form-check-label" for="addpointsEnabled">Add new points when editing</label>
+                    </div>
+                </div>
+                <div class="row mt-1">
+                    <select class="btn btn-light border border-dark dropdown-toggle w-100" id="pointsrendering">
+                        <option value="0" selected>Render points as 3D objects</option>
+                        <option value="1">Render points via CSS2DRenderer</option>
+                    </select>
+                </div>
+            </div>
+        </fieldset>
+    </div>
 </div>

@@ -1,19 +1,15 @@
 ---
 title: IFC
-shortdesc: Display an IFC file.
+shortdesc: Display an IFC (Industry Foundation Classes) file.
 ---
-<div class="position-relative h-100">
-    <div id="viewerDiv"></div>
-    <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
-    <div class="m-3 position-absolute top-0 end-0 card">
-        <div class="card-body">
-            <div class="dropdown">
-                <select class="btn btn-primary dropdown-toggle d-block" id="pick_source">
-                    <option value="0" selected>Pick from whole scene</option>
-                    <option value="1">Pick from IFC model only</option>
-                </select>
-            </div>
-            <div id="selectedDiv"></div>
+<div class="m-3 position-absolute top-0 end-0 card">
+    <div class="card-body">
+        <div class="dropdown">
+            <select class="btn btn-primary dropdown-toggle d-block" id="pick_source">
+                <option value="0" selected>Pick from whole scene</option>
+                <option value="1">Pick from IFC model only</option>
+            </select>
         </div>
+        <div id="selectedDiv"></div>
     </div>
 </div>
