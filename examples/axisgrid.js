@@ -40,6 +40,7 @@ const map = new Map('planar', {
     extent,
     hillshading: true,
     segments: 128,
+    discardNoData: true,
     doubleSided: true,
     backgroundColor: 'white',
 });
