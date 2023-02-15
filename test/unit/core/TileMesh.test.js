@@ -30,7 +30,7 @@ describe('TileMesh', () => {
     });
 
     describe('dispose', () => {
-        it('should dispose the material and the geometry', () => {
+        it('should dispose the material but NOT the geometry', () => {
             const material = {
                 dispose: jest.fn(),
                 setUuid: jest.fn(),
@@ -46,7 +46,7 @@ describe('TileMesh', () => {
             mesh.addEventListener('dispose', () => { eventDispatched = true; });
 
             mesh.dispose();
-            expect(geometry.dispose).toHaveBeenCalledTimes(1);
+            expect(geometry.dispose).not.toHaveBeenCalled();
             expect(material.dispose).toHaveBeenCalledTimes(1);
             expect(eventDispatched).toBeTruthy();
         });

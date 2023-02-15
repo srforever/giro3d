@@ -10,7 +10,6 @@ import MemoryTracker from '../renderer/MemoryTracker.js';
 import LayeredMaterial from '../renderer/LayeredMaterial.js';
 import Extent from './geographic/Extent.js';
 import TileGeometry from './TileGeometry.js';
-import Cache from './scheduler/Cache.js';
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
@@ -21,16 +20,23 @@ function applyChangeState(n, s) {
     }
 }
 
-function makeGeometry(mapId, extent, segments) {
-    const dimensions = extent.dimensions();
-    const key = `${mapId}-${dimensions.x}-${dimensions.y}-${segments}`;
-    const cached = Cache.get(key);
+function makeGeometry(map, extent, segments, level) {
+    /** @type {Map} */
+    const pool = map.geometryPool;
+
+    const key = `${segments}-${level}`;
+
+    const cached = pool.get(key);
     if (cached) {
         return cached;
     }
 
+    const dimensions = extent.dimensions();
     const geometry = new TileGeometry({ dimensions, segments });
-    Cache.set(key, geometry);
+    if (__DEBUG__) {
+        MemoryTracker.track(geometry, `TileGeometry (map=${map.id}, segments=${segments}, level=${level})`);
+    }
+    pool.set(key, geometry);
     return geometry;
 }
 
@@ -48,7 +54,7 @@ class TileMesh extends Mesh {
      * @memberof TileMesh
      */
     constructor(map, material, extent, segments, level, x = 0, y = 0) {
-        super(makeGeometry(map.id, extent, segments), material);
+        super(makeGeometry(map, extent, segments, level), material);
 
         this.layer = map;
         this._segments = segments;
@@ -100,7 +106,7 @@ class TileMesh extends Mesh {
     set segments(v) {
         if (this._segments !== v) {
             this._segments = v;
-            this.geometry = makeGeometry(this.layer.id, this.extent, this._segments);
+            this.geometry = makeGeometry(this.layer, this.extent, this._segments, this.level);
             this.material.segments = v;
         }
     }
@@ -287,7 +293,8 @@ class TileMesh extends Mesh {
         }
         this.disposed = true;
         this.material.dispose();
-        this.geometry.dispose();
+        // We don't dispose the geometry because we don't own it.
+        // It is shared between all TileMesh objects of the same depth level.
         this.material = null;
         this.geometry = null;
         this.dispatchEvent({ type: 'dispose' });
