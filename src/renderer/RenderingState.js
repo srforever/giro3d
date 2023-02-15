@@ -12,6 +12,11 @@ const RenderingState = {
     ID: 2,
     /** @type {number} The fragment shader outputs the UV of the fragment. */
     UV: 3,
+    /**
+     *  @type {number} The fragment shader outputs the value of the elevation texture at the
+     *  fragment's location.
+     */
+    Z: 4,
 };
 
 export default RenderingState;

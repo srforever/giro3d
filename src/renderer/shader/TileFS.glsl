@@ -17,11 +17,13 @@
  * - DEPTH : the FS outputs the fragment depth.
  * - ID    : the FS outputs the mesh's ID encoded in a color.
  * - UV    : the FS outputs the fragment's UV.
+ * - Z     : the FS outputs the fragment's Z value (sampled from the elevation texture)
  */
 const int STATE_FINAL = 0;
 const int STATE_DEPTH = 1;
 const int STATE_ID = 2;
 const int STATE_UV = 3;
+const int STATE_Z = 4;
 
 varying vec2        vUv; // The input UV
 
@@ -240,8 +242,11 @@ void main() {
         discard;
     }
 
+    float height = 0.;
+
 #if defined(ELEVATION_LAYER)
     vec2 elevUv = computeUv(vUv, elevationLayer.offsetScale.xy, elevationLayer.offsetScale.zw);
+    height = getElevation(elevationTexture, elevUv);
 #endif
 
     // Step 1 : discard fragment if the elevation texture is transparent
@@ -319,6 +324,12 @@ void main() {
         gl_FragColor = packDepthToRGBA(float(uuid) / (256.0 * 256.0 * 256.0));
     } else if (renderingState == STATE_DEPTH) {
         gl_FragColor = packDepthToRGBA(gl_FragCoord.z);
+    } else if (renderingState == STATE_Z) {
+        // Since packing does not support negative values,
+        // We offset the height to guarantee a positive value.
+        // This should be offset back to -20000 in the decoding JS code.
+        float offsetHeight = height + 20000.0;
+        gl_FragColor = packDepthToRGBA(offsetHeight / (256.0 * 256.0 * 256.0));
     } else if (renderingState == STATE_UV) {
         gl_FragColor = encodeHalfRGBA(vUv);
     }

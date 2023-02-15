@@ -114,7 +114,7 @@ class MapInspector extends EntityInspector {
             .onChange(v => this.toggleFrozen(v));
         this.addController(this, 'layerCount').name('Layer count');
         this.addController(this, 'dumpTiles').name('Dump tiles in console');
-        this.addController(this, 'renderState', ['Normal', 'Depth', 'UV', 'ID'])
+        this.addController(this, 'renderState', ['Normal', 'Depth', 'UV', 'ID', 'Z'])
             .name('Render state')
             .onChange(v => this.setRenderState(v));
 
@@ -197,6 +197,9 @@ class MapInspector extends EntityInspector {
                 break;
             case 'ID':
                 this.map.setRenderState(RenderingState.ID);
+                break;
+            case 'Z':
+                this.map.setRenderState(RenderingState.Z);
                 break;
             default:
                 break;
