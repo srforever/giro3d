@@ -71,12 +71,14 @@ class GeoTIFFFormat extends ImageFormat {
             case 1: {
                 // grayscale
                 const [v] = await image.readRasters({ pool: geotiffWorkerPool });
+                minmax = TextureGenerator.computeMinMax(v, nodata);
                 TextureGenerator.fillBuffer(buffer, { nodata, height, width }, opaqueValue, v);
             }
                 break;
             case 2: {
                 // grayscale with alpha
                 const [v, a] = await image.readRasters({ pool: geotiffWorkerPool });
+                minmax = TextureGenerator.computeMinMax(v, nodata);
                 TextureGenerator.fillBuffer(buffer, {}, opaqueValue, v, v, v, a);
             }
                 break;

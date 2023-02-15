@@ -11,6 +11,7 @@ import Layer, {
 } from './Layer.js';
 import ColorMap from './ColorMap.js';
 import Extent from '../geographic/Extent.js';
+import TextureGenerator from '../../utils/TextureGenerator.js';
 
 // get image data
 let canvas;
@@ -92,25 +93,6 @@ class ElevationLayer extends Layer {
         return data;
     }
 
-    static minMaxFromBuffer(rgba, nodata) {
-        let min = Infinity;
-        let max = -Infinity;
-
-        const FIRST_CHANNEL = 0;
-        const ALPHA_CHANNEL = 3;
-
-        for (let i = 0; i < rgba.length; i += 4) {
-            const value = rgba[i + FIRST_CHANNEL];
-            const alpha = rgba[i + ALPHA_CHANNEL];
-            if (!Number.isNaN(value) && value !== nodata && alpha !== 0) {
-                min = Math.min(min, value);
-                max = Math.max(max, value);
-            }
-        }
-
-        return { min, max };
-    }
-
     minMaxFromTexture(texture) {
         if (texture.min != null && texture.max != null) {
             return {
@@ -120,7 +102,7 @@ class ElevationLayer extends Layer {
         }
 
         const data = ElevationLayer.getBufferData(texture);
-        const { min, max } = ElevationLayer.minMaxFromBuffer(data, this.noDataValue);
+        const { min, max } = TextureGenerator.computeMinMax(data, this.noDataValue);
 
         texture.min = min;
         texture.max = max;

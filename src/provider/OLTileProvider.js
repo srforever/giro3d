@@ -12,12 +12,12 @@ import Extent from '../core/geographic/Extent.js';
 import Layer from '../core/layer/Layer.js';
 import DataStatus from './DataStatus.js';
 import Rect from '../core/Rect.js';
-import ElevationLayer from '../core/layer/ElevationLayer.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
 import Fetcher from './Fetcher.js';
 import MemoryTracker from '../renderer/MemoryTracker.js';
 import Cache from '../core/scheduler/Cache.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
+import { Mode } from '../core/layer/Interpretation.js';
 
 const TEXTURE_CACHE_LIFETIME_MS = 1000 * 60; // 60 seconds
 const MIN_LEVEL_THRESHOLD = 2;
@@ -154,14 +154,33 @@ async function executeCommand(command) {
  * @param {Extent} targetExtent The extent of the destination texture.
  */
 function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
-    const isElevationLayer = layer instanceof ElevationLayer;
+    const isElevationLayer = layer.type === 'ElevationLayer';
+
+    let minmax;
+    // Let's see if we can avoid computing the min/max on the generated texture (which requires
+    // a costly readback). We can use this shortcut only if there is no interpretation to perform
+    // on the pixels, and only if all source images have a min/max defined.
+    if (isElevationLayer
+        && layer.interpretation.mode === Mode.Raw
+        && sourceImages.every(t => t.min !== undefined && t.max !== undefined)) {
+        let max = -Infinity;
+        let min = Infinity;
+        sourceImages.forEach(t => {
+            max = Math.max(max, t.max);
+            min = Math.min(min, t.min);
+        });
+
+        minmax = { min, max };
+    }
+    const shouldComputeMinMax = isElevationLayer && minmax === undefined;
+
     const composer = new WebGLComposer({
         extent: Rect.fromExtent(targetExtent),
         width: layer.imageSize.w,
         height: layer.imageSize.h,
         webGLRenderer: renderer,
         showImageOutlines: layer.showTileBorders || false,
-        createDataCopy: isElevationLayer, // To compute the min/max later
+        computeMinMax: shouldComputeMinMax ? { noDataValue: layer.noDataValue } : false,
     });
 
     const options = { interpretation: layer.interpretation, flipY: layer.flipY };
@@ -175,6 +194,10 @@ function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
     const texture = composer.render();
     texture.extent = targetExtent;
     texture.revision = layer.source.getRevision();
+    if (minmax !== undefined) {
+        texture.min = minmax.min;
+        texture.max = minmax.max;
+    }
 
     composer.dispose();
 
