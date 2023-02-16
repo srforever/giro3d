@@ -1,5 +1,46 @@
 # Changelog
 
+## v0.20.0 (2023-02-16)
+
+Lots of bugfixes and performance improvements around texture handling.
+
+### BREAKING CHANGE
+
+- The method `instance.getLayers()` is removed, please call `getLayers()`
+  on relevant entities instead.
+- `instance.getOwner(layer)` is removed, just use `layer.owner` instead.
+
+### Feat
+
+- **formats**: enable shader Y-flipping of DataTextures (#202)
+
+### Fix
+
+- **COGProvider**: stop compressing data to 8-bit (#216)
+- **PointsMaterial**: add a missing needsUpdate = true (#200)
+- **PointsMaterial**: fix memory leak of color textures
+- **Helpers**: fix remove3DTileBoundingVolume() (#150)
+- **PointsMaterial**: fix black tiles in overlay mode (#219)
+- **WebGLComposer**: don't `clear()` the renderer
+- **Map**: throw error if the extent is invalid (#218)
+- **OLTileProvider**: use tile ratio for zoom level (#144)
+- **Map**: set a limit on the aspect ratio (#144)
+- **OLTileProvider**: handle 204 No Content responses (#206)
+- **COGProvider**: fix memory leak of cached textures
+
+### Refactor
+
+- **Layer**: move `frozen` property up to Layer
+- move and rename `Layer.defineLayerProperty` to `EventUtils.definePropertyWithChangeEvent`
+- **Instance**: remove `instance.getLayers()` and `instance.getOwner()`
+- remove or fix some dependencies links between our modules
+- remove `threejslayer` support for Entities
+
+### Perf
+
+- **Tiles3D**: use lower resolution texture overlays
+- **COGProvider**: flip the textures using the `WebGLComposer` (#202)
+
 ## v0.19.1 (2023-02-06)
 
 ### Feat
