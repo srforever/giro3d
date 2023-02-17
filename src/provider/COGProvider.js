@@ -5,7 +5,7 @@ import TextureGenerator from '../utils/TextureGenerator.js';
 import DataStatus from './DataStatus.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
 import Rect from '../core/Rect.js';
-import Cache from '../core/scheduler/Cache.js';
+import { GlobalCache } from '../core/Cache.js';
 import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
 import { Mode } from '../core/layer/Interpretation.js';
 import HttpConfiguration from '../utils/HttpConfiguration.js';
@@ -87,10 +87,20 @@ function delay(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function computeSize(arrays) {
+    let size = 0;
+    if (Array.isArray(arrays)) {
+        arrays.forEach(a => { size += a.byteLength; });
+    } else {
+        size = arrays.byteLength;
+    }
+    return size;
+}
+
 function readBuffer(layer, extent, levelImage) {
     const key = getCacheKey(layer, extent);
 
-    const cached = Cache.get(key);
+    const cached = GlobalCache.get(key);
     if (cached) {
         return Promise.resolve(cached);
     }
@@ -100,7 +110,8 @@ function readBuffer(layer, extent, levelImage) {
         window: makeWindowFromExtent(layer, extent, levelImage.resolution),
         fillValue: layer.nodata,
     }).then(arrayData => {
-        Cache.set(key, arrayData, Cache.POLICIES.TEXTURE);
+        const size = computeSize(arrayData);
+        GlobalCache.set(key, arrayData, { size });
         return arrayData;
     });
 

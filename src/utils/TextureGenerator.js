@@ -216,6 +216,22 @@ function getChannelCount(pixelFormat) {
 }
 
 /**
+ * Estimate the size of the texture.
+ *
+ * @param {Texture} texture The texture.
+ * @returns {number} The size, in bytes.
+ */
+function estimateSize(texture) {
+    // Note: this estimation is very broad for several reasons
+    // - It does not know if this texture is GPU-memory only or if there is a copy in CPU-memory
+    // - It does not know any possible optimization done by the GPU
+    const channels = getChannelCount(texture.format);
+    const bpp = getBytesPerChannel(texture.type);
+
+    return texture.image.width * texture.image.height * channels * bpp;
+}
+
+/**
  * Returns the number of bytes per channel.
  *
  * @param {TextureDataType} dataType The pixel format.
@@ -416,4 +432,5 @@ export default {
     create1DTexture,
     createDataCopy,
     computeMinMax,
+    estimateSize,
 };

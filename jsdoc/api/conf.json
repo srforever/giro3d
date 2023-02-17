@@ -23,6 +23,7 @@
       "src/core/layer/Layer.js",
       "src/core/layer/LayerUpdateStrategy.js",
       "src/core/Points.js",
+      "src/core/Cache.js",
       "src/entities",
       "src/formats",
       "src/gui",

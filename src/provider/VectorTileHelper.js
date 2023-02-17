@@ -1,6 +1,6 @@
 import { Color } from 'three';
 import Fetcher from '../utils/Fetcher.js';
-import Cache from '../core/scheduler/Cache.js';
+import { GlobalCache } from '../core/Cache.js';
 import VectorTileParser from '../parser/VectorTileParser.js';
 import Feature2Texture from '../renderer/extensions/Feature2Texture.js';
 import Extent from '../core/geographic/Extent.js';
@@ -60,7 +60,8 @@ export default {
     getVectorTileTextureByUrl(url, tile, layer, coords) {
         if (layer instanceof ColorLayer) return null;
 
-        return Cache.get(url) || Cache.set(url, getVectorTileByUrl(url, tile, layer, coords)
+        return GlobalCache.get(url)
+        || GlobalCache.set(url, getVectorTileByUrl(url, tile, layer, coords)
             .then(features => {
                 const backgroundColor = (layer.backgroundLayer && layer.backgroundLayer.paint)
                     ? new Color(layer.backgroundLayer.paint['background-color'])
