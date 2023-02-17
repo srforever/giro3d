@@ -20,12 +20,18 @@ function generateExample(pathToHtmlFile, template) {
     const js = filename.replace('.html', '.js');
     const name = path.parse(pathToHtmlFile).name;
     const { attributes, body } = parseExample(pathToHtmlFile);
+    let customCss = '';
+    const css = pathToHtmlFile.replace('.html', '.css');
+    if (fse.existsSync(css)) {
+        customCss = fse.readFileSync(css);
+    }
     const html = template
         .replaceAll('%title%', `${attributes.title} - Giro3D`)
         .replaceAll('%description%', attributes.shortdesc)
         .replaceAll('%name%', name)
         .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/master/examples/${js}`)
         .replaceAll('%js%', js)
+        .replaceAll('%customcss%', customCss)
         .replaceAll('%content%', body);
 
     return { filename, html };

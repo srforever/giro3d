@@ -273,6 +273,7 @@ class WebGLComposer {
 
         const previousTarget = this.renderer.getRenderTarget();
         const previousClearColor = this.renderer.getClearColor(tmp.clearColor);
+        const previousAlpha = this.renderer.getClearAlpha();
         if (this.clearColor) {
             this.renderer.setClearColor(this.clearColor);
         }
@@ -286,7 +287,7 @@ class WebGLComposer {
 
         // Restore whatever render target was set on the renderer
         this.renderer.setRenderTarget(previousTarget);
-        this.renderer.setClearColor(previousClearColor);
+        this.renderer.setClearColor(previousClearColor, previousAlpha);
 
         target.texture.wrapS = ClampToEdgeWrapping;
         target.texture.wrapT = ClampToEdgeWrapping;

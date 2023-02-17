@@ -57,6 +57,8 @@ class C3DEngine {
                 alpha: options.alpha,
                 logarithmicDepthBuffer: options.logarithmicDepthBuffer,
             });
+            this.renderer.setClearColor(0x000000, 0);
+            this.renderer.clear();
         } catch (ex) {
             console.error('Failed to create WebGLRenderer', ex);
             this.renderer = null;
@@ -119,6 +121,7 @@ class C3DEngine {
         if (options.clearColor !== false) {
             this.renderer.setClearColor(options.clearColor);
         }
+        this.renderer.clear();
         this.renderer.autoClear = false;
         this.renderer.sortObjects = true;
 
