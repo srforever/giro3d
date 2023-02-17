@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.20.1 (2023-02-17)
+
+Hotfix for the #228 issue.
+
+### Fix
+
+- **c3DEngine**: clear canvas to avoid flickering
+- **WebGLComposer**: restore clear alpha (#228)
+
 ## v0.20.0 (2023-02-16)
 
 Lots of bugfixes and performance improvements around texture handling.
