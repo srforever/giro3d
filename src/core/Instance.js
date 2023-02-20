@@ -101,6 +101,12 @@ class Instance extends EventDispatcher {
      * Not used if renderer is provided.
      * @param {boolean} options.renderer.antialias Enables antialiasing (default true).
      * Not used if renderer is provided.
+     * @param {boolean} [options.renderer.checkShaderErrors=false] Enables shader validation. Note:
+     * shader validation is a costly operation that should be disabled in production.
+     * That can be toggled at any moment using the corresponding property in the
+     * {@link module:core/Instance~Instance#renderer renderer}.
+     * See the [Three.js documentation](https://threejs.org/docs/index.html?q=webglren#api/en/renderers/WebGLRenderer.debug)
+     * for more information.
      * @param {boolean} options.renderer.logarithmicDepthBuffer Enables the
      * [logarithmic depth buffer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.logarithmicDepthBuffer)
      * (default false). Not used if renderer is provided.
@@ -215,6 +221,13 @@ class Instance extends EventDispatcher {
         });
     }
 
+    /**
+     * Gets the underlying WebGL renderer.
+     *
+     * @api
+     * @type {WebGLRenderer}
+     * @readonly
+     */
     get renderer() {
         return this.mainLoop.gfxEngine.renderer;
     }

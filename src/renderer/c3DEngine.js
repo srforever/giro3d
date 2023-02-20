@@ -49,6 +49,9 @@ class C3DEngine {
         this.fullSizeRenderTarget.depthTexture = new DepthTexture();
         this.fullSizeRenderTarget.depthTexture.type = UnsignedShortType;
 
+        /** @type {WebGLRenderer} */
+        this.renderer = null;
+
         // Create renderer
         try {
             this.renderer = renderer || new WebGLRenderer({
@@ -105,6 +108,8 @@ class C3DEngine {
             }
         }
 
+        // Don't verify shaders if not debug (it is very costly)
+        this.renderer.debug.checkShaderErrors = options.checkShaderErrors || __DEBUG__;
         this.labelRenderer = new CSS2DRenderer();
 
         // Let's allow our canvas to take focus
