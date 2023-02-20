@@ -524,7 +524,7 @@ class Instance extends EventDispatcher {
      *
      * @api
      * @param {string} when decide when the frameRequester should be called during
-     * the update cycle. Can be any of {@link module:Core/Instance.INSTANCE_EVENTS INSTANCE_EVENTS}.
+     * the update cycle. Can be any of {@link module:core/Instance.INSTANCE_EVENTS INSTANCE_EVENTS}.
      * @param {FrameRequester} frameRequester this function will be called at each
      * MainLoop update with the time delta between last update, or 0 if the MainLoop
      * has just been relaunched.
@@ -546,8 +546,9 @@ class Instance extends EventDispatcher {
      * The effective removal will happen either later; at worst it'll be at
      * the beginning of the next frame.
      *
-     * @param {string} when attach point of this requester. Can be any of
-     * {@link MAIN_LOOP_EVENTS}.
+     * @api
+     * @param {string} when attach point of this requester.
+     * Can be any of {@link module:core/Instance.INSTANCE_EVENTS INSTANCE_EVENTS}.
      * @param {FrameRequester} frameRequester the frameRequester to remove
      */
     removeFrameRequester(when, frameRequester) {
@@ -574,8 +575,8 @@ class Instance extends EventDispatcher {
     /**
      * Execute a frameRequester.
      *
-     * @param {string} when attach point of this (these) requester(s). Can be any
-     * of {@link MAIN_LOOP_EVENTS}.
+     * @param {string} when attach point of this (these) requester(s).
+     * Can be any of {@link module:core/Instance.INSTANCE_EVENTS INSTANCE_EVENTS}.
      * @param {number} dt delta between this update and the previous one
      * @param {boolean} updateLoopRestarted <code>true</code> if giro3d' update loop just restarted
      * @param {...*} args optional arguments
