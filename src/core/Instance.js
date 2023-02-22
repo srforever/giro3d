@@ -608,7 +608,15 @@ class Instance extends EventDispatcher {
      */
     eventToCanvasCoords(event, target, touchIdx = 0) {
         if (event.touches === undefined || !event.touches.length) {
-            return target.set(event.offsetX, event.offsetY);
+            if (event.target === this.domElement) {
+                return target.set(event.offsetX, event.offsetY);
+            }
+
+            // Event was triggered outside of the canvas, probably a CSS2DElement
+            const br = this.domElement.getBoundingClientRect();
+            return target.set(
+                event.clientX - br.x, event.clientY - br.y,
+            );
         }
         const br = this.domElement.getBoundingClientRect();
         return target.set(
