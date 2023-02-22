@@ -83,9 +83,3 @@ instance.domElement.addEventListener('mousemove', e => {
         infoDiv.classList.add('d-none');
     }
 });
-
-const toggle = document.getElementById('colormap-enable');
-toggle.onchange = () => {
-    colorMap.active = toggle.checked;
-    instance.notifyChange(map);
-};
