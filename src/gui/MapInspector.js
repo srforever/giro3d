@@ -124,6 +124,9 @@ class MapInspector extends EntityInspector {
          */
         this.layerFolder = this.gui.addFolder('Layers');
 
+        /**
+         * @type {Array<LayerInspector>}
+         */
         this.layers = [];
 
         this._fillLayersCb = () => this.fillLayers();
@@ -238,6 +241,7 @@ class MapInspector extends EntityInspector {
         if (this.boundingBoxes) {
             this.toggleBoundingBoxes(true);
         }
+        this.layers.forEach(l => l.updateValues());
     }
 
     fillLayers() {

@@ -53,6 +53,11 @@ class LayerInspector extends Panel {
         this.addController(this, 'interpretation')
             .name('Interpretation');
 
+        if (this.layer.type === 'ElevationLayer') {
+            this.minmax = { min: '?', max: '?' };
+            this.addController(this.minmax, 'min').name('Minimum elevation');
+            this.addController(this.minmax, 'max').name('Maximum elevation');
+        }
         this.addController(this.layer, 'protocol')
             .name('Protocol');
 
@@ -142,6 +147,14 @@ class LayerInspector extends Panel {
 
     updateValues() {
         this.visible = this.layer.visible || true;
+        if (this.layer.type === 'ElevationLayer') {
+            if (this.layer.minmax && this.minmax) {
+                this.minmax.min = this.layer.minmax.min;
+                this.minmax.max = this.layer.minmax.max;
+            }
+        }
+
+        this._controllers.forEach(c => c.updateDisplay());
     }
 }
 
