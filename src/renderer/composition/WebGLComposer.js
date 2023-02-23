@@ -74,6 +74,11 @@ class WebGLComposer {
      * @param {boolean} [options.createDataCopy=false] If true, rendered textures will have a `data`
      * property containing the texture data (an array of either floats or bytes).
      * This is useful to read back the texture content.
+     * @param {boolean|{noDataValue: number}} [options.computeMinMax] If true, rendered textures
+     * will have a `min` and a `max` property containing the minimum and maximum value.
+     * This only applies to grayscale data (typically elevation data). If the option is an object
+     * with the `noDataValue` property, all pixels with this value will be ignored for min/max
+     * computation.
      * @param {WebGLRenderer} options.webGLRenderer The WebGL renderer to use. This must be the
      * same renderer as the one used to display the rendered textures, because WebGL contexts are
      * isolated from each other.
@@ -89,6 +94,7 @@ class WebGLComposer {
         this.createDataCopy = options.createDataCopy;
         this.reuseTexture = options.reuseTexture;
         this.clearColor = options.clearColor;
+        this.computeMinMax = options.computeMinMax;
 
         // An array containing textures that this composer has created, to be disposed later.
         this.ownedTextures = [];
@@ -281,8 +287,23 @@ class WebGLComposer {
 
         this.renderer.render(this.scene, this.camera);
 
-        if (this.createDataCopy) {
+        const result = target.texture;
+
+        if (this.createDataCopy || this.computeMinMax) {
             TextureGenerator.createDataCopy(target, this.renderer);
+
+            if (this.computeMinMax) {
+                const { min, max } = TextureGenerator.computeMinMax(
+                    result.data,
+                    this.computeMinMax.noDataValue,
+                );
+                result.min = min;
+                result.max = max;
+
+                if (!this.createDataCopy) {
+                    delete result.data;
+                }
+            }
         }
 
         // Restore whatever render target was set on the renderer

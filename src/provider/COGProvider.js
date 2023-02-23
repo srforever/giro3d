@@ -7,6 +7,7 @@ import WebGLComposer from '../renderer/composition/WebGLComposer.js';
 import Rect from '../core/Rect.js';
 import Cache from '../core/scheduler/Cache.js';
 import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
+import { Mode } from '../core/layer/Interpretation.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -113,7 +114,7 @@ function readBuffer(layer, extent, levelImage) {
  * @param {*} extent The requested extent.
  * @param {*} levelImage The TIFF image to read.
  * @param {Vector4} pitch The offset/scale of the resulting texture.
- * @param {boolean} computeMinMax If true, a min/max will be computed on the image.
+ * @param {boolean} computeLayerMinMax If true, a min/max will be computed on the image.
  * @returns {Promise} The promise containing the generated texture.
  */
 async function createTexture(
@@ -122,7 +123,7 @@ async function createTexture(
     extent,
     levelImage,
     pitch,
-    computeMinMax = false,
+    computeLayerMinMax = false,
 ) {
     // Let's wait a bit before processing the request to ensure that it was really needed.
     // As COG requests are HTTP heavy, we can save a lot of resources by not processing them.
@@ -135,15 +136,22 @@ async function createTexture(
 
         throwIfCancelled();
 
-        if (computeMinMax) {
-            // Initiate min and max data values to normalize 1 band files.
-            // This is only done during the preprocessing step.
-            layer.minmax = getMinMax(arrayData[0], layer.nodata);
-        }
-
         // Process the downloaded data
         const { width, height } = arrayData;
         const inputTexture = processArrayData(layer, arrayData);
+
+        const isElevationLayer = layer.type === 'ElevationLayer';
+
+        // There are two ways to compute the min/max of the texture: from the source data, or from
+        // the generated texture. Both have pros and cons :
+        //
+        //  - From the source data: it is very fast and do not require a readback from the
+        //    texture, but do not support intepretations other than raw (aka no interpretation)
+        //
+        //  - From the generated texture: supports all interpretations, but require a readback from
+        //    the GPU memory into CPU memory to create a temporary copy of the data.
+        //    Readbacks are generally quite slow as they must synchronize the GL context.
+        const computeMinMaxInComposer = isElevationLayer && layer.interpretation.mode !== Mode.Raw;
 
         // Flip the texture using the composer instead of flipping during upload
         // See https://bugzilla.mozilla.org/show_bug.cgi?id=1400077
@@ -152,17 +160,38 @@ async function createTexture(
             width,
             height,
             webGLRenderer: layer.instance.renderer,
-            createDataCopy: layer.type === 'ElevationLayer',
+            computeMinMax: computeMinMaxInComposer ? { noDataValue: layer.noDataValue } : false,
         });
+
         composer.draw(inputTexture, Rect.fromExtent(extent), {
             flipY: true,
             interpretation: layer.interpretation,
         });
+
         const texture = composer.render();
+
         // Attach the extent to the texture to check for possible improvements
         texture.extent = extent;
         composer.dispose();
         inputTexture.dispose();
+
+        if (isElevationLayer) {
+            let minmax;
+            if (computeMinMaxInComposer) {
+                minmax = { min: texture.min, max: texture.max };
+            } else {
+                minmax = getMinMax(arrayData[0], layer.nodata);
+            }
+
+            texture.min = minmax.min;
+            texture.max = minmax.max;
+
+            if (computeLayerMinMax) {
+                // Initiate min and max data values to normalize 1 band files.
+                // This is only done during the preprocessing step.
+                layer.minmax = minmax;
+            }
+        }
 
         return { texture, pitch: pitch ?? new Vector4(0, 0, 1, 1) };
     } catch (error) {
@@ -173,7 +202,14 @@ async function createTexture(
             // https://github.com/geotiffjs/geotiff.js/issues/221
             // https://github.com/geotiffjs/geotiff.js/pull/224
             // Retry until it is not blocked.
-            return createTexture(throwIfCancelled, layer, extent, levelImage, pitch, computeMinMax);
+            return createTexture(
+                throwIfCancelled,
+                layer,
+                extent,
+                levelImage,
+                pitch,
+                computeLayerMinMax,
+            );
         }
         throw error;
     }

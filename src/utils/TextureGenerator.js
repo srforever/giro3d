@@ -369,6 +369,33 @@ function create1DTexture(colors) {
     return texture;
 }
 
+/**
+ * Computes the minimum and maximum value of the RGBA buffer, but only taking into account the first
+ * channel (R channel). This is typically used for elevation data.
+ *
+ * @param {ArrayBuffer} rgba The RGBA buffer.
+ * @param {?number} nodata The no-data value. Pixels with this value will be ignored.
+ * @returns {{min: number, max: number}} The computed min/max.
+ */
+function computeMinMax(rgba, nodata) {
+    let min = Infinity;
+    let max = -Infinity;
+
+    const FIRST_CHANNEL = 0;
+    const ALPHA_CHANNEL = 3;
+
+    for (let i = 0; i < rgba.length; i += 4) {
+        const value = rgba[i + FIRST_CHANNEL];
+        const alpha = rgba[i + ALPHA_CHANNEL];
+        if (!Number.isNaN(value) && value !== nodata && alpha !== 0) {
+            min = Math.min(min, value);
+            max = Math.max(max, value);
+        }
+    }
+
+    return { min, max };
+}
+
 export default {
     createDataTexture,
     decodeBlob,
@@ -377,4 +404,5 @@ export default {
     getBytesPerChannel,
     create1DTexture,
     createDataCopy,
+    computeMinMax,
 };
