@@ -353,6 +353,33 @@ Scheduler.prototype.commandsRunningCount = function commandsRunningCount() {
     return sum;
 };
 
+Scheduler.prototype.commandsCancelledCount = function commandsCancelledCount() {
+    let sum = this.defaultQueue.counters.cancelled;
+
+    for (const q of this.hostQueues) {
+        sum += q[1].counters.cancelled;
+    }
+    return sum;
+};
+
+Scheduler.prototype.commandsExecutedCount = function commandsExecutedCount() {
+    let sum = this.defaultQueue.counters.executed;
+
+    for (const q of this.hostQueues) {
+        sum += q[1].counters.executed;
+    }
+    return sum;
+};
+
+Scheduler.prototype.commandsFailedCount = function commandsFailedCount() {
+    let sum = this.defaultQueue.counters.failed;
+
+    for (const q of this.hostQueues) {
+        sum += q[1].counters.failed;
+    }
+    return sum;
+};
+
 Scheduler.prototype.resetCommandsCount = function resetCommandsCount(type) {
     let sum = this.defaultQueue.counters[type];
     this.defaultQueue.counters[type] = 0;

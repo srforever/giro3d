@@ -22,16 +22,34 @@ class ProcessingInspector extends Panel {
 
         this.pending = 0;
         this.running = 0;
+        this.cancelled = 0;
+        this.completed = 0;
+        this.failed = 0;
         this.charts = [];
 
         this.addController(this, 'pending').name('Pending commands');
         this.addController(this, 'running').name('Running commands');
+        this.addController(this, 'cancelled').name('Cancelled commands');
+        this.addController(this, 'completed').name('Completed commands');
+        this.addController(this, 'failed').name('Failed commands');
+
+        this.addController(this, 'resetCounters').name('Reset command counters');
 
         this.charts.push(new FrameDuration(this.gui, instance));
         this.charts.push(new MemoryUsage(this.gui, instance));
         this.charts.push(new CachePanel(this.gui, instance));
 
         this.addController(this, 'dumpTrackedObjects').name('Dump tracked objects');
+    }
+
+    resetCounters() {
+        this.scheduler.resetCommandsCount('executing');
+        this.scheduler.resetCommandsCount('executed');
+        this.scheduler.resetCommandsCount('failed');
+        this.scheduler.resetCommandsCount('cancelled');
+        this.scheduler.resetCommandsCount('pending');
+
+        this.updateControllers();
     }
 
     // eslint-disable-next-line class-methods-use-this
@@ -43,6 +61,9 @@ class ProcessingInspector extends Panel {
         this.charts.forEach(c => c.update());
         this.pending = this.scheduler.commandsWaitingExecutionCount();
         this.running = this.scheduler.commandsRunningCount();
+        this.cancelled = this.scheduler.commandsCancelledCount();
+        this.failed = this.scheduler.commandsFailedCount();
+        this.completed = this.scheduler.commandsExecutedCount();
     }
 }
 
