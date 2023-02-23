@@ -89,9 +89,13 @@ function _instanciateQueue() {
             }, err => {
                 this.counters.executing -= countersIncrement;
                 cmd.reject(err);
-                this.counters.failed += countersIncrement;
-                if (this.counters.failed < 3) {
-                    console.error(err);
+                if (err instanceof CancelledCommandException) {
+                    this.counters.cancelled += countersIncrement;
+                } else {
+                    this.counters.failed += countersIncrement;
+                    if (this.counters.failed < 3) {
+                        console.error(err);
+                    }
                 }
             });
         },
