@@ -178,6 +178,9 @@ class Map extends Entity3D {
         /** @type {Array<TileMesh>} */
         this.level0Nodes = [];
 
+        /** @type {window.Map} */
+        this.geometryPool = new window.Map();
+
         /** @type {Extent} */
         if (!options.extent.isValid()) {
             throw new Error('Invalid extent: minX must be less than maxX and minY must be less than maxY.');
@@ -219,12 +222,19 @@ class Map extends Entity3D {
     set segments(v) {
         if (this._segments !== v) {
             if (MathUtils.isPowerOfTwo(v) && v >= 1 && v <= 128) {
+                // Delete cached geometries that just became obsolete
+                this._clearGeometryPool();
                 this._segments = v;
                 this._updateGeometries();
             } else {
                 throw new Error('invalid segments. Must be a power of two between 1 and 128 included');
             }
         }
+    }
+
+    _clearGeometryPool() {
+        this.geometryPool.values(v => v.dispose());
+        this.geometryPool.clear();
     }
 
     _updateGeometries() {
@@ -623,6 +633,11 @@ class Map extends Entity3D {
         for (const layer of this.getLayers()) {
             layer.dispose(this);
         }
+
+        // Delete cached TileGeometry objects. This is not possible to do
+        // at the TileMesh level because TileMesh objects do not own their geometry,
+        // as it is shared among all tiles at the same depth level.
+        this._clearGeometryPool();
     }
 
     /**
