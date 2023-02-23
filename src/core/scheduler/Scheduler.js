@@ -89,9 +89,13 @@ function _instanciateQueue() {
             }, err => {
                 this.counters.executing -= countersIncrement;
                 cmd.reject(err);
-                this.counters.failed += countersIncrement;
-                if (this.counters.failed < 3) {
-                    console.error(err);
+                if (err instanceof CancelledCommandException) {
+                    this.counters.cancelled += countersIncrement;
+                } else {
+                    this.counters.failed += countersIncrement;
+                    if (this.counters.failed < 3) {
+                        console.error(err);
+                    }
                 }
             });
         },
@@ -345,6 +349,33 @@ Scheduler.prototype.commandsRunningCount = function commandsRunningCount() {
 
     for (const q of this.hostQueues) {
         sum += q[1].counters.executing;
+    }
+    return sum;
+};
+
+Scheduler.prototype.commandsCancelledCount = function commandsCancelledCount() {
+    let sum = this.defaultQueue.counters.cancelled;
+
+    for (const q of this.hostQueues) {
+        sum += q[1].counters.cancelled;
+    }
+    return sum;
+};
+
+Scheduler.prototype.commandsExecutedCount = function commandsExecutedCount() {
+    let sum = this.defaultQueue.counters.executed;
+
+    for (const q of this.hostQueues) {
+        sum += q[1].counters.executed;
+    }
+    return sum;
+};
+
+Scheduler.prototype.commandsFailedCount = function commandsFailedCount() {
+    let sum = this.defaultQueue.counters.failed;
+
+    for (const q of this.hostQueues) {
+        sum += q[1].counters.failed;
     }
     return sum;
 };

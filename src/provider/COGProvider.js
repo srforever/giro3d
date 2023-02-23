@@ -6,6 +6,7 @@ import DataStatus from './DataStatus.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
 import Rect from '../core/Rect.js';
 import Cache from '../core/scheduler/Cache.js';
+import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -80,6 +81,10 @@ function getCacheKey(layer, extent) {
     return `buffer:${layer.id}${extent._values.join(',')}`;
 }
 
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function readBuffer(layer, extent, levelImage) {
     const key = getCacheKey(layer, extent);
 
@@ -100,9 +105,36 @@ function readBuffer(layer, extent, levelImage) {
     return promise;
 }
 
-function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) {
-    // Read and return the raster data
-    return readBuffer(layer, extent, levelImage).then(arrayData => {
+/**
+ * Create a texture on the given extent.
+ *
+ * @param {Function} throwIfCancelled The cancellation function.
+ * @param {*} layer The layer to process.
+ * @param {*} extent The requested extent.
+ * @param {*} levelImage The TIFF image to read.
+ * @param {Vector4} pitch The offset/scale of the resulting texture.
+ * @param {boolean} computeMinMax If true, a min/max will be computed on the image.
+ * @returns {Promise} The promise containing the generated texture.
+ */
+async function createTexture(
+    throwIfCancelled,
+    layer,
+    extent,
+    levelImage,
+    pitch,
+    computeMinMax = false,
+) {
+    // Let's wait a bit before processing the request to ensure that it was really needed.
+    // As COG requests are HTTP heavy, we can save a lot of resources by not processing them.
+    await delay(50);
+
+    throwIfCancelled();
+
+    try {
+        const arrayData = await readBuffer(layer, extent, levelImage);
+
+        throwIfCancelled();
+
         if (computeMinMax) {
             // Initiate min and max data values to normalize 1 band files.
             // This is only done during the preprocessing step.
@@ -133,7 +165,7 @@ function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) 
         inputTexture.dispose();
 
         return { texture, pitch: pitch ?? new Vector4(0, 0, 1, 1) };
-    }).catch(error => {
+    } catch (error) {
         if (error.toString() === 'AggregateError: Request failed') {
             // Problem with the source that is blocked by another fetch
             // (request failed in readRasters). See the conversations in
@@ -141,10 +173,10 @@ function createTexture(layer, extent, levelImage, pitch, computeMinMax = false) 
             // https://github.com/geotiffjs/geotiff.js/issues/221
             // https://github.com/geotiffjs/geotiff.js/pull/224
             // Retry until it is not blocked.
-            return createTexture(layer, extent, levelImage, pitch, computeMinMax);
+            return createTexture(throwIfCancelled, layer, extent, levelImage, pitch, computeMinMax);
         }
-        throw new Error(error);
-    });
+        throw error;
+    }
 }
 
 async function getImages(layer) {
@@ -186,7 +218,15 @@ async function getImages(layer) {
     // performances, we use the latest image, meaning the highest overview
     // (lowest resolution)
     if (image.getSamplesPerPixel() === 1) {
-        await createTexture(layer, layer.extent, levelImage, new Vector4(0, 0, 1, 1), true);
+        const noCancellation = () => {};
+        await createTexture(
+            noCancellation,
+            layer,
+            layer.extent,
+            levelImage,
+            new Vector4(0, 0, 1, 1),
+            true,
+        );
     }
 }
 
@@ -229,11 +269,18 @@ function getPossibleTextureImprovements(layer, extent, texture, pitch) {
 }
 
 function executeCommand(command) {
-    const { layer } = command;
+    const { layer, earlyDropFunction } = command;
+
+    function throwIfCancelled() {
+        if (earlyDropFunction && earlyDropFunction(command)) {
+            throw new CancelledCommandException(command);
+        }
+    }
+
     // Get the image at the appropriate overview level
     const { extent, levelImage, pitch } = command.toDownload;
 
-    return Promise.resolve(createTexture(layer, extent, levelImage, pitch));
+    return Promise.resolve(createTexture(throwIfCancelled, layer, extent, levelImage, pitch));
 }
 
 function tileInsideLimit(tile, layer) {
