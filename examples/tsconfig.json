@@ -1,0 +1,14 @@
+{
+    // This config file is used mainly to have remapped import paths in the example working with VSCode.
+
+    "include": ["./**/*"],
+    "exclude": [
+        "node_modules/**/*",
+    ],
+    "compilerOptions": {
+      "paths": {
+        "@giro3d/giro3d/*": ["../src/*"]
+      },
+      "allowJs": true,
+    }
+  }
