@@ -41,34 +41,42 @@ longdesc: The <code>DrawToool</code> class allows you to draw geometries, such a
                 <div class="row mt-1">
                     <div class="input-group p-0">
                         <div class="input-group-text">
-                            <input class="form-check-input mt-0" type="checkbox" value="" id="splicingtoleranceEnabled">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="splicingtoleranceEnabled">
+                                <label class="form-check-label" for="splicingtoleranceEnabled" title="Unit in 3D world space (when disabled, auto)">Splicing hit tolerance</label>
+                            </div>
                         </div>
-                        <label class="input-group-text" for="splicingtoleranceEnabled" title="Unit in 3D world space (when disabled, auto)">Splicing hit tolerance</label>
                         <input type="number" class="form-control" min="0" max="100" value="15" id="splicingtolerance">
                     </div>
                 </div>
                 <div class="row mt-1">
                     <div class="input-group p-0">
                         <div class="input-group-text">
-                            <input class="form-check-input mt-0" type="checkbox" value="" id="minpointsEnabled">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="minpointsEnabled">
+                                <label class="form-check-label" for="minpointsEnabled" title="Minimum points before the geometry can be finished (when disabled, auto)">Minimum points</label>
+                            </div>
                         </div>
-                        <label for="minpointsEnabled" class="input-group-text" title="Minimum points before the geometry can be finished (when disabled, auto)">Minimum points</label>
                         <input type="number" class="form-control" min="0" max="10" value="0" id="minpoints">
                     </div>
                 </div>
                 <div class="row mt-1">
                     <div class="input-group p-0">
                         <div class="input-group-text">
-                            <input class="form-check-input mt-0" type="checkbox" value="" id="maxpointsEnabled">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="maxpointsEnabled">
+                                <label class="form-check-label" for="maxpointsEnabled" title="Number of points at which the geometry is automatically considered as finished">Maximum points</label>
+                            </div>
                         </div>
-                        <label for="maxpointsEnabled" class="input-group-text" title="Number of points at which the geometry is automatically considered as finished">Maximum points</label>
                         <input type="number" class="form-control" min="0" max="10" value="10" id="maxpoints">
                     </div>
                 </div>
                 <div class="row mt-1">
-                    <div class="form-check">
-                        <input class="form-check-input" type="checkbox" value="" id="addpointsEnabled" checked>
-                        <label class="form-check-label" for="addpointsEnabled">Add new points when editing</label>
+                    <div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" checked="true" role="switch" id="addpointsEnabled">
+                            <label class="form-check-label" for="addpointsEnabled">Add new points when editing</label>
+                        </div>
                     </div>
                 </div>
                 <div class="row mt-1">

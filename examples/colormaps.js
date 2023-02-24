@@ -134,10 +134,20 @@ function bindControls(prefix, layer) {
     const colorMap = layer.colorMap;
 
     const enableLayer = document.getElementById(`${prefix}-layer-enable`);
-    enableLayer.onchange = () => { layer.visible = enableLayer.checked; notify(); };
+    const layerOptions = document.getElementById(`${prefix}-options`);
+    enableLayer.onchange = () => {
+        layer.visible = enableLayer.checked;
+        notify();
+        layerOptions.disabled = !enableLayer.checked;
+    };
 
     const enableColorMap = document.getElementById(`${prefix}-colormap-enable`);
-    enableColorMap.onchange = () => { colorMap.active = enableColorMap.checked; notify(); };
+    const colormapOptions = document.getElementById(`${prefix}-colormap-options`);
+    enableColorMap.onchange = () => {
+        colorMap.active = enableColorMap.checked;
+        notify();
+        colormapOptions.disabled = !enableColorMap.checked;
+    };
 
     const gradient = document.getElementById(`${prefix}-gradient`);
     gradient.onchange = () => {

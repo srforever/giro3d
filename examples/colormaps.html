@@ -10,24 +10,26 @@ longdesc: Color maps are useful to colorize an elevation dataset. You can change
         <div class="card-header">
             <div class="form-check form-switch">
                 <input class="form-check-input" checked="true" type="checkbox" role="switch" id="top-layer-enable">
-                <label class="form-check-label" for="flexSwitchCheckDefault">Top color layer</label>
+                <label class="form-check-label" for="top-layer-enable">Top color layer</label>
             </div>
         </div>
 
-        <div class="container m-1">
+        <fieldset class="container m-1" id="top-options">
 
             <!-- Activate color map -->
             <div class="row p-1">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" checked="true" type="checkbox" role="switch" id="top-colormap-enable">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Color map</label>
+                <div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" checked="true" type="checkbox" role="switch" id="top-colormap-enable">
+                        <label class="form-check-label" for="top-colormap-enable">Color map</label>
+                    </div>
                 </div>
             </div>
 
             <!-- Select color map mode -->
-            <div class="row p-1">
+            <fieldset class="row p-1" id="top-colormap-options">
                 <div class="input-group mb-3">
-                    <span class="input-group-text">Mode</span>
+                    <span class="input-group-text flex-grow-1">Mode</span>
                     <select class="btn btn-outline-primary btn-sm" id="top-mode">
                         <option>elevation</option>
                         <option>slope</option>
@@ -43,9 +45,9 @@ longdesc: Color maps are useful to colorize an elevation dataset. You can change
                         <option>par</option>
                     </select>
                 </div>
-            </div>
+            </fieldset>
 
-        </div>
+        </fieldset>
     </div>
 
     <!-- Bottom color layer -->
@@ -53,24 +55,26 @@ longdesc: Color maps are useful to colorize an elevation dataset. You can change
         <div class="card-header">
             <div class="form-check form-switch">
                 <input class="form-check-input" checked="true" type="checkbox" role="switch" id="bottom-layer-enable">
-                <label class="form-check-label" for="flexSwitchCheckDefault">Bottom color layer</label>
+                <label class="form-check-label" for="bottom-layer-enable">Bottom color layer</label>
             </div>
         </div>
 
-        <div class="container m-1">
+        <fieldset class="container m-1" id="bottom-options">
 
             <!-- Activate color map -->
             <div class="row p-1">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" checked="true" type="checkbox" role="switch" id="bottom-colormap-enable">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Color map</label>
+                <div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" checked="true" type="checkbox" role="switch" id="bottom-colormap-enable">
+                        <label class="form-check-label" for="bottom-colormap-enable">Color map</label>
+                    </div>
                 </div>
             </div>
 
             <!-- Select color map mode -->
-            <div class="row p-1">
+            <fieldset class="row p-1" id="bottom-colormap-options">
                 <div class="input-group mb-3">
-                    <span class="input-group-text">Mode</span>
+                    <span class="input-group-text flex-grow-1">Mode</span>
                     <select class="btn btn-outline-primary btn-sm" id="bottom-mode">
                         <option>elevation</option>
                         <option>slope</option>
@@ -86,9 +90,9 @@ longdesc: Color maps are useful to colorize an elevation dataset. You can change
                         <option>par</option>
                     </select>
                 </div>
-            </div>
+            </fieldset>
 
-        </div>
+        </fieldset>
     </div>
 
     <!-- Elevation layer -->
@@ -96,24 +100,26 @@ longdesc: Color maps are useful to colorize an elevation dataset. You can change
         <div class="card-header">
             <div class="form-check form-switch">
                 <input class="form-check-input" checked="true" type="checkbox" role="switch" id="elevation-layer-enable">
-                <label class="form-check-label" for="flexSwitchCheckDefault">Elevation layer</label>
+                <label class="form-check-label" for="elevation-layer-enable">Elevation layer</label>
             </div>
         </div>
 
-        <div class="container m-1">
+        <fieldset class="container m-1" id="elevation-options">
 
             <!-- Activate color map -->
             <div class="row p-1">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" checked="true" type="checkbox" role="switch" id="elevation-colormap-enable">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Color map</label>
+                <div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" checked="true" type="checkbox" role="switch" id="elevation-colormap-enable">
+                        <label class="form-check-label" for="elevation-colormap-enable">Color map</label>
+                    </div>
                 </div>
             </div>
 
             <!-- Select color map mode -->
-            <div class="row p-1">
+            <fieldset class="row p-1" id="elevation-colormap-options">
                 <div class="input-group mb-3">
-                    <span class="input-group-text">Mode</span>
+                    <span class="input-group-text flex-grow-1">Mode</span>
                     <select class="btn btn-outline-primary btn-sm" id="elevation-mode">
                         <option>elevation</option>
                         <option>slope</option>
@@ -129,8 +135,8 @@ longdesc: Color maps are useful to colorize an elevation dataset. You can change
                         <option>par</option>
                     </select>
                 </div>
-            </div>
+            </fieldset>
 
-        </div>
+        </fieldset>
     </div>
 </div>
