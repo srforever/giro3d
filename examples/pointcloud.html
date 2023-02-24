@@ -4,6 +4,22 @@ shortdesc: Display a 3D Tiles point cloud.
 ---
 <div class="m-3 position-absolute top-0 end-0 card">
     <div class="card-body">
-        <div id="selectedDiv"></div>
+        <!-- Result table -->
+        <div style="max-height: 40vh; max-width: 30vw; overflow: auto;">
+            <table class="table small">
+                <thead>
+                    <tr>
+                        <th scope="col">#</th>
+                        <th scope="col">Coordinate</th>
+                        <th scope="col">Distance to camera</th>
+                    </tr>
+                </thead>
+                <tbody id="results-body">
+                    <tr>
+                        <th scope="row" colspan="4">Double-click on the scene for picking</th>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>

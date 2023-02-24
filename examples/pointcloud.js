@@ -64,19 +64,43 @@ instance.add(pointcloud).then(initializeCamera);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
-// Bind events
+const resultsTable = document.getElementById('results-body');
+const formatter = new Intl.NumberFormat();
+
+function format(point) {
+    return `x: ${formatter.format(point.x)}\n
+            y: ${formatter.format(point.y)}\n
+            z: ${formatter.format(point.z)}`;
+}
+
 instance.domElement.addEventListener('dblclick', e => {
     const picked = instance.pickObjectsAt(e, { radius: 5, limit: 10, where: ['pointcloud'] });
-    console.log(picked);
+
     if (picked.length === 0) {
-        document.getElementById('selectedDiv').innerHTML = 'No object found';
+        const row = document.createElement('tr');
+        const count = document.createElement('th');
+        count.setAttribute('scope', 'row');
+        count.innerText = '-';
+        const coordinates = document.createElement('td');
+        coordinates.innerText = '-';
+        const distanceToCamera = document.createElement('td');
+        distanceToCamera.innerText = '-';
+        row.append(count, coordinates, distanceToCamera);
+        resultsTable.replaceChildren(row);
     } else {
-        document.getElementById('selectedDiv').innerHTML = `
-${picked.length} objects found<br>
-<ol>
-    ${picked.map(p => `<li>${p.point.x.toFixed(2)}, ${p.point.y.toFixed(2)}, ${p.point.z.toFixed(2)} (distance: ${p.distance.toFixed(2)})</li>`).join('')}
-</ol>
-        `;
+        const rows = picked.map((p, i) => {
+            const row = document.createElement('tr');
+            const count = document.createElement('th');
+            count.setAttribute('scope', 'row');
+            count.innerText = `${i + 1}`;
+            const coordinates = document.createElement('td');
+            coordinates.innerHTML = format(p.point);
+            const distanceToCamera = document.createElement('td');
+            distanceToCamera.innerText = formatter.format(p.distance);
+            row.append(count, coordinates, distanceToCamera);
+            return row;
+        });
+        resultsTable.replaceChildren(...rows);
     }
 });
 
