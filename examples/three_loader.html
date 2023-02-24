@@ -2,14 +2,16 @@
 title: Three.js loaders
 shortdesc: Load models directly from a Three.js loader (skinned mesh in this instance).
 ---
-<div class="m-3 position-absolute top-0 end-0">
-    <div class="dropdown">
-        <select class="btn btn-primary dropdown-toggle d-block" id="pick_source">
-            <option value="0" selected>Pick from all models</option>
-            <option value="1">Pick from still model</option>
-            <option value="3">Pick from walking model</option>
-            <option value="2">Pick from running model</option>
-        </select>
+<div class="m-3 position-absolute top-0 end-0 card">
+    <div class="card-body">
+        <div class="dropdown">
+            <select class="btn btn-primary dropdown-toggle d-block" id="pick_source">
+                <option value="0" selected>Pick from all models</option>
+                <option value="1">Pick from Vanguard idle</option>
+                <option value="3">Pick from Vanguard walking</option>
+                <option value="2">Pick from Vanguard running</option>
+            </select>
+        </div>
+        <div id="selectedDiv"></div>
     </div>
-    <div id="selectedDiv"></div>
 </div>
