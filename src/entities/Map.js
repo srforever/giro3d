@@ -178,7 +178,6 @@ class Map extends Entity3D {
         /** @type {Array<TileMesh>} */
         this.level0Nodes = [];
 
-        /** @type {window.Map} */
         this.geometryPool = new window.Map();
 
         /** @type {Extent} */
@@ -233,7 +232,7 @@ class Map extends Entity3D {
     }
 
     _clearGeometryPool() {
-        this.geometryPool.values(v => v.dispose());
+        this.geometryPool.forEach(v => v.dispose());
         this.geometryPool.clear();
     }
 
