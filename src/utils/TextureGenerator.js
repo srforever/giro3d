@@ -171,9 +171,19 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
     return buf;
 }
 
-function create8bitImage(blob) {
+/**
+ * Loads the specified image with a blob.
+ *
+ * @param {HTMLImageElement} img The image to load.
+ * @param {Blob} blob The data blob containing the encoded image data (PNG, JPEG, etc.).
+ * @returns {Promise<HTMLImageElement>} A Promise that resolves when the image is loaded, or rejects
+ * when any error occurs during the loading process.
+ */
+function load8bitImage(img, blob) {
+    // Note: the reason why we don't create the image element inside this function is
+    // to prevent it from being eliminated by an aggressive garbage collector, and thus
+    // creating a promise that never finished.
     return new Promise((resolve, reject) => {
-        const img = new Image();
         img.onload = () => resolve(img);
         img.onerror = reject;
         const objUrl = URL.createObjectURL(blob);
@@ -271,7 +281,8 @@ async function decodeBlob(blob) {
         case 'image/jpg': // not a valid media type, but we support it for compatibility
         case 'image/jpeg': {
             // Use the browser capabilities to decode the image
-            const img = await create8bitImage(blob);
+            const img = new Image();
+            await load8bitImage(img, blob);
             const tex = new Texture(img);
             tex.needsUpdate = true;
             return tex;
