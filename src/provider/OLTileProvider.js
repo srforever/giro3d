@@ -253,13 +253,13 @@ async function loadTileOnce(url, extent, layer) {
     // This happens when a tile request is valid, but points to a region with no data.
     // Note: we let the HTTP handler do the logging for us in case of 4XX errors.
     if (response.status !== 200) {
-        return Promise.resolve(null);
+        return null;
     }
 
     const blob = await response.blob();
 
     if (!blob) {
-        return Promise.resolve(null);
+        return null;
     }
 
     let texture;
