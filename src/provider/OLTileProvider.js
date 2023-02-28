@@ -18,6 +18,7 @@ import MemoryTracker from '../renderer/MemoryTracker.js';
 import Cache from '../core/scheduler/Cache.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
 import { Mode } from '../core/layer/Interpretation.js';
+import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
 
 const TEXTURE_CACHE_LIFETIME_MS = 1000 * 60; // 60 seconds
 const MIN_LEVEL_THRESHOLD = 2;
@@ -135,11 +136,29 @@ function getZoomLevel(tileGrid, imageSize, extent) {
     return maxZoom;
 }
 
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function executeCommand(command) {
-    const { layer, instance } = command;
+    const { layer, instance, earlyDropFunction } = command;
     const { zoomLevel, extent, pitch } = command.toDownload;
 
+    function throwIfCancelled() {
+        if (earlyDropFunction && earlyDropFunction(command)) {
+            throw new CancelledCommandException(command);
+        }
+    }
+
+    // Give the opportunity to avoid downloading the images if the command was cancelled.
+    await delay(100);
+    throwIfCancelled();
+
     const images = await loadTiles(extent, zoomLevel, layer);
+
+    // Give the opportunity to avoid combining images if the command was cancelled.
+    throwIfCancelled();
+
     const result = combineImages(images, instance.renderer, pitch, layer, extent);
     return result;
 }
