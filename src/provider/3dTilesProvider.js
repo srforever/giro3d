@@ -8,7 +8,7 @@ import {
 } from 'three';
 import B3dmParser from '../parser/B3dmParser.js';
 import PntsParser from '../parser/PntsParser.js';
-import Fetcher from './Fetcher.js';
+import Fetcher from '../utils/Fetcher.js';
 import utf8Decoder from '../utils/Utf8Decoder.js';
 import Picking from '../core/Picking.js';
 import Points from '../core/Points.js';

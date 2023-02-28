@@ -3,7 +3,7 @@ import { Texture, Vector2 } from 'three';
 
 import Extent from '../core/geographic/Extent.js';
 import DataStatus from './DataStatus.js';
-import Fetcher from './Fetcher.js';
+import Fetcher from '../utils/Fetcher.js';
 import MemoryTracker from '../renderer/MemoryTracker.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';

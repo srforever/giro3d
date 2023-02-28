@@ -2,7 +2,7 @@ import {
     Box3,
     Vector3,
 } from 'three';
-import Fetcher from './Fetcher.js';
+import Fetcher from '../utils/Fetcher.js';
 import PotreeBinParser from '../parser/PotreeBinParser.js';
 import PotreeCinParser from '../parser/PotreeCinParser.js';
 import Picking from '../core/Picking.js';

@@ -148,7 +148,7 @@
     "transformIgnorePatterns": [
       "node_modules/(?!ol|three|quick-lru)"
     ],
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jest-environment-jsdom"
   },
   "config": {
     "commitizen": {

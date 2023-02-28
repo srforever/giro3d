@@ -30,7 +30,9 @@
       "src/interactions",
       "src/renderer/Camera.js",
       "src/renderer/PointsMaterial.js",
-      "src/sources"
+      "src/sources",
+      "src/utils/Fetcher.js",
+      "src/utils/HttpConfiguration.js"
     ]
   },
   "plugins": [
