@@ -2,7 +2,9 @@
  * @module utils/Fetcher
  */
 
+import { Texture } from 'three';
 import HttpConfiguration from './HttpConfiguration.js';
+import TextureGenerator from './TextureGenerator.js';
 
 /**
  * Throws an exception if the response ended with an error HTTP code.
@@ -41,6 +43,7 @@ async function _fetch(url, options = {}) {
 /**
  * Wrapper over `fetch`, then returns the blob of the response.
  *
+ * @api
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<Blob>} The response blob.
@@ -95,6 +98,7 @@ async function xml(url, options = {}) {
 /**
  * Wrapper over `fetch` to get some `ArrayBuffer`
  *
+ * @api
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<ArrayBuffer>} the promise containing the ArrayBuffer
@@ -102,6 +106,20 @@ async function xml(url, options = {}) {
 async function arrayBuffer(url, options = {}) {
     const response = await _fetch(url, options);
     return response.arrayBuffer();
+}
+
+/**
+ * Downloads a remote image and converts it into a texture.
+ *
+ * @api
+ * @param {string} url the URL to fetch
+ * @param {object} options fetch options (passed directly to `fetch()`)
+ * @returns {Promise<Texture>} the promise containing the texture
+ */
+async function texture(url, options = {}) {
+    const data = await blob(url, options);
+    const tex = await TextureGenerator.decodeBlob(data);
+    return tex;
 }
 
 /**
@@ -117,6 +135,7 @@ export default {
     xml,
     json,
     blob,
+    texture,
     arrayBuffer,
     text,
 };
