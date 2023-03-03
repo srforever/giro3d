@@ -288,14 +288,14 @@ function getChildTiles(tile) {
     return tile.children.filter(n => n.layer === tile.layer && n.tileId);
 }
 
-function subdivideNode(context, layer, node, cullingTestFn) {
+function subdivideNode(context, entity, node, cullingTestFn) {
     if (node.additiveRefinement) {
         // Additive refinement can only fetch visible children.
-        _subdivideNodeAdditive(context, layer, node, cullingTestFn);
+        _subdivideNodeAdditive(context, entity, node, cullingTestFn);
     } else {
         // Substractive refinement on the other hand requires to replace
         // node with all of its children
-        _subdivideNodeSubstractive(context, layer, node);
+        _subdivideNodeSubstractive(context, entity, node);
     }
 }
 
@@ -321,8 +321,8 @@ function boundingVolumeToExtent(crs, volume, transform) {
 }
 
 const tmpMatrix = new Matrix4();
-function _subdivideNodeAdditive(ctx, layer, node, cullingTestFn) {
-    for (const child of layer.tileIndex.index[node.tileId].children) {
+function _subdivideNodeAdditive(ctx, entity, node, cullingTestFn) {
+    for (const child of entity.tileIndex.index[node.tileId].children) {
         // child being downloaded or already added => skip
         if (child.promise || node.children.filter(n => n.tileId === child.tileId).length > 0) {
             continue;
@@ -343,7 +343,7 @@ function _subdivideNodeAdditive(ctx, layer, node, cullingTestFn) {
             continue;
         }
 
-        child.promise = requestNewTile(ctx.instance, ctx.scheduler, layer, child, node, true)
+        child.promise = requestNewTile(ctx.instance, ctx.scheduler, entity, child, node, true)
             .then(tile => {
                 if (!tile || !node.parent) {
                     // cancelled promise or node has been deleted
@@ -352,7 +352,7 @@ function _subdivideNodeAdditive(ctx, layer, node, cullingTestFn) {
                     tile.updateMatrixWorld();
 
                     const extent = boundingVolumeToExtent(
-                        layer.extent.crs(), tile.boundingVolume, tile.matrixWorld,
+                        entity.extent.crs(), tile.boundingVolume, tile.matrixWorld,
                     );
                     tile.traverse(obj => {
                         obj.extent = extent;
@@ -367,7 +367,7 @@ function _subdivideNodeAdditive(ctx, layer, node, cullingTestFn) {
     }
 }
 
-function _subdivideNodeSubstractive(context, layer, node) {
+function _subdivideNodeSubstractive(context, entity, node) {
     // Subdivision in progress => nothing to do
     if (node.pendingSubdivision) {
         return;
@@ -377,7 +377,7 @@ function _subdivideNodeSubstractive(context, layer, node) {
         return;
     }
     // No child => nothing to do either
-    const childrenTiles = layer.tileIndex.index[node.tileId].children;
+    const childrenTiles = entity.tileIndex.index[node.tileId].children;
     if (childrenTiles === undefined || childrenTiles.length === 0) {
         return;
     }
@@ -386,14 +386,14 @@ function _subdivideNodeSubstractive(context, layer, node) {
 
     // Substractive (refine = 'REPLACE') is an all or nothing subdivision mode
     const promises = [];
-    for (const child of layer.tileIndex.index[node.tileId].children) {
-        const p = requestNewTile(context.instance, context.scheduler, layer, child, node, false)
+    for (const child of entity.tileIndex.index[node.tileId].children) {
+        const p = requestNewTile(context.instance, context.scheduler, entity, child, node, false)
             .then(tile => {
                 node.add(tile);
                 tile.updateMatrixWorld();
 
                 const extent = boundingVolumeToExtent(
-                    layer.extent.crs(), tile.boundingVolume, tile.matrixWorld,
+                    entity.extent.crs(), tile.boundingVolume, tile.matrixWorld,
                 );
                 tile.traverse(obj => {
                     obj.extent = extent;
@@ -410,7 +410,7 @@ function _subdivideNodeSubstractive(context, layer, node) {
         // delete other children
         for (const n of getChildTiles(node)) {
             n.visible = false;
-            markForDeletion(layer, n);
+            markForDeletion(entity, n);
         }
     });
 }
