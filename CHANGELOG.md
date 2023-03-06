@@ -1,5 +1,54 @@
 # Changelog
 
+## v0.21.0 (2023-03-06)
+
+This release contains many bugfixes and performance improvements, as well as two features: the `DrawTools` and the `HttpConfiguration` modules.
+
+### BREAKING CHANGE
+
+- `Fetcher` has been moved to `utils/`.
+- `Cache` has been moved to `core/`.
+- `Cache` is now an instantiable class. To use the global singleton cache, use `GlobalCache`:
+
+    ```js
+    import { GlobalCache } from '../core/Cache.js';
+
+    const foo = GlobalCache.get('foo');
+
+    GlobalCache.purge();
+    GlobalCache.clear();
+    ```
+
+### Feat
+
+- **Drawtools**: add the `DrawTools` class to draw geometries on various objects. (#5). [See it in action](https://giro3d.org/examples/drawtool.html).
+- add the `HttpConfiguration` module (#86). This module stores configuration (such as headers) based on URL paths. [See the documentation](https://giro3d.org/apidoc/module-utils_HttpConfiguration.html) for a detailed explanation.
+- **Inspector**: display min/max of elevation layers
+- **Inspector**: add Instance inspector
+
+### Fix
+
+- **Map**: properly dispose pooled geometries (#230)
+- **TextureGenerator**: fix forever pending `create8bitImage()`  (#232)
+- **Inspector**: add counters for pending/cancelled/failed/running/complete commands
+- **Scheduler**: don't log cancelled commands
+- **MemoryTracker**: fix non-weakrefs
+
+### Refactor
+
+- **Fetcher**: improve message in `checkResponse()`
+- **Fetcher**: move to `utils/` folder
+
+### Perf
+
+- **Cache**: prevent unbounded growth (#225). This uses the `lru-cache` package to ensure that the cache capacity is controlled.
+- **OLTileProvider**: handle command cancellation (#238)
+- **COGProvider**: handle command cancellation (#234)
+- **Map**: don't keep data copy of elevation textures (#215). This considerably reduces the memory usage of scenes that contain elevation data.
+- **Picking**: don't sample the elevation texture (#231)
+- **3DEngine**: option to toggle shader validation (#229). Shader validation is a costly operation that should be avoided in production.
+- **Map**: avoid allocating too many `TileGeometry` objects (#230)
+
 ## v0.20.1 (2023-02-17)
 
 Hotfix for the #228 issue.
@@ -636,7 +685,7 @@ object anymore. Please see `./examples/planar.js` for instance.
 individual files
 
 
-### Features 
+### Features
 
 * Add helpers method to integrate any THREE controls in giro3d
 * add min/max height options on FirstPersonControls
