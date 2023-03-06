@@ -6,7 +6,7 @@ import {
     Vector2,
     Vector3,
 } from 'three';
-import { MAIN_LOOP_EVENTS } from '../../core/MainLoop.js';
+import { MAIN_LOOP_EVENTS } from '../core/MainLoop.js';
 
 // Note: we could use existing js controls (like
 // https://github.com/mrdoob/js/blob/dev/examples/js/controls/FirstPersonControls.js) but
