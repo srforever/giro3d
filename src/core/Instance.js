@@ -13,7 +13,7 @@ import Entity from '../entities/Entity.js';
 import Scheduler from './scheduler/Scheduler.js';
 import Picking from './Picking.js';
 import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh.js';
-import ObjectRemovalHelper from '../process/ObjectRemovalHelper.js';
+import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 
 const vectors = {
     pos: new Vector3(),
