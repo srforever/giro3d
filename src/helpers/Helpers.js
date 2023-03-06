@@ -21,7 +21,7 @@ import {
     ArrowHelper,
 } from 'three';
 import Tiles3D from '../entities/Tiles3D.js';
-import OBB from '../renderer/extensions/OBB.js';
+import OBB from '../core/OBB.js';
 import OBBHelper from './OBBHelper.js';
 
 const _vector = new Vector3();
