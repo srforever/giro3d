@@ -1,5 +1,4 @@
 import Extent from '../../../src/core/geographic/Extent.js';
-import Cache from '../../../src/core/scheduler/Cache.js';
 import TileMesh from '../../../src/core/TileMesh.js';
 import Map from '../../../src/entities/Map.js';
 
@@ -10,8 +9,6 @@ describe('TileMesh', () => {
     let defaultMaterial;
 
     beforeEach(() => {
-        Cache.clear();
-
         defaultMaterial = {
             dispose: jest.fn(),
             setUuid: jest.fn(),

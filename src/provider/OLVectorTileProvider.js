@@ -45,7 +45,7 @@ import {
 
 import Extent from '../core/geographic/Extent.js';
 import DataStatus from './DataStatus.js';
-import Cache from '../core/scheduler/Cache.js';
+import { GlobalCache } from '../core/Cache.js';
 import Layer from '../core/layer/Layer.js';
 import Rect from '../core/Rect.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
@@ -227,7 +227,7 @@ function loadTile(tile, tileExtent, layer) {
     const tileCoord = tile.getTileCoord();
     const key = `vectortile-${layer.id}-${tileCoord[0]},${tileCoord[1]},${tileCoord[2]}`;
 
-    const cached = Cache.get(key);
+    const cached = GlobalCache.get(key);
 
     if (cached) {
         return cached;
@@ -255,7 +255,7 @@ function loadTile(tile, tileExtent, layer) {
         });
     }
 
-    Cache.set(key, promise, Cache.POLICIES.TEXTURE, onDelete);
+    GlobalCache.set(key, promise, { onDelete });
 
     return promise;
 }

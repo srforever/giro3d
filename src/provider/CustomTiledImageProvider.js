@@ -9,7 +9,7 @@ import TextureGenerator from '../utils/TextureGenerator.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
 import ElevationLayer from '../core/layer/ElevationLayer.js';
 import Rect from '../core/Rect.js';
-import Cache from '../core/scheduler/Cache.js';
+import { GlobalCache } from '../core/Cache.js';
 
 const temp = {
     dim: new Vector2(),
@@ -44,14 +44,14 @@ function onDelete(promise) {
 }
 
 async function loadTexture(url) {
-    let promise = Cache.get(url);
+    let promise = GlobalCache.get(url);
     if (promise) {
         return promise;
     }
 
     promise = Fetcher.blob(url).then(blob => TextureGenerator.decodeBlob(blob));
 
-    Cache.set(url, promise, Cache.POLICIES.TEXTURE, onDelete);
+    GlobalCache.set(url, promise, { onDelete });
 
     return promise;
 }

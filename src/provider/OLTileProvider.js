@@ -15,24 +15,18 @@ import Rect from '../core/Rect.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
 import Fetcher from '../utils/Fetcher.js';
 import MemoryTracker from '../renderer/MemoryTracker.js';
-import Cache from '../core/scheduler/Cache.js';
+import { GlobalCache } from '../core/Cache.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
 import { Mode } from '../core/layer/Interpretation.js';
 import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
 
-const TEXTURE_CACHE_LIFETIME_MS = 1000 * 60; // 60 seconds
 const MIN_LEVEL_THRESHOLD = 2;
 const tmp = {
     dims: new Vector2(),
 };
 
-/**
- * Dispose the texture contained in the promise.
- *
- * @param {Promise<Texture>} promise The texture promise.
- */
-function onDelete(promise) {
-    promise.then(t => t.dispose(), e => console.error(e));
+function onDelete(texture) {
+    texture?.dispose();
 }
 
 function preprocessDataLayer(layer) {
@@ -303,6 +297,12 @@ async function loadTileOnce(url, extent, layer) {
     if (__DEBUG__) {
         MemoryTracker.track(texture, 'OL tile');
     }
+
+    // The actual texture replaces the promise
+    GlobalCache.delete(`promise-${url}`);
+    const size = TextureGenerator.estimateSize(texture);
+    GlobalCache.set(`image-${url}`, texture, { onDelete, size });
+
     return texture;
 }
 
@@ -315,15 +315,23 @@ async function loadTileOnce(url, extent, layer) {
 async function loadTile(url, extent, layer) {
     let tilePromise;
 
+    const promiseKey = `promise-${url}`;
+    const imageKey = `image-${url}`;
+
+    const cachedTexture = GlobalCache.get(imageKey);
+    if (cachedTexture) {
+        return Promise.resolve(cachedTexture);
+    }
+
     // Fetch and create the texture only once per tile.
     // Many source tiles are shared across map tiles. We want to save
     // time by reusing an already processed tile texture.
-    const cached = Cache.get(url);
+    const cached = GlobalCache.get(promiseKey);
     if (cached) {
         tilePromise = cached;
     } else {
         tilePromise = loadTileOnce(url, extent, layer);
-        Cache.set(url, tilePromise, TEXTURE_CACHE_LIFETIME_MS, onDelete);
+        GlobalCache.set(promiseKey, tilePromise);
     }
 
     return tilePromise;

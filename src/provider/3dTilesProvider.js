@@ -13,7 +13,7 @@ import utf8Decoder from '../utils/Utf8Decoder.js';
 import Picking from '../core/Picking.js';
 import Points from '../core/Points.js';
 import PointsMaterial from '../renderer/PointsMaterial.js';
-import Cache from '../core/scheduler/Cache.js';
+import { GlobalCache } from '../core/Cache.js';
 import { init3dTilesEntity } from '../entities/Tiles3D.js';
 
 const identity = new Matrix4();
@@ -276,8 +276,8 @@ function executeCommand(command) {
             b3dm: b3dmToMesh,
             pnts: pntsParse,
         };
-        const dl = Cache.get(url)
-            || Cache.set(url, Fetcher.arrayBuffer(url, layer.networkOptions), Cache.TEXTURE);
+        const dl = GlobalCache.get(url)
+            || GlobalCache.set(url, Fetcher.arrayBuffer(url, layer.networkOptions));
         return dl.then(result => {
             if (result !== undefined) {
                 let func;

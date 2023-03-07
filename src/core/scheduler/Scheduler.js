@@ -8,7 +8,6 @@ import OLVectorTileProvider from '../../provider/OLVectorTileProvider.js';
 import OLVectorProvider from '../../provider/OLVectorProvider.js';
 import COGProvider from '../../provider/COGProvider.js';
 import CancelledCommandException from './CancelledCommandException.js';
-import Cache from './Cache.js';
 
 const instanceScheduler = null;
 
@@ -197,10 +196,7 @@ function isInCache(command) {
     if (!command.toDownload) {
         return false;
     }
-    // Probably belongs to the provider (= it's part of a command API)
-    if (command.url) {
-        return !!Cache.get(command.url);
-    }
+
     if (command.tile) {
         return command.tile.getState() === TileState.LOADED;
     }

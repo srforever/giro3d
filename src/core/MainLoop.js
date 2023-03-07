@@ -1,7 +1,6 @@
 import {
     EventDispatcher, MathUtils as ThreeMath, Sphere,
 } from 'three';
-import Cache from './scheduler/Cache.js';
 import Context from './Context.js';
 
 export const RENDERING_PAUSED = 0;
@@ -281,9 +280,6 @@ MainLoop.prototype._step = function _step(instance, timestamp) {
     }
 
     instance.camera.camera3D.matrixAutoUpdate = oldAutoUpdate;
-
-    // Clear the cache of expired resources
-    Cache.flush();
 
     instance.execFrameRequesters(MAIN_LOOP_EVENTS.UPDATE_END, dt, this._updateLoopRestarted);
 };

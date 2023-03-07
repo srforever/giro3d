@@ -75,6 +75,7 @@
     "geotiff": "^2.0.5",
     "js-priority-queue": "^0.1.5",
     "lil-gui": "^0.17.0",
+    "lru-cache": "^7.15.0",
     "pbf": "^3.1.0",
     "text-encoding-utf-8": "^1.0.1"
   },
