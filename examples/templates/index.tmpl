@@ -3,6 +3,24 @@
 
 <head>
     <title>Giro3D - Examples</title>
+
+    <!-- OpenGraph -->
+    <meta property="og:description" content="A versatile framework to visualize geospatial data in the browser.">
+    <meta property="og:image" content="https://giro3d.org/images/giro3d_logo_compact.svg">
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="Giro3D - examples">
+    <meta property="og:site_name" content="Giro3D">
+    <meta property="og:type" content="object">
+    <meta property="og:url" content="https://giro3d.org/examples">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:description" content="A versatile framework to visualize geospatial data in the browser.">
+    <meta name="twitter:dnt" content="on">
+    <meta name="twitter:image" content="https://giro3d.org/images/giro3d_logo_compact.svg">
+    <meta name="twitter:title" content="Giro3D - examples">
+    <meta name="twitter:widgets:align" content="center">
+
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -17,7 +35,7 @@
         <div class="container-fluid">
 
             <a class="navbar-brand" href="#">
-                <img src="../apidoc/giro3d_logo_compact.svg" height="32" class="brand">
+                <img src="../images/giro3d_logo_compact.svg" height="32" class="brand">
             </a>
 
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -25,11 +43,14 @@
                 aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
-            
+
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
                         <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../tutorials/getting-started.html">Getting started</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="index.html">Examples</a>
@@ -50,7 +71,7 @@
     </header>
 
     <div class="container-fluid p-3 m-0">
-        <div class="row row-cols-4 gy-3 gx-3">
+        <div class="row row-cols-auto">
             %examples%
         </div>
     </div>

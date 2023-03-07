@@ -27,7 +27,7 @@ const extent = new Extent(
     5170036.4587, 5178412.82698,
 );
 
-// `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+// `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates the giro3d instance
@@ -107,6 +107,7 @@ ifcLoader.load(
     'data/AC20-FZK-Haus.ifc', // Found at https://www.ifcwiki.org/index.php?title=File:AC20-FZK-Haus.ifc
     _ifcModel => {
         ifcModel = _ifcModel;
+        ifcModel.name = 'ifcModel';
 
         // Places the object
         ifcModel.translateY(ifcPosition.y)
@@ -152,21 +153,60 @@ instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
+const resultsTable = document.getElementById('results-body');
+const formatter = new Intl.NumberFormat();
+
+function format(point) {
+    return `x: ${formatter.format(point.x)}\n
+            y: ${formatter.format(point.y)}\n
+            z: ${formatter.format(point.z)}`;
+}
+
 instance.domElement.addEventListener('dblclick', e => {
     const picked = instance.pickObjectsAt(e, {
         // Let the user pick only points from IFC model
         where: (document.getElementById('pick_source').value === '1') ? [ifcModel] : null,
     });
     if (picked.length === 0) {
-        document.getElementById('selectedDiv').innerHTML = 'No object found';
+        const row = document.createElement('tr');
+        const count = document.createElement('th');
+        count.setAttribute('scope', 'row');
+        count.innerText = '-';
+        const obj = document.createElement('td');
+        obj.innerText = '-';
+        const coordinates = document.createElement('td');
+        coordinates.innerText = '-';
+        const distanceToCamera = document.createElement('td');
+        distanceToCamera.innerText = '-';
+        row.append(count, obj, coordinates, distanceToCamera);
+        resultsTable.replaceChildren(row);
     } else {
-        document.getElementById('selectedDiv').innerHTML = `
-${picked.length} objects found<br>
-First object:
-<ul>
-<li>Point clicked: ${picked[0].point.x.toFixed(2)}, ${picked[0].point.y.toFixed(2)}, ${picked[0].point.z.toFixed(2)}</li>
-<li>Distance to camera: ${picked[0].distance.toFixed(2)}</li>
-</ul>
-        `;
+        const rows = picked.map((p, i) => {
+            const row = document.createElement('tr');
+            const count = document.createElement('th');
+            count.setAttribute('scope', 'row');
+            count.innerText = `${i + 1}`;
+            const obj = document.createElement('td');
+            obj.innerText = `${p.object.name} (${p.object.type})`;
+            const coordinates = document.createElement('td');
+            coordinates.innerHTML = format(p.point);
+            const distanceToCamera = document.createElement('td');
+            distanceToCamera.innerText = formatter.format(p.distance);
+            row.append(count, obj, coordinates, distanceToCamera);
+            return row;
+        });
+        resultsTable.replaceChildren(...rows);
     }
 });
+
+const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+popoverTriggerList.map(
+    // bootstrap is used as script in the template, disable warning about undef
+    // eslint-disable-next-line no-undef
+    popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
+        trigger: 'hover',
+        placement: 'left',
+        content: document.getElementById(popoverTriggerEl.getAttribute('data-bs-content')).innerHTML,
+        html: true,
+    }),
+);

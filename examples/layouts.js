@@ -47,6 +47,10 @@ function buildViewer(viewerDiv, defaultRenderer = true) {
     controls.enableZoom = false;
 }
 
+// Remove the pre-generated default HTML elements for this example
+document.getElementById('viewerDiv').remove();
+document.getElementById('panelDiv').remove();
+
 // Dynamically find all viewers we have to build
 const viewerDivs = document.getElementsByClassName('viewer');
 for (let i = 0; i < viewerDivs.length; i += 1) {

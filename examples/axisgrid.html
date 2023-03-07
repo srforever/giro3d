@@ -1,76 +1,71 @@
 ---
 title: AxisGrid
 shortdesc: Illustrates the use of the AxisGrid entity.
+longdesc: The <code>AxisGrid</code> is useful to get a grasp of a dataset's volume in 3D space, including is height. The relative origin mode is useful to get a grasp of the dataset's size, with the absolute origin mode displays coordinates in the local CRS.
 ---
-<div class="position-relative h-100">
-    <div id="viewerDiv"></div>
-    <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
-    <div id="infoDiv" class="position-absolute bottom-0 end-0 d-none bg-secondary text-light border border-info px-1"></div>
+<div class="m-2 position-absolute top-0 end-0">
+    <div class="card">
 
-    <div class="m-2 position-absolute top-0 end-0">
-        <div class="card">
-
-            <div class="card-body">
-                <!-- Show/Hide AxisGrid -->
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-entity">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Show axis grid</label>
-                </div>
-
-                <!-- Absolute/Relative -->
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-origin">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Relative origin</label>
-                </div>
-
-                <!-- Show/Hide ceiling -->
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-ceiling">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Show ceiling</label>
-                </div>
-
-                <!-- Show/Hide floor -->
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-floor">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Show floor</label>
-                </div>
-
-                <!-- Show/Hide sides -->
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-sides">
-                    <label class="form-check-label" for="flexSwitchCheckDefault">Show sides</label>
-                </div>
-
-                <div class="my-2"></div>
-
-                <!-- X step -->
-                <label for="basic-url" class="form-label">x-axis step</label>
-                <div class="input-group">
-                    <input type="range" min="100" max="3000" value="1000" step="100" class="slider" id="x-axis-step">
-                </div>
-
-                <div class="my-2"></div>
-
-                <!-- Y step -->
-                <label for="basic-url" class="form-label">y-axis step</label>
-                <div class="input-group">
-                    <input type="range" min="100" max="3000" value="1000" step="100" class="slider" id="y-axis-step">
-                </div>
-
-                <div class="my-2"></div>
-
-                <!-- Z step -->
-                <label for="basic-url" class="form-label">zaxis step</label>
-                <div class="input-group">
-                    <input type="range" min="100" max="3000" value="200" step="100" class="slider" id="z-axis-step">
-                </div>
-
-                <div class="my-4"></div>
-
-                <!-- Randomize grid position -->
-                <button type="button" class="btn btn-primary" id="randomize-position">Randomize position</button>
-
+        <div class="card-body">
+            <!-- Show/Hide AxisGrid -->
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-entity">
+                <label class="form-check-label" for="toggle-entity">Show axis grid</label>
             </div>
+
+            <!-- Absolute/Relative -->
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-origin">
+                <label class="form-check-label" for="toggle-origin">Relative origin</label>
+            </div>
+
+            <!-- Show/Hide ceiling -->
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-ceiling">
+                <label class="form-check-label" for="toggle-ceiling">Show ceiling</label>
+            </div>
+
+            <!-- Show/Hide floor -->
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-floor">
+                <label class="form-check-label" for="toggle-floor">Show floor</label>
+            </div>
+
+            <!-- Show/Hide sides -->
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-sides">
+                <label class="form-check-label" for="toggle-sides">Show sides</label>
+            </div>
+
+            <div class="my-2"></div>
+
+            <!-- X step -->
+            <label for="x-axis-step" class="form-label">x-axis step</label>
+            <div class="input-group">
+                <input type="range" min="100" max="3000" value="1000" step="100" class="slider" id="x-axis-step">
+            </div>
+
+            <div class="my-2"></div>
+
+            <!-- Y step -->
+            <label for="y-axis-step" class="form-label">y-axis step</label>
+            <div class="input-group">
+                <input type="range" min="100" max="3000" value="1000" step="100" class="slider" id="y-axis-step">
+            </div>
+
+            <div class="my-2"></div>
+
+            <!-- Z step -->
+            <label for="z-axis-step" class="form-label">zaxis step</label>
+            <div class="input-group">
+                <input type="range" min="100" max="3000" value="200" step="100" class="slider" id="z-axis-step">
+            </div>
+
+            <div class="my-4"></div>
+
+            <!-- Randomize grid position -->
+            <button type="button" class="btn btn-primary" id="randomize-position">Randomize position</button>
+
         </div>
     </div>
 </div>

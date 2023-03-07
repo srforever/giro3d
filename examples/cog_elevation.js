@@ -11,13 +11,15 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
 
+import CoordinateBar from './widgets/CoordinateBar.js';
+
 const extent = new Extent(
     'EPSG:3857',
     -13581040.085, -13469591.026,
     5780261.830, 5942165.048,
 );
 
-// `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+// `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Instantiate Giro3D
@@ -69,19 +71,11 @@ Inspector.attach(document.getElementById('panelDiv'), instance);
 
 // Bind events
 instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
-const infoDiv = document.getElementById('infoDiv');
-instance.domElement.addEventListener('mousemove', e => {
-    const picked = instance.pickObjectsAt(e, { limit: 1 }).at(0);
-    if (picked) {
-        infoDiv.classList.remove('d-none');
-        infoDiv.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(5)}`;
-    } else {
-        infoDiv.classList.add('d-none');
-    }
-});
 
 const toggle = document.getElementById('colormap-enable');
 toggle.onchange = () => {
     colorMap.active = toggle.checked;
     instance.notifyChange(map);
 };
+
+CoordinateBar.bind(instance);

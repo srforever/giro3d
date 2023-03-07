@@ -13,6 +13,8 @@ import { Collection, Feature } from 'ol';
 import VectorSource from 'ol/source/Vector.js';
 import { LineString } from 'ol/geom.js';
 
+import CoordinateBar from './widgets/CoordinateBar.js';
+
 Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 
 const extent = new Extent(
@@ -20,7 +22,7 @@ const extent = new Extent(
     929748, 974519, 6400582, 6444926,
 );
 
-// `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+// `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates the giro3d instance
@@ -136,14 +138,5 @@ instance.useTHREEControls(controls);
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
 // Bind events
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
-const infoDiv = document.getElementById('infoDiv');
-instance.domElement.addEventListener('mousemove', e => {
-    const picked = instance.pickObjectsAt(e, { limit: 1 }).at(0);
-    if (picked) {
-        infoDiv.classList.remove('d-none');
-        infoDiv.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(5)}`;
-    } else {
-        infoDiv.classList.add('d-none');
-    }
-});
+// Bind events
+CoordinateBar.bind(instance);

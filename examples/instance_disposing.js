@@ -14,7 +14,7 @@ const extent = new Extent(
 );
 const dimensions = extent.dimensions();
 
-// `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+// `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 let instance = null;

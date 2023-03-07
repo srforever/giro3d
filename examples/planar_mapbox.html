@@ -1,16 +1,12 @@
 ---
 title: Mapbox tilesets
 shortdesc: Display a 2.5D map with a Mapbox Terrain RGB tileset and a Mapbox satellite tileset.
+longdesc: Mapbox Terrain RGB is a form of encoding of elevation data where 24 bits of elevation data are encoded using the 3 colors of a PNG image.
 ---
-<div class="position-relative h-100">
-    <div id="viewerDiv"></div>
-    <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
-    <div class="m-3 position-absolute top-0 end-0">
-        <form class="row row-cols-lg-auto g-3 align-items-center" id="mapboxApi">
-            <div class="input-group">
-                <input type="text" class="form-control" id="mapboxApiKey" placeholder="Custom Mapbox API key">
-            </div>
-        </form>
-    </div>
-    <div id="infoDiv" class="position-absolute bottom-0 end-0 d-none bg-secondary text-light border border-info px-1"></div>
+<div class="m-3 position-absolute top-0 end-0">
+    <form class="row row-cols-lg-auto g-3 align-items-center" id="mapboxApi">
+        <div class="input-group">
+            <input type="text" class="form-control" id="mapboxApiKey" placeholder="Custom Mapbox API key">
+        </div>
+    </form>
 </div>

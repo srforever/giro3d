@@ -10,6 +10,8 @@ import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
+import CoordinateBar from './widgets/CoordinateBar.js';
+
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
 Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 
@@ -96,13 +98,4 @@ instance.scene.background = cubeTexture;
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
 // Bind events
-const infoDiv = document.getElementById('infoDiv');
-instance.domElement.addEventListener('mousemove', e => {
-    const picked = instance.pickObjectsAt(e, { radius: 5, limit: 1, where: [pointcloud] }).at(0);
-    if (picked) {
-        infoDiv.classList.remove('d-none');
-        infoDiv.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(5)}`;
-    } else {
-        infoDiv.classList.add('d-none');
-    }
-});
+CoordinateBar.bind(instance);

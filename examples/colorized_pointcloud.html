@@ -1,15 +1,12 @@
 ---
 title: Colorized 3D Tiles Point Cloud
 shortdesc: Colorize a point cloud with an image layer.
+longdesc: Point clouds can be colorized from different methods &#58; using the original color in the point cloud, coloring using an elevation gradient, or coloring using an external image source, such as a WMS layer.
 ---
-<div class="position-relative h-100">
-    <div id="viewerDiv"></div>
-    <div class="dropdown m-3 position-absolute top-0 end-0">
-        <select class="btn btn-primary dropdown-toggle d-block" id="pointcloud_mode">
-            <option value="0">Coloring from point cloud</option>
-            <option value="5">Coloring from elevation</option>
-            <option value="4" selected>Coloring from imagery</option>
-        </select>
-    </div>
-    <div id="panelDiv" class="bg-dark position-absolute top-0 start-0 shadow-sm"></div>
+<div class="dropdown m-3 position-absolute top-0 end-0">
+    <select class="btn btn-primary dropdown-toggle d-block" id="pointcloud_mode">
+        <option value="0">Coloring from point cloud</option>
+        <option value="5">Coloring from elevation</option>
+        <option value="4" selected>Coloring from imagery</option>
+    </select>
 </div>

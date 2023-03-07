@@ -1,23 +1,31 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import fse from 'fs-extra';
 import path from 'path';
 import sources from 'webpack-sources';
 import frontMatter from 'front-matter';
+import shiki from 'shiki';
 
 const RawSource = sources.RawSource;
 const relativeImportRegex = /\.\.\/src/;
 
+let exampleId = 0;
+
 function generateExampleCard(pathToHtmlFile, template) {
     const name = path.parse(pathToHtmlFile).name;
     const { attributes } = parseExample(pathToHtmlFile);
+    exampleId++;
     return template
         .replaceAll('%title%', attributes.title)
         .replaceAll('%description%', attributes.shortdesc)
+        .replaceAll('%id%', exampleId)
         .replaceAll('%name%', name);
 }
 
-function generateExample(pathToHtmlFile, template) {
+function generateExample(pathToHtmlFile, template, highlighter) {
     const filename = path.basename(pathToHtmlFile);
     const js = filename.replace('.html', '.js');
+    const sourceCode = fse
+        .readFileSync(pathToHtmlFile.replace('.html', '.js'), 'utf-8');
     const name = path.parse(pathToHtmlFile).name;
     const { attributes, body } = parseExample(pathToHtmlFile);
     let customCss = '';
@@ -26,12 +34,14 @@ function generateExample(pathToHtmlFile, template) {
         customCss = fse.readFileSync(css);
     }
     const html = template
-        .replaceAll('%title%', `${attributes.title} - Giro3D`)
+        .replaceAll('%title%', `${attributes.title}`)
         .replaceAll('%description%', attributes.shortdesc)
+        .replaceAll('%long_description%', attributes.longdesc ?? '')
         .replaceAll('%name%', name)
         .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/master/examples/${js}`)
         .replaceAll('%js%', js)
         .replaceAll('%customcss%', customCss)
+        .replaceAll('%code%', highlighter?.codeToHtml(sourceCode, { lang: 'js' }))
         .replaceAll('%content%', body);
 
     return { filename, html };
@@ -72,6 +82,7 @@ export default class ExampleBuilder {
      * common chunk.
      */
     constructor(config) {
+        this.debug = config.debug;
         this.name = 'ExampleBuilder';
         this.templates = config.templates;
         this.examplesDir = config.examplesDir;
@@ -91,7 +102,7 @@ export default class ExampleBuilder {
         });
     }
 
-    async addAssets(assets, dir) {
+    async addAssets(assets) {
         const template = await fse.readFile(path.resolve(this.examplesDir, 'templates/thumbnail.tmpl'), 'utf-8');
         const index = await fse.readFile(path.resolve(this.examplesDir, 'templates/index.tmpl'), 'utf-8');
 
@@ -104,15 +115,23 @@ export default class ExampleBuilder {
         // generate an example card fragment for each example file
         const thumbnails = htmlFiles.map(f => generateExampleCard(f, template));
 
+        let highlighter;
+        if (!this.debug) {
+            highlighter = await shiki.getHighlighter({ theme: 'github-light' });
+        }
+
         // Fill the index.html file with the example cards
         const html = index.replace('%examples%', thumbnails.join('\n\n'));
 
         assets['index.html'] = new RawSource(html);
 
-        const exampleTemplate = await fse.readFile(path.resolve(this.examplesDir, 'templates/example.tmpl'), 'utf-8');
+        const templateFile = this.debug
+            ? 'templates/example-dev.tmpl'
+            : 'templates/example.tmpl';
+        const exampleTemplate = await fse.readFile(path.resolve(this.examplesDir, templateFile), 'utf-8');
 
         htmlFiles
-            .map(f => generateExample(f, exampleTemplate))
+            .map(f => generateExample(f, exampleTemplate, highlighter))
             .forEach(ex => {
                 assets[ex.filename] = new RawSource(ex.html);
             });

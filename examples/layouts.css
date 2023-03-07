@@ -1,0 +1,29 @@
+/* Reset page height so we can scroll */
+html { height: auto; }
+body { height: auto; }
+
+#legendSticky, #viewerDivSticky {
+    background: linear-gradient(to right, rgb(125, 199, 144), rgb(11, 59, 23));
+}
+
+#legendNestedFlex {
+    writing-mode: vertical-rl;
+}
+#containerFlex {
+    background: linear-gradient(to right, rgb(251, 165, 116), rgb(216, 245, 251));
+}
+
+#legendOverflow, #viewerDivOverflow {
+    background: linear-gradient(to right, rgb(251, 251, 255), rgb(215, 223, 252));
+}
+
+#viewerDivFixed {
+    background: linear-gradient(to right, rgb(65, 80, 95), rgb(36, 37, 38));
+}
+#legendFixed {
+    color: #fff;
+}
+
+#source {
+  margin-bottom: 250px !important;
+}

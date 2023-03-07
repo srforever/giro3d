@@ -14,7 +14,7 @@ const extent = new Extent(
     -20037508.342789244, 20037508.342789244,
 );
 
-// `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+// `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates a giro3d instance
@@ -48,6 +48,9 @@ const vectorSource1 = new Vector({
     url: 'https://openlayers.org/data/vector/ecoregions.json',
     format: new GeoJSON({}),
 });
+vectorSource1.once('featuresloadend', () => {
+    instance.notifyChange(map);
+});
 vectorSource1.loadFeatures();
 
 const ecoRegionLayer = new ColorLayer(
@@ -73,6 +76,9 @@ map.addLayer(ecoRegionLayer);
 const vectorSource2 = new Vector({
     url: 'https://openlayers.org/en/v5.3.0/examples/data/geojson/countries.geojson',
     format: new GeoJSON({ featureProjection: 'EPSG:3857' }),
+});
+vectorSource2.once('featuresloadend', () => {
+    instance.notifyChange(map);
 });
 vectorSource2.loadFeatures();
 
@@ -181,3 +187,5 @@ map.addLayer(customVectorLayer);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
+
+instance.notifyChange(map);

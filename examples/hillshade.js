@@ -23,7 +23,7 @@ const extent = new Extent(
     5170036.4587, 5178412.82698,
 );
 
-// `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+// `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 // Creates the giro3d instance
 const instance = new Instance(viewerDiv);
@@ -115,11 +115,13 @@ controls.maxPolarAngle = Math.PI / 2.3;
 instance.useTHREEControls(controls);
 
 const hillshadingCheckbox = document.getElementById('hillshadingCheckbox');
+const hillshadingOptions = document.getElementById('hillshadingOptions');
 
 hillshadingCheckbox.oninput = function oninput() {
     const state = hillshadingCheckbox.checked;
     map.materialOptions.hillshading = state;
     instance.notifyChange(map);
+    hillshadingOptions.disabled = !state;
 };
 
 const opacitySlider = document.getElementById('opacitySlider');

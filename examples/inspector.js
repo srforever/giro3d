@@ -41,7 +41,7 @@ const extent = new Extent(
     -20037508.342789244, 20037508.342789244,
 );
 
-// `viewerDiv` will contain giro3d' rendering area (`<canvas>`)
+// `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates a giro3d instance
@@ -61,7 +61,9 @@ const controls = new MapControls(instance.camera.camera3D, viewerDiv);
 instance.useTHREEControls(controls);
 
 // Attach the inspector to the DOM
-const inspector = Inspector.attach(document.getElementById('panelDiv'), instance);
+const inspectorDiv = document.getElementById('panelDiv');
+inspectorDiv.style.display = 'block';
+const inspector = Inspector.attach(inspectorDiv, instance);
 
 const myCustomPanel = new MyCustomPanel(inspector.gui, map, instance);
 

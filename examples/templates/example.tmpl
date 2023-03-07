@@ -1,7 +1,25 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>%title%</title>
+        <title>%title% - Giro3D</title>
+
+        <!-- OpenGraph -->
+        <meta property="og:description" content="%description%">
+        <meta property="og:image" content="https://giro3d.org/examples/screenshots/%name%.jpg">
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:title" content="Giro3D - %title%">
+        <meta property="og:site_name" content="Giro3D">
+        <meta property="og:type" content="object">
+        <meta property="og:url" content="https://giro3d.org/examples/%name%.html">
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:description" content="%description%">
+        <meta name="twitter:dnt" content="on">
+        <meta name="twitter:image" content="https://giro3d.org/examples/screenshots/%name%.jpg">
+        <meta name="twitter:title" content="Giro3D - %title%">
+        <meta name="twitter:widgets:align" content="center">
+
         <meta charset="UTF-8">
         <meta name="name" content="%name%">
         <meta name="description" content="%description%">
@@ -13,7 +31,7 @@
         %customcss%
         </style>
     </head>
-    <body class="p-0 m-0 border-0 d-flex flex-column">
+    <body class="p-0 m-0 border-0 d-flex flex-column bg-light">
 
         <!-- navbar -->
         <header class="navbar navbar-expand-lg bg-light sticky-top shadow-sm">
@@ -21,7 +39,7 @@
             <div class="container-fluid">
 
                 <a class="navbar-brand" href="#">
-                    <img src="../apidoc/giro3d_logo_compact.svg" height="32" class="brand">
+                    <img src="../images/giro3d_logo_compact.svg" height="32" class="brand">
                 </a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
@@ -36,6 +54,9 @@
                             <a class="nav-link" href="../index.html">Home</a>
                         </li>
                         <li class="nav-item">
+                            <a class="nav-link" href="../tutorials/getting-started.html">Getting started</a>
+                        </li>
+                        <li class="nav-item">
                             <a class="nav-link active" aria-current="page" href="index.html">Examples</a>
                         </li>
                         <li class="nav-item">
@@ -46,15 +67,41 @@
                         </li>
                     </ul>
                 </div>
-
-                <a href="%source_url%" target="_blank">
-                    <button type="button" class="btn btn-outline-secondary">Source</button>
-                </a>
             </div>
         </header>
 
-        %content%
+        <div class="m-3">
 
+            <!-- Short description (same as in the example card) -->
+            <div>
+                <p class="text-muted">%description%</p>
+            </div>
+
+            <!-- 3D view -->
+            <div class="border position-relative">
+                <!-- Viewer -->
+                <div id="viewerDiv" style="height: 65vh"></div>
+                <!-- Inspector (hidden by default) -->
+                <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto" style="display:none"></div>
+                <!-- Optional additional content from the example (custom buttons, etc.) -->
+                %content%
+                <!-- Coordinate bar -->
+                <div id="coordinates"
+                    style="border-radius: 4px 0 0; font-size: 12px;"
+                    class="position-absolute bottom-0 end-0 bg-light text-secondary px-2">
+                </div>
+            </div>
+
+            <!-- Long description (optional) -->
+            <div class="my-3">
+                <p>%long_description%</p>
+            </div>
+
+            <!-- Source code -->
+            <div class="border rounded p-3 my-3" id="source" style="background-color: #ffffff">%code%</div>
+        </div>
+
+        <!-- The code of the example -->
         <script type="module" src="%js%"></script>
     </body>
 </html>

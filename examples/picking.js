@@ -178,8 +178,16 @@ function project(evt, zDefault = 0) {
     return instance.camera.camera3D.position.clone().add(scaled);
 }
 
+const formatter = new Intl.NumberFormat();
+
 instance.domElement.addEventListener('dblclick', e => {
+    const elem = id => document.getElementById(id);
     let t0 = performance.now();
+    function format(point) {
+        return `x: ${formatter.format(point.x)}\n
+                y: ${formatter.format(point.y)}\n
+                z: ${formatter.format(point.z)}`;
+    }
     const picked = instance.pickObjectsAt(e, {
         radius: parseInt(radiusSlider.value, 10),
         limit: limitSlider.value === '0' ? undefined : parseInt(limitSlider.value, 10),
@@ -189,30 +197,31 @@ instance.domElement.addEventListener('dblclick', e => {
     });
     let t1 = performance.now();
     console.log('Picked', picked);
-    document.getElementById('pickingTiming').innerHTML = `${t1 - t0}ms`;
-    document.getElementById('pickingCount').innerHTML = `${picked.length}`;
-    document.getElementById('pickingFirstResult').innerHTML = picked.length > 0
-        ? `<ul><li>Point: ${picked[0].point.x.toFixed(2)}, ${picked[0].point.y.toFixed(2)}, ${picked[0].point.z.toFixed(2)}</li>
-<li>Entity: ${picked[0].layer.id} (${picked[0].layer.type})</li>
-</ul>` : '';
+    elem('pickingTiming').innerHTML = `${t1 - t0}`;
+    elem('pickingCount').innerHTML = `${picked.length}`;
+    elem('pickingCoord').innerHTML = picked.length > 0 ? format(picked[0].point) : '-';
+    elem('pickingFirstResult').innerHTML = picked.length > 0
+        ? `${picked[0].layer.id} (${picked[0].layer.type})`
+        : '-';
 
     t0 = performance.now();
     const raycasted = raycast(e);
     t1 = performance.now();
     console.log('Raycasted', raycasted);
-    document.getElementById('raycastingTiming').innerHTML = `${t1 - t0}ms`;
-    document.getElementById('raycastingCount').innerHTML = `${raycasted.length}`;
-    document.getElementById('raycastingFirstResult').innerHTML = raycasted.length > 0
-        ? `<ul><li>Point: ${raycasted[0].point.x.toFixed(2)}, ${raycasted[0].point.y.toFixed(2)}, ${raycasted[0].point.z.toFixed(2)}</li>
-<li>Entity: ${raycasted[0].layer.id} (${raycasted[0].layer.type})</li>
-</ul>` : '';
+
+    elem('raycastingTiming').innerHTML = `${t1 - t0}`;
+    elem('raycastingCount').innerHTML = `${raycasted.length}`;
+    elem('raycastingCoord').innerHTML = raycasted.length > 0 ? format(raycasted[0].point) : '-';
+    elem('raycastingFirstResult').innerHTML = raycasted.length > 0
+        ? `${raycasted[0].layer.id} (${raycasted[0].layer.type})`
+        : '-';
 
     t0 = performance.now();
     const projected = project(e, controls.target.z);
     t1 = performance.now();
     console.log('Projected', projected);
-    document.getElementById('projectingTiming').innerHTML = `${t1 - t0}ms`;
-    document.getElementById('projectingResult').innerHTML = `${projected.x.toFixed(2)}, ${projected.y.toFixed(2)}, ${projected.z.toFixed(2)}`;
+    elem('projectingTiming').innerHTML = `${t1 - t0}`;
+    elem('projectingCoord').innerHTML = format(projected);
 });
 
 const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));

@@ -1,25 +1,14 @@
 ---
-title: Test case of creating / disposing instances
+title: Dispose instance
 shortdesc: Help to test if giro3d correctly deallocates memory.
 ---
-<div class="position-relative h-100">
-    <style>
-#buttons-container {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: white;
-    padding: 0.5rem;
-}
-    </style>
-    <div id="viewerDiv"></div>
-    <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
-    <div id="buttons-container">
-        <div class="form-group">
-            <input type="checkbox" id="autoreload" aria-describedby="autoreload-help">
-            <label for="autoreload">Click the checkbox if you want giro3d to reload every 2sec</label>
-            <small id="autoreload-help" class="form-text text-muted"></small>
+<div class="p-2 m-2 position-absolute top-0 end-0">
+    <div class="container card p-2 m-2" id="buttons-container">
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" checked="true" role="switch" id="autoreload">
+            <label class="form-check-label" for="autoreload">Reload giro3d every 2 seconds</label>
         </div>
+
         <button id="load_once" class="btn btn-primary">Dispose and reload giro3d once</button>
     </div>
 </div>
