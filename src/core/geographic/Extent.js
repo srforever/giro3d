@@ -114,6 +114,22 @@ class Extent {
     }
 
     /**
+     * Returns `true` if the two extents are equal.
+     *
+     * @api
+     * @param {Extent} other The extent to compare.
+     * @param {number} [epsilon=0.00001] The optional comparison epsilon.
+     * @returns {boolean} `true` if the extents are equal, otherwise `false`.
+     */
+    equals(other, epsilon = 0.00001) {
+        return other._crs === this._crs
+            && Math.abs(other._values[0] - this._values[0]) <= epsilon
+            && Math.abs(other._values[1] - this._values[1]) <= epsilon
+            && Math.abs(other._values[2] - this._values[2]) <= epsilon
+            && Math.abs(other._values[3] - this._values[3]) <= epsilon;
+    }
+
+    /**
      * Checks the validity of the extent.
      *
      * @api

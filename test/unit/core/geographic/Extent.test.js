@@ -442,6 +442,59 @@ describe('Extent', () => {
         });
     });
 
+    describe('equals', () => {
+        it('should return true if both extent are the same object', () => {
+            const extent = new Extent('EPSG:3857', 1, 9, 1, 22);
+            expect(extent.equals(extent)).toBeTruthy();
+        });
+
+        it('should return true if both extent are equal', () => {
+            const extent = new Extent('EPSG:3857', 1, 9, 1, 22);
+            const clone = extent.clone();
+            expect(extent.equals(clone)).toBeTruthy();
+        });
+
+        it('should return false if both extent have different CRSes', () => {
+            const a = new Extent('EPSG:foo', 1, 9, 1, 22);
+            const b = new Extent('EPSG:bar', 1, 9, 1, 22);
+            expect(a.equals(b)).toBeFalsy();
+        });
+
+        it('should return false if both extent have different numerical values', () => {
+            const a = new Extent('EPSG:3857', 1, 1, 1, 1);
+            const b = new Extent('EPSG:3857', 2, 1, 1, 1);
+            const c = new Extent('EPSG:3857', 1, 2, 1, 1);
+            const d = new Extent('EPSG:3857', 1, 1, 2, 1);
+            const e = new Extent('EPSG:3857', 1, 1, 1, 2);
+
+            expect(a.equals(b)).toBeFalsy();
+            expect(a.equals(c)).toBeFalsy();
+            expect(a.equals(d)).toBeFalsy();
+            expect(a.equals(e)).toBeFalsy();
+        });
+
+        it('should honor epsilon', () => {
+            const xMin = 1;
+            const xMax = 2;
+            const yMin = 10000;
+            const yMax = 20000;
+            const original = new Extent('EPSG:3857', xMin, xMax, yMin, yMax);
+
+            const epsilons = [0.1, 0.001, 0.0001, 0.00001, 0.000001];
+            for (const epsilon of epsilons) {
+                const compared = new Extent(
+                    'EPSG:3857',
+                    xMin + (epsilon * 0.9),
+                    xMax + (epsilon * 0.9),
+                    yMin + (epsilon * 0.9),
+                    yMax + (epsilon * 0.9),
+                );
+
+                expect(original.equals(compared, epsilon)).toEqual(true);
+            }
+        });
+    });
+
     describe('fitToGrid', () => {
         it('should return the whole grid extent if the grid is 1x1 pixel', () => {
             const gridExtent = new Extent('EPSG:3857', 0, 10, 0, 23);
