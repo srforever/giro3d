@@ -8,7 +8,7 @@ import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
-import CoordinateBar from './widgets/CoordinateBar';
+import CoordinateBar from './widgets/CoordinateBar.js';
 
 // Define projection that we will use (taken from https://epsg.io/6345, Proj4js section)
 Instance.registerCRS('EPSG:6345', '+proj=utm +zone=16 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
