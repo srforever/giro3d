@@ -514,6 +514,62 @@ class Extent {
     }
 
     /**
+     * Returns an extent that is adjusted so that its edges land exactly at the border
+     * of the grid pixels. Optionally, you can specify the minimum pixel size of the
+     * resulting extent.
+     *
+     * @api
+     * @param {Extent} gridExtent The grid extent.
+     * @param {number} gridWidth The grid width, in pixels.
+     * @param {number} gridHeight The grid height, in pixels.
+     * @param {number} [minPixWidth] The minimum width, in pixels, of the resulting extent.
+     * @param {number} [minPixHeight] The minimum height, in pixels, of the resulting extent.
+     * @returns {{ extent: Extent, width: number, height: number }} The adjusted extent and pixel
+     * size of the adjusted extent.
+     */
+    fitToGrid(gridExtent, gridWidth, gridHeight, minPixWidth, minPixHeight) {
+        const gridDims = gridExtent.dimensions(tmpXY);
+        const pixelWidth = gridDims.x / gridWidth;
+        const pixelHeight = gridDims.y / gridHeight;
+
+        let leftPixels = (this.west() - gridExtent.west()) / pixelWidth;
+        let rightPixels = (this.east() - gridExtent.west()) / pixelWidth;
+        let bottomPixels = (this.south() - gridExtent.south()) / pixelHeight;
+        let topPixels = (this.north() - gridExtent.south()) / pixelHeight;
+
+        if (minPixWidth !== undefined && minPixHeight !== undefined) {
+            const pixelCountX = rightPixels - leftPixels;
+            const pixelCountY = topPixels - bottomPixels;
+            if (pixelCountX < minPixWidth) {
+                const margin = (minPixWidth - pixelCountX) / 2;
+                leftPixels -= margin;
+                rightPixels += margin;
+            }
+            if (pixelCountY < minPixHeight) {
+                const margin = (minPixHeight - pixelCountY) / 2;
+                bottomPixels -= margin;
+                topPixels += margin;
+            }
+        }
+
+        leftPixels = Math.max(0, Math.floor(leftPixels));
+        rightPixels = Math.min(gridWidth, Math.ceil(rightPixels));
+        bottomPixels = Math.max(0, Math.floor(bottomPixels));
+        topPixels = Math.min(gridHeight, Math.ceil(topPixels));
+
+        const west = gridExtent.west() + leftPixels * pixelWidth;
+        const east = gridExtent.west() + rightPixels * pixelWidth;
+        const south = gridExtent.south() + bottomPixels * pixelHeight;
+        const north = gridExtent.south() + topPixels * pixelHeight;
+
+        return {
+            extent: new Extent(this.crs(), west, east, south, north),
+            width: rightPixels - leftPixels,
+            height: topPixels - bottomPixels,
+        };
+    }
+
+    /**
      * Set the coordinate reference system and values of this
      * extent.
      *

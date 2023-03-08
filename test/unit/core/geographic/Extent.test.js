@@ -442,6 +442,15 @@ describe('Extent', () => {
         });
     });
 
+    describe('fitToGrid', () => {
+        it('should return the whole grid extent if the grid is 1x1 pixel', () => {
+            const gridExtent = new Extent('EPSG:3857', 0, 10, 0, 23);
+            const inputExtent = new Extent('EPSG:3857', 1, 9, 1, 22);
+            const { extent } = inputExtent.fitToGrid(gridExtent, 1, 1);
+            expect(extent).toEqual(gridExtent);
+        });
+    });
+
     describe('split', () => {
         it('should throw on invalid subdivisions', () => {
             expect(() => BOUNDS_EPSG3857.split(0, 1)).toThrow(/Invalid subdivisions/);
