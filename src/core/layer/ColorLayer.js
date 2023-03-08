@@ -172,14 +172,12 @@ class ColorLayer extends Layer {
         // Add a 2% margin to solve bleeding issues in atlas
         const originalExtent = node.getExtentForLayer(this);
         const extent = originalExtent.withRelativeMargin(0.02);
-        const pitch = originalExtent.offsetToParent(extent);
 
         // Does this tile needs a new texture?
         const nextDownloads = this.getPossibleTextureImprovements(
             this,
             extent,
             node.material.getColorTexture(this),
-            pitch,
         );
 
         if (nextDownloads === DataStatus.DATA_UNAVAILABLE) {
@@ -191,6 +189,10 @@ class ColorLayer extends Layer {
             || nextDownloads === DataStatus.DATA_ALREADY_LOADED) {
             return null;
         }
+
+        const pitch = originalExtent.offsetToParent(nextDownloads.extent);
+
+        nextDownloads.pitch = pitch;
 
         node.layerUpdateState[this.id].newTry();
         const command = {

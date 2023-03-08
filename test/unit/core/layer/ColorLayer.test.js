@@ -132,7 +132,8 @@ describe('ColorLayer', () => {
                     texturesInfo: { color: { atlasTexture: 'dummy' } },
                 },
             };
-            layer.getPossibleTextureImprovements = () => ({}); // fake texture update information
+            // fake texture update information
+            layer.getPossibleTextureImprovements = () => ({ extent });
 
             // FIRST PASS: init Node From Parent and get out of the function
             // without any network fetch

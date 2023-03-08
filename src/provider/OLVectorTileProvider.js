@@ -66,7 +66,7 @@ function preprocessDataLayer(layer) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function getPossibleTextureImprovements(layer, extent, texture, pitch) {
+function getPossibleTextureImprovements(layer, extent, texture) {
     if (!extent.intersectsExtent(layer.extent)) {
         // The tile does not even overlap with the layer extent.
         // This can happen when layers have a different extent from their parent map.
@@ -84,7 +84,7 @@ function getPossibleTextureImprovements(layer, extent, texture, pitch) {
     const tileGrid = source.getTileGridForProjection(projection);
     const zoomLevel = getZoomLevel(tileGrid, layer.imageSize, extent);
 
-    return { zoomLevel, extent, pitch };
+    return { zoomLevel, extent };
 }
 
 function getZoomLevel(tileGrid, imageSize, extent) {

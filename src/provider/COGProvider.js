@@ -9,6 +9,7 @@ import { GlobalCache } from '../core/Cache.js';
 import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
 import { Mode } from '../core/layer/Interpretation.js';
 import HttpConfiguration from '../utils/HttpConfiguration.js';
+import Extent from '../core/geographic/Extent.js';
 
 function getMinMax(v, nodata) {
     // Currently for 1 band ONLY !
@@ -124,6 +125,8 @@ function readBuffer(layer, extent, levelImage) {
  * @param {Function} throwIfCancelled The cancellation function.
  * @param {*} layer The layer to process.
  * @param {*} extent The requested extent.
+ * @param {number} width The texture width, in pixels.
+ * @param {number} height The texture height, in pixels.
  * @param {*} levelImage The TIFF image to read.
  * @param {Vector4} pitch The offset/scale of the resulting texture.
  * @param {boolean} computeLayerMinMax If true, a min/max will be computed on the image.
@@ -133,6 +136,8 @@ async function createTexture(
     throwIfCancelled,
     layer,
     extent,
+    width,
+    height,
     levelImage,
     pitch,
     computeLayerMinMax = false,
@@ -149,7 +154,6 @@ async function createTexture(
         throwIfCancelled();
 
         // Process the downloaded data
-        const { width, height } = arrayData;
         const inputTexture = processArrayData(layer, arrayData);
 
         const isElevationLayer = layer.type === 'ElevationLayer';
@@ -218,12 +222,40 @@ async function createTexture(
                 throwIfCancelled,
                 layer,
                 extent,
+                width,
+                height,
                 levelImage,
                 pitch,
                 computeLayerMinMax,
             );
         }
         throw error;
+    }
+}
+
+/**
+ * Attemps to compute the exact extent of the TIFF image. If fails, falls back to the layer extent.
+ *
+ * @param {*} layer The layer.
+ * @param {*} tiffImage The TIFF image.
+ */
+function computePreciseExtent(layer, tiffImage) {
+    try {
+        const [
+            minx,
+            miny,
+            maxx,
+            maxy,
+        ] = tiffImage.getBoundingBox();
+
+        const crs = layer.extent.crs();
+        const extent = new Extent(crs, minx, maxx, miny, maxy);
+        layer.preciseExtent = extent;
+    } catch (e) {
+        layer.preciseExtent = layer.extent;
+        if (e.message !== 'The image does not have an affine transformation.') {
+            throw e;
+        }
     }
 }
 
@@ -236,6 +268,9 @@ async function getImages(layer) {
     const count = await tiff.getImageCount();
     // Get original image header
     const firstImage = await tiff.getImage();
+
+    computePreciseExtent(layer, firstImage);
+
     // Get the origin
     layer.origin = firstImage.getOrigin();
     layer.bpp = firstImage.getBytesPerPixel();
@@ -273,6 +308,8 @@ async function getImages(layer) {
             noCancellation,
             layer,
             layer.extent,
+            256,
+            256,
             levelImage,
             new Vector4(0, 0, 1, 1),
             true,
@@ -289,32 +326,56 @@ function preprocessDataLayer(layer) {
     return getImages(layer);
 }
 
-function getPossibleTextureImprovements(layer, extent, texture, pitch) {
-    // If the tile is already displayed, don't update
-    if (texture && texture.extent && texture.extent.isInside(extent)) {
-        return DataStatus.DATA_ALREADY_LOADED;
-    }
+function getPossibleTextureImprovements(layer, extent, texture) {
     // Number of images  = original + overviews if any
-    const overviewCount = layer.images.length - 1;
+    const imageCount = layer.images.length;
+    extent = extent.intersect(layer.preciseExtent);
     // Dimensions of the requested extent
     const extentDimension = extent.dimensions();
-    // Extent ratios in width/height
-    const widthRatio = extentDimension.x / layer.dimension.x;
-    const heightRatio = extentDimension.y / layer.dimension.y;
-    // Calculate the corresponding size of the requested data
-    // Iterate through the overviews until finding the appropriate resolution
-    let level = overviewCount;
-    let levelImage = layer.images[level];
-    let tileWidth = levelImage.width * widthRatio;
-    let tileHeight = levelImage.height * heightRatio;
-    while (level > 0 && tileWidth < layer.imageSize.w && tileHeight < layer.imageSize.h) {
-        level--;
-        levelImage = layer.images[level];
-        tileWidth = levelImage.width * widthRatio;
-        tileHeight = levelImage.height * heightRatio;
+
+    const targetResolution = Math.min(
+        extentDimension.x / layer.imageSize.w,
+        extentDimension.y / layer.imageSize.h,
+    );
+
+    let levelImage;
+
+    // Select the image with the best resolution for our needs
+    for (let i = imageCount - 1; i >= 0; i--) {
+        levelImage = layer.images[i];
+        const sourceResolution = Math.min(
+            layer.dimension.x / levelImage.width,
+            layer.dimension.y / levelImage.height,
+        );
+
+        if (targetResolution >= sourceResolution) {
+            break;
+        }
     }
+
+    const adjusted = extent.fitToGrid(
+        layer.preciseExtent,
+        levelImage.width,
+        levelImage.height,
+        8,
+        8,
+    );
+
+    const pixelPerfectExtent = adjusted.extent;
+
+    // If the tile is already displayed, don't update
+    if (texture && texture.extent && texture.extent.equals(pixelPerfectExtent)) {
+        return DataStatus.DATA_ALREADY_LOADED;
+    }
+
+    const pixelWidth = Math.min(layer.imageSize.w, adjusted.width);
+    const pixelHeight = Math.min(layer.imageSize.h, adjusted.height);
+
     return {
-        extent, levelImage, pitch,
+        extent: pixelPerfectExtent,
+        levelImage,
+        pixelWidth,
+        pixelHeight,
     };
 }
 
@@ -326,9 +387,25 @@ function executeCommand(instance, layer, requester, toDownload, earlyDropFunctio
     }
 
     // Get the image at the appropriate overview level
-    const { extent, levelImage, pitch } = toDownload;
+    const {
+        extent,
+        levelImage,
+        pitch,
+        pixelWidth,
+        pixelHeight,
+    } = toDownload;
 
-    return Promise.resolve(createTexture(throwIfCancelled, layer, extent, levelImage, pitch));
+    return Promise.resolve(
+        createTexture(
+            throwIfCancelled,
+            layer,
+            extent,
+            pixelWidth,
+            pixelHeight,
+            levelImage,
+            pitch,
+        ),
+    );
 }
 
 function tileInsideLimit(tile, layer) {
@@ -341,4 +418,5 @@ export default {
     getPossibleTextureImprovements,
     preprocessDataLayer,
     tileInsideLimit,
+    computePreciseExtent,
 };
