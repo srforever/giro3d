@@ -39,7 +39,7 @@ uniform ColorMap    layersColorMaps[COLOR_LAYERS]; // The color layers' color ma
 #endif
 
 uniform float       opacity;        // The entire map opacity
-uniform vec3        backgroundColor; // The background color
+uniform vec4        backgroundColor; // The background color
 
 #if defined(ENABLE_OUTLINES)
 const float         OUTLINE_THICKNESS = 0.003;
@@ -150,8 +150,14 @@ float calcHillshade(LayerInfo layer, sampler2D texture, vec2 uv){
 }
 #endif
 
-vec3 blend(vec3 fore, vec3 back, float a) {
-    return mix(back.rgb, fore.rgb, a);
+vec4 blend(vec4 fore, vec4 back) {
+    if (fore.a == 0. && back.a == 0.) {
+        return vec4(0);
+    }
+    float alpha = fore.a + back.a * (1.0 - fore.a);
+    vec3 color = (fore.rgb * fore.a) + back.rgb * (back.a * (1.0 - fore.a)) / alpha;
+
+    return vec4(color, alpha);
 }
 
 vec4 computeColor(vec2 rawUv, vec4 offsetScale, sampler2D texture) {
@@ -267,17 +273,18 @@ void main() {
 #endif
 
     // Step 2 : start with the background color
-    vec4 diffuseColor = vec4(backgroundColor, opacity);
+    vec4 diffuseColor = backgroundColor;
 
 #if defined(ELEVATION_LAYER)
     // Step 3 : if the elevation layer has a color map, use it as the background color.
     if (elevationColorMap.mode != COLORMAP_MODE_DISABLED) {
-        diffuseColor.rgb = computeColorMap(
+        vec3 rgb = computeColorMap(
             elevationLayer,
             elevationTexture,
             elevationColorMap,
             luts,
             vUv).rgb;
+        diffuseColor = blend(vec4(rgb, 1.0), diffuseColor);
     }
 #endif
 
@@ -289,7 +296,7 @@ void main() {
         if (layer.color.a > 0.) {
             ColorMap colorMap = layersColorMaps[i];
             vec4 rgba = computeColorLayer(colorTexture, luts, layer, colorMap, vUv);
-            diffuseColor.rgb = blend(rgba.rgb, diffuseColor.rgb, rgba.a);
+            diffuseColor = blend(rgba, diffuseColor);
         }
     }
     #pragma unroll_loop_end

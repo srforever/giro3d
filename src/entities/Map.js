@@ -171,6 +171,8 @@ class Map extends Entity3D {
      * object of this map. If none provided, a new one will be created.
      * @param {string} [options.backgroundColor=undefined] The color of the map when no color layers
      * are present.
+     * @param {number} [options.backgroundOpacity=1] The opacity of the map background.
+     * Defaults is opaque (1).
      * @api
      */
     constructor(id, options = {}) {
@@ -206,6 +208,7 @@ class Map extends Entity3D {
             discardNoData: options.discardNoData || false,
             doubleSided: options.doubleSided || false,
             segments: this.segments,
+            backgroundOpacity: options.backgroundOpacity == null ? 1 : options.backgroundOpacity,
             backgroundColor: options.backgroundColor !== undefined
                 ? new Color(options.backgroundColor)
                 : DEFAULT_BACKGROUND_COLOR.clone(),
