@@ -237,6 +237,8 @@ vec4 computeColorLayer(
 }
 
 void main() {
+    gl_FragColor = vec4(0.0);
+
     // Step 0 : discard fragment in trivial cases of transparency
     if (opacity == 0.) {
         discard;
