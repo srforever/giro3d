@@ -36,9 +36,12 @@ class LayerInspector extends Panel {
         this.layer = layer;
 
         this.map = map;
+        this.state = 'idle';
 
         this.updateValues();
 
+        this.addController(this, 'state')
+            .name('Status');
         this.addController(this, 'visible')
             .name('Visible')
             .onChange(() => {
@@ -146,6 +149,7 @@ class LayerInspector extends Panel {
     }
 
     updateValues() {
+        this.state = this.layer.loading ? `loading (${Math.round(this.layer.progress * 100)}%)` : 'idle';
         this.visible = this.layer.visible || true;
         if (this.layer.type === 'ElevationLayer') {
             if (this.layer.minmax && this.minmax) {

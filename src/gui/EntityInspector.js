@@ -86,6 +86,9 @@ class EntityInspector extends Panel {
         this.boundingBoxes = false;
 
         this.boundingBoxColor = '#FFFF00';
+        this.state = 'idle';
+
+        this.addController(this, 'state').name('Status');
 
         if (options.visibility) {
             this.addController(this, 'visible').name('Visible').onChange(v => this.toggleVisibility(v));
@@ -110,6 +113,7 @@ class EntityInspector extends Panel {
     }
 
     updateValues() {
+        this.state = this.entity.loading ? `loading (${Math.round(this.entity.progress * 100)}%)` : 'idle';
         if (this.boundingBoxes) {
             this.toggleBoundingBoxes(true);
         }
