@@ -222,6 +222,34 @@ class Instance extends EventDispatcher {
     }
 
     /**
+     * Gets whether at least one entity is currently loading data.
+     *
+     * @api
+     */
+    get loading() {
+        const entities = this.getObjects(o => o instanceof Entity);
+        return entities.some(e => e.loading);
+    }
+
+    /**
+     * Gets the progress (between 0 and 1) of the processing of the entire instance.
+     * This is the average of the progress values of all entities.
+     * Note: This value is only meaningful is {@link loading} is `true`.
+     * Note: if no entity is present in the instance, this will always return 1.
+     *
+     * @api
+     * @type {number}
+     */
+    get progress() {
+        const entities = this.getObjects(o => o instanceof Entity);
+        if (entities.length === 0) {
+            return 1;
+        }
+        const sum = entities.reduce((accum, entity) => accum + entity.progress, 0);
+        return sum / entities.length;
+    }
+
+    /**
      * Gets the underlying WebGL renderer.
      *
      * @api
@@ -473,7 +501,7 @@ class Instance extends EventDispatcher {
     }
 
     /**
-     * Get all opjects, with an optional filter applied.
+     * Get all objects, with an optional filter applied.
      * The filter method allows to get only a subset of objects
      *
      * @example
@@ -481,8 +509,8 @@ class Instance extends EventDispatcher {
      * instance.getObjects();
      * // get one layer with id
      * instance.getObjects(obj => obj.id === 'itt');
-     * @param {function(Entity):boolean} filter the optional query filter
-     * @returns {Array<Entity>} an array containing the queried layers
+     * @param {function(object):boolean} filter the optional query filter
+     * @returns {Array<object>} an array containing the queried objects
      */
     getObjects(filter) {
         const result = [];

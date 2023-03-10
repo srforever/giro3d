@@ -218,6 +218,34 @@ class Map extends Entity3D {
         this.tileIndex = new TileIndex();
     }
 
+    /**
+     * Returns `true` if this map is currently processing data.
+     *
+     * @api
+     * @type {boolean}
+     */
+    get loading() {
+        return this._attachedLayers.some(l => l.loading);
+    }
+
+    /**
+     * Gets the loading progress (between 0 and 1) of the map. This is the average progress of all
+     * layers in this map.
+     * Note: if no layer is present, this will always be 1.
+     * Note: This value is only meaningful is {@link loading} is `true`.
+     *
+     * @api
+     * @type {number}
+     */
+    get progress() {
+        if (this._attachedLayers.length === 0) {
+            return 1;
+        }
+
+        const sum = this._attachedLayers.reduce((accum, layer) => accum + layer.progress, 0);
+        return sum / this._attachedLayers.length;
+    }
+
     get segments() {
         return this._segments;
     }

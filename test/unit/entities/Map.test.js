@@ -7,6 +7,7 @@ import MainLoop from '../../../src/core/MainLoop.js';
 import { setupGlobalMocks } from '../mocks.js';
 import ElevationLayer from '../../../src/core/layer/ElevationLayer.js';
 import RenderingState from '../../../src/renderer/RenderingState.js';
+import ColorLayer from '../../../src/core/layer/ColorLayer.js';
 
 describe('Map', () => {
     /** @type {HTMLDivElement} */
@@ -162,6 +163,88 @@ describe('Map', () => {
             await map.addLayer(layer);
 
             expect(listener).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('loading', () => {
+        it('should return false if no layer are present', () => {
+            expect(map.loading).toEqual(false);
+        });
+
+        it('should return true if any layer is loading', async () => {
+            const layer1 = new ElevationLayer('layer', { standalone: true });
+            const layer2 = new ColorLayer('layer2', { standalone: true });
+
+            let layer1Loading = false;
+            let layer2Loading = false;
+
+            Object.defineProperty(layer1, 'loading', {
+                get: jest.fn(() => layer1Loading),
+                set: jest.fn(),
+            });
+
+            Object.defineProperty(layer2, 'loading', {
+                get: jest.fn(() => layer2Loading),
+                set: jest.fn(),
+            });
+
+            await map.addLayer(layer1);
+            await map.addLayer(layer2);
+
+            layer1Loading = false;
+            layer2Loading = false;
+            expect(map.loading).toEqual(false);
+
+            layer1Loading = false;
+            layer2Loading = true;
+            expect(map.loading).toEqual(true);
+
+            layer1Loading = true;
+            layer2Loading = false;
+            expect(map.loading).toEqual(true);
+
+            layer1Loading = true;
+            layer2Loading = true;
+            expect(map.loading).toEqual(true);
+        });
+    });
+
+    describe('progress', () => {
+        it('should return the average progress of all layers', async () => {
+            const layer1 = new ElevationLayer('layer', { standalone: true });
+            const layer2 = new ColorLayer('layer2', { standalone: true });
+
+            let layer1Progress = 0;
+            let layer2Progress = 0;
+
+            Object.defineProperty(layer1, 'progress', {
+                get: jest.fn(() => layer1Progress),
+                set: jest.fn(),
+            });
+
+            Object.defineProperty(layer2, 'progress', {
+                get: jest.fn(() => layer2Progress),
+                set: jest.fn(),
+            });
+
+            await map.addLayer(layer1);
+            await map.addLayer(layer2);
+
+            layer1Progress = 0;
+            layer2Progress = 0;
+            expect(map.progress).toEqual(0);
+
+            layer1Progress = 1;
+            layer2Progress = 0;
+            expect(map.progress).toEqual(0.5);
+
+            layer1Progress = 1;
+            layer2Progress = 1;
+            expect(map.progress).toEqual(1);
+
+            layer1Progress = 0.25;
+            layer2Progress = 0.75;
+            expect(map.progress).toEqual(0.5);
         });
     });
 

@@ -193,6 +193,77 @@ describe('Instance', () => {
         });
     });
 
+    describe('loading', () => {
+        it('should return false if no entity is present', () => {
+            expect(instance.loading).toBeFalsy();
+        });
+
+        it('should return true if any entity is loading', () => {
+            const extent = new Extent('EPSG:4326', 0, 0, 0, 0);
+            const map1 = new Map('map1', { extent });
+            const map2 = new Map('map2', { extent });
+
+            let map1Loading = false;
+            let map2Loading = false;
+
+            Object.defineProperty(map1, 'loading', {
+                get: jest.fn(() => map1Loading),
+                set: jest.fn(),
+            });
+
+            Object.defineProperty(map2, 'loading', {
+                get: jest.fn(() => map2Loading),
+                set: jest.fn(),
+            });
+
+            instance.add(map1);
+            instance.add(map2);
+
+            map1Loading = false;
+            map2Loading = true;
+            expect(instance.loading).toEqual(true);
+
+            map1Loading = true;
+            map2Loading = false;
+            expect(instance.loading).toEqual(true);
+
+            map1Loading = false;
+            map2Loading = false;
+            expect(instance.loading).toEqual(false);
+
+            map1Loading = true;
+            map2Loading = true;
+            expect(instance.loading).toEqual(true);
+        });
+    });
+
+    describe('progress', () => {
+        it('should return 1 if no entity is present', () => {
+            expect(instance.progress).toEqual(1);
+        });
+
+        it('should return the average of all entities progress', () => {
+            const extent = new Extent('EPSG:4326', 0, 0, 0, 0);
+            const map1 = new Map('map1', { extent });
+            const map2 = new Map('map2', { extent });
+
+            Object.defineProperty(map1, 'progress', {
+                get: jest.fn(() => 0.7),
+                set: jest.fn(),
+            });
+
+            Object.defineProperty(map2, 'progress', {
+                get: jest.fn(() => 0.2),
+                set: jest.fn(),
+            });
+
+            instance.add(map1);
+            instance.add(map2);
+
+            expect(instance.progress).toEqual((0.7 + 0.2) / 2);
+        });
+    });
+
     describe('registerCRS', () => {
         it('should throw if name or value is undefined', () => {
             expect(() => Instance.registerCRS(undefined, '')).toThrow(/missing CRS name/);

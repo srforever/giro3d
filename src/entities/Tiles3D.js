@@ -13,6 +13,7 @@ import Extent from '../core/geographic/Extent.js';
 import Picking from '../core/Picking.js';
 import ScreenSpaceError from '../core/ScreenSpaceError.js';
 import Entity3D from './Entity3D.js';
+import OperationCounter from '../core/OperationCounter.js';
 
 /**
  * Options to create a Tiles3D object.
@@ -69,6 +70,18 @@ class Tiles3D extends Entity3D {
 
         /** @type {Array} */
         this._cleanableTiles = [];
+
+        this._opCounter = new OperationCounter();
+    }
+
+    get loading() {
+        return this._opCounter.loading || this._attachedLayers.some(l => l.loading);
+    }
+
+    get progress() {
+        let sum = this._opCounter.progress;
+        sum = this._attachedLayers.reduce((accum, current) => accum + current.progress, sum);
+        return sum / (this._attachedLayers.length + 1);
     }
 
     preprocess() {
@@ -343,6 +356,8 @@ function _subdivideNodeAdditive(ctx, entity, node, cullingTestFn) {
             continue;
         }
 
+        entity._opCounter.increment();
+
         child.promise = requestNewTile(ctx.instance, ctx.scheduler, entity, child, node, true)
             .then(tile => {
                 if (!tile || !node.parent) {
@@ -363,7 +378,7 @@ function _subdivideNodeAdditive(ctx, entity, node, cullingTestFn) {
                 delete child.promise;
             }, () => {
                 delete child.promise;
-            });
+            }).finally(() => entity._opCounter.decrement());
     }
 }
 
@@ -401,6 +416,8 @@ function _subdivideNodeSubstractive(context, entity, node) {
             });
         promises.push(p);
     }
+    entity._opCounter.increment();
+
     Promise.all(promises).then(() => {
         node.pendingSubdivision = false;
         context.instance.notifyChange(node);
@@ -412,7 +429,7 @@ function _subdivideNodeSubstractive(context, entity, node) {
             n.visible = false;
             markForDeletion(entity, n);
         }
-    });
+    }).finally(() => entity._opCounter.decrement());
 }
 
 function cullingTest(camera, node, tileMatrixWorld) {
