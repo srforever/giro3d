@@ -87,7 +87,6 @@ class WebGLComposer {
     constructor(options) {
         this.showImageOutlines = options.showImageOutlines;
         this.extent = options.extent;
-        this.reuseTexture = options.reuseTexture;
         this.width = options.width;
         this.height = options.height;
         this.renderer = options.webGLRenderer;
