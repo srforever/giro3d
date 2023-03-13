@@ -21,6 +21,7 @@ import LayeredMaterial from '../renderer/LayeredMaterial.js';
 import TileMesh from '../core/TileMesh.js';
 import TileIndex from '../core/TileIndex.js';
 import RenderingState from '../renderer/RenderingState.js';
+import ColorMapAtlas from '../renderer/ColorMapAtlas.js';
 
 const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 
@@ -383,6 +384,8 @@ class Map extends Entity3D {
             this._latestUpdateStartingLevel = 0;
         }
 
+        this.materialOptions.colorMapAtlas?.update();
+
         this.tileIndex.update();
 
         if (changeSources.has(undefined) || changeSources.size === 0) {
@@ -551,6 +554,13 @@ class Map extends Entity3D {
 
             this.attach(layer);
 
+            if (layer.colorMap) {
+                if (!this.materialOptions.colorMapAtlas) {
+                    this.materialOptions.colorMapAtlas = new ColorMapAtlas(this._instance.renderer);
+                }
+                this.materialOptions.colorMapAtlas.add(layer.colorMap);
+            }
+
             layer.whenReady.then(l => {
                 if (!this.currentAddedLayerIds.includes(layer.id)) {
                     // The layer was removed, stop attaching it.
@@ -578,6 +588,9 @@ class Map extends Entity3D {
     removeLayer(layer) {
         this.currentAddedLayerIds = this.currentAddedLayerIds.filter(l => l !== layer.id);
         if (this.detach(layer)) {
+            if (layer.colorMap) {
+                this.materialOptions.colorMapAtlas.remove(layer.colorMap);
+            }
             layer.dispose(this);
             this.dispatchEvent({ type: 'layer-removed' });
             this._instance.notifyChange(this, true);
@@ -637,6 +650,8 @@ class Map extends Entity3D {
         // at the TileMesh level because TileMesh objects do not own their geometry,
         // as it is shared among all tiles at the same depth level.
         this._clearGeometryPool();
+
+        this.materialOptions.colorMapAtlas?.dispose();
     }
 
     /**
