@@ -212,6 +212,10 @@ class ElevationLayer extends Layer {
     }
 
     handleRootTexture(result) {
+        if (!result) {
+            return;
+        }
+
         const p = result.pitch;
         if (p && p.x === 0 && p.y === 0 && p.z === 1 && p.w === 1) {
             // Store this texture as a wildcard texture for tiles
@@ -324,6 +328,9 @@ class ElevationLayer extends Layer {
 
         return context.scheduler.execute(command).then(
             result => {
+                if (!result || !result.texture) {
+                    return null;
+                }
                 if (node.material === null) {
                     return null;
                 }

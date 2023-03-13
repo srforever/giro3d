@@ -205,6 +205,9 @@ class ColorLayer extends Layer {
 
         return context.scheduler.execute(command).then(
             result => {
+                if (!result || !result.texture) {
+                    return null;
+                }
                 if (node.disposed || node.material === null) {
                     // The node was disposed before the texture was assigned
                     result.texture.dispose();

@@ -153,8 +153,13 @@ async function executeCommand(command) {
     // Give the opportunity to avoid combining images if the command was cancelled.
     throwIfCancelled();
 
-    const result = combineImages(images, instance.renderer, pitch, layer, extent);
-    return result;
+    // In some cases, all the tile requests on the requested extent fail or end up with no data.
+    const actualImages = images.filter(img => img !== null);
+    if (actualImages.length > 0) {
+        return combineImages(actualImages, instance.renderer, pitch, layer, extent);
+    }
+
+    return null;
 }
 
 /**
