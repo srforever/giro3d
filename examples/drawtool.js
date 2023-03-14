@@ -14,6 +14,7 @@ import DrawTool, {
     DRAWTOOL_EVENT_TYPE, DRAWTOOL_MODE, DRAWTOOL_STATE, GEOMETRY_TYPE,
 } from '@giro3d/giro3d/interactions/DrawTool.js';
 import Drawing from '@giro3d/giro3d/interactions/Drawing.js';
+import StatusBar from './widgets/StatusBar.js';
 
 // Initialize Giro3d (see tifftiles for more details)
 const x = -13602618.385789588;
@@ -339,3 +340,5 @@ drawTool.addPointAt(new Vector3(-13602528.324274786, 5811555.273720224, 2150));
 drawTool.updatePointAt(0, new Vector3(-13601871.653763445, 5811402.399825568, 2170));
 drawTool.deletePoint(1);
 drawTool.end();
+
+StatusBar.bind(instance);

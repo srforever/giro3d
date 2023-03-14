@@ -13,7 +13,7 @@ import { Collection, Feature } from 'ol';
 import VectorSource from 'ol/source/Vector.js';
 import { LineString } from 'ol/geom.js';
 
-import CoordinateBar from './widgets/CoordinateBar.js';
+import StatusBar from './widgets/StatusBar.js';
 
 Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 
@@ -138,5 +138,4 @@ instance.useTHREEControls(controls);
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
 // Bind events
-// Bind events
-CoordinateBar.bind(instance);
+StatusBar.bind(instance);

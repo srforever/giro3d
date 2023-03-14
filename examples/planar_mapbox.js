@@ -8,7 +8,7 @@ import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
-import CoordinateBar from './widgets/CoordinateBar.js';
+import StatusBar from './widgets/StatusBar.js';
 
 // Defines projection that we will use (taken from https://epsg.io/3857, Proj4js section)
 Instance.registerCRS('EPSG:3857', '+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +lon_0=0 +x_0=0 +y_0=0 +k=1 +units=m +nadgrids=@null +wktext +no_defs +type=crs');
@@ -90,4 +90,4 @@ document.getElementById('mapboxApi').addEventListener('submit', e => {
 });
 
 // Bind events
-CoordinateBar.bind(instance);
+StatusBar.bind(instance);

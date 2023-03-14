@@ -4,6 +4,7 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import PotreePointCloud from '@giro3d/giro3d/entities/PotreePointCloud.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import PotreeSource from '@giro3d/giro3d/sources/PotreeSource.js';
+import StatusBar from './widgets/StatusBar.js';
 
 const viewerDiv = document.getElementById('viewerDiv');
 
@@ -46,4 +47,4 @@ instance.add(potree).then(placeCamera);
 instance.notifyChange(instance.camera.camera3D);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e, { radius: 5 })));
+StatusBar.bind(instance, 5);

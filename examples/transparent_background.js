@@ -10,6 +10,7 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
+import StatusBar from './widgets/StatusBar.js';
 
 const x = -13602000;
 const y = 5812000;
@@ -76,3 +77,5 @@ controls.target.set(-13603000, 5811000, 0);
 instance.useTHREEControls(controls);
 
 instance.notifyChange();
+
+StatusBar.bind(instance);

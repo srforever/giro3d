@@ -74,3 +74,12 @@ body {
     right: 0;
     bottom: 0;
 }
+
+.status-bar {
+  font-size: 0.8rem;
+  height: 1.3rem;
+}
+
+.status-progress-bar {
+  width: 8rem;
+}

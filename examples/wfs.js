@@ -9,6 +9,7 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import StatusBar from './widgets/StatusBar.js';
 
 // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)
 Instance.registerCRS('EPSG:3946',
@@ -121,4 +122,4 @@ controls.maxPolarAngle = Math.PI / 2.3;
 instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
+StatusBar.bind(instance);

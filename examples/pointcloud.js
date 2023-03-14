@@ -5,7 +5,7 @@ import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
-import CoordinateBar from './widgets/CoordinateBar.js';
+import StatusBar from './widgets/StatusBar.js';
 
 const tmpVec3 = new Vector3();
 
@@ -104,4 +104,4 @@ instance.domElement.addEventListener('dblclick', e => {
     }
 });
 
-CoordinateBar.bind(instance);
+StatusBar.bind(instance);

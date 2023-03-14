@@ -8,6 +8,7 @@ import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import StatusBar from './widgets/StatusBar.js';
 
 const extent = new Extent('EPSG:3857',
     -13611854, -13593262,
@@ -103,3 +104,5 @@ instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, () => {
     updateProgressBar(color2Progress, satellite.colorLayer);
     updateProgressBar(elevation2Progress, satellite.elevationLayer);
 });
+
+StatusBar.bind(instance);

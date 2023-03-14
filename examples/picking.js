@@ -13,6 +13,7 @@ import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import StatusBar from './widgets/StatusBar.js';
 
 Instance.registerCRS('EPSG:3946',
     '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 '
@@ -235,3 +236,5 @@ popoverTriggerList.map(
         html: true,
     }),
 );
+
+StatusBar.bind(instance);
