@@ -504,6 +504,16 @@ describe('Extent', () => {
         });
     });
 
+    describe('union', () => {
+        it('should update the extent in place', () => {
+            const extent1 = new Extent('EPSG:3857', 0, 100, 0, 100);
+            const extent2 = new Extent('EPSG:3857', 100, 200, 100, 200);
+
+            expect(extent1.union(extent2)).toBeUndefined();
+            expect(extent1).toEqual(new Extent('EPSG:3857', 0, 200, 0, 200));
+        });
+    });
+
     describe('split', () => {
         it('should throw on invalid subdivisions', () => {
             expect(() => BOUNDS_EPSG3857.split(0, 1)).toThrow(/Invalid subdivisions/);
