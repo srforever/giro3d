@@ -7,6 +7,7 @@ import {
     UnsignedByteType,
     FloatType,
     RGBAFormat,
+    LinearFilter,
 } from 'three';
 import TextureGenerator, { OPAQUE_BYTE, OPAQUE_FLOAT } from '../utils/TextureGenerator.js';
 import ImageFormat from './ImageFormat.js';
@@ -99,6 +100,8 @@ class GeoTIFFFormat extends ImageFormat {
         }
 
         const texture = new DataTexture(buffer, width, height, RGBAFormat, dataType);
+        texture.magFilter = LinearFilter;
+        texture.minFilter = LinearFilter;
         texture.needsUpdate = true;
         if (minmax) {
             texture.min = minmax.min;
