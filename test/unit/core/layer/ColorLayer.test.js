@@ -69,6 +69,7 @@ describe('ColorLayer', () => {
             layer.tileInsideLimit = () => true;
             layer.visible = true;
             layer.ready = true;
+            layer.imageSize = { w: 256, h: 256 };
             layer.updateStrategy = STRATEGY_MIN_NETWORK_TRAFFIC;
             layer.options = {
                 zoom: {
