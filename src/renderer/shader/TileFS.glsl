@@ -30,11 +30,12 @@ varying vec2        vUv; // The input UV
 uniform int         renderingState; // Current rendering state (default is STATE_FINAL)
 uniform int         uuid;           // The ID of the tile mesh (used for the STATE_ID rendering state)
 
+uniform sampler2D   luts; // The color maps atlas
+
 #if COLOR_LAYERS
 uniform sampler2D   colorTexture;         // Atlas texture shared among color layers
 uniform LayerInfo   layers[COLOR_LAYERS]; // The color layers' infos
 uniform ColorMap    layersColorMaps[COLOR_LAYERS]; // The color layers' color maps
-uniform sampler2D   luts[COLOR_LAYERS]; // The color layers' color maps LUTs
 #endif
 
 uniform float       opacity;        // The entire map opacity
@@ -55,7 +56,6 @@ uniform vec2        tileDimensions; // The dimensions of the tile, in CRS units
 uniform sampler2D   elevationTexture;
 uniform LayerInfo   elevationLayer;
 uniform ColorMap    elevationColorMap;  // The elevation layer's optional color map
-uniform sampler2D   elevationLut;       // The elevation layer's color map LUT
 #endif
 
 vec3 desaturate(vec3 color, float factor) {
@@ -209,7 +209,7 @@ vec4 computeColorMap(
 
     value = clamp(value, colorMap.min, colorMap.max);
     float t = map(value, colorMap.min, colorMap.max, 0., 1.);
-    vec3 rgb = texture2D(lut, vec2(t, 0.0)).rgb;
+    vec3 rgb = texture2D(lut, vec2(t, colorMap.offset)).rgb;
     float a = texture2D(sampledTexture, uv).a;
     return vec4(rgb, a);
 }
@@ -276,7 +276,7 @@ void main() {
             elevationLayer,
             elevationTexture,
             elevationColorMap,
-            elevationLut,
+            luts,
             vUv).rgb;
     }
 #endif
@@ -288,7 +288,7 @@ void main() {
         LayerInfo layer = layers[i];
         if (layer.color.a > 0.) {
             ColorMap colorMap = layersColorMaps[i];
-            vec4 rgba = computeColorLayer(colorTexture, luts[i], layer, colorMap, vUv);
+            vec4 rgba = computeColorLayer(colorTexture, luts, layer, colorMap, vUv);
             diffuseColor.rgb = blend(rgba.rgb, diffuseColor.rgb, rgba.a);
         }
     }

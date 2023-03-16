@@ -10,6 +10,7 @@ struct ColorMap {
     int         mode;
     float       min;
     float       max;
+    float       offset; // The V offset in the color map atlas texture.
 };
 
 const int COLORMAP_MODE_DISABLED = 0;

@@ -24,6 +24,7 @@ import Rect from '../core/Rect.js';
 import MemoryTracker from './MemoryTracker.js';
 import ElevationLayer from '../core/layer/ElevationLayer.js';
 import ColorMap from '../core/layer/ColorMap.js';
+import ColorMapAtlas from './ColorMapAtlas.js';
 
 // Declaring our own chunks
 ShaderChunk.PrecisionQualifier = PrecisionQualifier;
@@ -400,7 +401,10 @@ class LayeredMaterial extends RawShaderMaterial {
         return uniform;
     }
 
-    _updateColorMaps() {
+    /**
+     * @param {ColorMapAtlas} atlas The color map atlas.
+     */
+    _updateColorMaps(atlas) {
         const elevationColorMap = this.elevationLayer?.colorMap;
 
         const elevationUniform = this.getObjectUniform('elevationColorMap');
@@ -408,7 +412,7 @@ class LayeredMaterial extends RawShaderMaterial {
             elevationUniform.value.mode = elevationColorMap?.mode ?? COLORMAP_DISABLED;
             elevationUniform.value.min = elevationColorMap?.min ?? 0;
             elevationUniform.value.max = elevationColorMap?.max ?? 0;
-            this.getObjectUniform('elevationLut', elevationColorMap?.getTexture() ?? undefined);
+            elevationUniform.value.offset = atlas?.getOffset(elevationColorMap) || 0;
         } else {
             elevationUniform.value.mode = COLORMAP_DISABLED;
             elevationUniform.value.min = 0;
@@ -417,7 +421,6 @@ class LayeredMaterial extends RawShaderMaterial {
 
         const colorLayers = this.texturesInfo.color.infos;
         const colorMaps = makeArray(colorLayers.length);
-        const luts = makeArray(colorLayers.length);
 
         for (let i = 0; i < colorLayers.length; i++) {
             const texInfo = colorLayers[i];
@@ -428,15 +431,20 @@ class LayeredMaterial extends RawShaderMaterial {
                 colorUniform.mode = colorMap.mode;
                 colorUniform.min = colorMap.min ?? 0;
                 colorUniform.max = colorMap.max ?? 0;
-                luts[i] = colorMap?.getTexture() ?? undefined;
+                colorUniform.offset = atlas?.getOffset(colorMap) || 0;
             } else {
                 colorUniform.mode = COLORMAP_DISABLED;
-                luts[i] = undefined;
             }
         }
 
         this.uniforms.layersColorMaps = new Uniform(colorMaps);
-        this.uniforms.luts = new Uniform(luts);
+        if (atlas?.texture) {
+            const luts = atlas.texture || null;
+            if (!this.uniforms.luts) {
+                this.uniforms.luts = new Uniform(luts);
+            }
+            this.uniforms.luts.value = luts;
+        }
     }
 
     _define(name, condition) {
@@ -455,7 +463,9 @@ class LayeredMaterial extends RawShaderMaterial {
         this.uniforms.zenith.value = this.lightDirection.zenith;
         this.uniforms.azimuth.value = this.lightDirection.azimuth;
 
-        this._updateColorMaps();
+        if (materialOptions.colorMapAtlas) {
+            this._updateColorMaps(materialOptions.colorMapAtlas);
+        }
 
         if (materialOptions.backgroundColor) {
             this.uniforms.backgroundColor.value.copy(materialOptions.backgroundColor);
