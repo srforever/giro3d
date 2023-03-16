@@ -1,11 +1,15 @@
 import {
-    Color,
     BufferGeometry,
     BufferAttribute,
-    Mesh,
-    Group,
-    Points,
+    Color,
+    DoubleSide,
     Line,
+    LineBasicMaterial,
+    Mesh,
+    MeshBasicMaterial,
+    Points,
+    PointsMaterial,
+    Vector3,
 } from 'three';
 import Earcut from 'earcut';
 
@@ -42,19 +46,19 @@ function fillColorArray(colors, length, r, g, b, offset) {
     }
 }
 
-function prepareBufferGeometry(geom, color, altitude) {
+function prepareBufferGeometry(geom, color, altitude, offset) {
     const vertices = new Float32Array((3 * geom.flatCoordinates.length) / geom.stride);
     const colors = new Uint8Array(3 * geom.flatCoordinates.length);
 
     for (let i = 0; i < (geom.flatCoordinates.length / geom.stride); i++) {
-        let j = 0;
         // get the coordinates that geom has
-        for (; j < geom.stride; j++) {
-            vertices[3 * i + j] = geom.flatCoordinates[geom.stride * i + j];
+        for (let j = 0; j < geom.stride; j++) {
+            vertices[3 * i + j] = geom.flatCoordinates[geom.stride * i + j] - offset[j];
         }
         // fill the rest of the stride
         if (geom.stride === 2) {
             vertices[3 * i + 2] = Array.isArray(altitude) ? altitude[i] : altitude;
+            vertices[3 * i + 2] -= offset[2];
         }
     }
     fillColorArray(
@@ -64,55 +68,65 @@ function prepareBufferGeometry(geom, color, altitude) {
     const threeGeom = new BufferGeometry();
     threeGeom.setAttribute('position', new BufferAttribute(vertices, 3));
     threeGeom.setAttribute('color', new BufferAttribute(colors, 3, true));
-    threeGeom.computeBoundingSphere();
+    threeGeom.computeBoundingBox();
+    threeGeom.computeVertexNormals();
     return threeGeom;
 }
 
-function featureToPoint(feature, properties, options) {
+function featureToPoint(feature, offset, options) {
     // get altitude / color from properties
-    const altitude = getProperty('altitude', options, 0, properties, feature);
+    const altitude = getProperty('altitude', options, 0, feature);
     const color = getProperty('color', options, randomColor, feature.getProperties());
 
     const geom = feature.getGeometry();
-    const threeGeom = prepareBufferGeometry(geom, color, altitude);
+    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset);
 
-    return new Points(threeGeom);
+    return new Points(
+        threeGeom,
+        options.material ? options.material.clone() : new PointsMaterial(),
+    );
 }
 
-function featureToLine(feature, properties, options) {
+function featureToLine(feature, offset, options) {
     // get altitude / color from properties
-    const altitude = getProperty('altitude', options, 0, properties, feature);
+    const altitude = getProperty('altitude', options, 0, feature);
     const color = getProperty('color', options, randomColor, feature.getProperties());
 
     const geom = feature.getGeometry();
-    const threeGeom = prepareBufferGeometry(geom, color, altitude);
+    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset);
 
-    return new Line(threeGeom);
+    return new Line(
+        threeGeom,
+        options.material ? options.material.clone() : new LineBasicMaterial(),
+    );
 }
 
-function featureToPolygon(feature, properties, options) {
+function featureToPolygon(feature, offset, options) {
     // get altitude / color from properties
     const altitude = getProperty('altitude', options, 0, feature);
     const color = getProperty('color', options, randomColor, feature.getProperties());
     const geom = feature.getGeometry();
 
-    const threeGeom = prepareBufferGeometry(geom, color, altitude);
+    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset);
 
     const ends = geom.getEnds().map(end => end / geom.stride);
 
     const triangles = Earcut(threeGeom.attributes.position.array, ends.slice(0, -1), 3);
 
     threeGeom.setIndex(new BufferAttribute(new Uint16Array(triangles), 1));
-    return new Mesh(threeGeom);
+    return new Mesh(
+        threeGeom,
+        options.material ? options.material.clone() : new MeshBasicMaterial(),
+    );
 }
 
-function featureToMultiPolygon(feature, properties, options) {
-    // get altitude / color from properties
+function featureToMultiPolygon(feature, offset, options) {
+    // get altitude from properties
     const altitude = getProperty('altitude', options, 0, feature);
     const color = getProperty('color', options, randomColor, feature.getProperties());
     const geom = feature.getGeometry();
 
-    const threeGeom = prepareBufferGeometry(geom, color, altitude);
+    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset);
 
     let indices = [];
     let start = 0;
@@ -139,13 +153,17 @@ function featureToMultiPolygon(feature, properties, options) {
     }
 
     threeGeom.setIndex(new BufferAttribute(new Uint16Array(indices), 1));
-    return new Mesh(threeGeom);
+    return new Mesh(
+        threeGeom,
+        (options.material ? options.material.clone() : new MeshBasicMaterial()),
+    );
 }
 
 /**
  * Convert a [Feature]{@link Feature#geometry}'s geometry to a Mesh
  *
  * @param {object} feature a Feature's geometry
+ * @param {Vector3} offset The offset to apply to coordinates
  * @param {object} options options controlling the conversion
  * @param {number|Function} options.altitude define the base altitude of the mesh
  * @param {number|Function} options.extrude if defined, polygons will be extruded by the specified
@@ -153,59 +171,41 @@ function featureToMultiPolygon(feature, properties, options) {
  * @param {object|Function} options.color define per feature color
  * @returns {Mesh} mesh
  */
-function featureToMesh(feature, options) {
+function featureToMesh(feature, offset, options) {
     let mesh;
     switch (feature.getGeometry().getType()) {
         case 'Point':
         case 'MultiPoint': {
-            mesh = featureToPoint(feature, feature.properties, options);
+            mesh = featureToPoint(feature, offset, options);
             break;
         }
         case 'LineString':
         case 'MultiLineString': {
-            mesh = featureToLine(feature, feature.properties, options);
+            mesh = featureToLine(feature, offset, options);
             break;
         }
         case 'Polygon':
-            mesh = featureToPolygon(feature, feature.properties, options);
+            mesh = featureToPolygon(feature, offset, options);
             break;
         case 'MultiPolygon': {
-            mesh = featureToMultiPolygon(
-                feature,
-                feature.properties,
-                options,
-            );
+            mesh = featureToMultiPolygon(feature, offset, options);
             break;
         }
         default:
     }
 
-    // set mesh material
-    mesh.material.vertexColors = true;
-    mesh.material.color = new Color(0xffffff);
+    // configure mesh material
+    mesh.material.needsUpdate = true;
+    mesh.material.side = DoubleSide;
 
-    mesh.properties = feature.properties;
+    // Remember this feature properties
+    mesh.userData.properties = feature.getProperties();
+
+    // put the offset into mesh position
+    mesh.position.fromArray(offset);
+    mesh.updateMatrixWorld();
 
     return mesh;
-}
-
-function featuresToThree(features, options) {
-    if (!features || features.length === 0) return null;
-
-    if (features.length === 1) {
-        return featureToMesh(features[0], options);
-    }
-
-    const group = new Group();
-    group.minAltitude = Infinity;
-
-    for (const feature of features) {
-        const mesh = featureToMesh(feature, options);
-        group.add(mesh);
-        group.minAltitude = Math.min(mesh.minAltitude, group.minAltitude);
-    }
-
-    return group;
 }
 
 /**
@@ -225,10 +225,17 @@ export default {
      * @returns {Function} the conversion function
      */
     convert(options = {}) {
-        return function _convert(collection) {
-            if (!collection) return null;
+        return function _convert(features, offset) {
+            if (!features) return null;
 
-            return featuresToThree(collection, options);
+            const meshes = [];
+
+            for (const feature of features) {
+                const mesh = featureToMesh(feature, offset.toArray(), options);
+                meshes.push(mesh);
+            }
+
+            return meshes;
         };
     },
 };
