@@ -203,6 +203,8 @@ class ColorLayer extends Layer {
             toDownload: nextDownloads,
         };
 
+        this._opCounter.increment();
+
         return context.scheduler.execute(command).then(
             result => {
                 if (!result || !result.texture) {
@@ -232,7 +234,7 @@ class ColorLayer extends Layer {
                     }
                 }
             },
-        );
+        ).finally(() => this._opCounter.decrement());
     }
 }
 

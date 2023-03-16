@@ -14,7 +14,7 @@ import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
-import CoordinateBar from './widgets/CoordinateBar.js';
+import StatusBar from './widgets/StatusBar.js';
 
 // # Planar (EPSG:3946) viewer
 
@@ -194,4 +194,4 @@ instance.useTHREEControls(controls);
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
 // Bind events
-CoordinateBar.bind(instance);
+StatusBar.bind(instance);

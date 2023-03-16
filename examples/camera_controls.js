@@ -24,6 +24,7 @@ import {
     Sphere,
     Raycaster,
 } from 'three';
+import StatusBar from './widgets/StatusBar.js';
 
 // eslint-disable-next-line no-undef
 CameraControls.install({
@@ -247,3 +248,5 @@ document.getElementById('animate').onclick = () => {
         await controls.dolly((Math.random() - 0.5) * 1000, true);
     });
 };
+
+StatusBar.bind(instance);

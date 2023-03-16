@@ -16,6 +16,7 @@ import PointsMaterial, { MODE } from '../renderer/PointsMaterial.js';
 import Picking from '../core/Picking.js';
 import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
 import PotreeSource from '../sources/PotreeSource.js';
+import OperationCounter from '../core/OperationCounter.js';
 
 // Draw a cube with lines (12 lines).
 function cube(size) {
@@ -112,6 +113,8 @@ class PotreePointCloud extends Entity3D {
         this.source = source;
         this.protocol = 'potreeconverter';
         this.type = 'PotreePointCloud';
+
+        this._opCounter = new OperationCounter();
 
         // override the default method, since updated objects are metadata in this case
         this.getObjectToUpdateForAttachedLayers = getObjectToUpdateForAttachedLayers;
@@ -322,6 +325,9 @@ class PotreePointCloud extends Entity3D {
                     // Increase priority of nearest node
                     const priority = this.computeScreenSpaceError(context, elt, distance)
                             / Math.max(0.001, distance);
+
+                    this._opCounter.increment();
+
                     elt.promise = context.scheduler.execute({
                         layer: this,
                         requester: elt,
@@ -349,7 +355,7 @@ class PotreePointCloud extends Entity3D {
                         if (err instanceof CancelledCommandException) {
                             elt.promise = null;
                         }
-                    });
+                    }).finally(() => this._opCounter.decrement());
                 }
             }
 
@@ -368,6 +374,16 @@ class PotreePointCloud extends Entity3D {
             }
         }
         return null;
+    }
+
+    get loading() {
+        return this._opCounter.loading || this._attachedLayers.some(l => l.loading);
+    }
+
+    get progress() {
+        let sum = this._opCounter.progress;
+        sum = this._attachedLayers.reduce((accum, current) => accum + current.progress, sum);
+        return sum / (this._attachedLayers.length + 1);
     }
 
     // eslint-disable-next-line class-methods-use-this, no-unused-vars

@@ -16,6 +16,7 @@ import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrateg
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import StatusBar from './widgets/StatusBar.js';
 
 // # Planar (EPSG:3946) viewer
 
@@ -163,4 +164,4 @@ instance.useTHREEControls(controls);
 instance.notifyChange();
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
+StatusBar.bind(instance);

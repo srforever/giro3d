@@ -13,7 +13,7 @@ import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
 
-import CoordinateBar from './widgets/CoordinateBar.js';
+import StatusBar from './widgets/StatusBar.js';
 
 const x = -13602000;
 const y = 5812000;
@@ -157,4 +157,4 @@ document.getElementById('randomize-position').onclick = () => {
 };
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
-CoordinateBar.bind(instance);
+StatusBar.bind(instance);

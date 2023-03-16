@@ -8,6 +8,7 @@ import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import StatusBar from './widgets/StatusBar.js';
 
 const tmpVec3 = new Vector3();
 
@@ -116,3 +117,5 @@ instance.domElement.addEventListener('dblclick', e => console.log(instance.pickO
     // Some points are incoherent in the pointcloud, don't pick them
     filter: p => !Number.isNaN(p.point.z) && p.point.z < 1000,
 })));
+
+StatusBar.bind(instance);

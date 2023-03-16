@@ -7,6 +7,7 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Panel from '@giro3d/giro3d/gui/Panel.js';
+import StatusBar from './widgets/StatusBar.js';
 
 class MyCustomPanel extends Panel {
     /**
@@ -60,6 +61,8 @@ instance.camera.camera3D.position.set(0, 0, 25000000);
 const controls = new MapControls(instance.camera.camera3D, viewerDiv);
 instance.useTHREEControls(controls);
 
+StatusBar.bind(instance);
+
 // Attach the inspector to the DOM
 const inspectorDiv = document.getElementById('panelDiv');
 inspectorDiv.style.display = 'block';
@@ -72,4 +75,3 @@ inspector.addPanel(myCustomPanel);
 
 // Trigger the first render
 instance.notifyChange(map);
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));

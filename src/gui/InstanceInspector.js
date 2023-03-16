@@ -17,9 +17,18 @@ class InstanceInspector extends Panel {
         /** @type {WebGLRenderer} */
         this.renderer = this.instance.mainLoop.gfxEngine.renderer;
 
+        this.state = 'idle';
+        this.addController(this, 'state').name('Status');
+
         const rendererPanel = this.gui.addFolder('WebGLRenderer');
         rendererPanel.close();
         this._addCapabilities(this.renderer, rendererPanel);
+    }
+
+    updateValues() {
+        this.state = this.instance.loading
+            ? `loading (${Math.round(this.instance.progress * 100)}%)`
+            : 'idle';
     }
 
     /**

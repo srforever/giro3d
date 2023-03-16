@@ -53,6 +53,29 @@ class Entity extends EventDispatcher {
     }
 
     /**
+     * Gets whether this entity is currently loading data.
+     *
+     * @api
+     * @type {boolean}
+     */
+    get loading() {
+        // Implement this in derived classes.
+        return false;
+    }
+
+    /**
+     * Gets the current loading progress (between 0 and 1).
+     * Note: This property is only meaningful if {@link loading} is `true`.
+     *
+     * @api
+     * @type {number}
+     */
+    get progress() {
+        // Implement this in derived classes.
+        return 1;
+    }
+
+    /**
      * This method is called just before `update()` to filter and select
      * which _elements_ should be actually updated. For example, in the
      * case of complex entities made of a hierarchy of elements, the entire

@@ -254,10 +254,8 @@ class MapInspector extends EntityInspector {
     }
 
     updateValues() {
+        super.updateValues();
         this.layerCount = this.map._attachedLayers.length;
-        if (this.boundingBoxes) {
-            this.toggleBoundingBoxes(true);
-        }
         this.layers.forEach(l => l.updateValues());
     }
 

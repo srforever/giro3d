@@ -85,10 +85,18 @@
                 <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto" style="display:none"></div>
                 <!-- Optional additional content from the example (custom buttons, etc.) -->
                 %content%
-                <!-- Coordinate bar -->
-                <div id="coordinates"
-                    style="border-radius: 4px 0 0; font-size: 12px;"
-                    class="position-absolute bottom-0 end-0 bg-light text-secondary px-2">
+                <!-- Status bar -->
+                <div id="status-bar"
+                     class="bg-light d-flex w-100 position-absolute bottom-0 start-0 status-bar">
+
+                    <div class="progress m-2 status-progress-bar" role="progressbar" style="height: 5px" aria-label="Basic example" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                        <div id="progress-bar" class="progress-bar" style="width: 100%"></div>
+                    </div>
+                    <span id="loading-percent" class="text-center">100%</span>
+                    <!-- Coordinates -->
+                    <div id="coordinates"
+                         class="px-1 position-absolute end-0 text-secondary">
+                    </div>
                 </div>
             </div>
 

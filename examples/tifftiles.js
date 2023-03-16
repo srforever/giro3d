@@ -8,7 +8,7 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
 
-import CoordinateBar from './widgets/CoordinateBar.js';
+import StatusBar from './widgets/StatusBar.js';
 
 const x = -13602618.385789588;
 const y = 5811042.273912458;
@@ -74,4 +74,4 @@ instance.useTHREEControls(controls);
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
 // Bind events
-CoordinateBar.bind(instance);
+StatusBar.bind(instance);

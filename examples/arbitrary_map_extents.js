@@ -7,6 +7,7 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Helpers from '@giro3d/giro3d/helpers/Helpers.js';
 import { Vector3, Object3D } from 'three';
+import StatusBar from './widgets/StatusBar.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
 const EPSG3857_BOUNDS = new Extent(
@@ -100,4 +101,4 @@ button.onclick = () => {
     createMap(extent);
 };
 
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
+StatusBar.bind(instance);

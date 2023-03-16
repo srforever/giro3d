@@ -11,7 +11,7 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
 
-import CoordinateBar from './widgets/CoordinateBar.js';
+import StatusBar from './widgets/StatusBar.js';
 
 const extent = new Extent(
     'EPSG:3857',
@@ -78,4 +78,4 @@ toggle.onchange = () => {
     instance.notifyChange(map);
 };
 
-CoordinateBar.bind(instance);
+StatusBar.bind(instance);

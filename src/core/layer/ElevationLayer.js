@@ -326,6 +326,8 @@ class ElevationLayer extends Layer {
             toDownload: nextDownloads,
         };
 
+        this._opCounter.increment();
+
         return context.scheduler.execute(command).then(
             result => {
                 if (!result || !result.texture) {
@@ -364,7 +366,7 @@ class ElevationLayer extends Layer {
             node.setElevationTexture(this, elevation, false);
             node.layerUpdateState[this.id].success();
             context.instance.notifyChange(node);
-        });
+        }).finally(() => this._opCounter.decrement());
     }
 }
 

@@ -14,6 +14,7 @@ import ColorMap from './ColorMap.js';
 import Interpretation from './Interpretation.js';
 import Extent from '../geographic/Extent.js';
 import EventUtils from '../../utils/EventUtils.js';
+import OperationCounter from '../OperationCounter.js';
 
 function nodeCommandQueuePriorityFunction(node) {
     const dim = node.extent.dimensions();
@@ -134,6 +135,8 @@ class Layer extends EventDispatcher {
         EventUtils.definePropertyWithChangeEvent(this, 'visible', true);
         this.frozen = false;
 
+        this._opCounter = new OperationCounter();
+
         if (options.colorMap !== undefined) {
             /** @type {ColorMap} */
             this.colorMap = options.colorMap;
@@ -175,6 +178,26 @@ class Layer extends EventDispatcher {
 
         this.projection = options.projection;
         this.backgroundColor = options.backgroundColor;
+    }
+
+    /**
+     * Gets whether this layer is currently loading data.
+     *
+     * @api
+     * @type {boolean}
+     */
+    get loading() {
+        return this._opCounter.loading;
+    }
+
+    /**
+     * Gets the progress value of the data loading.
+     *
+     * @api
+     * @type {boolean}
+     */
+    get progress() {
+        return this._opCounter.progress;
     }
 
     // eslint-disable-next-line class-methods-use-this, no-unused-vars
