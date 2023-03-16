@@ -1,5 +1,20 @@
 # Changelog
 
+## v0.22.0 (2023-03-16)
+
+### Feat
+
+- Expose API to track progress of data processing (#237). See [the example](https://giro3d.org/examples/tracking_progress.html).
+- **LayeredMaterial**: support transparent backgrounds (#245). See [the example](https://giro3d.org/examples/transparent_map_bg.html).
+- **examples**: add [custom controls](https://giro3d.org/examples/camera_controls.html) example (#235).
+
+### Fix
+
+- **Map**: combine all colormaps into an atlas (#244). This helps reduce the number of texture units consumed by a map tile.
+- **OLTileProvider**: filter out requests that returned null (#242)
+- **Layer**: handle null textures (#242)
+- **TileFS**: avoid warning when `gl_FragColor` is not set before discarding the fragment (#241)
+
 ## v0.21.0 (2023-03-06)
 
 This release contains many bugfixes and performance improvements, as well as two features: the `DrawTools` and the `HttpConfiguration` modules.
