@@ -135,7 +135,7 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.uniforms.uuid = new Uniform(0);
 
-        this.uniforms.backgroundColor = new Uniform(new Color());
+        this.uniforms.backgroundColor = new Uniform(new Vector4());
         this.uniforms.opacity = new Uniform(1.0);
 
         this.colorLayers = [];
@@ -468,7 +468,10 @@ class LayeredMaterial extends RawShaderMaterial {
         }
 
         if (materialOptions.backgroundColor) {
-            this.uniforms.backgroundColor.value.copy(materialOptions.backgroundColor);
+            const a = materialOptions.backgroundOpacity;
+            const c = materialOptions.backgroundColor;
+            const vec4 = new Vector4(c.r, c.g, c.b, a);
+            this.uniforms.backgroundColor.value.copy(vec4);
         }
 
         this._define('ELEVATION_LAYER', this.elevationLayer?.visible);
@@ -560,7 +563,7 @@ class LayeredMaterial extends RawShaderMaterial {
 
     _updateBlendingMode() {
         const state = this.uniforms.renderingState.value;
-        if (this.opacity < 1 && state === RenderingState.FINAL) {
+        if (state === RenderingState.FINAL) {
             this.transparent = true;
             this.needsUpdate = true;
             this.blending = NormalBlending;

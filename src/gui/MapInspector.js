@@ -68,6 +68,7 @@ class MapInspector extends EntityInspector {
 
         this.layerCount = this.map._attachedLayers.length;
         this.background = this.map.materialOptions.backgroundColor;
+        this.backgroundOpacity = this.map.materialOptions.backgroundOpacity;
 
         this.extentColor = new Color('red');
         this.showExtent = false;
@@ -94,6 +95,11 @@ class MapInspector extends EntityInspector {
         this.addColorController(this, 'background')
             .name('Background')
             .onChange(v => this.updateBackgroundColor(v));
+        this.addController(this, 'backgroundOpacity')
+            .name('Background opacity')
+            .min(0)
+            .max(1)
+            .onChange(v => this.updateBackgroundOpacity(v));
         this.addController(this, 'wireframe')
             .name('Wireframe')
             .onChange(v => this.toggleWireframe(v));
@@ -141,6 +147,12 @@ class MapInspector extends EntityInspector {
         this.map.addEventListener('layer-removed', this._fillLayersCb);
 
         this.fillLayers();
+    }
+
+    updateBackgroundOpacity(a) {
+        this.backgroundOpacity = a;
+        this.map.materialOptions.backgroundOpacity = a;
+        this.notify(this.map);
     }
 
     updateBackgroundColor(color) {
