@@ -154,7 +154,7 @@ async function executeCommand(command) {
     throwIfCancelled();
 
     // In some cases, all the tile requests on the requested extent fail or end up with no data.
-    const actualImages = images.filter(img => img !== null);
+    const actualImages = images.filter(img => img != null);
     if (actualImages.length > 0) {
         return combineImages(actualImages, instance.renderer, pitch, layer, extent);
     }
@@ -245,9 +245,9 @@ function loadTiles(extent, zoom, layer) {
         if (tileExtent.intersectsExtent(layer.extent)) {
             const url = layer.getTileUrl(tile.tileCoord, 1, layer.olprojection);
             const promise = loadTile(url, tileExtent, layer).catch(e => {
-                if (e) {
-                    console.error(e);
-                }
+                console.error(e);
+                // attempt to still do something even if some tiles are in error
+                return null;
             });
             promises.push(promise);
         }
