@@ -6,6 +6,7 @@ import {
 } from 'three';
 
 import TileState from 'ol/TileState.js';
+
 import { listen, unlistenByKey } from 'ol/events.js';
 import {
     createEmpty as createEmptyExtent,
@@ -43,10 +44,11 @@ import {
     translate as translateTransform,
 } from 'ol/transform.js';
 
-import Extent from '../core/geographic/Extent.js';
 import DataStatus from './DataStatus.js';
+import Extent from '../core/geographic/Extent.js';
 import { GlobalCache } from '../core/Cache.js';
 import Rect from '../core/Rect.js';
+import OpenLayersUtils from '../utils/OpenLayersUtils.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
 
 const tmpTransform_ = createTransform();
@@ -61,19 +63,6 @@ function preprocessDataLayer(layer) {
     layer.olprojection = projection;
     layer.getStyleFunction = () => layer.style(Style, Fill, Stroke, Icon, Text);
     layer.usedTiles = {};
-}
-
-function fromOLExtent(extent, projectionCode) {
-    return new Extent(projectionCode, extent[0], extent[2], extent[1], extent[3]);
-}
-
-function toOLExtent(extent) {
-    return [
-        Math.ceil(extent.west()),
-        Math.ceil(extent.south()),
-        Math.floor(extent.east()),
-        Math.floor(extent.north()),
-    ];
 }
 
 // eslint-disable-next-line no-unused-vars
@@ -99,7 +88,7 @@ function getPossibleTextureImprovements(layer, extent, texture, pitch) {
 }
 
 function getZoomLevel(tileGrid, imageSize, extent) {
-    const olExtent = toOLExtent(extent);
+    const olExtent = OpenLayersUtils.toOLExtent(extent);
     const minZoom = tileGrid.getMinZoom();
     const maxZoom = tileGrid.getMaxZoom();
 
@@ -187,11 +176,12 @@ function loadTiles(extent, zoom, layer) {
 
     const promises = [];
 
-    tileGrid.forEachTileCoord(toOLExtent(extent), zoom, ([z, i, j]) => {
+    tileGrid.forEachTileCoord(OpenLayersUtils.toOLExtent(extent), zoom, ([z, i, j]) => {
         const tile = source.getTile(z, i, j, 1, layer.olprojection);
         const coord = tile.getTileCoord();
         if (coord) {
-            const tileExtent = fromOLExtent(tileGrid.getTileCoordExtent(coord), crs);
+            const tileExtent = OpenLayersUtils
+                .fromOLExtent(tileGrid.getTileCoordExtent(coord), crs);
             // Don't bother loading tiles that are not in the layer
             if (tileExtent.intersectsExtent(layer.extent)) {
                 const promise = loadTile(tile, tileExtent, layer).catch(e => {

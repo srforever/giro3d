@@ -18,6 +18,7 @@ import { GlobalCache } from '../core/Cache.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
 import { Mode } from '../core/layer/Interpretation.js';
 import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
+import OpenLayersUtils from '../utils/OpenLayersUtils.js';
 
 const MIN_LEVEL_THRESHOLD = 2;
 const tmp = {
@@ -39,25 +40,12 @@ function preprocessDataLayer(layer) {
     layer.getTileUrl = source.getTileUrlFunction();
     layer.flipY = layer.source.format?.flipY || false;
     const extent = tileGrid.getExtent();
-    layer.sourceExtent = fromOLExtent(extent, projection.getCode());
+    layer.sourceExtent = OpenLayersUtils.fromOLExtent(extent, projection.getCode());
     if (!layer.extent) {
         // In the case where the layer has no extent (when it is not attached to a map,
         // but used to colorize a point cloud for example), we can default to the source extent.
         layer.extent = layer.sourceExtent;
     }
-}
-
-function fromOLExtent(extent, projectionCode) {
-    return new Extent(projectionCode, extent[0], extent[2], extent[1], extent[3]);
-}
-
-function toOLExtent(extent, margin = 0) {
-    return [
-        extent.west() - margin,
-        extent.south() - margin,
-        extent.east() + margin,
-        extent.north() + margin,
-    ];
 }
 
 function getPossibleTextureImprovements(layer, extent, texture, pitch) {
@@ -93,7 +81,7 @@ function getZoomLevel(tileGrid, imageSize, extent) {
     // to source tiles. In some cases, rounding errors lead the selecting of an abnormal zoom
     // level for some tiles and not others, leading to difference in zoom levels for map tiles
     // with the same size.
-    const olExtent = toOLExtent(extent, 0.001);
+    const olExtent = OpenLayersUtils.toOLExtent(extent, 0.001);
 
     let targetResolution;
 
@@ -235,9 +223,10 @@ function loadTiles(extent, zoom, layer) {
 
     const promises = [];
 
-    tileGrid.forEachTileCoord(toOLExtent(extent), zoom, ([z, i, j]) => {
+    tileGrid.forEachTileCoord(OpenLayersUtils.toOLExtent(extent), zoom, ([z, i, j]) => {
         const tile = source.getTile(z, i, j);
-        const tileExtent = fromOLExtent(tileGrid.getTileCoordExtent(tile.tileCoord), crs);
+        const tileExtent = OpenLayersUtils
+            .fromOLExtent(tileGrid.getTileCoordExtent(tile.tileCoord), crs);
         // Don't bother loading tiles that are not in the layer
         if (tileExtent.intersectsExtent(layer.extent)) {
             const url = layer.getTileUrl(tile.tileCoord, 1, layer.olprojection);
