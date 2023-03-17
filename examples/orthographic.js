@@ -26,7 +26,7 @@ const instance = new Instance(viewerDiv, {
 });
 
 // Creates a map that will contain the layer
-const map = new Map('planar', { extent, maxSubdivisionLevel: 10 });
+const map = new Map('planar', { extent });
 
 instance.add(map);
 
