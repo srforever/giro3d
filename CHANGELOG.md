@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.22.1 (2023-03-17)
+
+Hotfix for the #242 issue.
+
+### Fix
+
+- **OLTileProvider**: handle both `null` and `undefined` textures (#242).
+
 ## v0.22.0 (2023-03-16)
 
 ### Feat
