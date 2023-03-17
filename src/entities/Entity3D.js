@@ -48,21 +48,6 @@ class Entity3D extends Entity {
 
         this.atlasInfo = { maxX: 0, maxY: 0 };
 
-        // Attached layers expect to receive the visual representation of a layer (= THREE object
-        // with a material).  So if a layer's update function don't process this kind of object, the
-        // layer must provide a getObjectToUpdateForAttachedLayers function that returns the correct
-        // object to update for attached layer.  See 3dtilesProvider or PointCloudProvider for
-        // examples.
-        this.getObjectToUpdateForAttachedLayers = obj => {
-            if (!obj.parent || !obj.material) {
-                return null;
-            }
-            return {
-                element: obj,
-                parent: obj.parent,
-            };
-        };
-
         // processing can overwrite that with values calculating from this layer's Object3D
         this._distance = { min: Infinity, max: 0 };
     }
@@ -128,6 +113,28 @@ class Entity3D extends Entity {
 
         return null;
     }
+
+    /* eslint-disable class-methods-use-this */
+    /**
+     * Attached layers expect to receive the visual representation of a layer (= THREE object
+     * with a material).  So if a layer's update function don't process this kind of object, the
+     * layer must provide a getObjectToUpdateForAttachedLayers function that returns the correct
+     * object to update for attached layer from the objects returned by preUpdate.
+     *
+     * @param {object} obj the Mesh or the object containing a Mesh. These are the objects returned
+     * by preUpdate or update.
+     * @returns {object} an object passed to the update function of attached layers.
+     */
+    getObjectToUpdateForAttachedLayers(obj) {
+        if (!obj.parent || !obj.material) {
+            return null;
+        }
+        return {
+            element: obj,
+            parent: obj.parent,
+        };
+    }
+    /* eslint-enable class-methods-use-this */
 
     /**
      * Picks objects given a position and a radius from the layer.

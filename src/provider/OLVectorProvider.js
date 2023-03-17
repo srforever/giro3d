@@ -86,12 +86,12 @@ function getPossibleTextureImprovements(layer, extent, texture, pitch) {
     return { extent, pitch };
 }
 
-function executeCommand(command) {
-    const { extent, pitch } = command.toDownload;
-    return createTexture(command.requester, extent, pitch, command.layer);
+function executeCommand(instance, layer, requester, toDownload) {
+    const { extent, pitch } = toDownload;
+    return createTexture(extent, pitch, layer);
 }
 
-function createTexture(node, extent, pitch, layer) {
+function createTexture(extent, pitch, layer) {
     const layerExtent = fromOLExtent(layer.source.getExtent(), layer.projection);
     if (!extent.intersectsExtent(layerExtent)) {
         return Promise.resolve({ texture: emptyTexture, pitch: new Vector4(0, 0, 0, 0) });

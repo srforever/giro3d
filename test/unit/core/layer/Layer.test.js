@@ -7,6 +7,9 @@ import Stamen from 'ol/source/Stamen.js';
 import Layer from '../../../../src/core/layer/Layer.js';
 import Map from '../../../../src/entities/Map.js';
 import Instance from '../../../../src/core/Instance.js';
+import OLTileProvider from '../../../../src/provider/OLTileProvider.js';
+import OLVectorProvider from '../../../../src/provider/OLVectorProvider.js';
+import OLVectorTileProvider from '../../../../src/provider/OLVectorTileProvider.js';
 import {
     STRATEGY_DICHOTOMY, STRATEGY_MIN_NETWORK_TRAFFIC,
 } from '../../../../src/core/layer/LayerUpdateStrategy.js';
@@ -58,9 +61,7 @@ describe('Layer', () => {
                     },
                 },
                 scheduleUpdate: jest.fn,
-                scheduler: {
-                    getProtocolProvider: jest.fn,
-                },
+                scheduler: {},
             };
             const options = { mainLoop, crs: projection };
             const instance = new Instance(viewerDiv, options);
@@ -86,23 +87,23 @@ describe('Layer', () => {
 
         it('should not accept all sources', () => {
             let layer = new Layer('id', { source: new TileWMS({}) });
-            assert.strictEqual(layer.protocol, 'oltile');
+            assert.strictEqual(layer.provider, OLTileProvider);
             assert.strictEqual(layer.standalone, false);
 
             layer = new Layer('id', { source: new Stamen({ layer: 'watercolor', wrapX: false }) });
-            assert.strictEqual(layer.protocol, 'oltile');
+            assert.strictEqual(layer.provider, OLTileProvider);
             assert.strictEqual(layer.standalone, false);
 
             layer = new Layer('id', { source: new Vector() });
-            assert.strictEqual(layer.protocol, 'olvector');
+            assert.strictEqual(layer.provider, OLVectorProvider);
             assert.strictEqual(layer.standalone, false);
 
             layer = new Layer('id', { source: new VectorTile({ url: 'https://domain.tld/{z}/{x}/{y}.pbf' }) });
-            assert.strictEqual(layer.protocol, 'olvectortile');
+            assert.strictEqual(layer.provider, OLVectorTileProvider);
             assert.strictEqual(layer.standalone, false);
 
             layer = new Layer('id', { standalone: true });
-            assert.strictEqual(layer.protocol, undefined);
+            assert.strictEqual(layer.provider, undefined);
             assert.strictEqual(layer.standalone, true);
 
             assert.throws(() => new Layer('id', { source: { constructor: Instance } }));

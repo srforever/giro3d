@@ -318,17 +318,15 @@ function getPossibleTextureImprovements(layer, extent, texture, pitch) {
     };
 }
 
-function executeCommand(command) {
-    const { layer, earlyDropFunction } = command;
-
+function executeCommand(instance, layer, requester, toDownload, earlyDropFunction) {
     function throwIfCancelled() {
-        if (earlyDropFunction && earlyDropFunction(command)) {
-            throw new CancelledCommandException(command);
+        if (earlyDropFunction && earlyDropFunction()) {
+            throw new CancelledCommandException(layer, requester);
         }
     }
 
     // Get the image at the appropriate overview level
-    const { extent, levelImage, pitch } = command.toDownload;
+    const { extent, levelImage, pitch } = toDownload;
 
     return Promise.resolve(createTexture(throwIfCancelled, layer, extent, levelImage, pitch));
 }

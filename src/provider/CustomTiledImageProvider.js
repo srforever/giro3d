@@ -7,7 +7,6 @@ import Fetcher from '../utils/Fetcher.js';
 import MemoryTracker from '../renderer/MemoryTracker.js';
 import TextureGenerator from '../utils/TextureGenerator.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
-import ElevationLayer from '../core/layer/ElevationLayer.js';
 import Rect from '../core/Rect.js';
 import { GlobalCache } from '../core/Cache.js';
 
@@ -67,7 +66,7 @@ function getKey(images) {
 async function getTexture(toDownload, instance, layer) {
     const { extent, images, pitch } = toDownload;
 
-    const isElevationLayer = layer instanceof ElevationLayer;
+    const isElevationLayer = layer.type === 'ElevationLayer';
 
     const composer = new WebGLComposer({
         extent: Rect.fromExtent(extent),
@@ -190,8 +189,7 @@ export default {
         return { images, extent, pitch };
     },
 
-    executeCommand(command) {
-        const { layer, instance } = command;
-        return getTexture(command.toDownload, instance, layer);
+    executeCommand(instance, layer, requester, toDownload) {
+        return getTexture(toDownload, instance, layer);
     },
 };

@@ -46,7 +46,6 @@ import {
 import Extent from '../core/geographic/Extent.js';
 import DataStatus from './DataStatus.js';
 import { GlobalCache } from '../core/Cache.js';
-import Layer from '../core/layer/Layer.js';
 import Rect from '../core/Rect.js';
 import WebGLComposer from '../renderer/composition/WebGLComposer.js';
 
@@ -128,10 +127,9 @@ function getZoomLevel(tileGrid, imageSize, extent) {
     return maxZoom;
 }
 
-async function executeCommand(command) {
-    const { layer, instance } = command;
-    const { zoomLevel, extent, pitch } = command.toDownload;
-    const images = await loadTiles(extent, zoomLevel, command.layer);
+async function executeCommand(instance, layer, requester, toDownload) {
+    const { zoomLevel, extent, pitch } = toDownload;
+    const images = await loadTiles(extent, zoomLevel, layer);
     const result = combineImages(images, instance.renderer, pitch, layer, extent);
     return result;
 }
@@ -142,7 +140,7 @@ async function executeCommand(command) {
  * @param {Array} sourceImages The images to combine.
  * @param {WebGLRenderer} renderer The WebGL renderer.
  * @param {Vector4} pitch The custom pitch.
- * @param {Layer} layer The target layer.
+ * @param {module:Core/layer/Layer~Layer} layer The target layer.
  * @param {Extent} targetExtent The extent of the destination texture.
  */
 function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
@@ -177,7 +175,7 @@ function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
  *
  * @param {Extent} extent The tile extent.
  * @param {number} zoom The zoom level.
- * @param {Layer} layer The target layer.
+ * @param {module:Core/layer/Layer~Layer} layer The target layer.
  * @returns {Promise<HTMLImageElement[]>} The loaded tile images.
  */
 function loadTiles(extent, zoom, layer) {
@@ -220,7 +218,7 @@ function onDelete(promise) {
 /**
  * @param {Tile} tile The tile to load.
  * @param {Extent} tileExtent The extent of the tile.
- * @param {Layer} layer The layer.
+ * @param {module:Core/layer/Layer~Layer} layer The layer.
  * @returns {Promise<HTMLCanvasElement>} The promise containing the rasterized tile.
  */
 function loadTile(tile, tileExtent, layer) {
@@ -382,7 +380,7 @@ function handleStyleImageChange_() {
 
 /**
  * @param {VectorRenderTile} tile The tile to render.
- * @param {Layer} layer The layer.
+ * @param {module:Core/layer/Layer~Layer} layer The layer.
  * @returns {HTMLCanvasElement} The canvas.
  */
 function rasterize(tile, layer) {

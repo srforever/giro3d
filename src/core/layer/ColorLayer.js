@@ -199,9 +199,15 @@ class ColorLayer extends Layer {
             layer: this,
             requester: node,
             priority: nodeCommandQueuePriorityFunction(node),
-            earlyDropFunction: refinementCommandCancellationFn,
-            toDownload: nextDownloads,
         };
+        command.earlyDropFunction = () => refinementCommandCancellationFn({ requester: node });
+        command.fn = () => this.provider.executeCommand(
+            context.instance,
+            this,
+            node,
+            nextDownloads,
+            command.earlyDropFunction,
+        );
 
         this._opCounter.increment();
 

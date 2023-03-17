@@ -61,8 +61,6 @@ class LayerInspector extends Panel {
             this.addController(this.minmax, 'min').name('Minimum elevation');
             this.addController(this.minmax, 'max').name('Maximum elevation');
         }
-        this.addController(this.layer, 'protocol')
-            .name('Protocol');
 
         if (this.layer.opacity !== undefined) {
             this.addController(this.layer, 'opacity')

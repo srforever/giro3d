@@ -19,4 +19,5 @@ class ResizeObserver {
 // eslint-disable-next-line import/prefer-default-export
 export function setupGlobalMocks() {
     window.ResizeObserver = ResizeObserver;
+    window.fetch = jest.fn();
 }

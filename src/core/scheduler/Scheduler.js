@@ -1,12 +1,5 @@
 import PriorityQueue from 'js-priority-queue';
 import TileState from 'ol/TileState.js';
-import $3dTilesProvider from '../../provider/3dTilesProvider.js';
-import PointCloudProvider from '../../provider/PotreePointCloudProvider.js';
-import CustomTiledImageProvider from '../../provider/CustomTiledImageProvider.js';
-import OLTileProvider from '../../provider/OLTileProvider.js';
-import OLVectorTileProvider from '../../provider/OLVectorTileProvider.js';
-import OLVectorProvider from '../../provider/OLVectorProvider.js';
-import COGProvider from '../../provider/COGProvider.js';
 import CancelledCommandException from './CancelledCommandException.js';
 
 const instanceScheduler = null;
@@ -77,17 +70,17 @@ function _instanciateQueue() {
             // commands pending
             pending: 0,
         },
-        execute(cmd, provider, countersIncrement = 1) {
+        execute(fn, resolve, reject, countersIncrement = 1) {
             this.counters.pending -= countersIncrement;
             this.counters.executing += countersIncrement;
-            return provider.executeCommand(cmd).then(result => {
+            return fn().then(result => {
                 this.counters.executing -= countersIncrement;
-                cmd.resolve(result);
+                resolve(result);
                 // only count successul commands
                 this.counters.executed += countersIncrement;
             }, err => {
                 this.counters.executing -= countersIncrement;
-                cmd.reject(err);
+                reject(err);
                 if (err instanceof CancelledCommandException) {
                     this.counters.cancelled += countersIncrement;
                 } else {
@@ -101,12 +94,6 @@ function _instanciateQueue() {
     };
 }
 
-/**
- * The Scheduler is in charge of managing the [Providers]{@link Provider} that
- * are used to gather resources needed to display the layers on a {@link Instance}.
- * There is only one instance of a Scheduler per webview, and it is instanciated
- * with the creation of the first instance.
- */
 function Scheduler() {
     // Constructor
     if (instanceScheduler !== null) {
@@ -116,35 +103,17 @@ function Scheduler() {
     this.defaultQueue = _instanciateQueue();
     this.hostQueues = new Map();
 
-    this.providers = {};
-
     this.maxCommandsPerHost = 6;
-
-    // TODO: add an options to not instanciate default providers
-    this.initDefaultProviders();
 }
 
 Scheduler.prototype.constructor = Scheduler;
 
-Scheduler.prototype.initDefaultProviders = function initDefaultProviders() {
-    // Register all providers
-    this.addProtocolProvider('3d-tiles', $3dTilesProvider);
-    this.addProtocolProvider('potreeconverter', PointCloudProvider);
-    this.addProtocolProvider('customtiledimage', CustomTiledImageProvider);
-    this.addProtocolProvider('oltile', OLTileProvider);
-    this.addProtocolProvider('olvectortile', OLVectorTileProvider);
-    this.addProtocolProvider('olvector', OLVectorProvider);
-    this.addProtocolProvider('cog', COGProvider);
-};
-
 Scheduler.prototype.runCommand = function runCommand(command, queue, recurse = true) {
-    const provider = this.providers[command.layer.protocol];
-
-    if (!provider) {
-        throw new Error('No known provider for layer', command.layer.id);
+    if (!command.fn) {
+        command.reject('No callback function provided in command: ', command);
+        return command.promise;
     }
-
-    return queue.execute(command, provider, recurse ? 1 : 0).then(() => {
+    return queue.execute(command.fn, command.resolve, command.reject, recurse ? 1 : 0).then(() => {
         // notify instance that one command ended.
         command.instance.notifyChange(command.requester, command.redraw);
 
@@ -234,7 +203,7 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
         // Promise.resolve or setTimeout(..., 0) will do the job, the difference
         // is:
         //   - setTimeout is a new task, queued in the event-loop queues
-        //   - Promise is a micro-task, executed before other tasks
+        //   - Promise is a micro-task, executed before other tasks in the current macro-task.
         Promise.resolve().then(() => {
             if (queue.counters.executing < this.maxCommandsPerHost) {
                 const cmd = this.deQueue(queue);
@@ -244,92 +213,6 @@ Scheduler.prototype.executeNextForQueue = function executeNextForQueue(queue) {
             }
         });
     }
-};
-
-/**
- * A Provider has the responsability to handle protocols and datablobs. Given a
- * data request (see {@link Provider#executeCommand} for details about this
- * request), it fetches serialized datasets, file content or even file chunks.
- *
- * @interface Provider
- */
-
-/**
- * When adding a layer to a instance, some preprocessing can be done on it, before
- * fetching or creating resources attached to it. For example, in the WMTS and
- * WFS providers (included in giro3d), default options to the layer are added if
- * some are missing.
- *
- * @function
- * @name Provider#preprocessDataLayer
- * @param {module:Core/Layer~Layer} layer
- * @param {module:Core/Instance~Instance} [instance]
- * @param {Scheduler} [scheduler]
- * @param {module:Core/Layer~Layer} [parentLayer]
- */
-
-/**
- * In the {@link Scheduler} loop, this function is called every time the layer
- * needs new information about itself. For tiled layers, it gets the necessary
- * tiles, given the current position of the camera on the map. For simple layers
- * like a GPX trace, it gets the data once.
- * <br><br>
- * It passes a <code>command</code> object as a parameter, with the
- * <code>instance</code> and the <code>layer</code> always present. The other
- * parameters are optional.
- *
- * @function
- * @name Provider#executeCommand
- * @param {object} command
- * @param {module:Core/Instance~Instance} command.instance the giro3d instance
- * @param {module:Core/Layer~Layer} command.layer
- * @param {module:Core/TileMesh~TileMesh} [command.requester] Every layer is attached to a tile.
- * @param {number} [command.targetLevel] The target level is used when there
- * is a tiled layer, such as WMTS or TMS, but not in case like a GPX layer.
- * @returns {Promise} The {@link Scheduler} always expect a Promise as a result,
- * resolving to an object containing sufficient information for the associated
- * processing to the current layer. For example, see the
- * LayeredMaterialNodeProcessing#updateLayeredMaterialNodeElevation
- * function or other processing class.
- */
-
-/**
- * Adds a provider for a specified protocol. The provider will be used when
- * executing the queue to provide resources. See {@link Provider} for more
- * informations.
- * By default, some protocols are already set in giro3d: WMTS, WMS, WFS, TMS,
- * XYZ, PotreeConverter, Rasterizer, 3D-Tiles and Static.
- * <br><br>
- * Warning: if the specified protocol has already a provider attached to it, the
- * current provider will be overwritten by the given provider.
- *
- * @param {string} protocol The name of the protocol to add. This is the
- * <code>protocol</code> parameter put inside the configuration when adding a
- * layer. The capitalization of the name is not taken into account here.
- * @param {Provider} provider The provider to link to the protocol, that must
- * respect the {@link Provider} interface description.
- * @throws {Error} an error if any method of the {@link Provider} is not present
- * in the provider.
- */
-Scheduler.prototype.addProtocolProvider = function addProtocolProvider(protocol, provider) {
-    if (typeof (provider.executeCommand) !== 'function') {
-        throw new Error(`Can't add provider for ${protocol}: missing a executeCommand function.`);
-    }
-    if (typeof (provider.preprocessDataLayer) !== 'function') {
-        throw new Error(`Can't add provider for ${protocol}: missing a preprocessDataLayer function.`);
-    }
-
-    this.providers[protocol] = provider;
-};
-
-/**
- * Get a specific {@link Provider} given a particular protocol.
- *
- * @param {string} protocol the protocol name
- * @returns {Provider} the provider associated with the specified name
- */
-Scheduler.prototype.getProtocolProvider = function getProtocolProvider(protocol) {
-    return this.providers[protocol];
 };
 
 Scheduler.prototype.commandsWaitingExecutionCount = function commandsWaitingExecutionCount() {
@@ -391,7 +274,7 @@ Scheduler.prototype.deQueue = function deQueue(queue) {
     while (st && st.length > 0) {
         const cmd = st.dequeue();
 
-        if (cmd.earlyDropFunction && cmd.earlyDropFunction(cmd)) {
+        if (cmd.earlyDropFunction && cmd.earlyDropFunction()) {
             queue.counters.pending--;
             queue.counters.cancelled++;
             cmd.reject(new CancelledCommandException(cmd));

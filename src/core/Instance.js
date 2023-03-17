@@ -348,14 +348,7 @@ class Instance extends EventDispatcher {
                 return;
             }
 
-            // TODO get rid of providers for entity
-            const provider = this.mainLoop.scheduler.getProtocolProvider(object.protocol);
-            if (object.protocol && !provider) {
-                reject(new Error(`${object.protocol} is not a recognized protocol name.`));
-                return;
-            }
-
-            object = _preprocessEntity(this, object, provider);
+            object = _preprocessEntity(this, object);
 
             if (!object.projection) {
                 object.projection = this.referenceCrs;
@@ -852,31 +845,12 @@ class Instance extends EventDispatcher {
     }
 }
 
-function _preprocessEntity(instance, obj, provider, parentLayer) {
+function _preprocessEntity(instance, obj) {
     obj.options = obj.options || {};
 
     let preprocessingPromise;
     if (obj.preprocess) {
         preprocessingPromise = obj.preprocess();
-    }
-
-    if (provider) {
-        if (provider.tileInsideLimit) {
-            obj.tileInsideLimit = provider.tileInsideLimit.bind(provider);
-        }
-        if (provider.getPossibleTextureImprovements) {
-            obj.getPossibleTextureImprovements = provider
-                .getPossibleTextureImprovements
-                .bind(provider);
-        }
-        if (provider.preprocessDataLayer) {
-            const p = provider.preprocessDataLayer(
-                obj, instance, instance.mainLoop.scheduler, parentLayer,
-            );
-            if (p && p.then) {
-                preprocessingPromise = p;
-            }
-        }
     }
 
     if (!preprocessingPromise) {
