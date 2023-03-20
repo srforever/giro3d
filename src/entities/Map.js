@@ -14,7 +14,7 @@ import Layer from '../core/layer/Layer.js';
 import ColorLayer from '../core/layer/ColorLayer.js';
 import ElevationLayer from '../core/layer/ElevationLayer.js';
 import Entity3D from './Entity3D.js';
-import ObjectRemovalHelper from '../process/ObjectRemovalHelper.js';
+import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import Picking from '../core/Picking.js';
 import ScreenSpaceError from '../core/ScreenSpaceError.js';
 import LayeredMaterial from '../renderer/LayeredMaterial.js';
