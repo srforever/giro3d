@@ -100,10 +100,7 @@ const cameraPosition = new Coordinates(
 instance.camera.camera3D.position.copy(cameraPosition);
 
 // Creates controls
-const controls = new MapControls(
-    instance.camera.camera3D,
-    viewerDiv,
-);
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 
 // Then looks at extent's center
 controls.target = mapCenter;

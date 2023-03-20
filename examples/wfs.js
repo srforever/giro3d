@@ -106,10 +106,7 @@ wfsLayer.source.addEventListener('featuresloadend', () => {
 map.addLayer(wfsLayer);
 
 // Creates controls
-const controls = new MapControls(
-    instance.camera.camera3D,
-    viewerDiv,
-);
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 
 instance.camera.camera3D.position.set(1839739, 5171618, 910);
 controls.target = new Vector3(1840839, 5172718, 0);

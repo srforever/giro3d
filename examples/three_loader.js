@@ -37,10 +37,7 @@ const instance = new Instance(viewerDiv, { renderer: { renderer } });
 const camera = instance.camera.camera3D;
 
 // Creates controls
-const controls = new MapControls(
-    instance.camera.camera3D,
-    viewerDiv,
-);
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.2;
 

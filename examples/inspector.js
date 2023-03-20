@@ -58,7 +58,7 @@ map.addLayer(new ColorLayer('osm', { source }));
 
 // Create camera and controls
 instance.camera.camera3D.position.set(0, 0, 25000000);
-const controls = new MapControls(instance.camera.camera3D, viewerDiv);
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 instance.useTHREEControls(controls);
 
 StatusBar.bind(instance);

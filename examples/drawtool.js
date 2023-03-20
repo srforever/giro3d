@@ -63,14 +63,14 @@ const center = extent.center().xyz();
 instance.camera.camera3D.position.set(center.x, center.y, 25000);
 
 // Instanciates controls
-// Beware: we need to bind them to *instance.viewport* so we can interact over 2D labels!
-const controls = new MapControls(instance.camera.camera3D, instance.viewport);
+// Beware: we need to bind them to *instance.domElement* so we can interact over 2D labels!
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 
 controls.target.copy(center);
 instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
-instance.viewport.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
+instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
 
 // Instanciate drawtool
 const drawToolOptions = {
@@ -284,14 +284,14 @@ function getDrawnShapeAt(evt) {
 }
 
 // Display a nice pointer when the user is over a drawn shape
-instance.viewport.addEventListener('mousemove', evt => {
+instance.domElement.addEventListener('mousemove', evt => {
     if (drawTool.state !== DRAWTOOL_STATE.READY) return;
     const picked = getDrawnShapeAt(evt);
-    instance.viewport.style.cursor = picked ? 'pointer' : 'default';
+    instance.domElement.style.cursor = picked ? 'pointer' : 'default';
 });
 
 // Edit a shape when clicking on it
-instance.viewport.addEventListener('click', evt => {
+instance.domElement.addEventListener('click', evt => {
     if (drawTool.state !== DRAWTOOL_STATE.READY) return;
     const picked = getDrawnShapeAt(evt);
     if (picked) {
@@ -301,7 +301,7 @@ instance.viewport.addEventListener('click', evt => {
         document.getElementById('editHelper').classList.remove('d-none');
         document.getElementById('options').setAttribute('disabled', true);
 
-        instance.viewport.style.cursor = 'default';
+        instance.domElement.style.cursor = 'default';
 
         // When editing a DrawObject3D directly, materials and options are not reset from drawTool.
         picked.setMaterials({}); // Reset the materials

@@ -22,10 +22,7 @@ const viewerDiv = document.getElementById('viewerDiv');
 const instance = new Instance(viewerDiv, { crs: 'EPSG:2154' });
 
 // Creates controls
-const controls = new MapControls(
-    instance.camera.camera3D,
-    viewerDiv,
-);
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.2;
 

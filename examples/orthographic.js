@@ -43,7 +43,7 @@ map.addLayer(new ColorLayer(
 instance.camera.camera3D.position.set(0, 0, 25000000);
 
 // Instanciates controls
-const controls = new MapControls(instance.camera.camera3D, viewerDiv);
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 
 instance.useTHREEControls(controls);
 
