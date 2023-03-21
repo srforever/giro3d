@@ -1,5 +1,10 @@
 import { fromUrl, Pool } from 'geotiff';
-import { Vector4, FloatType, UnsignedByteType } from 'three';
+import {
+    Vector4,
+    FloatType,
+    UnsignedByteType,
+    LinearFilter,
+} from 'three';
 import TextureGenerator from '../utils/TextureGenerator.js';
 
 import DataStatus from './DataStatus.js';
@@ -77,6 +82,8 @@ function processArrayData(layer, arrayData) {
         ...arrayData,
     );
 
+    texture.magFilter = LinearFilter;
+    texture.minFilter = LinearFilter;
     return texture;
 }
 
