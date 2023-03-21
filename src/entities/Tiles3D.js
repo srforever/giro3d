@@ -188,6 +188,8 @@ class Tiles3D extends Entity3D {
             return Promise.resolve(metadata.obj);
         }
 
+        this._opCounter.increment();
+
         let priority;
         if (!parent || parent.additiveRefinement) {
             // Additive refinement can be done independently for each child,
@@ -241,7 +243,7 @@ class Tiles3D extends Entity3D {
             .then(node => {
                 metadata.obj = node;
                 return node;
-            });
+            }).finally(() => this._opCounter.decrement());
     }
 
     preUpdate() {
@@ -555,7 +557,6 @@ function _subdivideNodeAdditive(ctx, entity, node, cullingTestFn) {
             continue;
         }
 
-        entity._opCounter.increment();
         child.promise = entity.requestNewTile(child, node, true)
             .then(tile => {
                 if (!tile || !node.parent) {
@@ -576,7 +577,7 @@ function _subdivideNodeAdditive(ctx, entity, node, cullingTestFn) {
                 delete child.promise;
             }, () => {
                 delete child.promise;
-            }).finally(() => entity._opCounter.decrement());
+            });
     }
 }
 
@@ -613,7 +614,6 @@ function _subdivideNodeSubstractive(context, entity, node) {
         });
         promises.push(p);
     }
-    entity._opCounter.increment();
 
     Promise.all(promises).then(() => {
         node.pendingSubdivision = false;
@@ -626,7 +626,7 @@ function _subdivideNodeSubstractive(context, entity, node) {
             n.visible = false;
             markForDeletion(entity, n);
         }
-    }).finally(() => entity._opCounter.decrement());
+    });
 }
 
 function cullingTest(camera, node, tileMatrixWorld) {
