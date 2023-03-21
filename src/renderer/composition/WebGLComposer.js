@@ -129,11 +129,12 @@ class WebGLComposer {
             this.width,
             this.height, {
                 format,
+                anisotropy: this.renderer.capabilities.getMaxAnisotropy(),
                 magFilter: LinearFilter,
                 minFilter: LinearFilter,
                 type: pixelType,
                 depthBuffer: false,
-                generateMipmaps: false,
+                generateMipmaps: true,
             },
         );
 

@@ -56,7 +56,7 @@ function preprocessDataLayer(layer) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function getPossibleTextureImprovements(layer, extent, texture, pitch) {
+function getPossibleTextureImprovements(layer, extent, texture) {
     if (texture && texture.extent
         && texture.extent.isInside(extent)
         && texture.revision === layer.source.getRevision()) {
@@ -65,12 +65,12 @@ function getPossibleTextureImprovements(layer, extent, texture, pitch) {
 
     const layerExtent = OpenLayersUtils.fromOLExtent(layer.source.getExtent(), layer.projection);
     if (extent.intersectsExtent(layerExtent)) {
-        return { extent, pitch };
+        return { extent };
     }
     if (texture && texture.empty) {
         return DataStatus.DATA_NOT_AVAILABLE_YET;
     }
-    return { extent, pitch };
+    return { extent };
 }
 
 function executeCommand(instance, layer, requester, toDownload) {

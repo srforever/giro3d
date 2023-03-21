@@ -170,7 +170,7 @@ export default {
         return (results && results.length > 0);
     },
 
-    getPossibleTextureImprovements(layer, extent, currentTexture, pitch) {
+    getPossibleTextureImprovements(layer, extent, currentTexture) {
         if (!layer.images) {
             // We may still be loading the images
             return DataStatus.DATA_NOT_AVAILABLE_YET;
@@ -186,7 +186,7 @@ export default {
         if (currentTexture?.key === key) {
             return DataStatus.DATA_ALREADY_LOADED;
         }
-        return { images, extent, pitch };
+        return { images, extent };
     },
 
     executeCommand(instance, layer, requester, toDownload) {

@@ -239,8 +239,10 @@ class LayeredMaterial extends RawShaderMaterial {
         this.texturesInfo.color.infos[index].texture = textures.texture;
 
         if (shortcut) {
+            const w = textures?.texture?.image?.width || layer.imageSize.w;
+            const h = textures?.texture?.image?.height || layer.imageSize.h;
             updateOffsetScale(
-                layer.imageSize,
+                { w, h },
                 this.atlasInfo.atlas[layer.id],
                 this.texturesInfo.color.infos[index].originalOffsetScale,
                 this.composer.width,
@@ -258,8 +260,13 @@ class LayeredMaterial extends RawShaderMaterial {
             const idx = this.indexOfColorLayer(l);
             const atlas = this.atlasInfo.atlas[l.id];
 
+            const texture = this.texturesInfo.color.infos[idx].texture;
+
+            const w = texture?.image?.width || l.imageSize.w;
+            const h = texture?.image?.height || l.imageSize.h;
+
             updateOffsetScale(
-                l.imageSize,
+                { w, h },
                 this.atlasInfo.atlas[l.id],
                 this.texturesInfo.color.infos[idx].originalOffsetScale,
                 this.composer.width,
@@ -267,10 +274,8 @@ class LayeredMaterial extends RawShaderMaterial {
                 this.texturesInfo.color.infos[idx].offsetScale,
             );
 
-            const texture = this.texturesInfo.color.infos[idx].texture;
-
             if (texture) {
-                drawLayerOnCanvas(l, this.composer, atlas, texture);
+                drawImageOnAtlas(w, h, this.composer, atlas, texture);
             }
 
             this.canvasRevision++;
@@ -526,10 +531,13 @@ class LayeredMaterial extends RawShaderMaterial {
                 const layer = this.colorLayers[i];
                 const atlas = this.atlasInfo.atlas[layer.id];
                 const pitch = this.texturesInfo.color.infos[i].originalOffsetScale;
+                const texture = this.texturesInfo.color.infos[i].texture;
 
                 // compute offset / scale
-                const xRatio = layer.imageSize.w / this.composer.width;
-                const yRatio = layer.imageSize.h / this.composer.height;
+                const w = texture?.image?.width || layer.imageSize.w;
+                const h = texture?.image?.height || layer.imageSize.h;
+                const xRatio = w / this.composer.width;
+                const yRatio = h / this.composer.height;
                 this.texturesInfo.color.infos[i].offsetScale = new Vector4(
                     atlas.x / this.composer.width + pitch.x * xRatio,
                     (atlas.y + atlas.offset) / this.composer.height + pitch.y * yRatio,
@@ -620,11 +628,11 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 }
 
-function drawLayerOnCanvas(layer, composer, atlasInfo, texture) {
+function drawImageOnAtlas(width, height, composer, atlasInfo, texture) {
     const dx = atlasInfo.x;
     const dy = atlasInfo.y + atlasInfo.offset;
-    const dw = layer.imageSize.w;
-    const dh = layer.imageSize.h;
+    const dw = width;
+    const dh = height;
 
     const rect = new Rect(dx, dx + dw, dy, dy + dh);
 

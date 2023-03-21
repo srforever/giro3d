@@ -295,13 +295,10 @@ class ElevationLayer extends Layer {
         // Add a 2% margin around the tile to mitigate boundary issues
         const extent = originalExtent.withRelativeMargin(0.02);
 
-        const pitch = originalExtent.offsetToParent(extent);
-
         const nextDownloads = this.getPossibleTextureImprovements(
             this,
             extent,
             textureInfo && textureInfo.texture,
-            pitch,
         );
 
         if (nextDownloads === DataStatus.DATA_UNAVAILABLE) {
@@ -313,6 +310,8 @@ class ElevationLayer extends Layer {
             || nextDownloads === DataStatus.DATA_ALREADY_LOADED) {
             return null;
         }
+
+        nextDownloads.pitch = originalExtent.offsetToParent(nextDownloads.extent);
 
         node.layerUpdateState[this.id].newTry();
 

@@ -7,6 +7,7 @@ import {
 
 import TileSource from 'ol/source/Tile.js';
 import TileGrid from 'ol/tilegrid/TileGrid.js';
+import TileRange from 'ol/TileRange.js';
 
 import Extent from '../core/geographic/Extent.js';
 import DataStatus from './DataStatus.js';
@@ -23,6 +24,7 @@ import OpenLayersUtils from '../utils/OpenLayersUtils.js';
 const MIN_LEVEL_THRESHOLD = 2;
 const tmp = {
     dims: new Vector2(),
+    tileRange: new TileRange(0, 0, 0, 0),
 };
 
 function onDelete(texture) {
@@ -48,20 +50,81 @@ function preprocessDataLayer(layer) {
     }
 }
 
-function getPossibleTextureImprovements(layer, extent, texture, pitch) {
+function getTileRangeExtent(zoomLevel, tileRange, tileGrid, source, crs) {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    let minY = Infinity;
+    let maxY = -Infinity;
+
+    for (let i = tileRange.minX; i <= tileRange.maxX; i++) {
+        for (let j = tileRange.minY; j <= tileRange.maxY; j++) {
+            const tile = source.getTile(zoomLevel, i, j);
+            const tileExtent = tileGrid.getTileCoordExtent(tile.tileCoord);
+            minX = Math.min(minX, tileExtent[0]);
+            minY = Math.min(minY, tileExtent[1]);
+            maxX = Math.max(maxX, tileExtent[2]);
+            maxY = Math.max(maxY, tileExtent[3]);
+        }
+    }
+
+    return new Extent(crs, minX, maxX, minY, maxY);
+}
+
+function getPossibleTextureImprovements(layer, extent, texture) {
     if (!extent.intersectsExtent(layer.extent)) {
         // The tile does not even overlap with the layer extent.
         // This can happen when layers have a different extent from their parent map.
         return DataStatus.DATA_UNAVAILABLE;
     }
 
-    if (texture && texture.extent
-        && texture.extent.isInside(extent)
+    // Let's compute an adjusted extent that will minimize visual artifacts at high zoom levels.
+    // First, we compute the best zoom level, then the tile range for this zoom level, then
+    // we adjust the extent to exactly fit the subgrid matching this tile range.
+
+    /** @type {TileGrid} */
+    const tileGrid = layer.tileGrid;
+    const zoomLevel = getZoomLevel(tileGrid, layer.imageSize, extent);
+    const tileRange = tileGrid.getTileRangeForExtentAndZ(
+        OpenLayersUtils.toOLExtent(extent),
+        zoomLevel,
+    );
+
+    const crs = extent.crs();
+
+    const tileRangeExtent = getTileRangeExtent(zoomLevel, tileRange, tileGrid, layer.source, crs);
+
+    const size = tileGrid.getTileSize(zoomLevel);
+    const tileRangeWidth = tileRange.getWidth() * size;
+    const tileRangeHeight = tileRange.getHeight() * size;
+
+    const adjusted = extent.fitToGrid(
+        tileRangeExtent,
+        tileRangeWidth,
+        tileRangeHeight,
+        3,
+        3,
+    );
+
+    const pixelPerfectExtent = adjusted.extent;
+
+    // If the tile is already loaded, don't update
+    if (texture
+        && texture.extent
+        && texture.extent.equals(pixelPerfectExtent)
         && texture.revision === layer.source.getRevision()) {
         return DataStatus.DATA_ALREADY_LOADED;
     }
 
-    return { zoomLevel: getZoomLevel(layer.tileGrid, layer.imageSize, extent), pitch, extent };
+    const textureWidth = Math.min(layer.imageSize.w, adjusted.width);
+    const textureHeight = Math.min(layer.imageSize.h, adjusted.height);
+
+    return {
+        zoomLevel,
+        tileRange,
+        extent: pixelPerfectExtent,
+        textureWidth,
+        textureHeight,
+    };
 }
 
 /**
@@ -77,39 +140,31 @@ function getPossibleTextureImprovements(layer, extent, texture, pitch) {
 function getZoomLevel(tileGrid, imageSize, extent) {
     const minZoom = tileGrid.getMinZoom();
     const maxZoom = tileGrid.getMaxZoom();
-    // Use a small margin to solve issues in the case where map tiles are perfecly identical
-    // to source tiles. In some cases, rounding errors lead the selecting of an abnormal zoom
-    // level for some tiles and not others, leading to difference in zoom levels for map tiles
-    // with the same size.
-    const olExtent = OpenLayersUtils.toOLExtent(extent, 0.001);
-
-    let targetResolution;
 
     const dims = extent.dimensions(tmp.dims);
-    // If tiles are not square, we want to use the biggest side to compute the zoom level,
-    // otherwise we may generate way too many tile requests to the underlying OL source.
-    if (dims.x > dims.y) {
-        const extentSize = olExtent[2] - olExtent[0];
-        targetResolution = imageSize.w / extentSize;
-    } else {
-        const extentSize = olExtent[3] - olExtent[1];
-        targetResolution = imageSize.h / extentSize;
-    }
+    const targetResolution = dims.x / imageSize.w;
+    const minResolution = tileGrid.getResolution(minZoom);
 
-    const minResolution = 1 / tileGrid.getResolution(minZoom);
-
-    if ((minResolution / targetResolution) > MIN_LEVEL_THRESHOLD) {
+    if ((targetResolution / minResolution) > MIN_LEVEL_THRESHOLD) {
         // The minimum zoom level has more than twice the resolution
         // than requested. We cannot use this zoom level as it would
         // trigger too many tile requests to fill the extent.
         return DataStatus.DATA_UNAVAILABLE;
     }
 
-    // Let's determine the best zoom level for the target tile.
-    for (let z = minZoom; z < maxZoom; z++) {
-        const sourceResolution = 1 / tileGrid.getResolution(z);
+    if (minZoom === maxZoom) {
+        return minZoom;
+    }
 
-        if (sourceResolution >= targetResolution) {
+    if (targetResolution > minResolution) {
+        return minZoom;
+    }
+
+    // Let's determine the best zoom level for the target tile.
+    for (let z = minZoom; z <= maxZoom; z++) {
+        const sourceResolution = tileGrid.getResolution(z);
+
+        if (targetResolution >= sourceResolution) {
             return z;
         }
     }
@@ -122,7 +177,14 @@ function delay(ms) {
 }
 
 async function executeCommand(instance, layer, requester, toDownload, earlyDropFunction) {
-    const { zoomLevel, extent, pitch } = toDownload;
+    const {
+        zoomLevel,
+        tileRange,
+        extent,
+        pitch,
+        textureWidth,
+        textureHeight,
+    } = toDownload;
 
     function throwIfCancelled() {
         if (earlyDropFunction && earlyDropFunction()) {
@@ -134,7 +196,7 @@ async function executeCommand(instance, layer, requester, toDownload, earlyDropF
     await delay(100);
     throwIfCancelled();
 
-    const images = await loadTiles(extent, zoomLevel, layer);
+    const images = await loadTiles(tileRange, extent.crs(), zoomLevel, layer);
 
     // Give the opportunity to avoid combining images if the command was cancelled.
     throwIfCancelled();
@@ -142,7 +204,15 @@ async function executeCommand(instance, layer, requester, toDownload, earlyDropF
     // In some cases, all the tile requests on the requested extent fail or end up with no data.
     const actualImages = images.filter(img => img != null);
     if (actualImages.length > 0) {
-        return combineImages(actualImages, instance.renderer, pitch, layer, extent);
+        return combineImages(
+            actualImages,
+            textureWidth,
+            textureHeight,
+            instance.renderer,
+            pitch,
+            layer,
+            extent,
+        );
     }
 
     return null;
@@ -152,12 +222,14 @@ async function executeCommand(instance, layer, requester, toDownload, earlyDropF
  * Combines all images into a single texture.
  *
  * @param {Array} sourceImages The images to combine.
+ * @param {number} texWidth The texture width.
+ * @param {number} texHeight The texture height.
  * @param {WebGLRenderer} renderer The WebGL renderer.
  * @param {Vector4} pitch The custom pitch.
  * @param {module:Core/layer/Layer~Layer} layer The target layer.
  * @param {Extent} targetExtent The extent of the destination texture.
  */
-function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
+function combineImages(sourceImages, texWidth, texHeight, renderer, pitch, layer, targetExtent) {
     const isElevationLayer = layer.type === 'ElevationLayer';
 
     let minmax;
@@ -180,8 +252,8 @@ function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
 
     const composer = new WebGLComposer({
         extent: Rect.fromExtent(targetExtent),
-        width: layer.imageSize.w,
-        height: layer.imageSize.h,
+        width: texWidth,
+        height: texHeight,
         webGLRenderer: renderer,
         showImageOutlines: layer.showTileBorders || false,
         computeMinMax: shouldComputeMinMax ? { noDataValue: layer.noDataValue } : false,
@@ -209,35 +281,37 @@ function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
 }
 
 /**
- * Loads all tiles in the specified extent and zoom level.
+ * Loads all tiles in the specified tile range.
  *
- * @param {Extent} extent The tile extent.
+ * @param {TileRange} tileRange The tile range.
+ * @param {string} crs The CRS of the extent.
  * @param {number} zoom The zoom level.
  * @param {module:Core/layer/Layer~Layer} layer The loaded tile images.
  */
-function loadTiles(extent, zoom, layer) {
+function loadTiles(tileRange, crs, zoom, layer) {
     /** @type {TileSource} */
     const source = layer.source;
+    /** @type {TileGrid} */
     const tileGrid = layer.tileGrid;
-    const crs = extent.crs();
 
     const promises = [];
 
-    tileGrid.forEachTileCoord(OpenLayersUtils.toOLExtent(extent), zoom, ([z, i, j]) => {
-        const tile = source.getTile(z, i, j);
-        const tileExtent = OpenLayersUtils
-            .fromOLExtent(tileGrid.getTileCoordExtent(tile.tileCoord), crs);
-        // Don't bother loading tiles that are not in the layer
-        if (tileExtent.intersectsExtent(layer.extent)) {
-            const url = layer.getTileUrl(tile.tileCoord, 1, layer.olprojection);
-            const promise = loadTile(url, tileExtent, layer).catch(e => {
-                console.error(e);
-                // attempt to still do something even if some tiles are in error
-                return null;
-            });
-            promises.push(promise);
+    for (let i = tileRange.minX; i <= tileRange.maxX; i++) {
+        for (let j = tileRange.minY; j <= tileRange.maxY; j++) {
+            const tile = source.getTile(zoom, i, j);
+            const olExtent = tileGrid.getTileCoordExtent(tile.tileCoord);
+            const tileExtent = OpenLayersUtils.fromOLExtent(olExtent, crs);
+            // Don't bother loading tiles that are not in the layer
+            if (tileExtent.intersectsExtent(layer.extent)) {
+                const url = layer.getTileUrl(tile.tileCoord, 1, layer.olprojection);
+                const promise = loadTile(url, tileExtent, layer).catch(e => {
+                    console.error(e);
+                    return null;
+                });
+                promises.push(promise);
+            }
         }
-    });
+    }
 
     return Promise.all(promises);
 }
