@@ -22,7 +22,7 @@ import EventUtils from '../../utils/EventUtils.js';
 class ColorLayer extends Layer {
     /**
      * Creates a color layer.
-     * It should be added in {@link module:entities/Map~Map Maps} to be displayed in the instance.
+     * It should be added in a {@link module:entities/Map~Map Map} to be displayed in the instance.
      * See the example for more information on layer creation.
      *
      * @param {string} id The unique identifier of the layer.
