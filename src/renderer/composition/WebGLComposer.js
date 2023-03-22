@@ -25,6 +25,8 @@ let SHARED_PLANE_GEOMETRY = null;
 
 const IMAGE_Z = -10;
 const textureOwners = new Map();
+const NEAR = 1;
+const FAR = 100;
 
 const tmp = {
     clearColor: new Color(),
@@ -112,31 +114,41 @@ class WebGLComposer {
 
         this.scene = new Scene();
 
-        const NEAR = 1;
-        const FAR = 100;
-
         // Set the origin of the canvas at the center extent, so that everything should
         // not be too far from this point, to preserve floating-point precision.
         this.origin = new Vector3(this.extent.centerX, this.extent.centerY, 0);
 
         // Define a camera centered on (0, 0), with its
         // orthographic size matching size of the extent.
-        const halfWidth = this.extent.width / 2;
-        const halfHeight = this.extent.height / 2;
-        this.camera = new OrthographicCamera(
-            -halfWidth,
-            +halfWidth,
-            +halfHeight,
-            -halfHeight,
-            NEAR,
-            FAR,
-        );
+        this.camera = new OrthographicCamera();
+        this.camera.near = NEAR;
+        this.camera.far = FAR;
+        this._setCameraRect(this.extent);
     }
 
-    _createRenderTarget(pixelType, format) {
+    /**
+     * Sets the camera frustum to the specified rect.
+     *
+     * @param {Rect} rect The rect.
+     */
+    _setCameraRect(rect) {
+        const halfWidth = rect.width / 2;
+        const halfHeight = rect.height / 2;
+
+        this.camera.position.set(rect.centerX - this.origin.x, rect.centerY - this.origin.y, 0);
+
+        this.camera.left = -halfWidth;
+        this.camera.right = +halfWidth;
+        this.camera.top = +halfHeight;
+        this.camera.bottom = -halfHeight;
+
+        this.camera.updateProjectionMatrix();
+    }
+
+    _createRenderTarget(pixelType, format, width, height) {
         const result = new WebGLRenderTarget(
-            this.width,
-            this.height, {
+            width,
+            height, {
                 format,
                 anisotropy: this.renderer.capabilities.getMaxAnisotropy(),
                 magFilter: this.magFilter,
@@ -256,17 +268,24 @@ class WebGLComposer {
     /**
      * Renders the composer into a texture.
      *
+     * @param {object} opts The options.
+     * @param {Rect} [opts.rect] A custom rect for the camera.
+     * @param {number} [opts.width] The width, in pixels, of the output texture.
+     * @param {number} [opts.height] The height, in pixels, of the output texture.
      * @returns {Texture} The texture of the render target.
      */
-    render() {
+    render(opts) {
         // select the best data type and format according to currently drawn images and constraints
         const { type, format } = this._selectPixelTypeAndTextureFormat();
+
+        const width = opts?.width || this.width;
+        const height = opts?.height || this.height;
 
         // Should we reuse the same render target or create a new one ?
         let target;
         if (!this.reuseTexture) {
             // We create a new render target for this render
-            target = this._createRenderTarget(type, format);
+            target = this._createRenderTarget(type, format, width, height);
         } else {
             // We reuse the same render target across all renders, but if the format changes,
             // we still have to recreate a new texture.
@@ -274,7 +293,7 @@ class WebGLComposer {
                 || type !== this.renderTarget.texture.type
                 || format !== this.renderTarget.texture.format) {
                 this.renderTarget?.dispose();
-                this.renderTarget = this._createRenderTarget(type, format);
+                this.renderTarget = this._createRenderTarget(type, format, this.width, this.height);
             }
 
             target = this.renderTarget;
@@ -287,6 +306,8 @@ class WebGLComposer {
             this.renderer.setClearColor(this.clearColor);
         }
         this.renderer.setRenderTarget(target);
+
+        this._setCameraRect(opts?.rect || this.extent);
 
         this.renderer.render(this.scene, this.camera);
 
