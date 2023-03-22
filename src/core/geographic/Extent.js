@@ -114,6 +114,27 @@ class Extent {
     }
 
     /**
+     * Returns an extent centered at the specified coordinate, and with the specified size.
+     *
+     * @param {string} crs The CRS identifier.
+     * @param {object} center The center.
+     * @param {number} center.x The center X.
+     * @param {number} center.y The center Y.
+     * @param {number} width The width, in CRS units.
+     * @param {number} height The height, in CRS units.
+     * @returns {Extent} The produced extent.
+     * @api
+     */
+    static fromCenterAndSize(crs, center, width, height) {
+        const minX = center.x - width / 2;
+        const maxX = center.x + width / 2;
+        const minY = center.y - height / 2;
+        const maxY = center.y + height / 2;
+
+        return new Extent(crs, minX, maxX, minY, maxY);
+    }
+
+    /**
      * Returns `true` if the two extents are equal.
      *
      * @api
