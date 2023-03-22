@@ -226,6 +226,11 @@ class PointsMaterial extends RawShaderMaterial {
         // no-op
     }
 
+    // eslint-disable-next-line class-methods-use-this
+    setLayerElevationRange() {
+        // no-op
+    }
+
     enableTransfo(v) {
         if (v) {
             this.defines.DEFORMATION_SUPPORT = 1;

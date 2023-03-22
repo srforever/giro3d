@@ -45,6 +45,10 @@ uniform vec4        backgroundColor; // The background color
 const float         OUTLINE_THICKNESS = 0.003;
 #endif
 
+#if defined(ENABLE_ELEVATION_RANGE)
+uniform vec2        elevationRange; // Optional elevation range for the whole tile. Not to be confused with elevation range per layer.
+#endif
+
 #if defined(ENABLE_HILLSHADING)
 uniform float       zenith;     // Zenith of sunlight, in degrees (0 - 90)
 uniform float       azimuth;    // Azimuth on sunlight, in degrees (0 - 360)
@@ -257,6 +261,12 @@ void main() {
     height = getElevation(elevationTexture, elevUv);
 #endif
 
+#if defined(ENABLE_ELEVATION_RANGE)
+    if (clamp(height, elevationRange.x, elevationRange.y) != height) {
+        discard;
+    }
+#endif
+
     // Step 1 : discard fragment if the elevation texture is transparent
 #if defined(DISCARD_NODATA_ELEVATION)
 #if defined(ELEVATION_LAYER)
@@ -296,7 +306,16 @@ void main() {
         if (layer.color.a > 0.) {
             ColorMap colorMap = layersColorMaps[i];
             vec4 rgba = computeColorLayer(colorTexture, luts, layer, colorMap, vUv);
-            diffuseColor = blend(rgba, diffuseColor);
+            vec4 blended = blend(rgba, diffuseColor);
+
+#if defined(ENABLE_ELEVATION_RANGE)
+            vec2 range = layer.elevationRange;
+            if (clamp(height, range.x, range.y) == height) {
+                diffuseColor = blended;
+            }
+#else
+            diffuseColor = blended;
+#endif
         }
     }
     #pragma unroll_loop_end

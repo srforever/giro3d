@@ -25,6 +25,7 @@ import MemoryTracker from './MemoryTracker.js';
 import ElevationLayer from '../core/layer/ElevationLayer.js';
 import ColorMap from '../core/layer/ColorMap.js';
 import ColorMapAtlas from './ColorMapAtlas.js';
+import MaterialUtils from './MaterialUtils.js';
 
 // Declaring our own chunks
 ShaderChunk.PrecisionQualifier = PrecisionQualifier;
@@ -44,6 +45,8 @@ function makeArray(size) {
 }
 
 const COLORMAP_DISABLED = 0;
+
+const DISABLED_ELEVATION_RANGE = new Vector2(-999999, 999999);
 
 class TextureInfo {
     constructor(layer) {
@@ -80,6 +83,13 @@ class LayeredMaterial extends RawShaderMaterial {
         }
 
         this.uniforms.segments = new Uniform(options.segments);
+
+        const elevationRange = options.elevationRange
+            ? new Vector2(options.elevationRange.min, options.elevationRange.max)
+            : DISABLED_ELEVATION_RANGE;
+        this.uniforms.elevationRange = new Uniform(elevationRange);
+
+        MaterialUtils.setDefine(this, 'ENABLE_ELEVATION_RANGE', options.elevationRange != null);
 
         this.side = options.doubleSided ? DoubleSide : FrontSide;
 
@@ -176,12 +186,16 @@ class LayeredMaterial extends RawShaderMaterial {
             const rgb = info.color;
             const a = info.visible ? info.opacity : 0;
             const color = new Vector4(rgb.r, rgb.g, rgb.b, a);
+            const elevationRange = info.elevationRange || DISABLED_ELEVATION_RANGE;
 
-            layersUniform.push({
+            const uniform = {
                 offsetScale,
                 color,
                 textureSize,
-            });
+                elevationRange,
+            };
+
+            layersUniform.push(uniform);
         }
 
         this.uniforms.layers.value = layersUniform;
@@ -319,7 +333,7 @@ class LayeredMaterial extends RawShaderMaterial {
         /** @type {ElevationLayer} */
         this.elevationLayer = layer;
 
-        this._define('ELEVATION_LAYER', true);
+        MaterialUtils.setDefine(this, 'ELEVATION_LAYER', true);
 
         const texture = textureAndPitch.texture;
         this.uniforms.elevationTexture.value = texture;
@@ -330,6 +344,7 @@ class LayeredMaterial extends RawShaderMaterial {
         uniform.offsetScale = textureAndPitch.pitch;
         uniform.textureSize = new Vector2(texture.image.width, texture.image.height);
         uniform.color = new Vector4(1, 1, 1, 1);
+        uniform.elevationRange = new Vector2();
 
         if (!isInherited) {
             texture.owner = this;
@@ -355,6 +370,14 @@ class LayeredMaterial extends RawShaderMaterial {
         info.originalOffsetScale = new Vector4(0, 0, 0, 0);
         info.texture = emptyTexture;
         info.color = newLayer.color || new Color(1, 1, 1);
+
+        // Optional feature: limit color layer display within an elevation range
+        const hasElevationRange = newLayer.elevationRange != null;
+        if (hasElevationRange) {
+            MaterialUtils.setDefine(this, 'ENABLE_ELEVATION_RANGE', true);
+            const { min, max } = newLayer.elevationRange;
+            info.elevationRange = new Vector2(min, max);
+        }
 
         this.texturesInfo.color.infos.push(info);
         this.texturesInfo.color.infos.sort((a, b) => a.index - b.index);
@@ -452,18 +475,6 @@ class LayeredMaterial extends RawShaderMaterial {
         }
     }
 
-    _define(name, condition) {
-        if (this.defines[name] === undefined) {
-            if (condition) {
-                this.defines[name] = 1;
-                this.needsUpdate = true;
-            }
-        } else if (!condition) {
-            delete this.defines[name];
-            this.needsUpdate = true;
-        }
-    }
-
     update(materialOptions = {}) {
         this.uniforms.zenith.value = this.lightDirection.zenith;
         this.uniforms.azimuth.value = this.lightDirection.azimuth;
@@ -479,9 +490,14 @@ class LayeredMaterial extends RawShaderMaterial {
             this.uniforms.backgroundColor.value.copy(vec4);
         }
 
-        this._define('ELEVATION_LAYER', this.elevationLayer?.visible);
-        this._define('ENABLE_HILLSHADING', materialOptions.hillshading);
-        this._define('ENABLE_OUTLINES', this.showOutline);
+        if (materialOptions.elevationRange) {
+            const { min, max } = materialOptions.elevationRange;
+            this.uniforms.elevationRange.value.set(min, max);
+        }
+
+        MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this.elevationLayer?.visible);
+        MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', materialOptions.hillshading);
+        MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', this.showOutline);
 
         const newSide = materialOptions.doubleSided ? DoubleSide : FrontSide;
         if (this.side !== newSide) {
@@ -608,6 +624,13 @@ class LayeredMaterial extends RawShaderMaterial {
     setLayerVisibility(layer, visible) {
         const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
         this.texturesInfo.color.infos[index].visible = visible;
+        this._updateColorLayerUniforms();
+    }
+
+    setLayerElevationRange(layer, range) {
+        const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
+        const value = range ? new Vector2(range.min, range.max) : DISABLED_ELEVATION_RANGE;
+        this.texturesInfo.color.infos[index].elevationRange = value;
         this._updateColorLayerUniforms();
     }
 
