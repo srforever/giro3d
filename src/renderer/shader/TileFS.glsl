@@ -25,6 +25,12 @@ const int STATE_ID = 2;
 const int STATE_UV = 3;
 const int STATE_Z = 4;
 
+#if defined(ENABLE_LAYER_MASKS)
+const int LAYER_MODE_NORMAL = 0;
+const int LAYER_MODE_MASK = 1;
+const int LAYER_MODE_MASK_INVERTED = 2;
+#endif
+
 varying vec2        vUv; // The input UV
 
 uniform int         renderingState; // Current rendering state (default is STATE_FINAL)
@@ -246,6 +252,26 @@ vec4 computeColorLayer(
     return vec4(0);
 }
 
+// Compose the layer color with the background, according to the mode.
+vec4 composeLayer(vec4 background, vec4 layer, int mode) {
+    vec4 blended;
+
+#if defined(ENABLE_LAYER_MASKS)
+    if (mode == LAYER_MODE_NORMAL) {
+        blended = blend(layer, background);
+    } else if (mode == LAYER_MODE_MASK) {
+        // The layer acts like a mask : ignore the color, only use its transparency.
+        blended = vec4(background.rgb, background.a * layer.a);
+    } else if (mode == LAYER_MODE_MASK_INVERTED) {
+        blended = vec4(background.rgb, background.a * (1.0 - layer.a));
+    }
+#else
+    blended = blend(layer, background);
+#endif
+
+    return blended;
+}
+
 void main() {
     gl_FragColor = vec4(0.0);
 
@@ -306,7 +332,7 @@ void main() {
         if (layer.color.a > 0.) {
             ColorMap colorMap = layersColorMaps[i];
             vec4 rgba = computeColorLayer(colorTexture, luts, layer, colorMap, vUv);
-            vec4 blended = blend(rgba, diffuseColor);
+            vec4 blended = composeLayer(diffuseColor, rgba, layer.mode);
 
 #if defined(ENABLE_ELEVATION_RANGE)
             vec2 range = layer.elevationRange;
