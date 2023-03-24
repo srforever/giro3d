@@ -181,6 +181,16 @@ class PotreePointCloud extends Entity3D {
         this.onPointsCreated = null;
     }
 
+    updateOpacity() {
+        if (this.material) {
+            // This is necessary because update() does copy the material's properties
+            // to the tile's material, and we are losing any custom opacity.
+            this.material.opacity = this.opacity;
+            this.material.transparent = this.opacity < 1;
+        }
+        super.updateOpacity();
+    }
+
     computeBbox() {
         let bbox;
         if (this.isFromPotreeConverter) {
