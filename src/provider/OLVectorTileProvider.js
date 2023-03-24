@@ -133,11 +133,10 @@ async function executeCommand(instance, layer, requester, toDownload) {
  * @param {Extent} targetExtent The extent of the destination texture.
  */
 function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
-    const FACTOR = 2;
     const composer = new WebGLComposer({
         extent: Rect.fromExtent(targetExtent),
-        width: layer.imageSize.w * FACTOR,
-        height: layer.imageSize.h * FACTOR,
+        width: layer.imageSize.w,
+        height: layer.imageSize.h,
         webGLRenderer: renderer,
         showImageOutlines: layer.showTileBorders || false,
     });
