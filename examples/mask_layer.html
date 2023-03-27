@@ -1,0 +1,24 @@
+---
+title: Mask layers
+shortdesc: Illustrates the use of mask layers.
+longdesc: A <code>MaskLayer</code> can be used to mask part of a map. By default, the transparent part of the mask makes the map transparent. By inverting the mask, the transparent part of the mask makes the map opaque.
+---
+<div class="m-2 position-absolute top-0 end-0">
+    <div class="card">
+        <h5 class="card-header">Mask layer</h5>
+
+        <div class="card-body">
+            <form>
+                <div class="row">
+                    <div class="dropdown">
+                        <select class="btn btn-primary dropdown-toggle" id="layerState">
+                            <option value="0">Disabled</option>
+                            <option value="1" selected>Enabled</option>
+                            <option value="2">Enabled (invert mask)</option>
+                        </select>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
