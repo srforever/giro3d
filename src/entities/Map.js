@@ -26,6 +26,13 @@ import ColorMapAtlas from '../renderer/ColorMapAtlas.js';
 const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 
 /**
+ * @typedef {Function} LayerCompareFn
+ * @param {Layer} a - The first layer.
+ * @param {Layer} b - The second layer.
+ * @returns {number} The comparison result.
+ */
+
+/**
  * The maximum supported aspect ratio for the map tiles, before we stop trying to create square
  * tiles. This is a safety measure to avoid huge number of root tiles when the extent is a very
  * elongated rectangle. If the map extent has a greater ratio than this value, the generated tiles
@@ -188,6 +195,8 @@ class Map extends Entity3D {
 
         this.geometryPool = new window.Map();
 
+        this._layerIndices = new window.Map();
+
         /** @type {Extent} */
         if (!options.extent.isValid()) {
             throw new Error('Invalid extent: minX must be less than maxX and minY must be less than maxY.');
@@ -330,9 +339,12 @@ class Map extends Entity3D {
         const position = new Vector3(...extent.center()._values);
 
         // build tile
-        const material = new LayeredMaterial(
-            this.materialOptions, this._instance.renderer, this.atlasInfo,
-        );
+        const material = new LayeredMaterial({
+            renderer: this._instance.renderer,
+            atlasInfo: this.atlasInfo,
+            options: this.materialOptions,
+            getIndexFn: this.getIndex.bind(this),
+        });
 
         const tile = new TileMesh(this, material, extent, this.segments, level, x, y);
 
@@ -452,6 +464,173 @@ class Map extends Entity3D {
             return [commonAncestor];
         }
         return this.level0Nodes;
+    }
+
+    /**
+     * Sort the color layers according to the comparator function.
+     *
+     * @api
+     * @param {LayerCompareFn} compareFn The comparator function.
+     */
+    sortColorLayers(compareFn) {
+        if (compareFn == null) {
+            throw new Error('missing comparator function');
+        }
+
+        this._attachedLayers.sort((a, b) => {
+            if (a instanceof ColorLayer && b instanceof ColorLayer) {
+                return compareFn(a, b);
+            }
+
+            // Sorting elevation layers has no effect currently, so by convention
+            // we push them to the start of the list.
+            if (a instanceof ElevationLayer && b instanceof ElevationLayer) {
+                return 0;
+            }
+
+            if (a instanceof ElevationLayer) {
+                return -1;
+            }
+
+            return 1;
+        });
+        this._reorderLayers();
+    }
+
+    /**
+     * Moves the layer closer to the foreground.
+     *
+     * Note: this only applies to color layers.
+     *
+     * @api
+     * @param {ColorLayer} layer The layer to move.
+     * @throws {Error} If the layer is not present in the map.
+     * @example
+     * map.addLayer(foo);
+     * map.addLayer(bar);
+     * map.addLayer(baz);
+     * // Layers (back to front) : foo, bar, baz
+     *
+     * map.moveLayerUp(foo);
+     * // Layers (back to front) : bar, foo, baz
+     */
+    moveLayerUp(layer) {
+        const position = this._attachedLayers.indexOf(layer);
+
+        if (position === -1) {
+            throw new Error('The layer is not present in the map.');
+        }
+
+        if (position < this._attachedLayers.length - 1) {
+            const next = this._attachedLayers[position + 1];
+            this._attachedLayers[position + 1] = layer;
+            this._attachedLayers[position] = next;
+
+            this._reorderLayers();
+        }
+    }
+
+    /**
+     * Moves the specified layer after the other layer in the list.
+     *
+     * @api
+     * @param {ColorLayer} layer The layer to move.
+     * @param {ColorLayer} target The target layer. If `null`, then the layer is put at the
+     * beginning of the layer list.
+     * @throws {Error} If the layer is not present in the map.
+     * @example
+     * map.addLayer(foo);
+     * map.addLayer(bar);
+     * map.addLayer(baz);
+     * // Layers (back to front) : foo, bar, baz
+     *
+     * map.insertLayerAfter(foo, baz);
+     * // Layers (back to front) : bar, baz, foo
+     */
+    insertLayerAfter(layer, target) {
+        const position = this._attachedLayers.indexOf(layer);
+        let afterPosition = this._attachedLayers.indexOf(target);
+
+        if (position === -1) {
+            throw new Error('The layer is not present in the map.');
+        }
+
+        if (afterPosition === -1) {
+            afterPosition = 0;
+        }
+
+        this._attachedLayers.splice(position, 1);
+        afterPosition = this._attachedLayers.indexOf(target);
+        this._attachedLayers.splice(afterPosition + 1, 0, layer);
+
+        this._reorderLayers();
+    }
+
+    /**
+     * Moves the layer closer to the background.
+     *
+     * Note: this only applies to color layers.
+     *
+     * @api
+     * @param {ColorLayer} layer The layer to move.
+     * @throws {Error} If the layer is not present in the map.
+     * @example
+     * map.addLayer(foo);
+     * map.addLayer(bar);
+     * map.addLayer(baz);
+     * // Layers (back to front) : foo, bar, baz
+     *
+     * map.moveLayerDown(baz);
+     * // Layers (back to front) : foo, baz, bar
+     */
+    moveLayerDown(layer) {
+        const position = this._attachedLayers.indexOf(layer);
+
+        if (position === -1) {
+            throw new Error('The layer is not present in the map.');
+        }
+
+        if (position > 0) {
+            const prev = this._attachedLayers[position - 1];
+            this._attachedLayers[position - 1] = layer;
+            this._attachedLayers[position] = prev;
+
+            this._reorderLayers();
+        }
+    }
+
+    /**
+     * Returns the position of the layer in the layer list.
+     *
+     * @api
+     * @param {Layer} layer The layer to search.
+     * @returns {number} The index of the layer.
+     */
+    getIndex(layer) {
+        return this._layerIndices.get(layer.id);
+    }
+
+    _reorderLayers() {
+        const layers = this._attachedLayers;
+
+        for (let i = 0; i < layers.length; i++) {
+            const element = layers[i];
+            this._layerIndices.set(element.id, i);
+        }
+
+        for (const r of this.level0Nodes) {
+            r.traverse(obj => {
+                /** @type {TileMesh} */
+                const tile = obj;
+                if (tile.layer !== this) {
+                    return;
+                }
+
+                tile.reorderLayers();
+            });
+        }
+
+        this._instance.notifyChange(this, true);
     }
 
     update(context, node) {

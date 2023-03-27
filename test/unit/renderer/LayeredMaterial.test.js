@@ -10,12 +10,16 @@ const defaultRenderer = {};
 describe('LayeredMaterial', () => {
     describe('constructor', () => {
         it('should assign the correct side', () => {
-            const normal = new LayeredMaterial({}, defaultRenderer, defaultAtlasInfo);
-            const ds = new LayeredMaterial(
-                { doubleSided: true },
-                defaultRenderer,
-                defaultAtlasInfo,
-            );
+            const normal = new LayeredMaterial({
+                options: {},
+                renderer: defaultRenderer,
+                atlasInfo: defaultAtlasInfo,
+            });
+            const ds = new LayeredMaterial({
+                options: { doubleSided: true },
+                renderer: defaultRenderer,
+                atlasInfo: defaultAtlasInfo,
+            });
 
             expect(ds.side).toBe(DoubleSide);
             expect(normal.side).toBe(FrontSide);

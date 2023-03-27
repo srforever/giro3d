@@ -111,6 +111,10 @@ class TileMesh extends Mesh {
         }
     }
 
+    reorderLayers() {
+        this.material.reorderLayers();
+    }
+
     /**
      * @param {TileMesh} neighbour The neighbour.
      * @param {number} location Its location in the neighbour array.
@@ -237,17 +241,6 @@ class TileMesh extends Mesh {
             delete this.layerUpdateState[idLayer];
         }
         this.material.removeColorLayer(idLayer);
-    }
-
-    changeSequenceLayers(sequence) {
-        const layerCount = this.material.getColorLayersCount();
-
-        // Quit if there is only one layer
-        if (layerCount < 2) {
-            return;
-        }
-
-        this.material.setSequence(sequence);
     }
 
     getExtentForLayer(layer) {

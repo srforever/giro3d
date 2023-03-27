@@ -212,11 +212,6 @@ class PointsMaterial extends RawShaderMaterial {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    setSequence() {
-        // no-op
-    }
-
-    // eslint-disable-next-line class-methods-use-this
     setLayerVisibility() {
         // no-op
     }

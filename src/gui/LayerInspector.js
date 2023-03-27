@@ -79,6 +79,9 @@ class LayerInspector extends Panel {
                 .onChange(() => this.notify(layer));
         }
 
+        this.addController(this.layer, 'index')
+            .name('Index');
+
         this.extentColor = new Color('#52ff00');
         this.showExtent = false;
         this.extentHelper = null;
