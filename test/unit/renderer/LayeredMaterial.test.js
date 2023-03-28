@@ -26,6 +26,7 @@ describe('LayeredMaterial', () => {
 describe('material state vs layer state', () => {
     let opacity;
     let visible;
+    let range;
 
     const node = {
         parent: { },
@@ -39,6 +40,7 @@ describe('material state vs layer state', () => {
             indexOfColorLayer: () => 0,
             setLayerVisibility: (idx, v) => { visible = v; },
             setLayerOpacity: (idx, o) => { opacity = o; },
+            setLayerElevationRange: (idx, v) => { range = v; },
         },
     };
     const layer = new ColorLayer(
@@ -47,6 +49,7 @@ describe('material state vs layer state', () => {
             visible: true,
             opacity: 1.0,
             standalone: true,
+            elevationRange: { min: 12, max: 32342 },
         },
     );
 
@@ -73,5 +76,9 @@ describe('material state vs layer state', () => {
         layer.update(null, node);
         assert.equal(opacity, layer.opacity);
         assert.equal(visible, layer.visible);
+    });
+    it('should update elevation range', () => {
+        layer.update(null, node);
+        assert.equal(range, layer.elevationRange);
     });
 });

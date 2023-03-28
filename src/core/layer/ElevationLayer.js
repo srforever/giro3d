@@ -43,6 +43,7 @@ class ElevationLayer extends Layer {
      * @param {string} [options.projection=undefined] The layer projection. If unspecified,
      * the projection will be inherited from the map.
      * If unspecified, the layer will attempt to compute an approximation using downsampled data.
+     * @param {object} [options.minmax] The minimal/maximal elevation values of this layer.
      * @param {number} [options.minmax.min] The minimal elevation of this layer.
      * @param {number} [options.minmax.max] The maximal elevation of this layer.
      * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.

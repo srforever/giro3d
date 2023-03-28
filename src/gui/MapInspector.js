@@ -83,10 +83,19 @@ class MapInspector extends EntityInspector {
             .min(2)
             .max(128)
             .onChange(v => this.updateSegments(v));
-        this.addController(this.map.imageSize, 'w')
-            .name('Tile width  (pixels)');
         this.addController(this.map.geometryPool, 'size')
             .name('Geometry pool');
+        if (this.map.materialOptions.elevationRange) {
+            this.addController(this.map.materialOptions.elevationRange, 'min')
+                .name('Elevation range minimum')
+                .onChange(() => this.notify(map));
+
+            this.addController(this.map.materialOptions.elevationRange, 'max')
+                .name('Elevation range maximum')
+                .onChange(() => this.notify(map));
+        }
+        this.addController(this.map.imageSize, 'w')
+            .name('Tile width  (pixels)');
         this.addController(this.map.imageSize, 'h')
             .name('Tile height  (pixels)');
         this.addController(this, 'showGrid')

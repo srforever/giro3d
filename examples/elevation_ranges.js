@@ -1,0 +1,110 @@
+import XYZ from 'ol/source/XYZ.js';
+import { Color, Vector3 } from 'three';
+import colormap from 'colormap';
+import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
+import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
+import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
+import Map from '@giro3d/giro3d/entities/Map.js';
+import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import ColorMap from '@giro3d/giro3d/core/layer/ColorMap.js';
+import StatusBar from './widgets/StatusBar.js';
+
+const center = { x: -13601505, y: 5812315 };
+
+const extent = Extent.fromCenterAndSize('EPSG:3857', center, 20000, 20000);
+
+const viewerDiv = document.getElementById('viewerDiv');
+
+// Creates a giro3d instance
+const instance = new Instance(viewerDiv, {
+    crs: extent.crs(),
+    renderer: {
+        clearColor: false,
+    },
+});
+
+const map = new Map('map', {
+    extent,
+    segments: 128,
+    elevationRange: { min: 500, max: 3000 },
+});
+
+instance.add(map);
+
+function makeColorRamp(preset) {
+    const values = colormap({ colormap: preset });
+    const colors = values.map(v => new Color(v));
+
+    return colors;
+}
+
+const colorRamp = makeColorRamp('viridis');
+
+const key = 'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
+// Adds a XYZ elevation layer with MapBox terrain RGB tileset
+const elevationLayer = new ElevationLayer(
+    'xyz_elevation',
+    {
+        source: new XYZ({
+            url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
+            crossOrigin: 'anonymous',
+            projection: extent.crs(),
+        }),
+        colorMap: new ColorMap(colorRamp, 700, 2500),
+        interpretation: Interpretation.MapboxTerrainRGB,
+    },
+);
+map.addLayer(elevationLayer);
+
+// Adds a XYZ color layer with MapBox satellite tileset
+const colorLayer = new ColorLayer(
+    'xyz_color',
+    {
+        source: new XYZ({
+            url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${key}`,
+            crossOrigin: 'anonymous',
+            projection: extent.crs(),
+        }),
+        elevationRange: { min: 500, max: 3000 },
+    },
+);
+map.addLayer(colorLayer);
+
+// Sets the camera position
+instance.camera.camera3D.position.set(-13615016, 5835706, 14797);
+
+// Creates controls
+const controls = new MapControls(
+    instance.camera.camera3D,
+    viewerDiv,
+);
+
+// Then looks at extent's center
+controls.target = new Vector3(-13603869, 5814829, 0);
+controls.saveState();
+
+controls.enableDamping = true;
+controls.dampingFactor = 0.2;
+controls.maxPolarAngle = Math.PI / 2.3;
+
+instance.useTHREEControls(controls);
+
+Inspector.attach(document.getElementById('panelDiv'), instance);
+
+StatusBar.bind(instance);
+
+function bindSlider(name, fn) {
+    const slider = document.getElementById(name);
+    slider.oninput = function oninput() {
+        fn(slider.value);
+        instance.notifyChange(map);
+    };
+}
+
+bindSlider('mapMin', v => { map.materialOptions.elevationRange.min = v; });
+bindSlider('mapMax', v => { map.materialOptions.elevationRange.max = v; });
+bindSlider('layerMin', v => { colorLayer.elevationRange.min = v; });
+bindSlider('layerMax', v => { colorLayer.elevationRange.max = v; });

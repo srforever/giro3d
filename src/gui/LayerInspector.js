@@ -61,6 +61,15 @@ class LayerInspector extends Panel {
             this.addController(this.minmax, 'min').name('Minimum elevation');
             this.addController(this.minmax, 'max').name('Maximum elevation');
         }
+        if (this.layer.type === 'ColorLayer' && this.layer.elevationRange) {
+            this.addController(this.layer.elevationRange, 'min')
+                .name('Elevation range minimum')
+                .onChange(() => this.notify(map));
+
+            this.addController(this.layer.elevationRange, 'max')
+                .name('Elevation range maximum')
+                .onChange(() => this.notify(map));
+        }
 
         if (this.layer.opacity !== undefined) {
             this.addController(this.layer, 'opacity')

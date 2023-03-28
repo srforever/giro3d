@@ -514,6 +514,27 @@ describe('Extent', () => {
         });
     });
 
+    describe('fromCenterAndSize', () => {
+        it('should return an extent center on the correct coordinate', () => {
+            const center = { x: 2324, y: -23254 };
+            const extent = Extent.fromCenterAndSize('EPSG:3857', center, 100, 100);
+
+            expect(extent.center().x()).toEqual(center.x);
+            expect(extent.center().y()).toEqual(center.y);
+        });
+
+        it('should return an extent with the correct size', () => {
+            const center = { x: 2324, y: -23254 };
+            const width = 23921;
+            const height = 209023.12;
+            const extent = Extent.fromCenterAndSize('EPSG:3857', center, width, height);
+
+            const dims = extent.dimensions();
+            expect(dims.x).toEqual(width);
+            expect(dims.y).toEqual(height);
+        });
+    });
+
     describe('split', () => {
         it('should throw on invalid subdivisions', () => {
             expect(() => BOUNDS_EPSG3857.split(0, 1)).toThrow(/Invalid subdivisions/);

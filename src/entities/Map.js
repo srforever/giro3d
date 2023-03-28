@@ -173,6 +173,11 @@ class Map extends Entity3D {
      * are present.
      * @param {number} [options.backgroundOpacity=1] The opacity of the map background.
      * Defaults is opaque (1).
+     * @param {object} [options.elevationRange=undefined] The optional elevation range of
+     * the map. The map will not be rendered for elevations outside of this range.
+     * Note: this feature is only useful if an elevation layer is added to this map.
+     * @param {number} options.elevationRange.min The min value.
+     * @param {number} options.elevationRange.max The max value.
      * @api
      */
     constructor(id, options = {}) {
@@ -208,6 +213,7 @@ class Map extends Entity3D {
             discardNoData: options.discardNoData || false,
             doubleSided: options.doubleSided || false,
             segments: this.segments,
+            elevationRange: options.elevationRange,
             backgroundOpacity: options.backgroundOpacity == null ? 1 : options.backgroundOpacity,
             backgroundColor: options.backgroundColor !== undefined
                 ? new Color(options.backgroundColor)

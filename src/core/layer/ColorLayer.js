@@ -22,7 +22,7 @@ import EventUtils from '../../utils/EventUtils.js';
 class ColorLayer extends Layer {
     /**
      * Creates a color layer.
-     * It should be added in {@link module:entities/Map~Map Maps} to be displayed in the instance.
+     * It should be added in a {@link module:entities/Map~Map Map} to be displayed in the instance.
      * See the example for more information on layer creation.
      *
      * @param {string} id The unique identifier of the layer.
@@ -41,12 +41,16 @@ class ColorLayer extends Layer {
      * @param {boolean} [options.showTileBorders=false] If `true`, the borders of the source images
      * will be shown. Useful for debugging rendering issues.
      * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.
-     * If unspecified, the layer will use the `STRATEGY_MIN_NETWORK_TRAFFIC`.
+     * @param {object} [options.elevationRange=undefined] An optional elevation range to limit the
+     * display of this layer. This is only useful if there is an elevation layer on the map.
+     * @param {number} options.elevationRange.min The min value.
+     * @param {number} options.elevationRange.max The max value.
      */
     constructor(id, options = {}) {
         super(id, options);
         this.type = 'ColorLayer';
         this.showTileBorders = options.showTileBorders || false;
+        this.elevationRange = options.elevationRange;
         EventUtils.definePropertyWithChangeEvent(this, 'opacity', 1.0);
         EventUtils.definePropertyWithChangeEvent(this, 'sequence', 0);
     }
@@ -162,6 +166,7 @@ class ColorLayer extends Layer {
         // Update material parameters
         material.setLayerVisibility(this, this.visible);
         material.setLayerOpacity(this, this.opacity);
+        material.setLayerElevationRange(this, this.elevationRange);
 
         const ts = Date.now();
         // An update is pending / or impossible -> abort
