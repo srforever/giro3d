@@ -25,6 +25,10 @@ stages:
     - test-unit
     - pages
 
+default:
+    tags:
+        - saas-linux-large-amd64
+
 cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
