@@ -49,7 +49,7 @@ export default (env, argv) => {
             devtoolNamespace: 'giro3d',
         },
         optimization: {
-            minimize: false,
+            minimize: argv.mode === 'production',
         },
         devServer: {
             hot: true,
