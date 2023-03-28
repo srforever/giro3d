@@ -1,22 +1,22 @@
+/* eslint-disable import/no-extraneous-dependencies */
 import CopyPlugin from 'copy-webpack-plugin';
-import path, {dirname} from 'path';
-import {fileURLToPath} from 'url';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import fs from 'fs';
-import ExampleBuilder from './example-builder.mjs';
 import webpack from 'webpack';
+import ExampleBuilder from './example-builder.mjs';
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 
 const src = path.join(baseDir, '..');
-const buildDir = path.join(baseDir, "..", "..", "build", "site", "examples");
+const buildDir = path.join(baseDir, '..', '..', 'build', 'site', 'examples');
 
 export default (env, argv) => {
-
-    // Collect all example javscript code
+    // Collect all example javascript code
     const entry = {};
     fs.readdirSync(src)
-        .map((name) => name.replace(/\.html$/, ''))
-        .forEach((example) => {
+        .map(name => name.replace(/\.html$/, ''))
+        .forEach(example => {
             const jsFile = `${example}.js`;
             if (fs.existsSync(path.join(src, jsFile))) {
                 entry[example] = [`./${jsFile}`];
@@ -32,14 +32,14 @@ export default (env, argv) => {
         context: src,
         resolve: {
             alias: {
-                '@giro3d/giro3d': '../src'
-            }
+                '@giro3d/giro3d': '../src',
+            },
         },
-        devtool: "source-map",
+        devtool: 'source-map',
         entry,
-        target: ["web", "es5"],
+        target: ['web', 'es5'],
         output: {
-            filename: "[name].js",
+            filename: '[name].js',
             clean: true,
             path: buildDir,
             library: '[name]',
@@ -59,8 +59,8 @@ export default (env, argv) => {
             },
             static: [
                 {
-                    directory: path.join(baseDir, ".."),
-                    publicPath: "/",
+                    directory: path.join(baseDir, '..'),
+                    publicPath: '/',
                 },
             ],
         },
@@ -69,10 +69,10 @@ export default (env, argv) => {
                 {
                     test: /\.glsl$/,
                     use: {
-                        loader: "webpack-glsl-loader",
+                        loader: 'webpack-glsl-loader',
                     },
                     exclude: /node_modules/,
-                }
+                },
             ],
         },
         plugins: [
@@ -80,21 +80,21 @@ export default (env, argv) => {
                 debug: argv.mode !== 'production',
                 templates: path.join(baseDir, '..', 'templates'),
                 examplesDir: path.join(baseDir, '..'),
-                buildDir: buildDir,
+                buildDir,
             }),
             new webpack.DefinePlugin({
-                __DEBUG__: argv.mode !== 'production'
+                __DEBUG__: argv.mode !== 'production',
             }),
             new CopyPlugin({
                 patterns: [
-                    { from: "css", to: "css" },
-                    { from: "js", to: "js" },
-                    { from: "image", to: "image" },
-                    { from: "screenshots", to: "screenshots" },
-                    { from: "data", to: "data" },
-                    { from: path.resolve(path.join(baseDir, "..", "..", "node_modules", "three", "examples", "jsm", "loaders", "ifc/web-ifc.wasm"))}
+                    { from: 'css', to: 'css' },
+                    { from: 'js', to: 'js' },
+                    { from: 'image', to: 'image' },
+                    { from: 'screenshots', to: 'screenshots' },
+                    { from: 'data', to: 'data' },
+                    { from: path.resolve(path.join(baseDir, '..', '..', 'node_modules', 'three', 'examples', 'jsm', 'loaders', 'ifc/web-ifc.wasm')) },
                 ],
             }),
         ],
-    }
+    };
 };
