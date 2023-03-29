@@ -50,7 +50,6 @@ build_lts:
     script:
         - npm i
         - npm run build-package
-        - npm pack build/giro3d/
     artifacts:
         paths:
             - dist
@@ -66,7 +65,6 @@ build_current:
         - export NODE_OPTIONS=--openssl-legacy-provider
         - npm i
         - npm run build-package
-        - npm pack build/giro3d/
     only:
         - master
 
