@@ -20,13 +20,13 @@
 		},
 		{
 			"type": "npm",
-			"script": "build-package",
+			"script": "prepare-package",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
 			"problemMatcher": [],
-			"label": "npm: build-packagebuild-package",
+			"label": "npm: prepare-package",
 		}
 	]
 }

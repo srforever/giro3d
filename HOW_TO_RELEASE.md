@@ -35,7 +35,7 @@ Where version is the version we want to release (don't forget the `v` prefix, fo
 
 Edit the generated changelog for readability (fix typos, add some context for unclear changes).
 
-For the `BREAKING CHANGE` section, edit the text to add a migration guide. 
+For the `BREAKING CHANGE` section, edit the text to add a migration guide.
 
 ## Bump the version number
 
@@ -55,7 +55,7 @@ Checkout the created tag, then
 npm who
 
 # build the package
-npm run build-package
+npm run prepare-package
 cd build/giro3d
 
 # publish the package

@@ -50,10 +50,9 @@ build_lts:
     script:
         - npm i
         - npm run build-package
-        - npm pack build/giro3d/
     artifacts:
         paths:
-            - dist
+            - build
             - giro3d-*.tgz
         name: "$CI_COMMIT_REF_SLUG"
     only:
@@ -66,7 +65,6 @@ build_current:
         - export NODE_OPTIONS=--openssl-legacy-provider
         - npm i
         - npm run build-package
-        - npm pack build/giro3d/
     only:
         - master
 
@@ -86,7 +84,7 @@ test_unit_lts:
         - npm run test-with-coverage
     artifacts:
         paths:
-            - dist
+            - build
 
 test_unit_current:
     stage: test-unit
