@@ -52,7 +52,7 @@ build_lts:
         - npm run build-package
     artifacts:
         paths:
-            - dist
+            - build
             - giro3d-*.tgz
         name: "$CI_COMMIT_REF_SLUG"
     only:
@@ -84,7 +84,7 @@ test_unit_lts:
         - npm run test-with-coverage
     artifacts:
         paths:
-            - dist
+            - build
 
 test_unit_current:
     stage: test-unit

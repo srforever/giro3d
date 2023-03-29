@@ -83,7 +83,7 @@ This is handy if you need to develop on giro3d alongside your project. You need 
 package folder and link from there:
 
 ```bash
-npm run build-package
+npm run prepare-package
 cd build/giro3d
 npm link
 # then in your project folder
