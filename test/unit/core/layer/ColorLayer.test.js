@@ -65,7 +65,7 @@ describe('ColorLayer', () => {
             // clear commands array
             context.scheduler.commands = [];
             // reset default layer state
-            layer.tileInsideLimit = () => true;
+            layer.provider = { tileInsideLimit: () => true };
             layer.visible = true;
             layer.ready = true;
             layer.imageSize = { w: 256, h: 256 };
@@ -139,7 +139,7 @@ describe('ColorLayer', () => {
                 },
             };
             // fake texture update information
-            layer.getPossibleTextureImprovements = () => ({ extent });
+            layer.provider.getPossibleTextureImprovements = () => ({ extent });
 
             // FIRST PASS: init Node From Parent and get out of the function
             // without any network fetch

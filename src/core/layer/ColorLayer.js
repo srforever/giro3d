@@ -136,7 +136,7 @@ class ColorLayer extends Layer {
             // INIT TEXTURE
             material.pushLayer(this, node.getExtentForLayer(this));
 
-            if (!this.tileInsideLimit(node, this)) {
+            if (!this.provider.tileInsideLimit(node, this)) {
                 // we also need to check that tile's parent doesn't have a texture for this layer,
                 // because even if this tile is outside of the layer, it could inherit it's
                 // parent texture

@@ -300,7 +300,7 @@ class ElevationLayer extends Layer {
         // Add a 2% margin around the tile to mitigate boundary issues
         const extent = originalExtent.withRelativeMargin(0.02);
 
-        const nextDownloads = this.getPossibleTextureImprovements({
+        const nextDownloads = this.provider.getPossibleTextureImprovements({
             layer: this,
             extent,
             texture: textureInfo && textureInfo.texture,
