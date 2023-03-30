@@ -70,7 +70,12 @@ function getTileRangeExtent(zoomLevel, tileRange, tileGrid, source, crs) {
     return new Extent(crs, minX, maxX, minY, maxY);
 }
 
-function getPossibleTextureImprovements(layer, extent, texture) {
+function getPossibleTextureImprovements({
+    layer,
+    extent,
+    texture,
+    size,
+}) {
     if (!extent.intersectsExtent(layer.extent)) {
         // The tile does not even overlap with the layer extent.
         // This can happen when layers have a different extent from their parent map.
@@ -83,7 +88,7 @@ function getPossibleTextureImprovements(layer, extent, texture) {
 
     /** @type {TileGrid} */
     const tileGrid = layer.tileGrid;
-    const zoomLevel = getZoomLevel(tileGrid, layer.imageSize, extent);
+    const zoomLevel = getZoomLevel(tileGrid, size, extent);
     const tileRange = tileGrid.getTileRangeForExtentAndZ(
         OpenLayersUtils.toOLExtent(extent),
         zoomLevel,
@@ -93,9 +98,9 @@ function getPossibleTextureImprovements(layer, extent, texture) {
 
     const tileRangeExtent = getTileRangeExtent(zoomLevel, tileRange, tileGrid, layer.source, crs);
 
-    const size = tileGrid.getTileSize(zoomLevel);
-    const tileRangeWidth = tileRange.getWidth() * size;
-    const tileRangeHeight = tileRange.getHeight() * size;
+    const tileSize = tileGrid.getTileSize(zoomLevel);
+    const tileRangeWidth = tileRange.getWidth() * tileSize;
+    const tileRangeHeight = tileRange.getHeight() * tileSize;
 
     const adjusted = extent.fitToGrid(
         tileRangeExtent,
@@ -115,8 +120,8 @@ function getPossibleTextureImprovements(layer, extent, texture) {
         return DataStatus.DATA_ALREADY_LOADED;
     }
 
-    const textureWidth = Math.min(layer.imageSize.w, adjusted.width);
-    const textureHeight = Math.min(layer.imageSize.h, adjusted.height);
+    const textureWidth = Math.min(size.width, adjusted.width);
+    const textureHeight = Math.min(size.height, adjusted.height);
 
     return {
         zoomLevel,
@@ -131,9 +136,7 @@ function getPossibleTextureImprovements(layer, extent, texture) {
  * Selects the best zoom level given the provided image size and extent.
  *
  * @param {TileGrid} tileGrid The tile grid
- * @param {object} imageSize The image size, in pixels.
- * @param {number} imageSize.w The image width, in pixels.
- * @param {number} imageSize.h The image height, in pixels.
+ * @param {Vector2} imageSize The image size, in pixels.
  * @param {Extent} extent The target extent.
  * @returns {number} The ideal zoom level for this particular extent.
  */
@@ -142,7 +145,7 @@ function getZoomLevel(tileGrid, imageSize, extent) {
     const maxZoom = tileGrid.getMaxZoom();
 
     const dims = extent.dimensions(tmp.dims);
-    const targetResolution = dims.x / imageSize.w;
+    const targetResolution = dims.x / imageSize.width;
     const minResolution = tileGrid.getResolution(minZoom);
 
     if ((targetResolution / minResolution) > MIN_LEVEL_THRESHOLD) {

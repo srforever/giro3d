@@ -278,6 +278,9 @@ async function getImages(layer) {
 
     computePreciseExtent(layer, firstImage);
 
+    // Precompute the layer dimensions to later calculate data windows
+    layer.dimension = layer.preciseExtent.dimensions();
+
     // Get the origin
     layer.origin = firstImage.getOrigin();
     layer.bpp = firstImage.getBytesPerPixel();
@@ -314,7 +317,7 @@ async function getImages(layer) {
         await createTexture(
             noCancellation,
             layer,
-            layer.extent,
+            layer.preciseExtent,
             256,
             256,
             levelImage,
@@ -327,13 +330,16 @@ async function getImages(layer) {
 function preprocessDataLayer(layer) {
     // Initiate a pool of workers to decode COG chunks
     layer.pool = new Pool();
-    // Precompute the layer dimensions to later calculate data windows
-    layer.dimension = layer.extent.dimensions();
     // Get and store needed metadata
     return getImages(layer);
 }
 
-function getPossibleTextureImprovements(layer, extent, texture) {
+function getPossibleTextureImprovements({
+    layer,
+    extent,
+    texture,
+    size,
+}) {
     // Number of images  = original + overviews if any
     const imageCount = layer.images.length;
     extent = extent.intersect(layer.preciseExtent);
@@ -341,8 +347,8 @@ function getPossibleTextureImprovements(layer, extent, texture) {
     const extentDimension = extent.dimensions();
 
     const targetResolution = Math.min(
-        extentDimension.x / layer.imageSize.w,
-        extentDimension.y / layer.imageSize.h,
+        extentDimension.x / size.width,
+        extentDimension.y / size.height,
     );
 
     let levelImage;
@@ -375,8 +381,8 @@ function getPossibleTextureImprovements(layer, extent, texture) {
         return DataStatus.DATA_ALREADY_LOADED;
     }
 
-    const pixelWidth = Math.min(layer.imageSize.w, adjusted.width);
-    const pixelHeight = Math.min(layer.imageSize.h, adjusted.height);
+    const pixelWidth = Math.min(size.width, adjusted.width);
+    const pixelHeight = Math.min(size.height, adjusted.height);
 
     return {
         extent: pixelPerfectExtent,
@@ -417,7 +423,7 @@ function executeCommand(instance, layer, requester, toDownload, earlyDropFunctio
 
 function tileInsideLimit(tile, layer) {
     const extent = tile.getExtentForLayer(layer);
-    return extent.isInside(layer.extent);
+    return extent.intersectsExtent(layer.preciseExtent);
 }
 
 export default {

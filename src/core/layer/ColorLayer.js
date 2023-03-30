@@ -178,11 +178,12 @@ class ColorLayer extends Layer {
         const extent = originalExtent.withRelativeMargin(0.02);
 
         // Does this tile needs a new texture?
-        const nextDownloads = this.getPossibleTextureImprovements(
-            this,
+        const nextDownloads = this.provider.getPossibleTextureImprovements({
+            layer: this,
             extent,
-            node.material.getColorTexture(this),
-        );
+            texture: node.material.getColorTexture(this),
+            size: node.textureSize,
+        });
 
         if (nextDownloads === DataStatus.DATA_UNAVAILABLE) {
             node.layerUpdateState[this.id].noMoreUpdatePossible();

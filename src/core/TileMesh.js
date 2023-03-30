@@ -4,7 +4,7 @@
  * Description: Tuile de maillage, noeud du quadtree MNT. Le Materiel est issus du QuadTree ORTHO.
  */
 
-import { Mesh, Vector4 } from 'three';
+import { Mesh, Vector2, Vector4 } from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker.js';
 import LayeredMaterial from '../renderer/LayeredMaterial.js';
@@ -44,16 +44,25 @@ class TileMesh extends Mesh {
     /**
      * Creates an instance of TileMesh.
      *
-     * @param {object} map The Map that owns this tile.
-     * @param {LayeredMaterial} material The tile material.
-     * @param {Extent} extent The tile extent.
-     * @param {number} segments The subdivisions.
-     * @param {number} level The tile depth level in the hierarchy.
-     * @param {number} [x=0] The tile X coordinate in the grid.
-     * @param {number} [y=0] The tile Y coordinate in the grid.
-     * @memberof TileMesh
+     * @param {object} options Constructor options.
+     * @param {object} options.map The Map that owns this tile.
+     * @param {LayeredMaterial} options.material The tile material.
+     * @param {Extent} options.extent The tile extent.
+     * @param {number} options.segments The subdivisions.
+     * @param {object} options.coord The tile coordinate.
+     * @param {number} options.coord.level The tile depth level in the hierarchy.
+     * @param {number} options.coord.x The tile X coordinate in the grid.
+     * @param {number} options.coord.y The tile Y coordinate in the grid.
+     * @param {Vector2} options.textureSize The texture size.
      */
-    constructor(map, material, extent, segments, level, x = 0, y = 0) {
+    constructor({
+        map,
+        material,
+        extent,
+        segments,
+        coord: { level, x = 0, y = 0 },
+        textureSize,
+    }) {
         super(makeGeometry(map, extent, segments, level), material);
 
         this.layer = map;
@@ -64,6 +73,7 @@ class TileMesh extends Mesh {
 
         this.level = level;
         this.extent = extent;
+        this.textureSize = textureSize;
 
         // Needs to clone it because the geometry is not copied anymore
         this.obb = this.geometry.OBB.clone();

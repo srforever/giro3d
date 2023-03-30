@@ -79,16 +79,17 @@ describe('ColorLayer', () => {
         });
 
         it('hidden tile should not execute commands', () => {
-            const tile = new TileMesh(
+            const tile = new TileMesh({
                 map,
-                new LayeredMaterial({
+                material: new LayeredMaterial({
                     options: {},
                     renderer: {},
                     atlasInfo: { maxX: 0, maxY: 0, atlas: {} },
                 }),
-                new Extent('EPSG:4326', 0, 0, 0, 0),
-                8,
-            );
+                extent: new Extent('EPSG:4326', 0, 0, 0, 0),
+                segments: 8,
+                coord: { level: 0, x: 0, y: 0 },
+            });
             tile.material.visible = false;
             tile.material.indexOfColorLayer = () => 0;
             layer.update(context, tile);
@@ -96,35 +97,35 @@ describe('ColorLayer', () => {
         });
 
         it('tile with best texture should not execute commands', () => {
-            const tile = new TileMesh(
+            const tile = new TileMesh({
                 map,
-                new LayeredMaterial({
+                material: new LayeredMaterial({
                     options: {},
                     renderer: {},
                     atlasInfo: { maxX: 0, maxY: 0, atlas: {} },
                 }),
-                new Extent('EPSG:4326', 0, 0, 0, 0),
-                8,
-            );
+                coord: { level: 0, x: 0, y: 0 },
+                extent: new Extent('EPSG:4326', 0, 0, 0, 0),
+                segments: 8,
+            });
             tile.material.visible = true;
-            layer.getPossibleTextureImprovements = () => null;
             layer.update(context, tile);
 
             assert.equal(context.scheduler.commands.length, 0);
         });
 
         it('tile with downscaled texture should execute 1 command', () => {
-            const tile = new TileMesh(
+            const tile = new TileMesh({
                 map,
-                new LayeredMaterial({
+                material: new LayeredMaterial({
                     options: {},
                     renderer: {},
                     atlasInfo: { maxX: 0, maxY: 0, atlas: {} },
                 }),
-                new Extent('EPSG:4326', 0, 0, 0, 0),
-                8,
-                2,
-            );
+                extent: new Extent('EPSG:4326', 0, 0, 0, 0),
+                segments: 8,
+                coord: { level: 2, x: 0, y: 0 },
+            });
             tile.material.visible = true;
 
             tile.parent = {

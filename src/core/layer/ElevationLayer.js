@@ -171,7 +171,11 @@ class ElevationLayer extends Layer {
         // We need to download a root texture that matches the layer extent
         // to precompute the min/max values of the whole layer, and also store this
         // root texture to be reused later in texture inheritance scenarios.
-        const down = this.provider.getPossibleTextureImprovements(this, this.extent);
+        const down = this.provider.getPossibleTextureImprovements({
+            layer: this,
+            extent: this.extent,
+            size: map.imageSize,
+        });
 
         // If there is no data available for the layer extent (e.g out of range zoom level in tiled
         // images), skip the root texture phase.
@@ -296,11 +300,12 @@ class ElevationLayer extends Layer {
         // Add a 2% margin around the tile to mitigate boundary issues
         const extent = originalExtent.withRelativeMargin(0.02);
 
-        const nextDownloads = this.getPossibleTextureImprovements(
-            this,
+        const nextDownloads = this.getPossibleTextureImprovements({
+            layer: this,
             extent,
-            textureInfo && textureInfo.texture,
-        );
+            texture: textureInfo && textureInfo.texture,
+            size: node.textureSize,
+        });
 
         if (nextDownloads === DataStatus.DATA_UNAVAILABLE) {
             node.layerUpdateState[this.id].noMoreUpdatePossible();

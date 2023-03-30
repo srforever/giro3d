@@ -2,6 +2,7 @@
  * @module entities/Tiles3D
  */
 import {
+    Vector2,
     Vector3,
     Box3,
     Sphere,
@@ -109,7 +110,7 @@ class Tiles3D extends Entity3D {
     }
 
     preprocess() {
-        this.imageSize = { w: 128, h: 128 };
+        this.imageSize = new Vector2(128, 128);
         // Download the root tileset to complete the preparation.
         return Fetcher.json(this.url, this.networkOptions).then(tileset => {
             if (!tileset.root.refine) {
@@ -378,14 +379,14 @@ class Tiles3D extends Entity3D {
     }
 }
 
-function b3dmToMesh(data, layer, url) {
+function b3dmToMesh(data, entity, url) {
     const urlBase = LoaderUtils.extractUrlBase(url);
     const options = {
-        gltfUpAxis: layer.asset.gltfUpAxis,
+        gltfUpAxis: entity.asset.gltfUpAxis,
         urlBase,
-        overrideMaterials: layer.overrideMaterials,
-        doNotPatchMaterial: layer.doNotPatchMaterial,
-        opacity: layer.opacity,
+        overrideMaterials: entity.overrideMaterials,
+        doNotPatchMaterial: entity.doNotPatchMaterial,
+        opacity: entity.opacity,
     };
     return B3dmParser.parse(data, options).then(result => {
         const { batchTable } = result;
@@ -394,10 +395,10 @@ function b3dmToMesh(data, layer, url) {
     });
 }
 
-function pntsParse(data, layer) {
+function pntsParse(data, entity) {
     return PntsParser.parse(data).then(result => {
-        const material = layer.material
-            ? layer.material.clone()
+        const material = entity.material
+            ? entity.material.clone()
             : new PointsMaterial();
 
         if (material.enablePicking) {
@@ -405,7 +406,12 @@ function pntsParse(data, layer) {
         }
 
         // creation points with geometry and material
-        const points = new Points(layer, result.point.geometry, material);
+        const points = new Points({
+            layer: entity,
+            geometry: result.point.geometry,
+            material,
+            textureSize: entity.imageSize,
+        });
 
         if (result.point.offset) {
             points.position.copy(result.point.offset);
@@ -415,9 +421,9 @@ function pntsParse(data, layer) {
     });
 }
 
-export function configureTile(tile, layer, metadata, parent) {
+export function configureTile(tile, entity, metadata, parent) {
     tile.frustumCulled = false;
-    tile.layer = layer;
+    tile.layer = entity;
 
     // parse metadata
     if (metadata.transform) {
@@ -439,11 +445,11 @@ export function configureTile(tile, layer, metadata, parent) {
     tile.updateMatrixWorld();
 }
 
-function executeCommand(layer, metadata, requester) {
+function executeCommand(entity, metadata, requester) {
     const tile = new Object3D();
     tile.name = '3D tile';
 
-    configureTile(tile, layer, metadata, requester);
+    configureTile(tile, entity, metadata, requester);
     // Patch for supporting 3D Tiles pre 1.0 (metadata.content.url) and 1.0
     // (metadata.content.uri)
     let path;
@@ -457,7 +463,7 @@ function executeCommand(layer, metadata, requester) {
 
     const setLayer = obj => {
         obj.userData.metadata = metadata;
-        obj.layer = layer;
+        obj.layer = entity;
     };
     if (path) {
         // Check if we have relative or absolute url (with tileset's lopocs for example)
@@ -467,7 +473,7 @@ function executeCommand(layer, metadata, requester) {
             pnts: pntsParse,
         };
         const dl = GlobalCache.get(url)
-            || GlobalCache.set(url, Fetcher.arrayBuffer(url, layer.networkOptions));
+            || GlobalCache.set(url, Fetcher.arrayBuffer(url, entity.networkOptions));
         return dl.then(result => {
             if (result !== undefined) {
                 let func;
@@ -476,7 +482,7 @@ function executeCommand(layer, metadata, requester) {
                 if (magic[0] === '{') {
                     result = JSON.parse(utf8Decoder.decode(new Uint8Array(result)));
                     const newPrefix = url.slice(0, url.lastIndexOf('/') + 1);
-                    layer.tileIndex.extendTileset(result, metadata.tileId, newPrefix);
+                    entity.tileIndex.extendTileset(result, metadata.tileId, newPrefix);
                 } else if (magic === 'b3dm') {
                     func = supportedFormats.b3dm;
                 } else if (magic === 'pnts') {
@@ -486,7 +492,7 @@ function executeCommand(layer, metadata, requester) {
                 }
                 if (func) {
                     // TODO: request should be delayed if there is a viewerRequestVolume
-                    return func(result, layer, url).then(content => {
+                    return func(result, entity, url).then(content => {
                         tile.content = content.object3d;
                         content.object3d.name = path;
 
@@ -684,17 +690,17 @@ function cullingTest(camera, node, tileMatrixWorld) {
 //     be cleaned with cleanup3dTileset()
 //   - doesn't have 'content' -> it's a raw Object3D object,
 //     and must be cleaned with _cleanupObject3D()
-function cleanup3dTileset(layer, n, depth = 0) {
-    unmarkForDeletion(layer, n);
+function cleanup3dTileset(entity, n, depth = 0) {
+    unmarkForDeletion(entity, n);
 
-    if (layer.tileIndex.index[n.tileId].obj) {
-        layer.tileIndex.index[n.tileId].obj.deleted = Date.now();
-        layer.tileIndex.index[n.tileId].obj = undefined;
+    if (entity.tileIndex.index[n.tileId].obj) {
+        entity.tileIndex.index[n.tileId].obj.deleted = Date.now();
+        entity.tileIndex.index[n.tileId].obj = undefined;
     }
 
     // clean children tiles recursively
     for (const child of getChildTiles(n)) {
-        cleanup3dTileset(layer, child, depth + 1);
+        cleanup3dTileset(entity, child, depth + 1);
         n.remove(child);
     }
 

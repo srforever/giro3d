@@ -2,6 +2,7 @@
  * @module entities/Map
  */
 import {
+    Vector2,
     Vector3,
     Quaternion,
     Group,
@@ -22,7 +23,6 @@ import TileMesh from '../core/TileMesh.js';
 import TileIndex from '../core/TileIndex.js';
 import RenderingState from '../renderer/RenderingState.js';
 import ColorMapAtlas from '../renderer/ColorMapAtlas.js';
-import { Vector2 } from 'three';
 import AtlasBuilder from '../renderer/AtlasBuilder.js';
 import Capabilities from '../core/system/Capabilities.js';
 
@@ -351,7 +351,14 @@ class Map extends Entity3D {
             getIndexFn: this.getIndex.bind(this),
         });
 
-        const tile = new TileMesh(this, material, extent, this.segments, level, x, y);
+        const tile = new TileMesh({
+            map: this,
+            material,
+            extent,
+            textureSize: this.imageSize,
+            segments: this.segments,
+            coord: { level, x, y },
+        });
 
         if (this.renderOrder !== undefined) {
             tile.renderOrder = this.renderOrder;
@@ -933,19 +940,6 @@ class Map extends Entity3D {
             return true;
         }
 
-        // Prevent subdivision if missing color texture
-        /* for (const c of context.colorLayers) {
-            if (c.frozen || !c.visible || !c.ready) {
-                continue;
-            }
-            // no stop subdivision in the case of a loading error
-            if (node.layerUpdateState[c.id] && node.layerUpdateState[c.id].inError()) {
-                continue;
-            }
-            if (c.tileInsideLimit(node, c) && !node.material.isColorLayerTextureLoaded(c)) {
-                return false;
-            }
-            } */
         return true;
     }
 

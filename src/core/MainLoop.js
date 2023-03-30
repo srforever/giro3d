@@ -136,14 +136,6 @@ MainLoop.prototype._update = function _update(instance, updateSources, dt) {
     // on near/far values.
     instance.camera.update();
 
-    // replace layer with their parent where needed
-    updateSources.forEach(src => {
-        const layer = src.layer || src;
-        if (layer.owner) {
-            updateSources.add(layer.owner);
-        }
-    });
-
     for (const entity of instance.getObjects()) {
         context.fastUpdateHint = undefined;
         context.entity = entity;

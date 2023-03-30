@@ -1,6 +1,7 @@
 import {
     CanvasTexture,
     Texture,
+    Vector2,
     Vector4,
     WebGLRenderer,
 } from 'three';
@@ -65,8 +66,12 @@ function preprocessDataLayer(layer) {
     layer.usedTiles = {};
 }
 
-// eslint-disable-next-line no-unused-vars
-function getPossibleTextureImprovements(layer, extent, texture) {
+function getPossibleTextureImprovements({
+    layer,
+    extent,
+    texture,
+    size,
+}) {
     if (!extent.intersectsExtent(layer.extent)) {
         // The tile does not even overlap with the layer extent.
         // This can happen when layers have a different extent from their parent map.
@@ -82,9 +87,9 @@ function getPossibleTextureImprovements(layer, extent, texture) {
     const { source } = layer;
     const projection = source.getProjection();
     const tileGrid = source.getTileGridForProjection(projection);
-    const zoomLevel = getZoomLevel(tileGrid, layer.imageSize, extent);
+    const zoomLevel = getZoomLevel(tileGrid, size, extent);
 
-    return { zoomLevel, extent };
+    return { zoomLevel, extent, size };
 }
 
 function getZoomLevel(tileGrid, imageSize, extent) {
@@ -93,7 +98,7 @@ function getZoomLevel(tileGrid, imageSize, extent) {
     const maxZoom = tileGrid.getMaxZoom();
 
     const extentWidth = olExtent[2] - olExtent[0];
-    const targetResolution = imageSize.w / extentWidth;
+    const targetResolution = imageSize.width / extentWidth;
 
     const minResolution = 1 / tileGrid.getResolution(minZoom);
 
@@ -117,9 +122,14 @@ function getZoomLevel(tileGrid, imageSize, extent) {
 }
 
 async function executeCommand(instance, layer, requester, toDownload) {
-    const { zoomLevel, extent, pitch } = toDownload;
+    const {
+        zoomLevel,
+        extent,
+        pitch,
+        size,
+    } = toDownload;
     const images = await loadTiles(extent, zoomLevel, layer);
-    const result = combineImages(images, instance.renderer, pitch, layer, extent);
+    const result = combineImages(images, instance.renderer, pitch, layer, extent, size);
     return result;
 }
 
@@ -131,12 +141,13 @@ async function executeCommand(instance, layer, requester, toDownload) {
  * @param {Vector4} pitch The custom pitch.
  * @param {module:Core/layer/Layer~Layer} layer The target layer.
  * @param {Extent} targetExtent The extent of the destination texture.
+ * @param {Vector2} size The texture size.
  */
-function combineImages(sourceImages, renderer, pitch, layer, targetExtent) {
+function combineImages(sourceImages, renderer, pitch, layer, targetExtent, size) {
     const composer = new WebGLComposer({
         extent: Rect.fromExtent(targetExtent),
-        width: layer.imageSize.w,
-        height: layer.imageSize.h,
+        width: size.width,
+        height: size.height,
         webGLRenderer: renderer,
         showImageOutlines: layer.showTileBorders || false,
     });

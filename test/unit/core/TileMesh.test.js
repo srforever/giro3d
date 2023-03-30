@@ -21,7 +21,13 @@ describe('TileMesh', () => {
 
     describe('constructor', () => {
         it('should register itself to the tile index', () => {
-            const mesh = new TileMesh(map, defaultMaterial, extent, 8, 3, 1, 2);
+            const mesh = new TileMesh({
+                map,
+                material: defaultMaterial,
+                extent,
+                segments: 8,
+                coord: { level: 3, x: 1, y: 2 },
+            });
             expect(map.tileIndex.tiles.get('1,2,3').deref()).toEqual(mesh);
         });
     });
@@ -36,7 +42,13 @@ describe('TileMesh', () => {
                     tileDimensions: { value: { set: jest.fn() } },
                 },
             };
-            const mesh = new TileMesh(map, material, extent, 8, 0);
+            const mesh = new TileMesh({
+                map,
+                material,
+                extent,
+                segments: 8,
+                coord: { level: 0, x: 0, y: 0 },
+            });
             const geometry = mesh.geometry;
             geometry.dispose = jest.fn();
             let eventDispatched = false;
