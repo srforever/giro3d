@@ -22,6 +22,9 @@ import TileMesh from '../core/TileMesh.js';
 import TileIndex from '../core/TileIndex.js';
 import RenderingState from '../renderer/RenderingState.js';
 import ColorMapAtlas from '../renderer/ColorMapAtlas.js';
+import { Vector2 } from 'three';
+import AtlasBuilder from '../renderer/AtlasBuilder.js';
+import Capabilities from '../core/system/Capabilities.js';
 
 const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 
@@ -131,19 +134,19 @@ function computeImageSize(extent) {
     const ratio = dims.x / dims.y;
     if (Math.abs(ratio - 1) < 0.01) {
         // We have a square tile
-        return { w: baseSize, h: baseSize };
+        return new Vector2(baseSize, baseSize);
     }
 
     if (ratio > 1) {
         const actualRatio = Math.min(ratio, MAX_SUPPORTED_ASPECT_RATIO);
         // We have an horizontal tile
-        return { w: Math.round(baseSize * actualRatio), h: baseSize };
+        return new Vector2(Math.round(baseSize * actualRatio), baseSize);
     }
 
     const actualRatio = Math.min(1 / ratio, MAX_SUPPORTED_ASPECT_RATIO);
 
     // We have a vertical tile
-    return { w: baseSize, h: Math.round(baseSize * actualRatio) };
+    return new Vector2(baseSize, Math.round(baseSize * actualRatio));
 }
 
 /**
@@ -196,6 +199,8 @@ class Map extends Entity3D {
         this.geometryPool = new window.Map();
 
         this._layerIndices = new window.Map();
+
+        this.atlasInfo = { maxX: 0, maxY: 0 };
 
         /** @type {Extent} */
         if (!options.extent.isValid()) {
@@ -760,9 +765,22 @@ class Map extends Entity3D {
                 layer.projection = this.projection;
             }
             layer.instance = this._instance;
-            layer.imageSize = this.imageSize;
 
             this.attach(layer);
+
+            if (layer instanceof ColorLayer) {
+                const colorLayers = this._attachedLayers.filter(l => l instanceof ColorLayer);
+
+                // rebuild color textures atlas
+                const { atlas, maxX, maxY } = AtlasBuilder.pack(
+                    Capabilities.getMaxTextureSize(),
+                    colorLayers.map(l => ({ id: l.id, size: this.imageSize })),
+                    this.atlasInfo.atlas,
+                );
+                this.atlasInfo.atlas = atlas;
+                this.atlasInfo.maxX = Math.max(this.atlasInfo.maxX, maxX);
+                this.atlasInfo.maxY = Math.max(this.atlasInfo.maxY, maxY);
+            }
 
             if (layer.colorMap) {
                 if (!this.materialOptions.colorMapAtlas) {

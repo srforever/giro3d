@@ -4,7 +4,7 @@ import SampleTestVS from '../../renderer/shader/SampleTestVS.glsl';
 // default values
 let logDepthBufferSupported = false;
 let maxTexturesUnits = 8;
-let maxTextureSize;
+let maxTextureSize = 2048;
 
 function _WebGLShader(renderer, type, string) {
     const gl = renderer.getContext();
