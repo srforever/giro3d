@@ -98,6 +98,16 @@ class Tiles3D extends Entity3D {
         return sum / (this._attachedLayers.length + 1);
     }
 
+    updateOpacity() {
+        if (this.material) {
+            // This is necessary because update() does copy the material's properties
+            // to the tile's material, and we are losing any custom opacity.
+            this.material.opacity = this.opacity;
+            this.material.transparent = this.opacity < 1;
+        }
+        super.updateOpacity();
+    }
+
     preprocess() {
         this.imageSize = { w: 128, h: 128 };
         // Download the root tileset to complete the preparation.
