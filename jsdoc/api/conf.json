@@ -16,6 +16,7 @@
       "src/core/geographic/Extent.js",
       "src/core/Instance.js",
       "src/core/layer/ColorLayer.js",
+      "src/core/layer/MaskLayer.js",
       "src/core/layer/ColorMap.js",
       "src/core/layer/ColorMapMode.js",
       "src/core/layer/ElevationLayer.js",

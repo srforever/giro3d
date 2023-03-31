@@ -58,6 +58,10 @@ class TextureInfo {
         this.visible = null;
         this.color = null;
     }
+
+    get mode() {
+        return this.layer.maskMode || 0;
+    }
 }
 
 // 'options' allows to define what is the datatype of the elevation textures used.
@@ -173,6 +177,7 @@ class LayeredMaterial extends RawShaderMaterial {
 
     _updateColorLayerUniforms() {
         const layersUniform = [];
+        /** @type {TextureInfo[]} */
         const infos = this.texturesInfo.color.infos;
 
         for (const info of infos) {
@@ -193,6 +198,7 @@ class LayeredMaterial extends RawShaderMaterial {
                 color,
                 textureSize,
                 elevationRange,
+                mode: info.mode,
             };
 
             layersUniform.push(uniform);
@@ -251,6 +257,8 @@ class LayeredMaterial extends RawShaderMaterial {
         const index = this.indexOfColorLayer(layer);
         this.texturesInfo.color.infos[index].originalOffsetScale.copy(textures.pitch);
         this.texturesInfo.color.infos[index].texture = textures.texture;
+        const originalOffsetScale = this.texturesInfo.color.infos[index].originalOffsetScale;
+        const offsetScale = this.texturesInfo.color.infos[index].offsetScale;
 
         if (shortcut) {
             const w = textures?.texture?.image?.width || layer.imageSize.w;
@@ -258,10 +266,10 @@ class LayeredMaterial extends RawShaderMaterial {
             updateOffsetScale(
                 { w, h },
                 this.atlasInfo.atlas[layer.id],
-                this.texturesInfo.color.infos[index].originalOffsetScale,
+                originalOffsetScale,
                 this.composer.width,
                 this.composer.height,
-                this.texturesInfo.color.infos[index].offsetScale,
+                offsetScale,
             );
             // we already got our texture (needsUpdate is done in TiledNodeProcessing)
             return Promise.resolve();
@@ -364,6 +372,9 @@ class LayeredMaterial extends RawShaderMaterial {
 
         const info = new TextureInfo(newLayer);
 
+        if (newLayer.type === 'MaskLayer') {
+            MaterialUtils.setDefine(this, 'ENABLE_LAYER_MASKS', true);
+        }
         info.opacity = newLayer.opacity;
         info.visible = newLayer.visible;
         info.offsetScale = new Vector4(0, 0, 0, 0);
