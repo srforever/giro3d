@@ -20,7 +20,7 @@ class Tiles3dInspector extends EntityInspector {
     constructor(parentGui, instance, entity) {
         super(parentGui, instance, entity,
             {
-                title: `Tiles3D (${entity.id})`,
+                title: `Tiles3D ('${entity.id}')`,
                 visibility: true,
                 boundingBoxColor: true,
                 boundingBoxes: true,

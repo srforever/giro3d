@@ -17,7 +17,7 @@ class AxisGridInspector extends EntityInspector {
      */
     constructor(parentGui, instance, grid) {
         super(parentGui, instance, grid, {
-            title: `AxisGrid (${grid.id})`,
+            title: `AxisGrid ('${grid.id}')`,
             visibility: true,
             opacity: true,
         });

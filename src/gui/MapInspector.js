@@ -30,7 +30,7 @@ class MapInspector extends EntityInspector {
      */
     constructor(parentGui, instance, map) {
         super(parentGui, instance, map, {
-            title: `Map (${map.id})`,
+            title: `Map ('${map.id}')`,
             visibility: true,
             boundingBoxColor: true,
             boundingBoxes: true,

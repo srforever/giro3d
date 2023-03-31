@@ -25,7 +25,7 @@ class LayerInspector extends Panel {
      * @param {Layer} layer The layer to inspect
      */
     constructor(gui, instance, map, layer) {
-        super(gui, instance, `[${layer.index}] ${layer.id} (${layer.type})`);
+        super(gui, instance, `${layer.type} ('${layer.id}')`);
 
         /**
          * The inspected layer.
@@ -39,6 +39,8 @@ class LayerInspector extends Panel {
         this.state = 'idle';
 
         this.updateValues();
+
+        this.addController(this.layer, 'id').name('Identifier');
 
         this.addController(this, 'state')
             .name('Status');
@@ -78,9 +80,6 @@ class LayerInspector extends Panel {
                 .max(1)
                 .onChange(() => this.notify(layer));
         }
-
-        this.addController(this.layer, 'index')
-            .name('Index');
 
         this.extentColor = new Color('#52ff00');
         this.showExtent = false;
