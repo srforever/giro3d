@@ -5,6 +5,9 @@
  */
 
 import {
+    Object3D,
+    Camera,
+    Color,
     DepthTexture,
     LinearFilter,
     NearestFilter,
@@ -16,6 +19,8 @@ import {
 } from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Capabilities from '../core/system/Capabilities.js';
+
+const tmpClear = new Color();
 
 class C3DEngine {
     constructor(viewerDiv, options = {}) {
@@ -201,26 +206,39 @@ class C3DEngine {
     /**
      * Render instance to a Uint8Array.
      *
-     * @param {module:Core/Instance~Instance} instance The giro3d instance to render
-     * @param {object} [zone] partial zone to render
-     * @param {number} zone.x x (in instance coordinate)
-     * @param {number} zone.y y (in instance coordinate)
-     * @param {number} zone.width width of area to render (in pixels)
-     * @param {number} zone.height height of area to render (in pixels)
+     * @param {object} options Options.
+     * @param {Color} options.clearColor The clear color to apply before rendering.
+     * @param {Object3D} options.scene The scene to render.
+     * @param {Camera} options.camera The camera to render.
+     * @param {object} [options.zone] partial zone to render. If undefined, the whole
+     * viewport is used.
+     * @param {number} options.zone.x x (in instance coordinate)
+     * @param {number} options.zone.y y (in instance coordinate)
+     * @param {number} options.zone.width width of area to render (in pixels)
+     * @param {number} options.zone.height height of area to render (in pixels)
      * @returns {RenderTarget} - Uint8Array, 4 bytes per pixel. The first pixel in
      * the array is the bottom-left pixel.
      */
-    renderToBuffer(instance, zone) {
-        if (!zone) {
-            zone = {
-                x: 0,
-                y: 0,
-                width: this.width,
-                height: this.height,
-            };
+    renderToBuffer(options) {
+        const zone = options.zone || {
+            x: 0,
+            y: 0,
+            width: this.width,
+            height: this.height,
+        };
+
+        const { scene, camera } = options;
+
+        const clear = this.renderer.getClearColor(tmpClear);
+        const alpha = this.renderer.getClearAlpha();
+
+        if (options.clearColor) {
+            this.renderer.setClearColor(options.clearColor, 1);
         }
 
-        this.renderInstanceToRenderTarget(instance, this.fullSizeRenderTarget, zone);
+        this.renderInstanceToRenderTarget(scene, camera, this.fullSizeRenderTarget, zone);
+
+        this.renderer.setClearColor(clear, alpha);
 
         zone.x = Math.max(0, Math.min(zone.x, this.width));
         zone.y = Math.max(0, Math.min(zone.y, this.height));
@@ -237,14 +255,15 @@ class C3DEngine {
     /**
      * Render view to a RenderTarget.
      *
-     * @param {module:Core/Instance~Instance} instance The giro3d instance to render
+     * @param {Object3D} scene The scene root.
+     * @param {Camera} camera The camera to render.
      * @param {RenderTarget} [target] destination render target. Default value: full size
      * render target owned by C3DEngine.
      * @param {object} [zone] partial zone to render (zone x/y uses canvas coordinates)
      * Note: target must contain complete zone
      * @returns {RenderTarget} - the destination render target
      */
-    renderInstanceToRenderTarget(instance, target, zone) {
+    renderInstanceToRenderTarget(scene, camera, target, zone) {
         if (!target) {
             target = this.fullSizeRenderTarget;
         }
@@ -265,7 +284,7 @@ class C3DEngine {
 
         this.renderer.setRenderTarget(target);
         this.renderer.clear();
-        this.renderer.render(instance.scene, instance.camera.camera3D);
+        this.renderer.render(scene, camera);
         this.renderer.setRenderTarget(current);
 
         target.scissorTest = false;

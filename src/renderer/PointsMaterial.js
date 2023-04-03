@@ -76,6 +76,8 @@ class PointsMaterial extends RawShaderMaterial {
         this.uniforms.pickingId = new Uniform(this.pickingId);
         this.uniforms.opacity = new Uniform(this.opacity);
         this.uniforms.overlayColor = new Uniform(this.overlayColor);
+        this.uniforms.overlayTexture = new Uniform();
+        this.uniforms.hasOverlayTexture = new Uniform(0);
 
         if (Capabilities.isLogDepthBufferSupported()) {
             this.defines.USE_LOGDEPTHBUF = 1;

@@ -9,6 +9,8 @@ import {
 import RenderingState from '../renderer/RenderingState.js';
 import Coordinates from './geographic/Coordinates.js';
 
+const BLACK = new Color(0, 0, 0);
+
 function hideEverythingElse(instance, object) {
     const visibilityMap = new Map();
     for (const obj of instance.getObjects()) {
@@ -89,15 +91,17 @@ function renderTileBuffer(instance, map, coords, radius, renderState, pixelFunc,
 
     const undoHide = hideEverythingElse(instance, map.object3d);
 
-    const buffer = instance.mainLoop.gfxEngine.renderToBuffer(
-        { camera: instance.camera, scene: map.object3d },
-        {
+    const buffer = instance.mainLoop.gfxEngine.renderToBuffer({
+        camera: instance.camera.camera3D,
+        scene: map.object3d,
+        clearColor: BLACK,
+        zone: {
             x: coords.x - radius,
             y: coords.y - radius,
             width: 1 + radius * 2,
             height: 1 + radius * 2,
         },
-    );
+    });
 
     undoHide();
 
@@ -177,7 +181,6 @@ function findLayerInParent(obj) {
 
 const raycaster = new Raycaster();
 const tmpCoords = new Coordinates('EPSG:3857', 0, 0, 0);
-const tmpColor = new Color();
 
 /**
  * @module Picking
@@ -285,15 +288,17 @@ export default {
         const undoHide = hideEverythingElse(instance, layer.object3d);
 
         // render 1 pixel
-        const buffer = instance.mainLoop.gfxEngine.renderToBuffer(
-            { camera: instance.camera, scene: layer.object3d },
-            {
+        const buffer = instance.mainLoop.gfxEngine.renderToBuffer({
+            camera: instance.camera.camera3D,
+            scene: layer.object3d,
+            clearColor: BLACK,
+            zone: {
                 x: Math.max(0, canvasCoords.x - radius),
                 y: Math.max(0, canvasCoords.y - radius),
                 width: 1 + radius * 2,
                 height: 1 + radius * 2,
             },
-        );
+        });
 
         undoHide();
 
@@ -392,12 +397,16 @@ export default {
             width: 1 + radius * 2,
             height: 1 + radius * 2,
         };
-        const pixels = instance.mainLoop.gfxEngine.renderToBuffer(
-            { scene: object, camera: instance.camera },
-            zone,
-        );
 
-        const clearColor = instance.mainLoop.gfxEngine.renderer.getClearColor(tmpColor);
+        const clearColor = BLACK;
+
+        const pixels = instance.mainLoop.gfxEngine.renderToBuffer({
+            scene: object,
+            camera: instance.camera.camera3D,
+            zone,
+            clearColor,
+        });
+
         const clearR = Math.round(255 * clearColor.r);
         const clearG = Math.round(255 * clearColor.g);
         const clearB = Math.round(255 * clearColor.b);
