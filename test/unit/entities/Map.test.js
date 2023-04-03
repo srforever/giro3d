@@ -50,6 +50,13 @@ describe('Map', () => {
         instance.add(map);
     });
 
+    function checkLayerIndices() {
+        const indices = map._attachedLayers.map(lyr => map.getIndex(lyr));
+        for (let i = 0; i < indices.length; i++) {
+            expect(indices[i]).toEqual(i);
+        }
+    }
+
     describe('constructor', () => {
         it('should throw on undefined id', () => {
             expect(() => new Map(undefined)).toThrow(/Missing id parameter/);
@@ -161,6 +168,270 @@ describe('Map', () => {
             await map.addLayer(layer);
 
             expect(listener).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('insertLayerAfter', () => {
+        it('should throw if the layer is not present', () => {
+            const absent = { id: 'a' };
+            const present = { id: 'b' };
+            map._attachedLayers.push(present);
+            expect(() => map.insertLayerAfter(absent, present)).toThrow(/The layer is not present/);
+        });
+
+        it('should move the layer at the beginning of the list if target is null', () => {
+            const a = { id: 'a' };
+            const b = { id: 'b' };
+            const c = { id: 'c' };
+            const d = { id: 'd' };
+
+            map._attachedLayers.push(a);
+            map._attachedLayers.push(b);
+            map._attachedLayers.push(c);
+            map._attachedLayers.push(d);
+
+            map.insertLayerAfter(d, null);
+            expect(map._attachedLayers).toStrictEqual([d, a, b, c]);
+        });
+
+        it('should move the layer just after the target', () => {
+            const a = { id: 'a' };
+            const b = { id: 'b' };
+            const c = { id: 'c' };
+            const d = { id: 'd' };
+
+            map._attachedLayers.push(a);
+            map._attachedLayers.push(b);
+            map._attachedLayers.push(c);
+            map._attachedLayers.push(d);
+
+            map.insertLayerAfter(a, d);
+
+            expect(map._attachedLayers).toStrictEqual([b, c, d, a]);
+            checkLayerIndices();
+
+            map.insertLayerAfter(d, a);
+
+            expect(map._attachedLayers).toStrictEqual([b, c, a, d]);
+            checkLayerIndices();
+
+            map.insertLayerAfter(c, b);
+
+            expect(map._attachedLayers).toStrictEqual([b, c, a, d]);
+            checkLayerIndices();
+
+            map.insertLayerAfter(a, b);
+
+            checkLayerIndices();
+            expect(map._attachedLayers).toStrictEqual([b, a, c, d]);
+        });
+
+        it('should signal the order change to tiles', () => {
+            const tile = new Group();
+            tile.reorderLayers = jest.fn();
+            tile.layer = map;
+
+            map.level0Nodes.push(tile);
+
+            const a = { id: 'a' };
+            const b = { id: 'b' };
+            const c = { id: 'c' };
+            const d = { id: 'd' };
+
+            map._attachedLayers.push(a);
+            map._attachedLayers.push(b);
+            map._attachedLayers.push(c);
+            map._attachedLayers.push(d);
+
+            expect(tile.reorderLayers).not.toHaveBeenCalled();
+
+            map.insertLayerAfter(a, b);
+
+            expect(tile.reorderLayers).toHaveBeenCalled();
+        });
+    });
+
+    describe('sortColorLayers', () => {
+        function mkColorLayer(key) {
+            const layer = new ColorLayer(`${key}`, { standalone: true });
+            layer.key = key;
+            return layer;
+        }
+
+        function mkElevationLayer(key) {
+            const layer = new ElevationLayer(`${key}`, { standalone: true });
+            layer.key = key;
+            return layer;
+        }
+
+        it('should throw if the compareFn is null', () => {
+            expect(() => map.sortColorLayers(null)).toThrow(/missing comparator/);
+            expect(() => map.sortColorLayers(undefined)).toThrow(/missing comparator/);
+        });
+
+        it('should assign the correct index to each layer', () => {
+            const a = mkColorLayer(2);
+            const b = mkColorLayer(10);
+            const c = mkColorLayer(6);
+            const d = mkColorLayer(0);
+            const elev = mkElevationLayer(999);
+
+            map._attachedLayers.push(a);
+            map._attachedLayers.push(b);
+            map._attachedLayers.push(elev);
+            map._attachedLayers.push(c);
+            map._attachedLayers.push(d);
+
+            map.sortColorLayers((l1, l2) => (l1.key < l2.key ? -1 : 1));
+
+            // Ensure that elevation layers are by convention put at the start
+            // of the layer list
+            expect(map.getIndex(elev)).toEqual(0);
+
+            expect(map.getIndex(d)).toEqual(1);
+            expect(map.getIndex(a)).toEqual(2);
+            expect(map.getIndex(c)).toEqual(3);
+            expect(map.getIndex(b)).toEqual(4);
+        });
+
+        it('should signal the order change to tiles', () => {
+            const tile = new Group();
+            tile.reorderLayers = jest.fn();
+            tile.layer = map;
+
+            map.level0Nodes.push(tile);
+
+            const a = mkColorLayer(2);
+            const b = mkColorLayer(10);
+            const c = mkColorLayer(6);
+            const d = mkColorLayer(0);
+
+            map._attachedLayers.push(a);
+            map._attachedLayers.push(b);
+            map._attachedLayers.push(c);
+            map._attachedLayers.push(d);
+
+            expect(tile.reorderLayers).not.toHaveBeenCalled();
+
+            map.sortColorLayers((l1, l2) => (l1.key < l2.key ? -1 : 1));
+
+            expect(tile.reorderLayers).toHaveBeenCalled();
+        });
+    });
+
+    describe('moveLayerUp', () => {
+        it('should throw if the layer is not present', () => {
+            expect(() => map.moveLayerUp({})).toThrow(/layer is not present/);
+        });
+
+        it('should signal the order change to tiles', () => {
+            const tile = new Group();
+            tile.reorderLayers = jest.fn();
+            tile.layer = map;
+
+            map.level0Nodes.push(tile);
+
+            const a = { id: 'a' };
+            const b = { id: 'b' };
+            const c = { id: 'c' };
+            const d = { id: 'd' };
+
+            map._attachedLayers.push(a);
+            map._attachedLayers.push(b);
+            map._attachedLayers.push(c);
+            map._attachedLayers.push(d);
+
+            expect(tile.reorderLayers).not.toHaveBeenCalled();
+
+            map.moveLayerDown(b);
+
+            expect(tile.reorderLayers).toHaveBeenCalled();
+        });
+
+        it('should move the layer one step to the foreground/top', () => {
+            const a = { id: 'a' };
+            const b = { id: 'b' };
+            const c = { id: 'c' };
+            const d = { id: 'd' };
+
+            map._attachedLayers.push(a);
+            map._attachedLayers.push(b);
+            map._attachedLayers.push(c);
+            map._attachedLayers.push(d);
+
+            map.moveLayerUp(a);
+            expect(map._attachedLayers).toStrictEqual([b, a, c, d]);
+            checkLayerIndices();
+
+            map.moveLayerUp(a);
+            expect(map._attachedLayers).toStrictEqual([b, c, a, d]);
+            checkLayerIndices();
+
+            map.moveLayerUp(a);
+            expect(map._attachedLayers).toStrictEqual([b, c, d, a]);
+            checkLayerIndices();
+
+            map.moveLayerUp(a);
+            expect(map._attachedLayers).toStrictEqual([b, c, d, a]);
+            checkLayerIndices();
+        });
+    });
+
+    describe('moveLayerDown', () => {
+        it('should throw if the layer is not present', () => {
+            expect(() => map.moveLayerDown({})).toThrow(/layer is not present/);
+        });
+
+        it('should signal the order change to tiles', () => {
+            const tile = new Group();
+            tile.reorderLayers = jest.fn();
+            tile.layer = map;
+
+            map.level0Nodes.push(tile);
+
+            const a = { id: 'a' };
+            const b = { id: 'b' };
+            const c = { id: 'c' };
+            const d = { id: 'd' };
+
+            map._attachedLayers.push(a);
+            map._attachedLayers.push(b);
+            map._attachedLayers.push(c);
+            map._attachedLayers.push(d);
+
+            expect(tile.reorderLayers).not.toHaveBeenCalled();
+
+            map.moveLayerUp(b);
+
+            expect(tile.reorderLayers).toHaveBeenCalled();
+        });
+
+        it('should move the layer one step to the foreground/top', () => {
+            const a = { id: 'a' };
+            const b = { id: 'b' };
+            const c = { id: 'c' };
+            const d = { id: 'd' };
+
+            map._attachedLayers.push(a);
+            map._attachedLayers.push(b);
+            map._attachedLayers.push(c);
+            map._attachedLayers.push(d);
+
+            map.moveLayerDown(d);
+            expect(map._attachedLayers).toStrictEqual([a, b, d, c]);
+            checkLayerIndices();
+
+            map.moveLayerDown(d);
+            expect(map._attachedLayers).toStrictEqual([a, d, b, c]);
+            checkLayerIndices();
+
+            map.moveLayerDown(d);
+            expect(map._attachedLayers).toStrictEqual([d, a, b, c]);
+            checkLayerIndices();
+
+            map.moveLayerDown(d);
+            expect(map._attachedLayers).toStrictEqual([d, a, b, c]);
+            checkLayerIndices();
         });
     });
 

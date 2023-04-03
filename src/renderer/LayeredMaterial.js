@@ -64,14 +64,13 @@ class TextureInfo {
     }
 }
 
-// 'options' allows to define what is the datatype of the elevation textures used.
-// By default, we assume floating-point textures.
-// If the elevation textures are RGB, then 3 values must be set:
-//   - useColorTextureElevation: declare that the elevation texture is an RGB textures.
-//   - colorTextureElevationMinZ: altitude value mapped on the (0, 0, 0) color
-//   - colorTextureElevationMaxZ: altitude value mapped on the (255, 255, 255) color
 class LayeredMaterial extends RawShaderMaterial {
-    constructor(options = {}, renderer, atlasInfo) {
+    constructor({
+        options = {},
+        renderer,
+        atlasInfo,
+        getIndexFn,
+    }) {
         super();
 
         this.atlasInfo = atlasInfo;
@@ -81,6 +80,8 @@ class LayeredMaterial extends RawShaderMaterial {
         this.lightDirection = { azimuth: 315, zenith: 45 };
         this.uniforms.zenith = { type: 'f', value: 45 };
         this.uniforms.azimuth = { type: 'f', value: 135 };
+
+        this.getIndexFn = getIndexFn;
 
         if (options.discardNoData) {
             this.defines.DISCARD_NODATA_ELEVATION = 1;
@@ -113,6 +114,7 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.texturesInfo = {
             color: {
+                /** @type {TextureInfo[]} */
                 infos: [],
                 atlasTexture: null,
                 parentAtlasTexture: null,
@@ -176,6 +178,8 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     _updateColorLayerUniforms() {
+        this._sortLayersIfNecessary();
+
         const layersUniform = [];
         /** @type {TextureInfo[]} */
         const infos = this.texturesInfo.color.infos;
@@ -368,7 +372,6 @@ class LayeredMaterial extends RawShaderMaterial {
             return;
         }
         this.colorLayers.push(newLayer);
-        this.colorLayers.sort((a, b) => a.index - b.index);
 
         const info = new TextureInfo(newLayer);
 
@@ -391,7 +394,8 @@ class LayeredMaterial extends RawShaderMaterial {
         }
 
         this.texturesInfo.color.infos.push(info);
-        this.texturesInfo.color.infos.sort((a, b) => a.index - b.index);
+
+        this._needsSorting = true;
 
         this._updateColorLayerUniforms();
 
@@ -399,6 +403,19 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.defines.COLOR_LAYERS = this.colorLayers.length;
         this.needsUpdate = true;
+    }
+
+    reorderLayers() {
+        this._needsSorting = true;
+    }
+
+    _sortLayersIfNecessary() {
+        const idx = this.getIndexFn;
+        if (this._needsSorting) {
+            this.colorLayers.sort((a, b) => idx(a) - idx(b));
+            this.texturesInfo.color.infos.sort((a, b) => idx(a.layer) - idx(b.layer));
+            this._needsSorting = false;
+        }
     }
 
     removeLayer(layer) {
@@ -410,6 +427,8 @@ class LayeredMaterial extends RawShaderMaterial {
         // NOTE: we cannot dispose the texture here, because it might be cached for later.
         this.texturesInfo.color.infos.splice(index, 1);
         this.colorLayers.splice(index, 1);
+
+        this._needsSorting = true;
 
         this._updateColorLayerUniforms();
 
@@ -444,6 +463,8 @@ class LayeredMaterial extends RawShaderMaterial {
      * @param {ColorMapAtlas} atlas The color map atlas.
      */
     _updateColorMaps(atlas) {
+        this._sortLayersIfNecessary();
+
         const elevationColorMap = this.elevationLayer?.colorMap;
 
         const elevationUniform = this.getObjectUniform('elevationColorMap');

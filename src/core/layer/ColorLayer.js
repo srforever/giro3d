@@ -52,7 +52,6 @@ class ColorLayer extends Layer {
         this.showTileBorders = options.showTileBorders || false;
         this.elevationRange = options.elevationRange;
         EventUtils.definePropertyWithChangeEvent(this, 'opacity', 1.0);
-        EventUtils.definePropertyWithChangeEvent(this, 'sequence', 0);
     }
 
     dispose(map) {

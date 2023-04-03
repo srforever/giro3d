@@ -88,6 +88,8 @@ class EntityInspector extends Panel {
         this.boundingBoxColor = '#FFFF00';
         this.state = 'idle';
 
+        this.addController(this.entity, 'id').name('Identifier');
+
         this.addController(this, 'state').name('Status');
 
         if (options.visibility) {

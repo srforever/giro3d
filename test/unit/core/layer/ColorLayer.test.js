@@ -22,7 +22,6 @@ describe('ColorLayer', () => {
             assert.strictEqual(layer.frozen, false);
             assert.strictEqual(layer.visible, true);
             assert.strictEqual(layer.opacity, 1.0);
-            assert.strictEqual(layer.sequence, 0);
         });
     });
 
@@ -82,9 +81,11 @@ describe('ColorLayer', () => {
         it('hidden tile should not execute commands', () => {
             const tile = new TileMesh(
                 map,
-                new LayeredMaterial(
-                    {}, {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
-                ),
+                new LayeredMaterial({
+                    options: {},
+                    renderer: {},
+                    atlasInfo: { maxX: 0, maxY: 0, atlas: {} },
+                }),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
                 8,
             );
@@ -97,9 +98,11 @@ describe('ColorLayer', () => {
         it('tile with best texture should not execute commands', () => {
             const tile = new TileMesh(
                 map,
-                new LayeredMaterial(
-                    {}, {}, { width: 9, height: 9 }, { maxX: 0, maxY: 0, atlas: {} },
-                ),
+                new LayeredMaterial({
+                    options: {},
+                    renderer: {},
+                    atlasInfo: { maxX: 0, maxY: 0, atlas: {} },
+                }),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
                 8,
             );
@@ -113,9 +116,11 @@ describe('ColorLayer', () => {
         it('tile with downscaled texture should execute 1 command', () => {
             const tile = new TileMesh(
                 map,
-                new LayeredMaterial(
-                    {}, {}, { maxX: 0, maxY: 0, atlas: {} },
-                ),
+                new LayeredMaterial({
+                    options: {},
+                    renderer: {},
+                    atlasInfo: { maxX: 0, maxY: 0, atlas: {} },
+                }),
                 new Extent('EPSG:4326', 0, 0, 0, 0),
                 8,
                 2,

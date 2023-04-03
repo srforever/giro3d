@@ -19,7 +19,7 @@ class PotreePointCloudInspector extends EntityInspector {
     constructor(parentGui, instance, entity) {
         super(parentGui, instance, entity,
             {
-                title: `PotreePointCloud (${entity.id})`,
+                title: `PotreePointCloud ('${entity.id}')`,
                 visibility: true,
                 boundingBoxColor: false,
                 boundingBoxes: true,
