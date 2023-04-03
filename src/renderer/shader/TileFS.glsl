@@ -345,8 +345,9 @@ void main() {
         }
     }
     #pragma unroll_loop_end
-    diffuseColor.a *= opacity;
 #endif
+
+    diffuseColor.a *= opacity;
 
 #if defined(ELEVATION_LAYER)
     // Step 5 : apply shading
