@@ -259,7 +259,11 @@ function combineImages(sourceImages, texWidth, texHeight, renderer, pitch, layer
         computeMinMax: shouldComputeMinMax ? { noDataValue: layer.noDataValue } : false,
     });
 
-    const options = { interpretation: layer.interpretation, flipY: layer.flipY };
+    const options = {
+        interpretation: layer.interpretation,
+        flipY: layer.flipY,
+        fillNoData: isElevationLayer,
+    };
 
     sourceImages.forEach(img => {
         if (img) {

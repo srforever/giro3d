@@ -1,33 +1,35 @@
 precision highp float;
 precision highp int;
 
+#include <FillNoData>
 #include <Interpretation>
 
-uniform Interpretation interpretation;
-
-// inputs
-uniform sampler2D texture;
 varying vec2 vUv;
 
-#if defined(OUTLINES)
+uniform Interpretation interpretation;
+uniform sampler2D texture;
 uniform vec2 textureSize;
-#endif
+uniform bool flipY;
+uniform bool fillNoData;
+uniform bool showImageOutlines;
 
 void main() {
-#if defined(FLIP_Y)
-    vec2 uv = vec2(vUv.x, 1.0 - vUv.y);
-#else
-    vec2 uv = vUv;
-#endif
+    vec2 uv = flipY
+        ? vec2(vUv.x, 1.0 - vUv.y)
+        : vUv;
 
-    gl_FragColor = decode(texture, uv, interpretation);
+    vec4 raw = fillNoData
+        ? texture2DFillNodata(texture, uv)
+        : texture2D(texture, uv);
 
-    #if defined(OUTLINES)
-    const float outlineThickness = 2.0;
-    vec2 uvPx = vec2(uv.x * textureSize.x, uv.y * textureSize.y);
-    if (uvPx.x < outlineThickness || uvPx.x > (textureSize.x - outlineThickness)
-     || uvPx.y < outlineThickness || uvPx.y > (textureSize.y - outlineThickness)) {
-        gl_FragColor.rgb = vec3(1.0, 1.0, 0.0);
+    gl_FragColor = decode(raw, interpretation);
+
+    if (showImageOutlines) {
+        const float outlineThickness = 2.0;
+        vec2 uvPx = vec2(uv.x * textureSize.x, uv.y * textureSize.y);
+        if (uvPx.x < outlineThickness || uvPx.x > (textureSize.x - outlineThickness)
+        || uvPx.y < outlineThickness || uvPx.y > (textureSize.y - outlineThickness)) {
+            gl_FragColor.rgb = vec3(1.0, 1.0, 0.0);
+        }
     }
-    #endif
 }

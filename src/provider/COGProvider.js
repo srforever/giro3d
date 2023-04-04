@@ -189,6 +189,7 @@ async function createTexture(
         composer.draw(inputTexture, Rect.fromExtent(extent), {
             flipY: true,
             interpretation: layer.interpretation,
+            fillNoData: isElevationLayer,
         });
 
         const texture = composer.render();
