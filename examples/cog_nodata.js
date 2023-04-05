@@ -10,12 +10,16 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
 import StatusBar from './widgets/StatusBar.js';
 
-// Define projection that we will use (taken from https://epsg.io/6345, Proj4js section)
-Instance.registerCRS('EPSG:6345', '+proj=utm +zone=16 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
+// Define projection that we will use (taken from https://epsg.io/26910, Proj4js section)
+Instance.registerCRS(
+    'EPSG:26910',
+    '+proj=utm +zone=10 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+);
+
 const extent = new Extent(
-    'EPSG:6345',
-    583500, 584762,
-    3280500, 3282000,
+    'EPSG:26910',
+    532622, 569790,
+    5114416, 5137240,
 );
 
 const center = extent.center().xyz();
@@ -27,12 +31,13 @@ const viewerDiv = document.getElementById('viewerDiv');
 const instance = new Instance(viewerDiv, {
     crs: extent.crs(),
     renderer: {
-        clearColor: 0x0a3b59,
+        clearColor: 'black',
+        checkShaderErrors: false,
     },
 });
 
 // Instantiate the camera
-instance.camera.camera3D.position.set(center.x, center.y - 1, 3000);
+instance.camera.camera3D.position.set(center.x, center.y - 1, 50000);
 
 // Instantiate the controls
 const controls = new MapControls(
@@ -47,23 +52,25 @@ instance.useTHREEControls(controls);
 // Construct a map and add it to the instance
 const map = new Map('planar', {
     extent,
+    doubleSided: true,
     discardNoData: true,
     backgroundColor: new Color(0, 0, 0),
     hillshading: true,
+    segments: 128,
 });
 instance.add(map);
 
 // Use an elevation COG with nodata values
 const source = new CogSource({
-    // https://www.sciencebase.gov/catalog/item/624d95e3d34e21f827660b53
-    url: 'https://prd-tnm.s3.amazonaws.com/StagedProducts/Elevation/OPR/Projects/LA_Chenier_Plain_Lidar_2017_B16/LA_Chenier_Plain_2017/TIFF/USGS_OPR_LA_Chenier_Plain_Lidar_2017_B16_15RWN835805.tif',
+    // https://pubs.er.usgs.gov/publication/ds904
+    url: 'https://3d.oslandia.com/dem/msh2009dem.tif',
 });
 
-const values = colormap({ colormap: 'greys' });
+const values = colormap({ colormap: 'viridis' });
 const colors = values.map(v => new Color(v));
 
-const min = -0.2;
-const max = 1.3;
+const min = 227;
+const max = 2538;
 
 // Display it as elevation and color
 const colorMap = new ColorMap(colors, min, max, ColorMapMode.Elevation);
@@ -71,6 +78,12 @@ map.addLayer(new ElevationLayer('elevation', { source, colorMap, minmax: { min, 
 
 // Attach the inspector
 Inspector.attach(document.getElementById('panelDiv'), instance);
+
+const toggle = document.getElementById('discard-nodata');
+toggle.onchange = () => {
+    map.materialOptions.discardNoData = toggle.checked;
+    instance.notifyChange(map);
+};
 
 // Bind events
 StatusBar.bind(instance);
