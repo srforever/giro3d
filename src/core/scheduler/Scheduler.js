@@ -45,7 +45,7 @@ function _instanciateQueue() {
             const { layer } = command;
             let st = this.storages.get(layer.id);
             if (!st) {
-                const entity = command.requester.layer;
+                const entity = command.layer;
                 let priorityFn = queueOrdering;
                 if (entity && entity.getNodeImportance) {
                     priorityFn = entity.getNodeImportance.bind(entity);
