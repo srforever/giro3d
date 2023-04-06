@@ -15,9 +15,9 @@ module.exports = {
         },
     },
     settings: {
-        'import/resolver': {
-            webpack: {},
-        },
+        'import/ignore': [
+            '\\.(coffee|scss|css|less|hbs|svg|json)$',
+        ],
     },
     env: {
         browser: true,
@@ -28,9 +28,6 @@ module.exports = {
             globals: true,
         },
     },
-    ignorePatterns: [
-        'webpack.config.js',
-    ],
     rules: {
         'jest/no-disabled-tests': 'warn',
         'jest/no-focused-tests': 'error',
