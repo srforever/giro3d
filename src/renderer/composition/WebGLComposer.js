@@ -1,16 +1,12 @@
 /** @module renderer/composition/WebGLComposer */
 import {
-    WebGLRenderer,
     WebGLRenderTarget,
     OrthographicCamera,
     Scene,
     Mesh,
     Texture,
     PlaneGeometry,
-    TextureDataType,
-    PixelFormat,
     RGBAFormat,
-    ColorRepresentation,
     UnsignedByteType,
     ClampToEdgeWrapping,
     Vector3,
@@ -79,10 +75,10 @@ class WebGLComposer {
      * This only applies to grayscale data (typically elevation data). If the option is an object
      * with the `noDataValue` property, all pixels with this value will be ignored for min/max
      * computation.
-     * @param {WebGLRenderer} options.webGLRenderer The WebGL renderer to use. This must be the
+     * @param {"WebGLRenderer"} options.webGLRenderer The WebGL renderer to use. This must be the
      * same renderer as the one used to display the rendered textures, because WebGL contexts are
      * isolated from each other.
-     * @param {ColorRepresentation} [options.clearColor=undefined] The clear (background) color.
+     * @param {"ColorRepresentation"} [options.clearColor=undefined] The clear (background) color.
      */
     constructor(options) {
         this.showImageOutlines = options.showImageOutlines;
@@ -218,8 +214,8 @@ class WebGLComposer {
 
     /**
      * @typedef {object} TypeFormat
-     * @property {TextureDataType} type The data type.
-     * @property {PixelFormat} format The pixel format.
+     * @property {"TextureDataType"} type The data type.
+     * @property {"PixelFormat"} format The pixel format.
      */
 
     /**

@@ -1,6 +1,6 @@
 import Stamen from 'ol/source/Stamen.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import GUI from 'lil-gui';
+import * as GUI from 'lil-gui';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';

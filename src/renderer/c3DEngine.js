@@ -11,7 +11,6 @@ import {
     DepthTexture,
     LinearFilter,
     NearestFilter,
-    RenderTarget,
     UnsignedShortType,
     Vector2,
     WebGLRenderer,
@@ -216,7 +215,7 @@ class C3DEngine {
      * @param {number} options.zone.y y (in instance coordinate)
      * @param {number} options.zone.width width of area to render (in pixels)
      * @param {number} options.zone.height height of area to render (in pixels)
-     * @returns {RenderTarget} - Uint8Array, 4 bytes per pixel. The first pixel in
+     * @returns {Uint8Array} - Uint8Array, 4 bytes per pixel. The first pixel in
      * the array is the bottom-left pixel.
      */
     renderToBuffer(options) {
@@ -253,15 +252,15 @@ class C3DEngine {
     }
 
     /**
-     * Render view to a RenderTarget.
+     * Render view to a render target.
      *
      * @param {Object3D} scene The scene root.
      * @param {Camera} camera The camera to render.
-     * @param {RenderTarget} [target] destination render target. Default value: full size
+     * @param {WebGLRenderTarget} [target] destination render target. Default value: full size
      * render target owned by C3DEngine.
      * @param {object} [zone] partial zone to render (zone x/y uses canvas coordinates)
      * Note: target must contain complete zone
-     * @returns {RenderTarget} - the destination render target
+     * @returns {WebGLRenderTarget} - the destination render target
      */
     renderInstanceToRenderTarget(scene, camera, target, zone) {
         if (!target) {

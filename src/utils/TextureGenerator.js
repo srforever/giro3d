@@ -2,7 +2,6 @@ import {
     Texture,
     DataTexture,
     FloatType,
-    PixelFormat,
     AlphaFormat,
     LuminanceAlphaFormat,
     LuminanceFormat,
@@ -24,10 +23,6 @@ import {
     UnsignedInt248Type,
     UnsignedIntType,
     UnsignedShort5551Type,
-    WebGLRenderTarget,
-    WebGLRenderer,
-    TextureDataType,
-    Color,
 } from 'three';
 
 export const OPAQUE_BYTE = 255;
@@ -123,7 +118,7 @@ function load8bitImage(img, blob) {
 /**
  * Returns the number of channels per pixel.
  *
- * @param {PixelFormat} pixelFormat The pixel format.
+ * @param {"PixelFormat"} pixelFormat The pixel format.
  * @returns {number} The number of channels per pixel.
  */
 function getChannelCount(pixelFormat) {
@@ -163,7 +158,7 @@ function estimateSize(texture) {
 /**
  * Returns the number of bytes per channel.
  *
- * @param {TextureDataType} dataType The pixel format.
+ * @param {"TextureDataType"} dataType The pixel format.
  * @returns {number} The number of bytes per channel.
  */
 function getBytesPerChannel(dataType) {
@@ -194,8 +189,8 @@ function getBytesPerChannel(dataType) {
  *
  * This is useful because normally the pixels of a render target are not readable.
  *
- * @param {WebGLRenderTarget} target The render target to read back.
- * @param {WebGLRenderer} renderer The WebGL renderer to perform the operation.
+ * @param {"WebGLRenderTarget"} target The render target to read back.
+ * @param {"WebGLRenderer"} renderer The WebGL renderer to perform the operation.
  */
 function createDataCopy(target, renderer) {
     // Render target textures don't have data in CPU memory,
@@ -301,7 +296,7 @@ function createDataTexture(options, sourceDataType, ...pixelData) {
 /**
  * Returns a 1D texture containing a pixel on the horizontal axis for each color in the array.
  *
- * @param {Color[]} colors The color gradient.
+ * @param {"Color"[]} colors The color gradient.
  * @returns {DataTexture} The resulting texture.
  */
 function create1DTexture(colors) {
