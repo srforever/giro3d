@@ -135,7 +135,7 @@ class Entity3D extends Entity {
      * Picks objects given a position and a radius from the layer.
      *
      * @param {object} coordinates The x/y position in the layer
-     * @param {object=} options Optional properties. See Instance.pickObjectsAt
+     * @param {object} [options] Optional properties. See Instance.pickObjectsAt
      * @param {object[]} [target=undefined] Target array to fill
      * @returns {object[]} Picked objects (node)
      */

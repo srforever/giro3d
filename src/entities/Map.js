@@ -177,8 +177,8 @@ class Map extends Entity3D {
      * @param {boolean} [options.discardNoData=false] If `true`, parts of the map that relate to
      * no-data elevation values are not displayed. Note: you should only set this value to `true` if
      * an elevation layer is present, otherwise the map will never be displayed.
-     * @param {module:three.Object3D=} options.object3d The optional 3d object to use as the root
-     * object of this map. If none provided, a new one will be created.
+     * @param {module:three.Object3D} [options.object3d=undefined] The optional 3d object to use as
+     * the root object of this map. If none provided, a new one will be created.
      * @param {string} [options.backgroundColor=undefined] The color of the map when no color layers
      * are present.
      * @param {number} [options.backgroundOpacity=1] The opacity of the map background.

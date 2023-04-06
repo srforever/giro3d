@@ -89,12 +89,12 @@ class Instance extends EventDispatcher {
      * Constructs a giro3d Instance
      *
      * @param {HTMLElement} viewerDiv Where to instanciate the Three.js scene in the DOM
-     * @param {object=} options Optional properties.
+     * @param {object} [options] Optional properties.
      * @param {?string} [options.crs='EPSG:3857'] The default CRS of Three.js coordinates. Should
      * be a cartesian CRS.
-     * @param {?Scene} options.scene3D The [Three.js Scene](https://threejs.org/docs/#api/en/scenes/Scene) instance to use,
+     * @param {?Scene} [options.scene3D] The [Three.js Scene](https://threejs.org/docs/#api/en/scenes/Scene) instance to use,
      * otherwise a default one will be constructed
-     * @param {object=} options.renderer The options for the renderer.
+     * @param {object} [options.renderer] The options for the renderer.
      * @param {number|boolean} options.renderer.clearColor The background color.
      * Can be a hex color or `false` for transparent backgrounds (requires alpha true).
      * @param {boolean} options.renderer.alpha Enables transparency (default true).
@@ -707,7 +707,7 @@ class Instance extends EventDispatcher {
      * @api
      * @param {object} mouseOrEvt mouse position in window coordinates (0, 0 = top-left)
      * or MouseEvent or TouchEvent
-     * @param {object=} options Optional properties.
+     * @param {object} [options] Optional properties.
      * @param {?number} [options.radius=0] picking will happen in a circle centered on mouseOrEvt.
      * Radius is the radius of this circle, in pixels
      * @param {?number} [options.limit=Infinity] maximum number of objects to return
