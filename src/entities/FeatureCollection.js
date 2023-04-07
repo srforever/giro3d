@@ -142,9 +142,16 @@ class FeatureCollection extends Entity3D {
      * This callback is called just after a source data has been converted to a THREE.js Mesh, to
      * color individual meshes.
      *
-     * @typedef {Function} StyleCallback
+     * @typedef {Function} FeatureStyleCallback
      * @param {module:ol.Feature} feature the feature to style
      * @returns {StyleObject} The style of the current feature
+     */
+
+    /**
+     * @typedef {Function} FeatureExtrudeCallback
+     * @param {module:ol.Feature} feature the feature to extrude
+     * @returns {number|number[]} a extrusion value for the feature, or an array of extrusion value
+     * to apply to each vertices individually
      */
 
     /**
@@ -167,10 +174,15 @@ class FeatureCollection extends Entity3D {
      * @param {number|FeatureAltitudeCallback} [options.altitude] Set the altitude of the features
      * received from the source. It can be a constant for every feature, or a callback. The callback
      * version is particularly useful to derive the altitude from the properties of the feature.
-     * @param {StyleCallback|StyleObject} [options.style] an object or a callback returning such
-     * object to style the individual feature. If an object is returned, the informations it
-     * contains will be used to style every feature the same way. If a callback is provided, it
-     * will be called with the feature. This allows to individually style each feature.
+     * @param {FeatureStyleCallback|StyleObject} [options.style] an object or a callback returning
+     * such object to style the individual feature. If an object is returned, the informations it
+     * contains will be used to style every feature the same way. If a callback is provided, it will
+     * be called with the feature. This allows to individually style each feature.
+     * @param {number|FeatureExtrudeCallback} [options.extrude] configure the extrusion of polygon
+     * features of the source. If a number, the polygon will be extruded *up* with the specified
+     * amount. If it's a function, it will be called at the feature creation time with the feature
+     * as argument, allowing individual value for the feature, or each vertices if returning an
+     * array.
      */
     constructor(id, options = {}) {
         super(id, options.object3d || new Group());
@@ -211,6 +223,7 @@ class FeatureCollection extends Entity3D {
             material: options.material,
             altitude: options.altitude,
             style: options.style,
+            extrude: options.extrude,
         });
 
         this._opCounter = new OperationCounter();
