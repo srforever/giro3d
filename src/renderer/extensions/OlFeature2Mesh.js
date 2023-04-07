@@ -46,19 +46,71 @@ function fillColorArray(colors, length, r, g, b, offset) {
     }
 }
 
-function prepareBufferGeometry(geom, color, altitude, offset) {
-    const vertices = new Float32Array((3 * geom.flatCoordinates.length) / geom.stride);
-    const colors = new Uint8Array(3 * geom.flatCoordinates.length);
+/**
+ * Add indices for the side faces.
+ * We loop over the contour and create a side face made of two triangles.
+ *
+ * For a ring made of (n) coordinates, there are (n*2) vertices.
+ * The (n) first vertices are on the roof, the (n) other vertices are on the floor.
+ *
+ * If index (i) is on the roof, index (i+length) is on the floor.
+ *
+ * @param {number[]} indices Array of indices to push to
+ * @param {number} length Total vertices count in the geom (excluding the extrusion ones)
+ * @param {number} offset the offset in the array
+ * @param {number} count the number of indices
+ * @param {boolean} isClockWise Wrapping direction
+ */
+function addExtrudedPolygonSideFaces(indices, length, offset, count, isClockWise) {
+    // loop over contour length, and for each point of the contour,
+    // add indices to make two triangle, that make the side face
+    for (let i = offset; i < offset + count - 1; ++i) {
+        if (isClockWise) {
+            // first triangle indices
+            indices.push(i);
+            indices.push(i + length);
+            indices.push(i + 1);
+            // second triangle indices
+            indices.push(i + 1);
+            indices.push(i + length);
+            indices.push(i + length + 1);
+        } else {
+            // first triangle indices
+            indices.push(i + length);
+            indices.push(i);
+            indices.push(i + length + 1);
+            // second triangle indices
+            indices.push(i + length + 1);
+            indices.push(i);
+            indices.push(i + 1);
+        }
+    }
+}
+
+function prepareBufferGeometry(geom, color, altitude, offset, extrude) {
+    let numVertices = (3 * geom.flatCoordinates.length) / geom.stride;
+    const vertices = new Float32Array(extrude ? numVertices * 2 : numVertices);
+    const colors = new Uint8Array(extrude ? numVertices * 3 * 2: numVertices * 3);
 
     for (let i = 0; i < (geom.flatCoordinates.length / geom.stride); i++) {
         // get the coordinates that geom has
         for (let j = 0; j < geom.stride; j++) {
             vertices[3 * i + j] = geom.flatCoordinates[geom.stride * i + j] - offset[j];
         }
+        // fill the "top" face
+        if (extrude) {
+            // get the coordinates that geom has
+            for (let j = 0; j < geom.stride; j++) {
+                vertices[numVertices + 3 * i + j] = geom.flatCoordinates[geom.stride * i + j] - offset[j];
+            }
+        }
         // fill the rest of the stride
         if (geom.stride === 2) {
             vertices[3 * i + 2] = Array.isArray(altitude) ? altitude[i] : altitude;
             vertices[3 * i + 2] -= offset[2];
+        }
+        if (extrude) {
+            vertices[numVertices + 3 * i + 2] = vertices[3 * i + 2] + (Array.isArray(extrude) ? extrude[i] : extrude) - offset[2];
         }
     }
     fillColorArray(
@@ -67,9 +119,8 @@ function prepareBufferGeometry(geom, color, altitude, offset) {
 
     const threeGeom = new BufferGeometry();
     threeGeom.setAttribute('position', new BufferAttribute(vertices, 3));
-    threeGeom.setAttribute('color', new BufferAttribute(colors, 3, true));
+    // threeGeom.setAttribute('color', new BufferAttribute(colors, 3, true));
     threeGeom.computeBoundingBox();
-    threeGeom.computeVertexNormals();
     return threeGeom;
 }
 
@@ -105,14 +156,20 @@ function featureToPolygon(feature, offset, options) {
     // get altitude / color from properties
     const altitude = getProperty('altitude', options, 0, feature);
     const color = getProperty('color', options, randomColor, feature.getProperties());
+    const extrude = getProperty('extrude', options, 0, feature);
     const geom = feature.getGeometry();
 
-    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset);
+    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset, extrude);
 
     const ends = geom.getEnds().map(end => end / geom.stride);
 
+        // lol
+    console.log('polygon')
+        threeGeom.attributes.position.array.pop();
     const triangles = Earcut(threeGeom.attributes.position.array, ends.slice(0, -1), 3);
+    indices = indices.concat(triangles.map(i => i + start));
 
+    // TODO extrusion
     threeGeom.setIndex(new BufferAttribute(new Uint16Array(triangles), 1));
     return new Mesh(
         threeGeom,
@@ -124,13 +181,16 @@ function featureToMultiPolygon(feature, offset, options) {
     // get altitude from properties
     const altitude = getProperty('altitude', options, 0, feature);
     const color = getProperty('color', options, randomColor, feature.getProperties());
+    const extrude = getProperty('extrude', options, 0, feature);
     const geom = feature.getGeometry();
 
-    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset);
+    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset, extrude);
 
     let indices = [];
     let start = 0;
+    const numVertices = geom.flatCoordinates.length / geom.stride;
     const mapTriangle = i => i + start;
+    const mapTriangleExtrude = i => i + start + numVertices;
     const normalizingEndsFn = end => end / geom.stride - start;
     // we could use geom.getPolygons, but as we already got all the coordinates
     // in one buffer, it's easier to stay at the geom level and use endss
@@ -140,15 +200,22 @@ function featureToMultiPolygon(feature, offset, options) {
 
         // Convert ends from array element indices to number of 3d coordinates relative to the start
         // of this polygon
+    console.log('multipolygon')
         const normalizedEnds = ends.map(normalizingEndsFn);
+        // TODO check slice : supposed to remove the last element because ol (?) close polygons
         const triangles = Earcut(
-            threeGeom.attributes.position.array.slice(start * 3, polyNormEnd * 3),
+            threeGeom.attributes.position.array.slice(start * 3, (polyNormEnd - 1) * 3),
             normalizedEnds.slice(0, -1),
             3,
         );
 
         // shift them to represent their position in the global array
         indices = indices.concat(triangles.map(mapTriangle));
+        if (extrude) {
+            indices = indices.concat(triangles.map(mapTriangleExtrude));
+            // TODO isClockwise?
+            addExtrudedPolygonSideFaces(indices, numVertices, start, polyNormEnd - start, true);
+        }
         start = polyNormEnd;
     }
 
@@ -194,9 +261,14 @@ function featureToMesh(feature, offset, options) {
         default:
     }
 
+    mesh.geometry.computeVertexNormals();
+    const color = getProperty('color', options, randomColor, feature.getProperties());
+    // set mesh material
+    // mesh.material.vertexColors = true;
     // configure mesh material
     mesh.material.needsUpdate = true;
     mesh.material.side = DoubleSide;
+    mesh.material.color = new Color(color);
 
     // Remember this feature properties
     mesh.userData.properties = feature.getProperties();
