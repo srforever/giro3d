@@ -1,5 +1,51 @@
 # Changelog
 
+## v0.23.0 (2023-04-11)
+
+### BREAKING CHANGE
+
+- `OBB.js` is moved to `/core` subfolder
+- `FirstPersonControls.js` and `OrthoCameraControls.js` are
+moved to the `/controls` subfolder
+
+### Feat
+
+- **LayeredMaterial**: make `discardNoData` dynamic. See the [example](https://giro3d.org/examples/cog_nodata.html).
+- **Map**: add API to reorder layers (#81)
+- add mask layers (#247).
+- add elevationRange on `Map` and `ColorLayer` (#246)
+- **Extent**: add `fromCenterAndSize()` method
+- **WebGLComposer**: enable anisotropy and mipmaps
+- **Provider**: providers can decide extents and texture size (#243)
+- **Extent**: add the `equals()` function
+- **Extent**: add the `fitToGrid()` function
+
+### Fix
+
+- Fix incorrect imports (#262)
+- **composer**: fix no-data filling algorithm (#151). See the [example](https://giro3d.org/examples/cog_nodata.html).
+- **Picking**: render with a black clear color to avoid decoding issues (#249)
+- **PointsMaterial**: fix warning due to missing uniform (#250)
+- **TileFS**: honor opacity when no color layer is present (#259)
+- **Map**: don't assign `imageSize` to layers (#257)
+- **point clouds**: honor opacity changes when a custom material is used (#255)
+- **OLVectorTileProvider**: fix invalid texture sizes (#254)
+- **Tiles3D**: make progress reporting more fluid (#253)
+- **COGProvider**: use `LinearFilter` for tile textures (#243)
+- **LayeredMaterial**: honor actual texture sizes in atlas manipulation (#243)
+- **GeoTIFFFormat**: use linear filtering instead of the default nearest neighbour (#243)
+- **Map.js**: don't artificially stop division when tile size is < 5
+- **Map.js**: don't create unnecessary promises
+
+### Refactor
+
+- **Map**: handle the atlas
+- **Inspector**: display id of elements
+- move OBB into /core subfolder (#185)
+- **controls**: move in /controls subfolder (#185)
+- **OpenLayerUtils**: introduce `OpenLayerUtils` for `{from,to}OLExtent`
+- **Scheduler**: use simple callbacks instead of referencing providers
+
 ## v0.22.0 (2023-03-16)
 
 ### Feat
