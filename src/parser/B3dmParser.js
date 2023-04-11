@@ -57,10 +57,10 @@ export default {
      *
      * @param {ArrayBuffer} buffer the b3dm buffer.
      * @param {object} options additional properties.
-     * @param {string=} [options.gltfUpAxis='Y'] embedded glTF model up axis.
+     * @param {string} [options.gltfUpAxis='Y'] embedded glTF model up axis.
      * @param {string} options.urlBase the base url of the b3dm file (used to fetch textures for
      * the embedded glTF model).
-     * @param {boolean=} [options.doNotPatchMaterial='false'] disable patching material with
+     * @param {boolean} [options.doNotPatchMaterial='false'] disable patching material with
      * logarithmic depth buffer support.
      * @param {number} [options.opacity=1.0] the b3dm opacity.
      * @param {boolean|Material} [options.overrideMaterials='false'] override b3dm's embedded

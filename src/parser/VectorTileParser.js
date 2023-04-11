@@ -73,10 +73,10 @@ export default {
      * @param {object} options Options controlling the parsing.
      * @param {Extent} options.extent The Extent to convert the input coordinates to.
      * @param {Extent} options.coords Coordinates of the layer.
-     * @param {Extent=} options.filteringExtent Optional filter to reject features
+     * @param {Extent} [options.filteringExtent] Optional filter to reject features
      * outside of this extent.
-     * @param {Function=} options.filter Filter function to remove features.
-     * @param {string=} options.origin This option is to be set to the correct
+     * @param {Function} [options.filter] Filter function to remove features.
+     * @param {string} [options.origin] This option is to be set to the correct
      * value, bottom or top (default being bottom), if the computation of the
      * coordinates needs to be inverted to same scheme as OSM, Google Maps or
      * other system. See [this link]{@link https://alastaira.wordpress.com/2011/07/06/converting-tms-tile-coordinates-to-googlebingosm-tile-coordinates} for more informations.

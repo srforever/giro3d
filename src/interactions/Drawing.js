@@ -113,7 +113,7 @@ class Drawing extends Group {
      * Creates a new 3D Object
      *
      * @param {Instance} instance Giro3D instance
-     * @param {object=} options Optional properties
+     * @param {object} [options] Optional properties
      * @param {?string} options.name Name for this shape
      * @param {?number} [options.minExtrudeDepth=3] Minimum depth for the extrusion
      * @param {?number} [options.maxExtrudeDepth=20] Maximum depth for the extrusion
@@ -133,7 +133,7 @@ class Drawing extends Group {
      * @param {?Material} options.planeHelperMaterial Material to be used for the plane helper
      * (if visible)
      * @param {?number} [options.pointsBudget=100] Initial number of points to allocate when drawing
-     * @param {object=} geojson Initial GeoJSON shape
+     * @param {object} [geojson] Initial GeoJSON shape
      */
     constructor(instance, options = {}, geojson = null) {
         super();
@@ -487,7 +487,7 @@ class Drawing extends Group {
     /**
      * Sets materials for this object
      *
-     * @param {object=} materials Optional materials
+     * @param {object} [materials] Optional materials
      * @param {?Material} materials.faceMaterial Material to be used for faces
      * @param {?Material} materials.sideMaterial Material to be used for the extruded sides
      * @param {?LineBasicMaterial} materials.lineMaterial Material to be used for the borders

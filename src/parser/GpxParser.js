@@ -189,12 +189,12 @@ export default {
      * Parse gpx file and convert to Mesh
      *
      * @param {string} xml the gpx file or xml.
-     * @param {object=} options additional properties.
+     * @param {object} options additional properties.
      * @param {string} options.crs the default CRS of Three.js coordinates. Should be a cartesian
      * CRS.
-     * @param {boolean=} [options.enablePin=true] draw pin for way points.
-     * @param {object=} options.networkOptions options for fetching resources over network.
-     * @param {number=} [options.lineWidth=12] set line width to track line.
+     * @param {boolean} [options.enablePin=true] draw pin for way points.
+     * @param {object} options.networkOptions options for fetching resources over network.
+     * @param {number} [options.lineWidth=12] set line width to track line.
      * @returns {Mesh} a promise that resolves with a Three.js Mesh (see
      * {@link https://threejs.org/docs/#api/objects/Mesh}).
      * @example

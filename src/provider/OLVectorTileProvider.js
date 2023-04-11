@@ -35,8 +35,6 @@ import {
 import {
     Tile,
     VectorRenderTile,
-    TileGrid,
-    TileSource,
 } from 'ol';
 import {
     create as createTransform,
@@ -44,6 +42,9 @@ import {
     scale as scaleTransform,
     translate as translateTransform,
 } from 'ol/transform.js';
+
+import TileGrid from 'ol/tilegrid/TileGrid.js';
+import TileSource from 'ol/source/Tile.js';
 
 import DataStatus from './DataStatus.js';
 import Extent from '../core/geographic/Extent.js';

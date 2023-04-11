@@ -256,7 +256,7 @@ class DrawTool extends EventDispatcher {
      * Constructs a DrawTool
      *
      * @param {Instance} instance Giro3D instance
-     * @param {object=} options Optional properties
+     * @param {object} [options] Optional properties
      * @param {?number} [options.maxPoints=Infinity] The number of points that can be drawn
      * before a polygon or line is finished
      * @param {?number} [options.minPoints=2|3] The number of points that must be drawn before
@@ -293,7 +293,7 @@ class DrawTool extends EventDispatcher {
     /**
      * Utility function to set options.
      *
-     * @param {object=} options See constructor
+     * @param {object} [options] See constructor
      * @api
      */
     setOptions(options) {
