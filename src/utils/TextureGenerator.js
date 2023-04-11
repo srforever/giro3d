@@ -50,95 +50,24 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
     }
 
     if (pixelData.length === 1) {
-        // We simply triplicate the value into the RGB channels,
-        if (options.nodata !== undefined) {
-            let emptyLines = 0;
-            const v = pixelData[0];
-            const nodata = options.nodata;
-            const width = options.width;
-            const height = options.height;
-            for (let h = 0; h < height; h++) {
-                const hw = h * width;
-                let a;
-                let value;
-                let fillRight;
-                for (let w = 0; w < width; w++) {
-                    const i = hw + w;
-                    const raw = v[i];
-                    const idx = i * 4;
-                    if (Number.isNaN(raw) || raw === nodata) {
-                        if (fillRight === undefined) {
-                            value = undefined;
-                        } else {
-                            value = fillRight;
-                        }
-                        a = TRANSPARENT;
-                    } else {
-                        value = getValue(raw);
-                        if (fillRight === undefined) {
-                            for (let j = idx - 4; j >= hw * 4; j -= 4) {
-                                buf[j + 0] = value;
-                                buf[j + 1] = value;
-                                buf[j + 2] = value;
-                            }
-                        }
-                        fillRight = value;
-                        a = opaqueValue;
-                    }
-                    buf[idx + 0] = value;
-                    buf[idx + 1] = value;
-                    buf[idx + 2] = value;
-                    buf[idx + 3] = a;
-                }
-                if (fillRight === undefined && value === undefined) {
-                    emptyLines++;
-                }
+        const v = pixelData[0];
+        const length = v.length;
+        for (let i = 0; i < length; i++) {
+            const idx = i * 4;
+            let value;
+            let a;
+            const raw = v[i];
+            if (Number.isNaN(raw) || raw === options.nodata) {
+                value = DEFAULT_NODATA;
+                a = TRANSPARENT;
+            } else {
+                value = getValue(raw);
+                a = opaqueValue;
             }
-            if (emptyLines > 0) {
-                for (let w = 0; w < width; w++) {
-                    let fillAbove;
-                    for (let h = 0; h < height; h++) {
-                        const i = h * width + w;
-                        const idx = i * 4;
-                        const raw = buf[idx];
-                        if (!Number.isNaN(raw)) {
-                            if (fillAbove === undefined) {
-                                for (let j = h; j >= 0; j--) {
-                                    const jdx = (j * width + w) * 4;
-                                    buf[jdx + 0] = raw;
-                                    buf[jdx + 1] = raw;
-                                    buf[jdx + 2] = raw;
-                                }
-                            }
-                            fillAbove = raw;
-                        } else {
-                            buf[idx + 0] = fillAbove;
-                            buf[idx + 1] = fillAbove;
-                            buf[idx + 2] = fillAbove;
-                        }
-                    }
-                }
-            }
-        } else {
-            const v = pixelData[0];
-            const length = v.length;
-            for (let i = 0; i < length; i++) {
-                const idx = i * 4;
-                let value;
-                let a;
-                const raw = v[i];
-                if (Number.isNaN(raw)) {
-                    value = DEFAULT_NODATA;
-                    a = TRANSPARENT;
-                } else {
-                    value = getValue(raw);
-                    a = opaqueValue;
-                }
-                buf[idx + 0] = value;
-                buf[idx + 1] = value;
-                buf[idx + 2] = value;
-                buf[idx + 3] = a;
-            }
+            buf[idx + 0] = value;
+            buf[idx + 1] = value;
+            buf[idx + 2] = value;
+            buf[idx + 3] = a;
         }
     }
     if (pixelData.length === 3) {

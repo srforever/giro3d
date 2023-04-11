@@ -9,12 +9,10 @@ struct Interpretation {
 };
 
 /**
- * Decodes the texture using the provided interpretation.
+ * Decodes the raw color according to the specified interpretation.
  */
-vec4 decode(sampler2D texture, vec2 coord, Interpretation interpretation) {
-    vec4 raw = texture2D(texture, coord);
-
-    if (interpretation.mode == INTERPRETATION_RAW) {
+vec4 decode(vec4 raw, Interpretation interpretation) {
+    if(interpretation.mode == INTERPRETATION_RAW) {
         return raw;
     }
     if (interpretation.mode == INTERPRETATION_MAPBOX_TERRAIN_RGB) {

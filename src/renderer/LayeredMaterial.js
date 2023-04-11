@@ -83,9 +83,7 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.getIndexFn = getIndexFn;
 
-        if (options.discardNoData) {
-            this.defines.DISCARD_NODATA_ELEVATION = 1;
-        }
+        MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', options.discardNoData);
 
         this.uniforms.segments = new Uniform(options.segments);
 
@@ -530,6 +528,7 @@ class LayeredMaterial extends RawShaderMaterial {
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this.elevationLayer?.visible);
         MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', materialOptions.hillshading);
         MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', this.showOutline);
+        MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', materialOptions.discardNoData);
 
         const newSide = materialOptions.doubleSided ? DoubleSide : FrontSide;
         if (this.side !== newSide) {

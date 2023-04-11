@@ -251,65 +251,6 @@ describe('TextureGenerator', () => {
                             : OPAQUE_FLOAT);
                     }
                 });
-
-                it('should set apha at transparent and data to the closest valid value if no-data is provided', () => {
-                    const ND = 5.2; // nodata
-                    const A = 3.3;
-                    const B = 5.9;
-                    const C = 137.1;
-                    const data = [
-                        ND, ND, ND,
-                        ND, A, ND,
-                        ND, B, ND,
-                        ND, C, ND,
-                        ND, ND, ND,
-                    ];
-                    const w = 3;
-                    const h = 5;
-                    const expectedOutputLength = data.length * 4; // RGBA
-
-                    const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h, nodata: ND }, FloatType, data,
-                    );
-
-                    const buf = result.image.data;
-
-                    expect(result).toBeInstanceOf(DataTexture);
-                    expect(buf).toBeInstanceOf(Float32Array);
-                    expect(buf).toHaveLength(expectedOutputLength);
-
-                    function testMatrices(color, alpha) {
-                        for (let i = 0; i < color.length; i++) {
-                            const value = color[i];
-                            const a = alpha[i];
-                            const idx = i * 4;
-                            expect(buf[idx + 0]).toBeCloseTo(value);
-                            expect(buf[idx + 1]).toBeCloseTo(value);
-                            expect(buf[idx + 2]).toBeCloseTo(value);
-                            expect(buf[idx + 3]).toEqual(a);
-                        }
-                    }
-
-                    const OPAQUE = OPAQUE_FLOAT;
-                    const TRANSP = TRANSPARENT;
-
-                    testMatrices(
-                        [
-                            A, A, A,
-                            A, A, A,
-                            B, B, B,
-                            C, C, C,
-                            C, C, C,
-                        ],
-                        [
-                            TRANSP, TRANSP, TRANSP,
-                            TRANSP, OPAQUE, TRANSP,
-                            TRANSP, OPAQUE, TRANSP,
-                            TRANSP, OPAQUE, TRANSP,
-                            TRANSP, TRANSP, TRANSP,
-                        ],
-                    );
-                });
             });
 
             describe('given 3 input channels', () => {

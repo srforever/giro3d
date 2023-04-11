@@ -162,6 +162,7 @@ class WebGLComposer {
      * @param {Interpretation} [options.interpretation=Interpretation.Raw] The pixel interpretation.
      * @param {number} [options.zOrder=0] The Z-order of the texture in the composition space.
      * @param {boolean} [options.flipY] Flip the image vertically.
+     * @param {boolean} [options.fillNoData] Fill no-data values of the image.
      */
     draw(texture, extent, options = {}) {
         const geometry = new PlaneGeometry(extent.width, extent.height, 1, 1);
@@ -175,14 +176,14 @@ class WebGLComposer {
         }
         this.textures.push(texture);
         const interpretation = options.interpretation ?? Interpretation.Raw;
-        const material = new ComposerTileMaterial(
+        const material = ComposerTileMaterial.acquire({
             texture,
-            {
-                interpretation,
-                flipY: options.flipY,
-                showImageOutlines: this.showImageOutlines,
-            },
-        );
+            fillNoData: options.fillNoData,
+            interpretation,
+            flipY: options.flipY,
+            showImageOutlines: this.showImageOutlines,
+        });
+
         if (__DEBUG__) {
             MemoryTracker.track(geometry, 'WebGLComposer quad');
             MemoryTracker.track(material, 'WebGLComposer quad');
@@ -210,7 +211,7 @@ class WebGLComposer {
         const childrenCopy = [...this.scene.children];
         for (const child of childrenCopy) {
             child.geometry.dispose();
-            child.material.dispose();
+            ComposerTileMaterial.release(child.material);
             this.scene.remove(child);
         }
     }
