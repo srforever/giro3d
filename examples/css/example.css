@@ -83,3 +83,11 @@ body {
 .status-progress-bar {
   width: 8rem;
 }
+
+.status-progress-value {
+    width: 2rem;
+}
+
+.status-attribution {
+    margin-left: 1rem;
+}
