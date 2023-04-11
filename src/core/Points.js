@@ -10,12 +10,18 @@ import PointsMaterial from '../renderer/PointsMaterial.js';
  * @api
  */
 class Points extends ThreePoints {
-    constructor(layer, geometry, material = new PointsMaterial()) {
+    constructor({
+        layer,
+        geometry,
+        material = new PointsMaterial(),
+        textureSize,
+    }) {
         super(geometry, material);
         this._layer = layer;
         this.extent = undefined;
         this.layerUpdateState = {};
         this.wmtsCoords = {};
+        this.textureSize = textureSize;
     }
 
     getExtentForLayer(layer) {

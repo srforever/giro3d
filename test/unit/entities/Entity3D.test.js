@@ -108,17 +108,17 @@ describe('Entity3D', () => {
             return layer;
         }
 
-        it('should assign a default image size if none is present', () => {
+        it('should add the layer to the list of attached layers', () => {
             const entity = sut();
             const layer1 = makeLayer();
+            const layer2 = makeLayer();
+
             entity.attach(layer1);
 
-            expect(layer1.imageSize).toEqual({ w: 256, h: 256 });
+            expect(entity._attachedLayers).toEqual([layer1]);
 
-            const layer2 = makeLayer();
-            layer2.imageSize = { w: 3, h: 114 };
             entity.attach(layer2);
-            expect(layer2.imageSize).toEqual({ w: 3, h: 114 });
+            expect(entity._attachedLayers).toEqual([layer1, layer2]);
         });
     });
 });

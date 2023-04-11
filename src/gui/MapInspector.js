@@ -94,9 +94,9 @@ class MapInspector extends EntityInspector {
                 .name('Elevation range maximum')
                 .onChange(() => this.notify(map));
         }
-        this.addController(this.map.imageSize, 'w')
+        this.addController(this.map.imageSize, 'width')
             .name('Tile width  (pixels)');
-        this.addController(this.map.imageSize, 'h')
+        this.addController(this.map.imageSize, 'height')
             .name('Tile height  (pixels)');
         this.addController(this, 'showGrid')
             .name('Show grid')

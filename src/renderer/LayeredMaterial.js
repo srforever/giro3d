@@ -34,6 +34,8 @@ ShaderChunk.ComputeUV = ComputeUV;
 ShaderChunk.LayerInfo = LayerInfoChunk;
 ShaderChunk.ColorMap = ColorMapChunk;
 
+const EMPTY_IMAGE_SIZE = 16;
+
 const emptyTexture = new Texture();
 
 function makeArray(size) {
@@ -263,10 +265,10 @@ class LayeredMaterial extends RawShaderMaterial {
         const offsetScale = this.texturesInfo.color.infos[index].offsetScale;
 
         if (shortcut) {
-            const w = textures?.texture?.image?.width || layer.imageSize.w;
-            const h = textures?.texture?.image?.height || layer.imageSize.h;
+            const width = textures?.texture?.image?.width || EMPTY_IMAGE_SIZE;
+            const height = textures?.texture?.image?.height || EMPTY_IMAGE_SIZE;
             updateOffsetScale(
-                { w, h },
+                new Vector2(width, height),
                 this.atlasInfo.atlas[layer.id],
                 originalOffsetScale,
                 this.composer.width,
@@ -286,11 +288,11 @@ class LayeredMaterial extends RawShaderMaterial {
 
             const texture = this.texturesInfo.color.infos[idx].texture;
 
-            const w = texture?.image?.width || l.imageSize.w;
-            const h = texture?.image?.height || l.imageSize.h;
+            const w = texture?.image?.width || EMPTY_IMAGE_SIZE;
+            const h = texture?.image?.height || EMPTY_IMAGE_SIZE;
 
             updateOffsetScale(
-                { w, h },
+                new Vector2(w, h),
                 this.atlasInfo.atlas[l.id],
                 this.texturesInfo.color.infos[idx].originalOffsetScale,
                 this.composer.width,
@@ -581,8 +583,8 @@ class LayeredMaterial extends RawShaderMaterial {
                 const texture = this.texturesInfo.color.infos[i].texture;
 
                 // compute offset / scale
-                const w = texture?.image?.width || layer.imageSize.w;
-                const h = texture?.image?.height || layer.imageSize.h;
+                const w = texture?.image?.width || EMPTY_IMAGE_SIZE;
+                const h = texture?.image?.height || EMPTY_IMAGE_SIZE;
                 const xRatio = w / this.composer.width;
                 const yRatio = h / this.composer.height;
                 this.texturesInfo.color.infos[i].offsetScale = new Vector4(
@@ -699,8 +701,8 @@ function updateOffsetScale(imageSize, atlas, originalOffsetScale, width, height,
         return;
     }
     // compute offset / scale
-    const xRatio = imageSize.w / width;
-    const yRatio = imageSize.h / height;
+    const xRatio = imageSize.width / width;
+    const yRatio = imageSize.height / height;
 
     target.set(
         atlas.x / width + originalOffsetScale.x * xRatio,

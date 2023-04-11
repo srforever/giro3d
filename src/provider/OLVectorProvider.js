@@ -55,8 +55,12 @@ function preprocessDataLayer(layer) {
     layer.getStyleFunction = () => layer.style(Style, Fill, Stroke, Icon, Text);
 }
 
-// eslint-disable-next-line no-unused-vars
-function getPossibleTextureImprovements(layer, extent, texture) {
+function getPossibleTextureImprovements({
+    layer,
+    extent,
+    texture,
+    size,
+}) {
     if (texture && texture.extent
         && texture.extent.isInside(extent)
         && texture.revision === layer.source.getRevision()) {
@@ -65,33 +69,33 @@ function getPossibleTextureImprovements(layer, extent, texture) {
 
     const layerExtent = OpenLayersUtils.fromOLExtent(layer.source.getExtent(), layer.projection);
     if (extent.intersectsExtent(layerExtent)) {
-        return { extent };
+        return { extent, size };
     }
     if (texture && texture.empty) {
         return DataStatus.DATA_NOT_AVAILABLE_YET;
     }
-    return { extent };
+    return { extent, size };
 }
 
 function executeCommand(instance, layer, requester, toDownload) {
-    const { extent, pitch } = toDownload;
-    return createTexture(extent, pitch, layer);
+    const { extent, pitch, size } = toDownload;
+    return createTexture(extent, pitch, layer, size);
 }
 
-function createTexture(extent, pitch, layer) {
+function createTexture(extent, pitch, layer, size) {
     const layerExtent = OpenLayersUtils.fromOLExtent(layer.source.getExtent(), layer.projection);
     if (!extent.intersectsExtent(layerExtent)) {
         return Promise.resolve({ texture: emptyTexture, pitch: new Vector4(0, 0, 0, 0) });
     }
 
-    const builderGroup = createBuilderGroup(extent, layer);
+    const builderGroup = createBuilderGroup(extent, layer, size);
     let texture;
     if (!builderGroup) {
         texture = new Texture();
         pitch = new Vector4(0, 0, 0, 0);
     } else {
-        const canvas = createCanvas(layer);
-        renderTileImage(canvas, builderGroup, extent, layer);
+        const canvas = createCanvas(size);
+        renderTileImage(canvas, builderGroup, extent, size);
         texture = new CanvasTexture(canvas);
         pitch = pitch ?? new Vector4(0, 0, 1, 1);
     }
@@ -100,17 +104,17 @@ function createTexture(extent, pitch, layer) {
     return Promise.resolve({ texture, pitch });
 }
 
-function createCanvas(layer) {
+function createCanvas(size) {
     const canvas = document.createElement('canvas');
-    canvas.width = layer.imageSize.w;
-    canvas.height = layer.imageSize.h;
+    canvas.width = size.width;
+    canvas.height = size.height;
     return canvas;
 }
 
-function createBuilderGroup(extent, layer) {
+function createBuilderGroup(extent, layer, size) {
     const { source } = layer;
     const pixelRatio = 1;
-    const resolution = (extent.dimensions().x / layer.imageSize.w);
+    const resolution = (extent.dimensions().x / size.width);
     const olExtent = OpenLayersUtils.toOLExtent(extent, 0.001);
     const builderGroup = new CanvasBuilderGroup(0, olExtent, resolution, pixelRatio);
     const squaredTolerance = getSquaredRenderTolerance(resolution, pixelRatio);
@@ -159,23 +163,23 @@ function renderFeature(feature, squaredTolerance, styles, builderGroup) {
 function handleStyleImageChange_() {
 }
 
-function renderTileImage(canvas, builderGroup, extent, layer) {
+function renderTileImage(canvas, builderGroup, extent, size) {
     const pixelRatio = 1;
-    const resolutionX = extent.dimensions().x / layer.imageSize.w;
-    const resolutionY = extent.dimensions().y / layer.imageSize.h;
+    const resolutionX = extent.dimensions().x / size.width;
+    const resolutionY = extent.dimensions().y / size.height;
     const ctx = canvas.getContext('2d');
     ctx.save();
     // clipping path
 
-    ctx.clearRect(0, 0, layer.imageSize.w, layer.imageSize.h);
+    ctx.clearRect(0, 0, size.width, size.height);
     ctx.beginPath();
-    ctx.rect(0, 0, layer.imageSize.w, layer.imageSize.h);
+    ctx.rect(0, 0, size.width, size.height);
     ctx.clip();
     const transform = resetTransform(tmpTransform_);
     scaleTransform(transform, pixelRatio / resolutionX, -pixelRatio / resolutionY);
     translateTransform(transform, -extent.west(), -extent.north());
     const olExtent = OpenLayersUtils.toOLExtent(extent);
-    const resolution = (extent.dimensions().x / layer.imageSize.w);
+    const resolution = (extent.dimensions().x / size.width);
     const executor = new ExecutorGroup(
         olExtent, resolution, pixelRatio, true, builderGroup.finish(),
     );

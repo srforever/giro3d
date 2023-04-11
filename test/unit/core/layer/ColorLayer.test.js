@@ -65,7 +65,7 @@ describe('ColorLayer', () => {
             // clear commands array
             context.scheduler.commands = [];
             // reset default layer state
-            layer.tileInsideLimit = () => true;
+            layer.provider = { tileInsideLimit: () => true };
             layer.visible = true;
             layer.ready = true;
             layer.imageSize = { w: 256, h: 256 };
@@ -79,16 +79,17 @@ describe('ColorLayer', () => {
         });
 
         it('hidden tile should not execute commands', () => {
-            const tile = new TileMesh(
+            const tile = new TileMesh({
                 map,
-                new LayeredMaterial({
+                material: new LayeredMaterial({
                     options: {},
                     renderer: {},
                     atlasInfo: { maxX: 0, maxY: 0, atlas: {} },
                 }),
-                new Extent('EPSG:4326', 0, 0, 0, 0),
-                8,
-            );
+                extent: new Extent('EPSG:4326', 0, 0, 0, 0),
+                segments: 8,
+                coord: { level: 0, x: 0, y: 0 },
+            });
             tile.material.visible = false;
             tile.material.indexOfColorLayer = () => 0;
             layer.update(context, tile);
@@ -96,35 +97,35 @@ describe('ColorLayer', () => {
         });
 
         it('tile with best texture should not execute commands', () => {
-            const tile = new TileMesh(
+            const tile = new TileMesh({
                 map,
-                new LayeredMaterial({
+                material: new LayeredMaterial({
                     options: {},
                     renderer: {},
                     atlasInfo: { maxX: 0, maxY: 0, atlas: {} },
                 }),
-                new Extent('EPSG:4326', 0, 0, 0, 0),
-                8,
-            );
+                coord: { level: 0, x: 0, y: 0 },
+                extent: new Extent('EPSG:4326', 0, 0, 0, 0),
+                segments: 8,
+            });
             tile.material.visible = true;
-            layer.getPossibleTextureImprovements = () => null;
             layer.update(context, tile);
 
             assert.equal(context.scheduler.commands.length, 0);
         });
 
         it('tile with downscaled texture should execute 1 command', () => {
-            const tile = new TileMesh(
+            const tile = new TileMesh({
                 map,
-                new LayeredMaterial({
+                material: new LayeredMaterial({
                     options: {},
                     renderer: {},
                     atlasInfo: { maxX: 0, maxY: 0, atlas: {} },
                 }),
-                new Extent('EPSG:4326', 0, 0, 0, 0),
-                8,
-                2,
-            );
+                extent: new Extent('EPSG:4326', 0, 0, 0, 0),
+                segments: 8,
+                coord: { level: 2, x: 0, y: 0 },
+            });
             tile.material.visible = true;
 
             tile.parent = {
@@ -138,7 +139,7 @@ describe('ColorLayer', () => {
                 },
             };
             // fake texture update information
-            layer.getPossibleTextureImprovements = () => ({ extent });
+            layer.provider.getPossibleTextureImprovements = () => ({ extent });
 
             // FIRST PASS: init Node From Parent and get out of the function
             // without any network fetch

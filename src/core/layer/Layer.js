@@ -216,18 +216,6 @@ class Layer extends EventDispatcher {
             return this;
         }
 
-        if (this.provider) {
-            if (this.provider.tileInsideLimit) {
-                // TODO remove bind ?
-                this.tileInsideLimit = this.provider.tileInsideLimit.bind(this.provider);
-            }
-            if (this.provider.getPossibleTextureImprovements) {
-                this.getPossibleTextureImprovements = this.provider
-                    .getPossibleTextureImprovements
-                    .bind(this.provider);
-            }
-        }
-
         if (!this.whenReady) {
             let providerPreprocessing = Promise.resolve();
             if (this.provider && this.provider.preprocessDataLayer) {

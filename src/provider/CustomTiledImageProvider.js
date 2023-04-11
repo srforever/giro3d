@@ -64,14 +64,19 @@ function getKey(images) {
 }
 
 async function getTexture(toDownload, instance, layer) {
-    const { extent, images, pitch } = toDownload;
+    const {
+        extent,
+        images,
+        pitch,
+        size,
+    } = toDownload;
 
     const isElevationLayer = layer.type === 'ElevationLayer';
 
     const composer = new WebGLComposer({
         extent: Rect.fromExtent(extent),
-        width: layer.imageSize.w,
-        height: layer.imageSize.h,
+        width: size.width,
+        height: size.height,
         webGLRenderer: instance.renderer,
         showImageOutlines: layer.showTileBorders || false,
         createDataCopy: isElevationLayer,
@@ -170,7 +175,12 @@ export default {
         return (results && results.length > 0);
     },
 
-    getPossibleTextureImprovements(layer, extent, currentTexture) {
+    getPossibleTextureImprovements({
+        layer,
+        extent,
+        texture,
+        size,
+    }) {
         if (!layer.images) {
             // We may still be loading the images
             return DataStatus.DATA_NOT_AVAILABLE_YET;
@@ -183,10 +193,10 @@ export default {
 
         const key = getKey(images);
 
-        if (currentTexture?.key === key) {
+        if (texture?.key === key) {
             return DataStatus.DATA_ALREADY_LOADED;
         }
-        return { images, extent };
+        return { images, extent, size };
     },
 
     executeCommand(instance, layer, requester, toDownload) {

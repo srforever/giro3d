@@ -1,70 +1,67 @@
+import { Vector2 } from 'three';
 import fit from './Packer.js';
+
+/**
+ * An atlas image.
+ *
+ * @typedef {object} AtlasImage
+ * @property {string} id The unique identifier of this image in the atlas.
+ * @property {Vector2} size The size of the image, in pixels.
+ */
 
 /**
  * Build a texture atlas from N images.
  *
- * We use a classic 2D Bin Packing algorithm to assign each individual image a
- * location in the resulting texture.
- * Then this texture is created using a <canvas>,  onto which we draw all images.
- * In the end we return a THREE CanvasTexture and an array 'uv' of Vector4, describing
- * the position/size of each input images in the atlas.
- *
- * @param {Array} images an array of <img>
- * @param {Array} uvs an array of coordinates indicating what part of the image we should keep
- * @param {boolean} needsPixelSeparation does this atlas need to use a anti color bleed pixel
- * between images
- * @returns {module:three.CanvasTexture} the texture atlas
+ * @param {number} maxSize The maximum texture size of the atlas, in pixels.
+ * @param {Array<AtlasImage>} images The images to pack.
+ * @param {object} oldAtlas The previous atlas.
  */
+function pack(maxSize, images, oldAtlas) {
+    const blocks = [];
+
+    for (let i = 0; i < images.length; i++) {
+        if (oldAtlas && images[i].id in oldAtlas) {
+            continue;
+        }
+        const sWidth = images[i].size.width;
+        const sHeight = images[i].size.height;
+
+        blocks.push({
+            layerId: images[i].id,
+            w: Math.min(maxSize, sWidth),
+            h: Math.min(maxSize, sHeight),
+        });
+    }
+
+    // sort from big > small images (the packing alg works best if big images are treated first)
+    blocks.sort((a, b) => Math.max(a.w, a.h) < Math.max(b.w, b.h));
+
+    let previousRoot;
+    if (oldAtlas) {
+        for (const k of Object.keys(oldAtlas)) { // eslint-disable-line guard-for-in
+            const fitResult = oldAtlas[k];
+            if (fitResult.x === 0 && fitResult.y === 0) {
+                // Updating
+                previousRoot = fitResult;
+                break;
+            }
+        }
+    }
+    if (oldAtlas && !previousRoot) {
+        console.error('UH: oldAtlas is defined, but not previousRoot');
+    }
+
+    const { maxX, maxY } = fit(blocks, maxSize, maxSize, previousRoot);
+
+    const atlas = oldAtlas || {};
+    for (let i = 0; i < blocks.length; i++) {
+        atlas[blocks[i].layerId] = blocks[i].fit;
+        atlas[blocks[i].layerId].offset = 0;
+    }
+
+    return { atlas, maxX, maxY };
+}
+
 export default {
-    pack(maxSize, layerIds, imageSizes, oldAtlas) {
-        // pick an available canvas, or build a new one
-        // const atlasCanvas = getCanvas();
-        maxSize = 2048;
-        // Use a 1 pixel border to avoid color bleed when sampling at the edges
-        // of the texture
-        const colorBleedHalfOffset = 0;// 1; // imageSizes.length === 1 ? 0 : 1;
-        const blocks = [];
-
-        for (let i = 0; i < imageSizes.length; i++) {
-            if (oldAtlas && layerIds[i] in oldAtlas) {
-                continue;
-            }
-            const sWidth = imageSizes[i].w;
-            const sHeight = imageSizes[i].h;
-
-            blocks.push({
-                layerId: layerIds[i],
-                w: Math.min(maxSize, sWidth),
-                h: Math.min(maxSize, sHeight + 2 * colorBleedHalfOffset),
-            });
-        }
-
-        // sort from big > small images (the packing alg works best if big images are treated first)
-        blocks.sort((a, b) => Math.max(a.w, a.h) < Math.max(b.w, b.h));
-
-        let previousRoot;
-        if (oldAtlas) {
-            for (const k of Object.keys(oldAtlas)) { // eslint-disable-line guard-for-in
-                const fitResult = oldAtlas[k];
-                if (fitResult.x === 0 && fitResult.y === 0) {
-                    // Updating
-                    previousRoot = fitResult;
-                    break;
-                }
-            }
-        }
-        if (oldAtlas && !previousRoot) {
-            console.error('UH: oldAtlas is defined, but not previousRoot');
-        }
-
-        const { maxX, maxY } = fit(blocks, maxSize, maxSize, previousRoot);
-
-        const atlas = oldAtlas || {};
-        for (let i = 0; i < blocks.length; i++) {
-            atlas[blocks[i].layerId] = blocks[i].fit;
-            atlas[blocks[i].layerId].offset = colorBleedHalfOffset;
-        }
-
-        return { atlas, maxX, maxY };
-    },
+    pack,
 };

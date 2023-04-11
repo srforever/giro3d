@@ -4,10 +4,7 @@
 import { Box3 } from 'three';
 
 import EventUtils from '../utils/EventUtils.js';
-import ColorLayer from '../core/layer/ColorLayer.js';
 import Picking from '../core/Picking.js';
-import AtlasBuilder from '../renderer/AtlasBuilder.js';
-import Capabilities from '../core/system/Capabilities.js';
 import Entity from './Entity.js';
 
 /**
@@ -45,8 +42,6 @@ class Entity3D extends Entity {
 
         EventUtils.definePropertyWithChangeEvent(this, 'opacity', 1.0, () => this.updateOpacity());
         EventUtils.definePropertyWithChangeEvent(this, 'visible', true, () => this.updateVisibility());
-
-        this.atlasInfo = { maxX: 0, maxY: 0 };
 
         // processing can overwrite that with values calculating from this layer's Object3D
         this._distance = { min: Infinity, max: 0 };
@@ -159,32 +154,9 @@ class Entity3D extends Entity {
             throw new Error(`Missing 'update' function -> can't attach layer ${layer.id}`);
         }
         layer = layer._preprocessLayer(this, this._instance);
-        layer.owner = this;
         layer._instance = this._instance;
-        if (!layer.imageSize) {
-            if (this.imageSize) {
-                layer.imageSize = this.imageSize;
-            } else {
-                layer.imageSize = { w: 256, h: 256 };
-            }
-        }
 
         this._attachedLayers.push(layer);
-
-        if (layer instanceof ColorLayer) {
-            const colorLayers = this._attachedLayers.filter(l => l instanceof ColorLayer);
-
-            // rebuild color textures atlas
-            const { atlas, maxX, maxY } = AtlasBuilder.pack(
-                Capabilities.getMaxTextureSize(),
-                colorLayers.map(l => l.id),
-                colorLayers.map(l => l.imageSize),
-                this.atlasInfo.atlas,
-            );
-            this.atlasInfo.atlas = atlas;
-            this.atlasInfo.maxX = Math.max(this.atlasInfo.maxX, maxX);
-            this.atlasInfo.maxY = Math.max(this.atlasInfo.maxY, maxY);
-        }
     }
 
     detach(layer) {

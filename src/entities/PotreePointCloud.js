@@ -10,6 +10,7 @@ import {
     LineDashedMaterial,
     LineSegments,
     MathUtils,
+    Vector2,
     Vector3,
 } from 'three';
 import Entity3D from './Entity3D.js';
@@ -251,6 +252,7 @@ class PotreePointCloud extends Entity3D {
 
     preprocess() {
         const source = this.source;
+        this.imageSize = new Vector2(128, 128);
         return Fetcher.json(`${source.url}/${source.filename}`, source.networkOptions)
             .then(metadata => {
                 this.parseMetadata(metadata);
@@ -594,7 +596,12 @@ class PotreePointCloud extends Entity3D {
 
         return Fetcher.arrayBuffer(url, this.source.networkOptions)
             .then(buffer => this.parse(buffer, this.metadata.pointAttributes)).then(geometry => {
-                const points = new Points(this, geometry, this.material.clone());
+                const points = new Points({
+                    layer: this,
+                    geometry,
+                    material: this.material.clone(),
+                    textureSize: this.imageSize,
+                });
                 points.name = `r${metadata.name}.${this.extension}`;
                 if (points.material.enablePicking) {
                     Picking.preparePointGeometryForPicking(points.geometry);
