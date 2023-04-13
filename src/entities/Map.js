@@ -802,6 +802,7 @@ class Map extends Entity3D {
                     return;
                 }
 
+                this._reorderLayers();
                 this._instance.notifyChange(this, false);
                 this.dispatchEvent({ type: 'layer-added' });
                 resolve(l);
@@ -827,6 +828,7 @@ class Map extends Entity3D {
                 this.materialOptions.colorMapAtlas.remove(layer.colorMap);
             }
             layer.dispose(this);
+            this._reorderLayers();
             this.dispatchEvent({ type: 'layer-removed' });
             this._instance.notifyChange(this, true);
             return true;
