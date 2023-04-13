@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.23.1 (2023-04-13)
+
+Hotfix release for #263.
+
+### Fix
+
+- **Map**: fix inconsistent ordering (#263)
+
 ## v0.23.0 (2023-04-11)
 
 ### BREAKING CHANGE
