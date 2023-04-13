@@ -44,10 +44,9 @@ class LayerInspector extends Panel {
 
         this.addController(this, 'state')
             .name('Status');
-        this.addController(this, 'visible')
+        this.addController(this.layer, 'visible')
             .name('Visible')
             .onChange(() => {
-                this.layer.visible = this.visible;
                 this.notify(layer);
             });
 

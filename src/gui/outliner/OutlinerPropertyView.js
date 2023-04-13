@@ -23,7 +23,7 @@ class OutlinerPropertyView extends Panel {
         }
         Object.keys(obj).forEach(prop => {
             const value = obj[prop];
-            if (value && !(value instanceof Object)) {
+            if (value != null && !(value instanceof Object)) {
                 this._controllers.push(
                     gui.add(obj, prop)
                         .onChange(() => this.instance.notifyChange()),
