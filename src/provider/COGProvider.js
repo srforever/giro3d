@@ -314,6 +314,7 @@ async function getImages(layer) {
     // performances, we use the latest image, meaning the highest overview
     // (lowest resolution)
     if (image.getSamplesPerPixel() === 1) {
+        const computeLayerMinMax = layer.minmax == null;
         const noCancellation = () => {};
         await createTexture(
             noCancellation,
@@ -323,7 +324,7 @@ async function getImages(layer) {
             256,
             levelImage,
             new Vector4(0, 0, 1, 1),
-            true,
+            computeLayerMinMax,
         );
     }
 }
