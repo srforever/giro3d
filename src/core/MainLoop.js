@@ -55,10 +55,6 @@ MainLoop.prototype.scheduleUpdate = function scheduleUpdate(instance, forceRedra
     if (this.renderingState !== RENDERING_SCHEDULED) {
         this.renderingState = RENDERING_SCHEDULED;
 
-        if (__DEBUG__) {
-            document.title += ' ⌛';
-        }
-
         requestAnimationFrame(timestamp => { this._step(instance, timestamp); });
     }
 };
@@ -266,10 +262,6 @@ MainLoop.prototype._step = function _step(instance, timestamp) {
 
     // next time, we'll consider that we've just started the loop if we are still PAUSED now
     this._updateLoopRestarted = this.renderingState === RENDERING_PAUSED;
-
-    if (__DEBUG__) {
-        document.title = document.title.substr(0, document.title.length - 2);
-    }
 
     instance.camera.camera3D.matrixAutoUpdate = oldAutoUpdate;
 

@@ -44,11 +44,10 @@ class LayerInspector extends Panel {
 
         this.addController(this, 'state')
             .name('Status');
-        this.addController(this, 'visible')
+        this.addController(this.layer, 'visible')
             .name('Visible')
             .onChange(() => {
-                this.layer.visible = this.visible;
-                this.notify(layer);
+                this.notify(map);
             });
 
         this.addController(this.layer, 'projection')
@@ -78,7 +77,7 @@ class LayerInspector extends Panel {
                 .name('Opacity')
                 .min(0)
                 .max(1)
-                .onChange(() => this.notify(layer));
+                .onChange(() => this.notify(map));
         }
 
         this.extentColor = new Color('#52ff00');
