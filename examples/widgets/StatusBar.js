@@ -1,6 +1,40 @@
 import Instance from '../../src/core/Instance.js';
 import { MAIN_LOOP_EVENTS } from '../../src/core/MainLoop.js';
 
+const VIEW_PARAM = 'view';
+
+function processUrl(instance, url) {
+    const pov = new URL(url).searchParams.get(VIEW_PARAM);
+    if (pov) {
+        try {
+            const [x, y, z, tx, ty, tz] = pov.split(',').map(s => Number.parseFloat(s));
+
+            instance.camera.camera3D.position.set(x, y, z);
+            instance.controls.target.set(tx, ty, tz);
+        } finally {
+            instance.notifyChange();
+        }
+    }
+}
+
+function updateUrl(instance) {
+    const url = new URL(document.URL);
+    url.searchParams.delete(VIEW_PARAM);
+
+    function round10(n) {
+        return Math.round(n * 10) / 10;
+    }
+
+    const cam = instance.camera.camera3D.position;
+    const target = instance.controls.target;
+
+    const pov = `${round10(cam.x)},${round10(cam.y)},${round10(cam.z)},${round10(target.x)},${round10(target.y)},${round10(target.z)}`;
+
+    url.searchParams.append(VIEW_PARAM, pov);
+
+    window.history.replaceState({}, null, url.toString());
+}
+
 /**
  * @param {Instance} instance The instance.
  * @param {number} radius The radius of the picking.
@@ -19,12 +53,21 @@ function bind(instance, radius = 1) {
         }
     });
 
+    processUrl(instance, document.URL);
+
     const progressBar = document.getElementById('progress-bar');
     const percent = document.getElementById('loading-percent');
+
+    let urlTimeout;
 
     instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, () => {
         progressBar.style.width = `${instance.progress * 100}%`;
         percent.innerText = `${Math.round(instance.progress * 100)}%`;
+
+        if (urlTimeout) {
+            clearTimeout(urlTimeout);
+        }
+        urlTimeout = setTimeout(() => updateUrl(instance), 50);
     });
 }
 
