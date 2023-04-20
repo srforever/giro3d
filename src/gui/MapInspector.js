@@ -124,6 +124,9 @@ class MapInspector extends EntityInspector {
         this.addController(this.map.materialOptions, 'hillshading')
             .name('Hillshading')
             .onChange(() => this.notify(this.map));
+        this.addController(this.map.materialOptions, 'discardNoData')
+            .name('Discard no-data values')
+            .onChange(() => this.notify(this.map));
         this.addController(this, 'frozen')
             .name('Freeze updates')
             .onChange(v => this.toggleFrozen(v));

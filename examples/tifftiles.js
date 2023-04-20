@@ -35,7 +35,8 @@ const instance = new Instance(viewerDiv, {
 const map = new Map('planar', {
     extent,
     hillshading: true,
-    segments: 64,
+    segments: 128,
+    doubleSided: true,
     discardNoData: true,
     backgroundColor: 'white',
 });
@@ -45,9 +46,9 @@ instance.add(map);
 // Adds an TMS imagery layer
 const tmsSource = new XYZ({
     attributions: '',
-    minZoom: 0,
-    maxZoom: 15,
-    url: 'https://3d.oslandia.com/dem/tiles/{z}/{x}/{-y}-f32.tif',
+    minZoom: 10,
+    maxZoom: 16,
+    url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
 });
 
 // Specifies the image format (necessary for for non JPG/PNG images).
