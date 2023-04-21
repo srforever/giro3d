@@ -11,21 +11,6 @@ import Coordinates from './geographic/Coordinates.js';
 
 const BLACK = new Color(0, 0, 0);
 
-function hideEverythingElse(instance, object) {
-    const visibilityMap = new Map();
-    for (const obj of instance.getObjects()) {
-        visibilityMap.set(obj, obj.visible);
-        obj.visible = false;
-    }
-    object.visible = true;
-
-    return () => {
-        for (const obj of instance.getObjects()) {
-            obj.visible = visibilityMap.get(obj);
-        }
-    };
-}
-
 // from js packDepthToRGBA
 const UnpackDownscale = 255 / 256; // 0..1 -> fraction (excluding 1)
 function unpack1K(color, factor) {
@@ -89,8 +74,6 @@ function renderTileBuffer(instance, map, coords, radius, renderState, pixelFunc,
 
     const restore = map.setRenderState(renderState);
 
-    const undoHide = hideEverythingElse(instance, map.object3d);
-
     const buffer = instance.mainLoop.gfxEngine.renderToBuffer({
         camera: instance.camera.camera3D,
         scene: map.object3d,
@@ -102,8 +85,6 @@ function renderTileBuffer(instance, map, coords, radius, renderState, pixelFunc,
             height: 1 + radius * 2,
         },
     });
-
-    undoHide();
 
     restore();
 
@@ -285,8 +266,6 @@ export default {
             }
         });
 
-        const undoHide = hideEverythingElse(instance, layer.object3d);
-
         // render 1 pixel
         const buffer = instance.mainLoop.gfxEngine.renderToBuffer({
             camera: instance.camera.camera3D,
@@ -299,8 +278,6 @@ export default {
                 height: 1 + radius * 2,
             },
         });
-
-        undoHide();
 
         const candidates = [];
 
