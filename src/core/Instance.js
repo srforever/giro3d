@@ -734,6 +734,14 @@ class Instance extends EventDispatcher {
         const limit = options.limit || Infinity;
 
         for (const source of sources) {
+            const object = (typeof (source) === 'string')
+                ? objectIdToObject(this, source)
+                : source;
+
+            if (!object.visible) {
+                continue;
+            }
+
             const pickOptions = {
                 radius,
                 limit, // Use same limit as requested, since we pass the results array
@@ -741,9 +749,7 @@ class Instance extends EventDispatcher {
                 filter: options.filter,
                 vec2: vectors.pickVec2,
             };
-            const object = (typeof (source) === 'string')
-                ? objectIdToObject(this, source)
-                : source;
+
             if (typeof object.pickObjectsAt === 'function') {
                 // TODO ability to pick on a layer instead of a geometric object?
                 object.pickObjectsAt(mouse, pickOptions, results);
