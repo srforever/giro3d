@@ -8,6 +8,9 @@ This document is inspired by the [Meritocratic Governance Model document](http:/
 
 Giro3D is a meritocratic, consensus-based community project. Anyone with an interest in the project can join the community, contribute to the project design and participate in the decision making process. This document describes how that participation takes place and how to set about earning merit within the project community.
 
+We believe in running the project transparently. This includes everything from decision-making to defects in the code.
+
+
 ## Roles and responsibilities
 
 ### Users
@@ -53,6 +56,8 @@ Seeking approval after making a contribution is known as a commit-then-review pr
 
 Anyone can become a committer; there are no special requirements, other than to have shown a willingness and ability to participate in the project as a team player. Typically, a potential committer will need to show that they have an understanding of the project, its objectives and its strategy. They will also have provided valuable contributions to the project over a period of time.
 
+The project encourages committers to come from multiple organizations and divers origins.
+
 New committers can be nominated by any existing committer. Once they have been nominated, there will be a vote by the project management committee (PSC; see below). Committer voting is one of the few activities that takes place on the project’s private management list. This is to allow PSC members to freely express their opinions about a nominee without causing embarrassment. Once the vote has been held, the aggregated voting results are published on the public mailing list. The nominee is entitled to request an explanation of any ‘no’ votes against them, regardless of the outcome of the vote. This explanation will be provided by the PSC Chair (see below) and will be anonymous and constructive in nature.
 
 Nominees may decline their appointment as a committer. However, this is unusual, as the project does not expect any specific time or resource commitment from its community members. The intention behind the role of committer is to allow people to contribute to the project more easily, not to tie them in to the project in any formal way.
@@ -60,6 +65,7 @@ Nominees may decline their appointment as a committer. However, this is unusual,
 It is important to recognise that commitership is a privilege, not a right. That privilege must be earned and once earned it can be removed by the PSC (see next section) in extreme circumstances. However, under normal circumstances committership exists for as long as the committer wishes to continue engaging with the project.
 
 A committer who shows an above-average level of contribution to the project, particularly with respect to its strategic direction and long-term health, may be nominated to become a member of the PSC. This role is described below.
+
 
 ### Project Steering committee
 
@@ -115,3 +121,7 @@ For lazy consensus to be effective, it is necessary to allow at least 72 hours b
 
 Not all decisions can be made using lazy consensus. Issues such as those affecting the strategic direction or legal standing of the project must gain explicit approval in the form of a vote. Every member of the community is encouraged to express their opinions in all discussions and all votes. However, only project committers and/or PSC members (as defined above) have binding votes for the purposes of decision making. 
 
+## References
+
+- [Meritocratic Governance Model document](http://oss-watch.ac.uk/resources/meritocraticgovernancemodel)  
+- [OSGeo project graduation checklist](https://www.osgeo.org/resources/project-graduation-checklist/)
