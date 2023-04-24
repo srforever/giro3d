@@ -75,6 +75,8 @@ Members of the PSC do not have significant authority over other members of the c
 
 Membership of the PSC is by invitation from the existing PSC members. A nomination will result in discussion and then a vote by the existing PSC members. PSC membership votes are subject to consensus approval of the current PSC members.
 
+PSC members should be affiliated to multiple organizations, and the number of PSC members affiliated to a same organization should not represent a majority of votes.
+
 ### PSC Chair
 
 The PSC Chair is a single individual, voted for by the PSC members. Once someone has been appointed Chair, they remain in that role :
