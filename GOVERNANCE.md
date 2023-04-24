@@ -119,11 +119,73 @@ Lazy consensus is a very important concept within the project. It is this proces
 
 For lazy consensus to be effective, it is necessary to allow at least 72 hours before assuming that there are no objections to the proposal. This requirement ensures that everyone is given enough time to read, digest and respond to the proposal. This time period is chosen so as to be as inclusive as possible of all participants, regardless of their location and time commitments.
 
-### Voting
+### Voting modes
 
-Not all decisions can be made using lazy consensus. Issues such as those affecting the strategic direction or legal standing of the project must gain explicit approval in the form of a vote. Every member of the community is encouraged to express their opinions in all discussions and all votes. However, only project committers and/or PSC members (as defined above) have binding votes for the purposes of decision making. 
+Not all decisions can be made using lazy consensus. If a consensus cannot be reached, the proposal is postponed, or a vote can be asked for.
+
+Also, issues such as those affecting the strategic direction or legal standing of the project must gain explicit approval in the form of a vote on the project development mailing list. Every member of the community is encouraged to express their opinions in all discussions and all votes. However, only project committers and/or PSC members (as defined above) have binding votes for the purposes of decision making. 
+
+Where necessary (e.g. discussion and vote about specific people to be new committers) PSC voting may take place on the private PSC mailing list.
+
+Votes are clearly indicated by subject line starting with [VOTE]. Discussion and proposal should have happened prior to the vote. Voting is carried out by replying to the vote mail. See voting procedure below. Votes are expressed using one of the following symbols:
+- +1 	"Yes," "Agree," or "the action should be performed." In general, this vote also indicates a willingness on the behalf of the voter to assist with "making it happen".
+- +0 	This vote indicates a willingness for the action under consideration to go ahead. The voter, however will not be able to help.
+- -0 	This vote indicates that the voter does not, in general, agree with the proposed action but is not concerned enough to prevent the action going ahead.
+- -1 	This is a negative vote. On issues where consensus is required, this vote counts as a veto. All vetoes must contain an explanation of why the veto is appropriate. Vetoes with no explanation are void. It may also be appropriate for a -1 vote to include an alternative course of action.
+- abstain 	People can abstain from voting. They can either remain silent or express their reason.
+
+All participants in the project are encouraged to show their preference for a particular action by voting. When the votes are tallied, only the votes of PSC members or committers are binding. Non-binding votes are still useful to enable everyone to understand the perception of an action by the wider community.
+
+Voting can also be applied to changes made to the project codebase. These typically take the form of a veto (-1) in reply to the commit message or Merge Request sent when the commit is made.
+
+Types of approval : 
+- **Lazy consensus** : see above, no voting
+- **Consensus approval** : Consensus approval requires 3 binding +1 votes and no binding vetoes. 
+- **Lazy majority (majority consensus)** : A lazy majority vote requires 3 binding +1 votes and more binding +1 votes than -1 votes. 
+- **Lazy approval** : An action with lazy approval is implicitly allowed unless a -1 vote is received, at which time, depending on the type of action, either lazy majority or consensus approval must be obtained. 
+- **2/3 majority**	: Some actions require a 2/3 majority of binding votes. Such actions typically affect the foundation of the project (e.g. adopting a new codebase to replace an existing product). The higher threshold is designed to ensure such changes are strongly supported. To pass this vote requires at least 2/3 of the votes that are cast to be +1.
+- **Unanimous approval** :  All of the votes that are cast are to be +1 and there can be no binding vetoes (-1). 
+
+A valid veto cannot be over-ruled, it can only be withdrawn by its issuer. Any veto must be accompanied by reasoning and be prepared to defend it.
+
+The validity of a veto, if challenged, can be confirmed by anyone who has a binding vote. This does not necessarily signify agreement with the veto - merely that the veto is valid. In case of disputes about whether a veto is valid, then opinion of the PSC chair is final.
+
+If you disagree with a valid veto, then you must engage the person casting the veto to further discuss the issues. The vetoer is obliged to vote early and to then work with the community to resolve the matter.
+
+If a veto is not withdrawn, the action that has been vetoed must be reversed in a timely manner.
+
+For breakdown situations and those requiring unanimous consensus, if this consensus cannot be reached within the extended timeframe, then the PSC chair makes the ultimate decision. 
+
+### Actions & voting
+
+This section describes the various actions which are undertaken within the project, the corresponding approval required for that action, and those who have binding votes over the action. 
+
+|  Action         |Description| Approval    |Binding Votes|
+|:------------------:|:---------------------------------:|:-----------------------:|:--------------------------------------:|
+| Code change  |    A change made to a codebase of the project by a committer.This includes source code, documentation, website content, etc.|Lazy consensus|N/A|
+| Release plan |    Defines the timetable and actions for a release. A release plan cannot be vetoed (hence lazy majority). |Lazy majority|committers|
+| Product release|  When a release of one of the project's products is ready, a vote is required to accept the release as an official release of the project. A release cannot be vetoed (hence lazy majority). A Release Manager might choose to get an issue resolved or re-schedule, but that is their decision. |              Lazy majority| committers |
+| Adoption of new codebase|              When the codebase for an existing, released product is to be replaced with an alternative codebase. If such a vote fails to gain approval, the existing code base will continue.             This also covers the creation of new sub-projects within the project.|2/3 majority|PSC members|
+| New committer | When a new committer is proposed for the project.|  Consensus approval             |  Committers |
+| New PSC member|  When a new member is proposed for the PSC. |  Consensus approval             |              PSC members    |
+| Reinstate emeritus member| An emeritus PSC member can be reinstated.  |              Consensus approval             |              PSC members (excluding the member in question) |
+| Committer removal| When removal of commit privileges is sought. |  Unanimous consensus            |              PSC members (excluding the committer in question if a member of the PSC)         |
+| PSC member removal|              When removal of a PSC member is sought. | Unanimous consensus            |              PSC members (excluding the member in question)|
+
+### Voting timeframes & procedure
+
+Votes are normally open for a period of one week to allow all active voters time to consider the vote. If the vote has not achieved a quorum (the chair decides if sufficient people have voted), then it can be extended for another week. If still no quorum, then the vote fails, and would need to be raised again later. Votes relating to code changes are not subject to a strict timetable, but should be made as timely as possible.
+
+Be careful about holidays when calling a vote. This is hard when we do not know customs in every part of the world. So if someone knows that there is a problem with the vote timing, then please say so.
+
+Discussion about the topic would have already happened in a [Proposal] email thread an issue or Merge Request on the tracker, to express the issues and opinions. The [Vote] thread is to ratify the proposal if that is felt to be necessary.
+
+The instigator sends the Vote email to the dev mailing list. Describe the issue with no ambiguity and in a positive sense. Define the date and time for the end of the vote period.
+
+Votes are expressed by replying email using the voting symbols defined above. Voters can change their vote during the timeframe. At the end of the vote period, the instigator tallies the number of final votes and reports the results.
 
 ## References
 
 - [Meritocratic Governance Model document](http://oss-watch.ac.uk/resources/meritocraticgovernancemodel)  
 - [OSGeo project graduation checklist](https://www.osgeo.org/resources/project-graduation-checklist/)
+- [Apache Forrest governance document, with voting methods](https://forrest.apache.org/guidelines.html#decision)
