@@ -24,6 +24,40 @@ describe('LayeredMaterial', () => {
             expect(ds.side).toBe(DoubleSide);
             expect(normal.side).toBe(FrontSide);
         });
+
+        it('should enable the ENABLE_ELEVATION_RANGE define if options has an elevation range', () => {
+            const enabled = new LayeredMaterial({
+                options: { elevationRange: { min: 0, max: 100 } },
+                renderer: defaultRenderer,
+                atlasInfo: defaultAtlasInfo,
+            });
+
+            expect(enabled.defines.ENABLE_ELEVATION_RANGE).toBeDefined();
+
+            const disabled = new LayeredMaterial({
+                options: {},
+                renderer: defaultRenderer,
+                atlasInfo: defaultAtlasInfo,
+            });
+
+            expect(disabled.defines.ENABLE_ELEVATION_RANGE).not.toBeDefined();
+        });
+    });
+
+    describe('setLayerElevationRange', () => {
+        it('should enable the ENABLE_ELEVATION_RANGE define', () => {
+            const mat = new LayeredMaterial({
+                renderer: defaultRenderer,
+                atlasInfo: defaultAtlasInfo,
+            });
+            expect(mat.defines.ENABLE_ELEVATION_RANGE).not.toBeDefined();
+
+            const layer = {};
+            mat.pushLayer(layer);
+
+            mat.setLayerElevationRange(layer, { min: 0, max: 100 });
+            expect(mat.defines.ENABLE_ELEVATION_RANGE).toBeDefined();
+        });
     });
 });
 
