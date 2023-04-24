@@ -18,8 +18,8 @@ import EventUtils from '../utils/EventUtils.js';
  *     const entity = new Entity('exampleEntity');
  *     instance.add(entity);
  *
- * @property {boolean} frozen if true, updates on this entity will be inhibited. Useful for
- * debugging a certain state, as moving the camera won't trigger texture changes.
+ * The class inherits three.js' [`EventDispatcher`](https://threejs.org/docs/index.html?q=even#api/en/core/EventDispatcher).
+ *
  * @api
  */
 class Entity extends EventDispatcher {
@@ -44,12 +44,39 @@ class Entity extends EventDispatcher {
             throw new Error('Missing id parameter (Entity must have a unique id defined)');
         }
 
-        Object.defineProperty(this, 'id', {
-            value: id,
-            writable: false,
-        });
+        this._id = id;
+        this._frozen = false;
+    }
 
-        EventUtils.definePropertyWithChangeEvent(this, 'frozen', false);
+    /**
+     * Gets the unique identifier of this entity.
+     *
+     * @api
+     * @type {string}
+     */
+    get id() {
+        return this._id;
+    }
+
+    /**
+     * Gets or sets the frozen status of this entity. A frozen entity is still visible
+     * but will not be updated automatically.
+     *
+     * Useful for debugging purposes.
+     *
+     * @api
+     * @type {boolean}
+     */
+    get frozen() {
+        return this._frozen;
+    }
+
+    set frozen(v) {
+        if (this._frozen !== v) {
+            const event = EventUtils.createPropertyChangedEvent(this, 'frozen', this._frozen, v);
+            this._frozen = v;
+            this.dispatchEvent(event);
+        }
     }
 
     /**

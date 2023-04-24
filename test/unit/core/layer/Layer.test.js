@@ -28,7 +28,6 @@ describe('Layer', () => {
 
             expect(layer.id).toEqual(id);
             expect(layer.extent).toEqual(extent);
-            expect(() => { layer.id = 'bar'; }).toThrowError();
         });
 
         it('should not accept all sources', () => {

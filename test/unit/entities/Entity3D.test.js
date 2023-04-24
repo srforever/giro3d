@@ -61,6 +61,40 @@ describe('Entity3D', () => {
         });
     });
 
+    describe('visible', () => {
+        it('should assigne the property', () => {
+            const entity = sut();
+
+            expect(entity.visible).toBe(true);
+            entity.visible = false;
+            expect(entity.visible).toBe(false);
+        });
+
+        it('should raise an event only if the value has changed', () => {
+            const entity = sut();
+            const listener = jest.fn();
+            entity.addEventListener('visible-property-changed', listener);
+
+            entity.visible = false;
+            entity.visible = false;
+            entity.visible = false;
+            expect(listener).toHaveBeenCalledTimes(1);
+            entity.visible = true;
+            expect(listener).toHaveBeenCalledTimes(2);
+        });
+    });
+
+    describe('object3d', () => {
+        it('should return the provided object', () => {
+            const obj = {
+                isObject3D: true,
+            };
+            const entity = sut(obj);
+
+            expect(entity.object3d).toBe(obj);
+        });
+    });
+
     describe('mixin from EventDispatcher', () => {
         it('contains the dispatchEvent method', () => {
             const entity = sut();
@@ -99,6 +133,29 @@ describe('Entity3D', () => {
             const entity = sut(o3d);
             entity.opacity = 0.5;
             expect(o3d.traverse).toHaveBeenCalled();
+        });
+
+        it('should assigne the property', () => {
+            const entity = sut();
+            entity.object3d.traverse = jest.fn();
+
+            expect(entity.opacity).toEqual(1.0);
+            entity.opacity = 0.5;
+            expect(entity.opacity).toEqual(0.5);
+        });
+
+        it('should raise an event only if the value has changed', () => {
+            const entity = sut();
+            entity.object3d.traverse = jest.fn();
+            const listener = jest.fn();
+            entity.addEventListener('opacity-property-changed', listener);
+
+            entity.opacity = 0.5;
+            entity.opacity = 0.5;
+            entity.opacity = 0.5;
+            expect(listener).toHaveBeenCalledTimes(1);
+            entity.opacity = 0.3;
+            expect(listener).toHaveBeenCalledTimes(2);
         });
     });
 

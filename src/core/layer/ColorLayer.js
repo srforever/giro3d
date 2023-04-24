@@ -39,7 +39,26 @@ class ColorLayer extends Layer {
         super(id, options);
         this.type = 'ColorLayer';
         this.elevationRange = options.elevationRange;
-        EventUtils.definePropertyWithChangeEvent(this, 'opacity', 1.0);
+        this._opacity = 1;
+    }
+
+    /**
+     * Gets or sets the opacity of this layer.
+     *
+     * @api
+     * @type {number}
+     * @fires ColorLayer#opacity-property-changed
+     */
+    get opacity() {
+        return this._opacity;
+    }
+
+    set opacity(v) {
+        if (this._opacity !== v) {
+            const event = EventUtils.createPropertyChangedEvent(this, 'opacity', this._opacity, v);
+            this._opacity = v;
+            this.dispatchEvent(event);
+        }
     }
 
     updateMaterial(material) {
