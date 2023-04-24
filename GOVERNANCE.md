@@ -186,6 +186,28 @@ The instigator sends the Vote email to the dev mailing list. Describe the issue 
 
 Votes are expressed by replying email using the voting symbols defined above. Voters can change their vote during the timeframe. At the end of the vote period, the instigator tallies the number of final votes and reports the results.
 
+## Relations to other organizations
+
+### Project independance
+
+The project, as an opensource community project, or common good, is not directly owned by another organization, nor dependant of any other organization or company.
+
+Users, contributors, committers, PSC members are expected to act for decisions they take within the project on their own behalf and for the interest of the project.
+
+Giro3D is part of the Free and OpenSource Sofware for Geospatial community ( FOSS4G ), and as such is expected to behave coherently with this community, be it on a technical or organizational level.
+
+Giro3D roadmap is not decided through a top-down approach with a waterfall ( define the roadmap, fully specify, plan and schedule, code, test, release ) development model, but with the meritocraty organizational model described above. As such, there is no strict roadmap, no fixed delivery schedule, and no group deciding which priorities future features will get.
+
+### Funding the project
+
+While project members act independently, they are also members of corporate organizations of various kinds. Companies or other organizations using the product can help the project and orient it towards their use cases in various ways : 
+- Donate money to the OSGeo : there is no legal entity representing Giro3D. The only way to give money to the project itself would be through the OSGeo Foundation, which would then allocate resources to Giro3D.
+- Hire a freelance : there are freelance developers who can be hired to work on the project, and you can specify which features you want him to implement
+- Hire a service company : there are service companies supporting and developing Giro3D, and you can hire them to develop the product
+- Directly contribute : you can assign one of your developer to work on Giro3D, making direct contributions
+
+Funding the project allow organizations to assign manpower to the items of the roadmap which are top priority for them. While contributions are always subject to the rules of meritocraty stated above, funding the project is a way to enhance the project in a specific direction, while preserving its independancy. 
+
 ## References
 
 - [Meritocratic Governance Model document](http://oss-watch.ac.uk/resources/meritocraticgovernancemodel)  
