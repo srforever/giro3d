@@ -289,18 +289,7 @@ class Map extends Entity3D {
     }
 
     _updateGeometries() {
-        for (const r of this.level0Nodes) {
-            r.traverse(obj => {
-                /** @type {TileMesh} */
-                const tile = obj;
-                if (tile.layer !== this) {
-                    return;
-                }
-                if (tile.segments) {
-                    tile.segments = this.segments;
-                }
-            });
-        }
+        this._forEachTile(tile => { tile.segments = this.segments; });
     }
 
     preprocess() {
@@ -630,17 +619,7 @@ class Map extends Entity3D {
             this._layerIndices.set(element.id, i);
         }
 
-        for (const r of this.level0Nodes) {
-            r.traverse(obj => {
-                /** @type {TileMesh} */
-                const tile = obj;
-                if (tile.layer !== this) {
-                    return;
-                }
-
-                tile.reorderLayers();
-            });
-        }
+        this._forEachTile(tile => tile.reorderLayers());
 
         this._instance.notifyChange(this, true);
     }
@@ -722,17 +701,12 @@ class Map extends Entity3D {
     }
 
     postUpdate() {
-        for (const r of this.level0Nodes) {
-            r.traverse(obj => {
-                /** @type {TileMesh} */
-                const tile = obj;
-                if (tile.layer !== this || !tile.material.visible) {
-                    return;
-                }
+        this._forEachTile(tile => {
+            if (tile.material.visible) {
                 const neighbours = this.tileIndex.getNeighbours(tile);
                 tile.processNeighbours(neighbours);
-            });
-        }
+            }
+        });
     }
 
     // TODO this whole function should be either in providers or in layers
@@ -921,6 +895,25 @@ class Map extends Entity3D {
             return { min, max };
         }
         return { min: 0, max: 0 };
+    }
+
+    /**
+     * Applies the function to all tiles of this map.
+     *
+     * @param {Function} fn The function to apply to each tile.
+     */
+    _forEachTile(fn) {
+        for (const r of this.level0Nodes) {
+            r.traverse(obj => {
+                /** @type {TileMesh} */
+                const tile = obj;
+                if (tile.layer !== this) {
+                    return;
+                }
+
+                fn(tile);
+            });
+        }
     }
 
     hasEnoughTexturesToSubdivide(context, node) {
