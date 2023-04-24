@@ -78,6 +78,9 @@ class MapInspector extends EntityInspector {
 
         this.addController(this.map, 'projection')
             .name('Projection');
+        this.addController(this.map, 'renderOrder')
+            .name('Render order')
+            .onChange(() => this.notify(map));
         this.addController(this, 'mapSegments')
             .name('Tile subdivisions')
             .min(2)
