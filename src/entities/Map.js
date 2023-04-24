@@ -220,6 +220,8 @@ class Map extends Entity3D {
 
         this.showOutline = options.showOutline;
 
+        this._renderOrder = 0;
+
         this._segments = options.segments || 8;
 
         this.materialOptions = {
@@ -283,24 +285,31 @@ class Map extends Entity3D {
         }
     }
 
+    /**
+     * Gets or sets the render order of the tiles of this map.
+     *
+     * @api
+     * @type {number}
+     */
+    get renderOrder() {
+        return this._renderOrder;
+    }
+
+    set renderOrder(v) {
+        if (v !== this._renderOrder) {
+            this._renderOrder = v;
+
+            this._forEachTile(tile => { tile.renderOrder = v; });
+        }
+    }
+
     _clearGeometryPool() {
         this.geometryPool.forEach(v => v.dispose());
         this.geometryPool.clear();
     }
 
     _updateGeometries() {
-        for (const r of this.level0Nodes) {
-            r.traverse(obj => {
-                /** @type {TileMesh} */
-                const tile = obj;
-                if (tile.layer !== this) {
-                    return;
-                }
-                if (tile.segments) {
-                    tile.segments = this.segments;
-                }
-            });
-        }
+        this._forEachTile(tile => { tile.segments = this.segments; });
     }
 
     preprocess() {
@@ -360,9 +369,7 @@ class Map extends Entity3D {
             coord: { level, x, y },
         });
 
-        if (this.renderOrder !== undefined) {
-            tile.renderOrder = this.renderOrder;
-        }
+        tile.renderOrder = this.renderOrder;
         tile.material.opacity = this.opacity;
 
         if (parent && parent instanceof TileMesh) {
@@ -630,17 +637,7 @@ class Map extends Entity3D {
             this._layerIndices.set(element.id, i);
         }
 
-        for (const r of this.level0Nodes) {
-            r.traverse(obj => {
-                /** @type {TileMesh} */
-                const tile = obj;
-                if (tile.layer !== this) {
-                    return;
-                }
-
-                tile.reorderLayers();
-            });
-        }
+        this._forEachTile(tile => tile.reorderLayers());
 
         this._instance.notifyChange(this, true);
     }
@@ -722,17 +719,12 @@ class Map extends Entity3D {
     }
 
     postUpdate() {
-        for (const r of this.level0Nodes) {
-            r.traverse(obj => {
-                /** @type {TileMesh} */
-                const tile = obj;
-                if (tile.layer !== this || !tile.material.visible) {
-                    return;
-                }
+        this._forEachTile(tile => {
+            if (tile.material.visible) {
                 const neighbours = this.tileIndex.getNeighbours(tile);
                 tile.processNeighbours(neighbours);
-            });
-        }
+            }
+        });
     }
 
     // TODO this whole function should be either in providers or in layers
@@ -921,6 +913,25 @@ class Map extends Entity3D {
             return { min, max };
         }
         return { min: 0, max: 0 };
+    }
+
+    /**
+     * Applies the function to all tiles of this map.
+     *
+     * @param {Function} fn The function to apply to each tile.
+     */
+    _forEachTile(fn) {
+        for (const r of this.level0Nodes) {
+            r.traverse(obj => {
+                /** @type {TileMesh} */
+                const tile = obj;
+                if (tile.layer !== this) {
+                    return;
+                }
+
+                fn(tile);
+            });
+        }
     }
 
     hasEnoughTexturesToSubdivide(context, node) {

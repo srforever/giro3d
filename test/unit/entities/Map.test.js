@@ -615,6 +615,36 @@ describe('Map', () => {
         });
     });
 
+    describe('renderOrder', () => {
+        describe('get', () => {
+            it('should return the correct default value', () => {
+                expect(map.renderOrder).toEqual(0);
+            });
+
+            it('should return the assigned value', () => {
+                map.renderOrder = 99;
+
+                expect(map.renderOrder).toEqual(99);
+            });
+        });
+
+        describe('set', () => {
+            it('should set the renderOrder property of all tiles', () => {
+                expect(map.level0Nodes.length).toBeGreaterThan(0);
+
+                map.level0Nodes.forEach(n => {
+                    expect(n.renderOrder).toEqual(0);
+                });
+
+                map.renderOrder = 99;
+
+                map.level0Nodes.forEach(n => {
+                    expect(n.renderOrder).toEqual(99);
+                });
+            });
+        });
+    });
+
     describe('setRenderState', () => {
         it('should update the render state of the root nodes', () => {
             const fn = jest.fn();
