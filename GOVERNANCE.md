@@ -1,10 +1,10 @@
 # Giro3D Governance
 
-# Foreword
+## Foreword
 
 This document is inspired by the [Meritocratic Governance Model document](http://oss-watch.ac.uk/resources/meritocraticgovernancemodel) from Ross Gardler and Gabriel Hanganu, available as Creative Common By-Sa. The template has been adapted for Giro3D.
 
-# Overview
+## Overview
 
 Giro3D is a meritocratic, consensus-based community project. Anyone with an interest in the project can join the community, contribute to the project design and participate in the decision making process. This document describes how that participation takes place and how to set about earning merit within the project community.
 
@@ -45,6 +45,8 @@ In addition to their actions as users, contributors may also find themselves doi
 Contributors engage with the project through the issue tracker and mailing list, or by writing or editing documentation. They submit changes to the project itself via patches and Merge Requests, which will be considered for inclusion in the project by existing committers (see next section). The developer mailing list is the most appropriate place to ask for help when making that first contribution.
 
 As contributors gain experience and familiarity with the project, their profile within, and commitment to, the community will increase. At some stage, they may find themselves being nominated for committership.
+
+Contributors must agree to the Code of Conduct as well as the Contributor's Guidelines.
 
 ### Committers
 
