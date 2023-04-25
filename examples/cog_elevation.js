@@ -31,10 +31,7 @@ const instance = new Instance(viewerDiv, {
 instance.camera.camera3D.position.set(-13656319, 5735451, 88934);
 
 // Instantiate the controls
-const controls = new MapControls(
-    instance.camera.camera3D,
-    viewerDiv,
-);
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.2;
 controls.target.set(-13545408, 5837154, 0);

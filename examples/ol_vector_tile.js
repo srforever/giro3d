@@ -33,10 +33,7 @@ instance.add(map);
 instance.camera.camera3D.position.set(0, 0, 10000000);
 
 // Instantiates controls
-const controls = new MapControls(
-    instance.camera.camera3D,
-    instance.domElement,
-);
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.25;
 

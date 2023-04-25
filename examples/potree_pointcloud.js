@@ -21,10 +21,7 @@ function placeCamera() {
     const camera = instance.camera.camera3D;
 
     // create controls
-    const controls = new OrbitControls(
-        camera,
-        instance.domElement,
-    );
+    const controls = new OrbitControls(camera, instance.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.25;
 

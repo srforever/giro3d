@@ -189,7 +189,7 @@ const cameraPosition = new THREE.Vector3(
 camera.position.copy(cameraPosition);
 
 // Now we can create the `MapControls` with our camera and the DOM element of our scene.
-const controls = new MapControls(camera, viewer);
+const controls = new MapControls(camera, instance.domElement);
 
 // Let's set the controls' target to our map center.
 controls.target = extent.center().xyz();

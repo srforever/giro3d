@@ -67,10 +67,7 @@ addLayers('pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.Kh
 instance.camera.camera3D.position.set(extent.east(), extent.south(), 2000);
 
 // Creates controls
-const controls = new MapControls(
-    instance.camera.camera3D,
-    viewerDiv,
-);
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 
 // Then looks at extent's center
 controls.target = extent.center().xyz();

@@ -80,7 +80,7 @@ instance.add(pointcloud).then(pc => pc.attach(colorLayer));
 
 // Configure our controls
 // eslint-disable-next-line no-undef
-const controls = new CameraControls(instance.camera.camera3D, instance.viewport);
+const controls = new CameraControls(instance.camera.camera3D, instance.domElement);
 controls.dollyToCursor = true;
 controls.enableDamping = true;
 controls.verticalDragToForward = true;
@@ -135,7 +135,7 @@ const executeInteraction = callback => {
 const keys = {
     LEFT: 'ArrowLeft', UP: 'ArrowUp', RIGHT: 'ArrowRight', BOTTOM: 'ArrowDown',
 };
-instance.viewport.addEventListener('keydown', e => {
+instance.domElement.addEventListener('keydown', e => {
     let forwardDirection = 0;
     let truckDirectionX = 0;
     const factor = (e.ctrlKey || e.metaKey || e.shiftKey ? 200 : 20);
@@ -172,7 +172,7 @@ instance.viewport.addEventListener('keydown', e => {
 });
 
 // Make rotation around where the user clicked
-instance.viewport.addEventListener('contextmenu', e => {
+instance.domElement.addEventListener('contextmenu', e => {
     const picked = instance.pickObjectsAt(e, {
         limit: 1,
         radius: 20,

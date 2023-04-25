@@ -66,7 +66,7 @@ const center = extent.center().xyz();
 instance.camera.camera3D.position.set(center.x, center.y - 1, 50000);
 
 // Instanciates controls
-const controls = new MapControls(instance.camera.camera3D, viewerDiv);
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 
 controls.target.copy(center);
 

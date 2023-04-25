@@ -133,7 +133,7 @@ class Instance extends EventDispatcher {
         }
 
         this.referenceCrs = options.crs || 'EPSG:3857';
-        this.viewport = viewerDiv;
+        this._viewport = viewerDiv;
 
         if (options.mainLoop) {
             this.mainLoop = options.mainLoop;
@@ -142,14 +142,14 @@ class Instance extends EventDispatcher {
             // Wrap our canvas in a new div so we make sure the display
             // is correct whatever the page layout is
             // (especially when skrinking so there is no scrollbar/bleading)
-            this.viewport = document.createElement('div');
-            this.viewport.style.position = 'relative';
-            this.viewport.style.overflow = 'hidden'; // Hide overflow during resizing
-            this.viewport.style.width = '100%'; // Make sure it fills the space
-            this.viewport.style.height = '100%';
-            viewerDiv.appendChild(this.viewport);
+            this._viewport = document.createElement('div');
+            this._viewport.style.position = 'relative';
+            this._viewport.style.overflow = 'hidden'; // Hide overflow during resizing
+            this._viewport.style.width = '100%'; // Make sure it fills the space
+            this._viewport.style.height = '100%';
+            viewerDiv.appendChild(this._viewport);
 
-            const engine = new C3DEngine(this.viewport, options.renderer);
+            const engine = new C3DEngine(this._viewport, options.renderer);
             this.mainLoop = new MainLoop(new Scheduler(), engine);
         }
 
@@ -219,6 +219,16 @@ class Instance extends EventDispatcher {
             value: this.mainLoop.gfxEngine.renderer.domElement,
             writable: false,
         });
+    }
+
+    /**
+     * Gets the DOM element that contains the giro3d viewport.
+     *
+     * @api
+     * @type {HTMLElement}
+     */
+    get viewport() {
+        return this._viewport;
     }
 
     /**

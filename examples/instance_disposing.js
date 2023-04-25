@@ -53,7 +53,7 @@ function init() {
     );
 
     // Instanciates controls
-    controls = new MapControls(instance.camera.camera3D, viewerDiv);
+    controls = new MapControls(instance.camera.camera3D, instance.domElement);
 
     instance.useTHREEControls(controls);
 

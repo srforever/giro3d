@@ -173,10 +173,7 @@ const cameraPosition = new Coordinates(
 ).xyz();
 instance.camera.camera3D.position.copy(cameraPosition);
 
-const controls = new MapControls(
-    instance.camera.camera3D,
-    viewerDiv,
-);
+const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 controls.target = extent.center().xyz();
 controls.saveState();
 

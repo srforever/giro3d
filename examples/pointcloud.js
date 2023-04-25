@@ -30,10 +30,7 @@ function placeCamera(position, lookAt) {
     instance.camera.camera3D.position.set(position.x, position.y, position.z);
     instance.camera.camera3D.lookAt(lookAt);
     // create controls
-    const controls = new MapControls(
-        instance.camera.camera3D,
-        instance.domElement,
-    );
+    const controls = new MapControls(instance.camera.camera3D, instance.domElement);
     controls.target.copy(lookAt);
     controls.enableDamping = true;
     controls.dampingFactor = 0.25;
