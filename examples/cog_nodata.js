@@ -63,7 +63,7 @@ const source = new CogSource({
     url: 'https://3d.oslandia.com/dem/msh2009dem.tif',
 });
 
-const values = colormap({ colormap: 'viridis' });
+const values = colormap({ colormap: 'viridis', nshades: 256 });
 const colors = values.map(v => new Color(v));
 
 const min = 227;

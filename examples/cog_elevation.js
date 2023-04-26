@@ -53,7 +53,7 @@ const source = new CogSource({
     url: 'https://3d.oslandia.com/cog_data/COG_EPSG3857_USGS_13_n47w122_20220919.tif',
 });
 
-const values = colormap({ colormap: 'viridis' });
+const values = colormap({ colormap: 'viridis', nshades: 256 });
 const colors = values.map(v => new Color(v));
 
 const min = 263;

@@ -35,7 +35,7 @@ const map = new Map('map', {
 instance.add(map);
 
 function makeColorRamp(preset) {
-    const values = colormap({ colormap: preset });
+    const values = colormap({ colormap: preset, nshades: 256 });
     const colors = values.map(v => new Color(v));
 
     return colors;

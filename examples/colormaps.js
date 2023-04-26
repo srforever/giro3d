@@ -52,8 +52,8 @@ instance.useTHREEControls(controls);
 const elevationMin = 711; // Altitude corresponding to 0 in heightfield
 const elevationMax = 3574; // Altitude corresponding to 255 in heightfield
 
-function makeColorRamp(preset) {
-    const values = colormap({ colormap: preset });
+function makeColorRamp(preset, nshades) {
+    const values = colormap({ colormap: preset, nshades });
     const colors = values.map(v => new Color(v));
 
     return colors;
@@ -61,15 +61,21 @@ function makeColorRamp(preset) {
 
 const colorRamps = {};
 
-colorRamps.viridis = makeColorRamp('viridis');
-colorRamps.jet = makeColorRamp('jet');
-colorRamps.blackbody = makeColorRamp('blackbody');
-colorRamps.earth = makeColorRamp('earth');
-colorRamps.bathymetry = makeColorRamp('bathymetry');
-colorRamps.magma = makeColorRamp('magma');
-colorRamps.par = makeColorRamp('par');
+function makeColorRamps(discrete) {
+    const nshades = discrete ? 10 : 256;
 
-colorRamps.slope = makeColorRamp('RdBu');
+    colorRamps.viridis = makeColorRamp('viridis', nshades);
+    colorRamps.jet = makeColorRamp('jet', nshades);
+    colorRamps.blackbody = makeColorRamp('blackbody', nshades);
+    colorRamps.earth = makeColorRamp('earth', nshades);
+    colorRamps.bathymetry = makeColorRamp('bathymetry', nshades);
+    colorRamps.magma = makeColorRamp('magma', nshades);
+    colorRamps.par = makeColorRamp('par', nshades);
+
+    colorRamps.slope = makeColorRamp('RdBu', nshades);
+}
+
+makeColorRamps(false);
 
 // Adds the map that will contain the layers.
 const map = new Map('planar', {
@@ -126,32 +132,16 @@ map.addLayer(elevationLayer);
 map.addLayer(bottomLayer);
 map.addLayer(topLayer);
 
-function bindControls(prefix, layer) {
-    const notify = () => instance.notifyChange(map);
+function updateLayer(prefix, layer) {
+    const enableLayer = document.getElementById(`${prefix}-layer-enable`);
+    const enableColorMap = document.getElementById(`${prefix}-colormap-enable`);
+    const gradient = document.getElementById(`${prefix}-gradient`);
 
     const colorMap = layer.colorMap;
 
-    const enableLayer = document.getElementById(`${prefix}-layer-enable`);
-    const layerOptions = document.getElementById(`${prefix}-options`);
-    enableLayer.onchange = () => {
-        layer.visible = enableLayer.checked;
-        notify();
-        layerOptions.disabled = !enableLayer.checked;
-    };
-
-    const enableColorMap = document.getElementById(`${prefix}-colormap-enable`);
-    const colormapOptions = document.getElementById(`${prefix}-colormap-options`);
-    enableColorMap.onchange = () => {
-        colorMap.active = enableColorMap.checked;
-        notify();
-        colormapOptions.disabled = !enableColorMap.checked;
-    };
-
-    const gradient = document.getElementById(`${prefix}-gradient`);
-    gradient.onchange = () => {
-        colorMap.colors = colorRamps[gradient.value];
-        notify();
-    };
+    layer.visible = enableLayer.checked;
+    colorMap.active = enableColorMap.checked;
+    colorMap.colors = colorRamps[gradient.value];
 
     function updateMode(value) {
         switch (value) {
@@ -180,13 +170,35 @@ function bindControls(prefix, layer) {
     }
 
     const mode = document.getElementById(`${prefix}-mode`);
-    mode.onchange = () => { updateMode(mode.value); notify(); };
-
-    // initialize
-    colorMap.colors = colorRamps[gradient.value];
-    colorMap.active = enableColorMap.checked;
-    layer.visible = enableLayer.checked;
     updateMode(mode.value);
+
+    instance.notifyChange(map);
+}
+
+function bindControls(prefix, layer) {
+    const notify = () => updateLayer(prefix, layer);
+
+    const enableLayer = document.getElementById(`${prefix}-layer-enable`);
+    const layerOptions = document.getElementById(`${prefix}-options`);
+    enableLayer.onchange = () => {
+        notify();
+        layerOptions.disabled = !enableLayer.checked;
+    };
+
+    const enableColorMap = document.getElementById(`${prefix}-colormap-enable`);
+    const colormapOptions = document.getElementById(`${prefix}-colormap-options`);
+    enableColorMap.onchange = () => {
+        notify();
+        colormapOptions.disabled = !enableColorMap.checked;
+    };
+
+    const gradient = document.getElementById(`${prefix}-gradient`);
+    gradient.onchange = () => {
+        notify();
+    };
+
+    const mode = document.getElementById(`${prefix}-mode`);
+    mode.onchange = () => notify();
 
     notify();
 }
@@ -194,6 +206,15 @@ function bindControls(prefix, layer) {
 bindControls('elevation', elevationLayer);
 bindControls('bottom', bottomLayer);
 bindControls('top', topLayer);
+
+const discreteToggle = document.getElementById('discrete-ramps');
+
+discreteToggle.onchange = () => {
+    makeColorRamps(discreteToggle.checked);
+    updateLayer('elevation', elevationLayer);
+    updateLayer('bottom', bottomLayer);
+    updateLayer('top', topLayer);
+};
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 StatusBar.bind(instance);
