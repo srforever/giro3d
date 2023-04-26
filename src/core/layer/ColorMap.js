@@ -2,7 +2,9 @@
  * @module core/layer/ColorMap
  */
 import {
+    ClampToEdgeWrapping,
     Color,
+    NearestFilter,
     Texture,
 } from 'three';
 import TextureGenerator from '../../utils/TextureGenerator.js';
@@ -153,6 +155,10 @@ class ColorMap {
     getTexture() {
         if (this._cachedTexture === null) {
             this._cachedTexture = TextureGenerator.create1DTexture(this._colors);
+            this._cachedTexture.minFilter = NearestFilter;
+            this._cachedTexture.magFilter = NearestFilter;
+            this._cachedTexture.wrapS = ClampToEdgeWrapping;
+            this._cachedTexture.wrapT = ClampToEdgeWrapping;
         }
 
         return this._cachedTexture;

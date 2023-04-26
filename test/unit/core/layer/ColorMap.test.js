@@ -1,4 +1,10 @@
-import { Color, RGBAFormat, UnsignedByteType } from 'three';
+import {
+    ClampToEdgeWrapping,
+    Color,
+    NearestFilter,
+    RGBAFormat,
+    UnsignedByteType,
+} from 'three';
 import ColorMap from '../../../../src/core/layer/ColorMap.js';
 import ColorMapMode from '../../../../src/core/layer/ColorMapMode.js';
 
@@ -146,6 +152,18 @@ describe('ColorMap', () => {
             expect(buf[9]).toEqual(255);
             expect(buf[10]).toEqual(255);
             expect(buf[11]).toEqual(255);
+        });
+
+        it('should return a texture with NearestFilter and ClampToEdgeWrapping', () => {
+            const colors = [new Color('red'), new Color('white'), new Color('cyan')];
+            const cm = new ColorMap(colors, 0, 1);
+
+            const texture = cm.getTexture();
+
+            expect(texture.minFilter).toEqual(NearestFilter);
+            expect(texture.magFilter).toEqual(NearestFilter);
+            expect(texture.wrapS).toEqual(ClampToEdgeWrapping);
+            expect(texture.wrapT).toEqual(ClampToEdgeWrapping);
         });
     });
 });
