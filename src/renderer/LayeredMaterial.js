@@ -661,6 +661,9 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     setLayerElevationRange(layer, range) {
+        if (range != null) {
+            MaterialUtils.setDefine(this, 'ENABLE_ELEVATION_RANGE', true);
+        }
         const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
         const value = range ? new Vector2(range.min, range.max) : DISABLED_ELEVATION_RANGE;
         this.texturesInfo.color.infos[index].elevationRange = value;
