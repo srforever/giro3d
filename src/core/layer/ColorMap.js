@@ -16,15 +16,33 @@ import ColorMapMode from './ColorMapMode.js';
  * Whenever a color map is associated with a grayscale texture, the color intensity of the texture
  * is used a a parameter to sample the color gradient.
  *
- * The `mode` describes how the intensity is interpreted.
+ * **Important**: since this color map owns a texture, it is disposable. Don't forget to call
+ * `dispose()` to free texture memory, when you're finished using the colormap.
  *
- * Note: since this color map owns a texture, it is disposable. Don't forget to call `dispose()` to
- * free texture memory.
+ * The `mode` property describes how the intensity of the pixel is interpreted:
+ *
+ * `Elevation` simply takes the intensity value of the pixel, `Slope` gets the slope of the
+ * pixel (assuming it is an elevation texture), and `Aspect` gets the aspect (orientation from
+ * the north) of the pixel (assuming it is an elevation texture).
+ *
+ * The `min` and `max` properties describe how the colormap is applied relative to the intensity of
+ * the sampled pixel.
+ *
+ * Pixel intensities outside of those bounds will take the color of the bound that is the closest
+ * (i.e if the intensity is greater than `max`, the color will be the rightmost color of the color
+ * ramp).
+ *
+ * The `colors` property takes an array of colors. To create this array, you can use libraries such
+ * as [`colormap`](https://www.npmjs.com/package/colormap) or [`chroma-js`](https://www.npmjs.com/package/chroma-js)
+ * to generate the color ramp.
+ *
+ * To obtain a "discrete" color map, you should use a small number of colors in the ramp.
+ * Conversely, to obtain a "linear", continuous color map, you should use a high number of colors,
+ * typically 256 values.
  *
  * @example
- * // Create a color map for elevations between 0 and 2500 meters, mapping 0 meter to red,
- * // and 2500 meters to green. All intermediate elevations will interpolate between those colors.
- * const colors = [new Color('red'), new Color('green')];
+ * // Create a color map for elevations between 0 and 2500 meters.
+ * const colors = makeColorRamp(); // Use whatever library to generate the ramp.
  * const colorMap = new ColorMap(colors, 0, 2500, ColorMapMode.Elevation);
  *
  * const texture = colorMap.getTexture();
