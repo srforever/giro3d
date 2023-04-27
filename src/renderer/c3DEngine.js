@@ -15,11 +15,31 @@ import {
     Vector2,
     WebGLRenderer,
     WebGLRenderTarget,
+    RGBAFormat,
+    UnsignedByteType,
 } from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Capabilities from '../core/system/Capabilities.js';
 
 const tmpClear = new Color();
+
+function createRenderTarget(width, height, type) {
+    const result = new WebGLRenderTarget(
+        width,
+        height, {
+            type,
+            format: RGBAFormat,
+        },
+    );
+    result.texture.minFilter = LinearFilter;
+    result.texture.magFilter = NearestFilter;
+    result.texture.generateMipmaps = false;
+    result.depthBuffer = true;
+    result.depthTexture = new DepthTexture();
+    result.depthTexture.type = UnsignedShortType;
+
+    return result;
+}
 
 class C3DEngine {
     constructor(viewerDiv, options = {}) {
@@ -45,13 +65,7 @@ class C3DEngine {
 
         this.positionBuffer = null;
 
-        this.fullSizeRenderTarget = new WebGLRenderTarget(this.width, this.height);
-        this.fullSizeRenderTarget.texture.minFilter = LinearFilter;
-        this.fullSizeRenderTarget.texture.magFilter = NearestFilter;
-        this.fullSizeRenderTarget.texture.generateMipmaps = false;
-        this.fullSizeRenderTarget.depthBuffer = true;
-        this.fullSizeRenderTarget.depthTexture = new DepthTexture();
-        this.fullSizeRenderTarget.depthTexture.type = UnsignedShortType;
+        this.renderTargets = new Map();
 
         /** @type {WebGLRenderer} */
         this.renderer = null;
@@ -158,7 +172,10 @@ class C3DEngine {
     }
 
     dispose() {
-        this.fullSizeRenderTarget.dispose();
+        for (const rt of this.renderTargets.values()) {
+            rt.dispose();
+        }
+        this.renderTargets.clear();
         this.labelRenderer.domElement.remove();
         this.renderer.domElement.remove();
         this.renderer.dispose();
@@ -180,7 +197,9 @@ class C3DEngine {
     onWindowResize(w, h) {
         this.width = w;
         this.height = h;
-        this.fullSizeRenderTarget.setSize(this.width, this.height);
+        for (const rt of this.renderTargets.values()) {
+            rt.setSize(this.width, this.height);
+        }
         this.renderer.setSize(this.width, this.height);
         this.labelRenderer.setSize(this.width, this.height);
     }
@@ -235,16 +254,27 @@ class C3DEngine {
             this.renderer.setClearColor(options.clearColor, 1);
         }
 
-        this.renderInstanceToRenderTarget(scene, camera, this.fullSizeRenderTarget, zone);
+        const datatype = options.datatype ?? UnsignedByteType;
+
+        if (!this.renderTargets.has(datatype)) {
+            const newRenderTarget = createRenderTarget(this.width, this.height, datatype);
+            this.renderTargets.set(datatype, newRenderTarget);
+        }
+        const renderTarget = this.renderTargets.get(datatype);
+
+        this.renderInstanceToRenderTarget(scene, camera, renderTarget, zone);
 
         this.renderer.setClearColor(clear, alpha);
 
         zone.x = Math.max(0, Math.min(zone.x, this.width));
         zone.y = Math.max(0, Math.min(zone.y, this.height));
 
-        const pixelBuffer = new Uint8Array(4 * zone.width * zone.height);
+        const size = 4 * zone.width * zone.height;
+        const pixelBuffer = datatype === UnsignedByteType
+            ? new Uint8Array(size)
+            : new Float32Array(size);
         this.renderer.readRenderTargetPixels(
-            this.fullSizeRenderTarget,
+            renderTarget,
             zone.x, this.height - (zone.y + zone.height), zone.width, zone.height, pixelBuffer,
         );
 
@@ -264,7 +294,7 @@ class C3DEngine {
      */
     renderInstanceToRenderTarget(scene, camera, target, zone) {
         if (!target) {
-            target = this.fullSizeRenderTarget;
+            target = this.renderTargets.get(UnsignedByteType);
         }
         const current = this.renderer.getRenderTarget();
 

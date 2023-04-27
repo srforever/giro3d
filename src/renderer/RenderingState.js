@@ -6,17 +6,11 @@
 const RenderingState = {
     /** @type {number} The normal state. */
     FINAL: 0,
-    /** @type {number} The fragment shader outputs the fragment depth. */
-    DEPTH: 1,
-    /** @type {number} The fragment shader outputs the mesh's ID. */
-    ID: 2,
-    /** @type {number} The fragment shader outputs the UV of the fragment. */
-    UV: 3,
     /**
-     *  @type {number} The fragment shader outputs the value of the elevation texture at the
-     *  fragment's location.
+     * @type {number} The fragment shader outputs (ID, Z, U, V) without encoding.
+     * Requires a 32-bit floating point render target.
      */
-    Z: 4,
+    PICKING: 1,
 };
 
 export default RenderingState;

@@ -1,83 +1,30 @@
 import {
     Vector2,
     Vector3,
-    Vector4,
     Raycaster,
     Color,
     BufferAttribute,
+    FloatType,
+    UnsignedByteType,
 } from 'three';
 import RenderingState from '../renderer/RenderingState.js';
 import Coordinates from './geographic/Coordinates.js';
 
 const BLACK = new Color(0, 0, 0);
 
-// from js packDepthToRGBA
-const UnpackDownscale = 255 / 256; // 0..1 -> fraction (excluding 1)
-function unpack1K(color, factor) {
-    const bitSh = new Vector4(
-        UnpackDownscale / (256.0 * 256.0 * 256.0),
-        UnpackDownscale / (256.0 * 256.0),
-        UnpackDownscale / 256.0,
-        UnpackDownscale,
-    );
-    return factor ? bitSh.dot(color) * factor : bitSh.dot(color);
-}
-
-function unpackHalfRGBA(v, target) {
-    if (!target || !target.isVector2) {
-        target = new Vector2();
-    }
-    return target.set(v.x + (v.y / 255.0), v.z + (v.w / 255.0));
-}
-
-const depthRGBA = new Vector4();
-
-function renderTileBuffers(instance, map, coords, radius, filter) {
-    const idFunc = data => {
-        depthRGBA.fromArray(data).divideScalar(255.0);
-        const unpack = unpack1K(depthRGBA, 256 ** 3);
-        return Math.round(unpack);
-    };
-
-    const uvFunc = data => {
-        depthRGBA.fromArray(data).divideScalar(255.0);
-        return unpackHalfRGBA(depthRGBA);
-    };
-
-    const zFunc = data => {
-        depthRGBA.fromArray(data).divideScalar(255.0);
-        const unpack = unpack1K(depthRGBA, 256 ** 3);
-        // Notes:
-        //
-        // 1. Contrary to idFunc(), we do NOT round the elevation values
-        //
-        // 2. The -20000 value is to ensure proper handling of negative elevation values
-        // (see the shader code for more info.)
-        //
-        // 3. We round to 2 decimal places (centimetres) because we don't want to give the user a
-        // false precision (displaying N decimal places do not mean that the data is actually
-        // precise to the N decimal place.
-        return (unpack - 20000).toFixed(2);
-    };
-
-    const ids = renderTileBuffer(instance, map, coords, radius, RenderingState.ID, idFunc, filter);
-    const uvs = renderTileBuffer(instance, map, coords, radius, RenderingState.UV, uvFunc, filter);
-    const zs = renderTileBuffer(instance, map, coords, radius, RenderingState.Z, zFunc, filter);
-
-    return { ids, uvs, zs };
-}
-
-function renderTileBuffer(instance, map, coords, radius, renderState, pixelFunc, filter) {
+function renderTileBuffer(instance, map, coords, radius, filter) {
     const dim = instance.mainLoop.gfxEngine.getWindowSize();
 
     coords = coords || new Vector2(Math.floor(dim.x / 2), Math.floor(dim.y / 2));
 
-    const restore = map.setRenderState(renderState);
+    const restore = map.setRenderState(RenderingState.PICKING);
 
+    /** @type {Float32Array} */
     const buffer = instance.mainLoop.gfxEngine.renderToBuffer({
         camera: instance.camera.camera3D,
         scene: map.object3d,
         clearColor: BLACK,
+        datatype: FloatType,
         zone: {
             x: coords.x - radius,
             y: coords.y - radius,
@@ -88,7 +35,9 @@ function renderTileBuffer(instance, map, coords, radius, renderState, pixelFunc,
 
     restore();
 
-    const result = [];
+    const ids = [];
+    const uvs = [];
+    const zs = [];
 
     traversePickingCircle(radius, (x, y, idx) => {
         if (filter) {
@@ -103,14 +52,18 @@ function renderTileBuffer(instance, map, coords, radius, renderState, pixelFunc,
             }
         }
 
-        const data = buffer.slice(idx * 4, idx * 4 + 4);
+        const px = idx * 4;
+        const id = buffer[px + 0];
+        const z = buffer[px + 1];
+        const u = buffer[px + 2];
+        const v = buffer[px + 3];
 
-        const pixelValue = pixelFunc(data);
-
-        result.push(pixelValue);
+        ids.push(id);
+        zs.push(z);
+        uvs.push(new Vector2(u, v));
     });
 
-    return result;
+    return { ids, uvs, zs };
 }
 
 function traversePickingCircle(radius, callback) {
@@ -183,7 +136,7 @@ export default {
         const filterCanvas = options.filterCanvas;
         const filter = options.filter;
 
-        const { ids, uvs, zs } = renderTileBuffers(
+        const { ids, uvs, zs } = renderTileBuffer(
             _instance,
             map,
             canvasCoords,
@@ -212,7 +165,7 @@ export default {
 
                 const elevation = z;
 
-                if (elevation) {
+                if (elevation != null) {
                     tmpCoords._values[2] = elevation;
                     // convert to instance crs
                     // here (and only here) should be the Coordinates instance creation
@@ -271,6 +224,7 @@ export default {
             camera: instance.camera.camera3D,
             scene: layer.object3d,
             clearColor: BLACK,
+            datatype: UnsignedByteType,
             zone: {
                 x: Math.max(0, canvasCoords.x - radius),
                 y: Math.max(0, canvasCoords.y - radius),

@@ -1,5 +1,4 @@
 #include <PrecisionQualifier>
-#include <packing>
 #include <ComputeUV>
 #include <GetElevation>
 #include <LayerInfo>
@@ -14,16 +13,10 @@
 /**
  * Rendering states are modes that change the kind of data that the fragment shader outputs.
  * - FINAL : the FS outputs the regular object's color and aspect. This is the default.
- * - DEPTH : the FS outputs the fragment depth.
- * - ID    : the FS outputs the mesh's ID encoded in a color.
- * - UV    : the FS outputs the fragment's UV.
- * - Z     : the FS outputs the fragment's Z value (sampled from the elevation texture)
+ * - PICKING : the FS outputs (ID, Z, U, V) as Float32 color
  */
 const int STATE_FINAL = 0;
-const int STATE_DEPTH = 1;
-const int STATE_ID = 2;
-const int STATE_UV = 3;
-const int STATE_Z = 4;
+const int STATE_PICKING = 1;
 
 #if defined(ENABLE_LAYER_MASKS)
 const int LAYER_MODE_NORMAL = 0;
@@ -34,7 +27,7 @@ const int LAYER_MODE_MASK_INVERTED = 2;
 varying vec2        vUv; // The input UV
 
 uniform int         renderingState; // Current rendering state (default is STATE_FINAL)
-uniform int         uuid;           // The ID of the tile mesh (used for the STATE_ID rendering state)
+uniform int         uuid;           // The ID of the tile mesh (used for the STATE_PICKING rendering state)
 
 uniform sampler2D   luts; // The color maps atlas
 
@@ -132,19 +125,6 @@ float calcAspect ( vec2 derivatives ) {
         aspect = M_PI * 0.5 - aspect;
     }
     return aspect; // In radians
-}
-
-vec4 encodeHalfRGBA ( vec2 v ) {
-	vec4 encoded = vec4( 0.0 );
-	const vec2 offset = vec2( 1.0 / 255.0, 0.0 );
-	encoded.xy = vec2( v.x, fract( v.x * 255.0 ) );
-	encoded.xy = encoded.xy - ( encoded.yy * offset );
-	encoded.zw = vec2( v.y, fract( v.y * 255.0 ) );
-	encoded.zw = encoded.zw - ( encoded.ww * offset );
-	return encoded;
-}
-vec2 decodeHalfRGBA( vec4 v ) {
-	return vec2( v.x + ( v.y / 255.0 ), v.z + ( v.w / 255.0 ) );
 }
 
 #if defined(ENABLE_HILLSHADING)
@@ -375,17 +355,12 @@ void main() {
         discard;
     } else if (renderingState == STATE_FINAL) {
         gl_FragColor = diffuseColor;
-    } else if (renderingState == STATE_ID) {
-        gl_FragColor = packDepthToRGBA(float(uuid) / (256.0 * 256.0 * 256.0));
-    } else if (renderingState == STATE_DEPTH) {
-        gl_FragColor = packDepthToRGBA(gl_FragCoord.z);
-    } else if (renderingState == STATE_Z) {
-        // Since packing does not support negative values,
-        // We offset the height to guarantee a positive value.
-        // This should be offset back to -20000 in the decoding JS code.
-        float offsetHeight = height + 20000.0;
-        gl_FragColor = packDepthToRGBA(offsetHeight / (256.0 * 256.0 * 256.0));
-    } else if (renderingState == STATE_UV) {
-        gl_FragColor = encodeHalfRGBA(vUv);
+    } else if (renderingState == STATE_PICKING) {
+        float id = float(uuid);
+        float z = height;
+        float u = vUv.x;
+        float v = vUv.y;
+        // Requires a float32 render target
+        gl_FragColor = vec4(id, z, u, v);
     }
 }
