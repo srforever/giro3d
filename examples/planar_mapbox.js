@@ -51,7 +51,7 @@ function addLayers(key) {
         'xyz_color',
         {
             source: new XYZ({
-                url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.pngraw?access_token=${key}`,
+                url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${key}`,
                 crossOrigin: 'anonymous',
                 projection: extent.crs(),
             }),
