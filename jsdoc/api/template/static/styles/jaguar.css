@@ -334,6 +334,8 @@ span.type-signature.static {
   margin-top: 20px;
   padding-top: 5px;
   border-top: 1px solid #e1e1e1;
+  display: flex;
+  align-items: baseline;
 }
 .main .nameContainer .inherited {
   display: inline-block;
@@ -348,9 +350,7 @@ span.type-signature.static {
   color: #fff;
 }
 .main .nameContainer .tag-source {
-  position: absolute;
-  top: 17px;
-  right: 0;
+  margin: 3px;
   font-size: 11px;
 }
 .main .nameContainer .tag-source a {
@@ -360,8 +360,8 @@ span.type-signature.static {
   color: gray;
 }
 .main .nameContainer h4 {
+  flex-grow: 1;
   margin-top: 0px;
-  margin-right: 150px;
   line-height: 1.3;
 }
 .main .nameContainer h4 .signature {
