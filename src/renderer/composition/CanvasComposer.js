@@ -128,9 +128,7 @@ class CanvasComposer {
     render() {
         const result = new CanvasTexture(this.canvas);
         result.generateMipmaps = false;
-        if (__DEBUG__) {
-            MemoryTracker.track(result, 'CanvasComposer');
-        }
+        MemoryTracker.track(result, 'CanvasComposer');
         return result;
     }
 

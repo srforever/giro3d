@@ -35,6 +35,7 @@
       "src/gui",
       "src/helpers",
       "src/interactions",
+      "src/renderer/MemoryTracker.js",
       "src/renderer/Camera.js",
       "src/renderer/PointsMaterial.js",
       "src/sources",

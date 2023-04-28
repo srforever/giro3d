@@ -147,10 +147,8 @@ class WebGLComposer {
         textureOwners.set(result.texture.uuid, result);
         result.texture.addEventListener('dispose', processTextureDisposal);
 
-        if (__DEBUG__) {
-            MemoryTracker.track(result, 'WebGLRenderTarget');
-            MemoryTracker.track(result.texture, 'WebGLRenderTarget.texture');
-        }
+        MemoryTracker.track(result, 'WebGLRenderTarget');
+        MemoryTracker.track(result.texture, 'WebGLRenderTarget.texture');
 
         return result;
     }
@@ -172,9 +170,7 @@ class WebGLComposer {
             texture = new Texture(texture);
             texture.needsUpdate = true;
             this.ownedTextures.push(texture);
-            if (__DEBUG__) {
-                MemoryTracker.track(texture, 'WebGLComposer quad');
-            }
+            MemoryTracker.track(texture, 'WebGLComposer quad');
         }
         this.textures.push(texture);
         const interpretation = options.interpretation ?? Interpretation.Raw;
@@ -186,10 +182,8 @@ class WebGLComposer {
             showImageOutlines: this.showImageOutlines,
         });
 
-        if (__DEBUG__) {
-            MemoryTracker.track(geometry, 'WebGLComposer quad');
-            MemoryTracker.track(material, 'WebGLComposer quad');
-        }
+        MemoryTracker.track(geometry, 'WebGLComposer quad');
+        MemoryTracker.track(material, 'WebGLComposer quad');
         const plane = new Mesh(geometry, material);
         this.scene.add(plane);
 

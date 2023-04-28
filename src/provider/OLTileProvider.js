@@ -366,9 +366,7 @@ async function loadTileOnce(url, extent, layer) {
     }
     texture.extent = extent;
     texture.needsUpdate = true;
-    if (__DEBUG__) {
-        MemoryTracker.track(texture, 'OL tile');
-    }
+    MemoryTracker.track(texture, 'OL tile');
 
     // The actual texture replaces the promise
     GlobalCache.delete(`promise-${url}`);
