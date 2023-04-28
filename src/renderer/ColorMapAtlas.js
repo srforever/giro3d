@@ -1,4 +1,4 @@
-import { Texture, WebGLRenderer } from 'three';
+import { NearestFilter, Texture, WebGLRenderer } from 'three';
 import Rect from '../core/Rect.js';
 import ColorMap from '../core/layer/ColorMap.js';
 import WebGLComposer from './composition/WebGLComposer.js';
@@ -69,6 +69,8 @@ class ColorMapAtlas {
             width: atlasWidth,
             height: atlasHeight,
             webGLRenderer: this._renderer,
+            minFilter: NearestFilter,
+            magFilter: NearestFilter,
             reuseTexture: false,
         });
 

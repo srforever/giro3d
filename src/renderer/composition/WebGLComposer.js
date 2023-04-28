@@ -70,6 +70,10 @@ class WebGLComposer {
      * @param {boolean} [options.createDataCopy=false] If true, rendered textures will have a `data`
      * property containing the texture data (an array of either floats or bytes).
      * This is useful to read back the texture content.
+     * @param {number} [options.minFilter=undefined] The minification filter of the generated
+     * texture. Default is `LinearFilter`.
+     * @param {number} [options.magFilter=undefined] The magnification filter of the generated
+     * texture. Default is `LinearFilter`.
      * @param {boolean|{noDataValue: number}} [options.computeMinMax] If true, rendered textures
      * will have a `min` and a `max` property containing the minimum and maximum value.
      * This only applies to grayscale data (typically elevation data). If the option is an object
@@ -90,6 +94,8 @@ class WebGLComposer {
         this.reuseTexture = options.reuseTexture;
         this.clearColor = options.clearColor;
         this.computeMinMax = options.computeMinMax;
+        this.minFilter = options.minFilter || LinearFilter;
+        this.magFilter = options.magFilter || LinearFilter;
 
         // An array containing textures that this composer has created, to be disposed later.
         this.ownedTextures = [];
@@ -126,8 +132,8 @@ class WebGLComposer {
             this.height, {
                 format,
                 anisotropy: this.renderer.capabilities.getMaxAnisotropy(),
-                magFilter: LinearFilter,
-                minFilter: LinearFilter,
+                magFilter: this.magFilter,
+                minFilter: this.minFilter,
                 type: pixelType,
                 depthBuffer: false,
                 generateMipmaps: true,
