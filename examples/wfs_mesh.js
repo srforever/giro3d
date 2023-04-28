@@ -215,3 +215,6 @@ instance.domElement.addEventListener('mousemove', e => {
         instance.notifyChange(label);
     }
 });
+
+Inspector.attach(document.getElementById('panelDiv'), instance);
+StatusBar.bind(instance);
