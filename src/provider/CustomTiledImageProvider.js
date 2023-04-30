@@ -113,9 +113,8 @@ async function getTexture(toDownload, instance, layer) {
 
     composer.dispose();
 
-    if (__DEBUG__) {
-        MemoryTracker.track(texture, 'custom tiled image');
-    }
+    MemoryTracker.track(texture, 'custom tiled image');
+
     return { texture, pitch };
 }
 
