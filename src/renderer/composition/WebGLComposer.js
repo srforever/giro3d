@@ -96,6 +96,8 @@ class WebGLComposer {
         this.computeMinMax = options.computeMinMax;
         this.minFilter = options.minFilter || LinearFilter;
         this.magFilter = options.magFilter || LinearFilter;
+        this.planeGeometry = new PlaneGeometry(1, 1, 1, 1);
+        MemoryTracker.track(this.planeGeometry, 'WebGLComposer quad');
 
         // An array containing textures that this composer has created, to be disposed later.
         this.ownedTextures = [];
@@ -165,7 +167,6 @@ class WebGLComposer {
      * @param {boolean} [options.fillNoData] Fill no-data values of the image.
      */
     draw(texture, extent, options = {}) {
-        const geometry = new PlaneGeometry(extent.width, extent.height, 1, 1);
         if (!texture.isTexture) {
             texture = new Texture(texture);
             texture.needsUpdate = true;
@@ -182,9 +183,9 @@ class WebGLComposer {
             showImageOutlines: this.showImageOutlines,
         });
 
-        MemoryTracker.track(geometry, 'WebGLComposer quad');
         MemoryTracker.track(material, 'WebGLComposer quad');
-        const plane = new Mesh(geometry, material);
+        const plane = new Mesh(this.planeGeometry, material);
+        plane.scale.set(extent.width, extent.height, 1);
         this.scene.add(plane);
 
         const x = extent.centerX - this.origin.x;
@@ -206,7 +207,6 @@ class WebGLComposer {
     _removeObjects() {
         const childrenCopy = [...this.scene.children];
         for (const child of childrenCopy) {
-            child.geometry.dispose();
             ComposerTileMaterial.release(child.material);
             this.scene.remove(child);
         }
@@ -326,6 +326,7 @@ class WebGLComposer {
     dispose() {
         this._removeTextures();
         this._removeObjects();
+        this.planeGeometry.dispose();
         if (this.renderTarget) {
             this.renderTarget.dispose();
         }
