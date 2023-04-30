@@ -158,9 +158,7 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.update(options);
 
-        if (__DEBUG__) {
-            MemoryTracker.track(this, 'LayeredMaterial');
-        }
+        MemoryTracker.track(this, 'LayeredMaterial');
     }
 
     get pixelWidth() {

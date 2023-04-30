@@ -33,7 +33,7 @@ function makeGeometry(map, extent, segments, level) {
 
     const dimensions = extent.dimensions();
     const geometry = new TileGeometry({ dimensions, segments });
-    if (__DEBUG__) {
+    if (MemoryTracker.enable) {
         MemoryTracker.track(geometry, `TileGeometry (map=${map.id}, segments=${segments}, level=${level})`);
     }
     pool.set(key, geometry);
@@ -104,9 +104,7 @@ class TileMesh extends Mesh {
         this.z = level;
         map.tileIndex.addTile(this);
 
-        if (__DEBUG__) {
-            MemoryTracker.track(this, this.name);
-        }
+        MemoryTracker.track(this, this.name);
     }
 
     get segments() {

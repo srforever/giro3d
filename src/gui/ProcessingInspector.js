@@ -39,7 +39,8 @@ class ProcessingInspector extends Panel {
         this.charts.push(new MemoryUsage(this.gui, instance));
         this.charts.push(new CachePanel(this.gui, instance));
 
-        this.addController(this, 'dumpTrackedObjects').name('Dump tracked objects');
+        this.addController(MemoryTracker, 'enable').name('Memory tracker');
+        this.addController(this, 'dumpTrackedObjects').name('Dump tracked objects to console');
     }
 
     resetCounters() {
