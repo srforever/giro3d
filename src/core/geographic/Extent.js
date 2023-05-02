@@ -418,7 +418,7 @@ class Extent {
      * Sets `target` with the center of this extent.
      *
      * @api
-     * @param {object|Vector2} target the object to set with the center's X.
+     * @param {object|Vector2} [target] the object to set with the center's X.
      * If none provided, a new one is created.
      * @param {number} target.x the `x` component
      * @param {number} target.y the `y` component
