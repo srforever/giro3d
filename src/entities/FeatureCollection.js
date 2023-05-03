@@ -207,6 +207,7 @@ class FeatureCollection extends Entity3D {
             material: options.material,
             altitude: options.altitude,
             style: options.style,
+            extrude: options.extrude,
         });
 
         this._opCounter = new OperationCounter();
