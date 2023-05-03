@@ -88,11 +88,11 @@ function addExtrudedPolygonSideFaces(indices, length, offset, count, isClockWise
 }
 
 function prepareBufferGeometry(geom, color, altitude, offset, extrude) {
-    let numVertices = (3 * geom.flatCoordinates.length) / geom.stride;
-    const vertices = new Float32Array(extrude ? numVertices * 2 : numVertices);
-    const colors = new Uint8Array(extrude ? numVertices * 3 * 2: numVertices * 3);
+    let numVertices = (geom.flatCoordinates.length) / geom.stride;
+    const vertices = new Float32Array(3 * (extrude ? numVertices * 2 : numVertices));
+    const colors = new Uint8Array(3 * (extrude ? numVertices * 2: numVertices));
 
-    for (let i = 0; i < (geom.flatCoordinates.length / geom.stride); i++) {
+    for (let i = 0; i < numVertices; i++) {
         // get the coordinates that geom has
         for (let j = 0; j < geom.stride; j++) {
             vertices[3 * i + j] = geom.flatCoordinates[geom.stride * i + j] - offset[j];
@@ -101,7 +101,7 @@ function prepareBufferGeometry(geom, color, altitude, offset, extrude) {
         if (extrude) {
             // get the coordinates that geom has
             for (let j = 0; j < geom.stride; j++) {
-                vertices[numVertices + 3 * i + j] = geom.flatCoordinates[geom.stride * i + j] - offset[j];
+                vertices[3 * (numVertices +  i) + j] = geom.flatCoordinates[geom.stride * i + j] - offset[j];
             }
         }
         // fill the rest of the stride
@@ -110,7 +110,7 @@ function prepareBufferGeometry(geom, color, altitude, offset, extrude) {
             vertices[3 * i + 2] -= offset[2];
         }
         if (extrude) {
-            vertices[numVertices + 3 * i + 2] = vertices[3 * i + 2] + (Array.isArray(extrude) ? extrude[i] : extrude) - offset[2];
+            vertices[3 * (numVertices + i) + 2] = vertices[3 * i + 2] + (Array.isArray(extrude) ? extrude[i] : extrude);
         }
     }
     fillColorArray(
