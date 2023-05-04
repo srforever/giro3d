@@ -1,5 +1,33 @@
 # Changelog
 
+## v0.24.0 (2023-05-04)
+
+Mainly bugfixes and performance optimizations.
+
+### Feat
+
+- **MemoryTracker**: make it usable in published packages (#278)
+- **Map**: document and make dynamic the renderOrder property (#269)
+- **MapInspector**: expose the discardNoData property
+
+### Fix
+
+- **ColorMapAtlas**: use a nearest neighbour filter (#275)
+- **LayeredMaterial**: ensure ENABLE_ELEVATION_RANGE is dynamic (!349)
+- **COGProvider**: don't override layer minmax (#273)
+- **examples**: bind controls to canvas instead of viewport
+- **Picking**: ignore invisible objects (#268)
+- **LayerInspector**: fix missing updates
+
+### Refactor
+
+- **Map**: move tile traversal in dedicated method
+
+### Perf
+
+- **WebGLComposer**: reuse the same quad geometry (#277)
+- **Map**: process picking in a single pass (#274)
+
 ## v0.23.1 (2023-04-13)
 
 Hotfix release for #263.
