@@ -2,10 +2,10 @@
  * @module gui/ColorMapInspector
  */
 import GUI from 'lil-gui';
-import Instance from '../core/Instance.js';
-import ColorMap, { ColorMapMode } from '../core/layer/ColorMap.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
+import Layer from '@giro3d/giro3d/core/layer/Layer.js';
 import Panel from './Panel.js';
-import Layer from '../core/layer/Layer.js';
 
 /**
  * Inspector for a {@see ColorMap}.

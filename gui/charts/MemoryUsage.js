@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import { Chart } from 'chart.js';
-import Instance from '../../core/Instance.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
 import ChartPanel, { pushTrim } from './ChartPanel.js';
 
 const MAX_DATA_POINTS = 20;

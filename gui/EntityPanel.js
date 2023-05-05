@@ -2,13 +2,14 @@
  * @module gui/EntityPanel
  */
 import GUI from 'lil-gui';
-import Instance, { INSTANCE_EVENTS } from '../core/Instance.js';
+import Instance, { INSTANCE_EVENTS } from '@giro3d/giro3d/core/Instance.js';
+import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';
+
 import EntityInspector from './EntityInspector.js';
 import MapInspector from './MapInspector.js';
 import AxisGridInspector from './AxisGridInspector.js';
 import Panel from './Panel.js';
 import Tiles3dInspector from './Tiles3dInspector.js';
-import { MAIN_LOOP_EVENTS } from '../core/MainLoop.js';
 import PotreePointCloudInspector from './PotreePointCloudInspector.js';
 
 const customInspectors = {

@@ -11,7 +11,7 @@ import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import CustomTiledImageSource from '@giro3d/giro3d/sources/CustomTiledImageSource.js';
-import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Inspector from '@giro3d/gui/Inspector.js';
 import ColorMap from '@giro3d/giro3d/core/layer/ColorMap.js';
 import ColorMapMode from '@giro3d/giro3d/core/layer/ColorMapMode.js';
 import StatusBar from './widgets/StatusBar.js';

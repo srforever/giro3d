@@ -5,10 +5,12 @@ import GUI from 'lil-gui';
 import Source from 'ol/source/Source.js';
 import TileSource from 'ol/source/Tile.js';
 import UrlTile from 'ol/source/UrlTile.js';
-import Instance from '../core/Instance.js';
+
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import CogSource from '@giro3d/giro3d/sources/CogSource.js';
+import CustomTiledImageSource from '@giro3d/giro3d/sources/CustomTiledImageSource.js';
+
 import Panel from './Panel.js';
-import CogSource from '../sources/CogSource.js';
-import CustomTiledImageSource from '../sources/CustomTiledImageSource.js';
 
 /**
  * Inspector for a source.

@@ -3,9 +3,11 @@
  */
 import GUI from 'lil-gui';
 import { Color } from 'three';
-import Instance from '../core/Instance.js';
-import Tiles3D from '../entities/Tiles3D.js';
-import Helpers from '../helpers/Helpers.js';
+
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
+import Helpers from '@giro3d/giro3d/helpers/Helpers.js';
+
 import EntityInspector from './EntityInspector.js';
 
 class Tiles3dInspector extends EntityInspector {

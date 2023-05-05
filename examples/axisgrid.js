@@ -8,7 +8,7 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import AxisGrid, { TickOrigin } from '@giro3d/giro3d/entities/AxisGrid.js';
-import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Inspector from '@giro3d/gui/Inspector.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';

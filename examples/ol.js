@@ -8,7 +8,7 @@ import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
-import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Inspector from '@giro3d/gui/Inspector.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
