@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.24.1 (2023-05-05)
+
+Hotfix for the #286 issue.
+
+### Fix
+
+- **ComposerTileMaterial**: fix memory leak (#286)
+
 ## v0.24.0 (2023-05-04)
 
 Mainly bugfixes and performance optimizations.
