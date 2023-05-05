@@ -4,9 +4,11 @@
 
 import GUI from 'lil-gui';
 import { VERSION as olversion } from 'ol/util.js';
-import Instance from '../core/Instance.js';
+
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import VERSION from '@giro3d/giro3d/version.js';
+
 import Panel from './Panel.js';
-import VERSION from '../version.js';
 
 class PackageInfoInspector extends Panel {
     /**

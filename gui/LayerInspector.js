@@ -3,14 +3,16 @@
  */
 import GUI from 'lil-gui';
 import { Color } from 'three';
-import Instance from '../core/Instance.js';
-import Layer from '../core/layer/Layer.js';
-import Panel from './Panel.js';
-import { UPDATE_STRATEGIES } from '../core/layer/LayerUpdateStrategy.js';
+
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import Layer from '@giro3d/giro3d/core/layer/Layer.js';
+import { UPDATE_STRATEGIES } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
+import Helpers from '@giro3d/giro3d/helpers/Helpers.js';
+import Map from '@giro3d/giro3d/entities/Map.js';
+
 import ColorMapInspector from './ColorMapInspector.js';
-import Helpers from '../helpers/Helpers.js';
-import Map from '../entities/Map.js';
 import SourceInspector from './SourceInspector.js';
+import Panel from './Panel.js';
 
 /**
  * Inspector for a {@link module:Core/layer/Layer~Layer Layer}.

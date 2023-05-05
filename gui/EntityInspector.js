@@ -3,10 +3,12 @@
  */
 import GUI from 'lil-gui';
 import { Object3D, Color } from 'three';
+
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import Entity3D from '@giro3d/giro3d/entities/Entity3D.js';
+import Helpers from '@giro3d/giro3d/helpers/Helpers.js';
+
 import Panel from './Panel.js';
-import Instance from '../core/Instance.js';
-import Entity3D from '../entities/Entity3D.js';
-import Helpers from '../helpers/Helpers.js';
 
 const _tempArray = [];
 

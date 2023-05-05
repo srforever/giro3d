@@ -7,8 +7,10 @@ import webpack from 'webpack';
 import ExampleBuilder from './example-builder.mjs';
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
+console.log('baseDir', baseDir);
 
 const src = path.join(baseDir, '..');
+const rootDir = path.join(baseDir, '../../');
 const buildDir = path.join(baseDir, '..', '..', 'build', 'site', 'examples');
 
 export default (env, argv) => {
@@ -32,8 +34,13 @@ export default (env, argv) => {
         context: src,
         resolve: {
             alias: {
-                '@giro3d/giro3d': '../src',
+                '@giro3d/giro3d': path.resolve(rootDir, 'src'),
+                '@giro3d/gui': path.resolve(rootDir, 'gui'),
             },
+            modules: [
+                path.resolve(rootDir, 'node_modules'),
+                path.resolve(rootDir, 'gui', 'node_modules'),
+            ],
         },
         devtool: 'source-map',
         entry,

@@ -2,7 +2,7 @@
  * @module gui/Panel
  */
 import GUI, { ColorController, Controller } from 'lil-gui';
-import Instance from '../core/Instance.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
 
 /**
  * Base class for the panels in the inspector.

@@ -3,10 +3,11 @@
  */
 
 import GUI from 'lil-gui';
-import Instance from '../core/Instance.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';
+
 import CameraInspector from './CameraInspector.js';
 import EntityPanel from './EntityPanel.js';
-import { MAIN_LOOP_EVENTS } from '../core/MainLoop.js';
 import Outliner from './outliner/Outliner.js';
 import ProcessingInspector from './ProcessingInspector.js';
 import Panel from './Panel.js';

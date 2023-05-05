@@ -3,8 +3,10 @@
  */
 import GUI from 'lil-gui';
 import { Group } from 'three';
-import Instance from '../core/Instance.js';
-import PotreePointCloud from '../entities/PotreePointCloud.js';
+
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import PotreePointCloud from '@giro3d/giro3d/entities/PotreePointCloud.js';
+
 import EntityInspector from './EntityInspector.js';
 
 class PotreePointCloudInspector extends EntityInspector {

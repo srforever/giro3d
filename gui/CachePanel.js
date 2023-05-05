@@ -2,7 +2,7 @@
  * @module gui/CachePanel
  */
 
-import { GlobalCache } from '../core/Cache.js';
+import { GlobalCache } from '@giro3d/giro3d/core/Cache.js';
 import Panel from './Panel.js';
 
 class CachePanel extends Panel {

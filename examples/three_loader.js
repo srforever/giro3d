@@ -18,7 +18,7 @@ import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
-import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Inspector from '@giro3d/gui/Inspector.js';
 import StatusBar from './widgets/StatusBar.js';
 
 const viewerDiv = document.getElementById('viewerDiv');
