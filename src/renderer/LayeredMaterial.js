@@ -279,6 +279,8 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.rebuildAtlasIfNecessary();
 
+        this.composer.reset();
+
         // Redraw all color layers on the canvas
         for (const l of this.colorLayers) {
             const idx = this.indexOfColorLayer(l);
