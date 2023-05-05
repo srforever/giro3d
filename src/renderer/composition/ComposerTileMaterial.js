@@ -17,7 +17,11 @@ ShaderChunk.Interpretation = InterpretationChunk;
 ShaderChunk.FillNoData = FillNoDataChunk;
 
 const POOL = [];
-const POOL_SIZE = 2048;
+// Temporarily disable pooling as the material does not seem
+// to behave properly when reused. Needs investigation.
+// https://gitlab.com/giro3d/giro3d/-/issues/287
+// const POOL_SIZE = 2048;
+const POOL_SIZE = 0;
 
 class ComposerTileMaterial extends RawShaderMaterial {
     /**
