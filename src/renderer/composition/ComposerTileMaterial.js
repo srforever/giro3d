@@ -17,6 +17,7 @@ ShaderChunk.Interpretation = InterpretationChunk;
 ShaderChunk.FillNoData = FillNoDataChunk;
 
 const POOL = [];
+const POOL_SIZE = 2048;
 
 class ComposerTileMaterial extends RawShaderMaterial {
     /**
@@ -67,9 +68,8 @@ class ComposerTileMaterial extends RawShaderMaterial {
     }) {
         const interp = interpretation ?? Interpretation.Raw;
 
-        this.texture = texture;
-        this.dataType = interp.mode !== Mode.Raw ? FloatType : this.texture.type;
-        this.pixelFormat = this.texture.format;
+        this.dataType = interp.mode !== Mode.Raw ? FloatType : texture.type;
+        this.pixelFormat = texture.format;
 
         const interpValue = {};
         interp.setUniform(interpValue);
@@ -83,14 +83,15 @@ class ComposerTileMaterial extends RawShaderMaterial {
         this.uniforms.fillNoData.value = fillNoData ?? false;
         this.uniforms.showImageOutlines.value = showImageOutlines ?? false;
 
-        if (this.texture?.image) {
-            const image = this.texture.image;
+        if (texture?.image) {
+            const image = texture.image;
             this.uniforms.textureSize.value.set(image.width, image.height);
         }
     }
 
     reset() {
-        this.texture = null;
+        this.uniforms.texture.value = null;
+        this.uniforms.textureSize.value.set(0, 0);
     }
 
     /**
@@ -108,6 +109,7 @@ class ComposerTileMaterial extends RawShaderMaterial {
         if (POOL.length > 0) {
             const mat = POOL.pop();
             mat.update(opts);
+            return mat;
         }
         return new ComposerTileMaterial(opts);
     }
@@ -119,7 +121,11 @@ class ComposerTileMaterial extends RawShaderMaterial {
      */
     static release(material) {
         material.reset();
-        POOL.push(material);
+        if (POOL.length < POOL_SIZE) {
+            POOL.push(material);
+        } else {
+            material.dispose();
+        }
     }
 }
 
