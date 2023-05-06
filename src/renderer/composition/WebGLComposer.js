@@ -304,6 +304,8 @@ class WebGLComposer {
         const previousAlpha = this.renderer.getClearAlpha();
         if (this.clearColor) {
             this.renderer.setClearColor(this.clearColor);
+        } else {
+            this.renderer.setClearColor('black', 0);
         }
         this.renderer.setRenderTarget(target);
 
