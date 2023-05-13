@@ -127,7 +127,7 @@ class C3DEngine {
         }
 
         // Don't verify shaders if not debug (it is very costly)
-        this.renderer.debug.checkShaderErrors = options.checkShaderErrors || __DEBUG__;
+        this.renderer.debug.checkShaderErrors = options.checkShaderErrors ?? __DEBUG__;
         this.labelRenderer = new CSS2DRenderer();
 
         // Let's allow our canvas to take focus
