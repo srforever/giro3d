@@ -149,6 +149,17 @@ class Entity3D extends Entity {
         );
     }
 
+    /**
+     * Test whether this entity contains the given object.
+     *
+     * The object may be a component of the entity, or a 3D object.
+     *
+     * @param {any} obj The object to test.
+     * @returns {boolean} true if the entity contains the object.
+     */
+    // eslint-disable-next-line class-methods-use-this, no-unused-vars
+    contains(obj) { return false; }
+
     attach(layer) {
         if (!layer.update) {
             throw new Error(`Missing 'update' function -> can't attach layer ${layer.id}`);

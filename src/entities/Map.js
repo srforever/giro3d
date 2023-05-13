@@ -653,6 +653,14 @@ class Map extends Entity3D {
         this._instance.notifyChange(this, true);
     }
 
+    contains(obj) {
+        if (obj instanceof Layer) {
+            return this._attachedLayers.includes(obj);
+        }
+
+        return false;
+    }
+
     update(context, node) {
         if (!node.parent) {
             return ObjectRemovalHelper.removeChildrenAndCleanup(this, node);

@@ -110,7 +110,7 @@ function filterChangeSources(updateSources, entity) {
     let fullUpdate = false;
     const filtered = new Set();
     updateSources.forEach(src => {
-        if (src === entity || src.isCamera) {
+        if (src === entity || src.isCamera || entity.contains(src)) {
             fullUpdate = true;
         } else if (src.layer === entity) {
             filtered.add(src);
