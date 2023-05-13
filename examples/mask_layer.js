@@ -37,7 +37,7 @@ const basemap = new ColorLayer(
     'basemap',
     {
         source: new XYZ({
-            url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.pngraw?access_token=${apiKey}`,
+            url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${apiKey}`,
             crossOrigin: 'anonymous',
             projection: extent.crs(),
         }),
