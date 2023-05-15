@@ -146,6 +146,10 @@ class TileMesh extends Mesh {
         uniform.elevationTexture = neighbourElevation.texture;
     }
 
+    onBeforeRender() {
+        this.material.onBeforeRender();
+    }
+
     /**
      * @param {Array<TileMesh>} neighbours The neighbours.
      */
