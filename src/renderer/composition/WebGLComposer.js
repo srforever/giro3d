@@ -20,6 +20,9 @@ import TextureGenerator from '../../utils/TextureGenerator.js';
 import MemoryTracker from '../MemoryTracker.js';
 import ComposerTileMaterial from './ComposerTileMaterial.js';
 
+/** @type {PlaneGeometry} */
+let SHARED_PLANE_GEOMETRY = null;
+
 const IMAGE_Z = -10;
 const textureOwners = new Map();
 
@@ -96,8 +99,10 @@ class WebGLComposer {
         this.computeMinMax = options.computeMinMax;
         this.minFilter = options.minFilter || LinearFilter;
         this.magFilter = options.magFilter || LinearFilter;
-        this.planeGeometry = new PlaneGeometry(1, 1, 1, 1);
-        MemoryTracker.track(this.planeGeometry, 'WebGLComposer quad');
+        if (!SHARED_PLANE_GEOMETRY) {
+            SHARED_PLANE_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
+            MemoryTracker.track(SHARED_PLANE_GEOMETRY, 'WebGLComposer - PlaneGeometry');
+        }
 
         // An array containing textures that this composer has created, to be disposed later.
         this.ownedTextures = [];
@@ -171,7 +176,7 @@ class WebGLComposer {
             texture = new Texture(texture);
             texture.needsUpdate = true;
             this.ownedTextures.push(texture);
-            MemoryTracker.track(texture, 'WebGLComposer quad');
+            MemoryTracker.track(texture, 'WebGLComposer - owned texture');
         }
         this.textures.push(texture);
         const interpretation = options.interpretation ?? Interpretation.Raw;
@@ -183,8 +188,9 @@ class WebGLComposer {
             showImageOutlines: this.showImageOutlines,
         });
 
-        MemoryTracker.track(material, 'WebGLComposer quad');
-        const plane = new Mesh(this.planeGeometry, material);
+        MemoryTracker.track(material, 'WebGLComposer - material');
+        const plane = new Mesh(SHARED_PLANE_GEOMETRY, material);
+        MemoryTracker.track(plane, 'WebGLComposer - mesh');
         plane.scale.set(extent.width, extent.height, 1);
         this.scene.add(plane);
 
@@ -326,7 +332,6 @@ class WebGLComposer {
     dispose() {
         this._removeTextures();
         this._removeObjects();
-        this.planeGeometry.dispose();
         if (this.renderTarget) {
             this.renderTarget.dispose();
         }
