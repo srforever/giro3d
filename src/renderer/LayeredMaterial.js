@@ -154,6 +154,8 @@ class LayeredMaterial extends RawShaderMaterial {
         this.uniforms.backgroundColor = new Uniform(new Vector4());
         this.uniforms.opacity = new Uniform(1.0);
 
+        this.needsAtlasRepaint = false;
+
         this.colorLayers = [];
 
         this.update(options);
@@ -277,7 +279,25 @@ class LayeredMaterial extends RawShaderMaterial {
             return Promise.resolve();
         }
 
+        this.needsAtlasRepaint = true;
+
+        if (this.visible) {
+            instance.notifyChange();
+        }
+
+        return Promise.resolve();
+    }
+
+    onBeforeRender() {
+        if (this.needsAtlasRepaint) {
+            this.repaintAtlas();
+        }
+    }
+
+    repaintAtlas() {
         this.rebuildAtlasIfNecessary();
+
+        this.composer.reset();
 
         // Redraw all color layers on the canvas
         for (const l of this.colorLayers) {
@@ -315,11 +335,7 @@ class LayeredMaterial extends RawShaderMaterial {
 
         this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
 
-        if (this.visible) {
-            instance.notifyChange();
-        }
-
-        return Promise.resolve();
+        this.needsAtlasRepaint = false;
     }
 
     /**
