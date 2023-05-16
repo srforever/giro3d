@@ -44,6 +44,15 @@ const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 const MAX_SUPPORTED_ASPECT_RATIO = 10;
 
 /**
+ * Fires when the layers are reordered.
+ *
+ * @api
+ * @event Map#layer-order-changed
+ * @example
+ * map.addEventListener('layer-order-changed', () => console.log('order changed!'));
+ */
+
+/**
  * Fires when a layer is added to the map.
  *
  * @api
@@ -638,6 +647,8 @@ class Map extends Entity3D {
         }
 
         this._forEachTile(tile => tile.reorderLayers());
+
+        this.dispatchEvent({ type: 'layer-order-changed' });
 
         this._instance.notifyChange(this, true);
     }
