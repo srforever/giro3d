@@ -160,6 +160,7 @@ class MapInspector extends EntityInspector {
 
         this.map.addEventListener('layer-added', this._fillLayersCb);
         this.map.addEventListener('layer-removed', this._fillLayersCb);
+        this.map.addEventListener('layer-order-changed', this._fillLayersCb);
 
         this.fillLayers();
     }
@@ -234,6 +235,7 @@ class MapInspector extends EntityInspector {
 
         this.map.removeEventListener('layer-added', this._fillLayersCb);
         this.map.removeEventListener('layer-removed', this._fillLayersCb);
+        this.map.removeEventListener('layer-order-changed', this._fillLayersCb);
     }
 
     dispose() {
@@ -269,7 +271,9 @@ class MapInspector extends EntityInspector {
         while (this.layers.length > 0) {
             this.layers.pop().dispose();
         }
-        this.map.getLayers().forEach(lyr => {
+        // We reverse the order so that the layers are displayed in a natural order:
+        // top layers in the inspector are also on top in the composition.
+        this.map.getLayers().reverse().forEach(lyr => {
             const gui = new LayerInspector(this.layerFolder, this.instance, this.map, lyr);
             this.layers.push(gui);
         });
