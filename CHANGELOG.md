@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.25.0 (2023-05-17)
+
+Mainly bugfixes and performance optimizations. No breaking change.
+
+### Fix
+
+- **LayeredMaterial**: fix memory leak by resetting the composer before rendering (#288)
+
+### Perf
+
+- **LayeredMaterial**: repaint the atlas at most once per frame
+- **WebGLComposer**: share a single plane geometry among all instances
+
 ## v0.24.1 (2023-05-05)
 
 Hotfix for the #286 issue.
