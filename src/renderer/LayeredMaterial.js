@@ -222,20 +222,12 @@ class LayeredMaterial extends RawShaderMaterial {
             if (index === -1) {
                 continue;
             }
-            const tex = this.texturesInfo.color.infos[index].texture;
-            if (tex && tex.dispose && tex.owner === this) {
-                tex.dispose();
-            }
             delete this.texturesInfo.color.infos[index];
         }
 
         this.colorLayers.length = 0;
         this.composer.dispose();
         this.texturesInfo.color.atlasTexture?.dispose();
-        const elevTexture = this.texturesInfo.elevation.texture;
-        if (elevTexture.owner === this) {
-            elevTexture.dispose();
-        }
     }
 
     getColorTexture(layer) {
@@ -247,50 +239,10 @@ class LayeredMaterial extends RawShaderMaterial {
         return this.texturesInfo.color.infos[index].texture;
     }
 
-    setColorTextures(layer, textures, shortcut, instance, isInherited = false) {
-        if (Array.isArray(textures)) {
-            // console.warn(`Provider should return a single texture and not an Array.
-            // See layer id = ${layer.id}`);
-            textures = textures[0];
-        }
-
-        if (!isInherited) {
-            textures.texture.owner = this;
-        }
-
-        const index = this.indexOfColorLayer(layer);
-        this.texturesInfo.color.infos[index].originalOffsetScale.copy(textures.pitch);
-        this.texturesInfo.color.infos[index].texture = textures.texture;
-        const originalOffsetScale = this.texturesInfo.color.infos[index].originalOffsetScale;
-        const offsetScale = this.texturesInfo.color.infos[index].offsetScale;
-
-        if (shortcut) {
-            const width = textures?.texture?.image?.width || EMPTY_IMAGE_SIZE;
-            const height = textures?.texture?.image?.height || EMPTY_IMAGE_SIZE;
-            updateOffsetScale(
-                new Vector2(width, height),
-                this.atlasInfo.atlas[layer.id],
-                originalOffsetScale,
-                this.composer.width,
-                this.composer.height,
-                offsetScale,
-            );
-            // we already got our texture (needsUpdate is done in TiledNodeProcessing)
-            return Promise.resolve();
-        }
-
-        this.needsAtlasRepaint = true;
-
-        if (this.visible) {
-            instance.notifyChange();
-        }
-
-        return Promise.resolve();
-    }
-
     onBeforeRender() {
         if (this.needsAtlasRepaint) {
             this.repaintAtlas();
+            this.needsAtlasRepaint = false;
         }
     }
 
@@ -304,10 +256,10 @@ class LayeredMaterial extends RawShaderMaterial {
             const idx = this.indexOfColorLayer(l);
             const atlas = this.atlasInfo.atlas[l.id];
 
-            const texture = this.texturesInfo.color.infos[idx].texture;
+            const layerTexture = this.texturesInfo.color.infos[idx].texture;
 
-            const w = texture?.image?.width || EMPTY_IMAGE_SIZE;
-            const h = texture?.image?.height || EMPTY_IMAGE_SIZE;
+            const w = layerTexture?.image?.width || EMPTY_IMAGE_SIZE;
+            const h = layerTexture?.image?.height || EMPTY_IMAGE_SIZE;
 
             updateOffsetScale(
                 new Vector2(w, h),
@@ -318,24 +270,30 @@ class LayeredMaterial extends RawShaderMaterial {
                 this.texturesInfo.color.infos[idx].offsetScale,
             );
 
-            if (texture) {
-                drawImageOnAtlas(w, h, this.composer, atlas, texture);
+            if (layerTexture) {
+                drawImageOnAtlas(w, h, this.composer, atlas, layerTexture);
             }
 
             this.canvasRevision++;
         }
 
-        const texture = this.composer.render();
+        const rendered = this.composer.render();
+        rendered.name = 'LayeredMaterial - Atlas';
 
         // Even though we asked the composer to reuse the same texture, sometimes it has
         // to recreate a new texture when some parameters change, such as pixel format.
-        if (texture.uuid !== this.texturesInfo.color.atlasTexture?.uuid) {
-            this._rebuildAtlasTexture(texture);
+        if (rendered.uuid !== this.texturesInfo.color.atlasTexture?.uuid) {
+            this._rebuildAtlasTexture(rendered);
         }
 
         this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
+    }
 
-        this.needsAtlasRepaint = false;
+    setColorTextures(layer, { texture, pitch }) {
+        const index = this.indexOfColorLayer(layer);
+        this.texturesInfo.color.infos[index].originalOffsetScale.copy(pitch);
+        this.texturesInfo.color.infos[index].texture = texture;
+        this.needsAtlasRepaint = true;
     }
 
     /**
@@ -355,33 +313,43 @@ class LayeredMaterial extends RawShaderMaterial {
         return null;
     }
 
-    setElevationTexture(layer, textureAndPitch, isInherited = false) {
+    /**
+     * @param {ElevationLayer} layer The layer.
+     */
+    pushElevationLayer(layer) {
+        this.elevationLayer = layer;
+    }
+
+    removeElevationLayer() {
+        this.elevationLayer = null;
+        this.uniforms.elevationTexture.value = null;
+        this.texturesInfo.elevation.texture = null;
+        MaterialUtils.setDefine(this, 'ELEVATION_LAYER', false);
+    }
+
+    setElevationTexture(layer, { texture, pitch }, isFinal) {
         /** @type {ElevationLayer} */
         this.elevationLayer = layer;
 
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', true);
 
-        const texture = textureAndPitch.texture;
         this.uniforms.elevationTexture.value = texture;
         this.texturesInfo.elevation.texture = texture;
-        this.texturesInfo.elevation.offsetScale.copy(textureAndPitch.pitch);
+        texture.isFinal = isFinal;
+        this.texturesInfo.elevation.offsetScale.copy(pitch);
 
         const uniform = this.uniforms.elevationLayer.value;
-        uniform.offsetScale = textureAndPitch.pitch;
+        uniform.offsetScale = pitch;
         uniform.textureSize = new Vector2(texture.image.width, texture.image.height);
         uniform.color = new Vector4(1, 1, 1, 1);
         uniform.elevationRange = new Vector2();
-
-        if (!isInherited) {
-            texture.owner = this;
-        }
 
         this._updateColorMaps();
 
         return Promise.resolve(true);
     }
 
-    pushLayer(newLayer) {
+    pushColorLayer(newLayer) {
         if (this.colorLayers.includes(newLayer)) {
             return;
         }
@@ -432,7 +400,7 @@ class LayeredMaterial extends RawShaderMaterial {
         }
     }
 
-    removeLayer(layer) {
+    removeColorLayer(layer) {
         const index = this.indexOfColorLayer(layer);
         if (index === -1) {
             console.warn(`Layer ${layer.id} not found, so not removed...`);
@@ -451,6 +419,7 @@ class LayeredMaterial extends RawShaderMaterial {
         this.defines.COLOR_LAYERS = this.colorLayers.length;
 
         this.needsUpdate = true;
+        this.needsAtlasRepaint = true;
     }
 
     /**
@@ -588,6 +557,7 @@ class LayeredMaterial extends RawShaderMaterial {
             }
 
             this.composer.dispose();
+            currentTexture?.dispose();
             this.composer = newComposer;
 
             for (let i = 0; i < this.colorLayers.length; i++) {
@@ -614,7 +584,13 @@ class LayeredMaterial extends RawShaderMaterial {
         return this.composer.width > 0;
     }
 
+    /**
+     * @param {Texture} newTexture The new atlas texture.
+     */
     _rebuildAtlasTexture(newTexture) {
+        if (newTexture) {
+            newTexture.name = 'LayeredMaterial - Atlas';
+        }
         this.texturesInfo.color.atlasTexture?.dispose();
         this.texturesInfo.color.atlasTexture = newTexture;
         this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
@@ -685,7 +661,8 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     isElevationLayerTextureLoaded() {
-        return this.texturesInfo.elevation.texture !== emptyTexture;
+        const texture = this.texturesInfo.elevation.texture;
+        return texture != null && texture.isFinal === true;
     }
 
     isColorLayerTextureLoaded(layer) {

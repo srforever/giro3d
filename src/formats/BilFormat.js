@@ -15,7 +15,7 @@ import TextureGenerator from '../utils/TextureGenerator.js';
  *
  * ```js
  * // Create an elevation source
- * const elevationSource = new TileWMS({
+ * const elevationSource = new WMSSource({
  *     url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
  *     projection: 'EPSG:2154',
  *     crossOrigin: 'anonymous',
@@ -24,10 +24,8 @@ import TextureGenerator from '../utils/TextureGenerator.js';
  *         FORMAT: 'image/x-bil;bits=32',
  *     },
  *     version: '1.3.0',
+ *     decoder: new BilFormat(),
  * });
- *
- * // set the format. At the moment, this must be done separately from the source creation.
- * elevationSource.format = new BilFormat();
  *
  * const elevationLayer = new ElevationLayer(
  *     'wms_elevation',
@@ -76,14 +74,11 @@ class BilFormat extends ImageFormat {
         }
 
         const opts = {
-            nodata: options.noDataValue,
             width: options.width,
             height: options.height,
+            nodata: options.noDataValue,
         };
         const texture = TextureGenerator.createDataTexture(opts, FloatType, floatArray);
-        const { min, max } = TextureGenerator.computeMinMax(floatArray, options.noDataValue);
-        texture.min = min;
-        texture.max = max;
         texture.generateMipmaps = false;
         return texture;
     }

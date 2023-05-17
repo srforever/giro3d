@@ -1,39 +1,32 @@
 /* eslint-disable no-lone-blocks */
 import colormap from 'colormap';
-import { Color } from 'three';
+import { Color, Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
-import CustomTiledImageSource from '@giro3d/giro3d/sources/CustomTiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap from '@giro3d/giro3d/core/layer/ColorMap.js';
 import ColorMapMode from '@giro3d/giro3d/core/layer/ColorMapMode.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import XYZ from 'ol/source/XYZ.js';
 import StatusBar from './widgets/StatusBar.js';
 
-Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
-
-const extent = new Extent(
-    'EPSG:2154',
-    929748, 974519, 6400582, 6444926,
-);
+// Defines geographic extent: CRS, min/max X, min/max Y
+const extent = Extent.fromCenterAndSize('EPSG:3857', { x: 697313, y: 5591324 }, 30000, 30000);
 
 // `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates the giro3d instance
-const instance = new Instance(viewerDiv);
+const instance = new Instance(viewerDiv, { crs: extent.crs() });
 
 // Sets the camera position
-const cameraPosition = new Coordinates(
-    'EPSG:2154',
-    extent.west(), extent.south(), 2000,
-).xyz();
+const cameraPosition = new Vector3(659567, 5553543, 25175);
 instance.camera.camera3D.position.copy(cameraPosition);
 
 // Creates controls
@@ -49,8 +42,8 @@ controls.maxPolarAngle = Math.PI / 2.3;
 
 instance.useTHREEControls(controls);
 
-const elevationMin = 711; // Altitude corresponding to 0 in heightfield
-const elevationMax = 3574; // Altitude corresponding to 255 in heightfield
+const elevationMin = 780;
+const elevationMax = 3574;
 
 function makeColorRamp(preset, nshades) {
     const values = colormap({ colormap: preset, nshades });
@@ -85,47 +78,49 @@ const map = new Map('planar', {
 });
 instance.add(map);
 
-// Adds our Elevation source & layer
-// Source data from IGN BD ALTI https://geoservices.ign.fr/bdalti
-const demSource = new CustomTiledImageSource({
-    url: 'https://3d.oslandia.com/ecrins/ecrins-dem.json',
-    networkOptions: { crossOrigin: 'same-origin' },
+const key = 'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
+const source = new TiledImageSource({
+    source: new XYZ({
+        url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
+        projection: extent.crs(),
+        crossOrigin: 'anonymous',
+    }),
 });
 
 const elevationLayer = new ElevationLayer('elevation', {
+    extent,
+    source,
     colorMap: new ColorMap(
         colorRamps.viridis,
         elevationMin,
         elevationMax,
         ColorMapMode.Elevation,
     ),
-    source: demSource,
-    interpretation: Interpretation.ScaleToMinMax(elevationMin, elevationMax),
-    projection: 'EPSG:2154',
+    interpretation: Interpretation.MapboxTerrainRGB,
 });
 
 const bottomLayer = new ColorLayer('color', {
+    extent,
+    source,
     colorMap: new ColorMap(
-        colorRamps.viridis,
+        colorRamps.jet,
         elevationMin,
         elevationMax,
         ColorMapMode.Elevation,
     ),
-    source: demSource,
-    interpretation: Interpretation.ScaleToMinMax(elevationMin, elevationMax),
-    projection: 'EPSG:2154',
+    interpretation: Interpretation.MapboxTerrainRGB,
 });
 
 const topLayer = new ColorLayer('color2', {
+    extent,
+    source,
     colorMap: new ColorMap(
-        colorRamps.viridis,
+        colorRamps.earth,
         elevationMin,
         elevationMax,
         ColorMapMode.Elevation,
     ),
-    source: demSource,
-    interpretation: Interpretation.ScaleToMinMax(elevationMin, elevationMax),
-    projection: 'EPSG:2154',
+    interpretation: Interpretation.MapboxTerrainRGB,
 });
 
 map.addLayer(elevationLayer);

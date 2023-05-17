@@ -22,6 +22,8 @@ import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 // ### Initialization of the Giro3D instance
@@ -33,14 +35,6 @@ import StatusBar from './widgets/StatusBar.js';
 // We will use the `viewerDiv` element from our HTML page to initialize the instance.
 const viewer = document.getElementById('viewerDiv');
 
-// Now we are ready to create our instance.
-const instance = new Instance(viewer);
-
-// ### Create the Map
-
-// Let's create a map of the city of [Lyon](https://en.wikipedia.org/wiki/Lyon), with satellite
-// imagery and a digital elevation model (DEM).
-
 // #### Register the custom CRS
 
 // Our map uses the [EPSG:3946](https://epsg.io/3946) French coordinate reference system (CRS) that
@@ -50,6 +44,15 @@ const instance = new Instance(viewer);
 // Let's register a definition for this CRS. The definition is taken from https://epsg.io/3946.proj4.
 Instance.registerCRS('EPSG:3946',
     '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+
+// Now we are ready to create our instance. Note that the `crs` parameter is necessary to determine
+// the interpretation of coordinates from the 3D scene.
+const instance = new Instance(viewer, { crs: 'EPSG:3946' });
+
+// ### Create the Map
+
+// Let's create a map of the city of [Lyon](https://en.wikipedia.org/wiki/Lyon), with satellite
+// imagery and a digital elevation model (DEM).
 
 // #### Specify the map extent
 
@@ -89,22 +92,31 @@ instance.add(map);
 // ##### Specify the data source
 
 // Let's create a source that will pull data from a WMS service.
-// We are using the [OpenLayer TileWMS](https://openlayers.org/en/latest/apidoc/module-ol_source_TileWMS-TileWMS.html) source for that.
-const satelliteSource = new TileWMS({
-    url: 'https://download.data.grandlyon.com/wms/grandlyon',
-    projection: 'EPSG:3946',
-    crossOrigin: 'anonymous',
-    params: {
-        LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
-        FORMAT: 'image/jpeg',
-    },
-    version: '1.3.0',
+// We are using the
+// [`TiledImageSource`](../apidoc/module-sources_TiledImageSource-TiledImageSource.html) for that.
+// This source will wrap an OpenLayers source, in this case a `TileWMS`.
+const satelliteSource = new TiledImageSource({
+    source: new TileWMS({
+        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        projection: 'EPSG:3946',
+        crossOrigin: 'anonymous',
+        params: {
+            LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
+            FORMAT: 'image/jpeg',
+        },
+        version: '1.3.0',
+    }),
 });
 
 // ##### Create the layer
 
-// Now we can create the layer.
-const colorLayer = new ColorLayer('satellite', { source: satelliteSource });
+// Now we can create the layer. Note that we specify an extent for the layer. This is not
+// strictly required, but since our map is much smaller than the WMS source, we want to avoid
+// processing data that is outside our layer.
+const colorLayer = new ColorLayer('satellite', {
+    source: satelliteSource,
+    extent: map.extent,
+});
 
 // And add it to the map.
 map.addLayer(colorLayer);
@@ -125,14 +137,16 @@ map.addLayer(colorLayer);
 // map, but it rather deforms the map to display the terrain (hence the name 2.5D map).
 
 // Let's create a WMS source for this layer.
-const demSource = new TileWMS({
-    url: 'https://download.data.grandlyon.com/wms/grandlyon',
-    projection: 'EPSG:3946',
-    crossOrigin: 'anonymous',
-    params: {
-        LAYERS: ['MNT2018_Altitude_2m'],
-    },
-    version: '1.3.0',
+const demSource = new TiledImageSource({
+    source: new TileWMS({
+        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        projection: 'EPSG:3946',
+        crossOrigin: 'anonymous',
+        params: {
+            LAYERS: ['MNT2018_Altitude_2m'],
+        },
+        version: '1.3.0',
+    }),
 });
 
 // Let's define the lowest and highest altitude of our elevation layer, in meters.
@@ -143,6 +157,7 @@ const highestAltitude = 621;
 const elevationLayer = new ElevationLayer(
     'dem',
     {
+        extent: map.extent,
         source: demSource,
         interpretation: Interpretation.ScaleToMinMax(lowestAltitude, highestAltitude),
     },

@@ -7,7 +7,6 @@ import Extent from '../../../src/core/geographic/Extent.js';
 import Instance, { INSTANCE_EVENTS } from '../../../src/core/Instance.js';
 import MainLoop from '../../../src/core/MainLoop.js';
 import Scheduler from '../../../src/core/scheduler/Scheduler.js';
-import Layer from '../../../src/core/layer/Layer.js';
 import Map from '../../../src/entities/Map.js';
 import Tiles3D from '../../../src/entities/Tiles3D.js';
 import { setupGlobalMocks, resizeObservers } from '../mocks.js';
@@ -29,7 +28,7 @@ describe('Instance', () => {
                 domElement: viewerDiv,
             },
         };
-        const options = { mainLoop: new MainLoop(new Scheduler(), gfxEngine) };
+        const options = { crs: 'EPSG:3857', mainLoop: new MainLoop(new Scheduler(), gfxEngine) };
         instance = new Instance(viewerDiv, options);
         Fetcher.json = jest.fn();
     });
@@ -83,7 +82,7 @@ describe('Instance', () => {
 
     describe('add', () => {
         it('should return a rejected promise if not of correct type', async () => {
-            const layer = new Layer('foo', { standalone: true });
+            const layer = {};
             await expect(instance.add(layer)).rejects.toThrowError('object is not an instance of THREE.Object3D or Giro3d.Entity');
         });
 

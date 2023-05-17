@@ -7,6 +7,7 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Panel from '@giro3d/giro3d/gui/Panel.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
 class MyCustomPanel extends Panel {
@@ -52,9 +53,11 @@ const map = new Map('planar', { extent });
 instance.add(map);
 
 // Adds an TMS imagery layer
-const source = new Stamen({ layer: 'watercolor', wrapX: false });
-
-map.addLayer(new ColorLayer('osm', { source }));
+map.addLayer(new ColorLayer(
+    'color', {
+        source: new TiledImageSource({ source: new Stamen({ layer: 'watercolor', wrapX: false }) }),
+    },
+));
 
 // Create camera and controls
 instance.camera.camera3D.position.set(0, 0, 25000000);

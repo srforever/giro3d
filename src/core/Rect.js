@@ -48,6 +48,27 @@ class Rect {
     }
 
     /**
+     * @param {Rect} other The other rect.
+     * @param {number} [epsilon] The comparison epsilon.
+     * @returns {boolean} True if they are equal.
+     */
+    equals(other, epsilon = 0.0001) {
+        return Math.abs(other.xMin - this.xMin) <= epsilon
+            && Math.abs(other.xMax - this.xMax) <= epsilon
+            && Math.abs(other.yMin - this.yMin) <= epsilon
+            && Math.abs(other.yMax - this.yMax) <= epsilon;
+    }
+
+    getIntersection(other) {
+        const xMin = Math.max(this.xMin, other.xMin);
+        const xMax = Math.min(this.xMax, other.xMax);
+        const yMin = Math.max(this.yMin, other.yMin);
+        const yMax = Math.min(this.yMax, other.yMax);
+
+        return new Rect(xMin, xMax, yMin, yMax);
+    }
+
+    /**
      * Returns the equivalent rectangle of `source` normalized over the dimensions of `dest`.
      *
      * @param {Rect} source The source rect.

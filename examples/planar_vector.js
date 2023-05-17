@@ -1,5 +1,5 @@
+import { Fill, Stroke, Style } from 'ol/style.js';
 import TileWMS from 'ol/source/TileWMS.js';
-import Vector from 'ol/source/Vector.js';
 import GPX from 'ol/format/GPX.js';
 import KML from 'ol/format/KML.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
@@ -7,12 +7,13 @@ import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -33,140 +34,114 @@ const extent = new Extent(
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates the giro3d instance
-const instance = new Instance(viewerDiv);
+const instance = new Instance(viewerDiv, { crs: 'EPSG:3946' });
 
 // Adds the map that will contain the layers.
 const map = new Map('planar', { extent });
 instance.add(map);
 
 // Adds a WMS imagery layer
-const wmsSource = new TileWMS({
-    url: 'https://download.data.grandlyon.com/wms/grandlyon',
-    projection: 'EPSG:3946',
-    crossOrigin: 'anonymous',
-    params: {
-        LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
-        FORMAT: 'image/jpeg',
-    },
-    version: '1.3.0',
+const colorSource = new TiledImageSource({
+    source: new TileWMS({
+        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        projection: 'EPSG:3946',
+        crossOrigin: 'anonymous',
+        params: {
+            LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
+            FORMAT: 'image/jpeg',
+        },
+        version: '1.3.0',
+    }),
 });
 
 const colorLayer = new ColorLayer(
     'wms_imagery',
     {
-        source: wmsSource,
-        updateStrategy: {
-            type: STRATEGY_DICHOTOMY,
-            options: {},
-        },
+        extent,
+        source: colorSource,
     },
 );
 map.addLayer(colorLayer);
 
 // Adds a WMS elevation layer
-const wmsSource2 = new TileWMS({
-    url: 'https://download.data.grandlyon.com/wms/grandlyon',
-    projection: 'EPSG:3946',
-    crossOrigin: 'anonymous',
-    params: {
-        LAYERS: ['MNT2018_Altitude_2m'],
-        FORMAT: 'image/jpeg',
-    },
-    version: '1.3.0',
+const elevationSource = new TiledImageSource({
+    source: new TileWMS({
+        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        projection: 'EPSG:3946',
+        crossOrigin: 'anonymous',
+        params: {
+            LAYERS: ['MNT2018_Altitude_2m'],
+            FORMAT: 'image/jpeg',
+        },
+        version: '1.3.0',
+    }),
 });
 
 const elevationLayer = new ElevationLayer(
     'wms_elevation',
     {
-        source: wmsSource2,
+        extent,
+        source: elevationSource,
         interpretation: Interpretation.ScaleToMinMax(149, 621),
     },
 );
 
 map.addLayer(elevationLayer);
 
-// Adds a first vector layer from a gpx file
-const gpxSource = new Vector({
-    url: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.gpx',
-    // Defines the dataProjection to reproject the data,
-    // KML and GPX specifications say that the crs is EPSG:4326.
-    format: new GPX({ dataProjection: 'EPSG:3946' }),
-});
-// The loading of features is done asynchronously
-gpxSource.loadFeatures();
-
 // Creates the layer
 const gpxLayer = new ColorLayer(
     'gpx',
     {
-        source: gpxSource,
-        projection: 'EPSG:3946',
+        source: new VectorSource({
+            data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.gpx',
+            dataProjection: 'EPSG:4326',
+            format: new GPX(),
+            style: new Style({
+                stroke: new Stroke({
+                    color: 'blue',
+                }),
+            }),
+        }),
     },
 );
-// Sets the style
-gpxLayer.style = (Style, Fill, Stroke) => () => new Style({
-    stroke: new Stroke({
-        color: 'blue',
-    }),
-});
-// If the features are not yet loaded when the layer is added to the map,
-// this event listener will update the canvas after the end of feature loading.
-gpxLayer.source.addEventListener('featuresloadend', () => {
-    instance.notifyChange(gpxLayer);
-});
 
 map.addLayer(gpxLayer);
-
-// Adds a second layer from a geojson file
-const geoJsonSource = new Vector({
-    url: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.geojson',
-    format: new GeoJSON({ dataProjection: 'EPSG:3946' }),
-});
-geoJsonSource.loadFeatures();
 
 const geoJsonLayer = new ColorLayer(
     'geo',
     {
-        source: geoJsonSource,
-        projection: 'EPSG:3946',
+        source: new VectorSource({
+            data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.geojson',
+            format: new GeoJSON(),
+            dataProjection: 'EPSG:3946',
+            style: new Style({
+                fill: new Fill({
+                    color: 'rgba(255, 165, 0, 0.2)',
+                    opacity: 0.2,
+                }),
+                stroke: new Stroke({
+                    color: 'white',
+                }),
+            }),
+        }),
     },
 );
-geoJsonLayer.style = (Style, Fill, Stroke) => () => new Style({
-    fill: new Fill({
-        color: 'rgba(255, 165, 0, 0.2)',
-        opacity: 0.2,
-    }),
-    stroke: new Stroke({
-        color: 'white',
-    }),
-});
-geoJsonLayer.source.addEventListener('featuresloadend', () => {
-    instance.notifyChange(geoJsonLayer);
-});
 
 map.addLayer(geoJsonLayer);
 
-// Adds a third source from a KML file
-const kmlSource = new Vector({
-    url: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.kml',
-    format: new KML({ dataProjection: 'EPSG:3946' }),
-});
-kmlSource.loadFeatures();
-
+// Adds a third source from a KML file.
+// Note : with the KML format, styles are not necessary as they are contained in the file.
 const kmlLayer = new ColorLayer(
     'kml',
     {
-        source: kmlSource,
-        projection: 'EPSG:3946',
+        source: new VectorSource({
+            data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.kml',
+            format: new KML(),
+            dataProjection: 'EPSG:4326',
+        }),
     },
 );
-kmlLayer.source.addEventListener('featuresloadend', () => {
-    instance.notifyChange(kmlLayer);
-});
 
-// With KML format, there is not necessary to specify style rules,
-// there are already present in the file.
-// So, the layer can be directly add to the map.
 map.addLayer(kmlLayer);
 
 // Sets the camera position

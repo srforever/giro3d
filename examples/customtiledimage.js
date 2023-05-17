@@ -3,15 +3,11 @@ import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import CustomTiledImageSource from '@giro3d/giro3d/sources/CustomTiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import { Collection, Feature } from 'ol';
-import VectorSource from 'ol/source/Vector.js';
-import { LineString } from 'ol/geom.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -26,7 +22,7 @@ const extent = new Extent(
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates the giro3d instance
-const instance = new Instance(viewerDiv);
+const instance = new Instance(viewerDiv, { crs: extent.crs() });
 
 // Adds the map that will contain the layers.
 const map = new Map('planar', { extent, segments: 64 });
@@ -37,15 +33,11 @@ instance.add(map);
 const demSource = new CustomTiledImageSource({
     url: 'https://3d.oslandia.com/ecrins/ecrins-dem.json',
     networkOptions: { crossOrigin: 'same-origin' },
+    crs: 'EPSG:2154',
 });
 map.addLayer(new ElevationLayer('dem', {
-    updateStrategy: {
-        type: STRATEGY_DICHOTOMY,
-        options: {},
-    },
     source: demSource,
     interpretation: Interpretation.ScaleToMinMax(711, 3574),
-    projection: 'EPSG:2154',
 }));
 
 // Adds our Imagery source & layer
@@ -53,63 +45,12 @@ map.addLayer(new ElevationLayer('dem', {
 const imagerySource = new CustomTiledImageSource({
     url: 'https://3d.oslandia.com/ecrins/ecrins.json',
     networkOptions: { crossOrigin: 'same-origin' },
+    crs: 'EPSG:2154',
 });
 map.addLayer(new ColorLayer('copernicus', {
-    updateStrategy: {
-        type: STRATEGY_DICHOTOMY,
-        options: {},
-    },
     source: imagerySource,
-    projection: 'EPSG:2154',
 }));
 
-const gridFeatures = new Collection();
-const gridsource = new VectorSource({ features: gridFeatures });
-
-const gridLayer = new ColorLayer(
-    'grid',
-    {
-        source: gridsource,
-        projection: 'EPSG:2154',
-    },
-);
-gridLayer.style = (Style, Fill, Stroke) => () => new Style({
-    stroke: new Stroke({
-        color: '#FF0000',
-        width: 0.5,
-    }),
-});
-map.addLayer(gridLayer);
-
-const gridSize = 500;
-for (
-    let x = map.extent.west();
-    x <= map.extent.east();
-    x += gridSize
-) {
-    gridFeatures.push(
-        new Feature({
-            geometry: new LineString([
-                [x, map.extent.south()],
-                [x, map.extent.north()],
-            ]),
-        }),
-    );
-}
-for (
-    let y = map.extent.south();
-    y <= map.extent.north();
-    y += gridSize
-) {
-    gridFeatures.push(
-        new Feature({
-            geometry: new LineString([
-                [map.extent.west(), y],
-                [map.extent.east(), y],
-            ]),
-        }),
-    );
-}
 instance.notifyChange(map);
 
 // Sets the camera position

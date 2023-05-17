@@ -116,7 +116,7 @@ function subdivideNode(context, map, node) {
     }
 }
 
-function selectBestSubdivisions(map, extent) {
+function selectBestSubdivisions(extent) {
     const dims = extent.dimensions();
     const ratio = dims.x / dims.y;
     let x = 1; let y = 1;
@@ -217,7 +217,7 @@ class Map extends Entity3D {
         }
         this.extent = options.extent;
 
-        this.subdivisions = selectBestSubdivisions(this, this.extent);
+        this.subdivisions = selectBestSubdivisions(this.extent);
 
         this.sseScale = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel || 30;
@@ -704,8 +704,7 @@ class Map extends Entity3D {
 
                 node.sse = sse; // DEBUG
 
-                if (this.testTileSSE(node, sse)
-                    && this.hasEnoughTexturesToSubdivide(context, node)) {
+                if (this.testTileSSE(node, sse) && this.canSubdivide(node)) {
                     subdivideNode(context, this, node);
                     // display iff children aren't ready
                     node.setDisplayed(false);
@@ -744,6 +743,8 @@ class Map extends Entity3D {
                 tile.processNeighbours(neighbours);
             }
         });
+
+        this._attachedLayers.forEach(layer => layer.postUpdate());
     }
 
     // TODO this whole function should be either in providers or in layers
@@ -776,12 +777,6 @@ class Map extends Entity3D {
             }
             this.currentAddedLayerIds.push(layer.id);
 
-            if (!layer.extent) {
-                layer.extent = this.extent;
-            }
-            if (!layer.projection) {
-                layer.projection = this.projection;
-            }
             layer.instance = this._instance;
 
             this.attach(layer);
@@ -790,9 +785,14 @@ class Map extends Entity3D {
                 const colorLayers = this._attachedLayers.filter(l => l instanceof ColorLayer);
 
                 // rebuild color textures atlas
+                // We use a margin to prevent atlas bleeding.
+                const margin = 1.1;
+                const { x, y } = this.imageSize;
+                const size = new Vector2(Math.round(x * margin), Math.round(y * margin));
+
                 const { atlas, maxX, maxY } = AtlasBuilder.pack(
                     Capabilities.getMaxTextureSize(),
-                    colorLayers.map(l => ({ id: l.id, size: this.imageSize })),
+                    colorLayers.map(l => ({ id: l.id, size })),
                     this.atlasInfo.atlas,
                 );
                 this.atlasInfo.atlas = atlas;
@@ -838,7 +838,10 @@ class Map extends Entity3D {
             if (layer.colorMap) {
                 this.materialOptions.colorMapAtlas.remove(layer.colorMap);
             }
-            layer.dispose(this);
+            this._forEachTile(tile => {
+                layer.unregisterNode(tile);
+            });
+            layer.postUpdate();
             this._reorderLayers();
             this.dispatchEvent({ type: 'layer-removed' });
             this._instance.notifyChange(this, true);
@@ -953,16 +956,16 @@ class Map extends Entity3D {
         }
     }
 
-    hasEnoughTexturesToSubdivide(context, node) {
+    /**
+     * @param {TileMesh} node The
+     * @returns {boolean} True if the node can be subdivided.
+     */
+    canSubdivide(node) {
         // Prevent subdivision if node is covered by at least one elevation layer
         // and if node doesn't have a elevation texture yet.
-        for (const e of context.elevationLayers) {
-            if (!e.frozen && e.ready && e.tileInsideLimit(node, e)
-                && !node.material.isElevationLayerTextureLoaded(e)) {
-                // no stop subdivision in the case of a loading error
-                if (node.layerUpdateState[e.id] && node.layerUpdateState[e.id].inError()) {
-                    continue;
-                }
+        for (const e of this.getElevationLayers()) {
+            if (!e.frozen && e.ready && e.contains(node.getExtent())
+                && !node.canSubdivide()) {
                 return false;
             }
         }

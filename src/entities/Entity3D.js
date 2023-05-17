@@ -164,8 +164,7 @@ class Entity3D extends Entity {
         if (!layer.update) {
             throw new Error(`Missing 'update' function -> can't attach layer ${layer.id}`);
         }
-        layer = layer._preprocessLayer(this, this._instance);
-        layer._instance = this._instance;
+        layer = layer._preprocessLayer(this._instance);
 
         this._attachedLayers.push(layer);
     }

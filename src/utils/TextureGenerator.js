@@ -23,7 +23,10 @@ import {
     UnsignedInt248Type,
     UnsignedIntType,
     UnsignedShort5551Type,
+    ClampToEdgeWrapping,
+    LinearFilter,
 } from 'three';
+import Interpretation, { Mode } from '../core/layer/Interpretation.js';
 
 export const OPAQUE_BYTE = 255;
 export const OPAQUE_FLOAT = 1.0;
@@ -204,6 +207,35 @@ function createDataCopy(target, renderer) {
 }
 
 /**
+ * Gets the underlying pixel buffer of the image.
+ *
+ * @param {HTMLImageElement|HTMLCanvasElement} image The image.
+ * @returns {Uint8ClampedArray} The pixel buffer.
+ */
+function getPixels(image) {
+    const canvas = document.createElement('canvas', { width: image.width, height: image.height });
+    canvas.width = image.width;
+    canvas.height = image.height;
+    const context = canvas.getContext('2d', { willReadFrequently: true });
+    context.drawImage(image, 0, 0);
+
+    return context.getImageData(0, 0, image.width, image.height).data;
+}
+
+/**
+ * Computes min/max of the given image.
+ *
+ * @param {HTMLImageElement|HTMLCanvasElement} image The image to process.
+ * @param {Interpretation} [interpretation] The interpretation of the image.
+ * @returns {{ min: number, max: number }} The min/max.
+ */
+function computeMinMaxFromImage(image, interpretation = Interpretation.Raw) {
+    const buf = getPixels(image);
+
+    return computeMinMax(buf, 0, interpretation);
+}
+
+/**
  * Decodes the blob according to its media type, then returns a texture for this blob.
  *
  * @param {Blob} blob The buffer to decode.
@@ -223,7 +255,13 @@ async function decodeBlob(blob) {
             // Use the browser capabilities to decode the image
             const img = new Image();
             await load8bitImage(img, blob);
-            const tex = new Texture(img);
+            const buf = getPixels(img);
+            const tex = new DataTexture(buf, img.width, img.height, RGBAFormat, UnsignedByteType);
+            tex.wrapS = ClampToEdgeWrapping;
+            tex.wrapT = ClampToEdgeWrapping;
+            tex.minFilter = LinearFilter;
+            tex.magFilter = LinearFilter;
+            tex.generateMipmaps = false;
             tex.needsUpdate = true;
             return tex;
         }
@@ -326,22 +364,64 @@ function create1DTexture(colors) {
  *
  * @param {ArrayBuffer} rgba The RGBA buffer.
  * @param {?number} nodata The no-data value. Pixels with this value will be ignored.
+ * @param {Interpretation} interpretation The image interpretation.
  * @returns {{min: number, max: number}} The computed min/max.
  */
-function computeMinMax(rgba, nodata) {
+function computeMinMax(rgba, nodata, interpretation = Interpretation.Raw) {
     let min = Infinity;
     let max = -Infinity;
 
-    const FIRST_CHANNEL = 0;
+    const RED_CHANNEL = 0;
+    const GREEN_CHANNEL = 1;
+    const BLUE_CHANNEL = 2;
     const ALPHA_CHANNEL = 3;
 
-    for (let i = 0; i < rgba.length; i += 4) {
-        const value = rgba[i + FIRST_CHANNEL];
-        const alpha = rgba[i + ALPHA_CHANNEL];
-        if (!Number.isNaN(value) && value !== nodata && alpha !== 0) {
-            min = Math.min(min, value);
-            max = Math.max(max, value);
-        }
+    switch (interpretation.mode) {
+        case Mode.Raw:
+            for (let i = 0; i < rgba.length; i += 4) {
+                const value = rgba[i + RED_CHANNEL];
+                const alpha = rgba[i + ALPHA_CHANNEL];
+                if (!Number.isNaN(value) && value !== nodata && alpha !== 0) {
+                    min = Math.min(min, value);
+                    max = Math.max(max, value);
+                }
+            }
+            break;
+        case Mode.ScaleToMinMax:
+            {
+                const lower = interpretation.min;
+                const upper = interpretation.max;
+                const scale = upper - lower;
+
+                for (let i = 0; i < rgba.length; i += 4) {
+                    const value = rgba[i + RED_CHANNEL] / 255;
+                    const r = lower + value * scale;
+                    const alpha = rgba[i + ALPHA_CHANNEL];
+
+                    if (!Number.isNaN(r) && r !== nodata && alpha !== 0) {
+                        min = Math.min(min, r);
+                        max = Math.max(max, r);
+                    }
+                }
+            }
+            break;
+        case Mode.MapboxTerrainRGB:
+            for (let i = 0; i < rgba.length; i += 4) {
+                const r = rgba[i + RED_CHANNEL];
+                const g = rgba[i + GREEN_CHANNEL];
+                const b = rgba[i + BLUE_CHANNEL];
+                const alpha = rgba[i + ALPHA_CHANNEL];
+
+                const value = -10000.0 + (r * 256.0 * 256.0 + g * 256.0 + b) * 0.1;
+
+                if (!Number.isNaN(value) && value !== nodata && alpha !== 0) {
+                    min = Math.min(min, value);
+                    max = Math.max(max, value);
+                }
+            }
+            break;
+        default:
+            throw new Error('not implemented');
     }
 
     return { min, max };
@@ -357,4 +437,5 @@ export default {
     createDataCopy,
     computeMinMax,
     estimateSize,
+    computeMinMaxFromImage,
 };

@@ -1,6 +1,8 @@
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import VectorTile from 'ol/source/VectorTile.js';
-import MVT from 'ol/format/MVT.js';
+import {
+    Fill, Icon, Stroke, Style, Text,
+} from 'ol/style.js';
+import VectorTileSource from '@giro3d/giro3d/sources/VectorTileSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
@@ -42,21 +44,14 @@ instance.useTHREEControls(controls);
 // Adds a color layer from a VectorTile source
 const key = 'pk.eyJ1IjoibWljaGFlbG51bm4iLCJhIjoiY2pudTk4czFuMDJ6NDNrcG56bG5xeWk4byJ9.R5dzdzAM5kaxa1gXjOQQrw';
 
-const vectorTileSource = new VectorTile({
-    format: new MVT(),
+const vectorTileSource = new VectorTileSource({
     url: `${'https://{a-d}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/'
         + '{z}/{x}/{y}.vector.pbf?access_token='}${key}`,
+    style: createMapboxStreetsV6Style(),
+    backgroundColor: 'hsl(47, 26%, 88%)',
 });
 
-const vectorTileLayer = new ColorLayer(
-    'osm',
-    {
-        source: vectorTileSource,
-        backgroundColor: 'hsl(47, 26%, 88%)',
-    },
-);
-
-function createMapboxStreetsV6Style(Style, Fill, Stroke, Icon, Text) {
+function createMapboxStreetsV6Style() {
     const fill = new Fill({ color: '' });
     const stroke = new Stroke({ color: '', width: 1 });
     const polygon = new Style({ fill });
@@ -367,7 +362,14 @@ function createMapboxStreetsV6Style(Style, Fill, Stroke, Icon, Text) {
     };
 }
 
-vectorTileLayer.style = createMapboxStreetsV6Style;
+const vectorTileLayer = new ColorLayer(
+    'osm',
+    {
+        extent,
+        source: vectorTileSource,
+    },
+);
+
 map.addLayer(vectorTileLayer);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);

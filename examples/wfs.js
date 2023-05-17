@@ -1,14 +1,16 @@
+import { getUid } from 'ol';
+import { Stroke, Style } from 'ol/style.js';
 import TileWMS from 'ol/source/TileWMS.js';
-import GeoJSON from 'ol/format/GeoJSON.js';
-import Vector from 'ol/source/Vector.js';
-import { Vector3 } from 'three';
+import { MathUtils, Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import { GeoJSON } from 'ol/format.js';
+import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)
@@ -37,33 +39,56 @@ const map = new Map('map', { extent });
 instance.add(map);
 
 // Adds a WMS imagery layer
-const wmsSource = new TileWMS({
-    url: 'https://download.data.grandlyon.com/wms/grandlyon',
-    projection: 'EPSG:3946',
-    crossOrigin: 'anonymous',
-    params: {
-        LAYERS: ['Ortho2009_vue_ensemble_16cm_CC46'],
-        FORMAT: 'image/jpeg',
-    },
-    version: '1.3.0',
+const colorSource = new TiledImageSource({
+    source: new TileWMS({
+        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        projection: 'EPSG:3946',
+        crossOrigin: 'anonymous',
+        params: {
+            LAYERS: ['Ortho2009_vue_ensemble_16cm_CC46'],
+            FORMAT: 'image/jpeg',
+        },
+        version: '1.3.0',
+    }),
 });
 
 const colorLayer = new ColorLayer(
     'wms_imagery',
     {
-        source: wmsSource,
-        updateStrategy: {
-            type: STRATEGY_DICHOTOMY,
-            options: {},
-        },
+        extent,
+        source: colorSource,
     },
 );
 map.addLayer(colorLayer);
 
+const featureColors = new window.Map();
+
+function getColor(id) {
+    if (featureColors.has(id)) {
+        return featureColors.get(id);
+    }
+    const hue = MathUtils.randFloat(0, 360);
+    const color = `hsl(${hue}, 90%, 50%)`;
+
+    featureColors.set(id, color);
+    return color;
+}
+
+const style = feature => {
+    const id = getUid(feature);
+    return new Style({
+        stroke: new Stroke({
+            color: getColor(id),
+            width: 1,
+        }),
+    });
+};
+
 // Adds a WFS imagery layer
-const wfsSource = new Vector({
-    format: new GeoJSON({ dataProjection: 'EPSG:3946' }),
-    url: 'https://download.data.grandlyon.com/wfs/rdata'
+const wfsSource = new VectorSource({
+    format: new GeoJSON(),
+    dataProjection: 'EPSG:3946',
+    data: 'https://download.data.grandlyon.com/wfs/rdata'
     + '?SERVICE=WFS'
     + '&VERSION=2.0.0'
     + '&request=GetFeature'
@@ -71,37 +96,16 @@ const wfsSource = new Vector({
     + '&outputFormat=application/json;%20subtype=geojson'
     + '&SRSNAME=EPSG:3946'
     + '&startIndex=0',
+    style,
 });
-wfsSource.loadFeatures();
 
 const wfsLayer = new ColorLayer(
     'lyon_tcl_bus',
     {
+        extent,
         source: wfsSource,
     },
 );
-
-wfsLayer.source.addEventListener('featuresloadend', () => {
-    // Sets the style
-    // The color is deduced from the gid of the layer
-    let minGid = Infinity;
-    let maxGid = -Infinity;
-    wfsLayer.source.getFeatures().forEach(feature => {
-        if (feature.values_.gid > maxGid) maxGid = feature.values_.gid;
-        if (feature.values_.gid < minGid) minGid = feature.values_.gid;
-    });
-    wfsLayer.style = (Style, Fill, Stroke) => feature => {
-        const hue = ((feature.values_.gid - minGid) / (maxGid - minGid)) * 360;
-        return new Style({
-            stroke: new Stroke({
-                color: `hsl(${hue}, 90%, 50%)`,
-                width: 1,
-            }),
-        });
-    };
-
-    instance.notifyChange(wfsLayer);
-});
 
 map.addLayer(wfsLayer);
 

@@ -90,8 +90,8 @@ class Instance extends EventDispatcher {
      *
      * @param {HTMLElement} viewerDiv Where to instanciate the Three.js scene in the DOM
      * @param {object} [options] Optional properties.
-     * @param {?string} [options.crs='EPSG:3857'] The default CRS of Three.js coordinates. Should
-     * be a cartesian CRS.
+     * @param {?string} options.crs The coordinate reference system of the scene. Must be a
+     * cartesian system.
      * @param {?Scene} [options.scene3D] The [Three.js Scene](https://threejs.org/docs/#api/en/scenes/Scene) instance to use,
      * otherwise a default one will be constructed
      * @param {object} [options.renderer] The options for the renderer.
@@ -132,7 +132,10 @@ class Instance extends EventDispatcher {
             console.warn('viewerDiv has children; Giro3D expects an empty element - this can lead to unexpected behaviors');
         }
 
-        this.referenceCrs = options.crs || 'EPSG:3857';
+        if (!options.crs) {
+            throw new Error('missing "crs" parameter');
+        }
+        this.referenceCrs = options.crs;
         this._viewport = viewerDiv;
 
         if (options.mainLoop) {

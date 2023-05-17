@@ -51,6 +51,7 @@ instance.add(map);
 const source = new CogSource({
     // https://www.sciencebase.gov/catalog/item/632a9a9ad34e71c6d67b95a3
     url: 'https://3d.oslandia.com/cog_data/COG_EPSG3857_USGS_13_n47w122_20220919.tif',
+    crs: extent.crs(),
 });
 
 const values = colormap({ colormap: 'viridis', nshades: 256 });
@@ -61,13 +62,15 @@ const max = 4347;
 
 // Display it as elevation and color
 const colorMap = new ColorMap(colors, min, max, ColorMapMode.Elevation);
-map.addLayer(new ElevationLayer('elevation', { source, colorMap, minmax: { min, max } }));
+map.addLayer(new ElevationLayer('elevation', {
+    extent,
+    source,
+    colorMap,
+    minmax: { min, max },
+}));
 
 // Attach the inspector
 Inspector.attach(document.getElementById('panelDiv'), instance);
-
-// Bind events
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
 
 const toggle = document.getElementById('colormap-enable');
 toggle.onchange = () => {

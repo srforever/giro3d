@@ -1,7 +1,7 @@
-import { MathUtils as THREEMath, Vector2, Vector3 } from 'three';
+import { GeoJSON } from 'ol/format.js';
+import { Fill, Stroke, Style } from 'ol/style.js';
 import TileWMS from 'ol/source/TileWMS.js';
-import Vector from 'ol/source/Vector.js';
-import GeoJSON from 'ol/format/GeoJSON.js';
+import { MathUtils as THREEMath, Vector2, Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -9,8 +9,9 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // This example is based on planar_vector example, adding labels on features.
@@ -28,7 +29,7 @@ const extent = new Extent(
 
 const viewerDiv = document.getElementById('viewerDiv');
 
-const instance = new Instance(viewerDiv);
+const instance = new Instance(viewerDiv, { crs: extent.crs() });
 
 const map = new Map('planar', { extent });
 instance.add(map);
@@ -58,54 +59,54 @@ function lookTopDownAt(lookAtExtent, lookAtAltitude = 0) {
     instance.notifyChange(instance.camera.camera3D);
 }
 
-const wmsSource = new TileWMS({
-    url: 'https://download.data.grandlyon.com/wms/grandlyon',
-    projection: 'EPSG:3946',
-    crossOrigin: 'anonymous',
-    params: {
-        LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
-        FORMAT: 'image/jpeg',
-    },
-    version: '1.3.0',
+const wmsSource = new TiledImageSource({
+    source: new TileWMS({
+        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        projection: 'EPSG:3946',
+        crossOrigin: 'anonymous',
+        params: {
+            LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
+            FORMAT: 'image/jpeg',
+        },
+        version: '1.3.0',
+    }),
 });
 
 const colorLayer = new ColorLayer(
     'wms_imagery',
     {
+        extent,
         source: wmsSource,
-        updateStrategy: {
-            type: STRATEGY_DICHOTOMY,
-            options: {},
-        },
     },
 );
 map.addLayer(colorLayer);
 
-const geoJsonSource = new Vector({
-    url: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.geojson',
-    format: new GeoJSON({ dataProjection: 'EPSG:3946' }),
-});
-geoJsonSource.loadFeatures();
-
-const geoJsonLayer = new ColorLayer(
-    'geo',
-    {
-        source: geoJsonSource,
-        projection: 'EPSG:3946',
-    },
-);
-geoJsonLayer.style = (Style, Fill, Stroke) => () => new Style({
+const style = new Style({
     fill: new Fill({
         color: 'rgba(255, 165, 0, 0.2)',
-        opacity: 0.2,
     }),
     stroke: new Stroke({
         color: 'white',
+        width: 2,
     }),
 });
-geoJsonLayer.source.addEventListener('featuresloadend', e => {
+
+const geojsonSource = new VectorSource({
+    format: new GeoJSON(),
+    data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.geojson',
+    style,
+});
+
+const geoJsonLayer = new ColorLayer(
+    'geo', {
+        extent,
+        source: geojsonSource,
+    },
+);
+
+map.addLayer(geoJsonLayer).then(() => {
     // Traverse the OpenLayers features that were added
-    for (const feature of e.features) {
+    for (const feature of geojsonSource.getFeatures()) {
         // Create a label for each feature
 
         const text = document.createElement('div');
@@ -164,8 +165,6 @@ geoJsonLayer.source.addEventListener('featuresloadend', e => {
     }
     instance.notifyChange(geoJsonLayer);
 });
-
-map.addLayer(geoJsonLayer);
 
 const cameraPosition = new Coordinates(
     'EPSG:3946',

@@ -5,6 +5,7 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
@@ -22,7 +23,6 @@ let instance = null;
 let inspector = null;
 let controls = null;
 
-const stamenSource = new Stamen({ layer: 'watercolor', wrapX: false });
 function init() {
     // Creates a giro3d instance
     instance = new Instance(viewerDiv, {
@@ -41,7 +41,9 @@ function init() {
     map.addLayer(new ColorLayer(
         'osm',
         {
-            source: stamenSource,
+            source: new TiledImageSource({
+                source: new Stamen({ layer: 'watercolor', wrapX: false }),
+            }),
         },
     )).catch(e => console.error(e));
 

@@ -6,7 +6,6 @@ import { Color } from 'three';
 import Instance from '../core/Instance.js';
 import Layer from '../core/layer/Layer.js';
 import Panel from './Panel.js';
-import { UPDATE_STRATEGIES } from '../core/layer/LayerUpdateStrategy.js';
 import ColorMapInspector from './ColorMapInspector.js';
 import Helpers from '../helpers/Helpers.js';
 import Map from '../entities/Map.js';
@@ -50,9 +49,6 @@ class LayerInspector extends Panel {
                 this.notify(map);
             });
 
-        this.addController(this.layer, 'projection')
-            .name('Projection');
-
         this.interpretation = layer.interpretation.toString();
         this.addController(this, 'interpretation')
             .name('Interpretation');
@@ -90,9 +86,6 @@ class LayerInspector extends Panel {
         this.addColorController(this, 'extentColor')
             .name('Extent color')
             .onChange(v => this.updateExtentColor(v));
-
-        this.addController(this.layer.updateStrategy, 'type', UPDATE_STRATEGIES)
-            .name('Update strategy');
 
         /**
          * The color map inspector.

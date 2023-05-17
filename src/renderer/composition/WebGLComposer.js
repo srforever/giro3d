@@ -6,12 +6,15 @@ import {
     Mesh,
     Texture,
     PlaneGeometry,
+    WebGLRenderer,
     RGBAFormat,
     UnsignedByteType,
     ClampToEdgeWrapping,
     Vector3,
     LinearFilter,
     Color,
+    Vector4,
+    MathUtils,
 } from 'three';
 import Interpretation from '../../core/layer/Interpretation.js';
 
@@ -27,10 +30,7 @@ const IMAGE_Z = -10;
 const textureOwners = new Map();
 const NEAR = 1;
 const FAR = 100;
-
-const tmp = {
-    clearColor: new Color(),
-};
+const DEFAULT_CLEAR = new Color(0, 0, 0);
 
 function processTextureDisposal(event) {
     const texture = event.target;
@@ -60,7 +60,8 @@ class WebGLComposer {
      * Creates an instance of WebGLComposer.
      *
      * @param {object} options The options.
-     * @param {Rect} options.extent The extent of the canvas.
+     * @param {Rect} [options.extent] Optional extent of the canvas. If undefined, then the canvas
+     * is an infinite plane.
      * @param {number} options.width The canvas width, in pixels.
      * Ignored if a canvas is provided.
      * @param {number} options.height The canvas height, in pixels.
@@ -84,7 +85,7 @@ class WebGLComposer {
      * This only applies to grayscale data (typically elevation data). If the option is an object
      * with the `noDataValue` property, all pixels with this value will be ignored for min/max
      * computation.
-     * @param {"WebGLRenderer"} options.webGLRenderer The WebGL renderer to use. This must be the
+     * @param {WebGLRenderer} options.webGLRenderer The WebGL renderer to use. This must be the
      * same renderer as the one used to display the rendered textures, because WebGL contexts are
      * isolated from each other.
      * @param {"ColorRepresentation"} [options.clearColor=undefined] The clear (background) color.
@@ -108,22 +109,24 @@ class WebGLComposer {
 
         // An array containing textures that this composer has created, to be disposed later.
         this.ownedTextures = [];
-        // An array containing all the textures on the current canvas, regardless of whether this
-        // composer owns them or not.
-        this.textures = [];
 
         this.scene = new Scene();
 
         // Set the origin of the canvas at the center extent, so that everything should
         // not be too far from this point, to preserve floating-point precision.
-        this.origin = new Vector3(this.extent.centerX, this.extent.centerY, 0);
+        this.origin = this.extent
+            ? new Vector3(this.extent.centerX, this.extent.centerY, 0)
+            : new Vector3(0, 0, 0);
 
         // Define a camera centered on (0, 0), with its
         // orthographic size matching size of the extent.
         this.camera = new OrthographicCamera();
         this.camera.near = NEAR;
         this.camera.far = FAR;
-        this._setCameraRect(this.extent);
+
+        if (this.extent) {
+            this._setCameraRect(this.extent);
+        }
     }
 
     /**
@@ -165,6 +168,7 @@ class WebGLComposer {
         // itself, whose lifetime can be shorter than the texture it created.
         textureOwners.set(result.texture.uuid, result);
         result.texture.addEventListener('dispose', processTextureDisposal);
+        result.texture.name = 'WebGLComposer texture';
 
         MemoryTracker.track(result, 'WebGLRenderTarget');
         MemoryTracker.track(result.texture, 'WebGLRenderTarget.texture');
@@ -180,8 +184,11 @@ class WebGLComposer {
      * @param {object} [options] The options.
      * @param {Interpretation} [options.interpretation=Interpretation.Raw] The pixel interpretation.
      * @param {number} [options.zOrder=0] The Z-order of the texture in the composition space.
+     * @param {number} [options.fadeDuration=0] The fade duration of the image.
      * @param {boolean} [options.flipY] Flip the image vertically.
      * @param {boolean} [options.fillNoData] Fill no-data values of the image.
+     * @param {boolean} [options.transparent] Should the image be transparent.
+     * @returns {Mesh} The image mesh object.
      */
     draw(texture, extent, options = {}) {
         if (!texture.isTexture) {
@@ -190,13 +197,14 @@ class WebGLComposer {
             this.ownedTextures.push(texture);
             MemoryTracker.track(texture, 'WebGLComposer - owned texture');
         }
-        this.textures.push(texture);
         const interpretation = options.interpretation ?? Interpretation.Raw;
         const material = ComposerTileMaterial.acquire({
             texture,
             fillNoData: options.fillNoData,
             interpretation,
             flipY: options.flipY,
+            fadeDuration: options.fadeDuration,
+            transparent: options.transparent,
             showImageOutlines: this.showImageOutlines,
         });
 
@@ -210,6 +218,16 @@ class WebGLComposer {
         const y = extent.centerY - this.origin.y;
         const z = IMAGE_Z + (options.zOrder ?? 0);
         plane.position.set(x, y, z);
+        plane.updateMatrixWorld(true);
+        plane.matrixAutoUpdate = false;
+        plane.matrixWorldAutoUpdate = false;
+
+        return plane;
+    }
+
+    remove(mesh) {
+        ComposerTileMaterial.release(mesh.material);
+        this.scene.remove(mesh);
     }
 
     /**
@@ -265,6 +283,26 @@ class WebGLComposer {
         return { type, format };
     }
 
+    saveState() {
+        return {
+            clearAlpha: this.renderer.getClearAlpha(),
+            renderTarget: this.renderer.getRenderTarget(),
+            scissorTest: this.renderer.getScissorTest(),
+            scissor: this.renderer.getScissor(new Vector4()),
+            clearColor: this.renderer.getClearColor(new Color()),
+            viewport: this.renderer.getViewport(new Vector4()),
+        };
+    }
+
+    restoreState(state) {
+        this.renderer.setClearAlpha(state.clearAlpha);
+        this.renderer.setRenderTarget(state.renderTarget);
+        this.renderer.setScissorTest(state.scissorTest);
+        this.renderer.setScissor(state.scissor);
+        this.renderer.setClearColor(state.clearColor, state.clearAlpha);
+        this.renderer.setViewport(state.viewport);
+    }
+
     /**
      * Renders the composer into a texture.
      *
@@ -272,56 +310,100 @@ class WebGLComposer {
      * @param {Rect} [opts.rect] A custom rect for the camera.
      * @param {number} [opts.width] The width, in pixels, of the output texture.
      * @param {number} [opts.height] The height, in pixels, of the output texture.
+     * @param {boolean} [opts.computeMinMax] Compute min/max on the output texture.
+     * @param {WebGLRenderTarget} [opts.target] The render target.
      * @returns {Texture} The texture of the render target.
      */
-    render(opts) {
-        // select the best data type and format according to currently drawn images and constraints
-        const { type, format } = this._selectPixelTypeAndTextureFormat();
-
-        const width = opts?.width || this.width;
-        const height = opts?.height || this.height;
+    render(opts = {}) {
+        const width = opts.width ?? this.width;
+        const height = opts.height ?? this.height;
 
         // Should we reuse the same render target or create a new one ?
         let target;
-        if (!this.reuseTexture) {
-            // We create a new render target for this render
-            target = this._createRenderTarget(type, format, width, height);
+        if (opts.target) {
+            target = opts.target;
         } else {
-            // We reuse the same render target across all renders, but if the format changes,
-            // we still have to recreate a new texture.
-            if (this.renderTarget === undefined
-                || type !== this.renderTarget.texture.type
-                || format !== this.renderTarget.texture.format) {
-                this.renderTarget?.dispose();
-                this.renderTarget = this._createRenderTarget(type, format, this.width, this.height);
-            }
+            // select the best data type and format according to
+            // currently drawn images and constraints
+            const { type, format } = this._selectPixelTypeAndTextureFormat();
 
-            target = this.renderTarget;
+            if (!this.reuseTexture) {
+                // We create a new render target for this render
+                target = this._createRenderTarget(type, format, width, height);
+            } else {
+                // We reuse the same render target across all renders, but if the format changes,
+                // we still have to recreate a new texture.
+                if (this.renderTarget === undefined
+                    || type !== this.renderTarget.texture.type
+                    || format !== this.renderTarget.texture.format) {
+                    this.renderTarget?.dispose();
+                    this.renderTarget = this._createRenderTarget(
+                        type,
+                        format,
+                        this.width,
+                        this.height,
+                    );
+                }
+
+                target = this.renderTarget;
+            }
         }
 
-        const previousTarget = this.renderer.getRenderTarget();
-        const previousClearColor = this.renderer.getClearColor(tmp.clearColor);
-        const previousAlpha = this.renderer.getClearAlpha();
+        const previousState = this.saveState();
+
         if (this.clearColor) {
             this.renderer.setClearColor(this.clearColor);
         } else {
-            this.renderer.setClearColor('black', 0);
+            this.renderer.setClearColor(DEFAULT_CLEAR, 0);
         }
         this.renderer.setRenderTarget(target);
+        this.renderer.setViewport(0, 0, target.width, target.height);
+        this.renderer.clear();
 
-        this._setCameraRect(opts?.rect || this.extent);
+        const rect = opts.rect ?? this.extent;
+        if (!rect) {
+            throw new Error('no rect provided and no default rect to setup camera');
+        }
+        this._setCameraRect(rect);
 
+        // If the requested rectangle is not the same as the extent of this composer,
+        // then it is a partial render.
+        // We need to scissor the output in order to render only the overlap between
+        // the requested extent and the extent of this composer.
+        if (this.extent && opts.rect && !opts.rect.equals(this.extent)) {
+            this.renderer.setScissorTest(true);
+            const intersection = this.extent.getIntersection(opts.rect);
+            const sRect = Rect.getNormalizedRect(intersection, opts.rect);
+
+            // The pixel margin is necessary to avoid bleeding
+            // when textures use linear interpolation.
+            const pixelMargin = 1;
+            const sx = Math.floor(sRect.x * width - pixelMargin);
+            const sy = Math.floor((1 - sRect.y - sRect.h) * height - pixelMargin);
+            const sw = Math.ceil(sRect.w * width + 2 * pixelMargin);
+            const sh = Math.ceil(sRect.h * height + 2 * pixelMargin);
+
+            this.renderer.setScissor(
+                MathUtils.clamp(sx, 0, width),
+                MathUtils.clamp(sy, 0, height),
+                MathUtils.clamp(sw, 0, width),
+                MathUtils.clamp(sh, 0, height),
+            );
+        }
         this.renderer.render(this.scene, this.camera);
 
         const result = target.texture;
 
-        if (this.createDataCopy || this.computeMinMax) {
+        if (opts.computeMinMax || this.createDataCopy || this.computeMinMax) {
             TextureGenerator.createDataCopy(target, this.renderer);
 
-            if (this.computeMinMax) {
+            if (this.computeMinMax || opts.computeMinMax) {
+                const noDataValue = this.computeMinMax?.noDataValue
+                    ?? opts.computeMinMax?.noDataValue;
+
                 const { min, max } = TextureGenerator.computeMinMax(
                     result.data,
-                    this.computeMinMax.noDataValue,
+                    noDataValue,
                 );
                 result.min = min;
                 result.max = max;
@@ -332,21 +414,18 @@ class WebGLComposer {
             }
         }
 
-        // Restore whatever render target was set on the renderer
-        this.renderer.setRenderTarget(previousTarget);
-        this.renderer.setClearColor(previousClearColor, previousAlpha);
-
         target.texture.wrapS = ClampToEdgeWrapping;
         target.texture.wrapT = ClampToEdgeWrapping;
         target.texture.generateMipmaps = false;
+
+        this.restoreState(previousState);
+
         return target.texture;
     }
 
     _removeTextures() {
         this.ownedTextures.forEach(t => t.dispose());
         this.ownedTextures.length = 0;
-
-        this.textures.length = 0;
     }
 
     /**

@@ -1,19 +1,14 @@
 /**
  * @module core/layer/ColorLayer
  */
-import CancelledCommandException from '../scheduler/CancelledCommandException.js';
-import LayerUpdateState from './LayerUpdateState.js';
-import DataStatus from '../../provider/DataStatus.js';
 
-import Layer, {
-    nodeCommandQueuePriorityFunction,
-    refinementCommandCancellationFn,
-    MAX_RETRY,
-} from './Layer.js';
+import Layer from './Layer.js';
 import EventUtils from '../../utils/EventUtils.js';
+import ImageSource from '../../sources/ImageSource.js';
+import Extent from '../geographic/Extent.js';
 
 /**
- * ColorLayer is used to add textures to a map.
+ * A layer that produces color images, such as vector data, or satellite imagery.
  *
  * @property {number} [opacity=1.0] The opacity of this ColorLayer. Note: this only affects color
  * mixing between ColorLayers, not the opacity of the Entity this layer is attached to.
@@ -27,227 +22,49 @@ class ColorLayer extends Layer {
      *
      * @param {string} id The unique identifier of the layer.
      * @param {object} options The layer options.
-     * @param {
-     * module:ol~TileImage |
-     * module:ol~Vector |
-     * module:ol~VectorTile |
-     * module:sources/CogSource~CogSource|
-     * module:sources/CustomTiledImageSource~CustomTiledImageSource} options.source
-     * The data source of this layer.
-     * @param {object} [options.extent=undefined] The geographic extent of the layer. If
-     * unspecified, the extent will be inherited from the map.
-     * @param {string} [options.projection=undefined] The layer projection. If unspecified,
-     * the projection will be inherited from the map.
+     * @param {ImageSource} options.source The data source of this layer.
+     * @param {Extent} [options.extent] The geographic extent of the layer. If unspecified,
+     * the extent will be inherited from the source. Note: for performance reasons, it is highly
+     * recommended to specify an extent when the source is much bigger than the map(s) that host
+     * this layer.
      * @param {boolean} [options.showTileBorders=false] If `true`, the borders of the source images
      * will be shown. Useful for debugging rendering issues.
-     * @param {object} [options.updateStrategy=undefined] The strategy to load new tiles.
      * @param {object} [options.elevationRange=undefined] An optional elevation range to limit the
      * display of this layer. This is only useful if there is an elevation layer on the map.
      * @param {number} options.elevationRange.min The min value.
      * @param {number} options.elevationRange.max The max value.
+     * @param {number} options.fadeDuration The fade duration of images.
      */
     constructor(id, options = {}) {
         super(id, options);
         this.type = 'ColorLayer';
-        this.showTileBorders = options.showTileBorders || false;
         this.elevationRange = options.elevationRange;
         EventUtils.definePropertyWithChangeEvent(this, 'opacity', 1.0);
     }
 
-    dispose(map) {
-        map.object3d.traverse(o => {
-            // TODO rename o.layer to o.giroobject, or o.object?
-            if (o.layer === map) {
-                // clean object of layer
-                delete o.layerUpdateState[this.id];
-                // delete texture in material
-                // it's possible not to have this layer in this particular Mesh, see
-                // `updateLayerElement`
-                if (o.material && o.material.indexOfColorLayer(this) !== -1) {
-                    o.material.removeLayer(this);
-                }
-            }
-        });
-    }
-
-    initColorTexturesFromParent(context, node, parent) {
-        if (!parent.material || !parent.material.getColorTexture) {
-            return false;
-        }
-
-        const extent = node.getExtentForLayer(this);
-        // move up until we have a parent that uses its own atlas
-        // This is needed because otherwise we'll get inconsistencies: child will inherit the atlas,
-        // but will compute its offset/scale values based on the result of
-        // parent.material.getColorTexture()
-        while (parent && parent.material && parent.material.uniforms.colorTexture
-            && parent.material.uniforms.colorTexture.value
-                !== parent.material.texturesInfo.color.atlasTexture) {
-            parent = parent.parent;
-        }
-        if (!parent || !parent.material) {
-            return false;
-        }
-        const texture = parent.material.getColorTexture(this);
-        if (!texture) {
-            return false;
-        }
-
-        if (!texture || !texture.extent) {
-            return false;
-        }
-
-        if (parent.material.uniforms.colorTexture) {
-            node.material.uniforms.colorTexture.value = parent.material.uniforms.colorTexture.value;
-        }
-        node.material.setColorTextures(this, {
-            texture,
-            pitch: extent.offsetToParent(texture.extent),
-        }, true, context.instance, true);
-        return true;
-    }
-
-    /**
-     * Performs the update of the layer.
-     *
-     * @param {module:Core/Context~Context} context the context
-     * @param {module:Core/TileMesh~TileMesh} node the node to update
-     * @param {module:entities/Map~Map} parent the map where the layers have been added
-     * @param {boolean} [initOnly = false] if true, the update is stopped before the update command
-     * there is only a check that the layer state is defined in the node.
-     * @returns {null|Promise} null if the update is not done,
-     * else, that succeeds if the update is made.
-     */
-    update(context, node, parent, initOnly = false) {
-        if (!this.ready) {
-            return null;
-        }
-
-        const { material } = node;
-
-        if (!node.parent || !material) {
-            return null;
-        }
-
-        // Initialisation
-        if (this.ready && node.layerUpdateState[this.id] === undefined) {
-            node.layerUpdateState[this.id] = new LayerUpdateState();
-
-            // INIT TEXTURE
-            material.pushLayer(this, node.getExtentForLayer(this));
-
-            if (!this.provider.tileInsideLimit(node, this)) {
-                // we also need to check that tile's parent doesn't have a texture for this layer,
-                // because even if this tile is outside of the layer, it could inherit it's
-                // parent texture
-                if (!this.noTextureParentOutsideLimit
-                    && parent
-                    && parent.material
-                    && parent.material.getColorTexture(this)) {
-                    // ok, we're going to inherit our parent's texture
-                } else {
-                    node.layerUpdateState[this.id].noMoreUpdatePossible();
-                    return null;
-                }
-            }
-
-            if (parent && this.initColorTexturesFromParent(context, node, parent)) {
-                context.instance.notifyChange(node, false);
-                return null;
-            }
-        }
-
-        // Node is hidden, no need to update it
-        if (!node.material.visible || initOnly) {
-            return null;
-        }
-
+    updateMaterial(material) {
         // Update material parameters
         material.setLayerVisibility(this, this.visible);
         material.setLayerOpacity(this, this.opacity);
         material.setLayerElevationRange(this, this.elevationRange);
+    }
 
-        const ts = Date.now();
-        // An update is pending / or impossible -> abort
-        if (this.frozen || !this.visible || !node.layerUpdateState[this.id].canTryUpdate(ts)) {
-            return null;
+    registerNode(node, extent) {
+        node.material.pushColorLayer(this, extent);
+    }
+
+    unregisterNode(node) {
+        super.unregisterNode(node);
+        const material = node.material;
+        if (material) {
+            if (material.indexOfColorLayer(this) !== -1) {
+                node.material.removeColorLayer(this);
+            }
         }
+    }
 
-        // Add a 2% margin to solve bleeding issues in atlas
-        const originalExtent = node.getExtentForLayer(this);
-        const extent = originalExtent.withRelativeMargin(0.02);
-
-        // Does this tile needs a new texture?
-        const nextDownloads = this.provider.getPossibleTextureImprovements({
-            layer: this,
-            extent,
-            texture: node.material.getColorTexture(this),
-            size: node.textureSize,
-        });
-
-        if (nextDownloads === DataStatus.DATA_UNAVAILABLE) {
-            node.layerUpdateState[this.id].noMoreUpdatePossible();
-            return null;
-        }
-
-        if (nextDownloads === DataStatus.DATA_NOT_AVAILABLE_YET
-            || nextDownloads === DataStatus.DATA_ALREADY_LOADED) {
-            return null;
-        }
-
-        const pitch = originalExtent.offsetToParent(nextDownloads.extent);
-
-        nextDownloads.pitch = pitch;
-
-        node.layerUpdateState[this.id].newTry();
-        const command = {
-            /* mandatory */
-            instance: context.instance,
-            layer: this,
-            requester: node,
-            priority: nodeCommandQueuePriorityFunction(node),
-        };
-        command.earlyDropFunction = () => refinementCommandCancellationFn({ requester: node });
-        command.fn = () => this.provider.executeCommand(
-            context.instance,
-            this,
-            node,
-            nextDownloads,
-            command.earlyDropFunction,
-        );
-
-        this._opCounter.increment();
-
-        return context.scheduler.execute(command).then(
-            result => {
-                if (!result || !result.texture) {
-                    return null;
-                }
-                if (node.disposed || node.material === null) {
-                    // The node was disposed before the texture was assigned
-                    result.texture.dispose();
-                    return null;
-                }
-                return node.material.setColorTextures(this, result, false, context.instance)
-                    .then(() => {
-                        node.layerUpdateState[this.id].success();
-                    });
-            },
-            err => {
-                if (err instanceof CancelledCommandException) {
-                    node.layerUpdateState[this.id].success();
-                } else {
-                    console.warn('Imagery texture update error for', node, err);
-                    const definitiveError = node.layerUpdateState[this.id].errorCount > MAX_RETRY;
-                    node.layerUpdateState[this.id].failure(Date.now(), definitiveError, err);
-                    if (!definitiveError) {
-                        window.setTimeout(() => {
-                            context.instance.notifyChange(node, false);
-                        }, node.layerUpdateState[this.id].secondsUntilNextTry() * 1000);
-                    }
-                }
-            },
-        ).finally(() => this._opCounter.decrement());
+    applyTextureToNode(result, node) {
+        node.material.setColorTextures(this, result);
     }
 }
 

@@ -12,10 +12,10 @@ import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // # Planar (EPSG:3946) viewer
@@ -90,45 +90,45 @@ cube.updateMatrixWorld(true);
 instance.scene.add(cube);
 
 function createColorLayer(name, url) {
-    const colorSource = new TileWMS({
-        url,
-        params: {
-            LAYERS: name,
-            FORMAT: 'image/jpeg',
-        },
-        projection: 'EPSG:3946',
-        crossOrigin: 'anonymous',
-        version: '1.3.0',
+    const source = new TiledImageSource({
+        source: new TileWMS({
+            url,
+            params: {
+                LAYERS: name,
+                FORMAT: 'image/jpeg',
+            },
+            projection: 'EPSG:3946',
+            crossOrigin: 'anonymous',
+            version: '1.3.0',
+        }),
     });
 
     return new ColorLayer(
         'wms_imagery',
         {
             imageSize: { w: 256, h: 256 },
-            source: colorSource,
-            updateStrategy: {
-                type: STRATEGY_DICHOTOMY,
-                options: {},
-            },
+            source,
         },
     );
 }
 
 function createElevationLayer(name, url) {
-    const wmsSource2 = new TileWMS({
-        url,
-        projection: 'EPSG:3946',
-        crossOrigin: 'anonymous',
-        params: {
-            LAYERS: [name],
-        },
-        version: '1.3.0',
+    const source = new TiledImageSource({
+        source: new TileWMS({
+            url,
+            projection: 'EPSG:3946',
+            crossOrigin: 'anonymous',
+            params: {
+                LAYERS: [name],
+            },
+            version: '1.3.0',
+        }),
     });
 
     return new ElevationLayer(
         'wms_elevation',
         {
-            source: wmsSource2,
+            source,
             interpretation: Interpretation.ScaleToMinMax(149, 621),
         },
     );

@@ -5,8 +5,8 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -43,22 +43,20 @@ const map = new Map('planar', {
 
 instance.add(map);
 
-// Adds an TMS imagery layer
-const tmsSource = new XYZ({
-    attributions: '',
-    minZoom: 10,
-    maxZoom: 16,
-    url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
+const source = new TiledImageSource({
+    source: new XYZ({
+        minZoom: 10,
+        maxZoom: 16,
+        url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
+    }),
+    format: new GeoTIFFFormat(),
 });
-
-// Specifies the image format (necessary for for non JPG/PNG images).
-tmsSource.format = new GeoTIFFFormat();
 
 map.addLayer(new ElevationLayer(
     'osm',
     {
-        interpretation: Interpretation.Raw,
-        source: tmsSource,
+        extent,
+        source,
     },
 )).catch(e => console.error(e));
 

@@ -63,6 +63,26 @@ class Interpretation {
     }
 
     /**
+     * The min value (only for `MinMax` mode).
+     *
+     * @type {number}
+     * @readonly
+     */
+    get min() {
+        return this._opts.min;
+    }
+
+    /**
+     * The max value (only for `MinMax` mode).
+     *
+     * @type {number}
+     * @readonly
+     */
+    get max() {
+        return this._opts.max;
+    }
+
+    /**
      * The pixel is used as is, without transformation.
      * Compatible with both grayscale and color images. This is the default.
      *

@@ -2,9 +2,9 @@ import TileWMS from 'ol/source/TileWMS.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
@@ -34,48 +34,51 @@ const map = new Map('planar', {
 instance.add(map);
 
 // Create a WMS imagery layer
-const wmsOthophotoSource = new TileWMS({
-    url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
-    projection: 'EPSG:2154',
-    crossOrigin: 'anonymous',
-    params: {
-        LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
-        FORMAT: 'image/jpeg',
-    },
-    version: '1.3.0',
+const wmsOthophotoSource = new TiledImageSource({
+    source: new TileWMS({
+        url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
+        projection: 'EPSG:2154',
+        params: {
+            LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
+            FORMAT: 'image/jpeg',
+        },
+        version: '1.3.0',
+    }),
 });
 
 const colorLayer = new ColorLayer(
     'orthophoto-ign',
     {
+        extent: map.extent,
         source: wmsOthophotoSource,
-        updateStrategy: {
-            type: STRATEGY_DICHOTOMY,
-            options: {},
-        },
     },
 );
 map.addLayer(colorLayer);
 
-// Adds a WMS elevation layer
-const elevationSource = new TileWMS({
-    url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
-    projection: 'EPSG:2154',
-    crossOrigin: 'anonymous',
-    params: {
-        LAYERS: ['ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'],
-        FORMAT: 'image/x-bil;bits=32',
-    },
-    version: '1.3.0',
-});
+const noDataValue = -1000;
 
-elevationSource.format = new BilFormat();
+// Adds a WMS elevation layer
+const elevationSource = new TiledImageSource({
+    source: new TileWMS({
+        url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
+        projection: 'EPSG:2154',
+        crossOrigin: 'anonymous',
+        params: {
+            LAYERS: ['ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'],
+            FORMAT: 'image/x-bil;bits=32',
+        },
+        version: '1.3.0',
+    }),
+    format: new BilFormat(),
+    noDataValue,
+});
 
 const elevationLayer = new ElevationLayer(
     'wms_elevation',
     {
+        extent: map.extent,
         source: elevationSource,
-        noDataValue: -1000,
+        noDataValue,
     },
 );
 

@@ -8,6 +8,7 @@ import { setupGlobalMocks } from '../mocks.js';
 import ElevationLayer from '../../../src/core/layer/ElevationLayer.js';
 import RenderingState from '../../../src/renderer/RenderingState.js';
 import ColorLayer from '../../../src/core/layer/ColorLayer.js';
+import NullSource from '../../../src/sources/NullSource.js';
 
 describe('Map', () => {
     /** @type {HTMLDivElement} */
@@ -34,12 +35,26 @@ describe('Map', () => {
                 getWindowSize: jest.fn,
                 renderer: {
                     domElement: viewerDiv,
+                    getClearAlpha: jest.fn(),
+                    setClearAlpha: jest.fn(),
+                    getRenderTarget: jest.fn(),
+                    setRenderTarget: jest.fn(),
+                    getScissorTest: jest.fn(),
+                    setScissorTest: jest.fn(),
+                    getScissor: jest.fn(),
+                    setScissor: jest.fn(),
+                    getClearColor: jest.fn(),
+                    setClearColor: jest.fn(),
+                    getViewport: jest.fn(),
+                    setViewport: jest.fn(),
+                    clear: jest.fn(),
+                    render: jest.fn(),
                 },
             },
             scheduleUpdate: jest.fn,
             scheduler: {},
         };
-        const options = { mainLoop };
+        const options = { mainLoop, crs: extent.crs() };
         instance = new Instance(viewerDiv, options);
 
         map = new Map('myEntity', {
@@ -141,7 +156,7 @@ describe('Map', () => {
         });
 
         it('should add a layer', () => {
-            const layer = new Layer('layer', { standalone: true });
+            const layer = new Layer('layer', { source: new NullSource() });
 
             map.addLayer(layer).then(() => {
                 expect(map.getLayers()).toStrictEqual([layer]);
@@ -149,15 +164,15 @@ describe('Map', () => {
         });
 
         it('should not add 2 layers with the same id', async () => {
-            const layer1 = new Layer('layer', { standalone: true });
-            const layer2 = new Layer('layer', { standalone: true });
+            const layer1 = new Layer('layer', { source: new NullSource() });
+            const layer2 = new Layer('layer', { source: new NullSource() });
 
             map.addLayer(layer1);
             await expect(map.addLayer(layer2)).rejects.toThrowError('id already used');
         });
 
         it('should fire the layer-added event', async () => {
-            const layer = new Layer('layer', { standalone: true });
+            const layer = new Layer('layer', { source: new NullSource() });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -253,13 +268,13 @@ describe('Map', () => {
 
     describe('sortColorLayers', () => {
         function mkColorLayer(key) {
-            const layer = new ColorLayer(`${key}`, { standalone: true });
+            const layer = new ColorLayer(`${key}`, { source: new NullSource() });
             layer.key = key;
             return layer;
         }
 
         function mkElevationLayer(key) {
-            const layer = new ElevationLayer(`${key}`, { standalone: true });
+            const layer = new ElevationLayer(`${key}`, { source: new NullSource() });
             layer.key = key;
             return layer;
         }
@@ -441,8 +456,8 @@ describe('Map', () => {
         });
 
         it('should return true if any layer is loading', async () => {
-            const layer1 = new ElevationLayer('layer', { standalone: true });
-            const layer2 = new ColorLayer('layer2', { standalone: true });
+            const layer1 = new ElevationLayer('layer', { source: new NullSource({ extent }) });
+            const layer2 = new ColorLayer('layer2', { source: new NullSource({ extent }) });
 
             let layer1Loading = false;
             let layer2Loading = false;
@@ -480,8 +495,8 @@ describe('Map', () => {
 
     describe('progress', () => {
         it('should return the average progress of all layers', async () => {
-            const layer1 = new ElevationLayer('layer', { standalone: true });
-            const layer2 = new ColorLayer('layer2', { standalone: true });
+            const layer1 = new ElevationLayer('layer', { source: new NullSource() });
+            const layer2 = new ColorLayer('layer2', { source: new NullSource() });
 
             let layer1Progress = 0;
             let layer2Progress = 0;
@@ -526,7 +541,7 @@ describe('Map', () => {
         });
 
         it('should return the min/max value of the elevation layer if present', async () => {
-            const layer = new ElevationLayer('layer', { standalone: true });
+            const layer = new ElevationLayer('layer', { source: new NullSource() });
             layer.minmax = { min: -123, max: 555 };
 
             await map.addLayer(layer);
@@ -538,8 +553,8 @@ describe('Map', () => {
         });
 
         it('should return the computed min/max value of all elevation layers', async () => {
-            const layer1 = new ElevationLayer('layer1', { standalone: true });
-            const layer2 = new ElevationLayer('layer2', { standalone: true });
+            const layer1 = new ElevationLayer('layer1', { source: new NullSource() });
+            const layer2 = new ElevationLayer('layer2', { source: new NullSource() });
 
             layer1.minmax = { min: -123, max: 555 };
             layer2.minmax = { min: -969, max: 342 };
@@ -555,8 +570,8 @@ describe('Map', () => {
     });
 
     describe('removeLayer', () => {
-        it('should call dispose() on the removed layer', async () => {
-            const layer = new Layer('layer', { standalone: true });
+        it('should not call dispose() on the removed layer', async () => {
+            const layer = new Layer('layer', { source: new NullSource() });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -564,11 +579,11 @@ describe('Map', () => {
 
             map.removeLayer(layer);
 
-            expect(layer.dispose).toHaveBeenCalled();
+            expect(layer.dispose).not.toHaveBeenCalled();
         });
 
         it('should fire the layer-removed event', async () => {
-            const layer = new Layer('layer', { standalone: true });
+            const layer = new Layer('layer', { source: new NullSource() });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -584,7 +599,7 @@ describe('Map', () => {
         });
 
         it('should return true if the layer was present', async () => {
-            const layer = new Layer('layer', { standalone: true });
+            const layer = new Layer('layer', { source: new NullSource() });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -597,11 +612,11 @@ describe('Map', () => {
 
     describe('dispose', () => {
         it('should call dispose on underlying layers', async () => {
-            const layer1 = new Layer('layer1', { standalone: true });
+            const layer1 = new Layer('layer1', { source: new NullSource() });
             layer1.dispose = jest.fn();
             layer1.whenReady = Promise.resolve();
 
-            const layer2 = new Layer('layer2', { standalone: true });
+            const layer2 = new Layer('layer2', { source: new NullSource() });
             layer2.whenReady = Promise.resolve();
             layer2.dispose = jest.fn();
 

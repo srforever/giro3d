@@ -225,12 +225,16 @@ class TileMesh extends Mesh {
         this.material.setSelected(select);
     }
 
-    setElevationTexture(layer, elevation, isInherited = false) {
+    canSubdivide() {
+        return this.material.isElevationLayerTextureLoaded();
+    }
+
+    setElevationTexture(layer, elevation, isFinal = false) {
         if (this.material === null) {
             return;
         }
         this.setBBoxZ(elevation.min, elevation.max);
-        this.material.setElevationTexture(layer, elevation, isInherited);
+        this.material.setElevationTexture(layer, elevation, isFinal);
     }
 
     setBBoxZ(min, max) {
@@ -255,10 +259,7 @@ class TileMesh extends Mesh {
         this.material.removeColorLayer(idLayer);
     }
 
-    getExtentForLayer(layer) {
-        if (layer.extent.crs() !== this.extent.crs()) {
-            throw new Error(`Layer should be in the same CRS of their supporting tile geometry, but layer crs is ${layer.extent.crs()} and tile crs is ${this.extent.crs()}`);
-        }
+    getExtent() {
         return this.extent;
     }
 
@@ -297,12 +298,12 @@ class TileMesh extends Mesh {
             return;
         }
         this.disposed = true;
+        this.dispatchEvent({ type: 'dispose' });
         this.material.dispose();
         // We don't dispose the geometry because we don't own it.
         // It is shared between all TileMesh objects of the same depth level.
         this.material = null;
         this.geometry = null;
-        this.dispatchEvent({ type: 'dispose' });
     }
 }
 export default TileMesh;

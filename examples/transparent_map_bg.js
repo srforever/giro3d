@@ -1,12 +1,13 @@
+import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import Vector from 'ol/source/Vector.js';
+import { Fill, Style } from 'ol/style.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
+import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import { Vector3 } from 'three';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
@@ -40,7 +41,7 @@ instance.useTHREEControls(controls);
 const map = new Map('map', { extent, backgroundColor: 'green' });
 instance.add(map);
 
-const rectangle = new GeoJSON({ featureProjection: 'EPSG:3857' }).readFeature({
+const rectangle = {
     type: 'Feature',
     geometry: {
         type: 'Polygon',
@@ -54,9 +55,9 @@ const rectangle = new GeoJSON({ featureProjection: 'EPSG:3857' }).readFeature({
             ],
         ],
     },
-});
+};
 
-const triangle = new GeoJSON({ featureProjection: 'EPSG:3857' }).readFeature({
+const triangle = {
     type: 'Feature',
     geometry: {
         type: 'Polygon',
@@ -69,23 +70,29 @@ const triangle = new GeoJSON({ featureProjection: 'EPSG:3857' }).readFeature({
             ],
         ],
     },
-});
+};
 
-const redSquare = new ColorLayer('redSquare', { source: new Vector({}) });
-redSquare.source.addFeatures([rectangle]);
-redSquare.style = (Style, Fill) => () => new Style({
-    fill: new Fill({
-        color: '#aa0000',
-    }),
-});
+function makeGeoJSONLayer(name, geojson, color) {
+    const style = new Style({
+        fill: new Fill({
+            color,
+        }),
+    });
+    const source = new VectorSource({
+        data: geojson,
+        format: new GeoJSON(),
+        style,
+        dataProjection: 'EPSG:4326',
+    });
+    const layer = new ColorLayer(name, {
+        extent,
+        source,
+    });
+    return layer;
+}
 
-const blueTriangle = new ColorLayer('blueTriangle', { source: new Vector({}) });
-blueTriangle.source.addFeatures([triangle]);
-blueTriangle.style = (Style, Fill) => () => new Style({
-    fill: new Fill({
-        color: '#0000aa',
-    }),
-});
+const redSquare = makeGeoJSONLayer('redSquare', rectangle, '#aa0000');
+const blueTriangle = makeGeoJSONLayer('blueTriangle', triangle, '#0000aa');
 
 map.addLayer(redSquare);
 map.addLayer(blueTriangle);
