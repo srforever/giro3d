@@ -269,6 +269,29 @@ describe('Extent', () => {
         );
     });
 
+    describe('intersectExtent', () => {
+        it('should return true if extents intersect', () => {
+            const small = new Extent(
+                'EPSG:3857',
+                -10018754.171394622,
+                0,
+                20037508.342789244,
+                30056262.514183864,
+            );
+
+            const big = new Extent(
+                'EPSG:3857',
+                -20037508.342789244,
+                20037508.342789244,
+                -20037508.342789244,
+                20037508.342789244,
+            );
+
+            expect(small.intersectsExtent(big)).toEqual(false);
+            expect(big.intersectsExtent(small)).toEqual(false);
+        });
+    });
+
     describe('toBox3', () => {
         it('should return the correct value', () => {
             const extent = new Extent('foo', 0, 100, 54, 233);
