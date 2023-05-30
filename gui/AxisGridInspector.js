@@ -2,9 +2,9 @@
  * @module gui/AxisGridInspector
  */
 import GUI from 'lil-gui';
-import Instance from '../core/Instance.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
 import EntityInspector from './EntityInspector.js';
-import AxisGrid, { TickOrigin } from '../entities/AxisGrid.js';
+import AxisGrid, { TickOrigin } from '@giro3d/giro3d/entities/AxisGrid.js';
 
 class AxisGridInspector extends EntityInspector {
     /**

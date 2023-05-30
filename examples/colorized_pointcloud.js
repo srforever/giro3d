@@ -7,7 +7,7 @@ import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrateg
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
-import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Inspector from '@giro3d/gui/Inspector.js';
 import StatusBar from './widgets/StatusBar.js';
 
 const tmpVec3 = new Vector3();

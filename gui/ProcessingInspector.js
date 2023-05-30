@@ -2,12 +2,14 @@
  * @module gui/ProcessingInspector
  */
 import GUI from 'lil-gui';
-import Panel from './Panel.js';
-import Instance from '../core/Instance.js';
+
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import MemoryTracker from '@giro3d/giro3d/renderer/MemoryTracker.js';
+
 import FrameDuration from './charts/FrameDuration.js';
 import MemoryUsage from './charts/MemoryUsage.js';
-import MemoryTracker from '../renderer/MemoryTracker.js';
 import CachePanel from './CachePanel.js';
+import Panel from './Panel.js';
 
 class ProcessingInspector extends Panel {
     /**

@@ -3,8 +3,8 @@
  */
 import GUI from 'lil-gui';
 import { WebGLRenderer } from 'three';
+import Instance from '@giro3d/giro3d/core/Instance.js';
 import Panel from './Panel.js';
-import Instance from '../core/Instance.js';
 
 class InstanceInspector extends Panel {
     /**

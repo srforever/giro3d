@@ -3,7 +3,7 @@ import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
-import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Inspector from '@giro3d/gui/Inspector.js';
 
 import StatusBar from './widgets/StatusBar.js';
 

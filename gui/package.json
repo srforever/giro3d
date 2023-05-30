@@ -1,0 +1,36 @@
+{
+  "name": "@giro3d/gui",
+  "version": "0.24.1",
+  "description": "Gui and debug tools for Giro3d",
+  "main": "Inspector.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.com/giro3d/giro3d.git"
+  },
+  "keywords": [
+    "giro3d"
+  ],
+  "author": "The Giro3D Team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.com/giro3d/giro3d/issues"
+  },
+  "bugs": {
+    "url": "https://gitlab.com/giro3d/giro3d/-/issues"
+  },
+  "homepage": "https://giro3d.org/",
+  "browserslist": [
+    ">0.5%",
+    "not dead",
+    "not op_mini all",
+    "Firefox ESR"
+  ],
+  "dependencies": {
+    "chart.js": "^3.9.1",
+    "lil-gui": "^0.17.0",
+    "@giro3d/giro3d": "^0.24.1"
+  }
+}

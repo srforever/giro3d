@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import Panel from './Panel.js';
-import Instance from '../core/Instance.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
 
 class CameraInspector extends Panel {
     /**

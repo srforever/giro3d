@@ -3,12 +3,14 @@
  */
 import GUI from 'lil-gui';
 import { Color, MathUtils } from 'three';
-import Instance, { INSTANCE_EVENTS } from '../core/Instance.js';
-import TileMesh from '../core/TileMesh.js';
-import Map from '../entities/Map.js';
-import Helpers from '../helpers/Helpers.js';
+
+import Instance, { INSTANCE_EVENTS } from '@giro3d/giro3d/core/Instance.js';
+import TileMesh from '@giro3d/giro3d/core/TileMesh.js';
+import Map from '@giro3d/giro3d/entities/Map.js';
+import Helpers from '@giro3d/giro3d/helpers/Helpers.js';
+import RenderingState from '@giro3d/giro3d/renderer/RenderingState.js';
+
 import EntityInspector from './EntityInspector.js';
-import RenderingState from '../renderer/RenderingState.js';
 import LayerInspector from './LayerInspector.js';
 
 function applyToMaterial(root, layer, callback) {
