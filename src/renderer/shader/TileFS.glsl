@@ -232,26 +232,6 @@ vec4 computeColorLayer(
     return vec4(0);
 }
 
-// Compose the layer color with the background, according to the mode.
-vec4 composeLayer(vec4 background, vec4 layer, int mode) {
-    vec4 blended;
-
-#if defined(ENABLE_LAYER_MASKS)
-    if (mode == LAYER_MODE_NORMAL) {
-        blended = blend(layer, background);
-    } else if (mode == LAYER_MODE_MASK) {
-        // The layer acts like a mask : ignore the color, only use its transparency.
-        blended = vec4(background.rgb, background.a * layer.a);
-    } else if (mode == LAYER_MODE_MASK_INVERTED) {
-        blended = vec4(background.rgb, background.a * (1.0 - layer.a));
-    }
-#else
-    blended = blend(layer, background);
-#endif
-
-    return blended;
-}
-
 void main() {
     gl_FragColor = vec4(0.0);
 
@@ -304,6 +284,8 @@ void main() {
     }
 #endif
 
+    float maskOpacity = 1.;
+
     // Step 4 : process all color layers (either directly sampling the atlas texture, or use a color map).
 #if COLOR_LAYERS
     #pragma unroll_loop_start
@@ -312,7 +294,26 @@ void main() {
         if (layer.color.a > 0.) {
             ColorMap colorMap = layersColorMaps[i];
             vec4 rgba = computeColorLayer(colorTexture, luts, layer, colorMap, vUv);
-            vec4 blended = composeLayer(diffuseColor, rgba, layer.mode);
+            vec4 blended;
+
+        // Let's blend the layer color to the composited color.
+        #if defined(ENABLE_LAYER_MASKS)
+            if (layer.mode == LAYER_MODE_MASK) {
+                // Mask layers do not contribute to the composition color.
+                // instead, they contribute to the overall opacity of the map.
+                maskOpacity *= rgba.a;
+                blended = diffuseColor;
+            } else if (layer.mode == LAYER_MODE_MASK_INVERTED) {
+                maskOpacity *= (1. - rgba.a);
+                blended = diffuseColor;
+            } else if (layer.mode == LAYER_MODE_NORMAL) {
+                // Regular alpha blending
+                blended = blend(rgba, diffuseColor);
+            }
+        #else
+            // Regular alpha blending
+            blended = blend(rgba, diffuseColor);
+        #endif
 
 #if defined(ENABLE_ELEVATION_RANGE)
             vec2 range = layer.elevationRange;
@@ -327,7 +328,7 @@ void main() {
     #pragma unroll_loop_end
 #endif
 
-    diffuseColor.a *= opacity;
+    diffuseColor.a *= opacity * maskOpacity;
 
 #if defined(ELEVATION_LAYER)
     // Step 5 : apply shading
