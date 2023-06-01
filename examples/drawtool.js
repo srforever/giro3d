@@ -14,6 +14,7 @@ import DrawTool, {
     DRAWTOOL_EVENT_TYPE, DRAWTOOL_MODE, DRAWTOOL_STATE, GEOMETRY_TYPE,
 } from '@giro3d/giro3d/interactions/DrawTool.js';
 import Drawing from '@giro3d/giro3d/interactions/Drawing.js';
+import Fetcher from '@giro3d/giro3d/utils/Fetcher.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Initialize Giro3d (see tifftiles for more details)
@@ -75,8 +76,8 @@ instance.domElement.addEventListener('dblclick', e => console.log(instance.pickO
 // Instanciate drawtool
 const drawToolOptions = {
     drawObject3DOptions: {
-        minExtrudeDepth: 0,
-        maxExtrudeDepth: 1,
+        minExtrudeDepth: 40,
+        maxExtrudeDepth: 100,
     },
     enableDragging: document.getElementById('dragging').value === '0',
     splicingHitTolerance: (
@@ -257,8 +258,8 @@ function addShape(geojson) {
         sideMaterial: drawnSideMaterial,
         lineMaterial: drawnLineMaterial,
         pointMaterial: drawnPointMaterial,
-        minExtrudeDepth: 0,
-        maxExtrudeDepth: 1,
+        minExtrudeDepth: 40,
+        maxExtrudeDepth: 100,
         use3Dpoints: document.getElementById('pointsrendering').value === '0',
         point2DFactory,
     }, geojson);
@@ -310,7 +311,7 @@ instance.domElement.addEventListener('click', evt => {
 });
 
 // Load some shapes
-fetch('https://3d.oslandia.com/dem/features.json').then(response => response.json()).then(features => {
+Fetcher.json('https://3d.oslandia.com/dem/features.json').then(features => {
     features.forEach(feature => {
         drawTool.edit(feature);
         // Mess around with the API
@@ -325,19 +326,19 @@ fetch('https://3d.oslandia.com/dem/features.json').then(response => response.jso
 drawTool.start();
 drawTool.addPointAt(new Vector3(0, 0, 0));
 drawTool.addPointAt(new Vector3(1, 2, 3));
-drawTool.addPointAt(new Vector3(-13601385.999207504, 5811288.765646406, 2210));
-drawTool.addPointAt(new Vector3(-13601317.275639646, 5811655.715857863, 2080));
-drawTool.addPointAt(new Vector3(-13601504.246996816, 5812104.942116994, 1980));
-drawTool.addPointAt(new Vector3(-13601688.887519691, 5812260.002670628, 1980));
-drawTool.addPointAt(new Vector3(-13601452.175678093, 5812359.483639486, 1950));
-drawTool.addPointAt(new Vector3(-13601540.987673478, 5812817.76891438, 1760));
-drawTool.addPointAt(new Vector3(-13601745.500360906, 5813366.572259247, 1610));
-drawTool.addPointAt(new Vector3(-13602030.823313618, 5813311.569375741, 1600));
-drawTool.addPointAt(new Vector3(-13602298.869257485, 5813137.742001655, 1680));
-drawTool.addPointAt(new Vector3(-13602551.055916462, 5812724.607630258, 1820));
-drawTool.addPointAt(new Vector3(-13602735.408088705, 5812104.221240409, 1990));
-drawTool.addPointAt(new Vector3(-13602528.324274786, 5811555.273720224, 2150));
-drawTool.updatePointAt(0, new Vector3(-13601871.653763445, 5811402.399825568, 2170));
+drawTool.addPointAt(new Vector3(-13601375.735757545, 5811313.553932933, 2263.4501953125));
+drawTool.addPointAt(new Vector3(-13601183.080786511, 5811718.900814531, 2169.449462890625));
+drawTool.addPointAt(new Vector3(-13601435.612581342, 5811988.171339845, 2113.301025390625));
+drawTool.addPointAt(new Vector3(-13601692.241683275, 5812247.386654718, 2098.3310546875));
+drawTool.addPointAt(new Vector3(-13601229.646728978, 5812162.072989969, 2098.95068359375));
+drawTool.addPointAt(new Vector3(-13601285.151505515, 5812670.5826594215, 2013.54736328125));
+drawTool.addPointAt(new Vector3(-13601435.248480782, 5813288.373160986, 1857.339111328125));
+drawTool.addPointAt(new Vector3(-13601878.109128818, 5813344.696319774, 1802.1083984375));
+drawTool.addPointAt(new Vector3(-13602217.049078688, 5813161.852430431, 1857.4925537109375));
+drawTool.addPointAt(new Vector3(-13602524.077633068, 5812790.909256665, 1967.9317626953125));
+drawTool.addPointAt(new Vector3(-13602730.889452294, 5812173.281410588, 2093.4921875));
+drawTool.addPointAt(new Vector3(-13602525.81417714, 5811603.776026396, 2215.937744140625));
+drawTool.updatePointAt(0, new Vector3(-13601908.711527146, 5811403.3703095, 2241.1591796875));
 drawTool.deletePoint(1);
 drawTool.end();
 
