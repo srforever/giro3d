@@ -5,6 +5,7 @@
 import { Texture } from 'three';
 import HttpConfiguration from './HttpConfiguration.js';
 import TextureGenerator from './TextureGenerator.js';
+import HttpQueue from './HttpQueue.js';
 
 /**
  * Throws an exception if the response ended with an error HTTP code.
@@ -17,6 +18,35 @@ function checkResponse(response) {
         error.response = response;
         throw error;
     }
+}
+
+/**
+ * @type {Map<string, HttpQueue>}
+ */
+const hostQueues = new Map();
+
+/**
+ * Queue an HTTP request.
+ *
+ * @param {Request} req The request to queue.
+ */
+function enqueue(req) {
+    const url = new URL(req.url);
+    if (!hostQueues.has(url.hostname)) {
+        const queue = new HttpQueue();
+        hostQueues.set(url.hostname, queue);
+    }
+    return hostQueues.get(url.hostname).enqueue(req);
+}
+
+function getInfo() {
+    let pending = 0;
+    let running = 0;
+    hostQueues.forEach(queue => {
+        pending += queue.size;
+        running += queue.concurrentRequests;
+    });
+    return { pending, running };
 }
 
 /**
@@ -35,7 +65,7 @@ function checkResponse(response) {
 async function _fetch(url, options = {}) {
     HttpConfiguration.applyConfiguration(url, options);
     const req = new Request(url, options);
-    const response = await fetch(req);
+    const response = await enqueue(req);
     checkResponse(response);
     return response;
 }
@@ -138,4 +168,5 @@ export default {
     texture,
     arrayBuffer,
     text,
+    getInfo,
 };

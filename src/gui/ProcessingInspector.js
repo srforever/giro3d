@@ -8,6 +8,7 @@ import FrameDuration from './charts/FrameDuration.js';
 import MemoryUsage from './charts/MemoryUsage.js';
 import MemoryTracker from '../renderer/MemoryTracker.js';
 import CachePanel from './CachePanel.js';
+import FetcherPanel from './FetcherPanel.js';
 
 class ProcessingInspector extends Panel {
     /**
@@ -38,6 +39,7 @@ class ProcessingInspector extends Panel {
         this.charts.push(new FrameDuration(this.gui, instance));
         this.charts.push(new MemoryUsage(this.gui, instance));
         this.charts.push(new CachePanel(this.gui, instance));
+        this.charts.push(new FetcherPanel(this.gui, instance));
 
         this.addController(MemoryTracker, 'enable').name('Memory tracker');
         this.addController(this, 'dumpTrackedObjects').name('Dump tracked objects to console');
