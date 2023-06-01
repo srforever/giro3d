@@ -226,7 +226,26 @@ class TileMesh extends Mesh {
     }
 
     canSubdivide() {
-        return this.material.isElevationLayerTextureLoaded();
+        let current = this;
+        let ancestorLevel = 0;
+
+        // To be able to subdivide a tile, we need to ensure that we
+        // have proper elevation data on this tile (if applicable).
+        // Otherwise the newly created tiles will not have a correct bounding box,
+        // and this will mess with frustum culling / level of detail selection, in turn leading
+        // to dangerous levels of subdivisions (and hundreds/thousands of undesired tiles).
+        // On the other hand, we can afford a bit of undesired tiles if it means that
+        // the color layers will display correctly.
+        const LOD_MARGIN = 3;
+        while (ancestorLevel < LOD_MARGIN && current != null) {
+            if (current && current.material && current.material.isElevationLayerTextureLoaded()) {
+                return true;
+            }
+            ancestorLevel++;
+            current = this.parent;
+        }
+
+        return false;
     }
 
     setElevationTexture(layer, elevation, isFinal = false) {
