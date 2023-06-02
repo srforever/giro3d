@@ -616,9 +616,6 @@ class PotreePointCloud extends Entity3D {
                 points.extent = Extent.fromBox3(this._instance.referenceCrs, metadata.bbox);
                 points.userData.metadata = metadata;
                 return points;
-            })
-            .catch(e => {
-                console.error(e);
             });
     }
 }
