@@ -2,22 +2,67 @@
  * @module utils/Fetcher
  */
 
-import { Texture } from 'three';
+import { EventDispatcher, Texture } from 'three';
 import HttpConfiguration from './HttpConfiguration.js';
 import TextureGenerator from './TextureGenerator.js';
 import HttpQueue from './HttpQueue.js';
 
 /**
- * Throws an exception if the response ended with an error HTTP code.
+ * Fires when a Network or HTTP error occured during fetch
  *
- * @param {Response} response The response.
+ * @api
+ * @event module:utils/Fetcher#error
+ * @property {Error} error Error thrown
+ * @property {Response?} error.response HTTP response (if any)
+ * @example
+ * Fetcher.addEventListener('error', (error) => {
+ *     if (error.response && error.response.status === 401) {
+ *        console.error(
+ *            `Unauthorized to access resource ${error.response.url}: ${error.message}`,
+ *            error,
+ *        );
+ *    } else {
+ *        console.error('Got an error while fetching resource', error);
+ *    }
+ * });
  */
-function checkResponse(response) {
-    if (!response.ok) {
-        const error = new Error(`${response.status} ${response.statusText} - ${response.url}`);
-        error.response = response;
-        throw error;
-    }
+
+class FetcherEventDispatcher extends EventDispatcher { }
+
+const _eventTarget = new FetcherEventDispatcher();
+
+/**
+ * Adds a listener to an event type on fetch operations.
+ *
+ * @api
+ * @param {string} type The type of event to listen to - only `error` is supported.
+ * @param {Function} listener The function that gets called when the event is fired.
+ */
+function addEventListener(type, listener) {
+    _eventTarget.addEventListener(type, listener);
+}
+
+/**
+ * Checks if listener is added to an event type.
+ *
+ * @api
+ * @param {string} type The type of event to listen to - only `error` is supported.
+ * @param {Function} listener The function that gets called when the event is fired.
+ * @returns {boolean} `true` if the listener is added to this event type.
+ */
+function hasEventListener(type, listener) {
+    return _eventTarget.hasEventListener(type, listener);
+}
+
+/**
+ * Removes a listener from an event type on fetch operations.
+ *
+ * @api
+ * @param {string} type The type of the listener that gets removed.
+ * @param {Function} listener The listener function that gets removed.
+ */
+function removeEventListener(type, listener) {
+    _eventTarget.removeEventListener(type, listener);
 }
 
 /**
@@ -58,15 +103,25 @@ function getInfo() {
  *
  * @api
  * @name fetch
+ * @function
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
- * @returns {Promise<Response>} The response blob.
+ * @returns {Promise<Response>} The response object.
+ * @fires module:utils/Fetcher#error On Network/HTTP error
  */
 async function _fetch(url, options = {}) {
     HttpConfiguration.applyConfiguration(url, options);
     const req = new Request(url, options);
-    const response = await enqueue(req);
-    checkResponse(response);
+    const response = await enqueue(req).catch(error => {
+        _eventTarget.dispatchEvent({ type: 'error', error });
+        throw error;
+    });
+    if (!response.ok) {
+        const error = new Error(`${response.status} ${response.statusText} - ${response.url}`);
+        error.response = response;
+        _eventTarget.dispatchEvent({ type: 'error', error });
+        throw error;
+    }
     return response;
 }
 
@@ -77,10 +132,10 @@ async function _fetch(url, options = {}) {
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<Blob>} The response blob.
+ * @fires module:utils/Fetcher#error On Network/HTTP error
  */
 async function blob(url, options = {}) {
     const response = await _fetch(url, options);
-    checkResponse(response);
     return response.blob();
 }
 
@@ -91,10 +146,10 @@ async function blob(url, options = {}) {
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<string>} the promise containing the text
+ * @fires module:utils/Fetcher#error On Network/HTTP error
  */
 async function text(url, options = {}) {
     const response = await _fetch(url, options);
-    checkResponse(response);
     return response.text();
 }
 
@@ -105,6 +160,7 @@ async function text(url, options = {}) {
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<any>} the promise containing the JSON
+ * @fires module:utils/Fetcher#error On Network/HTTP error
  */
 async function json(url, options = {}) {
     const response = await _fetch(url, options);
@@ -118,6 +174,7 @@ async function json(url, options = {}) {
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<Document>} the promise containing the XML
+ * @fires module:utils/Fetcher#error On Network/HTTP error
  */
 async function xml(url, options = {}) {
     const response = await _fetch(url, options);
@@ -132,6 +189,7 @@ async function xml(url, options = {}) {
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<ArrayBuffer>} the promise containing the ArrayBuffer
+ * @fires module:utils/Fetcher#error On Network/HTTP error
  */
 async function arrayBuffer(url, options = {}) {
     const response = await _fetch(url, options);
@@ -145,11 +203,11 @@ async function arrayBuffer(url, options = {}) {
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<Texture>} the promise containing the texture
+ * @fires module:utils/Fetcher#error On Network/HTTP error
  */
 async function texture(url, options = {}) {
     const data = await blob(url, options);
-    const tex = await TextureGenerator.decodeBlob(data);
-    return tex;
+    return TextureGenerator.decodeBlob(data);
 }
 
 /**
@@ -169,4 +227,8 @@ export default {
     arrayBuffer,
     text,
     getInfo,
+    addEventListener,
+    hasEventListener,
+    removeEventListener,
+    _eventTarget, // Used for testing
 };
