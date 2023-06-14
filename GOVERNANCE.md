@@ -97,7 +97,7 @@ However, for those willing to engage with the project on its own terms, and will
 
 ## Contribution process
 
-Anyone can contribute to the project, regardless of their skills, as there are many ways to contribute. For instance, a contributor might be active on the project communication channel and issue tracker, or might supply patches. The various ways of contributing are described in more detail in a separate document.
+Anyone can contribute to the project, regardless of their skills, as there are many ways to contribute. For instance, a contributor might be active on the project communication channel and issue tracker, or might supply patches. The various ways of contributing are described in more detail in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
 The developer communication channel is the most appropriate place for a contributor to ask for help when making their first contribution.
 
