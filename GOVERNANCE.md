@@ -67,7 +67,7 @@ It is important to recognise that committership is a privilege, not a right. Tha
 
 A committer who shows an above-average level of contribution to the project, particularly with respect to its strategic direction and long-term health, may be nominated to become a member of the PSC. This role is described below.
 
-### Project Steering committee
+### Project Steering committee (PSC)
 
 The project management committee consists of those individuals identified as ‘project owners’ on the development site. The PSC has additional responsibilities over and above those of a committer. These responsibilities ensure the smooth running of the project. PSC members are expected to participate in strategic planning, approve changes to the governance model and manage the copyrights within the project outputs.
 
@@ -89,7 +89,11 @@ The PSC Chair has no additional authority over other members of the PSC: the rol
 
 ## Support
 
-All participants in the community are encouraged to provide support for new users within the project management infrastructure. This support is provided as a way of growing the community. Those seeking support should recognise that all support activity within the project is voluntary and is therefore provided as and when time allows. A user requiring guaranteed response times or results should therefore seek to purchase a support contract from a community member or a company providing this service. However, for those willing to engage with the project on its own terms, and willing to help support other users, the community support channels are ideal.
+All participants in the community are encouraged to provide support for new users within the project management infrastructure. This support is provided as a way of growing the community.
+
+Those seeking support should recognise that all support activity within the project is voluntary and is therefore provided as and when time allows. A user requiring guaranteed response times or results should therefore seek to purchase a support contract from a community member or a company providing this service.
+
+However, for those willing to engage with the project on its own terms, and willing to help support other users, the community support channels are ideal.
 
 ## Contribution process
 
@@ -99,7 +103,9 @@ The developer communication channel is the most appropriate place for a contribu
 
 ## Decision making process
 
-Decisions about the future of the project are made through discussion with all members of the community, from the newest user to the most experienced PSC member. All non-sensitive project management discussion takes place on the project contributors’ communication channel. Occasionally, sensitive discussion may occur on a private communication channel.
+Decisions about the future of the project are made through discussion with all members of the community, from the newest user to the most experienced PSC member. All non-sensitive project management discussion takes place on the project contributors’ communication channel.
+
+Occasionally, sensitive discussion may occur on a private communication channel.
 
 In order to ensure that the project is not bogged down by endless discussion and continual voting, the project operates a policy of lazy consensus. This allows the majority of decisions to be made without resorting to a formal vote.
 
@@ -112,7 +118,9 @@ Decision making typically involves the following steps:
 - Vote (if consensus is not reached through discussion)
 - Decision
 
-Any community member can make a proposal for consideration by the community. In order to initiate a discussion about a new idea, they should send a message to the project contributors’ channel or submit a patch implementing the idea to the issue tracker (or version-control system if they have commit access). This will prompt a review and, if necessary, a discussion of the idea. The goal of this review and discussion is to gain approval for the contribution. Since most people in the project community have a shared vision, there is often little need for discussion in order to reach consensus.
+Any community member can make a proposal for consideration by the community. In order to initiate a discussion about a new idea, they should send a message to the project contributors’ channel or submit a patch implementing the idea to the issue tracker (or version-control system if they have commit access).
+
+This will prompt a review and, if necessary, a discussion of the idea. The goal of this review and discussion is to gain approval for the contribution. Since most people in the project community have a shared vision, there is often little need for discussion in order to reach consensus.
 
 In general, as long as nobody explicitly opposes a proposal or patch, it is recognised as having the support of the community. This is called lazy consensus - that is, those who have not stated their opinion explicitly have implicitly agreed to the implementation of the proposal.
 
@@ -195,7 +203,7 @@ The project, as an opensource community project, or common good, is not directly
 
 Users, contributors, committers, PSC members are expected to act for decisions they take within the project on their own behalf and for the interest of the project.
 
-Giro3D is part of the Free and OpenSource Sofware for Geospatial community ( FOSS4G ), and as such is expected to behave coherently with this community, be it on a technical or organizational level.
+Giro3D is part of the Free and OpenSource Sofware for Geospatial community (FOSS4G), and as such is expected to behave coherently with this community, be it on a technical or organizational level.
 
 Giro3D roadmap is not decided through a top-down approach with a waterfall ( define the roadmap, fully specify, plan and schedule, code, test, release ) development model, but with the meritocraty organizational model described above. As such, there is no strict roadmap, no fixed delivery schedule, and no group deciding which priorities future features will get.
 
@@ -208,7 +216,7 @@ While project members act independently, they are also members of corporate orga
 - Hire a service company: there are service companies supporting and developing Giro3D, and you can hire them to develop the product
 - Directly contribute: you can assign one of your developer to work on Giro3D, making direct contributions
 
-Funding the project allow organizations to assign manpower to the items of the roadmap which are top priority for them. While contributions are always subject to the rules of meritocraty stated above, funding the project is a way to enhance the project in a specific direction, while preserving its independence.
+Funding the project allow organizations to assign manpower to the items of the roadmap which are top priority for them. While contributions are always subject to the rules of meritocracy stated above, funding the project is a way to enhance the project in a specific direction, while preserving its independence.
 
 ## References
 
