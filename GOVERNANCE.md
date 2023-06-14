@@ -101,6 +101,14 @@ Anyone can contribute to the project, regardless of their skills, as there are m
 
 The developer communication channel is the most appropriate place for a contributor to ask for help when making their first contribution.
 
+## Communications
+
+- chatroom: <https://matrix.to/#/#giro3d:matrix.org>
+- developer channel: to be defined
+- PSC channel: to be defined
+
+
+
 ## Decision making process
 
 Decisions about the future of the project are made through discussion with all members of the community, from the newest user to the most experienced PSC member. All non-sensitive project management discussion takes place on the project contributors’ communication channel.
