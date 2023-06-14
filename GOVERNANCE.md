@@ -45,7 +45,7 @@ Contributors engage with the project through the issue tracker and communication
 
 As contributors gain experience and familiarity with the project, their profile within, and commitment to, the community will increase. At some stage, they may find themselves being nominated for committership.
 
-Contributors must agree to the Code of Conduct as well as the Contributor's Guidelines.
+Contributors must agree to the [Code of Conduct](CODE_OF_CONDUCT.md) as well as the [Contributor's Guidelines](CONTRIBUTING.md).
 
 ### Committers
 
