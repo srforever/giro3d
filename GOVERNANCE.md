@@ -171,8 +171,8 @@ For breakdown situations and those requiring unanimous consensus, if this consen
 
 This section describes the various actions which are undertaken within the project, the corresponding approval required for that action, and those who have binding votes over the action.
 
-|  Action         |Description| Approval    |Binding Votes|
-|:------------------:|:---------------------------------:|:-----------------------:|:--------------------------------------:|
+| Action | Description | Approval | Binding Votes |
+|:-------|:------------|:---------|:--------------|
 | Code change  |    A change made to a codebase of the project by a committer. This includes source code, documentation, website content, etc. | Lazy consensus | N/A |
 | Release plan |    Defines the timetable and actions for a release. A release plan cannot be vetoed (hence lazy majority). | Lazy majority | committers |
 | Product release |  When a release of one of the project's products is ready, a vote is required to accept the release as an official release of the project. A release cannot be vetoed (hence lazy majority). A Release Manager might choose to get an issue resolved or re-schedule, but that is their decision. | Lazy majority | committers |
