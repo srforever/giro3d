@@ -18,10 +18,10 @@ Everyone is welcome to contribute to giro3d!
 In addition to contributing to core giro3d code, we appreciate many types of contributions:
 
 - Being active on issues, MR and other communication channel.
-- Showcasing your application built with giro3d : submit an issue with a link to your demo on the project issue tracker.
+- Showcasing your application built with giro3d: submit an issue with a link to your demo on the project issue tracker.
 - Writing tutorials, creating examples, and improving the reference documentation.
-- Submitting issues as [described below](#submitting-an-issue)
-- Triaging issues. Browse the [issues](https://gitlab.com/giro3d/giro3d/-/issues) and comment on issues that are no longer reproducible or on issues for which you have additional information
+- Submitting issues as [described below](#submitting-an-issue).
+- Triaging issues. Browse the [issues](https://gitlab.com/giro3d/giro3d/-/issues) and comment on issues that are no longer reproducible or on issues for which you have additional information.
 
 ## Good first issue
 
