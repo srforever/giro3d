@@ -100,7 +100,7 @@ The developer communication channel is the most appropriate place for a contribu
 
 ## Decision making process
 
-Decisions about the future of the project are made through discussion with all members of the community, from the newest user to the most experienced PSC member. All non-sensitive project management discussion takes place on the project contributors’ communication channel. Occasionally, sensitive discussion may occur on a private list.
+Decisions about the future of the project are made through discussion with all members of the community, from the newest user to the most experienced PSC member. All non-sensitive project management discussion takes place on the project contributors’ communication channel. Occasionally, sensitive discussion may occur on a private communication channel.
 
 In order to ensure that the project is not bogged down by endless discussion and continual voting, the project operates a policy of lazy consensus. This allows the majority of decisions to be made without resorting to a formal vote.
 
