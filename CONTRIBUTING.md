@@ -8,8 +8,8 @@ There are various ways of contributing to the project:
   - [Getting Started Contributing](#getting-started-contributing)
   - [Good first issue](#good-first-issue)
   - [Submitting an Issue](#submitting-an-issue)
-  - [Opening a Pull Request](#opening-a-pull-request)
-    - [Pull Request Guidelines](#pull-request-guidelines)
+  - [Opening a Merge Request](#opening-a-merge-request)
+    - [Merge Request Guidelines](#merge-request-guidelines)
 
 ## Getting Started Contributing
 
@@ -39,19 +39,19 @@ If a related issue does not exist, submit a new one. Please include as much of t
 - The exact version of giro3d. Did this work in a previous version?
 - Ideas for how to fix or workaround the issue. Also mention if you are willing to help fix it. If so, the giro3d team can often provide guidance and the issue may get fixed more quickly with your help
 
-## Opening a Pull Request
+## Opening a Merge Request
 
-We welcome pull requests with great interest. We try to promptly review them, provide feedback, and merge. Following the tips in this guide will help your pull request be merged quickly.
+We welcome merge requests with great interest. We try to promptly review them, provide feedback, and merge. Following the tips in this guide will help your merge request be merged quickly.
 
 If you plan to make a major change, please open an issue first.
 
-### Pull Request Guidelines
+### Merge Request Guidelines
 
-Code quality matters. Here are some advices to read before submitting a Pull Request.
+Code quality matters. Here are some advices to read before submitting a merge request.
 
 - If this is your first contribution to giro3d, add your name to [CONTRIBUTORS.md](CONTRIBUTORS.md)
-- If your pull request fixes an existing issue, include a link to the issue in the description.
-- If your pull request needs additional work, include a task list, or better, split it in several PR
+- If your merge request fixes an existing issue, include a link to the issue in the description.
+- If your merge request needs additional work, include a task list, or better, split it in several PR
 - Ping `@giro3d` in the comments to get your code reviewed, and also when you are done making new commits to address feedback
 - Verify your code passes the linter and tests (`npm test`).
 - If you added new identifiers to the giro3d API:
