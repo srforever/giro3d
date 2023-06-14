@@ -64,7 +64,7 @@ New committers can be nominated by any existing committer. Once they have been n
 
 Nominees may decline their appointment as a committer. However, this is unusual, as the project does not expect any specific time or resource commitment from its community members. The intention behind the role of committer is to allow people to contribute to the project more easily, not to tie them in to the project in any formal way.
 
-It is important to recognise that commitership is a privilege, not a right. That privilege must be earned and once earned it can be removed by the PSC (see next section) in extreme circumstances. However, under normal circumstances committership exists for as long as the committer wishes to continue engaging with the project.
+It is important to recognise that committership is a privilege, not a right. That privilege must be earned and once earned it can be removed by the PSC (see next section) under particular circumstances. However, under normal circumstances committership exists for as long as the committer wishes to continue engaging with the project, and actively participates to its development.
 
 A committer who shows an above-average level of contribution to the project, particularly with respect to its strategic direction and long-term health, may be nominated to become a member of the PSC. This role is described below.
 
