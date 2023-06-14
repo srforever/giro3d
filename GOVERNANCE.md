@@ -60,7 +60,7 @@ Anyone can become a committer; there are no special requirements, other than to 
 
 The project encourages committers to come from multiple organizations and diverse origins.
 
-New committers can be nominated by any existing committer. Once they have been nominated, there will be a vote by the project management committee (PSC; see below). Committer voting is one of the few activities that takes place on the project’s private management list. This is to allow PSC members to freely express their opinions about a nominee without causing embarrassment. Once the vote has been held, the aggregated voting results are published on the public communication channel. The nominee is entitled to request an explanation of any ‘no’ votes against them, regardless of the outcome of the vote. This explanation will be provided by the PSC Chair (see below) and will be anonymous and constructive in nature.
+New committers can be nominated by any existing committer. Once they have been nominated, there will be a vote by the project management committee (PSC; see below). Committer voting is one of the few activities that takes place on the project’s private management channel. This is to allow PSC members to freely express their opinions about a nominee without causing embarrassment. Once the vote has been held, the aggregated voting results are published on the public communication channel. The nominee is entitled to request an explanation of any ‘no’ votes against them, regardless of the outcome of the vote. This explanation will be provided by the PSC Chair (see below) and will be anonymous and constructive in nature.
 
 Nominees may decline their appointment as a committer. However, this is unusual, as the project does not expect any specific time or resource commitment from its community members. The intention behind the role of committer is to allow people to contribute to the project more easily, not to tie them in to the project in any formal way.
 
@@ -73,7 +73,7 @@ A committer who shows an above-average level of contribution to the project, par
 
 The project management committee consists of those individuals identified as ‘project owners’ on the development site. The PSC has additional responsibilities over and above those of a committer. These responsibilities ensure the smooth running of the project. PSC members are expected to participate in strategic planning, approve changes to the governance model and manage the copyrights within the project outputs.
 
-Members of the PSC do not have significant authority over other members of the community, although it is the PSC that votes on new committers. It also makes decisions when community consensus cannot be reached. In addition, the PSC has access to the project’s private communication channel and its archives. This list is used for sensitive issues, such as votes for new committers and legal matters that cannot be discussed in public. It is never used for project management or planning.
+Members of the PSC do not have significant authority over other members of the community, although it is the PSC that votes on new committers. It also makes decisions when community consensus cannot be reached. In addition, the PSC has access to the project’s private communication channel and its archives. This channel is used for sensitive issues, such as votes for new committers and legal matters that cannot be discussed in public. It is never used for project management or planning.
 
 Membership of the PSC is by invitation from the existing PSC members. A nomination will result in discussion and then a vote by the existing PSC members. PSC membership votes are subject to consensus approval of the current PSC members.
 
@@ -113,7 +113,7 @@ Decision making typically involves the following steps:
 - Vote (if consensus is not reached through discussion)
 - Decision
 
-Any community member can make a proposal for consideration by the community. In order to initiate a discussion about a new idea, they should send an email to the project contributors’ list or submit a patch implementing the idea to the issue tracker (or version-control system if they have commit access). This will prompt a review and, if necessary, a discussion of the idea. The goal of this review and discussion is to gain approval for the contribution. Since most people in the project community have a shared vision, there is often little need for discussion in order to reach consensus.
+Any community member can make a proposal for consideration by the community. In order to initiate a discussion about a new idea, they should send a message to the project contributors’ channel or submit a patch implementing the idea to the issue tracker (or version-control system if they have commit access). This will prompt a review and, if necessary, a discussion of the idea. The goal of this review and discussion is to gain approval for the contribution. Since most people in the project community have a shared vision, there is often little need for discussion in order to reach consensus.
 
 In general, as long as nobody explicitly opposes a proposal or patch, it is recognised as having the support of the community. This is called lazy consensus - that is, those who have not stated their opinion explicitly have implicitly agreed to the implementation of the proposal.
 
