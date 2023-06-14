@@ -164,15 +164,15 @@ This section describes the various actions which are undertaken within the proje
 
 |  Action         |Description| Approval    |Binding Votes|
 |:------------------:|:---------------------------------:|:-----------------------:|:--------------------------------------:|
-| Code change  |    A change made to a codebase of the project by a committer.This includes source code, documentation, website content, etc.|Lazy consensus|N/A|
-| Release plan |    Defines the timetable and actions for a release. A release plan cannot be vetoed (hence lazy majority). |Lazy majority|committers|
-| Product release|  When a release of one of the project's products is ready, a vote is required to accept the release as an official release of the project. A release cannot be vetoed (hence lazy majority). A Release Manager might choose to get an issue resolved or re-schedule, but that is their decision. |              Lazy majority| committers |
-| Adoption of new codebase|              When the codebase for an existing, released product is to be replaced with an alternative codebase. If such a vote fails to gain approval, the existing code base will continue.             This also covers the creation of new sub-projects within the project.|2/3 majority|PSC members|
-| New committer | When a new committer is proposed for the project.|  Consensus approval             |  Committers |
-| New PSC member|  When a new member is proposed for the PSC. |  Consensus approval             |              PSC members    |
-| Reinstate emeritus member| An emeritus PSC member can be reinstated.  |              Consensus approval             |              PSC members (excluding the member in question) |
-| Committer removal| When removal of commit privileges is sought. |  Unanimous consensus            |              PSC members (excluding the committer in question if a member of the PSC)         |
-| PSC member removal|              When removal of a PSC member is sought. | Unanimous consensus            |              PSC members (excluding the member in question)|
+| Code change  |    A change made to a codebase of the project by a committer. This includes source code, documentation, website content, etc. | Lazy consensus | N/A |
+| Release plan |    Defines the timetable and actions for a release. A release plan cannot be vetoed (hence lazy majority). | Lazy majority | committers |
+| Product release |  When a release of one of the project's products is ready, a vote is required to accept the release as an official release of the project. A release cannot be vetoed (hence lazy majority). A Release Manager might choose to get an issue resolved or re-schedule, but that is their decision. | Lazy majority | committers |
+| Adoption of new codebase | When the codebase for an existing, released product is to be replaced with an alternative codebase. If such a vote fails to gain approval, the existing code base will continue. This also covers the creation of new sub-projects within the project. | 2/3 majority | PSC members |
+| New committer | When a new committer is proposed for the project. | Consensus approval | Committers |
+| New PSC member | When a new member is proposed for the PSC. | Consensus approval | PSC members |
+| Reinstate emeritus member | An emeritus PSC member can be reinstated. | Consensus approval | PSC members (excluding the member in question) |
+| Committer removal | When removal of commit privileges is sought. | Unanimous consensus | PSC members (excluding the committer in question if a member of the PSC) |
+| PSC member removal | When removal of a PSC member is sought. | Unanimous consensus | PSC members (excluding the member in question) |
 
 ### Voting timeframes & procedure
 
