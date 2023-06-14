@@ -10,7 +10,6 @@ Giro3D is a meritocratic, consensus-based community project. Anyone with an inte
 
 We believe in running the project transparently. This includes everything from decision-making to defects in the code.
 
-
 ## Roles and responsibilities
 
 ### Users
@@ -68,7 +67,6 @@ It is important to recognise that committership is a privilege, not a right. Tha
 
 A committer who shows an above-average level of contribution to the project, particularly with respect to its strategic direction and long-term health, may be nominated to become a member of the PSC. This role is described below.
 
-
 ### Project Steering committee
 
 The project management committee consists of those individuals identified as ‘project owners’ on the development site. The PSC has additional responsibilities over and above those of a committer. These responsibilities ensure the smooth running of the project. PSC members are expected to participate in strategic planning, approve changes to the governance model and manage the copyrights within the project outputs.
@@ -81,7 +79,8 @@ PSC members should be affiliated to multiple organizations, and the number of PS
 
 ### PSC Chair
 
-The PSC Chair is a single individual, voted for by the PSC members. Once someone has been appointed Chair, they remain in that role :
+The PSC Chair is a single individual, voted for by the PSC members. Once someone has been appointed Chair, they remain in that role:
+
 - for a time period of 3 year
 - or until they choose to retire
 - or when the PSC casts a two-thirds majority vote to remove them.
@@ -129,24 +128,26 @@ Also, issues such as those affecting the strategic direction or legal standing o
 
 Where necessary (e.g. discussion and vote about specific people to be new committers) PSC voting may take place on the private PSC communication channel.
 
-Votes are clearly indicated by subject line starting with [VOTE]. Discussion and proposal should have happened prior to the vote. Voting is carried out by replying to the vote mail. See voting procedure below. Votes are expressed using one of the following symbols:
-- +1 	"Yes," "Agree," or "the action should be performed." In general, this vote also indicates a willingness on the behalf of the voter to assist with "making it happen".
-- +0 	This vote indicates a willingness for the action under consideration to go ahead. The voter, however will not be able to help.
-- -0 	This vote indicates that the voter does not, in general, agree with the proposed action but is not concerned enough to prevent the action going ahead.
-- -1 	This is a negative vote. On issues where consensus is required, this vote counts as a veto. All vetoes must contain an explanation of why the veto is appropriate. Vetoes with no explanation are void. It may also be appropriate for a -1 vote to include an alternative course of action.
-- abstain 	People can abstain from voting. They can either remain silent or express their reason.
+Votes are clearly indicated by subject line starting with `[VOTE]`. Discussion and proposal should have happened prior to the vote. Voting is carried out by replying to the vote mail. See voting procedure below. Votes are expressed using one of the following symbols:
+
+- `+1`: "Yes," "Agree," or "the action should be performed." In general, this vote also indicates a willingness on the behalf of the voter to assist with "making it happen".
+- `+0`: This vote indicates a willingness for the action under consideration to go ahead. The voter, however will not be able to help.
+- `-0`: This vote indicates that the voter does not, in general, agree with the proposed action but is not concerned enough to prevent the action going ahead.
+- `-1`: This is a negative vote. On issues where consensus is required, this vote counts as a veto. All vetoes must contain an explanation of why the veto is appropriate. Vetoes with no explanation are void. It may also be appropriate for a -1 vote to include an alternative course of action.
+- `abstain`: People can abstain from voting. They can either remain silent or express their reason.
 
 All participants in the project are encouraged to show their preference for a particular action by voting. When the votes are tallied, only the votes of PSC members or committers are binding. Non-binding votes are still useful to enable everyone to understand the perception of an action by the wider community.
 
 Voting can also be applied to changes made to the project codebase. These typically take the form of a veto (-1) in reply to the commit message or Merge Request sent when the commit is made.
 
-Types of approval : 
-- **Lazy consensus** : see above, no voting
-- **Consensus approval** : Consensus approval requires 3 binding +1 votes and no binding vetoes.
-- **Lazy majority (majority consensus)** : A lazy majority vote requires 3 binding +1 votes and more binding +1 votes than -1 votes.
-- **Lazy approval** : An action with lazy approval is implicitly allowed unless a -1 vote is received, at which time, depending on the type of action, either lazy majority or consensus approval must be obtained.
-- **2/3 majority**	: Some actions require a 2/3 majority of binding votes. Such actions typically affect the foundation of the project (e.g. adopting a new codebase to replace an existing product). The higher threshold is designed to ensure such changes are strongly supported. To pass this vote requires at least 2/3 of the votes that are cast to be +1.
-- **Unanimous approval** :  All of the votes that are cast are to be +1 and there can be no binding vetoes (-1).
+Types of approval:
+
+- **Lazy consensus**: see above, no voting
+- **Consensus approval**: Consensus approval requires 3 binding +1 votes and no binding vetoes.
+- **Lazy majority (majority consensus)**: A lazy majority vote requires 3 binding +1 votes and more binding +1 votes than -1 votes.
+- **Lazy approval**: An action with lazy approval is implicitly allowed unless a -1 vote is received, at which time, depending on the type of action, either lazy majority or consensus approval must be obtained.
+- **2/3 majority**: Some actions require a 2/3 majority of binding votes. Such actions typically affect the foundation of the project (e.g. adopting a new codebase to replace an existing product). The higher threshold is designed to ensure such changes are strongly supported. To pass this vote requires at least 2/3 of the votes that are cast to be +1.
+- **Unanimous approval**:  All of the votes that are cast are to be +1 and there can be no binding vetoes (-1).
 
 A valid veto cannot be over-ruled, it can only be withdrawn by its issuer. Any veto must be accompanied by reasoning and be prepared to defend it.
 
@@ -200,13 +201,14 @@ Giro3D roadmap is not decided through a top-down approach with a waterfall ( def
 
 ### Funding the project
 
-While project members act independently, they are also members of corporate organizations of various kinds. Companies or other organizations using the product can help the project and orient it towards their use cases in various ways :
-- Donate money to the OSGeo : there is no legal entity representing Giro3D. The only way to give money to the project itself would be through the OSGeo Foundation, which would then allocate resources to Giro3D.
-- Hire a freelance : there are freelance developers who can be hired to work on the project, and you can specify which features you want him to implement
-- Hire a service company : there are service companies supporting and developing Giro3D, and you can hire them to develop the product
-- Directly contribute : you can assign one of your developer to work on Giro3D, making direct contributions
+While project members act independently, they are also members of corporate organizations of various kinds. Companies or other organizations using the product can help the project and orient it towards their use cases in various ways:
 
-Funding the project allow organizations to assign manpower to the items of the roadmap which are top priority for them. While contributions are always subject to the rules of meritocraty stated above, funding the project is a way to enhance the project in a specific direction, while preserving its independancy.
+- Donate money to the OSGeo: there is no legal entity representing Giro3D. The only way to give money to the project itself would be through the OSGeo Foundation, which would then allocate resources to Giro3D.
+- Hire a freelance: there are freelance developers who can be hired to work on the project, and you can specify which features you want him to implement
+- Hire a service company: there are service companies supporting and developing Giro3D, and you can hire them to develop the product
+- Directly contribute: you can assign one of your developer to work on Giro3D, making direct contributions
+
+Funding the project allow organizations to assign manpower to the items of the roadmap which are top priority for them. While contributions are always subject to the rules of meritocraty stated above, funding the project is a way to enhance the project in a specific direction, while preserving its independence.
 
 ## References
 
