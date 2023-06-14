@@ -42,7 +42,7 @@ In addition to their actions as users, contributors may also find themselves doi
 - fixing bugs
 - adding features
 
-Contributors engage with the project through the issue tracker and mailing list, or by writing or editing documentation. They submit changes to the project itself via patches and Merge Requests, which will be considered for inclusion in the project by existing committers (see next section). The developer mailing list is the most appropriate place to ask for help when making that first contribution.
+Contributors engage with the project through the issue tracker and communication channel, or by writing or editing documentation. They submit changes to the project itself via patches and Merge Requests, which will be considered for inclusion in the project by existing committers (see next section). The developer communication channel is the most appropriate place to ask for help when making that first contribution.
 
 As contributors gain experience and familiarity with the project, their profile within, and commitment to, the community will increase. At some stage, they may find themselves being nominated for committership.
 
@@ -60,7 +60,7 @@ Anyone can become a committer; there are no special requirements, other than to 
 
 The project encourages committers to come from multiple organizations and diverse origins.
 
-New committers can be nominated by any existing committer. Once they have been nominated, there will be a vote by the project management committee (PSC; see below). Committer voting is one of the few activities that takes place on the project’s private management list. This is to allow PSC members to freely express their opinions about a nominee without causing embarrassment. Once the vote has been held, the aggregated voting results are published on the public mailing list. The nominee is entitled to request an explanation of any ‘no’ votes against them, regardless of the outcome of the vote. This explanation will be provided by the PSC Chair (see below) and will be anonymous and constructive in nature.
+New committers can be nominated by any existing committer. Once they have been nominated, there will be a vote by the project management committee (PSC; see below). Committer voting is one of the few activities that takes place on the project’s private management list. This is to allow PSC members to freely express their opinions about a nominee without causing embarrassment. Once the vote has been held, the aggregated voting results are published on the public communication channel. The nominee is entitled to request an explanation of any ‘no’ votes against them, regardless of the outcome of the vote. This explanation will be provided by the PSC Chair (see below) and will be anonymous and constructive in nature.
 
 Nominees may decline their appointment as a committer. However, this is unusual, as the project does not expect any specific time or resource commitment from its community members. The intention behind the role of committer is to allow people to contribute to the project more easily, not to tie them in to the project in any formal way.
 
@@ -73,7 +73,7 @@ A committer who shows an above-average level of contribution to the project, par
 
 The project management committee consists of those individuals identified as ‘project owners’ on the development site. The PSC has additional responsibilities over and above those of a committer. These responsibilities ensure the smooth running of the project. PSC members are expected to participate in strategic planning, approve changes to the governance model and manage the copyrights within the project outputs.
 
-Members of the PSC do not have significant authority over other members of the community, although it is the PSC that votes on new committers. It also makes decisions when community consensus cannot be reached. In addition, the PSC has access to the project’s private mailing list and its archives. This list is used for sensitive issues, such as votes for new committers and legal matters that cannot be discussed in public. It is never used for project management or planning.
+Members of the PSC do not have significant authority over other members of the community, although it is the PSC that votes on new committers. It also makes decisions when community consensus cannot be reached. In addition, the PSC has access to the project’s private communication channel and its archives. This list is used for sensitive issues, such as votes for new committers and legal matters that cannot be discussed in public. It is never used for project management or planning.
 
 Membership of the PSC is by invitation from the existing PSC members. A nomination will result in discussion and then a vote by the existing PSC members. PSC membership votes are subject to consensus approval of the current PSC members.
 
@@ -94,13 +94,13 @@ All participants in the community are encouraged to provide support for new user
 
 ## Contribution process
 
-Anyone can contribute to the project, regardless of their skills, as there are many ways to contribute. For instance, a contributor might be active on the project mailing list and issue tracker, or might supply patches. The various ways of contributing are described in more detail in a separate document.
+Anyone can contribute to the project, regardless of their skills, as there are many ways to contribute. For instance, a contributor might be active on the project communication channel and issue tracker, or might supply patches. The various ways of contributing are described in more detail in a separate document.
 
-The developer mailing list is the most appropriate place for a contributor to ask for help when making their first contribution.
+The developer communication channel is the most appropriate place for a contributor to ask for help when making their first contribution.
 
 ## Decision making process
 
-Decisions about the future of the project are made through discussion with all members of the community, from the newest user to the most experienced PSC member. All non-sensitive project management discussion takes place on the project contributors’ mailing list. Occasionally, sensitive discussion may occur on a private list.
+Decisions about the future of the project are made through discussion with all members of the community, from the newest user to the most experienced PSC member. All non-sensitive project management discussion takes place on the project contributors’ communication channel. Occasionally, sensitive discussion may occur on a private list.
 
 In order to ensure that the project is not bogged down by endless discussion and continual voting, the project operates a policy of lazy consensus. This allows the majority of decisions to be made without resorting to a formal vote.
 
@@ -125,9 +125,9 @@ For lazy consensus to be effective, it is necessary to allow at least 72 hours b
 
 Not all decisions can be made using lazy consensus. If a consensus cannot be reached, the proposal is postponed, or a vote can be asked for.
 
-Also, issues such as those affecting the strategic direction or legal standing of the project must gain explicit approval in the form of a vote on the project development mailing list. Every member of the community is encouraged to express their opinions in all discussions and all votes. However, only project committers and/or PSC members (as defined above) have binding votes for the purposes of decision making. 
+Also, issues such as those affecting the strategic direction or legal standing of the project must gain explicit approval in the form of a vote on the project development communication channel. Every member of the community is encouraged to express their opinions in all discussions and all votes. However, only project committers and/or PSC members (as defined above) have binding votes for the purposes of decision making.
 
-Where necessary (e.g. discussion and vote about specific people to be new committers) PSC voting may take place on the private PSC mailing list.
+Where necessary (e.g. discussion and vote about specific people to be new committers) PSC voting may take place on the private PSC communication channel.
 
 Votes are clearly indicated by subject line starting with [VOTE]. Discussion and proposal should have happened prior to the vote. Voting is carried out by replying to the vote mail. See voting procedure below. Votes are expressed using one of the following symbols:
 - +1 	"Yes," "Agree," or "the action should be performed." In general, this vote also indicates a willingness on the behalf of the voter to assist with "making it happen".
@@ -142,11 +142,11 @@ Voting can also be applied to changes made to the project codebase. These typica
 
 Types of approval : 
 - **Lazy consensus** : see above, no voting
-- **Consensus approval** : Consensus approval requires 3 binding +1 votes and no binding vetoes. 
-- **Lazy majority (majority consensus)** : A lazy majority vote requires 3 binding +1 votes and more binding +1 votes than -1 votes. 
-- **Lazy approval** : An action with lazy approval is implicitly allowed unless a -1 vote is received, at which time, depending on the type of action, either lazy majority or consensus approval must be obtained. 
+- **Consensus approval** : Consensus approval requires 3 binding +1 votes and no binding vetoes.
+- **Lazy majority (majority consensus)** : A lazy majority vote requires 3 binding +1 votes and more binding +1 votes than -1 votes.
+- **Lazy approval** : An action with lazy approval is implicitly allowed unless a -1 vote is received, at which time, depending on the type of action, either lazy majority or consensus approval must be obtained.
 - **2/3 majority**	: Some actions require a 2/3 majority of binding votes. Such actions typically affect the foundation of the project (e.g. adopting a new codebase to replace an existing product). The higher threshold is designed to ensure such changes are strongly supported. To pass this vote requires at least 2/3 of the votes that are cast to be +1.
-- **Unanimous approval** :  All of the votes that are cast are to be +1 and there can be no binding vetoes (-1). 
+- **Unanimous approval** :  All of the votes that are cast are to be +1 and there can be no binding vetoes (-1).
 
 A valid veto cannot be over-ruled, it can only be withdrawn by its issuer. Any veto must be accompanied by reasoning and be prepared to defend it.
 
@@ -156,11 +156,11 @@ If you disagree with a valid veto, then you must engage the person casting the v
 
 If a veto is not withdrawn, the action that has been vetoed must be reversed in a timely manner.
 
-For breakdown situations and those requiring unanimous consensus, if this consensus cannot be reached within the extended timeframe, then the PSC chair makes the ultimate decision. 
+For breakdown situations and those requiring unanimous consensus, if this consensus cannot be reached within the extended timeframe, then the PSC chair makes the ultimate decision.
 
 ### Actions & voting
 
-This section describes the various actions which are undertaken within the project, the corresponding approval required for that action, and those who have binding votes over the action. 
+This section describes the various actions which are undertaken within the project, the corresponding approval required for that action, and those who have binding votes over the action.
 
 |  Action         |Description| Approval    |Binding Votes|
 |:------------------:|:---------------------------------:|:-----------------------:|:--------------------------------------:|
@@ -182,7 +182,7 @@ Be careful about holidays when calling a vote. This is hard when we do not know 
 
 Discussion about the topic would have already happened in a [Proposal] email thread an issue or Merge Request on the tracker, to express the issues and opinions. The [Vote] thread is to ratify the proposal if that is felt to be necessary.
 
-The instigator sends the Vote email to the dev mailing list. Describe the issue with no ambiguity and in a positive sense. Define the date and time for the end of the vote period.
+The instigator sends the Vote email to the dev communication channel. Describe the issue with no ambiguity and in a positive sense. Define the date and time for the end of the vote period.
 
 Votes are expressed by replying email using the voting symbols defined above. Voters can change their vote during the timeframe. At the end of the vote period, the instigator tallies the number of final votes and reports the results.
 
@@ -200,16 +200,16 @@ Giro3D roadmap is not decided through a top-down approach with a waterfall ( def
 
 ### Funding the project
 
-While project members act independently, they are also members of corporate organizations of various kinds. Companies or other organizations using the product can help the project and orient it towards their use cases in various ways : 
+While project members act independently, they are also members of corporate organizations of various kinds. Companies or other organizations using the product can help the project and orient it towards their use cases in various ways :
 - Donate money to the OSGeo : there is no legal entity representing Giro3D. The only way to give money to the project itself would be through the OSGeo Foundation, which would then allocate resources to Giro3D.
 - Hire a freelance : there are freelance developers who can be hired to work on the project, and you can specify which features you want him to implement
 - Hire a service company : there are service companies supporting and developing Giro3D, and you can hire them to develop the product
 - Directly contribute : you can assign one of your developer to work on Giro3D, making direct contributions
 
-Funding the project allow organizations to assign manpower to the items of the roadmap which are top priority for them. While contributions are always subject to the rules of meritocraty stated above, funding the project is a way to enhance the project in a specific direction, while preserving its independancy. 
+Funding the project allow organizations to assign manpower to the items of the roadmap which are top priority for them. While contributions are always subject to the rules of meritocraty stated above, funding the project is a way to enhance the project in a specific direction, while preserving its independancy.
 
 ## References
 
-- [Meritocratic Governance Model document](http://oss-watch.ac.uk/resources/meritocraticgovernancemodel)  
+- [Meritocratic Governance Model document](http://oss-watch.ac.uk/resources/meritocraticgovernancemodel)
 - [OSGeo project graduation checklist](https://www.osgeo.org/resources/project-graduation-checklist/)
 - [Apache Forrest governance document, with voting methods](https://forrest.apache.org/guidelines.html#decision)
