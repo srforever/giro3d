@@ -64,7 +64,7 @@ function createMap(extent) {
         showOutline: true,
     });
 
-    currentMap.object3d.position.set(new Vector3(0, 0, mapCount * 10000));
+    currentMap.object3d.position.set(0, 0, mapCount * 10000);
 
     instance.add(currentMap);
 
