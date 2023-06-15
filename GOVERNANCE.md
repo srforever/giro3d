@@ -1,5 +1,7 @@
 # Giro3D Governance
 
+[[_TOC_]]
+
 ## Foreword
 
 This document is inspired by the [Meritocratic Governance Model document](http://oss-watch.ac.uk/resources/meritocraticgovernancemodel) from Ross Gardler and Gabriel Hanganu, available as Creative Common By-Sa. The template has been adapted for Giro3D.

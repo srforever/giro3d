@@ -1,15 +1,8 @@
-# Contributing  to giro3d
+# Contributing to giro3d
 
 :heart: Thanks for helping the giro3d project!
 
-There are various ways of contributing to the project:
-
-- [Contributing  to giro3d](#contributing--to-giro3d)
-  - [Getting Started Contributing](#getting-started-contributing)
-  - [Good first issue](#good-first-issue)
-  - [Submitting an Issue](#submitting-an-issue)
-  - [Opening a Merge Request](#opening-a-merge-request)
-    - [Merge Request Guidelines](#merge-request-guidelines)
+[[_TOC_]]
 
 ## Getting Started Contributing
 

@@ -1,5 +1,7 @@
 # How to release Giro3d
 
+[[_TOC_]]
+
 ## Requirements
 
 Install the commitizen utility with pip

@@ -1,6 +1,8 @@
 
 # Contributor Covenant Code of Conduct
 
+[[_TOC_]]
+
 ## Our Pledge
 
 We as members, contributors, and leaders pledge to make participation in our
