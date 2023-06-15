@@ -197,14 +197,21 @@ class LayerComposer {
     }
 
     /**
-     * Computes the z-order of the extent. Smaller extents have higher z-order.
+     * Computes the distance between the composition camera and the image.
+     *
+     * Smaller images
+     * will be closer to the camera.
      *
      * @param {Extent} extent The extent.
+     * @returns {number} The distance between the camera and the image.
      */
-    computeZOrder(extent) {
+    computeZDistance(extent) {
         if (this.dimensions) {
             const width = extent.dimensions(tmpVec2).x;
-            const SMALLEST_WIDTH = this.dimensions.x / 33554432;
+            // Since we don't know the smallest size of image that the source will output,
+            // let's make a generous assumptions: the smallest image is be 1/2^25 of the extent.
+            const MAX_NUMBER_OF_SUBDIVISIONS = 33554432; // 2^25
+            const SMALLEST_WIDTH = this.dimensions.x / MAX_NUMBER_OF_SUBDIVISIONS;
             return MathUtils.mapLinear(width, this.dimensions.x, SMALLEST_WIDTH, 0, 9);
         }
 
@@ -283,7 +290,7 @@ class LayerComposer {
             actualTexture = this.preprocessImage(extent, texture, options);
         }
 
-        options.zOrder = this.computeZOrder(extent);
+        options.zOrder = this.computeZDistance(extent);
         if (!options.alwaysVisible && this.transparent) {
             options.fadeDuration = this.fadeDuration;
         }
