@@ -147,6 +147,9 @@ class LayeredMaterial extends RawShaderMaterial {
         this.uniforms.layersColorMaps = new Uniform([]);
         this.uniforms.luts = new Uniform([]);
 
+        /** @type {ColorMapAtlas} */
+        this.colorMapAtlas = options.colorMapAtlas;
+
         this._updateColorLayerUniforms();
 
         this.uniforms.uuid = new Uniform(0);
@@ -443,10 +446,18 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     /**
-     * @param {ColorMapAtlas} atlas The color map atlas.
+     * Sets the colormap atlas.
+     *
+     * @param {ColorMapAtlas} atlas The atlas.
      */
-    _updateColorMaps(atlas) {
+    setColorMapAtlas(atlas) {
+        this.colorMapAtlas = atlas;
+    }
+
+    _updateColorMaps() {
         this._sortLayersIfNecessary();
+
+        const atlas = this.colorMapAtlas;
 
         const elevationColorMap = this.elevationLayer?.colorMap;
 
@@ -494,8 +505,8 @@ class LayeredMaterial extends RawShaderMaterial {
         this.uniforms.zenith.value = this.lightDirection.zenith;
         this.uniforms.azimuth.value = this.lightDirection.azimuth;
 
-        if (materialOptions.colorMapAtlas) {
-            this._updateColorMaps(materialOptions.colorMapAtlas);
+        if (this.colorMapAtlas) {
+            this._updateColorMaps();
         }
 
         if (materialOptions.backgroundColor) {

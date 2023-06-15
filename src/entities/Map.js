@@ -803,6 +803,9 @@ class Map extends Entity3D {
             if (layer.colorMap) {
                 if (!this.materialOptions.colorMapAtlas) {
                     this.materialOptions.colorMapAtlas = new ColorMapAtlas(this._instance.renderer);
+                    this._forEachTile(t => {
+                        t.material.setColorMapAtlas(this.materialOptions.colorMapAtlas);
+                    });
                 }
                 this.materialOptions.colorMapAtlas.add(layer.colorMap);
             }
