@@ -1,3 +1,4 @@
+import '../setup.js';
 import assert from 'assert';
 import PntsParser from '../../../src/parser/PntsParser.js';
 
@@ -14,8 +15,9 @@ function bufferFromString(pnts, size) {
     return buffer;
 }
 
-describe('pnts parser', () => {
-    const pnts = `
+describe('PntsParser', () => {
+    describe('parse', () => {
+        const pnts = `
         70 6e 74 73 01 00 00 00  82 00 00 00 48 00 00 00
         1e 00 00 00 00 00 00 00  00 00 00 00 7b 22 50 4f
         49 4e 54 53 5f 4c 45 4e  47 54 48 22 3a 32 2c 22
@@ -25,22 +27,23 @@ describe('pnts parser', () => {
         34 7d 7d 20 f1 34 09 42  90 a9 56 42 9c 15 24 41
         58 9b 0d 42 90 a9 56 42  9c 15 24 41 e0 9b 85 b7
         8f 89`;
-    it('should return the correct points', done => {
-        const buffer = bufferFromString(pnts, 16 * 8 + 2);
+        it('should return the correct points', done => {
+            const buffer = bufferFromString(pnts, 16 * 8 + 2);
 
-        PntsParser.parse(buffer).then(result => {
-            // 2 points of 3 components in the geometry
-            assert.equal(
-                result.point.geometry.attributes.position.array.length,
-                2 * 3,
-            );
-            // 'Red': 224, 'Green': 155, 'Blue': 133
-            assert.equal(
-                result.point.geometry.attributes.color.array[1],
-                155,
-            );
+            PntsParser.parse(buffer).then(result => {
+                // 2 points of 3 components in the geometry
+                assert.equal(
+                    result.point.geometry.attributes.position.array.length,
+                    2 * 3,
+                );
+                // 'Red': 224, 'Green': 155, 'Blue': 133
+                assert.equal(
+                    result.point.geometry.attributes.color.array[1],
+                    155,
+                );
 
-            done();
+                done();
+            });
         });
     });
 });
