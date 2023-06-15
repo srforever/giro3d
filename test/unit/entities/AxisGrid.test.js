@@ -1,3 +1,4 @@
+import '../setup.js';
 import * as THREE from 'three';
 import Extent from '../../../src/core/geographic/Extent.js';
 import AxisGrid from '../../../src/entities/AxisGrid.js';

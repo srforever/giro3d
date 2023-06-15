@@ -1,3 +1,4 @@
+import '../setup.js';
 import {
     Group, Object3D, Vector2,
 } from 'three';

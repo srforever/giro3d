@@ -1,3 +1,4 @@
+import '../setup.js';
 import assert from 'assert';
 import proj4 from 'proj4';
 import {
