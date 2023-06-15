@@ -567,7 +567,7 @@ class LayerComposer {
 
     cleanup() {
         // Delete eligible images.
-        for (const img of [...this.images.values()]) {
+        for (const img of Array.from(this.images.values())) {
             if (img.canBeDeleted()) {
                 this.composer.remove(img.mesh);
                 img.dispose();

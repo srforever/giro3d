@@ -533,7 +533,7 @@ class Layer extends EventDispatcher {
     getParent(target) {
         const extent = target.extent;
         /** @type {Array<Target>} */
-        const targets = [...this.targets.values()].sort((a, b) => {
+        const targets = Array.from(this.targets.values()).sort((a, b) => {
             const ax = a.extent.dimensions(tmpDims).x;
             const bx = b.extent.dimensions(tmpDims).x;
             return ax - bx;

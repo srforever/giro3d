@@ -136,7 +136,7 @@ class ComposerTileMaterial extends RawShaderMaterial {
         this.transparent = transparent ?? false;
         this.now = performance.now();
         this.fadeDuration = fadeDuration;
-        if (this.fadeDuration) {
+        if (this.fadeDuration > 0) {
             this.opacity = 0;
         } else {
             this.opacity = 1;
