@@ -209,7 +209,7 @@ class LayerComposer {
         if (this.dimensions) {
             const width = extent.dimensions(tmpVec2).x;
             // Since we don't know the smallest size of image that the source will output,
-            // let's make a generous assumptions: the smallest image is be 1/2^25 of the extent.
+            // let's make a generous assumptions: the smallest image is 1/2^25 of the extent.
             const MAX_NUMBER_OF_SUBDIVISIONS = 33554432; // 2^25
             const SMALLEST_WIDTH = this.dimensions.x / MAX_NUMBER_OF_SUBDIVISIONS;
             return MathUtils.mapLinear(width, this.dimensions.x, SMALLEST_WIDTH, 0, 9);
