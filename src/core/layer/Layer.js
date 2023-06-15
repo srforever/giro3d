@@ -17,7 +17,7 @@ import Interpretation from './Interpretation.js';
 import Extent from '../geographic/Extent.js';
 import EventUtils from '../../utils/EventUtils.js';
 import LayerComposer from './LayerComposer.js';
-import PromiseUtils from '../../utils/PromiseUtils.js';
+import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
 import Instance from '../Instance.js';
 import ImageSource from '../../sources/ImageSource.js';
@@ -340,7 +340,7 @@ class Layer extends EventDispatcher {
         const results = await Promise.allSettled(promises);
 
         for (const result of results) {
-            if (result.status === 'fulfilled') {
+            if (result.status === PromiseStatus.Fullfilled) {
                 const image = result.value;
 
                 const opts = {
