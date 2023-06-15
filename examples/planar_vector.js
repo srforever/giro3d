@@ -92,6 +92,7 @@ map.addLayer(elevationLayer);
 const gpxLayer = new ColorLayer(
     'gpx',
     {
+        extent,
         source: new VectorSource({
             data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.gpx',
             dataProjection: 'EPSG:4326',
@@ -110,6 +111,7 @@ map.addLayer(gpxLayer);
 const geoJsonLayer = new ColorLayer(
     'geo',
     {
+        extent,
         source: new VectorSource({
             data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.geojson',
             format: new GeoJSON(),
@@ -134,6 +136,7 @@ map.addLayer(geoJsonLayer);
 const kmlLayer = new ColorLayer(
     'kml',
     {
+        extent,
         source: new VectorSource({
             data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.kml',
             format: new KML(),
