@@ -223,6 +223,9 @@ class Layer extends EventDispatcher {
 
         this.opCounter = new OperationCounter();
         this.initializing = false;
+
+        /** @type {Target[]} */
+        this.sortedTargets = null;
     }
 
     onSourceUpdated() {
@@ -468,6 +471,7 @@ class Layer extends EventDispatcher {
             this.composer.unlock(target.imageIds, id);
             target.state = TargetState.Disposed;
             target.abort();
+            this.sortedTargets = null;
         }
     }
 
@@ -527,17 +531,28 @@ class Layer extends EventDispatcher {
     }
 
     /**
+     * @returns {Target[]} Targets sorted by extent dimension.
+     */
+    _getSortedTargets() {
+        if (this.sortedTargets == null) {
+            this.sortedTargets = Array.from(this.targets.values()).sort((a, b) => {
+                const ax = a.extent.dimensions(tmpDims).x;
+                const bx = b.extent.dimensions(tmpDims).x;
+                return ax - bx;
+            });
+        }
+
+        return this.sortedTargets;
+    }
+
+    /**
      * @param {Target} target The target.
      * @returns {Target} The smallest target that still contains this extent.
      */
     getParent(target) {
         const extent = target.extent;
         /** @type {Array<Target>} */
-        const targets = Array.from(this.targets.values()).sort((a, b) => {
-            const ax = a.extent.dimensions(tmpDims).x;
-            const bx = b.extent.dimensions(tmpDims).x;
-            return ax - bx;
-        });
+        const targets = this._getSortedTargets();
         for (const t of targets) {
             if (extent.isInside(t.extent) && t.state === TargetState.Complete) {
                 return t;
@@ -710,6 +725,7 @@ class Layer extends EventDispatcher {
                 node, extent, pitch, width, height,
             });
             this.targets.set(node.id, target);
+            this.sortedTargets = null;
 
             this.registerNode(node, extent);
 
