@@ -337,7 +337,6 @@ class CogSource extends ImageSource {
                 pool: this.pool,
                 fillValue: this.nodata,
                 window,
-                signal,
             });
 
             return buf;
