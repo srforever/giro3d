@@ -25,7 +25,6 @@ import { DefaultQueue } from '../RequestQueue.js';
 import OperationCounter from '../OperationCounter.js';
 
 const POOL_SIZE = 16;
-const CANCELLED_REGEXP = /cancelled|aborted/;
 const tmpDims = new Vector2();
 
 /**
@@ -63,8 +62,14 @@ class Target {
     }
 
     abort() {
-        this.controller.abort(new Error('cancelled'));
+        this.controller.abort(PromiseUtils.abortError());
         this.controller = new AbortController();
+    }
+
+    abortAndThrow() {
+        const signal = this.controller.signal;
+        this.abort();
+        signal.throwIfAborted();
     }
 }
 
@@ -369,19 +374,15 @@ class Layer extends EventDispatcher {
      * @param {Extent} options.extent The request extent.
      * @param {number} options.width The request width, in pixels.
      * @param {number} options.height The request height, in pixels.
-     * @param {AbortSignal} options.signal The abort signal.
-     * @param {Set} options.imageIds The image ids for this request.
+     * @param {Target} options.target The target of the images.
      * @param {boolean} options.alwaysVisible If true, the image is always visible on the canvas.
-     * @param {Object3D} options.node The node associated with this request.
      * @returns {Promise} A promise that is settled when all images have been fetched.
      */
     async fetchImages({
-        node,
         extent,
         width,
         height,
-        signal,
-        imageIds,
+        target,
         alwaysVisible,
     }) {
         // Let's wait for a short time to avoid processing requests that become
@@ -389,16 +390,18 @@ class Layer extends EventDispatcher {
         // Those tiles will be rendered using whatever data is available in the composer.
         await PromiseUtils.delay(200);
 
+        const node = target.node;
+
         if (shouldCancelRequest(node, this)) {
-            throw new Error('cancelled');
+            target.abortAndThrow();
         }
 
         const results = this.source.getImages({
-            id: `${node.id}`,
+            id: `${target.node.id}`,
             extent,
             width,
             height,
-            signal,
+            signal: target.controller.signal,
         });
 
         if (results.length === 0) {
@@ -408,11 +411,11 @@ class Layer extends EventDispatcher {
 
         // Register the ids on the tile
         results.forEach(r => {
-            imageIds.add(r.id);
+            target.imageIds.add(r.id);
         });
 
         if (shouldCancelRequest(node, this)) {
-            throw new Error('cancelled');
+            target.abortAndThrow();
         }
 
         const allImages = [];
@@ -614,7 +617,6 @@ class Layer extends EventDispatcher {
         }
 
         const extent = target.extent;
-        const node = target.node;
         const width = target.width;
         const height = target.height;
         const pitch = target.pitch;
@@ -628,10 +630,8 @@ class Layer extends EventDispatcher {
         // Fetch adequate images from the source...
         const isContained = this.contains(extent);
         if (isContained) {
-            const imageIds = target.imageIds;
-
             this.fetchImages({
-                extent, width, height, signal, imageIds, node,
+                extent, width, height, target,
             }).then(() => {
                 if (target.state === TargetState.Disposed) {
                     return;
@@ -650,12 +650,15 @@ class Layer extends EventDispatcher {
                 }
 
                 const texture = target.renderTarget.texture;
-                this.applyTextureToNode({ texture, pitch }, node, isLastRender);
+                this.applyTextureToNode({ texture, pitch }, target.node, isLastRender);
                 this._instance.notifyChange(this);
             }).catch(err => {
-                if (!CANCELLED_REGEXP.test(err.message)) {
+                // Abort errors are perfectly normal, so we don't need to log them.
+                // However any other error implies an abnormal termination of the processing.
+                if (err.message !== 'aborted') {
                     console.error(err);
                 }
+
                 target.state = TargetState.Pending;
             });
         } else {
@@ -668,7 +671,7 @@ class Layer extends EventDispatcher {
                 target: target.renderTarget,
             });
             const texture = target.renderTarget.texture;
-            this.applyTextureToNode({ texture, pitch }, node, true);
+            this.applyTextureToNode({ texture, pitch }, target.node, true);
         }
     }
 

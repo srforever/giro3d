@@ -19,7 +19,17 @@ export const PromiseStatus = {
     Rejected: 'rejected',
 };
 
+/**
+ * Returns an Error with the 'aborted' reason.
+ *
+ * @returns {Error} The error.
+ */
+function abortError() {
+    return new Error('aborted');
+}
+
 export default {
     delay,
     PromiseStatus,
+    abortError,
 };

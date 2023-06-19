@@ -1,5 +1,6 @@
 import PriorityQueue from 'ol/structs/PriorityQueue.js';
 import OperationCounter from './OperationCounter.js';
+import PromiseUtils from '../utils/PromiseUtils.js';
 
 function priorityFn(task) {
     return task.getPriority();
@@ -40,7 +41,7 @@ class Task {
 
     execute() {
         if (this.signal?.aborted) {
-            this.reject(new Error('aborted'));
+            this.reject(PromiseUtils.abortError());
             return Promise.reject();
         }
 
@@ -103,7 +104,7 @@ class RequestQueue {
                 this.opCounter.decrement();
                 this.pendingIds.delete(key);
                 this.onQueueAvailable();
-                task.reject(new Error('aborted'));
+                task.reject(PromiseUtils.abortError);
             }
         }
     }
@@ -125,7 +126,7 @@ class RequestQueue {
         id, request, signal, priority, shouldExecute,
     }) {
         if (signal?.aborted) {
-            return Promise.reject(new Error('aborted'));
+            return Promise.reject(PromiseUtils.abortError);
         }
 
         if (this.pendingIds.has(id)) {
