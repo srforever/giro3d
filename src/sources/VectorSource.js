@@ -108,12 +108,38 @@ function rasterizeBuilderGroup(canvas, builderGroup, extent, size) {
 }
 
 /**
+ * @typedef {Function} StyleFunction
+ * @param {Feature} feature - The feature to style.
+ * @returns {Style} The OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
+ */
+
+/**
  * An image source that reads vector data. Internally, this wraps an OpenLayers' [VectorSource](https://openlayers.org/en/latest/apidoc/module-ol_source_Vector-VectorSource.html).
  * This uses OpenLayers' styles and features.
  *
  * Note: to assign a new style to the source, use {@link setStyle} instead of
  * the {@link style} property.
  *
+ * @example
+ * // To load a remote GeoJSON file
+ * const source = new VectorSource({
+ *      data: 'http://example.com/data.geojson',
+ *      format: new GeoJSON(), // Pass the OpenLayers FeatureFormat here
+ *      style: new Style(...), // Pass an OpenLayers style here
+ * });
+ *
+ * // To load a local GeoJSON
+ * const source = new VectorSource({
+ *      data: { "type": "FeatureCollection" ... },
+ *      format: new GeoJSON(), // Pass the OpenLayers FeatureFormat here
+ *      style: new Style(...), // Pass an OpenLayers style here
+ * });
+ *
+ * // To load features directly (no need to pass a format as the features are already decoded.)
+ * const source = new VectorSource({
+ *      data: [new Feature(...)], // Pass the OpenLayers features here
+ *      style: new Style(...), // Pass an OpenLayers style here
+ * });
  * @api
  */
 class VectorSource extends ImageSource {
@@ -122,12 +148,13 @@ class VectorSource extends ImageSource {
      * @param {string} [options.dataProjection] The projection of the data source. Must be specified
      * if the source does not have the same projection as the Giro3D instance.
      * @param {FeatureFormat} [options.format] The data format. Required if `url` or `data` are
-     * used.
+     * used. Must be an OpenLayers [FeatureFormat](https://openlayers.org/en/latest/apidoc/module-ol_format_Feature-FeatureFormat.html).
      * @param {string|Feature[]} options.data The data content. Can be:
      *  - A URL to a remote file (requires the `format` parameter)
      *  - The content of the source (such as GeoJSON) (requires the `format` parameter)
      *  - A list of OpenLayers features.
-     * @param {Style|function(Feature):Style} options.style The style.
+     * @param {Style|StyleFunction} options.style The style, or style function. The style must be an
+     * OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
      * @api
      */
     constructor(options) {

@@ -117,6 +117,12 @@ function renderFeature(feature, squaredTolerance, styles, builderGroup) {
 }
 
 /**
+ * @typedef {Function} StyleFunction
+ * @param {Feature} feature - The feature to style.
+ * @returns {Style} The OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
+ */
+
+/**
  * A Vector Tile source. Uses OpenLayers [styles](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
  *
  * @example
@@ -124,7 +130,7 @@ function renderFeature(feature, squaredTolerance, styles, builderGroup) {
  * const vectorTileSource = new VectorTileSource({
  *     url: `${'https://{a-d}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/'
  *         + '{z}/{x}/{y}.vector.pbf?access_token='}${apiKey}`,
- *     style: new Style(...), // Pass an OpenLayer style here
+ *     style: new Style(...), // Pass an OpenLayers style here
  *     backgroundColor: 'hsl(47, 26%, 88%)',
  * });
  * @api
@@ -135,8 +141,10 @@ class VectorTileSource extends ImageSource {
      * @param {string} options.url The URL to the vector tile layer.
      * @param {string} options.targetProjection The target projection of the features.
      * @param {string} options.backgroundColor The background color of the tiles.
-     * @param {FeatureFormat} [options.format] The format. Default is MVT.
-     * @param {Style|function(Feature):Style} options.style The style.
+     * @param {FeatureFormat} [options.format] The format. Default is [MVT](https://openlayers.org/en/latest/apidoc/module-ol_format_MVT-MVT.html).
+     * @param {Style|StyleFunction} options.style The style, or style function. The style must be an
+     * OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
+     * @api
      */
     constructor(options) {
         super();

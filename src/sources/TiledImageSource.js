@@ -21,14 +21,45 @@ const tmp = {
 };
 
 /**
- * An tiled image source.
+ * An image source powered by OpenLayers to load tiled images.
+ * Supports all subclasses of the OpenLayers [TileSource](https://openlayers.org/en/latest/apidoc/module-ol_source_Tile-TileSource.html).
+ *
+ * If the tiles of the source are in a format that is not supported directly by the browser,
+ * i.e not JPG/PNG/WebP, then you must pass a decoder with the `format` constructor option.
+ *
+ * To filter out no-data pixels, you may pass the `noDataValue` option in the constructor.
+ *
+ * @example
+ *
+ * // To create a source based on the Stamen OpenLayers source, with the 'toner' style.
+ * const source = new TiledImageSource({
+ *      source: new Stamen({ layer: 'toner' })
+ * });
+ *
+ * // To create a WMS source that downloads TIFF images, eliminating all pixels that have the
+ * // value -9999 and replacing them with transparent pixels.
+ * const source = new TiledImageSource({
+ *      source: new TileWMS({
+ *          url: 'http://example.com/wms',
+ *          params: {
+ *              LAYERS: 'theLayer',
+ *              FORMAT: 'image/tiff',
+ *          },
+ *          projection: 'EPSG:3946',
+ *          crossOrigin: 'anonymous',
+ *          version: '1.3.0',
+ *      }),
+ *      format: new GeoTIFFFormat(),
+ *      noDataValue: -9999,
+ * });
  */
 class TiledImageSource extends ImageSource {
     /**
      * @param {object} options The options.
-     * @param {TileSource} options.source The OL tiled source.
+     * @param {TileSource} options.source The OpenLayers tiled source.
      * @param {number} [options.noDataValue] The optional no-data value.
-     * @param {ImageFormat} [options.format] Optional image decoder.
+     * @param {ImageFormat} [options.format] The optional image decoder.
+     * @api
      */
     constructor({ source, format, noDataValue }) {
         super({ flipY: format?.flipY ?? true, tiled: true });
