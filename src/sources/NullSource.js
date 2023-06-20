@@ -12,17 +12,13 @@ import ImageSource from './ImageSource.js';
  */
 class NullSource extends ImageSource {
     constructor(options = {}) {
-        super();
+        super(options);
 
         this.extent = options.extent;
     }
 
     getImages() {
         return [];
-    }
-
-    contains() {
-        return false;
     }
 
     getExtent() {
