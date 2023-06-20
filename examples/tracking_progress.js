@@ -3,6 +3,7 @@ import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
@@ -16,7 +17,7 @@ const extent = new Extent('EPSG:3857',
 
 const viewerDiv = document.getElementById('viewerDiv');
 
-const instance = new Instance(viewerDiv);
+const instance = new Instance(viewerDiv, { crs: 'EPSG:3857' });
 
 function createMap(mapExtent, tileset) {
     const key = 'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
@@ -27,10 +28,13 @@ function createMap(mapExtent, tileset) {
     const elevationLayer = new ElevationLayer(
         'xyz_elevation',
         {
-            source: new XYZ({
-                url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
-                crossOrigin: 'anonymous',
-                projection: extent.crs(),
+            extent,
+            source: new TiledImageSource({
+                source: new XYZ({
+                    url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
+                    projection: extent.crs(),
+                    crossOrigin: 'anonymous',
+                }),
             }),
             interpretation: Interpretation.MapboxTerrainRGB,
         },
@@ -41,10 +45,13 @@ function createMap(mapExtent, tileset) {
     const colorLayer = new ColorLayer(
         'xyz_color',
         {
-            source: new XYZ({
-                url: `https://api.mapbox.com/v4/mapbox.${tileset}/{z}/{x}/{y}.webp?access_token=${key}`,
-                crossOrigin: 'anonymous',
-                projection: extent.crs(),
+            extent,
+            source: new TiledImageSource({
+                source: new XYZ({
+                    url: `https://api.mapbox.com/v4/mapbox.${tileset}/{z}/{x}/{y}.webp?access_token=${key}`,
+                    projection: extent.crs(),
+                    crossOrigin: 'anonymous',
+                }),
             }),
         },
     );

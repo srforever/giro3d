@@ -5,6 +5,7 @@ import {
     ShaderChunk,
     Texture,
     FloatType,
+    MathUtils,
 } from 'three';
 
 import FragmentShader from './ComposerTileFS.glsl';
@@ -17,11 +18,7 @@ ShaderChunk.Interpretation = InterpretationChunk;
 ShaderChunk.FillNoData = FillNoDataChunk;
 
 const POOL = [];
-// Temporarily disable pooling as the material does not seem
-// to behave properly when reused. Needs investigation.
-// https://gitlab.com/giro3d/giro3d/-/issues/287
-// const POOL_SIZE = 2048;
-const POOL_SIZE = 0;
+const POOL_SIZE = 2048;
 
 class ComposerTileMaterial extends RawShaderMaterial {
     /**
@@ -29,7 +26,9 @@ class ComposerTileMaterial extends RawShaderMaterial {
      *
      * @param {object} [options={}] The options.
      * @param {Interpretation} options.interpretation The image interpretation.
+     * @param {number} options.fadeDuration The fade duration.
      * @param {Texture} options.texture The texture.
+     * @param {boolean} options.transparent Enable transparency.
      * @param {boolean} options.flipY If true, the image will be flipped vertically in the shader.
      * @param {boolean} options.fillNoData If true, applies an algorithm to interpolate
      * no-data pixels from neighbouring valid pixels.
@@ -46,14 +45,61 @@ class ComposerTileMaterial extends RawShaderMaterial {
         this.uniforms.fillNoData = new Uniform(false);
         this.uniforms.textureSize = new Uniform(new Vector2(0, 0));
         this.uniforms.showImageOutlines = new Uniform(false);
+        this.uniforms.opacity = new Uniform(this.opacity);
+        this.now = performance.now();
+        this._opacity = 1;
+        this._ready = true;
 
         if (options) {
-            this.update(options);
+            this.init(options);
         }
     }
 
+    set opacity(v) {
+        if (v !== this._opacity) {
+            this._opacity = v;
+            this.now = performance.now();
+        }
+        if (!this.fadeDuration && this._ready) {
+            this.uniforms.opacity.value = v;
+        }
+    }
+
+    get opacity() {
+        return this._opacity;
+    }
+
+    isAnimating() {
+        return this.opacity !== this.uniforms.opacity.value;
+    }
+
+    update(now) {
+        const uniform = this.uniforms.opacity;
+
+        if (this.opacity !== uniform.value) {
+            if (!this.fadeDuration) {
+                uniform.value = this.opacity;
+                this.now = now;
+                return false;
+            }
+
+            // Process opacity animation
+            const dt = (now - this.now) / this.fadeDuration;
+            const sign = Math.sign(this.opacity - uniform.value);
+
+            const newValue = MathUtils.clamp(uniform.value + dt * sign, 0, 1);
+            uniform.value = newValue;
+            this.now = now;
+
+            return true;
+        }
+
+        this.now = now;
+        return false;
+    }
+
     /**
-     * Updates the material.
+     * Initializes an existing material with new values.
      *
      * @param {object} opts The options.
      * @param {Texture} opts.texture The texture.
@@ -62,13 +108,17 @@ class ComposerTileMaterial extends RawShaderMaterial {
      * @param {boolean} opts.fillNoData If true, applies an algorithm to interpolate
      * no-data pixels from neighbouring valid pixels.
      * @param {boolean} opts.showImageOutlines Displays the outline of the tile.
+     * @param {number} opts.fadeDuration The fade duration.
+     * @param {boolean} opts.transparent Enable transparency.
      */
-    update({
+    init({
         texture,
         interpretation,
         flipY,
-        fillNoData,
+        fillNoData = false,
         showImageOutlines,
+        fadeDuration,
+        transparent,
     }) {
         const interp = interpretation ?? Interpretation.Raw;
 
@@ -81,6 +131,17 @@ class ComposerTileMaterial extends RawShaderMaterial {
             interp.prepareTexture(texture);
         }
 
+        // The no-data filling algorithm does not like transparent images
+        this.needsUpdate = this.transparent !== transparent;
+        this.transparent = transparent ?? false;
+        this.now = performance.now();
+        this.fadeDuration = fadeDuration;
+        if (this.fadeDuration > 0) {
+            this.opacity = 0;
+        } else {
+            this.opacity = 1;
+        }
+        this.uniforms.opacity.value = this.opacity;
         this.uniforms.interpretation.value = interpValue;
         this.uniforms.texture.value = texture;
         this.uniforms.flipY.value = flipY ?? false;
@@ -95,7 +156,6 @@ class ComposerTileMaterial extends RawShaderMaterial {
 
     reset() {
         this.uniforms.texture.value = null;
-        this.uniforms.textureSize.value.set(0, 0);
     }
 
     /**
@@ -112,7 +172,7 @@ class ComposerTileMaterial extends RawShaderMaterial {
     static acquire(opts) {
         if (POOL.length > 0) {
             const mat = POOL.pop();
-            mat.update(opts);
+            mat.init(opts);
             return mat;
         }
         return new ComposerTileMaterial(opts);

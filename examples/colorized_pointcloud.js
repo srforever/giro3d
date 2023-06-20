@@ -3,10 +3,10 @@ import TileWMS from 'ol/source/TileWMS.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import StatusBar from './widgets/StatusBar.js';
 
@@ -77,25 +77,23 @@ function initializeCamera() {
 
     placeCamera(position, lookAt);
 
-    const colorize = new TileWMS({
-        url: 'https://download.data.grandlyon.com/wms/grandlyon',
-        params: {
-            LAYERS: 'Ortho2009_vue_ensemble_16cm_CC46',
-            FORMAT: 'image/jpeg',
-        },
-        projection: 'EPSG:3946',
-        crossOrigin: 'anonymous',
-        version: '1.3.0',
+    const colorize = new TiledImageSource({
+        source: new TileWMS({
+            url: 'https://download.data.grandlyon.com/wms/grandlyon',
+            params: {
+                LAYERS: 'Ortho2009_vue_ensemble_16cm_CC46',
+                FORMAT: 'image/jpeg',
+            },
+            projection: 'EPSG:3946',
+            crossOrigin: 'anonymous',
+            version: '1.3.0',
+        }),
     });
 
     const colorLayer = new ColorLayer(
         'wms_imagery',
         {
             source: colorize,
-            updateStrategy: {
-                type: STRATEGY_DICHOTOMY,
-                options: {},
-            },
         },
     );
 

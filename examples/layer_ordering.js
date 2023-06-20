@@ -4,6 +4,7 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
 const crs = 'EPSG:3857';
@@ -11,7 +12,7 @@ const mapExtent = Extent.fromCenterAndSize(crs, { x: 256227, y: 5882214 }, 20000
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates a giro3d instance
-const instance = new Instance(viewerDiv);
+const instance = new Instance(viewerDiv, { crs });
 
 // Instanciates camera
 instance.camera.camera3D.position.set(256227, 5882214, 4000000);
@@ -25,7 +26,7 @@ const watercolor = new ColorLayer(
     'watercolor',
     {
         extent: Extent.fromCenterAndSize(crs, { x: -100000, y: 6169226 }, layerSize, layerSize),
-        source: new Stamen({ layer: 'watercolor', wrapX: false }),
+        source: new TiledImageSource({ source: new Stamen({ layer: 'watercolor', wrapX: false }) }),
     },
 );
 
@@ -33,7 +34,7 @@ const toner = new ColorLayer(
     'toner',
     {
         extent: Extent.fromCenterAndSize(crs, { x: 500000, y: 5669226 }, layerSize, layerSize),
-        source: new Stamen({ layer: 'toner', wrapX: false }),
+        source: new TiledImageSource({ source: new Stamen({ layer: 'toner', wrapX: false }) }),
     },
 );
 
@@ -41,7 +42,7 @@ const terrain = new ColorLayer(
     'terrain',
     {
         extent: Extent.fromCenterAndSize(crs, { x: 900000, y: 5169226 }, layerSize, layerSize),
-        source: new Stamen({ layer: 'terrain', wrapX: false }),
+        source: new TiledImageSource({ source: new Stamen({ layer: 'terrain', wrapX: false }) }),
     },
 );
 

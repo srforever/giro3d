@@ -2,13 +2,13 @@
  * @module gui/SourceInspector
  */
 import GUI from 'lil-gui';
-import Source from 'ol/source/Source.js';
-import TileSource from 'ol/source/Tile.js';
 import UrlTile from 'ol/source/UrlTile.js';
+import TileSource from 'ol/source/Tile.js';
 import Instance from '../core/Instance.js';
 import Panel from './Panel.js';
 import CogSource from '../sources/CogSource.js';
 import CustomTiledImageSource from '../sources/CustomTiledImageSource.js';
+import TiledImageSource from '../sources/TiledImageSource.js';
 
 /**
  * Inspector for a source.
@@ -40,23 +40,25 @@ class SourceInspector extends Panel {
         if (source instanceof CogSource) {
             this.url = source.url.toString();
             this.sourceType = 'CogSource';
+            this.addController(this, 'sourceType').name('Type');
             this.addController(this, 'url').name('URL');
         } else if (source instanceof CustomTiledImageSource) {
             this.url = source.url.toString();
             this.sourceType = 'CustomTiledImageSource';
+            this.addController(this, 'sourceType').name('Type');
             this.addController(this, 'url').name('URL');
-        } else if (source instanceof Source) {
-            this.processOpenLayersSource(source);
+        } else if (source instanceof TiledImageSource) {
+            this.sourceType = 'TiledImageSource';
+            this.addController(this, 'sourceType').name('Type');
+            this.processOpenLayersSource(source.source);
         }
-
-        this.addController(this, 'sourceType').name('Type');
     }
 
     processOpenLayersSource(source) {
         const proj = source.getProjection();
 
         // default value in case we can't process the constructor name
-        this.sourceType = 'OpenLayers source';
+        this.subtype = 'Unknown';
 
         if (proj) {
             this.crs = proj.getCode();
@@ -84,8 +86,9 @@ class SourceInspector extends Panel {
         }
 
         if (source.constructor.name) {
-            this.sourceType = `OpenLayers/${source.constructor.name}`;
+            this.subtype = source.constructor.name;
         }
+        this.addController(this, 'subtype').name('Inner source');
     }
 }
 

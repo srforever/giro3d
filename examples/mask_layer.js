@@ -1,14 +1,15 @@
 import XYZ from 'ol/source/XYZ.js';
-import Vector from 'ol/source/Vector.js';
+import { Fill, Stroke, Style } from 'ol/style.js';
 import { GeoJSON } from 'ol/format.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import MaskLayer, { MaskMode } from '@giro3d/giro3d/core/layer/MaskLayer.js';
-import Fetcher from '@giro3d/giro3d/utils/Fetcher.js';
+import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
@@ -36,44 +37,49 @@ instance.add(map);
 const basemap = new ColorLayer(
     'basemap',
     {
-        source: new XYZ({
-            url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.pngraw?access_token=${apiKey}`,
-            crossOrigin: 'anonymous',
-            projection: extent.crs(),
+        extent,
+        source: new TiledImageSource({
+            source: new XYZ({
+                url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${apiKey}`,
+                projection: extent.crs(),
+                crossOrigin: 'anonymous',
+            }),
         }),
     },
 );
 map.addLayer(basemap);
 
-const format = new GeoJSON();
-const source = new Vector({ });
-Fetcher.json('https://3d.oslandia.com/giro3d/vectors/paris.geojson')
-    .then(geojson => {
-        const features = format.readFeatures(geojson);
-        source.addFeatures(features);
-    });
+const outlineStyle = new Style({
+    stroke: new Stroke({ color: 'red', width: 2 }),
+});
 
 // Display the footprint using a red outline. This layer is not necessary for the mask to work,
 // and is only present for illustration purposes.
-const outline = new ColorLayer('outline', { source });
-
-outline.style = (Style, Fill, Stroke) => function _() {
-    return new Style({
-        stroke: new Stroke({ color: 'red', width: 2 }),
-    });
-};
+const outline = new ColorLayer('outline', {
+    source: new VectorSource({
+        format: new GeoJSON(),
+        data: 'https://3d.oslandia.com/giro3d/vectors/paris.geojson',
+        style: outlineStyle,
+    }),
+    extent,
+});
 
 map.addLayer(outline);
 
-// Create the actual mask layer with the same source as the outline.
-const mask = new MaskLayer('mask', { source });
-
 // The mask layer uses an opaque fill style.
-mask.style = (Style, Fill) => function _() {
-    return new Style({
-        fill: new Fill({ color: 'white' }),
-    });
-};
+const maskStyle = new Style({
+    fill: new Fill({ color: 'white' }),
+});
+
+// Create the actual mask layer with the same source as the outline.
+const mask = new MaskLayer('mask', {
+    source: new VectorSource({
+        format: new GeoJSON(),
+        data: 'https://3d.oslandia.com/giro3d/vectors/paris.geojson',
+        style: maskStyle,
+    }),
+    extent,
+});
 
 map.addLayer(mask);
 

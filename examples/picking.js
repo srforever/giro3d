@@ -1,11 +1,11 @@
-import { Raycaster, Vector3, Vector2 } from 'three';
 import TileWMS from 'ol/source/TileWMS.js';
+import { Raycaster, Vector3, Vector2 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
@@ -54,45 +54,47 @@ const map = new Map('map', { extent });
 instance.add(map);
 
 // Adds a WMS imagery layer
-const wmsSource = new TileWMS({
-    url: 'https://download.data.grandlyon.com/wms/grandlyon',
-    projection: 'EPSG:3946',
-    crossOrigin: 'anonymous',
-    params: {
-        LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
-        FORMAT: 'image/jpeg',
-    },
-    version: '1.3.0',
+const colorSource = new TiledImageSource({
+    source: new TileWMS({
+        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        projection: 'EPSG:3946',
+        crossOrigin: 'anonymous',
+        params: {
+            LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
+            FORMAT: 'image/jpeg',
+        },
+        version: '1.3.0',
+    }),
 });
 
 const colorLayer = new ColorLayer(
     'wms_imagery',
     {
-        source: wmsSource,
-        updateStrategy: {
-            type: STRATEGY_DICHOTOMY,
-            options: {},
-        },
+        extent: map.extent,
+        source: colorSource,
     },
 );
 map.addLayer(colorLayer);
 
 // Adds a WMS elevation layer
-const wmsSource2 = new TileWMS({
-    url: 'https://download.data.grandlyon.com/wms/grandlyon',
-    projection: 'EPSG:3946',
-    crossOrigin: 'anonymous',
-    params: {
-        LAYERS: ['MNT2018_Altitude_2m'],
-        FORMAT: 'image/jpeg',
-    },
-    version: '1.3.0',
+const elevationSource = new TiledImageSource({
+    source: new TileWMS({
+        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        projection: 'EPSG:3946',
+        crossOrigin: 'anonymous',
+        params: {
+            LAYERS: ['MNT2018_Altitude_2m'],
+            FORMAT: 'image/jpeg',
+        },
+        version: '1.3.0',
+    }),
 });
 
 const elevationLayer = new ElevationLayer(
     'wms_elevation',
     {
-        source: wmsSource2,
+        extent: map.extent,
+        source: elevationSource,
         interpretation: Interpretation.ScaleToMinMax(149, 621),
     },
 );

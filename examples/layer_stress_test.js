@@ -5,6 +5,7 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
@@ -30,12 +31,12 @@ const map = new Map('map', { extent });
 
 instance.add(map);
 
-const source = new Stamen({ layer: 'toner', wrapX: false });
+const source = new TiledImageSource({ source: new Stamen({ layer: 'toner', wrapX: false }) });
 
 const LAYER_COUNT = 16;
 
 for (let i = 0; i < LAYER_COUNT; i++) {
-    map.addLayer(new ColorLayer(`color layer ${i}`, { source }));
+    map.addLayer(new ColorLayer(`color layer ${i}`, { extent, source }));
 }
 
 // Instanciates camera

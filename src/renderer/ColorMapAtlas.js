@@ -94,6 +94,7 @@ class ColorMapAtlas {
         }
 
         this._texture = this._atlas.render();
+        this._texture.name = 'ColorMapAtlas';
         this._atlas.dispose();
         this._dirty = false;
     }

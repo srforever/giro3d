@@ -19,15 +19,10 @@ class Points extends ThreePoints {
         super(geometry, material);
         this._layer = layer;
         this.extent = undefined;
-        this.layerUpdateState = {};
-        this.wmtsCoords = {};
         this.textureSize = textureSize;
     }
 
-    getExtentForLayer(layer) {
-        if (layer.extent.crs() !== this._layer.extent.crs()) {
-            throw new Error('Unsupported reprojection');
-        }
+    getExtent() {
         return this.extent;
     }
 }

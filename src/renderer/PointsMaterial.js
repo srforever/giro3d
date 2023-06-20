@@ -175,8 +175,16 @@ class PointsMaterial extends RawShaderMaterial {
         return this;
     }
 
+    removeColorLayer() {
+        this.mode = MODE.COLOR;
+        this.colorLayer = null;
+        this.uniforms.overlayTexture.value = null;
+        this.needsUpdate = true;
+        this.uniforms.hasOverlayTexture.value = 0;
+    }
+
     // Coloring support
-    pushLayer(layer, extent) {
+    pushColorLayer(layer, extent) {
         this.mode = MODE.TEXTURE;
         this.updateUniforms();
 
@@ -197,20 +205,10 @@ class PointsMaterial extends RawShaderMaterial {
         return this.uniforms.overlayTexture?.value;
     }
 
-    setColorTextures(layer, textures, shortcut, instance, isInherited = false) {
-        if (Array.isArray(textures)) {
-            textures = textures[0];
-        }
-        if (layer === this.colorLayer) {
-            const texture = textures.texture;
-            if (!isInherited) {
-                texture.owner = this;
-            }
-            this.uniforms.overlayTexture.value = textures.texture;
-            this.uniforms.hasOverlayTexture.value = 1;
-            this.uniforms.offsetScale.value.copy(textures.pitch);
-        }
-        return Promise.resolve();
+    setColorTextures(layer, { texture, pitch }) {
+        this.uniforms.overlayTexture.value = texture;
+        this.uniforms.hasOverlayTexture.value = 1;
+        this.uniforms.offsetScale.value.copy(pitch);
     }
 
     // eslint-disable-next-line class-methods-use-this

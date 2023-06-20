@@ -1,123 +1,39 @@
-import assert from 'assert';
-import TileWMS from 'ol/source/TileWMS.js';
-import Vector from 'ol/source/Vector.js';
-import VectorTile from 'ol/source/VectorTile.js';
-import Stamen from 'ol/source/Stamen.js';
-
 import Layer from '../../../../src/core/layer/Layer.js';
-import Map from '../../../../src/entities/Map.js';
-import Instance from '../../../../src/core/Instance.js';
-import OLTileProvider from '../../../../src/provider/OLTileProvider.js';
-import OLVectorProvider from '../../../../src/provider/OLVectorProvider.js';
-import OLVectorTileProvider from '../../../../src/provider/OLVectorTileProvider.js';
-import {
-    STRATEGY_DICHOTOMY, STRATEGY_MIN_NETWORK_TRAFFIC,
-} from '../../../../src/core/layer/LayerUpdateStrategy.js';
 import Extent from '../../../../src/core/geographic/Extent.js';
 import { setupGlobalMocks } from '../../mocks.js';
+import NullSource from '../../../../src/sources/NullSource.js';
 
 describe('Layer', () => {
     beforeEach(() => {
         setupGlobalMocks();
     });
 
+    describe('progress & loading', () => {
+        it('should return the progress and loading of the underlying queue', () => {
+            const layer = new Layer('foo', { source: new NullSource() });
+
+            expect(layer.progress).toBe(layer.queue.progress);
+            expect(layer.loading).toBe(layer.queue.loading);
+        });
+    });
+
     describe('constructor', () => {
         it('should assign the provided properties', () => {
             const id = 'foo';
             const extent = new Extent('EPSG:4326', 0, 0, 0, 0);
-            const updateStrategy = { type: STRATEGY_DICHOTOMY };
-            const projection = 'EPSG:4326';
-            const layer = new Layer(
-                id,
-                {
-                    extent, updateStrategy, projection, standalone: true,
-                },
-            );
-
-            assert.strictEqual(layer.id, id);
-            assert.throws(() => { layer.id = 'bar'; }, 'id should be immutable');
-
-            assert.strictEqual(layer.extent, extent);
-            assert.strictEqual(layer.updateStrategy, updateStrategy);
-            assert.strictEqual(layer.projection, projection);
-        });
-
-        it('should assign the not provided properties from map or default', () => {
-            const id = 'foo';
-            const extent = new Extent('EPSG:4326', 0, 0, 0, 0);
-            const updateStrategy = { type: STRATEGY_MIN_NETWORK_TRAFFIC };
-            const projection = 'EPSG:4326';
-
-            const map = new Map('foo', {
+            const layer = new Layer(id, {
                 extent,
+                source: new NullSource(),
             });
 
-            const viewerDiv = document.createElement('div');
-            const mainLoop = {
-                gfxEngine: {
-                    getWindowSize: jest.fn,
-                    renderer: {
-                        domElement: viewerDiv,
-                    },
-                },
-                scheduleUpdate: jest.fn,
-                scheduler: {},
-            };
-            const options = { mainLoop, crs: projection };
-            const instance = new Instance(viewerDiv, options);
-
-            instance.add(map);
-
-            const layer = new Layer(id, { standalone: true });
-
-            assert.strictEqual(layer.extent, undefined);
-            assert.deepEqual(layer.updateStrategy, updateStrategy);
-            assert.strictEqual(layer.projection, undefined);
-            assert.strictEqual(layer.backgroundColor, undefined);
-
-            map.addLayer(layer);
-
-            assert.strictEqual(layer.extent, map.extent);
-            assert.deepEqual(layer.extent, extent);
-            assert.deepEqual(layer.updateStrategy, updateStrategy);
-            assert.strictEqual(layer.projection, map.projection);
-            assert.deepEqual(layer.projection, projection);
-            assert.strictEqual(layer.backgroundColor, undefined);
+            expect(layer.id).toEqual(id);
+            expect(layer.extent).toEqual(extent);
+            expect(() => { layer.id = 'bar'; }).toThrowError();
         });
 
         it('should not accept all sources', () => {
-            let layer = new Layer('id', { source: new TileWMS({}) });
-            assert.strictEqual(layer.provider, OLTileProvider);
-            assert.strictEqual(layer.standalone, false);
-
-            layer = new Layer('id', { source: new Stamen({ layer: 'watercolor', wrapX: false }) });
-            assert.strictEqual(layer.provider, OLTileProvider);
-            assert.strictEqual(layer.standalone, false);
-
-            layer = new Layer('id', { source: new Vector() });
-            assert.strictEqual(layer.provider, OLVectorProvider);
-            assert.strictEqual(layer.standalone, false);
-
-            layer = new Layer('id', { source: new VectorTile({ url: 'https://domain.tld/{z}/{x}/{y}.pbf' }) });
-            assert.strictEqual(layer.provider, OLVectorTileProvider);
-            assert.strictEqual(layer.standalone, false);
-
-            layer = new Layer('id', { standalone: true });
-            assert.strictEqual(layer.provider, undefined);
-            assert.strictEqual(layer.standalone, true);
-
-            assert.throws(() => new Layer('id', { source: { constructor: Instance } }));
-        });
-    });
-
-    describe('dispose', () => {
-        it('should dispose the color map, if any', () => {
-            const colorMap = { dispose: jest.fn() };
-            const layer = new Layer('foo', { standalone: true, colorMap });
-
-            expect(colorMap.dispose).not.toHaveBeenCalled();
-            layer.dispose();
-            expect(colorMap.dispose).toHaveBeenCalled();
+            expect(() => new Layer('id', { source: {} })).toThrowError(/missing or invalid source/);
+            expect(() => new Layer('id', { source: null })).toThrowError(/missing or invalid source/);
         });
     });
 });

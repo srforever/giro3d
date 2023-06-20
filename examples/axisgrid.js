@@ -6,6 +6,7 @@ import XYZ from 'ol/source/XYZ.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import AxisGrid, { TickOrigin } from '@giro3d/giro3d/entities/AxisGrid.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
@@ -49,12 +50,14 @@ const map = new Map('planar', {
 
 instance.add(map);
 
-const source = new XYZ({
-    minZoom: 10,
-    maxZoom: 16,
-    url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
+const source = new TiledImageSource({
+    source: new XYZ({
+        minZoom: 10,
+        maxZoom: 16,
+        url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
+    }),
+    format: new GeoTIFFFormat(),
 });
-source.format = new GeoTIFFFormat();
 
 const floor = 1100;
 const ceiling = 2500;
@@ -63,6 +66,7 @@ const values = colormap({ colormap: 'viridis', nshades: 256 });
 const colors = values.map(v => new Color(v));
 
 const dem = new ElevationLayer('dem', {
+    extent,
     interpretation: Interpretation.Raw,
     source,
     colorMap: new ColorMap(

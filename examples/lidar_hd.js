@@ -5,10 +5,11 @@ import TileWMS from 'ol/source/TileWMS.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -29,27 +30,18 @@ controls.dampingFactor = 0.2;
 instance.useTHREEControls(controls);
 
 // Adds a WMS imagery layer
-const wmsOthophotoSource = new TileWMS({
-    url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
-    projection: 'EPSG:2154',
-    crossOrigin: 'anonymous',
-    params: {
-        LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
-        FORMAT: 'image/jpeg',
-    },
-    version: '1.3.0',
-});
-
-const colorLayer = new ColorLayer(
-    'orthophoto-ign',
-    {
-        source: wmsOthophotoSource,
-        updateStrategy: {
-            type: STRATEGY_DICHOTOMY,
-            options: {},
+const wmsOthophotoSource = new TiledImageSource({
+    source: new TileWMS({
+        url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
+        projection: 'EPSG:2154',
+        crossOrigin: 'anonymous',
+        params: {
+            LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
+            FORMAT: 'image/jpeg',
         },
-    },
-);
+        version: '1.3.0',
+    }),
+});
 
 const pointcloud = new Tiles3D(
     'pointcloud',
@@ -75,11 +67,22 @@ function initializeCameraPosition(layer) {
     controls.target.copy(lookAt);
     controls.saveState();
 
+    const colorLayer = new ColorLayer(
+        'orthophoto-ign',
+        {
+            // The extent is useful to restrict the processing of the image layer
+            // (which is much bigger than our point cloud).
+            extent: Extent.fromBox3('EPSG:2154', bbox),
+            source: wmsOthophotoSource,
+        },
+    );
+
+    pointcloud.attach(colorLayer);
+
     // refresh scene
     instance.notifyChange(instance.camera.camera3D);
 }
 instance.add(pointcloud).then(initializeCameraPosition);
-pointcloud.attach(colorLayer);
 
 // add a skybox background
 const cubeTextureLoader = new CubeTextureLoader();

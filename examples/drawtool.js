@@ -1,20 +1,20 @@
+import XYZ from 'ol/source/XYZ.js';
 import {
     Group, LineBasicMaterial, MeshBasicMaterial, PointsMaterial, Vector2, Vector3,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import XYZ from 'ol/source/XYZ.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
 import DrawTool, {
     DRAWTOOL_EVENT_TYPE, DRAWTOOL_MODE, DRAWTOOL_STATE, GEOMETRY_TYPE,
 } from '@giro3d/giro3d/interactions/DrawTool.js';
 import Drawing from '@giro3d/giro3d/interactions/Drawing.js';
 import Fetcher from '@giro3d/giro3d/utils/Fetcher.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Initialize Giro3d (see tifftiles for more details)
@@ -44,19 +44,20 @@ const map = new Map('planar', {
 
 instance.add(map);
 
-const tmsSource = new XYZ({
-    attributions: '',
-    minZoom: 10,
-    maxZoom: 16,
-    url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
+const source = new TiledImageSource({
+    source: new XYZ({
+        minZoom: 10,
+        maxZoom: 16,
+        url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
+    }),
+    format: new GeoTIFFFormat(),
 });
-tmsSource.format = new GeoTIFFFormat();
 
 map.addLayer(new ElevationLayer(
     'osm',
     {
-        interpretation: Interpretation.Raw,
-        source: tmsSource,
+        extent,
+        source,
     },
 )).catch(e => console.error(e));
 

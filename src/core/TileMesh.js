@@ -225,12 +225,35 @@ class TileMesh extends Mesh {
         this.material.setSelected(select);
     }
 
-    setElevationTexture(layer, elevation, isInherited = false) {
+    canSubdivide() {
+        let current = this;
+        let ancestorLevel = 0;
+
+        // To be able to subdivide a tile, we need to ensure that we
+        // have proper elevation data on this tile (if applicable).
+        // Otherwise the newly created tiles will not have a correct bounding box,
+        // and this will mess with frustum culling / level of detail selection, in turn leading
+        // to dangerous levels of subdivisions (and hundreds/thousands of undesired tiles).
+        // On the other hand, we can afford a bit of undesired tiles if it means that
+        // the color layers will display correctly.
+        const LOD_MARGIN = 3;
+        while (ancestorLevel < LOD_MARGIN && current != null) {
+            if (current && current.material && current.material.isElevationLayerTextureLoaded()) {
+                return true;
+            }
+            ancestorLevel++;
+            current = this.parent;
+        }
+
+        return false;
+    }
+
+    setElevationTexture(layer, elevation, isFinal = false) {
         if (this.material === null) {
             return;
         }
         this.setBBoxZ(elevation.min, elevation.max);
-        this.material.setElevationTexture(layer, elevation, isInherited);
+        this.material.setElevationTexture(layer, elevation, isFinal);
     }
 
     setBBoxZ(min, max) {
@@ -255,10 +278,7 @@ class TileMesh extends Mesh {
         this.material.removeColorLayer(idLayer);
     }
 
-    getExtentForLayer(layer) {
-        if (layer.extent.crs() !== this.extent.crs()) {
-            throw new Error(`Layer should be in the same CRS of their supporting tile geometry, but layer crs is ${layer.extent.crs()} and tile crs is ${this.extent.crs()}`);
-        }
+    getExtent() {
         return this.extent;
     }
 
@@ -297,12 +317,12 @@ class TileMesh extends Mesh {
             return;
         }
         this.disposed = true;
+        this.dispatchEvent({ type: 'dispose' });
         this.material.dispose();
         // We don't dispose the geometry because we don't own it.
         // It is shared between all TileMesh objects of the same depth level.
         this.material = null;
         this.geometry = null;
-        this.dispatchEvent({ type: 'dispose' });
     }
 }
 export default TileMesh;

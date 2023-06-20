@@ -3,6 +3,7 @@ import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
@@ -20,7 +21,7 @@ const extent = new Extent('EPSG:3857', 659030, 735596, 5535152, 5647497);
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates the giro3d instance
-const instance = new Instance(viewerDiv);
+const instance = new Instance(viewerDiv, { crs: 'EPSG:3857' });
 
 // Adds the map that will contain the layers.
 const map = new Map('planar', { extent, segments: 128 });
@@ -36,10 +37,13 @@ function addLayers(key) {
     const elevationLayer = new ElevationLayer(
         'xyz_elevation',
         {
-            source: new XYZ({
-                url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
-                crossOrigin: 'anonymous',
-                projection: extent.crs(),
+            extent,
+            source: new TiledImageSource({
+                source: new XYZ({
+                    url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
+                    projection: extent.crs(),
+                    crossOrigin: 'anonymous',
+                }),
             }),
             interpretation: Interpretation.MapboxTerrainRGB,
         },
@@ -50,10 +54,13 @@ function addLayers(key) {
     const satelliteLayer = new ColorLayer(
         'xyz_color',
         {
-            source: new XYZ({
-                url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${key}`,
-                crossOrigin: 'anonymous',
-                projection: extent.crs(),
+            extent,
+            source: new TiledImageSource({
+                source: new XYZ({
+                    url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${key}`,
+                    projection: extent.crs(),
+                    crossOrigin: 'anonymous',
+                }),
             }),
         },
     );

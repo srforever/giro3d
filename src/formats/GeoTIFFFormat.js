@@ -61,7 +61,6 @@ class GeoTIFFFormat extends ImageFormat {
         }
 
         const spp = image.getSamplesPerPixel();
-        let minmax;
 
         // Let's use web workers to decode TIFF in the background
         if (global.Worker && !geotiffWorkerPool) {
@@ -72,14 +71,12 @@ class GeoTIFFFormat extends ImageFormat {
             case 1: {
                 // grayscale
                 const [v] = await image.readRasters({ pool: geotiffWorkerPool });
-                minmax = TextureGenerator.computeMinMax(v, nodata);
                 TextureGenerator.fillBuffer(buffer, { nodata, height, width }, opaqueValue, v);
             }
                 break;
             case 2: {
                 // grayscale with alpha
                 const [v, a] = await image.readRasters({ pool: geotiffWorkerPool });
-                minmax = TextureGenerator.computeMinMax(v, nodata);
                 TextureGenerator.fillBuffer(buffer, {}, opaqueValue, v, v, v, a);
             }
                 break;
@@ -103,10 +100,6 @@ class GeoTIFFFormat extends ImageFormat {
         texture.magFilter = LinearFilter;
         texture.minFilter = LinearFilter;
         texture.needsUpdate = true;
-        if (minmax) {
-            texture.min = minmax.min;
-            texture.max = minmax.max;
-        }
 
         return texture;
     }

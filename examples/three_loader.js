@@ -33,7 +33,7 @@ renderer.outputEncoding = sRGBEncoding;
 renderer.shadowMap.enabled = true;
 
 // Create the giro3d instance
-const instance = new Instance(viewerDiv, { renderer: { renderer } });
+const instance = new Instance(viewerDiv, { crs: 'EPSG:3857', renderer: { renderer } });
 const camera = instance.camera.camera3D;
 
 // Creates controls

@@ -15,7 +15,7 @@ const source = new PotreeSource(
 
 const potree = new PotreePointCloud('potree', source);
 
-const instance = new Instance(viewerDiv);
+const instance = new Instance(viewerDiv, { crs: 'EPSG:3857' });
 
 function placeCamera() {
     const camera = instance.camera.camera3D;

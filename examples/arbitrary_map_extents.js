@@ -7,6 +7,7 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Helpers from '@giro3d/giro3d/helpers/Helpers.js';
 import { Vector3, Object3D } from 'three';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
@@ -63,17 +64,17 @@ function createMap(extent) {
         showOutline: true,
     });
 
-    currentMap.object3d.position.set(new Vector3(0, 0, mapCount * 10000));
+    currentMap.object3d.position.set(0, 0, mapCount * 10000);
 
     instance.add(currentMap);
 
     // Adds an TMS imagery layer
     const layer = layers[mapCount % layers.length];
-    const stamenSource = new Stamen({ layer, wrapX: false });
     currentMap.addLayer(new ColorLayer(
         'osm',
         {
-            source: stamenSource,
+            extent,
+            source: new TiledImageSource({ source: new Stamen({ layer, wrapX: false }) }),
         },
     )).catch(e => console.error(e));
 

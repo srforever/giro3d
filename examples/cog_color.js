@@ -45,8 +45,9 @@ instance.add(map);
 // https://openlayers.org/en/latest/examples/cog-math-multisource.html
 const source = new CogSource({
     url: 'https://s2downloads.eox.at/demo/Sentinel-2/3857/TCI.tif',
+    crs: extent.crs(),
 });
-const layer = new ColorLayer('color-layer', { source });
+const layer = new ColorLayer('color-layer', { source, extent });
 
 map.addLayer(layer);
 

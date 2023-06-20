@@ -15,6 +15,7 @@ import {
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Instance from '../core/Instance.js';
 import Drawing from './Drawing.js';
+import PromiseUtils from '../utils/PromiseUtils.js';
 
 /**
  * Types of geometries to draw
@@ -518,7 +519,7 @@ class DrawTool extends EventDispatcher {
         this._setState(INTERNAL_STATE.NOOP);
 
         if (this.reject) {
-            this.reject(new Error('aborted'));
+            this.reject(PromiseUtils.abortError());
             this.resolve = null;
             this.reject = null;
         }

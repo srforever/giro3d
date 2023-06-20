@@ -61,6 +61,7 @@ instance.add(map);
 const source = new CogSource({
     // https://pubs.er.usgs.gov/publication/ds904
     url: 'https://3d.oslandia.com/dem/msh2009dem.tif',
+    crs: extent.crs(),
 });
 
 const values = colormap({ colormap: 'viridis', nshades: 256 });
@@ -71,7 +72,12 @@ const max = 2538;
 
 // Display it as elevation and color
 const colorMap = new ColorMap(colors, min, max, ColorMapMode.Elevation);
-map.addLayer(new ElevationLayer('elevation', { source, colorMap, minmax: { min, max } }));
+map.addLayer(new ElevationLayer('elevation', {
+    extent,
+    source,
+    colorMap,
+    minmax: { min, max },
+}));
 
 // Attach the inspector
 Inspector.attach(document.getElementById('panelDiv'), instance);
