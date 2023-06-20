@@ -10,6 +10,7 @@ import MemoryTracker from '../renderer/MemoryTracker.js';
 import LayeredMaterial from '../renderer/LayeredMaterial.js';
 import Extent from './geographic/Extent.js';
 import TileGeometry from './TileGeometry.js';
+import OBB from './OBB.js';
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
@@ -267,6 +268,9 @@ class TileMesh extends Mesh {
         }
     }
 
+    /**
+     * @returns {OBB} The Oriented Bounding Box.
+     */
     OBB() {
         return this.obb;
     }
@@ -280,6 +284,24 @@ class TileMesh extends Mesh {
 
     getExtent() {
         return this.extent;
+    }
+
+    /**
+     * Gets whether this mesh is currently performing processing.
+     *
+     * @returns {boolean} `true` if the mesh is currently performing processing, `false` otherwise.
+     */
+    get loading() {
+        return this.material.loading;
+    }
+
+    /**
+     * Gets the progress percentage (normalized in [0, 1] range) of the processing.
+     *
+     * @returns {number} The progress percentage.
+     */
+    get progress() {
+        return this.material.progress;
     }
 
     /**

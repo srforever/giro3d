@@ -684,6 +684,40 @@ class LayeredMaterial extends RawShaderMaterial {
         return this.texturesInfo.color.infos[index].texture !== emptyTexture;
     }
 
+    /**
+     * Gets the progress of the loading of textures on this material.
+     * The progress is the number of currently present textures divided
+     * by the number of expected textures.
+     */
+    get progress() {
+        let total = 0;
+        let weight = 0;
+        if (this.elevationLayer != null) {
+            if (this.isElevationLayerTextureLoaded()) {
+                total += 1;
+            }
+            weight += 1;
+        }
+
+        for (const layer of this.colorLayers) {
+            if (this.isColorLayerTextureLoaded(layer)) {
+                total += 1;
+            }
+            weight += 1;
+        }
+
+        if (weight === 0) {
+            // No layer present
+            return 1;
+        }
+
+        return total / weight;
+    }
+
+    get loading() {
+        return this.progress < 1;
+    }
+
     setUuid(uuid) {
         this.uniforms.uuid.value = uuid;
     }
