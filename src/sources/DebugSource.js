@@ -42,10 +42,6 @@ class DebugSource extends ImageSource {
         this.dimensions = this.extent.dimensions();
     }
 
-    contains(extent) {
-        return this.extent.intersectsExtent(extent);
-    }
-
     getInterpolator(extent) {
         const width = extent.dimensions(tmpVec2).x;
         const SMALLEST_WIDTH = this.dimensions.x / 1048576;

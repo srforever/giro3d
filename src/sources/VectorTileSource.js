@@ -169,10 +169,6 @@ class VectorTileSource extends ImageSource {
         return this.extent;
     }
 
-    contains(extent) {
-        return this.getExtent().intersectsExtent(extent);
-    }
-
     async initialize(options) {
         const source = this.source;
         this.targetProjection = options.targetProjection;

@@ -138,14 +138,6 @@ class CustomTiledImageSource extends ImageSource {
         return candidates;
     }
 
-    /**
-     * @param {Extent} extent The extent to test.
-     * @returns {boolean} true if this source contains the extent.
-     */
-    contains(extent) {
-        return this.images.some(img => extent.intersectsExtent(img.extent));
-    }
-
     buildUrl(image) {
         return this.url.href.substring(0, this.url.href.lastIndexOf('/') + 1) + image;
     }

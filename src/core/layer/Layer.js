@@ -751,13 +751,14 @@ class Layer extends EventDispatcher {
     }
 
     contains(extent) {
-        const thisExtent = this.getExtent();
-        if (thisExtent) {
-            return this.getExtent().intersectsExtent(extent);
+        const customExtent = this.extent;
+        if (customExtent) {
+            if (!customExtent.intersectsExtent(extent)) {
+                return false;
+            }
         }
-        // We don't have any extent available (neither layer nor source),
-        // so we cannot know.
-        return true;
+
+        return this.source.contains(extent);
     }
 
     getRenderTargetDataType() {

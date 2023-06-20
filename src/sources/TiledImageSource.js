@@ -83,10 +83,6 @@ class TiledImageSource extends ImageSource {
         return this.sourceExtent;
     }
 
-    contains(extent) {
-        return this.sourceExtent.intersectsExtent(extent);
-    }
-
     /**
      * Selects the best zoom level given the provided image size and extent.
      *

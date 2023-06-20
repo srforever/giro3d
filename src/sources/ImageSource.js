@@ -108,7 +108,12 @@ class ImageSource extends EventDispatcher {
      */
     // eslint-disable-next-line class-methods-use-this, no-unused-vars
     contains(extent) {
-        throw new Error('not implemented: contains()');
+        const thisExtent = this.getExtent();
+        if (thisExtent) {
+            return thisExtent.intersectsExtent(extent);
+        }
+        // We don't have an extent, so we default to true.
+        return true;
     }
 
     /**

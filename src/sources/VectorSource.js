@@ -380,7 +380,7 @@ class VectorSource extends ImageSource {
         const sourceExtent = this.getCurrentExtent();
         // The extent may be null if no features are present in the source.
         if (sourceExtent) {
-            // We need to test against a large extent because features may be geographically
+            // We need to test against a larger extent because features may be geographically
             // outside the extent, but visual representation may be inside (due to styles not
             // being taken into account when computing the extent of a feature).
             const safetyExtent = sourceExtent.withRelativeMargin(1);

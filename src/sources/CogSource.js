@@ -101,10 +101,6 @@ class CogSource extends ImageSource {
         return extent;
     }
 
-    contains(extent) {
-        return this.extent.intersectsExtent(extent);
-    }
-
     /**
      * @param {Extent} requestExtent The request extent.
      * @param {number} requestWidth The width, in pixels, of the request extent.
