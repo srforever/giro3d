@@ -61,7 +61,6 @@ const outline = new ColorLayer('outline', {
         data: 'https://3d.oslandia.com/giro3d/vectors/paris.geojson',
         style: outlineStyle,
     }),
-    extent,
 });
 
 map.addLayer(outline);

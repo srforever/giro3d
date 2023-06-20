@@ -293,11 +293,8 @@ class VectorSource extends ImageSource {
         this.source.forEachFeature(callback);
     }
 
-    // eslint-disable-next-line class-methods-use-this
     getExtent() {
-        // Vector source cannot provide a reliable, static extent as
-        // they are dynamically updated with features.
-        return null;
+        return this.getCurrentExtent();
     }
 
     getCurrentExtent() {
@@ -383,8 +380,8 @@ class VectorSource extends ImageSource {
             // We need to test against a larger extent because features may be geographically
             // outside the extent, but visual representation may be inside (due to styles not
             // being taken into account when computing the extent of a feature).
-            const safetyExtent = sourceExtent.withRelativeMargin(1);
-            return extent.intersectsExtent(safetyExtent);
+            const safetyExtent = extent.withRelativeMargin(1);
+            return sourceExtent.intersectsExtent(safetyExtent);
         }
 
         return false;
