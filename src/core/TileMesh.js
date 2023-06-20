@@ -249,6 +249,10 @@ class TileMesh extends Mesh {
         return false;
     }
 
+    removeElevationTexture(layer) {
+        this.material.removeElevationLayer(layer);
+    }
+
     setElevationTexture(layer, elevation, isFinal = false) {
         if (this.material === null) {
             return;

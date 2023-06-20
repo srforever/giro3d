@@ -406,7 +406,6 @@ class LayeredMaterial extends RawShaderMaterial {
     removeColorLayer(layer) {
         const index = this.indexOfColorLayer(layer);
         if (index === -1) {
-            console.warn(`Layer ${layer.id} not found, so not removed...`);
             return;
         }
         // NOTE: we cannot dispose the texture here, because it might be cached for later.
@@ -632,6 +631,10 @@ class LayeredMaterial extends RawShaderMaterial {
             this.transparent = false;
             this.needsUpdate = true;
         }
+    }
+
+    hasColorLayer(layer) {
+        return this.indexOfColorLayer(layer) !== -1;
     }
 
     indexOfColorLayer(layer) {

@@ -62,10 +62,12 @@ class ColorLayer extends Layer {
     }
 
     updateMaterial(material) {
-        // Update material parameters
-        material.setLayerVisibility(this, this.visible);
-        material.setLayerOpacity(this, this.opacity);
-        material.setLayerElevationRange(this, this.elevationRange);
+        if (material.hasColorLayer(this)) {
+            // Update material parameters
+            material.setLayerVisibility(this, this.visible);
+            material.setLayerOpacity(this, this.opacity);
+            material.setLayerElevationRange(this, this.elevationRange);
+        }
     }
 
     registerNode(node, extent) {
@@ -84,6 +86,10 @@ class ColorLayer extends Layer {
 
     applyTextureToNode(result, node) {
         node.material.setColorTextures(this, result);
+    }
+
+    applyEmptyTextureToNode(node) {
+        node.material.removeColorLayer(this);
     }
 }
 
