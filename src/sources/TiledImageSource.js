@@ -62,7 +62,7 @@ class TiledImageSource extends ImageSource {
      * @api
      */
     constructor({ source, format, noDataValue }) {
-        super({ flipY: format?.flipY ?? true, tiled: true });
+        super({ flipY: format?.flipY ?? true });
 
         this.source = source;
         this.format = format;

@@ -58,7 +58,7 @@ class CogSource extends ImageSource {
      * @param {string} options.crs the CRS of the COG image
      */
     constructor(options) {
-        super({ flipY: true, tiled: true });
+        super({ flipY: true });
         this.url = options.url;
         this.crs = options.crs;
         /** @type {GeoTIFF} */
@@ -103,10 +103,6 @@ class CogSource extends ImageSource {
 
     contains(extent) {
         return this.extent.intersectsExtent(extent);
-    }
-
-    getPixelSize() {
-        return this.pixelSize;
     }
 
     /**

@@ -39,7 +39,7 @@ class CustomTiledImageSource extends ImageSource {
      * @param {string} options.crs The CRS of this source.
      */
     constructor(options) {
-        super({ flipY: true, tiled: true });
+        super({ flipY: true });
         this.url = new URL(options.url, window.location);
         this.networkOptions = options.networkOptions;
         this.crs = options.crs;
