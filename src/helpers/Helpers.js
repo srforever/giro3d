@@ -225,7 +225,7 @@ class Helpers {
      */
     static addOBB(obj, obb, color) {
         if (obj.volumeHelper) {
-            obj.volumeHelper.update(obb);
+            obj.volumeHelper.update(obb, color);
         } else {
             const helper = new OBBHelper(obb, color);
             helper.name = 'OBBHelper';

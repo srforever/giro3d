@@ -685,6 +685,15 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     /**
+     * Gets the number of layers on this material.
+     *
+     * @returns {number} The number of layers present on this material.
+     */
+    getLayerCount() {
+        return (this.elevationLayer ? 1 : 0) + this.colorLayers.length;
+    }
+
+    /**
      * Gets the progress of the loading of textures on this material.
      * The progress is the number of currently present textures divided
      * by the number of expected textures.
