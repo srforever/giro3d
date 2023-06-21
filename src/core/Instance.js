@@ -80,8 +80,6 @@ export const INSTANCE_EVENTS = {
  *     instance.camera.camera3D.position.set(newPosition);
  *     instance.camera.camera3D.lookAt(lookAt);
  *
- * @property {HTMLElement} domElement DOM Element where the rendering is done (by default, a child
- * of ̀`viewerDiv`)
  * @api
  */
 class Instance extends EventDispatcher {
@@ -173,6 +171,12 @@ class Instance extends EventDispatcher {
             this.scene.matrixWorldAutoUpdate = false;
         }
 
+        /**
+         * Gets the current camera.
+         *
+         * @api
+         * @type {Camera}
+         */
         this.camera = new Camera(
             this.referenceCrs,
             this.mainLoop.gfxEngine.getWindowSize().x,
@@ -217,11 +221,16 @@ class Instance extends EventDispatcher {
 
         this.controls = null;
         this._controlFunctions = null;
+    }
 
-        Object.defineProperty(this, 'domElement', {
-            value: this.mainLoop.gfxEngine.renderer.domElement,
-            writable: false,
-        });
+    /**
+     * Gets the canvas that this instance renders into.
+     *
+     * @api
+     * @type {HTMLCanvasElement}
+     */
+    get domElement() {
+        return this.mainLoop.gfxEngine.renderer.domElement;
     }
 
     /**

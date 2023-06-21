@@ -142,9 +142,6 @@ function shouldCancelRequest(node, layer) {
  *     const layerToListen = map.getLayers(layer => layer.id === 'idLayerToListen')[0];
  *     layerToListen.addEventListener('visible-property-changed', (event) => console.log(event));
  *
- * @property {boolean} visible Whether this ColorLayer will be displayed on parent entity.
- * @property {boolean} frozen if true, updates on this layer will be inhibited. Useful for debugging
- * a certain state, as moving the camera won't trigger texture changes.
  * @api
  */
 class Layer extends EventDispatcher {
@@ -171,10 +168,13 @@ class Layer extends EventDispatcher {
             throw new Error('id is undefined');
         }
 
-        Object.defineProperty(this, 'id', {
-            value: id,
-            writable: false,
-        });
+        /**
+         * The unique identifier of this layer.
+         *
+         * @api
+         * @type {string}
+         */
+        this.id = id;
 
         // We need a globally unique ID for this layer, to avoid collisions in the request queue.
         // The "id" property is not globally unique (only unique within a given map).
@@ -185,12 +185,20 @@ class Layer extends EventDispatcher {
         this.interpretation = options.interpretation ?? Interpretation.Raw;
         this.showTileBorders = options.showTileBorders ?? false;
 
-        EventUtils.definePropertyWithChangeEvent(this, 'visible', true);
+        /**
+         * Disables automatic updates of this layer. Useful for debugging purposes.
+         *
+         * @api
+         * @type {boolean}
+         */
         this.frozen = false;
 
         this.fillNoData = options.fillNoData;
         this.fadeDuration = options.fadeDuration;
         this.computeMinMax = options.computeMinMax ?? false;
+        this._visible = true;
+
+        this._opCounter = new OperationCounter();
 
         if (options.colorMap !== undefined) {
             /** @type {ColorMap} */
@@ -243,6 +251,25 @@ class Layer extends EventDispatcher {
         }
 
         this._instance.notifyChange(this, true);
+    }
+
+    /**
+     * Gets or sets the visibility of this layer.
+     *
+     * @api
+     * @type {boolean}
+     * @fires Layer#visible-property-changed
+     */
+    get visible() {
+        return this._visible;
+    }
+
+    set visible(v) {
+        if (this._visible !== v) {
+            const event = EventUtils.createPropertyChangedEvent(this, 'visible', this._visible, v);
+            this._visible = v;
+            this.dispatchEvent(event);
+        }
     }
 
     /**

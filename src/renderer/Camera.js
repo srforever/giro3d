@@ -15,30 +15,100 @@ import {
 } from 'three';
 import Coordinates from '../core/geographic/Coordinates.js';
 
+const ndcBox3 = new Box3(
+    new Vector3(-1, -1, -1),
+    new Vector3(1, 1, 1),
+);
+
+const tmp = {
+    frustum: new Frustum(),
+    matrix: new Matrix4(),
+    box3: new Box3(),
+};
+
 /**
- * A giro3d camera
+ * Adds geospatial capabilities to three.js cameras.
  *
  * @api
- * @param {string} crs the CRD of this camera
+ * @param {string} crs the CRS of this camera
  * @param {number} width the width in pixels of the camera viewport
  * @param {number} height the height in pixels of the camera viewport
  * @param {object} options optional values
  * @param {ThreeCamera} options.camera the THREE camera to use
  */
-function Camera(crs, width, height, options = {}) {
-    Object.defineProperty(this, 'crs', { get: () => crs });
+class Camera {
+    constructor(crs, width, height, options = {}) {
+        this._crs = crs;
 
-    this.camera3D = options.camera
-        ? options.camera : new PerspectiveCamera(30, width / height);
-    this.camera3D.near = 0.1;
-    this.camera3D.far = 2000000000;
-    this.camera3D.updateProjectionMatrix();
-    this.camera2D = new OrthographicCamera(0, 1, 0, 1, 0, 10);
-    this._viewMatrix = new Matrix4();
-    this.width = width;
-    this.height = height;
+        this.camera3D = options.camera
+            ? options.camera : new PerspectiveCamera(30, width / height);
+        this.camera3D.near = 0.1;
+        this.camera3D.far = 2000000000;
+        this.camera3D.updateProjectionMatrix();
+        this.camera2D = new OrthographicCamera(0, 1, 0, 1, 0, 10);
+        this._viewMatrix = new Matrix4();
+        this.width = width;
+        this.height = height;
 
-    this._preSSE = Infinity;
+        this._preSSE = Infinity;
+    }
+
+    get crs() {
+        return this._crs;
+    }
+
+    update(width, height) {
+        resize(this, width, height);
+
+        // update matrix
+        this.camera3D.updateMatrixWorld();
+
+        // keep our visibility testing matrix ready
+        this._viewMatrix.multiplyMatrices(
+            this.camera3D.projectionMatrix, this.camera3D.matrixWorldInverse,
+        );
+    }
+
+    /**
+     * Return the position in the requested CRS, or in camera's CRS if undefined.
+     *
+     * @param {string} crs if defined (e.g 'EPSG:4236') the camera position will be
+     * returned in this CRS
+     * @returns {Coordinates} Coordinates object holding camera's position
+     */
+    position(crs) {
+        return new Coordinates(this.crs, this.camera3D.position).as(crs || this.crs);
+    }
+
+    isBox3Visible(box3, matrixWorld) {
+        return this.box3SizeOnScreen(box3, matrixWorld).intersectsBox(ndcBox3);
+    }
+
+    isSphereVisible(sphere, matrixWorld) {
+        if (matrixWorld) {
+            tmp.matrix.multiplyMatrices(this._viewMatrix, matrixWorld);
+            tmp.frustum.setFromProjectionMatrix(tmp.matrix);
+        } else {
+            tmp.frustum.setFromProjectionMatrix(this._viewMatrix);
+        }
+        return tmp.frustum.intersectsSphere(sphere);
+    }
+
+    box3SizeOnScreen(box3, matrixWorld) {
+        const pts = projectBox3PointsInCameraSpace(this, box3, matrixWorld);
+
+        // All points are in front of the near plane -> box3 is invisible
+        if (!pts) {
+            return tmp.box3.makeEmpty();
+        }
+
+        // Project points on screen
+        for (let i = 0; i < 8; i++) {
+            pts[i].applyMatrix4(this.camera3D.projectionMatrix);
+        }
+
+        return tmp.box3.setFromPoints(pts);
+    }
 }
 
 function resize(camera, width, height) {
@@ -67,34 +137,6 @@ function resize(camera, width, height) {
     camera.camera2D.bottom = 0;
     camera.camera2D.updateProjectionMatrix();
 }
-
-Camera.prototype.update = function update(width, height) {
-    resize(this, width, height);
-
-    // update matrix
-    this.camera3D.updateMatrixWorld();
-
-    // keep our visibility testing matrix ready
-    this._viewMatrix.multiplyMatrices(
-        this.camera3D.projectionMatrix, this.camera3D.matrixWorldInverse,
-    );
-};
-
-/**
- * Return the position in the requested CRS, or in camera's CRS if undefined.
- *
- * @param {string} crs if defined (e.g 'EPSG:4236') the camera position will be returned in this CRS
- * @returns {Coordinates} Coordinates object holding camera's position
- */
-Camera.prototype.position = function position(crs) {
-    return new Coordinates(this.crs, this.camera3D.position).as(crs || this.crs);
-};
-
-const tmp = {
-    frustum: new Frustum(),
-    matrix: new Matrix4(),
-    box3: new Box3(),
-};
 
 const points = [
     new Vector3(),
@@ -138,40 +180,5 @@ function projectBox3PointsInCameraSpace(camera, box3, matrixWorld) {
 
     return atLeastOneInFrontOfNearPlane ? points : undefined;
 }
-
-const ndcBox3 = new Box3(
-    new Vector3(-1, -1, -1),
-    new Vector3(1, 1, 1),
-);
-
-Camera.prototype.isBox3Visible = function isBox3Visible(box3, matrixWorld) {
-    return this.box3SizeOnScreen(box3, matrixWorld).intersectsBox(ndcBox3);
-};
-
-Camera.prototype.isSphereVisible = function isSphereVisible(sphere, matrixWorld) {
-    if (matrixWorld) {
-        tmp.matrix.multiplyMatrices(this._viewMatrix, matrixWorld);
-        tmp.frustum.setFromProjectionMatrix(tmp.matrix);
-    } else {
-        tmp.frustum.setFromProjectionMatrix(this._viewMatrix);
-    }
-    return tmp.frustum.intersectsSphere(sphere);
-};
-
-Camera.prototype.box3SizeOnScreen = function box3SizeOnScreen(box3, matrixWorld) {
-    const pts = projectBox3PointsInCameraSpace(this, box3, matrixWorld);
-
-    // All points are in front of the near plane -> box3 is invisible
-    if (!pts) {
-        return tmp.box3.makeEmpty();
-    }
-
-    // Project points on screen
-    for (let i = 0; i < 8; i++) {
-        pts[i].applyMatrix4(this.camera3D.projectionMatrix);
-    }
-
-    return tmp.box3.setFromPoints(pts);
-};
 
 export default Camera;

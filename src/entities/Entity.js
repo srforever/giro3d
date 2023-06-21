@@ -13,27 +13,44 @@ import EventUtils from '../utils/EventUtils.js';
  * The Entity is the core component of giro3d and represent an updatable
  * object that is added to an {@link module:Core/Instance~Instance Instance}.
  *
+ * The class inherits three.js' [`EventDispatcher`](https://threejs.org/docs/index.html?q=even#api/en/core/EventDispatcher).
  *
+ * ### Lifetime
+ *
+ * The lifetime of an entity follows this pattern: when the entity is added to an instance, its
+ * {@link module:entities/Entity~Entity#preprocess preprocess()} method is called. When the promise
+ * returned by this method resolves, the entity can be used in the main loop, where the update
+ * methods (see below) will be used to update the entity over time. Finally, when the entity is
+ * removed from the instance, its {@link module:entities/Entity~Entity#dispose dispose()} method
+ * is called to cleanup memory.
+ *
+ * ### The update methods
+ *
+ * This class exposes three methods to update the object:
+ * - {@link module:entities/Entity~Entity#preUpdate preUpdate()}
+ * to determine which _parts_ of the object should actually be updated.
+ * - {@link module:entities/Entity~Entity#update update()} called for each part returned
+ * by `preUpdate()`
+ * - {@link module:entities/Entity~Entity#postUpdate postUpdate()} to finalize
+ * the update step.
+ *
+ * ### A note on "parts"
+ *
+ * The notion of "part to be updated" is entity-specific. For example, if the entity is a tiled map,
+ * the parts may be map tiles. If the entity is a point cloud, it may be point clusters, and so on.
+ * On the other hand, if the entity is not made of distinct objects, the "part to update" may be the
+ * entity itself, or a dummy object.
+ *
+ * @example
  *     const instance = new Instance(...);
  *     const entity = new Entity('exampleEntity');
  *     instance.add(entity);
- *
- * @property {boolean} frozen if true, updates on this entity will be inhibited. Useful for
- * debugging a certain state, as moving the camera won't trigger texture changes.
  * @api
  */
 class Entity extends EventDispatcher {
     /**
      * Creates an entity with the specified unique identifier.
      *
-     * This class exposes three methods to update the object:
-     *
-     * - {@link module:entities/Entity~Entity#preUpdate preUpdate()}
-     * to determine which part of the object should actually be updated.
-     * - {@link module:entities/Entity~Entity#update update()} to update the
-     * parts returned by `preUpdate()`
-     * - {@link module:entities/Entity~Entity#postUpdate postUpdate()} to finalize
-     * the update step.
      *
      * @api
      * @param {string} id the unique identifier of this entity.
@@ -44,12 +61,39 @@ class Entity extends EventDispatcher {
             throw new Error('Missing id parameter (Entity must have a unique id defined)');
         }
 
-        Object.defineProperty(this, 'id', {
-            value: id,
-            writable: false,
-        });
+        this._id = id;
+        this._frozen = false;
+    }
 
-        EventUtils.definePropertyWithChangeEvent(this, 'frozen', false);
+    /**
+     * Gets the unique identifier of this entity.
+     *
+     * @api
+     * @type {string}
+     */
+    get id() {
+        return this._id;
+    }
+
+    /**
+     * Gets or sets the frozen status of this entity. A frozen entity is still visible
+     * but will not be updated automatically.
+     *
+     * Useful for debugging purposes.
+     *
+     * @api
+     * @type {boolean}
+     */
+    get frozen() {
+        return this._frozen;
+    }
+
+    set frozen(v) {
+        if (this._frozen !== v) {
+            const event = EventUtils.createPropertyChangedEvent(this, 'frozen', this._frozen, v);
+            this._frozen = v;
+            this.dispatchEvent(event);
+        }
     }
 
     /**
@@ -73,6 +117,18 @@ class Entity extends EventDispatcher {
     get progress() {
         // Implement this in derived classes.
         return 1;
+    }
+
+    /**
+     * Asynchronously preprocess the entity. This method may be overriden to perform
+     * any operation that must be done before the entity can be used in the scene, such
+     * as fetching metadata about a dataset, etc.
+     *
+     * @api
+     * @returns {Promise} A promise that resolves when the entity is ready to be used.
+     */
+    preprocess() {
+        return Promise.resolve();
     }
 
     /**

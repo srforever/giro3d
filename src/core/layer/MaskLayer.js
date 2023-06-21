@@ -52,7 +52,7 @@ class MaskLayer extends ColorLayer {
      * unspecified, the extent will be inherited from the map.
      * @param {string} [options.projection=undefined] The layer projection. If unspecified,
      * the projection will be inherited from the map.
-     * @param {MaskMode} options.maskMode The max value.
+     * @param {MaskMode} options.maskMode The mask mode.
      */
     constructor(id, options) {
         super(id, options);

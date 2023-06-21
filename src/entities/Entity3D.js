@@ -1,15 +1,43 @@
 /**
  * @module entities/Entity3D
  */
-import { Box3 } from 'three';
+import { Box3, Object3D } from 'three';
 
-import EventUtils from '../utils/EventUtils.js';
 import Picking from '../core/Picking.js';
 import Entity from './Entity.js';
+import EventUtils from '../utils/EventUtils.js';
 
 /**
- * An {@link module:entities/Entity~Entity entity} that display 3D objects.
+ * Fired when the entity visibility changed.
  *
+ * @api
+ * @event Entity3D#visible-property-changed
+ * @property {object} new the new value of the property
+ * @property {boolean} new.visible the new value of the entity visibility
+ * @property {object} previous the previous value of the property
+ * @property {boolean} previous.visible the previous value of the entity visibility
+ * @property {Entity3D} target dispatched on entity
+ * @property {string} type visible-property-changed
+ */
+
+/**
+ * Fired when the entity opacity changed.
+ *
+ * @api
+ * @event Entity3D#opacity-property-changed
+ * @property {object} new the new value of the property
+ * @property {number} new.opacity the new value of the entity opacity
+ * @property {object} previous the previous value of the property
+ * @property {number} previous.opacity the previous value of the entity opacity
+ * @property {Entity3D} target dispatched on entity
+ * @property {string} type opacity-property-changed
+ */
+
+/**
+ * Base class for {@link module:entities/Entity~Entity entities} that display 3D objects.
+ *
+ * @fires Entity3D#opacity-property-changed
+ * @fires Entity3D#visible-property-changed
  * @api
  */
 class Entity3D extends Entity {
@@ -34,21 +62,71 @@ class Entity3D extends Entity {
         }
 
         this.type = 'geometry';
-
-        Object.defineProperty(this, 'object3d', {
-            value: object3d,
-            writable: false,
-        });
-
-        EventUtils.definePropertyWithChangeEvent(this, 'opacity', 1.0, () => this.updateOpacity());
-        EventUtils.definePropertyWithChangeEvent(this, 'visible', true, () => this.updateVisibility());
+        /** @type {boolean} */
+        this._visible = true;
+        /** @type {number} */
+        this._opacity = 1;
+        /** @type {Object3D} */
+        this._object3d = object3d;
 
         // processing can overwrite that with values calculating from this layer's Object3D
         this._distance = { min: Infinity, max: 0 };
     }
 
     /**
+     * Returns the root object of this entity.
+     *
+     * @api
+     * @type {Object3D}
+     */
+    get object3d() {
+        return this._object3d;
+    }
+
+    /**
+     * Gets or sets the visibility of this entity.
+     * A non-visible entity will not be automatically updated.
+     *
+     * @api
+     * @type {boolean}
+     * @fires Entity3D#visible-property-changed
+     */
+    get visible() {
+        return this._visible;
+    }
+
+    set visible(v) {
+        if (this._visible !== v) {
+            const event = EventUtils.createPropertyChangedEvent(this, 'visible', this._visible, v);
+            this._visible = v;
+            this.updateVisibility();
+            this.dispatchEvent(event);
+        }
+    }
+
+    /**
+     * Gets or sets the opacity of this entity.
+     *
+     * @api
+     * @type {number}
+     * @fires Entity3D#opacity-property-changed
+     */
+    get opacity() {
+        return this._opacity;
+    }
+
+    set opacity(v) {
+        if (this._opacity !== v) {
+            const event = EventUtils.createPropertyChangedEvent(this, 'opacity', this._opacity, v);
+            this._opacity = v;
+            this.updateOpacity();
+            this.dispatchEvent(event);
+        }
+    }
+
+    /**
      * Updates the visibility of the entity.
+     * Note: this method can be overriden for custom implementations.
      *
      * @api
      */
@@ -61,6 +139,7 @@ class Entity3D extends Entity {
 
     /**
      * Updates the opacity of the entity.
+     * Note: this method can be overriden for custom implementations.
      *
      * @api
      */

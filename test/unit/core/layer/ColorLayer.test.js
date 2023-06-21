@@ -17,4 +17,31 @@ describe('ColorLayer', () => {
             expect(layer.opacity).toEqual(1.0);
         });
     });
+
+    describe('opacity', () => {
+        it('should return the correct value', () => {
+            const layer = new ColorLayer('foo', { source: new NullSource() });
+
+            expect(layer.opacity).toEqual(1);
+
+            layer.opacity = 0.1;
+            expect(layer.opacity).toEqual(0.1);
+        });
+
+        it('should raise the opacity-property-changed event', () => {
+            const layer = new ColorLayer('foo', { source: new NullSource() });
+
+            const listener = jest.fn();
+            layer.addEventListener('opacity-property-changed', listener);
+
+            expect(listener).not.toHaveBeenCalled();
+
+            layer.opacity = 0.5;
+            layer.opacity = 0.5;
+            layer.opacity = 0.5;
+
+            // The event should be called only when the value actually changes
+            expect(listener).toHaveBeenCalledTimes(1);
+        });
+    });
 });

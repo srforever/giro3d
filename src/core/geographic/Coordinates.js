@@ -151,12 +151,17 @@ class Coordinates {
     constructor(crs, ...coordinates) {
         this._values = new Float64Array(3);
         this.set(crs, ...coordinates);
+    }
 
-        Object.defineProperty(this, 'geodesicNormal',
-            {
-                configurable: true,
-                get: () => planarNormal,
-            });
+    /**
+     * Returns the normal vector associated with this coordinate.
+     *
+     * @returns {Vector3} The normal vector.
+     * @api
+     */
+    // eslint-disable-next-line class-methods-use-this
+    get geodesicNormal() {
+        return planarNormal;
     }
 
     set(crs, ...coordinates) {
