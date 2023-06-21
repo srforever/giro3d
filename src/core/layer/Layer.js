@@ -142,7 +142,6 @@ function shouldCancelRequest(node, layer) {
  *     const layerToListen = map.getLayers(layer => layer.id === 'idLayerToListen')[0];
  *     layerToListen.addEventListener('visible-property-changed', (event) => console.log(event));
  *
- * @property {boolean} visible Whether this ColorLayer will be displayed on parent entity.
  * @api
  */
 class Layer extends EventDispatcher {

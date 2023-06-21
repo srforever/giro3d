@@ -80,8 +80,6 @@ export const INSTANCE_EVENTS = {
  *     instance.camera.camera3D.position.set(newPosition);
  *     instance.camera.camera3D.lookAt(lookAt);
  *
- * @property {HTMLElement} domElement DOM Element where the rendering is done (by default, a child
- * of ̀`viewerDiv`)
  * @api
  */
 class Instance extends EventDispatcher {
