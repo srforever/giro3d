@@ -103,6 +103,18 @@ class Entity extends EventDispatcher {
     }
 
     /**
+     * Asynchronously preprocess the entity. This method may be overriden to perform
+     * any operation that must be done before the entity can be used in the scene, such
+     * as fetching metadata about a dataset, etc.
+     *
+     * @api
+     * @returns {Promise} A promise that resolves when the entity is ready to be used.
+     */
+    preprocess() {
+        return Promise.resolve();
+    }
+
+    /**
      * This method is called just before `update()` to filter and select
      * which _elements_ should be actually updated. For example, in the
      * case of complex entities made of a hierarchy of elements, the entire
