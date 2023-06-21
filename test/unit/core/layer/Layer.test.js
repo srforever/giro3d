@@ -35,4 +35,30 @@ describe('Layer', () => {
             expect(() => new Layer('id', { source: null })).toThrowError(/missing or invalid source/);
         });
     });
+
+    describe('visible', () => {
+        it('should return the correct value', () => {
+            const layer = new Layer('foo', { source: new NullSource() });
+
+            expect(layer.visible).toEqual(true);
+
+            layer.visible = false;
+            expect(layer.visible).toEqual(false);
+        });
+
+        it('should raise the visible-property-changed event', () => {
+            const layer = new Layer('foo', { source: new NullSource() });
+
+            const listener = jest.fn();
+            layer.addEventListener('visible-property-changed', listener);
+
+            expect(listener).not.toHaveBeenCalled();
+
+            layer.visible = false;
+            layer.visible = false;
+            layer.visible = false;
+
+            expect(listener).toHaveBeenCalledTimes(1);
+        });
+    });
 });
