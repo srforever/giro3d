@@ -13,27 +13,44 @@ import EventUtils from '../utils/EventUtils.js';
  * The Entity is the core component of giro3d and represent an updatable
  * object that is added to an {@link module:Core/Instance~Instance Instance}.
  *
+ * The class inherits three.js' [`EventDispatcher`](https://threejs.org/docs/index.html?q=even#api/en/core/EventDispatcher).
  *
+ * ### Lifetime
+ *
+ * The lifetime of an entity follows this pattern: when the entity is added to an instance, its
+ * {@link module:entities/Entity~Entity#preprocess preprocess()} method is called. When the promise
+ * returned by this method resolves, the entity can be used in the main loop, where the update
+ * methods (see below) will be used to update the entity over time. Finally, when the entity is
+ * removed from the instance, its {@link module:entities/Entity~Entity#dispose dispose()} method
+ * is called to cleanup memory.
+ *
+ * ### The update methods
+ *
+ * This class exposes three methods to update the object:
+ * - {@link module:entities/Entity~Entity#preUpdate preUpdate()}
+ * to determine which _parts_ of the object should actually be updated.
+ * - {@link module:entities/Entity~Entity#update update()} called for each part returned
+ * by `preUpdate()`
+ * - {@link module:entities/Entity~Entity#postUpdate postUpdate()} to finalize
+ * the update step.
+ *
+ * ### A note on "parts"
+ *
+ * The notion of "part to be updated" is entity-specific. For example, if the entity is a tiled map,
+ * the parts may be map tiles. If the entity is a point cloud, it may be point clusters, and so on.
+ * On the other hand, if the entity is not made of distinct objects, the "part to update" may be the
+ * entity itself, or a dummy object.
+ *
+ * @example
  *     const instance = new Instance(...);
  *     const entity = new Entity('exampleEntity');
  *     instance.add(entity);
- *
- * The class inherits three.js' [`EventDispatcher`](https://threejs.org/docs/index.html?q=even#api/en/core/EventDispatcher).
- *
  * @api
  */
 class Entity extends EventDispatcher {
     /**
      * Creates an entity with the specified unique identifier.
      *
-     * This class exposes three methods to update the object:
-     *
-     * - {@link module:entities/Entity~Entity#preUpdate preUpdate()}
-     * to determine which part of the object should actually be updated.
-     * - {@link module:entities/Entity~Entity#update update()} to update the
-     * parts returned by `preUpdate()`
-     * - {@link module:entities/Entity~Entity#postUpdate postUpdate()} to finalize
-     * the update step.
      *
      * @api
      * @param {string} id the unique identifier of this entity.
