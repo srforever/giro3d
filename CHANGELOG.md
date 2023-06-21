@@ -1,5 +1,36 @@
 # Changelog
 
+## v0.26.0 (2023-06-21)
+
+### BREAKING CHANGE
+
+- The API for sources and layers has changed. See the documentation for more information. Main takeaway:
+  - The sources for [`Layer`](https://giro3d.org/apidoc/module-core_layer_Layer-Layer.html)s must now be subclasses of the [`ImageSource`](https://giro3d.org/apidoc/module-sources_ImageSource-ImageSource.html) class.
+  - For vector features, the style is now passed directly to the relevant sources ([`VectorSource`](https://giro3d.org/apidoc/module-sources_VectorSource-VectorSource.html) and [`VectorTileSource`](https://giro3d.org/apidoc/module-sources_VectorTileSource-VectorTileSource.html)), instead of being attached to the layer. See this [example](https://giro3d.org/examples/ol_vector.html) for more information.
+  - For custom image decoders, the [`ImageFormat`](https://giro3d.org/apidoc/module-formats_ImageFormat-ImageFormat.html) must be passed to the [`TiledImageSource`](https://giro3d.org/apidoc/module-sources_TiledImageSource-TiledImageSource.html) instead of being attached to the layer. See this [example](https://giro3d.org/examples/tifftiles.html?) for more information.
+
+### Feat
+
+- **Fetcher**: fire events on network errors (#290)
+- **Inspector**: add a panel for the Fetcher
+- **Map**: fires an event when layers are reordered (#284)
+
+### Fix
+
+- **c3DEngine**: fix invalid handling of `checkShaderErrors`
+- **example**: fix drawtool with latest dataset update
+- **MapInspector**: honor layer order (#284)
+- **TileFS**: ignore mask position in layer order (#289)
+- Improve compatibility with TypeScript clients, by removing dynamically defined properties. (#270)
+
+### Refactor
+
+- **Layer**: complete layer and source rewrite. Fixes #287, #228, #201, #37, #33.
+
+### Perf
+
+- **Fetcher**: limit to N concurrent requests per host (!366)
+
 ## v0.25.0 (2023-05-17)
 
 Mainly bugfixes and performance optimizations. No breaking change.
