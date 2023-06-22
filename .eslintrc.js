@@ -18,6 +18,9 @@ module.exports = {
         'import/ignore': [
             '\\.(coffee|scss|css|less|hbs|svg|json)$',
         ],
+        jsdoc: {
+            mode: 'typescript',
+        },
     },
     env: {
         browser: true,
