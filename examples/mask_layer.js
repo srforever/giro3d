@@ -77,7 +77,6 @@ const mask = new MaskLayer('mask', {
         data: 'https://3d.oslandia.com/giro3d/vectors/paris.geojson',
         style: maskStyle,
     }),
-    extent,
 });
 
 map.addLayer(mask);
