@@ -45,7 +45,7 @@ class OBBHelper extends LineSegments {
         this.isHelper = true;
         this.frustumCulled = false;
 
-        if (OBB !== undefined) { this.update(OBB); }
+        if (OBB !== undefined) { this.update(OBB, color); }
     }
 
     dispose() {
@@ -58,10 +58,11 @@ class OBBHelper extends LineSegments {
         this.textMesh.material.visible = show;
     }
 
-    update(OBB) {
+    update(OBB, color) {
         const { position } = this.geometry.attributes;
         const { array } = position;
 
+        this.material.setValues({ color: color.getHex() });
         OBB._points(points);
         let offset = 0;
         for (const pt of points) {

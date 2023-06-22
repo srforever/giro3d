@@ -3,6 +3,7 @@
  */
 import GUI from 'lil-gui';
 import { Color, MathUtils } from 'three';
+import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Instance, { INSTANCE_EVENTS } from '../core/Instance.js';
 import TileMesh from '../core/TileMesh.js';
 import Map from '../entities/Map.js';
@@ -17,6 +18,19 @@ function applyToMaterial(root, layer, callback) {
             callback(object.material);
         }
     });
+}
+
+function createTileLabel() {
+    const text = document.createElement('div');
+
+    text.style.color = '#FFFFFF';
+    text.style.padding = '0.2em 1em';
+    text.style.textShadow = '2px 2px 2px black';
+    text.style.textAlign = 'center';
+    text.style.fontSize = '12px';
+    text.style.backgroundColor = 'rgba(0,0,0,0.5)';
+
+    return text;
 }
 
 class MapInspector extends EntityInspector {
@@ -72,9 +86,12 @@ class MapInspector extends EntityInspector {
 
         this.extentColor = new Color('red');
         this.showExtent = false;
+        this.showTileInfo = false;
         this.extentHelper = null;
 
         this.mapSegments = this.map.segments;
+
+        this.labels = new window.Map();
 
         this.addController(this.map, 'projection')
             .name('Projection');
@@ -118,6 +135,9 @@ class MapInspector extends EntityInspector {
         this.addController(this, 'showOutline')
             .name('Show tiles outline')
             .onChange(v => this.toggleOutlines(v));
+        this.addController(this, 'showTileInfo')
+            .name('Show tile info')
+            .onChange(() => this.toggleBoundingBoxes());
         this.addController(this, 'showExtent')
             .name('Show extent')
             .onChange(() => this.toggleExtent());
@@ -163,6 +183,69 @@ class MapInspector extends EntityInspector {
         this.map.addEventListener('layer-order-changed', this._fillLayersCb);
 
         this.fillLayers();
+    }
+
+    getOrCreateLabel(obj) {
+        let label = this.labels.get(obj.id);
+        if (!label) {
+            label = new CSS2DObject(createTileLabel(obj));
+            label.name = 'MapInspector label';
+            obj.addEventListener('dispose', () => {
+                label.element.remove();
+                label.remove();
+            });
+            obj.add(label);
+            obj.updateMatrixWorld();
+            this.labels.set(obj.id, label);
+        }
+        return label;
+    }
+
+    updateLabel(tile, visible, color) {
+        if (!visible) {
+            /** @type {CSS2DObject} */
+            const label = this.labels.get(tile.id);
+            if (label) {
+                label.element.remove();
+                label.parent?.remove(label);
+                this.labels.delete(tile.id);
+            }
+        } else {
+            const isVisible = tile.visible && tile.material.visible;
+            /** @type {CSS2DObject} */
+            const label = this.getOrCreateLabel(tile);
+            /** @type {HTMLDivElement} */
+            const element = label.element;
+            element.innerText = `Map=${this.map.id}\n{x=${tile.x},y=${tile.y}} LOD=${tile.z}\n(node #${tile.id})\nprogress=${Math.ceil(tile.progress * 100)}%\nlayers=${tile.material.getLayerCount()}`;
+            element.style.color = `#${color.getHexString()}`;
+            element.style.opacity = isVisible ? '100%' : '0%';
+            tile.OBB().box3D.getCenter(label.position);
+            label.updateMatrixWorld();
+        }
+    }
+
+    toggleBoundingBoxes() {
+        const color = new Color(this.boundingBoxColor);
+        const noDataColor = new Color('gray');
+        // by default, adds axis-oriented bounding boxes to each object in the hierarchy.
+        // custom implementations may override this to have a different behaviour.
+        this.rootObject.traverseOnce(obj => {
+            if (obj instanceof TileMesh) {
+                /** @type {TileMesh} */
+                const tile = obj;
+                let finalColor = new Color();
+                const layerCount = obj.material.getLayerCount();
+                if (layerCount === 0) {
+                    finalColor = noDataColor;
+                } else {
+                    finalColor = color;
+                }
+                this.addOrRemoveBoundingBox(tile, this.boundingBoxes, finalColor);
+
+                this.updateLabel(tile, this.showTileInfo, finalColor);
+            }
+        });
+        this.notify(this.entity);
     }
 
     updateBackgroundOpacity(a) {
@@ -263,6 +346,7 @@ class MapInspector extends EntityInspector {
 
     updateValues() {
         super.updateValues();
+        this.toggleBoundingBoxes();
         this.layerCount = this.map._attachedLayers.length;
         this.layers.forEach(l => l.updateValues());
     }
