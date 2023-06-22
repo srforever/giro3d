@@ -136,7 +136,7 @@ class LayerInspector extends Panel {
     toggleExtent() {
         if (!this.extentHelper && this.showExtent) {
             const { min, max } = this.map.getElevationMinMax();
-            const box = this.layer.extent.toBox3(min, max);
+            const box = this.layer.getExtent().toBox3(min, max);
             this.extentHelper = Helpers.createBoxHelper(box, this.extentColor);
             this.instance.threeObjects.add(this.extentHelper);
             this.extentHelper.updateMatrixWorld(true);
