@@ -18,7 +18,7 @@ Before anything, create a branch `release_vX.Y.Z` where `X.Y.Z` is the release v
 
 ## Generate the changelog
 
-- review the changes between the last release and the current `master`, with the following command
+- review the changes between the last release and the current `main`, with the following command
 
 ```
 git log --oneline --no-merges $(git describe --tags --abbrev=0)..
@@ -46,7 +46,7 @@ For the `BREAKING CHANGE` section, edit the text to add a migration guide.
 ## Open a MR
 
 - open a MR on the repo with these changes
-- once merged, tag the commit on master branch (Don't forget the `v` prefix)
+- once merged, tag the commit on main branch (Don't forget the `v` prefix)
 
 ## Publish on NPM
 

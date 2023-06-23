@@ -252,7 +252,7 @@ $(function () {
 
   // warn about outdated version
     // TODO fix url
-    var packageUrl = 'https://gitlab.com/giro3d/giro3d/-/raw/master/package.json';
+    var packageUrl = 'https://gitlab.com/giro3d/giro3d/-/raw/main/package.json';
   fetch(packageUrl).then(function(response) {
     return response.json();
   }).then(function(json) {
@@ -286,7 +286,7 @@ $(function () {
       if (semanticVersionRegex.test(currentVersion)) {
         // this is an actual version number, we need to add
         // the v prefix to match a valid git tag.
-        // Otherwise use whatever 'currentVersion' is (for example 'master').
+        // Otherwise use whatever 'currentVersion' is (for example 'main').
         gitTag = 'v' + gitTag;
       }
       var link = 'https://gitlab.com/giro3d/giro3d/-/tree/' + gitTag + '/src/' +

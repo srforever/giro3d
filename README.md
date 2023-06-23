@@ -11,8 +11,8 @@
 <br>
 
 <div align="center">
-  <a href="https://gitlab.com/giro3d/giro3d/badges/master/pipeline.svg"><img src="https://gitlab.com/giro3d/giro3d/badges/master/pipeline.svg"></a>
-  <a href="https://gitlab.com/giro3d/giro3d/badges/master/coverage.svg"><img src="https://gitlab.com/giro3d/giro3d/badges/master/coverage.svg"></a>
+  <a href="https://gitlab.com/giro3d/giro3d/badges/main/pipeline.svg"><img src="https://gitlab.com/giro3d/giro3d/badges/main/pipeline.svg"></a>
+  <a href="https://gitlab.com/giro3d/giro3d/badges/main/coverage.svg"><img src="https://gitlab.com/giro3d/giro3d/badges/main/coverage.svg"></a>
   <a href="https://www.npmjs.com/package/@giro3d/giro3d"><img src="https://img.shields.io/npm/v/@giro3d/giro3d?color=blue"></a>
   <a href="https://matrix.to/#/#giro3d:matrix.org"><img src="https://img.shields.io/matrix/giro3d:matrix.org"></a>
 </div>

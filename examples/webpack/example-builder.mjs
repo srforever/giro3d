@@ -39,7 +39,7 @@ function generateExample(pathToHtmlFile, template, highlighter) {
         .replaceAll('%long_description%', attributes.longdesc ?? '')
         .replaceAll('%attribution%', attributes.attribution ?? '')
         .replaceAll('%name%', name)
-        .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/master/examples/${js}`)
+        .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/main/examples/${js}`)
         .replaceAll('%js%', js)
         .replaceAll('%customcss%', customCss)
         .replaceAll('%code%', highlighter?.codeToHtml(sourceCode, { lang: 'js' }))
