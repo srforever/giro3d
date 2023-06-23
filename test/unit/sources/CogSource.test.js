@@ -25,4 +25,17 @@ describe('CogSource', () => {
             expect(extent).toEqual(new Extent('EPSG:3857', minx, maxx, miny, maxy));
         });
     });
+
+    describe('dispose', () => {
+        it('should clear the underlying cache', () => {
+            const source = new CogSource({ crs: 'EPSG:3857', url: 'http://example.com' });
+            source.cache.clear = jest.fn();
+
+            expect(source.cache.clear).not.toHaveBeenCalled();
+
+            source.dispose();
+
+            expect(source.cache.clear).toHaveBeenCalled();
+        });
+    });
 });

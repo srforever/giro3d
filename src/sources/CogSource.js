@@ -66,7 +66,7 @@ class CogSource extends ImageSource {
         /** @type {GeoTIFF} */
         this.tiffImage = null;
         /** @type {Pool} */
-        this.pool = new Pool();
+        this.pool = window.Worker ? new Pool() : null;
         /** @type {number} */
         this.imageCount = 0;
         /** @type {Extent} */
@@ -405,6 +405,10 @@ class CogSource extends ImageSource {
         const request = () => this.loadImage(opts);
 
         return [{ id, request }];
+    }
+
+    dispose() {
+        this.cache.clear();
     }
 }
 
