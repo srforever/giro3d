@@ -37,6 +37,8 @@ class CustomTiledImageSource extends ImageSource {
      * @param {string} options.url the url of the tileset metadata
      * @param {object} options.networkOptions Network options
      * @param {string} options.crs The CRS of this source.
+     * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
+     * to test if a given extent is contained in this source.
      */
     constructor(options) {
         super({ flipY: true });

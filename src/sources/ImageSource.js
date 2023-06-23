@@ -29,6 +29,12 @@ class ImageResult {
 }
 
 /**
+ * @typedef {Function} CustomContainsFn
+ * @param {Extent} extent - The extent to test.
+ * @returns {boolean} `true` if the extent is contained in the source, `false` otherwise..
+ */
+
+/**
  * Base class for all image sources. The `ImageSource` produces images to be consumed by clients,
  * such as map layers.
  *
@@ -44,6 +50,8 @@ class ImageSource extends EventDispatcher {
      * @param {boolean} [options.is8bit = true] The data type of images generated.
      * For regular color images, this should be `true`. For images with a high dynamic range,
      * or images that requires additional processing, this should be `false`.
+     * @param {CustomContainsFn} [options.containsFn] The custom function
+     * to test if a given extent is contained in this source.
      */
     constructor(options = {}) {
         super();
@@ -60,6 +68,9 @@ class ImageSource extends EventDispatcher {
         this.datatype = options.is8bit ? UnsignedByteType : FloatType;
 
         this.version = 0;
+
+        /** @type {CustomContainsFn} */
+        this.containsFn = options.containsFn;
     }
 
     /**
@@ -101,13 +112,33 @@ class ImageSource extends EventDispatcher {
     }
 
     /**
-     * Gets whether this source contains the specified extent.
+     * Gets whether this source contains the specified extent. If a custom contains function
+     * is provided, it will be used. Otherwise,
+     * {@link module:sources/ImageSource~ImageSource#intersects intersects()} is used.
+     *
+     * This method is mainly used to discard non-relevant requests (i.e don't process regions
+     * that are not relevant to this source).
      *
      * @api
      * @param {Extent} extent The extent to test.
      */
-    // eslint-disable-next-line class-methods-use-this, no-unused-vars
     contains(extent) {
+        if (this.containsFn) {
+            return this.containsFn(extent);
+        }
+
+        return this.intersects(extent);
+    }
+
+    /**
+     * Test the intersection between the specified extent and this source's extent.
+     * This method may be overriden to perform special logic.
+     *
+     * @api
+     * @param {Extent} extent The extent to test.
+     * @returns {boolean} `true` if the extent and this source extent intersects, `false` otherwise.
+     */
+    intersects(extent) {
         const thisExtent = this.getExtent();
         if (thisExtent) {
             return thisExtent.intersectsExtent(extent);

@@ -56,6 +56,8 @@ class CogSource extends ImageSource {
      * @param {object} options options
      * @param {string} options.url the url of the COG image
      * @param {string} options.crs the CRS of the COG image
+     * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
+     * to test if a given extent is contained in this source.
      */
     constructor(options) {
         super({ flipY: true });

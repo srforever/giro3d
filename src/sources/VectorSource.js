@@ -155,10 +155,12 @@ class VectorSource extends ImageSource {
      *  - A list of OpenLayers features.
      * @param {Style|StyleFunction} options.style The style, or style function. The style must be an
      * OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
+     * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
+     * to test if a given extent is contained in this source.
      * @api
      */
     constructor(options) {
-        super();
+        super(options);
         if (options.data == null) {
             throw new Error('"data" parameter is required');
         }
@@ -293,11 +295,8 @@ class VectorSource extends ImageSource {
         this.source.forEachFeature(callback);
     }
 
-    // eslint-disable-next-line class-methods-use-this
     getExtent() {
-        // Vector source cannot provide a reliable, static extent as
-        // they are dynamically updated with features.
-        return null;
+        return this.getCurrentExtent();
     }
 
     getCurrentExtent() {
@@ -374,7 +373,7 @@ class VectorSource extends ImageSource {
         return new ImageResult({ id, texture, extent });
     }
 
-    contains(extent) {
+    intersects(extent) {
         // It's a bit an issue with vector sources, as they are dynamic : when the user adds
         // a feature, the extent changes. Thus we cannot cache the extent.
         const sourceExtent = this.getCurrentExtent();
@@ -383,8 +382,8 @@ class VectorSource extends ImageSource {
             // We need to test against a larger extent because features may be geographically
             // outside the extent, but visual representation may be inside (due to styles not
             // being taken into account when computing the extent of a feature).
-            const safetyExtent = sourceExtent.withRelativeMargin(1);
-            return extent.intersectsExtent(safetyExtent);
+            const safetyExtent = extent.withRelativeMargin(1);
+            return sourceExtent.intersectsExtent(safetyExtent);
         }
 
         return false;

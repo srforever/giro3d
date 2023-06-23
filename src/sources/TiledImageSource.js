@@ -59,10 +59,17 @@ class TiledImageSource extends ImageSource {
      * @param {TileSource} options.source The OpenLayers tiled source.
      * @param {number} [options.noDataValue] The optional no-data value.
      * @param {ImageFormat} [options.format] The optional image decoder.
+     * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
+     * to test if a given extent is contained in this source.
      * @api
      */
-    constructor({ source, format, noDataValue }) {
-        super({ flipY: format?.flipY ?? true });
+    constructor({
+        source,
+        format,
+        noDataValue,
+        containsFn,
+    }) {
+        super({ flipY: format?.flipY ?? true, containsFn });
 
         this.source = source;
         this.format = format;
@@ -216,6 +223,21 @@ class TiledImageSource extends ImageSource {
     }
 
     /**
+     * Check if the tile actually intersect with the extent.
+     *
+     * @param {Extent} extent The extent to test.
+     * @returns {boolean} True if the tile must be processed, false otherwise.
+     */
+    shouldLoad(extent) {
+        // Use the custom contain function if applicable
+        if (this.containsFn) {
+            return this.containsFn(extent);
+        }
+
+        return extent.intersectsExtent(this.sourceExtent);
+    }
+
+    /**
      * Loads all tiles in the specified tile range.
      *
      * @param {TileRange} tileRange The tile range.
@@ -238,7 +260,7 @@ class TiledImageSource extends ImageSource {
                 const tileExtent = OpenLayersUtils.fromOLExtent(olExtent, crs);
                 const id = `${coord[0]}-${coord[1]}-${coord[2]}`;
                 // Don't bother loading tiles that are not in the layer
-                if (tileExtent.intersectsExtent(this.sourceExtent)) {
+                if (this.shouldLoad(tileExtent)) {
                     const url = this.getTileUrl(coord, 1, this.olprojection);
                     const request = () => this.loadTile(id, url, tileExtent);
                     promises.push({ id, request });

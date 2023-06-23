@@ -17,9 +17,16 @@ const tmpVec2 = new Vector2();
 class DebugSource extends ImageSource {
     /**
      * @param {object} options options
+     * @param {Extent} options.extent The extent.
+     * @param {number} options.delay The delay before loading the images.
+     * @param {number} options.opacity The opacity of the images.
+     * @param {Color} options.color The color of the images.
+     * @param {number} options.subdivisions The how many images per tile are served.
+     * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
+     * to test if a given extent is contained in this source.
      */
     constructor(options) {
-        super();
+        super(options);
         const {
             delay, subdivisions, opacity, extent, color,
         } = options;

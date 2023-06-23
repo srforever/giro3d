@@ -2,6 +2,7 @@
  * @module core/layer/MaskLayer
  */
 
+import { Texture, Vector4 } from 'three';
 import ColorLayer from './ColorLayer.js';
 
 /**
@@ -26,6 +27,9 @@ const MaskMode = {
      */
     Inverted: 2,
 };
+
+const EMPTY_TEXTURE = new Texture();
+const DEFAULT_PITCH = new Vector4(0, 0, 1, 1);
 
 /**
  * A {@link module:core/layer/ColorLayer~ColorLayer ColorLayer} that can be used to mask parts of
@@ -72,6 +76,13 @@ class MaskLayer extends ColorLayer {
 
     set maskMode(v) {
         this._maskMode = v;
+    }
+
+    applyEmptyTextureToNode(node) {
+        // We cannot remove the layer from the material, contrary to what is done for
+        // other layer types, because since this layer acts as a mask, it must be defined
+        // for the entire map.
+        node.material.setColorTextures(this, { texture: EMPTY_TEXTURE, pitch: DEFAULT_PITCH });
     }
 }
 

@@ -106,13 +106,18 @@ class ElevationLayer extends Layer {
         return { min, max };
     }
 
-    applyTextureToNode({ texture, pitch }, node, isLastRender) {
+    applyTextureToNode(textureAndPitch, node, isLastRender) {
+        const { texture, pitch } = textureAndPitch;
         const { min, max } = this.getMinMax(texture);
 
         const value = {
             texture, pitch, min, max,
         };
         node.setElevationTexture(this, value, isLastRender);
+    }
+
+    applyEmptyTextureToNode(node) {
+        node.removeElevationTexture(this);
     }
 }
 

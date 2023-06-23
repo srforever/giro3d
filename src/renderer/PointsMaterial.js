@@ -147,6 +147,10 @@ class PointsMaterial extends RawShaderMaterial {
         this.updateUniforms();
     }
 
+    hasColorLayer(layer) {
+        return this.colorLayer === layer;
+    }
+
     updateUniforms() {
         // if size is null, switch to autosizing using the canvas height
         this.uniforms.size.value = (this.size > 0) ? this.size : -this.scale * window.innerHeight;

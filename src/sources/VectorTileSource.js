@@ -144,10 +144,12 @@ class VectorTileSource extends ImageSource {
      * @param {FeatureFormat} [options.format] The format. Default is [MVT](https://openlayers.org/en/latest/apidoc/module-ol_format_MVT-MVT.html).
      * @param {Style|StyleFunction} options.style The style, or style function. The style must be an
      * OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
+     * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
+     * to test if a given extent is contained in this source.
      * @api
      */
     constructor(options) {
-        super();
+        super(options);
         if (!options.url) {
             throw new Error('missing parameter: url');
         }

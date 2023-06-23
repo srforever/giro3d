@@ -689,16 +689,7 @@ class Layer extends EventDispatcher {
                 target.state = TargetState.Pending;
             });
         } else {
-            // The target is not contained within the source: clear the texture so it appears empty.
-            // This ensures that residual pixels coming from inherited textures are removed.
-            this.composer.clearTexture({
-                extent,
-                width,
-                height,
-                target: target.renderTarget,
-            });
-            const texture = target.renderTarget.texture;
-            this.applyTextureToNode({ texture, pitch }, target.node, true);
+            this.applyEmptyTextureToNode(target.node);
         }
     }
 
@@ -875,6 +866,11 @@ class Layer extends EventDispatcher {
 
     // eslint-disable-next-line class-methods-use-this, no-unused-vars
     applyTextureToNode(texture, node, isLastRender) {
+        // Implemented in derived classes
+    }
+
+    // eslint-disable-next-line class-methods-use-this, no-unused-vars
+    applyEmptyTextureToNode(node) {
         // Implemented in derived classes
     }
 
