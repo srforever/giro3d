@@ -17,6 +17,20 @@ describe('Layer', () => {
         });
     });
 
+    describe('dispose', () => {
+        it('should dispose the source', () => {
+            const source = new NullSource();
+            source.dispose = jest.fn();
+            const layer = new Layer('foo', { source });
+
+            expect(source.dispose).not.toHaveBeenCalled();
+
+            layer.dispose();
+
+            expect(source.dispose).toHaveBeenCalled();
+        });
+    });
+
     describe('constructor', () => {
         it('should assign the provided properties', () => {
             const id = 'foo';

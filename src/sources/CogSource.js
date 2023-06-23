@@ -406,6 +406,10 @@ class CogSource extends ImageSource {
 
         return [{ id, request }];
     }
+
+    dispose() {
+        this.cache.clear();
+    }
 }
 
 export default CogSource;
