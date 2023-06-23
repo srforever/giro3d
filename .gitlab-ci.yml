@@ -40,7 +40,7 @@ check-commit-message:
     script:
         - npm i
         - apk add --no-cache git
-        - git fetch origin master
+        - git fetch origin main
         - git remote set-head origin -a
         - npx commitlint -x @commitlint/config-conventional --from=origin/HEAD --to=${CI_COMMIT_SHA}
 
@@ -56,7 +56,7 @@ build_lts:
             - giro3d-*.tgz
         name: "$CI_COMMIT_REF_SLUG"
     only:
-        - master
+        - main
 
 build_current:
     stage: build
@@ -66,7 +66,7 @@ build_current:
         - npm i
         - npm run build-package
     only:
-        - master
+        - main
 
 lint:
     stage: lint
@@ -109,4 +109,4 @@ pages:
         paths:
             - public
     only:
-        - master
+        - main
