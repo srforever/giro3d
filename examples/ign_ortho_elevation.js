@@ -154,7 +154,8 @@ instance.scene.add( ambientLight );
 
 // place camera above grenoble
 // instance.camera.camera3D.position.set(40, 40, 0);
-instance.camera.camera3D.position.set(912935, 6450784, 3727);
+// instance.camera.camera3D.position.set(912935, 6450784, 3727);
+instance.camera.camera3D.position.set(913349.2364044407, 6456426.459171033, 1706.0108044011636);
 // and look at the Bastille ;-)
 const lookAt = new Vector3(913896, 6459191, 200);
 // const lookAt = new Vector3(0, 0, 0);
