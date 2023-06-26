@@ -94,12 +94,11 @@ Triaging consists mainly in settings labels. Labels provide a clear view on what
   | ~"good first issue" | A beginner friendly issue that can be solved by new contributors |
   | ~"perf" | Affects performances |
 
-- Internal labels may be added by contributors who own them:
+- Internal scoped-labels may be added by contributors who own them:
   | Label | Owner |
   |-------|-------|
-  | ~"R&D::CP4SC" | Oslandia |
-  | ~"R&D::iasbim" | Oslandia |
-  | ~"project::argeo" | Oslandia/Argeo |
+  | ~"R&D::XXXX" | Oslandia |
+  | ~"project::XXXX" | Oslandia |
 
 ### Merge Requests guidelines
 
