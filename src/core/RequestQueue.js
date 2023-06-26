@@ -104,7 +104,7 @@ class RequestQueue {
                 this.opCounter.decrement();
                 this.pendingIds.delete(key);
                 this.onQueueAvailable();
-                task.reject(PromiseUtils.abortError);
+                task.reject(PromiseUtils.abortError());
             }
         }
     }
@@ -126,7 +126,7 @@ class RequestQueue {
         id, request, signal, priority, shouldExecute,
     }) {
         if (signal?.aborted) {
-            return Promise.reject(PromiseUtils.abortError);
+            return Promise.reject(PromiseUtils.abortError());
         }
 
         if (this.pendingIds.has(id)) {
