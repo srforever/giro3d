@@ -70,11 +70,11 @@ Triaging consists mainly in settings labels. Labels provide a clear view on what
 - What the issue is - all issues should have one among these:
   | Label | Description | Typical use case | Example |
   |-------|-------------|------------------|---------|
-  | ~"bug" | a behavior is unexpected |  "xxx doesn't work" | #286 |
-  | ~"feature" | a feature that does not exist, or extending a feature that already exists | "I'd like tu support xxx use case which is not possible currently" | #247 |
-  | ~"refactor" | a code change that does not fix any bug or add any feature | "xxx should be rewritten for clarity" | #130 |
-  | ~"support" | a question, or unclear if bug or not | "I don't know if xxx is expected or not" | #89 |
-  | ~"discussion" | ask for a discussion, doesn't necessarily imply a code change, or might lead to the creation of other issues | "should we do xxx?" | #264 |
+  | ~"type::bug" | a behavior is unexpected |  "xxx doesn't work" | #286 |
+  | ~"type::feature" | a feature that does not exist, or extending a feature that already exists | "I'd like tu support xxx use case which is not possible currently" | #247 |
+  | ~"type::refactor" | a code change that does not fix any bug or add any feature | "xxx should be rewritten for clarity" | #130 |
+  | ~"type::support" | a question, or unclear if bug or not | "I don't know if xxx is expected or not" | #89 |
+  | ~"type::discussion" | ask for a discussion, doesn't necessarily imply a code change, or might lead to the creation of other issues | "should we do xxx?" | #264 |
 
 - What the issue impacts - all issues should have at least one among these:
   | Label | Description |
