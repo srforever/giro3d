@@ -169,6 +169,8 @@ class ImageSource extends EventDispatcher {
      * @param {object} options Options.
      * @param {string} options.targetProjection The target projection. Only useful for sources
      * that are able to reproject their data on the fly (typically vector sources).
+     * @param {boolean} options.createReadableTextures If `true`, this source must create
+     * textures that can be read from the Javascript side of Giro3D (i.e `DataTextures`).
      * @returns {Promise} A promise that resolves when the source is initialized.
      */
     // eslint-disable-next-line class-methods-use-this, no-unused-vars
