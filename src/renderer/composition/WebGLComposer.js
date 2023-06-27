@@ -10,7 +10,6 @@ import {
     RGBAFormat,
     UnsignedByteType,
     ClampToEdgeWrapping,
-    Vector3,
     LinearFilter,
     Color,
     Vector4,
@@ -112,12 +111,6 @@ class WebGLComposer {
 
         this.scene = new Scene();
 
-        // Set the origin of the canvas at the center extent, so that everything should
-        // not be too far from this point, to preserve floating-point precision.
-        this.origin = this.extent
-            ? new Vector3(this.extent.centerX, this.extent.centerY, 0)
-            : new Vector3(0, 0, 0);
-
         // Define a camera centered on (0, 0), with its
         // orthographic size matching size of the extent.
         this.camera = new OrthographicCamera();
@@ -138,7 +131,7 @@ class WebGLComposer {
         const halfWidth = rect.width / 2;
         const halfHeight = rect.height / 2;
 
-        this.camera.position.set(rect.centerX - this.origin.x, rect.centerY - this.origin.y, 0);
+        this.camera.position.set(rect.centerX, rect.centerY, 0);
 
         this.camera.left = -halfWidth;
         this.camera.right = +halfWidth;
@@ -196,8 +189,8 @@ class WebGLComposer {
         plane.scale.set(extent.width, extent.height, 1);
         this.scene.add(plane);
 
-        const x = extent.centerX - this.origin.x;
-        const y = extent.centerY - this.origin.y;
+        const x = extent.centerX;
+        const y = extent.centerY;
 
         plane.position.set(x, y, 0);
 
