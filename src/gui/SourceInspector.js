@@ -7,7 +7,6 @@ import TileSource from 'ol/source/Tile.js';
 import Instance from '../core/Instance.js';
 import Panel from './Panel.js';
 import CogSource from '../sources/CogSource.js';
-import CustomTiledImageSource from '../sources/CustomTiledImageSource.js';
 import TiledImageSource from '../sources/TiledImageSource.js';
 
 /**
@@ -40,11 +39,6 @@ class SourceInspector extends Panel {
         if (source instanceof CogSource) {
             this.url = source.url.toString();
             this.sourceType = 'CogSource';
-            this.addController(this, 'sourceType').name('Type');
-            this.addController(this, 'url').name('URL');
-        } else if (source instanceof CustomTiledImageSource) {
-            this.url = source.url.toString();
-            this.sourceType = 'CustomTiledImageSource';
             this.addController(this, 'sourceType').name('Type');
             this.addController(this, 'url').name('URL');
         } else if (source instanceof TiledImageSource) {

@@ -4,6 +4,7 @@
 
 import { Texture, Vector4 } from 'three';
 import ColorLayer from './ColorLayer.js';
+import ImageSource from '../../sources/ImageSource.js';
 
 /**
  * Modes of the mask layer.
@@ -45,13 +46,7 @@ class MaskLayer extends ColorLayer {
      *
      * @param {string} id The unique identifier of the layer.
      * @param {object} options The layer options.
-     * @param {
-     * module:ol~TileImage |
-     * module:ol~Vector |
-     * module:ol~VectorTile |
-     * module:sources/CogSource~CogSource|
-     * module:sources/CustomTiledImageSource~CustomTiledImageSource} options.source
-     * The data source of this layer.
+     * @param {ImageSource} options.source The data source of this layer.
      * @param {object} [options.extent=undefined] The geographic extent of the layer. If
      * unspecified, the extent will be inherited from the map.
      * @param {string} [options.projection=undefined] The layer projection. If unspecified,
