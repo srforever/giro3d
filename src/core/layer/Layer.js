@@ -106,42 +106,47 @@ function shouldCancelRequest(node, layer) {
  * Base class of layers. Layers are components of {@link module:entities/Map~Map Maps} or any
  * compatible entity.
  *
- * The same layer can be added to multiple maps. Don't forget to call `dispose()` when the layer
- * should be destroyed, as removing a layer from a map will not release memory associated with the
- * layer (such as textures).
+ * The same layer can be added to multiple maps. Don't forget to call
+ * {@link module:core/layer/Layer~Layer#dispose dispose()} when the layer should be destroyed, as
+ * removing a layer from a map will not release memory associated with the layer (such as textures).
  *
- * A layer type can be either `color` (such as satellite imagery or maps),
- * or `elevation` (to describe terrain elevation).
+ * ## Types of layers
  *
- * Layer is an abstract class. Use
- * {@link module:Core/layer/ColorLayer~ColorLayer ColorLayer} or
- * {@link module:Core/layer/ElevationLayer~ElevationLayer ElevationLayer} instead to create layers.
+ * The `Layer` class is an abstract class. Concrete implementations include:
  *
- *     // Create a layer source
- *     var source = new TileWMS({options}); // use a source from OpenLayers
+ * <li> - {@link module:core/layer/ColorLayer~ColorLayer ColorLayer} for color information, such as
+ * satellite imagery, vector data, etc.
+ * <li> - {@link module:core/layer/ElevationLayer~ElevationLayer ElevationLayer} for elevation and
+ * terrain data.
+ * <li> - {@link module:core/layer/MaskLayer~MaskLayer MaskLayer}. A special kind of layer that
+ * applies a mask on its host map.
  *
- *     // Add and create a new Layer to a map.
- *     const newLayer = ColorLayer(
- *         'myColorLayerId', {
- *             source,
- *         }
- *     });
- *     map.addLayer(newLayer);
+ * ## Reprojection capabilities
  *
- *     // Change layer's visibilty
- *     const layerToChange = map.getLayers(layer => layer.id === 'idLayerToChange')[0];
- *     layerToChange.visible = false;
- *     instance.notifyChange(); // update instance
+ * When the {@link module:sources/ImageSource~ImageSource source} of the layer has a different
+ * coordinate system than the instance, the images from the source will be reprojected to the
+ * instance CRS.
  *
- *     // Change layer's opacity
- *     const layerToChange = map.getLayers(layer => layer.id === 'idLayerToChange')[0];
- *     layerToChange.opacity = 0.5;
- *     instance.notifyChange(); // update instance
+ * Note that doing so will have a performance cost in both CPU and memory.
  *
- *     // Listen to properties
- *     const layerToListen = map.getLayers(layer => layer.id === 'idLayerToListen')[0];
- *     layerToListen.addEventListener('visible-property-changed', (event) => console.log(event));
+ * @example
+ * // Add and create a new Layer to a map.
+ * const newLayer = ColorLayer('myColorLayerId', { ... });
+ * map.addLayer(newLayer);
  *
+ * // Change layer's visibilty
+ * const layerToChange = map.getLayers(layer => layer.id === 'idLayerToChange')[0];
+ * layerToChange.visible = false;
+ * instance.notifyChange(); // update instance
+ *
+ * // Change layer's opacity
+ * const layerToChange = map.getLayers(layer => layer.id === 'idLayerToChange')[0];
+ * layerToChange.opacity = 0.5;
+ * instance.notifyChange(); // update instance
+ *
+ * // Listen to properties
+ * const layerToListen = map.getLayers(layer => layer.id === 'idLayerToListen')[0];
+ * layerToListen.addEventListener('visible-property-changed', (event) => console.log(event));
  * @api
  */
 class Layer extends EventDispatcher {
@@ -325,6 +330,8 @@ class Layer extends EventDispatcher {
             computeMinMax: this.computeMinMax,
             showImageOutlines: this.showTileBorders,
             transparent: this.transparent,
+            sourceCrs: this.source.getCrs(),
+            targetCrs: targetProjection,
         });
 
         await this.loadFallbackImages();
@@ -345,7 +352,7 @@ class Layer extends EventDispatcher {
     getExtent() {
         // The layer extent takes precedence over the source extent,
         // since it maye be used for some cropping effect.
-        return this.extent ?? this.source.getExtent();
+        return this.extent ?? this.source.getExtent().clone().as(this._instance.referenceCrs);
     }
 
     async loadFallbackImages() {
@@ -360,9 +367,10 @@ class Layer extends EventDispatcher {
         const dims = extent.dimensions();
         const height = width * (dims.y / dims.x);
 
+        const extentAsSourceCrs = extent.clone().as(this.source.getCrs());
         const requests = this.source.getImages({
             id: 'background',
-            extent,
+            extent: extentAsSourceCrs,
             width,
             height,
         });
@@ -425,7 +433,7 @@ class Layer extends EventDispatcher {
 
         const results = this.source.getImages({
             id: `${target.node.id}`,
-            extent,
+            extent: extent.clone().as(this.source.getCrs()),
             width,
             height,
             signal: target.controller.signal,
@@ -530,18 +538,22 @@ class Layer extends EventDispatcher {
      */
     // eslint-disable-next-line class-methods-use-this
     adjustExtentAndPixelSize(originalExtent, originalWidth, originalHeight) {
-        // Let's ask the source if it can help us have a pixel-perfect extent
-        const sourceAdjusted = this.source.adjustExtentAndPixelSize(
-            originalExtent,
-            originalWidth,
-            originalHeight,
-            2,
-        );
+        // This feature only makes sense if both the source and instance have the same CRS,
+        // meaning that pixels can be aligned
+        if (this.source.getCrs() === this._instance.referenceCrs) {
+            // Let's ask the source if it can help us have a pixel-perfect extent
+            const sourceAdjusted = this.source.adjustExtentAndPixelSize(
+                originalExtent,
+                originalWidth,
+                originalHeight,
+                2,
+            );
 
-        if (sourceAdjusted
-            && sourceAdjusted.width <= originalWidth
-            && sourceAdjusted.height <= originalHeight) {
-            return sourceAdjusted;
+            if (sourceAdjusted
+                && sourceAdjusted.width <= originalWidth
+                && sourceAdjusted.height <= originalHeight) {
+                return sourceAdjusted;
+            }
         }
 
         // Tough luck, the source does not implement this feature. Let's use a default
@@ -768,6 +780,10 @@ class Layer extends EventDispatcher {
         this.processTarget(target);
     }
 
+    /**
+     * @param {Extent} extent The extent to test.
+     * @returns {boolean} `true` if this layer contains the specified extent, `false` otherwise.
+     */
     contains(extent) {
         const customExtent = this.extent;
         if (customExtent) {
