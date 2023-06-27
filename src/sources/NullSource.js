@@ -17,6 +17,10 @@ class NullSource extends ImageSource {
         this.extent = options.extent;
     }
 
+    getCrs() {
+        return this.extent.crs();
+    }
+
     getImages() {
         return [];
     }
