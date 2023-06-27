@@ -191,6 +191,34 @@ class WebGLComposer {
      * @returns {Mesh} The image mesh object.
      */
     draw(texture, extent, options = {}) {
+        const plane = new Mesh(SHARED_PLANE_GEOMETRY, null);
+        MemoryTracker.track(plane, 'WebGLComposer - mesh');
+        plane.scale.set(extent.width, extent.height, 1);
+        this.scene.add(plane);
+
+        const x = extent.centerX - this.origin.x;
+        const y = extent.centerY - this.origin.y;
+
+        plane.position.set(x, y, 0);
+
+        return this.drawMesh(texture, plane, options);
+    }
+
+    /**
+     * Draws a texture on a custom mesh to the composer.
+     *
+     * @param {Texture|HTMLImageElement|HTMLCanvasElement} texture The texture to add.
+     * @param {Mesh} mesh The custom mesh.
+     * @param {object} [options] The options.
+     * @param {Interpretation} [options.interpretation=Interpretation.Raw] The pixel interpretation.
+     * @param {number} [options.zOrder=0] The Z-order of the texture in the composition space.
+     * @param {number} [options.fadeDuration=0] The fade duration of the image.
+     * @param {boolean} [options.flipY] Flip the image vertically.
+     * @param {boolean} [options.fillNoData] Fill no-data values of the image.
+     * @param {boolean} [options.transparent] Should the image be transparent.
+     * @returns {Mesh} The image mesh object.
+     */
+    drawMesh(texture, mesh, options = {}) {
         if (!texture.isTexture) {
             texture = new Texture(texture);
             texture.needsUpdate = true;
@@ -207,22 +235,20 @@ class WebGLComposer {
             transparent: options.transparent,
             showImageOutlines: this.showImageOutlines,
         });
-
         MemoryTracker.track(material, 'WebGLComposer - material');
-        const plane = new Mesh(SHARED_PLANE_GEOMETRY, material);
-        MemoryTracker.track(plane, 'WebGLComposer - mesh');
-        plane.scale.set(extent.width, extent.height, 1);
-        this.scene.add(plane);
 
-        const x = extent.centerX - this.origin.x;
-        const y = extent.centerY - this.origin.y;
+        mesh.material = material;
+
         const z = IMAGE_Z + (options.zOrder ?? 0);
-        plane.position.set(x, y, z);
-        plane.updateMatrixWorld(true);
-        plane.matrixAutoUpdate = false;
-        plane.matrixWorldAutoUpdate = false;
+        mesh.position.setZ(z);
 
-        return plane;
+        this.scene.add(mesh);
+
+        mesh.updateMatrixWorld(true);
+        mesh.matrixAutoUpdate = false;
+        mesh.matrixWorldAutoUpdate = false;
+
+        return mesh;
     }
 
     remove(mesh) {
