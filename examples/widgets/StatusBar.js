@@ -35,16 +35,35 @@ function updateUrl(instance) {
     window.history.replaceState({}, null, url.toString());
 }
 
+let progressBar;
+let percent;
+let urlTimeout;
+let currentInstance;
+
+function updateProgressFrameRequester() {
+    progressBar.style.width = `${currentInstance.progress * 100}%`;
+    percent.innerText = `${Math.round(currentInstance.progress * 100)}%`;
+}
+
+function updateUrlFrameRequester() {
+    if (urlTimeout) {
+        clearTimeout(urlTimeout);
+    }
+    urlTimeout = setTimeout(() => updateUrl(currentInstance), 50);
+}
+
 /**
  * @param {Instance} instance The instance.
- * @param {number} radius The radius of the picking.
+ * @param {object} options The options.
+ * @param {number} options.radius The radius of the picking.
+ * @param {boolean} options.disableUrlUpdate Disable automatic URL update.
  */
-function bind(instance, radius = 1) {
+function bind(instance, options = {}) {
+    currentInstance = instance;
     // Bind events
-    instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
     const coordinates = document.getElementById('coordinates');
     instance.domElement.addEventListener('mousemove', e => {
-        const picked = instance.pickObjectsAt(e, { limit: 1, radius }).at(0);
+        const picked = instance.pickObjectsAt(e, { limit: 1, radius: options.radius ?? 1 }).at(0);
         if (picked) {
             coordinates.classList.remove('d-none');
             coordinates.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(2)}`;
@@ -53,22 +72,15 @@ function bind(instance, radius = 1) {
         }
     });
 
-    processUrl(instance, document.URL);
+    progressBar = document.getElementById('progress-bar');
+    percent = document.getElementById('loading-percent');
 
-    const progressBar = document.getElementById('progress-bar');
-    const percent = document.getElementById('loading-percent');
+    instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, updateProgressFrameRequester);
 
-    let urlTimeout;
-
-    instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, () => {
-        progressBar.style.width = `${instance.progress * 100}%`;
-        percent.innerText = `${Math.round(instance.progress * 100)}%`;
-
-        if (urlTimeout) {
-            clearTimeout(urlTimeout);
-        }
-        urlTimeout = setTimeout(() => updateUrl(instance), 50);
-    });
+    if (!options.disableUrlUpdate) {
+        processUrl(instance, document.URL);
+        instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, updateUrlFrameRequester);
+    }
 }
 
 export default { bind };

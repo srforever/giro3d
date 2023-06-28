@@ -44,4 +44,4 @@ instance.add(potree).then(placeCamera);
 instance.notifyChange(instance.camera.camera3D);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
-StatusBar.bind(instance, 5);
+StatusBar.bind(instance, { radius: 5 });
