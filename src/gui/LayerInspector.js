@@ -36,10 +36,12 @@ class LayerInspector extends Panel {
 
         this.map = map;
         this.state = 'idle';
+        this.sourceCrs = layer.source.getCrs() ?? instance.referenceCrs;
 
         this.updateValues();
 
         this.addController(this.layer, 'id').name('Identifier');
+        this.addController(this, 'sourceCrs').name('Source CRS');
 
         this.addController(this, 'state')
             .name('Status');
