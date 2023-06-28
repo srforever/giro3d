@@ -26,13 +26,14 @@ function updateUrl(instance) {
     }
 
     const cam = instance.camera.camera3D.position;
-    const target = instance.controls.target;
+    const target = instance?.controls?.target;
+    if (target) {
+        const pov = `${round10(cam.x)},${round10(cam.y)},${round10(cam.z)},${round10(target.x)},${round10(target.y)},${round10(target.z)}`;
 
-    const pov = `${round10(cam.x)},${round10(cam.y)},${round10(cam.z)},${round10(target.x)},${round10(target.y)},${round10(target.z)}`;
+        url.searchParams.append(VIEW_PARAM, pov);
 
-    url.searchParams.append(VIEW_PARAM, pov);
-
-    window.history.replaceState({}, null, url.toString());
+        window.history.replaceState({}, null, url.toString());
+    }
 }
 
 let progressBar;
