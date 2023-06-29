@@ -648,15 +648,15 @@ class Layer extends EventDispatcher {
         const height = target.height;
         const pitch = target.pitch;
 
-        if (!target.renderTarget) {
-            target.renderTarget = this.acquireRenderTarget(width, height);
-
-            this.applyDefaultTexture(target);
-        }
-
         // Fetch adequate images from the source...
         const isContained = this.contains(extent);
         if (isContained) {
+            if (!target.renderTarget) {
+                target.renderTarget = this.acquireRenderTarget(width, height);
+
+                this.applyDefaultTexture(target);
+            }
+
             this.fetchImages({
                 extent, width, height, target,
             }).then(() => {
