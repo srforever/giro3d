@@ -23,7 +23,7 @@ import utf8Decoder from '../utils/Utf8Decoder.js';
 import { GlobalCache } from '../core/Cache.js';
 import B3dmParser from '../parser/B3dmParser.js';
 import PntsParser from '../parser/PntsParser.js';
-import Points from '../core/Points.js';
+import PointCloud from '../core/PointCloud.js';
 import PointsMaterial from '../renderer/PointsMaterial.js';
 
 const tmp = {
@@ -406,7 +406,7 @@ function pntsParse(data, entity) {
         }
 
         // creation points with geometry and material
-        const points = new Points({
+        const points = new PointCloud({
             layer: entity,
             geometry: result.point.geometry,
             material,

@@ -22,7 +22,7 @@
       "src/core/layer/ElevationLayer.js",
       "src/core/layer/Interpretation.js",
       "src/core/layer/Layer.js",
-      "src/core/Points.js",
+      "src/core/PointCloud.js",
       "src/core/Cache.js",
       "src/entities/AxisGrid.js",
       "src/entities/Entity.js",
