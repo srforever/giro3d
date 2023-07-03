@@ -6,7 +6,7 @@ import Context from './Context.js';
 export const RENDERING_PAUSED = 0;
 export const RENDERING_SCHEDULED = 1;
 
-const MIN_DISTANCE = 0.1;
+const MIN_DISTANCE = 2;
 const MAX_DISTANCE = 2000000000;
 
 const _tmpSphere = new Sphere();
