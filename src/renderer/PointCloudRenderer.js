@@ -1,9 +1,10 @@
+import GUI from 'lil-gui';
 import {
     BufferGeometry,
     Color,
     DepthTexture,
     Float32BufferAttribute,
-    LinearFilter,
+    FloatType,
     Matrix4,
     Mesh,
     NearestFilter,
@@ -11,9 +12,9 @@ import {
     RGBAFormat,
     Scene,
     ShaderMaterial,
-    UnsignedShortType,
     Vector2,
     WebGLRenderTarget,
+    WebGLRenderer,
 } from 'three';
 import BasicVS from './shader/BasicVS.glsl';
 import EDLPassZeroFS from './shader/pointcloud/EDLPassZeroFS.glsl';
@@ -359,50 +360,28 @@ class PointCloudRenderer {
     }
 }
 
+function createRenderTarget(width, height, depthBuffer) {
+    return new WebGLRenderTarget(width, height, {
+        format: RGBAFormat,
+        depthBuffer,
+        generateMipmaps: false,
+        minFilter: NearestFilter,
+        magFilter: NearestFilter,
+        depthTexture: depthBuffer
+            ? new DepthTexture(width, height, FloatType)
+            : undefined,
+    });
+}
+
 function createRenderTargets(instance) {
     const renderTargets = [];
-    renderTargets.push(new WebGLRenderTarget(instance.camera.width, instance.camera.height));
-    renderTargets.push(new WebGLRenderTarget(instance.camera.width, instance.camera.height));
-    renderTargets.push(new WebGLRenderTarget(instance.camera.width, instance.camera.height));
-    renderTargets.push(
-        new WebGLRenderTarget(instance.camera.width * 0.5, instance.camera.height * 0.5),
-    );
+    const width = instance.camera.width;
+    const height = instance.camera.height;
 
-    renderTargets[RT.FULL_RES_0].texture.minFilter = LinearFilter;
-    renderTargets[RT.FULL_RES_0].texture.generateMipmaps = false;
-    renderTargets[RT.FULL_RES_0].depthBuffer = true;
-    renderTargets[RT.FULL_RES_0].texture.format = RGBAFormat;
-    renderTargets[RT.FULL_RES_0].texture.minFilter = NearestFilter;
-    renderTargets[RT.FULL_RES_0].texture.magFilter = NearestFilter;
-    renderTargets[RT.FULL_RES_0].depthTexture = new DepthTexture();
-    renderTargets[RT.FULL_RES_0].depthTexture.type = UnsignedShortType;
-
-    renderTargets[RT.FULL_RES_1].texture.minFilter = LinearFilter;
-    renderTargets[RT.FULL_RES_1].texture.generateMipmaps = false;
-    renderTargets[RT.FULL_RES_1].depthBuffer = true;
-    renderTargets[RT.FULL_RES_1].texture.format = RGBAFormat;
-    renderTargets[RT.FULL_RES_1].texture.minFilter = NearestFilter;
-    renderTargets[RT.FULL_RES_1].texture.magFilter = NearestFilter;
-    renderTargets[RT.FULL_RES_1].depthTexture = new DepthTexture();
-    renderTargets[RT.FULL_RES_1].depthTexture.type = UnsignedShortType;
-
-    renderTargets[RT.EDL_VALUES] = new WebGLRenderTarget(
-        instance.camera.width, instance.camera.height,
-    );
-    renderTargets[RT.EDL_VALUES].texture.generateMipmaps = false;
-    renderTargets[RT.EDL_VALUES].depthBuffer = false;
-    renderTargets[RT.EDL_VALUES].texture.format = RGBAFormat;
-    renderTargets[RT.EDL_VALUES].texture.minFilter = NearestFilter;
-    renderTargets[RT.EDL_VALUES].texture.magFilter = NearestFilter;
-
-    renderTargets[RT.HALF_RES].texture.minFilter = LinearFilter;
-    renderTargets[RT.HALF_RES].texture.generateMipmaps = false;
-    renderTargets[RT.HALF_RES].depthBuffer = true;
-    renderTargets[RT.HALF_RES].texture.format = RGBAFormat;
-    renderTargets[RT.HALF_RES].texture.minFilter = NearestFilter;
-    renderTargets[RT.HALF_RES].texture.magFilter = NearestFilter;
-    renderTargets[RT.HALF_RES].depthTexture = new DepthTexture();
-    renderTargets[RT.HALF_RES].depthTexture.type = UnsignedShortType;
+    renderTargets.push(createRenderTarget(width, height, true));
+    renderTargets.push(createRenderTarget(width, height, true));
+    renderTargets.push(createRenderTarget(width, height, false));
+    renderTargets.push(createRenderTarget(width, height, true));
 
     return renderTargets;
 }
