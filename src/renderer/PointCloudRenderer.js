@@ -41,6 +41,9 @@ const RT = {
  * @property {Function} setup The setup function.
  */
 
+/**
+ * A post-processing renderer that adds effects to point clouds.
+ */
 class PointCloudRenderer {
     /**
      * Creates a point cloud renderer for the specified instance.
@@ -327,7 +330,7 @@ class PointCloudRenderer {
         return renderTargets;
     }
 
-    render(opacity = 1.0) {
+    render({ renderTarget, opacity }) {
         const g = this.instance.mainLoop.gfxEngine;
         /** @type {WebGLRenderer} */
         const r = g.renderer;
@@ -368,16 +371,16 @@ class PointCloudRenderer {
 
                 // if last stage -> override output (draw to screen)
                 if (i === stages.length - 1 && j === stage.passes.length - 1) {
-                    output = null;
+                    output = renderTarget ?? null;
                 } else if (!output) {
                     output = this.renderTargets[stageOutput];
                 }
 
                 // render stage
                 r.setRenderTarget(output);
-                if (output) {
-                    r.clear();
-                }
+                // if (output) {
+                //     r.clear();
+                // }
                 r.setViewport(
                     0, 0,
                     output ? output.width : instance.camera.width,
@@ -388,13 +391,13 @@ class PointCloudRenderer {
                     // postprocessing scene
                     this.mesh.material = material;
                     if (output) {
-                        this.mesh.material.transparent = false;
-                        this.mesh.material.needsUpdate = true;
-                        this.mesh.material.opacity = 1.0;
+                        material.transparent = false;
+                        material.needsUpdate = true;
+                        material.opacity = 1.0;
                     } else {
-                        this.mesh.material.transparent = true;
-                        this.mesh.material.needsUpdate = true;
-                        this.mesh.material.uniforms.opacity.value = opacity;
+                        material.transparent = true;
+                        material.needsUpdate = true;
+                        material.uniforms.opacity.value = opacity;
                     }
                     r.render(this.scene, this.camera);
                 } else {

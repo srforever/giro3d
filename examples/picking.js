@@ -13,6 +13,8 @@ import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import PointCloudRenderer from '@giro3d/giro3d/renderer/PointCloudRenderer.js';
+import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';
 import StatusBar from './widgets/StatusBar.js';
 
 Instance.registerCRS('EPSG:3946',
@@ -235,5 +237,9 @@ popoverTriggerList.map(
         html: true,
     }),
 );
+
+const renderer = new PointCloudRenderer(instance);
+
+instance.addFrameRequester(MAIN_LOOP_EVENTS.AFTER_RENDER, () => renderer.render(instance, 1));
 
 StatusBar.bind(instance);

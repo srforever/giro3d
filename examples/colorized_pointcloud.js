@@ -108,6 +108,7 @@ function initializeCamera() {
     );
 
     pointcloud.attach(colorLayer);
+    StatusBar.bind(instance);
 }
 
 instance.add(pointcloud).then(initializeCamera);
@@ -122,5 +123,3 @@ instance.domElement.addEventListener('dblclick', e => console.log(instance.pickO
     // Some points are incoherent in the pointcloud, don't pick them
     filter: p => !Number.isNaN(p.point.z) && p.point.z < 1000,
 })));
-
-StatusBar.bind(instance);
