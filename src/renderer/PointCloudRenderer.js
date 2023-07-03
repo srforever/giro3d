@@ -1,4 +1,3 @@
-import GUI from 'lil-gui';
 import {
     BufferGeometry,
     Color,
@@ -34,6 +33,14 @@ const RT = {
     HALF_RES: 3,
 };
 
+/**
+ * @typedef {object} Stage
+ * @property {ShaderMaterial[]} passes The render passes of this stage.
+ * @property {object} parameters The parameters of this stage.
+ * @property {boolean} enabled Is the stage enabled ?
+ * @property {Function} setup The setup function.
+ */
+
 class PointCloudRenderer {
     /**
      * Creates a point cloud renderer for the specified instance.
@@ -57,8 +64,10 @@ class PointCloudRenderer {
         // our camera
         this.camera = new OrthographicCamera(0, 1, 1, 0, 0, 10);
 
+        /** @type {Stage} */
         this.classic = {
             passes: [undefined],
+            enabled: true,
             setup() { return { material: undefined }; },
         };
 
@@ -66,6 +75,7 @@ class PointCloudRenderer {
         // References:
         //    - https://tel.archives-ouvertes.fr/tel-00438464/document
         //    - Potree (https://github.com/potree/potree/)
+        /** @type {Stage} */
         this.edl = {
             passes: [
                 new ShaderMaterial({
@@ -109,9 +119,9 @@ class PointCloudRenderer {
                     extensions: { fragDepth: true },
                 }),
             ],
+            enabled: true,
             // EDL tuning
             parameters: {
-                enabled: true,
                 // distance to neighbours pixels
                 radius: 3.0,
                 // edl value coefficient
@@ -122,6 +132,7 @@ class PointCloudRenderer {
                 n: 1,
             },
             setup(renderer, input, passIdx) {
+                const camera = renderer.instance.camera.camera3D;
                 const m = this.passes[passIdx];
                 const uniforms = m.uniforms;
                 if (passIdx === 0) {
@@ -132,8 +143,8 @@ class PointCloudRenderer {
                 if (passIdx === 1) {
                     uniforms.depthTexture.value = renderer.renderTargets[RT.HALF_RES].depthTexture;
                     uniforms.resolution.value.set(input.width, input.height);
-                    uniforms.cameraNear.value = renderer.instance.camera.camera3D.near;
-                    uniforms.cameraFar.value = renderer.instance.camera.camera3D.far;
+                    uniforms.cameraNear.value = camera.near;
+                    uniforms.cameraFar.value = camera.far;
                     uniforms.radius.value = this.parameters.radius;
                     uniforms.strength.value = this.parameters.strength;
                     uniforms.directions.value = this.parameters.directions;
@@ -150,6 +161,7 @@ class PointCloudRenderer {
 
         // Screen-space occlusion
         // References: http://www.crs4.it/vic/data/papers/vast2011-pbr.pdf
+        /** @type {Stage} */
         this.occlusion = {
             passes: [
                 // EDL 1st pass material
@@ -173,9 +185,9 @@ class PointCloudRenderer {
                     extensions: { fragDepth: true },
                 }),
             ],
+            enabled: true,
             // EDL tuning
             parameters: {
-                enabled: true,
                 // pixel suppression threshold
                 threshold: 0.9,
                 // debug feature to colorize removed pixels
@@ -211,6 +223,7 @@ class PointCloudRenderer {
 
         // Screen-space filling
         // References: http://www.crs4.it/vic/data/papers/vast2011-pbr.pdf
+        /** @type {Stage} */
         this.inpainting = {
             passes: [
                 // EDL 1st pass material
@@ -234,9 +247,9 @@ class PointCloudRenderer {
                     extensions: { fragDepth: true },
                 }),
             ],
+            enabled: true,
             // EDL tuning
             parameters: {
-                enabled: true,
                 // how many fill step should be performed
                 fill_steps: 2,
                 // depth contribution to the final color (?)
@@ -267,9 +280,11 @@ class PointCloudRenderer {
             },
         };
 
-        this.renderTargets = createRenderTargets(instance);
-
         this.instance = instance;
+        /** @type {WebGLRenderer} */
+        this.renderer = instance.mainLoop.gfxEngine.renderer;
+        this.renderTargets = this.createRenderTargets();
+
         instance.addFrameRequester(MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, this.update.bind(this));
     }
 
@@ -279,27 +294,59 @@ class PointCloudRenderer {
             // release old render targets
             this.renderTargets.forEach(rt => rt.dispose());
             // build new ones
-            this.renderTargets = createRenderTargets(this.instance);
+            this.renderTargets = this.createRenderTargets();
         }
     }
 
-    render(instance, opacity = 1.0) {
-        const g = instance.mainLoop.gfxEngine;
-        const r = g.renderer;
+    createRenderTarget(width, height, depthBuffer) {
+        const supportsFloatTextures = this.renderer.capabilities.floatFragmentTextures;
+        return new WebGLRenderTarget(width, height, {
+            format: RGBAFormat,
+            depthBuffer,
+            generateMipmaps: false,
+            minFilter: NearestFilter,
+            magFilter: NearestFilter,
+            depthTexture: depthBuffer
+                ? new DepthTexture(width, height, supportsFloatTextures
+                    ? FloatType
+                    : UnsignedByteType)
+                : undefined,
+        });
+    }
 
+    createRenderTargets() {
+        const renderTargets = [];
+        const width = this.instance.camera.width;
+        const height = this.instance.camera.height;
+
+        renderTargets.push(this.createRenderTarget(width, height, true));
+        renderTargets.push(this.createRenderTarget(width, height, true));
+        renderTargets.push(this.createRenderTarget(width, height, false));
+        renderTargets.push(this.createRenderTarget(width, height, true));
+
+        return renderTargets;
+    }
+
+    render(opacity = 1.0) {
+        const g = this.instance.mainLoop.gfxEngine;
+        /** @type {WebGLRenderer} */
+        const r = g.renderer;
+        const instance = this.instance;
+
+        /** @type {Stage[]} */
         const stages = [];
 
         stages.push(this.classic);
 
-        if (this.occlusion.parameters.enabled) {
+        if (this.occlusion.enabled) {
             stages.push(this.occlusion);
         }
-        if (this.inpainting.parameters.enabled) {
+        if (this.inpainting.enabled) {
             for (let i = 0; i < this.inpainting.parameters.fill_steps; i++) {
                 stages.push(this.inpainting);
             }
         }
-        if (this.edl.parameters.enabled) {
+        if (this.edl.enabled) {
             stages.push(this.edl);
         }
 
@@ -359,32 +406,6 @@ class PointCloudRenderer {
 
         r.setClearAlpha(oldClearAlpha);
     }
-}
-
-function createRenderTarget(width, height, depthBuffer) {
-    return new WebGLRenderTarget(width, height, {
-        format: RGBAFormat,
-        depthBuffer,
-        generateMipmaps: false,
-        minFilter: NearestFilter,
-        magFilter: NearestFilter,
-        depthTexture: depthBuffer
-            ? new DepthTexture(width, height, FloatType)
-            : undefined,
-    });
-}
-
-function createRenderTargets(instance) {
-    const renderTargets = [];
-    const width = instance.camera.width;
-    const height = instance.camera.height;
-
-    renderTargets.push(createRenderTarget(width, height, true));
-    renderTargets.push(createRenderTarget(width, height, true));
-    renderTargets.push(createRenderTarget(width, height, false));
-    renderTargets.push(createRenderTarget(width, height, true));
-
-    return renderTargets;
 }
 
 export default PointCloudRenderer;
