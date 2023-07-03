@@ -12,6 +12,7 @@ import {
     RGBAFormat,
     Scene,
     ShaderMaterial,
+    UnsignedByteType,
     Vector2,
     WebGLRenderTarget,
     WebGLRenderer,
