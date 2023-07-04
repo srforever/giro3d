@@ -40,10 +40,16 @@ const pointcloud = new Tiles3D(
     },
 );
 
+let colorLayer;
+
 document.getElementById('pointcloud_mode').addEventListener('change', e => {
     const newMode = parseInt(e.target.value, 10);
     material.mode = newMode;
     instance.notifyChange(pointcloud, true);
+    if (colorLayer) {
+        colorLayer.visible = newMode === MODE.TEXTURE;
+        instance.notifyChange(colorLayer, true);
+    }
 });
 
 function placeCamera(position, lookAt) {
@@ -90,7 +96,7 @@ function initializeCamera() {
         }),
     });
 
-    const colorLayer = new ColorLayer(
+    colorLayer = new ColorLayer(
         'wms_imagery',
         {
             source: colorize,
