@@ -67,7 +67,6 @@ export default class RenderPipeline {
                 magFilter: NearestFilter,
                 minFilter: NearestFilter,
                 depthBuffer: true,
-                stencilBuffer: true,
                 depthTexture: new DepthTexture(width, height, depthBufferType),
             });
 
