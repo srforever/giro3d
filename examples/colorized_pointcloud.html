@@ -4,10 +4,79 @@ shortdesc: Colorize a point cloud with an image layer.
 longdesc: Point clouds can be colorized from different methods &#58; using the original color in the point cloud, coloring using an elevation gradient, or coloring using an external image source, such as a WMS layer.
 attribution: © <a target="_blank" href="https://www.grandlyon.com/">Métropole Grand Lyon</a>
 ---
-<div class="dropdown m-3 position-absolute top-0 end-0">
-    <select class="btn btn-primary dropdown-toggle d-block" id="pointcloud_mode">
-        <option value="0">Coloring from point cloud</option>
-        <option value="5">Coloring from elevation</option>
-        <option value="4" selected>Coloring from imagery</option>
-    </select>
+<div class="m-2 position-absolute top-0 end-0">
+
+    <!-- Top color layer -->
+    <div class="card m-1">
+        <div class="card-header">Options</div>
+
+        <fieldset class="container m-1" id="top-options">
+
+            <!-- Coloring mode -->
+            <div class="input-group p-2">
+                <span class="input-group-text flex-grow-1">Mode</span>
+                <select class="btn btn-outline-primary btn-sm" id="pointcloud_mode">
+                    <option value="0">point cloud colors</option>
+                    <option value="5">elevation gradient</option>
+                    <option value="4" selected>color layer</option>
+                </select>
+            </div>
+
+            <!-- Activate EDL -->
+            <div class="input-group p-2">
+                <div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" checked type="checkbox" role="switch" id="edl-enable">
+                        <label class="form-check-label" for="edl-enable">Eye dome lighting (EDL)</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- EDL intensity -->
+            <div class="input-group p-2">
+                <label for="edl-intensity" class="form-label">EDL intensity</label>
+                <div class="input-group">
+                    <input type="range" min="0" step="0.05" max="2" value="0.7" class="slider" id="edl-intensity">
+                </div>
+            </div>
+
+            <!-- EDL radius -->
+            <div class="input-group p-2">
+                <label for="edl-radius" class="form-label">EDL radius</label>
+                <div class="input-group">
+                    <input type="range" min="0.1" step="0.05" max="5" value="1.5" class="slider" id="edl-radius">
+                </div>
+            </div>
+
+            <!-- Activate occlusion -->
+            <div class="input-group p-2">
+                <div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" checked type="checkbox" role="switch" id="occlusion-enable">
+                        <label class="form-check-label" for="occlusion-enable">Point occlusion effect</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Activate inpainting -->
+            <div class="input-group p-2">
+                <div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" checked type="checkbox" role="switch" id="inpainting-enable">
+                        <label class="form-check-label" for="inpainting-enable">Inpainting</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Inpainting steps -->
+            <div class="input-group p-2">
+                <label for="inpainting-steps" class="form-label">Inpainting steps</label>
+                <div class="input-group">
+                    <input type="range" min="1" step="1" max="10" value="2" class="slider" id="inpainting-steps">
+                </div>
+            </div>
+
+        </fieldset>
+    </div>
+
 </div>

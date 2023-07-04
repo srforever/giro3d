@@ -43,16 +43,6 @@ const pointcloud = new Tiles3D(
 
 let colorLayer;
 
-document.getElementById('pointcloud_mode').addEventListener('change', e => {
-    const newMode = parseInt(e.target.value, 10);
-    material.mode = newMode;
-    instance.notifyChange(pointcloud, true);
-    if (colorLayer) {
-        colorLayer.visible = newMode === MODE.TEXTURE;
-        instance.notifyChange(colorLayer, true);
-    }
-});
-
 function placeCamera(position, lookAt) {
     instance.camera.camera3D.position.set(position.x, position.y, position.z);
     instance.camera.camera3D.lookAt(lookAt);
@@ -108,6 +98,11 @@ function initializeCamera() {
     );
 
     pointcloud.attach(colorLayer);
+
+    instance.renderingOptions.enableEDL = true;
+    instance.renderingOptions.enableInpainting = true;
+    instance.renderingOptions.enablePointCloudOcclusion = true;
+
     StatusBar.bind(instance);
 }
 
@@ -123,3 +118,39 @@ instance.domElement.addEventListener('dblclick', e => console.log(instance.pickO
     // Some points are incoherent in the pointcloud, don't pick them
     filter: p => !Number.isNaN(p.point.z) && p.point.z < 1000,
 })));
+
+instance.notifyChange();
+
+function bindSlider(name, fn) {
+    const slider = document.getElementById(name);
+    slider.oninput = function oninput() {
+        fn(slider.value);
+        instance.notifyChange();
+    };
+}
+
+function bindToggle(name, action) {
+    const toggle = document.getElementById(name);
+    toggle.oninput = () => {
+        const state = toggle.checked;
+        action(state);
+        instance.notifyChange();
+    };
+}
+
+bindToggle('edl-enable', v => { instance.renderingOptions.enableEDL = v; });
+bindToggle('occlusion-enable', v => { instance.renderingOptions.enablePointCloudOcclusion = v; });
+bindToggle('inpainting-enable', v => { instance.renderingOptions.enableInpainting = v; });
+bindSlider('edl-radius', v => { instance.renderingOptions.EDLRadius = v; });
+bindSlider('edl-intensity', v => { instance.renderingOptions.EDLStrength = v; });
+bindSlider('inpainting-steps', v => { instance.renderingOptions.inpaintingSteps = v; });
+
+document.getElementById('pointcloud_mode').addEventListener('change', e => {
+    const newMode = parseInt(e.target.value, 10);
+    material.mode = newMode;
+    instance.notifyChange(pointcloud, true);
+    if (colorLayer) {
+        colorLayer.visible = newMode === MODE.TEXTURE;
+        instance.notifyChange(colorLayer, true);
+    }
+});
