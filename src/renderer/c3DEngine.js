@@ -41,6 +41,32 @@ function createRenderTarget(width, height, type) {
     return result;
 }
 
+function createErrorMessage() {
+    // from Detector.js
+    const element = document.createElement('div');
+    element.id = 'webgl-error-message';
+    element.style.fontFamily = 'monospace';
+    element.style.fontSize = '13px';
+    element.style.fontWeight = 'normal';
+    element.style.textAlign = 'center';
+    element.style.background = '#fff';
+    element.style.color = '#000';
+    element.style.padding = '1.5em';
+    element.style.width = '400px';
+    element.style.margin = '5em auto 0';
+    element.innerHTML = window.WebGLRenderingContext ? [
+        'Your graphics card does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br />',
+        'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
+        'See also <a href="https://www.khronos.org/webgl/wiki/BlacklistsAndWhitelists">graphics card blacklisting</a>',
+    ].join('\n') : [
+        'Your browser does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br/>',
+        'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
+        'You can also try another browser like Firefox or Chrome.',
+    ].join('\n');
+
+    return element;
+}
+
 class C3DEngine {
     constructor(viewerDiv, options = {}) {
         // pick sensible default options
@@ -86,28 +112,7 @@ class C3DEngine {
         }
 
         if (!this.renderer) {
-            // from Detector.js
-            const element = document.createElement('div');
-            element.id = 'webgl-error-message';
-            element.style.fontFamily = 'monospace';
-            element.style.fontSize = '13px';
-            element.style.fontWeight = 'normal';
-            element.style.textAlign = 'center';
-            element.style.background = '#fff';
-            element.style.color = '#000';
-            element.style.padding = '1.5em';
-            element.style.width = '400px';
-            element.style.margin = '5em auto 0';
-            element.innerHTML = window.WebGLRenderingContext ? [
-                'Your graphics card does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br />',
-                'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
-                'See also <a href="https://www.khronos.org/webgl/wiki/BlacklistsAndWhitelists">graphics card blacklisting</a>',
-            ].join('\n') : [
-                'Your browser does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br/>',
-                'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
-                'You can also try another browser like Firefox or Chrome.',
-            ].join('\n');
-            viewerDiv.appendChild(element);
+            viewerDiv.appendChild(createErrorMessage());
             throw new Error('WebGL unsupported');
         }
 
