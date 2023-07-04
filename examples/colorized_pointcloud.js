@@ -8,6 +8,7 @@ import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js'
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import StatusBar from './widgets/StatusBar.js';
 
 const tmpVec3 = new Vector3();
@@ -81,9 +82,12 @@ function initializeCamera() {
     const lookAt = bbox.getCenter(tmpVec3);
     lookAt.z = bbox.min.z;
 
+    const extent = Extent.fromBox3('EPSG:3946', bbox);
+
     placeCamera(position, lookAt);
 
     const colorize = new TiledImageSource({
+        extent,
         source: new TileWMS({
             url: 'https://download.data.grandlyon.com/wms/grandlyon',
             params: {
