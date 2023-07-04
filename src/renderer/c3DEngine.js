@@ -67,7 +67,21 @@ function createErrorMessage() {
     return element;
 }
 
+/**
+ * @typedef {object} RendererOptions
+ * @property {boolean} antialias Enables antialiasing.
+ * @property {boolean} alpha Enables alpha on the renderer. Necessary for transparent backgrounds.
+ * @property {boolean} logarithmicDepthBuffer Enables the logarithmic depth buffer.
+ * @property {boolean} checkShaderErrors Enables shader validation. Note: this option is costly,
+ * and should be avoided in production builds.
+ * @property {Color|string|number} clearColor The clear color of the renderer.
+ */
+
 class C3DEngine {
+    /**
+     * @param {HTMLDivElement} viewerDiv The parent div that will contain the canvas.
+     * @param {RendererOptions} options The options.
+     */
     constructor(viewerDiv, options = {}) {
         // pick sensible default options
         if (options.antialias === undefined) {
