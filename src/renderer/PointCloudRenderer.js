@@ -299,8 +299,10 @@ class PointCloudRenderer {
         if (!this.renderTargets
             || renderTarget.width !== this.renderTargets[RT.FULL_RES_0].width
             || renderTarget.height !== this.renderTargets[RT.FULL_RES_0].height) {
-            // release old render targets
-            this.renderTargets.forEach(rt => rt.dispose());
+            if (this.renderTargets) {
+                // release old render targets
+                this.renderTargets.forEach(rt => rt.dispose());
+            }
             // build new ones
             this.renderTargets = this.createRenderTargets(renderTarget.width, renderTarget.height);
         }
@@ -337,9 +339,8 @@ class PointCloudRenderer {
     render(scene, camera, renderTarget) {
         this.updateRenderTargets(renderTarget);
 
-        const g = this.instance.mainLoop.gfxEngine;
         /** @type {WebGLRenderer} */
-        const r = g.renderer;
+        const r = this.renderer;
 
         /** @type {Stage[]} */
         const stages = [];
