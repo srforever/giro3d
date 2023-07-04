@@ -360,7 +360,7 @@ class PointCloudRenderer {
         }
 
         const oldClearAlpha = r.getClearAlpha();
-        // r.setClearAlpha(0.0);
+        r.setClearAlpha(0.0);
 
         let previousStageOutput = RT.FULL_RES_0;
         for (let i = 0; i < stages.length; i++) {
