@@ -116,21 +116,6 @@ class C3DEngine {
             throw new Error('WebGL unsupported');
         }
 
-        if (!renderer && options.logarithmicDepthBuffer) {
-            // We don't support logarithmicDepthBuffer when EXT_frag_depth is missing.
-            // So recreated a renderer if needed.
-            if (!this.renderer.extensions.get('EXT_frag_depth')) {
-                const _canvas = this.renderer.domElement;
-                this.renderer.dispose();
-                this.renderer = new WebGLRenderer({
-                    canvas: _canvas,
-                    antialias: options.antialias,
-                    alpha: options.alpha,
-                    logarithmicDepthBuffer: false,
-                });
-            }
-        }
-
         // Don't verify shaders if not debug (it is very costly)
         this.renderer.debug.checkShaderErrors = options.checkShaderErrors ?? __DEBUG__;
         this.labelRenderer = new CSS2DRenderer();
