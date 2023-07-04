@@ -17,6 +17,7 @@ import {
     WebGLRenderTarget,
     RGBAFormat,
     UnsignedByteType,
+    Scene,
 } from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Capabilities from '../core/system/Capabilities.js';
@@ -181,19 +182,6 @@ class C3DEngine {
         this.renderer.dispose();
     }
 
-    render(instance, include2d) {
-        this.renderer.setViewport(0, 0, this.width, this.height);
-        this.renderer.clear();
-        this.renderer.render(instance.scene, instance.camera.camera3D);
-
-        this.labelRenderer.render(instance.scene, instance.camera.camera3D);
-
-        if (include2d !== false) {
-            this.renderer.clearDepth();
-            this.renderer.render(instance.scene2D, instance.camera.camera2D);
-        }
-    }
-
     onWindowResize(w, h) {
         this.width = w;
         this.height = h;
@@ -211,6 +199,20 @@ class C3DEngine {
      */
     getWindowSize() {
         return new Vector2(this.width, this.height);
+    }
+
+    /**
+     * Renders the scene.
+     *
+     * @param {Scene} scene The scene to render.
+     * @param {Camera} camera The camera.
+     */
+    render(scene, camera) {
+        this.renderer.setViewport(0, 0, this.width, this.height);
+        this.renderer.clear();
+        this.renderer.render(scene, camera);
+
+        this.labelRenderer.render(scene, camera);
     }
 
     /**

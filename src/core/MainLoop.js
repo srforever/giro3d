@@ -275,7 +275,7 @@ MainLoop.prototype._renderInstance = function _renderInstance(instance, dt) {
         instance.render();
     } else {
         // use default rendering method
-        this.gfxEngine.render(instance);
+        this.gfxEngine.render(instance.scene, instance.camera.camera3D);
     }
 
     instance.execFrameRequesters(MAIN_LOOP_EVENTS.AFTER_RENDER, dt, this._updateLoopRestarted);
