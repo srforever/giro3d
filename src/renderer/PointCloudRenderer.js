@@ -4,7 +4,6 @@ import {
     DepthTexture,
     Float32BufferAttribute,
     FloatType,
-    Camera,
     Matrix4,
     Mesh,
     NearestFilter,

@@ -36,6 +36,13 @@ class InstanceInspector extends Panel {
             : 'idle';
     }
 
+    update() {
+        if (!this.gui._closed) {
+            this.updateControllers();
+            this.enginePanel.update();
+        }
+    }
+
     /**
      * @param {WebGLRenderer} renderer The renderer
      * @param {GUI} rendererPanel The GUI

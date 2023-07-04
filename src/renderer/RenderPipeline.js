@@ -14,6 +14,7 @@ import {
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { TexturePass } from 'three/examples/jsm/postprocessing/TexturePass.js';
 import PointCloudRenderer from './PointCloudRenderer.js';
+import RenderingOptions from './RenderingOptions.js';
 
 const BUCKETS = {
     OPAQUE: 0,
@@ -78,17 +79,19 @@ export default class RenderPipeline {
         }
     }
 
-    render(scene, camera, width, height) {
+    /**
+     * @param {Object3D} scene The scene to render.
+     * @param {Camera} camera The camera to render.
+     * @param {number} width The width in pixels of the render target.
+     * @param {number} height The height in pixels of the render target.
+     * @param {RenderingOptions} options The options.
+     */
+    render(scene, camera, width, height, options) {
         const renderer = this.renderer;
 
         this.prepareRenderTargets(width, height);
 
-        // TODO cleanup unused code
-        // renderer.setViewport(0, 0, this.sceneRenderTarget.width, this.sceneRenderTarget.height);
         renderer.setRenderTarget(this.sceneRenderTarget);
-
-        // renderer.autoClear = false;
-        // renderer.clear();
 
         this.collectRenderBuckets(scene);
 
@@ -97,7 +100,7 @@ export default class RenderPipeline {
         // Point cloud rendering adds special effects. To avoid applying those effects
         // to all objects in the scene, we separate the meshes into buckets, and
         // render those buckets separately.
-        this.renderPointClouds(scene, camera, this.buckets[BUCKETS.POINT_CLOUD]);
+        this.renderPointClouds(scene, camera, this.buckets[BUCKETS.POINT_CLOUD], options);
 
         this.renderMeshes(scene, camera, this.buckets[BUCKETS.TRANSPARENT]);
 
@@ -111,8 +114,9 @@ export default class RenderPipeline {
      * @param {Object3D} scene The scene to render.
      * @param {Camera} camera The camera.
      * @param {Mesh[]} meshes The meshes to render.
+     * @param {RenderingOptions} opts The rendering options.
      */
-    renderPointClouds(scene, camera, meshes) {
+    renderPointClouds(scene, camera, meshes, opts) {
         if (meshes.length === 0) {
             return;
         }
@@ -121,9 +125,19 @@ export default class RenderPipeline {
             this.pointCloudRenderer = new PointCloudRenderer(this.renderer);
         }
 
+        const pcr = this.pointCloudRenderer;
+
+        pcr.edl.enabled = opts.enableEDL;
+        pcr.edl.parameters.radius = opts.EDLRadius;
+        pcr.edl.parameters.strength = opts.EDLStrength;
+        pcr.inpainting.enabled = opts.enableInpainting;
+        pcr.inpainting.parameters.fill_steps = opts.inpaintingSteps;
+        pcr.inpainting.parameters.depth_contrib = opts.inpaintingDepthContribution;
+        pcr.occlusion.enabled = opts.enablePointCloudOcclusion;
+
         setVisibility(meshes, true);
 
-        this.pointCloudRenderer.render(scene, camera, this.sceneRenderTarget);
+        pcr.render(scene, camera, this.sceneRenderTarget);
 
         setVisibility(meshes, false);
     }

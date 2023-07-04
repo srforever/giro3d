@@ -22,6 +22,7 @@ import {
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Capabilities from '../core/system/Capabilities.js';
 import RenderPipeline from './RenderPipeline.js';
+import RenderingOptions from './RenderingOptions.js';
 
 const tmpClear = new Color();
 
@@ -41,6 +42,14 @@ function createRenderTarget(width, height, type) {
     result.depthTexture.type = UnsignedShortType;
 
     return result;
+}
+
+/**
+ * @param {RenderingOptions} options The options.
+ * @returns {boolean} True if the options requires a custom pipeline.
+ */
+function requiresCustomPipeline(options) {
+    return options.enableEDL || options.enableInpainting || options.enablePointCloudOcclusion;
 }
 
 function createErrorMessage() {
@@ -174,6 +183,8 @@ class C3DEngine {
 
         /** @type {RenderPipeline} */
         this.renderPipeline = null;
+
+        this.renderingOptions = new RenderingOptions();
     }
 
     dispose() {
@@ -212,10 +223,14 @@ class C3DEngine {
      * @param {Camera} camera The camera.
      */
     render(scene, camera) {
+        this.renderer.setRenderTarget(null);
         this.renderer.clear();
 
-        // this.renderer.render(scene, camera);
-        this.renderUsingCustomPipeline(scene, camera);
+        if (requiresCustomPipeline(this.renderingOptions)) {
+            this.renderUsingCustomPipeline(scene, camera);
+        } else {
+            this.renderer.render(scene, camera);
+        }
 
         this.labelRenderer.render(scene, camera);
     }
@@ -231,7 +246,7 @@ class C3DEngine {
             this.renderPipeline = new RenderPipeline(this.renderer);
         }
 
-        this.renderPipeline.render(scene, camera, this.width, this.height);
+        this.renderPipeline.render(scene, camera, this.width, this.height, this.renderingOptions);
     }
 
     /**
@@ -328,7 +343,7 @@ class C3DEngine {
 
         this.renderer.setRenderTarget(target);
         this.renderer.clear();
-        this.render(scene, camera);
+        this.renderer.render(scene, camera);
         this.renderer.setRenderTarget(current);
 
         target.scissorTest = false;

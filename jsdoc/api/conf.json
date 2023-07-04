@@ -38,6 +38,7 @@
       "src/renderer/MemoryTracker.js",
       "src/renderer/Camera.js",
       "src/renderer/PointsMaterial.js",
+      "src/renderer/RenderingOptions.js",
       "src/sources",
       "src/utils/Fetcher.js",
       "src/utils/HttpConfiguration.js"
