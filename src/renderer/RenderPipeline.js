@@ -1,19 +1,18 @@
 import {
-    Color,
+    Camera,
     DepthTexture,
     FloatType,
     Material,
     Mesh,
     NearestFilter,
+    Object3D,
     Scene,
     UnsignedByteType,
     WebGLRenderTarget,
+    WebGLRenderer,
 } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
-import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
 import { TexturePass } from 'three/examples/jsm/postprocessing/TexturePass.js';
-import { LuminosityShader } from 'three/examples/jsm/shaders/LuminosityShader.js';
-import Instance from '../core/Instance.js';
 import PointCloudRenderer from './PointCloudRenderer.js';
 
 const BUCKETS = {
@@ -32,112 +31,118 @@ function setVisibility(meshes, visible) {
     }
 }
 
+/**
+ * A render pipeline that supports various effects.
+ */
 export default class RenderPipeline {
     /**
-     * @param {Instance} instance The Giro3D instance.
+     * @param {WebGLRenderer} renderer The WebGL renderer.
      */
-    constructor(instance) {
-        this.instance = instance;
+    constructor(renderer) {
+        this.renderer = renderer;
 
         /** @type {Mesh[][]} */
         this.buckets = [[], [], []];
 
         /** @type {WebGLRenderTarget} */
-        this.renderTarget = null;
+        this.sceneRenderTarget = null;
     }
 
-    prepareRenderTargets() {
-        const camera = this.instance.camera;
-        const renderer = this.instance.renderer;
+    prepareRenderTargets(width, height) {
+        if (!this.sceneRenderTarget
+            || this.sceneRenderTarget.width !== width
+            || this.sceneRenderTarget.height !== height) {
+            this.sceneRenderTarget?.dispose();
+            this.effectComposer?.dispose();
 
-        if (!this.renderTarget
-            || this.renderTarget.width !== camera.width
-            || this.renderTarget.height !== camera.height) {
-            this.renderTarget?.dispose();
-            this.composer?.dispose();
-
-            const depthBufferType = renderer.capabilities.floatFragmentTextures
+            const depthBufferType = this.renderer.capabilities.floatFragmentTextures
                 ? FloatType
                 : UnsignedByteType;
 
-            this.renderTarget = new WebGLRenderTarget(camera.width, camera.height, {
+            // This is the render target that the initial rendering of scene will be:
+            // opaque, transparent and point cloud buckets render into this.
+            this.sceneRenderTarget = new WebGLRenderTarget(width, height, {
                 generateMipmaps: false,
                 magFilter: NearestFilter,
                 minFilter: NearestFilter,
                 depthBuffer: true,
                 stencilBuffer: true,
-                depthTexture: new DepthTexture(camera.width, camera.height, depthBufferType),
+                depthTexture: new DepthTexture(width, height, depthBufferType),
             });
 
-            this.composer = new EffectComposer(renderer);
-            this.composer.addPass(new TexturePass(this.renderTarget.texture));
+            this.effectComposer = new EffectComposer(this.renderer);
+
+            // After the buckets have been rendered into the render target,
+            // the effect composer will render this render target to the canvas.
+            this.effectComposer.addPass(new TexturePass(this.sceneRenderTarget.texture));
         }
     }
 
-    render() {
-        const scene = this.instance.scene;
-        const renderer = this.instance.renderer;
+    render(scene, camera, width, height) {
+        const renderer = this.renderer;
 
-        this.prepareRenderTargets();
+        this.prepareRenderTargets(width, height);
 
-        renderer.setViewport(0, 0, this.renderTarget.width, this.renderTarget.height);
-        renderer.setRenderTarget(this.renderTarget);
+        // TODO cleanup unused code
+        // renderer.setViewport(0, 0, this.sceneRenderTarget.width, this.sceneRenderTarget.height);
+        renderer.setRenderTarget(this.sceneRenderTarget);
 
-        renderer.autoClear = false;
-        renderer.clear();
+        // renderer.autoClear = false;
+        // renderer.clear();
 
         this.collectRenderBuckets(scene);
 
-        this.renderMeshes(this.buckets[BUCKETS.OPAQUE]);
+        this.renderMeshes(scene, camera, this.buckets[BUCKETS.OPAQUE]);
 
-        this.renderPointClouds(this.buckets[BUCKETS.POINT_CLOUD]);
+        // Point cloud rendering adds special effects. To avoid applying those effects
+        // to all objects in the scene, we separate the meshes into buckets, and
+        // render those buckets separately.
+        this.renderPointClouds(scene, camera, this.buckets[BUCKETS.POINT_CLOUD]);
 
-        this.renderMeshes(this.buckets[BUCKETS.TRANSPARENT]);
+        this.renderMeshes(scene, camera, this.buckets[BUCKETS.TRANSPARENT]);
 
-        // Finally, render to the canvas.
-        this.composer.render();
+        // Finally, render to the canvas via the EffectComposer.
+        this.effectComposer.render();
 
         this.onAfterRender();
     }
 
     /**
+     * @param {Object3D} scene The scene to render.
+     * @param {Camera} camera The camera.
      * @param {Mesh[]} meshes The meshes to render.
      */
-    renderPointClouds(meshes) {
+    renderPointClouds(scene, camera, meshes) {
         if (meshes.length === 0) {
             return;
         }
 
         if (!this.pointCloudRenderer) {
-            this.pointCloudRenderer = new PointCloudRenderer(this.instance);
-            this.pointCloudRenderer.edl.enabled = true;
-            this.pointCloudRenderer.inpainting.enabled = false;
-            this.pointCloudRenderer.occlusion.enabled = false;
+            this.pointCloudRenderer = new PointCloudRenderer(this.renderer);
         }
 
         setVisibility(meshes, true);
 
-        this.pointCloudRenderer.render({ renderTarget: this.renderTarget });
+        this.pointCloudRenderer.render(scene, camera, this.sceneRenderTarget);
 
         setVisibility(meshes, false);
     }
 
     /**
+     * @param {Object3D} scene The scene to render.
+     * @param {Camera} camera The camera.
      * @param {Mesh[]} meshes The meshes to render.
      */
-    renderMeshes(meshes) {
+    renderMeshes(scene, camera, meshes) {
         if (meshes.length === 0) {
             return;
         }
 
-        const camera = this.instance.camera;
-        const renderer = this.instance.renderer;
-        const scene = this.instance.scene;
+        const renderer = this.renderer;
 
         setVisibility(meshes, true);
 
-        renderer.render(scene, camera.camera3D);
-        // engine.render(this.instance);
+        renderer.render(scene, camera);
 
         setVisibility(meshes, false);
     }
@@ -151,6 +156,12 @@ export default class RenderPipeline {
             }
             bucket.length = 0;
         }
+    }
+
+    dispose() {
+        this.effectComposer.dispose();
+        this.sceneRenderTarget?.dispose();
+        this.pointCloudRenderer?.dispose();
     }
 
     /**

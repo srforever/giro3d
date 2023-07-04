@@ -4,9 +4,11 @@ import {
     DepthTexture,
     Float32BufferAttribute,
     FloatType,
+    Camera,
     Matrix4,
     Mesh,
     NearestFilter,
+    NormalBlending,
     OrthographicCamera,
     RGBAFormat,
     Scene,
@@ -23,14 +25,11 @@ import EDLPassTwoFS from './shader/pointcloud/EDLPassTwoFS.glsl';
 import OcclusionFS from './shader/pointcloud/OcclusionFS.glsl';
 import InpaintingFS from './shader/pointcloud/InpaintingFS.glsl';
 
-import { MAIN_LOOP_EVENTS } from '../core/MainLoop.js';
-import Instance from '../core/Instance.js';
-
 const RT = {
     FULL_RES_0: 0,
     FULL_RES_1: 1,
     EDL_VALUES: 2,
-    HALF_RES: 3,
+    EDL_ZERO: 3,
 };
 
 /**
@@ -46,12 +45,11 @@ const RT = {
  */
 class PointCloudRenderer {
     /**
-     * Creates a point cloud renderer for the specified instance.
+     * Creates a point cloud renderer.
      *
-     * @api
-     * @param {Instance} instance The Giro3D instance.
+     * @param {WebGLRenderer} webGLRenderer The WebGL renderer.
      */
-    constructor(instance) {
+    constructor(webGLRenderer) {
         this.scene = new Scene();
 
         // create 1 big triangle covering the screen
@@ -85,6 +83,8 @@ class PointCloudRenderer {
                     uniforms: {
                         depthTexture: { value: null },
                     },
+                    transparent: true,
+                    blending: NormalBlending,
                     vertexShader: BasicVS,
                     fragmentShader: EDLPassZeroFS,
                     extensions: { fragDepth: true },
@@ -104,6 +104,8 @@ class PointCloudRenderer {
                         n: { value: 0 },
                         opacity: { value: 1.0 },
                     },
+                    transparent: true,
+                    blending: NormalBlending,
                     vertexShader: BasicVS,
                     fragmentShader: EDLPassOneFS,
                 }),
@@ -117,6 +119,8 @@ class PointCloudRenderer {
                         textureEDL: { value: null },
                         opacity: { value: 1.0 },
                     },
+                    transparent: true,
+                    blending: NormalBlending,
                     vertexShader: BasicVS,
                     fragmentShader: EDLPassTwoFS,
                     extensions: { fragDepth: true },
@@ -126,25 +130,26 @@ class PointCloudRenderer {
             // EDL tuning
             parameters: {
                 // distance to neighbours pixels
-                radius: 3.0,
+                radius: 1.5,
                 // edl value coefficient
-                strength: 0.35,
+                strength: 0.7,
                 // directions count where neighbours are taken
                 directions: 8,
                 // how many neighbours per direction
                 n: 1,
             },
-            setup(renderer, input, passIdx) {
-                const camera = renderer.instance.camera.camera3D;
+            setup({
+                renderer, input, passIdx, camera,
+            }) {
                 const m = this.passes[passIdx];
                 const uniforms = m.uniforms;
                 if (passIdx === 0) {
                     // scale down depth texture
                     uniforms.depthTexture.value = input.depthTexture;
-                    return { material: m, output: renderer.renderTargets[RT.HALF_RES] };
+                    return { material: m, output: renderer.renderTargets[RT.EDL_ZERO] };
                 }
                 if (passIdx === 1) {
-                    uniforms.depthTexture.value = renderer.renderTargets[RT.HALF_RES].depthTexture;
+                    uniforms.depthTexture.value = renderer.renderTargets[RT.EDL_ZERO].depthTexture;
                     uniforms.resolution.value.set(input.width, input.height);
                     uniforms.cameraNear.value = camera.near;
                     uniforms.cameraFar.value = camera.far;
@@ -183,6 +188,8 @@ class PointCloudRenderer {
                         clearColor: { value: new Color() },
                         opacity: { value: 1.0 },
                     },
+                    transparent: true,
+                    blending: NormalBlending,
                     vertexShader: BasicVS,
                     fragmentShader: OcclusionFS,
                     extensions: { fragDepth: true },
@@ -196,8 +203,7 @@ class PointCloudRenderer {
                 // debug feature to colorize removed pixels
                 showRemoved: false,
             },
-            setup(renderer, input) {
-                const camera = renderer.instance.camera.camera3D;
+            setup({ renderer, input, camera }) {
                 const m = this.passes[0];
                 const n = camera.near;
                 const f = camera.far;
@@ -218,7 +224,7 @@ class PointCloudRenderer {
                 mU.showRemoved.value = this.parameters.showRemoved;
                 mU.invPersMatrix.value.copy(camera.projectionMatrix)
                     .invert();
-                renderer.instance.mainLoop.gfxEngine.renderer.getClearColor(mU.clearColor.value);
+                renderer.renderer.getClearColor(mU.clearColor.value);
 
                 return { material: m };
             },
@@ -245,6 +251,8 @@ class PointCloudRenderer {
                         zAttMax: { value: 0 },
                         zAttMin: { value: 0 },
                     },
+                    transparent: true,
+                    blending: NormalBlending,
                     vertexShader: BasicVS,
                     fragmentShader: InpaintingFS,
                     extensions: { fragDepth: true },
@@ -257,14 +265,14 @@ class PointCloudRenderer {
                 fill_steps: 2,
                 // depth contribution to the final color (?)
                 depth_contrib: 0.5,
-                enableZAttenuation: true,
+                enableZAttenuation: false,
                 zAttMin: 10,
                 zAttMax: 100,
             },
-            setup(renderer, input) {
+            setup({ input, camera }) {
                 const m = this.passes[0];
-                const n = renderer.instance.camera.camera3D.near;
-                const f = renderer.instance.camera.camera3D.far;
+                const n = camera.near;
+                const f = camera.far;
                 const m43 = -(2 * f * n) / (f - n);
                 const m33 = -(f + n) / (f - n);
 
@@ -283,21 +291,19 @@ class PointCloudRenderer {
             },
         };
 
-        this.instance = instance;
         /** @type {WebGLRenderer} */
-        this.renderer = instance.mainLoop.gfxEngine.renderer;
-        this.renderTargets = this.createRenderTargets();
-
-        instance.addFrameRequester(MAIN_LOOP_EVENTS.BEFORE_CAMERA_UPDATE, this.update.bind(this));
+        this.renderer = webGLRenderer;
+        this.renderTargets = null;
     }
 
-    update() {
-        if (this.instance.camera.width !== this.renderTargets[RT.FULL_RES_0].width
-            || this.instance.camera.height !== this.renderTargets[RT.FULL_RES_0].height) {
+    updateRenderTargets(renderTarget) {
+        if (!this.renderTargets
+            || renderTarget.width !== this.renderTargets[RT.FULL_RES_0].width
+            || renderTarget.height !== this.renderTargets[RT.FULL_RES_0].height) {
             // release old render targets
             this.renderTargets.forEach(rt => rt.dispose());
             // build new ones
-            this.renderTargets = this.createRenderTargets();
+            this.renderTargets = this.createRenderTargets(renderTarget.width, renderTarget.height);
         }
     }
 
@@ -306,6 +312,7 @@ class PointCloudRenderer {
         return new WebGLRenderTarget(width, height, {
             format: RGBAFormat,
             depthBuffer,
+            stencilBuffer: true,
             generateMipmaps: false,
             minFilter: NearestFilter,
             magFilter: NearestFilter,
@@ -317,10 +324,8 @@ class PointCloudRenderer {
         });
     }
 
-    createRenderTargets() {
+    createRenderTargets(width, height) {
         const renderTargets = [];
-        const width = this.instance.camera.width;
-        const height = this.instance.camera.height;
 
         renderTargets.push(this.createRenderTarget(width, height, true));
         renderTargets.push(this.createRenderTarget(width, height, true));
@@ -330,11 +335,12 @@ class PointCloudRenderer {
         return renderTargets;
     }
 
-    render({ renderTarget, opacity }) {
+    render(scene, camera, renderTarget) {
+        this.updateRenderTargets(renderTarget);
+
         const g = this.instance.mainLoop.gfxEngine;
         /** @type {WebGLRenderer} */
         const r = g.renderer;
-        const instance = this.instance;
 
         /** @type {Stage[]} */
         const stages = [];
@@ -354,7 +360,7 @@ class PointCloudRenderer {
         }
 
         const oldClearAlpha = r.getClearAlpha();
-        r.setClearAlpha(0.0);
+        // r.setClearAlpha(0.0);
 
         let previousStageOutput = RT.FULL_RES_0;
         for (let i = 0; i < stages.length; i++) {
@@ -365,9 +371,12 @@ class PointCloudRenderer {
             for (let j = 0; j < stage.passes.length; j++) {
                 // prepare stage
                 // eslint-disable-next-line prefer-const
-                let { material, output } = stage.setup(
-                    this, this.renderTargets[previousStageOutput], j,
-                );
+                let { material, output } = stage.setup({
+                    renderer: this,
+                    input: this.renderTargets[previousStageOutput],
+                    passIdx: j,
+                    camera,
+                });
 
                 // if last stage -> override output (draw to screen)
                 if (i === stages.length - 1 && j === stage.passes.length - 1) {
@@ -378,36 +387,36 @@ class PointCloudRenderer {
 
                 // render stage
                 r.setRenderTarget(output);
-                // if (output) {
-                //     r.clear();
-                // }
+
+                // We don't want to clear the final render target
+                // because it would erase whatever was rendered previously
+                // (i.e opaque non-point cloud meshes)
+                if (output !== renderTarget) {
+                    r.clear();
+                }
                 r.setViewport(
                     0, 0,
-                    output ? output.width : instance.camera.width,
-                    output ? output.height : instance.camera.height,
+                    output ? output.width : camera.width,
+                    output ? output.height : camera.height,
                 );
 
                 if (material) {
                     // postprocessing scene
                     this.mesh.material = material;
-                    if (output) {
-                        material.transparent = false;
-                        material.needsUpdate = true;
-                        material.opacity = 1.0;
-                    } else {
-                        material.transparent = true;
-                        material.needsUpdate = true;
-                        material.uniforms.opacity.value = opacity;
-                    }
                     r.render(this.scene, this.camera);
                 } else {
-                    r.render(instance.scene, instance.camera.camera3D);
+                    r.render(scene, camera);
                 }
             }
             previousStageOutput = stageOutput;
         }
 
         r.setClearAlpha(oldClearAlpha);
+    }
+
+    dispose() {
+        this.renderTargets.forEach(t => t.dispose());
+        this.renderTargets.length = 0;
     }
 }
 
