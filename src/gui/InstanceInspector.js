@@ -5,6 +5,7 @@ import GUI from 'lil-gui';
 import { WebGLRenderer } from 'three';
 import Panel from './Panel.js';
 import Instance from '../core/Instance.js';
+import RenderingInspector from './RenderingInspector.js';
 
 class InstanceInspector extends Panel {
     /**
@@ -25,6 +26,8 @@ class InstanceInspector extends Panel {
         const rendererPanel = this.gui.addFolder('WebGLRenderer');
         rendererPanel.close();
         this._addCapabilities(this.renderer, rendererPanel);
+
+        this.enginePanel = new RenderingInspector(this.gui, instance);
     }
 
     updateValues() {
