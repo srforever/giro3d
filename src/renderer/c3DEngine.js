@@ -216,20 +216,22 @@ class C3DEngine {
     }
 
     /**
-     * Render instance to a Uint8Array.
+     * Renders the scene into a readable buffer.
      *
      * @param {object} options Options.
      * @param {Color} options.clearColor The clear color to apply before rendering.
      * @param {Object3D} options.scene The scene to render.
      * @param {Camera} options.camera The camera to render.
+     * @param {number} options.datatype The type of pixels in the buffer.
+     * Defaults to `UnsignedByteType`.
      * @param {object} [options.zone] partial zone to render. If undefined, the whole
      * viewport is used.
      * @param {number} options.zone.x x (in instance coordinate)
      * @param {number} options.zone.y y (in instance coordinate)
      * @param {number} options.zone.width width of area to render (in pixels)
      * @param {number} options.zone.height height of area to render (in pixels)
-     * @returns {Uint8Array} - Uint8Array, 4 bytes per pixel. The first pixel in
-     * the array is the bottom-left pixel.
+     * @returns {Uint8Array|Float32Array} The buffer. The first pixel in
+     * the buffer is the bottom-left pixel.
      */
     renderToBuffer(options) {
         const zone = options.zone || {
@@ -256,7 +258,7 @@ class C3DEngine {
         }
         const renderTarget = this.renderTargets.get(datatype);
 
-        this.renderInstanceToRenderTarget(scene, camera, renderTarget, zone);
+        this._renderToRenderTarget(scene, camera, renderTarget, zone);
 
         this.renderer.setClearColor(clear, alpha);
 
@@ -276,7 +278,7 @@ class C3DEngine {
     }
 
     /**
-     * Render view to a render target.
+     * Render the scene to a render target.
      *
      * @param {Object3D} scene The scene root.
      * @param {Camera} camera The camera to render.
@@ -286,7 +288,7 @@ class C3DEngine {
      * Note: target must contain complete zone
      * @returns {WebGLRenderTarget} - the destination render target
      */
-    renderInstanceToRenderTarget(scene, camera, target, zone) {
+    _renderToRenderTarget(scene, camera, target, zone) {
         if (!target) {
             target = this.renderTargets.get(UnsignedByteType);
         }
@@ -314,6 +316,14 @@ class C3DEngine {
         return target;
     }
 
+    /**
+     * Converts the pixel buffer into an image element.
+     *
+     * @param {*} pixelBuffer The 8-bit RGBA buffer.
+     * @param {number} width The width of the buffer, in pixels.
+     * @param {number} height The height of the buffer, in pixels.
+     * @returns {HTMLImageElement} The image.
+     */
     static bufferToImage(pixelBuffer, width, height) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
