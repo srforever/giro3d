@@ -320,34 +320,6 @@ class C3DEngine {
         return target;
     }
 
-    renderLayerTobuffer(instance, layer, buffer, x, y, width, height) {
-        // hide all layers but the requested one
-        // TODO restore the ability to hide layers (not only objects)
-        const previousVisibility = instance._objects.map(l => l.visible);
-        for (const v of instance._objects) {
-            v.visible = false;
-        }
-        layer.visible = true;
-
-        const current = this.renderer.getRenderTarget();
-        this.renderer.setRenderTarget(buffer);
-        this.renderer.setViewport(0, 0, buffer.width, buffer.height);
-        this.renderer.setScissor(x, y, width, height);
-        this.renderer.setScissorTest(true);
-        this.renderer.clear();
-        this.renderer.render(layer.object3d, instance.camera.camera3D);
-        this.renderer.setScissorTest(false);
-        const pixelBuffer = new Uint8Array(4 * width * height);
-        this.renderer.readRenderTargetPixels(buffer, x, y, width, height, pixelBuffer);
-        this.renderer.setRenderTarget(current);
-
-        for (let i = 0; i < previousVisibility.length; i++) {
-            instance._objects[i].visible = previousVisibility[i];
-        }
-
-        return pixelBuffer;
-    }
-
     static bufferToImage(pixelBuffer, width, height) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
