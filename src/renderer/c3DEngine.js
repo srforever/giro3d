@@ -89,6 +89,7 @@ class C3DEngine {
         this.width = viewerDiv.clientWidth;
         this.height = viewerDiv.clientHeight;
 
+        /** @type {Map<number, WebGLRenderTarget>} */
         this.renderTargets = new Map();
 
         /** @type {WebGLRenderer} */
@@ -189,9 +190,11 @@ class C3DEngine {
         this.labelRenderer.setSize(this.width, this.height);
     }
 
-    /*
-    * return
-    */
+    /**
+     * Gets the viewport size, in pixels.
+     *
+     * @returns {Vector2} The viewport size, in pixels.
+     */
     getWindowSize() {
         return new Vector2(this.width, this.height);
     }
