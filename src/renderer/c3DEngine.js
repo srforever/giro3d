@@ -89,8 +89,6 @@ class C3DEngine {
         this.width = viewerDiv.clientWidth;
         this.height = viewerDiv.clientHeight;
 
-        this.positionBuffer = null;
-
         this.renderTargets = new Map();
 
         /** @type {WebGLRenderer} */
@@ -199,16 +197,6 @@ class C3DEngine {
     */
     getWindowSize() {
         return new Vector2(this.width, this.height);
-    }
-
-    /**
-     * return renderer js
-     *
-     * @returns {C3DEngine.WebGLRenderer} the js WebGL renderer,
-     * if any. Otherwise <code>undefined</code>
-     */
-    getRenderer() {
-        return this.renderer;
     }
 
     /**
