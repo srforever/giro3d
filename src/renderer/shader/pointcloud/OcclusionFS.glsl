@@ -10,9 +10,6 @@ uniform mat4 invPersMatrix;
 
 uniform float threshold;
 uniform bool showRemoved;
-uniform vec3 clearColor;
-
-uniform float opacity;
 
 vec3 unproject (vec2 ptex, float d)
 {
@@ -98,7 +95,6 @@ void main() {
             }
         }
 
-        bool visible = true;
         float m = 0.0;
         for (int i=0; i< 8 ;i++) {
             m += (1.0 + sectors[i]) * 0.5;

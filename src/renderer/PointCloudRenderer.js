@@ -1,6 +1,5 @@
 import {
     BufferGeometry,
-    Color,
     DepthTexture,
     Float32BufferAttribute,
     FloatType,
@@ -184,8 +183,6 @@ class PointCloudRenderer {
                         invPersMatrix: { value: new Matrix4() },
                         threshold: { value: 0 },
                         showRemoved: { value: false },
-                        clearColor: { value: new Color() },
-                        opacity: { value: 1.0 },
                     },
                     transparent: true,
                     blending: NormalBlending,
@@ -202,7 +199,7 @@ class PointCloudRenderer {
                 // debug feature to colorize removed pixels
                 showRemoved: false,
             },
-            setup({ renderer, input, camera }) {
+            setup({ input, camera }) {
                 const m = this.passes[0];
                 const n = camera.near;
                 const f = camera.far;
@@ -223,7 +220,6 @@ class PointCloudRenderer {
                 mU.showRemoved.value = this.parameters.showRemoved;
                 mU.invPersMatrix.value.copy(camera.projectionMatrix)
                     .invert();
-                renderer.renderer.getClearColor(mU.clearColor.value);
 
                 return { material: m };
             },
@@ -234,9 +230,7 @@ class PointCloudRenderer {
         /** @type {Stage} */
         this.inpainting = {
             passes: [
-                // EDL 1st pass material
-                // This pass is writing a single value per pixel, describing the depth
-                // difference between one pixel and its neighbours.
+                // Inpainting material
                 new ShaderMaterial({
                     uniforms: {
                         depthTexture: { value: null },
