@@ -1,3 +1,4 @@
+import { Vector3 } from 'three';
 import Instance from '../../src/core/Instance.js';
 import { MAIN_LOOP_EVENTS } from '../../src/core/MainLoop.js';
 
@@ -40,6 +41,10 @@ let progressBar;
 let percent;
 let urlTimeout;
 let currentInstance;
+let pickingRadius;
+const tmpVec3 = new Vector3();
+const lastCameraPosition = new Vector3(0, 0, 0);
+let coordinates;
 
 function updateProgressFrameRequester() {
     progressBar.style.width = `${currentInstance.progress * 100}%`;
@@ -53,6 +58,26 @@ function updateUrlFrameRequester() {
     urlTimeout = setTimeout(() => updateUrl(currentInstance), 50);
 }
 
+function pick(mouseEvent) {
+    const cameraPosition = currentInstance.camera.camera3D.getWorldPosition(tmpVec3);
+    // Don't pick while the camera is moving
+    if (!lastCameraPosition || lastCameraPosition.distanceToSquared(cameraPosition) === 0) {
+        const picked = currentInstance.pickObjectsAt(mouseEvent, {
+            limit: 1,
+            radius: pickingRadius,
+        }).at(0);
+
+        if (picked) {
+            coordinates.classList.remove('d-none');
+            coordinates.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(2)}`;
+        } else {
+            coordinates.classList.add('d-none');
+        }
+    }
+
+    lastCameraPosition.copy(cameraPosition);
+}
+
 /**
  * @param {Instance} instance The instance.
  * @param {object} options The options.
@@ -60,18 +85,11 @@ function updateUrlFrameRequester() {
  * @param {boolean} options.disableUrlUpdate Disable automatic URL update.
  */
 function bind(instance, options = {}) {
+    pickingRadius = options.radius ?? 1;
     currentInstance = instance;
     // Bind events
-    const coordinates = document.getElementById('coordinates');
-    instance.domElement.addEventListener('mousemove', e => {
-        const picked = instance.pickObjectsAt(e, { limit: 1, radius: options.radius ?? 1 }).at(0);
-        if (picked) {
-            coordinates.classList.remove('d-none');
-            coordinates.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(2)}`;
-        } else {
-            coordinates.classList.add('d-none');
-        }
-    });
+    coordinates = document.getElementById('coordinates');
+    instance.domElement.addEventListener('mousemove', pick);
 
     progressBar = document.getElementById('progress-bar');
     percent = document.getElementById('loading-percent');
