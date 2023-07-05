@@ -233,6 +233,9 @@ class Map extends Entity3D {
 
         this._segments = options.segments || 8;
 
+        /**
+         * @type {import('../renderer/LayeredMaterial.js').MaterialOptions}
+         */
         this.materialOptions = {
             hillshading: options.hillshading || false,
             discardNoData: options.discardNoData || false,

@@ -66,7 +66,26 @@ class TextureInfo {
     }
 }
 
+/**
+ * @typedef {object} MaterialOptions The material options.
+ * @property {boolean} [discardNoData] Discards no-data pixels.
+ * @property {boolean} [doubleSided] Toggles double-sided surfaces.
+ * @property {boolean} [hillshading] Toggles hillshading.
+ * @property {number} [segments] The number of subdivision segments per tile.
+ * @property {{min: number, max: number}} [elevationRange] The elevation range.
+ * @property {ColorMapAtlas} [colorMapAtlas] The colormap atlas.
+ * @property {Color} [backgroundColor] The background color.
+ * @property {number} [backgroundOpacity] The background opacity.
+ */
+
 class LayeredMaterial extends RawShaderMaterial {
+    /**
+     * @param {object} param0 the params.
+     * @param {MaterialOptions} param0.options the material options.
+     * @param {object} param0.renderer the WebGL renderer.
+     * @param {object} param0.atlasInfo the Atlas info.
+     * @param {Function} param0.getIndexFn The function to help sorting color layers.
+     */
     constructor({
         options = {},
         renderer,
@@ -174,6 +193,9 @@ class LayeredMaterial extends RawShaderMaterial {
         return this.composer.height;
     }
 
+    /**
+     * @param {number} v The number of segments.
+     */
     set segments(v) {
         if (this.uniforms.segments.value !== v) {
             this.uniforms.segments.value = v;
@@ -500,6 +522,10 @@ class LayeredMaterial extends RawShaderMaterial {
         }
     }
 
+    /**
+     * @param {MaterialOptions} materialOptions The material options.
+     * @returns {boolean} ?
+     */
     update(materialOptions = {}) {
         this.uniforms.zenith.value = this.lightDirection.zenith;
         this.uniforms.azimuth.value = this.lightDirection.azimuth;
