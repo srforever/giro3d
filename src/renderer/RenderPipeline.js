@@ -94,6 +94,11 @@ export default class RenderPipeline {
 
         this.collectRenderBuckets(scene);
 
+        // Ensure that any background (texture or skybox) is properly handled
+        // by rendering it separately first.
+        this.renderer.clear();
+        this.renderer.render(scene, camera);
+
         this.renderMeshes(scene, camera, this.buckets[BUCKETS.OPAQUE]);
 
         // Point cloud rendering adds special effects. To avoid applying those effects
