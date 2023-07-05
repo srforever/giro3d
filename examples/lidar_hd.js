@@ -78,6 +78,10 @@ function initializeCameraPosition(layer) {
 
     pointcloud.attach(colorLayer);
 
+    instance.renderingOptions.enableEDL = true;
+    instance.renderingOptions.enableInpainting = true;
+    instance.renderingOptions.enablePointCloudOcclusion = true;
+
     // refresh scene
     instance.notifyChange(instance.camera.camera3D);
 }
