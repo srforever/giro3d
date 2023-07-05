@@ -1,3 +1,4 @@
+import { Vector3 } from 'three';
 import Instance from '../../src/core/Instance.js';
 import { MAIN_LOOP_EVENTS } from '../../src/core/MainLoop.js';
 
@@ -26,49 +27,79 @@ function updateUrl(instance) {
     }
 
     const cam = instance.camera.camera3D.position;
-    const target = instance.controls.target;
+    const target = instance?.controls?.target;
+    if (target) {
+        const pov = `${round10(cam.x)},${round10(cam.y)},${round10(cam.z)},${round10(target.x)},${round10(target.y)},${round10(target.z)}`;
 
-    const pov = `${round10(cam.x)},${round10(cam.y)},${round10(cam.z)},${round10(target.x)},${round10(target.y)},${round10(target.z)}`;
+        url.searchParams.append(VIEW_PARAM, pov);
 
-    url.searchParams.append(VIEW_PARAM, pov);
-
-    window.history.replaceState({}, null, url.toString());
+        window.history.replaceState({}, null, url.toString());
+    }
 }
 
-/**
- * @param {Instance} instance The instance.
- * @param {number} radius The radius of the picking.
- */
-function bind(instance, radius = 1) {
-    // Bind events
-    instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
-    const coordinates = document.getElementById('coordinates');
-    instance.domElement.addEventListener('mousemove', e => {
-        const picked = instance.pickObjectsAt(e, { limit: 1, radius }).at(0);
+let progressBar;
+let percent;
+let urlTimeout;
+let currentInstance;
+let pickingRadius;
+const tmpVec3 = new Vector3();
+const lastCameraPosition = new Vector3(0, 0, 0);
+let coordinates;
+
+function updateProgressFrameRequester() {
+    progressBar.style.width = `${currentInstance.progress * 100}%`;
+    percent.innerText = `${Math.round(currentInstance.progress * 100)}%`;
+}
+
+function updateUrlFrameRequester() {
+    if (urlTimeout) {
+        clearTimeout(urlTimeout);
+    }
+    urlTimeout = setTimeout(() => updateUrl(currentInstance), 50);
+}
+
+function pick(mouseEvent) {
+    const cameraPosition = currentInstance.camera.camera3D.getWorldPosition(tmpVec3);
+    // Don't pick while the camera is moving
+    if (!lastCameraPosition || lastCameraPosition.distanceToSquared(cameraPosition) === 0) {
+        const picked = currentInstance.pickObjectsAt(mouseEvent, {
+            limit: 1,
+            radius: pickingRadius,
+        }).at(0);
+
         if (picked) {
             coordinates.classList.remove('d-none');
             coordinates.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(2)}`;
         } else {
             coordinates.classList.add('d-none');
         }
-    });
+    }
 
-    processUrl(instance, document.URL);
+    lastCameraPosition.copy(cameraPosition);
+}
 
-    const progressBar = document.getElementById('progress-bar');
-    const percent = document.getElementById('loading-percent');
+/**
+ * @param {Instance} instance The instance.
+ * @param {object} options The options.
+ * @param {number} options.radius The radius of the picking.
+ * @param {boolean} options.disableUrlUpdate Disable automatic URL update.
+ */
+function bind(instance, options = {}) {
+    pickingRadius = options.radius ?? 1;
+    currentInstance = instance;
+    // Bind events
+    coordinates = document.getElementById('coordinates');
+    instance.domElement.addEventListener('mousemove', pick);
 
-    let urlTimeout;
+    progressBar = document.getElementById('progress-bar');
+    percent = document.getElementById('loading-percent');
 
-    instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, () => {
-        progressBar.style.width = `${instance.progress * 100}%`;
-        percent.innerText = `${Math.round(instance.progress * 100)}%`;
+    instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, updateProgressFrameRequester);
 
-        if (urlTimeout) {
-            clearTimeout(urlTimeout);
-        }
-        urlTimeout = setTimeout(() => updateUrl(instance), 50);
-    });
+    if (!options.disableUrlUpdate) {
+        processUrl(instance, document.URL);
+        instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, updateUrlFrameRequester);
+    }
 }
 
 export default { bind };
