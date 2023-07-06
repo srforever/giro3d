@@ -552,6 +552,18 @@ describe('Map', () => {
             expect(max).toEqual(555);
         });
 
+        it('should return {0, 0} if an elevation layer is present, but has no minmax', async () => {
+            const layer = new ElevationLayer('layer', { source: new NullSource() });
+            layer.minmax = null;
+
+            map.addLayer(layer);
+
+            const { min, max } = map.getElevationMinMax();
+
+            expect(min).toEqual(0);
+            expect(max).toEqual(0);
+        });
+
         it('should return the computed min/max value of all elevation layers', async () => {
             const layer1 = new ElevationLayer('layer1', { source: new NullSource() });
             const layer2 = new ElevationLayer('layer2', { source: new NullSource() });

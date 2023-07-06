@@ -927,15 +927,25 @@ class Map extends Entity3D {
     getElevationMinMax() {
         const elevationLayers = this.getElevationLayers();
         if (elevationLayers.length > 0) {
-            let min = Infinity;
-            let max = -Infinity;
+            let min = null;
+            let max = null;
 
             for (const layer of elevationLayers) {
-                min = Math.min(min, layer.minmax.min);
-                max = Math.max(max, layer.minmax.max);
+                const minmax = layer.minmax;
+                if (minmax) {
+                    if (min == null && max == null) {
+                        min = minmax.min;
+                        max = minmax.max;
+                    } else {
+                        min = Math.min(min, minmax.min);
+                        max = Math.max(max, minmax.max);
+                    }
+                }
             }
 
-            return { min, max };
+            if (min != null && max != null) {
+                return { min, max };
+            }
         }
         return { min: 0, max: 0 };
     }
