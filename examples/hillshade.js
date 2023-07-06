@@ -32,7 +32,11 @@ const instance = new Instance(viewerDiv, { crs: extent.crs() });
 // Adds the map that will contain the layers.
 const map = new Map('planar', {
     extent,
-    hillshading: true,
+    // Enables hillshading on this map
+    hillshading: {
+        enabled: true,
+        elevationLayersOnly: false,
+    },
     segments: 64,
     backgroundColor: 'white',
 });
@@ -55,12 +59,11 @@ const colorSource = new TiledImageSource({
 const colorLayer = new ColorLayer(
     'wms_imagery',
     {
+        extent: extent.split(2, 1)[0],
         source: colorSource,
     },
 );
 map.addLayer(colorLayer);
-
-colorLayer.opacity = 0;
 
 // Adds a WMS elevation layer
 const elevationSource = new TiledImageSource({
@@ -82,6 +85,7 @@ const max = 621;
 const elevationLayer = new ElevationLayer(
     'wms_elevation',
     {
+        extent,
         minmax: { min, max },
         source: elevationSource,
         interpretation: Interpretation.ScaleToMinMax(min, max),
@@ -114,12 +118,19 @@ instance.useTHREEControls(controls);
 
 const hillshadingCheckbox = document.getElementById('hillshadingCheckbox');
 const hillshadingOptions = document.getElementById('hillshadingOptions');
+const shadeColorLayersCheckbox = document.getElementById('colorLayers');
 
 hillshadingCheckbox.oninput = function oninput() {
     const state = hillshadingCheckbox.checked;
-    map.materialOptions.hillshading = state;
+    map.materialOptions.hillshading.enabled = state;
     instance.notifyChange(map);
     hillshadingOptions.disabled = !state;
+};
+
+shadeColorLayersCheckbox.oninput = function oninput() {
+    const state = shadeColorLayersCheckbox.checked;
+    map.materialOptions.hillshading.elevationLayersOnly = !state;
+    instance.notifyChange(map);
 };
 
 const opacitySlider = document.getElementById('opacitySlider');
@@ -135,14 +146,14 @@ opacitySlider.oninput = function oninput() {
 const azimuthSlider = document.getElementById('azimuthSlider');
 
 azimuthSlider.oninput = function oninput() {
-    map.lightDirection.azimuth = azimuthSlider.value;
+    map.materialOptions.hillshading.azimuth = azimuthSlider.value;
     instance.notifyChange(map);
 };
 
 const zenithSlider = document.getElementById('zenithSlider');
 
 zenithSlider.oninput = function oninput() {
-    map.lightDirection.zenith = zenithSlider.value;
+    map.materialOptions.hillshading.zenith = zenithSlider.value;
     instance.notifyChange(map);
 };
 
