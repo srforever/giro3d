@@ -1,4 +1,4 @@
-import { Color, Group } from 'three';
+import { Color, Group, Object3D } from 'three';
 import Extent from '../../../src/core/geographic/Extent.js';
 import Instance from '../../../src/core/Instance.js';
 import Map from '../../../src/entities/Map.js';
@@ -287,6 +287,7 @@ describe('Map', () => {
 
         it('should signal the order change to tiles', () => {
             const tile = new Group();
+            tile.isTileMesh = true;
             tile.reorderLayers = jest.fn();
             tile.layer = map;
 
@@ -355,6 +356,7 @@ describe('Map', () => {
 
         it('should signal the order change to tiles', () => {
             const tile = new Group();
+            tile.isTileMesh = true;
             tile.reorderLayers = jest.fn();
             tile.layer = map;
 
@@ -385,6 +387,7 @@ describe('Map', () => {
 
         it('should signal the order change to tiles', () => {
             const tile = new Group();
+            tile.isTileMesh = true;
             tile.reorderLayers = jest.fn();
             tile.layer = map;
 
@@ -443,6 +446,7 @@ describe('Map', () => {
 
         it('should signal the order change to tiles', () => {
             const tile = new Group();
+            tile.isTileMesh = true;
             tile.reorderLayers = jest.fn();
             tile.layer = map;
 
@@ -638,6 +642,18 @@ describe('Map', () => {
             expect(layer.dispose).not.toHaveBeenCalled();
         });
 
+        it('should call dispose() on the removed layer if disposeLayer = true', async () => {
+            const layer = new Layer('layer', { source: nullSource });
+            layer.dispose = jest.fn();
+            layer.whenReady = Promise.resolve();
+
+            await map.addLayer(layer);
+
+            map.removeLayer(layer, { disposeLayer: true });
+
+            expect(layer.dispose).toHaveBeenCalled();
+        });
+
         it('should fire the layer-removed event', async () => {
             const layer = new Layer('layer', { source: nullSource });
             layer.dispose = jest.fn();
@@ -667,8 +683,8 @@ describe('Map', () => {
     });
 
     describe('dispose', () => {
-        it('should call dispose on underlying layers', async () => {
-            const layer1 = new Layer('layer1', { source: nullSource });
+        it('should not call dispose on underlying layers', async () => {
+            const layer1 = new Layer('layer1', { source: new NullSource() });
             layer1.dispose = jest.fn();
             layer1.whenReady = Promise.resolve();
 
@@ -681,8 +697,43 @@ describe('Map', () => {
 
             map.dispose();
 
+            expect(layer1.dispose).not.toHaveBeenCalledTimes(1);
+            expect(layer2.dispose).not.toHaveBeenCalledTimes(1);
+        });
+
+        it('should call dispose on underlying layers if disposeLayers = true', async () => {
+            const layer1 = new Layer('layer1', { source: new NullSource() });
+            layer1.dispose = jest.fn();
+            layer1.whenReady = Promise.resolve();
+
+            const layer2 = new Layer('layer2', { source: nullSource });
+            layer2.whenReady = Promise.resolve();
+            layer2.dispose = jest.fn();
+
+            await map.addLayer(layer1);
+            await map.addLayer(layer2);
+
+            map.dispose({ disposeLayers: true });
+
             expect(layer1.dispose).toHaveBeenCalledTimes(1);
             expect(layer2.dispose).toHaveBeenCalledTimes(1);
+        });
+
+        it('should dispose all tiles', () => {
+            const tile1 = new Object3D();
+            const tile2 = new Object3D();
+            tile1.isTileMesh = true;
+            tile2.isTileMesh = true;
+            tile1.dispose = jest.fn();
+            tile2.dispose = jest.fn();
+
+            map.level0Nodes.push(tile1);
+            map.level0Nodes.push(tile2);
+
+            map.dispose();
+
+            expect(tile1.dispose).toHaveBeenCalledTimes(1);
+            expect(tile2.dispose).toHaveBeenCalledTimes(1);
         });
     });
 

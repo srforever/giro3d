@@ -68,6 +68,7 @@ class TileMesh extends Mesh {
 
         this.layer = map;
         this._segments = segments;
+        this.isTileMesh = true;
 
         this.matrixAutoUpdate = false;
         this.rotationAutoUpdate = false;
