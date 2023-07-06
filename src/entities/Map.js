@@ -18,7 +18,7 @@ import Entity3D from './Entity3D.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import Picking from '../core/Picking.js';
 import ScreenSpaceError from '../core/ScreenSpaceError.js';
-import LayeredMaterial from '../renderer/LayeredMaterial.js';
+import LayeredMaterial, { DEFAULT_AZIMUTH, DEFAULT_ZENITH } from '../renderer/LayeredMaterial.js';
 import TileMesh from '../core/TileMesh.js';
 import TileIndex from '../core/TileIndex.js';
 import RenderingState from '../renderer/RenderingState.js';
@@ -71,6 +71,39 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
  */
 
 const tmpVector = new Vector3();
+
+/**
+ * @param {boolean|undefined|HillshadingOptions} input The input
+ * @returns {HillshadingOptions} The options.
+ */
+function getHillshadingOptions(input) {
+    if (!input) {
+        // Default values
+        return {
+            enabled: false,
+            elevationLayersOnly: false,
+            azimuth: DEFAULT_AZIMUTH,
+            zenith: DEFAULT_ZENITH,
+        };
+    }
+
+    if (typeof input === 'boolean') {
+        // Default values
+        return {
+            enabled: true,
+            elevationLayersOnly: false,
+            azimuth: DEFAULT_AZIMUTH,
+            zenith: DEFAULT_ZENITH,
+        };
+    }
+
+    return {
+        enabled: input.enabled ?? false,
+        elevationLayersOnly: input.elevationLayersOnly ?? false,
+        azimuth: input.azimuth ?? DEFAULT_AZIMUTH,
+        zenith: input.zenith ?? DEFAULT_ZENITH,
+    };
+}
 
 function subdivideNode(context, map, node) {
     if (!node.children.some(n => n.layer === map)) {
@@ -159,6 +192,16 @@ function computeImageSize(extent) {
 }
 
 /**
+ * @api
+ * @typedef {object} HillshadingOptions
+ * @property {boolean} [enabled=true] Enables hillshading.
+ * @property {number} [azimuth=135] The azimuth of the sun, in degrees.
+ * @property {number} [zenith=45] The vertical angle of the sun, in degrees. (90 = zenith)
+ * @property {boolean} [elevationLayersOnly=false] If `true`, only elevation layers are shaded,
+ * leaving the color layers unshaded.
+ */
+
+/**
  * A map is an {@link module:entities/Entity~Entity Entity} that represents a flat
  * surface displaying one or more {@link module:Core/layer/Layer~Layer Layers}.
  *
@@ -176,8 +219,10 @@ class Map extends Entity3D {
      * @param {Extent} options.extent The geographic extent of the map.
      * @param {number} [options.maxSubdivisionLevel=-1] Maximum tile depth of the map.
      * A value of `-1` does not limit the depth of the tile hierarchy.
-     * @param {boolean} [options.hillshading=false] Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
-     * Note: for hillshading to work, there must be an elevation layer in the map.
+     * @param {boolean|HillshadingOptions} [options.hillshading=undefined] Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
+     * If `undefined` or `false`, hillshading is disabled.
+     *
+     * Note: hillshading has no effect if the map does not contain an elevation layer.
      * @param {number} [options.segments=8] The number of geometry segments in each map tile.
      * The higher the better. It *must* be power of two between `1` included and `256` included.
      * Note: the number of vertices per tile side is `segments` + 1.
@@ -225,8 +270,6 @@ class Map extends Entity3D {
         this.type = 'Map';
         this.visible = true;
 
-        this.lightDirection = { azimuth: 315, zenith: 45 };
-
         this.showOutline = options.showOutline;
 
         this._renderOrder = 0;
@@ -237,7 +280,7 @@ class Map extends Entity3D {
          * @type {import('../renderer/LayeredMaterial.js').MaterialOptions}
          */
         this.materialOptions = {
-            hillshading: options.hillshading || false,
+            hillshading: getHillshadingOptions(options.hillshading),
             discardNoData: options.discardNoData || false,
             doubleSided: options.doubleSided || false,
             segments: this.segments,
@@ -720,7 +763,6 @@ class Map extends Entity3D {
             }
 
             if (node.material.visible) {
-                node.material.lightDirection = this.lightDirection;
                 node.material.update(this.materialOptions);
 
                 this.updateMinMaxDistance(context, node);

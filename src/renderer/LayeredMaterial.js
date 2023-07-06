@@ -66,11 +66,15 @@ class TextureInfo {
     }
 }
 
+export const DEFAULT_AZIMUTH = 135;
+export const DEFAULT_ZENITH = 45;
+
 /**
  * @typedef {object} MaterialOptions The material options.
  * @property {boolean} [discardNoData] Discards no-data pixels.
  * @property {boolean} [doubleSided] Toggles double-sided surfaces.
- * @property {boolean} [hillshading] Toggles hillshading.
+ * @property {import('../entities/Map.js').HillshadingOptions} [hillshading] Hillshading
+ * parameters.
  * @property {number} [segments] The number of subdivision segments per tile.
  * @property {{min: number, max: number}} [elevationRange] The elevation range.
  * @property {ColorMapAtlas} [colorMapAtlas] The colormap atlas.
@@ -98,9 +102,8 @@ class LayeredMaterial extends RawShaderMaterial {
         this.defines.STITCHING = 1;
         this.renderer = renderer;
 
-        this.lightDirection = { azimuth: 315, zenith: 45 };
-        this.uniforms.zenith = { type: 'f', value: 45 };
-        this.uniforms.azimuth = { type: 'f', value: 135 };
+        this.uniforms.zenith = { type: 'f', value: DEFAULT_ZENITH };
+        this.uniforms.azimuth = { type: 'f', value: DEFAULT_AZIMUTH };
 
         this.getIndexFn = getIndexFn;
 
@@ -527,9 +530,6 @@ class LayeredMaterial extends RawShaderMaterial {
      * @returns {boolean} ?
      */
     update(materialOptions = {}) {
-        this.uniforms.zenith.value = this.lightDirection.zenith;
-        this.uniforms.azimuth.value = this.lightDirection.azimuth;
-
         if (this.colorMapAtlas) {
             this._updateColorMaps();
         }
@@ -547,9 +547,18 @@ class LayeredMaterial extends RawShaderMaterial {
         }
 
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this.elevationLayer?.visible);
-        MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', materialOptions.hillshading);
         MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', this.showOutline);
         MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', materialOptions.discardNoData);
+
+        const hillshadingParams = materialOptions.hillshading;
+        if (hillshadingParams) {
+            this.uniforms.zenith.value = hillshadingParams.zenith ?? DEFAULT_ZENITH;
+            this.uniforms.azimuth.value = hillshadingParams.azimuth ?? DEFAULT_AZIMUTH;
+            MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', hillshadingParams.enabled);
+            MaterialUtils.setDefine(this, 'APPLY_SHADING_ON_COLORLAYERS', !hillshadingParams.elevationLayersOnly);
+        } else {
+            MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', false);
+        }
 
         const newSide = materialOptions.doubleSided ? DoubleSide : FrontSide;
         if (this.side !== newSide) {
