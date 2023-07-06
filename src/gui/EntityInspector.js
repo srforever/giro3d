@@ -108,6 +108,12 @@ class EntityInspector extends Panel {
                 this.addColorController(this, 'boundingBoxColor').name('Volume color').onChange(v => this.updateBoundingBoxColor(v));
             }
         }
+
+        this.addController(this, 'deleteEntity').name('Delete entity');
+    }
+
+    deleteEntity() {
+        this.instance.remove(this.entity);
     }
 
     dispose() {

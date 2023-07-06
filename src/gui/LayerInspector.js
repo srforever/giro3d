@@ -115,6 +115,9 @@ class LayerInspector extends Panel {
                 layer.source,
             );
         }
+
+        this.addController(this, 'disposeLayer').name('Dispose layer');
+        this.addController(this, 'removeLayer').name('Remove layer from map');
     }
 
     get colorMap() {
@@ -123,6 +126,14 @@ class LayerInspector extends Panel {
         }
 
         return { min: '-1', max: '-1', mode: 'N/A' };
+    }
+
+    removeLayer() {
+        this.map.removeLayer(this.layer);
+    }
+
+    disposeLayer() {
+        this.layer.dispose();
     }
 
     updateExtentColor() {
