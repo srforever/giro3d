@@ -1,0 +1,37 @@
+/* To match the height of the toolbar in the rest of the site */
+.tsd-page-toolbar {
+    /* height: 58px; */
+}
+
+/* To fit the new toolbar height */
+.table-cell {
+    height: 100% !important;
+}
+
+/* To fit the new toolbar height */
+.tsd-toolbar-contents {
+    height: 100% !important;
+}
+
+/* To fit the new toolbar height */
+.field {
+    height: 100%;
+}
+
+/* To have the top links left-aligned, to match the rest of the site */
+#tsd-toolbar-links {
+    right: unset !important;
+    left: 5rem;
+}
+
+/*
+To hide the default title in the documentation,
+and display the Giro3D logo instead
+*/
+.tsd-page-title {
+    display: none;
+}
+
+.title {
+    height: 100% !important;
+}
