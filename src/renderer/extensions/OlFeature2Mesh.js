@@ -196,6 +196,8 @@ function featureToMesh(feature, offset, options) {
     // eslint-disable-next-line eqeqeq
     mesh.material.visible = style.visible == undefined ? true : style.visible;
 
+    // remember the ol id. NOTE: if the WFS exposes an id, this is the one we will get :-)
+    mesh.userData.id = feature.getId();
     // Remember this feature properties
     mesh.userData.properties = feature.getProperties();
 
