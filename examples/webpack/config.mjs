@@ -51,6 +51,10 @@ export default (env, argv) => {
         },
         optimization: {
             minimize: argv.mode === 'production',
+            splitChunks: {
+                chunks: 'all',
+                name: 'shared',
+            },
         },
         devServer: {
             hot: true,
