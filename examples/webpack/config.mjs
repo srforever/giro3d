@@ -35,7 +35,7 @@ export default (env, argv) => {
                 '@giro3d/giro3d': '../src',
             },
         },
-        devtool: 'source-map',
+        devtool: argv.mode === 'production' ? undefined : 'source-map',
         entry,
         target: ['web', 'es5'],
         output: {
