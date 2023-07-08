@@ -3,13 +3,14 @@ import CopyPlugin from 'copy-webpack-plugin';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs';
-import webpack from 'webpack';
 import ExampleBuilder from './example-builder.mjs';
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 
 const src = path.join(baseDir, '..');
-const buildDir = path.join(baseDir, '..', '..', 'build', 'site', 'examples');
+const rootDir = path.join(baseDir, '..', '..');
+const buildDir = path.join(rootDir, 'build', 'site', 'examples');
+const packageDir = path.join(rootDir, 'build', 'giro3d');
 
 export default (env, argv) => {
     // Collect all example javascript code
@@ -32,7 +33,7 @@ export default (env, argv) => {
         context: src,
         resolve: {
             alias: {
-                '@giro3d/giro3d': '../src',
+                '@giro3d/giro3d': packageDir,
             },
         },
         devtool: argv.mode === 'production' ? undefined : 'source-map',
@@ -64,26 +65,12 @@ export default (env, argv) => {
                 },
             ],
         },
-        module: {
-            rules: [
-                {
-                    test: /\.glsl$/,
-                    use: {
-                        loader: 'webpack-glsl-loader',
-                    },
-                    exclude: /node_modules/,
-                },
-            ],
-        },
         plugins: [
             new ExampleBuilder({
                 debug: argv.mode !== 'production',
                 templates: path.join(baseDir, '..', 'templates'),
                 examplesDir: path.join(baseDir, '..'),
                 buildDir,
-            }),
-            new webpack.DefinePlugin({
-                __DEBUG__: argv.mode !== 'production',
             }),
             new CopyPlugin({
                 patterns: [

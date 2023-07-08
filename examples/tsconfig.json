@@ -7,7 +7,7 @@
     ],
     "compilerOptions": {
       "paths": {
-        "@giro3d/giro3d/*": ["../src/*"]
+        "@giro3d/giro3d/*": ["../build/giro3d/*"]
       },
       "allowJs": true,
     }

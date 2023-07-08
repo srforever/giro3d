@@ -1,6 +1,6 @@
 import { Vector3 } from 'three';
-import Instance from '../../src/core/Instance.js';
-import { MAIN_LOOP_EVENTS } from '../../src/core/MainLoop.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';
 
 const VIEW_PARAM = 'view';
 
