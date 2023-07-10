@@ -87,17 +87,19 @@ const busLines = new FeatureCollection('bus lines', {
     minLevel: 0,
     maxLevel: 0,
     altitude: 50,
-    // we can modify the mesh through the `onMeshCreated` callback
-    onMeshCreated: mesh => {
-        const lineName = mesh.userData.properties.ligne;
+    // we can modify the mesh through the `style` property
+    style: feat => {
+        const lineName = feat.getProperties().ligne;
         // color according to line name
+        let color;
         if (lineName.startsWith('C')) {
-            mesh.material.color = new Color('red');
+            color = new Color('red');
         } else if (lineName.startsWith('S')) {
-            mesh.material.color = new Color('yellow');
+            color = new Color('yellow');
         } else {
-            mesh.material.color = new Color('blue');
+            color = new Color('blue');
         }
+        return { color };
     },
 });
 
@@ -128,7 +130,8 @@ const busStops = new FeatureCollection('bus stops', {
     minLevel: 3,
     maxLevel: 3,
     altitude: 50,
-    // we can modify the mesh through the `onMeshCreated` callback
+    // we can use the `style` callback, but it's also possible to modify the resulting mesh directly
+    // with the `onMeshCreated` option
     onMeshCreated: mesh => {
         mesh.material.size = 5;
         mesh.material.sizeAttenuation = false;
