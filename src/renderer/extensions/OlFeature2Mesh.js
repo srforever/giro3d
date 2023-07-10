@@ -13,14 +13,12 @@ import {
 } from 'three';
 import Earcut from 'earcut';
 
-function getProperty(name, options, defaultValue, ...args) {
-    const property = options[name];
-
-    if (property) {
-        if (typeof property === 'function') {
-            return property(...args);
+function getValue(objOrFn, defaultValue, ...args) {
+    if (objOrFn) {
+        if (typeof objOrFn === 'function') {
+            return objOrFn(...args);
         }
-        return property;
+        return objOrFn;
     }
 
     if (typeof defaultValue === 'function') {
@@ -31,10 +29,10 @@ function getProperty(name, options, defaultValue, ...args) {
 }
 
 // TODO duplicate code with Feature2Mesh
-function randomColor() {
+function randomStyle() {
     const color = new Color();
     color.setHex(Math.random() * 0xffffff);
-    return color;
+    return { color, visible: true };
 }
 
 function fillColorArray(colors, length, r, g, b, offset) {
@@ -74,12 +72,9 @@ function prepareBufferGeometry(geom, color, altitude, offset) {
 }
 
 function featureToPoint(feature, offset, options) {
-    // get altitude / color from properties
-    const altitude = getProperty('altitude', options, 0, feature);
-    const color = getProperty('color', options, randomColor, feature.getProperties());
-
+    const { altitude, style } = options;
     const geom = feature.getGeometry();
-    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset);
+    const threeGeom = prepareBufferGeometry(geom, style.color, altitude, offset);
 
     return new Points(
         threeGeom,
@@ -88,12 +83,9 @@ function featureToPoint(feature, offset, options) {
 }
 
 function featureToLine(feature, offset, options) {
-    // get altitude / color from properties
-    const altitude = getProperty('altitude', options, 0, feature);
-    const color = getProperty('color', options, randomColor, feature.getProperties());
-
+    const { altitude, style } = options;
     const geom = feature.getGeometry();
-    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset);
+    const threeGeom = prepareBufferGeometry(geom, style.color, altitude, offset);
 
     return new Line(
         threeGeom,
@@ -102,12 +94,10 @@ function featureToLine(feature, offset, options) {
 }
 
 function featureToPolygon(feature, offset, options) {
-    // get altitude / color from properties
-    const altitude = getProperty('altitude', options, 0, feature);
-    const color = getProperty('color', options, randomColor, feature.getProperties());
+    const { altitude, style } = options;
     const geom = feature.getGeometry();
 
-    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset);
+    const threeGeom = prepareBufferGeometry(geom, style.color, altitude, offset);
 
     const ends = geom.getEnds().map(end => end / geom.stride);
 
@@ -121,12 +111,10 @@ function featureToPolygon(feature, offset, options) {
 }
 
 function featureToMultiPolygon(feature, offset, options) {
-    // get altitude from properties
-    const altitude = getProperty('altitude', options, 0, feature);
-    const color = getProperty('color', options, randomColor, feature.getProperties());
+    const { altitude, style } = options;
     const geom = feature.getGeometry();
 
-    const threeGeom = prepareBufferGeometry(geom, color, altitude, offset);
+    const threeGeom = prepareBufferGeometry(geom, style.color, altitude, offset);
 
     let indices = [];
     let start = 0;
@@ -168,27 +156,33 @@ function featureToMultiPolygon(feature, offset, options) {
  * @param {number|Function} options.altitude define the base altitude of the mesh
  * @param {number|Function} options.extrude if defined, polygons will be extruded by the specified
  * amount
- * @param {object|Function} options.color define per feature color
+ * @param {object|Function} options.style define per feature style
  * @returns {Mesh} mesh
  */
 function featureToMesh(feature, offset, options) {
     let mesh;
+
+    // get altitude / style from properties
+    const style = getValue(options.style, randomStyle, feature);
+    const altitude = getValue(options.altitude, 0, feature);
+    const opts = { style, altitude };
+
     switch (feature.getGeometry().getType()) {
         case 'Point':
         case 'MultiPoint': {
-            mesh = featureToPoint(feature, offset, options);
+            mesh = featureToPoint(feature, offset, opts);
             break;
         }
         case 'LineString':
         case 'MultiLineString': {
-            mesh = featureToLine(feature, offset, options);
+            mesh = featureToLine(feature, offset, opts);
             break;
         }
         case 'Polygon':
-            mesh = featureToPolygon(feature, offset, options);
+            mesh = featureToPolygon(feature, offset, opts);
             break;
         case 'MultiPolygon': {
-            mesh = featureToMultiPolygon(feature, offset, options);
+            mesh = featureToMultiPolygon(feature, offset, opts);
             break;
         }
         default:
@@ -197,6 +191,10 @@ function featureToMesh(feature, offset, options) {
     // configure mesh material
     mesh.material.needsUpdate = true;
     mesh.material.side = DoubleSide;
+    mesh.material.color = style.color;
+    // we want to test for null or undefined, hence the use of == instead of ===
+    // eslint-disable-next-line eqeqeq
+    mesh.material.visible = style.visible == undefined ? true : style.visible;
 
     // Remember this feature properties
     mesh.userData.properties = feature.getProperties();
@@ -221,7 +219,7 @@ export default {
      * @param {number|Function} options.altitude define the base altitude of the mesh
      * @param {number|Function} options.extrude if defined, polygons will be extruded by the
      * specified amount
-     * @param {object|Function} options.color define per feature color
+     * @param {object|Function} options.style define per feature style
      * @returns {Function} the conversion function
      */
     convert(options = {}) {

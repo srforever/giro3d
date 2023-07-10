@@ -134,14 +134,17 @@ class FeatureCollection extends Entity3D {
      * the same order.
      */
     /**
+     * @typedef {object} StyleObject
+     * @property {module:THREE.Color} [color] How to color the current feature
+     * @property {boolean} visible if the current feature should be visible or not
+     */
+    /**
      * This callback is called just after a source data has been converted to a THREE.js Mesh, to
      * color individual meshes.
      *
-     * @typedef {Function} FeatureColorCallback
-     * @param {object} properties the feature properties
-     * @returns {module:THREE.Color} The
-     * [THREE.Color](https://threejs.org/docs/?q=Colo#api/en/math/Color)
-     * to apply to this particular feature.
+     * @typedef {Function} StyleCallback
+     * @param {module:ol.Feature} feature the feature to style
+     * @returns {StyleObject} The style of the current feature
      */
 
     /**
@@ -164,9 +167,10 @@ class FeatureCollection extends Entity3D {
      * @param {number|FeatureAltitudeCallback} [options.altitude] Set the altitude of the features
      * received from the source. It can be a constant for every feature, or a callback. The callback
      * version is particularly useful to derive the altitude from the properties of the feature.
-     * @param {module:THREE.Color|FeatureColorCallback} [options.color] A
-     * [THREE.Color](https://threejs.org/docs/?q=Colo#api/en/math/Color) or a callback to colorize
-     * each feature. If not defined, each feature will get a random color.
+     * @param {StyleCallback|StyleObject} [options.style] an object or a callback returning such
+     * object to style the individual feature. If an object is returned, the informations it
+     * contains will be used to style every feature the same way. If a callback is provided, it
+     * will be called with the feature. This allows to individually style each feature.
      */
     constructor(id, options = {}) {
         super(id, options.object3d || new Group());
@@ -199,7 +203,7 @@ class FeatureCollection extends Entity3D {
         this._convert = OlFeature2Mesh.convert({
             material: options.material,
             altitude: options.altitude,
-            color: options.color,
+            style: options.style,
         });
 
         this._opCounter = new OperationCounter();
