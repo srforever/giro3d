@@ -10,7 +10,6 @@ import TileWMS from 'ol/source/TileWMS.js';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import { STRATEGY_DICHOTOMY } from '@giro3d/giro3d/core/layer/LayerUpdateStrategy.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
@@ -64,10 +63,6 @@ const colorLayer = new ColorLayer(
     'wms_imagery',
     {
         source: wmsSource,
-        updateStrategy: {
-            type: STRATEGY_DICHOTOMY,
-            options: {},
-        },
     },
 );
 map.addLayer(colorLayer);
@@ -123,7 +118,6 @@ instance.camera.camera3D.position.copy(cameraPosition);
 // const lookAt = new Vector3(913896, 6459191, 504);
 // instance.camera.camera3D.lookAt(lookAt);
 instance.notifyChange(instance.camera.camera3D);
-
 
 // Creates controls
 const controls = new MapControls(
