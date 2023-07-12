@@ -186,7 +186,6 @@ function featureToMultiPolygon(feature, offset, options) {
 
         // Convert ends from array element indices to number of 3d coordinates relative to the start
         // of this polygon
-    console.log('multipolygon')
         const normalizedEnds = ends.map(normalizingEndsFn);
         // TODO check slice : supposed to remove the last element because ol (?) close polygons
         const triangles = Earcut(
