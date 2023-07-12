@@ -229,7 +229,7 @@ function featureToMesh(feature, offset, options) {
     const style = getValue(options.style, randomStyle, feature);
     const altitude = getValue(options.altitude, 0, feature);
     const extrude = getValue(options.extrude, 0, feature);
-    const opts = { style, altitude, extrude };
+    const opts = { style, altitude, extrude, material: options.material };
 
     switch (feature.getGeometry().getType()) {
         case 'Point':
@@ -258,7 +258,7 @@ function featureToMesh(feature, offset, options) {
     // configure mesh material
     mesh.material.needsUpdate = true;
     mesh.material.side = DoubleSide;
-    mesh.material.color = style.color;
+    mesh.material.color = new Color(style.color);
     // we want to test for null or undefined, hence the use of == instead of ===
     // eslint-disable-next-line eqeqeq
     mesh.material.visible = style.visible == undefined ? true : style.visible;
