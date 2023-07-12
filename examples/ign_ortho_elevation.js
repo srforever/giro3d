@@ -108,7 +108,7 @@ const vectorSource = new VectorSource({
     strategy: tile(createXYZ({tileSize: 512})),
 });
 
-const feat = new FeatureCollection('test', {
+const feat = new FeatureCollection('buildings', {
     source: vectorSource,
     extent,
     material: new MeshLambertMaterial(),
@@ -120,13 +120,15 @@ const feat = new FeatureCollection('test', {
             return hauteur;
         }
     },
-    color: (feat) => {
-        if (feat.usage_1 === 'Résidentiel') {
-            return '#9d9484';
-        } else if (feat.usage_1 === 'Commercial et services') {
-            return '#b0ffa7';
+    style: (feat) => {
+        const properties = feat.getProperties();
+        let color = '#FFFFFF';
+        if (properties.usage_1 === 'Résidentiel') {
+            color = '#9d9484';
+        } else if (properties.usage_1 === 'Commercial et services') {
+            color = '#b0ffa7';
         }
-        return '#FFFFFF';
+        return { color };
 
     },
     minLevel: 11,
