@@ -1,8 +1,7 @@
-import OperationCounter from '../../../src/core/OperationCounter.js';
+import OperationCounter from 'src/core/OperationCounter';
 
 describe('OperationCounter', () => {
-    /** @type {OperationCounter} */
-    let counter;
+    let counter: OperationCounter;
 
     beforeEach(() => {
         counter = new OperationCounter();

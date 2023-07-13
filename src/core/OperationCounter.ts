@@ -2,6 +2,10 @@
  * Provides a way to track the progress of running operations.
  */
 class OperationCounter {
+    private _operations: number;
+    private _completed: number;
+    private _total: number;
+
     constructor() {
         this._operations = 0;
         this._completed = 0;
@@ -10,8 +14,6 @@ class OperationCounter {
 
     /**
      * Gets whether at least one operation is being executed.
-     *
-     * @type {boolean}
      */
     get loading() {
         return this._operations > 0;
@@ -20,8 +22,6 @@ class OperationCounter {
     /**
      * Returns a number between 0 and 1 which represent the ratio between
      * completed operations and total operations.
-     *
-     * @type {number}
      */
     get progress() {
         if (this._operations === 0) {

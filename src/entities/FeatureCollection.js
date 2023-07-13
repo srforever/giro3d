@@ -11,7 +11,7 @@ import Extent from '../core/geographic/Extent.js';
 import ScreenSpaceError from '../core/ScreenSpaceError.js';
 import LayerUpdateState from '../core/layer/LayerUpdateState.js';
 import Entity3D from './Entity3D.js';
-import OperationCounter from '../core/OperationCounter.js';
+import OperationCounter from '../core/OperationCounter';
 import { DefaultQueue } from '../core/RequestQueue.js';
 import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';

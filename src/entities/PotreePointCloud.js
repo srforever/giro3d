@@ -17,7 +17,7 @@ import Entity3D from './Entity3D.js';
 import PointsMaterial, { MODE } from '../renderer/PointsMaterial.js';
 import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
 import PotreeSource from '../sources/PotreeSource.js';
-import OperationCounter from '../core/OperationCounter.js';
+import OperationCounter from '../core/OperationCounter';
 import PotreeBinParser from '../parser/PotreeBinParser.js';
 import PotreeCinParser from '../parser/PotreeCinParser.js';
 import Fetcher from '../utils/Fetcher.js';

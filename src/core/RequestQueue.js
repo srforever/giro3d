@@ -1,5 +1,5 @@
 import PriorityQueue from 'ol/structs/PriorityQueue.js';
-import OperationCounter from './OperationCounter.js';
+import OperationCounter from './OperationCounter';
 import PromiseUtils from '../utils/PromiseUtils.js';
 
 function priorityFn(task) {

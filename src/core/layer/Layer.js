@@ -22,7 +22,7 @@ import MemoryTracker from '../../renderer/MemoryTracker.js';
 import Instance from '../Instance.js';
 import ImageSource from '../../sources/ImageSource.js';
 import { DefaultQueue } from '../RequestQueue.js';
-import OperationCounter from '../OperationCounter.js';
+import OperationCounter from '../OperationCounter';
 
 const POOL_SIZE = 16;
 const tmpDims = new Vector2();
