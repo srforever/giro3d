@@ -15,6 +15,11 @@ attribution: © <a target="_blank" href="https://www.grandlyon.com/">Métropole 
         </div>
 
         <fieldset class="container m-1" id="hillshadingOptions">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="colorLayers">
+                <label class="form-check-label" for="colorLayers">Shade color layers</label>
+            </div>
+
             <label for="azimuthSlider" class="form-label">Azimuth (0 - 360)</label>
             <div class="input-group">
                 <input type="range" min="0" max="360" value="315" class="slider" id="azimuthSlider">
@@ -33,7 +38,7 @@ attribution: © <a target="_blank" href="https://www.grandlyon.com/">Métropole 
         <fieldset class="container m-1">
             <label for="opacitySlider" class="form-label">Color layer opacity</label>
             <div class="input-group">
-                <input type="range" min="0" max="100" value="0" class="slider" id="opacitySlider">
+                <input type="range" min="0" max="100" value="100" class="slider" id="opacitySlider">
             </div>
         </fieldset>
     </div>

@@ -144,8 +144,17 @@ class MapInspector extends EntityInspector {
         this.addColorController(this, 'extentColor')
             .name('Extent color')
             .onChange(v => this.updateExtentColor(v));
-        this.addController(this.map.materialOptions, 'hillshading')
+        this.addController(this.map.materialOptions.hillshading, 'enabled')
             .name('Hillshading')
+            .onChange(() => this.notify(this.map));
+        this.addController(this.map.materialOptions.hillshading, 'elevationLayersOnly')
+            .name('Shade only elevation layers')
+            .onChange(() => this.notify(this.map));
+        this.addController(this.map.materialOptions.hillshading, 'azimuth', 0, 360)
+            .name('Sun azimuth')
+            .onChange(() => this.notify(this.map));
+        this.addController(this.map.materialOptions.hillshading, 'zenith', 0, 90)
+            .name('Sun zenith')
             .onChange(() => this.notify(this.map));
         this.addController(this.map.materialOptions, 'discardNoData')
             .name('Discard no-data values')

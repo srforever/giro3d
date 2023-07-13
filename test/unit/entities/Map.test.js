@@ -9,6 +9,7 @@ import ElevationLayer from '../../../src/core/layer/ElevationLayer.js';
 import RenderingState from '../../../src/renderer/RenderingState.js';
 import ColorLayer from '../../../src/core/layer/ColorLayer.js';
 import NullSource from '../../../src/sources/NullSource.js';
+import { DEFAULT_AZIMUTH, DEFAULT_ZENITH } from '../../../src/renderer/LayeredMaterial.js';
 
 describe('Map', () => {
     /** @type {HTMLDivElement} */
@@ -84,18 +85,59 @@ describe('Map', () => {
             expect(() => new Map('foo', { extent: invalid })).toThrow(/Invalid extent/);
         });
 
+        it('should honor hillshading parameters when hillshading is a boolean', () => {
+            const m = new Map('foo', {
+                extent,
+                hillshading: true,
+            });
+
+            expect(m.materialOptions.hillshading.enabled).toEqual(true);
+            expect(m.materialOptions.hillshading.elevationLayersOnly).toEqual(false);
+            expect(m.materialOptions.hillshading.zenith).toEqual(DEFAULT_ZENITH);
+            expect(m.materialOptions.hillshading.azimuth).toEqual(DEFAULT_AZIMUTH);
+        });
+
+        it('should honor hillshading parameters', () => {
+            const m1 = new Map('foo', {
+                extent,
+                hillshading: {
+                    enabled: true,
+                    elevationLayersOnly: true,
+                    zenith: 32,
+                    azimuth: 98,
+                },
+            });
+
+            expect(m1.materialOptions.hillshading.enabled).toEqual(true);
+            expect(m1.materialOptions.hillshading.elevationLayersOnly).toEqual(true);
+            expect(m1.materialOptions.hillshading.zenith).toEqual(32);
+            expect(m1.materialOptions.hillshading.azimuth).toEqual(98);
+
+            // Check if the map assigns default values to parameters
+            const m2 = new Map('foo', {
+                extent,
+                hillshading: {
+                    enabled: true,
+                    azimuth: 98,
+                },
+            });
+
+            expect(m2.materialOptions.hillshading.enabled).toEqual(true);
+            expect(m2.materialOptions.hillshading.elevationLayersOnly).toEqual(false);
+            expect(m2.materialOptions.hillshading.zenith).toEqual(DEFAULT_ZENITH);
+            expect(m2.materialOptions.hillshading.azimuth).toEqual(98);
+        });
+
         it.each([true, false])('should assign the correct materialOptions', b => {
             const opts = {
                 extent,
                 doubleSided: b,
-                hillshading: b,
                 backgroundColor: 'red',
                 discardNoData: b,
             };
             const m = new Map('foo', opts);
 
             expect(m.materialOptions).toBeDefined();
-            expect(m.materialOptions.hillshading).toEqual(opts.hillshading);
             expect(m.materialOptions.discardNoData).toEqual(opts.discardNoData);
             expect(m.materialOptions.discardNoData).toEqual(opts.doubleSided);
             expect(m.materialOptions.backgroundColor).toEqual(new Color('red'));

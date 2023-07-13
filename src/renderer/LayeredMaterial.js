@@ -66,7 +66,30 @@ class TextureInfo {
     }
 }
 
+export const DEFAULT_AZIMUTH = 135;
+export const DEFAULT_ZENITH = 45;
+
+/**
+ * @typedef {object} MaterialOptions The material options.
+ * @property {boolean} [discardNoData] Discards no-data pixels.
+ * @property {boolean} [doubleSided] Toggles double-sided surfaces.
+ * @property {import('../entities/Map.js').HillshadingOptions} [hillshading] Hillshading
+ * parameters.
+ * @property {number} [segments] The number of subdivision segments per tile.
+ * @property {{min: number, max: number}} [elevationRange] The elevation range.
+ * @property {ColorMapAtlas} [colorMapAtlas] The colormap atlas.
+ * @property {Color} [backgroundColor] The background color.
+ * @property {number} [backgroundOpacity] The background opacity.
+ */
+
 class LayeredMaterial extends RawShaderMaterial {
+    /**
+     * @param {object} param0 the params.
+     * @param {MaterialOptions} param0.options the material options.
+     * @param {object} param0.renderer the WebGL renderer.
+     * @param {object} param0.atlasInfo the Atlas info.
+     * @param {Function} param0.getIndexFn The function to help sorting color layers.
+     */
     constructor({
         options = {},
         renderer,
@@ -79,9 +102,8 @@ class LayeredMaterial extends RawShaderMaterial {
         this.defines.STITCHING = 1;
         this.renderer = renderer;
 
-        this.lightDirection = { azimuth: 315, zenith: 45 };
-        this.uniforms.zenith = { type: 'f', value: 45 };
-        this.uniforms.azimuth = { type: 'f', value: 135 };
+        this.uniforms.zenith = { type: 'f', value: DEFAULT_ZENITH };
+        this.uniforms.azimuth = { type: 'f', value: DEFAULT_AZIMUTH };
 
         this.getIndexFn = getIndexFn;
 
@@ -174,6 +196,9 @@ class LayeredMaterial extends RawShaderMaterial {
         return this.composer.height;
     }
 
+    /**
+     * @param {number} v The number of segments.
+     */
     set segments(v) {
         if (this.uniforms.segments.value !== v) {
             this.uniforms.segments.value = v;
@@ -500,10 +525,11 @@ class LayeredMaterial extends RawShaderMaterial {
         }
     }
 
+    /**
+     * @param {MaterialOptions} materialOptions The material options.
+     * @returns {boolean} ?
+     */
     update(materialOptions = {}) {
-        this.uniforms.zenith.value = this.lightDirection.zenith;
-        this.uniforms.azimuth.value = this.lightDirection.azimuth;
-
         if (this.colorMapAtlas) {
             this._updateColorMaps();
         }
@@ -521,9 +547,18 @@ class LayeredMaterial extends RawShaderMaterial {
         }
 
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this.elevationLayer?.visible);
-        MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', materialOptions.hillshading);
         MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', this.showOutline);
         MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', materialOptions.discardNoData);
+
+        const hillshadingParams = materialOptions.hillshading;
+        if (hillshadingParams) {
+            this.uniforms.zenith.value = hillshadingParams.zenith ?? DEFAULT_ZENITH;
+            this.uniforms.azimuth.value = hillshadingParams.azimuth ?? DEFAULT_AZIMUTH;
+            MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', hillshadingParams.enabled);
+            MaterialUtils.setDefine(this, 'APPLY_SHADING_ON_COLORLAYERS', !hillshadingParams.elevationLayersOnly);
+        } else {
+            MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', false);
+        }
 
         const newSide = materialOptions.doubleSided ? DoubleSide : FrontSide;
         if (this.side !== newSide) {

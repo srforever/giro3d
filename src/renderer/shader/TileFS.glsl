@@ -285,6 +285,22 @@ void main() {
 #endif
 
     float maskOpacity = 1.;
+    float hillshade = 1.;
+
+#if defined(ELEVATION_LAYER)
+    // Step 5 : compute shading
+#if defined(ENABLE_HILLSHADING)
+    hillshade = calcHillshade(elevationLayer, elevationTexture, elevUv);
+#endif
+#endif
+
+// Shading can be applied either:
+// - before the color layers (i.e only the background pixels will be shaded)
+// - or after the color layers (i.e all pixels will be shaded).
+#if defined(APPLY_SHADING_ON_COLORLAYERS)
+#else
+    diffuseColor.rgb *= hillshade;
+#endif
 
     // Step 4 : process all color layers (either directly sampling the atlas texture, or use a color map).
 #if COLOR_LAYERS
@@ -330,12 +346,8 @@ void main() {
 
     diffuseColor.a *= opacity * maskOpacity;
 
-#if defined(ELEVATION_LAYER)
-    // Step 5 : apply shading
-#if defined(ENABLE_HILLSHADING)
-    float hillshade = calcHillshade(elevationLayer, elevationTexture, elevUv);
+#if defined(APPLY_SHADING_ON_COLORLAYERS)
     diffuseColor.rgb *= hillshade;
-#endif
 #endif
 
     // Step 6 : apply backface processing.
