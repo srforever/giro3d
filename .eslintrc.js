@@ -9,7 +9,7 @@ module.exports = {
         'plugin:jsdoc/recommended',
     ],
     parserOptions: {
-        project: './tsconfig.json',
+        project: './tsconfig.eslint.json',
         ecmaVersion: 2020,
         sourceType: 'module',
         ecmaFeatures: {
@@ -51,7 +51,7 @@ module.exports = {
         '@typescript-eslint/lines-between-class-members': 'off',
         // this option sets a specific tab width for your code
         // http://eslint.org/docs/rules/indent
-        indent: ['warn', 4, {
+        '@typescript-eslint/indent': ['warn', 4, {
             SwitchCase: 1,
             VariableDeclarator: 1,
             outerIIFEBody: 1,

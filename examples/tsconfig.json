@@ -1,6 +1,7 @@
 {
     // This config file is used mainly to have remapped import paths in the example working with VSCode.
 
+    "extends": "../tsconfig.json",
     "include": ["./**/*"],
     "exclude": [
         "node_modules/**/*",
