@@ -156,12 +156,6 @@
     "webpack-glsl-loader": "^1.0.1",
     "whatwg-fetch": "^3.6.2"
   },
-  "jest": {
-    "transformIgnorePatterns": [
-      "node_modules/(?!ol|three|quick-lru)"
-    ],
-    "testEnvironment": "jest-environment-jsdom"
-  },
   "config": {
     "commitizen": {
       "path": "@commitlint/cz-commitlint",
