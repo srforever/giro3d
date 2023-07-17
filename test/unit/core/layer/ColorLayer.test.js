@@ -1,12 +1,10 @@
 import ColorLayer from '../../../../src/core/layer/ColorLayer.js';
 import NullSource from '../../../../src/sources/NullSource.js';
 
-const assert = require('assert');
-
 describe('ColorLayer', () => {
     describe('constructor', () => {
         it('should throw on undefined id', () => {
-            assert.throws(() => new ColorLayer(undefined));
+            expect(() => new ColorLayer(undefined)).toThrow();
         });
 
         it('should define layer properties', () => {
