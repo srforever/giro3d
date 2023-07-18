@@ -5,7 +5,7 @@ import { FloatType } from 'three';
 import Interpretation from './Interpretation.js';
 import Layer from './Layer.js';
 import ColorMap from './ColorMap.js';
-import Extent from '../geographic/Extent.js';
+import Extent from '../geographic/Extent';
 import ImageSource from '../../sources/ImageSource.js';
 
 /**

@@ -2,7 +2,7 @@
  * @module Parser/GeoJsonParser
  */
 import Coordinates from '../core/geographic/Coordinates';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 
 function applyOffset(indices, offset) {
     for (const indice of indices) {

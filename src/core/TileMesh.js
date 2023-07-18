@@ -8,7 +8,7 @@ import { Mesh, Vector2, Vector4 } from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker.js';
 import LayeredMaterial from '../renderer/LayeredMaterial.js';
-import Extent from './geographic/Extent.js';
+import Extent from './geographic/Extent';
 import TileGeometry from './TileGeometry.js';
 import OBB from './OBB.js';
 

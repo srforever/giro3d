@@ -1,7 +1,6 @@
-import assert from 'assert';
 import { Box3, Vector2, Vector3 } from 'three';
-import Coordinates from '../../../../src/core/geographic/Coordinates';
-import Extent from '../../../../src/core/geographic/Extent.js';
+import Coordinates from 'src/core/geographic/Coordinates';
+import Extent from 'src/core/geographic/Extent';
 
 const BOUNDS_EPSG4326 = new Extent('EPSG:4326', {
     south: -90, north: +90, east: +180, west: -180,
@@ -22,10 +21,11 @@ describe('Extent', () => {
             const withCoords = new Extent('EPSG:4326',
                 new Coordinates('EPSG:4326', minX, minY),
                 new Coordinates('EPSG:4326', maxX, maxY));
-            assert.equal(minX, withCoords.west());
-            assert.equal(maxX, withCoords.east());
-            assert.equal(minY, withCoords.south());
-            assert.equal(maxY, withCoords.north());
+
+            expect(minX).toEqual(withCoords.west());
+            expect(maxX).toEqual(withCoords.east());
+            expect(minY).toEqual(withCoords.south());
+            expect(maxY).toEqual(withCoords.north());
         });
 
         it('should build the expected extent using keywords', () => {
@@ -35,10 +35,10 @@ describe('Extent', () => {
                 north: maxY,
                 west: minX,
             });
-            assert.equal(minX, withKeywords.west());
-            assert.equal(maxX, withKeywords.east());
-            assert.equal(minY, withKeywords.south());
-            assert.equal(maxY, withKeywords.north());
+            expect(minX).toEqual(withKeywords.west());
+            expect(maxX).toEqual(withKeywords.east());
+            expect(minY).toEqual(withKeywords.south());
+            expect(maxY).toEqual(withKeywords.north());
         });
 
         it('should build the expected extent using values', () => {
@@ -47,10 +47,10 @@ describe('Extent', () => {
                 maxX,
                 minY,
                 maxY);
-            assert.equal(minX, withValues.west());
-            assert.equal(maxX, withValues.east());
-            assert.equal(minY, withValues.south());
-            assert.equal(maxY, withValues.north());
+            expect(minX).toEqual(withValues.west());
+            expect(maxX).toEqual(withValues.east());
+            expect(minY).toEqual(withValues.south());
+            expect(maxY).toEqual(withValues.north());
         });
 
         it('should build the expected extent from box3', () => {
@@ -60,10 +60,20 @@ describe('Extent', () => {
             );
             const fromBox = Extent.fromBox3('EPSG:4978', box);
 
-            assert.equal(fromBox.west(), box.min.x);
-            assert.equal(fromBox.east(), box.max.x);
-            assert.equal(fromBox.north(), box.max.y);
-            assert.equal(fromBox.south(), box.min.y);
+            expect(fromBox.west()).toEqual(box.min.x);
+            expect(fromBox.east()).toEqual(box.max.x);
+            expect(fromBox.north()).toEqual(box.max.y);
+            expect(fromBox.south()).toEqual(box.min.y);
+        });
+    });
+
+    describe('set()', () => {
+        it('should assign the values', () => {
+            const extent = new Extent('EPSG:4326', 0, 0, 0, 0);
+            extent.set('EPSG:3857', -1, 2, -3, 5);
+
+            expect([...extent.values]).toStrictEqual([-1, 2, -3, 5]);
+            expect(extent.crs()).toEqual('EPSG:3857');
         });
     });
 
@@ -137,43 +147,12 @@ describe('Extent', () => {
 
             const copy = original.clone();
 
-            assert.notEqual(copy, original, 'clone() should return a different object!');
-            assert.deepEqual(copy, original);
+            expect(copy).not.toBe(original);
 
-            assert.equal(south, copy.south());
-            assert.equal(north, copy.north());
-            assert.equal(east, copy.east());
-            assert.equal(west, copy.west());
-        });
-
-        it('should return a tiled CRS if original is TMS', () => {
-            const zoom = 10;
-            const row = 5;
-            const col = 12;
-
-            const original = new Extent('TMS', zoom, row, col);
-            const copy = original.clone();
-
-            assert.notEqual(copy, original, 'clone() should return a different object!');
-            assert.deepEqual(copy, original);
-            assert.equal(copy.zoom, zoom);
-            assert.equal(copy.col, col);
-            assert.equal(copy.row, row);
-        });
-
-        it('should return a tiled CRS if original is WMTS', () => {
-            const zoom = 10;
-            const row = 5;
-            const col = 12;
-
-            const original = new Extent('WMTS:WGS84', zoom, row, col);
-            const copy = original.clone();
-
-            assert.notEqual(copy, original, 'clone() should return a different object!');
-            assert.deepEqual(copy, original);
-            assert.equal(copy.zoom, zoom);
-            assert.equal(copy.col, col);
-            assert.equal(copy.row, row);
+            expect(south).toEqual(copy.south());
+            expect(north).toEqual(copy.north());
+            expect(east).toEqual(copy.east());
+            expect(west).toEqual(copy.west());
         });
     });
 
@@ -202,7 +181,7 @@ describe('Extent', () => {
                 south: -5, east: 5, north: 5, west: -5,
             });
 
-            assert.throws(() => original.as('foo'));
+            expect(() => original.as('foo')).toThrow();
         });
 
         it('should return the original object if target CRS is same as source CRS', () => {
@@ -212,7 +191,7 @@ describe('Extent', () => {
 
             const projected = original.as('EPSG:4326');
 
-            assert.equal(projected, original);
+            expect(projected).toEqual(original);
         });
 
         it('should return a different object if source and target CRSes are different', () => {
@@ -221,34 +200,14 @@ describe('Extent', () => {
             });
 
             const projected = original.as('EPSG:3857'); // Spherical Mercator
-            assert.notEqual(original, projected, 'it should be a different object');
-        });
-
-        it('should return the western hemisphere if it is the (0, 0, 0) WMTS tile in EPSG:4326', () => {
-            const original = new Extent('WMTS:WGS84G', 0, 0, 0);
-            const projected = original.as('EPSG:4326');
-
-            assert.equal(projected.west(), -180.0);
-            assert.equal(projected.east(), 0);
-            assert.equal(projected.north(), +90.0);
-            assert.equal(projected.south(), -90.0);
-        });
-
-        it('should return the eastern hemisphere if it is the (0, 0, 1) WMTS tile in EPSG:4326', () => {
-            const original = new Extent('WMTS:WGS84G', 0, 0, 1);
-            const projected = original.as('EPSG:4326');
-
-            assert.equal(projected.west(), 0);
-            assert.equal(projected.east(), +180.0);
-            assert.equal(projected.north(), +90.0);
-            assert.equal(projected.south(), -90.0);
+            expect(original).not.toEqual(projected);
         });
     });
 
     describe('center', () => {
         it('should return a new object if none was provided', () => {
             const result = BOUNDS_EPSG4326.center();
-            assert.notEqual(result, undefined);
+            expect(result).not.toBeUndefined();
         });
 
         it('should return the argument object if provided', () => {
@@ -260,21 +219,21 @@ describe('Extent', () => {
         });
 
         it('should center the target if { x, y } provided', () => {
-            const target = { x: -1, y: -1 };
-            const result = BOUNDS_EPSG4326.center(target);
+            const target = new Vector2(-1, -1);
+            const result = BOUNDS_EPSG4326.center(target) as Vector2;
             expect(target).toBe(result);
             expect(target.x).toBe(0);
             expect(target.y).toBe(0);
         });
 
         it('should return (0, 0) if extent is the EPSG:4326 bounds', () => {
-            const result = BOUNDS_EPSG4326.center();
+            const result = BOUNDS_EPSG4326.center() as Coordinates;
             expect(result.longitude()).toBe(0);
             expect(result.latitude()).toBe(0);
         });
 
         it('should return (0, 0) if extent is the EPSG:3857 bounds', () => {
-            const result = BOUNDS_EPSG3857.center();
+            const result = BOUNDS_EPSG3857.center() as Coordinates;
             expect(result.x()).toBe(0);
             expect(result.y()).toBe(0);
         });
@@ -287,7 +246,7 @@ describe('Extent', () => {
         });
 
         it('should return the passed object if any', () => {
-            const target = { x: NaN, y: NaN };
+            const target = new Vector2(NaN, NaN);
             const result = BOUNDS_EPSG4326.dimensions(target);
             expect(Object.is(result, target)).toBe(true);
         });
@@ -409,10 +368,7 @@ describe('Extent', () => {
 
     describe('fromBox3', () => {
         it('should return the correct values and CRS', () => {
-            const box = {
-                min: { x: 1, y: 2 },
-                max: { x: 8, y: 9 },
-            };
+            const box = new Box3(new Vector3(1, 2), new Vector3(8, 9));
 
             const extent = Extent.fromBox3('EPSG:4326', box);
 
@@ -599,8 +555,9 @@ describe('Extent', () => {
             const center = { x: 2324, y: -23254 };
             const extent = Extent.fromCenterAndSize('EPSG:3857', center, 100, 100);
 
-            expect(extent.center().x()).toEqual(center.x);
-            expect(extent.center().y()).toEqual(center.y);
+            const newCenter = extent.center() as Coordinates;
+            expect(newCenter.x()).toEqual(center.x);
+            expect(newCenter.y()).toEqual(center.y);
         });
 
         it('should return an extent with the correct size', () => {

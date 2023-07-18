@@ -1,9 +1,5 @@
-/**
- * @module core/geographic/Extent
- */
 import {
     Box3,
-    MathUtils,
     Vector2,
     Vector3,
     Vector4,
@@ -12,26 +8,7 @@ import Coordinates, {
     crsIsGeographic, assertCrsIsValid, is4326, crsIsGeocentric,
 } from './Coordinates';
 
-export function reasonnableEpsilonForCRS(crs, extent) {
-    if (is4326(crs)) {
-        return 0.01;
-    }
-    const d = extent.dimensions();
-    return 0.01 * Math.min(d.x, d.y);
-}
-
-const tmpXY = { x: 0, y: 0 };
-
-/**
- * Extent is a SIG-area (so 2D)
- * It can use explicit coordinates (e.g: lon/lat) or implicit (WMTS coordinates)
- */
-
-function YToWGS84(y) {
-    return MathUtils.radToDeg(
-        2 * (Math.atan(Math.exp(-(y - 0.5) * Math.PI * 2)) - Math.PI / 4),
-    );
-}
+const tmpXY = new Vector2();
 
 const CARDINAL = {
     WEST: 0,
@@ -40,10 +17,17 @@ const CARDINAL = {
     NORTH: 3,
 };
 
-function _isTiledCRS(crs) {
-    return crs.indexOf('WMTS:') === 0
-        || crs === 'TMS';
+export function reasonnableEpsilonForCRS(crs: string, width: number, height: number) {
+    if (is4326(crs)) {
+        return 0.01;
+    }
+    return 0.01 * Math.min(width, height);
 }
+
+export type Input =
+    [Coordinates, Coordinates]
+    | [number, number, number, number]
+    | [{ west: number, east: number, south: number, north: number }];
 
 /**
  * An object representing a spatial extent. It encapsulates a Coordinate Reference System id (CRS)
@@ -57,20 +41,21 @@ function _isTiledCRS(crs) {
  *     // latitude 1
  *     const extent = new Extent('EPSG:4326', 0, 0, 1, 1);
  *
- * For other EPSG codes, you must register them with
- * {@link module:Core/Instance~Instance.registerCRS Instance.registerCRS()} :
+ * For other EPSG codes, you must register them with `Instance.registerCRS()` :
  *
  *     Instance.registerCRS('EPSG:3946',
-            '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 + \
-            ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+ *         '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 + \
+ *         ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+ *
  *     extent = new Extent(
  *                  'EPSG:3946',
  *                  1837816.94334, 1847692.32501,
  *                  5170036.4587, 5178412.82698);
- *
- * @api
  */
 class Extent {
+    private readonly _values: Float64Array;
+    private _crs: string;
+
     /**
      * Constructs an Extent object.
      *
@@ -80,60 +65,35 @@ class Extent {
      * Please refer to [proj4js](https://github.com/proj4js/proj4js) doc for more information.
      * @param {number|object|Coordinates} values Variable number of arguments. The following
      * combinations are supported:
-     * - 2 {@link module:Core/geographic/Coordinates Coordinates}
-     * (one representing the min coords, another containing the max coords)
+     * - 2 coordinates for the min and max corners of the extent
      * - an object with `west`, `east`, `south`, `north` properties
-     * - an array of the form `[minx, maxx, miny, maxy]`
+     * - 4 numerical values for the `minx`, `maxx`, `miny`, `maxy`
      */
-    constructor(crs, ...values) {
-        this._crs = crs;
-
-        if (_isTiledCRS(crs)) {
-            if (values.length === 3) {
-                [this.zoom, this.row, this.col] = values;
-
-                if (this.zoom < 0) {
-                    throw new Error(`invlid WTMS values ${values}`);
-                }
-            } else {
-                throw new Error(`Unsupported constructor args '${values}'`);
-            }
-        } else if (values.length === 2
-            && values[0] instanceof Coordinates
-            && values[1] instanceof Coordinates) {
-            this._values = new Float64Array(4);
-            [this._values[CARDINAL.WEST], this._values[CARDINAL.SOUTH]] = values[0].values;
-            [this._values[CARDINAL.EAST], this._values[CARDINAL.NORTH]] = values[1].values;
-        } else if (values.length === 1 && values[0].west !== undefined) {
-            this._values = new Float64Array(4);
-            this._values[CARDINAL.WEST] = values[0].west;
-            this._values[CARDINAL.EAST] = values[0].east;
-            this._values[CARDINAL.SOUTH] = values[0].south;
-            this._values[CARDINAL.NORTH] = values[0].north;
-        } else if (values.length === 4) {
-            this._values = new Float64Array(4);
-            Object.keys(CARDINAL).forEach(key => {
-                const cardinal = CARDINAL[key];
-                this._values[cardinal] = values[cardinal];
-            });
-        } else {
-            throw new Error(`Unsupported constructor args '${values}'`);
-        }
+    constructor(
+        crs: string,
+        ...values: Input
+    ) {
+        this._values = new Float64Array(4);
+        this.set(crs, ...values);
     }
 
     /**
      * Returns an extent centered at the specified coordinate, and with the specified size.
      *
-     * @param {string} crs The CRS identifier.
-     * @param {object} center The center.
-     * @param {number} center.x The center X.
-     * @param {number} center.y The center Y.
-     * @param {number} width The width, in CRS units.
-     * @param {number} height The height, in CRS units.
-     * @returns {Extent} The produced extent.
-     * @api
+     * @param crs The CRS identifier.
+     * @param center The center.
+     * @param center.x The center X.
+     * @param center.y The center Y.
+     * @param width The width, in CRS units.
+     * @param height The height, in CRS units.
+     * @returns The produced extent.
      */
-    static fromCenterAndSize(crs, center, width, height) {
+    static fromCenterAndSize(
+        crs: string,
+        center: { x: number, y: number },
+        width: number,
+        height: number,
+    ) {
         const minX = center.x - width / 2;
         const maxX = center.x + width / 2;
         const minY = center.y - height / 2;
@@ -142,15 +102,18 @@ class Extent {
         return new Extent(crs, minX, maxX, minY, maxY);
     }
 
+    get values() {
+        return this._values;
+    }
+
     /**
      * Returns `true` if the two extents are equal.
      *
-     * @api
-     * @param {Extent} other The extent to compare.
-     * @param {number} [epsilon=0.00001] The optional comparison epsilon.
-     * @returns {boolean} `true` if the extents are equal, otherwise `false`.
+     * @param other The extent to compare.
+     * @param epsilon The optional comparison epsilon.
+     * @returns `true` if the extents are equal, otherwise `false`.
      */
-    equals(other, epsilon = 0.00001) {
+    equals(other: Extent, epsilon = 0.00001) {
         return other._crs === this._crs
             && Math.abs(other._values[0] - this._values[0]) <= epsilon
             && Math.abs(other._values[1] - this._values[1]) <= epsilon
@@ -161,8 +124,7 @@ class Extent {
     /**
      * Checks the validity of the extent.
      *
-     * @api
-     * @returns {boolean} `true` if the extent is valid, `false` otherwise.
+     * @returns `true` if the extent is valid, `false` otherwise.
      */
     isValid() {
         if (!(
@@ -192,30 +154,29 @@ class Extent {
     /**
      * Clones this object.
      *
-     * @api
-     * @returns {Extent} a copy of this object.
+     * @returns a copy of this object.
      */
     clone() {
-        if (_isTiledCRS(this._crs)) {
-            return new Extent(this._crs, this.zoom, this.row, this.col);
-        }
-        const result = new Extent(this._crs, ...this._values);
+        const minx = this._values[CARDINAL.WEST];
+        const maxx = this._values[CARDINAL.EAST];
+        const miny = this._values[CARDINAL.SOUTH];
+        const maxy = this._values[CARDINAL.NORTH];
+        const result = new Extent(this._crs, minx, maxx, miny, maxy);
         return result;
     }
 
     /**
      * Returns an extent with a relative margin added.
      *
-     * @param {number} marginRatio The margin, in normalized value ([0, 1]).
+     * @param marginRatio The margin, in normalized value ([0, 1]).
      * A margin of 1 means 100% of the width or height of the extent.
      * @example
      * const extent = new Extent('EPSG:3857', 0, 100, 0, 100);
      * const margin = extent.withRelativeMargin(0.1);
      * //  new Extent('EPSG:3857', -10, 110, -10, 110);
-     * @api
-     * @returns {Extent} a new extent with a specified margin applied.
+     * @returns a new extent with a specified margin applied.
      */
-    withRelativeMargin(marginRatio) {
+    withRelativeMargin(marginRatio: number) {
         const w = Math.abs(this.west() - this.east());
         const h = Math.abs(this.north() - this.south());
 
@@ -225,16 +186,15 @@ class Extent {
     /**
      * Returns an extent with a margin.
      *
-     * @param {number} x The horizontal margin, in CRS units.
-     * @param {number} y The vertical margin, in CRS units.
+     * @param x The horizontal margin, in CRS units.
+     * @param y The vertical margin, in CRS units.
      * @example
      * const extent = new Extent('EPSG:3857', 0, 100, 0, 100);
      * const margin = extent.withMargin(10, 15);
      * //  new Extent('EPSG:3857', -10, 110, -15, 115);
-     * @api
-     * @returns {Extent} a new extent with a specified margin applied.
+     * @returns a new extent with a specified margin applied.
      */
-    withMargin(x, y) {
+    withMargin(x: number, y: number) {
         const w = this.west() - x;
         const e = this.east() + x;
         const n = this.north() + y;
@@ -247,54 +207,17 @@ class Extent {
      * Converts this extent into another CRS.
      * If `crs` is the same as the current CRS, the original object is returned.
      *
-     * @api
-     * @param {string} crs the new CRS
-     * @returns {Extent} the converted extent.
+     * @param crs the new CRS
+     * @returns the converted extent.
      */
-    as(crs) {
+    as(crs: string) {
         assertCrsIsValid(crs);
-
-        if (_isTiledCRS(this._crs)) {
-            if (this._crs === 'WMTS:PM') {
-            // Convert this to the requested crs by using 4326 as an intermediate state.
-                const nbCol = 2 ** this.zoom;
-                const size = 360 / nbCol;
-                // convert column PM to longitude EPSG:4326 degree
-                const west = 180 - size * (nbCol - this.col);
-                const east = 180 - size * (nbCol - (this.col + 1));
-                const nbRow = nbCol;
-                const sizeRow = 1.0 / nbRow;
-                // convert row PM to Y PM
-                const Yn = 1 - sizeRow * (nbRow - (this.row));
-                const Ys = 1 - sizeRow * (nbRow - (this.row + 1));
-                // convert Y PM to latitude EPSG:4326 degree
-                const north = YToWGS84(Yn);
-                const south = YToWGS84(Ys);
-                // create intermediate EPSG:4326 and convert in new crs
-                return new Extent('EPSG:4326', {
-                    west, east, south, north,
-                }).as(crs);
-            }
-            if (this._crs === 'WMTS:WGS84G' && crs === 'EPSG:4326') {
-                const nbRow = 2 ** this.zoom;
-                const size = 180 / nbRow;
-                const north = size * (nbRow - this.row) - 90;
-                const south = size * (nbRow - (this.row + 1)) - 90;
-                const west = 180 - size * (2 * nbRow - this.col);
-                const east = 180 - size * (2 * nbRow - (this.col + 1));
-
-                return new Extent(crs, {
-                    west, east, south, north,
-                });
-            }
-            throw new Error('Unsupported yet');
-        }
 
         if (this._crs !== crs && !(is4326(this._crs) && is4326(crs))) {
         // Compute min/max in x/y by projecting 8 cardinal points,
         // and then taking the min/max of each coordinates.
             const cardinals = [];
-            const c = this.center();
+            const c = this.center() as Coordinates;
             cardinals.push(new Coordinates(this._crs, this.west(), this.north()));
             cardinals.push(new Coordinates(this._crs, c.values[0], this.north()));
             cardinals.push(new Coordinates(this._crs, this.east(), this.north()));
@@ -325,23 +248,9 @@ class Extent {
         return this;
     }
 
-    offsetToParent(other, target = new Vector4()) {
+    offsetToParent(other: Extent, target = new Vector4()) {
         if (this.crs() !== other.crs()) {
             throw new Error('unsupported mix');
-        }
-        if (_isTiledCRS(this.crs())) {
-            const diffLevel = this.zoom - other.zoom;
-            const diff = 2 ** diffLevel;
-            const invDiff = 1 / diff;
-
-            const r = (this.row - (this.row % diff)) * invDiff;
-            const c = (this.col - (this.col % diff)) * invDiff;
-
-            return target.set(
-                this.col * invDiff - c,
-                this.row * invDiff - r,
-                invDiff, invDiff,
-            );
         }
 
         const oDim = other.dimensions();
@@ -357,66 +266,57 @@ class Extent {
     }
 
     /**
-     * @api
-     * @returns {number} the horizontal coordinate of the westernmost side
+     * @returns the horizontal coordinate of the westernmost side
      */
     west() {
         return this._values[CARDINAL.WEST];
     }
 
     /**
-     * @api
-     * @returns {number} the horizontal coordinate of the easternmost side
+     * @returns the horizontal coordinate of the easternmost side
      */
     east() {
         return this._values[CARDINAL.EAST];
     }
 
     /**
-     * @api
-     * @returns {number} the horizontal coordinate of the northernmost side
+     * @returns the horizontal coordinate of the northernmost side
      */
     north() {
         return this._values[CARDINAL.NORTH];
     }
 
     /**
-     * @api
-     * @returns {number} the horizontal coordinate of the southermost side
+     * @returns the horizontal coordinate of the southermost side
      */
     south() {
         return this._values[CARDINAL.SOUTH];
     }
 
     /**
-     * @api
-     * @returns {Coordinates} the coordinates of the top left corner
+     * @returns the coordinates of the top left corner
      */
     topLeft() { return new Coordinates(this.crs(), this.west(), this.north(), 0); }
 
     /**
-     * @api
-     * @returns {Coordinates} the coordinates of the top right corner
+     * @returns the coordinates of the top right corner
      */
     topRight() { return new Coordinates(this.crs(), this.east(), this.north(), 0); }
 
     /**
-     * @api
-     * @returns {Coordinates} the coordinates of the bottom right corner
+     * @returns the coordinates of the bottom right corner
      */
     bottomRight() { return new Coordinates(this.crs(), this.east(), this.south(), 0); }
 
     /**
-     * @api
-     * @returns {Coordinates} the coordinates of the bottom right corner
+     * @returns the coordinates of the bottom right corner
      */
     bottomLeft() { return new Coordinates(this.crs(), this.west(), this.south(), 0); }
 
     /**
      * Gets the coordinate reference system of this extent.
      *
-     * @api
-     * @returns {string} the coordinate reference system of this object
+     * @returns the coordinate reference system of this object
      */
     crs() {
         return this._crs;
@@ -425,18 +325,11 @@ class Extent {
     /**
      * Sets `target` with the center of this extent.
      *
-     * @api
-     * @param {object|Vector2} [target] the object to set with the center's X.
+     * @param target the object to set with the center's X.
      * If none provided, a new one is created.
-     * @param {number} target.x the `x` component
-     * @param {number} target.y the `y` component
-     * @returns {object|Vector2} the modified object passed in argument.
+     * @returns the modified object passed in argument.
      */
-    center(target) {
-        if (_isTiledCRS(this._crs)) {
-            throw new Error('Invalid operation for WMTS bbox');
-        }
-
+    center(target?: Vector2 | Coordinates) {
         let c;
 
         if (target) {
@@ -461,16 +354,14 @@ class Extent {
 
     /**
      * Sets the target with the width and height of this extent.
-     * The <code>x</code> property will be set with the width,
-     * and the <code>y</code> property will be set with the height.
+     * The `x` property will be set with the width,
+     * and the `y` property will be set with the height.
      *
-     * @api
-     * @param {object|Vector2} [target] the optional object to set with the width.
-     * @returns {object|Vector2} the modified object passed in argument,
+     * @param target the optional target to set with the result.
+     * @returns the modified object passed in argument,
      * or a new object if none was provided.
      */
-    dimensions(target) {
-        target = target || { x: 0, y: 0 };
+    dimensions(target: Vector2 = new Vector2()): Vector2 {
         target.x = Math.abs(this.east() - this.west());
         target.y = Math.abs(this.north() - this.south());
         return target;
@@ -479,12 +370,11 @@ class Extent {
     /**
      * Checks whether the specified coordinate is inside this extent.
      *
-     * @api
-     * @param {Coordinates} coord the coordinate to test
-     * @param {number} [epsilon=0] the precision delta (+/- epsilon)
-     * @returns {boolean} true if the coordinate is inside the bounding box
+     * @param coord the coordinate to test
+     * @param epsilon the precision delta (+/- epsilon)
+     * @returns `true` if the coordinate is inside the bounding box
      */
-    isPointInside(coord, epsilon = 0) {
+    isPointInside(coord: Coordinates, epsilon = 0) {
         const c = (this.crs() === coord.crs) ? coord : coord.as(this.crs());
         // TODO this ignores altitude
         if (crsIsGeographic(this.crs())) {
@@ -502,16 +392,16 @@ class Extent {
     /**
      * Tests whether this extent is contained in another extent.
      *
-     * @api
-     * @param {Extent} other the other extent to test
-     * @param {number} [epsilon=null] the precision delta (+/- epsilon).
+     * @param other the other extent to test
+     * @param epsilon the precision delta (+/- epsilon).
      * If this value is not provided, a reasonable epsilon will be computed.
-     * @returns {boolean} true if this extent is contained in the other extent.
+     * @returns `true` if this extent is contained in the other extent.
      */
-    isInside(other, epsilon) {
+    isInside(other: Extent, epsilon : number = null) {
         const o = other.as(this._crs);
         // 0 is an acceptable value for epsilon:
-        epsilon = epsilon == null ? reasonnableEpsilonForCRS(this._crs, this) : epsilon;
+        const dims = this.dimensions(tmpXY);
+        epsilon = epsilon == null ? reasonnableEpsilonForCRS(this._crs, dims.x, dims.y) : epsilon;
         return this.east() - o.east() <= epsilon
                && o.west() - this.west() <= epsilon
                && this.north() - o.north() <= epsilon
@@ -519,13 +409,12 @@ class Extent {
     }
 
     /**
-     * Returns true if this bounding box intersect with the bouding box parameter
+     * Returns `true` if this bounding box intersect with the bouding box parameter
      *
-     * @api
-     * @param {Extent} bbox the bounding box to test
-     * @returns {boolean} true if this bounding box intersects with the provided bounding box
+     * @param bbox the bounding box to test
+     * @returns `true` if this bounding box intersects with the provided bounding box
      */
-    intersectsExtent(bbox) {
+    intersectsExtent(bbox: Extent) {
         const other = bbox.as(this.crs());
         return !(this.west() >= other.east()
              || this.east() <= other.west()
@@ -536,11 +425,10 @@ class Extent {
     /**
      * Set this extent to the intersection of itself and other
      *
-     * @api
-     * @param {Extent} other the bounding box to intersect
-     * @returns {Extent} the modified extent
+     * @param other the bounding box to intersect
+     * @returns the modified extent
      */
-    intersect(other) {
+    intersect(other: Extent) {
         if (!this.intersectsExtent(other)) {
             this.set(this.crs(), 0, 0, 0, 0);
             return this;
@@ -563,16 +451,21 @@ class Extent {
      * of the grid pixels. Optionally, you can specify the minimum pixel size of the
      * resulting extent.
      *
-     * @api
-     * @param {Extent} gridExtent The grid extent.
-     * @param {number} gridWidth The grid width, in pixels.
-     * @param {number} gridHeight The grid height, in pixels.
-     * @param {number} [minPixWidth] The minimum width, in pixels, of the resulting extent.
-     * @param {number} [minPixHeight] The minimum height, in pixels, of the resulting extent.
-     * @returns {{ extent: Extent, width: number, height: number }} The adjusted extent and pixel
+     * @param gridExtent The grid extent.
+     * @param gridWidth The grid width, in pixels.
+     * @param gridHeight The grid height, in pixels.
+     * @param minPixWidth The minimum width, in pixels, of the resulting extent.
+     * @param minPixHeight The minimum height, in pixels, of the resulting extent.
+     * @returns The adjusted extent and pixel
      * size of the adjusted extent.
      */
-    fitToGrid(gridExtent, gridWidth, gridHeight, minPixWidth, minPixHeight) {
+    fitToGrid(
+        gridExtent: Extent,
+        gridWidth: number,
+        gridHeight: number,
+        minPixWidth?: number,
+        minPixHeight?: number,
+    ): { extent: Extent, width: number, height: number } {
         const gridDims = gridExtent.dimensions(tmpXY);
         const pixelWidth = gridDims.x / gridWidth;
         const pixelHeight = gridDims.y / gridHeight;
@@ -618,40 +511,44 @@ class Extent {
      * Set the coordinate reference system and values of this
      * extent.
      *
-     * @api
-     * @param {*} crs the new CRS
-     * @param  {...any} values the new values
-     * @returns {Extent} this object modified
+     * @param {string} crs the new CRS
+     * @param  values the new values
+     * @returns this object modified
      */
-    set(crs, ...values) {
+    set(crs: string, ...values: Input): this {
         this._crs = crs;
-        if (_isTiledCRS(this.crs())) {
-            [this.zoom, this.row, this.col] = values;
+
+        if (values.length === 2
+            && values[0] instanceof Coordinates
+            && values[1] instanceof Coordinates) {
+            [this._values[CARDINAL.WEST], this._values[CARDINAL.SOUTH]] = values[0].values;
+            [this._values[CARDINAL.EAST], this._values[CARDINAL.NORTH]] = values[1].values;
+        } else if (values.length === 1 && values[0].west !== undefined) {
+            this._values[CARDINAL.WEST] = values[0].west;
+            this._values[CARDINAL.EAST] = values[0].east;
+            this._values[CARDINAL.SOUTH] = values[0].south;
+            this._values[CARDINAL.NORTH] = values[0].north;
+        } else if (values.length === 4) {
+            this._values[CARDINAL.WEST] = values[CARDINAL.WEST];
+            this._values[CARDINAL.EAST] = values[CARDINAL.EAST];
+            this._values[CARDINAL.SOUTH] = values[CARDINAL.SOUTH];
+            this._values[CARDINAL.NORTH] = values[CARDINAL.NORTH];
         } else {
-            Object.keys(CARDINAL).forEach(key => {
-                const cardinal = CARDINAL[key];
-                this._values[cardinal] = values[cardinal];
-            });
+            throw new Error(`Unsupported constructor args '${values}'`);
         }
         return this;
     }
 
-    copy(other) {
+    copy(other: Extent): this {
         this._crs = other.crs();
-        if (_isTiledCRS(this.crs())) {
-            this.zoom = other.zoom;
-            this.row = other.row;
-            this.col = other.col;
-        } else {
-            Object.keys(CARDINAL).forEach(key => {
-                const cardinal = CARDINAL[key];
-                this._values[cardinal] = other._values[cardinal];
-            });
-        }
+        this._values[CARDINAL.WEST] = other._values[CARDINAL.WEST];
+        this._values[CARDINAL.EAST] = other._values[CARDINAL.EAST];
+        this._values[CARDINAL.SOUTH] = other._values[CARDINAL.SOUTH];
+        this._values[CARDINAL.NORTH] = other._values[CARDINAL.NORTH];
         return this;
     }
 
-    union(extent) {
+    union(extent: Extent): void {
         if (extent.crs() !== this.crs()) {
             throw new Error('unsupported union between 2 diff crs');
         }
@@ -679,10 +576,9 @@ class Extent {
     /**
      * Expands the extent to contain the specified coordinates.
      *
-     * @api
-     * @param {Coordinates} coordinates The coordinates to include
+     * @param coordinates The coordinates to include
      */
-    expandByPoint(coordinates) {
+    expandByPoint(coordinates: Coordinates): void {
         const coords = coordinates.as(this.crs());
         const we = coords.values[0];
         if (we < this.west()) {
@@ -701,14 +597,13 @@ class Extent {
     }
 
     /**
-     * Moves the extent by the provided <code>x</code> and <code>y</code> values.
+     * Moves the extent by the provided `x` and `y` values.
      *
-     * @api
-     * @param {number} x the horizontal shift
-     * @param {number} y the vertical shift
-     * @returns {Extent} the modified extents.
+     * @param x the horizontal shift
+     * @param y the vertical shift
+     * @returns the modified extents.
      */
-    shift(x, y) {
+    shift(x: number, y: number): this {
         this._values[CARDINAL.WEST] += x;
         this._values[CARDINAL.EAST] += x;
         this._values[CARDINAL.SOUTH] += y;
@@ -719,19 +614,11 @@ class Extent {
     /**
      * Constructs an extent from the specified box.
      *
-     * @api
-     * @static
-     * @param {string} crs the coordinate reference system of the new extent.
-     * @param {object} box the box to read values from
-     * @param {object} box.min the lower left corner of the box
-     * @param {number} box.min.x the x value of the lower left corner of the box
-     * @param {number} box.min.y the y value of the lower left corner of the box
-     * @param {object} box.max the upper right corner of the box
-     * @param {number} box.max.x the x value of the upper right corner of the box
-     * @param {number} box.max.y the y value of the upper right corner of the box
-     * @returns {Extent} the constructed extent.
+     * @param crs the coordinate reference system of the new extent.
+     * @param box the box to read values from
+     * @returns the constructed extent.
      */
-    static fromBox3(crs, box) {
+    static fromBox3(crs: string, box: Box3): Extent {
         return new this(crs, {
             west: box.min.x,
             east: box.max.x,
@@ -743,12 +630,11 @@ class Extent {
     /**
      * Returns a [Box3](https://threejs.org/docs/?q=box3#api/en/math/Box3) that matches this extent.
      *
-     * @param {number} minHeight The min height of the box.
-     * @param {number} maxHeight The max height of the box.
-     * @api
-     * @returns {Box3} The box.
+     * @param minHeight The min height of the box.
+     * @param maxHeight The max height of the box.
+     * @returns The box.
      */
-    toBox3(minHeight, maxHeight) {
+    toBox3(minHeight: number, maxHeight: number): Box3 {
         const min = new Vector3(this.west(), this.south(), minHeight);
         const max = new Vector3(this.east(), this.north(), maxHeight);
         const box = new Box3(min, max);
@@ -758,16 +644,16 @@ class Extent {
     /**
      * Returns the normalized offset from bottom-left in extent of this Coordinates
      *
-     * @param {Coordinates} coordinate the coordinate
-     * @param {Vector2} target optional Vector2 target.
+     * @param coordinate the coordinate
+     * @param target optional Vector2 target.
      * If not present a new one will be created
-     * @returns {Vector2} normalized offset in extent
+     * @returns normalized offset in extent
      * @example
      * extent.offsetInExtent(extent.center())
      * ```
      * // returns `(0.5, 0.5)`.
      */
-    offsetInExtent(coordinate, target) {
+    offsetInExtent(coordinate: Coordinates, target = new Vector2()) {
         if (coordinate.crs !== this.crs()) {
             throw new Error('unsupported mix');
         }
@@ -781,7 +667,6 @@ class Extent {
         const originX = (x - this.west()) / dimX;
         const originY = (y - this.south()) / dimY;
 
-        target = target || new Vector2();
         target.set(originX, originY);
         return target;
     }
@@ -794,16 +679,15 @@ class Extent {
      * - If both subvisions are `1`, an array of one element is returned,
      *  containing a copy of this extent.
      *
-     * @api
-     * @param {number} xSubdivs The number of subdivisions on the X/longitude axis.
-     * @param {number} ySubdivs The number of subdivisions on the Y/latitude axis.
-     * @returns {Extent[]} the resulting extents.
+     * @param xSubdivs The number of subdivisions on the X/longitude axis.
+     * @param ySubdivs The number of subdivisions on the Y/latitude axis.
+     * @returns the resulting extents.
      * @example
      * const extent = new Extent('EPSG:3857', 0, 100, 0, 100);
      * extent.split(2, 1);
      * // [0, 50, 0, 50], [50, 100, 50, 100]
      */
-    split(xSubdivs, ySubdivs) {
+    split(xSubdivs: number, ySubdivs: number): Extent[] {
         if (xSubdivs < 1 || ySubdivs < 1) {
             throw new Error('Invalid subdivisions. Must be strictly positive.');
         }

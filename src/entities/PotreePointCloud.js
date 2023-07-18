@@ -22,7 +22,7 @@ import PotreeBinParser from '../parser/PotreeBinParser.js';
 import PotreeCinParser from '../parser/PotreeCinParser.js';
 import Fetcher from '../utils/Fetcher.js';
 import Picking from '../core/Picking.js';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 import PointCloud from '../core/PointCloud.js';
 
 // Draw a cube with lines (12 lines).

@@ -1,4 +1,4 @@
-import Extent from '../../../src/core/geographic/Extent.js';
+import Extent from '../../../src/core/geographic/Extent';
 import TileMesh from '../../../src/core/TileMesh.js';
 import Map from '../../../src/entities/Map.js';
 

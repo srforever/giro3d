@@ -22,7 +22,7 @@ import GeoTIFF, {
  */
 
 import HttpConfiguration from '../utils/HttpConfiguration.js';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 import TextureGenerator from '../utils/TextureGenerator.js';
 import PromiseUtils from '../utils/PromiseUtils.js';
 import ImageSource, { ImageResult } from './ImageSource.js';

@@ -3,7 +3,7 @@
  * @module sources/NullSource
  */
 
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 import ImageSource from './ImageSource.js';
 
 /**

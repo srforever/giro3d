@@ -3,7 +3,7 @@ import {
     Group, Object3D, Vector2,
 } from 'three';
 import proj4 from 'proj4';
-import Extent from '../../../src/core/geographic/Extent.js';
+import Extent from '../../../src/core/geographic/Extent';
 import Instance, { INSTANCE_EVENTS } from '../../../src/core/Instance.js';
 import MainLoop from '../../../src/core/MainLoop.js';
 import Scheduler from '../../../src/core/scheduler/Scheduler.js';

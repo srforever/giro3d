@@ -10,7 +10,7 @@ import {
     MathUtils,
 } from 'three';
 
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 import Layer from '../core/layer/Layer.js';
 import ColorLayer from '../core/layer/ColorLayer.js';
 import ElevationLayer from '../core/layer/ElevationLayer.js';

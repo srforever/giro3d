@@ -1,7 +1,7 @@
 import proj4 from 'proj4';
 import assert from 'assert';
 import GeoJsonParser from '../../../src/parser/GeoJsonParser.js';
-import Extent from '../../../src/core/geographic/Extent.js';
+import Extent from '../../../src/core/geographic/Extent';
 
 const holes = require('../../data/geojson/holes.geojson.json');
 const gpx = require('../../data/geojson/gpx.geojson.json');

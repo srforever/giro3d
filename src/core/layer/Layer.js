@@ -14,7 +14,7 @@ import {
 
 import ColorMap from './ColorMap.js';
 import Interpretation from './Interpretation.js';
-import Extent from '../geographic/Extent.js';
+import Extent from '../geographic/Extent';
 import EventUtils from '../../utils/EventUtils.js';
 import LayerComposer from './LayerComposer.js';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils.js';

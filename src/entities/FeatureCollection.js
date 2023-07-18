@@ -7,7 +7,7 @@ import {
     Group,
 } from 'three';
 
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 import ScreenSpaceError from '../core/ScreenSpaceError.js';
 import LayerUpdateState from '../core/layer/LayerUpdateState.js';
 import Entity3D from './Entity3D.js';

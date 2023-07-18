@@ -8,7 +8,7 @@ import {
     UnsignedByteType,
     FloatType,
 } from 'three';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 
 class ImageResult {
     /**

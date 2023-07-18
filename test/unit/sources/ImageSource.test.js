@@ -1,4 +1,4 @@
-import Extent from '../../../src/core/geographic/Extent.js';
+import Extent from '../../../src/core/geographic/Extent';
 import ImageSource from '../../../src/sources/ImageSource.js';
 
 class TestSource extends ImageSource {
