@@ -3,6 +3,7 @@
  * @module sources/NullSource
  */
 
+import Extent from '../core/geographic/Extent.js';
 import ImageSource from './ImageSource.js';
 
 /**
@@ -14,7 +15,7 @@ class NullSource extends ImageSource {
     constructor(options = {}) {
         super(options);
 
-        this.extent = options.extent;
+        this.extent = options?.extent ?? new Extent('EPSG:3857', 0, 10, 0, 10);
     }
 
     getCrs() {
