@@ -12,7 +12,6 @@ import C3DEngine from '../renderer/c3DEngine.js';
 import Entity from '../entities/Entity.js';
 import Scheduler from './scheduler/Scheduler.js';
 import Picking from './Picking.js';
-import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import RenderingOptions from '../renderer/RenderingOptions.js';
 
@@ -443,47 +442,6 @@ class Instance extends EventDispatcher {
         this._objects.splice(this._objects.indexOf(object, 1));
         this.notifyChange(this.camera.camera3D, true);
         this.dispatchEvent({ type: INSTANCE_EVENTS.ENTITY_REMOVED });
-    }
-
-    addVector(vector) {
-        return new Promise(resolve => {
-            const source = vector.getSource();
-            const convert = OlFeature2Mesh.convert({ altitude: 1 });
-
-            source.on('change', () => {
-                // naive way of dealing with changes : remove everything and add everything back
-                if (vector.object3d) {
-                    this.threeObjects.remove(vector.object3d);
-                    vector.object3d.traverse(o => {
-                        if (o.material) {
-                            o.material.dispose();
-                        }
-                        if (o.geometry) {
-                            o.geometry.dispose();
-                        }
-                        o.dispose();
-                    });
-                }
-                vector.object3d = convert(source.getFeatures());
-                this.threeObjects.add(vector.object3d);
-                this.notifyChange(vector.object3d, true);
-            });
-
-            // default loader does not have a "success" callback. Instead openlayers tests for
-            if (source.getFeatures().length > 0) {
-                vector.object3d = convert(source.getFeatures());
-                this.threeObjects.add(vector.object3d);
-                this.notifyChange(vector.object3d, true);
-                resolve(vector);
-            } else {
-                source.once('change', () => resolve(vector));
-                source.loadFeatures(
-                    [-Infinity, -Infinity, Infinity, Infinity],
-                    undefined,
-                    this.referenceCrs,
-                );
-            }
-        });
     }
 
     /**
