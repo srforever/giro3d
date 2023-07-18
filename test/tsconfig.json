@@ -1,0 +1,15 @@
+{
+    // This config file is used to support remapped import paths in the tests.
+
+    "extends": "../tsconfig.json",
+    "include": ["./**/*"],
+    "exclude": [
+        "node_modules/**/*",
+    ],
+    "compilerOptions": {
+      "paths": {
+        "src/*": ["../src/*"]
+      },
+      "allowJs": true,
+    }
+  }
