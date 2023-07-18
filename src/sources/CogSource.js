@@ -85,6 +85,10 @@ class CogSource extends ImageSource {
         return this.extent;
     }
 
+    getCrs() {
+        return this.crs;
+    }
+
     /**
      * Attemps to compute the exact extent of the TIFF image.
      *

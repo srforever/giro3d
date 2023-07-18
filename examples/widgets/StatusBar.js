@@ -68,8 +68,9 @@ function pick(mouseEvent) {
         }).at(0);
 
         if (picked) {
+            const crs = currentInstance.referenceCrs;
             coordinates.classList.remove('d-none');
-            coordinates.textContent = `x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(2)}`;
+            coordinates.textContent = `${crs} x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(2)}`;
         } else {
             coordinates.classList.add('d-none');
         }

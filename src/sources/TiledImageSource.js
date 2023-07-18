@@ -90,6 +90,10 @@ class TiledImageSource extends ImageSource {
         return this.sourceExtent;
     }
 
+    getCrs() {
+        return this.olprojection.getCode();
+    }
+
     /**
      * Selects the best zoom level given the provided image size and extent.
      *
@@ -141,7 +145,7 @@ class TiledImageSource extends ImageSource {
      *
      * @api
      * @param {object} options The options.
-     * @param {Extent} options.extent The extent of the request area.
+     * @param {Extent} options.extent The extent of the request area, in the source CRS.
      * @param {number} options.width The pixel width of the request area.
      * @param {string} options.id The identifier of the node that emitted the request.
      * @param {number} options.height The pixel height of the request area.
@@ -156,6 +160,10 @@ class TiledImageSource extends ImageSource {
 
         signal?.throwIfAborted();
 
+        if (extent.crs() !== this.getCrs()) {
+            throw new Error('invalid CRS');
+        }
+
         /** @type {TileGrid} */
         const tileGrid = this.tileGrid;
         const zoomLevel = this.getZoomLevel(extent, width);
@@ -167,7 +175,7 @@ class TiledImageSource extends ImageSource {
             zoomLevel,
         );
 
-        const images = this.loadTiles(tileRange, extent.crs(), zoomLevel);
+        const images = this.loadTiles(tileRange, this.getCrs(), zoomLevel);
 
         return images;
     }
@@ -234,7 +242,9 @@ class TiledImageSource extends ImageSource {
             return this.containsFn(extent);
         }
 
-        return extent.intersectsExtent(this.sourceExtent);
+        const convertedExtent = extent.clone().as(this.getCrs());
+
+        return convertedExtent.intersectsExtent(this.sourceExtent);
     }
 
     /**

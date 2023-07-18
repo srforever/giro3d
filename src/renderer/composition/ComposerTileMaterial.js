@@ -1,11 +1,11 @@
 import {
-    Vector2,
     Uniform,
     RawShaderMaterial,
     ShaderChunk,
     Texture,
     FloatType,
     MathUtils,
+    CanvasTexture,
 } from 'three';
 
 import FragmentShader from './ComposerTileFS.glsl';
@@ -17,8 +17,52 @@ import Interpretation, { Mode } from '../../core/layer/Interpretation.js';
 ShaderChunk.Interpretation = InterpretationChunk;
 ShaderChunk.FillNoData = FillNoDataChunk;
 
+function createGridTexture() {
+    const canvas = document.createElement('canvas');
+    canvas.width = 512;
+    canvas.height = 512;
+    const w = canvas.width;
+    const h = canvas.height;
+
+    const ctx = canvas.getContext('2d');
+
+    ctx.strokeStyle = 'yellow';
+    ctx.lineWidth = 8;
+    ctx.strokeRect(0, 0, w, h);
+
+    ctx.strokeStyle = 'yellow';
+    ctx.setLineDash([8, 8]);
+    ctx.lineWidth = 4;
+    const subdivs = 4;
+    const xWidth = w / subdivs;
+
+    for (let i = 1; i < subdivs; i++) {
+        const x = i * xWidth;
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+    }
+
+    const yWidth = h / subdivs;
+    for (let i = 1; i < subdivs; i++) {
+        const y = i * yWidth;
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+    }
+
+    // Center of the image
+    ctx.beginPath();
+    ctx.fillStyle = 'yellow';
+    ctx.arc(w / 2, h / 2, 8, 0, 2 * Math.PI);
+    ctx.fill();
+
+    return new CanvasTexture(canvas);
+}
+
 const POOL = [];
 const POOL_SIZE = 2048;
+let GRID_TEXTURE;
 
 class ComposerTileMaterial extends RawShaderMaterial {
     /**
@@ -40,10 +84,10 @@ class ComposerTileMaterial extends RawShaderMaterial {
         this.vertexShader = VertexShader;
 
         this.uniforms.texture = new Uniform(null);
+        this.uniforms.gridTexture = new Uniform(null);
         this.uniforms.interpretation = new Uniform(null);
         this.uniforms.flipY = new Uniform(false);
         this.uniforms.fillNoData = new Uniform(false);
-        this.uniforms.textureSize = new Uniform(new Vector2(0, 0));
         this.uniforms.showImageOutlines = new Uniform(false);
         this.uniforms.opacity = new Uniform(this.opacity);
         this.now = performance.now();
@@ -147,10 +191,11 @@ class ComposerTileMaterial extends RawShaderMaterial {
         this.uniforms.flipY.value = flipY ?? false;
         this.uniforms.fillNoData.value = fillNoData ?? false;
         this.uniforms.showImageOutlines.value = showImageOutlines ?? false;
-
-        if (texture?.image) {
-            const image = texture.image;
-            this.uniforms.textureSize.value.set(image.width, image.height);
+        if (showImageOutlines) {
+            if (!GRID_TEXTURE) {
+                GRID_TEXTURE = createGridTexture();
+            }
+            this.uniforms.gridTexture.value = GRID_TEXTURE;
         }
     }
 

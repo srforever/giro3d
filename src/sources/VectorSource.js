@@ -295,6 +295,13 @@ class VectorSource extends ImageSource {
         this.source.forEachFeature(callback);
     }
 
+    getCrs() {
+        // Note that since we are reprojecting vector _inside_ the source,
+        // the source projection is the same as the target projection, indicating
+        // that no projection needs to be done on images produced by this source.
+        return this.targetProjection;
+    }
+
     getExtent() {
         return this.getCurrentExtent();
     }

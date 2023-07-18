@@ -51,7 +51,8 @@ class ImageSource extends EventDispatcher {
      * For regular color images, this should be `true`. For images with a high dynamic range,
      * or images that requires additional processing, this should be `false`.
      * @param {CustomContainsFn} [options.containsFn] The custom function
-     * to test if a given extent is contained in this source.
+     * to test if a given extent is contained in this source. Note: we assume this function
+     * accepts extents in this source's CRS.
      */
     constructor(options = {}) {
         super();
@@ -92,7 +93,19 @@ class ImageSource extends EventDispatcher {
 
     // eslint-disable-next-line jsdoc/require-returns-check
     /**
-     * Returns the extent of this source.
+     * Returns the CRS of this source.
+     *
+     * @api
+     * @returns {string} The CRS.
+     */
+    // eslint-disable-next-line class-methods-use-this
+    getCrs() {
+        throw new Error('not implemented: getCrs()');
+    }
+
+    // eslint-disable-next-line jsdoc/require-returns-check
+    /**
+     * Returns the extent of this source expressed in the CRS of the source.
      *
      * @api
      * @returns {Extent} The extent of the source.
@@ -123,11 +136,13 @@ class ImageSource extends EventDispatcher {
      * @param {Extent} extent The extent to test.
      */
     contains(extent) {
+        const convertedExtent = extent.clone().as(this.getCrs());
+
         if (this.containsFn) {
-            return this.containsFn(extent);
+            return this.containsFn(convertedExtent);
         }
 
-        return this.intersects(extent);
+        return this.intersects(convertedExtent);
     }
 
     /**

@@ -139,7 +139,6 @@ class VectorTileSource extends ImageSource {
     /**
      * @param {object} options Options.
      * @param {string} options.url The URL to the vector tile layer.
-     * @param {string} options.targetProjection The target projection of the features.
      * @param {string} options.backgroundColor The background color of the tiles.
      * @param {FeatureFormat} [options.format] The format. Default is [MVT](https://openlayers.org/en/latest/apidoc/module-ol_format_MVT-MVT.html).
      * @param {Style|StyleFunction} options.style The style, or style function. The style must be an
@@ -162,19 +161,23 @@ class VectorTileSource extends ImageSource {
         this.sourceProjection = null;
     }
 
+    getCrs() {
+        return this.crs;
+    }
+
     getExtent() {
         if (!this.extent) {
             const tileGrid = this.source.getTileGridForProjection(this.sourceProjection);
             const sourceExtent = tileGrid.getExtent();
-            this.extent = OpenLayersUtils.fromOLExtent(sourceExtent, this.targetProjection);
+            this.extent = OpenLayersUtils.fromOLExtent(sourceExtent, this.crs);
         }
         return this.extent;
     }
 
-    async initialize(options) {
+    async initialize() {
         const source = this.source;
-        this.targetProjection = options.targetProjection;
         const projection = source.getProjection();
+        this.crs = projection.getCode();
         const tileGrid = source.getTileGridForProjection(projection);
         this.tileGrid = tileGrid;
         this.sourceProjection = projection;

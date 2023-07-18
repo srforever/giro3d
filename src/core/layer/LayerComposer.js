@@ -1,6 +1,7 @@
 import {
     MathUtils,
     Mesh,
+    PlaneGeometry,
     Texture,
     Vector2,
     WebGLRenderer,
@@ -13,6 +14,7 @@ import Rect from '../Rect.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
 import ComposerTileMaterial from '../../renderer/composition/ComposerTileMaterial.js';
 import TextureGenerator from '../../utils/TextureGenerator.js';
+import ProjUtils from '../../utils/ProjUtils.js';
 
 const tmpVec2 = new Vector2();
 
@@ -138,6 +140,8 @@ class LayerComposer {
      * @param {boolean} options.computeMinMax Compute min/max on generated images.
      * @param {boolean} options.transparent Enables transparency.
      * @param {number} options.noDataValue The no-data value.
+     * @param {string} options.sourceCrs The CRS of the source.
+     * @param {string} options.targetCrs The target CRS of this composer.
      */
     constructor(options) {
         this.computeMinMax = options.computeMinMax;
@@ -149,6 +153,9 @@ class LayerComposer {
         this.webGLRenderer = options.renderer;
         this.transparent = options.transparent;
         this.noDataValue = options.noDataValue;
+        this.sourceCrs = options.sourceCrs;
+        this.targetCrs = options.targetCrs;
+        this.needsReprojection = this.sourceCrs !== this.targetCrs;
 
         delete options.computeMinMax;
         delete options.extent;
@@ -251,6 +258,36 @@ class LayerComposer {
     }
 
     /**
+     * Creates a lattice mesh whose each vertex has been warped to the target CRS.
+     *
+     * @param {Extent} sourceExtent The source extent of the mesh to reproject, in the CRS of
+     * the source.
+     * @param {number} [segments=8] The number of subdivisions of the lattice.
+     * A high value will create more faithful reprojections, at the cost of performance.
+     */
+    createWarpedMesh(sourceExtent, segments = 8) {
+        const dims = sourceExtent.dimensions(tmpVec2);
+        const center = sourceExtent.center(new Vector2());
+        const geometry = new PlaneGeometry(dims.x, dims.y, segments, segments);
+
+        const positionAttribute = geometry.getAttribute('position');
+
+        ProjUtils.transformBufferInPlace(positionAttribute.array, {
+            srcCrs: this.sourceCrs,
+            dstCrs: this.targetCrs,
+            offsetX: center.x,
+            offsetY: center.y,
+            stride: 3,
+        });
+
+        positionAttribute.needsUpdate = true;
+        geometry.computeBoundingBox();
+
+        // Note: the material will be set by the WebGLComposer itself.
+        return new Mesh(geometry);
+    }
+
+    /**
      * Adds a texture into the composer space.
      *
      * @param {object} options opts
@@ -295,10 +332,19 @@ class LayerComposer {
             options.fadeDuration = this.fadeDuration;
         }
 
-        const mesh = this.composer.draw(actualTexture, Rect.fromExtent(extent), {
+        let mesh;
+        const composerOptions = {
             transparent: this.transparent,
             ...options,
-        });
+        };
+        if (this.needsReprojection) {
+            // Draw a warped image
+            const warpedMesh = this.createWarpedMesh(extent);
+            mesh = this.composer.drawMesh(actualTexture, warpedMesh, composerOptions);
+        } else {
+            // Draw a rectangular image
+            mesh = this.composer.draw(actualTexture, Rect.fromExtent(extent), composerOptions);
+        }
 
         if (MemoryTracker.enable) {
             MemoryTracker.track(actualTexture, `LayerComposer - texture ${id}`);
@@ -569,6 +615,11 @@ class LayerComposer {
         // Delete eligible images.
         for (const img of Array.from(this.images.values())) {
             if (img.canBeDeleted()) {
+                // In the case of reprojection, the mesh's geometry
+                // is owned by this layer composer.
+                if (this.needsReprojection) {
+                    img.mesh.geometry.dispose();
+                }
                 this.composer.remove(img.mesh);
                 img.dispose();
                 this.images.delete(img.id);

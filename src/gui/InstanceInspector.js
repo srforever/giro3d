@@ -17,6 +17,8 @@ class InstanceInspector extends Panel {
         /** @type {WebGLRenderer} */
         this.renderer = this.instance.mainLoop.gfxEngine.renderer;
 
+        this.addController(this.instance, 'referenceCrs').name('CRS');
+
         this.state = 'idle';
         this.addController(this, 'state').name('Status');
 
