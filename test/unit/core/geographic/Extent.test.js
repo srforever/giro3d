@@ -1,6 +1,6 @@
 import assert from 'assert';
-import { Box3, Vector3 } from 'three';
-import Coordinates from '../../../../src/core/geographic/Coordinates.js';
+import { Box3, Vector2, Vector3 } from 'three';
+import Coordinates from '../../../../src/core/geographic/Coordinates';
 import Extent from '../../../../src/core/geographic/Extent.js';
 
 const BOUNDS_EPSG4326 = new Extent('EPSG:4326', {
@@ -64,6 +64,63 @@ describe('Extent', () => {
             assert.equal(fromBox.east(), box.max.x);
             assert.equal(fromBox.north(), box.max.y);
             assert.equal(fromBox.south(), box.min.y);
+        });
+    });
+
+    describe('offsetInExtent', () => {
+        it('should return correct U value', () => {
+            const west = 3024.22;
+            const east = 32320932.3;
+
+            const extent = new Extent('EPSG:3857', west, east, 0, 0);
+
+            expect(extent.offsetInExtent(new Coordinates('EPSG:3857', west, 0, 0)).x).toEqual(0);
+            expect(extent.offsetInExtent(new Coordinates('EPSG:3857', east, 0, 0)).x).toEqual(1);
+        });
+
+        it('should return correct V value', () => {
+            const south = 3024.22;
+            const north = 32320932.3;
+
+            const extent = new Extent('EPSG:3857', 0, 0, south, north);
+
+            expect(extent.offsetInExtent(new Coordinates('EPSG:3857', 0, south, 0)).y).toEqual(0);
+            expect(extent.offsetInExtent(new Coordinates('EPSG:3857', 0, north, 0)).y).toEqual(1);
+        });
+
+        it('should return (0.5, 0.5) if coordinates is in the center of extent', () => {
+            const center = new Vector3(44.55, 0.42, 0);
+
+            const extent = new Extent(
+                'EPSG:3857',
+                center.x - 1000,
+                center.x + 1000,
+                center.y - 2330.2,
+                center.y + 2330.2,
+            );
+
+            const coord = new Coordinates('EPSG:3857', center);
+
+            expect(extent.offsetInExtent(coord)).toEqual({ x: 0.5, y: 0.5 });
+        });
+
+        it('should fill the target and return the target if it specified', () => {
+            const target = new Vector2();
+
+            const center = new Vector3(44.55, 0.42, 0);
+
+            const extent = new Extent(
+                'EPSG:3857',
+                center.x - 1000,
+                center.x + 1000,
+                center.y - 2330.2,
+                center.y + 2330.2,
+            );
+
+            const coord = new Coordinates('EPSG:3857', center);
+
+            expect(extent.offsetInExtent(coord, target)).toEqual({ x: 0.5, y: 0.5 });
+            expect(extent.offsetInExtent(coord, target)).toBe(target);
         });
     });
 

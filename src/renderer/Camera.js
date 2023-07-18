@@ -13,7 +13,7 @@ import {
     PerspectiveCamera,
     Vector3,
 } from 'three';
-import Coordinates from '../core/geographic/Coordinates.js';
+import Coordinates from '../core/geographic/Coordinates';
 
 const ndcBox3 = new Box3(
     new Vector3(-1, -1, -1),

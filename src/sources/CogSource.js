@@ -213,7 +213,7 @@ class CogSource extends ImageSource {
     makeWindowFromExtent(extent, resolution) {
         const [oX, oY] = this.origin;
         const [imageResX, imageResY] = resolution;
-        const ext = extent._values;
+        const ext = extent.values;
 
         const wnd = [
             Math.round((ext[0] - oX) / imageResX),

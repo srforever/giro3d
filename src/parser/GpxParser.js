@@ -16,7 +16,7 @@ import {
     BufferGeometry,
 } from 'three';
 import Line from 'three.meshline';
-import Coordinates from '../core/geographic/Coordinates.js';
+import Coordinates from '../core/geographic/Coordinates';
 import Capabilities from '../core/system/Capabilities.js';
 import shaderUtils from '../renderer/shader/ShaderUtils.js';
 

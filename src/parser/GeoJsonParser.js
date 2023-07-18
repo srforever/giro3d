@@ -1,7 +1,7 @@
 /**
  * @module Parser/GeoJsonParser
  */
-import Coordinates from '../core/geographic/Coordinates.js';
+import Coordinates from '../core/geographic/Coordinates';
 import Extent from '../core/geographic/Extent.js';
 
 function applyOffset(indices, offset) {

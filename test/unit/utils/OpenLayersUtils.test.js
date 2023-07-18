@@ -9,7 +9,7 @@ describe('OpenLayersUtils', () => {
             const extent2 = OpenLayersUtils.fromOLExtent(ol, extent.crs());
 
             expect(extent.crs()).toEqual(extent2.crs());
-            expect(extent._values).toEqual(extent2._values);
+            expect(extent.values).toEqual(extent2.values);
         });
     });
 });

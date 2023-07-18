@@ -8,7 +8,7 @@ import {
     Vector2,
     UnsignedByteType,
 } from 'three';
-import Coordinates from '../core/geographic/Coordinates.js';
+import Coordinates from '../core/geographic/Coordinates';
 
 const FAST_READ_Z = 0;
 
@@ -39,7 +39,7 @@ function getElevationValueAt(entity, coord, method = FAST_READ_Z, tileHint) {
     if (!result) {
         return null;
     }
-    return { z: result.coord._values[2], texture: result.texture, tile: result.tile };
+    return { z: result.coord.values[2], texture: result.texture, tile: result.tile };
 }
 
 /**
@@ -370,14 +370,14 @@ function _readZ(entity, method, coord, nodes, cache) {
     // Note: at this point, the code makes the assumption that each tile always inherit its texture
     // from the parent.
     // offset = offset from bottom-left
-    const offset = pt.offsetInExtent(textureInfo.texture.extent);
+    const offset = textureInfo.texture.extent.offsetInExtent(pt);
 
     // At this point we have:
     //   - textureInfo.texture.image which is the current image
     //     used for rendering, guaranteed to be valid (we return earlier if no texture)
     //   - offset which is the offset in this texture for the coordinate we're
     //     interested in
-    pt._values[2] = _readZFast(textureInfo, offset);
+    pt.values[2] = _readZFast(textureInfo, offset);
     return { coord: pt, texture: src, tile };
 }
 
@@ -392,7 +392,7 @@ function _updateVector3(entity, method, nodes, vecCRS, vec, offset, matrices = {
     if (!result) {
         return null;
     }
-    result.coord._values[2] += offset;
+    result.coord.values[2] += offset;
     result.coord.as(vecCRS, temp.coord2).xyz(vec);
     if (matrices.localFromWorld) {
         vec.applyMatrix4(matrices.localFromWorld);

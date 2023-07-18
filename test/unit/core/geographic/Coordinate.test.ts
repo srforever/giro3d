@@ -1,16 +1,9 @@
-import proj4 from 'proj4';
-import { Vector2, Vector3 } from 'three';
-import assert from 'assert';
-import Coordinates from '../../../../src/core/geographic/Coordinates.js';
-import Extent from '../../../../src/core/geographic/Extent.js';
+import * as proj4 from 'proj4';
+import { Vector3 } from 'three';
+import Coordinates from 'src/core/geographic/Coordinates';
 
 // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)
 proj4.defs('EPSG:3946', '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
-
-// Asster two float number are equals, with 5 digits precision.
-function assertFloatEqual(float1, float2, precision = 5) {
-    assert.equal(Number(float1).toFixed(precision), Number(float2).toFixed(precision));
-}
 
 describe('Coordinates', () => {
     describe('constructor', () => {
@@ -24,7 +17,15 @@ describe('Coordinates', () => {
             expect(c.crs).toEqual('EPSG:3857');
         });
 
-        it('should support coordinates from number array', () => {
+        it('should support coordinates from a 2-number array', () => {
+            const c = new Coordinates('EPSG:3857', 8, 9);
+
+            expect(c.x()).toEqual(8);
+            expect(c.y()).toEqual(9);
+            expect(c.z()).toEqual(0);
+        });
+
+        it('should support coordinates from a 3-number array', () => {
             const c = new Coordinates('EPSG:3857', 0, 1, 2);
 
             expect(c.x()).toEqual(0);
@@ -41,6 +42,63 @@ describe('Coordinates', () => {
         });
     });
 
+    describe('copy()', () => {
+        it('should copy the values', () => {
+            const original = new Coordinates('EPSG:3857', 2, 3, 4);
+            const copy = new Coordinates('EPSG:4326', 0, 0, 0);
+            const returned = copy.copy(original);
+
+            expect(copy.values).toStrictEqual(original.values);
+            expect(copy.crs).toEqual(original.crs);
+            expect(returned).toBe(copy);
+        });
+    });
+
+    describe('set()', () => {
+        it('should throw on unrecognized CRS', () => {
+            const c = new Coordinates('EPSG:4326', 0, 1, 2);
+
+            expect(() => c.set('foo', 0, 1, 2)).toThrow();
+        });
+
+        it('should assign property crs', () => {
+            const c = new Coordinates('EPSG:4326', 0, 1, 2);
+
+            c.set('EPSG:3857', 0, 0, 0);
+
+            expect(c.crs).toEqual('EPSG:3857');
+        });
+
+        it('should support coordinates from a 2-number array', () => {
+            const c = new Coordinates('EPSG:3857', 1, 1, 1);
+
+            c.set('EPSG:3857', 9, 5);
+
+            expect(c.x()).toEqual(9);
+            expect(c.y()).toEqual(5);
+            expect(c.z()).toEqual(0);
+        });
+
+        it('should support coordinates from a 3-number array', () => {
+            const c = new Coordinates('EPSG:3857', 0, 0, 0);
+
+            c.set('EPSG:3857', 1, 2, 3);
+
+            expect(c.x()).toEqual(1);
+            expect(c.y()).toEqual(2);
+            expect(c.z()).toEqual(3);
+        });
+
+        it('should support coordinates from Vector3', () => {
+            const c = new Coordinates('EPSG:3857', 0, 0, 0);
+
+            c.set('EPSG:3857', new Vector3(1, 2, 3));
+            expect(c.x()).toEqual(1);
+            expect(c.y()).toEqual(2);
+            expect(c.z()).toEqual(3);
+        });
+    });
+
     describe('clone', () => {
         it('should return the correct value', () => {
             const c0 = new Coordinates('EPSG:3857', 1, 2, 3);
@@ -49,63 +107,6 @@ describe('Coordinates', () => {
             expect(c0.x()).toEqual(c0.x());
             expect(c1.y()).toEqual(c0.y());
             expect(c1.z()).toEqual(c0.z());
-        });
-    });
-
-    describe('offsetInExtent', () => {
-        it('should return correct U value', () => {
-            const west = 3024.22;
-            const east = 32320932.3;
-
-            const extent = new Extent('EPSG:3857', west, east, 0, 0);
-
-            expect(new Coordinates('EPSG:3857', west, 0, 0).offsetInExtent(extent).x).toEqual(0);
-            expect(new Coordinates('EPSG:3857', east, 0, 0).offsetInExtent(extent).x).toEqual(1);
-        });
-
-        it('should return correct V value', () => {
-            const south = 3024.22;
-            const north = 32320932.3;
-
-            const extent = new Extent('EPSG:3857', 0, 0, south, north);
-
-            expect(new Coordinates('EPSG:3857', 0, south, 0).offsetInExtent(extent).y).toEqual(0);
-            expect(new Coordinates('EPSG:3857', 0, north, 0).offsetInExtent(extent).y).toEqual(1);
-        });
-
-        it('should return (0.5, 0.5) if coordinates is in the center of extent', () => {
-            const center = new Vector3(44.55, 0.42, 0);
-
-            const extent = new Extent(
-                'EPSG:3857',
-                center.x - 1000,
-                center.x + 1000,
-                center.y - 2330.2,
-                center.y + 2330.2,
-            );
-
-            const coord = new Coordinates('EPSG:3857', center);
-
-            expect(coord.offsetInExtent(extent)).toEqual({ x: 0.5, y: 0.5 });
-        });
-
-        it('should fill the target and return the target if it specified', () => {
-            const target = new Vector2();
-
-            const center = new Vector3(44.55, 0.42, 0);
-
-            const extent = new Extent(
-                'EPSG:3857',
-                center.x - 1000,
-                center.x + 1000,
-                center.y - 2330.2,
-                center.y + 2330.2,
-            );
-
-            const coord = new Coordinates('EPSG:3857', center);
-
-            expect(coord.offsetInExtent(extent, target)).toEqual({ x: 0.5, y: 0.5 });
-            expect(coord.offsetInExtent(extent, target)).toBe(target);
         });
     });
 
@@ -163,13 +164,13 @@ describe('Coordinates', () => {
             // convert coordinate in EPSG:3946
             const coord2 = coord1.as('EPSG:3946');
             // verify intermediate values
-            assertFloatEqual(1841825.45, coord2.x(), 2);
-            assertFloatEqual(5170916.93, coord2.y(), 2);
+            expect(coord2.x()).toBeCloseTo(1841825.45, 2);
+            expect(coord2.y()).toBeCloseTo(5170916.93, 2);
             // and convert back to EPSG:4626 standard in degree.
             const coord3 = coord2.as('EPSG:4326');
             // verify coordinates
-            assertFloatEqual(longIn, coord3.longitude());
-            assertFloatEqual(latIn, coord3.latitude());
+            expect(coord3.longitude()).toBeCloseTo(longIn, 5);
+            expect(coord3.latitude()).toBeCloseTo(latIn, 5);
         });
     });
 
@@ -179,9 +180,9 @@ describe('Coordinates', () => {
 
             const normal0 = coord0.geodesicNormal;
 
-            assert.equal(0, normal0.x);
-            assert.equal(0, normal0.y);
-            assert.equal(1, normal0.z);
+            expect(normal0.x).toEqual(0);
+            expect(normal0.y).toEqual(0);
+            expect(normal0.z).toEqual(1);
         });
     });
 });

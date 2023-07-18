@@ -9,8 +9,16 @@ import {
     Vector4,
 } from 'three';
 import Coordinates, {
-    crsIsGeographic, assertCrsIsValid, reasonnableEpsilonForCRS, is4326,
-} from './Coordinates.js';
+    crsIsGeographic, assertCrsIsValid, is4326, crsIsGeocentric,
+} from './Coordinates';
+
+export function reasonnableEpsilonForCRS(crs, extent) {
+    if (is4326(crs)) {
+        return 0.01;
+    }
+    const d = extent.dimensions();
+    return 0.01 * Math.min(d.x, d.y);
+}
 
 const tmpXY = { x: 0, y: 0 };
 
@@ -94,8 +102,8 @@ class Extent {
             && values[0] instanceof Coordinates
             && values[1] instanceof Coordinates) {
             this._values = new Float64Array(4);
-            [this._values[CARDINAL.WEST], this._values[CARDINAL.SOUTH]] = values[0]._values;
-            [this._values[CARDINAL.EAST], this._values[CARDINAL.NORTH]] = values[1]._values;
+            [this._values[CARDINAL.WEST], this._values[CARDINAL.SOUTH]] = values[0].values;
+            [this._values[CARDINAL.EAST], this._values[CARDINAL.NORTH]] = values[1].values;
         } else if (values.length === 1 && values[0].west !== undefined) {
             this._values = new Float64Array(4);
             this._values[CARDINAL.WEST] = values[0].west;
@@ -288,13 +296,13 @@ class Extent {
             const cardinals = [];
             const c = this.center();
             cardinals.push(new Coordinates(this._crs, this.west(), this.north()));
-            cardinals.push(new Coordinates(this._crs, c._values[0], this.north()));
+            cardinals.push(new Coordinates(this._crs, c.values[0], this.north()));
             cardinals.push(new Coordinates(this._crs, this.east(), this.north()));
-            cardinals.push(new Coordinates(this._crs, this.east(), c._values[1]));
+            cardinals.push(new Coordinates(this._crs, this.east(), c.values[1]));
             cardinals.push(new Coordinates(this._crs, this.east(), this.south()));
-            cardinals.push(new Coordinates(this._crs, c._values[0], this.south()));
+            cardinals.push(new Coordinates(this._crs, c.values[0], this.south()));
             cardinals.push(new Coordinates(this._crs, this.west(), this.south()));
-            cardinals.push(new Coordinates(this._crs, this.west(), c._values[1]));
+            cardinals.push(new Coordinates(this._crs, this.west(), c.values[1]));
 
             let north = -Infinity;
             let south = Infinity;
@@ -304,10 +312,10 @@ class Extent {
             for (let i = 0; i < cardinals.length; i++) {
             // convert the coordinate.
                 cardinals[i] = cardinals[i].as(crs);
-                north = Math.max(north, cardinals[i]._values[1]);
-                south = Math.min(south, cardinals[i]._values[1]);
-                east = Math.max(east, cardinals[i]._values[0]);
-                west = Math.min(west, cardinals[i]._values[0]);
+                north = Math.max(north, cardinals[i].values[1]);
+                south = Math.min(south, cardinals[i].values[1]);
+                east = Math.max(east, cardinals[i].values[0]);
+                west = Math.min(west, cardinals[i].values[0]);
             }
             return new Extent(crs, {
                 north, south, east, west,
@@ -676,14 +684,14 @@ class Extent {
      */
     expandByPoint(coordinates) {
         const coords = coordinates.as(this.crs());
-        const we = coords._values[0];
+        const we = coords.values[0];
         if (we < this.west()) {
             this._values[CARDINAL.WEST] = we;
         }
         if (we > this.east()) {
             this._values[CARDINAL.EAST] = we;
         }
-        const sn = coords._values[1];
+        const sn = coords.values[1];
         if (sn < this.south()) {
             this._values[CARDINAL.SOUTH] = sn;
         }
@@ -745,6 +753,37 @@ class Extent {
         const max = new Vector3(this.east(), this.north(), maxHeight);
         const box = new Box3(min, max);
         return box;
+    }
+
+    /**
+     * Returns the normalized offset from bottom-left in extent of this Coordinates
+     *
+     * @param {Coordinates} coordinate the coordinate
+     * @param {Vector2} target optional Vector2 target.
+     * If not present a new one will be created
+     * @returns {Vector2} normalized offset in extent
+     * @example
+     * extent.offsetInExtent(extent.center())
+     * ```
+     * // returns `(0.5, 0.5)`.
+     */
+    offsetInExtent(coordinate, target) {
+        if (coordinate.crs !== this.crs()) {
+            throw new Error('unsupported mix');
+        }
+
+        const dimX = Math.abs(this.east() - this.west());
+        const dimY = Math.abs(this.north() - this.south());
+
+        const x = crsIsGeocentric(coordinate.crs) ? coordinate.x() : coordinate.longitude();
+        const y = crsIsGeocentric(coordinate.crs) ? coordinate.y() : coordinate.latitude();
+
+        const originX = (x - this.west()) / dimX;
+        const originY = (y - this.south()) / dimY;
+
+        target = target || new Vector2();
+        target.set(originX, originY);
+        return target;
     }
 
     /**

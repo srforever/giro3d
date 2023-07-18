@@ -416,7 +416,7 @@ class Map extends Entity3D {
         }
 
         const quaternion = new Quaternion();
-        const position = new Vector3(...extent.center()._values);
+        const position = new Vector3(...extent.center().values);
 
         // build tile
         const material = new LayeredMaterial({
@@ -440,7 +440,7 @@ class Map extends Entity3D {
 
         if (parent && parent instanceof TileMesh) {
             // get parent position from extent
-            const positionParent = new Vector3(...parent.extent.center()._values);
+            const positionParent = new Vector3(...parent.extent.center().values);
             // place relative to his parent
             position.sub(positionParent).applyQuaternion(parent.quaternion.invert());
             quaternion.premultiply(parent.quaternion);

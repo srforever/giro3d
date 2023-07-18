@@ -776,7 +776,7 @@ class Instance extends EventDispatcher {
             // TODO support different CRS
             const dim = obj.extent.dimensions();
             const positionCamera = obj.extent.center().clone();
-            positionCamera._values[2] = Math.max(dim.x, dim.y);
+            positionCamera.values[2] = Math.max(dim.x, dim.y);
             const lookat = positionCamera.xyz();
             lookat.z = 0; // TODO this supposes there is no terrain, nor z-displacement
 

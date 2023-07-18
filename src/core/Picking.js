@@ -8,7 +8,7 @@ import {
     UnsignedByteType,
 } from 'three';
 import RenderingState from '../renderer/RenderingState.js';
-import Coordinates from './geographic/Coordinates.js';
+import Coordinates from './geographic/Coordinates';
 
 const BLACK = new Color(0, 0, 0);
 
@@ -169,7 +169,7 @@ export default {
                 const elevation = z;
 
                 if (elevation != null) {
-                    tmpCoords._values[2] = elevation;
+                    tmpCoords.values[2] = elevation;
                     // convert to instance crs
                     // here (and only here) should be the Coordinates instance creation
                     const coord = tmpCoords.as(
