@@ -21,7 +21,7 @@ import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
 import Instance from '../Instance.js';
 import ImageSource from '../../sources/ImageSource.js';
-import { DefaultQueue } from '../RequestQueue.js';
+import { DefaultQueue } from '../RequestQueue';
 import OperationCounter from '../OperationCounter';
 
 const POOL_SIZE = 16;
