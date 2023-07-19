@@ -198,10 +198,7 @@ instance.add(label);
 
 instance.domElement.addEventListener('mousemove', e => {
     const picked = instance.pickObjectsAt(e, { radius: 2, limit: 1, where: [busStops, busLines] });
-    if (picked.length === 0) {
-        label.visible = false;
-        instance.notifyChange(label);
-    } else {
+    if (picked.length !== 0) {
         const found = picked[0];
         const obj = found.object;
         if (found.layer === busStops) {
