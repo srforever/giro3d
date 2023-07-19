@@ -174,6 +174,10 @@ class Entity3D extends Entity {
         }
     }
 
+    postUpdate() {
+        this._attachedLayers.forEach(layer => layer.postUpdate());
+    }
+
     /**
      * Returns an approximated bounding box of this entity in the scene.
      *
