@@ -17,6 +17,7 @@ import {
     WebGLRenderTarget,
     RGBAFormat,
     UnsignedByteType,
+    Scene,
 } from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Capabilities from '../core/system/Capabilities.js';
@@ -41,7 +42,47 @@ function createRenderTarget(width, height, type) {
     return result;
 }
 
+function createErrorMessage() {
+    // from Detector.js
+    const element = document.createElement('div');
+    element.id = 'webgl-error-message';
+    element.style.fontFamily = 'monospace';
+    element.style.fontSize = '13px';
+    element.style.fontWeight = 'normal';
+    element.style.textAlign = 'center';
+    element.style.background = '#fff';
+    element.style.color = '#000';
+    element.style.padding = '1.5em';
+    element.style.width = '400px';
+    element.style.margin = '5em auto 0';
+    element.innerHTML = window.WebGLRenderingContext ? [
+        'Your graphics card does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br />',
+        'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
+        'See also <a href="https://www.khronos.org/webgl/wiki/BlacklistsAndWhitelists">graphics card blacklisting</a>',
+    ].join('\n') : [
+        'Your browser does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br/>',
+        'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
+        'You can also try another browser like Firefox or Chrome.',
+    ].join('\n');
+
+    return element;
+}
+
+/**
+ * @typedef {object} RendererOptions
+ * @property {boolean} antialias Enables antialiasing.
+ * @property {boolean} alpha Enables alpha on the renderer. Necessary for transparent backgrounds.
+ * @property {boolean} logarithmicDepthBuffer Enables the logarithmic depth buffer.
+ * @property {boolean} checkShaderErrors Enables shader validation. Note: this option is costly,
+ * and should be avoided in production builds.
+ * @property {Color|string|number} clearColor The clear color of the renderer.
+ */
+
 class C3DEngine {
+    /**
+     * @param {HTMLDivElement} viewerDiv The parent div that will contain the canvas.
+     * @param {RendererOptions} options The options.
+     */
     constructor(viewerDiv, options = {}) {
         // pick sensible default options
         if (options.antialias === undefined) {
@@ -63,8 +104,7 @@ class C3DEngine {
         this.width = viewerDiv.clientWidth;
         this.height = viewerDiv.clientHeight;
 
-        this.positionBuffer = null;
-
+        /** @type {Map<number, WebGLRenderTarget>} */
         this.renderTargets = new Map();
 
         /** @type {WebGLRenderer} */
@@ -78,52 +118,14 @@ class C3DEngine {
                 alpha: options.alpha,
                 logarithmicDepthBuffer: options.logarithmicDepthBuffer,
             });
-            this.renderer.setClearColor(0x000000, 0);
-            this.renderer.clear();
         } catch (ex) {
             console.error('Failed to create WebGLRenderer', ex);
             this.renderer = null;
         }
 
         if (!this.renderer) {
-            // from Detector.js
-            const element = document.createElement('div');
-            element.id = 'webgl-error-message';
-            element.style.fontFamily = 'monospace';
-            element.style.fontSize = '13px';
-            element.style.fontWeight = 'normal';
-            element.style.textAlign = 'center';
-            element.style.background = '#fff';
-            element.style.color = '#000';
-            element.style.padding = '1.5em';
-            element.style.width = '400px';
-            element.style.margin = '5em auto 0';
-            element.innerHTML = window.WebGLRenderingContext ? [
-                'Your graphics card does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br />',
-                'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
-                'See also <a href="https://www.khronos.org/webgl/wiki/BlacklistsAndWhitelists">graphics card blacklisting</a>',
-            ].join('\n') : [
-                'Your browser does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br/>',
-                'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
-                'You can also try another browser like Firefox or Chrome.',
-            ].join('\n');
-            viewerDiv.appendChild(element);
+            viewerDiv.appendChild(createErrorMessage());
             throw new Error('WebGL unsupported');
-        }
-
-        if (!renderer && options.logarithmicDepthBuffer) {
-            // We don't support logarithmicDepthBuffer when EXT_frag_depth is missing.
-            // So recreated a renderer if needed.
-            if (!this.renderer.extensions.get('EXT_frag_depth')) {
-                const _canvas = this.renderer.domElement;
-                this.renderer.dispose();
-                this.renderer = new WebGLRenderer({
-                    canvas: _canvas,
-                    antialias: options.antialias,
-                    alpha: options.alpha,
-                    logarithmicDepthBuffer: false,
-                });
-            }
         }
 
         // Don't verify shaders if not debug (it is very costly)
@@ -146,7 +148,6 @@ class C3DEngine {
         }
         this.renderer.clear();
         this.renderer.autoClear = false;
-        this.renderer.sortObjects = true;
 
         // Finalize DOM insertion:
         // Ensure display is OK whatever the page layout is
@@ -181,19 +182,6 @@ class C3DEngine {
         this.renderer.dispose();
     }
 
-    render(instance, include2d) {
-        this.renderer.setViewport(0, 0, this.width, this.height);
-        this.renderer.clear();
-        this.renderer.render(instance.scene, instance.camera.camera3D);
-
-        this.labelRenderer.render(instance.scene, instance.camera.camera3D);
-
-        if (include2d !== false) {
-            this.renderer.clearDepth();
-            this.renderer.render(instance.scene2D, instance.camera.camera2D);
-        }
-    }
-
     onWindowResize(w, h) {
         this.width = w;
         this.height = h;
@@ -204,38 +192,46 @@ class C3DEngine {
         this.labelRenderer.setSize(this.width, this.height);
     }
 
-    /*
-    * return
-    */
+    /**
+     * Gets the viewport size, in pixels.
+     *
+     * @returns {Vector2} The viewport size, in pixels.
+     */
     getWindowSize() {
         return new Vector2(this.width, this.height);
     }
 
     /**
-     * return renderer js
+     * Renders the scene.
      *
-     * @returns {C3DEngine.WebGLRenderer} the js WebGL renderer,
-     * if any. Otherwise <code>undefined</code>
+     * @param {Scene} scene The scene to render.
+     * @param {Camera} camera The camera.
      */
-    getRenderer() {
-        return this.renderer;
+    render(scene, camera) {
+        this.renderer.setViewport(0, 0, this.width, this.height);
+        this.renderer.clear();
+        this.renderer.render(scene, camera);
+
+        this.labelRenderer.render(scene, camera);
     }
 
     /**
-     * Render instance to a Uint8Array.
+     * Renders the scene into a readable buffer.
      *
      * @param {object} options Options.
      * @param {Color} options.clearColor The clear color to apply before rendering.
      * @param {Object3D} options.scene The scene to render.
      * @param {Camera} options.camera The camera to render.
+     * @param {number} options.datatype The type of pixels in the buffer.
+     * Defaults to `UnsignedByteType`.
      * @param {object} [options.zone] partial zone to render. If undefined, the whole
      * viewport is used.
      * @param {number} options.zone.x x (in instance coordinate)
      * @param {number} options.zone.y y (in instance coordinate)
      * @param {number} options.zone.width width of area to render (in pixels)
      * @param {number} options.zone.height height of area to render (in pixels)
-     * @returns {Uint8Array} - Uint8Array, 4 bytes per pixel. The first pixel in
-     * the array is the bottom-left pixel.
+     * @returns {Uint8Array|Float32Array} The buffer. The first pixel in
+     * the buffer is the bottom-left pixel.
      */
     renderToBuffer(options) {
         const zone = options.zone || {
@@ -262,7 +258,7 @@ class C3DEngine {
         }
         const renderTarget = this.renderTargets.get(datatype);
 
-        this.renderInstanceToRenderTarget(scene, camera, renderTarget, zone);
+        this._renderToRenderTarget(scene, camera, renderTarget, zone);
 
         this.renderer.setClearColor(clear, alpha);
 
@@ -282,7 +278,7 @@ class C3DEngine {
     }
 
     /**
-     * Render view to a render target.
+     * Render the scene to a render target.
      *
      * @param {Object3D} scene The scene root.
      * @param {Camera} camera The camera to render.
@@ -292,7 +288,7 @@ class C3DEngine {
      * Note: target must contain complete zone
      * @returns {WebGLRenderTarget} - the destination render target
      */
-    renderInstanceToRenderTarget(scene, camera, target, zone) {
+    _renderToRenderTarget(scene, camera, target, zone) {
         if (!target) {
             target = this.renderTargets.get(UnsignedByteType);
         }
@@ -320,34 +316,14 @@ class C3DEngine {
         return target;
     }
 
-    renderLayerTobuffer(instance, layer, buffer, x, y, width, height) {
-        // hide all layers but the requested one
-        // TODO restore the ability to hide layers (not only objects)
-        const previousVisibility = instance._objects.map(l => l.visible);
-        for (const v of instance._objects) {
-            v.visible = false;
-        }
-        layer.visible = true;
-
-        const current = this.renderer.getRenderTarget();
-        this.renderer.setRenderTarget(buffer);
-        this.renderer.setViewport(0, 0, buffer.width, buffer.height);
-        this.renderer.setScissor(x, y, width, height);
-        this.renderer.setScissorTest(true);
-        this.renderer.clear();
-        this.renderer.render(layer.object3d, instance.camera.camera3D);
-        this.renderer.setScissorTest(false);
-        const pixelBuffer = new Uint8Array(4 * width * height);
-        this.renderer.readRenderTargetPixels(buffer, x, y, width, height, pixelBuffer);
-        this.renderer.setRenderTarget(current);
-
-        for (let i = 0; i < previousVisibility.length; i++) {
-            instance._objects[i].visible = previousVisibility[i];
-        }
-
-        return pixelBuffer;
-    }
-
+    /**
+     * Converts the pixel buffer into an image element.
+     *
+     * @param {*} pixelBuffer The 8-bit RGBA buffer.
+     * @param {number} width The width of the buffer, in pixels.
+     * @param {number} height The height of the buffer, in pixels.
+     * @returns {HTMLImageElement} The image.
+     */
     static bufferToImage(pixelBuffer, width, height) {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
