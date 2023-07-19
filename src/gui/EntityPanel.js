@@ -4,6 +4,7 @@
 import GUI from 'lil-gui';
 import Instance, { INSTANCE_EVENTS } from '../core/Instance.js';
 import EntityInspector from './EntityInspector.js';
+import FeatureCollectionInspector from './FeatureCollectionInspector.js';
 import MapInspector from './MapInspector.js';
 import AxisGridInspector from './AxisGridInspector.js';
 import Panel from './Panel.js';
@@ -16,6 +17,7 @@ const customInspectors = {
     Tiles3D: Tiles3dInspector,
     PotreePointCloud: PotreePointCloudInspector,
     AxisGrid: AxisGridInspector,
+    FeatureCollection: FeatureCollectionInspector,
 };
 
 /**

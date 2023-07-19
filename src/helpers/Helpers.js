@@ -64,6 +64,10 @@ function makeLocalBbox(object, precise = false) {
         return obb.box3D;
     }
 
+    if (object.boundingBox) {
+        return object.boundingBox;
+    }
+
     const box = new Box3();
 
     const geometry = object.geometry;

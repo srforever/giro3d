@@ -107,6 +107,9 @@ function findLayerInParent(obj) {
     if (obj.layer) {
         return obj.layer;
     }
+    if (obj.userData.parentEntity) {
+        return obj.userData.parentEntity;
+    }
     if (obj.parent) {
         return findLayerInParent(obj.parent);
     }
