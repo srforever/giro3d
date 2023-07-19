@@ -202,6 +202,14 @@ class PointsMaterial extends RawShaderMaterial {
         this.needsUpdate = true;
     }
 
+    indexOfColorLayer(layer) {
+        if (layer === this.colorLayer) {
+            return 0;
+        }
+
+        return -1;
+    }
+
     getColorTexture(layer) {
         if (layer !== this.colorLayer) {
             return null;

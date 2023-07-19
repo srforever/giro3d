@@ -733,12 +733,17 @@ function _cleanupObject3D(n) {
     for (const child of n.children) {
         _cleanupObject3D(child);
     }
-    // free resources
-    if (n.material) {
-        n.material.dispose();
-    }
-    if (n.geometry) {
-        n.geometry.dispose();
+
+    if (n.dispose) {
+        n.dispose();
+    } else {
+        // free resources
+        if (n.material) {
+            n.material.dispose();
+        }
+        if (n.geometry) {
+            n.geometry.dispose();
+        }
     }
     n.remove(...n.children);
 }
