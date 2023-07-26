@@ -55,7 +55,7 @@ function subdivideNode(context, entity, node) {
 function setNodeContentVisible(node, visible) {
     for (const child of node.children) {
         if (!child.userData.isTile && child.material) {
-            child.material.visible = visible;
+            child.visible = visible;
         }
     }
 }
