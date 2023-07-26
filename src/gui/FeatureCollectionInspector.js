@@ -9,9 +9,9 @@ import FeatureCollection from '../entities/FeatureCollection.js';
 import Helpers from '../helpers/Helpers.js';
 import EntityInspector from './EntityInspector.js';
 
-function applyToMaterial(root, layer, callback) {
+function applyToMaterial(root, entity, callback) {
     root.traverse(object => {
-        if (object.material && object.layer === layer) {
+        if (object.material && object.userData.parentEntity === entity) {
             callback(object.material);
         }
     });
