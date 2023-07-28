@@ -31,7 +31,7 @@ To add an entity to the instance, use the [`Instance.add()`](./classes/core.Inst
 
 ### The main loop
 
-Contrary to many video games or other interactive applications, Giro3D updates its state and renders the scene to the canvas **only when notified**, instead of periodically (for example 60 times per second). Many classes in Giro3D notify the instance when something has changed (mainly entities), but not all changes can be detected by Giro3D.
+Contrary to many video games or other interactive applications, Giro3D updates its state and renders the scene to the canvas **only when notified**, instead of periodically (for example 60 times per second). Many classes in Giro3D notify the instance when something has changed (mainly entities), but not all changes can be detected by Giro3D. The rationale is to save CPU and GPU cycles, as well as power on mobile devices.
 
 💡 To manually trigger an Instance update, you can use the [`Instance.notifyChange()`](./classes/core.Instance.html#notifyChange) method. This is useful when the state of the scene has changed in a way that Giro3D cannot detect:
 
