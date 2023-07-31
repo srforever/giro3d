@@ -1,5 +1,60 @@
 # Changelog
 
+## v0.27.0 (2023-07-31)
+
+This releases introduces three major features to Giro3D:
+
+- reprojection capabilities for layers
+- the ability to draw vector data as 3D meshes
+- shading for point clouds
+
+### BREAKING CHANGE
+
+- the `Points` class is renamed to `PointCloud`
+- `Map.materialOptions.hillshading` is now an object of type
+[`HillshadingOptions`](https://giro3d.org/apidoc/module-entities_Map.html#~HillshadingOptions) rather than a boolean. `Map.lightDirection` is removed
+and the `zenith` and `azimuth` parameters are now part of the `HillshadingOptions`
+object. See the [example](https://giro3d.org/examples/hillshade.html) for more info.
+- Implementations of [`ImageSource`](https://giro3d.org/apidoc/module-sources_ImageSource-ImageSource.html) must now implement
+the `getCrs()` method.
+- The `CustomTiledImageSource` class is removed.
+
+### Feat
+
+- Add the [`FeatureCollection`](https://giro3d.org/examples/wfs_mesh.html) entity to draw features (points, polylines and polygons) as standalone (non-draped) 3D meshes (#252).
+- Add [post-processing]((https://giro3d.org/examples/colorized_pointcloud.html)) effects for point clouds (#68):
+  - [Eye Dome Lighting (EDL)](https://www.researchgate.net/publication/320616607_Eye-Dome_Lighting_a_non-photorealistic_shading_technique) to have pseudo-shading on point clouds
+  - Occlusion and inpainting to reconstruct missing surfaces between points.
+- The `Layer` now supports reprojecting images from the source CRS to the instance CRS. (#294). See [this example](https://giro3d.org/examples/layer_reprojection.html) for more information.
+- **Map**: allows limiting hillshading to elevation layers only (#321).
+- **Inspector**: add CRS information for instance and layers
+- **ImageSource**: support a user-provided intersection test (#310)
+- **MapInspector**: display labels and update bbox color (#311)
+- **LayeredMaterial**: implement the progress() and loading() API
+
+### Fix
+
+- **PointCloud**: handle disposal of unmanaged resources
+- **ScreenSpaceError**: make findBox3Distance support 2D mode
+- **Map**: `getElevationMinMax()` handles the case where elevation layers have no minmax (#324)
+- **Layer**: fix zero-sized render targets
+- **RequestQueue**: really call `abortError`
+- **CogSource**: clear the cache on `dispose()`
+- **LayerInspector**: use `layer.getExtent()` to have the actual extent
+
+### Refactor
+
+- **VectorSource**: `getExtent()` now returns the current extent
+- **Entity3D**: call postUpdate() on attached layers
+- **PointCloudRenderer**: cleanup shader code
+- **MainLoop**: convert to class
+- **c3DEngine**: remove WebGL1 specific code
+- **c3DEngine**: remove renderLayerToBuffer()
+- **WebGLComposer**: remove origin offset
+- Remove the `CustomTiledImageSource` class
+- **CogSource**: check for Worker availability before creating the pool
+- **Layer**: handle empty tiles without creating unecessary textures
+
 ## v0.26.0 (2023-06-21)
 
 ### BREAKING CHANGE
