@@ -6,7 +6,9 @@ import {
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import CogSource from '@giro3d/giro3d/sources/CogSource.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
+import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
+import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
@@ -69,12 +71,23 @@ map.addLayer(new ElevationLayer('elevation', {
     minmax: { min, max },
 }));
 
+// Optionally display the same COG but as a scaled to 8-bit color layer.
+const colorLayer = new ColorLayer('color', { extent, source, interpretation: Interpretation.CompressTo8Bit(min, max) });
+map.addLayer(colorLayer);
+colorLayer.visible = false;
+
 // Attach the inspector
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
 const toggle = document.getElementById('colormap-enable');
 toggle.onchange = () => {
     colorMap.active = toggle.checked;
+    instance.notifyChange(map);
+};
+
+const toggle2 = document.getElementById('colorlayer-enable');
+toggle2.onchange = () => {
+    colorLayer.visible = toggle2.checked;
     instance.notifyChange(map);
 };
 
