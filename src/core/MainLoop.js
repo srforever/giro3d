@@ -2,11 +2,12 @@ import {
     EventDispatcher, MathUtils as ThreeMath, Sphere,
 } from 'three';
 import Context from './Context.js';
+import C3DEngine from '../renderer/c3DEngine.js';
 
 export const RENDERING_PAUSED = 0;
 export const RENDERING_SCHEDULED = 1;
 
-const MIN_DISTANCE = 0.1;
+const MIN_DISTANCE = 2;
 const MAX_DISTANCE = 2000000000;
 
 const _tmpSphere = new Sphere();
@@ -42,6 +43,7 @@ class MainLoop extends EventDispatcher {
         this.renderingState = RENDERING_PAUSED;
         this.needsRedraw = false;
         this.scheduler = scheduler;
+        /** @type {C3DEngine} */
         this.gfxEngine = engine; // TODO: remove me
         this._updateLoopRestarted = true;
         this.maxFar = options.maxFar || MAX_DISTANCE;

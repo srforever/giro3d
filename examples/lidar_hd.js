@@ -10,7 +10,6 @@ import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
-
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
@@ -78,6 +77,10 @@ function initializeCameraPosition(layer) {
     );
 
     pointcloud.attach(colorLayer);
+
+    instance.renderingOptions.enableEDL = true;
+    instance.renderingOptions.enableInpainting = true;
+    instance.renderingOptions.enablePointCloudOcclusion = true;
 
     // refresh scene
     instance.notifyChange(instance.camera.camera3D);

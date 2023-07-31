@@ -22,7 +22,7 @@
       "src/core/layer/ElevationLayer.js",
       "src/core/layer/Interpretation.js",
       "src/core/layer/Layer.js",
-      "src/core/Points.js",
+      "src/core/PointCloud.js",
       "src/core/Cache.js",
       "src/entities/AxisGrid.js",
       "src/entities/Entity.js",
@@ -38,6 +38,7 @@
       "src/renderer/MemoryTracker.js",
       "src/renderer/Camera.js",
       "src/renderer/PointsMaterial.js",
+      "src/renderer/RenderingOptions.js",
       "src/sources",
       "src/utils/Fetcher.js",
       "src/utils/HttpConfiguration.js"

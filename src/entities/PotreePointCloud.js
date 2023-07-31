@@ -23,7 +23,7 @@ import PotreeCinParser from '../parser/PotreeCinParser.js';
 import Fetcher from '../utils/Fetcher.js';
 import Picking from '../core/Picking.js';
 import Extent from '../core/geographic/Extent.js';
-import Points from '../core/Points.js';
+import PointCloud from '../core/PointCloud.js';
 
 // Draw a cube with lines (12 lines).
 function cube(size) {
@@ -596,7 +596,7 @@ class PotreePointCloud extends Entity3D {
 
         return Fetcher.arrayBuffer(url, this.source.networkOptions)
             .then(buffer => this.parse(buffer, this.metadata.pointAttributes)).then(geometry => {
-                const points = new Points({
+                const points = new PointCloud({
                     layer: this,
                     geometry,
                     material: this.material.clone(),

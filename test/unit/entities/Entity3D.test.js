@@ -61,6 +61,25 @@ describe('Entity3D', () => {
         });
     });
 
+    describe('postUpdate', () => {
+        it('should call postUpdate() on attached layers', () => {
+            const entity = sut();
+
+            const layer = {
+                update: jest.fn(),
+                _preprocessLayer: () => layer,
+                postUpdate: jest.fn(),
+            };
+            entity.attach(layer);
+
+            expect(layer.postUpdate).not.toHaveBeenCalled();
+
+            entity.postUpdate();
+
+            expect(layer.postUpdate).toHaveBeenCalled();
+        });
+    });
+
     describe('visible', () => {
         it('should assigne the property', () => {
             const entity = sut();

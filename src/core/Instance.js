@@ -14,6 +14,7 @@ import Scheduler from './scheduler/Scheduler.js';
 import Picking from './Picking.js';
 import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
+import RenderingOptions from '../renderer/RenderingOptions.js';
 
 const vectors = {
     pos: new Vector3(),
@@ -137,6 +138,7 @@ class Instance extends EventDispatcher {
         this._viewport = viewerDiv;
 
         if (options.mainLoop) {
+            /** @type {MainLoop} */
             this.mainLoop = options.mainLoop;
         } else {
             // viewerDiv may have padding/borders, which is annoying when retrieving its size
@@ -151,7 +153,10 @@ class Instance extends EventDispatcher {
             viewerDiv.appendChild(this._viewport);
 
             const engine = new C3DEngine(this._viewport, options.renderer);
+            /** @type {MainLoop} */
             this.mainLoop = new MainLoop(new Scheduler(), engine);
+            /** @type {C3DEngine} */
+            this.engine = engine;
         }
 
         /** @type {Scene} */
@@ -269,6 +274,19 @@ class Instance extends EventDispatcher {
         }
         const sum = entities.reduce((accum, entity) => accum + entity.progress, 0);
         return sum / entities.length;
+    }
+
+    /**
+     * Gets the rendering options.
+     *
+     * Note: you must call {@link module:core/Instance~Instance#notifyChange notifyChange()} to take
+     * the changes into account.
+     *
+     * @api
+     * @type {RenderingOptions}
+     */
+    get renderingOptions() {
+        return this.mainLoop.gfxEngine.renderingOptions;
     }
 
     /**
@@ -473,6 +491,7 @@ class Instance extends EventDispatcher {
      * scene itself (e.g. camera movement).
      * non-interactive events (e.g: texture loaded)
      *
+     * @api
      * @param {*} changeSource the source of the change
      * @param {boolean} needsRedraw indicates if notified change requires a full scene redraw.
      */

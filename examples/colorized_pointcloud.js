@@ -8,6 +8,7 @@ import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js'
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import StatusBar from './widgets/StatusBar.js';
 
 const tmpVec3 = new Vector3();
@@ -40,11 +41,7 @@ const pointcloud = new Tiles3D(
     },
 );
 
-document.getElementById('pointcloud_mode').addEventListener('change', e => {
-    const newMode = parseInt(e.target.value, 10);
-    material.mode = newMode;
-    instance.notifyChange(pointcloud, true);
-});
+let colorLayer;
 
 function placeCamera(position, lookAt) {
     instance.camera.camera3D.position.set(position.x, position.y, position.z);
@@ -75,9 +72,12 @@ function initializeCamera() {
     const lookAt = bbox.getCenter(tmpVec3);
     lookAt.z = bbox.min.z;
 
+    const extent = Extent.fromBox3('EPSG:3946', bbox);
+
     placeCamera(position, lookAt);
 
     const colorize = new TiledImageSource({
+        extent,
         source: new TileWMS({
             url: 'https://download.data.grandlyon.com/wms/grandlyon',
             params: {
@@ -90,7 +90,7 @@ function initializeCamera() {
         }),
     });
 
-    const colorLayer = new ColorLayer(
+    colorLayer = new ColorLayer(
         'wms_imagery',
         {
             source: colorize,
@@ -98,6 +98,12 @@ function initializeCamera() {
     );
 
     pointcloud.attach(colorLayer);
+
+    instance.renderingOptions.enableEDL = true;
+    instance.renderingOptions.enableInpainting = true;
+    instance.renderingOptions.enablePointCloudOcclusion = true;
+
+    StatusBar.bind(instance);
 }
 
 instance.add(pointcloud).then(initializeCamera);
@@ -113,4 +119,38 @@ instance.domElement.addEventListener('dblclick', e => console.log(instance.pickO
     filter: p => !Number.isNaN(p.point.z) && p.point.z < 1000,
 })));
 
-StatusBar.bind(instance);
+instance.notifyChange();
+
+function bindSlider(name, fn) {
+    const slider = document.getElementById(name);
+    slider.oninput = function oninput() {
+        fn(slider.value);
+        instance.notifyChange();
+    };
+}
+
+function bindToggle(name, action) {
+    const toggle = document.getElementById(name);
+    toggle.oninput = () => {
+        const state = toggle.checked;
+        action(state);
+        instance.notifyChange();
+    };
+}
+
+bindToggle('edl-enable', v => { instance.renderingOptions.enableEDL = v; });
+bindToggle('occlusion-enable', v => { instance.renderingOptions.enablePointCloudOcclusion = v; });
+bindToggle('inpainting-enable', v => { instance.renderingOptions.enableInpainting = v; });
+bindSlider('edl-radius', v => { instance.renderingOptions.EDLRadius = v; });
+bindSlider('edl-intensity', v => { instance.renderingOptions.EDLStrength = v; });
+bindSlider('inpainting-steps', v => { instance.renderingOptions.inpaintingSteps = v; });
+
+document.getElementById('pointcloud_mode').addEventListener('change', e => {
+    const newMode = parseInt(e.target.value, 10);
+    material.mode = newMode;
+    instance.notifyChange(pointcloud, true);
+    if (colorLayer) {
+        colorLayer.visible = newMode === MODE.TEXTURE;
+        instance.notifyChange(colorLayer, true);
+    }
+});

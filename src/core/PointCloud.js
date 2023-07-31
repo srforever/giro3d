@@ -1,7 +1,7 @@
 /**
- * @module core/Points
+ * @module core/PointCloud
  */
-import { Points as ThreePoints } from 'three';
+import { Points } from 'three';
 import PointsMaterial from '../renderer/PointsMaterial.js';
 
 /**
@@ -9,7 +9,7 @@ import PointsMaterial from '../renderer/PointsMaterial.js';
  *
  * @api
  */
-class Points extends ThreePoints {
+class PointCloud extends Points {
     constructor({
         layer,
         geometry,
@@ -20,11 +20,23 @@ class Points extends ThreePoints {
         this._layer = layer;
         this.extent = undefined;
         this.textureSize = textureSize;
+        this.isPointCloud = true;
+        this.disposed = false;
     }
 
     getExtent() {
         return this.extent;
     }
+
+    dispose() {
+        if (this.disposed) {
+            return;
+        }
+        this.disposed = true;
+        this.dispatchEvent({ type: 'dispose' });
+        this.geometry.dispose();
+        this.material.dispose();
+    }
 }
 
-export default Points;
+export default PointCloud;

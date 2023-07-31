@@ -782,14 +782,14 @@ class Map extends Entity3D {
     }
 
     postUpdate() {
+        super.postUpdate();
+
         this._forEachTile(tile => {
             if (tile.material.visible) {
                 const neighbours = this.tileIndex.getNeighbours(tile);
                 tile.processNeighbours(neighbours);
             }
         });
-
-        this._attachedLayers.forEach(layer => layer.postUpdate());
     }
 
     // TODO this whole function should be either in providers or in layers

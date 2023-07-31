@@ -6,6 +6,7 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Stamen from 'ol/source/Stamen.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import RenderPipeline from '@giro3d/giro3d/renderer/RenderPipeline.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
@@ -50,3 +51,7 @@ instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 StatusBar.bind(instance);
+
+const pipeline = new RenderPipeline(instance);
+
+instance.render = pipeline.render.bind(pipeline);
