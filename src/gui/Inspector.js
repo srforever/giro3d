@@ -28,6 +28,12 @@ styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
 /**
+ * @typedef {object} Options
+ * @property {number} [width=450] The panel width, in pixels.
+ * @property {string} [title='Inspector'] The title of the inspector.
+ */
+
+/**
  * Provides a user interface to inspect and edit the Giro3D scene.
  * The inspector is made of several {@link module:gui/Panel~Panel panels}.
  * You can implement custom panels and add them to the inspector with
@@ -41,15 +47,14 @@ class Inspector {
      *
      * @param {HTMLDivElement} div The div element to attach the panel to.
      * @param {Instance} instance The Giro3D instance.
-     * @param {object} options The options.
-     * @param {number} [options.width=450] The panel width, in pixels.
+     * @param {Options} options The options.
      */
     constructor(div, instance, options = {}) {
         this.instance = instance;
         this.gui = new GUI({
             autoPlace: false,
-            width: options.width || 450,
-            title: 'Inspector',
+            width: options.width ?? 450,
+            title: options.title ?? 'Inspector',
         });
         this.gui.close();
         this.gui.add(this, 'collapse');
@@ -102,10 +107,11 @@ class Inspector {
      * @api
      * @param {HTMLDivElement} div The div element to attach the panel to.
      * @param {Instance} instance The Giro3D instance.
+     * @param {Options} [options] The options.
      * @returns {Inspector} The created inspector.
      */
-    static attach(div, instance) {
-        const inspector = new Inspector(div, instance);
+    static attach(div, instance, options = {}) {
+        const inspector = new Inspector(div, instance, options);
         return inspector;
     }
 
