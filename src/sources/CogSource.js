@@ -67,6 +67,33 @@ class CogSource extends ImageSource {
      * @param {string} options.crs the CRS of the COG image
      * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
      * to test if a given extent is contained in this source.
+     * @param {number[]} [options.channels=undefined] How the samples in the GeoTIFF files (also
+     * known as bands), are mapped to the color channels of an RGB(A) image.
+     *
+     * Must be an array of either 1, 3 or 4 elements. Each element is the index of a sample in the
+     * source file. For example, to map the samples 0, 3, and 2 to the R, G, B colors, you can use
+     * `[0, 3, 2]`.
+     *
+     * - 1 element means the resulting image will be a grayscale image
+     * - 3 elements means the resulting image will be a RGB image
+     * - 4 elements means the resulting image will be a RGB image with an alpha channel.
+     *
+     * Note: if the channels is `undefined`, then they will be selected automatically with the
+     * following rules: if the image has 3 or more samples, the first 3 sample will be used,
+     * (i.e `[0, 1, 2]`). Otherwise, only the first sample will be used (i.e `[0]`). In any case,
+     * no transparency channel will be selected automatically, as there is no way to determine
+     * if a specific sample represents transparency.
+     *
+     * ## Examples
+     *
+     * - I have a color image, but I only want to see the blue channel (sample = 1): `[1]`
+     * - I have a grayscale image, with only 1 sample: `[0]`
+     * - I have a grayscale image with a transparency channel at index 1: `[0, 0, 0, 1]`
+     * - I have a color image without a transparency channel: `[0, 1, 2]`
+     * - I have a color image with a transparency channel at index 3: `[0, 1, 2, 3]`
+     * - I have a color image with transparency at index 3, but I only want to see the blue channel:
+     * `[1, 1, 1, 3]`
+     * - I have a color image but in the B, G, R order: `[2, 1, 0]`
      */
     constructor(options) {
         super({ flipY: true, ...options });
@@ -92,6 +119,10 @@ class CogSource extends ImageSource {
         this.cache = new Cache();
         /** @type {{width: number, height: number}} */
         this.pixelSize = null;
+        /** @type {number} */
+        this.sampleCount = null;
+        /** @type {Array<number>} */
+        this._channels = options.channels;
     }
 
     getExtent() {
@@ -172,6 +203,18 @@ class CogSource extends ImageSource {
 
         this.origin = firstImage.getOrigin();
         this.bpp = firstImage.getBytesPerPixel();
+        // Samples are equivalent to GDAL's bands
+        this.sampleCount = firstImage.getSamplesPerPixel();
+
+        // Automatic selection of channels, if the user did not specify a mapping.
+        if (this._channels == null || this._channels.length === 0) {
+            if (this.sampleCount >= 3) {
+                this._channels = [0, 1, 2];
+            } else {
+                this._channels = [0];
+            }
+        }
+
         this.nodata = firstImage.getGDALNoData();
 
         this.pixelSize = { width: firstImage.getWidth(), height: firstImage.getHeight() };
@@ -308,6 +351,16 @@ class CogSource extends ImageSource {
         return level;
     }
 
+    /**
+     * Gets the channel mapping.
+     *
+     * @api
+     * @type {Array<number>}
+     */
+    get channels() {
+        return this._channels;
+    }
+
     async loadImage(opts) {
         const {
             extent, width, height, id, signal,
@@ -355,7 +408,9 @@ class CogSource extends ImageSource {
             const buf = await image.readRasters({
                 pool: this.pool,
                 fillValue: this.nodata,
+                samples: this._channels,
                 window,
+                signal,
             });
 
             return buf;
