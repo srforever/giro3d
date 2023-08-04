@@ -473,6 +473,8 @@ class Map extends Entity3D {
         tile.add(tile.OBB());
         this.onTileCreated(this, parent, tile);
 
+        this.onObjectCreated(tile);
+
         return tile;
     }
 

@@ -438,6 +438,8 @@ export function configureTile(tile, entity, metadata, parent) {
     tile.frustumCulled = false;
     tile.layer = entity;
 
+    entity.onObjectCreated(tile);
+
     // parse metadata
     if (metadata.transform) {
         tile.applyMatrix4(metadata.transform);
@@ -474,9 +476,10 @@ function executeCommand(entity, metadata, requester) {
         }
     }
 
-    const setLayer = obj => {
+    const setupObject = obj => {
         obj.userData.metadata = metadata;
         obj.layer = entity;
+        entity.onObjectCreated(obj);
     };
     if (path) {
         // Check if we have relative or absolute url (with tileset's lopocs for example)
@@ -513,16 +516,16 @@ function executeCommand(entity, metadata, requester) {
                             tile.batchTable = content.batchTable;
                         }
                         tile.add(content.object3d);
-                        tile.traverse(setLayer);
+                        tile.traverse(setupObject);
                         return tile;
                     });
                 }
             }
-            tile.traverse(setLayer);
+            tile.traverse(setupObject);
             return tile;
         });
     }
-    tile.traverse(setLayer);
+    tile.traverse(setupObject);
     return Promise.resolve(tile);
 }
 

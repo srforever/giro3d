@@ -9,9 +9,11 @@ import $3dTilesIndex from '../../../src/entities/3dtiles/3dTilesIndex.js';
 import Camera from '../../../src/renderer/Camera.js';
 import Coordinates from '../../../src/core/geographic/Coordinates';
 import Tiles3DSource from '../../../src/sources/Tiles3DSource.js';
+import Entity3D from '../../../src/entities/Entity3D.js';
 
 describe('Tiles3D', () => {
     const defaultSource = new Tiles3DSource('http://example.com/tileset');
+    const defaultEntity = new Entity3D('foo', new Group());
 
     describe('constructor', () => {
         it('should throw on falsy identifier', () => {
@@ -78,7 +80,7 @@ describe('Tiles3D', () => {
             const tileIndex = new $3dTilesIndex(tileset, '');
 
             const tile = new Object3D();
-            configureTile(tile, { }, tileIndex.index['1']);
+            configureTile(tile, defaultEntity, tileIndex.index['1']);
 
             calculateCameraDistance(camera.camera3D, tile);
 
@@ -94,7 +96,7 @@ describe('Tiles3D', () => {
             const tileIndex = new $3dTilesIndex(tileset, '');
 
             const tile = new Object3D();
-            configureTile(tile, { }, tileIndex.index['1']);
+            configureTile(tile, defaultEntity, tileIndex.index['1']);
 
             calculateCameraDistance(camera.camera3D, tile);
 
@@ -115,7 +117,7 @@ describe('Tiles3D', () => {
             const tileIndex = new $3dTilesIndex(tileset, '');
 
             const tile = new Object3D();
-            configureTile(tile, { }, tileIndex.index['1']);
+            configureTile(tile, defaultEntity, tileIndex.index['1']);
 
             calculateCameraDistance(camera.camera3D, tile);
 
@@ -131,7 +133,7 @@ describe('Tiles3D', () => {
             const tileIndex = new $3dTilesIndex(tileset, '');
 
             const tile = new Object3D();
-            configureTile(tile, { }, tileIndex.index['1']);
+            configureTile(tile, defaultEntity, tileIndex.index['1']);
 
             calculateCameraDistance(camera.camera3D, tile);
 

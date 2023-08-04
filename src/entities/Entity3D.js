@@ -1,7 +1,12 @@
 /**
  * @module entities/Entity3D
  */
-import { Box3, Object3D } from 'three';
+import {
+    Box3,
+    Material,
+    Object3D,
+    Plane,
+} from 'three';
 
 import Picking from '../core/Picking.js';
 import Entity from './Entity.js';
@@ -38,6 +43,7 @@ import EventUtils from '../utils/EventUtils.js';
  *
  * @fires Entity3D#opacity-property-changed
  * @fires Entity3D#visible-property-changed
+ * @fires Entity3D#clippingPlanes-property-changed
  * @api
  */
 class Entity3D extends Entity {
@@ -78,6 +84,9 @@ class Entity3D extends Entity {
 
         // processing can overwrite that with values calculating from this layer's Object3D
         this._distance = { min: Infinity, max: 0 };
+
+        /** @type {Plane[]} */
+        this._clippingPlanes = null;
     }
 
     /**
@@ -132,6 +141,28 @@ class Entity3D extends Entity {
     }
 
     /**
+     * Gets or sets the clipping planes set on this entity. Default is `null` (no clipping planes).
+     *
+     * Note: custom entities must ensure that the materials and shaders used do support
+     * the [clipping plane feature](https://threejs.org/docs/index.html?q=materi#api/en/materials/Material.clippingPlanes) of three.js.
+     * Refer to the three.js documentation for more information.
+     *
+     * @api
+     * @type {Plane[]}
+     * @fires Entity3D#clippingPlanes-property-changed
+     */
+    get clippingPlanes() {
+        return this._clippingPlanes;
+    }
+
+    set clippingPlanes(planes) {
+        const event = EventUtils.createPropertyChangedEvent(this, 'clippingPlanes', this._clippingPlanes, planes);
+        this._clippingPlanes = planes;
+        this.updateClippingPlanes();
+        this.dispatchEvent(event);
+    }
+
+    /**
      * Updates the visibility of the entity.
      * Note: this method can be overriden for custom implementations.
      *
@@ -181,6 +212,13 @@ class Entity3D extends Entity {
         }
     }
 
+    /**
+     * Updates the clipping planes of all objects under this entity.
+     */
+    updateClippingPlanes() {
+        this.traverseMaterials(mat => { mat.clippingPlanes = this._clippingPlanes; });
+    }
+
     postUpdate() {
         this._attachedLayers.forEach(layer => layer.postUpdate());
     }
@@ -197,6 +235,37 @@ class Entity3D extends Entity {
         }
 
         return null;
+    }
+
+    /**
+     * Applies entity-level setup on a new object.
+     *
+     * Note: this method should be called from the subclassed entity to notify the parent
+     * class that a new 3D object has just been created, so that it can be setup with entity-wide
+     * parameters.
+     *
+     * @example
+     * // In the subclass
+     * const obj = new Object3D();
+     *
+     * // Notify the parent class
+     * this.onObjectCreated(obj);
+     * @api
+     * @param {Object3D} obj The object to prepare.
+     */
+    onObjectCreated(obj) {
+        // note: we use traverse() because the object might have its own sub-hierarchy as well.
+
+        this.traverse(o => {
+            // To be able to link an object to its parent entity (e.g for picking purposes)
+            o.userData.parentEntity = this;
+        }, obj);
+
+        // Setup materials
+        this.traverseMaterials(material => {
+            material.clippingPlanes = this._clippingPlanes;
+            material.opacity = this._opacity;
+        }, obj);
     }
 
     /* eslint-disable class-methods-use-this */
