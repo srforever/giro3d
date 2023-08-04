@@ -72,6 +72,11 @@ class Panel {
         return controller;
     }
 
+    removeController(controller) {
+        this._controllers.slice(this._controllers.indexOf(controller));
+        this.updateControllers();
+    }
+
     /**
      * Updates all controllers in this panel with the observed values.
      * This is useful if the value changes from outside the GUI.
