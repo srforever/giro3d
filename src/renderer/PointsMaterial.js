@@ -11,7 +11,7 @@ import {
     Uniform,
     NoBlending,
     NormalBlending,
-    RawShaderMaterial,
+    ShaderMaterial,
 } from 'three';
 import PointsVS from './shader/PointsVS.glsl';
 import PointsFS from './shader/PointsFS.glsl';
@@ -41,7 +41,7 @@ export const MODE = {
 
 const NUM_TRANSFO = 16;
 
-class PointsMaterial extends RawShaderMaterial {
+class PointsMaterial extends ShaderMaterial {
     /**
      * Creates a PointsMaterial using the specified options.
      *
@@ -52,7 +52,7 @@ class PointsMaterial extends RawShaderMaterial {
      * @param {number} [options.mode=MODE.COLOR] Specifies the criterion to colorize points.
      */
     constructor(options = {}) {
-        super();
+        super({ clipping: true });
         if (__DEBUG__) {
             this.defines.DEBUG = 1;
         }
