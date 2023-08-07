@@ -31,6 +31,7 @@ class MemoryUsage extends ChartPanel {
             pointRadius: 0,
             backgroundColor: '#FF000030',
             borderColor: '#FF000080',
+            yAxisID: 'y',
         };
 
         this.geometries = {
@@ -41,6 +42,7 @@ class MemoryUsage extends ChartPanel {
             pointRadius: 0,
             backgroundColor: '#0050FF30',
             borderColor: '#0050FFFF',
+            yAxisID: 'y1',
         };
 
         this.data = {
@@ -74,6 +76,10 @@ class MemoryUsage extends ChartPanel {
                         bounds: 'data',
                         type: 'linear',
                         suggestedMin: 0,
+                        position: 'left',
+                    },
+                    y1: {
+                        position: 'right',
                     },
                 },
             },
