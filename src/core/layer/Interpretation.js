@@ -17,6 +17,7 @@ const Mode = {
     Raw: 0,
     MapboxTerrainRGB: 1,
     ScaleToMinMax: 2,
+    CompressTo8Bit: 3,
 };
 
 /**
@@ -135,6 +136,31 @@ class Interpretation {
     }
 
     /**
+     * Compresses the input range into the 8-bit range. This is the inverse of
+     * {@link Interpretation.ScaleToMinMax}.
+     *
+     * Note: this is typically used to visualize high dynamic range images, such as 32-bit data,
+     * into the 8-bit range suitable for display.
+     *
+     * @example
+     * // We have a 16-bit satellite image with min = 200, and max = 4000. We wish to visualize it
+     * // without saturation.
+     * const interp = Interpretation.CompressTo8Bit(200, 4000);
+     * @api
+     * @static
+     * @param {number} min The minimum value of the dataset.
+     * @param {number} max The maximum value of the dataset.
+     * @returns {Interpretation} The scaling values.
+     */
+    static CompressTo8Bit(min, max) {
+        if (typeof min === 'number' && typeof max === 'number') {
+            return new Interpretation(Mode.CompressTo8Bit, { min, max });
+        }
+
+        throw new Error('min and max should be numbers');
+    }
+
+    /**
      * Returns a user-friendly string representation of this interpretation.
      *
      * @api
@@ -175,6 +201,7 @@ class Interpretation {
 
         switch (mode) {
             case Mode.ScaleToMinMax:
+            case Mode.CompressTo8Bit:
                 uniform.min = this._opts.min;
                 uniform.max = this._opts.max;
                 break;
