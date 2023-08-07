@@ -13,9 +13,6 @@ struct Interpretation {
  * Decodes the raw color according to the specified interpretation.
  */
 vec4 decode(vec4 raw, Interpretation interpretation) {
-    if(interpretation.mode == INTERPRETATION_RAW) {
-        return raw;
-    }
     if (interpretation.mode == INTERPRETATION_MAPBOX_TERRAIN_RGB) {
         vec4 color = raw * (255.0 * 0.1);
         float value = -10000.0 + color.r * 256.0 * 256.0 + color.g * 256.0 + color.b;
@@ -42,6 +39,5 @@ vec4 decode(vec4 raw, Interpretation interpretation) {
             raw.a);
     }
 
-    // This should not happen, but there is no way to "fail" a shader.
     return raw;
 }
