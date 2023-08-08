@@ -139,6 +139,10 @@ class CogSource extends ImageSource {
     }
 
     async initialize() {
+        if (this._initialized) {
+            return;
+        }
+
         // Get the COG informations
         const opts = {};
         const url = this.url;
@@ -184,6 +188,8 @@ class CogSource extends ImageSource {
             const image = await this.tiffImage.getImage(i);
             this.levels.push(makeLevel(image, image.getResolution(firstImage)));
         }
+
+        this._initialized = true;
     }
 
     /**
