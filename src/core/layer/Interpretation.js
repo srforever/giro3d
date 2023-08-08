@@ -172,6 +172,8 @@ class Interpretation {
             case Mode.MapboxTerrainRGB: return 'Mapbox Terrain RGB';
             case Mode.ScaleToMinMax:
                 return `Scaled (min: ${this._opts.min}, max: ${this._opts.max})`;
+            case Mode.CompressTo8Bit:
+                return `Compressed to 8-bit (min: ${this._opts.min}, max: ${this._opts.max})`;
             default:
                 return 'unknown';
         }
