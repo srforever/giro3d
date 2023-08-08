@@ -77,9 +77,15 @@ class MemoryUsage extends ChartPanel {
                         type: 'linear',
                         suggestedMin: 0,
                         position: 'left',
+                        ticks: {
+                            color: '#FF5000',
+                        },
                     },
                     y1: {
                         position: 'right',
+                        ticks: {
+                            color: '#0050FF',
+                        },
                     },
                 },
             },
