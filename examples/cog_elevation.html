@@ -1,7 +1,7 @@
 ---
 title: Elevation COG
 shortdesc: Display an elevation COG with a color map.
-longdesc: A COG that contains elevation data in 32-bit floating point values.
+longdesc: A COG that contains elevation data in 32-bit floating point values. You can visualize the dataset in the following ways&#58; as an elevation layer with or without a color map, as a color layer compressed to 8-bit using <a href="../apidoc/module-core_layer_Interpretation-Interpretation.html#.CompressTo8Bit" target="_blank"><code>Interpretation.CompressTo8Bit</code></a>, and as a color layer with a <a href="../apidoc/module-core_layer_ColorMap-ColorMap.html" target="_blank"><code>ColorMap</code></a>.
 attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological Survey</a>
 ---
 <div class="m-2 position-absolute top-0 end-0">
@@ -10,21 +10,17 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
     <div class="card m-1">
         <div class="container m-1">
 
-            <!-- Activate color map -->
-            <div class="row p-1">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" checked="true" type="checkbox" role="switch" id="colormap-enable">
-                    <label class="form-check-label" for="colormap-enable">Color map</label>
+            <fieldset class="row p-1">
+                <div class="input-group">
+                    <span class="input-group-text flex-grow-1">Read COG as</span>
+                    <select class="btn btn-outline-primary btn-sm" id="mode">
+                        <option selected value="elevation">Elevation layer</option>
+                        <option value="elevation-colormap">Elevation layer (with colormap)</option>
+                        <option value="8bit">Color layer (compressed to 8-bit)</option>
+                        <option value="colormap">Color layer (with colormap)</option>
+                    </select>
                 </div>
-            </div>
-
-            <!-- Show layer as color layer (with scaling) -->
-            <div class="row p-1">
-                <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" role="switch" id="colorlayer-enable">
-                    <label class="form-check-label" for="colorlayer-enable">Show COG as color layer</label>
-                </div>
-            </div>
+            </fieldset>
 
         </div>
     </div>
