@@ -2,6 +2,8 @@
  * @module gui/charts/ChartPanel
  */
 import {
+    BarController,
+    BarElement,
     Chart,
     Filler,
     Legend,
@@ -41,6 +43,8 @@ class ChartPanel extends Panel {
             LineController,
             PointElement,
             LineElement,
+            BarElement,
+            BarController,
             Title,
             Legend,
             Filler,

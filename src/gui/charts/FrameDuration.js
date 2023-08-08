@@ -39,11 +39,11 @@ class FrameDuration extends ChartPanel {
 
         this.data = {
             labels,
-            datasets: [totalFrameLength, renderTime],
+            datasets: [renderTime, totalFrameLength],
         };
 
         this.chart = new Chart(this.ctx, {
-            type: 'line',
+            type: 'bar',
             data: this.data,
             options: {
                 animation: false,
@@ -59,11 +59,13 @@ class FrameDuration extends ChartPanel {
                 },
                 scales: {
                     x: {
-                        display: false,
-                        bounds: 'data',
+                        stacked: true,
+                        display: 'auto',
+                        bounds: 'ticks',
                         type: 'linear',
                     },
                     y: {
+                        stacked: true,
                         bounds: 'data',
                         type: 'linear',
                         suggestedMin: 0,
@@ -74,10 +76,12 @@ class FrameDuration extends ChartPanel {
 
         this.updateStart = -1;
         this.renderStart = -1;
+        this.frame = 0;
 
         instance.addFrameRequester(
             MAIN_LOOP_EVENTS.UPDATE_START,
             () => {
+                this.frame++;
                 this.updateStart = performance.now();
             },
         );
@@ -88,7 +92,7 @@ class FrameDuration extends ChartPanel {
                 const now = performance.now();
                 pushTrim(
                     totalFrameLength.data,
-                    { x: this.render.frame, y: now - this.updateStart },
+                    { x: this.frame, y: now - this.updateStart },
                     MAX_DATA_POINTS,
                 );
 
@@ -109,7 +113,7 @@ class FrameDuration extends ChartPanel {
                 const now = performance.now();
                 pushTrim(
                     renderTime.data,
-                    { x: this.render.frame, y: now - this.renderStart },
+                    { x: this.frame, y: now - this.renderStart },
                     MAX_DATA_POINTS,
                 );
             },
