@@ -6,6 +6,7 @@ import Layer from './Layer.js';
 import EventUtils from '../../utils/EventUtils.js';
 import ImageSource from '../../sources/ImageSource.js';
 import Extent from '../geographic/Extent.js';
+import Interpretation from './Interpretation.js';
 
 /**
  * A layer that produces color images, such as vector data, or satellite imagery.
@@ -23,6 +24,8 @@ class ColorLayer extends Layer {
      * @param {string} id The unique identifier of the layer.
      * @param {object} options The layer options.
      * @param {ImageSource} options.source The data source of this layer.
+     * @param {Interpretation} [options.interpretation=Interpretation.Raw] How to interpret the
+     * values in the dataset.
      * @param {Extent} [options.extent] The geographic extent of the layer. If unspecified,
      * the extent will be inherited from the source. Note: for performance reasons, it is highly
      * recommended to specify an extent when the source is much bigger than the map(s) that host
