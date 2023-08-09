@@ -192,6 +192,13 @@ class FeatureCollection extends Entity3D {
 
         this.sseScale = 1;
 
+        /**
+         * Read-only flag to check if a given object is of type FeatureCollection.
+         *
+         * @type {boolean}
+         * @api
+         */
+        this.isFeatureCollection = true;
         this.type = 'FeatureCollection';
         this.visible = true;
 

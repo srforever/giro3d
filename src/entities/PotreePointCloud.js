@@ -131,6 +131,13 @@ class PotreePointCloud extends Entity3D {
     constructor(id, source) {
         super(id, new Group());
         this.source = source;
+        /**
+         * Read-only flag to check if a given object is of type PotreePointCloud.
+         *
+         * @type {boolean}
+         * @api
+         */
+        this.isPotreePointCloud = true;
         this.type = 'PotreePointCloud';
 
         this._opCounter = new OperationCounter();
