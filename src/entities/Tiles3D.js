@@ -313,44 +313,50 @@ class Tiles3D extends Entity3D {
             // displayed tiles.
             // For this last reason, we need to calculate this here, and not in subdivisionControl
             calculateCameraDistance(context.camera.camera3D, node);
-            if (node.pendingSubdivision || subdivisionTest(context, this, node)) {
-                subdivideNode(context, this, node, cullingTest);
-                // display iff children aren't ready
-                if (node.additiveRefinement || node.pendingSubdivision) {
-                    setDisplayed(node, true);
-                } else {
-                    // If one of our child is a tileset, this node must be displayed until this
-                    // child content is ready, to avoid hiding our content too early (= when our
-                    // child is loaded but its content is not)
-                    const subtilesets = this.tileIndex.index[node.tileId].children.filter(
-                        tile => tile.isTileset,
-                    );
 
-                    if (subtilesets.length) {
-                        let allReady = true;
-                        for (const tileset of subtilesets) {
-                            const subTilesetNode = node.children.filter(
-                                n => n.tileId === tileset.tileId,
-                            )[0];
-                            if (!isTilesetContentReady(tileset, subTilesetNode)) {
-                                allReady = false;
-                                break;
-                            }
-                        }
-                        setDisplayed(node, allReady);
-                    } else {
+            if (!this.frozen) {
+                if (node.pendingSubdivision || subdivisionTest(context, this, node)) {
+                    subdivideNode(context, this, node, cullingTest);
+                    // display iff children aren't ready
+                    if (node.additiveRefinement || node.pendingSubdivision) {
                         setDisplayed(node, true);
+                    } else {
+                        // If one of our child is a tileset, this node must be displayed until this
+                        // child content is ready, to avoid hiding our content too early (= when our
+                        // child is loaded but its content is not)
+                        const subtilesets = this.tileIndex.index[node.tileId].children.filter(
+                            tile => tile.isTileset,
+                        );
+
+                        if (subtilesets.length) {
+                            let allReady = true;
+                            for (const tileset of subtilesets) {
+                                const subTilesetNode = node.children.filter(
+                                    n => n.tileId === tileset.tileId,
+                                )[0];
+                                if (!isTilesetContentReady(tileset, subTilesetNode)) {
+                                    allReady = false;
+                                    break;
+                                }
+                            }
+                            setDisplayed(node, allReady);
+                        } else {
+                            setDisplayed(node, true);
+                        }
+                    }
+                    returnValue = getChildTiles(node);
+                } else {
+                    setDisplayed(node, true);
+
+                    for (const n of getChildTiles(node)) {
+                        n.visible = false;
+                        markForDeletion(this, n);
                     }
                 }
-                returnValue = getChildTiles(node);
             } else {
-                setDisplayed(node, true);
-
-                for (const n of getChildTiles(node)) {
-                    n.visible = false;
-                    markForDeletion(this, n);
-                }
+                returnValue = getChildTiles(node);
             }
+
             // update material
             if (node.content && node.content.visible) {
                 // it will therefore contribute to near / far calculation
