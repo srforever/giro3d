@@ -67,9 +67,9 @@ class TiledImageSource extends ImageSource {
         source,
         format,
         noDataValue,
-        containsFn,
+        ...options
     }) {
-        super({ flipY: format?.flipY ?? true, containsFn });
+        super({ flipY: format?.flipY ?? true, ...options });
 
         this.source = source;
         this.format = format;

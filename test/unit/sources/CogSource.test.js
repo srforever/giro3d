@@ -2,6 +2,16 @@ import Extent from '../../../src/core/geographic/Extent.js';
 import CogSource from '../../../src/sources/CogSource.js';
 
 describe('CogSource', () => {
+    describe('constructor', () => {
+        it('should assign properties', () => {
+            const containsFn = jest.fn();
+            const source = new CogSource({ url: 'http://example.com', crs: 'EPSG:1234', containsFn });
+            expect(source.url).toEqual('http://example.com');
+            expect(source.crs).toEqual('EPSG:1234');
+            expect(source.containsFn).toBe(containsFn);
+        });
+    });
+
     describe('computeExtent', () => {
         it('should rethrow unknown exceptions', () => {
             const image = {
