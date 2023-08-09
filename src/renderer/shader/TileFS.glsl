@@ -43,9 +43,7 @@ uniform ColorMap    layersColorMaps[COLOR_LAYERS]; // The color layers' color ma
 uniform float       opacity;        // The entire map opacity
 uniform vec4        backgroundColor; // The background color
 
-#if defined(ENABLE_OUTLINES)
-const float         OUTLINE_THICKNESS = 0.003;
-#endif
+#include <giro3d_outline_pars_fragment>
 
 #if defined(ENABLE_ELEVATION_RANGE)
 uniform vec2        elevationRange; // Optional elevation range for the whole tile. Not to be confused with elevation range per layer.
@@ -161,27 +159,6 @@ vec4 computeColor(vec2 rawUv, vec4 offsetScale, sampler2D tex) {
 float map(float value, float min1, float max1, float min2, float max2) {
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
-
-#if defined(ENABLE_OUTLINES)
-vec4 drawTileOutlines(vec2 uv, vec4 color) {
-    const vec4 GREEN = vec4(0, 1, 0, 1);
-    const vec4 BLUE = vec4(0, 0, 1, 1);
-    const vec4 RED = vec4(1, 0, 0, 1);
-    const vec4 YELLOW = vec4(1, 1, 0, 1);
-
-    if (uv.x < OUTLINE_THICKNESS) { // WEST
-        color = RED;
-    } else if (uv.x > 1.0 - OUTLINE_THICKNESS) { // EAST
-        color = GREEN;
-    } else if (uv.y < OUTLINE_THICKNESS) { // NORTH
-        color = BLUE;
-    } else if (uv.y > 1.0 - OUTLINE_THICKNESS) { // SOUTH
-        color = YELLOW;
-    }
-
-    return color;
-}
-#endif
 
 vec4 computeColorMap(
     LayerInfo layer,
@@ -361,9 +338,7 @@ void main() {
     }
 
     // Step 7 : draw tile outlines
-#if defined(ENABLE_OUTLINES)
-    gl_FragColor = drawTileOutlines(vUv, gl_FragColor);
-#endif
+    #include <giro3d_outline_fragment>
 
     #include <logdepthbuf_fragment>
 
