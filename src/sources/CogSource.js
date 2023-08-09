@@ -65,7 +65,7 @@ class CogSource extends ImageSource {
      * to test if a given extent is contained in this source.
      */
     constructor(options) {
-        super({ flipY: true });
+        super({ flipY: true, ...options });
         this.url = options.url;
         this.crs = options.crs;
         /** @type {GeoTIFF} */
