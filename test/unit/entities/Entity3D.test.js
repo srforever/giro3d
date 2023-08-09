@@ -36,7 +36,7 @@ describe('Entity3D', () => {
             assert.throws(() => { entity.id = 'bar'; }, 'id should be immutable');
             assert.throws(() => { entity.object3d = {}; }, 'object3d should be immutable');
 
-            assert.strictEqual(entity.type, 'geometry');
+            assert.strictEqual(entity.type, 'Entity3D');
             assert.strictEqual(entity.object3d, obj3d);
             assert.strictEqual(entity.id, 'foo');
         });

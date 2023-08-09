@@ -62,6 +62,20 @@ class Entity extends EventDispatcher {
         }
 
         this._id = id;
+        /**
+         * Read-only flag to check if a given object is of type Entity.
+         *
+         * @type {boolean}
+         * @api
+         */
+        this.isEntity = true;
+        /**
+         * The name of the type of this object.
+         *
+         * @type {string}
+         * @api
+         */
+        this.type = 'Entity';
         this._frozen = false;
     }
 

@@ -61,7 +61,14 @@ class Entity3D extends Entity {
             object3d.name = id;
         }
 
-        this.type = 'geometry';
+        /**
+         * Read-only flag to check if a given object is of type Entity3D.
+         *
+         * @type {boolean}
+         * @api
+         */
+        this.isEntity3D = true;
+        this.type = 'Entity3D';
         /** @type {boolean} */
         this._visible = true;
         /** @type {number} */

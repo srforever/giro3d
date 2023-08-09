@@ -70,6 +70,13 @@ class Tiles3D extends Entity3D {
             throw new Error('missing source.url');
         }
 
+        /**
+         * Read-only flag to check if a given object is of type Tiles3D.
+         *
+         * @type {boolean}
+         * @api
+         */
+        this.isTiles3D = true;
         /** @type {string} */
         this.type = 'Tiles3D';
         /** @type {string} */

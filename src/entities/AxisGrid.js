@@ -137,6 +137,13 @@ class AxisGrid extends Entity3D {
     constructor(id, options) {
         super(id, new Group());
 
+        /**
+         * Read-only flag to check if a given object is of type AxisGrid.
+         *
+         * @type {boolean}
+         * @api
+         */
+        this.isAxisGrid = true;
         this.type = 'AxisGrid';
 
         /** @type {Group} */

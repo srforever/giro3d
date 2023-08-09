@@ -267,6 +267,13 @@ class Map extends Entity3D {
         this.sseScale = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel || 30;
 
+        /**
+         * Read-only flag to check if a given object is of type Map.
+         *
+         * @type {boolean}
+         * @api
+         */
+        this.isMap = true;
         this.type = 'Map';
         this.visible = true;
 
