@@ -15,7 +15,6 @@ import RenderingState from './RenderingState.js';
 import TileVS from './shader/TileVS.glsl';
 import TileFS from './shader/TileFS.glsl';
 import PrecisionQualifier from './shader/chunk/PrecisionQualifier.glsl';
-import ColorMapChunk from './shader/chunk/ColorMap.glsl';
 import LayerInfoChunk from './shader/chunk/LayerInfo.glsl';
 import GetElevation from './shader/chunk/GetElevation.glsl';
 import ComputeUV from './shader/chunk/ComputeUV.glsl';
@@ -32,7 +31,6 @@ ShaderChunk.PrecisionQualifier = PrecisionQualifier;
 ShaderChunk.GetElevation = GetElevation;
 ShaderChunk.ComputeUV = ComputeUV;
 ShaderChunk.LayerInfo = LayerInfoChunk;
-ShaderChunk.ColorMap = ColorMapChunk;
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -167,7 +165,7 @@ class LayeredMaterial extends ShaderMaterial {
         // Describe the properties of each color layer (offsetScale, color...).
         this.uniforms.layers = new Uniform([]);
         this.uniforms.layersColorMaps = new Uniform([]);
-        this.uniforms.luts = new Uniform([]);
+        this.uniforms.colorMapAtlas = new Uniform([]);
 
         /** @type {ColorMapAtlas} */
         this.colorMapAtlas = options.colorMapAtlas;
@@ -520,10 +518,10 @@ class LayeredMaterial extends ShaderMaterial {
         this.uniforms.layersColorMaps = new Uniform(colorMaps);
         if (atlas?.texture) {
             const luts = atlas.texture || null;
-            if (!this.uniforms.luts) {
-                this.uniforms.luts = new Uniform(luts);
+            if (!this.uniforms.colorMapAtlas) {
+                this.uniforms.colorMapAtlas = new Uniform(luts);
             }
-            this.uniforms.luts.value = luts;
+            this.uniforms.colorMapAtlas.value = luts;
         }
     }
 
