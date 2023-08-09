@@ -36,11 +36,16 @@ const tmpDim = new Vector2();
  * @property {number} resolution The spatial resolution.
  */
 
-function selectDataType(bytesPerPixel, bandCount) {
-    if (bandCount === bytesPerPixel) {
-        return UnsignedByteType;
+function selectDataType(format, bitsPerSample) {
+    switch (format) {
+        case 1: // unsigned integer data
+            if (bitsPerSample <= 8) {
+                return UnsignedByteType;
+            }
+            break;
+        default:
+            break;
     }
-
     return FloatType;
 }
 
@@ -139,6 +144,10 @@ class CogSource extends ImageSource {
     }
 
     async initialize() {
+        if (this._initialized) {
+            return;
+        }
+
         // Get the COG informations
         const opts = {};
         const url = this.url;
@@ -159,7 +168,9 @@ class CogSource extends ImageSource {
 
         this.pixelSize = { width: firstImage.getWidth(), height: firstImage.getHeight() };
 
-        this.datatype = this.bpp === 4 ? UnsignedByteType : FloatType;
+        this.format = firstImage.getSampleFormat();
+        this.bps = firstImage.getBitsPerSample();
+        this.datatype = selectDataType(this.format, this.bps);
 
         /**
          * @param {GeoTIFFImage} image The GeoTIFF image.
@@ -184,6 +195,8 @@ class CogSource extends ImageSource {
             const image = await this.tiffImage.getImage(i);
             this.levels.push(makeLevel(image, image.getResolution(firstImage)));
         }
+
+        this._initialized = true;
     }
 
     /**
@@ -231,7 +244,7 @@ class CogSource extends ImageSource {
         // Width and height in pixels of the returned data
         const { width, height } = buffers;
 
-        const dataType = selectDataType(this.bpp, buffers.length);
+        const dataType = this.datatype;
 
         const texture = TextureGenerator.createDataTexture(
             {

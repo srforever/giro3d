@@ -7,11 +7,14 @@ describe('Interpretation', () => {
             const raw = Interpretation.Raw;
             const mapbox = Interpretation.MapboxTerrainRGB;
             const scale = Interpretation.ScaleToMinMax(1, 100);
+            const compress = Interpretation.CompressTo8Bit(5, 899);
 
             expect(raw.mode).toEqual(Mode.Raw);
             expect(mapbox.mode).toEqual(Mode.MapboxTerrainRGB);
+            expect(compress.mode).toEqual(Mode.CompressTo8Bit);
             expect(scale.mode).toEqual(Mode.ScaleToMinMax);
             expect(scale._opts).toEqual({ min: 1, max: 100 });
+            expect(compress._opts).toEqual({ min: 5, max: 899 });
         });
     });
 

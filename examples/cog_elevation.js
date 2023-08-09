@@ -43,7 +43,6 @@ instance.useTHREEControls(controls);
 const map = new Map('planar', {
     extent,
     segments: 128,
-    discardNoData: true,
     backgroundColor: 'gray',
     hillshading: true,
 });
@@ -56,39 +55,62 @@ const source = new CogSource({
     crs: extent.crs(),
 });
 
-const values = colormap({ colormap: 'viridis', nshades: 256 });
-const colors = values.map(v => new Color(v));
+function makeColorMap(name) {
+    return colormap({ colormap: name, nshades: 256 }).map(v => new Color(v));
+}
 
 const min = 263;
 const max = 4347;
 
 // Display it as elevation and color
-const colorMap = new ColorMap(colors, min, max, ColorMapMode.Elevation);
-map.addLayer(new ElevationLayer('elevation', {
-    extent,
-    source,
-    colorMap,
-    minmax: { min, max },
-}));
-
-// Optionally display the same COG but as a scaled to 8-bit color layer.
-const colorLayer = new ColorLayer('color', { extent, source, interpretation: Interpretation.CompressTo8Bit(min, max) });
-map.addLayer(colorLayer);
-colorLayer.visible = false;
+const viridis = new ColorMap(makeColorMap('viridis'), min, max, ColorMapMode.Elevation);
+const magma = new ColorMap(makeColorMap('magma'), min, max, ColorMapMode.Elevation);
 
 // Attach the inspector
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
-const toggle = document.getElementById('colormap-enable');
-toggle.onchange = () => {
-    colorMap.active = toggle.checked;
-    instance.notifyChange(map);
-};
-
-const toggle2 = document.getElementById('colorlayer-enable');
-toggle2.onchange = () => {
-    colorLayer.visible = toggle2.checked;
-    instance.notifyChange(map);
-};
-
 StatusBar.bind(instance);
+
+function updateMode(value) {
+    map.removeLayer(map.getLayers()[0]);
+
+    switch (value) {
+        case 'elevation-colormap':
+            map.addLayer(new ElevationLayer('elevation', {
+                extent,
+                source,
+                colorMap: viridis,
+                minmax: { min, max },
+            }));
+            break;
+        case 'elevation':
+            map.addLayer(new ElevationLayer('elevation', {
+                extent,
+                source,
+                minmax: { min, max },
+            }));
+            break;
+        case '8bit':
+            map.addLayer(new ColorLayer('color-8bit', {
+                extent,
+                source,
+                interpretation: Interpretation.CompressTo8Bit(min, max),
+            }));
+            break;
+        case 'colormap':
+            map.addLayer(new ColorLayer('color-8bit', {
+                extent,
+                source,
+                colorMap: magma,
+            }));
+            break;
+        default:
+            break;
+    }
+
+    instance.notifyChange(map);
+}
+
+const mode = document.getElementById('mode');
+mode.onchange = () => updateMode(mode.value);
+updateMode(mode.value);
