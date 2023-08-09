@@ -238,8 +238,6 @@ vec4 computeColorLayer(
 void main() {
     #include <clipping_planes_fragment>
 
-    gl_FragColor = vec4(0.0);
-
     // Step 0 : discard fragment in trivial cases of transparency
     if (opacity == 0.) {
         discard;
@@ -274,7 +272,7 @@ void main() {
 #endif
 
     // Step 2 : start with the background color
-    vec4 diffuseColor = backgroundColor;
+    gl_FragColor = backgroundColor;
 
 #if defined(ELEVATION_LAYER)
     // Step 3 : if the elevation layer has a color map, use it as the background color.
@@ -285,7 +283,7 @@ void main() {
             elevationColorMap,
             luts,
             vUv).rgb;
-        diffuseColor = blend(vec4(rgb, 1.0), diffuseColor);
+        gl_FragColor = blend(vec4(rgb, 1.0), gl_FragColor);
     }
 #endif
 
@@ -304,7 +302,7 @@ void main() {
 // - or after the color layers (i.e all pixels will be shaded).
 #if defined(APPLY_SHADING_ON_COLORLAYERS)
 #else
-    diffuseColor.rgb *= hillshade;
+    gl_FragColor.rgb *= hillshade;
 #endif
 
     // Step 4 : process all color layers (either directly sampling the atlas texture, or use a color map).
@@ -323,58 +321,58 @@ void main() {
                 // Mask layers do not contribute to the composition color.
                 // instead, they contribute to the overall opacity of the map.
                 maskOpacity *= rgba.a;
-                blended = diffuseColor;
+                blended = gl_FragColor;
             } else if (layer.mode == LAYER_MODE_MASK_INVERTED) {
                 maskOpacity *= (1. - rgba.a);
-                blended = diffuseColor;
+                blended = gl_FragColor;
             } else if (layer.mode == LAYER_MODE_NORMAL) {
                 // Regular alpha blending
-                blended = blend(rgba, diffuseColor);
+                blended = blend(rgba, gl_FragColor);
             }
         #else
             // Regular alpha blending
-            blended = blend(rgba, diffuseColor);
+            blended = blend(rgba, gl_FragColor);
         #endif
 
 #if defined(ENABLE_ELEVATION_RANGE)
             vec2 range = layer.elevationRange;
             if (clamp(height, range.x, range.y) == height) {
-                diffuseColor = blended;
+                gl_FragColor = blended;
             }
 #else
-            diffuseColor = blended;
+            gl_FragColor = blended;
 #endif
         }
     }
     #pragma unroll_loop_end
 #endif
 
-    diffuseColor.a *= opacity * maskOpacity;
+    gl_FragColor.a *= opacity * maskOpacity;
 
 #if defined(APPLY_SHADING_ON_COLORLAYERS)
-    diffuseColor.rgb *= hillshade;
+    gl_FragColor.rgb *= hillshade;
 #endif
 
     // Step 6 : apply backface processing.
     if (!gl_FrontFacing) {
         // Display the backside in a desaturated, darker tone, to give visual feedback that
         // we are, in fact, looking at the map from the "wrong" side.
-        diffuseColor.rgb = desaturate(diffuseColor.rgb, 1.) * 0.5;
+        gl_FragColor.rgb = desaturate(gl_FragColor.rgb, 1.) * 0.5;
     }
 
     // Step 7 : draw tile outlines
 #if defined(ENABLE_OUTLINES)
-    diffuseColor = drawTileOutlines(vUv, diffuseColor);
+    gl_FragColor = drawTileOutlines(vUv, gl_FragColor);
 #endif
 
     #include <logdepthbuf_fragment>
 
     // Final step : process rendering states.
-    if (diffuseColor.a <= 0.) {
+    if (gl_FragColor.a <= 0.) {
         // The fragment is transparent, discard it to short-circuit rendering state evaluation.
         discard;
     } else if (renderingState == STATE_FINAL) {
-        gl_FragColor = diffuseColor;
+        gl_FragColor = gl_FragColor;
     } else if (renderingState == STATE_PICKING) {
         float id = float(uuid);
         float z = height;
