@@ -21,6 +21,8 @@ uniform vec2        tileDimensions;
 
 // Outputs
 varying vec2        vUv;
+varying vec3        wPosition; // World space position
+varying vec3        vViewPosition;
 
 const int   NULL = -1;
 const int   NO_CORNER_NEIGHBOUR = 0;
@@ -422,4 +424,7 @@ void main() {
     #include <project_vertex>
     #include <logdepthbuf_vertex>
     #include <clipping_planes_vertex>
+
+    wPosition = transformed;
+    vViewPosition = -mvPosition.xyz;
 }

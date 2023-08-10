@@ -77,6 +77,44 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
 const tmpVector = new Vector3();
 
 /**
+ * @param {
+ * boolean|undefined|import('../core/ContourLineOptions.js').ContourLineOptions
+ * } input The input
+ * @returns {import('../core/ContourLineOptions.js').ContourLineOptions} The options.
+ */
+function getContourLineOptions(input) {
+    if (!input) {
+        // Default values
+        return {
+            enabled: false,
+            interval: 100,
+            secondaryInterval: 20,
+            color: new Color(0, 0, 0),
+            opacity: 1,
+        };
+    }
+
+    if (typeof input === 'boolean') {
+        // Default values
+        return {
+            enabled: true,
+            interval: 100,
+            secondaryInterval: 20,
+            color: new Color(0, 0, 0),
+            opacity: 1,
+        };
+    }
+
+    return {
+        enabled: input.enabled ?? false,
+        interval: input.interval ?? 100,
+        secondaryInterval: input.secondaryInterval ?? 20,
+        color: input.color ?? new Color(0, 0, 0),
+        opacity: input.opacity ?? 1,
+    };
+}
+
+/**
  * @param {boolean|undefined|HillshadingOptions} input The input
  * @returns {HillshadingOptions} The options.
  */
@@ -231,6 +269,11 @@ class Map extends Entity3D {
      * If `undefined` or `false`, hillshading is disabled.
      *
      * Note: hillshading has no effect if the map does not contain an elevation layer.
+     * @param {boolean|
+     * import('../core/ContourLineOptions.js').ContourLineOptions} [options.contourLines=undefined]
+     * Enables contour lines. If `undefined` or `false`, contour lines are not displayed.
+     *
+     * Note: this option has no effect if the map does not contain an elevation layer.
      * @param {number} [options.segments=8] The number of geometry segments in each map tile.
      * The higher the better. It *must* be power of two between `1` included and `256` included.
      * Note: the number of vertices per tile side is `segments` + 1.
@@ -292,6 +335,7 @@ class Map extends Entity3D {
          */
         this.materialOptions = {
             hillshading: getHillshadingOptions(options.hillshading),
+            contourLines: getContourLineOptions(options.contourLines),
             discardNoData: options.discardNoData || false,
             doubleSided: options.doubleSided || false,
             segments: this.segments,

@@ -17,6 +17,8 @@ const int STATE_FINAL = 0;
 const int STATE_PICKING = 1;
 
 varying vec2        vUv; // The input UV
+varying vec3        wPosition; // The input world position
+varying vec3        vViewPosition;
 
 uniform int         renderingState; // Current rendering state (default is STATE_FINAL)
 uniform int         uuid;           // The ID of the tile mesh (used for the STATE_PICKING rendering state)

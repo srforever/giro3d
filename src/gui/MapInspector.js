@@ -12,6 +12,7 @@ import EntityInspector from './EntityInspector.js';
 import RenderingState from '../renderer/RenderingState.js';
 import LayerInspector from './LayerInspector.js';
 import HillshadingPanel from './HillshadingPanel.js';
+import ContourLinePanel from './ContourLinePanel.js';
 
 function createTileLabel() {
     const text = document.createElement('div');
@@ -140,6 +141,12 @@ class MapInspector extends EntityInspector {
 
         this.hillshadingPanel = new HillshadingPanel(
             this.map.materialOptions.hillshading,
+            this.gui,
+            instance,
+        );
+
+        this.contourLinePanel = new ContourLinePanel(
+            this.map.materialOptions.contourLines,
             this.gui,
             instance,
         );

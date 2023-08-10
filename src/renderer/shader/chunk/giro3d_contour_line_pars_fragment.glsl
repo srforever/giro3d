@@ -1,5 +1,5 @@
 #if defined(ENABLE_CONTOUR_LINES)
-uniform sampler2D contourLineTexture;
-uniform float     contourLineInterval;
-uniform vec4      contourLineColor;
+uniform float     contourLineInterval; // A zero interval disables the line
+uniform float     secondaryContourLineInterval; // A zero interval disables the line
+uniform vec4      contourLineColor; // Stores both the color and opacity
 #endif
