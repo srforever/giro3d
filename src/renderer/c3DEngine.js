@@ -25,6 +25,7 @@ import RenderPipeline from './RenderPipeline.js';
 import RenderingOptions from './RenderingOptions.js';
 
 const tmpClear = new Color();
+const tmpVec2 = new Vector2();
 
 function createRenderTarget(width, height, type) {
     const result = new WebGLRenderTarget(
@@ -224,6 +225,13 @@ class C3DEngine {
      */
     render(scene, camera) {
         this.renderer.setRenderTarget(null);
+        const size = this.renderer.getDrawingBufferSize(tmpVec2);
+
+        // Rendering into a zero-sized buffer is useless and will lead to WebGL warnings.
+        if (size.width === 0 || size.height === 0) {
+            return;
+        }
+
         this.renderer.clear();
 
         if (requiresCustomPipeline(this.renderingOptions)) {
