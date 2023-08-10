@@ -27,6 +27,7 @@ uniform vec4        backgroundColor; // The background color
 #include <giro3d_colormap_pars_fragment>
 #include <giro3d_outline_pars_fragment>
 #include <giro3d_compose_layers_pars_fragment>
+#include <giro3d_contour_line_pars_fragment>
 
 #if defined(ENABLE_ELEVATION_RANGE)
 uniform vec2        elevationRange; // Optional elevation range for the whole tile. Not to be confused with elevation range per layer.
@@ -118,6 +119,9 @@ void main() {
 
     // Step 4 : process all color layers (either directly sampling the atlas texture, or use a color map).
     #include <giro3d_compose_layers_fragment>
+
+    // Contour lines
+    #include <giro3d_contour_line_fragment>
 
 #if defined(APPLY_SHADING_ON_COLORLAYERS)
     gl_FragColor.rgb *= hillshade;
