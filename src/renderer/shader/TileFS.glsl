@@ -35,6 +35,7 @@ uniform vec2        elevationRange; // Optional elevation range for the whole ti
 #if defined(ENABLE_HILLSHADING)
 uniform float       zenith;     // Zenith of sunlight, in degrees (0 - 90)
 uniform float       azimuth;    // Azimuth on sunlight, in degrees (0 - 360)
+uniform float       hillshadingIntensity;
 #endif
 
 uniform vec2        tileDimensions; // The dimensions of the tile, in CRS units
@@ -103,7 +104,7 @@ void main() {
 #if defined(ELEVATION_LAYER)
     // Step 5 : compute shading
 #if defined(ENABLE_HILLSHADING)
-    hillshade = calcHillshade(tileDimensions, elevationLayer.textureSize, zenith, azimuth, elevationLayer.offsetScale, elevationTexture, elevUv);
+    hillshade = calcHillshade(tileDimensions, elevationLayer.textureSize, zenith, azimuth, hillshadingIntensity, elevationLayer.offsetScale, elevationTexture, elevUv);
 #endif
 #endif
 

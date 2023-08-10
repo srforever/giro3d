@@ -18,7 +18,11 @@ import Entity3D from './Entity3D.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import Picking from '../core/Picking.js';
 import ScreenSpaceError from '../core/ScreenSpaceError.js';
-import LayeredMaterial, { DEFAULT_AZIMUTH, DEFAULT_ZENITH } from '../renderer/LayeredMaterial.js';
+import LayeredMaterial, {
+    DEFAULT_AZIMUTH,
+    DEFAULT_HILLSHADING_INTENSITY,
+    DEFAULT_ZENITH,
+} from '../renderer/LayeredMaterial.js';
 import TileMesh from '../core/TileMesh.js';
 import TileIndex from '../core/TileIndex.js';
 import RenderingState from '../renderer/RenderingState.js';
@@ -82,6 +86,7 @@ function getHillshadingOptions(input) {
         return {
             enabled: false,
             elevationLayersOnly: false,
+            intensity: DEFAULT_HILLSHADING_INTENSITY,
             azimuth: DEFAULT_AZIMUTH,
             zenith: DEFAULT_ZENITH,
         };
@@ -92,6 +97,7 @@ function getHillshadingOptions(input) {
         return {
             enabled: true,
             elevationLayersOnly: false,
+            intensity: DEFAULT_HILLSHADING_INTENSITY,
             azimuth: DEFAULT_AZIMUTH,
             zenith: DEFAULT_ZENITH,
         };
@@ -102,6 +108,7 @@ function getHillshadingOptions(input) {
         elevationLayersOnly: input.elevationLayersOnly ?? false,
         azimuth: input.azimuth ?? DEFAULT_AZIMUTH,
         zenith: input.zenith ?? DEFAULT_ZENITH,
+        intensity: input.intensity ?? DEFAULT_HILLSHADING_INTENSITY,
     };
 }
 
@@ -197,6 +204,7 @@ function computeImageSize(extent) {
  * @property {boolean} [enabled=true] Enables hillshading.
  * @property {number} [azimuth=135] The azimuth of the sun, in degrees.
  * @property {number} [zenith=45] The vertical angle of the sun, in degrees. (90 = zenith)
+ * @property {number} [intensity=1] The intensity of the shade (0 = no shade, 1 = opaque shade)
  * @property {boolean} [elevationLayersOnly=false] If `true`, only elevation layers are shaded,
  * leaving the color layers unshaded.
  */

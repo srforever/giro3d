@@ -11,6 +11,7 @@ import Helpers from '../helpers/Helpers.js';
 import EntityInspector from './EntityInspector.js';
 import RenderingState from '../renderer/RenderingState.js';
 import LayerInspector from './LayerInspector.js';
+import HillshadingPanel from './HillshadingPanel.js';
 
 function createTileLabel() {
     const text = document.createElement('div');
@@ -136,18 +137,13 @@ class MapInspector extends EntityInspector {
         this.addColorController(this, 'extentColor')
             .name('Extent color')
             .onChange(v => this.updateExtentColor(v));
-        this.addController(this.map.materialOptions.hillshading, 'enabled')
-            .name('Hillshading')
-            .onChange(() => this.notify(this.map));
-        this.addController(this.map.materialOptions.hillshading, 'elevationLayersOnly')
-            .name('Shade only elevation layers')
-            .onChange(() => this.notify(this.map));
-        this.addController(this.map.materialOptions.hillshading, 'azimuth', 0, 360)
-            .name('Sun azimuth')
-            .onChange(() => this.notify(this.map));
-        this.addController(this.map.materialOptions.hillshading, 'zenith', 0, 90)
-            .name('Sun zenith')
-            .onChange(() => this.notify(this.map));
+
+        this.hillshadingPanel = new HillshadingPanel(
+            this.map.materialOptions.hillshading,
+            this.gui,
+            instance,
+        );
+
         this.addController(this.map.materialOptions, 'discardNoData')
             .name('Discard no-data values')
             .onChange(() => this.notify(this.map));

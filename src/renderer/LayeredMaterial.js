@@ -52,6 +52,7 @@ class TextureInfo {
     }
 }
 
+export const DEFAULT_HILLSHADING_INTENSITY = 1;
 export const DEFAULT_AZIMUTH = 135;
 export const DEFAULT_ZENITH = 45;
 
@@ -88,8 +89,9 @@ class LayeredMaterial extends ShaderMaterial {
         this.defines.STITCHING = 1;
         this.renderer = renderer;
 
-        this.uniforms.zenith = { type: 'f', value: DEFAULT_ZENITH };
-        this.uniforms.azimuth = { type: 'f', value: DEFAULT_AZIMUTH };
+        this.uniforms.zenith = new Uniform(DEFAULT_ZENITH);
+        this.uniforms.azimuth = new Uniform(DEFAULT_AZIMUTH);
+        this.uniforms.hillshadingIntensity = new Uniform(0.5);
 
         this.getIndexFn = getIndexFn;
 
@@ -538,6 +540,7 @@ class LayeredMaterial extends ShaderMaterial {
         if (hillshadingParams) {
             this.uniforms.zenith.value = hillshadingParams.zenith ?? DEFAULT_ZENITH;
             this.uniforms.azimuth.value = hillshadingParams.azimuth ?? DEFAULT_AZIMUTH;
+            this.uniforms.hillshadingIntensity.value = hillshadingParams.intensity ?? 0.5;
             MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', hillshadingParams.enabled);
             MaterialUtils.setDefine(this, 'APPLY_SHADING_ON_COLORLAYERS', !hillshadingParams.elevationLayersOnly);
         } else {
