@@ -118,11 +118,11 @@ void main() {
     // Step 4 : process all color layers (either directly sampling the atlas texture, or use a color map).
     #include <giro3d_compose_layers_fragment>
 
-    gl_FragColor.a *= opacity;
-
 #if defined(APPLY_SHADING_ON_COLORLAYERS)
     gl_FragColor.rgb *= hillshade;
 #endif
+
+    gl_FragColor.a *= opacity;
 
     // Step 6 : apply backface processing.
     if (!gl_FrontFacing) {
