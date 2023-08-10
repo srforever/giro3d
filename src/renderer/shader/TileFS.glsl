@@ -1,12 +1,8 @@
-#include <PrecisionQualifier>
-#include <ComputeUV>
-#include <GetElevation>
-#include <LayerInfo>
+#include <giro3d_precision_qualifiers>
+#include <giro3d_common>
 
 #include <logdepthbuf_pars_fragment>
 #include <clipping_planes_pars_fragment>
-
-#define M_PI    3.1415926535897932384626433832795
 
 /**
  * Map tile fragment shader.
@@ -28,7 +24,6 @@ uniform int         uuid;           // The ID of the tile mesh (used for the STA
 uniform float       opacity;        // The entire map opacity
 uniform vec4        backgroundColor; // The background color
 
-#include <giro3d_slope_aspect_pars>
 #include <giro3d_colormap_pars_fragment>
 #include <giro3d_outline_pars_fragment>
 #include <giro3d_compose_layers_pars_fragment>
@@ -48,25 +43,6 @@ uniform vec2        tileDimensions; // The dimensions of the tile, in CRS units
 uniform sampler2D   elevationTexture;
 uniform LayerInfo   elevationLayer;
 uniform ColorMap    elevationColorMap;  // The elevation layer's optional color map
-#endif
-
-vec3 desaturate(vec3 color, float factor) {
-	vec3 lum = vec3(0.299, 0.587, 0.114);
-	vec3 gray = vec3(dot(lum, color));
-	return mix(color, gray, factor);
-}
-
-#if defined(ENABLE_HILLSHADING)
-float calcHillshade(LayerInfo layer, sampler2D texture, vec2 uv){
-    // https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-hillshade-works.htm
-    vec2 derivatives = computeDerivatives(tileDimensions, uv, texture, layer.textureSize, layer.offsetScale);
-    float slope = calcSlope(derivatives);
-    float aspect = calcAspect(derivatives);
-    float zenith_rad = zenith * M_PI / 180.0; // in radians
-    float azimuth_rad = azimuth * M_PI / 180.0; // in radians
-    float hillshade = ((cos(zenith_rad) * cos(slope)) + (sin(zenith_rad) * sin(slope) * cos(azimuth_rad - aspect)));
-    return clamp(hillshade, 0., 1.);
-}
 #endif
 
 void main() {
@@ -127,7 +103,7 @@ void main() {
 #if defined(ELEVATION_LAYER)
     // Step 5 : compute shading
 #if defined(ENABLE_HILLSHADING)
-    hillshade = calcHillshade(elevationLayer, elevationTexture, elevUv);
+    hillshade = calcHillshade(tileDimensions, elevationLayer.textureSize, zenith, azimuth, elevationLayer.offsetScale, elevationTexture, elevUv);
 #endif
 #endif
 

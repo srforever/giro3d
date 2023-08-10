@@ -1,7 +1,5 @@
-#include <PrecisionQualifier>
-#include <GetElevation>
-#include <ComputeUV>
-#include <LayerInfo>
+#include <giro3d_precision_qualifiers>
+#include <giro3d_common>
 
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
@@ -39,12 +37,6 @@ const int BOTTOM = 4;
 const int BOTTOM_LEFT = 5;
 const int LEFT = 6;
 const int TOP_LEFT = 7;
-
-vec2 clamp01(vec2 uv) {
-    return vec2(
-        clamp(uv.x, 0., 1.),
-        clamp(uv.y, 0., 1.));
-}
 
 #if defined(STITCHING)
 struct CornerNeighbour {

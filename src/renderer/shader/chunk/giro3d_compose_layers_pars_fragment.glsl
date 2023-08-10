@@ -10,16 +10,6 @@ uniform LayerInfo   layers[COLOR_LAYERS]; // The color layers' infos
 uniform ColorMap    layersColorMaps[COLOR_LAYERS]; // The color layers' color maps
 #endif
 
-vec4 blend(vec4 fore, vec4 back) {
-    if (fore.a == 0. && back.a == 0.) {
-        return vec4(0);
-    }
-    float alpha = fore.a + back.a * (1.0 - fore.a);
-    vec3 color = (fore.rgb * fore.a) + back.rgb * (back.a * (1.0 - fore.a)) / alpha;
-
-    return vec4(color, alpha);
-}
-
 vec4 computeColor(vec2 rawUv, vec4 offsetScale, sampler2D tex) {
     vec2 uv = computeUv(rawUv, offsetScale.xy, offsetScale.zw);
     return texture2D(tex, uv);

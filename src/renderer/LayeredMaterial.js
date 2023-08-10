@@ -1,7 +1,6 @@
 import {
     Color,
     ShaderMaterial,
-    ShaderChunk,
     Texture,
     Uniform,
     Vector2,
@@ -14,10 +13,6 @@ import {
 import RenderingState from './RenderingState.js';
 import TileVS from './shader/TileVS.glsl';
 import TileFS from './shader/TileFS.glsl';
-import PrecisionQualifier from './shader/chunk/PrecisionQualifier.glsl';
-import LayerInfoChunk from './shader/chunk/LayerInfo.glsl';
-import GetElevation from './shader/chunk/GetElevation.glsl';
-import ComputeUV from './shader/chunk/ComputeUV.glsl';
 import WebGLComposer from './composition/WebGLComposer.js';
 import Rect from '../core/Rect.js';
 import MemoryTracker from './MemoryTracker.js';
@@ -25,12 +20,6 @@ import ElevationLayer from '../core/layer/ElevationLayer.js';
 import ColorMap from '../core/layer/ColorMap.js';
 import ColorMapAtlas from './ColorMapAtlas.js';
 import MaterialUtils from './MaterialUtils.js';
-
-// Declaring our own chunks
-ShaderChunk.PrecisionQualifier = PrecisionQualifier;
-ShaderChunk.GetElevation = GetElevation;
-ShaderChunk.ComputeUV = ComputeUV;
-ShaderChunk.LayerInfo = LayerInfoChunk;
 
 const EMPTY_IMAGE_SIZE = 16;
 

@@ -1,6 +1,4 @@
-precision highp float;
-precision highp int;
-
+#include <giro3d_precision_qualifiers>
 #include <logdepthbuf_pars_fragment>
 #include <clipping_planes_pars_fragment>
 
