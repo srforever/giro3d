@@ -61,7 +61,7 @@ class FrameDuration extends ChartPanel {
                     x: {
                         stacked: true,
                         display: 'auto',
-                        bounds: 'ticks',
+                        bounds: 'data',
                         type: 'linear',
                     },
                     y: {
