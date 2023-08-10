@@ -22,12 +22,17 @@ class InstanceInspector extends Panel {
 
         this.state = 'idle';
         this.addController(this, 'state').name('Status');
+        this.addController(this, 'triggerUpdate').name('Trigger update');
 
         const rendererPanel = this.gui.addFolder('WebGLRenderer');
         rendererPanel.close();
         this._addCapabilities(this.renderer, rendererPanel);
 
         this.enginePanel = new RenderingInspector(this.gui, instance);
+    }
+
+    triggerUpdate() {
+        this.instance.notifyChange();
     }
 
     updateValues() {
