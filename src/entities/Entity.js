@@ -139,7 +139,7 @@ class Entity extends EventDispatcher {
      * as fetching metadata about a dataset, etc.
      *
      * @api
-     * @returns {Promise} A promise that resolves when the entity is ready to be used.
+     * @returns {Promise<void>} A promise that resolves when the entity is ready to be used.
      */
     preprocess() {
         return Promise.resolve();

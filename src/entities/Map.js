@@ -404,6 +404,8 @@ class Map extends Entity3D {
             this.object3d.add(level0);
             level0.updateMatrixWorld();
         }
+
+        return Promise.resolve();
     }
 
     requestNewTile(extent, parent, level, x = 0, y = 0) {
