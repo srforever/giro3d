@@ -77,7 +77,6 @@ function initializeCamera() {
     placeCamera(position, lookAt);
 
     const colorize = new TiledImageSource({
-        extent,
         source: new TileWMS({
             url: 'https://download.data.grandlyon.com/wms/grandlyon',
             params: {
@@ -86,13 +85,13 @@ function initializeCamera() {
             },
             projection: 'EPSG:3946',
             crossOrigin: 'anonymous',
-            version: '1.3.0',
         }),
     });
 
     colorLayer = new ColorLayer(
         'wms_imagery',
         {
+            extent,
             source: colorize,
         },
     );
