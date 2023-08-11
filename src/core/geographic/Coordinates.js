@@ -387,8 +387,8 @@ class Coordinates {
      * // x: 20885167
      * // y: 849862
      * // z: 23385912
-     * @param {Coordinates} target the geocentric coordinate
-     * @returns     {Vector3 | Coordinates} target position
+     * @param {Vector3} [target] the geocentric coordinate
+     * @returns     {Vector3} target position
      * @api
      */
     xyz(target) {
@@ -412,7 +412,7 @@ class Coordinates {
      *     new Coordinates('EPSG:4326', position.longitude, position.latitude, position.altitude);
      * const coordinates = coords.as('EPSG:4978'); // Geocentric system
      * @param   {string} crs the [CRS](http://inspire.ec.europa.eu/theme/rs) EPSG string
-     * @param   {Coordinates|Vector3} target the object that is returned
+     * @param   {Coordinates|Vector3} [target] the object that is returned
      * @returns {Coordinates|Vector3} the converted coordinate
      * @api
      */
@@ -425,7 +425,7 @@ class Coordinates {
 
     // Only support explicit conversions
     _convert(newCrs, target) {
-        target = target || new Coordinates(newCrs, 0, 0);
+        target = target || new Coordinates(newCrs, 0, 0, 0);
         if (newCrs === this.crs) {
             return target.copy(this);
         }
