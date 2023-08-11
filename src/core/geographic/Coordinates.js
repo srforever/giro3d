@@ -136,13 +136,7 @@ class Coordinates {
      *
      * @api
      * @param       {string} crs Geographic or Geocentric coordinates system.
-     * @param       {number|Vector3} coordinates The globe coordinates to aim to.
-     * @param       {number} coordinates.longitude Geographic Coordinate longitude
-     * @param       {number} coordinates.latitude Geographic Coordinate latitude
-     * @param       {number} coordinates.altitude Geographic Coordinate altiude
-     * @param       {number} coordinates.x Geocentric Coordinate X
-     * @param       {number} coordinates.y Geocentric Coordinate Y
-     * @param       {number} coordinates.z Geocentric Coordinate Z
+     * @param       {[number, number, number]|Vector3} coordinates The coordinates.
      * @example
      * new Coordinates('EPSG:4978', 20885167, 849862, 23385912); //Geocentric coordinates
      * // or
