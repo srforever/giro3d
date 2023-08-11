@@ -237,6 +237,7 @@ class Map extends Entity3D {
      * are present.
      * @param {number} [options.backgroundOpacity=1] The opacity of the map background.
      * Defaults is opaque (1).
+     * @param {boolean} [options.showOutline=false] Show the map tiles' borders.
      * @param {object} [options.elevationRange=undefined] The optional elevation range of
      * the map. The map will not be rendered for elevations outside of this range.
      * Note: this feature is only useful if an elevation layer is added to this map.
@@ -244,7 +245,7 @@ class Map extends Entity3D {
      * @param {number} options.elevationRange.max The max value.
      * @api
      */
-    constructor(id, options = {}) {
+    constructor(id, options) {
         super(id, options.object3d || new Group());
 
         /** @type {Array<TileMesh>} */
@@ -277,6 +278,7 @@ class Map extends Entity3D {
         this.type = 'Map';
         this.visible = true;
 
+        /** @type {boolean} */
         this.showOutline = options.showOutline;
 
         this._renderOrder = 0;
