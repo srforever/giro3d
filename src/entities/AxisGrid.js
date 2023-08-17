@@ -199,7 +199,7 @@ class AxisGrid extends Entity3D {
 
     updateOpacity() {
         const v = this.opacity;
-        this.labelElements.forEach(l => { l.style.opacity = v; });
+        this.labelElements.forEach(l => { l.style.opacity = `${v}`; });
 
         const mat = this.material;
         mat.opacity = v;
