@@ -77,7 +77,7 @@ describe('Map', () => {
 
     describe('constructor', () => {
         it('should throw on undefined id', () => {
-            expect(() => new Map(undefined)).toThrow(/Missing id parameter/);
+            expect(() => new Map(undefined, { extent })).toThrow(/Missing id parameter/);
         });
 
         it('should throw if the extent is invalid', () => {

@@ -199,7 +199,7 @@ class AxisGrid extends Entity3D {
 
     updateOpacity() {
         const v = this.opacity;
-        this.labelElements.forEach(l => { l.style.opacity = v; });
+        this.labelElements.forEach(l => { l.style.opacity = `${v}`; });
 
         const mat = this.material;
         mat.opacity = v;
@@ -843,10 +843,7 @@ class AxisGrid extends Entity3D {
         this._updateLabelsVisibility(camera);
     }
 
-    /**
-     * @param {Context} context The context.
-     */
-    preUpdate(context /** , changeSources */) {
+    preUpdate(context) {
         /** @type {Camera} */
         const camera = context.camera.camera3D;
 
@@ -854,7 +851,9 @@ class AxisGrid extends Entity3D {
 
         this._updateSidesVisibility(camera);
 
-        this._updateMinMaxDistance(context, this.boundingSphere);
+        this._updateMinMaxDistance(context);
+
+        return [];
     }
 
     /**
@@ -879,7 +878,7 @@ class AxisGrid extends Entity3D {
         this.material.dispose();
         this._deleteSides();
         this.labelElements.forEach(elt => elt.remove());
-        this.labelElements.size = 0;
+        this.labelElements.length = 0;
 
         this._deleteArrowHelpers();
     }

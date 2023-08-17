@@ -258,25 +258,23 @@ class DrawTool extends EventDispatcher {
      *
      * @param {Instance} instance Giro3D instance
      * @param {object} [options] Optional properties
-     * @param {?number} [options.maxPoints=Infinity] The number of points that can be drawn
+     * @param {number} [options.maxPoints=Infinity] The number of points that can be drawn
      * before a polygon or line is finished
-     * @param {?number} [options.minPoints=2|3] The number of points that must be drawn before
+     * @param {number} [options.minPoints=2|3] The number of points that must be drawn before
      * a polygon or line can be finished
-     * @param {?module:interactions/DrawTool~getPointAt} options.getPointAt Callback to get
-     * the point from where the user clicked
-     * @param {?module:interactions/DrawTool~point2DFactory} options.point2DFactory Callback
-     * for creating DOM element for points for CSS2DObject
-     * @param {?object} options.drawObjectOptions Options for creating GeometryObject (see
+     * @param {Function} options.getPointAt Callback to get the point from where the user clicked.
+     * @param {Function} options.point2DFactory Callback to create DOM elements at points.
+     * @param {object} options.drawObjectOptions Options for creating GeometryObject (see
      * {@link module:interactions/Drawing~Drawing Drawing} for
      * available options)
-     * @param {?boolean} [options.endDrawingOnRightClick=true] Capture right-click to end the
+     * @param {boolean} [options.endDrawingOnRightClick=true] Capture right-click to end the
      * drawing
-     * @param {?boolean} [options.enableSplicing=true] Enables splicing edges
-     * @param {?number} [options.splicingHitTolerance=null] Hit tolerance for splicing
+     * @param {boolean} [options.enableSplicing=true] Enables splicing edges
+     * @param {number} [options.splicingHitTolerance=null] Hit tolerance for splicing
      * (`null` for auto)
-     * @param {?boolean} [options.enableAddPointsOnEdit=true] Enables adding points for
+     * @param {boolean} [options.enableAddPointsOnEdit=true] Enables adding points for
      * line/multipoint geometries when editing
-     * @param {?boolean} [options.enableDragging=true] Edit points via drag-and-drop (otherwise,
+     * @param {boolean} [options.enableDragging=true] Edit points via drag-and-drop (otherwise,
      * moving a point is on click)
      * @api
      */

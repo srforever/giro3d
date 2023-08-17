@@ -136,15 +136,11 @@ class Coordinates {
      *
      * @api
      * @param       {string} crs Geographic or Geocentric coordinates system.
-     * @param       {number|Vector3} coordinates The globe coordinates to aim to.
-     * @param       {number} coordinates.longitude Geographic Coordinate longitude
-     * @param       {number} coordinates.latitude Geographic Coordinate latitude
-     * @param       {number} coordinates.altitude Geographic Coordinate altiude
-     * @param       {number} coordinates.x Geocentric Coordinate X
-     * @param       {number} coordinates.y Geocentric Coordinate Y
-     * @param       {number} coordinates.z Geocentric Coordinate Z
+     * @param       {Array<number>|Vector3} coordinates The coordinates.
      * @example
      * new Coordinates('EPSG:4978', 20885167, 849862, 23385912); //Geocentric coordinates
+     * // or
+     * new Coordinates('EPSG:4978', new Vector3(20885167, 849862, 23385912)) // Same with a vector.
      * // or
      * new Coordinates('EPSG:4326', 2.33, 48.24, 24999549); //Geographic coordinates
      */
@@ -187,10 +183,10 @@ class Coordinates {
     clone(target) {
         let r;
         if (target) {
-            Coordinates.call(target, this.crs, ...this._values);
+            Coordinates.call(target, this.crs, this._values[0], this._values[1], this._values[2]);
             r = target;
         } else {
-            r = new Coordinates(this.crs, ...this._values);
+            r = new Coordinates(this.crs, this._values[0], this._values[1], this._values[2]);
         }
         if (this._normal) {
             r._normal = this._normal.clone();
@@ -393,8 +389,8 @@ class Coordinates {
      * // x: 20885167
      * // y: 849862
      * // z: 23385912
-     * @param {Coordinates} target the geocentric coordinate
-     * @returns     {Vector3 | Coordinates} target position
+     * @param {Vector3} [target] the geocentric coordinate
+     * @returns     {Vector3} target position
      * @api
      */
     xyz(target) {
@@ -418,7 +414,7 @@ class Coordinates {
      *     new Coordinates('EPSG:4326', position.longitude, position.latitude, position.altitude);
      * const coordinates = coords.as('EPSG:4978'); // Geocentric system
      * @param   {string} crs the [CRS](http://inspire.ec.europa.eu/theme/rs) EPSG string
-     * @param   {Coordinates|Vector3} target the object that is returned
+     * @param   {Coordinates|Vector3} [target] the object that is returned
      * @returns {Coordinates|Vector3} the converted coordinate
      * @api
      */
@@ -431,7 +427,7 @@ class Coordinates {
 
     // Only support explicit conversions
     _convert(newCrs, target) {
-        target = target || new Coordinates(newCrs, 0, 0);
+        target = target || new Coordinates(newCrs, 0, 0, 0);
         if (newCrs === this.crs) {
             return target.copy(this);
         }

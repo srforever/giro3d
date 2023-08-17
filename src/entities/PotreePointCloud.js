@@ -274,8 +274,6 @@ class PotreePointCloud extends Entity3D {
                 this.root = root;
                 root.findChildrenByName = findChildrenByName.bind(root, root);
                 this.extent = Extent.fromBox3(this._instance.referenceCrs, root.bbox);
-
-                return this;
             });
     }
 

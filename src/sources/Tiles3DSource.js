@@ -18,7 +18,7 @@
 class Tiles3DSource {
     /**
      * @param {string} url The URL to the root tileset.
-     * @param {NetworkOptions} networkOptions the network options.
+     * @param {NetworkOptions} [networkOptions] the network options.
      * @api
      */
     constructor(url, networkOptions) {

@@ -41,6 +41,17 @@ describe('Coordinates', () => {
         });
     });
 
+    describe('clone', () => {
+        it('should return the correct value', () => {
+            const c0 = new Coordinates('EPSG:3857', 1, 2, 3);
+            const c1 = c0.clone();
+
+            expect(c0.x()).toEqual(c0.x());
+            expect(c1.y()).toEqual(c0.y());
+            expect(c1.z()).toEqual(c0.z());
+        });
+    });
+
     describe('offsetInExtent', () => {
         it('should return correct U value', () => {
             const west = 3024.22;

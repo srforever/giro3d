@@ -72,7 +72,7 @@ class Camera {
     /**
      * Return the position in the requested CRS, or in camera's CRS if undefined.
      *
-     * @param {string} crs if defined (e.g 'EPSG:4236') the camera position will be
+     * @param {string} [crs] if defined (e.g 'EPSG:4236') the camera position will be
      * returned in this CRS
      * @returns {Coordinates} Coordinates object holding camera's position
      */

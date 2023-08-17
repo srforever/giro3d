@@ -89,16 +89,16 @@ class Instance extends EventDispatcher {
      *
      * @param {HTMLElement} viewerDiv Where to instanciate the Three.js scene in the DOM
      * @param {object} [options] Optional properties.
-     * @param {?string} options.crs The coordinate reference system of the scene. Must be a
+     * @param {string} options.crs The coordinate reference system of the scene. Must be a
      * cartesian system.
-     * @param {?Scene} [options.scene3D] The [Three.js Scene](https://threejs.org/docs/#api/en/scenes/Scene) instance to use,
+     * @param {Scene} [options.scene3D] The [Three.js Scene](https://threejs.org/docs/#api/en/scenes/Scene) instance to use,
      * otherwise a default one will be constructed
      * @param {object} [options.renderer] The options for the renderer.
-     * @param {number|boolean} options.renderer.clearColor The background color.
+     * @param {number|boolean} [options.renderer.clearColor] The background color.
      * Can be a hex color or `false` for transparent backgrounds (requires alpha true).
-     * @param {boolean} options.renderer.alpha Enables transparency (default true).
+     * @param {boolean} [options.renderer.alpha] Enables transparency (default true).
      * Not used if renderer is provided.
-     * @param {boolean} options.renderer.antialias Enables antialiasing (default true).
+     * @param {boolean} [options.renderer.antialias] Enables antialiasing (default true).
      * Not used if renderer is provided.
      * @param {boolean} [options.renderer.checkShaderErrors=false] Enables shader validation. Note:
      * shader validation is a costly operation that should be disabled in production.
@@ -106,10 +106,10 @@ class Instance extends EventDispatcher {
      * {@link module:core/Instance~Instance#renderer renderer}.
      * See the [Three.js documentation](https://threejs.org/docs/index.html?q=webglren#api/en/renderers/WebGLRenderer.debug)
      * for more information.
-     * @param {boolean} options.renderer.logarithmicDepthBuffer Enables the
+     * @param {boolean} [options.renderer.logarithmicDepthBuffer] Enables the
      * [logarithmic depth buffer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.logarithmicDepthBuffer)
      * (default false). Not used if renderer is provided.
-     * @param {WebGLRenderer} options.renderer.renderer Custom renderer to be used.
+     * @param {WebGLRenderer} [options.renderer.renderer] Custom renderer to be used.
      * If provided, it will be automatically added in the DOM in viewerDiv.
      * @example
      * const opts = {
@@ -121,7 +121,7 @@ class Instance extends EventDispatcher {
      * instance.add(map);
      * @api
      */
-    constructor(viewerDiv, options = {}) {
+    constructor(viewerDiv, options) {
         super();
         Object3D.DefaultUp.set(0, 0, 1);
         if (!viewerDiv || !(viewerDiv instanceof Element)) {
@@ -543,7 +543,7 @@ class Instance extends EventDispatcher {
      * instance.getObjects();
      * // get one layer with id
      * instance.getObjects(obj => obj.id === 'itt');
-     * @param {function(object):boolean} filter the optional query filter
+     * @param {function(object):boolean} [filter] the optional query filter
      * @returns {Array<object>} an array containing the queried objects
      */
     getObjects(filter) {
@@ -746,16 +746,16 @@ class Instance extends EventDispatcher {
      * Return objects from some layers/objects3d under the mouse in this instance.
      *
      * @api
-     * @param {object} mouseOrEvt mouse position in window coordinates (0, 0 = top-left)
-     * or MouseEvent or TouchEvent
+     * @param {Vector2|MouseEvent|TouchEvent} mouseOrEvt mouse position in window coordinates, i.e
+     * [0, 0] = top-left, or `MouseEvent` or `TouchEvent`
      * @param {object} [options] Optional properties.
-     * @param {?number} [options.radius=0] picking will happen in a circle centered on mouseOrEvt.
+     * @param {number} [options.radius=0] picking will happen in a circle centered on mouseOrEvt.
      * Radius is the radius of this circle, in pixels
-     * @param {?number} [options.limit=Infinity] maximum number of objects to return
-     * @param {?Array} options.where where to look for objects. Can be either: empty (= look
+     * @param {number} [options.limit=Infinity] maximum number of objects to return
+     * @param {Array} [options.where] where to look for objects. Can be either: empty (= look
      * in all layers with type === 'geometry'), layer ids or layers or a mix of all
      * the above.
-     * @param {?object} options.filter Filter on resulting objects
+     * @param {object} [options.filter] Filter on resulting objects
      * @returns {Array} an array of objects. Each element contains at least an object
      * property which is the Object3D under the cursor. Then depending on the queried
      * layer/source, there may be additionnal properties (coming from THREE.Raycaster

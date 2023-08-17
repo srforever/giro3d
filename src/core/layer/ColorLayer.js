@@ -36,7 +36,6 @@ class ColorLayer extends Layer {
      * display of this layer. This is only useful if there is an elevation layer on the map.
      * @param {number} options.elevationRange.min The min value.
      * @param {number} options.elevationRange.max The max value.
-     * @param {number} options.fadeDuration The fade duration of images.
      */
     constructor(id, options = {}) {
         super(id, options);

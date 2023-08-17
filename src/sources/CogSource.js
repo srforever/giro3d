@@ -14,8 +14,12 @@ import GeoTIFF, {
     fromUrl,
     GeoTIFFImage,
     Pool,
-    TypedArray,
 } from 'geotiff';
+
+/**
+ * @typedef {Uint8Array | Int8Array | Uint16Array | Int16Array |
+ * Uint32Array | Int32Array | Float32Array | Float64Array} TypedArray
+ */
 
 import HttpConfiguration from '../utils/HttpConfiguration.js';
 import Extent from '../core/geographic/Extent.js';
