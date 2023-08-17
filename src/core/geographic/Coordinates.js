@@ -136,9 +136,11 @@ class Coordinates {
      *
      * @api
      * @param       {string} crs Geographic or Geocentric coordinates system.
-     * @param       {[number, number, number]|Vector3} coordinates The coordinates.
+     * @param       {Array<number>|Vector3} coordinates The coordinates.
      * @example
      * new Coordinates('EPSG:4978', 20885167, 849862, 23385912); //Geocentric coordinates
+     * // or
+     * new Coordinates('EPSG:4978', new Vector3(20885167, 849862, 23385912)) // Same with a vector.
      * // or
      * new Coordinates('EPSG:4326', 2.33, 48.24, 24999549); //Geographic coordinates
      */
@@ -181,10 +183,10 @@ class Coordinates {
     clone(target) {
         let r;
         if (target) {
-            Coordinates.call(target, this.crs, ...this._values);
+            Coordinates.call(target, this.crs, this._values[0], this._values[1], this._values[2]);
             r = target;
         } else {
-            r = new Coordinates(this.crs, ...this._values);
+            r = new Coordinates(this.crs, this._values[0], this._values[1], this._values[2]);
         }
         if (this._normal) {
             r._normal = this._normal.clone();
