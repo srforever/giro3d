@@ -884,10 +884,12 @@ class Map extends Entity3D {
      * Removes a layer from the map.
      *
      * @param {Layer} layer the layer to remove
+     * @param {object} [options] The options.
+     * @param {boolean} [options.disposeLayer=false] If `true`, the layer is also disposed.
      * @returns {boolean} `true` if the layer was present, `false` otherwise.
      * @api
      */
-    removeLayer(layer) {
+    removeLayer(layer, options = {}) {
         this.currentAddedLayerIds = this.currentAddedLayerIds.filter(l => l !== layer.id);
         if (this.detach(layer)) {
             if (layer.colorMap) {
@@ -900,6 +902,9 @@ class Map extends Entity3D {
             this._reorderLayers();
             this.dispatchEvent({ type: 'layer-removed' });
             this._instance.notifyChange(this, true);
+            if (options.disposeLayer) {
+                layer.dispose();
+            }
             return true;
         }
 
@@ -945,17 +950,26 @@ class Map extends Entity3D {
     }
 
     /**
-     * Disposes all layers in the map.
+     * Disposes this map and associated unmanaged resources.
+     *
+     * Note: By default, layers in this map are not automatically disposed, except when
+     * `disposeLayers` is `true`.
+     *
+     * @param {object} [options] Options.
+     * @param {boolean} [options.disposeLayers=false] If true, layers are also disposed.
      */
-    dispose() {
-        for (const layer of this.getLayers()) {
-            layer.dispose(this);
-        }
-
+    dispose(options = {}) {
         // Delete cached TileGeometry objects. This is not possible to do
         // at the TileMesh level because TileMesh objects do not own their geometry,
         // as it is shared among all tiles at the same depth level.
         this._clearGeometryPool();
+
+        // Dispose all tiles so that every layer will unload data relevant to those tiles.
+        this._forEachTile(t => t.dispose());
+
+        if (options.disposeLayers) {
+            this.getLayers().forEach(layer => layer.dispose());
+        }
 
         this.materialOptions.colorMapAtlas?.dispose();
     }
@@ -1010,13 +1024,9 @@ class Map extends Entity3D {
     _forEachTile(fn) {
         for (const r of this.level0Nodes) {
             r.traverse(obj => {
-                /** @type {TileMesh} */
-                const tile = obj;
-                if (tile.layer !== this) {
-                    return;
+                if (obj.isTileMesh) {
+                    fn(obj);
                 }
-
-                fn(tile);
             });
         }
     }

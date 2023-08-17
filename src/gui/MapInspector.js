@@ -167,6 +167,7 @@ class MapInspector extends EntityInspector {
             .name('Render state')
             .onChange(v => this.setRenderState(v));
         this.addController(this, 'dumpTiles').name('Dump tiles in console');
+        this.addController(this, 'disposeMapAndLayers').name('Dispose map and layers');
 
         /**
          * The layer folder.
@@ -192,6 +193,15 @@ class MapInspector extends EntityInspector {
         this.map.addEventListener('layer-order-changed', this._fillLayersCb);
 
         this.fillLayers();
+    }
+
+    disposeMapAndLayers() {
+        const layers = this.map.getLayers();
+        for (const layer of layers) {
+            this.map.removeLayer(layer, { disposeLayer: true });
+        }
+        this.instance.remove(this.map);
+        this.notify();
     }
 
     getOrCreateLabel(obj) {

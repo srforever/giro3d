@@ -22,6 +22,8 @@ const viewerDiv = document.getElementById('viewerDiv');
 let instance = null;
 let inspector = null;
 let controls = null;
+/** @type {Map} */
+let map = null;
 
 function init() {
     // Creates a giro3d instance
@@ -33,7 +35,7 @@ function init() {
     });
 
     // Creates a map that will contain the layer
-    const map = new Map('planar', { extent, maxSubdivisionLevel: 10 });
+    map = new Map('planar', { extent, maxSubdivisionLevel: 10 });
 
     instance.add(map);
 
@@ -67,6 +69,7 @@ init();
 function reload() {
     if (!instance) return;
 
+    map.getLayers().forEach(l => l.dispose());
     inspector.detach();
     instance.dispose();
     controls.dispose();
