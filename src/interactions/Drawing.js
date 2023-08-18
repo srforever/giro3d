@@ -208,7 +208,7 @@ class Drawing extends Group {
                 o.element.remove();
             }
         }
-        super.clear();
+        return super.clear();
     }
 
     /**
