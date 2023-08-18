@@ -114,7 +114,7 @@ class Drawing extends Group {
      *
      * @param {Instance} instance Giro3D instance
      * @param {object} [options] Optional properties
-     * @param {string} options.name Name for this shape
+     * @param {string} [options.name] Name for this shape
      * @param {number} [options.minExtrudeDepth=3] Minimum depth for the extrusion
      * @param {number} [options.maxExtrudeDepth=20] Maximum depth for the extrusion
      * @param {Material} [options.faceMaterial] Material to be used for faces
@@ -124,7 +124,7 @@ class Drawing extends Group {
      * if `use3Dpoints` is `false`)
      * @param {boolean} [options.use3Dpoints=true] Render points as 3D objects - if false, must
      * provide `point2DFactory` option
-     * @param {?module:interactions/Drawing~point2DFactory} [options.point2DFactory]
+     * @param {point2DFactory} [options.point2DFactory]
      * Callback for creating DOM element for points for CSS2DObject - used only if `use3Dpoints`
      * is `false`)
      * @param {boolean} [options.planeHelperVisible=false] True to make the plane helper visible.
