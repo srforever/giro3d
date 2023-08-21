@@ -114,25 +114,25 @@ class Drawing extends Group {
      *
      * @param {Instance} instance Giro3D instance
      * @param {object} [options] Optional properties
-     * @param {?string} options.name Name for this shape
-     * @param {?number} [options.minExtrudeDepth=3] Minimum depth for the extrusion
-     * @param {?number} [options.maxExtrudeDepth=20] Maximum depth for the extrusion
-     * @param {?Material} options.faceMaterial Material to be used for faces
-     * @param {?Material} options.sideMaterial Material to be used for the extruded sides
-     * @param {?LineBasicMaterial} options.lineMaterial Material to be used for the borders
-     * @param {?PointsMaterial} options.pointMaterial Material to be used for the points (not used
+     * @param {string} [options.name] Name for this shape
+     * @param {number} [options.minExtrudeDepth=3] Minimum depth for the extrusion
+     * @param {number} [options.maxExtrudeDepth=20] Maximum depth for the extrusion
+     * @param {Material} [options.faceMaterial] Material to be used for faces
+     * @param {Material} [options.sideMaterial] Material to be used for the extruded sides
+     * @param {LineBasicMaterial} [options.lineMaterial] Material to be used for the borders
+     * @param {PointsMaterial} [options.pointMaterial] Material to be used for the points (not used
      * if `use3Dpoints` is `false`)
-     * @param {?boolean} [options.use3Dpoints=true] Render points as 3D objects - if false, must
+     * @param {boolean} [options.use3Dpoints=true] Render points as 3D objects - if false, must
      * provide `point2DFactory` option
-     * @param {?module:interactions/Drawing~point2DFactory} options.point2DFactory
+     * @param {point2DFactory} [options.point2DFactory]
      * Callback for creating DOM element for points for CSS2DObject - used only if `use3Dpoints`
      * is `false`)
-     * @param {?boolean} [options.planeHelperVisible=false] True to make the plane helper visible.
+     * @param {boolean} [options.planeHelperVisible=false] True to make the plane helper visible.
      * When drawing the shape, we project the points on a plane for triangulation. This enables
      * seeing the plane used for projecting while debugging.
-     * @param {?Material} options.planeHelperMaterial Material to be used for the plane helper
+     * @param {Material} options.planeHelperMaterial Material to be used for the plane helper
      * (if visible)
-     * @param {?number} [options.pointsBudget=100] Initial number of points to allocate when drawing
+     * @param {number} [options.pointsBudget=100] Initial number of points to allocate when drawing
      * @param {object} [geojson] Initial GeoJSON shape
      */
     constructor(instance, options = {}, geojson = null) {
@@ -208,7 +208,7 @@ class Drawing extends Group {
                 o.element.remove();
             }
         }
-        super.clear();
+        return super.clear();
     }
 
     /**
