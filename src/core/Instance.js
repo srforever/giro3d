@@ -135,9 +135,10 @@ class Instance extends EventDispatcher {
         }
         this.referenceCrs = options.crs;
         this._viewport = viewerDiv;
+        /** @type {MainLoop} */
+        this.mainLoop = null;
 
         if (options.mainLoop) {
-            /** @type {MainLoop} */
             this.mainLoop = options.mainLoop;
         } else {
             // viewerDiv may have padding/borders, which is annoying when retrieving its size
@@ -152,7 +153,6 @@ class Instance extends EventDispatcher {
             viewerDiv.appendChild(this._viewport);
 
             const engine = new C3DEngine(this._viewport, options.renderer);
-            /** @type {MainLoop} */
             this.mainLoop = new MainLoop(new Scheduler(), engine);
             /** @type {C3DEngine} */
             this.engine = engine;
