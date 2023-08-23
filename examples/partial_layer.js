@@ -62,7 +62,7 @@ map.addLayer(colorLayer);
 const elevationSource = new TiledImageSource({
     source: new TileWMS({
         url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
-        projection: 'EPSG:2154',
+        projection: 'EPSG:3946',
         crossOrigin: 'anonymous',
         params: {
             LAYERS: ['ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'],
