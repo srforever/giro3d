@@ -104,7 +104,6 @@ const satelliteSource = new TiledImageSource({
             LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
             FORMAT: 'image/jpeg',
         },
-        version: '1.3.0',
     }),
 });
 
@@ -145,7 +144,6 @@ const demSource = new TiledImageSource({
         params: {
             LAYERS: ['MNT2018_Altitude_2m'],
         },
-        version: '1.3.0',
     }),
 });
 

@@ -68,7 +68,6 @@ const wmsSource = new TiledImageSource({
             LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
             FORMAT: 'image/jpeg',
         },
-        version: '1.3.0',
     }),
 });
 

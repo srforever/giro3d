@@ -63,7 +63,6 @@ const colorize = new TiledImageSource({
         },
         projection: 'EPSG:3946',
         crossOrigin: 'anonymous',
-        version: '1.3.0',
     }),
 });
 

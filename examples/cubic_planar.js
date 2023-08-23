@@ -99,14 +99,12 @@ function createColorLayer(name, url) {
             },
             projection: 'EPSG:3946',
             crossOrigin: 'anonymous',
-            version: '1.3.0',
         }),
     });
 
     return new ColorLayer(
         'wms_imagery',
         {
-            imageSize: { w: 256, h: 256 },
             source,
         },
     );
@@ -121,7 +119,6 @@ function createElevationLayer(name, url) {
             params: {
                 LAYERS: [name],
             },
-            version: '1.3.0',
         }),
     });
 

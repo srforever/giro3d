@@ -46,7 +46,6 @@ const olSource = new TileWMS({
     params: {
         LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
     },
-    version: '1.3.0',
 });
 const wmsSource = new TiledImageSource({ source: olSource });
 
@@ -54,9 +53,6 @@ const colorLayer = new ColorLayer(
     'wms_imagery',
     {
         source: wmsSource,
-        updateStrategy: {
-            options: {},
-        },
     },
 );
 map.addLayer(colorLayer);
