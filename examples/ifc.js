@@ -12,7 +12,7 @@ import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
-import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
+import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import StatusBar from './widgets/StatusBar.js';
@@ -52,14 +52,12 @@ instance.add(map);
 // Adds a WMS imagery layer
 const colorSource = new TiledImageSource({
     source: new TileWMS({
-        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
         projection: 'EPSG:3946',
-        crossOrigin: 'anonymous',
         params: {
-            LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
+            LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
             FORMAT: 'image/jpeg',
         },
-        version: '1.3.0',
     }),
 });
 
@@ -75,15 +73,16 @@ map.addLayer(colorLayer);
 // Adds a WMS elevation layer
 const elevationSource = new TiledImageSource({
     source: new TileWMS({
-        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
         projection: 'EPSG:3946',
         crossOrigin: 'anonymous',
         params: {
-            LAYERS: ['MNT2018_Altitude_2m'],
-            FORMAT: 'image/jpeg',
+            LAYERS: ['ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'],
+            FORMAT: 'image/x-bil;bits=32',
         },
-        version: '1.3.0',
     }),
+    format: new BilFormat(),
+    noDataValue: -1000,
 });
 
 const elevationLayer = new ElevationLayer(
@@ -91,7 +90,6 @@ const elevationLayer = new ElevationLayer(
     {
         extent,
         source: elevationSource,
-        interpretation: Interpretation.ScaleToMinMax(149, 621),
     },
 );
 

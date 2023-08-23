@@ -38,7 +38,6 @@ const wmsOthophotoSource = new TiledImageSource({
             LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
             FORMAT: 'image/jpeg',
         },
-        version: '1.3.0',
     }),
 });
 

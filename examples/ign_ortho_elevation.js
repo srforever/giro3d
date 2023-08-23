@@ -42,7 +42,6 @@ const wmsOthophotoSource = new TiledImageSource({
             LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
             FORMAT: 'image/jpeg',
         },
-        version: '1.3.0',
     }),
 });
 
@@ -67,7 +66,6 @@ const elevationSource = new TiledImageSource({
             LAYERS: ['ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'],
             FORMAT: 'image/x-bil;bits=32',
         },
-        version: '1.3.0',
     }),
     format: new BilFormat(),
     noDataValue,

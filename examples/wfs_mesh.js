@@ -40,13 +40,12 @@ instance.add(map);
 
 // Adds a WMS imagery layer
 const olSource = new TileWMS({
-    url: 'https://download.data.grandlyon.com/wms/grandlyon',
+    url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
     projection: 'EPSG:3946',
-    crossOrigin: 'anonymous',
     params: {
-        LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
+        LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
+        FORMAT: 'image/jpeg',
     },
-    version: '1.3.0',
 });
 const wmsSource = new TiledImageSource({ source: olSource });
 
@@ -54,9 +53,6 @@ const colorLayer = new ColorLayer(
     'wms_imagery',
     {
         source: wmsSource,
-        updateStrategy: {
-            options: {},
-        },
     },
 );
 map.addLayer(colorLayer);
