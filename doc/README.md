@@ -60,26 +60,12 @@ class MyCustomEntity extends Entity3D {
 }
 ```
 
-### Life cycle of the entity
+## The `progress` and `loading` properties
 
-Each entity follows this cycle:
+Various classes in Giro3D provide the `progress` and `loading` API. This API can be used to determine if the object is currently performing asynchronous operations.
 
-- **Initialization**: once, after the entity has been added to the instance
-- **Update**, while the entity is present in the instance.
-- **Disposal**, when the entity is removed from the instance
-
-The most important is the **update** step. The methods associated with this step are called each time the instance is updated. (See [The main loop](#the-main-loop)).
-
-Initialization and disposal are optional steps, and you do not have to implement them if not necessary. However, the initialization step is necessary in many cases to perform asynchronous preparation of the entity (e.g download files), and disposal is necessary if the entity handles unmanaged resources, such as textures and geometries (see below).
-
-💡 Hidden entities are not updated. See the [visible](./classes/entities.Entity3D.html#visible) property for more information.
-
-### The `progress` and `loading` properties
-
-The `Entity` class provides an API to determine if an entity is currently processing data (e.g downloading map tiles): [`loading`](./classes/entities.Entity3D.html#loading) and [`progress`](./classes/entities.Entity3D.html#progress).
-
-- `loading` is a boolean that indicates whether the entity is currently performing an asynchronous task.
-- `progress` is a number (between zero and one) that indicates the percentage of progress of the tasks this entity is performing.
+- `loading` is a boolean that indicates whether the object is currently performing an asynchronous task.
+- `progress` is a number (between zero and one) that indicates the percentage of progress of the tasks this object is performing.
 
 💡 To help implementing this API, you can use the [`OperationCounter`](./classes/core.OperationCounter.html) class.
 
