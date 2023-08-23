@@ -78,13 +78,12 @@ function initializeCamera() {
 
     const colorize = new TiledImageSource({
         source: new TileWMS({
-            url: 'https://download.data.grandlyon.com/wms/grandlyon',
+            url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
+            projection: 'EPSG:3946',
             params: {
-                LAYERS: 'Ortho2009_vue_ensemble_16cm_CC46',
+                LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
                 FORMAT: 'image/jpeg',
             },
-            projection: 'EPSG:3946',
-            crossOrigin: 'anonymous',
         }),
     });
 

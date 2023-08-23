@@ -20,7 +20,7 @@ import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
+import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 
@@ -97,11 +97,10 @@ instance.add(map);
 // This source will wrap an OpenLayers source, in this case a `TileWMS`.
 const satelliteSource = new TiledImageSource({
     source: new TileWMS({
-        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
         projection: 'EPSG:3946',
-        crossOrigin: 'anonymous',
         params: {
-            LAYERS: ['Ortho2018_Dalle_unique_8cm_CC46'],
+            LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
             FORMAT: 'image/jpeg',
         },
     }),
@@ -138,18 +137,17 @@ map.addLayer(colorLayer);
 // Let's create a WMS source for this layer.
 const demSource = new TiledImageSource({
     source: new TileWMS({
-        url: 'https://download.data.grandlyon.com/wms/grandlyon',
+        url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
         projection: 'EPSG:3946',
         crossOrigin: 'anonymous',
         params: {
-            LAYERS: ['MNT2018_Altitude_2m'],
+            LAYERS: ['ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'],
+            FORMAT: 'image/x-bil;bits=32',
         },
     }),
+    format: new BilFormat(),
+    noDataValue: -1000,
 });
-
-// Let's define the lowest and highest altitude of our elevation layer, in meters.
-const lowestAltitude = 149;
-const highestAltitude = 621;
 
 // Then create the elevation layer.
 const elevationLayer = new ElevationLayer(
@@ -157,24 +155,8 @@ const elevationLayer = new ElevationLayer(
     {
         extent: map.extent,
         source: demSource,
-        interpretation: Interpretation.ScaleToMinMax(lowestAltitude, highestAltitude),
     },
 );
-
-// ##### Note on the `interpretation` parameter
-
-// Note that we have used the `interpretation` option in the `ElevationLayer` constructor. This is
-// because we have not used the default value for this parameter this time (which is
-// [`Interpretation.Raw`](../apidoc/module-core_layer_Interpretation-Interpretation.html)).
-
-// The `interpretation` parameter specifies the additional
-// [processing](../apidoc/module-core_layer_Interpretation-Interpretation.html)
-// that must be done on the pixel data of the downloaded images before being ready for rendering.
-// Here, we specify that we must scale the numerical values of the pixels.
-
-// This means that our elevation layer is stored in 8-bit grayscale images.
-// To obtain the proper elevation values, we have to scale those values
-// (that sit in the 0-255 range) into the 149-621 range.
 
 // ##### Add the layer
 
