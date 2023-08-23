@@ -25,7 +25,7 @@ const instance = new Instance(div);
 
 Under the hood, Giro3D uses three.js to render the scene. To directly access the three.js scene, you can use the [`scene`](./classes/core.Instance.html#scene) property.
 
-To add an entity to the instance, use the [`Instance.add()`](./classes/core.Instance.html#add) method. Note that this method can be used to add a regular three.js [`Object3D`](https://threejs.org/docs/?q=obje#api/en/core/Object3D)s as well.
+To add an entity to the instance, use the [`Instance.add()`](./classes/core.Instance.html#add) method. Note that this method should also be used to add a regular three.js [`Object3D`](https://threejs.org/docs/?q=obje#api/en/core/Object3D)s as well.
 
 💡 You can have multiple instances in the same web page, as long as each of them has its own canvas.
 
