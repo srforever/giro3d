@@ -48,6 +48,8 @@ const pointcloud = new Tiles3D(
  */
 let planes = null;
 
+let boxSize = 3000;
+
 /**
  * @param {Box3} box The box
  */
@@ -149,25 +151,41 @@ function setupScene(pointCloud) {
     map.addLayer(colorLayer);
     map.addLayer(elevationLayer);
 
-    const boxSize = 3000;
     const box3 = new Box3();
-    box3.setFromCenterAndSize(
-        new Vector3(914137, 6460559, 800),
-        new Vector3(boxSize, boxSize, boxSize),
-    );
-    const volumeHelpers = new Group();
-    const box = new Mesh(new BoxGeometry(boxSize, boxSize, boxSize), new MeshBasicMaterial({ color: 'yellow', opacity: 0.1, transparent: true }));
-    const helper = new Box3Helper(box3, 'yellow');
-    box.renderOrder = 2;
-    instance.scene.add(volumeHelpers);
-    volumeHelpers.add(helper);
-    volumeHelpers.add(box);
-    box.position.set(914137, 6460559, 800);
-    box.updateMatrixWorld();
-    helper.updateMatrixWorld();
-    volumeHelpers.updateMatrixWorld();
+    const center = map.extent.center();
+    const boxCenter = new Vector3(center.x(), center.y(), 800);
 
-    planes = getPlanesFromBoxSides(box3);
+    const volumeHelpers = new Group();
+    instance.scene.add(volumeHelpers);
+
+    /** @type {Box3Helper} */
+    let helper;
+    /** @type {Mesh} */
+    let box;
+
+    const helperMaterial = new MeshBasicMaterial({ color: 'yellow', opacity: 0.1, transparent: true });
+
+    function generateBoxHelper() {
+        box?.geometry?.dispose();
+        box?.removeFromParent();
+        helper?.dispose();
+        helper?.removeFromParent();
+
+        box3.setFromCenterAndSize(
+            boxCenter,
+            new Vector3(boxSize, boxSize, boxSize),
+        );
+        const boxGeometry = new BoxGeometry(boxSize, boxSize, boxSize);
+        box = new Mesh(boxGeometry, helperMaterial);
+        helper = new Box3Helper(box3, 'yellow');
+        box.renderOrder = 2;
+        volumeHelpers.add(helper);
+        volumeHelpers.add(box);
+        box.position.copy(boxCenter);
+        box.updateMatrixWorld();
+        helper.updateMatrixWorld();
+        volumeHelpers.updateMatrixWorld();
+    }
 
     // refresh scene
     instance.notifyChange(instance.camera.camera3D);
@@ -182,6 +200,8 @@ function setupScene(pointCloud) {
     }
 
     function update() {
+        generateBoxHelper();
+        planes = getPlanesFromBoxSides(box3);
         volumeHelpers.visible = options.showHelper && options.enableClippingPlanes;
         map.visible = options.showMap;
         pointCloud.visible = options.showPointCloud;
@@ -223,6 +243,12 @@ function setupScene(pointCloud) {
         options.applyOnMap = v;
         update();
     });
+
+    const slider = document.getElementById('slider-size');
+    slider.oninput = function oninput() {
+        boxSize = slider.value;
+        update();
+    };
 
     update();
 }
