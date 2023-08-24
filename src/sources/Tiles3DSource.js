@@ -22,6 +22,9 @@ class Tiles3DSource {
      * @api
      */
     constructor(url, networkOptions) {
+        this.isTiles3DSource = true;
+        this.type = 'Tiles3DSource';
+
         /** @type {string} */
         this.url = url;
         /** @type {NetworkOptions} */

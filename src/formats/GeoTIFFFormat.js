@@ -22,6 +22,9 @@ let geotiffWorkerPool;
 class GeoTIFFFormat extends ImageFormat {
     constructor() {
         super(true);
+
+        this.isGeoTIFFFormat = true;
+        this.type = 'GeoTIFFFormat';
     }
 
     /**

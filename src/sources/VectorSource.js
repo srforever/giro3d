@@ -168,6 +168,9 @@ class VectorSource extends ImageSource {
             throw new Error('format required if features are not passed directly.');
         }
 
+        this.isVectorSource = true;
+        this.type = 'VectorSource';
+
         this.data = options.data;
         this.format = options.format;
 

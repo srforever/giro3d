@@ -10,6 +10,9 @@ import { Texture } from 'three';
  */
 class ImageFormat {
     constructor(flipY) {
+        this.isImageFormat = true;
+        this.type = 'ImageFormat';
+
         this.flipY = flipY;
     }
 

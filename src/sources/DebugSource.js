@@ -40,6 +40,9 @@ class DebugSource extends ImageSource {
             this.delay = () => 0;
         }
 
+        this.isDebugSource = true;
+        this.type = 'DebugSource';
+
         this.extent = options.extent;
         this.opacity = opacity ?? 1;
         this.subdivisions = subdivisions ?? 1;

@@ -44,6 +44,9 @@ import TextureGenerator from '../utils/TextureGenerator.js';
 class BilFormat extends ImageFormat {
     constructor() {
         super(true);
+
+        this.isBilFormat = true;
+        this.type = 'BilFormat';
     }
 
     /**

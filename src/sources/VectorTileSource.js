@@ -152,6 +152,10 @@ class VectorTileSource extends ImageSource {
         if (!options.url) {
             throw new Error('missing parameter: url');
         }
+
+        this.isVectorTileSource = true;
+        this.type = 'VectorTileSource';
+
         this.source = new VectorTile({
             url: options.url,
             format: options.format ?? new MVT(),

@@ -185,6 +185,7 @@ class Layer extends EventDispatcher {
         // The "id" property is not globally unique (only unique within a given map).
         this.uuid = MathUtils.generateUUID();
 
+        this.isLayer = true;
         this.type = 'Layer';
         /** @type {Interpretation} */
         this.interpretation = options.interpretation ?? Interpretation.Raw;

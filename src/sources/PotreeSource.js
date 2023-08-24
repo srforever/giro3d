@@ -20,6 +20,10 @@ class PotreeSource {
         if (!url) {
             throw new Error('missing url parameter');
         }
+
+        this.isPotreeSource = true;
+        this.type = 'PotreeSource';
+
         this.url = url;
         this.filename = filename;
         this.networkOptions = networkOptions || {};

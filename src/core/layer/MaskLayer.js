@@ -55,6 +55,7 @@ class MaskLayer extends ColorLayer {
      */
     constructor(id, options) {
         super(id, options);
+        this.isMaskLayer = true;
         this.type = 'MaskLayer';
         this._maskMode = options.maskMode || MaskMode.Normal;
     }
