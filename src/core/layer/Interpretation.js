@@ -21,6 +21,17 @@ const Mode = {
 };
 
 /**
+ * The interpretation options.
+ *
+ * @api
+ * @typedef {object} InterpretationOptions
+ * @property {Mode} mode The interpretation mode.
+ * @property {boolean} [negateValues] Whether the sign of elevation values should be flipped.
+ * @property {number} [min] The min value of the interpretation range (only for applicable modes).
+ * @property {number} [max] The max value of the interpretation range (only for applicable modes).
+ */
+
+/**
  * Describes how an image pixel should be interpreted. Any interpretation other than `Raw` will
  * apply a specific processing to every pixel of an image.
  *
@@ -38,16 +49,21 @@ const Mode = {
  * const min = 234.22;
  * const max = 994.1;
  * const minmax = Interpretation.ScaleToMinMax(min, max);
+ *
+ * // Negates the sign of all pixel values, without any interpretation.
+ * const custom = new Interpretation(Mode.Raw, {
+ *     negateValues: true,
+ * })
  * @api
  */
 class Interpretation {
     /**
-     * Internal use only. Use the static constructors instead.
+     * Creates a new interpretation.
      *
      * @param {Mode} mode The mode.
-     * @param {object} [opts=undefined] The options.
+     * @param {InterpretationOptions} [opts] The options.
      */
-    constructor(mode, opts = undefined) {
+    constructor(mode, opts = {}) {
         this._mode = mode;
         this._opts = opts;
     }
@@ -84,7 +100,37 @@ class Interpretation {
     }
 
     /**
-     * The pixel is used as is, without transformation.
+     * Gets or set the sign negation of elevation values.
+     *
+     * @type {boolean}
+     * @readonly
+     */
+    get negateValues() {
+        return this._opts.negateValues;
+    }
+
+    set negateValues(v) {
+        this._opts.negateValues = v;
+    }
+
+    isDefault() {
+        return this.mode === Mode.Raw && !this.negateValues;
+    }
+
+    /**
+     * Reverses the sign of elevation values, such that positive values are going downward, rather
+     * than updwards. In other words, interpret values as depths rather than heights.
+     *
+     * @api
+     * @returns {this} This object.
+     */
+    withNegatedValues() {
+        this.negateValues = true;
+        return this;
+    }
+
+    /**
+     * Preset for raw. The pixel is used as is, without transformation.
      * Compatible with both grayscale and color images. This is the default.
      *
      * @api
@@ -96,7 +142,7 @@ class Interpretation {
     }
 
     /**
-     * The image represent an elevation encoded with the [Mapbox Terrain RGB scheme](https://docs.mapbox.com/data/tilesets/reference/mapbox-terrain-rgb-v1/).
+     * Preset for Mapbox Terrain RGB. The image represent an elevation encoded with the [Mapbox Terrain RGB scheme](https://docs.mapbox.com/data/tilesets/reference/mapbox-terrain-rgb-v1/).
      * The input is an sRGB image, and the output will be a grayscale image.
      *
      * @api
@@ -108,6 +154,8 @@ class Interpretation {
     }
 
     /**
+     * Preset for scaling interpretation.
+     *
      * Applies a scaling processing to pixels with the provided min/max values with the following
      * formula : `output = min + input * (max - min)`.
      *
@@ -136,6 +184,8 @@ class Interpretation {
     }
 
     /**
+     * Preset for compression.
+     *
      * Compresses the input range into the 8-bit range. This is the inverse of
      * {@link Interpretation.ScaleToMinMax}.
      *
@@ -195,11 +245,13 @@ class Interpretation {
 
     /**
      * @param {object} uniform The uniform to set.
+     * @returns {object} The updated uniform.
      */
     setUniform(uniform) {
         const mode = this.mode;
 
         uniform.mode = mode;
+        uniform.negateValues = this.negateValues;
 
         switch (mode) {
             case Mode.ScaleToMinMax:
@@ -213,6 +265,8 @@ class Interpretation {
             default:
                 throw new Error(`unknown interpretation mode: ${this.mode}`);
         }
+
+        return uniform;
     }
 }
 
