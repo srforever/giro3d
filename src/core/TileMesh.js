@@ -186,7 +186,7 @@ class TileMesh extends Mesh {
      * @param {number} v The new opacity.
      */
     set opacity(v) {
-        this.material.setOpacity(v);
+        this.material.opacity = v;
     }
 
     setVisibility(show) {

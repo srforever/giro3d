@@ -1,6 +1,7 @@
 import assert from 'assert';
 import {
     BoxGeometry,
+    BufferGeometry,
     Group,
     Mesh,
     MeshStandardMaterial,
@@ -16,7 +17,7 @@ import Entity3D from '../../../src/entities/Entity3D.js';
  */
 function sut(obj3d = undefined) {
     const id = 'foo';
-    const object3d = obj3d || new Group();
+    const object3d = obj3d ?? new Group();
 
     const entity = new Entity3D(id, object3d);
     return entity;
@@ -247,7 +248,7 @@ describe('Entity3D', () => {
             expect(o3d.traverse).toHaveBeenCalled();
         });
 
-        it('should assigne the property', () => {
+        it('should assign the property', () => {
             const entity = sut();
             entity.object3d.traverse = jest.fn();
 
@@ -268,6 +269,25 @@ describe('Entity3D', () => {
             expect(listener).toHaveBeenCalledTimes(1);
             entity.opacity = 0.3;
             expect(listener).toHaveBeenCalledTimes(2);
+        });
+
+        it('should traverse the hierarchy and assign the opacity property of materials', () => {
+            const object3d = new Group();
+            const entity = sut(object3d);
+
+            entity.object3d.add(new Mesh(new BufferGeometry(), new MeshStandardMaterial()));
+            entity.object3d.add(new Mesh(new BufferGeometry(), new MeshStandardMaterial()));
+            entity.object3d.add(new Mesh(new BufferGeometry(), new MeshStandardMaterial()));
+            entity.object3d.add(new Mesh(new BufferGeometry(), new MeshStandardMaterial()));
+
+            entity.opacity = 0.5;
+
+            object3d.traverse(o => {
+                if (o.isMesh) {
+                    expect(o.material.opacity).toEqual(0.5);
+                    expect(o.material.transparent).toEqual(true);
+                }
+            });
         });
     });
 

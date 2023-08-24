@@ -268,6 +268,8 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     onBeforeRender() {
+        this._updateOpacityParameters(this.opacity);
+
         if (this.needsAtlasRepaint) {
             this.repaintAtlas();
             this.needsAtlasRepaint = false;
@@ -674,12 +676,6 @@ class LayeredMaterial extends ShaderMaterial {
 
     indexOfColorLayer(layer) {
         return this.colorLayers.indexOf(layer);
-    }
-
-    setOpacity(opacity) {
-        this.opacity = opacity;
-
-        this._updateOpacityParameters(opacity);
     }
 
     _updateOpacityParameters(opacity) {

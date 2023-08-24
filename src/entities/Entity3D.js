@@ -206,30 +206,13 @@ class Entity3D extends Entity {
      */
     updateOpacity() {
         // Default implementation
-        const changeOpacity = o => {
-            if (o.material) {
-                if (o.material.setOpacity) {
-                    o.material.setOpacity(this.opacity);
-                } else if (o.material.opacity != null) {
-                    // != null: we want the test to pass if opacity is 0
-                    const currentTransparent = o.material.transparent;
-                    o.material.transparent = this.opacity < 1.0;
-                    o.material.needsUpdate |= (currentTransparent !== o.material.transparent);
-                    o.material.opacity = this.opacity;
-                    o.material.uniforms.opacity.value = this.opacity;
-                }
-            }
-        };
-
-        this.traverse(o => {
-            if (o.userData.parentEntity !== this) {
-                return;
-            }
-            changeOpacity(o);
-
-            // 3dtiles layers store scenes in children's content property
-            if (o.content) {
-                o.content.traverse(changeOpacity);
+        this.traverseMaterials(material => {
+            if (material.opacity != null) {
+                // != null: we want the test to pass if opacity is 0
+                const currentTransparent = material.transparent;
+                material.transparent = this.opacity < 1.0;
+                material.needsUpdate |= (currentTransparent !== material.transparent);
+                material.opacity = this.opacity;
             }
         });
     }
