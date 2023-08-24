@@ -1,5 +1,12 @@
 import assert from 'assert';
-import { Group, Object3D } from 'three';
+import {
+    BoxGeometry,
+    Group,
+    Mesh,
+    MeshStandardMaterial,
+    Object3D,
+    Plane,
+} from 'three';
 import Entity3D from '../../../src/entities/Entity3D.js';
 
 /**
@@ -56,6 +63,47 @@ describe('Entity3D', () => {
             const entity = sut();
 
             assert.strictEqual(entity.opacity, 1.0);
+        });
+    });
+
+    describe('clippingPlanes', () => {
+        it('should assign the property', () => {
+            const entity = sut();
+
+            expect(entity.clippingPlanes).toBeNull();
+            const newValue = [new Plane()];
+            entity.clippingPlanes = newValue;
+            expect(entity.clippingPlanes).toBe(newValue);
+        });
+
+        it('should raise an event when the propert is assigned', () => {
+            const entity = sut();
+            const listener = jest.fn();
+            entity.addEventListener('clippingPlanes-property-changed', listener);
+
+            const newValue = [new Plane()];
+            entity.clippingPlanes = newValue;
+            entity.clippingPlanes = newValue;
+            entity.clippingPlanes = newValue;
+            expect(listener).toHaveBeenCalledTimes(3);
+            entity.clippingPlanes = newValue;
+            expect(listener).toHaveBeenCalledTimes(4);
+        });
+
+        it('should traverse the hierarchy and assign the clippingPlanes property on materials', () => {
+            const entity = sut();
+            const child1 = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
+            const child2 = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
+            const child3 = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
+
+            entity.object3d.add(child1, child2, child3);
+
+            const newValue = [new Plane()];
+            entity.clippingPlanes = newValue;
+
+            expect(child1.material.clippingPlanes).toBe(newValue);
+            expect(child2.material.clippingPlanes).toBe(newValue);
+            expect(child3.material.clippingPlanes).toBe(newValue);
         });
     });
 
@@ -240,6 +288,40 @@ describe('Entity3D', () => {
 
             entity.attach(layer2);
             expect(entity._attachedLayers).toEqual([layer1, layer2]);
+        });
+    });
+
+    describe('onObjectCreated', () => {
+        it('should assign the parentEntity in the userData property of the created object and its descendants', () => {
+            const entity = sut();
+
+            const o = new Object3D();
+            o.add(new Object3D());
+            o.add(new Object3D());
+            o.add(new Object3D().add(new Object3D()));
+
+            entity.onObjectCreated(o);
+
+            o.traverse(desc => {
+                expect(desc.userData.parentEntity).toBe(entity);
+            });
+        });
+
+        it('should assign the clipping planes property of the created object and its descendants', () => {
+            const entity = sut();
+            const planes = [new Plane()];
+            entity.clippingPlanes = planes;
+
+            const o = new Object3D();
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+
+            entity.onObjectCreated(o);
+
+            for (const child of o.children) {
+                expect(child.material.clippingPlanes).toBe(planes);
+            }
         });
     });
 });
