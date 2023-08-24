@@ -12,14 +12,6 @@ import EntityInspector from './EntityInspector.js';
 import RenderingState from '../renderer/RenderingState.js';
 import LayerInspector from './LayerInspector.js';
 
-function applyToMaterial(root, layer, callback) {
-    root.traverse(object => {
-        if (object.material && object.layer === layer) {
-            callback(object.material);
-        }
-    });
-}
-
 function createTileLabel() {
     const text = document.createElement('div');
 
@@ -410,7 +402,7 @@ class MapInspector extends EntityInspector {
 
     toggleOutlines(value) {
         this.map.showOutline = value;
-        applyToMaterial(this.rootObject, this.map, material => {
+        this.map.traverseMaterials(material => {
             material.showOutline = value;
             material.needsUpdate = true;
         });
@@ -419,7 +411,7 @@ class MapInspector extends EntityInspector {
 
     toggleWireframe(value) {
         this.map.wireframe = value;
-        applyToMaterial(this.rootObject, this.map, material => {
+        this.map.traverseMaterials(material => {
             material.wireframe = value;
         });
         this.notify(this.map);

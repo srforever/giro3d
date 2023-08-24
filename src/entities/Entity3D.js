@@ -4,6 +4,7 @@
 import {
     Box3,
     Material,
+    Mesh,
     Object3D,
     Plane,
 } from 'three';
@@ -198,18 +199,17 @@ class Entity3D extends Entity {
             }
         };
 
-        if (this.object3d) {
-            this.object3d.traverse(o => {
-                if (o.layer !== this) {
-                    return;
-                }
-                changeOpacity(o);
-                // 3dtiles layers store scenes in children's content property
-                if (o.content) {
-                    o.content.traverse(changeOpacity);
-                }
-            });
-        }
+        this.traverse(o => {
+            if (o.userData.parentEntity !== this) {
+                return;
+            }
+            changeOpacity(o);
+
+            // 3dtiles layers store scenes in children's content property
+            if (o.content) {
+                o.content.traverse(changeOpacity);
+            }
+        });
     }
 
     /**
@@ -349,6 +349,57 @@ class Entity3D extends Entity {
             }
         }
         return result;
+    }
+
+    /**
+     * Traverses all materials in the hierarchy of this entity.
+     *
+     * @param {function(Material): void} callback The callback.
+     * @param {Object3D} [root] The traversal root. If undefined, the traversal starts at the root
+     * object of this entity.
+     */
+    traverseMaterials(callback, root = undefined) {
+        this.traverse(o => {
+            if (Array.isArray(o.material)) {
+                o.material.forEach(m => callback(m));
+            } else if (o.material) {
+                callback(o.material);
+            }
+        }, root);
+    }
+
+    /**
+     * Traverses all meshes in the hierarchy of this entity.
+     *
+     * @param {function(Mesh): void} callback The callback.
+     * @param {Object3D} [root] The raversal root. If undefined, the traversal starts at the root
+     * object of this entity.
+     */
+    traverseMeshes(callback, root = undefined) {
+        const origin = root ?? this.object3d;
+
+        if (origin) {
+            origin.traverse(o => {
+                if (o.isMesh) {
+                    callback(o);
+                }
+            });
+        }
+    }
+
+    /**
+     * Traverses all objects in the hierarchy of this entity.
+     *
+     * @param {function(Object3D): void} callback The callback.
+     * @param {Object3D} [root] The traversal root. If undefined, the traversal starts at the root
+     * object of this entity.
+     */
+    traverse(callback, root = undefined) {
+        const origin = root ?? this.object3d;
+
+        if (origin) {
+            origin.traverse(callback);
+        }
     }
 }
 
