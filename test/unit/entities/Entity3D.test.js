@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { Object3D } from 'three';
+import { Group, Object3D } from 'three';
 import Entity3D from '../../../src/entities/Entity3D.js';
 
 /**
@@ -9,9 +9,7 @@ import Entity3D from '../../../src/entities/Entity3D.js';
  */
 function sut(obj3d = undefined) {
     const id = 'foo';
-    const object3d = obj3d || {
-        isObject3D: true,
-    };
+    const object3d = obj3d || new Group();
 
     const entity = new Entity3D(id, object3d);
     return entity;
@@ -80,8 +78,47 @@ describe('Entity3D', () => {
         });
     });
 
+    describe('renderOrder', () => {
+        it('should assign the property', () => {
+            const entity = sut();
+
+            expect(entity.renderOrder).toBe(0);
+            entity.renderOrder = 2;
+            expect(entity.renderOrder).toBe(2);
+        });
+
+        it('should raise an event only if the value has changed', () => {
+            const entity = sut();
+            const listener = jest.fn();
+            entity.addEventListener('renderOrder-property-changed', listener);
+
+            entity.renderOrder = 1;
+            entity.renderOrder = 1;
+            entity.renderOrder = 1;
+            expect(listener).toHaveBeenCalledTimes(1);
+            entity.renderOrder = 2;
+            expect(listener).toHaveBeenCalledTimes(2);
+        });
+
+        it('should traverse the hierarchy and assign the renderOrder property on objects', () => {
+            const entity = sut();
+            const child1 = new Object3D();
+            const child2 = new Object3D();
+            const child3 = new Object3D();
+
+            entity.object3d.add(child1, child2, child3);
+
+            const newValue = 5;
+            entity.renderOrder = newValue;
+
+            expect(child1.renderOrder).toEqual(newValue);
+            expect(child2.renderOrder).toEqual(newValue);
+            expect(child3.renderOrder).toEqual(newValue);
+        });
+    });
+
     describe('visible', () => {
-        it('should assigne the property', () => {
+        it('should assign the property', () => {
             const entity = sut();
 
             expect(entity.visible).toBe(true);
@@ -100,6 +137,14 @@ describe('Entity3D', () => {
             expect(listener).toHaveBeenCalledTimes(1);
             entity.visible = true;
             expect(listener).toHaveBeenCalledTimes(2);
+        });
+
+        it('should set the root object visibility', () => {
+            const entity = sut();
+
+            expect(entity.object3d.visible).toEqual(true);
+            entity.visible = false;
+            expect(entity.object3d.visible).toEqual(false);
         });
     });
 

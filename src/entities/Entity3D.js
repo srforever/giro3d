@@ -88,6 +88,8 @@ class Entity3D extends Entity {
 
         /** @type {Plane[]} */
         this._clippingPlanes = null;
+
+        this._renderOrder = 0;
     }
 
     /**
@@ -117,6 +119,26 @@ class Entity3D extends Entity {
             const event = EventUtils.createPropertyChangedEvent(this, 'visible', this._visible, v);
             this._visible = v;
             this.updateVisibility();
+            this.dispatchEvent(event);
+        }
+    }
+
+    /**
+     * Gets or sets the render order of this entity.
+     *
+     * @api
+     * @type {number}
+     * @fires Entity3D#renderOrder-property-changed
+     */
+    get renderOrder() {
+        return this._renderOrder;
+    }
+
+    set renderOrder(v) {
+        if (v !== this._renderOrder) {
+            const event = EventUtils.createPropertyChangedEvent(this, 'renderOrder', this._renderOrder, v);
+            this._renderOrder = v;
+            this.traverse(o => { o.renderOrder = v; });
             this.dispatchEvent(event);
         }
     }

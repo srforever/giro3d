@@ -276,12 +276,9 @@ class Map extends Entity3D {
          */
         this.isMap = true;
         this.type = 'Map';
-        this.visible = true;
 
         /** @type {boolean} */
         this.showOutline = options.showOutline;
-
-        this._renderOrder = 0;
 
         this._segments = options.segments || 8;
 
@@ -346,24 +343,6 @@ class Map extends Entity3D {
             } else {
                 throw new Error('invalid segments. Must be a power of two between 1 and 128 included');
             }
-        }
-    }
-
-    /**
-     * Gets or sets the render order of the tiles of this map.
-     *
-     * @api
-     * @type {number}
-     */
-    get renderOrder() {
-        return this._renderOrder;
-    }
-
-    set renderOrder(v) {
-        if (v !== this._renderOrder) {
-            this._renderOrder = v;
-
-            this._forEachTile(tile => { tile.renderOrder = v; });
         }
     }
 

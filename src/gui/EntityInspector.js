@@ -91,6 +91,9 @@ class EntityInspector extends Panel {
         this.addController(this.entity, 'id').name('Identifier');
 
         this.addController(this, 'state').name('Status');
+        this.addController(this.entity, 'renderOrder', 0, 10, 1)
+            .name('Render order')
+            .onChange(() => this.notify(this.entity));
 
         if (options.visibility) {
             this.addController(this, 'visible').name('Visible').onChange(v => this.toggleVisibility(v));
