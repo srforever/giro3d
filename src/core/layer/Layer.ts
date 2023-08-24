@@ -373,6 +373,7 @@ abstract class Layer extends EventDispatcher
             computeMinMax: this.computeMinMax,
             sourceCrs: this.source.getCrs(),
             targetCrs: targetProjection,
+            interpretation: this.interpretation,
         });
 
         if (this.preloadImages) {

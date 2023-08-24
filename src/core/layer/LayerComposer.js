@@ -8,7 +8,7 @@ import {
     WebGLRenderTarget,
 } from 'three';
 import Extent from '../geographic/Extent';
-import Interpretation, { Mode } from './Interpretation.js';
+import Interpretation from './Interpretation.js';
 import WebGLComposer from '../../renderer/composition/WebGLComposer.js';
 import Rect from '../Rect.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
@@ -144,6 +144,7 @@ class LayerComposer {
      * @param {Extent} options.extent The extent.
      * @param {boolean} options.showImageOutlines Show image outlines.
      * @param {string} options.targetCrs The target CRS of this composer.
+     * @param {Interpretation} options.interpretation The interpretation of the layer.
      */
     constructor(options) {
         this.computeMinMax = options.computeMinMax;
@@ -158,6 +159,7 @@ class LayerComposer {
         this.sourceCrs = options.sourceCrs;
         this.targetCrs = options.targetCrs;
         this.needsReprojection = this.sourceCrs !== this.targetCrs;
+        this.interpretation = options.interpretation;
 
         delete options.computeMinMax;
         delete options.extent;
@@ -296,7 +298,6 @@ class LayerComposer {
      * @param {Texture} options.texture The texture.
      * @param {Extent} options.extent The geographic extent of the texture.
      * @param {boolean} [options.flipY] Flip the image vertically.
-     * @param {Interpretation} [options.interpretation=Interpretation.Raw] The pixel interpretation.
      * @param {boolean} [options.fillNoData] Fill no-data values of the image.
      * @param {boolean} [options.alwaysVisible] Force constant visibility of this image.
      */
@@ -325,7 +326,7 @@ class LayerComposer {
         }
 
         // If the image needs some preprocessing, let's do it now
-        if (options.fillNoData || options.interpretation?.mode !== Mode.Raw) {
+        if (options.fillNoData || !this.interpretation.isDefault()) {
             actualTexture = this.preprocessImage(extent, texture, options);
         }
 

@@ -470,6 +470,9 @@ function computeMinMax(rgba, nodata, interpretation = Interpretation.Raw) {
             throw new Error('not implemented');
     }
 
+    if (interpretation.negateValues) {
+        return { min: -max, max: -min };
+    }
     return { min, max };
 }
 
