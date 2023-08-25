@@ -39,6 +39,7 @@ class ColorLayer extends Layer {
      */
     constructor(id, options = {}) {
         super(id, options);
+        this.isColorLayer = true;
         this.type = 'ColorLayer';
         this.elevationRange = options.elevationRange;
         this._opacity = 1;

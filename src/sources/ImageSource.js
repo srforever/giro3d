@@ -56,6 +56,10 @@ class ImageSource extends EventDispatcher {
      */
     constructor(options = {}) {
         super();
+
+        this.isImageSource = true;
+        this.type = 'ImageSource';
+
         /**
          * Gets whether images generated from this source should be flipped vertically.
          *

@@ -71,6 +71,9 @@ class TiledImageSource extends ImageSource {
     }) {
         super({ flipY: format?.flipY ?? true, ...options });
 
+        this.isTiledImageSource = true;
+        this.type = 'TiledImageSource';
+
         this.source = source;
         this.format = format;
 

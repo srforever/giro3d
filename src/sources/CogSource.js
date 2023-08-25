@@ -70,6 +70,10 @@ class CogSource extends ImageSource {
      */
     constructor(options) {
         super({ flipY: true, ...options });
+
+        this.isCogSource = true;
+        this.type = 'CogSource';
+
         this.url = options.url;
         this.crs = options.crs;
         /** @type {GeoTIFF} */

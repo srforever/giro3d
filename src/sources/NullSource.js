@@ -15,6 +15,9 @@ class NullSource extends ImageSource {
     constructor(options = {}) {
         super(options);
 
+        this.isNullSource = true;
+        this.type = 'NullSource';
+
         this.extent = options?.extent ?? new Extent('EPSG:3857', 0, 10, 0, 10);
     }
 
