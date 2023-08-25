@@ -79,7 +79,7 @@ class RequestQueue extends EventDispatcher {
     private readonly opCounter: OperationCounter;
     private readonly maxConcurrentRequests: number;
 
-    private concurrentRequests: number;
+    private _concurrentRequests: number;
 
     /**
      * @param options Options.
@@ -90,7 +90,7 @@ class RequestQueue extends EventDispatcher {
         this.pendingIds = new Map();
         this.queue = new PriorityQueue(priorityFn, keyFn);
         this.opCounter = new OperationCounter();
-        this.concurrentRequests = 0;
+        this._concurrentRequests = 0;
         this.maxConcurrentRequests = options.maxConcurrentRequests ?? MAX_CONCURRENT_REQUESTS;
     }
 
@@ -102,12 +102,20 @@ class RequestQueue extends EventDispatcher {
         return this.opCounter.loading;
     }
 
+    get pendingRequests() {
+        return this.pendingIds.size;
+    }
+
+    get concurrentRequests() {
+        return this._concurrentRequests;
+    }
+
     onQueueAvailable() {
         if (this.queue.isEmpty()) {
             return;
         }
 
-        while (this.concurrentRequests < this.maxConcurrentRequests) {
+        while (this._concurrentRequests < this.maxConcurrentRequests) {
             if (this.queue.isEmpty()) {
                 break;
             }
@@ -116,11 +124,11 @@ class RequestQueue extends EventDispatcher {
             const key = task.getKey();
 
             if (task.shouldExecute()) {
-                this.concurrentRequests++;
+                this._concurrentRequests++;
                 task.execute().finally(() => {
                     this.opCounter.decrement();
                     this.pendingIds.delete(key);
-                    this.concurrentRequests--;
+                    this._concurrentRequests--;
                     this.onQueueAvailable();
                     this.dispatchEvent({ type: 'task-executed' });
                 });

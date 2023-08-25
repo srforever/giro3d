@@ -9,6 +9,7 @@ import MemoryUsage from './charts/MemoryUsage.js';
 import MemoryTracker from '../renderer/MemoryTracker.js';
 import CachePanel from './CachePanel.js';
 import FetcherPanel from './FetcherPanel.js';
+import RequestQueueChart from './charts/RequestQueueChart.js';
 
 class ProcessingInspector extends Panel {
     /**
@@ -21,6 +22,7 @@ class ProcessingInspector extends Panel {
         this.charts = [];
 
         this.charts.push(new FrameDuration(this.gui, instance));
+        this.charts.push(new RequestQueueChart(this.gui, instance));
         this.charts.push(new MemoryUsage(this.gui, instance));
         this.charts.push(new CachePanel(this.gui, instance));
         this.charts.push(new FetcherPanel(this.gui, instance));
