@@ -1,7 +1,7 @@
 import Protobuf from 'pbf';
 import { VectorTile } from '@mapbox/vector-tile';
 import GeoJsonParser from './GeoJsonParser.js';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 
 function readPBF(file, options) {
     const vectorTile = new VectorTile(new Protobuf(file));
@@ -43,7 +43,7 @@ function readPBF(file, options) {
     });
 
     let crsOut;
-    switch (options.coords.crs()) {
+    switch (options.coords.crs) {
         case 'WMTS:PM':
             crsOut = 'EPSG:3857';
             break;

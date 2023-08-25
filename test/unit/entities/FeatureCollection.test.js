@@ -1,4 +1,4 @@
-import Extent from '../../../src/core/geographic/Extent.js';
+import Extent from '../../../src/core/geographic/Extent';
 import FeatureCollection from '../../../src/entities/FeatureCollection.js';
 
 describe('FeatureCollection', () => {

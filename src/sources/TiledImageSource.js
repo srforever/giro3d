@@ -6,7 +6,7 @@ import { Vector2 } from 'three';
 import { TileRange } from 'ol';
 import TileSource from 'ol/source/Tile.js';
 import TileGrid from 'ol/tilegrid/TileGrid.js';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 import OpenLayersUtils from '../utils/OpenLayersUtils.js';
 import Fetcher from '../utils/Fetcher.js';
 import TextureGenerator from '../utils/TextureGenerator.js';

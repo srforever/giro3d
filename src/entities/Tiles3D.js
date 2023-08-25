@@ -12,11 +12,11 @@ import {
     Matrix4,
     Object3D,
 } from 'three';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 import Picking from '../core/Picking.js';
 import ScreenSpaceError from '../core/ScreenSpaceError.js';
 import Entity3D from './Entity3D.js';
-import OperationCounter from '../core/OperationCounter.js';
+import OperationCounter from '../core/OperationCounter';
 import $3dTilesIndex from './3dtiles/3dTilesIndex.js';
 import Fetcher from '../utils/Fetcher.js';
 import utf8Decoder from '../utils/Utf8Decoder.js';

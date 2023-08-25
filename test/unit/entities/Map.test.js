@@ -1,5 +1,5 @@
 import { Color, Group, Object3D } from 'three';
-import Extent from '../../../src/core/geographic/Extent.js';
+import Extent from '../../../src/core/geographic/Extent';
 import Instance from '../../../src/core/Instance.js';
 import Map from '../../../src/entities/Map.js';
 import Layer from '../../../src/core/layer/Layer.js';

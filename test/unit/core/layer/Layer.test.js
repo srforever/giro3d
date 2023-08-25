@@ -1,5 +1,5 @@
 import Layer from '../../../../src/core/layer/Layer.js';
-import Extent from '../../../../src/core/geographic/Extent.js';
+import Extent from '../../../../src/core/geographic/Extent';
 import { setupGlobalMocks } from '../../mocks.js';
 import NullSource from '../../../../src/sources/NullSource.js';
 

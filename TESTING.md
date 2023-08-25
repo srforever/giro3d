@@ -4,13 +4,21 @@
 
 This document describes the giro3d testing framework and details how to write tests, run test suite and more.
 
-## Unit tests
+## ℹ️ Typescript considerations
+
+The codebase now favors Typescript over Javascript, but the transition is progressive, to avoid too much noise in diffs and reduce the risk of regression. For this reason, please follow those guidelines when writing tests:
+
+- New test files should be in Typescript (`Foo.test.ts` files).
+- If you must add a test case to an existing `Bar.test.js` test file, please transform it to a Typescript file (`Bar.test.ts`) beforehand, to contribute to the Typescript transition.
+
+## 🧪 Unit tests
 
 Unit tests use the [Jest framework](https://jestjs.io/).
 
-Unit test structure:
+Test files are located in `test/unit`, under a folder hierachy that mirrors the hierarchy in `src/`, i.e: the tests for `src/core/Cache.js` are in `test/unit/core/Cache.test.js`
 
-- Unit tests for `Extent.js` are located in `/test/unit/Extent.test.js`.
+### Structure
+
 - The root `describe()` should contain the name of the tested class:
 
   ```js
@@ -40,7 +48,7 @@ describe('Extent', () => {
 });
 ```
 
-### Coverage
+### ✅ Coverage
 
 Unit test coverage can be computed with:
 

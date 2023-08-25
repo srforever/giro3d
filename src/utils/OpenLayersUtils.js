@@ -1,4 +1,4 @@
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 
 function fromOLExtent(extent, projectionCode) {
     return new Extent(projectionCode, extent[0], extent[2], extent[1], extent[3]);

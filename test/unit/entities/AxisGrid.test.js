@@ -1,6 +1,6 @@
 import '../setup.js';
 import * as THREE from 'three';
-import Extent from '../../../src/core/geographic/Extent.js';
+import Extent from '../../../src/core/geographic/Extent';
 import AxisGrid from '../../../src/entities/AxisGrid.js';
 import Context from '../../../src/core/Context.js';
 import Camera from '../../../src/renderer/Camera.js';

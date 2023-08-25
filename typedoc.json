@@ -1,0 +1,20 @@
+{
+    "$schema": "https://typedoc.org/schema.json",
+    "entryPoints": ["./src/index.ts"],
+    "out": "build/site/apidoc",
+    "theme": "custom",
+    "plugin": ["./build/theme.js"],
+    "name": "Giro3D",
+    "readme": "doc/README.md",
+    "basePath": "src",
+    "customCss": "doc/theme.css",
+    "titleLink": "/",
+    "navigationLinks": {
+        "Home": "/",
+        "Getting started": "/tutorials/getting-started.html",
+        "Examples": "/examples/",
+        "API": "/apidoc/",
+        "Governance": "/governance.html",
+        "GitLab": "https://gitlab.com/giro3d/giro3d",
+    }
+}

@@ -1,12 +1,12 @@
-import Coordinates from '../../core/geographic/Coordinates.js';
+import Coordinates from '../../core/geographic/Coordinates';
 
 function pointIsOverLine(point, linePoints, epsilon) {
     if (point.crs !== linePoints[0].crs) {
         throw new Error('crs must be the same');
     }
 
-    const x0 = point._values[0];
-    const y0 = point._values[1];
+    const x0 = point.values[0];
+    const y0 = point.values[1];
     // for each segment of the line (j is i -1)
     for (let i = 1, j = 0; i < linePoints.length; j = i++) {
         /* **********************************************************
@@ -29,10 +29,10 @@ function pointIsOverLine(point, linePoints, epsilon) {
             (P1)                            (P2)
         *********************************************************** */
 
-        const x1 = linePoints[i]._values[0];
-        const y1 = linePoints[i]._values[1];
-        const x2 = linePoints[j]._values[0];
-        const y2 = linePoints[j]._values[1];
+        const x1 = linePoints[i].values[0];
+        const y1 = linePoints[i].values[1];
+        const x2 = linePoints[j].values[0];
+        const y2 = linePoints[j].values[1];
 
         const Xp = x0 - x1;
         const Yp = y0 - y1;
@@ -58,13 +58,13 @@ function getClosestPoint(point, points, epsilon) {
         throw new Error('crs must be the same');
     }
 
-    const x0 = point._values[0];
-    const y0 = point._values[1];
+    const x0 = point.values[0];
+    const y0 = point.values[1];
     let squaredEpsilon = epsilon * epsilon;
     let closestPoint;
     for (let i = 0; i < points.length; ++i) {
-        const x1 = points[i]._values[0];
-        const y1 = points[i]._values[1];
+        const x1 = points[i].values[0];
+        const y1 = points[i].values[1];
         const xP = x0 - x1;
         const yP = y0 - y1;
         const n = xP * xP + yP * yP;
@@ -83,17 +83,17 @@ function pointIsInsidePolygon(point, polygonPoints) {
     // ray-casting algorithm based on
     // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
 
-    const x = point._values[0];
-    const y = point._values[1];
+    const x = point.values[0];
+    const y = point.values[1];
 
     let inside = false;
     // in first j is last point of polygon
     // for each segment of the polygon (j is i -1)
     for (let i = 0, j = polygonPoints.length - 1; i < polygonPoints.length; j = i++) {
-        const xi = polygonPoints[i]._values[0];
-        const yi = polygonPoints[i]._values[1];
-        const xj = polygonPoints[j]._values[0];
-        const yj = polygonPoints[j]._values[1];
+        const xi = polygonPoints[i].values[0];
+        const yi = polygonPoints[i].values[1];
+        const xj = polygonPoints[j].values[0];
+        const yj = polygonPoints[j].values[1];
 
         // isIntersect semi-infinite ray horizontally with polygon's edge
         const isIntersect = ((yi > y) !== (yj > y))

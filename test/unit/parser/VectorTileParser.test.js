@@ -2,14 +2,16 @@
 import fs from 'fs';
 import assert from 'assert';
 import VectorTileParser from '../../../src/parser/VectorTileParser.js';
-import Extent from '../../../src/core/geographic/Extent.js';
+import Extent from '../../../src/core/geographic/Extent';
 
 // this PBF file comes from https://github.com/mapbox/vector-tile-js
 // it contains two square polygons
 const multipolygon = fs.readFileSync('test/data/pbf/multipolygon.pbf');
 
 function parse(pbf) {
-    const coords = new Extent('TMS', 1, 1, 1);
+    const coords = {
+        zoom: 1, row: 1, col: 1, crs: 'EPSG:3857',
+    };
     const extent = new Extent(
         'EPSG:3857',
         -20037508.342789244, 20037508.342789244,

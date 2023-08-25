@@ -5,9 +5,11 @@ module.exports = {
         'plugin:compat/recommended',
         'eslint-config-airbnb-base',
         'eslint-config-airbnb-base/rules/strict',
+        'airbnb-typescript/base',
         'plugin:jsdoc/recommended',
     ],
     parserOptions: {
+        project: './tsconfig.eslint.json',
         ecmaVersion: 2020,
         sourceType: 'module',
         ecmaFeatures: {
@@ -46,9 +48,10 @@ module.exports = {
         eqeqeq: ['error', 'smart'],
         'no-plusplus': 'off',
         'arrow-parens': ['error', 'as-needed'],
+        '@typescript-eslint/lines-between-class-members': 'off',
         // this option sets a specific tab width for your code
         // http://eslint.org/docs/rules/indent
-        indent: ['warn', 4, {
+        '@typescript-eslint/indent': ['warn', 4, {
             SwitchCase: 1,
             VariableDeclarator: 1,
             outerIIFEBody: 1,
@@ -62,7 +65,9 @@ module.exports = {
             },
         }],
         'one-var': ['error', 'never'],
-        'import/extensions': ['error', 'always'],
+        // We want to be able to import .ts files from .js files without mentioning the extension,
+        // otherwise the transpiled file would still import a .ts file and this would break.
+        'import/extensions': 'off',
         'import/no-extraneous-dependencies': ['error', {
             devDependencies: ['test/**', 'examples/**'],
         }],
@@ -108,6 +113,34 @@ module.exports = {
         'no-bitwise': 'off', // we DO manipulate bits often enough, making this irrelevant
         'max-classes-per-file': 'off', // for me, if we export only one, I don't see the wrong here
     },
+    overrides: [
+        {
+            // Below are linter rules (probably enabled by airbnb-typescript/base) that we don't
+            // want applied to JS files, to avoid warnings in legacy files and simplify the future
+            // transition to Typescript.
+            // As soon as one file transitions from .js to .ts, those rule apply and we must fix the
+            // warnings/errors.
+            files: ['**/*.js'],
+            rules: {
+                'import/no-named-as-default': 'off',
+                '@typescript-eslint/naming-convention': 'off',
+                '@typescript-eslint/no-use-before-define': 'off',
+                '@typescript-eslint/no-unused-vars': 'off', // Because it's already present in eslint
+                '@typescript-eslint/default-param-last': 'off'
+            },
+        },
+        {
+            // Below are Typescript specific rules that are disabled either because they don't make
+            // sense, or because the Typescript compiler is a better tool to enforce them.
+            files: ['**/*.ts'],
+            rules: {
+                // We don't need jsdoc param types because we use Typescript type annotations
+                // and Typedoc supports them out of the box.
+                'jsdoc/require-param-type': 'off',
+                'jsdoc/require-returns-type': 'off',
+            },
+        },
+    ],
     globals: {
         __DEBUG__: false,
     },

@@ -8,7 +8,7 @@ import {
     MathUtils,
     Color,
 } from 'three';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 import PromiseUtils from '../utils/PromiseUtils.js';
 import ImageSource, { ImageResult } from './ImageSource.js';
 

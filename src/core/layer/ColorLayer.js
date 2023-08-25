@@ -5,8 +5,8 @@
 import Layer from './Layer.js';
 import EventUtils from '../../utils/EventUtils.js';
 import ImageSource from '../../sources/ImageSource.js';
-import Extent from '../geographic/Extent.js';
 import Interpretation from './Interpretation.js';
+import Extent from '../geographic/Extent';
 
 /**
  * A layer that produces color images, such as vector data, or satellite imagery.

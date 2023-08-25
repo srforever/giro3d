@@ -14,15 +14,15 @@ import {
 
 import ColorMap from './ColorMap.js';
 import Interpretation from './Interpretation.js';
-import Extent from '../geographic/Extent.js';
+import Extent from '../geographic/Extent';
 import EventUtils from '../../utils/EventUtils.js';
 import LayerComposer from './LayerComposer.js';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
 import Instance from '../Instance.js';
 import ImageSource from '../../sources/ImageSource.js';
-import { DefaultQueue } from '../RequestQueue.js';
-import OperationCounter from '../OperationCounter.js';
+import { DefaultQueue } from '../RequestQueue';
+import OperationCounter from '../OperationCounter';
 
 const POOL_SIZE = 16;
 const tmpDims = new Vector2();

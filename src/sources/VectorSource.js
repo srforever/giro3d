@@ -30,7 +30,7 @@ import Vector from 'ol/source/Vector.js';
 import FeatureFormat from 'ol/format/Feature.js';
 import ImageSource, { ImageResult } from './ImageSource.js';
 import OpenLayersUtils from '../utils/OpenLayersUtils.js';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 import Fetcher from '../utils/Fetcher.js';
 
 const tmpExtent = new Array(4);

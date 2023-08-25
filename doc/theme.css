@@ -1,0 +1,14 @@
+ :root {
+  /* overwritting typedoc default theme variable */
+  --color-ts-namespace: var(--bs-primary);
+}
+
+#tsd-search .results {
+  top: 54px;
+  right: 0;
+  width: unset;
+}
+
+.site-menu {
+  top: 80px; /* the header is bigger than default */
+}

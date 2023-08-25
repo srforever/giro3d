@@ -22,7 +22,7 @@ import GeoTIFF, {
  */
 
 import HttpConfiguration from '../utils/HttpConfiguration.js';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 import TextureGenerator from '../utils/TextureGenerator.js';
 import PromiseUtils from '../utils/PromiseUtils.js';
 import ImageSource, { ImageResult } from './ImageSource.js';
@@ -213,7 +213,7 @@ class CogSource extends ImageSource {
     makeWindowFromExtent(extent, resolution) {
         const [oX, oY] = this.origin;
         const [imageResX, imageResY] = resolution;
-        const ext = extent._values;
+        const ext = extent.values;
 
         const wnd = [
             Math.round((ext[0] - oX) / imageResX),

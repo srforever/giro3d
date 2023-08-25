@@ -1,15 +1,12 @@
 module.exports = {
-    settings: {
-        'import/resolver': {
-            webpack: {
-                config: {
-                    resolve: {
-                        alias: {
-                            '@giro3d/giro3d': '../src',
-                        },
-                    },
-                },
-            },
-        },
-    },
-};
+    "settings": {
+        "import/resolver": {
+            "alias": {
+                "map": [
+                    ["@giro3d/giro3d", "./build/giro3d/"]
+                ],
+                "extensions": [".js"]
+            }
+        }
+    }
+}

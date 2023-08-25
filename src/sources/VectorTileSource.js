@@ -47,7 +47,7 @@ import { MVT } from 'ol/format.js';
 import FeatureFormat from 'ol/format/Feature.js';
 import ImageSource, { ImageResult } from './ImageSource.js';
 import OpenLayersUtils from '../utils/OpenLayersUtils.js';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 
 const tmpTransform_ = createTransform();
 const MIN_LEVEL_THRESHOLD = 2;

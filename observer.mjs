@@ -50,7 +50,7 @@ function handleModification(sourceFile, sourceFolder, destFolder) {
     console.log(); // newline
     console.log(`modified: ${path.basename(sourceFile)}`);
 
-    if (sourceFile.endsWith('.js')) {
+    if (sourceFile.endsWith('.js') || sourceFile.endsWith('.ts')) {
         transpileJavascript(sourceFile, sourceFolder, destFolder);
     } else if (sourceFile.endsWith('.glsl')) {
         // GLSL files are inlined rather than transpiled.

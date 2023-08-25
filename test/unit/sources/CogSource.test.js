@@ -1,4 +1,4 @@
-import Extent from '../../../src/core/geographic/Extent.js';
+import Extent from '../../../src/core/geographic/Extent';
 import CogSource from '../../../src/sources/CogSource.js';
 
 describe('CogSource', () => {

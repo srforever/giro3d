@@ -18,9 +18,9 @@ import {
 
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Entity3D from './Entity3D.js';
-import Extent from '../core/geographic/Extent.js';
+import Extent from '../core/geographic/Extent';
 import Context from '../core/Context.js';
-import { UNIT, crsToUnit } from '../core/geographic/Coordinates.js';
+import { UNIT, crsToUnit } from '../core/geographic/Coordinates';
 import Helpers from '../helpers/Helpers.js';
 
 const mod = MathUtils.euclideanModulo;

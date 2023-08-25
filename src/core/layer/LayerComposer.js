@@ -7,7 +7,7 @@ import {
     WebGLRenderer,
     WebGLRenderTarget,
 } from 'three';
-import Extent from '../geographic/Extent.js';
+import Extent from '../geographic/Extent';
 import Interpretation, { Mode } from './Interpretation.js';
 import WebGLComposer from '../../renderer/composition/WebGLComposer.js';
 import Rect from '../Rect.js';

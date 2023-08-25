@@ -1,4 +1,4 @@
-import Extent from '../../../src/core/geographic/Extent.js';
+import Extent from '../../../src/core/geographic/Extent';
 import OpenLayersUtils from '../../../src/utils/OpenLayersUtils.js';
 
 describe('OpenLayersUtils', () => {
@@ -9,7 +9,7 @@ describe('OpenLayersUtils', () => {
             const extent2 = OpenLayersUtils.fromOLExtent(ol, extent.crs());
 
             expect(extent.crs()).toEqual(extent2.crs());
-            expect(extent._values).toEqual(extent2._values);
+            expect(extent.values).toEqual(extent2.values);
         });
     });
 });

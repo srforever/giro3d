@@ -7,7 +7,7 @@ import {
 import Tiles3D, { calculateCameraDistance, configureTile } from '../../../src/entities/Tiles3D.js';
 import $3dTilesIndex from '../../../src/entities/3dtiles/3dTilesIndex.js';
 import Camera from '../../../src/renderer/Camera.js';
-import Coordinates from '../../../src/core/geographic/Coordinates.js';
+import Coordinates from '../../../src/core/geographic/Coordinates';
 import Tiles3DSource from '../../../src/sources/Tiles3DSource.js';
 
 describe('Tiles3D', () => {

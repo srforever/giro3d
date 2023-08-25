@@ -12,7 +12,6 @@ import C3DEngine from '../renderer/c3DEngine.js';
 import Entity from '../entities/Entity.js';
 import Scheduler from './scheduler/Scheduler.js';
 import Picking from './Picking.js';
-import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import RenderingOptions from '../renderer/RenderingOptions.js';
 
@@ -136,9 +135,10 @@ class Instance extends EventDispatcher {
         }
         this.referenceCrs = options.crs;
         this._viewport = viewerDiv;
+        /** @type {MainLoop} */
+        this.mainLoop = null;
 
         if (options.mainLoop) {
-            /** @type {MainLoop} */
             this.mainLoop = options.mainLoop;
         } else {
             // viewerDiv may have padding/borders, which is annoying when retrieving its size
@@ -153,7 +153,6 @@ class Instance extends EventDispatcher {
             viewerDiv.appendChild(this._viewport);
 
             const engine = new C3DEngine(this._viewport, options.renderer);
-            /** @type {MainLoop} */
             this.mainLoop = new MainLoop(new Scheduler(), engine);
             /** @type {C3DEngine} */
             this.engine = engine;
@@ -443,47 +442,6 @@ class Instance extends EventDispatcher {
         this._objects.splice(this._objects.indexOf(object, 1));
         this.notifyChange(this.camera.camera3D, true);
         this.dispatchEvent({ type: INSTANCE_EVENTS.ENTITY_REMOVED });
-    }
-
-    addVector(vector) {
-        return new Promise(resolve => {
-            const source = vector.getSource();
-            const convert = OlFeature2Mesh.convert({ altitude: 1 });
-
-            source.on('change', () => {
-                // naive way of dealing with changes : remove everything and add everything back
-                if (vector.object3d) {
-                    this.threeObjects.remove(vector.object3d);
-                    vector.object3d.traverse(o => {
-                        if (o.material) {
-                            o.material.dispose();
-                        }
-                        if (o.geometry) {
-                            o.geometry.dispose();
-                        }
-                        o.dispose();
-                    });
-                }
-                vector.object3d = convert(source.getFeatures());
-                this.threeObjects.add(vector.object3d);
-                this.notifyChange(vector.object3d, true);
-            });
-
-            // default loader does not have a "success" callback. Instead openlayers tests for
-            if (source.getFeatures().length > 0) {
-                vector.object3d = convert(source.getFeatures());
-                this.threeObjects.add(vector.object3d);
-                this.notifyChange(vector.object3d, true);
-                resolve(vector);
-            } else {
-                source.once('change', () => resolve(vector));
-                source.loadFeatures(
-                    [-Infinity, -Infinity, Infinity, Infinity],
-                    undefined,
-                    this.referenceCrs,
-                );
-            }
-        });
     }
 
     /**
@@ -818,7 +776,7 @@ class Instance extends EventDispatcher {
             // TODO support different CRS
             const dim = obj.extent.dimensions();
             const positionCamera = obj.extent.center().clone();
-            positionCamera._values[2] = Math.max(dim.x, dim.y);
+            positionCamera.values[2] = Math.max(dim.x, dim.y);
             const lookat = positionCamera.xyz();
             lookat.z = 0; // TODO this supposes there is no terrain, nor z-displacement
 
