@@ -239,11 +239,13 @@ function computeMinMaxFromImage(image, interpretation = Interpretation.Raw) {
  * Decodes the blob according to its media type, then returns a texture for this blob.
  *
  * @param {Blob} blob The buffer to decode.
+ * @param {object} options Options
+ * @param {boolean} options.createDataTexture If true, the texture will be a data texture.
  * @returns {Promise<Texture>} The generated texture.
  * @throws {Error} When the media type is unsupported.
  * @memberof TextureGenerator
  */
-async function decodeBlob(blob) {
+async function decodeBlob(blob, options = {}) {
     // media types are in the form 'type;args', for example: 'text/html; charset=UTF-8;
     const [type] = blob.type.split(';');
 
@@ -255,8 +257,13 @@ async function decodeBlob(blob) {
             // Use the browser capabilities to decode the image
             const img = new Image();
             await load8bitImage(img, blob);
-            const buf = getPixels(img);
-            const tex = new DataTexture(buf, img.width, img.height, RGBAFormat, UnsignedByteType);
+            let tex;
+            if (options.createDataTexture) {
+                const buf = getPixels(img);
+                tex = new DataTexture(buf, img.width, img.height, RGBAFormat, UnsignedByteType);
+            } else {
+                tex = new Texture(img);
+            }
             tex.wrapS = ClampToEdgeWrapping;
             tex.wrapT = ClampToEdgeWrapping;
             tex.minFilter = LinearFilter;

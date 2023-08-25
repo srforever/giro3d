@@ -86,6 +86,10 @@ class TiledImageSource extends ImageSource {
         this.sourceExtent = OpenLayersUtils.fromOLExtent(extent, projection.getCode());
     }
 
+    initialize(options) {
+        this.createReadableTextures = options.createReadableTextures;
+    }
+
     getExtent() {
         return this.sourceExtent;
     }
@@ -219,7 +223,10 @@ class TiledImageSource extends ImageSource {
                 height,
             });
         } else {
-            texture = await TextureGenerator.decodeBlob(blob);
+            texture = await TextureGenerator.decodeBlob(blob, {
+                createDataTexture: this.createReadableTextures,
+            });
+            texture.flipY = false;
         }
         texture.extent = extent;
         texture.generateMipmaps = false;
