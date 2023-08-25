@@ -15,11 +15,10 @@ class Context {
      * Constructs a context.
      *
      * @param {module:Renderer/Camera~Camera} camera the active camera.
-     * @param {module:Core/scheduler/Scheduler~Scheduler} scheduler the scheduler.
      * @param {module:Core/Instance~Instance} instance the giro3d instance.
      * @api
      */
-    constructor(camera, scheduler, instance) {
+    constructor(camera, instance) {
         /**
          * The active camera.
          *
@@ -27,7 +26,6 @@ class Context {
          * @api
          */
         this.camera = camera;
-        this.scheduler = scheduler;
         /**
          * The giro3d instance
          *

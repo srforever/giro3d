@@ -78,7 +78,6 @@
     "chart.js": "^3.9.1",
     "earcut": "^2.1.1",
     "geotiff": "^2.0.5",
-    "js-priority-queue": "^0.1.5",
     "lil-gui": "^0.17.0",
     "lru-cache": "^7.15.0",
     "pbf": "^3.1.0"
