@@ -159,9 +159,6 @@ class MapInspector extends EntityInspector {
         this.addController(this.map.materialOptions, 'discardNoData')
             .name('Discard no-data values')
             .onChange(() => this.notify(this.map));
-        this.addController(this, 'frozen')
-            .name('Freeze updates')
-            .onChange(v => this.toggleFrozen(v));
         this.addController(this, 'layerCount').name('Layer count');
         this.addController(this, 'renderState', ['Normal', 'Picking'])
             .name('Render state')
@@ -380,11 +377,6 @@ class MapInspector extends EntityInspector {
             const gui = new LayerInspector(this.layerFolder, this.instance, this.map, lyr);
             this.layers.push(gui);
         });
-    }
-
-    toggleFrozen(value) {
-        this.map.frozen = value;
-        this.notify();
     }
 
     toggleGrid(value) {
