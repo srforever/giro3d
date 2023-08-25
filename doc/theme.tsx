@@ -54,8 +54,11 @@ const defaultLayout = (
         </head>
         <body>
             {context.hook("body.begin")}
-            <script>
-                <JSX.Raw html='document.documentElement.dataset.theme = localStorage.getItem("tsd-theme") || "light"' />
+            <script defer>
+                <JSX.Raw html={`
+                    document.documentElement.dataset.theme = "light";
+                    localStorage.setItem("tsd-theme", "light");
+                `}/>
             </script>
             {context.toolbar(props)}
 
