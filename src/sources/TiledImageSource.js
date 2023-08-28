@@ -89,10 +89,6 @@ class TiledImageSource extends ImageSource {
         this.sourceExtent = OpenLayersUtils.fromOLExtent(extent, projection.getCode());
     }
 
-    initialize(options) {
-        this.createReadableTextures = options.createReadableTextures;
-    }
-
     getExtent() {
         return this.sourceExtent;
     }
@@ -156,6 +152,8 @@ class TiledImageSource extends ImageSource {
      * @param {number} options.width The pixel width of the request area.
      * @param {string} options.id The identifier of the node that emitted the request.
      * @param {number} options.height The pixel height of the request area.
+     * @param {boolean} options.createReadableTextures If `true`, the generated textures must
+     * be readable (i.e `DataTextures`).
      * @param {AbortSignal} [options.signal] The optional abort signal.
      * @returns {Array<{ id: string, request: function(()):Promise<ImageResult>}>} An array
      * containing the functions to generate the images asynchronously.
@@ -182,7 +180,12 @@ class TiledImageSource extends ImageSource {
             zoomLevel,
         );
 
-        const images = this.loadTiles(tileRange, this.getCrs(), zoomLevel);
+        const images = this.loadTiles(
+            tileRange,
+            this.getCrs(),
+            zoomLevel,
+            options.createReadableTextures,
+        );
 
         return images;
     }
@@ -193,9 +196,10 @@ class TiledImageSource extends ImageSource {
      * @param {string} id The id of the tile.
      * @param {string} url The URL of the tile.
      * @param {Extent} extent The extent of the tile.
+     * @param {boolean} createDataTexture Create readable textures.
      * @returns {Promise<ImageResult>|Promise<null>} The tile texture, or null if there is no data.
      */
-    async loadTile(id, url, extent) {
+    async loadTile(id, url, extent, createDataTexture) {
         const response = await Fetcher.fetch(url);
 
         // If the response is 204 No Content for example, we have nothing to do.
@@ -227,7 +231,7 @@ class TiledImageSource extends ImageSource {
             });
         } else {
             texture = await TextureGenerator.decodeBlob(blob, {
-                createDataTexture: this.createReadableTextures,
+                createDataTexture,
             });
             texture.flipY = false;
         }
@@ -263,8 +267,9 @@ class TiledImageSource extends ImageSource {
      * @param {TileRange} tileRange The tile range.
      * @param {string} crs The CRS of the extent.
      * @param {number} zoom The zoom level.
+     * @param {boolean} createDataTexture Creates readable textures.
      */
-    loadTiles(tileRange, crs, zoom) {
+    loadTiles(tileRange, crs, zoom, createDataTexture) {
         /** @type {TileSource} */
         const source = this.source;
         /** @type {TileGrid} */
@@ -282,7 +287,7 @@ class TiledImageSource extends ImageSource {
                 // Don't bother loading tiles that are not in the layer
                 if (this.shouldLoad(tileExtent)) {
                     const url = this.getTileUrl(coord, 1, this.olprojection);
-                    const request = () => this.loadTile(id, url, tileExtent);
+                    const request = () => this.loadTile(id, url, tileExtent, createDataTexture);
                     promises.push({ id, request });
                 }
             }
