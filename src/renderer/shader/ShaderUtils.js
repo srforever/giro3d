@@ -1,4 +1,4 @@
-import PrecisionQualifier from './chunk/PrecisionQualifier.glsl';
+import PrecisionQualifier from './chunk/giro3d_precision_qualifiers.glsl';
 
 const rePosition = new RegExp('gl_Position.*(?![^]*gl_Position)');
 const reMain = new RegExp('[^\\w]*main[^\\w]*(void)?[^\\w]*{');

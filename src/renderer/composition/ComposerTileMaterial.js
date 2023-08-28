@@ -1,7 +1,6 @@
 import {
     Uniform,
     RawShaderMaterial,
-    ShaderChunk,
     Texture,
     FloatType,
     MathUtils,
@@ -10,12 +9,7 @@ import {
 
 import FragmentShader from './ComposerTileFS.glsl';
 import VertexShader from './ComposerTileVS.glsl';
-import InterpretationChunk from '../shader/chunk/Interpretation.glsl';
-import FillNoDataChunk from '../shader/chunk/FillNoData.glsl';
 import Interpretation, { Mode } from '../../core/layer/Interpretation.js';
-
-ShaderChunk.Interpretation = InterpretationChunk;
-ShaderChunk.FillNoData = FillNoDataChunk;
 
 function createGridTexture() {
     const canvas = document.createElement('canvas');

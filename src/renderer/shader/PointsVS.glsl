@@ -1,8 +1,7 @@
-precision highp float;
-precision highp int;
-
+#include <giro3d_precision_qualifiers>
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
+
 #define EPSILON 1e-6
 
 uniform float size;

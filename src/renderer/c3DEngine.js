@@ -24,6 +24,8 @@ import Capabilities from '../core/system/Capabilities.js';
 import RenderPipeline from './RenderPipeline.js';
 import RenderingOptions from './RenderingOptions.js';
 
+import registerChunks from './shader/chunk/registerChunks.js';
+
 const tmpClear = new Color();
 const tmpVec2 = new Vector2();
 
@@ -111,6 +113,8 @@ class C3DEngine {
         }
 
         const renderer = options.renderer;
+
+        registerChunks();
 
         this.width = viewerDiv.clientWidth;
         this.height = viewerDiv.clientHeight;

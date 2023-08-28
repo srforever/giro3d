@@ -1,8 +1,5 @@
-precision highp float;
-precision highp int;
-
-#include <FillNoData>
-#include <Interpretation>
+#include <giro3d_precision_qualifiers>
+#include <giro3d_common>
 
 varying vec2 vUv;
 
@@ -14,16 +11,6 @@ uniform bool flipY;
 uniform bool fillNoData;
 uniform bool showImageOutlines;
 
-vec4 blend(vec4 fore, vec4 back) {
-    if (fore.a == 0. && back.a == 0.) {
-        return vec4(0);
-    }
-    float alpha = fore.a + back.a * (1.0 - fore.a);
-    vec3 color = (fore.rgb * fore.a) + back.rgb * (back.a * (1.0 - fore.a)) / alpha;
-
-    return vec4(color, alpha);
-}
-
 void main() {
     vec2 uv = flipY
         ? vec2(vUv.x, 1.0 - vUv.y)
@@ -33,7 +20,7 @@ void main() {
         ? texture2DFillNodata(texture, uv)
         : texture2D(texture, uv);
 
-    gl_FragColor = decode(raw, interpretation);
+    gl_FragColor = decodeInterpretation(raw, interpretation);
 
     if (showImageOutlines) {
         vec4 grid = texture2D(gridTexture, uv);
