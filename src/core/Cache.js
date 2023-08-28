@@ -6,10 +6,10 @@ import LRUCache from 'lru-cache';
  * The cache options.
  *
  * @typedef {object} CacheOptions
- * @property {?number} ttl The time to live of this entry, in milliseconds.
- * @property {?number} size The entry size, in bytes. It does not have to be an exact value, but
+ * @property {number} [ttl] The time to live of this entry, in milliseconds.
+ * @property {number} [size] The entry size, in bytes. It does not have to be an exact value, but
  * it helps the cache determine when to remove entries to save memory.
- * @property {?Function} onDelete A callback called when the entry is deleted from the cache.
+ * @property {Function} [onDelete] A callback called when the entry is deleted from the cache.
  */
 
 const SECONDS = 1000;
@@ -202,7 +202,7 @@ class Cache {
      * @api
      * @param {string} key The key.
      * @param {any} value The value.
-     * @param {?CacheOptions} options The options.
+     * @param {CacheOptions} [options] The options.
      */
     set(key, value, options = {}) {
         if (!this.enabled) {

@@ -320,8 +320,8 @@ async function decodeBlob(blob, options = {}) {
  *
  * @static
  * @param {object} options The creation options.
- * @param {object} [options.width] width The texture width.
- * @param {object} [options.height] height The texture height.
+ * @param {number} [options.width] width The texture width.
+ * @param {number} [options.height] height The texture height.
  * @param {object} [options.scaling=undefined] Indicates that the input data must be scaled
  * into 8-bit values, using the provided min and max values for scaling.
  * @param {number} [options.scaling.min] The minimum value the input data, used to compute
@@ -333,8 +333,9 @@ async function decodeBlob(blob, options = {}) {
  * Otherwise it will be opaque. If unspecified, the alpha will be opaque. This only applies to
  * 1-channel data. Ignored for 3 and 4-channel data.
  * @param {FloatType|UnsignedByteType} sourceDataType The data type of the input pixel data.
- * @param {...Array} pixelData The pixel data for each input channels.
- * Must be either one, three, or four channels.
+ * @param {...Array<number>| Uint8Array | Int8Array | Uint16Array
+ * | Int16Array | Uint32Array | Int32Array | Float32Array | Float64Array} pixelData The pixel data
+ * for each input channels. Must be either one, three, or four channels.
  * @memberof TextureGenerator
  */
 function createDataTexture(options, sourceDataType, ...pixelData) {

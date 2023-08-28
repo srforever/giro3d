@@ -15,9 +15,9 @@ class ImageResult {
      * @param {object} options options
      * @param {string} options.id The unique identifier of this result.
      * @param {Texture} options.texture The texture.
-     * @param {Texture} options.extent The extent.
-     * @param {number} options.min The minimum value of this image (if applicable).
-     * @param {number} options.max The maximum value of this image (if applicable).
+     * @param {Extent} options.extent The extent.
+     * @param {number} [options.min] The minimum value of this image (if applicable).
+     * @param {number} [options.max] The maximum value of this image (if applicable).
      */
     constructor(options) {
         this.id = options.id;
