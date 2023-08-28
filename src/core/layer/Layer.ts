@@ -12,7 +12,7 @@ import {
 } from 'three';
 
 import ColorMap from './ColorMap.js';
-import Interpretation from './Interpretation.js';
+import Interpretation from './Interpretation';
 import Extent from '../geographic/Extent.js';
 import EventUtils from '../../utils/EventUtils.js';
 import LayerComposer from './LayerComposer.js';

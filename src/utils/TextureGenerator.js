@@ -27,7 +27,7 @@ import {
     LinearFilter,
     MathUtils,
 } from 'three';
-import Interpretation, { Mode } from '../core/layer/Interpretation.js';
+import Interpretation, { Mode } from '../core/layer/Interpretation';
 
 export const OPAQUE_BYTE = 255;
 export const OPAQUE_FLOAT = 1.0;

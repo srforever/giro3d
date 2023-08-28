@@ -1,5 +1,5 @@
-import { NearestFilter } from 'three';
-import Interpretation, { Mode } from '../../../../src/core/layer/Interpretation.js';
+import { NearestFilter, Texture } from 'three';
+import Interpretation, { Mode } from 'src/core/layer/Interpretation';
 
 describe('Interpretation', () => {
     describe('constructor', () => {
@@ -27,8 +27,8 @@ describe('Interpretation', () => {
             expect(mapbox.mode).toEqual(Mode.MapboxTerrainRGB);
             expect(compress.mode).toEqual(Mode.CompressTo8Bit);
             expect(scale.mode).toEqual(Mode.ScaleToMinMax);
-            expect(scale._opts).toEqual({ min: 1, max: 100 });
-            expect(compress._opts).toEqual({ min: 5, max: 899 });
+            expect(scale.options).toEqual({ min: 1, max: 100 });
+            expect(compress.options).toEqual({ min: 5, max: 899 });
         });
     });
 
@@ -91,8 +91,10 @@ describe('Interpretation', () => {
             const mapbox = Interpretation.MapboxTerrainRGB;
             const scale = Interpretation.ScaleToMinMax(1, 100);
 
-            const texture1 = {};
-            const texture2 = {};
+            const texture1 = new Texture();
+            const texture2 = new Texture();
+            texture2.minFilter = undefined;
+            texture2.magFilter = undefined;
 
             mapbox.prepareTexture(texture1);
             raw.prepareTexture(texture2);

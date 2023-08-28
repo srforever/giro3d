@@ -1,7 +1,3 @@
-/**
- * @module core/layer/Interpretation
- */
-
 import { NearestFilter, Texture } from 'three';
 
 /**
@@ -9,27 +5,22 @@ import { NearestFilter, Texture } from 'three';
  *
  * Note: this is unrelated to the file format / encoding (like JPG and PNG). This interpretation
  * occurs after the image was decoded into a pixel buffer.
- *
- * @enum
- * @api
  */
-const Mode = {
-    Raw: 0,
-    MapboxTerrainRGB: 1,
-    ScaleToMinMax: 2,
-    CompressTo8Bit: 3,
-};
+enum Mode {
+    Raw = 0,
+    MapboxTerrainRGB = 1,
+    ScaleToMinMax = 2,
+    CompressTo8Bit = 3,
+}
 
 /**
  * The interpretation options.
- *
- * @api
- * @typedef {object} InterpretationOptions
- * @property {Mode} mode The interpretation mode.
- * @property {boolean} [negateValues] Whether the sign of elevation values should be flipped.
- * @property {number} [min] The min value of the interpretation range (only for applicable modes).
- * @property {number} [max] The max value of the interpretation range (only for applicable modes).
  */
+interface InterpretationOptions {
+    negateValues?: boolean;
+    min?: number;
+    max?: number;
+}
 
 /**
  * Describes how an image pixel should be interpreted. Any interpretation other than `Raw` will
@@ -54,26 +45,28 @@ const Mode = {
  * const custom = new Interpretation(Mode.Raw, {
  *     negateValues: true,
  * })
- * @api
  */
 class Interpretation {
+    private readonly _mode: Mode;
+    private readonly _opts: InterpretationOptions;
+
+    get options() {
+        return this._opts;
+    }
+
     /**
      * Creates a new interpretation.
      *
      * @param {Mode} mode The mode.
      * @param {InterpretationOptions} [opts] The options.
      */
-    constructor(mode, opts = {}) {
+    constructor(mode: Mode, opts: InterpretationOptions = {}) {
         this._mode = mode;
         this._opts = opts;
     }
 
     /**
      * Gets the interpretation mode.
-     *
-     * @api
-     * @type {Mode}
-     * @readonly
      */
     get mode() {
         return this._mode;
@@ -81,9 +74,6 @@ class Interpretation {
 
     /**
      * The min value (only for `MinMax` mode).
-     *
-     * @type {number}
-     * @readonly
      */
     get min() {
         return this._opts.min;
@@ -91,9 +81,6 @@ class Interpretation {
 
     /**
      * The max value (only for `MinMax` mode).
-     *
-     * @type {number}
-     * @readonly
      */
     get max() {
         return this._opts.max;
@@ -101,9 +88,6 @@ class Interpretation {
 
     /**
      * Gets or set the sign negation of elevation values.
-     *
-     * @type {boolean}
-     * @readonly
      */
     get negateValues() {
         return this._opts.negateValues;
@@ -113,6 +97,9 @@ class Interpretation {
         this._opts.negateValues = v;
     }
 
+    /**
+     * Returns `true` if this interpretation does not perform any transformation to source pixels.
+     */
     isDefault() {
         return this.mode === Mode.Raw && !this.negateValues;
     }
@@ -120,11 +107,8 @@ class Interpretation {
     /**
      * Reverses the sign of elevation values, such that positive values are going downward, rather
      * than updwards. In other words, interpret values as depths rather than heights.
-     *
-     * @api
-     * @returns {this} This object.
      */
-    withNegatedValues() {
+    withNegatedValues(): this {
         this.negateValues = true;
         return this;
     }
@@ -132,24 +116,16 @@ class Interpretation {
     /**
      * Preset for raw. The pixel is used as is, without transformation.
      * Compatible with both grayscale and color images. This is the default.
-     *
-     * @api
-     * @static
-     * @type {Interpretation}
      */
-    static get Raw() {
+    static get Raw(): Interpretation {
         return new Interpretation(Mode.Raw);
     }
 
     /**
      * Preset for Mapbox Terrain RGB. The image represent an elevation encoded with the [Mapbox Terrain RGB scheme](https://docs.mapbox.com/data/tilesets/reference/mapbox-terrain-rgb-v1/).
      * The input is an sRGB image, and the output will be a grayscale image.
-     *
-     * @api
-     * @static
-     * @type {Interpretation}
      */
-    static get MapboxTerrainRGB() {
+    static get MapboxTerrainRGB(): Interpretation {
         return new Interpretation(Mode.MapboxTerrainRGB);
     }
 
@@ -169,13 +145,11 @@ class Interpretation {
      * // Pixels with color 0 will map to 130 meters, and the pixels with color
      * // 255 will map to 1500 meters, and so on.
      * const interp = Interpretation.ScaleToMinMax(130, 1500);
-     * @api
-     * @static
-     * @param {number} min The minimum value of the dataset, that maps to 0.
-     * @param {number} max The maximum value of the dataset, that maps to 255.
-     * @returns {Interpretation} The scaling values.
+     * @param min The minimum value of the dataset, that maps to 0.
+     * @param max The maximum value of the dataset, that maps to 255.
+     * @returns The scaling values.
      */
-    static ScaleToMinMax(min, max) {
+    static ScaleToMinMax(min: number, max: number): Interpretation {
         if (typeof min === 'number' && typeof max === 'number') {
             return new Interpretation(Mode.ScaleToMinMax, { min, max });
         }
@@ -196,13 +170,11 @@ class Interpretation {
      * // We have a 16-bit satellite image with min = 200, and max = 4000. We wish to visualize it
      * // without saturation.
      * const interp = Interpretation.CompressTo8Bit(200, 4000);
-     * @api
-     * @static
-     * @param {number} min The minimum value of the dataset.
-     * @param {number} max The maximum value of the dataset.
-     * @returns {Interpretation} The scaling values.
+     * @param min The minimum value of the dataset.
+     * @param max The maximum value of the dataset.
+     * @returns The interpretation.
      */
-    static CompressTo8Bit(min, max) {
+    static CompressTo8Bit(min: number, max: number): Interpretation {
         if (typeof min === 'number' && typeof max === 'number') {
             return new Interpretation(Mode.CompressTo8Bit, { min, max });
         }
@@ -212,11 +184,8 @@ class Interpretation {
 
     /**
      * Returns a user-friendly string representation of this interpretation.
-     *
-     * @api
-     * @returns {string} The string representation.
      */
-    toString() {
+    toString(): string {
         switch (this.mode) {
             case Mode.Raw: return 'Raw';
             case Mode.MapboxTerrainRGB: return 'Mapbox Terrain RGB';
@@ -232,9 +201,10 @@ class Interpretation {
     /**
      * Updates the provided texture if necessary to make it compatible with this interpretation.
      *
-     * @param {Texture} texture The texture to update.
+     * @param texture The texture to update.
+     * @ignore
      */
-    prepareTexture(texture) {
+    prepareTexture(texture: Texture) {
         if (this.mode === Mode.MapboxTerrainRGB) {
             // Mapbox interpretation is extremely sensitive to color values,
             // which is why we cannot use any filter to alter the colors.
@@ -244,10 +214,14 @@ class Interpretation {
     }
 
     /**
-     * @param {object} uniform The uniform to set.
-     * @returns {object} The updated uniform.
+     * @ignore
      */
-    setUniform(uniform) {
+    setUniform(uniform: {
+        mode?: number,
+        negateValues?: boolean,
+        min?: number,
+        max?: number,
+    }) {
         const mode = this.mode;
 
         uniform.mode = mode;
@@ -272,6 +246,7 @@ class Interpretation {
 
 export {
     Mode,
+    InterpretationOptions,
 };
 
 export default Interpretation;

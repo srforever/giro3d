@@ -4,7 +4,7 @@ import MaskLayer from './MaskLayer';
 import ElevationLayer from './ElevationLayer';
 import ColorMap from './ColorMap';
 import ColorMapMode from './ColorMapMode';
-import Interpretation from './Interpretation';
+import Interpretation, { Mode as InterpretationMode, InterpretationOptions } from './Interpretation';
 
 export {
     ColorLayer,
@@ -12,6 +12,8 @@ export {
     ColorMapMode,
     ElevationLayer,
     Interpretation,
+    InterpretationMode,
+    InterpretationOptions,
     Layer,
     MaskLayer,
 };

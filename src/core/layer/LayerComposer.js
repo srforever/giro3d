@@ -8,7 +8,7 @@ import {
     WebGLRenderTarget,
 } from 'three';
 import Extent from '../geographic/Extent';
-import Interpretation from './Interpretation.js';
+import Interpretation from './Interpretation';
 import WebGLComposer from '../../renderer/composition/WebGLComposer.js';
 import Rect from '../Rect.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';

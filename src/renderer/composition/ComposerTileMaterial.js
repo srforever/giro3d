@@ -9,7 +9,7 @@ import {
 
 import FragmentShader from './ComposerTileFS.glsl';
 import VertexShader from './ComposerTileVS.glsl';
-import Interpretation, { Mode } from '../../core/layer/Interpretation.js';
+import Interpretation, { Mode } from '../../core/layer/Interpretation';
 
 function createGridTexture() {
     const canvas = document.createElement('canvas');

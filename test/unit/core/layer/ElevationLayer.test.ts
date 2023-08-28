@@ -1,5 +1,5 @@
 import ElevationLayer from 'src/core/layer/ElevationLayer';
-import Interpretation from 'src/core/layer/Interpretation.js';
+import Interpretation from 'src/core/layer/Interpretation';
 import NullSource from 'src/sources/NullSource.js';
 
 describe('ElevationLayer', () => {
