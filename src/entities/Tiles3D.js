@@ -438,6 +438,8 @@ export function configureTile(tile, entity, metadata, parent) {
     tile.frustumCulled = false;
     tile.layer = entity;
 
+    entity.onObjectCreated(tile);
+
     // parse metadata
     if (metadata.transform) {
         tile.applyMatrix4(metadata.transform);
@@ -474,9 +476,10 @@ function executeCommand(entity, metadata, requester) {
         }
     }
 
-    const setLayer = obj => {
+    const setupObject = obj => {
         obj.userData.metadata = metadata;
         obj.layer = entity;
+        entity.onObjectCreated(obj);
     };
     if (path) {
         // Check if we have relative or absolute url (with tileset's lopocs for example)
@@ -513,16 +516,16 @@ function executeCommand(entity, metadata, requester) {
                             tile.batchTable = content.batchTable;
                         }
                         tile.add(content.object3d);
-                        tile.traverse(setLayer);
+                        tile.traverse(setupObject);
                         return tile;
                     });
                 }
             }
-            tile.traverse(setLayer);
+            tile.traverse(setupObject);
             return tile;
         });
     }
-    tile.traverse(setLayer);
+    tile.traverse(setupObject);
     return Promise.resolve(tile);
 }
 
@@ -542,6 +545,15 @@ function subdivideNode(context, entity, node, cullingTestFn) {
     }
 }
 
+/**
+ * Returns the best fit extent from the volume of the tile.
+ *
+ * @api
+ * @param {string} crs The CRS of the target extent.
+ * @param {object} volume The volume of the tile.
+ * @param {Matrix4} transform The world matrix of the object.
+ * @returns {Extent} The extent.
+ */
 function boundingVolumeToExtent(crs, volume, transform) {
     if (volume.region) {
         return new Extent('EPSG:4326',
@@ -861,3 +873,7 @@ function subdivisionTest(context, layer, node) {
 }
 
 export default Tiles3D;
+
+export {
+    boundingVolumeToExtent,
+};

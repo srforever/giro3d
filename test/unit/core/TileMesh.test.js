@@ -12,7 +12,6 @@ describe('TileMesh', () => {
         defaultMaterial = {
             dispose: jest.fn(),
             setUuid: jest.fn(),
-            setOpacity: jest.fn(),
             uniforms: {
                 tileDimensions: { value: { set: jest.fn() } },
             },
@@ -37,7 +36,6 @@ describe('TileMesh', () => {
             const material = {
                 dispose: jest.fn(),
                 setUuid: jest.fn(),
-                setOpacity: jest.fn(),
                 uniforms: {
                     tileDimensions: { value: { set: jest.fn() } },
                 },

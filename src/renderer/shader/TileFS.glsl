@@ -4,6 +4,9 @@
 #include <LayerInfo>
 #include <ColorMap>
 
+#include <logdepthbuf_pars_fragment>
+#include <clipping_planes_pars_fragment>
+
 #define M_PI    3.1415926535897932384626433832795
 
 /**
@@ -150,9 +153,9 @@ vec4 blend(vec4 fore, vec4 back) {
     return vec4(color, alpha);
 }
 
-vec4 computeColor(vec2 rawUv, vec4 offsetScale, sampler2D texture) {
+vec4 computeColor(vec2 rawUv, vec4 offsetScale, sampler2D tex) {
     vec2 uv = computeUv(rawUv, offsetScale.xy, offsetScale.zw);
-    return texture2D(texture, uv);
+    return texture2D(tex, uv);
 }
 
 float map(float value, float min1, float max1, float min2, float max2) {
@@ -233,6 +236,8 @@ vec4 computeColorLayer(
 }
 
 void main() {
+    #include <clipping_planes_fragment>
+
     gl_FragColor = vec4(0.0);
 
     // Step 0 : discard fragment in trivial cases of transparency
@@ -361,6 +366,8 @@ void main() {
 #if defined(ENABLE_OUTLINES)
     diffuseColor = drawTileOutlines(vUv, diffuseColor);
 #endif
+
+    #include <logdepthbuf_fragment>
 
     // Final step : process rendering states.
     if (diffuseColor.a <= 0.) {

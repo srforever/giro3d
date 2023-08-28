@@ -3,8 +3,8 @@
 #include <ComputeUV>
 #include <LayerInfo>
 
-attribute vec3      position;
-attribute vec2      uv;
+#include <logdepthbuf_pars_vertex>
+#include <clipping_planes_pars_vertex>
 
 uniform sampler2D   elevationTexture;
 uniform LayerInfo   elevationLayer;
@@ -20,9 +20,6 @@ uniform Neighbour   neighbours[8];
 uniform float       segments;
 uniform vec2        tileDimensions;
 #endif
-
-uniform mat4        projectionMatrix;
-uniform mat4        modelViewMatrix;
 
 // Outputs
 varying vec2        vUv;
@@ -135,21 +132,21 @@ bool computeXYStitchingOffsets(
     // the location of the vertex (seam, corner, or inner)
     int location,
     // the resulting offset to apply to the vertex local space position
-    out vec4 vertexOffset,
+    out vec3 vertexOffset,
     // the resulting offset to apply to the vertex UV
     out vec2 uvOffset) {
 
-    vec4 factor;
+    vec3 factor;
     float axis;
 
     const vec2 NO_UV_OFFSET = vec2(0, 0);
-    const vec4 NO_POS_OFFSET = vec4(0, 0, 0, 0);
+    const vec3 NO_POS_OFFSET = vec3(0, 0, 0);
 
     if (location == RIGHT || location == LEFT) {
-        factor = vec4(0, 1, 0, 0);
+        factor = vec3(0, 1, 0);
         axis = uv.y;
     } else if (location == TOP || location == BOTTOM) {
-        factor = vec4(1, 0, 0, 0);
+        factor = vec3(1, 0, 0);
         axis = uv.x;
     } else {
         // we only move vertices that do belong to seams and nothing else.
@@ -171,7 +168,7 @@ bool computeXYStitchingOffsets(
         float modulo = neighbourFactor / segments;
         float offset = fract(axis / modulo) * modulo;
         uvOffset = offset * factor.xy;
-        vertexOffset = offset * factor * vec4(tileDimensions, 0, 0);
+        vertexOffset = offset * factor * vec3(tileDimensions, 0);
         return true;
     } else {
         vertexOffset = NO_POS_OFFSET;
@@ -344,7 +341,7 @@ float computeZStitchedElevation(vec2 uv, int location, float currentElevation) {
 
 void main() {
     vUv = uv;
-    vec4 pos = vec4(position, 1.0);
+    #include <begin_vertex>
 
 #if defined(ELEVATION_LAYER)
     if(elevationLayer.offsetScale.z > 0.) {
@@ -395,7 +392,7 @@ void main() {
 
         // Don't perform stitching on vertices that are not on borders
         if (location != INNER_VERTEX) {
-            vec4 vertexOffset;
+            vec3 vertexOffset;
             vec2 uvOffset;
 
             // Is there XY-stiching ?
@@ -407,7 +404,7 @@ void main() {
 
                 // move the UV and the vertex to perform XY-stitching
                 vUv -= uvOffset;
-                pos -= vertexOffset;
+                transformed -= vertexOffset;
 
                 // sanitize the UV to fight off potential rounding errors (we don't want the UV to
                 // be outside the unit square)
@@ -426,9 +423,11 @@ void main() {
         }
 #endif
 
-        pos.z = elevation;
+        transformed.z = elevation;
     }
 #endif
 
-    gl_Position = projectionMatrix * modelViewMatrix * pos;
+    #include <project_vertex>
+    #include <logdepthbuf_vertex>
+    #include <clipping_planes_vertex>
 }

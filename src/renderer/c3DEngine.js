@@ -129,6 +129,10 @@ class C3DEngine {
                 alpha: options.alpha,
                 logarithmicDepthBuffer: options.logarithmicDepthBuffer,
             });
+
+            // Necessary to enable clipping planes per-entity or per-object, rather
+            // than per-renderer (global) clipping planes.
+            this.renderer.localClippingEnabled = true;
         } catch (ex) {
             console.error('Failed to create WebGLRenderer', ex);
             this.renderer = null;

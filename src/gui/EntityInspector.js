@@ -2,7 +2,13 @@
  * @module gui/EntityInspector
  */
 import GUI from 'lil-gui';
-import { Object3D, Color } from 'three';
+import {
+    Object3D,
+    Color,
+    Plane,
+    Vector3,
+    PlaneHelper,
+} from 'three';
 import Panel from './Panel.js';
 import Instance from '../core/Instance.js';
 import Entity3D from '../entities/Entity3D.js';
@@ -28,6 +34,56 @@ Object3D.prototype.traverseOnce = function traverseOnce(callback) {
         callback(_tempArray.pop());
     }
 };
+
+class ClippingPlanePanel extends Panel {
+    constructor(entity, parentGui, instance) {
+        super(parentGui, instance, 'Clipping plane');
+
+        this.entity = entity;
+
+        this.enableClippingPlane = false;
+        this.normal = new Vector3(0, 0, 1);
+        this.distance = 0;
+        this.helperSize = 5;
+        this.negate = false;
+
+        this.addController(this, 'enableClippingPlane')
+            .name('Enable')
+            .onChange(() => this.updateClippingPlane());
+
+        this.addController(this.normal, 'x').name('Plane normal X').onChange(() => this.updateClippingPlane());
+        this.addController(this.normal, 'y').name('Plane normal Y').onChange(() => this.updateClippingPlane());
+        this.addController(this.normal, 'z').name('Plane normal Z').onChange(() => this.updateClippingPlane());
+        this.addController(this, 'distance').name('Distance').onChange(() => this.updateClippingPlane());
+        this.addController(this, 'helperSize').name('Helper size').onChange(() => this.updateClippingPlane());
+        this.addController(this, 'negate').name('Negate plane').onChange(() => this.updateClippingPlane());
+    }
+
+    updateClippingPlane() {
+        this.planeHelper?.removeFromParent();
+        this.planeHelper?.dispose();
+
+        if (this.enableClippingPlane) {
+            const plane = new Plane(this.normal.clone(), this.distance);
+            if (this.negate) {
+                plane.negate();
+            }
+            this.entity.clippingPlanes = [plane];
+            this.planeHelper = new PlaneHelper(plane, this.helperSize, 0xff0000);
+            this.planeHelper.name = `Clipping plane for ${this.entity.id}`;
+            this.instance.scene.add(this.planeHelper);
+            this.planeHelper.updateMatrixWorld();
+        } else {
+            this.entity.clippingPlanes = null;
+        }
+        this.notify(this.entity);
+    }
+
+    dispose() {
+        this.planeHelper?.removeFromParent();
+        this.planeHelper?.dispose();
+    }
+}
 
 /**
  * Base class for entity inspectors. To implement a custom inspector
@@ -91,6 +147,11 @@ class EntityInspector extends Panel {
         this.addController(this.entity, 'id').name('Identifier');
 
         this.addController(this, 'state').name('Status');
+        this.addController(this.entity, 'renderOrder', 0, 10, 1)
+            .name('Render order')
+            .onChange(() => this.notify(this.entity));
+
+        this.clippingPlanePanel = new ClippingPlanePanel(entity, this.gui, instance);
 
         if (options.visibility) {
             this.addController(this, 'visible').name('Visible').onChange(v => this.toggleVisibility(v));
@@ -119,6 +180,7 @@ class EntityInspector extends Panel {
 
     dispose() {
         this.toggleBoundingBoxes(false);
+        this.clippingPlanePanel.dispose();
     }
 
     updateValues() {

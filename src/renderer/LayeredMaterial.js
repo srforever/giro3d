@@ -1,6 +1,6 @@
 import {
     Color,
-    RawShaderMaterial,
+    ShaderMaterial,
     ShaderChunk,
     Texture,
     Uniform,
@@ -82,7 +82,7 @@ export const DEFAULT_ZENITH = 45;
  * @property {number} [backgroundOpacity] The background opacity.
  */
 
-class LayeredMaterial extends RawShaderMaterial {
+class LayeredMaterial extends ShaderMaterial {
     /**
      * @param {object} param0 the params.
      * @param {MaterialOptions} param0.options the material options.
@@ -96,7 +96,7 @@ class LayeredMaterial extends RawShaderMaterial {
         atlasInfo,
         getIndexFn,
     }) {
-        super();
+        super({ clipping: true });
 
         this.atlasInfo = atlasInfo;
         this.defines.STITCHING = 1;
@@ -268,6 +268,8 @@ class LayeredMaterial extends RawShaderMaterial {
     }
 
     onBeforeRender() {
+        this._updateOpacityParameters(this.opacity);
+
         if (this.needsAtlasRepaint) {
             this.repaintAtlas();
             this.needsAtlasRepaint = false;
@@ -674,12 +676,6 @@ class LayeredMaterial extends RawShaderMaterial {
 
     indexOfColorLayer(layer) {
         return this.colorLayers.indexOf(layer);
-    }
-
-    setOpacity(opacity) {
-        this.opacity = opacity;
-
-        this._updateOpacityParameters(opacity);
     }
 
     _updateOpacityParameters(opacity) {

@@ -1,7 +1,13 @@
 /**
  * @module entities/Entity3D
  */
-import { Box3, Object3D } from 'three';
+import {
+    Box3,
+    Material,
+    Mesh,
+    Object3D,
+    Plane,
+} from 'three';
 
 import Picking from '../core/Picking.js';
 import Entity from './Entity.js';
@@ -38,6 +44,7 @@ import EventUtils from '../utils/EventUtils.js';
  *
  * @fires Entity3D#opacity-property-changed
  * @fires Entity3D#visible-property-changed
+ * @fires Entity3D#clippingPlanes-property-changed
  * @api
  */
 class Entity3D extends Entity {
@@ -78,6 +85,11 @@ class Entity3D extends Entity {
 
         // processing can overwrite that with values calculating from this layer's Object3D
         this._distance = { min: Infinity, max: 0 };
+
+        /** @type {Plane[]} */
+        this._clippingPlanes = null;
+
+        this._renderOrder = 0;
     }
 
     /**
@@ -112,6 +124,26 @@ class Entity3D extends Entity {
     }
 
     /**
+     * Gets or sets the render order of this entity.
+     *
+     * @api
+     * @type {number}
+     * @fires Entity3D#renderOrder-property-changed
+     */
+    get renderOrder() {
+        return this._renderOrder;
+    }
+
+    set renderOrder(v) {
+        if (v !== this._renderOrder) {
+            const event = EventUtils.createPropertyChangedEvent(this, 'renderOrder', this._renderOrder, v);
+            this._renderOrder = v;
+            this.traverse(o => { o.renderOrder = v; });
+            this.dispatchEvent(event);
+        }
+    }
+
+    /**
      * Gets or sets the opacity of this entity.
      *
      * @api
@@ -129,6 +161,28 @@ class Entity3D extends Entity {
             this.updateOpacity();
             this.dispatchEvent(event);
         }
+    }
+
+    /**
+     * Gets or sets the clipping planes set on this entity. Default is `null` (no clipping planes).
+     *
+     * Note: custom entities must ensure that the materials and shaders used do support
+     * the [clipping plane feature](https://threejs.org/docs/index.html?q=materi#api/en/materials/Material.clippingPlanes) of three.js.
+     * Refer to the three.js documentation for more information.
+     *
+     * @api
+     * @type {Plane[]}
+     * @fires Entity3D#clippingPlanes-property-changed
+     */
+    get clippingPlanes() {
+        return this._clippingPlanes;
+    }
+
+    set clippingPlanes(planes) {
+        const event = EventUtils.createPropertyChangedEvent(this, 'clippingPlanes', this._clippingPlanes, planes);
+        this._clippingPlanes = planes;
+        this.updateClippingPlanes();
+        this.dispatchEvent(event);
     }
 
     /**
@@ -152,33 +206,22 @@ class Entity3D extends Entity {
      */
     updateOpacity() {
         // Default implementation
-        const changeOpacity = o => {
-            if (o.material) {
-                if (o.material.setOpacity) {
-                    o.material.setOpacity(this.opacity);
-                } else if (o.material.opacity != null) {
-                    // != null: we want the test to pass if opacity is 0
-                    const currentTransparent = o.material.transparent;
-                    o.material.transparent = this.opacity < 1.0;
-                    o.material.needsUpdate |= (currentTransparent !== o.material.transparent);
-                    o.material.opacity = this.opacity;
-                    o.material.uniforms.opacity.value = this.opacity;
-                }
+        this.traverseMaterials(material => {
+            if (material.opacity != null) {
+                // != null: we want the test to pass if opacity is 0
+                const currentTransparent = material.transparent;
+                material.transparent = this.opacity < 1.0;
+                material.needsUpdate |= (currentTransparent !== material.transparent);
+                material.opacity = this.opacity;
             }
-        };
+        });
+    }
 
-        if (this.object3d) {
-            this.object3d.traverse(o => {
-                if (o.layer !== this) {
-                    return;
-                }
-                changeOpacity(o);
-                // 3dtiles layers store scenes in children's content property
-                if (o.content) {
-                    o.content.traverse(changeOpacity);
-                }
-            });
-        }
+    /**
+     * Updates the clipping planes of all objects under this entity.
+     */
+    updateClippingPlanes() {
+        this.traverseMaterials(mat => { mat.clippingPlanes = this._clippingPlanes; });
     }
 
     postUpdate() {
@@ -197,6 +240,37 @@ class Entity3D extends Entity {
         }
 
         return null;
+    }
+
+    /**
+     * Applies entity-level setup on a new object.
+     *
+     * Note: this method should be called from the subclassed entity to notify the parent
+     * class that a new 3D object has just been created, so that it can be setup with entity-wide
+     * parameters.
+     *
+     * @example
+     * // In the subclass
+     * const obj = new Object3D();
+     *
+     * // Notify the parent class
+     * this.onObjectCreated(obj);
+     * @api
+     * @param {Object3D} obj The object to prepare.
+     */
+    onObjectCreated(obj) {
+        // note: we use traverse() because the object might have its own sub-hierarchy as well.
+
+        this.traverse(o => {
+            // To be able to link an object to its parent entity (e.g for picking purposes)
+            o.userData.parentEntity = this;
+        }, obj);
+
+        // Setup materials
+        this.traverseMaterials(material => {
+            material.clippingPlanes = this._clippingPlanes;
+            material.opacity = this._opacity;
+        }, obj);
     }
 
     /* eslint-disable class-methods-use-this */
@@ -280,6 +354,57 @@ class Entity3D extends Entity {
             }
         }
         return result;
+    }
+
+    /**
+     * Traverses all materials in the hierarchy of this entity.
+     *
+     * @param {function(Material): void} callback The callback.
+     * @param {Object3D} [root] The traversal root. If undefined, the traversal starts at the root
+     * object of this entity.
+     */
+    traverseMaterials(callback, root = undefined) {
+        this.traverse(o => {
+            if (Array.isArray(o.material)) {
+                o.material.forEach(m => callback(m));
+            } else if (o.material) {
+                callback(o.material);
+            }
+        }, root);
+    }
+
+    /**
+     * Traverses all meshes in the hierarchy of this entity.
+     *
+     * @param {function(Mesh): void} callback The callback.
+     * @param {Object3D} [root] The raversal root. If undefined, the traversal starts at the root
+     * object of this entity.
+     */
+    traverseMeshes(callback, root = undefined) {
+        const origin = root ?? this.object3d;
+
+        if (origin) {
+            origin.traverse(o => {
+                if (o.isMesh) {
+                    callback(o);
+                }
+            });
+        }
+    }
+
+    /**
+     * Traverses all objects in the hierarchy of this entity.
+     *
+     * @param {function(Object3D): void} callback The callback.
+     * @param {Object3D} [root] The traversal root. If undefined, the traversal starts at the root
+     * object of this entity.
+     */
+    traverse(callback, root = undefined) {
+        const origin = root ?? this.object3d;
+
+        if (origin) {
+            origin.traverse(callback);
+        }
     }
 }
 

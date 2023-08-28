@@ -620,6 +620,8 @@ class PotreePointCloud extends Entity3D {
                 points.layer = this;
                 points.extent = Extent.fromBox3(this._instance.referenceCrs, metadata.bbox);
                 points.userData.metadata = metadata;
+
+                this.onObjectCreated(points);
                 return points;
             });
     }

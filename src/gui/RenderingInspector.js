@@ -11,7 +11,7 @@ class RenderingInspector extends Panel {
      * @param {Instance} instance The instance.
      */
     constructor(parentGui, instance) {
-        super(parentGui, instance, 'Rendering');
+        super(parentGui, instance, 'Visual parameters');
 
         this.addController(instance.renderingOptions, 'enableEDL')
             .name('EDL')

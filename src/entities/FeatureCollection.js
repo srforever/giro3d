@@ -435,12 +435,13 @@ class FeatureCollection extends Entity3D {
                             + 'but it already contains children for the current entity.');
                     }
                     for (const mesh of result) {
+                        this.onObjectCreated(mesh);
+
                         // call onMeshCreated callback if needed
                         if (this.onMeshCreated) {
                             this.onMeshCreated(mesh);
                         }
-                        // tag this mesh as being part of this entity
-                        mesh.userData.parentEntity = this;
+
                         node.add(mesh);
                         node.boundingBox.expandByObject(mesh);
                         this._instance.notifyChange(this);

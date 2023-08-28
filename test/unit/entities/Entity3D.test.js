@@ -1,5 +1,13 @@
 import assert from 'assert';
-import { Object3D } from 'three';
+import {
+    BoxGeometry,
+    BufferGeometry,
+    Group,
+    Mesh,
+    MeshStandardMaterial,
+    Object3D,
+    Plane,
+} from 'three';
 import Entity3D from '../../../src/entities/Entity3D.js';
 
 /**
@@ -9,9 +17,7 @@ import Entity3D from '../../../src/entities/Entity3D.js';
  */
 function sut(obj3d = undefined) {
     const id = 'foo';
-    const object3d = obj3d || {
-        isObject3D: true,
-    };
+    const object3d = obj3d ?? new Group();
 
     const entity = new Entity3D(id, object3d);
     return entity;
@@ -61,6 +67,47 @@ describe('Entity3D', () => {
         });
     });
 
+    describe('clippingPlanes', () => {
+        it('should assign the property', () => {
+            const entity = sut();
+
+            expect(entity.clippingPlanes).toBeNull();
+            const newValue = [new Plane()];
+            entity.clippingPlanes = newValue;
+            expect(entity.clippingPlanes).toBe(newValue);
+        });
+
+        it('should raise an event when the propert is assigned', () => {
+            const entity = sut();
+            const listener = jest.fn();
+            entity.addEventListener('clippingPlanes-property-changed', listener);
+
+            const newValue = [new Plane()];
+            entity.clippingPlanes = newValue;
+            entity.clippingPlanes = newValue;
+            entity.clippingPlanes = newValue;
+            expect(listener).toHaveBeenCalledTimes(3);
+            entity.clippingPlanes = newValue;
+            expect(listener).toHaveBeenCalledTimes(4);
+        });
+
+        it('should traverse the hierarchy and assign the clippingPlanes property on materials', () => {
+            const entity = sut();
+            const child1 = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
+            const child2 = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
+            const child3 = new Mesh(new BoxGeometry(), new MeshStandardMaterial());
+
+            entity.object3d.add(child1, child2, child3);
+
+            const newValue = [new Plane()];
+            entity.clippingPlanes = newValue;
+
+            expect(child1.material.clippingPlanes).toBe(newValue);
+            expect(child2.material.clippingPlanes).toBe(newValue);
+            expect(child3.material.clippingPlanes).toBe(newValue);
+        });
+    });
+
     describe('postUpdate', () => {
         it('should call postUpdate() on attached layers', () => {
             const entity = sut();
@@ -80,8 +127,47 @@ describe('Entity3D', () => {
         });
     });
 
+    describe('renderOrder', () => {
+        it('should assign the property', () => {
+            const entity = sut();
+
+            expect(entity.renderOrder).toBe(0);
+            entity.renderOrder = 2;
+            expect(entity.renderOrder).toBe(2);
+        });
+
+        it('should raise an event only if the value has changed', () => {
+            const entity = sut();
+            const listener = jest.fn();
+            entity.addEventListener('renderOrder-property-changed', listener);
+
+            entity.renderOrder = 1;
+            entity.renderOrder = 1;
+            entity.renderOrder = 1;
+            expect(listener).toHaveBeenCalledTimes(1);
+            entity.renderOrder = 2;
+            expect(listener).toHaveBeenCalledTimes(2);
+        });
+
+        it('should traverse the hierarchy and assign the renderOrder property on objects', () => {
+            const entity = sut();
+            const child1 = new Object3D();
+            const child2 = new Object3D();
+            const child3 = new Object3D();
+
+            entity.object3d.add(child1, child2, child3);
+
+            const newValue = 5;
+            entity.renderOrder = newValue;
+
+            expect(child1.renderOrder).toEqual(newValue);
+            expect(child2.renderOrder).toEqual(newValue);
+            expect(child3.renderOrder).toEqual(newValue);
+        });
+    });
+
     describe('visible', () => {
-        it('should assigne the property', () => {
+        it('should assign the property', () => {
             const entity = sut();
 
             expect(entity.visible).toBe(true);
@@ -100,6 +186,14 @@ describe('Entity3D', () => {
             expect(listener).toHaveBeenCalledTimes(1);
             entity.visible = true;
             expect(listener).toHaveBeenCalledTimes(2);
+        });
+
+        it('should set the root object visibility', () => {
+            const entity = sut();
+
+            expect(entity.object3d.visible).toEqual(true);
+            entity.visible = false;
+            expect(entity.object3d.visible).toEqual(false);
         });
     });
 
@@ -154,7 +248,7 @@ describe('Entity3D', () => {
             expect(o3d.traverse).toHaveBeenCalled();
         });
 
-        it('should assigne the property', () => {
+        it('should assign the property', () => {
             const entity = sut();
             entity.object3d.traverse = jest.fn();
 
@@ -176,6 +270,25 @@ describe('Entity3D', () => {
             entity.opacity = 0.3;
             expect(listener).toHaveBeenCalledTimes(2);
         });
+
+        it('should traverse the hierarchy and assign the opacity property of materials', () => {
+            const object3d = new Group();
+            const entity = sut(object3d);
+
+            entity.object3d.add(new Mesh(new BufferGeometry(), new MeshStandardMaterial()));
+            entity.object3d.add(new Mesh(new BufferGeometry(), new MeshStandardMaterial()));
+            entity.object3d.add(new Mesh(new BufferGeometry(), new MeshStandardMaterial()));
+            entity.object3d.add(new Mesh(new BufferGeometry(), new MeshStandardMaterial()));
+
+            entity.opacity = 0.5;
+
+            object3d.traverse(o => {
+                if (o.isMesh) {
+                    expect(o.material.opacity).toEqual(0.5);
+                    expect(o.material.transparent).toEqual(true);
+                }
+            });
+        });
     });
 
     describe('attach', () => {
@@ -195,6 +308,40 @@ describe('Entity3D', () => {
 
             entity.attach(layer2);
             expect(entity._attachedLayers).toEqual([layer1, layer2]);
+        });
+    });
+
+    describe('onObjectCreated', () => {
+        it('should assign the parentEntity in the userData property of the created object and its descendants', () => {
+            const entity = sut();
+
+            const o = new Object3D();
+            o.add(new Object3D());
+            o.add(new Object3D());
+            o.add(new Object3D().add(new Object3D()));
+
+            entity.onObjectCreated(o);
+
+            o.traverse(desc => {
+                expect(desc.userData.parentEntity).toBe(entity);
+            });
+        });
+
+        it('should assign the clipping planes property of the created object and its descendants', () => {
+            const entity = sut();
+            const planes = [new Plane()];
+            entity.clippingPlanes = planes;
+
+            const o = new Object3D();
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+
+            entity.onObjectCreated(o);
+
+            for (const child of o.children) {
+                expect(child.material.clippingPlanes).toBe(planes);
+            }
         });
     });
 });

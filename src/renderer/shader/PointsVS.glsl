@@ -2,12 +2,9 @@ precision highp float;
 precision highp int;
 
 #include <logdepthbuf_pars_vertex>
+#include <clipping_planes_pars_vertex>
 #define EPSILON 1e-6
 
-attribute vec3 position;
-uniform mat4 modelMatrix;
-uniform mat4 projectionMatrix;
-uniform mat4 modelViewMatrix;
 uniform float size;
 
 uniform int pickingId;
@@ -22,8 +19,6 @@ attribute float intensity;
 attribute vec2 oct16Normal;
 #elif defined(NORMAL_SPHEREMAPPED)
 attribute vec2 sphereMappedNormal;
-#else
-attribute vec3 normal;
 #endif
 
 uniform sampler2D overlayTexture;
@@ -198,8 +193,8 @@ void main() {
     }
     #endif
 
-    vec4 mvPosition = mvMatrix * vec4( position, 1.0 );
-    gl_Position = projectionMatrix * mvPosition;
+    #include <begin_vertex>
+    #include <project_vertex>
 
     if (size > 0.) {
         gl_PointSize = size;
@@ -208,4 +203,5 @@ void main() {
     }
 
     #include <logdepthbuf_vertex>
+    #include <clipping_planes_vertex>
 }
