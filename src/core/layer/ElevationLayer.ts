@@ -52,6 +52,9 @@ class ElevationLayer extends Layer {
         super(id, {
             fillNoData: true,
             computeMinMax: true,
+            // If min/max is not provided, we *have* to preload images
+            // to compute the min/max during preprocessing.
+            preloadImages: options.preloadImages ?? options.minmax == null,
             ...options,
         });
 

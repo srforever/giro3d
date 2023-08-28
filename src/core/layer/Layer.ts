@@ -177,6 +177,8 @@ abstract class Layer extends EventDispatcher
     private _instance: Instance;
     private readonly noDataValue: number;
     private readonly createReadableTextures: boolean;
+    private readonly preloadImages: boolean;
+    private fallbackImagesPromise: Promise<void>;
 
     whenReady: Promise<Layer>;
 
@@ -204,6 +206,7 @@ abstract class Layer extends EventDispatcher
      * @param options.colorMap An optional color map for this layer.
      * @param options.showTileBorders Shows the borders of the tiles.
      * @param options.noDataValue The no-data value.
+     * @param options.preloadImages Enables or disable preloading of low resolution fallback images.
      */
     constructor(id: string, options: {
         source: ImageSource;
@@ -213,6 +216,7 @@ abstract class Layer extends EventDispatcher
         fillNoData?: boolean;
         computeMinMax?: boolean;
         colorMap?: ColorMap;
+        preloadImages?:boolean;
         backgroundColor?: ColorRepresentation;
         noDataValue?: number;
     }) {
@@ -231,7 +235,8 @@ abstract class Layer extends EventDispatcher
         this.interpretation = options.interpretation ?? Interpretation.Raw;
         this.showTileBorders = options.showTileBorders ?? false;
 
-        this.frozen = false;
+        this.preloadImages = options.preloadImages ?? false;
+        this.fallbackImagesPromise = null;
 
         this.fillNoData = options.fillNoData;
         this.computeMinMax = options.computeMinMax ?? false;
@@ -294,6 +299,8 @@ abstract class Layer extends EventDispatcher
         }
         this.composer.clear();
 
+        this.fallbackImagesPromise = null;
+
         this.loadFallbackImages()
             .then(() => {
                 for (const target of this.targets.values()) {
@@ -342,7 +349,6 @@ abstract class Layer extends EventDispatcher
 
         this._instance = instance;
 
-        // Let's fetch a low resolution image to fill tiles until we have a better resolution.
         this.whenReady = this.prepare()
             .then(() => {
                 this.ready = true;
@@ -369,9 +375,9 @@ abstract class Layer extends EventDispatcher
             targetCrs: targetProjection,
         });
 
-        await this.loadFallbackImages();
-
-        await this.onInitialized();
+        if (this.preloadImages) {
+            await this.loadFallbackImages();
+        }
 
         this._instance.notifyChange(this);
         this.opCounter.decrement();
@@ -390,7 +396,7 @@ abstract class Layer extends EventDispatcher
         return this.extent ?? this.source.getExtent().clone().as(this._instance.referenceCrs);
     }
 
-    async loadFallbackImages() {
+    async loadFallbackImagesInternal() {
         const extent = this.getExtent();
 
         // If neither the source nor the layer are able to provide an extent,
@@ -434,6 +440,21 @@ abstract class Layer extends EventDispatcher
                 this.composer.add(opts);
             }
         }
+
+        await this.onInitialized();
+    }
+
+    async loadFallbackImages() {
+        if (!this.preloadImages) {
+            return;
+        }
+
+        if (!this.fallbackImagesPromise) {
+            // Let's fetch a low resolution image to fill tiles until we have a better resolution.
+            this.fallbackImagesPromise = this.loadFallbackImagesInternal();
+        }
+
+        await this.fallbackImagesPromise;
     }
 
     /**

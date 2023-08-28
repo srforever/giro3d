@@ -30,12 +30,14 @@ class ColorLayer extends Layer {
      * will be shown. Useful for debugging rendering issues.
      * @param options.elevationRange An optional elevation range to limit the
      * display of this layer. This is only useful if there is an elevation layer on the map.
+     * @param options.preloadImages Enables or disable preloading of low resolution fallback images.
      */
     constructor(id: string, options: {
         source: ImageSource;
         interpretation?: Interpretation;
         extent?: Extent;
         showTileBorders?: boolean;
+        preloadImages?:boolean;
         elevationRange?: ElevationRange;
     }) {
         super(id, options);
