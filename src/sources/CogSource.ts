@@ -1,46 +1,38 @@
-/**
- * @module sources/CogSource
- */
-
 import {
     FloatType,
     LinearFilter,
-    Texture,
     UnsignedByteType,
     Vector2,
 } from 'three';
 
-import GeoTIFF, {
+import {
     fromUrl,
+    type TypedArray,
     GeoTIFFImage,
     Pool,
+    GeoTIFF,
 } from 'geotiff';
-
-/**
- * @typedef {Uint8Array | Int8Array | Uint16Array | Int16Array |
- * Uint32Array | Int32Array | Float32Array | Float64Array} TypedArray
- */
 
 import HttpConfiguration from '../utils/HttpConfiguration.js';
 import Extent from '../core/geographic/Extent';
 import TextureGenerator from '../utils/TextureGenerator.js';
 import PromiseUtils from '../utils/PromiseUtils.js';
-import ImageSource, { ImageResult } from './ImageSource.js';
+import ImageSource, { CustomContainsFn, ImageResult } from './ImageSource.js';
 import { Cache } from '../core/Cache.js';
 
 const tmpDim = new Vector2();
 
 /**
  * A level in the COG pyramid.
- *
- * @typedef {object} Level
- * @property {GeoTIFFImage} image The level image.
- * @property {number} width The width in pixels.
- * @property {number} height The height in pixels.
- * @property {number} resolution The spatial resolution.
  */
+interface Level {
+    image: GeoTIFFImage;
+    width: number;
+    height: number;
+    resolution: number[];
+}
 
-function selectDataType(format, bitsPerSample) {
+function selectDataType(format: number, bitsPerSample: number) {
     switch (format) {
         case 1: // unsigned integer data
             if (bitsPerSample <= 8) {
@@ -55,19 +47,35 @@ function selectDataType(format, bitsPerSample) {
 
 /**
  * Provides data from a Cloud Optimized GeoTIFF (COG).
- *
- * @api
  */
 class CogSource extends ImageSource {
+    readonly isCogSource: boolean = true;
+
+    readonly url: string;
+    readonly crs: string;
+    readonly cache: Cache;
+    private tiffImage: GeoTIFF;
+    private readonly pool: Pool;
+    private imageCount: number;
+    private extent: Extent;
+    private dimensions: Vector2;
+    private levels: Level[];
+    private sampleCount: number;
+    private _channels: number[];
+    private _initialized: boolean;
+    private origin: number[];
+    private nodata: number;
+    private format: any;
+    private bps: number;
     /**
      * Creates a COG source.
      *
-     * @param {object} options options
-     * @param {string} options.url the url of the COG image
-     * @param {string} options.crs the CRS of the COG image
-     * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
+     * @param options options
+     * @param options.url the url of the COG image
+     * @param options.crs the CRS of the COG image
+     * @param options.containsFn The custom function
      * to test if a given extent is contained in this source.
-     * @param {number[]} [options.channels=undefined] How the samples in the GeoTIFF files (also
+     * @param options.channels How the samples in the GeoTIFF files (also
      * known as bands), are mapped to the color channels of an RGB(A) image.
      *
      * Must be an array of either 1, 3 or 4 elements. Each element is the index of a sample in the
@@ -95,33 +103,22 @@ class CogSource extends ImageSource {
      * `[1, 1, 1, 3]`
      * - I have a color image but in the B, G, R order: `[2, 1, 0]`
      */
-    constructor(options) {
+    constructor(options : {
+        url: string,
+        crs: string,
+        channels?: number[],
+        containsFn?: CustomContainsFn,
+    }) {
         super({ flipY: true, ...options });
 
-        this.isCogSource = true;
         this.type = 'CogSource';
 
         this.url = options.url;
         this.crs = options.crs;
-        /** @type {GeoTIFF} */
-        this.tiffImage = null;
-        /** @type {Pool} */
         this.pool = window.Worker ? new Pool() : null;
-        /** @type {number} */
         this.imageCount = 0;
-        /** @type {Extent} */
-        this.extent = null;
-        /** @type {Vector2} */
-        this.dimensions = null;
-        /** @type {Array<Level>} */
         this.levels = [];
-        /** @type {Cache} */
         this.cache = new Cache();
-        /** @type {{width: number, height: number}} */
-        this.pixelSize = null;
-        /** @type {number} */
-        this.sampleCount = null;
-        /** @type {Array<number>} */
         this._channels = options.channels;
     }
 
@@ -136,10 +133,10 @@ class CogSource extends ImageSource {
     /**
      * Attemps to compute the exact extent of the TIFF image.
      *
-     * @param {string} crs The CRS.
-     * @param {GeoTIFFImage} tiffImage The TIFF image.
+     * @param crs The CRS.
+     * @param tiffImage The TIFF image.
      */
-    static computeExtent(crs, tiffImage) {
+    private static computeExtent(crs: string, tiffImage: GeoTIFFImage) {
         const [
             minx,
             miny,
@@ -152,13 +149,18 @@ class CogSource extends ImageSource {
     }
 
     /**
-     * @param {Extent} requestExtent The request extent.
-     * @param {number} requestWidth The width, in pixels, of the request extent.
-     * @param {number} requestHeight The height, in pixels, of the request extent.
-     * @param {number} margin The margin, in pixels.
-     * @returns {{extent: Extent, width: number, height: number}} The adjusted parameters.
+     * @param requestExtent The request extent.
+     * @param requestWidth The width, in pixels, of the request extent.
+     * @param requestHeight The height, in pixels, of the request extent.
+     * @param margin The margin, in pixels.
+     * @returns The adjusted parameters.
      */
-    adjustExtentAndPixelSize(requestExtent, requestWidth, requestHeight, margin) {
+    adjustExtentAndPixelSize(
+        requestExtent: Extent,
+        requestWidth: number,
+        requestHeight: number,
+        margin: number,
+    ) {
         const level = this.selectLevel(
             requestExtent,
             requestWidth,
@@ -202,7 +204,6 @@ class CogSource extends ImageSource {
         this.dimensions = this.extent.dimensions();
 
         this.origin = firstImage.getOrigin();
-        this.bpp = firstImage.getBytesPerPixel();
         // Samples are equivalent to GDAL's bands
         this.sampleCount = firstImage.getSamplesPerPixel();
 
@@ -217,18 +218,11 @@ class CogSource extends ImageSource {
 
         this.nodata = firstImage.getGDALNoData();
 
-        this.pixelSize = { width: firstImage.getWidth(), height: firstImage.getHeight() };
-
         this.format = firstImage.getSampleFormat();
         this.bps = firstImage.getBitsPerSample();
         this.datatype = selectDataType(this.format, this.bps);
 
-        /**
-         * @param {GeoTIFFImage} image The GeoTIFF image.
-         * @param {number} resolution The spatial resolution.
-         * @returns {Level} The level.
-         */
-        function makeLevel(image, resolution) {
+        function makeLevel(image: GeoTIFFImage, resolution: number[]): Level {
             return {
                 image,
                 width: image.getWidth(),
@@ -253,11 +247,11 @@ class CogSource extends ImageSource {
     /**
      * Returns a window in the image's coordinates that matches the requested extent.
      *
-     * @param {Extent} extent The window extent.
-     * @param {number} resolution The spatial resolution of the window.
-     * @returns {Array<number>} The window.
+     * @param extent The window extent.
+     * @param resolution The spatial resolution of the window.
+     * @returns The window.
      */
-    makeWindowFromExtent(extent, resolution) {
+    private makeWindowFromExtent(extent: Extent, resolution: number[]) {
         const [oX, oY] = this.origin;
         const [imageResX, imageResY] = resolution;
         const ext = extent.values;
@@ -288,11 +282,13 @@ class CogSource extends ImageSource {
     /**
      * Creates a texture from the pixel buffer(s).
      *
-     * @param {TypedArray|TypedArray[]} buffers The buffers (one buffer per band)
-     * @returns {Texture} The generated texture.
+     * @param buffers The buffers (one buffer per band)
+     * @returns The generated texture.
      */
-    createTexture(buffers) {
-        // Width and height in pixels of the returned data
+    private createTexture(buffers: TypedArray[]) {
+        // Width and height in pixels of the returned data.
+        // The geotiff.js patches the arrays with the width and height properties.
+        // @ts-ignore
         const { width, height } = buffers;
 
         const dataType = this.datatype;
@@ -316,12 +312,12 @@ class CogSource extends ImageSource {
      * Select the best overview level (or the final image) to match the
      * requested extent and pixel width and height.
      *
-     * @param {Extent} requestExtent The window extent.
-     * @param {number} requestWidth The pixel width of the window.
-     * @param {number} requestHeight The pixel height of the window.
-     * @returns {Level} The selected zoom level.
+     * @param requestExtent The window extent.
+     * @param requestWidth The pixel width of the window.
+     * @param requestHeight The pixel height of the window.
+     * @returns The selected zoom level.
      */
-    selectLevel(requestExtent, requestWidth, requestHeight) {
+    private selectLevel(requestExtent: Extent, requestWidth: number, requestHeight: number) {
         // Number of images  = original + overviews if any
         const imageCount = this.imageCount;
         const cropped = requestExtent.clone().intersect(this.extent);
@@ -353,15 +349,18 @@ class CogSource extends ImageSource {
 
     /**
      * Gets the channel mapping.
-     *
-     * @api
-     * @type {Array<number>}
      */
     get channels() {
         return this._channels;
     }
 
-    async loadImage(opts) {
+    private async loadImage(opts: {
+        extent: Extent,
+        width: number,
+        height: number,
+        id: string,
+        signal?: AbortSignal,
+    }) {
         const {
             extent, width, height, id, signal,
         } = opts;
@@ -390,12 +389,13 @@ class CogSource extends ImageSource {
     }
 
     /**
-     * @param {GeoTIFFImage} image The image to read.
-     * @param {any} window The image region to read.
-     * @param {AbortSignal} signal The abort signal.
-     * @returns {Promise<TypedArray|TypedArray[]>} The buffers.
+     * @param image The image to read.
+     * @param window The image region to read.
+     * @param signal The abort signal.
+     * @returns The buffers.
      */
-    async fetchBuffer(image, window, signal) {
+    private async fetchBuffer(image: GeoTIFFImage, window: number[], signal?: AbortSignal)
+        : Promise<TypedArray | TypedArray[]> {
         try {
             signal?.throwIfAborted();
 
@@ -433,13 +433,13 @@ class CogSource extends ImageSource {
     /**
      * Extract a region from the specified image.
      *
-     * @param {Extent} extent The request extent.
-     * @param {Level} level The level to sample.
-     * @param {AbortSignal} signal The abort signal.
-     * @param {string} id The request id.
-     * @returns {Promise<TypedArray|TypedArray[]>} The buffer(s).
+     * @param extent The request extent.
+     * @param level The level to sample.
+     * @param signal The abort signal.
+     * @param id The request id.
+     * @returns The buffer(s).
      */
-    async getRegionBuffers(extent, level, signal, id) {
+    private async getRegionBuffers(extent: Extent, level: Level, signal: AbortSignal, id: string) {
         const window = this.makeWindowFromExtent(extent, level.resolution);
 
         const cached = this.cache.get(id);
@@ -459,20 +459,13 @@ class CogSource extends ImageSource {
         return buf;
     }
 
-    /**
-     * Gets the images for the specified extent and pixel size.
-     *
-     * @api
-     * @param {object} options The options.
-     * @param {Extent} options.extent The extent of the request area.
-     * @param {number} options.width The pixel width of the request area.
-     * @param {number} options.height The pixel height of the request area.
-     * @param {string} options.id The identifier of the client that emitted the request.
-     * @param {AbortSignal} [options.signal] The optional abort signal.
-     * @returns {Array<{ id: string, request: function(()):Promise<ImageResult>}>} The array
-     * containing the image promises.
-     */
-    getImages(options) {
+    getImages(options: {
+        id: string,
+        extent: Extent,
+        width: number,
+        height: number,
+        signal?: AbortSignal,
+    }) {
         const {
             signal,
             id,

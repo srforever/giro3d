@@ -1,5 +1,6 @@
-import Extent from '../../../src/core/geographic/Extent';
-import CogSource from '../../../src/sources/CogSource.js';
+import { GeoTIFFImage } from 'geotiff';
+import Extent from 'src/core/geographic/Extent';
+import CogSource from 'src/sources/CogSource';
 
 describe('CogSource', () => {
     describe('constructor', () => {
@@ -14,10 +15,14 @@ describe('CogSource', () => {
 
     describe('computeExtent', () => {
         it('should rethrow unknown exceptions', () => {
+            function getBoundingBox(): number[] {
+                throw new Error('unknown');
+            }
+
             const image = {
-                getBoundingBox: () => { throw new Error('unknown'); },
+                getBoundingBox,
             };
-            expect(() => CogSource.computeExtent('EPSG:3857', image)).toThrow(/unknown/);
+            expect(() => CogSource.computeExtent('EPSG:3857', image as GeoTIFFImage)).toThrow(/unknown/);
         });
 
         it('should return the computed extent from the image bounding box if found', () => {
@@ -30,7 +35,7 @@ describe('CogSource', () => {
                 getBoundingBox: () => [minx, miny, maxx, maxy],
             };
 
-            const extent = CogSource.computeExtent('EPSG:3857', image);
+            const extent = CogSource.computeExtent('EPSG:3857', image as GeoTIFFImage);
 
             expect(extent).toEqual(new Extent('EPSG:3857', minx, maxx, miny, maxy));
         });
