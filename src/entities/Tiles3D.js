@@ -545,6 +545,15 @@ function subdivideNode(context, entity, node, cullingTestFn) {
     }
 }
 
+/**
+ * Returns the best fit extent from the volume of the tile.
+ *
+ * @api
+ * @param {string} crs The CRS of the target extent.
+ * @param {object} volume The volume of the tile.
+ * @param {Matrix4} transform The world matrix of the object.
+ * @returns {Extent} The extent.
+ */
 function boundingVolumeToExtent(crs, volume, transform) {
     if (volume.region) {
         return new Extent('EPSG:4326',
@@ -864,3 +873,7 @@ function subdivisionTest(context, layer, node) {
 }
 
 export default Tiles3D;
+
+export {
+    boundingVolumeToExtent,
+};
