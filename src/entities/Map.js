@@ -935,7 +935,7 @@ class Map extends Entity3D {
      * Gets all elevation layers in this map.
      *
      * @api
-     * @returns {Array<Layer>} the color layers
+     * @returns {Array<ElevationLayer>} the color layers
      */
     getElevationLayers() {
         return this.getLayers(l => l instanceof ElevationLayer);
