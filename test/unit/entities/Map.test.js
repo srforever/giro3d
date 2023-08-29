@@ -55,7 +55,6 @@ describe('Map', () => {
                 },
             },
             scheduleUpdate: jest.fn,
-            scheduler: {},
         };
         const options = { mainLoop, crs: extent.crs() };
         instance = new Instance(viewerDiv, options);

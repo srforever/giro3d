@@ -15,7 +15,7 @@ import {
 } from 'three';
 import Entity3D from './Entity3D.js';
 import PointsMaterial, { MODE } from '../renderer/PointsMaterial.js';
-import CancelledCommandException from '../core/scheduler/CancelledCommandException.js';
+import { DefaultQueue } from '../core/RequestQueue';
 import PotreeSource from '../sources/PotreeSource.js';
 import OperationCounter from '../core/OperationCounter';
 import PotreeBinParser from '../parser/PotreeBinParser.js';
@@ -140,6 +140,7 @@ class PotreePointCloud extends Entity3D {
         this.isPotreePointCloud = true;
         this.type = 'PotreePointCloud';
 
+        this.queue = DefaultQueue;
         this._opCounter = new OperationCounter();
 
         // override the default method, since updated objects are metadata in this case
@@ -442,14 +443,11 @@ class PotreePointCloud extends Entity3D {
 
                     this._opCounter.increment();
 
-                    elt.promise = context.scheduler.execute({
-                        layer: this,
-                        fn: () => this.executeCommand(elt, elt.childrenBitField === 0),
-                        requester: elt,
-                        instance: context.instance,
+                    elt.promise = this.queue.enqueue({
+                        id: MathUtils.generateUUID(),
                         priority,
-                        redraw: true,
-                        earlyDropFunction: () => !elt.visible || !this.visible,
+                        shouldExecute: () => elt.visible && this.visible,
+                        request: () => this.executeCommand(elt, elt.childrenBitField === 0),
                     }).then(pts => {
                         if (this.onPointsCreated) {
                             this.onPointsCreated(this, pts);
@@ -465,8 +463,9 @@ class PotreePointCloud extends Entity3D {
                         this.group.add(elt.obj);
                         elt.obj.updateMatrixWorld(true);
                         elt.promise = null;
+                        this._instance.notifyChange(this);
                     }, err => {
-                        if (err instanceof CancelledCommandException) {
+                        if (err instanceof Error && err.message === 'aborted') {
                             elt.promise = null;
                         }
                     }).finally(() => this._opCounter.decrement());

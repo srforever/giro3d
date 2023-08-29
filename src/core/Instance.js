@@ -10,7 +10,6 @@ import Camera from '../renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../renderer/c3DEngine.js';
 import Entity from '../entities/Entity.js';
-import Scheduler from './scheduler/Scheduler.js';
 import Picking from './Picking.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import RenderingOptions from '../renderer/RenderingOptions.js';
@@ -153,7 +152,7 @@ class Instance extends EventDispatcher {
             viewerDiv.appendChild(this._viewport);
 
             const engine = new C3DEngine(this._viewport, options.renderer);
-            this.mainLoop = new MainLoop(new Scheduler(), engine);
+            this.mainLoop = new MainLoop(engine);
             /** @type {C3DEngine} */
             this.engine = engine;
         }
@@ -214,7 +213,6 @@ class Instance extends EventDispatcher {
                 return obj.ready && obj.getLayers().every(layer => layer.ready);
             });
             if (allReady
-                && this.mainLoop.scheduler.commandsWaitingExecutionCount() === 0
                 && this.mainLoop.renderingState === RENDERING_PAUSED) {
                 this.dispatchEvent({ type: INSTANCE_EVENTS.LAYERS_INITIALIZED });
                 this.removeFrameRequester(

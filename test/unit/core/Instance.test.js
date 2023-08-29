@@ -6,7 +6,6 @@ import proj4 from 'proj4';
 import Extent from '../../../src/core/geographic/Extent';
 import Instance, { INSTANCE_EVENTS } from '../../../src/core/Instance.js';
 import MainLoop from '../../../src/core/MainLoop.js';
-import Scheduler from '../../../src/core/scheduler/Scheduler.js';
 import Map from '../../../src/entities/Map.js';
 import Tiles3D from '../../../src/entities/Tiles3D.js';
 import { setupGlobalMocks, resizeObservers } from '../mocks.js';
@@ -28,7 +27,7 @@ describe('Instance', () => {
                 domElement: viewerDiv,
             },
         };
-        const options = { crs: 'EPSG:3857', mainLoop: new MainLoop(new Scheduler(), gfxEngine) };
+        const options = { crs: 'EPSG:3857', mainLoop: new MainLoop(gfxEngine) };
         instance = new Instance(viewerDiv, options);
         Fetcher.json = jest.fn();
     });

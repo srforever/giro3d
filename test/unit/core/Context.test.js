@@ -14,13 +14,11 @@ describe('Context', () => {
             const camera = {
                 camera3D: threeCamera,
             };
-            const scheduler = {};
             const instance = {};
 
-            const context = new Context(camera, scheduler, instance);
+            const context = new Context(camera, instance);
 
             expect(context.camera).toBe(camera);
-            expect(context.scheduler).toBe(scheduler);
             expect(context.instance).toBe(instance);
             expect(context.fastUpdateHint).toBeUndefined();
             expect(context.distance.min).toBe(Infinity);

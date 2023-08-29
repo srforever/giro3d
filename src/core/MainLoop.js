@@ -38,11 +38,10 @@ export const MAIN_LOOP_EVENTS = {
 };
 
 class MainLoop extends EventDispatcher {
-    constructor(scheduler, engine, options = {}) {
+    constructor(engine, options = {}) {
         super();
         this.renderingState = RENDERING_PAUSED;
         this.needsRedraw = false;
-        this.scheduler = scheduler;
         /** @type {C3DEngine} */
         this.gfxEngine = engine; // TODO: remove me
         this._updateLoopRestarted = true;
@@ -61,7 +60,7 @@ class MainLoop extends EventDispatcher {
     }
 
     _update(instance, updateSources, dt) {
-        const context = new Context(instance.camera, this.scheduler, instance);
+        const context = new Context(instance.camera, instance);
 
         // Reset near/far to default value to allow update function to test
         // visibility using camera's frustum; without depending on the near/far
@@ -188,10 +187,6 @@ class MainLoop extends EventDispatcher {
 
         // update data-structure
         this._update(instance, updateSources, dt);
-
-        if (this.scheduler.commandsWaitingExecutionCount() === 0) {
-            this.dispatchEvent({ type: 'command-queue-empty' });
-        }
 
         // Redraw *only* if needed.
         // (redraws only happen when this.needsRedraw is true, which in turn only happens when

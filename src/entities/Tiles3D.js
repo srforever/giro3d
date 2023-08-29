@@ -25,6 +25,7 @@ import B3dmParser from '../parser/B3dmParser.js';
 import PntsParser from '../parser/PntsParser.js';
 import PointCloud from '../core/PointCloud.js';
 import PointsMaterial from '../renderer/PointsMaterial.js';
+import { DefaultQueue } from '../core/RequestQueue';
 
 const tmp = {
     v: new Vector3(),
@@ -94,6 +95,8 @@ class Tiles3D extends Entity3D {
         this._cleanableTiles = [];
 
         this._opCounter = new OperationCounter();
+
+        this.queue = DefaultQueue;
     }
 
     get loading() {
@@ -229,37 +232,18 @@ class Tiles3D extends Entity3D {
             priority = size.x * size.y;// / this.tileIndex.index[parent.tileId].children.length;
         }
 
-        const command = {
-            /* mandatory */
-            instance: this._instance,
-            requester: parent,
-            layer: this,
+        const request = {
+            id: MathUtils.generateUUID(),
             priority,
-            /* specific params */
-            redraw,
-            earlyDropFunction: () => parent
-            && (
-                // requester cleaned
-                !parent.parent
-                // requester not visible anymore
-                || !parent.visible
-                // requester visible but doesn't need subdivision anymore
-                || parent.sse < this.sseThreshold
-            ),
-            fn: () => executeCommand(this, metadata, parent),
+            shouldExecute: () => shouldExecute(parent, this.sseThreshold),
+            request: () => executeCommand(this, metadata, parent),
         };
 
-        if (metadata.content) {
-            const path = metadata.content.url || metadata.content.uri;
-            const url = path.startsWith('http') ? path : metadata.baseURL + path;
-
-            command.toDownload = { url };
-        }
-
-        return this._instance.mainLoop.scheduler
-            .execute(command)
+        return this.queue
+            .enqueue(request)
             .then(node => {
                 metadata.obj = node;
+                this._instance.notifyChange(this);
                 return node;
             }).finally(() => this._opCounter.decrement());
     }
@@ -856,6 +840,34 @@ export function calculateCameraDistance(camera, node) {
             tmp.s.distanceToPoint(camera.position));
         node.distance.max = node.distance.min + 2 * tmp.s.radius;
     }
+}
+
+/**
+ * @param {Object3D} node The tile to evaluate;
+ * @param {number} sseThreshold The SSE threshold
+ * @returns {boolean} true if the request can continue, false if it must be cancelled.
+ */
+function shouldExecute(node, sseThreshold) {
+    if (!node) {
+        return true;
+    }
+
+    // node was removed from the hierarchy
+    if (!node.parent) {
+        return false;
+    }
+
+    // tile not visible anymore
+    if (!node.visible) {
+        return false;
+    }
+
+    // tile visible but doesn't need subdivision anymore
+    if (node.sse < sseThreshold) {
+        return false;
+    }
+
+    return true;
 }
 
 function subdivisionTest(context, layer, node) {
