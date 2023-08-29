@@ -20,6 +20,7 @@
 #
 
 stages:
+    - audit
     - build
     - lint
     - test-unit
@@ -74,6 +75,13 @@ lint:
     script:
         - npm i
         - npm run lint -- --max-warnings=0
+
+audit:
+    stage: audit
+    image: node:lts-alpine
+    script:
+        - npm audit --omit=dev
+    allow_failure: true
 
 test_unit_lts:
     stage: test-unit
