@@ -1,43 +1,43 @@
-/**
- * @module core/layer/ColorLayer
- */
-
-import Layer from './Layer.js';
+import Layer, { Node, NodeMaterial, TextureAndPitch } from './Layer';
 import EventUtils from '../../utils/EventUtils.js';
 import ImageSource from '../../sources/ImageSource.js';
 import Interpretation from './Interpretation.js';
 import Extent from '../geographic/Extent';
+import ElevationRange from '../ElevationRange';
 
 /**
  * A layer that produces color images, such as vector data, or satellite imagery.
- *
- * @property {number} [opacity=1.0] The opacity of this ColorLayer. Note: this only affects color
- * mixing between ColorLayers, not the opacity of the Entity this layer is attached to.
- * @api
  */
 class ColorLayer extends Layer {
+    private _opacity: number;
+    readonly isColorLayer: boolean = true;
+    private readonly elevationRange: ElevationRange;
+
     /**
      * Creates a color layer.
-     * It should be added in a {@link module:entities/Map~Map Map} to be displayed in the instance.
      * See the example for more information on layer creation.
      *
-     * @param {string} id The unique identifier of the layer.
-     * @param {object} options The layer options.
-     * @param {ImageSource} options.source The data source of this layer.
-     * @param {Interpretation} [options.interpretation=Interpretation.Raw] How to interpret the
+     * @param id The unique identifier of the layer.
+     * @param options The layer options.
+     * @param options.source The data source of this layer.
+     * @param options.interpretation How to interpret the
      * values in the dataset.
-     * @param {Extent} [options.extent] The geographic extent of the layer. If unspecified,
+     * @param options.extent The geographic extent of the layer. If unspecified,
      * the extent will be inherited from the source. Note: for performance reasons, it is highly
      * recommended to specify an extent when the source is much bigger than the map(s) that host
      * this layer.
-     * @param {boolean} [options.showTileBorders=false] If `true`, the borders of the source images
+     * @param options.showTileBorders If `true`, the borders of the source images
      * will be shown. Useful for debugging rendering issues.
-     * @param {object} [options.elevationRange=undefined] An optional elevation range to limit the
+     * @param options.elevationRange An optional elevation range to limit the
      * display of this layer. This is only useful if there is an elevation layer on the map.
-     * @param {number} options.elevationRange.min The min value.
-     * @param {number} options.elevationRange.max The max value.
      */
-    constructor(id, options = {}) {
+    constructor(id: string, options: {
+        source: ImageSource;
+        interpretation?: Interpretation;
+        extent?: Extent;
+        showTileBorders?: boolean;
+        elevationRange?: ElevationRange;
+    }) {
         super(id, options);
         this.isColorLayer = true;
         this.type = 'ColorLayer';
@@ -48,9 +48,7 @@ class ColorLayer extends Layer {
     /**
      * Gets or sets the opacity of this layer.
      *
-     * @api
-     * @type {number}
-     * @fires ColorLayer#opacity-property-changed
+     *  @fires ColorLayer#opacity-property-changed
      */
     get opacity() {
         return this._opacity;
@@ -64,7 +62,7 @@ class ColorLayer extends Layer {
         }
     }
 
-    updateMaterial(material) {
+    protected updateMaterial(material: NodeMaterial) {
         if (material.hasColorLayer(this)) {
             // Update material parameters
             material.setLayerVisibility(this, this.visible);
@@ -73,26 +71,26 @@ class ColorLayer extends Layer {
         }
     }
 
-    registerNode(node, extent) {
-        node.material.pushColorLayer(this, extent);
+    protected registerNode(node: Node, extent: Extent) {
+        (node.material as NodeMaterial).pushColorLayer(this, extent);
     }
 
-    unregisterNode(node) {
+    protected unregisterNode(node: Node) {
         super.unregisterNode(node);
-        const material = node.material;
+        const material = node.material as NodeMaterial;
         if (material) {
             if (material.indexOfColorLayer(this) !== -1) {
-                node.material.removeColorLayer(this);
+                material.removeColorLayer(this);
             }
         }
     }
 
-    applyTextureToNode(result, node) {
-        node.material.setColorTextures(this, result);
+    protected applyTextureToNode(result: TextureAndPitch, node: Node) {
+        (node.material as NodeMaterial).setColorTextures(this, result);
     }
 
-    applyEmptyTextureToNode(node) {
-        node.material.removeColorLayer(this);
+    protected applyEmptyTextureToNode(node: Node) {
+        (node.material as NodeMaterial).removeColorLayer(this);
     }
 }
 

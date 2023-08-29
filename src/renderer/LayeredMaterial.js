@@ -16,7 +16,6 @@ import TileFS from './shader/TileFS.glsl';
 import WebGLComposer from './composition/WebGLComposer.js';
 import Rect from '../core/Rect.js';
 import MemoryTracker from './MemoryTracker.js';
-import ElevationLayer from '../core/layer/ElevationLayer.js';
 import ColorMap from '../core/layer/ColorMap.js';
 import ColorMapAtlas from './ColorMapAtlas.js';
 import MaterialUtils from './MaterialUtils.js';
@@ -330,9 +329,6 @@ class LayeredMaterial extends ShaderMaterial {
         return null;
     }
 
-    /**
-     * @param {ElevationLayer} layer The layer.
-     */
     pushElevationLayer(layer) {
         this.elevationLayer = layer;
     }
@@ -345,7 +341,6 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     setElevationTexture(layer, { texture, pitch }, isFinal) {
-        /** @type {ElevationLayer} */
         this.elevationLayer = layer;
 
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', true);

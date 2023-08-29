@@ -2,12 +2,12 @@ import { Color, Group, Object3D } from 'three';
 import Extent from '../../../src/core/geographic/Extent';
 import Instance from '../../../src/core/Instance.js';
 import Map from '../../../src/entities/Map.js';
-import Layer from '../../../src/core/layer/Layer.js';
+import Layer from '../../../src/core/layer/Layer';
 import MainLoop from '../../../src/core/MainLoop.js';
 import { setupGlobalMocks } from '../mocks.js';
-import ElevationLayer from '../../../src/core/layer/ElevationLayer.js';
+import ElevationLayer from '../../../src/core/layer/ElevationLayer';
 import RenderingState from '../../../src/renderer/RenderingState.js';
-import ColorLayer from '../../../src/core/layer/ColorLayer.js';
+import ColorLayer from '../../../src/core/layer/ColorLayer';
 import NullSource from '../../../src/sources/NullSource.js';
 import { DEFAULT_AZIMUTH, DEFAULT_ZENITH } from '../../../src/renderer/LayeredMaterial.js';
 

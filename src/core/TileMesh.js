@@ -88,8 +88,6 @@ class TileMesh extends Mesh {
         // Layer
         this.setDisplayed(false);
 
-        this.layerUpdateState = {};
-
         this.material.setUuid(this.id);
         const dim = extent.dimensions();
         this.material.uniforms.tileDimensions.value.set(dim.x, dim.y);
@@ -277,9 +275,6 @@ class TileMesh extends Mesh {
     }
 
     removeColorLayer(idLayer) {
-        if (this.layerUpdateState && this.layerUpdateState[idLayer]) {
-            delete this.layerUpdateState[idLayer];
-        }
         this.material.removeColorLayer(idLayer);
     }
 

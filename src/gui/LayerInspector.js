@@ -4,7 +4,7 @@
 import GUI from 'lil-gui';
 import { Color } from 'three';
 import Instance from '../core/Instance.js';
-import Layer from '../core/layer/Layer.js';
+import Layer from '../core/layer/Layer';
 import Panel from './Panel.js';
 import ColorMapInspector from './ColorMapInspector.js';
 import Helpers from '../helpers/Helpers.js';

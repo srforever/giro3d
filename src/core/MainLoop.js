@@ -243,7 +243,7 @@ function updateElements(context, entity, elements) {
                 // update attached layers
                 for (const attachedLayer of entity._attachedLayers) {
                     if (attachedLayer.ready) {
-                        attachedLayer.update(context, sub.element, sub.parent);
+                        attachedLayer.update(context, sub.element);
                     }
                 }
             } else if (sub.elements) {
