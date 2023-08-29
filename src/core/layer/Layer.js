@@ -202,6 +202,7 @@ class Layer extends EventDispatcher {
         this.fillNoData = options.fillNoData;
         this.fadeDuration = options.fadeDuration;
         this.computeMinMax = options.computeMinMax ?? false;
+        this.createReadableTextures = this.computeMinMax != null && this.computeMinMax !== false;
         this._visible = true;
 
         this._opCounter = new OperationCounter();
@@ -322,11 +323,9 @@ class Layer extends EventDispatcher {
     async prepare() {
         this.opCounter.increment();
         const targetProjection = this.extent?.crs() ?? this._instance.referenceCrs;
-        const createReadableTextures = this.computeMinMax != null && this.computeMinMax !== false;
 
         await this.source.initialize({
             targetProjection,
-            createReadableTextures,
         });
 
         this.composer = new LayerComposer({
@@ -379,6 +378,7 @@ class Layer extends EventDispatcher {
             extent: extentAsSourceCrs,
             width,
             height,
+            createReadableTextures: this.createReadableTextures,
         });
 
         const promises = requests.map(img => img.request());
@@ -443,6 +443,7 @@ class Layer extends EventDispatcher {
             width,
             height,
             signal: target.controller.signal,
+            createReadableTextures: this.createReadableTextures,
         });
 
         if (results.length === 0) {
