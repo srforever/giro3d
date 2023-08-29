@@ -211,7 +211,7 @@ class Entity3D extends Entity {
                 // != null: we want the test to pass if opacity is 0
                 const currentTransparent = material.transparent;
                 material.transparent = this.opacity < 1.0;
-                material.needsUpdate |= (currentTransparent !== material.transparent);
+                material.needsUpdate = (currentTransparent !== material.transparent);
                 material.opacity = this.opacity;
             }
         });
