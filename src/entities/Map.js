@@ -440,15 +440,8 @@ class Map extends Entity3D {
         if (parent) {
             tile.setBBoxZ(parent.OBB().z.min, parent.OBB().z.max);
         } else {
-            // TODO: probably not here
-            // TODO get parentGeometry from layer
-            const elevation = this.getLayers(l => l instanceof ElevationLayer);
-            if (elevation.length > 0) {
-                if (!elevation[0].minmax) {
-                    console.error('fix the provider');
-                }
-                tile.setBBoxZ(elevation[0].minmax.min, elevation[0].minmax.max);
-            }
+            const { min, max } = this.getElevationMinMax();
+            tile.setBBoxZ(min, max);
         }
 
         tile.add(tile.OBB());

@@ -49,7 +49,7 @@ class ElevationLayer extends Layer {
         if (options.minmax) {
             this.minmax = options.minmax;
         } else {
-            this.minmax = null;
+            this.minmax = { min: 0, max: 0 };
         }
         this.isElevationLayer = true;
         this.type = 'ElevationLayer';
