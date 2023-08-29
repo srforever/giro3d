@@ -270,6 +270,9 @@ class Entity3D extends Entity {
         this.traverseMaterials(material => {
             material.clippingPlanes = this._clippingPlanes;
             material.opacity = this._opacity;
+            if (material.opacity < 1.0) {
+                material.transparent = true;
+            }
         }, obj);
     }
 
