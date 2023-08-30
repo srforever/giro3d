@@ -9,7 +9,7 @@ import MainLoop from '../../../src/core/MainLoop.js';
 import Map from '../../../src/entities/Map.js';
 import Tiles3D from '../../../src/entities/Tiles3D.js';
 import { setupGlobalMocks, resizeObservers } from '../mocks.js';
-import Fetcher from '../../../src/utils/Fetcher.js';
+import Fetcher from '../../../src/utils/Fetcher';
 
 describe('Instance', () => {
     /** @type {HTMLDivElement} */

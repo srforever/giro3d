@@ -4,7 +4,7 @@ import type UrlTile from 'ol/source/UrlTile';
 import type TileGrid from 'ol/tilegrid/TileGrid.js';
 import type Extent from '../core/geographic/Extent';
 import OpenLayersUtils from '../utils/OpenLayersUtils';
-import Fetcher from '../utils/Fetcher.js';
+import Fetcher from '../utils/Fetcher';
 import TextureGenerator from '../utils/TextureGenerator';
 import ImageSource, { type GetImageOptions, ImageResult, type ImageSourceOptions } from './ImageSource';
 import type ImageFormat from '../formats/ImageFormat';

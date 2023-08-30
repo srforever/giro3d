@@ -8,7 +8,7 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
-import Fetcher from '@giro3d/giro3d/utils/Fetcher.js';
+import Fetcher from '@giro3d/giro3d/utils/Fetcher';
 
 import StatusBar from './widgets/StatusBar.js';
 

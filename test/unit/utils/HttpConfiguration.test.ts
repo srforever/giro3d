@@ -1,4 +1,4 @@
-import HttpConfiguration from '../../../src/utils/HttpConfiguration.js';
+import HttpConfiguration from 'src/utils/HttpConfiguration';
 
 describe('HttpConfiguration', () => {
     beforeEach(() => {
@@ -21,9 +21,9 @@ describe('HttpConfiguration', () => {
             const foobarOpts = HttpConfiguration.applyConfiguration(foobar, {});
 
             expect(notOpts).toBeUndefined();
-            expect(rootOpts.headers.Authorization).toEqual('Bearer foo');
-            expect(fooOpts.headers.Authorization).toEqual('Bearer foo');
-            expect(foobarOpts.headers.Authorization).toEqual('Bearer foo');
+            expect((rootOpts.headers as Record<string, string>).Authorization).toEqual('Bearer foo');
+            expect((fooOpts.headers as Record<string, string>).Authorization).toEqual('Bearer foo');
+            expect((foobarOpts.headers as Record<string, string>).Authorization).toEqual('Bearer foo');
         });
 
         it('should return undefined if no configuration applies and no object is passed', () => {
@@ -50,23 +50,25 @@ describe('HttpConfiguration', () => {
             const highOpts = HttpConfiguration.applyConfiguration(high, {});
             const lowOpts = HttpConfiguration.applyConfiguration(low, {});
 
-            expect(highOpts.headers.Authorization).toEqual('HIGH');
-            expect(lowOpts.headers.Authorization).toEqual('LOW');
+            expect((highOpts.headers as Record<string, string>).Authorization).toEqual('HIGH');
+            expect((lowOpts.headers as Record<string, string>).Authorization).toEqual('LOW');
         });
 
         it('should preserve all properties in the passed options', () => {
             const opts = {
                 method: 'POST',
-                foo: 'bar',
-            };
+                headers: {
+                    'X-custom': 'yes',
+                },
+            } as RequestInit;
 
             HttpConfiguration.setHeader('https://example.com', 'Authorization', 'auth');
 
             HttpConfiguration.applyConfiguration('https://example.com', opts);
 
             expect(opts.method).toEqual('POST');
-            expect(opts.foo).toEqual('bar');
-            expect(opts.headers.Authorization).toEqual('auth');
+            expect((opts.headers as Record<string, string>)['X-custom']).toEqual('yes');
+            expect((opts.headers as Record<string, string>).Authorization).toEqual('auth');
         });
 
         it('should respect existing configuration without overriding it', () => {

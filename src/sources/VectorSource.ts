@@ -32,7 +32,7 @@ import type { GetImageOptions, ImageSourceOptions } from './ImageSource';
 import ImageSource, { ImageResult } from './ImageSource';
 import OpenLayersUtils from '../utils/OpenLayersUtils';
 import type Extent from '../core/geographic/Extent';
-import Fetcher from '../utils/Fetcher.js';
+import Fetcher from '../utils/Fetcher';
 
 const tmpExtent = new Array(4);
 
