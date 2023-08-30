@@ -650,7 +650,6 @@ class Extent {
      * @returns normalized offset in extent
      * @example
      * extent.offsetInExtent(extent.center())
-     * ```
      * // returns `(0.5, 0.5)`.
      */
     offsetInExtent(coordinate: Coordinates, target = new Vector2()) {
