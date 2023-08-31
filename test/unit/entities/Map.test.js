@@ -171,20 +171,48 @@ describe('Map', () => {
             expect(map.subdivisions).toEqual({ x: 1, y: 1 });
         });
 
-        it('should produce multiple horizontal root tiles if needed', () => {
+        it('should have an tileIndex', () => {
+            expect(map.tileIndex).toBeDefined();
+        });
+    });
+
+    describe('preprocess', () => {
+        it('should produce multiple horizontal root tiles if needed', async () => {
             const horizontalExtent = new Extent('EPSG:3857', -250, 250, -100, 100);
             const horizontalMap = new Map('horizontal', { extent: horizontalExtent });
+
+            horizontalMap._instance = { referenceCrs: 'EPSG:3857' };
+
+            await horizontalMap.preprocess();
+
             expect(horizontalMap.subdivisions).toEqual({ x: 3, y: 1 });
         });
 
-        it('should produce multiple vertical root tiles if needed', () => {
+        it('should produce multiple vertical root tiles if needed', async () => {
             const verticalExtent = new Extent('EPSG:3857', -100, 100, -250, 250);
             const verticalMap = new Map('horizontal', { extent: verticalExtent });
+
+            verticalMap._instance = { referenceCrs: 'EPSG:3857' };
+
+            await verticalMap.preprocess();
+
             expect(verticalMap.subdivisions).toEqual({ x: 1, y: 3 });
         });
 
-        it('should have an tileIndex', () => {
-            expect(map.tileIndex).toBeDefined();
+        it('should convert the extent to the instance CRS', async () => {
+            const verticalExtent = new Extent('EPSG:3857', -100, 100, -250, 250);
+            const verticalMap = new Map('horizontal', { extent: verticalExtent });
+
+            Instance.registerCRS(
+                'EPSG:3946',
+                '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+            );
+
+            verticalMap._instance = { referenceCrs: 'EPSG:3946' };
+
+            await verticalMap.preprocess();
+
+            expect(verticalMap.extent.crs()).toEqual('EPSG:3946');
         });
     });
 

@@ -263,8 +263,6 @@ class Map extends Entity3D {
         }
         this.extent = options.extent;
 
-        this.subdivisions = selectBestSubdivisions(this.extent);
-
         this.sseScale = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel || 30;
 
@@ -356,6 +354,10 @@ class Map extends Entity3D {
     }
 
     preprocess() {
+        this.extent = this.extent.as(this._instance.referenceCrs);
+
+        this.subdivisions = selectBestSubdivisions(this.extent);
+
         this.onTileCreated = this.onTileCreated || (() => {});
 
         // If the map is not square, we want to have more than a single
