@@ -322,7 +322,7 @@ class Layer extends EventDispatcher {
 
     async prepare() {
         this.opCounter.increment();
-        const targetProjection = this.extent?.crs() ?? this._instance.referenceCrs;
+        const targetProjection = this._instance.referenceCrs;
 
         await this.source.initialize({
             targetProjection,
