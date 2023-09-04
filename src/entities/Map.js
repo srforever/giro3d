@@ -837,6 +837,11 @@ class Map extends Entity3D {
                 this.atlasInfo.atlas = atlas;
                 this.atlasInfo.maxX = Math.max(this.atlasInfo.maxX, maxX);
                 this.atlasInfo.maxY = Math.max(this.atlasInfo.maxY, maxY);
+            } else if (layer instanceof ElevationLayer) {
+                const minmax = this.getElevationMinMax();
+                this._forEachTile(tile => {
+                    tile.setBBoxZ(minmax.min, minmax.max);
+                });
             }
 
             if (layer.colorMap) {
