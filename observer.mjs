@@ -51,13 +51,13 @@ function handleModification(sourceFile, sourceFolder, destFolder) {
     console.log(`modified: ${path.basename(sourceFile)}`);
 
     if (sourceFile.endsWith('.js') || sourceFile.endsWith('.ts')) {
-        transpileJavascript(sourceFile, sourceFolder, destFolder);
+        transpileFile(sourceFile, sourceFolder, destFolder);
     } else if (sourceFile.endsWith('.glsl')) {
         // GLSL files are inlined rather than transpiled.
         // We thus need to look for javascript files that inline this GLSL file
         // and transpile them instead.
         searchInlinedFiles(sourceFile, sourceFolder, js => {
-            transpileJavascript(js, sourceFolder, destFolder);
+            transpileFile(js, sourceFolder, destFolder);
         });
     }
 }
@@ -69,8 +69,11 @@ function handleModification(sourceFile, sourceFolder, destFolder) {
  * @param {string} sourceFolder The top-level folder containing the modified file.
  * @param {string} destFolder The top-level folder to put the transpiled file and source map.
  */
-function transpileJavascript(sourceFile, sourceFolder, destFolder) {
-    const destFile = sourceFile.replace(sourceFolder, destFolder);
+function transpileFile(sourceFile, sourceFolder, destFolder) {
+    const destFile = sourceFile
+        .replace(sourceFolder, destFolder)
+        .replace('.ts', '.js');
+
     console.log(` - transpiling: ${sourceFile.replace(sourceFolder, '')}`);
 
     function logError(e) {

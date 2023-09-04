@@ -11,6 +11,8 @@ import Rect from './Rect';
 import Context from './Context';
 import Instance from './Instance';
 import OperationCounter from './OperationCounter';
+import type Progress from './Progress';
+import type ElevationRange from './ElevationRange';
 
 export {
     geographic,
@@ -20,4 +22,6 @@ export {
     Rect,
     Context,
     OperationCounter,
+    Progress,
+    ElevationRange,
 };

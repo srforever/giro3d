@@ -5,7 +5,7 @@ import GUI from 'lil-gui';
 import Instance from '../core/Instance.js';
 import ColorMap, { ColorMapMode } from '../core/layer/ColorMap.js';
 import Panel from './Panel.js';
-import Layer from '../core/layer/Layer.js';
+import Layer from '../core/layer/Layer';
 
 /**
  * Inspector for a {@see ColorMap}.

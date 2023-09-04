@@ -11,9 +11,9 @@ import {
 } from 'three';
 
 import Extent from '../core/geographic/Extent';
-import Layer from '../core/layer/Layer.js';
-import ColorLayer from '../core/layer/ColorLayer.js';
-import ElevationLayer from '../core/layer/ElevationLayer.js';
+import Layer from '../core/layer/Layer';
+import ColorLayer from '../core/layer/ColorLayer';
+import ElevationLayer from '../core/layer/ElevationLayer';
 import Entity3D from './Entity3D.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import Picking from '../core/Picking.js';
@@ -238,11 +238,10 @@ class Map extends Entity3D {
      * @param {number} [options.backgroundOpacity=1] The opacity of the map background.
      * Defaults is opaque (1).
      * @param {boolean} [options.showOutline=false] Show the map tiles' borders.
-     * @param {object} [options.elevationRange=undefined] The optional elevation range of
-     * the map. The map will not be rendered for elevations outside of this range.
+     * @param {import('../core').ElevationRange} [options.elevationRange=undefined]
+     * The optional elevation range of the map. The map will not be rendered for elevations outside
+     * of this range.
      * Note: this feature is only useful if an elevation layer is added to this map.
-     * @param {number} options.elevationRange.min The min value.
-     * @param {number} options.elevationRange.max The max value.
      * @api
      */
     constructor(id, options) {
@@ -440,15 +439,8 @@ class Map extends Entity3D {
         if (parent) {
             tile.setBBoxZ(parent.OBB().z.min, parent.OBB().z.max);
         } else {
-            // TODO: probably not here
-            // TODO get parentGeometry from layer
-            const elevation = this.getLayers(l => l instanceof ElevationLayer);
-            if (elevation.length > 0) {
-                if (!elevation[0].minmax) {
-                    console.error('fix the provider');
-                }
-                tile.setBBoxZ(elevation[0].minmax.min, elevation[0].minmax.max);
-            }
+            const { min, max } = this.getElevationMinMax();
+            tile.setBBoxZ(min, max);
         }
 
         tile.add(tile.OBB());
@@ -935,7 +927,7 @@ class Map extends Entity3D {
      * Gets all elevation layers in this map.
      *
      * @api
-     * @returns {Array<Layer>} the color layers
+     * @returns {Array<ElevationLayer>} the color layers
      */
     getElevationLayers() {
         return this.getLayers(l => l instanceof ElevationLayer);
@@ -967,20 +959,12 @@ class Map extends Entity3D {
     }
 
     /**
-     * The min/max elevation values.
-     *
-     * @typedef {object} MinMax
-     * @property {number} min The minimum elevation.
-     * @property {number} max The maximum elevation.
-     */
-
-    /**
      * Returns the minimal and maximal elevation values in this map, in meters.
      *
      * If there is no elevation layer present, returns `{ min: 0, max: 0 }`.
      *
      * @api
-     * @returns {MinMax} The min/max value.
+     * @returns {import('../core').ElevationRange} The min/max value.
      */
     getElevationMinMax() {
         const elevationLayers = this.getElevationLayers();

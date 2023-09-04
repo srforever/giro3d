@@ -193,7 +193,7 @@ class ImageSource extends EventDispatcher {
      * @param {boolean} options.createReadableTextures If `true`, the generated textures must
      * be readable (i.e `DataTextures`).
      * @param {AbortSignal} [options.signal] The optional abort signal.
-     * @returns {Array<{ id: string, request: function(()):Promise<ImageResult>}>} An array
+     * @returns {Array<{ id: string, request: function(void):Promise<ImageResult>}>} An array
      * containing the functions to generate the images asynchronously.
      */
     // eslint-disable-next-line class-methods-use-this, no-unused-vars

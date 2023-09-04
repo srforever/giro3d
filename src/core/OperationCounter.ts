@@ -1,11 +1,12 @@
 import { EventDispatcher } from 'three';
+import Progress from './Progress';
 
 /**
  * Provides a way to track the progress of running operations.
  *
  * @fires complete When all pending operations are completed.
  */
-class OperationCounter extends EventDispatcher {
+class OperationCounter extends EventDispatcher implements Progress {
     private _operations: number;
     private _completed: number;
     private _total: number;

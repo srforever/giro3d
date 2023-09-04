@@ -1,11 +1,11 @@
-import ElevationLayer from '../../../../src/core/layer/ElevationLayer.js';
-import Interpretation from '../../../../src/core/layer/Interpretation.js';
-import NullSource from '../../../../src/sources/NullSource.js';
+import ElevationLayer from 'src/core/layer/ElevationLayer';
+import Interpretation from 'src/core/layer/Interpretation.js';
+import NullSource from 'src/sources/NullSource.js';
 
 describe('ElevationLayer', () => {
     describe('constructor', () => {
         it('should throw on undefined id', () => {
-            expect(() => new ElevationLayer(undefined)).toThrow('id is undefined');
+            expect(() => new ElevationLayer(undefined, { source: new NullSource() })).toThrow('id is undefined');
         });
 
         it('should define layer properties', () => {

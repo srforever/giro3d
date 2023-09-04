@@ -136,11 +136,13 @@ class LayerComposer {
     /**
      * @param {object} options The options.
      * @param {WebGLRenderer} options.renderer The WebGLRenderer.
-     * @param {number} options.fadeDuration The duration of the fade-in of new images (ms).
+     * @param {number} [options.fadeDuration] The duration of the fade-in of new images (ms).
      * @param {boolean} options.computeMinMax Compute min/max on generated images.
-     * @param {boolean} options.transparent Enables transparency.
-     * @param {number} options.noDataValue The no-data value.
+     * @param {boolean} [options.transparent] Enables transparency.
+     * @param {number} [options.noDataValue] The no-data value.
      * @param {string} options.sourceCrs The CRS of the source.
+     * @param {Extent} options.extent The extent.
+     * @param {boolean} options.showImageOutlines Show image outlines.
      * @param {string} options.targetCrs The target CRS of this composer.
      */
     constructor(options) {
@@ -382,7 +384,6 @@ class LayerComposer {
      * of both textures.
      *
      * @param {object} options Options.
-     * @param {Extent} options.sourceExtent The extent of the source texture.
      * @param {Extent} options.targetExtent The extent of the destination texture.
      * @param {{ texture: Texture, extent: Extent }[]} options.source The source render targets.
      * @param {WebGLRenderTarget} options.dest The destination render target.
@@ -485,9 +486,9 @@ class LayerComposer {
      * @param {Extent} options.extent The geographic extent of the region.
      * @param {number} options.width The width, in pixels of the target texture.
      * @param {number} options.height The height, in pixels of the target texture.
-     * @param {boolean} options.clear Clears the target texture.
+     * @param {boolean} [options.clear] Clears the target texture.
      * @param {Set} options.imageIds The image ids to render.
-     * @param {boolean} options.isFallbackMode Fallback mode.
+     * @param {boolean} [options.isFallbackMode] Fallback mode.
      * @param {WebGLRenderTarget} options.target The optional render target.
      */
     render(options) {

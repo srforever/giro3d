@@ -1,10 +1,10 @@
-import ColorLayer from '../../../../src/core/layer/ColorLayer.js';
-import NullSource from '../../../../src/sources/NullSource.js';
+import ColorLayer from 'src/core/layer/ColorLayer';
+import NullSource from 'src/sources/NullSource.js';
 
 describe('ColorLayer', () => {
     describe('constructor', () => {
         it('should throw on undefined id', () => {
-            expect(() => new ColorLayer(undefined)).toThrow();
+            expect(() => new ColorLayer(undefined, { source: new NullSource() })).toThrow();
         });
 
         it('should define layer properties', () => {

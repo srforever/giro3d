@@ -1,7 +1,27 @@
-import Layer from '../../../../src/core/layer/Layer.js';
-import Extent from '../../../../src/core/geographic/Extent';
+import Layer, { Node, TextureAndPitch } from 'src/core/layer/Layer';
+import Extent from 'src/core/geographic/Extent';
+import NullSource from 'src/sources/NullSource.js';
+import RequestQueue from 'src/core/RequestQueue';
 import { setupGlobalMocks } from '../../mocks.js';
-import NullSource from '../../../../src/sources/NullSource.js';
+
+class TestLayer extends Layer {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
+    protected registerNode(_node: Node, _extent: Extent): void {
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
+    protected applyTextureToNode(_texture: TextureAndPitch, _node: Node, _isLastRender: boolean)
+        : void {
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
+    protected applyEmptyTextureToNode(_node: Node): void {
+    }
+
+    getQueue(): RequestQueue {
+        return this.queue;
+    }
+}
 
 describe('Layer', () => {
     beforeEach(() => {
@@ -10,10 +30,10 @@ describe('Layer', () => {
 
     describe('progress & loading', () => {
         it('should return the progress and loading of the underlying queue', () => {
-            const layer = new Layer('foo', { source: new NullSource() });
+            const layer = new TestLayer('foo', { source: new NullSource() });
 
-            expect(layer.progress).toBe(layer.queue.progress);
-            expect(layer.loading).toBe(layer.queue.loading);
+            expect(layer.progress).toBe(layer.getQueue().progress);
+            expect(layer.loading).toBe(layer.getQueue().loading);
         });
     });
 
@@ -21,7 +41,7 @@ describe('Layer', () => {
         it('should dispose the source', () => {
             const source = new NullSource();
             source.dispose = jest.fn();
-            const layer = new Layer('foo', { source });
+            const layer = new TestLayer('foo', { source });
 
             expect(source.dispose).not.toHaveBeenCalled();
 
@@ -35,7 +55,7 @@ describe('Layer', () => {
         it('should assign the provided properties', () => {
             const id = 'foo';
             const extent = new Extent('EPSG:4326', 0, 0, 0, 0);
-            const layer = new Layer(id, {
+            const layer = new TestLayer(id, {
                 extent,
                 source: new NullSource(),
             });
@@ -45,14 +65,13 @@ describe('Layer', () => {
         });
 
         it('should not accept all sources', () => {
-            expect(() => new Layer('id', { source: {} })).toThrowError(/missing or invalid source/);
-            expect(() => new Layer('id', { source: null })).toThrowError(/missing or invalid source/);
+            expect(() => new TestLayer('id', { source: null })).toThrowError(/missing or invalid source/);
         });
     });
 
     describe('visible', () => {
         it('should return the correct value', () => {
-            const layer = new Layer('foo', { source: new NullSource() });
+            const layer = new TestLayer('foo', { source: new NullSource() });
 
             expect(layer.visible).toEqual(true);
 
@@ -61,7 +80,7 @@ describe('Layer', () => {
         });
 
         it('should raise the visible-property-changed event', () => {
-            const layer = new Layer('foo', { source: new NullSource() });
+            const layer = new TestLayer('foo', { source: new NullSource() });
 
             const listener = jest.fn();
             layer.addEventListener('visible-property-changed', listener);

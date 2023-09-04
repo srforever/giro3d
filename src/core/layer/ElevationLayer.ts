@@ -1,66 +1,77 @@
-/**
- * @module core/layer/ElevationLayer
- */
-import { FloatType } from 'three';
+import { FloatType, Texture } from 'three';
 import Interpretation from './Interpretation.js';
-import Layer from './Layer.js';
+import Layer, { TextureAndPitch } from './Layer';
 import ColorMap from './ColorMap.js';
-import Extent from '../geographic/Extent';
+import Extent from '../geographic/Extent.js';
 import ImageSource from '../../sources/ImageSource.js';
+import TileMesh from '../TileMesh.js';
+import LayeredMaterial from '../../renderer/LayeredMaterial.js';
+import ElevationRange from '../ElevationRange.js';
+
+interface TextureWithMinMax extends Texture {
+    min?: number;
+    max?: number;
+}
 
 /**
  * A layer that provides elevation data to display terrains.
- *
- * @api
  */
 class ElevationLayer extends Layer {
+    minmax: ElevationRange;
+    readonly isElevationLayer: boolean = true;
+
     /**
      * Creates an elevation layer.
-     * It should be added in {@link module:entities/Map~Map Maps} to be displayed in the instance.
      * See the example for more information on layer creation.
      *
-     * @param {string} id The unique identifier of the layer.
-     * @param {object} options The layer options.
-     * @param {ImageSource} options.source The data source of this layer.
-     * @param {Interpretation} [options.interpretation=Interpretation.Raw] How to interpret the
+     * @param id The unique identifier of the layer.
+     * @param options The layer options.
+     * @param options.source The data source of this layer.
+     * @param options.interpretation How to interpret the
      * values in the dataset.
-     * @param {Extent} [options.extent] The geographic extent of the layer. If unspecified,
+     * @param options.extent The geographic extent of the layer. If unspecified,
      * the extent will be inherited from the source. Note: for performance reasons, it is highly
      * recommended to specify an extent when the source is much bigger than the map(s) that host
      * this layer.
-     * @param {object} [options.minmax] The minimal/maximal elevation values of this layer.
+     * @param options.minmax The minimal/maximal elevation values of this layer.
      * If unspecified, the layer will attempt to compute an approximation using downsampled data.
-     * @param {number} [options.minmax.min] The minimal elevation of this layer.
-     * @param {number} [options.minmax.max] The maximal elevation of this layer.
-     * @param {number} [options.noDataValue=undefined] the optional no-data value to pass to the
-     * source. Any pixel that matches this value will not be processed.
-     * @param {ColorMap} [options.colorMap=undefined] An optional color map for this layer.
+     * @param options.noDataValue the optional no-data value to pass to the source.
+     * Any pixel that matches this value will not be processed.
+     * @param options.preloadImages Enables or disable preloading of low resolution fallback images.
+     * @param options.colorMap An optional color map for this layer.
      */
-    constructor(id, options = {}) {
+    constructor(id: string, options: {
+        source: ImageSource;
+        interpretation?: Interpretation;
+        extent?: Extent;
+        preloadImages: boolean,
+        minmax?: ElevationRange;
+        noDataValue?: number;
+        colorMap?: ColorMap;
+    }) {
         super(id, {
             fillNoData: true,
-            computeMinMax: { noDataValue: options.noDataValue },
+            computeMinMax: true,
+            // If min/max is not provided, we *have* to preload images
+            // to compute the min/max during preprocessing.
+            preloadImages: options.preloadImages ?? options.minmax == null,
             ...options,
         });
 
-        if (options.noDataValue) {
-            this.noDataValue = options.noDataValue;
-        }
         if (options.minmax) {
             this.minmax = options.minmax;
         } else {
-            this.minmax = null;
+            this.minmax = { min: 0, max: 0 };
         }
-        this.isElevationLayer = true;
         this.type = 'ElevationLayer';
     }
 
     // eslint-disable-next-line class-methods-use-this
-    getRenderTargetDataType() {
+    protected getRenderTargetDataType() {
         return FloatType;
     }
 
-    adjustExtent(extent) {
+    protected adjustExtent(extent: Extent) {
         // If we know the extent of the source/layer, we can additionally
         // crop the margin extent to ensure it does not overflow the layer extent.
         // This is necessary for elevation layers as they do not use an atlas.
@@ -72,7 +83,7 @@ class ElevationLayer extends Layer {
         return extent;
     }
 
-    async onInitialized() {
+    protected async onInitialized() {
         // Compute a min/max approximation using the background images that
         // are already present on the composer.
         if (!this.minmax) {
@@ -81,20 +92,26 @@ class ElevationLayer extends Layer {
         }
     }
 
-    registerNode(node) {
-        super.registerNode(node);
-        node.material.pushElevationLayer(this);
-    }
-
-    unregisterNode(node) {
-        super.unregisterNode(node);
+    protected registerNode(node: TileMesh) {
         const material = node.material;
-        if (material) {
-            node.material.removeElevationLayer(this);
+        if (Array.isArray(material)) {
+            material.forEach(m => (m as LayeredMaterial).pushElevationLayer(this));
+        } else {
+            (material as LayeredMaterial).pushElevationLayer(this);
         }
     }
 
-    getMinMax(texture) {
+    protected unregisterNode(node: TileMesh) {
+        super.unregisterNode(node);
+        const material = node.material;
+        if (Array.isArray(material)) {
+            material.forEach(m => (m as LayeredMaterial).removeElevationLayer());
+        } else {
+            (material as LayeredMaterial).removeElevationLayer();
+        }
+    }
+
+    protected getMinMax(texture: TextureWithMinMax) {
         if (this.minmax == null) {
             this.minmax = { min: texture.min, max: texture.max };
         }
@@ -107,7 +124,11 @@ class ElevationLayer extends Layer {
         return { min, max };
     }
 
-    applyTextureToNode(textureAndPitch, node, isLastRender) {
+    protected applyTextureToNode(
+        textureAndPitch: TextureAndPitch,
+        node: TileMesh,
+        isLastRender: boolean,
+    ) {
         const { texture, pitch } = textureAndPitch;
         const { min, max } = this.getMinMax(texture);
 
@@ -117,7 +138,7 @@ class ElevationLayer extends Layer {
         node.setElevationTexture(this, value, isLastRender);
     }
 
-    applyEmptyTextureToNode(node) {
+    protected applyEmptyTextureToNode(node: TileMesh) {
         node.removeElevationTexture(this);
     }
 }

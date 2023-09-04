@@ -1,59 +1,53 @@
-/**
- * @module core/layer/MaskLayer
- */
-
 import { Texture, Vector4 } from 'three';
-import ColorLayer from './ColorLayer.js';
-import ImageSource from '../../sources/ImageSource.js';
+import ColorLayer from './ColorLayer';
+import { Node, NodeMaterial } from './Layer';
+import { ImageSource } from '../../sources';
+import { Extent } from '../geographic';
 
 /**
  * Modes of the mask layer.
- *
- * @api
- * @enum
  */
-const MaskMode = {
+enum MaskMode {
     /**
      * The mask is applied normally: transparents parts of the mask make the map transparent.
-     *
-     * @api
-     * @type {number}
      */
-    Normal: 1,
+    Normal = 1,
     /**
      * The mask is inverted: transparents parts of the mask make the map opaque.
-     *
-     * @api
-     * @type {number}
      */
-    Inverted: 2,
-};
+    Inverted = 2,
+}
 
 const EMPTY_TEXTURE = new Texture();
 const DEFAULT_PITCH = new Vector4(0, 0, 1, 1);
 
 /**
- * A {@link module:core/layer/ColorLayer~ColorLayer ColorLayer} that can be used to mask parts of
+ * A {@link ColorLayer} that can be used to mask parts of
  * a map. The source can be any source supported by the color layers.
  *
  * @api
  */
 class MaskLayer extends ColorLayer {
+    private _maskMode: MaskMode;
+    readonly isMaskLayer: boolean = true;
+
     /**
      * Creates a mask layer.
      * It should be added in a {@link module:entities/Map~Map Map} to be displayed in the instance.
      * See the example for more information on layer creation.
      *
-     * @param {string} id The unique identifier of the layer.
-     * @param {object} options The layer options.
-     * @param {ImageSource} options.source The data source of this layer.
-     * @param {object} [options.extent=undefined] The geographic extent of the layer. If
+     * @param id The unique identifier of the layer.
+     * @param options The layer options.
+     * @param options.source The data source of this layer.
+     * @param options.extent The geographic extent of the layer. If
      * unspecified, the extent will be inherited from the map.
-     * @param {string} [options.projection=undefined] The layer projection. If unspecified,
-     * the projection will be inherited from the map.
-     * @param {MaskMode} options.maskMode The mask mode.
+     * @param options.maskMode The mask mode.
      */
-    constructor(id, options) {
+    constructor(id: string, options: {
+        source: ImageSource;
+        extent?: Extent;
+        maskMode?: MaskMode;
+    }) {
         super(id, options);
         this.isMaskLayer = true;
         this.type = 'MaskLayer';
@@ -63,7 +57,6 @@ class MaskLayer extends ColorLayer {
     /**
      * Gets or set the mask mode.
      *
-     * @api
      * @type {MaskMode}
      */
     get maskMode() {
@@ -74,11 +67,14 @@ class MaskLayer extends ColorLayer {
         this._maskMode = v;
     }
 
-    applyEmptyTextureToNode(node) {
+    applyEmptyTextureToNode(node: Node) {
         // We cannot remove the layer from the material, contrary to what is done for
         // other layer types, because since this layer acts as a mask, it must be defined
         // for the entire map.
-        node.material.setColorTextures(this, { texture: EMPTY_TEXTURE, pitch: DEFAULT_PITCH });
+        (node.material as NodeMaterial).setColorTextures(this, {
+            texture: EMPTY_TEXTURE,
+            pitch: DEFAULT_PITCH,
+        });
     }
 }
 
