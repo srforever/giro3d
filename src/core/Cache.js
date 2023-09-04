@@ -1,6 +1,6 @@
 /** @module core/Cache */
 
-import LRUCache from 'lru-cache';
+import { LRUCache } from 'lru-cache';
 
 /**
  * The cache options.
