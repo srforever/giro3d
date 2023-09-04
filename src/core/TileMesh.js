@@ -94,12 +94,8 @@ class TileMesh extends Mesh {
         const dim = extent.dimensions();
         this.material.uniforms.tileDimensions.value.set(dim.x, dim.y);
 
-        if (map.minMaxFromElevationLayer) {
-            this.setBBoxZ(map.minMaxFromElevationLayer.min, map.minMaxFromElevationLayer.max);
-        } else {
-            // This is a flat BBOX, let's give it a minimal thickness of 1 meter.
-            this.setBBoxZ(-0.5, +0.5);
-        }
+        // Sets the default bbox volume
+        this.setBBoxZ(-0.5, +0.5);
 
         this.x = x;
         this.y = y;
