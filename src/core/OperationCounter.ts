@@ -1,12 +1,18 @@
+import { EventDispatcher } from 'three';
+
 /**
  * Provides a way to track the progress of running operations.
+ *
+ * @fires complete When all pending operations are completed.
  */
-class OperationCounter {
+class OperationCounter extends EventDispatcher {
     private _operations: number;
     private _completed: number;
     private _total: number;
 
     constructor() {
+        super();
+
         this._operations = 0;
         this._completed = 0;
         this._total = 0;
@@ -45,6 +51,7 @@ class OperationCounter {
         if (this._operations === 0) {
             this._total = 0;
             this._completed = 0;
+            this.dispatchEvent({ type: 'complete' });
         }
     }
 

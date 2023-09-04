@@ -2,6 +2,7 @@ import {
     Color,
     DataTexture,
     FloatType,
+    MathUtils,
     RGBAFormat,
     UnsignedByteType,
 } from 'three';
@@ -155,7 +156,6 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const min = 0;
                     const max = 15000;
-                    const factor = 255 / (max - min);
                     const expectedOutputLength = data.length * 4; // RGBA
                     const type = FloatType;
 
@@ -174,7 +174,7 @@ describe('TextureGenerator', () => {
                         const idx = i * 4;
                         // We use toBeCloseTo because our input data is made of numbers
                         // (64-bit floats), whereas the txture only supports 32-bit floats.
-                        const expectedV = Math.round((v - min) * factor);
+                        const expectedV = Math.floor(MathUtils.mapLinear(v, min, max, 0, 255));
                         expect(buf[idx + 0]).toBeCloseTo(expectedV, 2);
                         expect(buf[idx + 1]).toBeCloseTo(expectedV, 2);
                         expect(buf[idx + 2]).toBeCloseTo(expectedV, 2);

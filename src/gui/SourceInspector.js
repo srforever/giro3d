@@ -6,7 +6,7 @@ import UrlTile from 'ol/source/UrlTile.js';
 import TileSource from 'ol/source/Tile.js';
 import Instance from '../core/Instance.js';
 import Panel from './Panel.js';
-import CogSource from '../sources/CogSource.js';
+import CogSource from '../sources/CogSource';
 import TiledImageSource from '../sources/TiledImageSource.js';
 
 /**
@@ -41,6 +41,15 @@ class SourceInspector extends Panel {
             this.sourceType = 'CogSource';
             this.addController(this, 'sourceType').name('Type');
             this.addController(this, 'url').name('URL');
+            if (source._channels) {
+                this.cogChannels = JSON.stringify(source._channels);
+                this.addController(this, 'cogChannels').name('Channel mapping').onChange(v => {
+                    const channels = JSON.parse(v);
+                    source.channels = channels;
+                    source.update();
+                    this.instance.notifyChange();
+                });
+            }
         } else if (source instanceof TiledImageSource) {
             this.sourceType = 'TiledImageSource';
             this.addController(this, 'sourceType').name('Type');

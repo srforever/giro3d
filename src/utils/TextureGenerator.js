@@ -25,6 +25,7 @@ import {
     UnsignedShort5551Type,
     ClampToEdgeWrapping,
     LinearFilter,
+    MathUtils,
 } from 'three';
 import Interpretation, { Mode } from '../core/layer/Interpretation.js';
 
@@ -41,8 +42,7 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
 
     if (options.scaling) {
         const { min, max } = options.scaling;
-        const factor = 255 / (max - min);
-        getValue = x => Math.round((x - min) * factor);
+        getValue = x => Math.floor(MathUtils.mapLinear(x, min, max, 0, 255));
     } else {
         getValue = x => x;
     }
@@ -69,30 +69,68 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
         }
     }
     if (pixelData.length === 3) {
-        const r = pixelData[0];
-        const g = pixelData[1];
-        const b = pixelData[2];
-        const length = r.length;
+        const rChannel = pixelData[0];
+        const gChannel = pixelData[1];
+        const bChannel = pixelData[2];
+        const length = rChannel.length;
+        let a;
         for (let i = 0; i < length; i++) {
             const idx = i * 4;
-            buf[idx + 0] = getValue(r[i]);
-            buf[idx + 1] = getValue(g[i]);
-            buf[idx + 2] = getValue(b[i]);
-            buf[idx + 3] = opaqueValue;
+
+            let r = rChannel[i];
+            let g = gChannel[i];
+            let b = bChannel[i];
+
+            if ((Number.isNaN(r) || r === options.nodata)
+                && (Number.isNaN(g) || g === options.nodata)
+                && (Number.isNaN(b) || b === options.nodata)) {
+                r = DEFAULT_NODATA;
+                g = DEFAULT_NODATA;
+                b = DEFAULT_NODATA;
+                a = TRANSPARENT;
+            } else {
+                r = getValue(r);
+                g = getValue(g);
+                b = getValue(b);
+                a = opaqueValue;
+            }
+
+            buf[idx + 0] = r;
+            buf[idx + 1] = g;
+            buf[idx + 2] = b;
+            buf[idx + 3] = a;
         }
     }
     if (pixelData.length === 4) {
-        const r = pixelData[0];
-        const g = pixelData[1];
-        const b = pixelData[2];
-        const a = pixelData[3];
-        const length = r.length;
+        const rChannel = pixelData[0];
+        const gChannel = pixelData[1];
+        const bChannel = pixelData[2];
+        const aChannel = pixelData[3];
+        const length = rChannel.length;
         for (let i = 0; i < length; i++) {
             const idx = i * 4;
-            buf[idx + 0] = getValue(r[i]);
-            buf[idx + 1] = getValue(g[i]);
-            buf[idx + 2] = getValue(b[i]);
-            buf[idx + 3] = getValue(a[i]);
+            let r = rChannel[i];
+            let g = gChannel[i];
+            let b = bChannel[i];
+            let a = aChannel[i];
+
+            if ((Number.isNaN(r) || r === options.nodata)
+                && (Number.isNaN(g) || g === options.nodata)
+                && (Number.isNaN(b) || b === options.nodata)) {
+                r = DEFAULT_NODATA;
+                g = DEFAULT_NODATA;
+                b = DEFAULT_NODATA;
+                a = TRANSPARENT;
+            } else {
+                r = getValue(r);
+                g = getValue(g);
+                b = getValue(b);
+            }
+
+            buf[idx + 0] = r;
+            buf[idx + 1] = g;
+            buf[idx + 2] = b;
+            buf[idx + 3] = a;
         }
     }
     return buf;
@@ -282,8 +320,8 @@ async function decodeBlob(blob, options = {}) {
  *
  * @static
  * @param {object} options The creation options.
- * @param {object} [options.width] width The texture width.
- * @param {object} [options.height] height The texture height.
+ * @param {number} [options.width] width The texture width.
+ * @param {number} [options.height] height The texture height.
  * @param {object} [options.scaling=undefined] Indicates that the input data must be scaled
  * into 8-bit values, using the provided min and max values for scaling.
  * @param {number} [options.scaling.min] The minimum value the input data, used to compute
@@ -295,8 +333,9 @@ async function decodeBlob(blob, options = {}) {
  * Otherwise it will be opaque. If unspecified, the alpha will be opaque. This only applies to
  * 1-channel data. Ignored for 3 and 4-channel data.
  * @param {FloatType|UnsignedByteType} sourceDataType The data type of the input pixel data.
- * @param {...Array} pixelData The pixel data for each input channels.
- * Must be either one, three, or four channels.
+ * @param {...Array<number>| Uint8Array | Int8Array | Uint16Array
+ * | Int16Array | Uint32Array | Int32Array | Float32Array | Float64Array} pixelData The pixel data
+ * for each input channels. Must be either one, three, or four channels.
  * @memberof TextureGenerator
  */
 function createDataTexture(options, sourceDataType, ...pixelData) {

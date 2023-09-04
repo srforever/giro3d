@@ -253,11 +253,15 @@ class Layer extends EventDispatcher {
             return;
         }
         this.composer.clear();
-        for (const target of this.targets.values()) {
-            target.reset();
-        }
 
-        this._instance.notifyChange(this, true);
+        this.loadFallbackImages()
+            .then(() => {
+                for (const target of this.targets.values()) {
+                    target.reset();
+                }
+
+                this._instance.notifyChange(this, true);
+            });
     }
 
     /**
@@ -383,7 +387,11 @@ class Layer extends EventDispatcher {
 
         const promises = requests.map(img => img.request());
 
+        this.opCounter.increment();
+
         const results = await Promise.allSettled(promises);
+
+        this.opCounter.decrement();
 
         for (const result of results) {
             if (result.status === PromiseStatus.Fullfilled) {

@@ -30,6 +30,22 @@ describe('OperationCounter', () => {
             counter.decrement();
             expect(counter.loading).toBeFalsy();
         });
+
+        it('should fire the complete event if the task count reaches zero', () => {
+            const listener = jest.fn();
+            counter.addEventListener('complete', listener);
+
+            counter.increment();
+            counter.increment();
+            counter.increment();
+
+            counter.decrement();
+            expect(listener).not.toHaveBeenCalled();
+            counter.decrement();
+            expect(listener).not.toHaveBeenCalled();
+            counter.decrement();
+            expect(listener).toHaveBeenCalled();
+        });
     });
 
     describe('progress', () => {
