@@ -1,5 +1,99 @@
 # Changelog
 
+## v0.28.0 (2023-09-04)
+
+This release offers numerous bugfixes and performance improvements, as well as some new features.
+
+### BREAKING CHANGE
+
+- The `Scheduler` is removed. Please use the `RequestQueue`
+class instead to enqueue asynchronous operations.
+- the method `offsetInExtent()` has been moved from the `Coordinates` to the `Extent` class
+- `Entity3D.type` now returns `"Entity3D"` rather than `"geometry"`
+
+### Feat
+
+- **Map**: add contour lines (#239)
+- **Interpretation**: support elevation with inversed signs (#344)
+- **CogSource**: support channel mapping (#335)
+- **TextureGenerator**: supports no-data for 3 and 4 channel images
+- **Inspector**: add inspector for RequestQueue
+- **EntityInspector**: add controls to set the entity clipping plane
+- **c3DEngine**: add support for per-object clipping planes
+- **Entity3D**: add the renderOrder property
+- **Entity3D**: add utility methods to traverse hierarchy
+- **Entity3D**: expose clipping planes API (#293)
+- **LayeredMaterial**: add support for clipping planes (#293)
+- **PointsMaterial**: add support for clipping planes (#293)
+- add `isType*` properties on layers, sources, and formats
+- add three.js like `isType*` on entities (isEntity3D, isMap, isPotreePointCloud...)
+- **Tiles3D**: honor the frozen property (#339)
+- **Inspector**: expose the 'frozen' property of entities
+- **Inspector**: add buttons to dispose entities and layers
+- **InstanceInspector**: add a button to trigger an update
+- **Interpretation**: add CompressTo8Bit (#333)
+- **Inspector**: add option to set a custom title of the inspector pane (#334)
+
+### Fix
+
+- **Instance**: fix incorrect splice() call in remove() (#353)
+- **ElevationLayer**: set default min/max to 0 instead of null
+- **TileMesh**: remove dead code
+- **Map**: update the tiles' min/max when an elevation layer is added (#352)
+- **Map**: ensure that the extent matches the instance CRS (#350)
+- **Layer**: use the CRS of the instance in prepare() (#350)
+- **Entity3D**: set transparent to true on new objects when opacity is < 1
+- correctly set `.needsUpdate` when changing opacity on Entities
+- **Layer**: ensure that fallback images are properly loaded when the source is reset
+- **ImageSource**: `createReadableTextures` is now a parameter of getImages()
+- **Drawing**: fix incorrect return type of clear()
+- **AxisGrid**: fix typing issues
+- **Coordinates**: fix typing consistency issue
+- **Map**: `dispose()` should not dispose layers automatically (#323)
+- **Inspector**: improve readability of frame duration chart
+- **c3DEngine**: don't render into a zero-sized framebuffer (#341)
+- **CogSource**: pass containsFn to parent constructor (#337)
+- **CogSource**: select correct data type from sample format and bits per sample
+- **CogSource**: make initialize() idempotent
+
+### Refactor
+
+- **Layer**: migrate to TypeScript
+- **core**: add the Progress interface
+- **CogSource**: migrate to TypeScript
+- **various**: fix typing issues
+- **OperationCounter**: fires the 'complete' event when the task count reaches zero
+- **Scheduler**: remove Scheduler
+- **PotreePointCloud**: remove Scheduler in favor of RequestQueue
+- **Tiles3D**: remove Scheduler in favor of RequestQueue
+- **TileFS.glsl**: minor refactor
+- **shaders**: create the giro3d_common chunk
+- **TileFS.glsl**: chunkify layer composition
+- **TileFS.glsl**: chunkify outlines
+- **c3DEngine**: register custom chunks
+- **TileFS.glsl**: use gl_FragColor everywhere
+- **InstanceInspector**: extract WebGLRenderer specific controls to dedicated inspector
+- **Tiles3D**: expose boundingVolumeToExtent()
+- **Entity3D**: simplify opacity handling
+- **Instance**: fix jsdoc
+- **RequestQueue**: migrate to TypeScript
+- **Extent**: migrate to TypeScript
+- **Coordinates**: move to TypeScript
+- **OperationCounter**: migrate to TypeScript
+- **Instance**: remove `addVector()`
+- **Entity**: improve consistency of return types of preprocess()
+- **TiledImageSource**: pass all options to parent constructor
+- **Interpretation**: add toString() implementation for CompressTo8Bit
+- **Inspector**: add color to chart axes (#285)
+- **Inspector**: improve readability of memory chart (#285)
+- **Inspector**: improve readability of frame chart (#285)
+- **Interpretation.glsl**: simplify condition
+
+### Perf
+
+- **Layer**: preloading of base images is now optional (#347)
+- avoid creating DataTextures when possible (#336)
+
 ## v0.27.0 (2023-07-31)
 
 This releases introduces three major features to Giro3D:
