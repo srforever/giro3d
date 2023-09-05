@@ -227,6 +227,10 @@ class FeatureCollection extends Entity3D {
         });
 
         this._opCounter = new OperationCounter();
+
+        // some protocol like WFS have no real tiling system, so we need to make sure we don't get
+        // duplicated elements
+        this._tileIdSet = new Set();
     }
 
     preprocess() {
@@ -347,6 +351,13 @@ class FeatureCollection extends Entity3D {
     update(ctx, node) {
         if (!node.parent) {
             // if node has been removed dispose three.js resource
+            for (const child of node.children) {
+                // I want to exclude null or undefined, but include 0
+                /* eslint-disable-next-line eqeqeq */
+                if (!child.userData.isTile && child.userData.id != undefined) {
+                    this._tileIdSet.delete(child.userData.id);
+                }
+            }
             ObjectRemovalHelper.removeChildrenAndCleanupRecursively(this, node);
             return null;
         }
@@ -423,6 +434,7 @@ class FeatureCollection extends Entity3D {
                         if (geom.stride > 2) {
                             offset.z = geom.flatCoordinates[2];
                         }
+                        features.filter(f => !this._tileIdSet.has(f.getId()));
                         resolve(this._convert(features, offset));
                     }, err => reject(err),
                 );
@@ -455,9 +467,15 @@ class FeatureCollection extends Entity3D {
                             this.onMeshCreated(mesh);
                         }
 
-                        node.add(mesh);
-                        node.boundingBox.expandByObject(mesh);
-                        this._instance.notifyChange(this);
+                        if (!this._tileIdSet.has(mesh.userData.id)
+                                // exclude null or undefined, but keep 0
+                                /* eslint-disable-next-line eqeqeq */
+                                || mesh.userData.id == undefined) {
+                            this._tileIdSet.add(mesh.userData.id);
+                            node.add(mesh);
+                            node.boundingBox.expandByObject(mesh);
+                            this._instance.notifyChange(this);
+                        }
                     }
                     node.layerUpdateState.noMoreUpdatePossible();
                 } else {
