@@ -9,7 +9,8 @@ import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-import Map from '@giro3d/giro3d/entities/Map.js';
+// NOTE: changing the imported name because we use the native `Map` object in this example.
+import Giro3dMap from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import FeatureCollection from '@giro3d/giro3d/entities/FeatureCollection.js';
@@ -33,11 +34,10 @@ Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat
 
 const viewerDiv = document.getElementById('viewerDiv');
 const instance = new Instance(viewerDiv, { crs: 'EPSG:2154' });
-window.instance = instance;
 
 // create a map
 const extent = new Extent('EPSG:2154', -111629.52, 1275028.84, 5976033.79, 7230161.64);
-const map = new Map('planar', {
+const map = new Giro3dMap('planar', {
     extent,
     hillshading: false,
     segments: 64,
@@ -190,6 +190,64 @@ const cubeTexture = cubeTextureLoader.load([
 instance.scene.background = cubeTexture;
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+
+// information on click
+const resultTable = document.getElementById('results');
+instance.domElement.addEventListener('mousemove', e => {
+    const pickedObjects = instance.pickObjectsAt(e, { radius: 2, where: [feat] });
+    if (pickedObjects.length > 0) {
+        resultTable.innerHTML = '';
+    }
+    if (pickedObjects.length !== 0) {
+        // let's remove duplicates, because picking can find one match per face for the same object
+        const pickedMap = new Map();
+        for (const p of pickedObjects) {
+            pickedMap.set(p.object.userData.id, p.object);
+        }
+        for (const obj of pickedMap.values()) {
+            const p = obj.userData.properties;
+            let propertiesInfo = '';
+            if (p) {
+                propertiesInfo = `
+                    <tr>
+                        <td>nature</td>
+                        <td>${p.nature}</td>
+                    </tr>
+                    <tr>
+                        <td>Usage 1</td>
+                        <td>${p.usage_1}</td>
+                    </tr>
+                    <tr>
+                        <td>Usage 2</td>
+                        <td>${p.usage_2 || 'Unspecified'}</td>
+                    </tr>
+                    <tr>
+                        <td>number of floor</td>
+                        <td>${p.nombre_d_etages || 'Unspecified'}</td>
+                    </tr>
+                `;
+            }
+
+            resultTable.innerHTML += `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>id</td>
+                        <td>${obj.userData.id}</td>
+                    </tr>
+                    ${propertiesInfo}
+                </tbody>
+            </table>
+        `;
+        }
+    }
+});
 
 // Bind events
 StatusBar.bind(instance);
