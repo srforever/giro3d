@@ -52,7 +52,7 @@ export default (env, argv) => {
         optimization: {
             minimize: argv.mode === 'production',
             splitChunks: {
-                chunks: 'all',
+                chunks(chunk) { return chunk.name !== 'index'},
                 name: 'shared',
             },
         },
