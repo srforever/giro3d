@@ -437,7 +437,7 @@ class Instance extends EventDispatcher {
         if (typeof object.dispose === 'function') {
             object.dispose();
         }
-        this._objects.splice(this._objects.indexOf(object, 1));
+        this._objects.splice(this._objects.indexOf(object), 1);
         this.notifyChange(this.camera.camera3D, true);
         this.dispatchEvent({ type: INSTANCE_EVENTS.ENTITY_REMOVED });
     }
