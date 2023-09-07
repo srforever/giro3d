@@ -435,7 +435,7 @@ export default {
      * @returns {Function} the conversion function
      */
     convert(options = {}) {
-        return function _convert(features, offset) {
+        return function _convert(features, offset = new Vector3(0, 0, 0)) {
             if (!features) return null;
 
             const meshes = [];
