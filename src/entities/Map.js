@@ -77,10 +77,8 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
 const tmpVector = new Vector3();
 
 /**
- * @param {
- * boolean|undefined|import('../core/ContourLineOptions.js').ContourLineOptions
- * } input The input
- * @returns {import('../core/ContourLineOptions.js').ContourLineOptions} The options.
+ * @param {boolean|undefined|import('../core').ContourLineOptions} input The input
+ * @returns {import('../core').ContourLineOptions} The options.
  */
 function getContourLineOptions(input) {
     if (!input) {
@@ -269,8 +267,7 @@ class Map extends Entity3D {
      * If `undefined` or `false`, hillshading is disabled.
      *
      * Note: hillshading has no effect if the map does not contain an elevation layer.
-     * @param {boolean|
-     * import('../core/ContourLineOptions.js').ContourLineOptions} [options.contourLines=undefined]
+     * @param {boolean|import('../core').ContourLineOptions} [options.contourLines=undefined]
      * Enables contour lines. If `undefined` or `false`, contour lines are not displayed.
      *
      * Note: this option has no effect if the map does not contain an elevation layer.
