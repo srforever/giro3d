@@ -149,14 +149,36 @@ describe('Instance', () => {
 
     describe('remove', () => {
         it('should remove the object from the list', () => {
-            const map = new Map('owner', { extent: new Extent('EPSG:4326', 0, 0, 0, 0) });
-            instance.add(map);
+            const extent = new Extent('EPSG:4326', 0, 0, 0, 0);
+            const map1 = new Map('map1', { extent });
+            const map2 = new Map('map2', { extent });
+            const map3 = new Map('map3', { extent });
 
-            expect(instance._objects.includes(map)).toBeTruthy();
+            instance.add(map1);
+            instance.add(map2);
+            instance.add(map3);
 
-            instance.remove(map);
+            expect(instance.getObjects().includes(map1)).toBeTruthy();
+            expect(instance.getObjects().includes(map2)).toBeTruthy();
+            expect(instance.getObjects().includes(map3)).toBeTruthy();
 
-            expect(instance._objects.includes(map)).toBeFalsy();
+            instance.remove(map1);
+
+            expect(instance.getObjects().includes(map1)).toBeFalsy();
+            expect(instance.getObjects().includes(map2)).toBeTruthy();
+            expect(instance.getObjects().includes(map3)).toBeTruthy();
+
+            instance.remove(map2);
+
+            expect(instance.getObjects().includes(map1)).toBeFalsy();
+            expect(instance.getObjects().includes(map2)).toBeFalsy();
+            expect(instance.getObjects().includes(map3)).toBeTruthy();
+
+            instance.remove(map3);
+
+            expect(instance.getObjects().includes(map1)).toBeFalsy();
+            expect(instance.getObjects().includes(map2)).toBeFalsy();
+            expect(instance.getObjects().includes(map3)).toBeFalsy();
         });
 
         it('should remove the object from threeObjects if it is a native three.js object', () => {
