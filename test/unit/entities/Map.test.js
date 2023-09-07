@@ -1,3 +1,4 @@
+import '../setup.js';
 import { Color, Group, Object3D } from 'three';
 import Extent from '../../../src/core/geographic/Extent';
 import Instance from '../../../src/core/Instance.js';
@@ -127,6 +128,52 @@ describe('Map', () => {
             expect(m2.materialOptions.hillshading.elevationLayersOnly).toEqual(false);
             expect(m2.materialOptions.hillshading.zenith).toEqual(DEFAULT_ZENITH);
             expect(m2.materialOptions.hillshading.azimuth).toEqual(98);
+        });
+
+        it('should honor contourLines parameter when contourLines is a boolean', () => {
+            const m = new Map('foo', {
+                extent,
+                contourLines: true,
+            });
+
+            expect(m.materialOptions.contourLines.enabled).toEqual(true);
+            expect(m.materialOptions.contourLines.interval).toEqual(100);
+            expect(m.materialOptions.contourLines.secondaryInterval).toEqual(20);
+            expect(m.materialOptions.contourLines.opacity).toEqual(1);
+        });
+
+        it('should honor contour line parameters', () => {
+            const m1 = new Map('foo', {
+                extent,
+                contourLines: {
+                    enabled: true,
+                    opacity: 0.8,
+                    interval: 250,
+                    secondaryInterval: 22,
+                    color: new Color('red'),
+                },
+            });
+
+            expect(m1.materialOptions.contourLines.enabled).toEqual(true);
+            expect(m1.materialOptions.contourLines.opacity).toEqual(0.8);
+            expect(m1.materialOptions.contourLines.interval).toEqual(250);
+            expect(m1.materialOptions.contourLines.secondaryInterval).toEqual(22);
+            expect(m1.materialOptions.contourLines.color).toEqual(new Color('red'));
+
+            // Check if the map assigns default values to parameters
+            const m2 = new Map('foo', {
+                extent,
+                contourLines: {
+                    enabled: true,
+                    opacity: 0.1,
+                },
+            });
+
+            expect(m2.materialOptions.contourLines.enabled).toEqual(true);
+            expect(m2.materialOptions.contourLines.opacity).toEqual(0.1);
+            expect(m2.materialOptions.contourLines.interval).toEqual(100);
+            expect(m2.materialOptions.contourLines.secondaryInterval).toEqual(20);
+            expect(m2.materialOptions.contourLines.color).toEqual(new Color('black'));
         });
 
         it.each([true, false])('should assign the correct materialOptions', b => {

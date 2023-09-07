@@ -108,7 +108,7 @@ float map(float value, float min1, float max1, float min2, float max2) {
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
 
-float calcHillshade(vec2 tileDimensions, vec2 textureSize, float zenith, float azimuth, vec4 offsetScale, sampler2D tex, vec2 uv){
+float calcHillshade(vec2 tileDimensions, vec2 textureSize, float zenith, float azimuth, float intensity, vec4 offsetScale, sampler2D tex, vec2 uv){
     // https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-hillshade-works.htm
     vec2 derivatives = computeDerivatives(tileDimensions, uv, tex, textureSize, offsetScale);
     float slope = calcSlope(derivatives);
@@ -116,7 +116,9 @@ float calcHillshade(vec2 tileDimensions, vec2 textureSize, float zenith, float a
     float zenith_rad = zenith * M_PI / 180.0; // in radians
     float azimuth_rad = azimuth * M_PI / 180.0; // in radians
     float hillshade = ((cos(zenith_rad) * cos(slope)) + (sin(zenith_rad) * sin(slope) * cos(azimuth_rad - aspect)));
-    return clamp(hillshade, 0., 1.);
+    hillshade = clamp(hillshade, 0., 1.);
+
+    return mix(1., hillshade, intensity);
 }
 
 vec2 clamp01(vec2 uv) {

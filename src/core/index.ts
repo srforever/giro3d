@@ -13,6 +13,7 @@ import Instance from './Instance';
 import OperationCounter from './OperationCounter';
 import type Progress from './Progress';
 import type ElevationRange from './ElevationRange';
+import type ContourLineOptions from './ContourLineOptions';
 
 export {
     geographic,
@@ -24,4 +25,5 @@ export {
     OperationCounter,
     Progress,
     ElevationRange,
+    ContourLineOptions,
 };

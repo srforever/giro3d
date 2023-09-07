@@ -26,6 +26,7 @@ import {
     ClampToEdgeWrapping,
     LinearFilter,
     MathUtils,
+    CanvasTexture,
 } from 'three';
 import Interpretation, { Mode } from '../core/layer/Interpretation';
 

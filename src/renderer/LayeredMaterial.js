@@ -52,6 +52,7 @@ class TextureInfo {
     }
 }
 
+export const DEFAULT_HILLSHADING_INTENSITY = 1;
 export const DEFAULT_AZIMUTH = 135;
 export const DEFAULT_ZENITH = 45;
 
@@ -59,6 +60,8 @@ export const DEFAULT_ZENITH = 45;
  * @typedef {object} MaterialOptions The material options.
  * @property {boolean} [discardNoData] Discards no-data pixels.
  * @property {boolean} [doubleSided] Toggles double-sided surfaces.
+ * @property {import('../core/ContourLineOptions.js').ContourLineOptions} [contourLines] Contour
+ * lines.
  * @property {import('../entities/Map.js').HillshadingOptions} [hillshading] Hillshading
  * parameters.
  * @property {number} [segments] The number of subdivision segments per tile.
@@ -86,16 +89,22 @@ class LayeredMaterial extends ShaderMaterial {
 
         this.atlasInfo = atlasInfo;
         this.defines.STITCHING = 1;
+        this.defines.ENABLE_CONTOUR_LINES = 1;
         this.renderer = renderer;
 
-        this.uniforms.zenith = { type: 'f', value: DEFAULT_ZENITH };
-        this.uniforms.azimuth = { type: 'f', value: DEFAULT_AZIMUTH };
+        this.uniforms.zenith = new Uniform(DEFAULT_ZENITH);
+        this.uniforms.azimuth = new Uniform(DEFAULT_AZIMUTH);
+        this.uniforms.hillshadingIntensity = new Uniform(0.5);
 
         this.getIndexFn = getIndexFn;
 
         MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', options.discardNoData);
 
         this.uniforms.segments = new Uniform(options.segments);
+
+        this.uniforms.contourLineInterval = new Uniform(100);
+        this.uniforms.secondaryContourLineInterval = new Uniform(20);
+        this.uniforms.contourLineColor = new Uniform(new Vector4(0, 0, 0, 1));
 
         const elevationRange = options.elevationRange
             ? new Vector2(options.elevationRange.min, options.elevationRange.max)
@@ -525,6 +534,18 @@ class LayeredMaterial extends ShaderMaterial {
             this.uniforms.backgroundColor.value.copy(vec4);
         }
 
+        if (materialOptions.contourLines) {
+            /** @type {import('../core/ContourLineOptions.js').ContourLineOptions} */
+            const opts = materialOptions.contourLines;
+            this.uniforms.contourLineInterval.value = opts.interval ?? 100;
+            this.uniforms.secondaryContourLineInterval.value = opts.secondaryInterval ?? 0;
+            const c = opts.color;
+            const a = opts.opacity;
+            const vec4 = new Vector4(c.r, c.g, c.b, a);
+            this.uniforms.contourLineColor.value = vec4;
+            MaterialUtils.setDefine(this, 'ENABLE_CONTOUR_LINES', opts.enabled);
+        }
+
         if (materialOptions.elevationRange) {
             const { min, max } = materialOptions.elevationRange;
             this.uniforms.elevationRange.value.set(min, max);
@@ -538,6 +559,7 @@ class LayeredMaterial extends ShaderMaterial {
         if (hillshadingParams) {
             this.uniforms.zenith.value = hillshadingParams.zenith ?? DEFAULT_ZENITH;
             this.uniforms.azimuth.value = hillshadingParams.azimuth ?? DEFAULT_AZIMUTH;
+            this.uniforms.hillshadingIntensity.value = hillshadingParams.intensity ?? 0.5;
             MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', hillshadingParams.enabled);
             MaterialUtils.setDefine(this, 'APPLY_SHADING_ON_COLORLAYERS', !hillshadingParams.elevationLayersOnly);
         } else {

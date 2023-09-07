@@ -17,6 +17,8 @@ const int STATE_FINAL = 0;
 const int STATE_PICKING = 1;
 
 varying vec2        vUv; // The input UV
+varying vec3        wPosition; // The input world position
+varying vec3        vViewPosition;
 
 uniform int         renderingState; // Current rendering state (default is STATE_FINAL)
 uniform int         uuid;           // The ID of the tile mesh (used for the STATE_PICKING rendering state)
@@ -27,6 +29,7 @@ uniform vec4        backgroundColor; // The background color
 #include <giro3d_colormap_pars_fragment>
 #include <giro3d_outline_pars_fragment>
 #include <giro3d_compose_layers_pars_fragment>
+#include <giro3d_contour_line_pars_fragment>
 
 #if defined(ENABLE_ELEVATION_RANGE)
 uniform vec2        elevationRange; // Optional elevation range for the whole tile. Not to be confused with elevation range per layer.
@@ -35,6 +38,7 @@ uniform vec2        elevationRange; // Optional elevation range for the whole ti
 #if defined(ENABLE_HILLSHADING)
 uniform float       zenith;     // Zenith of sunlight, in degrees (0 - 90)
 uniform float       azimuth;    // Azimuth on sunlight, in degrees (0 - 360)
+uniform float       hillshadingIntensity;
 #endif
 
 uniform vec2        tileDimensions; // The dimensions of the tile, in CRS units
@@ -103,7 +107,7 @@ void main() {
 #if defined(ELEVATION_LAYER)
     // Step 5 : compute shading
 #if defined(ENABLE_HILLSHADING)
-    hillshade = calcHillshade(tileDimensions, elevationLayer.textureSize, zenith, azimuth, elevationLayer.offsetScale, elevationTexture, elevUv);
+    hillshade = calcHillshade(tileDimensions, elevationLayer.textureSize, zenith, azimuth, hillshadingIntensity, elevationLayer.offsetScale, elevationTexture, elevUv);
 #endif
 #endif
 
@@ -117,6 +121,9 @@ void main() {
 
     // Step 4 : process all color layers (either directly sampling the atlas texture, or use a color map).
     #include <giro3d_compose_layers_fragment>
+
+    // Contour lines
+    #include <giro3d_contour_line_fragment>
 
 #if defined(APPLY_SHADING_ON_COLORLAYERS)
     gl_FragColor.rgb *= hillshade;

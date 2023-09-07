@@ -1,3 +1,4 @@
+import '../setup.js';
 import { DoubleSide, FrontSide } from 'three';
 import LayeredMaterial from '../../../src/renderer/LayeredMaterial.js';
 
