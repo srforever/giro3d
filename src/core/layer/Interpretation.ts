@@ -42,6 +42,8 @@ interface InterpretationOptions {
  * const minmax = Interpretation.ScaleToMinMax(min, max);
  *
  * // Negates the sign of all pixel values, without any interpretation.
+ * // This is useful if your dataset expressed depths (positive values going down) rather than
+ * // heights (positive values going up).
  * const custom = new Interpretation(Mode.Raw, {
  *     negateValues: true,
  * })
@@ -87,7 +89,9 @@ class Interpretation {
     }
 
     /**
-     * Gets or set the sign negation of elevation values.
+     * Gets or set the sign negation of elevation values. If `true`, reverses the sign of elevation
+     * values, such that positive values are going downward, rather than updwards.
+     * In other words, interpret values as depths rather than heights.
      */
     get negateValues() {
         return this._opts.negateValues;
