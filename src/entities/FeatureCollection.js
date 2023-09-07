@@ -260,7 +260,7 @@ class FeatureCollection extends Entity3D {
      * Gets the progress value of the data loading.
      *
      * @api
-     * @type {boolean}
+     * @type {number}
      */
     get progress() {
         return this._opCounter.progress;
