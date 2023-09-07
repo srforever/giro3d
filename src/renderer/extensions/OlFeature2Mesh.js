@@ -56,39 +56,25 @@ function fillColorArray(colors, length, r, g, b, offset) {
     }
 }
 
-function prepareBufferGeometry(geom, color, altitude, offset, extrude) {
+function prepareBufferGeometry(geom, color, altitude, offset) {
     const numVertices = (geom.flatCoordinates.length) / geom.stride;
-    const vertices = new Float32Array(3 * (extrude ? numVertices * 2 : numVertices));
-    const colors = new Uint8Array(3 * (extrude ? numVertices * 2 : numVertices));
+    const vertices = new Float32Array(3 * numVertices);
+    const colors = new Uint8Array(3 * numVertices);
 
     for (let i = 0; i < numVertices; i++) {
         // get the coordinates that geom has
         for (let j = 0; j < geom.stride; j++) {
             vertices[3 * i + j] = geom.flatCoordinates[geom.stride * i + j] - offset[j];
         }
-        // fill the "top" face
-        if (extrude) {
-            // get the coordinates that geom has
-            for (let j = 0; j < geom.stride; j++) {
-                vertices[3 * (numVertices + i) + j] = geom.flatCoordinates[geom.stride * i + j] - offset[j];
-            }
-        }
         // fill the rest of the stride
         if (geom.stride === 2) {
             vertices[3 * i + 2] = Array.isArray(altitude) ? altitude[i] : altitude;
             vertices[3 * i + 2] -= offset[2];
         }
-        if (extrude) {
-            vertices[3 * (numVertices + i) + 2] = vertices[3 * i + 2] + (Array.isArray(extrude) ? extrude[i] : extrude);
-        }
     }
-    fillColorArray(
-        colors, geom.flatCoordinates.length, color.r * 255, color.g * 255, color.b * 255, 0,
-    );
 
     const threeGeom = new BufferGeometry();
     threeGeom.setAttribute('position', new BufferAttribute(vertices, 3));
-    // threeGeom.setAttribute('color', new BufferAttribute(colors, 3, true));
     threeGeom.computeBoundingBox();
     return threeGeom;
 }
