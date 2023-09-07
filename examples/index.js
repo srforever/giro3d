@@ -43,4 +43,3 @@ function registerEvents() {
     const searchBox = document.getElementById('keywords');
     searchBox.addEventListener('input', executeSearchQuery);
 }
-
