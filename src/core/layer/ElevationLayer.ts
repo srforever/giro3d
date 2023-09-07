@@ -1,5 +1,5 @@
 import { FloatType, Texture } from 'three';
-import Interpretation from './Interpretation.js';
+import Interpretation from './Interpretation';
 import Layer, { TextureAndPitch } from './Layer';
 import ColorMap from './ColorMap.js';
 import Extent from '../geographic/Extent.js';

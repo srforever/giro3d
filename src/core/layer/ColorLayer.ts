@@ -1,7 +1,7 @@
 import Layer, { Node, NodeMaterial, TextureAndPitch } from './Layer';
 import EventUtils from '../../utils/EventUtils.js';
 import ImageSource from '../../sources/ImageSource.js';
-import Interpretation from './Interpretation.js';
+import Interpretation from './Interpretation';
 import Extent from '../geographic/Extent';
 import ElevationRange from '../ElevationRange';
 

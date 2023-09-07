@@ -15,7 +15,7 @@ import {
     Vector4,
     MathUtils,
 } from 'three';
-import Interpretation from '../../core/layer/Interpretation.js';
+import Interpretation from '../../core/layer/Interpretation';
 
 import Rect from '../../core/Rect.js';
 import TextureGenerator from '../../utils/TextureGenerator.js';

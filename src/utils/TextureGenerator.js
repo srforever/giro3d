@@ -27,7 +27,7 @@ import {
     LinearFilter,
     MathUtils,
 } from 'three';
-import Interpretation, { Mode } from '../core/layer/Interpretation.js';
+import Interpretation, { Mode } from '../core/layer/Interpretation';
 
 export const OPAQUE_BYTE = 255;
 export const OPAQUE_FLOAT = 1.0;
@@ -470,6 +470,9 @@ function computeMinMax(rgba, nodata, interpretation = Interpretation.Raw) {
             throw new Error('not implemented');
     }
 
+    if (interpretation.negateValues) {
+        return { min: -max, max: -min };
+    }
     return { min, max };
 }
 
