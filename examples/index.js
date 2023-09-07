@@ -38,7 +38,7 @@ function init() {
     registerEvents();
 }
 
-window.addEventListener('load', init);
+window.addEventListener('DOMContentLoaded', init);
 function registerEvents() {
     const searchBox = document.getElementById('keywords');
     searchBox.addEventListener('input', executeSearchQuery);
