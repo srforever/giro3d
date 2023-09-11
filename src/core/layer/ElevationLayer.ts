@@ -32,7 +32,8 @@ class ElevationLayer extends Layer {
      * @param options.extent The geographic extent of the layer. If unspecified,
      * the extent will be inherited from the source. Note: for performance reasons, it is highly
      * recommended to specify an extent when the source is much bigger than the map(s) that host
-     * this layer.
+     * this layer, and when `preloadImages` is `true`. Note: this extent must be in the same CRS as
+     * the instance.
      * @param options.minmax The minimal/maximal elevation values of this layer.
      * If unspecified, the layer will attempt to compute an approximation using downsampled data.
      * @param options.noDataValue the optional no-data value to pass to the source.
