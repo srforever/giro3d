@@ -198,7 +198,8 @@ abstract class Layer extends EventDispatcher
      * @param options The layer options.
      * @param options.source The data source of this layer.
      * @param options.extent The optional extent of the layer. If defined, only parts of the layer
-     * inside the extent will be displayed.
+     * inside the extent will be displayed. Note: this extent must be in the same CRS as the
+     * instance, otherwise an error is raised when the layer is added to an entity.
      * @param options.interpretation How to interpret the values in the dataset.
      * @param options.backgroundColor The background color of the layer.
      * @param options.fillNoData Enables or disables no-data filling for images.
@@ -348,6 +349,10 @@ abstract class Layer extends EventDispatcher
         this.initializing = true;
 
         this._instance = instance;
+
+        if (this.extent && this.extent.crs() !== instance.referenceCrs) {
+            throw new Error(`the extent of the layer was defined in a different CRS (${this.extent.crs()}) than the instance's (${instance.referenceCrs}). Please convert the extent to the instance CRS before creating the layer.`);
+        }
 
         this.whenReady = this.prepare()
             .then(() => {

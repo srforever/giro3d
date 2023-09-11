@@ -25,7 +25,8 @@ class ColorLayer extends Layer {
      * @param options.extent The geographic extent of the layer. If unspecified,
      * the extent will be inherited from the source. Note: for performance reasons, it is highly
      * recommended to specify an extent when the source is much bigger than the map(s) that host
-     * this layer.
+     * this layer, and when `preloadImages` is `true`. Note: this extent must be in the same CRS as
+     * the instance.
      * @param options.showTileBorders If `true`, the borders of the source images
      * will be shown. Useful for debugging rendering issues.
      * @param options.elevationRange An optional elevation range to limit the
