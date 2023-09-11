@@ -1,10 +1,11 @@
+import VectorSource from 'ol/source/Vector';
 import Extent from '../../../src/core/geographic/Extent';
-import FeatureCollection from '../../../src/entities/FeatureCollection.js';
+import FeatureCollection from '../../../src/entities/FeatureCollection';
 
 describe('FeatureCollection', () => {
     describe('constructor', () => {
         it('should throw on undefined id', () => {
-            expect(() => new FeatureCollection(undefined)).toThrow(/Missing id parameter/);
+            expect(() => new FeatureCollection(undefined, {})).toThrow(/Missing id parameter/);
         });
 
         it('should throw if the extent is not provided', () => {
@@ -19,6 +20,16 @@ describe('FeatureCollection', () => {
             expect(() => new FeatureCollection('foo', { extent: invalid })).toThrow(/Invalid extent/);
         });
 
+        it('should throw if the source is not present', () => {
+            // reversed extent (min values are greater than max values)
+            const extent = new Extent('EPSG:4326', {
+                west: 0, east: 10, south: 0, north: 10,
+            });
+
+            expect(() => new FeatureCollection('foo', { extent })).toThrow('options.source is mandatory.');
+            expect(() => new FeatureCollection('foo', { extent, source: null })).toThrow('options.source is mandatory.');
+        });
+
         it('should assign the correct options', () => {
             const extent = new Extent('EPSG:4326', {
                 west: 0, east: 10, south: 0, north: 10,
@@ -26,6 +37,7 @@ describe('FeatureCollection', () => {
             const fc = new FeatureCollection(
                 'foo',
                 {
+                    source: new VectorSource(),
                     extent,
                     minLevel: 10,
                     maxLevel: 15,

@@ -1,9 +1,12 @@
+import type { Sphere } from 'three';
 import {
     Matrix4,
     Vector3,
     ShapeUtils,
     Box3,
 } from 'three';
+
+import type Camera from '../renderer/Camera';
 
 const m = new Matrix4();
 const tmpBox3 = new Box3();
@@ -16,9 +19,9 @@ const temp = [
     new Vector3(),
 ];
 
-function easeInOutQuad(t) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
+function easeInOutQuad(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
 
-function computeSSE(offset, size, matrix, camera, _3d) {
+function computeSSE(offset: Vector3, size: Vector3, matrix: Matrix4, camera: Camera, _3d: boolean) {
     temp[0].copy(offset);
     temp[0].applyMatrix4(matrix);
 
@@ -50,25 +53,33 @@ function computeSSE(offset, size, matrix, camera, _3d) {
     // compute the real area
     const area = Math.abs(ShapeUtils.area([temp[0], temp[2], temp[3], temp[1]]));
 
+    const xLength = temp[1].sub(temp[0]).length();
+    const yLength = temp[2].sub(temp[0]).length();
+    let z = null;
+    let zLength = null;
+    if (_3d) {
+        z = temp[4].clone();
+        zLength = temp[4].sub(temp[0]).length();
+    }
     const result = {
         origin: temp[0].clone(),
         x: temp[1].clone(),
         y: temp[2].clone(),
-        lengths: { },
+        z,
+        lengths: {
+            x: xLength,
+            y: yLength,
+            z: zLength,
+
+        },
+        ratio: easeInOutQuad(area / (xLength * yLength)),
         area,
     };
-    result.lengths.x = temp[1].sub(temp[0]).length();
-    result.lengths.y = temp[2].sub(temp[0]).length();
-    if (_3d) {
-        result.z = temp[4].clone();
-        result.lengths.z = temp[4].sub(temp[0]).length();
-    }
-    result.ratio = easeInOutQuad(result.area / (result.lengths.x * result.lengths.y));
 
     return result;
 }
 
-function findBox3Distance(camera, box3, matrix, isMode3d) {
+function findBox3Distance(camera: Camera, box3: Box3, matrix: Matrix4, isMode3d: boolean) {
     // TODO: can be cached
     // TODO: what about matrix scale component
     m.copy(matrix).invert();
@@ -90,7 +101,7 @@ function findBox3Distance(camera, box3, matrix, isMode3d) {
     return tmpBox3.distanceToPoint(pt);
 }
 
-function computeSizeFromGeometricError(box3, geometricError, _3d) {
+function computeSizeFromGeometricError(box3: Box3, geometricError: number, _3d: boolean) {
     const size = box3.getSize(temp[5]);
     let maxComponent = Math.max(size.x, size.y);
     if (_3d) {
@@ -102,21 +113,37 @@ function computeSizeFromGeometricError(box3, geometricError, _3d) {
     return size;
 }
 
-export default {
+enum Mode {
     /*
      * Compute SSE based on the 2D bounding-box (ignore z size)
      */
-    MODE_2D: 1,
-
+    _2D = 1,
     /*
      * Compute SSE based on the 3D bounding-box
      */
-    MODE_3D: 2,
+    _3D = 2,
+}
 
-    //
-    // Compute a "visible" error: project geometricError in meter on screen,
-    // based on a bounding box and a transformation matrix.
-    computeFromBox3(camera, box3, matrix, geometricError, mode) {
+export default {
+    Mode,
+
+    /**
+    /* Compute a "visible" error: project geometricError in meter on screen,
+    /* based on a bounding box and a transformation matrix.
+     *
+     * @param camera the current camera of the scene
+     * @param box3 the box3 to consider
+     * @param matrix the matrix world of the box
+     * @param geometricError the geometricError
+     * @param mode Whether or not use 3D in the calculus
+    */
+    computeFromBox3(
+        camera: Camera,
+        box3: Box3,
+        matrix: Matrix4,
+        geometricError: number,
+        mode: Mode,
+    ) {
         // If the camera is orthographic, there is no need to do this check.
         if (!camera.camera3D.isOrthographicCamera) {
             const distance = findBox3Distance(camera, box3, matrix, mode === this.MODE_3D);
@@ -138,7 +165,7 @@ export default {
         return sse;
     },
 
-    computeFromSphere(camera, sphere, matrix, geometricError) {
+    computeFromSphere(camera: Camera, sphere: Sphere, matrix: Matrix4, geometricError: number) {
         const s = sphere.clone().applyMatrix4(matrix);
         const distance = Math.max(0.0, s.distanceToPoint(camera.camera3D.position));
         temp[0].set(geometricError, 0, -distance);

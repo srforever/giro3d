@@ -2,7 +2,7 @@ import '../setup.js';
 import * as THREE from 'three';
 import Extent from 'src/core/geographic/Extent';
 import AxisGrid, { type Volume } from 'src/entities/AxisGrid';
-import Context from 'src/core/Context.js';
+import Context from 'src/core/Context';
 import Camera from 'src/renderer/Camera.js';
 
 const DEFAULT_EXTENT = new Extent('EPSG:3857', -10, 10, -10, 10);

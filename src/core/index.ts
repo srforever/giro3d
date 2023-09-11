@@ -14,6 +14,12 @@ import OperationCounter, { type OperationCounterEvents } from './OperationCounte
 import type Progress from './Progress';
 import type ElevationRange from './ElevationRange';
 import type ContourLineOptions from './ContourLineOptions';
+import {
+    type FeatureStyle,
+    type FeatureElevationCallback,
+    type FeatureStyleCallback,
+    type FeatureExtrusionOffsetCallback,
+} from './FeatureTypes';
 
 export {
     geographic,
@@ -27,4 +33,8 @@ export {
     Progress,
     ElevationRange,
     ContourLineOptions,
+    FeatureStyle,
+    FeatureElevationCallback,
+    FeatureStyleCallback,
+    FeatureExtrusionOffsetCallback,
 };

@@ -5,7 +5,7 @@ import GUI from 'lil-gui';
 import { Color } from 'three';
 import Instance from '../core/Instance.js';
 import TileMesh from '../core/TileMesh.js';
-import FeatureCollection from '../entities/FeatureCollection.js';
+import FeatureCollection from '../entities/FeatureCollection';
 import Helpers from '../helpers/Helpers.js';
 import EntityInspector from './EntityInspector.js';
 
