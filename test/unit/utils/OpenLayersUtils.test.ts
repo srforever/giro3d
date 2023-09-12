@@ -1,5 +1,5 @@
-import Extent from '../../../src/core/geographic/Extent';
-import OpenLayersUtils from '../../../src/utils/OpenLayersUtils.js';
+import Extent from 'src/core/geographic/Extent';
+import OpenLayersUtils from 'src/utils/OpenLayersUtils';
 
 describe('OpenLayersUtils', () => {
     describe('toOLExtent/fromOLExtent', () => {

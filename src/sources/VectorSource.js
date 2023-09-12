@@ -29,7 +29,7 @@ import Feature from 'ol/Feature.js';
 import Vector from 'ol/source/Vector.js';
 import FeatureFormat from 'ol/format/Feature.js';
 import ImageSource, { ImageResult } from './ImageSource.js';
-import OpenLayersUtils from '../utils/OpenLayersUtils.js';
+import OpenLayersUtils from '../utils/OpenLayersUtils';
 import Extent from '../core/geographic/Extent';
 import Fetcher from '../utils/Fetcher.js';
 

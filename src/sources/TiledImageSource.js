@@ -7,7 +7,7 @@ import { TileRange } from 'ol';
 import UrlTile from 'ol/source/UrlTile';
 import TileGrid from 'ol/tilegrid/TileGrid.js';
 import Extent from '../core/geographic/Extent';
-import OpenLayersUtils from '../utils/OpenLayersUtils.js';
+import OpenLayersUtils from '../utils/OpenLayersUtils';
 import Fetcher from '../utils/Fetcher.js';
 import TextureGenerator from '../utils/TextureGenerator';
 import ImageSource, { ImageResult } from './ImageSource.js';
