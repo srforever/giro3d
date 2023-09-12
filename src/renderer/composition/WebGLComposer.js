@@ -20,7 +20,7 @@ import Interpretation from '../../core/layer/Interpretation';
 import Rect from '../../core/Rect.js';
 import TextureGenerator from '../../utils/TextureGenerator';
 import MemoryTracker from '../MemoryTracker.js';
-import ComposerTileMaterial from './ComposerTileMaterial.js';
+import ComposerTileMaterial from './ComposerTileMaterial';
 
 /** @type {PlaneGeometry} */
 let SHARED_PLANE_GEOMETRY = null;
@@ -205,7 +205,6 @@ class WebGLComposer {
      * @param {object} [options] The options.
      * @param {Interpretation} [options.interpretation=Interpretation.Raw] The pixel interpretation.
      * @param {number} [options.zOrder=0] The Z-order of the texture in the composition space.
-     * @param {number} [options.fadeDuration=0] The fade duration of the image.
      * @param {boolean} [options.flipY] Flip the image vertically.
      * @param {boolean} [options.fillNoData] Fill no-data values of the image.
      * @param {boolean} [options.transparent] Should the image be transparent.
@@ -224,7 +223,6 @@ class WebGLComposer {
             fillNoData: options.fillNoData,
             interpretation,
             flipY: options.flipY,
-            fadeDuration: options.fadeDuration,
             transparent: options.transparent,
             showImageOutlines: this.showImageOutlines,
         });

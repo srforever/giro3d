@@ -1,15 +1,25 @@
 import {
     Uniform,
     RawShaderMaterial,
-    Texture,
+    type Texture,
     FloatType,
-    MathUtils,
     CanvasTexture,
+    type TextureDataType,
+    type PixelFormat,
 } from 'three';
 
 import FragmentShader from './ComposerTileFS.glsl';
 import VertexShader from './ComposerTileVS.glsl';
 import Interpretation, { Mode } from '../../core/layer/Interpretation';
+
+export interface Options {
+    texture: Texture;
+    interpretation: Interpretation;
+    flipY: boolean;
+    fillNoData: boolean;
+    showImageOutlines: boolean;
+    transparent: boolean;
+}
 
 function createGridTexture() {
     const canvas = document.createElement('canvas');
@@ -54,24 +64,21 @@ function createGridTexture() {
     return new CanvasTexture(canvas);
 }
 
-const POOL = [];
+const POOL: RawShaderMaterial[] = [];
 const POOL_SIZE = 2048;
-let GRID_TEXTURE;
+let GRID_TEXTURE: Texture;
 
 class ComposerTileMaterial extends RawShaderMaterial {
+    now: number;
+    dataType: TextureDataType;
+    pixelFormat: PixelFormat;
+
     /**
      * Creates an instance of ComposerTileMaterial.
      *
-     * @param {object} [options={}] The options.
-     * @param {Interpretation} options.interpretation The image interpretation.
-     * @param {number} options.fadeDuration The fade duration.
-     * @param {Texture} options.texture The texture.
-     * @param {boolean} options.transparent Enable transparency.
-     * @param {boolean} options.flipY If true, the image will be flipped vertically in the shader.
-     * @param {boolean} options.fillNoData If true, applies an algorithm to interpolate
-     * no-data pixels from neighbouring valid pixels.
+     * @param options The options
      */
-    constructor(options = undefined) {
+    constructor(options?: Options) {
         super();
 
         this.fragmentShader = FragmentShader;
@@ -85,78 +92,39 @@ class ComposerTileMaterial extends RawShaderMaterial {
         this.uniforms.showImageOutlines = new Uniform(false);
         this.uniforms.opacity = new Uniform(this.opacity);
         this.now = performance.now();
-        this._opacity = 1;
-        this._ready = true;
 
         if (options) {
             this.init(options);
         }
     }
 
-    set opacity(v) {
-        if (v !== this._opacity) {
-            this._opacity = v;
-            this.now = performance.now();
-        }
-        if (!this.fadeDuration && this._ready) {
-            this.uniforms.opacity.value = v;
-        }
-    }
-
-    get opacity() {
-        return this._opacity;
-    }
-
-    isAnimating() {
-        return this.opacity !== this.uniforms.opacity.value;
-    }
-
-    update(now) {
-        const uniform = this.uniforms.opacity;
-
-        if (this.opacity !== uniform.value) {
-            if (!this.fadeDuration) {
-                uniform.value = this.opacity;
-                this.now = now;
-                return false;
-            }
-
-            // Process opacity animation
-            const dt = (now - this.now) / this.fadeDuration;
-            const sign = Math.sign(this.opacity - uniform.value);
-
-            const newValue = MathUtils.clamp(uniform.value + dt * sign, 0, 1);
-            uniform.value = newValue;
-            this.now = now;
-
-            return true;
-        }
-
-        this.now = now;
-        return false;
-    }
-
     /**
      * Initializes an existing material with new values.
      *
-     * @param {object} opts The options.
-     * @param {Texture} opts.texture The texture.
-     * @param {Interpretation} opts.interpretation The image interpretation.
-     * @param {boolean} opts.flipY If true, the image will be flipped vertically in the shader.
-     * @param {boolean} opts.fillNoData If true, applies an algorithm to interpolate
+     * @param opts The options.
+     * @param opts.texture The texture.
+     * @param opts.interpretation The image interpretation.
+     * @param opts.flipY If true, the image will be flipped vertically in the shader.
+     * @param opts.fillNoData If true, applies an algorithm to interpolate
      * no-data pixels from neighbouring valid pixels.
-     * @param {boolean} opts.showImageOutlines Displays the outline of the tile.
-     * @param {number} opts.fadeDuration The fade duration.
-     * @param {boolean} opts.transparent Enable transparency.
+     * @param opts.showImageOutlines Displays the outline of the tile.
+     * @param opts.fadeDuration The fade duration.
+     * @param opts.transparent Enable transparency.
      */
-    init({
+    private init({
         texture,
         interpretation,
         flipY,
         fillNoData = false,
         showImageOutlines,
-        fadeDuration,
         transparent,
+    }: { texture: Texture;
+        interpretation: Interpretation;
+        flipY: boolean;
+        fillNoData: boolean;
+        showImageOutlines: boolean;
+        fadeDuration?: number;
+        transparent: boolean;
     }) {
         const interp = interpretation ?? Interpretation.Raw;
 
@@ -172,13 +140,7 @@ class ComposerTileMaterial extends RawShaderMaterial {
         // The no-data filling algorithm does not like transparent images
         this.needsUpdate = this.transparent !== transparent;
         this.transparent = transparent ?? false;
-        this.now = performance.now();
-        this.fadeDuration = fadeDuration;
-        if (this.fadeDuration > 0) {
-            this.opacity = 0;
-        } else {
-            this.opacity = 1;
-        }
+        this.opacity = 1;
         this.uniforms.opacity.value = this.opacity;
         this.uniforms.interpretation.value = interpValue;
         this.uniforms.texture.value = texture;
@@ -193,24 +155,18 @@ class ComposerTileMaterial extends RawShaderMaterial {
         }
     }
 
-    reset() {
+    private reset() {
         this.uniforms.texture.value = null;
     }
 
     /**
      * Acquires a pooled material.
      *
-     * @param {object} opts The options.
-     * @param {Texture} opts.texture The texture.
-     * @param {Interpretation} opts.interpretation The image interpretation.
-     * @param {boolean} opts.flipY If true, the image will be flipped vertically in the shader.
-     * @param {boolean} opts.fillNoData If true, applies an algorithm to interpolate
-     * no-data pixels from neighbouring valid pixels.
-     * @param {boolean} opts.showImageOutlines Displays the outline of the tile.
+     * @param opts The options.
      */
-    static acquire(opts) {
+    static acquire(opts: Options) {
         if (POOL.length > 0) {
-            const mat = POOL.pop();
+            const mat = POOL.pop() as ComposerTileMaterial;
             mat.init(opts);
             return mat;
         }
@@ -220,9 +176,9 @@ class ComposerTileMaterial extends RawShaderMaterial {
     /**
      * Releases the material back into the pool.
      *
-     * @param {ComposerTileMaterial} material The material.
+     * @param material The material.
      */
-    static release(material) {
+    static release(material: ComposerTileMaterial) {
         material.reset();
         if (POOL.length < POOL_SIZE) {
             POOL.push(material);
