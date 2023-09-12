@@ -7,7 +7,7 @@ import {
     NearestFilter,
     Texture,
 } from 'three';
-import TextureGenerator from '../../utils/TextureGenerator.js';
+import TextureGenerator from '../../utils/TextureGenerator';
 import ColorMapMode from './ColorMapMode.js';
 
 /**

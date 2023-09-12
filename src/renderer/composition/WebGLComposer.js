@@ -18,7 +18,7 @@ import {
 import Interpretation from '../../core/layer/Interpretation';
 
 import Rect from '../../core/Rect.js';
-import TextureGenerator from '../../utils/TextureGenerator.js';
+import TextureGenerator from '../../utils/TextureGenerator';
 import MemoryTracker from '../MemoryTracker.js';
 import ComposerTileMaterial from './ComposerTileMaterial.js';
 

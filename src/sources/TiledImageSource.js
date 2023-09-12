@@ -9,7 +9,7 @@ import TileGrid from 'ol/tilegrid/TileGrid.js';
 import Extent from '../core/geographic/Extent';
 import OpenLayersUtils from '../utils/OpenLayersUtils.js';
 import Fetcher from '../utils/Fetcher.js';
-import TextureGenerator from '../utils/TextureGenerator.js';
+import TextureGenerator from '../utils/TextureGenerator';
 import ImageSource, { ImageResult } from './ImageSource.js';
 import ImageFormat from '../formats/ImageFormat.js';
 

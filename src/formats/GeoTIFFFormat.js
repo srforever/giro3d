@@ -9,7 +9,7 @@ import {
     RGBAFormat,
     LinearFilter,
 } from 'three';
-import TextureGenerator, { OPAQUE_BYTE, OPAQUE_FLOAT } from '../utils/TextureGenerator.js';
+import TextureGenerator, { OPAQUE_BYTE, OPAQUE_FLOAT } from '../utils/TextureGenerator';
 import ImageFormat from './ImageFormat.js';
 
 let geotiffWorkerPool;

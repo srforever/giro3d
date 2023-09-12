@@ -28,7 +28,11 @@ import {
     ClampToEdgeWrapping,
     LinearFilter,
     MathUtils,
-    CanvasTexture,
+    type WebGLRenderTarget,
+    type PixelFormat,
+    type TextureDataType,
+    type WebGLRenderer,
+    type Color,
 } from 'three';
 import Interpretation, { Mode } from '../core/layer/Interpretation';
 
@@ -37,13 +41,60 @@ export const OPAQUE_FLOAT = 1.0;
 export const TRANSPARENT = 0;
 export const DEFAULT_NODATA = 0;
 
+type NumberArray =
+    Array<number>
+    | Uint8ClampedArray
+    | Uint8Array
+    | Int8Array
+    | Uint16Array
+    | Int16Array
+    | Uint32Array
+    | Int32Array
+    | Float32Array
+    | Float64Array;
+
+/**
+ * Returns the number of bytes per channel.
+ *
+ * @param dataType The pixel format.
+ * @returns The number of bytes per channel.
+ */
+function getBytesPerChannel(dataType: TextureDataType): number {
+    switch (dataType) {
+        case UnsignedByteType:
+        case ByteType:
+            return 1;
+        case ShortType:
+        case UnsignedShortType:
+        case UnsignedShort4444Type:
+        case UnsignedShort5551Type:
+            return 2;
+        case IntType:
+        case UnsignedIntType:
+        case UnsignedInt248Type:
+        case FloatType:
+            return 4;
+        case HalfFloatType:
+            return 2;
+        default:
+            throw new Error(`unknown data type: ${dataType}`);
+    }
+}
+
 // Important note : a lot of code is duplicated to avoid putting
 // conditional branches inside loops, as this can severely reduce performance.
 
 // Note: we don't use Number.isNan(x) in the loops as it slows down the loop due to function
 // invocation. Instead, we use x !== x, as a NaN is never equal to itself.
-function fillBuffer(buf, options, opaqueValue, ...pixelData) {
-    let getValue;
+function fillBuffer<T extends NumberArray>(
+    buf: T, options: {
+        scaling?: { min: number, max: number },
+        nodata?: number
+    },
+    opaqueValue: number,
+    ...pixelData: NumberArray[]
+): T {
+    let getValue: (arg0: number) => number;
 
     if (options.scaling) {
         const { min, max } = options.scaling;
@@ -144,12 +195,12 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
 /**
  * Loads the specified image with a blob.
  *
- * @param {HTMLImageElement} img The image to load.
- * @param {Blob} blob The data blob containing the encoded image data (PNG, JPEG, etc.).
- * @returns {Promise<HTMLImageElement>} A Promise that resolves when the image is loaded, or rejects
+ * @param img The image to load.
+ * @param blob The data blob containing the encoded image data (PNG, JPEG, etc.).
+ * @returns A Promise that resolves when the image is loaded, or rejects
  * when any error occurs during the loading process.
  */
-function load8bitImage(img, blob) {
+function load8bitImage(img: HTMLImageElement, blob: Blob): Promise<HTMLImageElement> {
     // Note: the reason why we don't create the image element inside this function is
     // to prevent it from being eliminated by an aggressive garbage collector, and thus
     // creating a promise that never finished.
@@ -164,10 +215,10 @@ function load8bitImage(img, blob) {
 /**
  * Returns the number of channels per pixel.
  *
- * @param {"PixelFormat"} pixelFormat The pixel format.
- * @returns {number} The number of channels per pixel.
+ * @param pixelFormat The pixel format.
+ * @returns The number of channels per pixel.
  */
-function getChannelCount(pixelFormat) {
+function getChannelCount(pixelFormat: PixelFormat): number {
     switch (pixelFormat) {
         case AlphaFormat: return 1;
         case RGBAFormat: return 4;
@@ -188,10 +239,10 @@ function getChannelCount(pixelFormat) {
 /**
  * Estimate the size of the texture.
  *
- * @param {Texture} texture The texture.
- * @returns {number} The size, in bytes.
+ * @param texture The texture.
+ * @returns The size, in bytes.
  */
-function estimateSize(texture) {
+function estimateSize(texture: Texture): number {
     // Note: this estimation is very broad for several reasons
     // - It does not know if this texture is GPU-memory only or if there is a copy in CPU-memory
     // - It does not know any possible optimization done by the GPU
@@ -202,43 +253,15 @@ function estimateSize(texture) {
 }
 
 /**
- * Returns the number of bytes per channel.
- *
- * @param {"TextureDataType"} dataType The pixel format.
- * @returns {number} The number of bytes per channel.
- */
-function getBytesPerChannel(dataType) {
-    switch (dataType) {
-        case UnsignedByteType:
-        case ByteType:
-            return 1;
-        case ShortType:
-        case UnsignedShortType:
-        case UnsignedShort4444Type:
-        case UnsignedShort5551Type:
-            return 2;
-        case IntType:
-        case UnsignedIntType:
-        case UnsignedInt248Type:
-        case FloatType:
-            return 4;
-        case HalfFloatType:
-            return 2;
-        default:
-            throw new Error(`unknown data type: ${dataType}`);
-    }
-}
-
-/**
  * Reads back the render target buffer into CPU memory, then attach this buffer to the `data`
  * property of the render target's texture.
  *
  * This is useful because normally the pixels of a render target are not readable.
  *
- * @param {"WebGLRenderTarget"} target The render target to read back.
- * @param {"WebGLRenderer"} renderer The WebGL renderer to perform the operation.
+ * @param target The render target to read back.
+ * @param renderer The WebGL renderer to perform the operation.
  */
-function createDataCopy(target, renderer) {
+function createDataCopy(target: WebGLRenderTarget, renderer: WebGLRenderer) {
     // Render target textures don't have data in CPU memory,
     // we need to transfer their data into a buffer.
     const bufSize = target.width * target.height * getChannelCount(target.texture.format);
@@ -246,17 +269,17 @@ function createDataCopy(target, renderer) {
         ? new Uint8Array(bufSize)
         : new Float32Array(bufSize);
     renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, buf);
-    target.texture.data = buf;
+    (target.texture as any).data = buf;
 }
 
 /**
  * Gets the underlying pixel buffer of the image.
  *
- * @param {HTMLImageElement|HTMLCanvasElement} image The image.
- * @returns {Uint8ClampedArray} The pixel buffer.
+ * @param image The image.
+ * @returns The pixel buffer.
  */
-function getPixels(image) {
-    const canvas = document.createElement('canvas', { width: image.width, height: image.height });
+function getPixels(image: HTMLImageElement | HTMLCanvasElement): Uint8ClampedArray {
+    const canvas = document.createElement('canvas');
     canvas.width = image.width;
     canvas.height = image.height;
     const context = canvas.getContext('2d', { willReadFrequently: true });
@@ -266,29 +289,19 @@ function getPixels(image) {
 }
 
 /**
- * Computes min/max of the given image.
- *
- * @param {HTMLImageElement|HTMLCanvasElement} image The image to process.
- * @param {Interpretation} [interpretation] The interpretation of the image.
- * @returns {{ min: number, max: number }} The min/max.
- */
-function computeMinMaxFromImage(image, interpretation = Interpretation.Raw) {
-    const buf = getPixels(image);
-
-    return computeMinMax(buf, 0, interpretation);
-}
-
-/**
  * Decodes the blob according to its media type, then returns a texture for this blob.
  *
- * @param {Blob} blob The buffer to decode.
- * @param {object} options Options
- * @param {boolean} options.createDataTexture If true, the texture will be a data texture.
- * @returns {Promise<Texture>} The generated texture.
- * @throws {Error} When the media type is unsupported.
- * @memberof TextureGenerator
+ * @param blob The buffer to decode.
+ * @param options Options
+ * @param options.createDataTexture If true, the texture will be a data texture.
+ * @returns The generated texture.
+ * @throws When the media type is unsupported.
  */
-async function decodeBlob(blob, options = {}) {
+async function decodeBlob(
+    blob: Blob, options: {
+        createDataTexture?: boolean;
+    } = {},
+): Promise<Texture> {
     // media types are in the form 'type;args', for example: 'text/html; charset=UTF-8;
     const [type] = blob.type.split(';');
 
@@ -323,27 +336,33 @@ async function decodeBlob(blob, options = {}) {
 /**
  * Returns a @type {DataTexture} initialized with the specified data.
  *
- * @static
- * @param {object} options The creation options.
- * @param {number} [options.width] width The texture width.
- * @param {number} [options.height] height The texture height.
- * @param {object} [options.scaling=undefined] Indicates that the input data must be scaled
+ * @param options The creation options.
+ * @param options.width width The texture width.
+ * @param options.height height The texture height.
+ * @param options.scaling Indicates that the input data must be scaled
  * into 8-bit values, using the provided min and max values for scaling.
- * @param {number} [options.scaling.min] The minimum value the input data, used to compute
+ * @param options.scaling.min The minimum value the input data, used to compute
  * the scaling parameters.
- * @param {number} [options.scaling.max] The maximum value of the input data, used to compute
+ * @param options.scaling.max The maximum value of the input data, used to compute
  * the scaling parameters.
- * @param {number} [options.nodata=undefined] The no-data value. If specified,
+ * @param options.nodata The no-data value. If specified,
  * if a pixel has this value, then the alpha value will be transparent.
  * Otherwise it will be opaque. If unspecified, the alpha will be opaque. This only applies to
  * 1-channel data. Ignored for 3 and 4-channel data.
- * @param {FloatType|UnsignedByteType} sourceDataType The data type of the input pixel data.
- * @param {...Array<number>| Uint8Array | Int8Array | Uint16Array
- * | Int16Array | Uint32Array | Int32Array | Float32Array | Float64Array} pixelData The pixel data
+ * @param sourceDataType The data type of the input pixel data.
+ * @param pixelData The pixel data
  * for each input channels. Must be either one, three, or four channels.
- * @memberof TextureGenerator
  */
-function createDataTexture(options, sourceDataType, ...pixelData) {
+function createDataTexture(
+    options: {
+        width?: number;
+        height?: number;
+        scaling?: { min: number; max: number; };
+        nodata?: number;
+    },
+    sourceDataType: TextureDataType,
+    ...pixelData: NumberArray[]
+) {
     const width = options.width;
     const height = options.height;
     const pixelCount = width * height;
@@ -360,11 +379,13 @@ function createDataTexture(options, sourceDataType, ...pixelData) {
         case UnsignedByteType:
         {
             const buf = new Uint8ClampedArray(pixelCount * channelCount);
-            const data = fillBuffer(buf, options, OPAQUE_BYTE, ...pixelData);
-            // We use an ImageData proxy to support drawing this image into a canvas.
-            // This is only possible for 8-bit images.
-            const img = new ImageData(data, width, height);
-            result = new DataTexture(img, width, height, RGBAFormat, UnsignedByteType);
+            const data = fillBuffer(
+                buf,
+                { scaling: options.scaling, nodata: options.nodata },
+                OPAQUE_BYTE,
+                ...pixelData,
+            );
+            result = new DataTexture(data, width, height, RGBAFormat, UnsignedByteType);
             break;
         }
         case FloatType:
@@ -385,10 +406,10 @@ function createDataTexture(options, sourceDataType, ...pixelData) {
 /**
  * Returns a 1D texture containing a pixel on the horizontal axis for each color in the array.
  *
- * @param {"Color"[]} colors The color gradient.
- * @returns {DataTexture} The resulting texture.
+ * @param colors The color gradient.
+ * @returns The resulting texture.
  */
-function create1DTexture(colors) {
+function create1DTexture(colors: Color[]): DataTexture {
     const size = colors.length;
     const buf = new Uint8ClampedArray(size * 4);
 
@@ -413,12 +434,16 @@ function create1DTexture(colors) {
  * Computes the minimum and maximum value of the RGBA buffer, but only taking into account the first
  * channel (R channel). This is typically used for elevation data.
  *
- * @param {ArrayBuffer} rgba The RGBA buffer.
- * @param {?number} nodata The no-data value. Pixels with this value will be ignored.
- * @param {Interpretation} interpretation The image interpretation.
- * @returns {{min: number, max: number}} The computed min/max.
+ * @param rgba The RGBA buffer.
+ * @param nodata The no-data value. Pixels with this value will be ignored.
+ * @param interpretation The image interpretation.
+ * @returns The computed min/max.
  */
-function computeMinMax(rgba, nodata, interpretation = Interpretation.Raw) {
+function computeMinMax(
+    rgba: NumberArray,
+    nodata?: number,
+    interpretation: Interpretation = Interpretation.Raw,
+): { min: number; max: number; } {
     let min = Infinity;
     let max = -Infinity;
 
@@ -479,6 +504,22 @@ function computeMinMax(rgba, nodata, interpretation = Interpretation.Raw) {
         return { min: -max, max: -min };
     }
     return { min, max };
+}
+
+/**
+ * Computes min/max of the given image.
+ *
+ * @param image The image to process.
+ * @param interpretation The interpretation of the image.
+ * @returns The min/max.
+ */
+function computeMinMaxFromImage(
+    image: HTMLImageElement | HTMLCanvasElement,
+    interpretation: Interpretation = Interpretation.Raw,
+): { min: number; max: number; } {
+    const buf = getPixels(image);
+
+    return computeMinMax(buf, 0, interpretation);
 }
 
 export default {

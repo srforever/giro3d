@@ -4,7 +4,7 @@
 
 import { EventDispatcher, Texture } from 'three';
 import HttpConfiguration from './HttpConfiguration.js';
-import TextureGenerator from './TextureGenerator.js';
+import TextureGenerator from './TextureGenerator';
 import HttpQueue from './HttpQueue.js';
 
 /**

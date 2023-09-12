@@ -15,7 +15,7 @@ import {
 
 import HttpConfiguration from '../utils/HttpConfiguration.js';
 import Extent from '../core/geographic/Extent';
-import TextureGenerator from '../utils/TextureGenerator.js';
+import TextureGenerator from '../utils/TextureGenerator';
 import PromiseUtils from '../utils/PromiseUtils.js';
 import ImageSource, { CustomContainsFn, ImageResult } from './ImageSource.js';
 import { Cache } from '../core/Cache.js';

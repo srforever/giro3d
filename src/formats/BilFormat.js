@@ -3,7 +3,7 @@
  */
 import { FloatType } from 'three';
 import ImageFormat from './ImageFormat.js';
-import TextureGenerator from '../utils/TextureGenerator.js';
+import TextureGenerator from '../utils/TextureGenerator';
 
 /**
  * A format class representing the [Bil format](https://desktop.arcgis.com/en/arcmap/10.3/manage-data/raster-and-images/bil-bip-and-bsq-raster-files.htm).

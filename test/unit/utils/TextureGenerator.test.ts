@@ -10,13 +10,7 @@ import TextureGenerator, {
     OPAQUE_BYTE, OPAQUE_FLOAT,
     TRANSPARENT,
     DEFAULT_NODATA,
-} from '../../../src/utils/TextureGenerator.js';
-
-global.ImageData = function ImageData(buf, w, h) {
-    this.data = buf;
-    this.width = w;
-    this.height = h;
-};
+} from 'src/utils/TextureGenerator';
 
 describe('TextureGenerator', () => {
     describe('createDataTexture', () => {
@@ -32,10 +26,9 @@ describe('TextureGenerator', () => {
                         { width: w, height: h }, UnsignedByteType, data,
                     );
 
-                    const buf = result.image.data.data;
+                    const buf = result.image.data;
 
                     expect(result).toBeInstanceOf(DataTexture);
-                    expect(buf).toBeInstanceOf(Uint8ClampedArray);
                     expect(buf).toHaveLength(expectedOutputLength);
 
                     for (let i = 0; i < data.length; i++) {
@@ -62,10 +55,9 @@ describe('TextureGenerator', () => {
                         { width: w, height: h }, UnsignedByteType, r, g, b,
                     );
 
-                    const buf = result.image.data.data;
+                    const buf = result.image.data;
 
                     expect(result).toBeInstanceOf(DataTexture);
-                    expect(buf).toBeInstanceOf(Uint8ClampedArray);
                     expect(buf).toHaveLength(expectedOutputLength);
 
                     for (let i = 0; i < r.length; i++) {
@@ -97,7 +89,7 @@ describe('TextureGenerator', () => {
                         { width: w, height: h }, UnsignedByteType, r, g, b, a,
                     );
 
-                    const buf = result.image.data.data;
+                    const buf = result.image.data;
 
                     expect(result).toBeInstanceOf(DataTexture);
                     expect(buf).toBeInstanceOf(Uint8ClampedArray);
@@ -163,7 +155,7 @@ describe('TextureGenerator', () => {
                         { width: w, height: h, scaling: { min, max } }, type, data,
                     );
 
-                    const buf = result.image.data.data;
+                    const buf = result.image.data;
 
                     expect(result).toBeInstanceOf(DataTexture);
                     expect(buf).toBeInstanceOf(Uint8ClampedArray);

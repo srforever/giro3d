@@ -13,7 +13,7 @@ import WebGLComposer from '../../renderer/composition/WebGLComposer.js';
 import Rect from '../Rect.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
 import ComposerTileMaterial from '../../renderer/composition/ComposerTileMaterial.js';
-import TextureGenerator from '../../utils/TextureGenerator.js';
+import TextureGenerator from '../../utils/TextureGenerator';
 import ProjUtils from '../../utils/ProjUtils.js';
 
 const tmpVec2 = new Vector2();
