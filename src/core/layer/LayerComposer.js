@@ -14,7 +14,7 @@ import Rect from '../Rect.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
 import ComposerTileMaterial from '../../renderer/composition/ComposerTileMaterial.js';
 import TextureGenerator from '../../utils/TextureGenerator';
-import ProjUtils from '../../utils/ProjUtils.js';
+import ProjUtils from '../../utils/ProjUtils';
 
 const tmpVec2 = new Vector2();
 

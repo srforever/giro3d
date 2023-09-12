@@ -6,14 +6,22 @@ import proj from 'proj4';
  * Only the 2 first elements of each point (i.e the X and Y coordinate) are transformed. The other
  * elements are left untouched.
  *
- * @param {number[]} buf The buffer to transform.
- * @param {object} params The transformation parameters.
- * @param {string} params.srcCrs The source CRS code.
- * @param {number} params.offsetX The offset to the original X coordinate before transformation.
- * @param {number} params.offsetY The offset to the original Y coordinate before transformation.
- * @param {number} params.stride The stride of the buffer.
+ * @param buf The buffer to transform.
+ * @param params The transformation parameters.
+ * @param params.srcCrs The source CRS code. Must be known to PROJ.
+ * @param params.dstCrs The destination CRS code. Must be known to PROJ.
+ * @param params.offsetX The offset to the original X coordinate before transformation.
+ * @param params.offsetY The offset to the original Y coordinate before transformation.
+ * @param params.stride The stride of the buffer.
  */
-function transformBufferInPlace(buf, params) {
+function transformBufferInPlace(buf: number[],
+    params: {
+        srcCrs: string;
+        dstCrs: string;
+        stride: number;
+        offsetX?: number;
+        offsetY?: number;
+    }) {
     if (params.srcCrs === params.dstCrs) {
         return;
     }
