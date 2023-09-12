@@ -156,7 +156,9 @@ class EntityInspector extends Panel {
         if (options.visibility) {
             this.addController(this, 'visible').name('Visible').onChange(v => this.toggleVisibility(v));
         }
-        this.addController(this.entity, 'frozen').onChange(() => this.notify(this.entity));
+        this.addController(this.entity, 'frozen')
+            .name('Freeze updates')
+            .onChange(() => this.notify(this.entity));
         if (options.opacity) {
             this.addController(this.entity, 'opacity')
                 .name('Opacity')

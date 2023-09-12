@@ -129,9 +129,6 @@ class FeatureCollectionInspector extends EntityInspector {
         this.addController(this, 'wireframe')
             .name('Wireframe')
             .onChange(v => this.toggleWireframe(v));
-        this.addController(this, 'frozen')
-            .name('Freeze updates')
-            .onChange(v => this.toggleFrozen(v));
         this.addController(this, 'dumpTiles').name('Dump tiles in console');
         this.hideAllController = this.addController(this, 'hideAllButClicked');
         this.filterState = FILTER_STATE.NONE;
@@ -172,11 +169,6 @@ class FeatureCollectionInspector extends EntityInspector {
         } else {
             Helpers.removeBoundingBox(tile);
         }
-    }
-
-    toggleFrozen(value) {
-        this.features.frozen = value;
-        this.notify();
     }
 
     toggleWireframe(value) {
