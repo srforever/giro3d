@@ -1,5 +1,5 @@
 import ColorLayer from 'src/core/layer/ColorLayer';
-import NullSource from 'src/sources/NullSource.js';
+import NullSource from 'src/sources/NullSource';
 
 describe('ColorLayer', () => {
     describe('constructor', () => {

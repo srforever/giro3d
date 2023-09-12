@@ -1,6 +1,6 @@
 import Layer, { Node, TextureAndPitch } from 'src/core/layer/Layer';
 import Extent from 'src/core/geographic/Extent';
-import NullSource from 'src/sources/NullSource.js';
+import NullSource from 'src/sources/NullSource';
 import RequestQueue from 'src/core/RequestQueue';
 import { setupGlobalMocks } from '../../mocks.js';
 

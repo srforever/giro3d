@@ -1,4 +1,4 @@
-import { GeoTIFFImage } from 'geotiff';
+import type { GeoTIFFImage } from 'geotiff';
 import Extent from 'src/core/geographic/Extent';
 import CogSource from 'src/sources/CogSource';
 

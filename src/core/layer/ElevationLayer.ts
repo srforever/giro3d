@@ -45,7 +45,7 @@ class ElevationLayer extends Layer {
         source: ImageSource;
         interpretation?: Interpretation;
         extent?: Extent;
-        preloadImages: boolean,
+        preloadImages?: boolean,
         minmax?: ElevationRange;
         noDataValue?: number;
         colorMap?: ColorMap;

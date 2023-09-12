@@ -19,7 +19,7 @@ import LayerComposer from './LayerComposer.js';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
 import Instance from '../Instance.js';
-import ImageSource, { ImageResult } from '../../sources/ImageSource.js';
+import ImageSource, { ImageResult } from '../../sources/ImageSource';
 import RequestQueue, { DefaultQueue } from '../RequestQueue';
 import OperationCounter from '../OperationCounter';
 import TileMesh from '../TileMesh.js';

@@ -8,17 +8,17 @@ import {
 import {
     fromUrl,
     type TypedArray,
-    GeoTIFFImage,
+    type GeoTIFFImage,
     Pool,
-    GeoTIFF,
+    type GeoTIFF,
 } from 'geotiff';
 
 import HttpConfiguration from '../utils/HttpConfiguration.js';
 import Extent from '../core/geographic/Extent';
 import TextureGenerator from '../utils/TextureGenerator';
 import PromiseUtils from '../utils/PromiseUtils.js';
-import ImageSource, { CustomContainsFn, ImageResult } from './ImageSource.js';
-import { Cache } from '../core/Cache.js';
+import ImageSource, { ImageResult, type ImageSourceOptions } from './ImageSource';
+import { Cache } from '../core/Cache';
 
 const tmpDim = new Vector2();
 
@@ -45,6 +45,47 @@ function selectDataType(format: number, bitsPerSample: number) {
     return FloatType;
 }
 
+export interface CogSourceOptions extends ImageSourceOptions {
+    /**
+     * The URL of the COG image.
+     */
+    url: string;
+    /**
+     * The Coordinate Reference System of the image.
+     */
+    crs: string;
+    /**
+     * How the samples in the GeoTIFF files (also
+     * known as bands), are mapped to the color channels of an RGB(A) image.
+     *
+     * Must be an array of either 1, 3 or 4 elements. Each element is the index of a sample in the
+     * source file. For example, to map the samples 0, 3, and 2 to the R, G, B colors, you can use
+     * `[0, 3, 2]`.
+     *
+     * - 1 element means the resulting image will be a grayscale image
+     * - 3 elements means the resulting image will be a RGB image
+     * - 4 elements means the resulting image will be a RGB image with an alpha channel.
+     *
+     * Note: if the channels is `undefined`, then they will be selected automatically with the
+     * following rules: if the image has 3 or more samples, the first 3 samples will be used,
+     * (i.e `[0, 1, 2]`). Otherwise, only the first sample will be used (i.e `[0]`). In any case,
+     * no transparency channel will be selected automatically, as there is no way to determine
+     * if a specific sample represents transparency.
+     *
+     * ## Examples
+     *
+     * - I have a color image, but I only want to see the blue channel (sample = 1): `[1]`
+     * - I have a grayscale image, with only 1 sample: `[0]`
+     * - I have a grayscale image with a transparency channel at index 1: `[0, 0, 0, 1]`
+     * - I have a color image without a transparency channel: `[0, 1, 2]`
+     * - I have a color image with a transparency channel at index 3: `[0, 1, 2, 3]`
+     * - I have a color image with transparency at index 3, but I only want to see the blue channel:
+     * `[1, 1, 1, 3]`
+     * - I have a color image but in the B, G, R order: `[2, 1, 0]`
+     */
+    channels?: number[];
+}
+
 /**
  * Provides data from a Cloud Optimized GeoTIFF (COG).
  */
@@ -67,48 +108,13 @@ class CogSource extends ImageSource {
     private nodata: number;
     private format: any;
     private bps: number;
+
     /**
      * Creates a COG source.
      *
      * @param options options
-     * @param options.url the url of the COG image
-     * @param options.crs the CRS of the COG image
-     * @param options.containsFn The custom function
-     * to test if a given extent is contained in this source.
-     * @param options.channels How the samples in the GeoTIFF files (also
-     * known as bands), are mapped to the color channels of an RGB(A) image.
-     *
-     * Must be an array of either 1, 3 or 4 elements. Each element is the index of a sample in the
-     * source file. For example, to map the samples 0, 3, and 2 to the R, G, B colors, you can use
-     * `[0, 3, 2]`.
-     *
-     * - 1 element means the resulting image will be a grayscale image
-     * - 3 elements means the resulting image will be a RGB image
-     * - 4 elements means the resulting image will be a RGB image with an alpha channel.
-     *
-     * Note: if the channels is `undefined`, then they will be selected automatically with the
-     * following rules: if the image has 3 or more samples, the first 3 sample will be used,
-     * (i.e `[0, 1, 2]`). Otherwise, only the first sample will be used (i.e `[0]`). In any case,
-     * no transparency channel will be selected automatically, as there is no way to determine
-     * if a specific sample represents transparency.
-     *
-     * ## Examples
-     *
-     * - I have a color image, but I only want to see the blue channel (sample = 1): `[1]`
-     * - I have a grayscale image, with only 1 sample: `[0]`
-     * - I have a grayscale image with a transparency channel at index 1: `[0, 0, 0, 1]`
-     * - I have a color image without a transparency channel: `[0, 1, 2]`
-     * - I have a color image with a transparency channel at index 3: `[0, 1, 2, 3]`
-     * - I have a color image with transparency at index 3, but I only want to see the blue channel:
-     * `[1, 1, 1, 3]`
-     * - I have a color image but in the B, G, R order: `[2, 1, 0]`
      */
-    constructor(options : {
-        url: string,
-        crs: string,
-        channels?: number[],
-        containsFn?: CustomContainsFn,
-    }) {
+    constructor(options : CogSourceOptions) {
         super({ flipY: true, ...options });
 
         this.type = 'CogSource';
@@ -136,7 +142,7 @@ class CogSource extends ImageSource {
      * @param crs The CRS.
      * @param tiffImage The TIFF image.
      */
-    private static computeExtent(crs: string, tiffImage: GeoTIFFImage) {
+    static computeExtent(crs: string, tiffImage: GeoTIFFImage) {
         const [
             minx,
             miny,
@@ -159,7 +165,7 @@ class CogSource extends ImageSource {
         requestExtent: Extent,
         requestWidth: number,
         requestHeight: number,
-        margin: number,
+        margin: number = 0,
     ) {
         const level = this.selectLevel(
             requestExtent,

@@ -7,7 +7,7 @@ import TileSource from 'ol/source/Tile.js';
 import Instance from '../core/Instance.js';
 import Panel from './Panel.js';
 import CogSource from '../sources/CogSource';
-import TiledImageSource from '../sources/TiledImageSource.js';
+import TiledImageSource from '../sources/TiledImageSource';
 
 /**
  * Inspector for a source.
