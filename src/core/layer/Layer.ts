@@ -487,11 +487,6 @@ abstract class Layer extends EventDispatcher
         target: Target;
         alwaysVisible?: boolean;
     }): Promise<void> {
-        // Let's wait for a short time to avoid processing requests that become
-        // immediately obsolete, such as tiles that become visible for a very brief moment.
-        // Those tiles will be rendered using whatever data is available in the composer.
-        await PromiseUtils.delay(200);
-
         const {
             extent,
             width,
@@ -501,10 +496,6 @@ abstract class Layer extends EventDispatcher
         } = options;
 
         const node = target.node;
-
-        if (this.shouldCancelRequest(node)) {
-            target.abortAndThrow();
-        }
 
         const results = this.source.getImages({
             id: `${target.node.id}`,
@@ -524,6 +515,11 @@ abstract class Layer extends EventDispatcher
         results.forEach(r => {
             target.imageIds.add(r.id);
         });
+
+        // Let's wait for a short time to avoid processing requests that become
+        // immediately obsolete, such as tiles that become visible for a very brief moment.
+        // Those tiles will be rendered using whatever data is available in the composer.
+        await PromiseUtils.delay(200);
 
         if (this.shouldCancelRequest(node)) {
             target.abortAndThrow();
@@ -716,8 +712,6 @@ abstract class Layer extends EventDispatcher
         if (target.state !== TargetState.Pending) {
             return;
         }
-
-        target.state = TargetState.Processing;
         const signal = target.controller.signal;
 
         if (signal.aborted) {
@@ -733,6 +727,8 @@ abstract class Layer extends EventDispatcher
         // Fetch adequate images from the source...
         const isContained = this.contains(extent);
         if (isContained) {
+            target.state = TargetState.Processing;
+
             if (!target.renderTarget) {
                 target.renderTarget = this.acquireRenderTarget(width, height);
 
@@ -756,6 +752,8 @@ abstract class Layer extends EventDispatcher
 
                 if (isLastRender) {
                     target.state = TargetState.Complete;
+                } else {
+                    target.state = TargetState.Pending;
                 }
 
                 const texture = target.renderTarget.texture;
@@ -766,11 +764,13 @@ abstract class Layer extends EventDispatcher
                 // However any other error implies an abnormal termination of the processing.
                 if (err.message !== 'aborted') {
                     console.error(err);
+                    target.state = TargetState.Complete;
+                } else {
+                    target.state = TargetState.Pending;
                 }
-
-                target.state = TargetState.Pending;
             });
         } else {
+            target.state = TargetState.Complete;
             this.applyEmptyTextureToNode(target.node);
         }
     }
