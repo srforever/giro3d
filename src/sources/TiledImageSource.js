@@ -277,10 +277,15 @@ class TiledImageSource extends ImageSource {
         const source = this.source;
         const tileGrid = this.tileGrid;
 
+        const fullTileRange = tileGrid.getFullTileRange(zoom);
+
         const promises = [];
 
         for (let i = tileRange.minX; i <= tileRange.maxX; i++) {
             for (let j = tileRange.minY; j <= tileRange.maxY; j++) {
+                if (!fullTileRange.containsXY(i, j)) {
+                    continue;
+                }
                 const tile = source.getTile(zoom, i, j);
                 const coord = tile.tileCoord;
                 const olExtent = tileGrid.getTileCoordExtent(coord);
