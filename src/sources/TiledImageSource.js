@@ -4,7 +4,7 @@
 
 import { Vector2 } from 'three';
 import { TileRange } from 'ol';
-import TileSource from 'ol/source/Tile.js';
+import UrlTile from 'ol/source/UrlTile';
 import TileGrid from 'ol/tilegrid/TileGrid.js';
 import Extent from '../core/geographic/Extent';
 import OpenLayersUtils from '../utils/OpenLayersUtils.js';
@@ -56,8 +56,10 @@ const tmp = {
 class TiledImageSource extends ImageSource {
     /**
      * @param {object} options The options.
-     * @param {TileSource} options.source The OpenLayers tiled source.
+     * @param {UrlTile} options.source The OpenLayers tiled source.
      * @param {number} [options.noDataValue] The optional no-data value.
+     * @param {Extent} [options.extent] The optional extent of the source. If not provided, it will
+     * be computed from the tile grid.
      * @param {ImageFormat} [options.format] The optional image decoder.
      * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
      * to test if a given extent is contained in this source.
@@ -84,9 +86,11 @@ class TiledImageSource extends ImageSource {
         // Cache the tilegrid because it is constant
         this.tileGrid = tileGrid;
         this.getTileUrl = source.getTileUrlFunction();
-        const extent = tileGrid.getExtent();
         this.noDataValue = noDataValue;
-        this.sourceExtent = OpenLayersUtils.fromOLExtent(extent, projection.getCode());
+        this.sourceExtent = options.extent ?? OpenLayersUtils.fromOLExtent(
+            tileGrid.getExtent(),
+            projection.getCode(),
+        );
     }
 
     getExtent() {
@@ -270,9 +274,7 @@ class TiledImageSource extends ImageSource {
      * @param {boolean} createDataTexture Creates readable textures.
      */
     loadTiles(tileRange, crs, zoom, createDataTexture) {
-        /** @type {TileSource} */
         const source = this.source;
-        /** @type {TileGrid} */
         const tileGrid = this.tileGrid;
 
         const promises = [];
