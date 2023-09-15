@@ -236,8 +236,4 @@ popoverTriggerList.map(
     }),
 );
 
-const renderer = new PointCloudRenderer(instance);
-
-instance.addFrameRequester(MAIN_LOOP_EVENTS.AFTER_RENDER, () => renderer.render(instance, 1));
-
 StatusBar.bind(instance);
