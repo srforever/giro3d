@@ -2,7 +2,7 @@
  * @module sources/TiledImageSource
  */
 
-import { Vector2 } from 'three';
+import { Texture, Vector2 } from 'three';
 import { TileRange } from 'ol';
 import UrlTile from 'ol/source/UrlTile';
 import TileGrid from 'ol/tilegrid/TileGrid.js';
@@ -194,6 +194,29 @@ class TiledImageSource extends ImageSource {
         return images;
     }
 
+    // eslint-disable-next-line class-methods-use-this
+    async fetchData(url) {
+        try {
+            const response = await Fetcher.fetch(url);
+
+            // If the response is 204 No Content for example, we have nothing to do.
+            // This happens when a tile request is valid, but points to a region with no data.
+            // Note: we let the HTTP handler do the logging for us in case of 4XX errors.
+            if (response.status !== 200) {
+                return null;
+            }
+
+            const blob = await response.blob();
+
+            return blob;
+        } catch (e) {
+            if (e.response?.status === 404) {
+                return null;
+            }
+            throw e;
+        }
+    }
+
     /**
      * Loads the tile once and returns a reusable promise containing the tile texture.
      *
@@ -204,19 +227,12 @@ class TiledImageSource extends ImageSource {
      * @returns {Promise<ImageResult>|Promise<null>} The tile texture, or null if there is no data.
      */
     async loadTile(id, url, extent, createDataTexture) {
-        const response = await Fetcher.fetch(url);
-
-        // If the response is 204 No Content for example, we have nothing to do.
-        // This happens when a tile request is valid, but points to a region with no data.
-        // Note: we let the HTTP handler do the logging for us in case of 4XX errors.
-        if (response.status !== 200) {
-            return null;
-        }
-
-        const blob = await response.blob();
+        const blob = await this.fetchData(url);
 
         if (!blob) {
-            return null;
+            return new ImageResult({
+                texture: new Texture(), extent, id,
+            });
         }
 
         let texture;
