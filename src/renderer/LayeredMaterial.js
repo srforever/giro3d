@@ -99,6 +99,7 @@ class LayeredMaterial extends ShaderMaterial {
         this.getIndexFn = getIndexFn;
 
         MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', options.discardNoData);
+        MaterialUtils.setDefine(this, 'ENABLE_DARK_BACKFACE', options.darkBackface);
 
         this.uniforms.segments = new Uniform(options.segments);
 
@@ -554,6 +555,7 @@ class LayeredMaterial extends ShaderMaterial {
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this.elevationLayer?.visible);
         MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', this.showOutline);
         MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', materialOptions.discardNoData);
+        MaterialUtils.setDefine(this, 'ENABLE_DARK_BACKFACE', materialOptions.darkBackface);
 
         const hillshadingParams = materialOptions.hillshading;
         if (hillshadingParams) {

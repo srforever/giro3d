@@ -132,11 +132,13 @@ void main() {
     gl_FragColor.a *= opacity;
 
     // Step 6 : apply backface processing.
+#if defined(ENABLE_DARK_BACKFACE)
     if (!gl_FrontFacing) {
         // Display the backside in a desaturated, darker tone, to give visual feedback that
         // we are, in fact, looking at the map from the "wrong" side.
         gl_FragColor.rgb = desaturate(gl_FragColor.rgb, 1.) * 0.5;
     }
+#endif
 
     // Step 7 : draw tile outlines
     #include <giro3d_outline_fragment>

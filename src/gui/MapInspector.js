@@ -154,6 +154,9 @@ class MapInspector extends EntityInspector {
         this.addController(this.map.materialOptions, 'discardNoData')
             .name('Discard no-data values')
             .onChange(() => this.notify(this.map));
+        this.addController(this.map.materialOptions, 'darkBackface')
+            .name('Darken backface')
+            .onChange(() => this.notify(this.map));
         this.addController(this, 'layerCount').name('Layer count');
         this.addController(this, 'renderState', ['Normal', 'Picking'])
             .name('Render state')

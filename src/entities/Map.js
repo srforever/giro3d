@@ -279,6 +279,9 @@ class Map extends Entity3D {
      * @param {boolean} [options.discardNoData=false] If `true`, parts of the map that relate to
      * no-data elevation values are not displayed. Note: you should only set this value to `true` if
      * an elevation layer is present, otherwise the map will never be displayed.
+     * @param {boolean} [options.darkBackface=true|false] If `true`, darkens the backface of the map
+     * (i.e. under the map) - not supported by all platforms. Enabled by default except for
+     * unsupported platforms
      * @param {module:three.Object3D} [options.object3d=undefined] The optional 3d object to use as
      * the root object of this map. If none provided, a new one will be created.
      * @param {string} [options.backgroundColor=undefined] The color of the map when no color layers
@@ -334,6 +337,7 @@ class Map extends Entity3D {
             hillshading: getHillshadingOptions(options.hillshading),
             contourLines: getContourLineOptions(options.contourLines),
             discardNoData: options.discardNoData || false,
+            darkBackface: options.darkBackface ?? Capabilities.isBackfaceSupported(),
             doubleSided: options.doubleSided || false,
             segments: this.segments,
             elevationRange: options.elevationRange,

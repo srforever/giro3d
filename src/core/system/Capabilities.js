@@ -3,6 +3,7 @@ import SampleTestVS from '../../renderer/shader/SampleTestVS.glsl';
 
 // default values
 let logDepthBufferSupported = false;
+let backfaceSupported = true;
 let maxTexturesUnits = 8;
 let maxTextureSize = 2048;
 
@@ -19,15 +20,23 @@ function isFirefox() {
     return navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
 }
 
+function isMacOS() {
+    return navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('mac os') > -1;
+}
+
 export default {
     isLogDepthBufferSupported() {
         return logDepthBufferSupported;
+    },
+    isBackfaceSupported() {
+        return backfaceSupported;
     },
     isFirefox,
     isInternetExplorer() {
         const internetExplorer = false || !!document.documentMode;
         return internetExplorer;
     },
+    isMacOS,
     getMaxTextureUnitsCount() {
         return maxTexturesUnits;
     },
@@ -66,6 +75,15 @@ export default {
                 throw (new Error(`The GPU capabilities could not be determined accurately.
                     Impossible to link a shader with the Maximum texture units ${maxTexturesUnits}`));
             }
+        }
+
+        const dbgRenderInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        const unMaskedVendor = dbgRenderInfo != null
+            ? gl.getParameter(dbgRenderInfo.UNMASKED_VENDOR_WEBGL)
+            : gl.getParameter(gl.VENDOR);
+
+        if (isMacOS() && unMaskedVendor !== 'Apple Inc.') {
+            backfaceSupported = false;
         }
 
         gl.deleteProgram(program);
