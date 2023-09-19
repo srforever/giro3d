@@ -293,6 +293,7 @@ class FeatureCollection extends Entity3D {
         tile.z = z;
         tile.x = x;
         tile.y = y;
+        tile.name = `tile @ (z=${z}, x=${x}, y=${y})`;
 
         if (this.renderOrder !== undefined) {
             tile.renderOrder = this.renderOrder;

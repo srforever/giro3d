@@ -408,6 +408,7 @@ function featureToMesh(feature, offset, options) {
 
     // remember the ol id. NOTE: if the WFS exposes an id, this is the one we will get :-)
     mesh.userData.id = feature.getId();
+    mesh.name = `feat @ id=${mesh.userData.id}`;
     // Remember this feature properties
     mesh.userData.properties = feature.getProperties();
 

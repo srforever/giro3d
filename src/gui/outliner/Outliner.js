@@ -152,6 +152,8 @@ class Outliner extends Panel {
         this.treeview.id = 'treeview';
         this.treeview.style.height = '350px';
         this.treeview.style.overflow = 'auto';
+        // avoid wrapping ids and coordinates for deep-nested elements
+        this.treeview.style.whiteSpace = 'nowrap';
 
         this.addController(this.filters, 'showHelpers')
             .name('Show helpers')
