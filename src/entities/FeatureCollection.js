@@ -14,7 +14,6 @@ import Entity3D from './Entity3D.js';
 import OperationCounter from '../core/OperationCounter';
 import { DefaultQueue } from '../core/RequestQueue';
 import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh.js';
-import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import OLUtils from '../utils/OpenLayersUtils.js';
 
 const vector = new Vector3();
@@ -359,7 +358,14 @@ class FeatureCollection extends Entity3D {
                     this._tileIdSet.delete(child.userData.id);
                 }
             }
-            ObjectRemovalHelper.removeChildrenAndCleanupRecursively(this, node);
+            node.traverse(obj => {
+                if (obj.geometry) {
+                    obj.geometry.dispose();
+                }
+                if (obj.material) {
+                    obj.material.dispose();
+                }
+            });
             return null;
         }
 
