@@ -6,6 +6,7 @@ import {
     Box3,
     Group,
 } from 'three';
+import VectorSource from 'ol/source/Vector.js';
 
 import Extent from '../core/geographic/Extent';
 import ScreenSpaceError from '../core/ScreenSpaceError.js';
@@ -94,6 +95,9 @@ function selectBestSubdivisions(map, extent) {
  * Examples:
  *
  * ```js
+ * import VectorSource from 'ol/source/Vector.js';
+ * import FeatureCollection from '@giro3d/giro3d/entities/FeatureCollection.js';
+ *
  * const vectorSource = new VectorSource({
  *  // ...
  * });
@@ -159,6 +163,8 @@ class FeatureCollection extends Entity3D {
      *
      * @param {string} id The unique identifier of this FeatureCollection
      * @param {object} [options={}] Constructor options.
+     * @param {VectorSource} options.source The openlayer vector source providing features to this
+     * entity
      * @param {Extent} options.extent The geographic extent of the map, mandatory.
      * @param {module:THREE.Object3D} [options.object3d=new THREE.Group()] The optional 3d object to
      * use as the root
