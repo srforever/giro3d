@@ -702,6 +702,15 @@ abstract class Layer extends EventDispatcher
         this._instance.notifyChange(this);
     }
 
+    getInfo(node: Node): { state: string, imageCount: number } {
+        const target = this.targets.get(node.id);
+        if (target) {
+            return { state: TargetState[target.state], imageCount: target.imageIds.size };
+        }
+
+        return { state: 'unknown', imageCount: -1 };
+    }
+
     /**
      * Processes the target once, fetching all images relevant for this target,
      * then paints those images to the target's texture.
