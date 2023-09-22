@@ -300,7 +300,7 @@ class FeatureCollection extends Entity3D {
         tile.y = y;
         tile.name = `tile @ (z=${z}, x=${x}, y=${y})`;
 
-        if (this.renderOrder !== undefined) {
+        if (this.renderOrder !== undefined || this.renderOrder !== null) {
             tile.renderOrder = this.renderOrder;
         }
         tile.traverse(o => { o.opacity = this.opacity; });
@@ -360,7 +360,7 @@ class FeatureCollection extends Entity3D {
             for (const child of node.children) {
                 // I want to exclude null or undefined, but include 0
                 /* eslint-disable-next-line eqeqeq */
-                if (!child.userData.isTile && child.userData.id != undefined) {
+                if (!child.userData.isTile && child.userData.id != null) {
                     this._tileIdSet.delete(child.userData.id);
                 }
             }
@@ -376,7 +376,7 @@ class FeatureCollection extends Entity3D {
         }
 
         // initialisation
-        if (node.layerUpdateState === undefined) {
+        if (node.layerUpdateState == null) {
             node.layerUpdateState = new LayerUpdateState();
         }
 
@@ -416,7 +416,7 @@ class FeatureCollection extends Entity3D {
         }
 
         // if we have children that are real data, update min and max distance
-        if (node.children.filter(c => !!c.geometry).length > 0) {
+        if (node.children.filter(c => c.geometry != null).length > 0) {
             this.updateMinMaxDistance(ctx, node);
         }
 
@@ -483,7 +483,7 @@ class FeatureCollection extends Entity3D {
                         if (!this._tileIdSet.has(mesh.userData.id)
                                 // exclude null or undefined, but keep 0
                                 /* eslint-disable-next-line eqeqeq */
-                                || mesh.userData.id == undefined) {
+                                || mesh.userData.id == null) {
                             this._tileIdSet.add(mesh.userData.id);
                             node.add(mesh);
                             node.boundingBox.expandByObject(mesh);
