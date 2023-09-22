@@ -24,6 +24,9 @@ import {
     MeshStandardMaterial,
     AmbientLight,
     sRGBEncoding,
+    Mesh,
+    Material,
+    DoubleSide,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
@@ -194,8 +197,20 @@ Inspector.attach(document.getElementById('panelDiv'), instance);
 // information on click
 const resultTable = document.getElementById('results');
 
+/** @type {Map<Mesh, Material>} */
+const previouslyPickedObjects = new Map();
+
+const pickedMaterial = new MeshLambertMaterial({ color: '#3581b8', side: DoubleSide });
+
 function pick(e) {
     const pickedObjects = instance.pickObjectsAt(e, { radius: 2, where: [feat] });
+    for (const [key, value] of previouslyPickedObjects) {
+        // Reset material of previous objects
+        key.material = value;
+    }
+    previouslyPickedObjects.clear();
+    instance.notifyChange();
+
     if (pickedObjects.length > 0) {
         resultTable.innerHTML = '';
     }
@@ -204,6 +219,10 @@ function pick(e) {
         const pickedMap = new Map();
         for (const p of pickedObjects) {
             pickedMap.set(p.object.userData.id, p.object);
+            if (!previouslyPickedObjects.has(p.object)) {
+                previouslyPickedObjects.set(p.object, p.object.material);
+                p.object.material = pickedMaterial;
+            }
         }
         for (const obj of pickedMap.values()) {
             const p = obj.userData.properties;
