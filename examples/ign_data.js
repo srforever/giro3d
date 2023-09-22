@@ -4,7 +4,7 @@ import VectorSource from 'ol/source/Vector.js';
 import { createXYZ } from 'ol/tilegrid.js';
 import { tile } from 'ol/loadingstrategy.js';
 
-import Instance from '@giro3d/giro3d/core/Instance.js';
+import Instance, { INSTANCE_EVENTS } from '@giro3d/giro3d/core/Instance.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
@@ -193,7 +193,8 @@ Inspector.attach(document.getElementById('panelDiv'), instance);
 
 // information on click
 const resultTable = document.getElementById('results');
-instance.domElement.addEventListener('mousemove', e => {
+
+function pick(e) {
     const pickedObjects = instance.pickObjectsAt(e, { radius: 2, where: [feat] });
     if (pickedObjects.length > 0) {
         resultTable.innerHTML = '';
@@ -246,6 +247,16 @@ instance.domElement.addEventListener('mousemove', e => {
             </table>
         `;
         }
+    }
+}
+
+instance.domElement.addEventListener('mousemove', pick);
+
+// NOTE: let's not forget to clean our event when the entity is removed, otherwise the webglrenderer
+// recreates everything when picking.
+instance.addEventListener(INSTANCE_EVENTS.ENTITY_REMOVED, () => {
+    if (instance.getObjects(obj => obj.id === feat.id).length === 0) {
+        instance.domElement.removeEventListener('mousemove', pick);
     }
 });
 
