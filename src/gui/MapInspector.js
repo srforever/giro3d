@@ -227,7 +227,13 @@ class MapInspector extends EntityInspector {
             const label = this.getOrCreateLabel(tile);
             /** @type {HTMLDivElement} */
             const element = label.element;
-            element.innerText = `Map=${this.map.id}\n{x=${tile.x},y=${tile.y}} LOD=${tile.z}\n(node #${tile.id})\nprogress=${Math.ceil(tile.progress * 100)}%\nlayers=${tile.material.getLayerCount()}`;
+            let innerText = '';
+            innerText += `Map=${this.map.id}\n{x=${tile.x},y=${tile.y}} LOD=${tile.z}\n(node #${tile.id})\nprogress=${Math.ceil(tile.progress * 100)}%\nlayers=${tile.material.getLayerCount()}\n`;
+            for (const layer of this.map.getLayers()) {
+                const info = layer.getInfo(tile);
+                innerText += `Layer '${layer.id}' - (images=${info.imageCount}, state=${info.state})\n`;
+            }
+            element.innerText = innerText;
             element.style.color = `#${color.getHexString()}`;
             element.style.opacity = isVisible ? '100%' : '0%';
             tile.OBB().box3D.getCenter(label.position);

@@ -89,8 +89,6 @@ class Image {
         this.min = options.min;
         /** @type {number} */
         this.max = options.max;
-        /** @type {number} */
-        this.resolution = this.extent.dimensions(tmpVec2).x / this.texture.image.width;
         this.disposed = false;
         this.owners = new Set();
     }

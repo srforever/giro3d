@@ -2,9 +2,9 @@
  * @module sources/TiledImageSource
  */
 
-import { Vector2 } from 'three';
+import { Texture, Vector2 } from 'three';
 import { TileRange } from 'ol';
-import TileSource from 'ol/source/Tile.js';
+import UrlTile from 'ol/source/UrlTile';
 import TileGrid from 'ol/tilegrid/TileGrid.js';
 import Extent from '../core/geographic/Extent';
 import OpenLayersUtils from '../utils/OpenLayersUtils.js';
@@ -56,8 +56,10 @@ const tmp = {
 class TiledImageSource extends ImageSource {
     /**
      * @param {object} options The options.
-     * @param {TileSource} options.source The OpenLayers tiled source.
+     * @param {UrlTile} options.source The OpenLayers tiled source.
      * @param {number} [options.noDataValue] The optional no-data value.
+     * @param {Extent} [options.extent] The optional extent of the source. If not provided, it will
+     * be computed from the tile grid.
      * @param {ImageFormat} [options.format] The optional image decoder.
      * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
      * to test if a given extent is contained in this source.
@@ -84,9 +86,11 @@ class TiledImageSource extends ImageSource {
         // Cache the tilegrid because it is constant
         this.tileGrid = tileGrid;
         this.getTileUrl = source.getTileUrlFunction();
-        const extent = tileGrid.getExtent();
         this.noDataValue = noDataValue;
-        this.sourceExtent = OpenLayersUtils.fromOLExtent(extent, projection.getCode());
+        this.sourceExtent = options.extent ?? OpenLayersUtils.fromOLExtent(
+            tileGrid.getExtent(),
+            projection.getCode(),
+        );
     }
 
     getExtent() {
@@ -190,6 +194,29 @@ class TiledImageSource extends ImageSource {
         return images;
     }
 
+    // eslint-disable-next-line class-methods-use-this
+    async fetchData(url) {
+        try {
+            const response = await Fetcher.fetch(url);
+
+            // If the response is 204 No Content for example, we have nothing to do.
+            // This happens when a tile request is valid, but points to a region with no data.
+            // Note: we let the HTTP handler do the logging for us in case of 4XX errors.
+            if (response.status !== 200) {
+                return null;
+            }
+
+            const blob = await response.blob();
+
+            return blob;
+        } catch (e) {
+            if (e.response?.status === 404) {
+                return null;
+            }
+            throw e;
+        }
+    }
+
     /**
      * Loads the tile once and returns a reusable promise containing the tile texture.
      *
@@ -200,19 +227,12 @@ class TiledImageSource extends ImageSource {
      * @returns {Promise<ImageResult>|Promise<null>} The tile texture, or null if there is no data.
      */
     async loadTile(id, url, extent, createDataTexture) {
-        const response = await Fetcher.fetch(url);
-
-        // If the response is 204 No Content for example, we have nothing to do.
-        // This happens when a tile request is valid, but points to a region with no data.
-        // Note: we let the HTTP handler do the logging for us in case of 4XX errors.
-        if (response.status !== 200) {
-            return null;
-        }
-
-        const blob = await response.blob();
+        const blob = await this.fetchData(url);
 
         if (!blob) {
-            return null;
+            return new ImageResult({
+                texture: new Texture(), extent, id,
+            });
         }
 
         let texture;
@@ -270,15 +290,18 @@ class TiledImageSource extends ImageSource {
      * @param {boolean} createDataTexture Creates readable textures.
      */
     loadTiles(tileRange, crs, zoom, createDataTexture) {
-        /** @type {TileSource} */
         const source = this.source;
-        /** @type {TileGrid} */
         const tileGrid = this.tileGrid;
+
+        const fullTileRange = tileGrid.getFullTileRange(zoom);
 
         const promises = [];
 
         for (let i = tileRange.minX; i <= tileRange.maxX; i++) {
             for (let j = tileRange.minY; j <= tileRange.maxY; j++) {
+                if (!fullTileRange.containsXY(i, j)) {
+                    continue;
+                }
                 const tile = source.getTile(zoom, i, j);
                 const coord = tile.tileCoord;
                 const olExtent = tileGrid.getTileCoordExtent(coord);
