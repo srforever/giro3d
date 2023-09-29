@@ -6,6 +6,7 @@ import {
     Box3,
     Group,
 } from 'three';
+import VectorSource from 'ol/source/Vector.js';
 
 import Extent from '../core/geographic/Extent';
 import ScreenSpaceError from '../core/ScreenSpaceError.js';
@@ -14,7 +15,6 @@ import Entity3D from './Entity3D.js';
 import OperationCounter from '../core/OperationCounter';
 import { DefaultQueue } from '../core/RequestQueue';
 import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh.js';
-import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import OLUtils from '../utils/OpenLayersUtils.js';
 
 const vector = new Vector3();
@@ -95,6 +95,9 @@ function selectBestSubdivisions(map, extent) {
  * Examples:
  *
  * ```js
+ * import VectorSource from 'ol/source/Vector.js';
+ * import FeatureCollection from '@giro3d/giro3d/entities/FeatureCollection.js';
+ *
  * const vectorSource = new VectorSource({
  *  // ...
  * });
@@ -142,9 +145,16 @@ class FeatureCollection extends Entity3D {
      * This callback is called just after a source data has been converted to a THREE.js Mesh, to
      * color individual meshes.
      *
-     * @typedef {Function} StyleCallback
+     * @typedef {Function} FeatureStyleCallback
      * @param {module:ol.Feature} feature the feature to style
      * @returns {StyleObject} The style of the current feature
+     */
+
+    /**
+     * @typedef {Function} FeatureExtrudeCallback
+     * @param {module:ol.Feature} feature the feature to extrude
+     * @returns {number|number[]} a extrusion value for the feature, or an array of extrusion value
+     * to apply to each vertices individually
      */
 
     /**
@@ -153,6 +163,8 @@ class FeatureCollection extends Entity3D {
      *
      * @param {string} id The unique identifier of this FeatureCollection
      * @param {object} [options={}] Constructor options.
+     * @param {VectorSource} options.source The openlayer vector source providing features to this
+     * entity
      * @param {Extent} options.extent The geographic extent of the map, mandatory.
      * @param {module:THREE.Object3D} [options.object3d=new THREE.Group()] The optional 3d object to
      * use as the root
@@ -167,10 +179,15 @@ class FeatureCollection extends Entity3D {
      * @param {number|FeatureAltitudeCallback} [options.altitude] Set the altitude of the features
      * received from the source. It can be a constant for every feature, or a callback. The callback
      * version is particularly useful to derive the altitude from the properties of the feature.
-     * @param {StyleCallback|StyleObject} [options.style] an object or a callback returning such
-     * object to style the individual feature. If an object is returned, the informations it
-     * contains will be used to style every feature the same way. If a callback is provided, it
-     * will be called with the feature. This allows to individually style each feature.
+     * @param {FeatureStyleCallback|StyleObject} [options.style] an object or a callback returning
+     * such object to style the individual feature. If an object is returned, the informations it
+     * contains will be used to style every feature the same way. If a callback is provided, it will
+     * be called with the feature. This allows to individually style each feature.
+     * @param {number|FeatureExtrudeCallback} [options.extrude] configure the extrusion of polygon
+     * features of the source. If a number, the polygon will be extruded *up* with the specified
+     * amount. If it's a function, it will be called at the feature creation time with the feature
+     * as argument, allowing individual value for the feature, or each vertices if returning an
+     * array.
      */
     constructor(id, options = {}) {
         super(id, options.object3d || new Group());
@@ -211,9 +228,14 @@ class FeatureCollection extends Entity3D {
             material: options.material,
             altitude: options.altitude,
             style: options.style,
+            extrude: options.extrude,
         });
 
         this._opCounter = new OperationCounter();
+
+        // some protocol like WFS have no real tiling system, so we need to make sure we don't get
+        // duplicated elements
+        this._tileIdSet = new Set();
     }
 
     preprocess() {
@@ -276,8 +298,9 @@ class FeatureCollection extends Entity3D {
         tile.z = z;
         tile.x = x;
         tile.y = y;
+        tile.name = `tile @ (z=${z}, x=${x}, y=${y})`;
 
-        if (this.renderOrder !== undefined) {
+        if (this.renderOrder !== undefined || this.renderOrder !== null) {
             tile.renderOrder = this.renderOrder;
         }
         tile.traverse(o => { o.opacity = this.opacity; });
@@ -334,12 +357,26 @@ class FeatureCollection extends Entity3D {
     update(ctx, node) {
         if (!node.parent) {
             // if node has been removed dispose three.js resource
-            ObjectRemovalHelper.removeChildrenAndCleanupRecursively(this, node);
+            for (const child of node.children) {
+                // I want to exclude null or undefined, but include 0
+                /* eslint-disable-next-line eqeqeq */
+                if (!child.userData.isTile && child.userData.id != null) {
+                    this._tileIdSet.delete(child.userData.id);
+                }
+            }
+            node.traverse(obj => {
+                if (obj.geometry) {
+                    obj.geometry.dispose();
+                }
+                if (obj.material) {
+                    obj.material.dispose();
+                }
+            });
             return null;
         }
 
         // initialisation
-        if (node.layerUpdateState === undefined) {
+        if (node.layerUpdateState == null) {
             node.layerUpdateState = new LayerUpdateState();
         }
 
@@ -379,7 +416,7 @@ class FeatureCollection extends Entity3D {
         }
 
         // if we have children that are real data, update min and max distance
-        if (node.children.filter(c => !!c.geometry).length > 0) {
+        if (node.children.filter(c => c.geometry != null).length > 0) {
             this.updateMinMaxDistance(ctx, node);
         }
 
@@ -410,6 +447,7 @@ class FeatureCollection extends Entity3D {
                         if (geom.stride > 2) {
                             offset.z = geom.flatCoordinates[2];
                         }
+                        features.filter(f => !this._tileIdSet.has(f.getId()));
                         resolve(this._convert(features, offset));
                     }, err => reject(err),
                 );
@@ -442,9 +480,15 @@ class FeatureCollection extends Entity3D {
                             this.onMeshCreated(mesh);
                         }
 
-                        node.add(mesh);
-                        node.boundingBox.expandByObject(mesh);
-                        this._instance.notifyChange(this);
+                        if (!this._tileIdSet.has(mesh.userData.id)
+                                // exclude null or undefined, but keep 0
+                                /* eslint-disable-next-line eqeqeq */
+                                || mesh.userData.id == null) {
+                            this._tileIdSet.add(mesh.userData.id);
+                            node.add(mesh);
+                            node.boundingBox.expandByObject(mesh);
+                            this._instance.notifyChange(this);
+                        }
                     }
                     node.layerUpdateState.noMoreUpdatePossible();
                 } else {

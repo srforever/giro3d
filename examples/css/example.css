@@ -80,6 +80,12 @@ body {
   height: 1.3rem;
 }
 
+ /* this right pane takes the whole height except the status bar.
+  * put inside a div with height: 100% display: flex and direction: column to get autosized right pane */
+.side-pane-with-status-bar {
+  height: calc(100vh - 1.3rem); /* see the height of .status-bar */
+}
+
 .status-progress-bar {
   width: 8rem;
 }

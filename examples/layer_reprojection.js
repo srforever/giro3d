@@ -197,16 +197,4 @@ button.onclick = () => {
     }
 };
 
-const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
-popoverTriggerList.map(
-    // bootstrap is used as script in the template, disable warning about undef
-    // eslint-disable-next-line no-undef
-    popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
-        trigger: 'hover',
-        placement: 'left',
-        content: document.getElementById(popoverTriggerEl.getAttribute('data-bs-content')).innerHTML,
-        html: true,
-    }),
-);
-
 initialize('EPSG:2154');

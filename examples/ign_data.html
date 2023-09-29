@@ -1,0 +1,22 @@
+---
+title: IGN data
+shortdesc: Display a map of France with various IGN datasets (elevation, extruded WFS and orthophotography).
+attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
+---
+<div class="p-2 position-absolute top-0 end-0 side-pane-with-status-bar" style="pointer-event: none">
+    <div class="card mh-100">
+        <h5 class="card-header">Building informations</h5>
+
+        <!-- tooltip -->
+        <span class="badge bg-secondary position-absolute top-0 end-0 m-2" data-bs-toggle="popover"
+            data-bs-content="pickingHelper">?</span>
+        <p class="card-text d-none" id="pickingHelper">These informations are the feature properties
+        embedded in the return value from the WFS server</p>
+
+        <div class="card-body overflow-auto">
+
+            <!-- Result table -->
+            <div id="results"></div>
+        </div>
+    </div>
+</div>

@@ -55,7 +55,7 @@ export const INSTANCE_EVENTS = {
      * Fires when an entity is removed from the instance.
      *
      * @api
-     * @event Instance#entity-added
+     * @event Instance#entity-removed
      */
     ENTITY_REMOVED: 'entity-removed',
 };
