@@ -82,8 +82,8 @@ function selectBestSubdivisions(map, extent) {
  * In this context, 2.5D means that there is only one Z per x,y coordinates in the source data. So
  * this deals with lines, polyline, (multi)polygons and points.
  *
- * This entity will represent them as 3D object as-is, but an altitude can be set (see
- * `options.altitude` in the constructor), if not already in the source coordinates.
+ * This entity will represent them as 3D object as-is, but an elevation can be set (see
+ * `options.elevation` in the constructor), if not already in the source coordinates.
  *
  * At the moment, this entity accepts every openlayers source that returns features.
  *
@@ -105,7 +105,7 @@ function selectBestSubdivisions(map, extent) {
  *  source: vectorSource
  *  minLevel: 10,
  *  maxLevel: 10,
- *  altitude: 10,
+ *  elevation: 10,
  * });
  *
  * instance.add(featureCollection);
@@ -126,14 +126,14 @@ class FeatureCollection extends Entity3D {
      * [THREE.Mesh](https://threejs.org/docs/#api/objects/Mesh)
      */
     /**
-     * This callback is called to get the altitude of a feature, if the coordinates are 2D.
+     * This callback is called to get the elevation of a feature, if the coordinates are 2D.
      *
-     * @typedef {Function} FeatureAltitudeCallback
+     * @typedef {Function} FeatureElevationCallback
      * @param {module:ol.Feature} feature an
      * [ol.Feature](https://openlayers.org/en/latest/apidoc/module-ol_Feature-Feature.html)
-     * @returns {(number|Array<number>)} an altitude or an array of altitude to set the geometry of
-     * the mesh to. If this function returns an array, each vertex will be set to its altitude in
-     * the same order.
+     * @returns {(number|Array<number>)} an elevation or an array of elevation to set the geometry
+     * of the mesh to. If this function returns an array, each vertex will be set to its elevation
+     * in the same order.
      */
     /**
      * @typedef {object} StyleObject
@@ -175,18 +175,19 @@ class FeatureCollection extends Entity3D {
      * @param {OnMeshCreatedCallback} [options.onMeshCreated] called when a mesh is created (just
      * after conversion of the source data)
      * @param {module:THREE.Material} [options.material] the [THREE.Material](https://threejs.org/docs/#api/en/materials/Material) to use for meshes
-     * @param {number|FeatureAltitudeCallback} [options.altitude] Set the altitude of the features
-     * received from the source. It can be a constant for every feature, or a callback. The callback
-     * version is particularly useful to derive the altitude from the properties of the feature.
+     * @param {number|FeatureElevationCallback} [options.elevation] Set the elevation of the
+     * features received from the source. It can be a constant for every feature, or a callback. The
+     * callback version is particularly useful to derive the elevation from the properties of the
+     * feature.
      * @param {FeatureStyleCallback|StyleObject} [options.style] an object or a callback returning
      * such object to style the individual feature. If an object is returned, the informations it
      * contains will be used to style every feature the same way. If a callback is provided, it will
      * be called with the feature. This allows to individually style each feature.
-     * @param {number|FeatureExtrudeCallback} [options.extrude] configure the extrusion of polygon
-     * features of the source. If a number, the polygon will be extruded *up* with the specified
-     * amount. If it's a function, it will be called at the feature creation time with the feature
-     * as argument, allowing individual value for the feature, or each vertices if returning an
-     * array.
+     * @param {number|FeatureExtrudeCallback} [options.extrusionOffset] configure the extrusion of
+     * polygon features of the source. If a number, the polygon will be extruded *up* with the
+     * specified amount. If it's a function, it will be called at the feature creation time with the
+     * feature as argument, allowing individual value for the feature, or each vertices if returning
+     * an array.
      */
     constructor(id, options = {}) {
         super(id, options.object3d || new Group());
@@ -224,9 +225,9 @@ class FeatureCollection extends Entity3D {
         this.source = options.source;
         this._convert = OlFeature2Mesh.convert({
             material: options.material,
-            altitude: options.altitude,
+            elevation: options.elevation,
             style: options.style,
-            extrude: options.extrude,
+            extrusionOffset: options.extrusionOffset,
         });
 
         this._opCounter = new OperationCounter();

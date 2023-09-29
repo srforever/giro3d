@@ -216,7 +216,7 @@ describe('OlFeature2Mesh', () => {
             }),
         ];
 
-        const meshes = OlFeature2Mesh.convert({ extrude: 1 })(fs);
+        const meshes = OlFeature2Mesh.convert({ extrusionOffset: 1 })(fs);
         expect(meshes).toHaveLength(1);
 
         const mesh = meshes[0];
@@ -253,8 +253,8 @@ describe('OlFeature2Mesh', () => {
             }),
         ];
 
-        const extrude = f => [1, 2, 3, 4, 5, 6, 7];
-        const meshes = OlFeature2Mesh.convert({ extrude })(fs);
+        const extrusionOffset = f => [1, 2, 3, 4, 5, 6, 7];
+        const meshes = OlFeature2Mesh.convert({ extrusionOffset })(fs);
         expect(meshes).toHaveLength(1);
 
         const mesh = meshes[0];
@@ -324,7 +324,7 @@ describe('OlFeature2Mesh', () => {
             }),
         ];
 
-        const meshes = OlFeature2Mesh.convert({ extrude: 1 })(fs);
+        const meshes = OlFeature2Mesh.convert({ extrusionOffset: 1 })(fs);
         expect(meshes).toHaveLength(1);
 
         const mesh = meshes[0];
