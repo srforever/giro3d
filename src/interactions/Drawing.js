@@ -63,31 +63,26 @@ const STRIDE3D = 3;
  * @enum {string}
  * @namespace GEOMETRY_TYPE
  * @readonly
- * @api
  */
 export const GEOMETRY_TYPE = {
     /**
      * Draw one point
      *
-     * @api
      */
     POINT: 'Point',
     /**
      * Draw several points
      *
-     * @api
      */
     MULTIPOINT: 'MultiPoint',
     /**
      * Draw a line
      *
-     * @api
      */
     LINE: 'LineString',
     /**
      * Draw a polygon
      *
-     * @api
      */
     POLYGON: 'Polygon',
 };
@@ -99,14 +94,12 @@ export const GEOMETRY_TYPE = {
  * @param {number} index Index of the point to display
  * @param {Vector3} position Position of the point in world space
  * @returns {HTMLElement} HTML Element
- * @api
  */
 
 /**
  * Simple geometry object for drawing.
  * Instanciated via DrawTool, but can also be added to Giro3D to view and edit simple geometries.
  *
- * @api
  */
 class Drawing extends Group {
     /**
@@ -186,7 +179,6 @@ class Drawing extends Group {
     /**
      * Disposes of the object
      *
-     * @api
      */
     dispose() {
         this.clear();
@@ -370,7 +362,6 @@ class Drawing extends Group {
      * Sets the shape to draw.
      *
      * @param {object} geojson GeoJSON shape to draw
-     * @api
      */
     setGeojson(geojson) {
         if (!geojson) return;
@@ -389,7 +380,6 @@ class Drawing extends Group {
      *
      * @param {Array<number>} coordinates Array of flat coordinates
      * @param {GEOMETRY_TYPE} geometryType Type of geometry
-     * @api
      */
     setCoordinates(coordinates, geometryType) {
         // Remove all children
@@ -493,7 +483,6 @@ class Drawing extends Group {
      * @param {?LineBasicMaterial} materials.lineMaterial Material to be used for the borders
      * @param {?PointsMaterial} materials.pointMaterial Material to be used for the points
      * @param {?Material} materials.planeHelperMaterial Material to be used for the plane helper
-     * @api
      */
     setMaterials({
         faceMaterial, sideMaterial, lineMaterial, pointMaterial, planeHelperMaterial,

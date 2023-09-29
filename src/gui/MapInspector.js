@@ -31,7 +31,6 @@ class MapInspector extends EntityInspector {
     /**
      * Creates an instance of MapInspector.
      *
-     * @api
      * @param {GUI} parentGui The parent GUI.
      * @param {Instance} instance The Giro3D instance.
      * @param {Map} map The inspected Map.
@@ -49,7 +48,6 @@ class MapInspector extends EntityInspector {
          * The inspected map.
          *
          * @type {Map}
-         * @api
          */
         this.map = map;
 
@@ -57,7 +55,6 @@ class MapInspector extends EntityInspector {
          * Toggle the wireframe rendering of the map.
          *
          * @type {boolean}
-         * @api
          */
         this.wireframe = this.map.wireframe || false;
 
@@ -65,7 +62,6 @@ class MapInspector extends EntityInspector {
          * Toggle the frozen property of the map.
          *
          * @type {boolean}
-         * @api
          */
         this.frozen = this.map.frozen || false;
 
@@ -165,7 +161,6 @@ class MapInspector extends EntityInspector {
          * The layer folder.
          *
          * @type {GUI}
-         * @api
          */
         this.layerFolder = this.gui.addFolder('Layers');
 

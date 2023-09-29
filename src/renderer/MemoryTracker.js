@@ -12,7 +12,6 @@ let counter = 0;
  * This uses [`WeakRef`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WeakRef)
  * internally to avoid holding a reference past its lifetime.
  *
- * @api
  * @example
  * // Enable the memory tracker (disabled by default).
  * MemoryTracker.enable = true;
@@ -29,7 +28,6 @@ class MemoryTracker {
     /**
      * Enables the tracking of allocated objects.
      *
-     * @api
      * @type {boolean}
      */
     static set enable(v) {
@@ -48,7 +46,6 @@ class MemoryTracker {
     /**
      * Registers an object to the memory tracker.
      *
-     * @api
      * @param {object} obj The object to track.
      * @param {string} name The name of the tracked object. Does not have to be unique.
      */
@@ -68,7 +65,6 @@ class MemoryTracker {
     /**
      * Removes all invalid references.
      *
-     * @api
      */
     static flush() {
         const newArray = [];
@@ -95,7 +91,6 @@ class MemoryTracker {
      * They will no longer be removed by the garbage collector as long as values in this arrays
      * exist ! You should make sure to empty this array when you are finished with it.
      *
-     * @api
      * @returns {Array<{name: string, value: object }>} The tracked objects.
      */
     static getTrackedObjects() {

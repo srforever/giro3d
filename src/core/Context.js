@@ -4,11 +4,10 @@ import { Plane, Vector3 } from 'three';
 
 /**
  * Contains the render/update loop context.
- * Each {@link module:entities/Entity~Entity} being updated is given a
+ * Each {@link entities.Entity} being updated is given a
  * context in its update methods.
  * This context can be modified by entities (notably the near and far clipping planes).
  *
- * @api
  */
 class Context {
     /**
@@ -16,21 +15,18 @@ class Context {
      *
      * @param {module:Renderer/Camera~Camera} camera the active camera.
      * @param {module:Core/Instance~Instance} instance the giro3d instance.
-     * @api
      */
     constructor(camera, instance) {
         /**
          * The active camera.
          *
          * @type {module:Renderer/Camera~Camera}
-         * @api
          */
         this.camera = camera;
         /**
          * The giro3d instance
          *
          * @type {module:Core/Instance~Instance}
-         * @api
          */
         this.instance = instance;
         /**
@@ -40,7 +36,6 @@ class Context {
          * @property {Plane} plane the plane that is normal to the line of sight.
          * @property {number} min the minimum distance to the camera
          * @property {number} max the maximum distance to the camera
-         * @api
          */
         this.distance = {
             plane: new Plane()
@@ -57,7 +52,6 @@ class Context {
          * did a full update (in which case the value is `undefined`)
          * or a partial update and to act accordingly.
          *
-         * @api
          */
         this.fastUpdateHint = undefined;
     }

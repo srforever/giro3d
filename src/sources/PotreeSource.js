@@ -5,13 +5,11 @@
 /**
  * The data source for a [Potree](https://github.com/potree/potree) point cloud.
  *
- * @api
  */
 class PotreeSource {
     /**
      * Creates an instance of PotreeSource.
      *
-     * @api
      * @param {string} url The URL to the dataset.
      * @param {string} [filename='cloud.js'] The filename of the dataset.
      * @param {object} [networkOptions={}] The network options.

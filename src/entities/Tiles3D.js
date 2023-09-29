@@ -49,7 +49,6 @@ const tmp = {
 /**
  * A [3D Tiles](https://www.ogc.org/standards/3DTiles) dataset.
  *
- * @api
  */
 class Tiles3D extends Entity3D {
     /**
@@ -58,7 +57,6 @@ class Tiles3D extends Entity3D {
      * @param {string} id The unique identifier of the entity.
      * @param {module:sources/Tiles3DSource~Tiles3DSource} source The data source.
      * @param {Options} [options={}] Optional properties.
-     * @api
      */
     constructor(id, source, options = {}) {
         super(id, options.object3d || new Group());
@@ -75,7 +73,6 @@ class Tiles3D extends Entity3D {
          * Read-only flag to check if a given object is of type Tiles3D.
          *
          * @type {boolean}
-         * @api
          */
         this.isTiles3D = true;
         /** @type {string} */
@@ -532,7 +529,6 @@ function subdivideNode(context, entity, node, cullingTestFn) {
 /**
  * Returns the best fit extent from the volume of the tile.
  *
- * @api
  * @param {string} crs The CRS of the target extent.
  * @param {object} volume The volume of the tile.
  * @param {Matrix4} transform The world matrix of the object.

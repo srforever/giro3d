@@ -12,7 +12,6 @@ import TiledImageSource from '../sources/TiledImageSource.js';
 /**
  * Inspector for a source.
  *
- * @api
  */
 class SourceInspector extends Panel {
     /**

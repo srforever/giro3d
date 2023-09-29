@@ -17,7 +17,6 @@ const SECONDS = 1000;
 /**
  * The default max number of entries.
  *
- * @api
  * @constant
  * @type {number}
  */
@@ -26,7 +25,6 @@ const DEFAULT_MAX_ENTRIES = 8192;
 /**
  * The default TTL (time to live).
  *
- * @api
  * @constant
  * @type {number}
  */
@@ -35,7 +33,6 @@ const DEFAULT_TTL = 240 * SECONDS;
 /**
  * The default capacity, in bytes.
  *
- * @api
  * @constant
  * @type {number}
  */
@@ -44,13 +41,11 @@ const DEFAULT_CAPACITY = 512 * 1024 * 1024;
 /**
  * The cache.
  *
- * @api
  */
 class Cache {
     /**
      * Constructs a cache.
      *
-     * @api
      * @param {object} opts The options.
      * @param {number} [opts.ttl=DEFAULT_TTL] The default TTL (time to live) of entries. Can
      * be overriden for each entry.
@@ -80,7 +75,6 @@ class Cache {
     /**
      * Enables or disables the cache.
      *
-     * @api
      * @type {boolean}
      */
     get enabled() {
@@ -94,7 +88,6 @@ class Cache {
     /**
      * Gets or sets the default TTL (time to live) of the cache.
      *
-     * @api
      * @type {number}
      */
     get defaultTtl() {
@@ -108,7 +101,6 @@ class Cache {
     /**
      * Gets or sets the maximum size of the cache, in bytes.
      *
-     * @api
      * @type {number}
      */
     get maxSize() {
@@ -122,7 +114,6 @@ class Cache {
     /**
      * Gets or sets the mximum number of entries.
      *
-     * @api
      * @type {number}
      */
     get capacity() {
@@ -136,7 +127,6 @@ class Cache {
     /**
      * Gets the number of entries.
      *
-     * @api
      * @type {number}
      */
     get count() {
@@ -146,7 +136,6 @@ class Cache {
     /**
      * Gets the size of entries, in bytes
      *
-     * @api
      * @type {number}
      */
     get size() {
@@ -156,7 +145,6 @@ class Cache {
     /**
      * Returns an array of entries.
      *
-     * @api
      * @returns {Array} The entries.
      */
     entries() {
@@ -175,7 +163,6 @@ class Cache {
     /**
      * Removes stale entries.
      *
-     * @api
      */
     purge() {
         this.lru.purgeStale();
@@ -184,7 +171,6 @@ class Cache {
     /**
      * Returns the entry with the specified key, or `undefined` if no entry matches this key.
      *
-     * @api
      * @param {string} key The entry key.
      * @returns {any|undefined} The entry, or `undefined`.
      */
@@ -199,7 +185,6 @@ class Cache {
     /**
      * Stores an entry in the cache, or replaces an existing entry with the same key.
      *
-     * @api
      * @param {string} key The key.
      * @param {any} value The value.
      * @param {CacheOptions} [options] The options.
@@ -228,7 +213,6 @@ class Cache {
     /**
      * Deletes an entry.
      *
-     * @api
      * @param {string} key The key.
      * @returns {boolean} `true` if the entry was deleted, `false` otherwise.
      */
@@ -239,7 +223,6 @@ class Cache {
     /**
      * Clears the cache.
      *
-     * @api
      */
     clear() {
         this.lru.clear();
@@ -249,7 +232,6 @@ class Cache {
 /**
  * A global singleton cache.
  *
- * @api
  * @type {Cache}
  */
 const GlobalCache = new Cache();

@@ -23,31 +23,26 @@ import PromiseUtils from '../utils/PromiseUtils.js';
  * @enum {string}
  * @namespace GEOMETRY_TYPE
  * @readonly
- * @api
  */
 export const GEOMETRY_TYPE = {
     /**
      * Draw one point
      *
-     * @api
      */
     POINT: 'Point',
     /**
      * Draw several points
      *
-     * @api
      */
     MULTIPOINT: 'MultiPoint',
     /**
      * Draw a line
      *
-     * @api
      */
     LINE: 'LineString',
     /**
      * Draw a polygon
      *
-     * @api
      */
     POLYGON: 'Polygon',
 };
@@ -61,25 +56,21 @@ export const GEOMETRY_TYPE = {
  * @enum {string}
  * @namespace DRAWTOOL_EVENT_TYPE
  * @readonly
- * @api
  */
 export const DRAWTOOL_EVENT_TYPE = {
     /**
      * Fires when the tool becomes active
      *
-     * @api
      */
     START: 'start',
     /**
      * Fires when the shape is being edited (including mouse move)
      *
-     * @api
      */
     DRAWING: 'drawing',
     /**
      * Fires when a point has been added
      *
-     * @api
      * @property {Vector3} at Coordinates
      * @property {number} index Index of the point added
      */
@@ -87,7 +78,6 @@ export const DRAWTOOL_EVENT_TYPE = {
     /**
      * Fires when a point has been edited
      *
-     * @api
      * @property {Vector3} at Coordinates
      * @property {number} index Index of the point edited
      */
@@ -95,21 +85,18 @@ export const DRAWTOOL_EVENT_TYPE = {
     /**
      * Fires when a point has been deleted
      *
-     * @api
      * @property {number} index Index of the point deleted
      */
     DELETE: 'delete',
     /**
      * Fires when the drawing has ended
      *
-     * @api
      * @property {object} geojson GeoJSON object representing the geometry drawn
      */
     END: 'end',
     /**
      * Fires when the drawing has been aborted
      *
-     * @api
      */
     ABORT: 'abort',
 };
@@ -119,7 +106,6 @@ export const DRAWTOOL_EVENT_TYPE = {
  *
  * @enum {string}
  * @namespace DRAWTOOL_STATE
- * @api
  */
 export const DRAWTOOL_STATE = {
     /**
@@ -127,7 +113,6 @@ export const DRAWTOOL_STATE = {
      * {@link module:interactions/DrawTool~DrawTool#start DrawTool.start()}
      * or {@link module:interactions/DrawTool~DrawTool#edit DrawTool.edit()} to begin.
      *
-     * @api
      */
     READY: 'ready',
     /**
@@ -137,7 +122,6 @@ export const DRAWTOOL_STATE = {
      * - {@link module:interactions/DrawTool~DrawTool#pause DrawTool.pause()} to pause
      * (during camera move for instance).
      *
-     * @api
      */
     ACTIVE: 'active',
     /**
@@ -146,7 +130,6 @@ export const DRAWTOOL_STATE = {
      * - {@link module:interactions/DrawTool~DrawTool#reset DrawTool.reset()} to abort,
      * - {@link module:interactions/DrawTool~DrawTool#continue DrawTool.continue()} to continue.
      *
-     * @api
      */
     PAUSED: 'paused',
 };
@@ -176,19 +159,16 @@ const INTERNAL_STATE = {
  *
  * @enum {string}
  * @namespace DRAWTOOL_MODE
- * @api
  */
 export const DRAWTOOL_MODE = {
     /**
      * Creating a new shape
      *
-     * @api
      */
     CREATE: 'create',
     /**
      * Editing a shape
      *
-     * @api
      */
     EDIT: 'edit',
 };
@@ -213,7 +193,6 @@ const tmpVec3 = new Vector3();
  * - if no point is found, `null`
  * @param {MouseEvent} evt Mouse event
  * @returns {?object} object
- * @api
  */
 
 /**
@@ -222,7 +201,6 @@ const tmpVec3 = new Vector3();
  * Method to create a HTML element for points for CSS2DObject
  * @param {string} text Text to display
  * @returns {HTMLElement} HTML Element
- * @api
  */
 
 /**
@@ -250,7 +228,6 @@ const tmpVec3 = new Vector3();
  * @property {DRAWTOOL_STATE} state Current state
  * @property {?DRAWTOOL_MODE} mode Current mode
  * @property {?Drawing} drawObject Current object being drawn
- * @api
  */
 class DrawTool extends EventDispatcher {
     /**
@@ -276,7 +253,6 @@ class DrawTool extends EventDispatcher {
      * line/multipoint geometries when editing
      * @param {boolean} [options.enableDragging=true] Edit points via drag-and-drop (otherwise,
      * moving a point is on click)
-     * @api
      */
     constructor(instance, options = {}) {
         super();
@@ -293,7 +269,6 @@ class DrawTool extends EventDispatcher {
      * Utility function to set options.
      *
      * @param {object} [options] See constructor
-     * @api
      */
     setOptions(options) {
         this.maxPoints = options.maxPoints ?? Infinity;
@@ -361,7 +336,6 @@ class DrawTool extends EventDispatcher {
      *
      * @param {GEOMETRY_TYPE} geometryType Geometry type to draw
      * @fires DRAWTOOL_EVENT_TYPE#START At start
-     * @api
      */
     start(geometryType = GEOMETRY_TYPE.POLYGON) {
         if (this.state !== DRAWTOOL_STATE.READY) {
@@ -380,7 +354,6 @@ class DrawTool extends EventDispatcher {
      * @param {GEOMETRY_TYPE} geometryType Geometry type to draw
      * @returns {Promise<object>} Promise resolving to the GeoJSON geometry drawn
      * @fires DRAWTOOL_EVENT_TYPE#START At start
-     * @api
      */
     startAsAPromise(geometryType = GEOMETRY_TYPE.POLYGON) {
         return new Promise((resolveFn, rejectFn) => {
@@ -397,7 +370,6 @@ class DrawTool extends EventDispatcher {
      * If passing a {@link module:interactions/Drawing~Drawing Drawing},
      * this tool takes full ownership over it, and **will destroy** it when done.
      * @fires DRAWTOOL_EVENT_TYPE#START At start
-     * @api
      */
     edit(geometry) {
         if (this.state !== DRAWTOOL_STATE.READY) {
@@ -418,7 +390,6 @@ class DrawTool extends EventDispatcher {
      * this tool takes full ownership over it, and **will destroy** it when done.
      * @returns {Promise<object>} Promise resolving to the GeoJSON geometry drawn
      * @fires DRAWTOOL_EVENT_TYPE#START At start
-     * @api
      */
     editAsAPromise(geometry) {
         return new Promise((resolveFn, rejectFn) => {
@@ -432,7 +403,6 @@ class DrawTool extends EventDispatcher {
      * Pauses current drawing so click events are not captured.
      * This is useful when the user is currently interacting with the camera.
      *
-     * @api
      */
     pause() {
         if (this.state !== DRAWTOOL_STATE.ACTIVE) return;
@@ -446,7 +416,6 @@ class DrawTool extends EventDispatcher {
     /**
      * Continues a paused drawing.
      *
-     * @api
      */
     continue() {
         if (this.state !== DRAWTOOL_STATE.PAUSED) return;
@@ -461,7 +430,6 @@ class DrawTool extends EventDispatcher {
      *
      * @returns {object} GeoJSON geometry drawn
      * @fires DRAWTOOL_EVENT_TYPE#END
-     * @api
      */
     end() {
         if (this.state === DRAWTOOL_STATE.READY) return null;
@@ -509,7 +477,6 @@ class DrawTool extends EventDispatcher {
      * Aborts current drawing (active or paused).
      *
      * @fires DRAWTOOL_EVENT_TYPE#ABORT
-     * @api
      */
     reset() {
         if (this.state === DRAWTOOL_STATE.READY) return;
@@ -528,7 +495,6 @@ class DrawTool extends EventDispatcher {
     /**
      * Disposes of the object
      *
-     * @api
      */
     dispose() {
         this.reset();
@@ -543,7 +509,6 @@ class DrawTool extends EventDispatcher {
      * if the shape is empty.
      *
      * @returns {object} GeoJSON object
-     * @api
      */
     toGeoJSON() {
         if (this.state === DRAWTOOL_STATE.READY) return null;
@@ -595,7 +560,6 @@ class DrawTool extends EventDispatcher {
      * @fires DRAWTOOL_EVENT_TYPE#ADD
      * @fires DRAWTOOL_EVENT_TYPE#DRAWING
      * @fires DRAWTOOL_EVENT_TYPE#END If maxPoints reached
-     * @api
      */
     addPointAt(coords) {
         let index = this.coordinates.length;
@@ -635,7 +599,6 @@ class DrawTool extends EventDispatcher {
      * @param {Vector3} coords New position of the point
      * @fires DRAWTOOL_EVENT_TYPE#EDIT
      * @fires DRAWTOOL_EVENT_TYPE#DRAWING
-     * @api
      */
     updatePointAt(pointIdx, coords) {
         this.coordinates[pointIdx] = [coords.x, coords.y, coords.z];
@@ -693,7 +656,6 @@ class DrawTool extends EventDispatcher {
      * @param {number} pointIdx Point index to delete
      * @fires DRAWTOOL_EVENT_TYPE#DELETE
      * @fires DRAWTOOL_EVENT_TYPE#DRAWING
-     * @api
      */
     deletePoint(pointIdx) {
         if (
@@ -730,7 +692,6 @@ class DrawTool extends EventDispatcher {
      * @param {Vector3} coords Position for the new point
      * @fires DRAWTOOL_EVENT_TYPE#ADD
      * @fires DRAWTOOL_EVENT_TYPE#DRAWING
-     * @api
      */
     insertPointAt(pointIdx, coords) {
         this.coordinates.splice(pointIdx, 0, [coords.x, coords.y, coords.z]);

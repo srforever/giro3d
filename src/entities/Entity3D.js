@@ -16,7 +16,6 @@ import EventUtils from '../utils/EventUtils.js';
 /**
  * Fired when the entity visibility changed.
  *
- * @api
  * @event Entity3D#visible-property-changed
  * @property {object} new the new value of the property
  * @property {boolean} new.visible the new value of the entity visibility
@@ -29,7 +28,6 @@ import EventUtils from '../utils/EventUtils.js';
 /**
  * Fired when the entity opacity changed.
  *
- * @api
  * @event Entity3D#opacity-property-changed
  * @property {object} new the new value of the property
  * @property {number} new.opacity the new value of the entity opacity
@@ -40,12 +38,11 @@ import EventUtils from '../utils/EventUtils.js';
  */
 
 /**
- * Base class for {@link module:entities/Entity~Entity entities} that display 3D objects.
+ * Base class for {@link entities.Entity entities} that display 3D objects.
  *
  * @fires Entity3D#opacity-property-changed
  * @fires Entity3D#visible-property-changed
  * @fires Entity3D#clippingPlanes-property-changed
- * @api
  */
 class Entity3D extends Entity {
     /**
@@ -72,7 +69,6 @@ class Entity3D extends Entity {
          * Read-only flag to check if a given object is of type Entity3D.
          *
          * @type {boolean}
-         * @api
          */
         this.isEntity3D = true;
         this.type = 'Entity3D';
@@ -95,7 +91,6 @@ class Entity3D extends Entity {
     /**
      * Returns the root object of this entity.
      *
-     * @api
      * @type {Object3D}
      */
     get object3d() {
@@ -106,7 +101,6 @@ class Entity3D extends Entity {
      * Gets or sets the visibility of this entity.
      * A non-visible entity will not be automatically updated.
      *
-     * @api
      * @type {boolean}
      * @fires Entity3D#visible-property-changed
      */
@@ -126,7 +120,6 @@ class Entity3D extends Entity {
     /**
      * Gets or sets the render order of this entity.
      *
-     * @api
      * @type {number}
      * @fires Entity3D#renderOrder-property-changed
      */
@@ -146,7 +139,6 @@ class Entity3D extends Entity {
     /**
      * Gets or sets the opacity of this entity.
      *
-     * @api
      * @type {number}
      * @fires Entity3D#opacity-property-changed
      */
@@ -170,7 +162,6 @@ class Entity3D extends Entity {
      * the [clipping plane feature](https://threejs.org/docs/index.html?q=materi#api/en/materials/Material.clippingPlanes) of three.js.
      * Refer to the three.js documentation for more information.
      *
-     * @api
      * @type {Plane[]}
      * @fires Entity3D#clippingPlanes-property-changed
      */
@@ -189,7 +180,6 @@ class Entity3D extends Entity {
      * Updates the visibility of the entity.
      * Note: this method can be overriden for custom implementations.
      *
-     * @api
      */
     updateVisibility() {
         // Default implementation
@@ -202,7 +192,6 @@ class Entity3D extends Entity {
      * Updates the opacity of the entity.
      * Note: this method can be overriden for custom implementations.
      *
-     * @api
      */
     updateOpacity() {
         // Default implementation
@@ -255,7 +244,6 @@ class Entity3D extends Entity {
      *
      * // Notify the parent class
      * this.onObjectCreated(obj);
-     * @api
      * @param {Object3D} obj The object to prepare.
      */
     onObjectCreated(obj) {

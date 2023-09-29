@@ -25,7 +25,6 @@ import OBB from './OBB.js';
  * const geometry = new TileGeometry(paramsGeometry);
  * @param {object} params : Parameters to construct the grid. Should contain an extent
  *  and a size, either a number of segment or a width and an height in pixels.
- * @api
  */
 class TileGeometry extends BufferGeometry {
     constructor(params) {
@@ -79,7 +78,6 @@ class TileGeometry extends BufferGeometry {
      * Construct a simple grid buffer geometry using a fast rolling approach.
      *
      * @param {object} props : Properties of the TileGeometry grid, as prepared by this.prepare.
-     * @api
      */
     computeBuffers(props) {
         const width = props.width;

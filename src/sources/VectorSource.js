@@ -140,7 +140,6 @@ function rasterizeBuilderGroup(canvas, builderGroup, extent, size) {
  *      data: [new Feature(...)], // Pass the OpenLayers features here
  *      style: new Style(...), // Pass an OpenLayers style here
  * });
- * @api
  */
 class VectorSource extends ImageSource {
     /**
@@ -157,7 +156,6 @@ class VectorSource extends ImageSource {
      * OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
      * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
      * to test if a given extent is contained in this source.
-     * @api
      */
     constructor(options) {
         super(options);
@@ -190,7 +188,6 @@ class VectorSource extends ImageSource {
     /**
      * Change the style of this source. This triggers an update of the source.
      *
-     * @api
      * @param {Style|function(Feature):Style} style The style, or style function.
      */
     setStyle(style) {
@@ -270,7 +267,6 @@ class VectorSource extends ImageSource {
     /**
      * Returns an array with the feature in this source.
      *
-     * @api
      * @returns {Feature[]} The features.
      */
     getFeatures() {
@@ -280,7 +276,6 @@ class VectorSource extends ImageSource {
     /**
      * Returns the feature with the specified id.
      *
-     * @api
      * @param {string|number} id The feature id.
      * @returns {Feature} The feature.
      */
@@ -291,7 +286,6 @@ class VectorSource extends ImageSource {
     /**
      * Applies the callback for each feature in this source.
      *
-     * @api
      * @param {function(Feature): void} callback The callback.
      */
     forEachFeature(callback) {
@@ -402,7 +396,6 @@ class VectorSource extends ImageSource {
     /**
      * Gets the images for the specified extent and pixel size.
      *
-     * @api
      * @param {object} options The options.
      * @param {Extent} options.extent The extent of the request area.
      * @param {number} options.width The pixel width of the request area.

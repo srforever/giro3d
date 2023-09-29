@@ -10,7 +10,6 @@ class AxisGridInspector extends EntityInspector {
     /**
      * Creates an instance of AxisGridInspector.
      *
-     * @api
      * @param {GUI} parentGui The parent GUI.
      * @param {Instance} instance The Giro3D instance.
      * @param {AxisGrid} grid The inspected Map.
@@ -26,7 +25,6 @@ class AxisGridInspector extends EntityInspector {
          * The inspected grid.
          *
          * @type {AxisGrid}
-         * @api
          */
         this.grid = grid;
 

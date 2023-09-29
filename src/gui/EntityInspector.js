@@ -92,7 +92,6 @@ class ClippingPlanePanel extends Panel {
  * @class EntityInspector
  * @augments {Panel}
  * @abstract
- * @api
  */
 class EntityInspector extends Panel {
     /**
@@ -113,7 +112,6 @@ class EntityInspector extends Panel {
          * The inspected entity.
          *
          * @type {Entity3D}
-         * @api
          */
         this.entity = entity;
 
@@ -121,7 +119,6 @@ class EntityInspector extends Panel {
          * The root object of the entity's hierarchy.
          *
          * @type {Object3D}
-         * @api
          */
         this.rootObject = entity.object3d;
 
@@ -129,7 +126,6 @@ class EntityInspector extends Panel {
          * Toggle the visibility of the entity.
          *
          * @type {boolean}
-         * @api
          */
         this.visible = entity.visible;
 
@@ -137,7 +133,6 @@ class EntityInspector extends Panel {
          * Toggle the visibility of the bounding boxes.
          *
          * @type {boolean}
-         * @api
          */
         this.boundingBoxes = false;
 
@@ -197,7 +192,6 @@ class EntityInspector extends Panel {
      * You may override this method if the entity's visibility is not directly related
      * to its root object visibility.
      *
-     * @api
      * @param {boolean} visible The new visibility.
      */
     toggleVisibility(visible) {
@@ -209,7 +203,6 @@ class EntityInspector extends Panel {
      * Toggles the visibility of the bounding boxes.
      * You may override this method to use custom bounding boxes.
      *
-     * @api
      * @param {boolean} visible The new state.
      */
     toggleBoundingBoxes(visible) {

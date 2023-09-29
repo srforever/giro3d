@@ -25,7 +25,6 @@ const DEFAULT_PITCH = new Vector4(0, 0, 1, 1);
  * A {@link ColorLayer} that can be used to mask parts of
  * a map. The source can be any source supported by the color layers.
  *
- * @api
  */
 class MaskLayer extends ColorLayer {
     private _maskMode: MaskMode;

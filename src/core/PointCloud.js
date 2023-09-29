@@ -7,7 +7,6 @@ import PointsMaterial from '../renderer/PointsMaterial.js';
 /**
  * A point cloud object with geospatial properties.
  *
- * @api
  */
 class PointCloud extends Points {
     constructor({

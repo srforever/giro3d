@@ -12,7 +12,6 @@ class Tiles3dInspector extends EntityInspector {
     /**
      * Creates an instance of Tiles3dInspector.
      *
-     * @api
      * @param {GUI} parentGui The parent GUI.
      * @param {Instance} instance The Giro3D instance.
      * @param {Tiles3D} entity The inspected 3D tileset.
@@ -31,7 +30,6 @@ class Tiles3dInspector extends EntityInspector {
          * The inspected tileset.
          *
          * @type {Tiles3D}
-         * @api
          */
         this.tiles3d = entity;
 
@@ -39,7 +37,6 @@ class Tiles3dInspector extends EntityInspector {
          * Toggle the wireframe rendering of the entity.
          *
          * @type {boolean}
-         * @api
          */
         this.wireframe = this.tiles3d.wireframe || false;
 
@@ -47,7 +44,6 @@ class Tiles3dInspector extends EntityInspector {
          * The SSE of the entity.
          *
          * @type {number}
-         * @api
          */
         this.sse = this.tiles3d.sseThreshold;
 

@@ -11,27 +11,27 @@ import EventUtils from '../utils/EventUtils.js';
 /**
  * Abstract base class for all entities in giro3d.
  * The Entity is the core component of giro3d and represent an updatable
- * object that is added to an {@link module:Core/Instance~Instance Instance}.
+ * object that is added to an {@link core.Instance.Instance}.
  *
  * The class inherits three.js' [`EventDispatcher`](https://threejs.org/docs/index.html?q=even#api/en/core/EventDispatcher).
  *
  * ### Lifetime
  *
  * The lifetime of an entity follows this pattern: when the entity is added to an instance, its
- * {@link module:entities/Entity~Entity#preprocess preprocess()} method is called. When the promise
+ * {@link preprocess} method is called. When the promise
  * returned by this method resolves, the entity can be used in the main loop, where the update
  * methods (see below) will be used to update the entity over time. Finally, when the entity is
- * removed from the instance, its {@link module:entities/Entity~Entity#dispose dispose()} method
+ * removed from the instance, its {@link dispose} method
  * is called to cleanup memory.
  *
  * ### The update methods
  *
  * This class exposes three methods to update the object:
- * - {@link module:entities/Entity~Entity#preUpdate preUpdate()}
+ * - {@link entities.Entity#preUpdate preUpdate()}
  * to determine which _parts_ of the object should actually be updated.
- * - {@link module:entities/Entity~Entity#update update()} called for each part returned
+ * - {@link entities.Entity#update update()} called for each part returned
  * by `preUpdate()`
- * - {@link module:entities/Entity~Entity#postUpdate postUpdate()} to finalize
+ * - {@link entities.Entity#postUpdate postUpdate()} to finalize
  * the update step.
  *
  * ### A note on "parts"
@@ -45,14 +45,12 @@ import EventUtils from '../utils/EventUtils.js';
  *     const instance = new Instance(...);
  *     const entity = new Entity('exampleEntity');
  *     instance.add(entity);
- * @api
  */
 class Entity extends EventDispatcher {
     /**
      * Creates an entity with the specified unique identifier.
      *
      *
-     * @api
      * @param {string} id the unique identifier of this entity.
      */
     constructor(id) {
@@ -66,14 +64,12 @@ class Entity extends EventDispatcher {
          * Read-only flag to check if a given object is of type Entity.
          *
          * @type {boolean}
-         * @api
          */
         this.isEntity = true;
         /**
          * The name of the type of this object.
          *
          * @type {string}
-         * @api
          */
         this.type = 'Entity';
         this._frozen = false;
@@ -82,7 +78,6 @@ class Entity extends EventDispatcher {
     /**
      * Gets the unique identifier of this entity.
      *
-     * @api
      * @type {string}
      */
     get id() {
@@ -95,7 +90,6 @@ class Entity extends EventDispatcher {
      *
      * Useful for debugging purposes.
      *
-     * @api
      * @type {boolean}
      */
     get frozen() {
@@ -113,7 +107,6 @@ class Entity extends EventDispatcher {
     /**
      * Gets whether this entity is currently loading data.
      *
-     * @api
      * @type {boolean}
      */
     get loading() {
@@ -125,7 +118,6 @@ class Entity extends EventDispatcher {
      * Gets the current loading progress (between 0 and 1).
      * Note: This property is only meaningful if {@link loading} is `true`.
      *
-     * @api
      * @type {number}
      */
     get progress() {
@@ -138,7 +130,6 @@ class Entity extends EventDispatcher {
      * any operation that must be done before the entity can be used in the scene, such
      * as fetching metadata about a dataset, etc.
      *
-     * @api
      * @returns {Promise<void>} A promise that resolves when the entity is ready to be used.
      */
     preprocess() {
@@ -156,8 +147,7 @@ class Entity extends EventDispatcher {
      *
      * Note: if this functions returns nothing, `update()` will not be called.
      *
-     * @api
-     * @param {module:Core/Context~Context} context the update context.
+     * @param {module:core.Context~Context} context the update context.
      * @param {Array<object>} changeSources the objects that triggered an update step.
      * This is useful to filter out unnecessary updates if no sources are
      * relevant to this entity. For example, if one of the sources is a
@@ -172,20 +162,18 @@ class Entity extends EventDispatcher {
      *
      * Note: this method will be called for each element returned by `preUpdate()`.
      *
-     * @api
-     * @param {module:Core/Context~Context} context the update context.
+     * @param {module:core.Context~Context} context the update context.
      * This is the same object that the entity whose `update()` is being called.
      * @param {object} element the element to update.
      * This is one of the elements returned by
-     * {@link module:entities/Entity~Entity#preUpdate preUpdate()}.
+     * {@link module:entities.Entity#preUpdate preUpdate()}.
      */
     update(context, element) {}
 
     /**
-     * Method called after {@link module:entities/Entity~Entity#update update()}.
+     * Method called after {@link entities.Entity#update update()}.
      *
-     * @api
-     * @param {module:Core/Context~Context} context the update context.
+     * @param {module:core.Context~Context} context the update context.
      * @param {Array<object>} changeSources the objects that triggered an update step.
      * This is useful to filter out unnecessary updates if no sources are
      * relevant to this entity. For example, if one of the sources is a
@@ -202,7 +190,6 @@ class Entity extends EventDispatcher {
      *
      * For example: disposing materials, geometries, stopping HTTP requests, etc.
      *
-     * @api
      */
     dispose() {}
 }

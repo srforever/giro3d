@@ -11,7 +11,6 @@ class PotreePointCloudInspector extends EntityInspector {
     /**
      * Creates an instance of MapInspector.
      *
-     * @api
      * @param {GUI} parentGui The parent GUI.
      * @param {Instance} instance The Giro3D instance.
      * @param {PotreePointCloud} entity The inspected 3D tileset.
@@ -30,7 +29,6 @@ class PotreePointCloudInspector extends EntityInspector {
          * The inspected tileset.
          *
          * @type {PotreePointCloud}
-         * @api
          */
         this.tiles3d = entity;
 
@@ -38,7 +36,6 @@ class PotreePointCloudInspector extends EntityInspector {
          * The SSE of the entity.
          *
          * @type {number}
-         * @api
          */
         this.sse = this.tiles3d.sseThreshold;
 

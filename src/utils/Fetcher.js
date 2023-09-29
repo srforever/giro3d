@@ -10,7 +10,6 @@ import HttpQueue from './HttpQueue.js';
 /**
  * Fires when a Network or HTTP error occured during fetch
  *
- * @api
  * @event module:utils/Fetcher#error
  * @property {Error} error Error thrown
  * @property {Response?} error.response HTTP response (if any)
@@ -34,7 +33,6 @@ const _eventTarget = new FetcherEventDispatcher();
 /**
  * Adds a listener to an event type on fetch operations.
  *
- * @api
  * @param {string} type The type of event to listen to - only `error` is supported.
  * @param {Function} listener The function that gets called when the event is fired.
  */
@@ -45,7 +43,6 @@ function addEventListener(type, listener) {
 /**
  * Checks if listener is added to an event type.
  *
- * @api
  * @param {string} type The type of event to listen to - only `error` is supported.
  * @param {Function} listener The function that gets called when the event is fired.
  * @returns {boolean} `true` if the listener is added to this event type.
@@ -57,7 +54,6 @@ function hasEventListener(type, listener) {
 /**
  * Removes a listener from an event type on fetch operations.
  *
- * @api
  * @param {string} type The type of the listener that gets removed.
  * @param {Function} listener The listener function that gets removed.
  */
@@ -101,7 +97,6 @@ function getInfo() {
  * to benefit from automatic configuration from the
  * {@link module:utils/HttpConfiguration HttpConfiguration} module.
  *
- * @api
  * @name fetch
  * @function
  * @param {string} url the URL to fetch
@@ -128,7 +123,6 @@ async function _fetch(url, options = {}) {
 /**
  * Wrapper over `fetch`, then returns the blob of the response.
  *
- * @api
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<Blob>} The response blob.
@@ -142,7 +136,6 @@ async function blob(url, options = {}) {
 /**
  * Wrapper over `fetch` to get some text
  *
- * @api
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<string>} the promise containing the text
@@ -156,7 +149,6 @@ async function text(url, options = {}) {
 /**
  * Wrapper over `fetch` to get some JSON
  *
- * @api
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<any>} the promise containing the JSON
@@ -170,7 +162,6 @@ async function json(url, options = {}) {
 /**
  * Wrapper over `fetch` to get some XML.
  *
- * @api
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<Document>} the promise containing the XML
@@ -185,7 +176,6 @@ async function xml(url, options = {}) {
 /**
  * Wrapper over `fetch` to get some `ArrayBuffer`
  *
- * @api
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<ArrayBuffer>} the promise containing the ArrayBuffer
@@ -199,7 +189,6 @@ async function arrayBuffer(url, options = {}) {
 /**
  * Downloads a remote image and converts it into a texture.
  *
- * @api
  * @param {string} url the URL to fetch
  * @param {object} options fetch options (passed directly to `fetch()`)
  * @returns {Promise<Texture>} the promise containing the texture
@@ -216,7 +205,6 @@ async function texture(url, options = {}) {
  * in order to benefit from some error-checking, automatic configuration (from the
  * {@link module:utils/HttpConfiguration HttpConfiguration} module), etc.
  *
- * @api
  */
 export default {
     fetch: _fetch,

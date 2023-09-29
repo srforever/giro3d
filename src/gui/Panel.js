@@ -7,7 +7,6 @@ import Instance from '../core/Instance.js';
 /**
  * Base class for the panels in the inspector.
  *
- * @api
  * @abstract
  */
 class Panel {
@@ -26,7 +25,6 @@ class Panel {
          * The controllers.
          *
          * @type {Controller[]}
-         * @api
          */
         this._controllers = [];
     }
@@ -42,7 +40,6 @@ class Panel {
     /**
      * Adds a color controller to the panel.
      *
-     * @api
      * @param {object} obj The object.
      * @param {string} prop The name of the property.
      * @returns {ColorController} The created controller.
@@ -57,7 +54,6 @@ class Panel {
      * Adds a (non-color) controller to the panel.
      * See [the lil-gui API](https://lil-gui.georgealways.com/#GUI#add) for more information.
      *
-     * @api
      * @param {object} obj The object.
      * @param {string} prop The name of the property.
      * @param {object|number|any[]|undefined} [$1=undefined] Minimum value for number controllers,
@@ -81,7 +77,6 @@ class Panel {
      * Updates all controllers in this panel with the observed values.
      * This is useful if the value changes from outside the GUI.
      *
-     * @api
      */
     updateControllers() {
         this.updateValues();
@@ -91,7 +86,6 @@ class Panel {
     /**
      * Updates the values of the controller sources.
      *
-     * @api
      */
     // eslint-disable-next-line class-methods-use-this
     updateValues() { }
@@ -100,7 +94,6 @@ class Panel {
      * Updates the panel. You may override this function if the panel has additional work to do.
      * However, {@link updateControllers()} should still be called to ensure they are up to date.
      *
-     * @api
      */
     update() {
         if (!this.gui._closed) {
@@ -111,7 +104,6 @@ class Panel {
     /**
      * Removes this panel from its parent GUI.
      *
-     * @api
      */
     dispose() {
         this.gui.destroy();

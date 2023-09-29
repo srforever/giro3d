@@ -6,7 +6,6 @@ import { Texture } from 'three';
 /**
  * Base class for image decoders. To implement your own image decoder, subclass this class.
  *
- * @api
  */
 class ImageFormat {
     constructor(flipY) {
@@ -19,7 +18,6 @@ class ImageFormat {
     /**
      * Decodes the blob into a texture.
      *
-     * @api
      * @param {Blob} blob The blob to decode.
      * @param {object} options The decoder options.
      * @returns {Promise<Texture>} The decoded texture.

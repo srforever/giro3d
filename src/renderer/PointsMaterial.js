@@ -20,7 +20,6 @@ import Capabilities from '../core/system/Capabilities.js';
 /**
  * Specifies the way points are colored.
  *
- * @api
  * @readonly
  * @enum {number}
  */

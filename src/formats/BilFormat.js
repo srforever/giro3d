@@ -39,7 +39,6 @@ import TextureGenerator from '../utils/TextureGenerator.js';
  * ```
  * [See it in action](/examples/ign_ortho_elevation.html).
  *
- * @api
  */
 class BilFormat extends ImageFormat {
     constructor() {
@@ -60,7 +59,6 @@ class BilFormat extends ImageFormat {
      * @param {object} [options.width] The texture width.
      * @param {object} [options.height] The texture height.
      * present, this format will attempt to get it from the tiff metadata.
-     * @api
      */
     // eslint-disable-next-line class-methods-use-this
     async decode(blob, options = {}) {

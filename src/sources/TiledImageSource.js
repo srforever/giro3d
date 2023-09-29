@@ -63,7 +63,6 @@ class TiledImageSource extends ImageSource {
      * @param {ImageFormat} [options.format] The optional image decoder.
      * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
      * to test if a given extent is contained in this source.
-     * @api
      */
     constructor({
         source,
@@ -150,7 +149,6 @@ class TiledImageSource extends ImageSource {
     /**
      * Gets the images for the specified extent and pixel size.
      *
-     * @api
      * @param {object} options The options.
      * @param {Extent} options.extent The extent of the request area, in the source CRS.
      * @param {number} options.width The pixel width of the request area.
