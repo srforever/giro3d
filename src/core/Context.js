@@ -4,7 +4,7 @@ import { Plane, Vector3 } from 'three';
 
 /**
  * Contains the render/update loop context.
- * Each {@link module:entities/Entity~Entity} being updated is given a
+ * Each {@link entities.Entity} being updated is given a
  * context in its update methods.
  * This context can be modified by entities (notably the near and far clipping planes).
  *

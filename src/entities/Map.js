@@ -246,8 +246,8 @@ function computeImageSize(extent) {
  */
 
 /**
- * A map is an {@link module:entities/Entity~Entity Entity} that represents a flat
- * surface displaying one or more {@link module:Core/layer/Layer~Layer Layers}.
+ * A map is an {@link entities.Entity | Entity} that represents a flat
+ * surface displaying one or more {@link core.layer.Layer | Layers}.
  *
  * If an elevation layer is added, the surface of the map is deformed to
  * display terrain.

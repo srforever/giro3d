@@ -62,8 +62,8 @@ export const INSTANCE_EVENTS = {
 
 /**
  * The instance is the core component of Giro3D. It encapsulates the 3D scene,
- * the current camera and one or more {@link module:entities/Entity~Entity entities},
- * such as a {@link module:entities/Map~Map Map}.
+ * the current camera and one or more {@link entities.Entity | entities},
+ * such as a {@link entities.Map | Map}.
  *
  *     // example of Giro3D instantiation
  *     const instance = new Instance(viewerDiv, extent.crs(), {camera: camera})
@@ -276,7 +276,7 @@ class Instance extends EventDispatcher {
     /**
      * Gets the rendering options.
      *
-     * Note: you must call {@link module:core/Instance~Instance#notifyChange notifyChange()} to take
+     * Note: you must call {@link notifyChange | notifyChange()} to take
      * the changes into account.
      *
      * @api

@@ -40,7 +40,7 @@ import EventUtils from '../utils/EventUtils.js';
  */
 
 /**
- * Base class for {@link module:entities/Entity~Entity entities} that display 3D objects.
+ * Base class for {@link entities.Entity entities} that display 3D objects.
  *
  * @fires Entity3D#opacity-property-changed
  * @fires Entity3D#visible-property-changed
