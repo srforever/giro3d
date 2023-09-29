@@ -52,13 +52,11 @@ import ColorMapMode from './ColorMapMode.js';
  *
  * // When finished with this color map, dispose it.
  * colorMap.dispose();
- * @api
  */
 class ColorMap {
     /**
      * Creates an instance of ColorMap.
      *
-     * @api
      * @param {Color[]} colors The colors of this color map.
      * @param {number} min The lower bound of the color map range.
      * @param {number} max The upper bound of the color map range.
@@ -79,7 +77,6 @@ class ColorMap {
     /**
      * Gets or sets the color map mode.
      *
-     * @api
      * @type {ColorMapMode}
      * @example
      * // Start with an elevation gradient, ranging from 100 to 1500 meters.
@@ -103,7 +100,6 @@ class ColorMap {
     /**
      * Enables or disables the color map.
      *
-     * @api
      * @type {boolean}
      */
     get active() {
@@ -117,7 +113,6 @@ class ColorMap {
     /**
      * Gets or sets the lower bound of the color map range.
      *
-     * @api
      * @type {number}
      */
     get min() {
@@ -133,7 +128,6 @@ class ColorMap {
     /**
      * Gets or sets the upper bound of the color map range.
      *
-     * @api
      * @type {number}
      */
     get max() {
@@ -149,7 +143,6 @@ class ColorMap {
     /**
      * Gets or sets the colors of the color map.
      *
-     * @api
      * @type {Color[]}
      */
     get colors() {
@@ -167,7 +160,6 @@ class ColorMap {
     /**
      * Returns a 1D texture containing the colors of this color map.
      *
-     * @api
      * @returns {Texture} The resulting texture.
      */
     getTexture() {
@@ -185,7 +177,6 @@ class ColorMap {
     /**
      * Disposes the texture owned by this color map.
      *
-     * @api
      */
     dispose() {
         this._cachedTexture?.dispose();

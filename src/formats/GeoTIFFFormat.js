@@ -17,7 +17,6 @@ let geotiffWorkerPool;
 /**
  * Decoder for TIFF images.
  *
- * @api
  */
 class GeoTIFFFormat extends ImageFormat {
     constructor() {
@@ -36,7 +35,6 @@ class GeoTIFFFormat extends ImageFormat {
      * @param {object} options the decoding options
      * @param {number} [options.noDataValue] what pixel value should be considered as nodata. If not
      * present, this format will attempt to get it from the tiff metadata.
-     * @api
      */
     // eslint-disable-next-line class-methods-use-this
     async decode(blob, options = {}) {

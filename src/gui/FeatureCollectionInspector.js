@@ -86,7 +86,6 @@ class FeatureCollectionInspector extends EntityInspector {
     /**
      * Creates an instance of FeaturesInspector.
      *
-     * @api
      * @param {GUI} parentGui The parent GUI.
      * @param {Instance} instance The Giro3D instance.
      * @param {FeatureCollection} features The inspected Features.
@@ -104,7 +103,6 @@ class FeatureCollectionInspector extends EntityInspector {
          * The inspected features.
          *
          * @type {FeatureCollection}
-         * @api
          */
         this.features = features;
 
@@ -112,7 +110,6 @@ class FeatureCollectionInspector extends EntityInspector {
          * Toggle the wireframe rendering of the features.
          *
          * @type {boolean}
-         * @api
          */
         this.wireframe = this.features.wireframe || false;
 
@@ -120,7 +117,6 @@ class FeatureCollectionInspector extends EntityInspector {
          * Toggle the frozen property of the features.
          *
          * @type {boolean}
-         * @api
          */
         this.frozen = this.features.frozen || false;
 

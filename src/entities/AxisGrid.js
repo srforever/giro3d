@@ -74,13 +74,11 @@ const DEFAULT_STYLE = {
  * Describes the starting point of the ticks.
  *
  * @enum
- * @api
  */
 const TickOrigin = {
     /**
      * Graduations start at the bottom left corner of the grid.
      *
-     * @api
      * @type {number}
      */
     Relative: 0,
@@ -89,7 +87,6 @@ const TickOrigin = {
      * Graduations are measured from the origin of the coordinate reference system (CRS). In other
      * words, ticks are coordinates.
      *
-     * @api
      * @type {number}
      */
     Absolute: 1,
@@ -120,13 +117,11 @@ const TickOrigin = {
  *       z: 50,
  *   },
  * });
- * @api
  */
 class AxisGrid extends Entity3D {
     /**
      * Creates an instance of AxisGrid.
      *
-     * @api
      * @param {string} id The unique identifier of this entity.
      * @param {object} options The options.
      * @param {Volume} options.volume The grid volume.
@@ -141,7 +136,6 @@ class AxisGrid extends Entity3D {
          * Read-only flag to check if a given object is of type AxisGrid.
          *
          * @type {boolean}
-         * @api
          */
         this.isAxisGrid = true;
         this.type = 'AxisGrid';
@@ -213,7 +207,6 @@ class AxisGrid extends Entity3D {
      * to recreate the grid.
      *
      * @type {Style}
-     * @api
      */
     get style() {
         return this._style;
@@ -232,7 +225,6 @@ class AxisGrid extends Entity3D {
      * to recreate the grid.
      *
      * @type {Volume}
-     * @api
      */
     get volume() {
         return this._volume;
@@ -250,7 +242,6 @@ class AxisGrid extends Entity3D {
      * You will need to call {@link module:entities/AxisGrid~AxisGrid#refresh refresh()}
      * to recreate the grid.
      *
-     * @api
      * @type {TickOrigin}
      */
     get origin() {
@@ -267,7 +258,6 @@ class AxisGrid extends Entity3D {
     /**
      * Gets or sets the grid and label color.
      *
-     * @api
      * @type {Color}
      */
     get color() {
@@ -284,7 +274,6 @@ class AxisGrid extends Entity3D {
     /**
      * Shows or hides labels.
      *
-     * @api
      * @type {boolean}
      */
     get showLabels() {
@@ -301,7 +290,6 @@ class AxisGrid extends Entity3D {
     /**
      * Shows or hides the floor grid.
      *
-     * @api
      * @type {boolean}
      */
     get showFloorGrid() {
@@ -318,7 +306,6 @@ class AxisGrid extends Entity3D {
     /**
      * Shows or hides the ceiling grid.
      *
-     * @api
      * @type {boolean}
      */
     get showCeilingGrid() {
@@ -335,7 +322,6 @@ class AxisGrid extends Entity3D {
     /**
      * Shows or hides the side grids.
      *
-     * @api
      * @type {boolean}
      */
     get showSideGrids() {
@@ -352,7 +338,6 @@ class AxisGrid extends Entity3D {
     /**
      * Rebuilds the grid. This is necessary after changing the ticks, volume or origin.
      *
-     * @api
      */
     refresh() {
         this.volume.extent.center(this.root.position);

@@ -23,7 +23,6 @@ const points = [
 /**
  * Displays an Oriented Bounding Box (OBB).
  *
- * @api
  */
 class OBBHelper extends LineSegments {
     constructor(OBB, color) {

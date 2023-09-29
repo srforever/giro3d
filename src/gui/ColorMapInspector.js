@@ -10,7 +10,6 @@ import Layer from '../core/layer/Layer';
 /**
  * Inspector for a {@see ColorMap}.
  *
- * @api
  */
 class ColorMapInspector extends Panel {
     /**

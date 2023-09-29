@@ -116,7 +116,6 @@ function selectBestSubdivisions(map, extent) {
  *
  * - [WFS as 3D meshes](/examples/wfs_mesh.html)
  *
- * @api
  */
 class FeatureCollection extends Entity3D {
     /**
@@ -213,7 +212,6 @@ class FeatureCollection extends Entity3D {
          * Read-only flag to check if a given object is of type FeatureCollection.
          *
          * @type {boolean}
-         * @api
          */
         this.isFeatureCollection = true;
         this.type = 'FeatureCollection';
@@ -271,7 +269,6 @@ class FeatureCollection extends Entity3D {
     /**
      * Gets whether this entity is currently loading data.
      *
-     * @api
      * @type {boolean}
      */
     get loading() {
@@ -281,7 +278,6 @@ class FeatureCollection extends Entity3D {
     /**
      * Gets the progress value of the data loading.
      *
-     * @api
      * @type {number}
      */
     get progress() {

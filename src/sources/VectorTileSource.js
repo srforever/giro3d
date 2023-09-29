@@ -133,7 +133,6 @@ function renderFeature(feature, squaredTolerance, styles, builderGroup) {
  *     style: new Style(...), // Pass an OpenLayers style here
  *     backgroundColor: 'hsl(47, 26%, 88%)',
  * });
- * @api
  */
 class VectorTileSource extends ImageSource {
     /**
@@ -145,7 +144,6 @@ class VectorTileSource extends ImageSource {
      * OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
      * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
      * to test if a given extent is contained in this source.
-     * @api
      */
     constructor(options) {
         super(options);

@@ -50,7 +50,6 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
 /**
  * Fires when the layers are reordered.
  *
- * @api
  * @event Map#layer-order-changed
  * @example
  * map.addEventListener('layer-order-changed', () => console.log('order changed!'));
@@ -59,7 +58,6 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
 /**
  * Fires when a layer is added to the map.
  *
- * @api
  * @event Map#layer-added
  * @example
  * map.addEventListener('layer-added', () => console.log('layer added!'));
@@ -68,7 +66,6 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
 /**
  * Fires when a layer is removed from the map.
  *
- * @api
  * @event Map#layer-removed
  * @example
  * map.addEventListener('layer-removed', () => console.log('layer removed!'));
@@ -235,7 +232,6 @@ function computeImageSize(extent) {
 }
 
 /**
- * @api
  * @typedef {object} HillshadingOptions
  * @property {boolean} [enabled=true] Enables hillshading.
  * @property {number} [azimuth=135] The azimuth of the sun, in degrees.
@@ -251,8 +247,6 @@ function computeImageSize(extent) {
  *
  * If an elevation layer is added, the surface of the map is deformed to
  * display terrain.
- *
- * @api
  */
 class Map extends Entity3D {
     /**
@@ -290,7 +284,6 @@ class Map extends Entity3D {
      * The optional elevation range of the map. The map will not be rendered for elevations outside
      * of this range.
      * Note: this feature is only useful if an elevation layer is added to this map.
-     * @api
      */
     constructor(id, options) {
         super(id, options.object3d || new Group());
@@ -317,7 +310,6 @@ class Map extends Entity3D {
          * Read-only flag to check if a given object is of type Map.
          *
          * @type {boolean}
-         * @api
          */
         this.isMap = true;
         this.type = 'Map';
@@ -350,7 +342,6 @@ class Map extends Entity3D {
     /**
      * Returns `true` if this map is currently processing data.
      *
-     * @api
      * @type {boolean}
      */
     get loading() {
@@ -363,7 +354,6 @@ class Map extends Entity3D {
      * Note: if no layer is present, this will always be 1.
      * Note: This value is only meaningful is {@link loading} is `true`.
      *
-     * @api
      * @type {number}
      */
     get progress() {
@@ -578,7 +568,6 @@ class Map extends Entity3D {
     /**
      * Sort the color layers according to the comparator function.
      *
-     * @api
      * @param {LayerCompareFn} compareFn The comparator function.
      */
     sortColorLayers(compareFn) {
@@ -611,7 +600,6 @@ class Map extends Entity3D {
      *
      * Note: this only applies to color layers.
      *
-     * @api
      * @param {ColorLayer} layer The layer to move.
      * @throws {Error} If the layer is not present in the map.
      * @example
@@ -642,7 +630,6 @@ class Map extends Entity3D {
     /**
      * Moves the specified layer after the other layer in the list.
      *
-     * @api
      * @param {ColorLayer} layer The layer to move.
      * @param {ColorLayer} target The target layer. If `null`, then the layer is put at the
      * beginning of the layer list.
@@ -680,7 +667,6 @@ class Map extends Entity3D {
      *
      * Note: this only applies to color layers.
      *
-     * @api
      * @param {ColorLayer} layer The layer to move.
      * @throws {Error} If the layer is not present in the map.
      * @example
@@ -711,7 +697,6 @@ class Map extends Entity3D {
     /**
      * Returns the position of the layer in the layer list.
      *
-     * @api
      * @param {Layer} layer The layer to search.
      * @returns {number} The index of the layer.
      */
@@ -837,7 +822,6 @@ class Map extends Entity3D {
      *
      * @param {module:Core/layer/Layer~Layer} layer an object describing the layer options creation
      * @returns {Promise} a promise resolving when the layer is ready
-     * @api
      */
     addLayer(layer) {
         return new Promise((resolve, reject) => {
@@ -920,7 +904,6 @@ class Map extends Entity3D {
      * @param {object} [options] The options.
      * @param {boolean} [options.disposeLayer=false] If `true`, the layer is also disposed.
      * @returns {boolean} `true` if the layer was present, `false` otherwise.
-     * @api
      */
     removeLayer(layer, options = {}) {
         this.currentAddedLayerIds = this.currentAddedLayerIds.filter(l => l !== layer.id);
@@ -947,7 +930,6 @@ class Map extends Entity3D {
     /**
      * Gets all layers that satisfy the filter predicate.
      *
-     * @api
      * @param {Function} [filter] the optional filter
      * @returns {Array<Layer>} the layers that matched the predicate,
      * or all layers if no predicate was provided.
@@ -965,7 +947,6 @@ class Map extends Entity3D {
     /**
      * Gets all color layers in this map.
      *
-     * @api
      * @returns {Array<Layer>} the color layers
      */
     getColorLayers() {
@@ -975,7 +956,6 @@ class Map extends Entity3D {
     /**
      * Gets all elevation layers in this map.
      *
-     * @api
      * @returns {Array<ElevationLayer>} the color layers
      */
     getElevationLayers() {
@@ -1012,7 +992,6 @@ class Map extends Entity3D {
      *
      * If there is no elevation layer present, returns `{ min: 0, max: 0 }`.
      *
-     * @api
      * @returns {import('../core').ElevationRange} The min/max value.
      */
     getElevationMinMax() {

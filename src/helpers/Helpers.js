@@ -146,7 +146,6 @@ function createSphereVolume(sphere, color) {
 /**
  * Provides utility functions to create scene helpers, such as bounding boxes, grids, axes...
  *
- * @api
  */
 class Helpers {
     /**
@@ -154,7 +153,6 @@ class Helpers {
      * If a bounding box is already present, it is updated instead.
      *
      * @static
-     * @api
      * @param {Object3D} obj The object to decorate.
      * @param {Color|string} color The color.
      * @example
@@ -198,7 +196,6 @@ class Helpers {
      * Creates a selection bounding box helper around the specified object.
      *
      * @static
-     * @api
      * @param {Object3D} obj The object to decorate.
      * @param {Color|string} color The color.
      * @returns {BoxHelper} the created box helper.
@@ -219,7 +216,6 @@ class Helpers {
      * If a bounding box is already present, it is updated instead.
      *
      * @static
-     * @api
      * @param {Object3D} obj The object to decorate.
      * @param {OBB} obb The OBB.
      * @param {Color|string} color The color.
@@ -252,7 +248,6 @@ class Helpers {
      * The bounding volume can contain a sphere, a region, or a box.
      *
      * @static
-     * @api
      * @param {Tiles3D} entity The entity.
      * @param {Object3D} obj The object to decorate.
      * @param {object} metadata The tile metadata
@@ -320,7 +315,6 @@ class Helpers {
     /**
      * Create a grid on the XZ plane.
      *
-     * @api
      * @static
      * @param {Vector3} origin The grid origin.
      * @param {number} size The size of the grid.
@@ -341,7 +335,6 @@ class Helpers {
     /**
      * Create an axis helper.
      *
-     * @api
      * @static
      * @param {number} size The size of the helper.
      */
@@ -379,7 +372,6 @@ class Helpers {
     /**
      * Creates an arrow between the two points.
      *
-     * @api
      * @param {Vector3} start The starting point.
      * @param {Vector3} end The end point.
      */
@@ -394,7 +386,6 @@ class Helpers {
      * Removes an existing bounding box from the object, if any.
      *
      * @static
-     * @api
      * @param {Object3D} obj The object to update.
      * @example
      * Helpers.removeBoundingBox(obj);

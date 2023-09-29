@@ -38,12 +38,10 @@ class ImageResult {
  * Base class for all image sources. The `ImageSource` produces images to be consumed by clients,
  * such as map layers.
  *
- * @api
  * @abstract
  */
 class ImageSource extends EventDispatcher {
     /**
-     * @api
      * @param {object} options Options.
      * @param {boolean} [options.flipY = false] Should images be flipped vertically during
      * composition ?
@@ -82,7 +80,6 @@ class ImageSource extends EventDispatcher {
      * Returns an adjusted extent, width and height so that request pixels are aligned with source
      * pixels, and requests do not oversample the source.
      *
-     * @api
      * @param {Extent} requestExtent The request extent.
      * @param {number} requestWidth The width, in pixels, of the request extent.
      * @param {number} requestHeight The height, in pixels, of the request extent.
@@ -99,7 +96,6 @@ class ImageSource extends EventDispatcher {
     /**
      * Returns the CRS of this source.
      *
-     * @api
      * @returns {string} The CRS.
      */
     // eslint-disable-next-line class-methods-use-this
@@ -111,7 +107,6 @@ class ImageSource extends EventDispatcher {
     /**
      * Returns the extent of this source expressed in the CRS of the source.
      *
-     * @api
      * @returns {Extent} The extent of the source.
      */
     // eslint-disable-next-line class-methods-use-this
@@ -122,7 +117,6 @@ class ImageSource extends EventDispatcher {
     /**
      * Raises an event to reload the source.
      *
-     * @api
      */
     update() {
         this.dispatchEvent({ type: 'updated' });
@@ -136,7 +130,6 @@ class ImageSource extends EventDispatcher {
      * This method is mainly used to discard non-relevant requests (i.e don't process regions
      * that are not relevant to this source).
      *
-     * @api
      * @param {Extent} extent The extent to test.
      */
     contains(extent) {
@@ -153,7 +146,6 @@ class ImageSource extends EventDispatcher {
      * Test the intersection between the specified extent and this source's extent.
      * This method may be overriden to perform special logic.
      *
-     * @api
      * @param {Extent} extent The extent to test.
      * @returns {boolean} `true` if the extent and this source extent intersects, `false` otherwise.
      */
@@ -169,7 +161,6 @@ class ImageSource extends EventDispatcher {
     /**
      * Initializes the source.
      *
-     * @api
      * @param {object} options Options.
      * @param {string} options.targetProjection The target projection. Only useful for sources
      * that are able to reproject their data on the fly (typically vector sources).
@@ -184,7 +175,6 @@ class ImageSource extends EventDispatcher {
     /**
      * Gets the images for the specified extent and pixel size.
      *
-     * @api
      * @param {object} options The options.
      * @param {Extent} options.extent The extent of the request area.
      * @param {number} options.width The pixel width of the request area.
@@ -204,7 +194,6 @@ class ImageSource extends EventDispatcher {
     /**
      * Disposes unmanaged resources of this source.
      *
-     * @api
      */
     // eslint-disable-next-line class-methods-use-this
     dispose() {

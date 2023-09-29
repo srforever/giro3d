@@ -27,7 +27,6 @@ const vectors = {
  * and
  * [`Instance.removeEventListener()`](https://threejs.org/docs/#api/en/core/EventDispatcher.removeEventListener)
  *
- * @api
  */
 export const INSTANCE_EVENTS = {
     /**
@@ -38,7 +37,6 @@ export const INSTANCE_EVENTS = {
      * If you add new layers, the event will be fired again when all
      * layers are ready.
      *
-     * @api
      * @event Instance#layers-initialized
      */
     LAYERS_INITIALIZED: 'layers-initialized',
@@ -46,7 +44,6 @@ export const INSTANCE_EVENTS = {
     /**
      * Fires when an entity is added to the instance.
      *
-     * @api
      * @event Instance#entity-added
      */
     ENTITY_ADDED: 'entity-added',
@@ -54,7 +51,6 @@ export const INSTANCE_EVENTS = {
     /**
      * Fires when an entity is removed from the instance.
      *
-     * @api
      * @event Instance#entity-removed
      */
     ENTITY_REMOVED: 'entity-removed',
@@ -79,7 +75,6 @@ export const INSTANCE_EVENTS = {
  *     instance.camera.camera3D.position.set(newPosition);
  *     instance.camera.camera3D.lookAt(lookAt);
  *
- * @api
  */
 class Instance extends EventDispatcher {
     /**
@@ -117,7 +112,6 @@ class Instance extends EventDispatcher {
      * const instance = new Instance(viewerDiv, opts);
      * const map = new Map('myMap', null, extent, { maxSubdivisionLevel: 10 });
      * instance.add(map);
-     * @api
      */
     constructor(viewerDiv, options) {
         super();
@@ -177,7 +171,6 @@ class Instance extends EventDispatcher {
         /**
          * Gets the current camera.
          *
-         * @api
          * @type {Camera}
          */
         this.camera = new Camera(
@@ -228,7 +221,6 @@ class Instance extends EventDispatcher {
     /**
      * Gets the canvas that this instance renders into.
      *
-     * @api
      * @type {HTMLCanvasElement}
      */
     get domElement() {
@@ -238,7 +230,6 @@ class Instance extends EventDispatcher {
     /**
      * Gets the DOM element that contains the giro3d viewport.
      *
-     * @api
      * @type {HTMLElement}
      */
     get viewport() {
@@ -248,7 +239,6 @@ class Instance extends EventDispatcher {
     /**
      * Gets whether at least one entity is currently loading data.
      *
-     * @api
      */
     get loading() {
         const entities = this.getObjects(o => o instanceof Entity);
@@ -261,7 +251,6 @@ class Instance extends EventDispatcher {
      * Note: This value is only meaningful is {@link loading} is `true`.
      * Note: if no entity is present in the instance, this will always return 1.
      *
-     * @api
      * @type {number}
      */
     get progress() {
@@ -279,7 +268,6 @@ class Instance extends EventDispatcher {
      * Note: you must call {@link notifyChange | notifyChange()} to take
      * the changes into account.
      *
-     * @api
      * @type {RenderingOptions}
      */
     get renderingOptions() {
@@ -289,7 +277,6 @@ class Instance extends EventDispatcher {
     /**
      * Gets the underlying WebGL renderer.
      *
-     * @api
      * @type {WebGLRenderer}
      * @readonly
      */
@@ -325,7 +312,6 @@ class Instance extends EventDispatcher {
      * - Inspectors, use `inspector.detach()`
      * - any openlayers objects, please see their individual documentation
      *
-     * @api
      */
     dispose() {
         if (this._isDisposing) {
@@ -357,7 +343,6 @@ class Instance extends EventDispatcher {
      * @param {Object3D|Entity} object the object to add
      * @returns {Promise} a promise resolved with the new layer object when it is fully initialized
      * or rejected if any error occurred.
-     * @api
      */
     add(object) {
         if (!(object instanceof Object3D) && !(object instanceof Entity)) {
@@ -424,7 +409,6 @@ class Instance extends EventDispatcher {
     /**
      * Removes the entity or THREE object from the scene.
      *
-     * @api
      * @param {Object3D|Entity} object the object to remove.
      */
     remove(object) {
@@ -447,7 +431,6 @@ class Instance extends EventDispatcher {
      * scene itself (e.g. camera movement).
      * non-interactive events (e.g: texture loaded)
      *
-     * @api
      * @param {*} changeSource the source of the change
      * @param {boolean} needsRedraw indicates if notified change requires a full scene redraw.
      */
@@ -463,7 +446,6 @@ class Instance extends EventDispatcher {
      * This should be done before creating the instance.
      * This method can be called several times to add multiple CRS.
      *
-     * @api
      * @static
      * @example
      * // register the CRS first...
@@ -553,7 +535,6 @@ class Instance extends EventDispatcher {
      *
      * FrameRequesters can activate the MainLoop update by calling instance.notifyChange.
      *
-     * @api
      * @param {string} when decide when the frameRequester should be called during
      * the update cycle. Can be any of {@link module:core/Instance.INSTANCE_EVENTS INSTANCE_EVENTS}.
      * @param {FrameRequester} frameRequester this function will be called at each
@@ -577,7 +558,6 @@ class Instance extends EventDispatcher {
      * The effective removal will happen either later; at worst it'll be at
      * the beginning of the next frame.
      *
-     * @api
      * @param {string} when attach point of this requester.
      * Can be any of {@link module:core/Instance.INSTANCE_EVENTS INSTANCE_EVENTS}.
      * @param {FrameRequester} frameRequester the frameRequester to remove
@@ -701,7 +681,6 @@ class Instance extends EventDispatcher {
     /**
      * Return objects from some layers/objects3d under the mouse in this instance.
      *
-     * @api
      * @param {Vector2|MouseEvent|TouchEvent} mouseOrEvt mouse position in window coordinates, i.e
      * [0, 0] = top-left, or `MouseEvent` or `TouchEvent`
      * @param {object} [options] Optional properties.
@@ -806,7 +785,6 @@ class Instance extends EventDispatcher {
      * - they have an `update` method
      *
      * @param {object} controls An instance of a THREE controls
-     * @api
      */
     useTHREEControls(controls) {
         if (this.controls) {

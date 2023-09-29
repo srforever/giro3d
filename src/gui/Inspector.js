@@ -39,7 +39,6 @@ document.head.appendChild(styleSheet);
  * You can implement custom panels and add them to the inspector with
  * {@link module:gui/Inspector~Inspector#addPanel addPanel()}.
  *
- * @api
  */
 class Inspector {
     /**
@@ -83,7 +82,6 @@ class Inspector {
     /**
      * Removes all panel from the inspector.
      *
-     * @api
      */
     clearPanels() {
         while (this.folders.length > 0) {
@@ -94,7 +92,6 @@ class Inspector {
     /**
      * Adds a panel to the inspector.
      *
-     * @api
      * @param {Panel} panel The panel to add.
      */
     addPanel(panel) {
@@ -104,7 +101,6 @@ class Inspector {
     /**
      * Attaches the inspector to the specified DOM element.
      *
-     * @api
      * @param {HTMLDivElement} div The div element to attach the panel to.
      * @param {Instance} instance The Giro3D instance.
      * @param {Options} [options] The options.
@@ -118,7 +114,6 @@ class Inspector {
     /**
      * Detach this Inspector from its instance.
      *
-     * @api
      */
     detach() {
         this.clearPanels();

@@ -89,7 +89,6 @@ class DebugSource extends ImageSource {
     /**
      * Gets the images for the specified extent and pixel size.
      *
-     * @api
      * @param {object} options The options.
      * @param {Extent} options.extent The extent of the request area.
      * @param {string} options.id The identifier of the node that emitted the request.

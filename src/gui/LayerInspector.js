@@ -14,7 +14,6 @@ import SourceInspector from './SourceInspector.js';
 /**
  * Inspector for a {@link module:Core/layer/Layer~Layer Layer}.
  *
- * @api
  */
 class LayerInspector extends Panel {
     /**
@@ -30,7 +29,6 @@ class LayerInspector extends Panel {
          * The inspected layer.
          *
          * @type {Layer}
-         * @api
          */
         this.layer = layer;
 
@@ -93,7 +91,6 @@ class LayerInspector extends Panel {
          * The color map inspector.
          *
          * @type {GUI}
-         * @api
          */
         this.colorMapInspector = new ColorMapInspector(
             this.gui,
@@ -107,7 +104,6 @@ class LayerInspector extends Panel {
              * The source inspector.
              *
              * @type {GUI}
-             * @api
              */
             this.sourceInspector = new SourceInspector(
                 this.gui,

@@ -25,7 +25,6 @@ const customInspectors = {
  * To add a custom inspector for a specific entity type,
  * use {@link module:gui/EntityPanel~EntityPanel.registerInspector registerInspector()}.
  *
- * @api
  */
 class EntityPanel extends Panel {
     /**
@@ -82,7 +81,6 @@ class EntityPanel extends Panel {
      * Registers an inspector for an entity type.
      *
      * @static
-     * @api
      * @param {string} type The entity type. This should match the property `type` on the entity.
      * @param {EntityInspector} inspector The inspector.
      * @example

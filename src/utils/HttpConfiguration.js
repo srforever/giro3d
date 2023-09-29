@@ -35,7 +35,6 @@ class PrefixEntry {
  * @param {?object} options The request options.
  * @returns {object|undefined} The updated options, if any. If no options object is passed, and no
  * configuration applies to this URL, then returns `undefined`.
- * @api
  * @example
  * HttpConfiguration.setHeader('http://example.com', 'Foo', 'bar');
  *
@@ -108,7 +107,6 @@ function applyConfiguration(url, options) {
  * @param {string} urlPrefix The URL prefix.
  * @param {string} name The header name.
  * @param {string} value The header value.
- * @api
  */
 function setHeader(urlPrefix, name, value) {
     const url = new URL(urlPrefix);
@@ -143,7 +141,6 @@ function setHeader(urlPrefix, name, value) {
  *  setHeader(urlPrefix, 'Authorization', value)
  *  ```
  *
- * @api
  * @param {string} urlPrefix The URL prefix.
  * @param {string} value The header value
  * @example
@@ -169,7 +166,6 @@ function setAuth(urlPrefix, value) {
 /**
  * Removes all configurations.
  *
- * @api
  */
 function clear() {
     perHostProperties.clear();
@@ -195,7 +191,6 @@ function clear() {
  * the requests by querying configuration from this module, but if you can't or don't want to use
  * `Fetcher`, then you have to patch the request yourself (see the example below).
  *
- * @api
  * @example
  * // Set the `Accept-Language` header to `fr-CH` for all requests under `http://example.com`.
  * HttpConfiguration.setHeader('http://example.com', 'Accept-Language', 'fr-CH');

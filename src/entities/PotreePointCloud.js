@@ -115,13 +115,11 @@ function findChildrenByName(node, name) {
 /**
  * A [Potree](https://github.com/potree/potree) point cloud.
  *
- * @api
  */
 class PotreePointCloud extends Entity3D {
     /**
      * Creates an instance of PotreePointCloud.
      *
-     * @api
      * @param {string} id The unique identifier of this entity.
      * @param {PotreeSource} source The data source.
      * @example
@@ -135,7 +133,6 @@ class PotreePointCloud extends Entity3D {
          * Read-only flag to check if a given object is of type PotreePointCloud.
          *
          * @type {boolean}
-         * @api
          */
         this.isPotreePointCloud = true;
         this.type = 'PotreePointCloud';
@@ -179,7 +176,6 @@ class PotreePointCloud extends Entity3D {
          * Optional hook called when a new point tile is loaded.
          * The parameter is a {@link module:Core/Points~Points Points} object.
          *
-         * @api
          * @type {Function}
          * @example
          * const cloud = new PotreePointCloud('myCloud', source);

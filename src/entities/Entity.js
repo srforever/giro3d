@@ -45,14 +45,12 @@ import EventUtils from '../utils/EventUtils.js';
  *     const instance = new Instance(...);
  *     const entity = new Entity('exampleEntity');
  *     instance.add(entity);
- * @api
  */
 class Entity extends EventDispatcher {
     /**
      * Creates an entity with the specified unique identifier.
      *
      *
-     * @api
      * @param {string} id the unique identifier of this entity.
      */
     constructor(id) {
@@ -66,14 +64,12 @@ class Entity extends EventDispatcher {
          * Read-only flag to check if a given object is of type Entity.
          *
          * @type {boolean}
-         * @api
          */
         this.isEntity = true;
         /**
          * The name of the type of this object.
          *
          * @type {string}
-         * @api
          */
         this.type = 'Entity';
         this._frozen = false;
@@ -82,7 +78,6 @@ class Entity extends EventDispatcher {
     /**
      * Gets the unique identifier of this entity.
      *
-     * @api
      * @type {string}
      */
     get id() {
@@ -95,7 +90,6 @@ class Entity extends EventDispatcher {
      *
      * Useful for debugging purposes.
      *
-     * @api
      * @type {boolean}
      */
     get frozen() {
@@ -113,7 +107,6 @@ class Entity extends EventDispatcher {
     /**
      * Gets whether this entity is currently loading data.
      *
-     * @api
      * @type {boolean}
      */
     get loading() {
@@ -125,7 +118,6 @@ class Entity extends EventDispatcher {
      * Gets the current loading progress (between 0 and 1).
      * Note: This property is only meaningful if {@link loading} is `true`.
      *
-     * @api
      * @type {number}
      */
     get progress() {
@@ -138,7 +130,6 @@ class Entity extends EventDispatcher {
      * any operation that must be done before the entity can be used in the scene, such
      * as fetching metadata about a dataset, etc.
      *
-     * @api
      * @returns {Promise<void>} A promise that resolves when the entity is ready to be used.
      */
     preprocess() {
@@ -156,7 +147,6 @@ class Entity extends EventDispatcher {
      *
      * Note: if this functions returns nothing, `update()` will not be called.
      *
-     * @api
      * @param {module:core.Context~Context} context the update context.
      * @param {Array<object>} changeSources the objects that triggered an update step.
      * This is useful to filter out unnecessary updates if no sources are
@@ -172,7 +162,6 @@ class Entity extends EventDispatcher {
      *
      * Note: this method will be called for each element returned by `preUpdate()`.
      *
-     * @api
      * @param {module:core.Context~Context} context the update context.
      * This is the same object that the entity whose `update()` is being called.
      * @param {object} element the element to update.
@@ -184,7 +173,6 @@ class Entity extends EventDispatcher {
     /**
      * Method called after {@link entities.Entity#update update()}.
      *
-     * @api
      * @param {module:core.Context~Context} context the update context.
      * @param {Array<object>} changeSources the objects that triggered an update step.
      * This is useful to filter out unnecessary updates if no sources are
@@ -202,7 +190,6 @@ class Entity extends EventDispatcher {
      *
      * For example: disposing materials, geometries, stopping HTTP requests, etc.
      *
-     * @api
      */
     dispose() {}
 }

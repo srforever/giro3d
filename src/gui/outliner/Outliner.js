@@ -125,7 +125,6 @@ function shouldBeDisplayedInTree(obj, filter) {
 /**
  * Provides a tree view of the three.js [scene](https://threejs.org/docs/index.html?q=scene#api/en/scenes/Scene).
  *
- * @api
  */
 class Outliner extends Panel {
     /**

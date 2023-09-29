@@ -9,7 +9,6 @@ import ImageSource from './ImageSource.js';
 /**
  * An image source that produces nothing. Mainly for debugging/testing purposes.
  *
- * @api
  */
 class NullSource extends ImageSource {
     constructor(options = {}) {

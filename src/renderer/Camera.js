@@ -29,7 +29,6 @@ const tmp = {
 /**
  * Adds geospatial capabilities to three.js cameras.
  *
- * @api
  * @param {string} crs the CRS of this camera
  * @param {number} width the width in pixels of the camera viewport
  * @param {number} height the height in pixels of the camera viewport
