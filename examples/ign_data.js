@@ -119,7 +119,7 @@ const feat = new FeatureCollection('buildings', {
     source: vectorSource,
     extent,
     material: new MeshLambertMaterial(),
-    extrude: feature => {
+    extrusionOffset: feature => {
         const hauteur = -feature.getProperties().hauteur;
         if (Number.isNaN(hauteur)) {
             return null;

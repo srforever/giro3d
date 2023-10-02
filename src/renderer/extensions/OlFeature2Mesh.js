@@ -56,7 +56,7 @@ function fillColorArray(colors, length, r, g, b, offset) {
     }
 }
 
-function prepareBufferGeometry(geom, color, altitude, offset) {
+function prepareBufferGeometry(geom, color, elevation, offset) {
     const numVertices = (geom.flatCoordinates.length) / geom.stride;
     const vertices = new Float32Array(3 * numVertices);
     const colors = new Uint8Array(3 * numVertices);
@@ -68,7 +68,7 @@ function prepareBufferGeometry(geom, color, altitude, offset) {
         }
         // fill the rest of the stride
         if (geom.stride === 2) {
-            vertices[3 * i + 2] = Array.isArray(altitude) ? altitude[i] : altitude;
+            vertices[3 * i + 2] = Array.isArray(elevation) ? elevation[i] : elevation;
             vertices[3 * i + 2] -= offset[2];
         }
     }
@@ -80,9 +80,9 @@ function prepareBufferGeometry(geom, color, altitude, offset) {
 }
 
 function featureToPoint(feature, offset, options) {
-    const { altitude, style } = options;
+    const { elevation, style } = options;
     const geom = feature.getGeometry();
-    const threeGeom = prepareBufferGeometry(geom, style.color, altitude, offset);
+    const threeGeom = prepareBufferGeometry(geom, style.color, elevation, offset);
 
     return new Points(
         threeGeom,
@@ -91,9 +91,9 @@ function featureToPoint(feature, offset, options) {
 }
 
 function featureToLine(feature, offset, options) {
-    const { altitude, style } = options;
+    const { elevation, style } = options;
     const geom = feature.getGeometry();
-    const threeGeom = prepareBufferGeometry(geom, style.color, altitude, offset);
+    const threeGeom = prepareBufferGeometry(geom, style.color, elevation, offset);
 
     return new Line(
         threeGeom,
@@ -103,7 +103,7 @@ function featureToLine(feature, offset, options) {
 
 function featureToPolygon(feature, offset, options) {
     const {
-        altitude, style, extrude, material,
+        elevation, style, extrusionOffset, material,
     } = options;
     const geom = feature.getGeometry();
     /** @type {number} */
@@ -114,7 +114,7 @@ function featureToPolygon(feature, offset, options) {
     const {
         flatCoordinates: positions,
         triangles: indices,
-    } = getCoordsIndicesFromPolygon(geom, offset, altitude, extrude);
+    } = getCoordsIndicesFromPolygon(geom, offset, elevation, extrusionOffset);
     bufferGeom.setAttribute('position', new BufferAttribute(new Float32Array(positions), 3));
     bufferGeom.setIndex(new BufferAttribute(new Uint16Array(indices), 1));
 
@@ -134,13 +134,13 @@ function featureToPolygon(feature, offset, options) {
  * @param {number} stride The stride in the coordinate array (2 for XY, 3 for XYZ)
  * @param {number[]} offset The offset to apply to vertex positions.
  * the first/last point
- * @param {number[]|number} altitude The altitude.
+ * @param {number[]|number} elevation The elevation.
  */
 function createFloorVertices(
     coordinates,
     stride,
     offset,
-    altitude,
+    elevation,
 ) {
     // TODO use the exact up vector from the local coordinate
     // This is irrelevant in a planar coordinate system, though, but for a geographically
@@ -167,7 +167,7 @@ function createFloorVertices(
             if (stride === 3) {
                 z = coord[Z];
             } else {
-                z = Array.isArray(altitude) ? altitude[i] : altitude;
+                z = Array.isArray(elevation) ? elevation[i] : elevation;
             }
             z -= offset[Z];
             positions.push(z);
@@ -183,9 +183,9 @@ function createFloorVertices(
  * @param {number} start vertex in positions to start with
  * @param {end} end vertex in positions to end with
  * @param {number[]} indices The index array.
- * @param {number[]|number} extrude The extrusion distance.
+ * @param {number[]|number} extrusionOffset The extrusion offset.
  */
-function createWallForRings(positions, start, end, indices, extrude) {
+function createWallForRings(positions, start, end, indices, extrusionOffset) {
     // Each side is formed by the A, B, C, D vertices, where A is the current coordinate,
     // and B is the next coordinate (thus the segment AB is one side of the polygon).
     // C and D are the same points but with a Z offset.
@@ -207,8 +207,8 @@ function createWallForRings(positions, start, end, indices, extrude) {
         const By = positions[idxB + Y];
         const Bz = positions[idxB + Z];
 
-        const zOffsetA = (Array.isArray(extrude) ? extrude[i] : extrude);
-        const zOffsetB = (Array.isArray(extrude) ? extrude[iB] : extrude);
+        const zOffsetA = (Array.isArray(extrusionOffset) ? extrusionOffset[i] : extrusionOffset);
+        const zOffsetB = (Array.isArray(extrusionOffset) ? extrusionOffset[iB] : extrusionOffset);
 
         // +Z top
         //      A                    B
@@ -262,13 +262,13 @@ function createWallForRings(positions, start, end, indices, extrude) {
  * @param {number} pointCount the number of points to read from position, starting with the first
  * vertex
  * @param {number[]} indices the indices to duplicate for the roof
- * @param {number | number[]} extrude how we extrude
+ * @param {number | number[]} extrusionOffset how we extrude
  */
-function createRoof(positions, pointCount, indices, extrude) {
+function createRoof(positions, pointCount, indices, extrusionOffset) {
     for (let i = 0; i < pointCount; i++) {
         positions.push(positions[i * VERT_STRIDE + X]);
         positions.push(positions[i * VERT_STRIDE + Y]);
-        const zOffset = (Array.isArray(extrude) ? extrude[i] : extrude);
+        const zOffset = (Array.isArray(extrusionOffset) ? extrusionOffset[i] : extrusionOffset);
         positions.push(positions[i * VERT_STRIDE + Z] + zOffset);
     }
     const iLength = indices.length;
@@ -277,34 +277,34 @@ function createRoof(positions, pointCount, indices, extrude) {
     }
 }
 
-function getCoordsIndicesFromPolygon(polygon, offset, altitude, extrude) {
+function getCoordsIndicesFromPolygon(polygon, offset, elevation, extrusionOffset) {
     // TODO check
     const stride = polygon.getStride();
-    // TODO offset, altitude, positions
+    // TODO offset, elevation, positions
 
     // First we compute the positions of the top vertices (that make the "floor").
-    // note that in some dataset, it's the roof and user needs to extrude down.
+    // note that in some dataset, it's the roof and user needs to extrusionOffset down.
     const polyCoords = polygon.getCoordinates();
     const { flatCoordinates, holes } = createFloorVertices(
         polyCoords,
         stride,
         offset,
-        altitude,
+        elevation,
     );
     const pointCount = flatCoordinates.length / 3;
 
     const ends = polygon.getEnds();
     const triangles = Earcut(flatCoordinates, holes, 3);
-    if (extrude) {
-        createRoof(flatCoordinates, pointCount, triangles, extrude);
-        createWallForRings(flatCoordinates, 0, holes[0] || pointCount, triangles, extrude);
+    if (extrusionOffset) {
+        createRoof(flatCoordinates, pointCount, triangles, extrusionOffset);
+        createWallForRings(flatCoordinates, 0, holes[0] || pointCount, triangles, extrusionOffset);
         for (let i = 0; i < holes.length; i++) {
             createWallForRings(
                 flatCoordinates,
                 holes[i],
                 holes[i + 1] || pointCount,
                 triangles,
-                extrude,
+                extrusionOffset,
             );
         }
     }
@@ -318,7 +318,7 @@ function getCoordsIndicesFromPolygon(polygon, offset, altitude, extrude) {
  * @param {object} options TODO
  */
 function featureToMultiPolygon(feature, offset, options) {
-    const { altitude, extrude, material } = options;
+    const { elevation, extrusionOffset, material } = options;
 
     const geom = feature.getGeometry();
     /** @type {number} */
@@ -336,7 +336,7 @@ function featureToMultiPolygon(feature, offset, options) {
         const {
             flatCoordinates,
             triangles,
-        } = getCoordsIndicesFromPolygon(polygon, offset, altitude, extrude);
+        } = getCoordsIndicesFromPolygon(polygon, offset, elevation, extrusionOffset);
 
         positions = positions.concat(flatCoordinates);
         indices = indices.concat(triangles.map(mapTriangle));
@@ -357,21 +357,21 @@ function featureToMultiPolygon(feature, offset, options) {
  * @param {object} feature a Feature's geometry
  * @param {Vector3} offset The offset to apply to coordinates
  * @param {object} options options controlling the conversion
- * @param {number|Function} options.altitude define the base altitude of the mesh
- * @param {number|Function} options.extrude if defined, polygons will be extruded by the specified
- * amount
+ * @param {number|Function} options.elevation define the base elevation of the mesh
+ * @param {number|Function} options.extrusionOffset if defined, polygons will be extruded up by the
+ * specified amount
  * @param {object|Function} options.style define per feature style
  * @returns {Mesh} mesh
  */
 function featureToMesh(feature, offset, options) {
     let mesh;
 
-    // get altitude / style from properties
+    // get elevation / style from properties
     const style = getValue(options.style, randomStyle, feature);
-    const altitude = getValue(options.altitude, 0, feature);
-    const extrude = getValue(options.extrude, 0, feature);
+    const elevation = getValue(options.elevation, 0, feature);
+    const extrusionOffset = getValue(options.extrusionOffset, 0, feature);
     const opts = {
-        style, altitude, extrude, material: options.material,
+        style, elevation, extrusionOffset, material: options.material,
     };
 
     switch (feature.getGeometry().getType()) {
@@ -429,9 +429,9 @@ export default {
      * a Group.
      *
      * @param {object} options options controlling the conversion
-     * @param {number|Function} options.altitude define the base altitude of the mesh
-     * @param {number|Function} options.extrude if defined, polygons will be extruded by the
-     * specified amount
+     * @param {number|Function} options.elevation define the base elevation of the mesh
+     * @param {number|Function} options.extrusionOffset if defined, polygons will be extruded up by
+     * the specified amount
      * @param {object|Function} options.style define per feature style
      * @returns {Function} the conversion function
      */

@@ -82,7 +82,7 @@ const busLines = new FeatureCollection('bus lines', {
     extent,
     minLevel: 0,
     maxLevel: 0,
-    altitude: 50,
+    elevation: 50,
     // we can modify the mesh through the `style` property
     style: feat => {
         const lineName = feat.getProperties().ligne;
@@ -125,7 +125,7 @@ const busStops = new FeatureCollection('bus stops', {
     extent,
     minLevel: 3,
     maxLevel: 3,
-    altitude: 50,
+    elevation: 50,
     // we can use the `style` callback, but it's also possible to modify the resulting mesh directly
     // with the `onMeshCreated` option
     onMeshCreated: mesh => {

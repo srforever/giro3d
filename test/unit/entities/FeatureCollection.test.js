@@ -29,7 +29,7 @@ describe('FeatureCollection', () => {
                     extent,
                     minLevel: 10,
                     maxLevel: 15,
-                    altitude: 50,
+                    elevation: 50,
                 },
             );
             expect(fc.minLevel).toEqual(10);
