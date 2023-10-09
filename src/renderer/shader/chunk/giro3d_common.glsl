@@ -11,6 +11,7 @@ struct LayerInfo {
     #if defined(ENABLE_ELEVATION_RANGE)
     vec2        elevationRange; // Optional elevation range for the layer. Any fragment above or below this range will be ignored.
     #endif
+    vec3        brightnessContrastSaturation;
 };
 
 
@@ -294,4 +295,15 @@ vec4 computeColorMap(
     vec3 rgb = texture2D(lut, vec2(t, colorMap.offset)).rgb;
     float a = texture2D(sampledTexture, uv).a;
     return vec4(rgb, a);
+}
+
+vec3 adjustBrightnessContrastSaturation(
+    vec3 rgb,
+    vec3 brightnessContrastSaturation
+) {
+    rgb = (rgb - 0.5) * brightnessContrastSaturation.y + 0.5;
+    rgb += brightnessContrastSaturation.x;
+
+    float luminance = dot(rgb, vec3(0.2126, 0.7152, 0.0722));
+    return mix(vec3(luminance), rgb, brightnessContrastSaturation.z);
 }

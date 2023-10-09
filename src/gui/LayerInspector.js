@@ -67,6 +67,23 @@ class LayerInspector extends Panel {
                 .name('Elevation range maximum')
                 .onChange(() => this.notify(map));
         }
+        if (this.layer.isColorLayer) {
+            this.addController(this.layer, 'brightness')
+                .name('Brightness')
+                .min(-1)
+                .max(1)
+                .onChange(() => this.notify(map));
+            this.addController(this.layer, 'contrast')
+                .name('Contrast')
+                .min(0)
+                .max(10)
+                .onChange(() => this.notify(map));
+            this.addController(this.layer, 'saturation')
+                .name('Saturation')
+                .min(0)
+                .max(10)
+                .onChange(() => this.notify(map));
+        }
 
         if (this.layer.opacity !== undefined) {
             this.addController(this.layer, 'opacity')

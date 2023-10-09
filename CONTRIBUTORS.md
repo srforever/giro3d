@@ -39,6 +39,9 @@ The following people have contributed to giro3d.
   * [Marie Lamure](https://github.com/mlamure)
   * [Vincent Jaillot](https://github.com/jailln)
 
+* [Argeo](https://argeo.no)
+  * Charlie Ives
+
 The following organizations supported giro3d :
 * IGN ( http://www.ign.fr )
 * Oslandia ( http://www.oslandia.com )

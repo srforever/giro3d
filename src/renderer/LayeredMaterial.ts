@@ -10,6 +10,7 @@ import {
     NormalBlending,
     NoBlending,
     type WebGLRenderer,
+    Vector3,
 } from 'three';
 import RenderingState from './RenderingState.js';
 import TileVS from './shader/TileVS.glsl';
@@ -74,6 +75,7 @@ class TextureInfo {
     visible: boolean;
     color: Color;
     elevationRange: Vector2;
+    brightnessContrastSaturation: Vector3;
 
     constructor(layer: Layer) {
         this.layer = layer;
@@ -82,6 +84,7 @@ class TextureInfo {
         this.texture = null;
         this.opacity = null;
         this.visible = null;
+        this.brightnessContrastSaturation = new Vector3(0, 1, 1);
         this.color = null;
     }
 
@@ -247,6 +250,8 @@ class LayeredMaterial extends ShaderMaterial {
             : DISABLED_ELEVATION_RANGE;
         this.uniforms.elevationRange = new Uniform(elevationRange);
 
+        this.uniforms.brightnessContrastSaturation = new Uniform(new Vector3(0, 1, 1));
+
         MaterialUtils.setDefine(this, 'ENABLE_ELEVATION_RANGE', options.elevationRange != null);
 
         this.side = options.doubleSided ? DoubleSide : FrontSide;
@@ -355,6 +360,7 @@ class LayeredMaterial extends ShaderMaterial {
                     textureSize,
                     elevationRange,
                     mode: info.mode,
+                    brightnessContrastSaturation: info.brightnessContrastSaturation,
                 };
 
                 layersUniform.push(uniform);
@@ -495,6 +501,7 @@ class LayeredMaterial extends ShaderMaterial {
         uniform.offsetScale = pitch;
         uniform.textureSize = new Vector2(texture.image.width, texture.image.height);
         uniform.color = new Vector4(1, 1, 1, 1);
+        uniform.brightnessContrastSaturation = new Vector3(1, 1, 1);
         uniform.elevationRange = new Vector2();
 
         this._updateColorMaps();
@@ -831,6 +838,21 @@ class LayeredMaterial extends ShaderMaterial {
         const value = range ? new Vector2(range.min, range.max) : DISABLED_ELEVATION_RANGE;
         this.texturesInfo.color.infos[index].elevationRange = value;
         this._mustUpdateUniforms = true;
+    }
+
+    setLayerBrightnessContrastSaturation(
+        layer: ColorLayer,
+        brightness: number,
+        contrast: number,
+        saturation: number,
+    ) {
+        const index = this.indexOfColorLayer(layer);
+        this.texturesInfo.color.infos[index].brightnessContrastSaturation.set(
+            brightness,
+            contrast,
+            saturation,
+        );
+        this._updateColorLayerUniforms();
     }
 
     isElevationLayerTextureLoaded() {
