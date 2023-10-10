@@ -58,10 +58,12 @@ class Target {
     imageIds: Set<string>;
     controller: AbortController;
     state: TargetState;
+    geometryExtent: Extent;
 
     constructor(options: {
         node: Node;
         extent: Extent;
+        geometryExtent: Extent;
         pitch: Vector2;
         width: number;
         height: number;
@@ -69,6 +71,7 @@ class Target {
         this.node = options.node;
         this.pitch = options.pitch;
         this.extent = options.extent;
+        this.geometryExtent = options.geometryExtent;
         this.width = options.width;
         this.height = options.height;
         this.imageIds = new Set();
@@ -659,10 +662,11 @@ abstract class Layer extends EventDispatcher
      * @returns The smallest target that still contains this extent.
      */
     private getParent(target: Target): Target {
-        const extent = target.extent;
+        const extent = target.geometryExtent;
         const targets = this._getSortedTargets();
         for (const t of targets) {
-            if (extent.isInside(t.extent) && t.state === TargetState.Complete) {
+            const otherExtent = t.geometryExtent;
+            if (t !== target && extent.isInside(otherExtent) && t.state === TargetState.Complete) {
                 return t;
             }
         }
@@ -830,7 +834,7 @@ abstract class Layer extends EventDispatcher
             const pitch = originalExtent.offsetToParent(extent);
 
             target = new Target({
-                node, extent, pitch, width, height,
+                node, extent, pitch, width, height, geometryExtent: originalExtent,
             });
             this.targets.set(node.id, target);
             this.sortedTargets = null;
