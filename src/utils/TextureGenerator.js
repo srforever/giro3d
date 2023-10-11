@@ -1,3 +1,5 @@
+// Number.isNan is quite slow, so we use n !== n
+/* eslint-disable no-self-compare */
 import {
     Texture,
     DataTexture,
@@ -38,6 +40,8 @@ export const DEFAULT_NODATA = 0;
 // Important note : a lot of code is duplicated to avoid putting
 // conditional branches inside loops, as this can severely reduce performance.
 
+// Note: we don't use Number.isNan(x) in the loops as it slows down the loop due to function
+// invocation. Instead, we use x !== x, as a NaN is never equal to itself.
 function fillBuffer(buf, options, opaqueValue, ...pixelData) {
     let getValue;
 
@@ -56,7 +60,7 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
             let value;
             let a;
             const raw = v[i];
-            if (Number.isNaN(raw) || raw === options.nodata) {
+            if (raw !== raw || raw === options.nodata) {
                 value = DEFAULT_NODATA;
                 a = TRANSPARENT;
             } else {
@@ -82,9 +86,9 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
             let g = gChannel[i];
             let b = bChannel[i];
 
-            if ((Number.isNaN(r) || r === options.nodata)
-                && (Number.isNaN(g) || g === options.nodata)
-                && (Number.isNaN(b) || b === options.nodata)) {
+            if ((r !== r || r === options.nodata)
+                && (g !== g || g === options.nodata)
+                && (b !== b || b === options.nodata)) {
                 r = DEFAULT_NODATA;
                 g = DEFAULT_NODATA;
                 b = DEFAULT_NODATA;
@@ -115,9 +119,9 @@ function fillBuffer(buf, options, opaqueValue, ...pixelData) {
             let b = bChannel[i];
             let a = aChannel[i];
 
-            if ((Number.isNaN(r) || r === options.nodata)
-                && (Number.isNaN(g) || g === options.nodata)
-                && (Number.isNaN(b) || b === options.nodata)) {
+            if ((r !== r || r === options.nodata)
+                && (g !== g || g === options.nodata)
+                && (b !== b || b === options.nodata)) {
                 r = DEFAULT_NODATA;
                 g = DEFAULT_NODATA;
                 b = DEFAULT_NODATA;
@@ -428,7 +432,7 @@ function computeMinMax(rgba, nodata, interpretation = Interpretation.Raw) {
             for (let i = 0; i < rgba.length; i += 4) {
                 const value = rgba[i + RED_CHANNEL];
                 const alpha = rgba[i + ALPHA_CHANNEL];
-                if (!Number.isNaN(value) && value !== nodata && alpha !== 0) {
+                if (!(value !== value) && value !== nodata && alpha !== 0) {
                     min = Math.min(min, value);
                     max = Math.max(max, value);
                 }
@@ -445,7 +449,7 @@ function computeMinMax(rgba, nodata, interpretation = Interpretation.Raw) {
                     const r = lower + value * scale;
                     const alpha = rgba[i + ALPHA_CHANNEL];
 
-                    if (!Number.isNaN(r) && r !== nodata && alpha !== 0) {
+                    if (!(r !== r) && r !== nodata && alpha !== 0) {
                         min = Math.min(min, r);
                         max = Math.max(max, r);
                     }
@@ -461,7 +465,7 @@ function computeMinMax(rgba, nodata, interpretation = Interpretation.Raw) {
 
                 const value = -10000.0 + (r * 256.0 * 256.0 + g * 256.0 + b) * 0.1;
 
-                if (!Number.isNaN(value) && value !== nodata && alpha !== 0) {
+                if (!(value !== value) && value !== nodata && alpha !== 0) {
                     min = Math.min(min, value);
                     max = Math.max(max, value);
                 }
