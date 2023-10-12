@@ -167,7 +167,7 @@ class LayeredMaterial extends ShaderMaterial {
         /** @type {ColorMapAtlas} */
         this.colorMapAtlas = options.colorMapAtlas;
 
-        this._updateColorLayerUniforms();
+        this.uniformsNeedUpdate = true;
 
         this.uniforms.uuid = new Uniform(0);
 
@@ -203,35 +203,38 @@ class LayeredMaterial extends ShaderMaterial {
     _updateColorLayerUniforms() {
         this._sortLayersIfNecessary();
 
-        const layersUniform = [];
-        /** @type {TextureInfo[]} */
-        const infos = this.texturesInfo.color.infos;
+        if (this._mustUpdateUniforms) {
+            const layersUniform = [];
+            /** @type {TextureInfo[]} */
+            const infos = this.texturesInfo.color.infos;
 
-        for (const info of infos) {
-            const offsetScale = info.offsetScale;
-            const tex = info.texture;
-            let textureSize = new Vector2(0, 0);
-            if (tex.image) {
-                textureSize = new Vector2(tex.image.width, tex.image.height);
+            for (const info of infos) {
+                const offsetScale = info.offsetScale;
+                const tex = info.texture;
+                let textureSize = new Vector2(0, 0);
+                const image = tex.image;
+                if (image) {
+                    textureSize = new Vector2(image.width, image.height);
+                }
+
+                const rgb = info.color;
+                const a = info.visible ? info.opacity : 0;
+                const color = new Vector4(rgb.r, rgb.g, rgb.b, a);
+                const elevationRange = info.elevationRange || DISABLED_ELEVATION_RANGE;
+
+                const uniform = {
+                    offsetScale,
+                    color,
+                    textureSize,
+                    elevationRange,
+                    mode: info.mode,
+                };
+
+                layersUniform.push(uniform);
             }
 
-            const rgb = info.color;
-            const a = info.visible ? info.opacity : 0;
-            const color = new Vector4(rgb.r, rgb.g, rgb.b, a);
-            const elevationRange = info.elevationRange || DISABLED_ELEVATION_RANGE;
-
-            const uniform = {
-                offsetScale,
-                color,
-                textureSize,
-                elevationRange,
-                mode: info.mode,
-            };
-
-            layersUniform.push(uniform);
+            this.uniforms.layers.value = layersUniform;
         }
-
-        this.uniforms.layers.value = layersUniform;
     }
 
     dispose() {
@@ -264,6 +267,7 @@ class LayeredMaterial extends ShaderMaterial {
 
     onBeforeRender() {
         this._updateOpacityParameters(this.opacity);
+        this._updateColorLayerUniforms();
 
         if (this.needsAtlasRepaint) {
             this.repaintAtlas();
@@ -399,8 +403,7 @@ class LayeredMaterial extends ShaderMaterial {
         this.texturesInfo.color.infos.push(info);
 
         this._needsSorting = true;
-
-        this._updateColorLayerUniforms();
+        this._mustUpdateUniforms = true;
 
         this._updateColorMaps();
 
@@ -431,9 +434,7 @@ class LayeredMaterial extends ShaderMaterial {
         this.colorLayers.splice(index, 1);
 
         this._needsSorting = true;
-
-        this._updateColorLayerUniforms();
-
+        this._mustUpdateUniforms = true;
         this._updateColorMaps();
 
         this.defines.COLOR_LAYERS = this.colorLayers.length;
@@ -690,13 +691,13 @@ class LayeredMaterial extends ShaderMaterial {
     setLayerOpacity(layer, opacity) {
         const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
         this.texturesInfo.color.infos[index].opacity = opacity;
-        this._updateColorLayerUniforms();
+        this._mustUpdateUniforms = true;
     }
 
     setLayerVisibility(layer, visible) {
         const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
         this.texturesInfo.color.infos[index].visible = visible;
-        this._updateColorLayerUniforms();
+        this._mustUpdateUniforms = true;
     }
 
     setLayerElevationRange(layer, range) {
@@ -706,7 +707,7 @@ class LayeredMaterial extends ShaderMaterial {
         const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
         const value = range ? new Vector2(range.min, range.max) : DISABLED_ELEVATION_RANGE;
         this.texturesInfo.color.infos[index].elevationRange = value;
-        this._updateColorLayerUniforms();
+        this._mustUpdateUniforms = true;
     }
 
     isElevationLayerTextureLoaded() {
