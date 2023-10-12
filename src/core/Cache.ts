@@ -1,60 +1,68 @@
-/** @module core/Cache */
-
 import { LRUCache } from 'lru-cache';
 
 /**
- * The cache options.
- *
- * @typedef {object} CacheOptions
- * @property {number} [ttl] The time to live of this entry, in milliseconds.
- * @property {number} [size] The entry size, in bytes. It does not have to be an exact value, but
- * it helps the cache determine when to remove entries to save memory.
- * @property {Function} [onDelete] A callback called when the entry is deleted from the cache.
+ * The options for a cache entry.
  */
+interface CacheOptions {
+    /**
+     * The time to live of this entry, in milliseconds.
+     */
+    ttl?: number;
+    /**
+     * The entry size, in bytes. It does not have to be an exact value, but
+     * it helps the cache determine when to remove entries to save memory.
+     */
+    size?: number;
+    /**
+     * A optional callback called when the entry is deleted from the cache.
+     */
+    onDelete?: Function;
+}
 
 const SECONDS = 1000;
 
 /**
  * The default max number of entries.
- *
- * @constant
- * @type {number}
  */
-const DEFAULT_MAX_ENTRIES = 8192;
+const DEFAULT_MAX_ENTRIES: number = 8192;
 
 /**
  * The default TTL (time to live).
- *
- * @constant
- * @type {number}
  */
-const DEFAULT_TTL = 240 * SECONDS;
+const DEFAULT_TTL: number = 240 * SECONDS;
 
 /**
  * The default capacity, in bytes.
- *
- * @constant
- * @type {number}
  */
-const DEFAULT_CAPACITY = 512 * 1024 * 1024;
+const DEFAULT_CAPACITY: number = 512 * 1024 * 1024;
 
 /**
  * The cache.
  *
  */
 class Cache {
+    private readonly deleteHandlers: Map<string, Function>;
+    private readonly lru: LRUCache<string, unknown, unknown>;
+    private _enabled: boolean;
+
     /**
      * Constructs a cache.
      *
-     * @param {object} opts The options.
-     * @param {number} [opts.ttl=DEFAULT_TTL] The default TTL (time to live) of entries. Can
-     * be overriden for each entry.
-     * @param {number} [opts.byteCapacity=DEFAULT_CAPACITY] The capacity, in bytes, of the cache.
-     * @param {number} [opts.maxNumberOfEntries=DEFAULT_MAX_ENTRIES] The capacity, in number of
-     * entries, of the cache.
+     * @param opts The options.
+     * @param opts.ttl The default TTL (time to live) of entries. Can be overriden for each entry
+     * (see {@link CacheOptions}).
+     * @param opts.byteCapacity The capacity, in bytes, of the cache.
+     * @param opts.maxNumberOfEntries The capacity, in number of entries, of the cache.
      */
-    constructor(opts = {}) {
-        /** @type {Map<string, Function>} */
+    constructor(opts: {
+        ttl?: number;
+        byteCapacity?: number;
+        maxNumberOfEntries?: number;
+    } = {
+        ttl: DEFAULT_TTL,
+        byteCapacity: DEFAULT_CAPACITY,
+        maxNumberOfEntries: DEFAULT_MAX_ENTRIES,
+    }) {
         this.deleteHandlers = new Map();
 
         const that = this;
@@ -67,15 +75,13 @@ class Cache {
             max: opts.maxNumberOfEntries ?? DEFAULT_MAX_ENTRIES,
             allowStale: false,
             dispose: (value, key) => {
-                that._onDisposed(key, value);
+                that.onDisposed(key, value);
             },
         });
     }
 
     /**
      * Enables or disables the cache.
-     *
-     * @type {boolean}
      */
     get enabled() {
         return this._enabled;
@@ -87,8 +93,6 @@ class Cache {
 
     /**
      * Gets or sets the default TTL (time to live) of the cache.
-     *
-     * @type {number}
      */
     get defaultTtl() {
         return this.lru.ttl;
@@ -99,29 +103,17 @@ class Cache {
     }
 
     /**
-     * Gets or sets the maximum size of the cache, in bytes.
-     *
-     * @type {number}
+     * Gets the maximum size of the cache, in bytes.
      */
     get maxSize() {
         return this.lru.maxSize;
     }
 
-    set maxSize(v) {
-        this.lru.maxSize = v;
-    }
-
     /**
-     * Gets or sets the mximum number of entries.
-     *
-     * @type {number}
+     * Gets the maximum number of entries.
      */
     get capacity() {
         return this.lru.max;
-    }
-
-    set capacity(v) {
-        this.lru.max = v;
     }
 
     /**
@@ -144,16 +136,13 @@ class Cache {
 
     /**
      * Returns an array of entries.
-     *
-     * @returns {Array} The entries.
      */
-    entries() {
+    entries(): Array<unknown> {
         return [...this.lru.entries()];
     }
 
-    _onDisposed(key, value) {
-        /** @type {Function} */
-        const handler = this.deleteHandlers.get(key);
+    private onDisposed(key: string, value: unknown) {
+        const handler: Function = this.deleteHandlers.get(key);
         if (handler) {
             this.deleteHandlers.delete(key);
             handler(value);
@@ -162,7 +151,6 @@ class Cache {
 
     /**
      * Removes stale entries.
-     *
      */
     purge() {
         this.lru.purgeStale();
@@ -171,10 +159,10 @@ class Cache {
     /**
      * Returns the entry with the specified key, or `undefined` if no entry matches this key.
      *
-     * @param {string} key The entry key.
-     * @returns {any|undefined} The entry, or `undefined`.
+     * @param key The entry key.
+     * @returns The entry, or `undefined`.
      */
-    get(key) {
+    get(key: string): unknown | undefined {
         if (!this.enabled) {
             return undefined;
         }
@@ -185,11 +173,11 @@ class Cache {
     /**
      * Stores an entry in the cache, or replaces an existing entry with the same key.
      *
-     * @param {string} key The key.
-     * @param {any} value The value.
-     * @param {CacheOptions} [options] The options.
+     * @param key The key.
+     * @param value The value.
+     * @param options The options.
      */
-    set(key, value, options = {}) {
+    set(key: string, value: unknown, options: CacheOptions = {}) {
         if (!this.enabled) {
             return value;
         }
@@ -213,10 +201,10 @@ class Cache {
     /**
      * Deletes an entry.
      *
-     * @param {string} key The key.
-     * @returns {boolean} `true` if the entry was deleted, `false` otherwise.
+     * @param key The key.
+     * @returns `true` if the entry was deleted, `false` otherwise.
      */
-    delete(key) {
+    delete(key: string): boolean {
         return this.lru.delete(key);
     }
 
@@ -231,14 +219,13 @@ class Cache {
 
 /**
  * A global singleton cache.
- *
- * @type {Cache}
  */
-const GlobalCache = new Cache();
+const GlobalCache: Cache = new Cache();
 
 export {
     GlobalCache,
     Cache,
+    CacheOptions,
     DEFAULT_TTL,
     DEFAULT_CAPACITY,
     DEFAULT_MAX_ENTRIES,

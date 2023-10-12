@@ -2,7 +2,7 @@
  * @module gui/CachePanel
  */
 
-import { GlobalCache } from '../core/Cache.js';
+import { GlobalCache } from '../core/Cache';
 import Panel from './Panel.js';
 
 class CachePanel extends Panel {
