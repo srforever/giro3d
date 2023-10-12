@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import Instance from '../core/Instance.js';
-import ColorMap, { ColorMapMode } from '../core/layer/ColorMap.js';
+import ColorMap, { ColorMapMode } from '../core/layer/ColorMap';
 import Panel from './Panel.js';
 import Layer from '../core/layer/Layer';
 

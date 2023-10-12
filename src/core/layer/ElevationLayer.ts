@@ -1,7 +1,7 @@
 import { FloatType, Texture } from 'three';
 import Interpretation from './Interpretation';
 import Layer, { TextureAndPitch } from './Layer';
-import ColorMap from './ColorMap.js';
+import ColorMap from './ColorMap';
 import Extent from '../geographic/Extent.js';
 import ImageSource from '../../sources/ImageSource.js';
 import TileMesh from '../TileMesh.js';

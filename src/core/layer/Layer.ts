@@ -11,7 +11,7 @@ import {
     WebGLRenderTarget,
 } from 'three';
 
-import ColorMap from './ColorMap.js';
+import ColorMap from './ColorMap';
 import Interpretation from './Interpretation';
 import Extent from '../geographic/Extent.js';
 import EventUtils from '../../utils/EventUtils.js';

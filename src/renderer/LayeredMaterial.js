@@ -16,7 +16,7 @@ import TileFS from './shader/TileFS.glsl';
 import WebGLComposer from './composition/WebGLComposer';
 import Rect from '../core/Rect.js';
 import MemoryTracker from './MemoryTracker.js';
-import ColorMap from '../core/layer/ColorMap.js';
+import ColorMap from '../core/layer/ColorMap';
 import ColorMapAtlas from './ColorMapAtlas.js';
 import MaterialUtils from './MaterialUtils.js';
 

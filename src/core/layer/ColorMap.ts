@@ -1,14 +1,11 @@
-/**
- * @module core/layer/ColorMap
- */
 import {
     ClampToEdgeWrapping,
-    Color,
+    type Color,
     NearestFilter,
-    Texture,
+    type Texture,
 } from 'three';
 import TextureGenerator from '../../utils/TextureGenerator';
-import ColorMapMode from './ColorMapMode.js';
+import ColorMapMode from './ColorMapMode';
 
 /**
  * Represents a 1D color gradient bounded by a `min` and `max` values.
@@ -54,15 +51,26 @@ import ColorMapMode from './ColorMapMode.js';
  * colorMap.dispose();
  */
 class ColorMap {
+    private _min: number;
+    private _max: number;
+    private _mode: ColorMapMode;
+    private _colors: Color[];
+    private _cachedTexture: Texture;
+    private _active: boolean;
     /**
      * Creates an instance of ColorMap.
      *
-     * @param {Color[]} colors The colors of this color map.
-     * @param {number} min The lower bound of the color map range.
-     * @param {number} max The upper bound of the color map range.
-     * @param {ColorMapMode} [mode=ColorMapMode.Elevation] The mode of the color map.
+     * @param colors The colors of this color map.
+     * @param min The lower bound of the color map range.
+     * @param max The upper bound of the color map range.
+     * @param mode The mode of the color map.
      */
-    constructor(colors, min, max, mode = ColorMapMode.Elevation) {
+    constructor(
+        colors: Color[],
+        min: number,
+        max: number,
+        mode: ColorMapMode = ColorMapMode.Elevation,
+    ) {
         if (colors === undefined) {
             throw new Error('colors is undefined');
         }
@@ -77,7 +85,6 @@ class ColorMap {
     /**
      * Gets or sets the color map mode.
      *
-     * @type {ColorMapMode}
      * @example
      * // Start with an elevation gradient, ranging from 100 to 1500 meters.
      * const colorMap = new ColorMap(colors, 100, 1500, ColorMapMode.Elevation);
@@ -160,9 +167,9 @@ class ColorMap {
     /**
      * Returns a 1D texture containing the colors of this color map.
      *
-     * @returns {Texture} The resulting texture.
+     * @returns The resulting texture.
      */
-    getTexture() {
+    getTexture(): Texture {
         if (this._cachedTexture === null) {
             this._cachedTexture = TextureGenerator.create1DTexture(this._colors);
             this._cachedTexture.minFilter = NearestFilter;
@@ -176,7 +183,6 @@ class ColorMap {
 
     /**
      * Disposes the texture owned by this color map.
-     *
      */
     dispose() {
         this._cachedTexture?.dispose();
