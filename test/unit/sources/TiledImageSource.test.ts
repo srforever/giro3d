@@ -1,5 +1,5 @@
 import Stamen from 'ol/source/Stamen.js';
-import GeoTIFFFormat from 'src/formats/GeoTIFFFormat.js';
+import GeoTIFFFormat from 'src/formats/GeoTIFFFormat';
 import TiledImageSource from 'src/sources/TiledImageSource';
 
 describe('TiledImageSource', () => {

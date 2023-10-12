@@ -6,9 +6,8 @@ import type Extent from '../core/geographic/Extent';
 import OpenLayersUtils from '../utils/OpenLayersUtils';
 import Fetcher from '../utils/Fetcher.js';
 import TextureGenerator from '../utils/TextureGenerator';
-import type { GetImageOptions, ImageSourceOptions } from './ImageSource';
-import ImageSource, { ImageResult } from './ImageSource';
-import type ImageFormat from '../formats/ImageFormat';
+import ImageSource, { type GetImageOptions, ImageResult, type ImageSourceOptions } from './ImageSource';
+import ImageFormat from '../formats/ImageFormat';
 
 const MIN_LEVEL_THRESHOLD = 2;
 
@@ -234,12 +233,12 @@ export default class TiledImageSource extends ImageSource {
 
         let texture;
         if (this.format) {
-            let width;
-            let height;
+            let width: number;
+            let height: number;
             if (this.tileGrid) {
                 const tileSize = this.tileGrid.getTileSize(0);
-                width = tileSize;
-                height = tileSize;
+                width = tileSize as number;
+                height = tileSize as number;
             }
             texture = await this.format.decode(blob, {
                 noDataValue: this.noDataValue,

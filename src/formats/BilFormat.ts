@@ -1,8 +1,6 @@
-/**
- * @module formats/BilFormat
- */
 import { FloatType } from 'three';
-import ImageFormat from './ImageFormat.js';
+import type { DecodeOptions } from './ImageFormat';
+import ImageFormat from './ImageFormat';
 import TextureGenerator from '../utils/TextureGenerator';
 
 /**
@@ -41,10 +39,10 @@ import TextureGenerator from '../utils/TextureGenerator';
  *
  */
 class BilFormat extends ImageFormat {
+    readonly isBilFormat: boolean = true;
     constructor() {
         super(true);
 
-        this.isBilFormat = true;
         this.type = 'BilFormat';
     }
 
@@ -53,19 +51,15 @@ class BilFormat extends ImageFormat {
      * [DataTexture](https://threejs.org/docs/?q=texture#api/en/textures/DataTexture) containing
      * the elevation data. At the moment only one band BIL is supported.
      *
-     * @param {Blob} blob the data to decode
-     * @param {object} options the decoding options
-     * @param {number} [options.noDataValue] pixel below this value are considered as no data.
-     * @param {object} [options.width] The texture width.
-     * @param {object} [options.height] The texture height.
-     * present, this format will attempt to get it from the tiff metadata.
+     * @param blob the data to decode
+     * @param options the decoding options
      */
     // eslint-disable-next-line class-methods-use-this
-    async decode(blob, options = {}) {
+    async decode(blob: Blob, options: DecodeOptions = {}) {
         const buf = await blob.arrayBuffer();
         const floatArray = new Float32Array(buf);
 
-        // NOTE for Bil format, we consider everything that is under noDataValue as noDataValue
+        // NOTE for BIL format, we consider everything that is under noDataValue as noDataValue
         // this is consistent with the servers behaviour we tested but if you see services that
         // expects something different, don't hesitate to question the next loop
         for (let i = 0; i < floatArray.length; i++) {

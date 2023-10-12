@@ -41,7 +41,7 @@ export const OPAQUE_FLOAT = 1.0;
 export const TRANSPARENT = 0;
 export const DEFAULT_NODATA = 0;
 
-type NumberArray =
+export type NumberArray =
     Array<number>
     | Uint8ClampedArray
     | Uint8Array

@@ -15,7 +15,7 @@ import {
 
 import HttpConfiguration from '../utils/HttpConfiguration.js';
 import Extent from '../core/geographic/Extent';
-import TextureGenerator from '../utils/TextureGenerator';
+import TextureGenerator, { NumberArray } from '../utils/TextureGenerator';
 import PromiseUtils from '../utils/PromiseUtils.js';
 import ImageSource, { ImageResult, type ImageSourceOptions } from './ImageSource';
 import { Cache } from '../core/Cache';
@@ -291,7 +291,7 @@ class CogSource extends ImageSource {
      * @param buffers The buffers (one buffer per band)
      * @returns The generated texture.
      */
-    private createTexture(buffers: TypedArray[]) {
+    private createTexture(buffers: NumberArray[]) {
         // Width and height in pixels of the returned data.
         // The geotiff.js patches the arrays with the width and height properties.
         // @ts-ignore
@@ -387,7 +387,7 @@ class CogSource extends ImageSource {
 
         signal?.throwIfAborted();
 
-        const texture = this.createTexture(buffers);
+        const texture = this.createTexture(buffers as NumberArray[]);
 
         const result = { extent: actualExtent, texture, id };
 
