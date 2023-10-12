@@ -13,7 +13,7 @@ import {
 import RenderingState from './RenderingState.js';
 import TileVS from './shader/TileVS.glsl';
 import TileFS from './shader/TileFS.glsl';
-import WebGLComposer from './composition/WebGLComposer.js';
+import WebGLComposer from './composition/WebGLComposer';
 import Rect from '../core/Rect.js';
 import MemoryTracker from './MemoryTracker.js';
 import ColorMap from '../core/layer/ColorMap.js';

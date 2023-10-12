@@ -72,6 +72,7 @@ class ComposerTileMaterial extends RawShaderMaterial {
     now: number;
     dataType: TextureDataType;
     pixelFormat: PixelFormat;
+    readonly isComposerTileMaterial = true;
 
     /**
      * Creates an instance of ComposerTileMaterial.
@@ -92,6 +93,7 @@ class ComposerTileMaterial extends RawShaderMaterial {
         this.uniforms.showImageOutlines = new Uniform(false);
         this.uniforms.opacity = new Uniform(this.opacity);
         this.now = performance.now();
+        this.type = 'ComposerTileMaterial';
 
         if (options) {
             this.init(options);

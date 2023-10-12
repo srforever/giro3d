@@ -9,7 +9,7 @@ import {
 } from 'three';
 import Extent from '../geographic/Extent';
 import Interpretation from './Interpretation';
-import WebGLComposer from '../../renderer/composition/WebGLComposer.js';
+import WebGLComposer from '../../renderer/composition/WebGLComposer';
 import Rect from '../Rect.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
 import ComposerTileMaterial from '../../renderer/composition/ComposerTileMaterial';
