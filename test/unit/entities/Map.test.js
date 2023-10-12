@@ -10,7 +10,7 @@ import ElevationLayer from '../../../src/core/layer/ElevationLayer';
 import RenderingState from '../../../src/renderer/RenderingState.js';
 import ColorLayer from '../../../src/core/layer/ColorLayer';
 import NullSource from '../../../src/sources/NullSource';
-import { DEFAULT_AZIMUTH, DEFAULT_ZENITH } from '../../../src/renderer/LayeredMaterial.js';
+import { DEFAULT_AZIMUTH, DEFAULT_ZENITH } from '../../../src/renderer/LayeredMaterial';
 
 const nullSource = new NullSource({ extent: new Extent('EPSG:3857', -10, 10, -10, 10) });
 

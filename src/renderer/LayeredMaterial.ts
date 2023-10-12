@@ -9,6 +9,7 @@ import {
     FrontSide,
     NormalBlending,
     NoBlending,
+    type WebGLRenderer,
 } from 'three';
 import RenderingState from './RenderingState.js';
 import TileVS from './shader/TileVS.glsl';
@@ -16,15 +17,43 @@ import TileFS from './shader/TileFS.glsl';
 import WebGLComposer from './composition/WebGLComposer';
 import Rect from '../core/Rect.js';
 import MemoryTracker from './MemoryTracker.js';
-import ColorMap from '../core/layer/ColorMap';
-import ColorMapAtlas from './ColorMapAtlas.js';
 import MaterialUtils from './MaterialUtils.js';
+import type { TextureAndPitch } from '../core/layer/Layer.js';
+import type Layer from '../core/layer/Layer.js';
+import type MaskLayer from '../core/layer/MaskLayer.js';
+import type ContourLineOptions from '../core/ContourLineOptions.js';
+import type HillshadingOptions from '../core/HillshadingOptions.js';
+import type ElevationLayer from '../core/layer/ElevationLayer.js';
+import type ColorLayer from '../core/layer/ColorLayer.js';
+import type ElevationRange from '../core/ElevationRange.js';
+import type Extent from '../core/geographic/Extent';
+import type ColorMapAtlas from './ColorMapAtlas.js';
+
+interface LayerAtlasInfo {
+    x: number;
+    y: number;
+    offset: number;
+}
+
+interface AtlasInfo {
+    maxX: number;
+    maxY: number;
+    atlas: Record<string, LayerAtlasInfo>;
+}
 
 const EMPTY_IMAGE_SIZE = 16;
 
+interface ElevationTexture extends Texture {
+    /**
+     * Flag to determine if the texture is borrowed from
+     * an ancestor of it is the final texture of this material.
+     */
+    isFinal: boolean;
+}
+
 const emptyTexture = new Texture();
 
-function makeArray(size) {
+function makeArray(size: number) {
     const array = new Array(size);
     for (let i = 0; i < size; i++) {
         array[i] = {};
@@ -37,7 +66,16 @@ const COLORMAP_DISABLED = 0;
 const DISABLED_ELEVATION_RANGE = new Vector2(-999999, 999999);
 
 class TextureInfo {
-    constructor(layer) {
+    originalOffsetScale: Vector4;
+    offsetScale: Vector4;
+    readonly layer: Layer;
+    texture: Texture;
+    opacity: number;
+    visible: boolean;
+    color: Color;
+    elevationRange: Vector2;
+
+    constructor(layer: Layer) {
         this.layer = layer;
         this.offsetScale = null;
         this.originalOffsetScale = null;
@@ -48,7 +86,7 @@ class TextureInfo {
     }
 
     get mode() {
-        return this.layer.maskMode || 0;
+        return (this.layer as MaskLayer).maskMode || 0;
     }
 }
 
@@ -56,47 +94,145 @@ export const DEFAULT_HILLSHADING_INTENSITY = 1;
 export const DEFAULT_AZIMUTH = 135;
 export const DEFAULT_ZENITH = 45;
 
-/**
- * @typedef {object} MaterialOptions The material options.
- * @property {boolean} [discardNoData] Discards no-data pixels.
- * @property {boolean} [doubleSided] Toggles double-sided surfaces.
- * @property {import('../core/ContourLineOptions.js').ContourLineOptions} [contourLines] Contour
- * lines.
- * @property {import('../entities/Map.js').HillshadingOptions} [hillshading] Hillshading
- * parameters.
- * @property {number} [segments] The number of subdivision segments per tile.
- * @property {{min: number, max: number}} [elevationRange] The elevation range.
- * @property {ColorMapAtlas} [colorMapAtlas] The colormap atlas.
- * @property {Color} [backgroundColor] The background color.
- * @property {number} [backgroundOpacity] The background opacity.
- */
+function drawImageOnAtlas(
+    width: number,
+    height: number,
+    composer: WebGLComposer,
+    atlasInfo: LayerAtlasInfo,
+    texture: Texture,
+) {
+    const dx = atlasInfo.x;
+    const dy = atlasInfo.y + atlasInfo.offset;
+    const dw = width;
+    const dh = height;
+
+    const rect = new Rect(dx, dx + dw, dy, dy + dh);
+
+    composer.draw(texture, rect);
+}
+
+function updateOffsetScale(
+    imageSize: Vector2,
+    atlas: LayerAtlasInfo,
+    originalOffsetScale: Vector4,
+    width: number,
+    height: number,
+    target: Vector4,
+) {
+    if (originalOffsetScale.z === 0 || originalOffsetScale.w === 0) {
+        target.set(0, 0, 0, 0);
+        return;
+    }
+    // compute offset / scale
+    const xRatio = imageSize.width / width;
+    const yRatio = imageSize.height / height;
+
+    target.set(
+        atlas.x / width + originalOffsetScale.x * xRatio,
+        (atlas.y + atlas.offset) / height + originalOffsetScale.y * yRatio,
+        originalOffsetScale.z * xRatio,
+        originalOffsetScale.w * yRatio,
+    );
+}
+
+interface MaterialOptions {
+    /**
+     * Discards no-data pixels.
+     */
+    discardNoData?: boolean;
+    /**
+     * Toggles double-sided surfaces.
+     */
+    doubleSided?: boolean;
+    /**
+     * Contour lines options.
+     */
+    contourLines?: ContourLineOptions;
+    /**
+     * Hillshading options.
+     */
+    hillshading?: HillshadingOptions;
+    /**
+     * The number of subdivision segments per tile.
+     */
+    segments?: number;
+    /**
+     * The elevation range.
+     */
+    elevationRange?: { min: number; max: number; };
+    /**
+     * The colormap atlas.
+     */
+    colorMapAtlas?: ColorMapAtlas;
+    /**
+     * The background color.
+     */
+    backgroundColor?: Color;
+    /**
+     * The background opacity.
+     */
+    backgroundOpacity?: number;
+}
 
 class LayeredMaterial extends ShaderMaterial {
+    private readonly _getIndexFn: (arg0: Layer) => number;
+    private readonly _renderer: WebGLRenderer;
+    private readonly _colorLayers: ColorLayer[];
+
+    readonly texturesInfo: {
+        color: {
+            infos: TextureInfo[];
+            atlasTexture: Texture;
+            parentAtlasTexture: Texture;
+        };
+        elevation: {
+            offsetScale: Vector4;
+            texture: ElevationTexture;
+            format: any;
+        };
+    };
+    private _elevationLayer: ElevationLayer;
+    private _mustUpdateUniforms: boolean;
+    private _needsSorting: boolean;
+    private _needsAtlasRepaint: boolean;
+    private _composer: WebGLComposer;
+    private _colorMapAtlas: ColorMapAtlas;
+
+    showOutline: boolean;
+
+    private disposed: boolean;
+    private readonly atlasInfo: AtlasInfo;
+
     /**
-     * @param {object} param0 the params.
-     * @param {MaterialOptions} param0.options the material options.
-     * @param {object} param0.renderer the WebGL renderer.
-     * @param {object} param0.atlasInfo the Atlas info.
-     * @param {Function} param0.getIndexFn The function to help sorting color layers.
+     * @param param0 the params.
+     * @param param0.options the material options.
+     * @param param0.renderer the WebGL renderer.
+     * @param param0.atlasInfo the Atlas info.
+     * @param param0.getIndexFn The function to help sorting color layers.
      */
     constructor({
         options = {},
         renderer,
         atlasInfo,
         getIndexFn,
+    }: {
+        options: MaterialOptions;
+        renderer: WebGLRenderer;
+        atlasInfo: AtlasInfo;
+        getIndexFn: (arg0: Layer) => number;
     }) {
         super({ clipping: true });
 
         this.atlasInfo = atlasInfo;
         this.defines.STITCHING = 1;
         this.defines.ENABLE_CONTOUR_LINES = 1;
-        this.renderer = renderer;
+        this._renderer = renderer;
 
         this.uniforms.zenith = new Uniform(DEFAULT_ZENITH);
         this.uniforms.azimuth = new Uniform(DEFAULT_AZIMUTH);
         this.uniforms.hillshadingIntensity = new Uniform(0.5);
 
-        this.getIndexFn = getIndexFn;
+        this._getIndexFn = getIndexFn;
 
         MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', options.discardNoData);
 
@@ -120,30 +256,23 @@ class LayeredMaterial extends ShaderMaterial {
 
         this.defines.COLOR_LAYERS = 0;
 
-        if (__DEBUG__) {
-            this.defines.DEBUG = 1;
-        }
-
         this.fragmentShader = TileFS;
         this.vertexShader = TileVS;
 
-        this.composer = this.createComposer();
+        this._composer = this.createComposer();
 
         this.texturesInfo = {
             color: {
-                /** @type {TextureInfo[]} */
                 infos: [],
                 atlasTexture: null,
                 parentAtlasTexture: null,
             },
             elevation: {
                 offsetScale: new Vector4(0, 0, 0, 0),
-                texture: emptyTexture,
+                texture: emptyTexture as ElevationTexture,
                 format: null,
             },
         };
-
-        this.canvasRevision = 0;
 
         this.uniforms.tileDimensions = new Uniform(new Vector2());
         this.uniforms.neighbours = new Uniform(new Array(8));
@@ -164,8 +293,7 @@ class LayeredMaterial extends ShaderMaterial {
         this.uniforms.layersColorMaps = new Uniform([]);
         this.uniforms.colorMapAtlas = new Uniform([]);
 
-        /** @type {ColorMapAtlas} */
-        this.colorMapAtlas = options.colorMapAtlas;
+        this._colorMapAtlas = options.colorMapAtlas;
 
         this.uniformsNeedUpdate = true;
 
@@ -174,9 +302,9 @@ class LayeredMaterial extends ShaderMaterial {
         this.uniforms.backgroundColor = new Uniform(new Vector4());
         this.uniforms.opacity = new Uniform(1.0);
 
-        this.needsAtlasRepaint = false;
+        this._needsAtlasRepaint = false;
 
-        this.colorLayers = [];
+        this._colorLayers = [];
 
         this.update(options);
 
@@ -184,28 +312,27 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     get pixelWidth() {
-        return this.composer.width;
+        return this._composer.width;
     }
 
     get pixelHeight() {
-        return this.composer.height;
+        return this._composer.height;
     }
 
     /**
-     * @param {number} v The number of segments.
+     * @param v The number of segments.
      */
-    set segments(v) {
+    set segments(v: number) {
         if (this.uniforms.segments.value !== v) {
             this.uniforms.segments.value = v;
         }
     }
 
-    _updateColorLayerUniforms() {
+    private _updateColorLayerUniforms() {
         this._sortLayersIfNecessary();
 
         if (this._mustUpdateUniforms) {
             const layersUniform = [];
-            /** @type {TextureInfo[]} */
             const infos = this.texturesInfo.color.infos;
 
             for (const info of infos) {
@@ -243,7 +370,7 @@ class LayeredMaterial extends ShaderMaterial {
         });
         this.disposed = true;
 
-        for (const layer of this.colorLayers) {
+        for (const layer of this._colorLayers) {
             const index = this.indexOfColorLayer(layer);
             if (index === -1) {
                 continue;
@@ -251,12 +378,12 @@ class LayeredMaterial extends ShaderMaterial {
             delete this.texturesInfo.color.infos[index];
         }
 
-        this.colorLayers.length = 0;
-        this.composer.dispose();
+        this._colorLayers.length = 0;
+        this._composer.dispose();
         this.texturesInfo.color.atlasTexture?.dispose();
     }
 
-    getColorTexture(layer) {
+    getColorTexture(layer: ColorLayer) {
         const index = this.indexOfColorLayer(layer);
 
         if (index === -1) {
@@ -269,19 +396,19 @@ class LayeredMaterial extends ShaderMaterial {
         this._updateOpacityParameters(this.opacity);
         this._updateColorLayerUniforms();
 
-        if (this.needsAtlasRepaint) {
+        if (this._needsAtlasRepaint) {
             this.repaintAtlas();
-            this.needsAtlasRepaint = false;
+            this._needsAtlasRepaint = false;
         }
     }
 
     repaintAtlas() {
         this.rebuildAtlasIfNecessary();
 
-        this.composer.reset();
+        this._composer.reset();
 
         // Redraw all color layers on the canvas
-        for (const l of this.colorLayers) {
+        for (const l of this._colorLayers) {
             const idx = this.indexOfColorLayer(l);
             const atlas = this.atlasInfo.atlas[l.id];
 
@@ -294,35 +421,34 @@ class LayeredMaterial extends ShaderMaterial {
                 new Vector2(w, h),
                 this.atlasInfo.atlas[l.id],
                 this.texturesInfo.color.infos[idx].originalOffsetScale,
-                this.composer.width,
-                this.composer.height,
+                this._composer.width,
+                this._composer.height,
                 this.texturesInfo.color.infos[idx].offsetScale,
             );
 
             if (layerTexture) {
-                drawImageOnAtlas(w, h, this.composer, atlas, layerTexture);
+                drawImageOnAtlas(w, h, this._composer, atlas, layerTexture);
             }
-
-            this.canvasRevision++;
         }
 
-        const rendered = this.composer.render();
+        const rendered = this._composer.render();
         rendered.name = 'LayeredMaterial - Atlas';
 
         // Even though we asked the composer to reuse the same texture, sometimes it has
         // to recreate a new texture when some parameters change, such as pixel format.
         if (rendered.uuid !== this.texturesInfo.color.atlasTexture?.uuid) {
-            this._rebuildAtlasTexture(rendered);
+            this.rebuildAtlasTexture(rendered);
         }
 
         this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
     }
 
-    setColorTextures(layer, { texture, pitch }) {
+    setColorTextures(layer: ColorLayer, textureAndPitch: TextureAndPitch) {
         const index = this.indexOfColorLayer(layer);
+        const { pitch, texture } = textureAndPitch;
         this.texturesInfo.color.infos[index].originalOffsetScale.copy(pitch);
         this.texturesInfo.color.infos[index].texture = texture;
-        this.needsAtlasRepaint = true;
+        this._needsAtlasRepaint = true;
     }
 
     /**
@@ -335,26 +461,28 @@ class LayeredMaterial extends ShaderMaterial {
             return {
                 texture: this.texturesInfo.elevation.texture,
                 offsetScale: this.texturesInfo.elevation.offsetScale,
-                heightFieldScale: this.texturesInfo.elevation.heightFieldScale,
-                heightFieldOffset: this.texturesInfo.elevation.heightFieldOffset,
             };
         }
         return null;
     }
 
-    pushElevationLayer(layer) {
-        this.elevationLayer = layer;
+    pushElevationLayer(layer: ElevationLayer) {
+        this._elevationLayer = layer;
     }
 
     removeElevationLayer() {
-        this.elevationLayer = null;
+        this._elevationLayer = null;
         this.uniforms.elevationTexture.value = null;
         this.texturesInfo.elevation.texture = null;
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', false);
     }
 
-    setElevationTexture(layer, { texture, pitch }, isFinal) {
-        this.elevationLayer = layer;
+    setElevationTexture(
+        layer: ElevationLayer,
+        { texture, pitch }: { texture: ElevationTexture, pitch: Vector4 },
+        isFinal: boolean,
+    ) {
+        this._elevationLayer = layer;
 
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', true);
 
@@ -374,11 +502,12 @@ class LayeredMaterial extends ShaderMaterial {
         return Promise.resolve(true);
     }
 
-    pushColorLayer(newLayer) {
-        if (this.colorLayers.includes(newLayer)) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    pushColorLayer(newLayer: ColorLayer, _extent: Extent) {
+        if (this._colorLayers.includes(newLayer)) {
             return;
         }
-        this.colorLayers.push(newLayer);
+        this._colorLayers.push(newLayer);
 
         const info = new TextureInfo(newLayer);
 
@@ -390,7 +519,7 @@ class LayeredMaterial extends ShaderMaterial {
         info.offsetScale = new Vector4(0, 0, 0, 0);
         info.originalOffsetScale = new Vector4(0, 0, 0, 0);
         info.texture = emptyTexture;
-        info.color = newLayer.color || new Color(1, 1, 1);
+        info.color = new Color(1, 1, 1);
 
         // Optional feature: limit color layer display within an elevation range
         const hasElevationRange = newLayer.elevationRange != null;
@@ -407,7 +536,7 @@ class LayeredMaterial extends ShaderMaterial {
 
         this._updateColorMaps();
 
-        this.defines.COLOR_LAYERS = this.colorLayers.length;
+        this.defines.COLOR_LAYERS = this._colorLayers.length;
         this.needsUpdate = true;
     }
 
@@ -416,41 +545,41 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     _sortLayersIfNecessary() {
-        const idx = this.getIndexFn;
+        const idx = this._getIndexFn;
         if (this._needsSorting) {
-            this.colorLayers.sort((a, b) => idx(a) - idx(b));
+            this._colorLayers.sort((a, b) => idx(a) - idx(b));
             this.texturesInfo.color.infos.sort((a, b) => idx(a.layer) - idx(b.layer));
             this._needsSorting = false;
         }
     }
 
-    removeColorLayer(layer) {
+    removeColorLayer(layer: ColorLayer) {
         const index = this.indexOfColorLayer(layer);
         if (index === -1) {
             return;
         }
         // NOTE: we cannot dispose the texture here, because it might be cached for later.
         this.texturesInfo.color.infos.splice(index, 1);
-        this.colorLayers.splice(index, 1);
+        this._colorLayers.splice(index, 1);
 
         this._needsSorting = true;
         this._mustUpdateUniforms = true;
         this._updateColorMaps();
 
-        this.defines.COLOR_LAYERS = this.colorLayers.length;
+        this.defines.COLOR_LAYERS = this._colorLayers.length;
 
         this.needsUpdate = true;
-        this.needsAtlasRepaint = true;
+        this._needsAtlasRepaint = true;
     }
 
     /**
      * Returns or create a uniform by name.
      *
-     * @param {string} name The uniform name.
-     * @param {any} value the value to set
-     * @returns {Uniform} The resulting uniform
+     * @param name The uniform name.
+     * @param value the value to set
+     * @returns The resulting uniform
      */
-    getObjectUniform(name, value = {}) {
+    private getObjectUniform(name: string, value: unknown = {}) {
         let uniform;
 
         if (!this.uniforms[name]) {
@@ -466,18 +595,18 @@ class LayeredMaterial extends ShaderMaterial {
     /**
      * Sets the colormap atlas.
      *
-     * @param {ColorMapAtlas} atlas The atlas.
+     * @param atlas The atlas.
      */
-    setColorMapAtlas(atlas) {
-        this.colorMapAtlas = atlas;
+    setColorMapAtlas(atlas: ColorMapAtlas) {
+        this._colorMapAtlas = atlas;
     }
 
     _updateColorMaps() {
         this._sortLayersIfNecessary();
 
-        const atlas = this.colorMapAtlas;
+        const atlas = this._colorMapAtlas;
 
-        const elevationColorMap = this.elevationLayer?.colorMap;
+        const elevationColorMap = this._elevationLayer?.colorMap;
 
         const elevationUniform = this.getObjectUniform('elevationColorMap');
         if (elevationColorMap?.active) {
@@ -497,7 +626,6 @@ class LayeredMaterial extends ShaderMaterial {
         for (let i = 0; i < colorLayers.length; i++) {
             const texInfo = colorLayers[i];
             const colorUniform = colorMaps[i];
-            /** @type {ColorMap} */
             const colorMap = texInfo.layer.colorMap;
             if (colorMap?.active) {
                 colorUniform.mode = colorMap.mode;
@@ -520,11 +648,10 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     /**
-     * @param {MaterialOptions} materialOptions The material options.
-     * @returns {boolean} ?
+     * @param  materialOptions The material options.
      */
-    update(materialOptions = {}) {
-        if (this.colorMapAtlas) {
+    update(materialOptions: MaterialOptions = {}) {
+        if (this._colorMapAtlas) {
             this._updateColorMaps();
         }
 
@@ -536,7 +663,6 @@ class LayeredMaterial extends ShaderMaterial {
         }
 
         if (materialOptions.contourLines) {
-            /** @type {import('../core/ContourLineOptions.js').ContourLineOptions} */
             const opts = materialOptions.contourLines;
             this.uniforms.contourLineInterval.value = opts.interval ?? 100;
             this.uniforms.secondaryContourLineInterval.value = opts.secondaryInterval ?? 0;
@@ -552,7 +678,7 @@ class LayeredMaterial extends ShaderMaterial {
             this.uniforms.elevationRange.value.set(min, max);
         }
 
-        MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this.elevationLayer?.visible);
+        MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this._elevationLayer?.visible);
         MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', this.showOutline);
         MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', materialOptions.discardNoData);
 
@@ -573,7 +699,7 @@ class LayeredMaterial extends ShaderMaterial {
             this.needsUpdate = true;
         }
 
-        if (this.colorLayers.length === 0) {
+        if (this._colorLayers.length === 0) {
             return true;
         }
         return this.rebuildAtlasIfNecessary();
@@ -585,35 +711,35 @@ class LayeredMaterial extends ShaderMaterial {
             width: this.atlasInfo.maxX,
             height: this.atlasInfo.maxY,
             reuseTexture: true,
-            webGLRenderer: this.renderer,
+            webGLRenderer: this._renderer,
         });
         return newComposer;
     }
 
     rebuildAtlasIfNecessary() {
-        if (this.atlasInfo.maxX > this.composer.width
-            || this.atlasInfo.maxY > this.composer.height) {
+        if (this.atlasInfo.maxX > this._composer.width
+            || this.atlasInfo.maxY > this._composer.height) {
             const newComposer = this.createComposer();
 
             let newTexture;
 
             const currentTexture = this.texturesInfo.color.atlasTexture;
 
-            if (currentTexture && this.composer.width > 0) {
+            if (currentTexture && this._composer.width > 0) {
                 // repaint the old canvas into the new one.
                 newComposer.draw(
                     currentTexture,
-                    new Rect(0, this.composer.width, 0, this.composer.height),
+                    new Rect(0, this._composer.width, 0, this._composer.height),
                 );
                 newTexture = newComposer.render();
             }
 
-            this.composer.dispose();
+            this._composer.dispose();
             currentTexture?.dispose();
-            this.composer = newComposer;
+            this._composer = newComposer;
 
-            for (let i = 0; i < this.colorLayers.length; i++) {
-                const layer = this.colorLayers[i];
+            for (let i = 0; i < this._colorLayers.length; i++) {
+                const layer = this._colorLayers[i];
                 const atlas = this.atlasInfo.atlas[layer.id];
                 const pitch = this.texturesInfo.color.infos[i].originalOffsetScale;
                 const texture = this.texturesInfo.color.infos[i].texture;
@@ -621,25 +747,22 @@ class LayeredMaterial extends ShaderMaterial {
                 // compute offset / scale
                 const w = texture?.image?.width || EMPTY_IMAGE_SIZE;
                 const h = texture?.image?.height || EMPTY_IMAGE_SIZE;
-                const xRatio = w / this.composer.width;
-                const yRatio = h / this.composer.height;
+                const xRatio = w / this._composer.width;
+                const yRatio = h / this._composer.height;
                 this.texturesInfo.color.infos[i].offsetScale = new Vector4(
-                    atlas.x / this.composer.width + pitch.x * xRatio,
-                    (atlas.y + atlas.offset) / this.composer.height + pitch.y * yRatio,
+                    atlas.x / this._composer.width + pitch.x * xRatio,
+                    (atlas.y + atlas.offset) / this._composer.height + pitch.y * yRatio,
                     pitch.z * xRatio,
                     pitch.w * yRatio,
                 );
             }
 
-            this._rebuildAtlasTexture(newTexture);
+            this.rebuildAtlasTexture(newTexture);
         }
-        return this.composer.width > 0;
+        return this._composer.width > 0;
     }
 
-    /**
-     * @param {Texture} newTexture The new atlas texture.
-     */
-    _rebuildAtlasTexture(newTexture) {
+    private rebuildAtlasTexture(newTexture: Texture) {
         if (newTexture) {
             newTexture.name = 'LayeredMaterial - Atlas';
         }
@@ -648,7 +771,7 @@ class LayeredMaterial extends ShaderMaterial {
         this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
     }
 
-    changeState(state) {
+    changeState(state: RenderingState) {
         if (this.uniforms.renderingState.value === state) {
             return;
         }
@@ -675,36 +798,36 @@ class LayeredMaterial extends ShaderMaterial {
         }
     }
 
-    hasColorLayer(layer) {
+    hasColorLayer(layer: ColorLayer) {
         return this.indexOfColorLayer(layer) !== -1;
     }
 
-    indexOfColorLayer(layer) {
-        return this.colorLayers.indexOf(layer);
+    indexOfColorLayer(layer: ColorLayer) {
+        return this._colorLayers.indexOf(layer);
     }
 
-    _updateOpacityParameters(opacity) {
+    private _updateOpacityParameters(opacity: number) {
         this.uniforms.opacity.value = opacity;
         this._updateBlendingMode();
     }
 
-    setLayerOpacity(layer, opacity) {
-        const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
+    setLayerOpacity(layer: ColorLayer, opacity: number) {
+        const index = this.indexOfColorLayer(layer);
         this.texturesInfo.color.infos[index].opacity = opacity;
         this._mustUpdateUniforms = true;
     }
 
-    setLayerVisibility(layer, visible) {
-        const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
+    setLayerVisibility(layer: ColorLayer, visible: boolean) {
+        const index = this.indexOfColorLayer(layer);
         this.texturesInfo.color.infos[index].visible = visible;
         this._mustUpdateUniforms = true;
     }
 
-    setLayerElevationRange(layer, range) {
+    setLayerElevationRange(layer: ColorLayer, range: ElevationRange) {
         if (range != null) {
             MaterialUtils.setDefine(this, 'ENABLE_ELEVATION_RANGE', true);
         }
-        const index = Number.isInteger(layer) ? layer : this.indexOfColorLayer(layer);
+        const index = this.indexOfColorLayer(layer);
         const value = range ? new Vector2(range.min, range.max) : DISABLED_ELEVATION_RANGE;
         this.texturesInfo.color.infos[index].elevationRange = value;
         this._mustUpdateUniforms = true;
@@ -715,7 +838,7 @@ class LayeredMaterial extends ShaderMaterial {
         return texture != null && texture.isFinal === true;
     }
 
-    isColorLayerTextureLoaded(layer) {
+    isColorLayerTextureLoaded(layer: ColorLayer) {
         const index = this.indexOfColorLayer(layer);
         if (index < 0) {
             return null;
@@ -729,7 +852,7 @@ class LayeredMaterial extends ShaderMaterial {
      * @returns {number} The number of layers present on this material.
      */
     getLayerCount() {
-        return (this.elevationLayer ? 1 : 0) + this.colorLayers.length;
+        return (this._elevationLayer ? 1 : 0) + this._colorLayers.length;
     }
 
     /**
@@ -740,14 +863,14 @@ class LayeredMaterial extends ShaderMaterial {
     get progress() {
         let total = 0;
         let weight = 0;
-        if (this.elevationLayer != null) {
+        if (this._elevationLayer != null) {
             if (this.isElevationLayerTextureLoaded()) {
                 total += 1;
             }
             weight += 1;
         }
 
-        for (const layer of this.colorLayers) {
+        for (const layer of this._colorLayers) {
             if (this.isColorLayerTextureLoaded(layer)) {
                 total += 1;
             }
@@ -766,37 +889,9 @@ class LayeredMaterial extends ShaderMaterial {
         return this.progress < 1;
     }
 
-    setUuid(uuid) {
+    setUuid(uuid: string) {
         this.uniforms.uuid.value = uuid;
     }
-}
-
-function drawImageOnAtlas(width, height, composer, atlasInfo, texture) {
-    const dx = atlasInfo.x;
-    const dy = atlasInfo.y + atlasInfo.offset;
-    const dw = width;
-    const dh = height;
-
-    const rect = new Rect(dx, dx + dw, dy, dy + dh);
-
-    composer.draw(texture, rect);
-}
-
-function updateOffsetScale(imageSize, atlas, originalOffsetScale, width, height, target) {
-    if (originalOffsetScale.z === 0 || originalOffsetScale.w === 0) {
-        target.set(0, 0, 0, 0);
-        return;
-    }
-    // compute offset / scale
-    const xRatio = imageSize.width / width;
-    const yRatio = imageSize.height / height;
-
-    target.set(
-        atlas.x / width + originalOffsetScale.x * xRatio,
-        (atlas.y + atlas.offset) / height + originalOffsetScale.y * yRatio,
-        originalOffsetScale.z * xRatio,
-        originalOffsetScale.w * yRatio,
-    );
 }
 
 export default LayeredMaterial;
