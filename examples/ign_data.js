@@ -20,13 +20,11 @@ import {
     CubeTextureLoader,
     DirectionalLight,
     MeshLambertMaterial,
-    MeshBasicMaterial,
-    MeshStandardMaterial,
     AmbientLight,
-    sRGBEncoding,
     Mesh,
     Material,
     DoubleSide,
+    SRGBColorSpace,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
@@ -144,7 +142,6 @@ const feat = new FeatureCollection('buildings', {
 feat.renderOrder = 1;
 
 instance.add(feat);
-instance.mainLoop.gfxEngine.renderer.outputEncoding = sRGBEncoding;
 
 // also add some lights
 const sun = new DirectionalLight('#ffffff', 0.7);

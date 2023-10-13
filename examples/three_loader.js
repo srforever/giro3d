@@ -8,9 +8,9 @@ import {
     Mesh,
     MeshPhongMaterial,
     PlaneGeometry,
-    sRGBEncoding,
     Vector3,
     WebGLRenderer,
+    SRGBColorSpace,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -29,7 +29,6 @@ const viewerDiv = document.getElementById('viewerDiv');
 // - adding it in the DOM within viewerDiv
 // - resizing it when the window or viewerDiv is resized
 const renderer = new WebGLRenderer({ antialias: true });
-renderer.outputEncoding = sRGBEncoding;
 renderer.shadowMap.enabled = true;
 
 // Create the giro3d instance

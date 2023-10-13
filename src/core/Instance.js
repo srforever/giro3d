@@ -93,6 +93,8 @@ class Instance extends EventDispatcher {
      * Not used if renderer is provided.
      * @param {boolean} [options.renderer.antialias] Enables antialiasing (default true).
      * Not used if renderer is provided.
+     * @param {boolean} [options.renderer.colorManagement] Enables color management (default false).
+     * Not used if renderer is provided.
      * @param {boolean} [options.renderer.checkShaderErrors=false] Enables shader validation. Note:
      * shader validation is a costly operation that should be disabled in production.
      * That can be toggled at any moment using the corresponding property in the
