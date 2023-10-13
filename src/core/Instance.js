@@ -115,7 +115,7 @@ class Instance extends EventDispatcher {
      */
     constructor(viewerDiv, options) {
         super();
-        Object3D.DefaultUp.set(0, 0, 1);
+        Object3D.DEFAULT_UP.set(0, 0, 1);
         if (!viewerDiv || !(viewerDiv instanceof Element)) {
             throw new Error('Invalid viewerDiv parameter (must be a valid Element)');
         }
