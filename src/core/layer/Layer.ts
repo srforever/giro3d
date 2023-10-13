@@ -14,8 +14,7 @@ import {
 
 import type ColorMap from './ColorMap';
 import Interpretation from './Interpretation';
-import type Extent from '../geographic/Extent.js';
-import EventUtils from '../../utils/EventUtils.js';
+import type Extent from '../geographic/Extent';
 import LayerComposer from './LayerComposer.js';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
@@ -99,17 +98,12 @@ class Target {
     }
 }
 
-/**
- * Fires when layer visibility change
- *
- * @event Layer#visible-property-changed
- * @property {object} new the new value of the property
- * @property {object} new.visible the new value of the layer visibility
- * @property {object} previous the previous value of the property
- * @property {object} previous.visible the previous value of the layer visibility
- * @property {Layer} target dispatched on layer
- * @property {string} type visible-property-changed
- */
+export interface LayerEvents {
+    /**
+     * Fires when layer visibility changes.
+     */
+    'visible-property-changed': { visible: boolean };
+}
 
 /**
  * Base class of layers. Layers are components of maps or any compatible entity.
@@ -152,7 +146,8 @@ class Target {
  * const layerToListen = map.getLayers(layer => layer.id === 'idLayerToListen')[0];
  * layerToListen.addEventListener('visible-property-changed', (event) => console.log(event));
  */
-abstract class Layer extends EventDispatcher
+abstract class Layer<TEvents extends LayerEvents = LayerEvents>
+    extends EventDispatcher<TEvents & LayerEvents>
     implements Progress {
     /**
      * The unique identifier of this layer.
@@ -185,7 +180,7 @@ abstract class Layer extends EventDispatcher
     private readonly preloadImages: boolean;
     private fallbackImagesPromise: Promise<void>;
 
-    whenReady: Promise<Layer>;
+    whenReady: Promise<Layer<TEvents>>;
 
     ready: boolean;
 
@@ -328,9 +323,8 @@ abstract class Layer extends EventDispatcher
 
     set visible(v) {
         if (this._visible !== v) {
-            const event = EventUtils.createPropertyChangedEvent(this, 'visible', this._visible, v);
             this._visible = v;
-            this.dispatchEvent(event);
+            this.dispatchEvent({ type: 'visible-property-changed', visible: v });
         }
     }
 
@@ -845,6 +839,9 @@ abstract class Layer extends EventDispatcher
 
             // Since the node does not own the texture for this layer, we need to be
             // notified whenever it is disposed so we can in turn dispose the texture.
+            // FIXME the Node type is currently still in JS, so does not implement typed events.
+            // When the underlying types are migrated to TS, we can remove the ts-ignore.
+            // @ts-ignore 2349
             node.addEventListener('dispose', () => this.unregisterNode(node));
         } else {
             target = this.targets.get(node.id);

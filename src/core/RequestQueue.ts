@@ -70,10 +70,21 @@ function keyFn(task: Task) {
 
 const MAX_CONCURRENT_REQUESTS = 10;
 
+export interface RequestQueueEvents {
+    /**
+     * Raised when a task has been executed.
+     */
+    'task-executed': {};
+    /**
+     * Raised when a task has been cancelled.
+     */
+    'task-cancelled': {};
+}
+
 /**
  * A generic priority queue that ensures that the same request cannot be added twice in the queue.
  */
-class RequestQueue extends EventDispatcher {
+class RequestQueue extends EventDispatcher<RequestQueueEvents> {
     private readonly pendingIds: Map<string, Promise<unknown>>;
     private readonly queue: PriorityQueue<Task>;
     private readonly opCounter: OperationCounter;

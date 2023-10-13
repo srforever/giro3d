@@ -70,11 +70,18 @@ export interface ImageSourceOptions {
     containsFn?: CustomContainsFn;
 }
 
+export interface ImageSourceEvents {
+    /**
+     * Raised when the source's content has been updated.
+     */
+    'updated': {};
+}
+
 /**
  * Base class for all image sources. The `ImageSource` produces images to be consumed by clients,
  * such as map layers.
  */
-abstract class ImageSource extends EventDispatcher {
+abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
     readonly isImageSource: boolean = true;
     type: string;
     /**

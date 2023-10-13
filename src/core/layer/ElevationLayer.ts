@@ -1,13 +1,13 @@
 import type { Texture } from 'three';
 import { FloatType } from 'three';
 import type Interpretation from './Interpretation';
-import type { TextureAndPitch } from './Layer';
+import type { LayerEvents, TextureAndPitch } from './Layer';
 import Layer from './Layer';
 import type ColorMap from './ColorMap';
 import type Extent from '../geographic/Extent.js';
 import type ImageSource from '../../sources/ImageSource.js';
 import type TileMesh from '../TileMesh.js';
-import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
+import type LayeredMaterial from '../../renderer/LayeredMaterial';
 import type ElevationRange from '../ElevationRange.js';
 
 interface TextureWithMinMax extends Texture {
@@ -15,10 +15,12 @@ interface TextureWithMinMax extends Texture {
     max?: number;
 }
 
+interface ElevationLayerEvents extends LayerEvents {}
+
 /**
  * A layer that provides elevation data to display terrains.
  */
-class ElevationLayer extends Layer {
+class ElevationLayer extends Layer<ElevationLayerEvents> {
     minmax: ElevationRange;
     readonly isElevationLayer: boolean = true;
 
