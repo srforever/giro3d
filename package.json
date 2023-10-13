@@ -84,7 +84,7 @@
   "peerDependencies": {
     "ol": "^6.15.1",
     "proj4": "^2.9.0",
-    "three": "^0.156.0",
+    "three": "^0.157.0",
     "three.meshline": "^1.0.3"
   },
   "devDependencies": {
@@ -99,7 +99,7 @@
     "@turf/turf": "^6.5.0",
     "@types/jest": "^29.5.3",
     "@types/proj4": "^2.5.2",
-    "@types/three": "^0.156.0",
+    "@types/three": "^0.157.0",
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "assert": "^2.0.0",
@@ -146,7 +146,7 @@
     "query-selector": "^2.0.0",
     "shiki": "^0.12.1",
     "shx": "^0.3.2",
-    "three": "^0.156.0",
+    "three": "^0.157.0",
     "three.meshline": "^1.0.3",
     "ts-jest": "^29.1.1",
     "typedoc": "^0.24.8",
