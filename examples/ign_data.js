@@ -144,7 +144,7 @@ feat.renderOrder = 1;
 instance.add(feat);
 
 // also add some lights
-const sun = new DirectionalLight('#ffffff', 0.7);
+const sun = new DirectionalLight('#ffffff', 1.4);
 sun.position.set(1, 0, 1).normalize();
 sun.updateMatrixWorld(true);
 instance.scene.add(sun);
@@ -156,7 +156,7 @@ sun2.updateMatrixWorld();
 instance.scene.add(sun2);
 
 // ambient
-const ambientLight = new AmbientLight(0xffffff, 0.1);
+const ambientLight = new AmbientLight(0xffffff, 0.2);
 instance.scene.add(ambientLight);
 
 // place camera above grenoble
