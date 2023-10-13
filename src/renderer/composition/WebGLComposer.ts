@@ -14,9 +14,10 @@ import {
     Vector4,
     MathUtils,
     type ColorRepresentation,
-    type TextureFilter,
-    type PixelFormat,
+    type AnyPixelFormat,
     type TextureDataType,
+    type MinificationTextureFilter,
+    type MagnificationTextureFilter,
 } from 'three';
 import Interpretation from '../../core/layer/Interpretation';
 
@@ -74,8 +75,8 @@ class WebGLComposer {
     private readonly renderer: WebGLRenderer;
     private readonly reuseTexture: boolean;
     private readonly clearColor: ColorRepresentation;
-    private readonly minFilter: TextureFilter;
-    private readonly magFilter: TextureFilter;
+    private readonly minFilter: MinificationTextureFilter;
+    private readonly magFilter: MagnificationTextureFilter;
     private readonly ownedTextures: Texture[];
     private readonly scene: Scene;
     private readonly camera: OrthographicCamera;
@@ -116,8 +117,8 @@ class WebGLComposer {
         height: number;
         showImageOutlines?: boolean;
         reuseTexture?: boolean;
-        minFilter?: number;
-        magFilter?: number;
+        minFilter?: MinificationTextureFilter;
+        magFilter?: MagnificationTextureFilter;
         webGLRenderer: WebGLRenderer;
         clearColor?: ColorRepresentation
     }) {
@@ -172,7 +173,7 @@ class WebGLComposer {
 
     private createRenderTarget(
         type: TextureDataType,
-        format: PixelFormat,
+        format: AnyPixelFormat,
         width: number,
         height: number,
     ) {
@@ -290,8 +291,8 @@ class WebGLComposer {
     }
 
     private selectPixelTypeAndTextureFormat() {
-        let type = UnsignedByteType;
-        let format = RGBAFormat;
+        let type: TextureDataType = UnsignedByteType;
+        let format: AnyPixelFormat = RGBAFormat;
         let currentBpp = -1;
         let currentChannelCount = -1;
 

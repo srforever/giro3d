@@ -1,4 +1,4 @@
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import {
     Fill, Icon, Stroke, Style, Text,
 } from 'ol/style.js';

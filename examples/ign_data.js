@@ -28,7 +28,7 @@ import {
     Material,
     DoubleSide,
 } from 'three';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import StatusBar from './widgets/StatusBar.js';
 

@@ -1,6 +1,6 @@
 import { Color, CubeTextureLoader } from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import { createXYZ } from 'ol/tilegrid.js';
 import { tile } from 'ol/loadingstrategy.js';

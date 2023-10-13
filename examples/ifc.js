@@ -5,7 +5,7 @@ import {
 } from 'three';
 import { IFCLoader } from 'three/examples/jsm/loaders/IFCLoader.js';
 
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';

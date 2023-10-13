@@ -1,5 +1,5 @@
 import { Color, MathUtils, Vector3 } from 'three';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { GeoJSON } from 'ol/format.js';
 import {
     Circle, Fill, Stroke, Style,

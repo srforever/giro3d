@@ -1,5 +1,5 @@
 import colormap from 'colormap';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { Color } from 'three';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import CogSource from '@giro3d/giro3d/sources/CogSource.js';

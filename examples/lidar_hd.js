@@ -2,7 +2,7 @@ import {
     Vector3, CubeTextureLoader,
 } from 'three';
 import TileWMS from 'ol/source/TileWMS.js';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';

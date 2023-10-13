@@ -2,7 +2,7 @@ import { GeoJSON } from 'ol/format.js';
 import { Fill, Stroke, Style } from 'ol/style.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import { MathUtils as THREEMath, Vector2, Vector3 } from 'three';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';

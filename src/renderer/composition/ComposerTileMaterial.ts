@@ -5,7 +5,7 @@ import {
     FloatType,
     CanvasTexture,
     type TextureDataType,
-    type PixelFormat,
+    type AnyPixelFormat,
 } from 'three';
 
 import FragmentShader from './ComposerTileFS.glsl';
@@ -71,7 +71,7 @@ let GRID_TEXTURE: Texture;
 class ComposerTileMaterial extends RawShaderMaterial {
     now: number;
     dataType: TextureDataType;
-    pixelFormat: PixelFormat;
+    pixelFormat: AnyPixelFormat;
     readonly isComposerTileMaterial = true;
 
     /**

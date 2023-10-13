@@ -3,7 +3,7 @@ import TileWMS from 'ol/source/TileWMS.js';
 import GPX from 'ol/format/GPX.js';
 import KML from 'ol/format/KML.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
