@@ -52,7 +52,7 @@ export default (env, argv) => {
         optimization: {
             minimize: argv.mode === 'production',
             splitChunks: {
-                chunks(chunk) { return chunk.name !== 'index'},
+                chunks(chunk) { return chunk.name !== 'index'; },
                 name: 'shared',
             },
         },
@@ -83,7 +83,6 @@ export default (env, argv) => {
                     { from: 'image', to: 'image' },
                     { from: 'screenshots', to: 'screenshots' },
                     { from: 'data', to: 'data' },
-                    { from: path.resolve(path.join(baseDir, '..', '..', 'node_modules', 'three', 'examples', 'jsm', 'loaders', 'ifc/web-ifc.wasm')) },
                 ],
             }),
         ],
