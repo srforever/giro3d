@@ -15,7 +15,7 @@ import {
 
 import HttpConfiguration from '../utils/HttpConfiguration.js';
 import Extent from '../core/geographic/Extent';
-import TextureGenerator, { NumberArray } from '../utils/TextureGenerator';
+import TextureGenerator, { type NumberArray } from '../utils/TextureGenerator';
 import PromiseUtils from '../utils/PromiseUtils.js';
 import ImageSource, { ImageResult, type ImageSourceOptions } from './ImageSource';
 import { Cache } from '../core/Cache';

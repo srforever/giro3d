@@ -7,7 +7,7 @@ import OpenLayersUtils from '../utils/OpenLayersUtils';
 import Fetcher from '../utils/Fetcher.js';
 import TextureGenerator from '../utils/TextureGenerator';
 import ImageSource, { type GetImageOptions, ImageResult, type ImageSourceOptions } from './ImageSource';
-import ImageFormat from '../formats/ImageFormat';
+import type ImageFormat from '../formats/ImageFormat';
 
 const MIN_LEVEL_THRESHOLD = 2;
 
