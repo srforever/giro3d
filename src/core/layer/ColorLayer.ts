@@ -1,9 +1,10 @@
-import Layer, { Node, NodeMaterial, TextureAndPitch } from './Layer';
+import type { Node, NodeMaterial, TextureAndPitch } from './Layer';
+import Layer from './Layer';
 import EventUtils from '../../utils/EventUtils.js';
-import ImageSource from '../../sources/ImageSource.js';
-import Interpretation from './Interpretation';
-import Extent from '../geographic/Extent';
-import ElevationRange from '../ElevationRange';
+import type ImageSource from '../../sources/ImageSource.js';
+import type Interpretation from './Interpretation';
+import type Extent from '../geographic/Extent';
+import type ElevationRange from '../ElevationRange';
 
 /**
  * A layer that produces color images, such as vector data, or satellite imagery.

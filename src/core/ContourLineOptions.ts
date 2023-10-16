@@ -1,4 +1,4 @@
-import { Color } from 'three';
+import type { Color } from 'three';
 
 /**
  * Option for contour lines.

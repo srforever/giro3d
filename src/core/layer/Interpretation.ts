@@ -1,4 +1,5 @@
-import { NearestFilter, Texture } from 'three';
+import type { Texture } from 'three';
+import { NearestFilter } from 'three';
 
 /**
  * Describes how an image pixel should be interpreted.

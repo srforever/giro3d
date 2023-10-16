@@ -1,33 +1,34 @@
 import {
     Color,
-    ColorRepresentation,
+    type ColorRepresentation,
     EventDispatcher,
     LinearFilter,
-    Material,
+    type Material,
     MathUtils,
     RGBAFormat,
-    Texture,
+    type Texture,
     Vector2,
     WebGLRenderTarget,
 } from 'three';
 
-import ColorMap from './ColorMap';
+import type ColorMap from './ColorMap';
 import Interpretation from './Interpretation';
-import Extent from '../geographic/Extent.js';
+import type Extent from '../geographic/Extent.js';
 import EventUtils from '../../utils/EventUtils.js';
 import LayerComposer from './LayerComposer.js';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
-import Instance from '../Instance.js';
-import ImageSource, { ImageResult } from '../../sources/ImageSource';
-import RequestQueue, { DefaultQueue } from '../RequestQueue';
+import type Instance from '../Instance.js';
+import ImageSource, { type ImageResult } from '../../sources/ImageSource';
+import type RequestQueue from '../RequestQueue';
+import { DefaultQueue } from '../RequestQueue';
 import OperationCounter from '../OperationCounter';
-import TileMesh from '../TileMesh.js';
-import PointCloud from '../PointCloud.js';
-import Context from '../Context.js';
-import LayeredMaterial from '../../renderer/LayeredMaterial.js';
-import PointsMaterial from '../../renderer/PointsMaterial.js';
-import Progress from '../Progress.js';
+import type TileMesh from '../TileMesh.js';
+import type PointCloud from '../PointCloud.js';
+import type Context from '../Context.js';
+import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
+import type PointsMaterial from '../../renderer/PointsMaterial.js';
+import type Progress from '../Progress.js';
 
 export interface TextureAndPitch {
     texture: Texture

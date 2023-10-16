@@ -138,6 +138,7 @@ module.exports = {
                 // and Typedoc supports them out of the box.
                 'jsdoc/require-param-type': 'off',
                 'jsdoc/require-returns-type': 'off',
+                '@typescript-eslint/consistent-type-imports': 'error',
             },
         },
     ],
