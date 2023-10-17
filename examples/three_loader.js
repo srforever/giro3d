@@ -8,11 +8,11 @@ import {
     Mesh,
     MeshPhongMaterial,
     PlaneGeometry,
-    sRGBEncoding,
     Vector3,
     WebGLRenderer,
+    SRGBColorSpace,
 } from 'three';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
@@ -29,7 +29,6 @@ const viewerDiv = document.getElementById('viewerDiv');
 // - adding it in the DOM within viewerDiv
 // - resizing it when the window or viewerDiv is resized
 const renderer = new WebGLRenderer({ antialias: true });
-renderer.outputEncoding = sRGBEncoding;
 renderer.shadowMap.enabled = true;
 
 // Create the giro3d instance
@@ -51,12 +50,12 @@ instance.scene.background = new Color(0xa0a0a0);
 instance.scene.fog = new Fog(0xa0a0a0, 10, 50);
 
 // adding lights directly to scene is ok
-const hemiLight = new HemisphereLight(0xffffff, 0x444444);
+const hemiLight = new HemisphereLight(0xffffff, 0x444444, 2);
 hemiLight.position.set(0, 0, 20);
 hemiLight.updateMatrixWorld();
 instance.scene.add(hemiLight);
 
-const dirLight = new DirectionalLight(0xffffff);
+const dirLight = new DirectionalLight(0xffffff, 3);
 dirLight.position.set(-3, 10, 10);
 dirLight.castShadow = true;
 dirLight.shadow.camera.top = 4;
@@ -65,8 +64,9 @@ dirLight.shadow.camera.left = -4;
 dirLight.shadow.camera.right = 4;
 dirLight.shadow.camera.near = 0.1;
 dirLight.shadow.camera.far = 40;
-dirLight.updateMatrixWorld();
 instance.scene.add(dirLight);
+instance.scene.add(dirLight.target);
+dirLight.updateMatrixWorld();
 
 // Let's now setup a "ground" to receive the shadows
 const mesh = new Mesh(new PlaneGeometry(200, 200),

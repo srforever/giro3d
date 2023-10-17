@@ -1,7 +1,6 @@
 import { Matrix4, MeshLambertMaterial, Material } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-import LegacyGLTFLoader from './LegacyGLTFLoader.js';
 import BatchTableParser from './BatchTableParser.js';
 import Capabilities from '../core/system/Capabilities.js';
 import shaderUtils from '../renderer/shader/ShaderUtils.js';
@@ -12,8 +11,6 @@ const matrixChangeUpVectorZtoY = (new Matrix4()).makeRotationX(Math.PI / 2);
 const matrixChangeUpVectorZtoX = (new Matrix4()).makeRotationZ(-Math.PI / 2);
 
 const glTFLoader = new GLTFLoader();
-
-const legacyGLTFLoader = new LegacyGLTFLoader();
 
 function filterUnsupportedSemantics(obj) {
     // see GLTFLoader GLTFShader.prototype.update function
@@ -172,7 +169,7 @@ export default {
                 const version = new DataView(gltfBuffer, 0, 20).getUint32(4, true);
 
                 if (version === 1) {
-                    legacyGLTFLoader.parse(gltfBuffer, onload, urlBase);
+                    console.error('GLTF version 1 is no longer supported');
                 } else {
                     glTFLoader.parse(gltfBuffer, urlBase, onload, onerror);
                 }

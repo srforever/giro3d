@@ -13,6 +13,7 @@ import ImageSource, {
     type ImageResponse,
     type CustomContainsFn,
     type ImageResult,
+    type ImageSourceEvents,
 } from './ImageSource';
 import TiledImageSource, {
     type TiledImageSourceOptions,
@@ -33,6 +34,7 @@ export {
     ImageResponse,
     CustomContainsFn,
     ImageResult,
+    ImageSourceEvents,
     Tiles3DSource,
     VectorSource,
     VectorSourceOptions,

@@ -18,6 +18,7 @@ import {
     RGBAFormat,
     UnsignedByteType,
     Scene,
+    ColorManagement,
 } from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Capabilities from '../core/system/Capabilities.js';
@@ -88,6 +89,7 @@ function createErrorMessage() {
  * @property {boolean} logarithmicDepthBuffer Enables the logarithmic depth buffer.
  * @property {boolean} checkShaderErrors Enables shader validation. Note: this option is costly,
  * and should be avoided in production builds.
+ * @property {boolean} colorManagement Enables color management.
  * @property {Color|string|number} clearColor The clear color of the renderer.
  */
 
@@ -104,6 +106,7 @@ class C3DEngine {
         if (options.alpha === undefined) {
             options.alpha = true;
         }
+        ColorManagement.enabled = options.colorManagement ?? false;
         if (options.logarithmicDepthBuffer === undefined) {
             options.logarithmicDepthBuffer = false;
         }

@@ -1,7 +1,7 @@
 import colormap from 'colormap';
 import { Color } from 'three';
 
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';

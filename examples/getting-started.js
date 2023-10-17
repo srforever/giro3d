@@ -11,7 +11,7 @@
 // Feel free to visit this example to see the final result of this tutorial.
 
 import * as THREE from 'three';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import TileWMS from 'ol/source/TileWMS.js';
 

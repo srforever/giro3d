@@ -1,12 +1,19 @@
 import { EventDispatcher } from 'three';
 import type Progress from './Progress';
 
+export interface OperationCounterEvents {
+    /**
+     * Raised when all operations are completed.
+     */
+    'complete': {};
+}
+
 /**
  * Provides a way to track the progress of running operations.
  *
  * @fires complete When all pending operations are completed.
  */
-class OperationCounter extends EventDispatcher implements Progress {
+class OperationCounter extends EventDispatcher<OperationCounterEvents> implements Progress {
     private _operations: number;
     private _completed: number;
     private _total: number;

@@ -1,15 +1,22 @@
-import type { Node, NodeMaterial, TextureAndPitch } from './Layer';
-import Layer from './Layer';
-import EventUtils from '../../utils/EventUtils.js';
+import Layer, {
+    type LayerEvents,
+    type Node,
+    type NodeMaterial,
+    type TextureAndPitch,
+} from './Layer';
 import type ImageSource from '../../sources/ImageSource.js';
 import type Interpretation from './Interpretation';
 import type Extent from '../geographic/Extent';
 import type ElevationRange from '../ElevationRange';
 
+export interface ColorLayerEvents extends LayerEvents {
+    'opacity-property-changed': { opacity: number; };
+}
+
 /**
  * A layer that produces color images, such as vector data, or satellite imagery.
  */
-class ColorLayer extends Layer {
+class ColorLayer extends Layer<ColorLayerEvents> {
     private _opacity: number;
     readonly isColorLayer: boolean = true;
     readonly elevationRange: ElevationRange;
@@ -60,9 +67,8 @@ class ColorLayer extends Layer {
 
     set opacity(v) {
         if (this._opacity !== v) {
-            const event = EventUtils.createPropertyChangedEvent(this, 'opacity', this._opacity, v);
             this._opacity = v;
-            this.dispatchEvent(event);
+            this.dispatchEvent({ type: 'opacity-property-changed', opacity: v });
         }
     }
 

@@ -1,5 +1,5 @@
-import Layer from './Layer';
-import ColorLayer from './ColorLayer';
+import Layer, { type LayerEvents } from './Layer';
+import ColorLayer, { type ColorLayerEvents } from './ColorLayer';
 import MaskLayer from './MaskLayer';
 import ElevationLayer from './ElevationLayer';
 import ColorMap from './ColorMap';
@@ -8,6 +8,7 @@ import Interpretation, { Mode as InterpretationMode, type InterpretationOptions 
 
 export {
     ColorLayer,
+    ColorLayerEvents,
     ColorMap,
     ColorMapMode,
     ElevationLayer,
@@ -15,5 +16,6 @@ export {
     InterpretationMode,
     InterpretationOptions,
     Layer,
+    LayerEvents,
     MaskLayer,
 };

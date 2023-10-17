@@ -1,5 +1,5 @@
 import { Vector3 } from 'three';
-import { MapControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { Fill, Style } from 'ol/style.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';

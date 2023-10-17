@@ -29,7 +29,7 @@ import {
     LinearFilter,
     MathUtils,
     type WebGLRenderTarget,
-    type PixelFormat,
+    type AnyPixelFormat,
     type TextureDataType,
     type WebGLRenderer,
     type Color,
@@ -218,7 +218,7 @@ function load8bitImage(img: HTMLImageElement, blob: Blob): Promise<HTMLImageElem
  * @param pixelFormat The pixel format.
  * @returns The number of channels per pixel.
  */
-function getChannelCount(pixelFormat: PixelFormat): number {
+function getChannelCount(pixelFormat: AnyPixelFormat): number {
     switch (pixelFormat) {
         case AlphaFormat: return 1;
         case RGBAFormat: return 4;
