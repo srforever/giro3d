@@ -140,10 +140,6 @@ function updateOffsetScale(
 
 interface MaterialOptions {
     /**
-     * Discards no-data pixels.
-     */
-    discardNoData?: boolean;
-    /**
      * Toggles double-sided surfaces.
      */
     doubleSided?: boolean;
@@ -236,8 +232,6 @@ class LayeredMaterial extends ShaderMaterial {
         this.uniforms.hillshadingIntensity = new Uniform(0.5);
 
         this._getIndexFn = getIndexFn;
-
-        MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', options.discardNoData);
 
         this.uniforms.segments = new Uniform(options.segments);
 
@@ -687,7 +681,6 @@ class LayeredMaterial extends ShaderMaterial {
 
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this._elevationLayer?.visible);
         MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', this.showOutline);
-        MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', materialOptions.discardNoData);
 
         const hillshadingParams = materialOptions.hillshading;
         if (hillshadingParams) {

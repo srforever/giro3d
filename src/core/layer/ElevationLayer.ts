@@ -41,7 +41,11 @@ class ElevationLayer extends Layer<ElevationLayerEvents> {
      */
     constructor(id: string, options: ElevationLayerOptions) {
         super(id, {
-            fillNoData: true,
+            noDataOptions: options.noDataOptions ?? {
+                replaceNoData: true,
+                maxSearchDistance: +Infinity,
+                alpha: 0,
+            },
             computeMinMax: true,
             // If min/max is not provided, we *have* to preload images
             // to compute the min/max during preprocessing.

@@ -14,6 +14,12 @@ describe('ColorLayer', () => {
             expect(layer.visible).toEqual(true);
             expect(layer.opacity).toEqual(1.0);
         });
+
+        it('should disable no-data filling by default', () => {
+            const layer = new ColorLayer('id', { source: new NullSource() });
+
+            expect(layer.noDataOptions).toEqual({ replaceNoData: false });
+        });
     });
 
     describe('opacity', () => {

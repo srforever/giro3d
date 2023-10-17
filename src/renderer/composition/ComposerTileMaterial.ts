@@ -12,11 +12,18 @@ import FragmentShader from './ComposerTileFS.glsl';
 import VertexShader from './ComposerTileVS.glsl';
 import Interpretation, { Mode } from '../../core/layer/Interpretation';
 
+// Matches the NoDataOptions struct in the shader
+interface NoDataOptions {
+    replacementAlpha: number;
+    radius: number;
+    enabled: boolean;
+}
+
 export interface Options {
     texture: Texture;
     interpretation: Interpretation;
     flipY: boolean;
-    fillNoData: boolean;
+    noDataOptions: NoDataOptions;
     showImageOutlines: boolean;
     transparent: boolean;
 }
@@ -89,7 +96,7 @@ class ComposerTileMaterial extends RawShaderMaterial {
         this.uniforms.gridTexture = new Uniform(null);
         this.uniforms.interpretation = new Uniform(null);
         this.uniforms.flipY = new Uniform(false);
-        this.uniforms.fillNoData = new Uniform(false);
+        this.uniforms.noDataOptions = new Uniform({ enabled: false });
         this.uniforms.showImageOutlines = new Uniform(false);
         this.uniforms.opacity = new Uniform(this.opacity);
         this.now = performance.now();
@@ -118,7 +125,7 @@ class ComposerTileMaterial extends RawShaderMaterial {
         this.uniforms.interpretation.value = interpValue;
         this.uniforms.texture.value = options.texture;
         this.uniforms.flipY.value = options.flipY ?? false;
-        this.uniforms.fillNoData.value = options.fillNoData ?? false;
+        this.uniforms.noDataOptions.value = options.noDataOptions ?? { enabled: false };
         this.uniforms.showImageOutlines.value = options.showImageOutlines ?? false;
         if (options.showImageOutlines) {
             if (!GRID_TEXTURE) {

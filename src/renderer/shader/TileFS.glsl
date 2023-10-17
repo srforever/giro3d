@@ -71,7 +71,6 @@ void main() {
 #endif
 
     // Step 1 : discard fragment if the elevation texture is transparent
-#if defined(DISCARD_NODATA_ELEVATION)
 #if defined(ELEVATION_LAYER)
     // Let's discard transparent pixels in the elevation texture
     // Important note : if there is no elevation texture, all fragments are discarded
@@ -79,10 +78,6 @@ void main() {
     if (abs(texture2D(elevationTexture, elevUv).a) < 0.001) {
         discard;
     }
-#else
-    // No elevation layer present, discard completely.
-    discard;
-#endif
 #endif
 
     // Step 2 : start with the background color

@@ -42,7 +42,6 @@ const map = new Giro3dMap('planar', {
     extent,
     hillshading: false,
     segments: 64,
-    discardNoData: true,
     doubleSided: false,
 });
 instance.add(map);

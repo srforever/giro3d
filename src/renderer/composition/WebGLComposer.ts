@@ -63,6 +63,8 @@ export interface DrawOptions {
     zOrder?: number;
     flipY?: boolean;
     fillNoData?: boolean;
+    fillNoDataRadius?: number;
+    fillNoDataAlphaReplacement?: number;
     transparent?: boolean;
 }
 
@@ -245,7 +247,11 @@ class WebGLComposer {
         const interpretation = options.interpretation ?? Interpretation.Raw;
         const material = ComposerTileMaterial.acquire({
             texture,
-            fillNoData: options.fillNoData,
+            noDataOptions: {
+                enabled: options.fillNoData,
+                radius: options.fillNoDataRadius,
+                replacementAlpha: options.fillNoDataAlphaReplacement,
+            },
             interpretation,
             flipY: options.flipY,
             transparent: options.transparent,

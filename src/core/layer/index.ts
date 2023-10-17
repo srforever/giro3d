@@ -4,6 +4,7 @@ import MaskLayer, { type MaskLayerOptions } from './MaskLayer';
 import ElevationLayer, { type ElevationLayerOptions } from './ElevationLayer';
 import ColorMap from './ColorMap';
 import ColorMapMode from './ColorMapMode';
+import type NoDataOptions from './NoDataOptions';
 import Interpretation, { Mode as InterpretationMode, type InterpretationOptions } from './Interpretation';
 
 export {
@@ -22,4 +23,5 @@ export {
     LayerEvents,
     MaskLayer,
     MaskLayerOptions,
+    NoDataOptions,
 };

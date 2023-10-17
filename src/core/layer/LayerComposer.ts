@@ -263,6 +263,8 @@ class LayerComposer {
         fillNoData: boolean;
         interpretation: Interpretation;
         flipY: boolean;
+        fillNoDataAlphaReplacement: number;
+        fillNoDataRadius: number;
     }) {
         const rect = Rect.fromExtent(extent);
         const comp = new WebGLComposer({
@@ -272,8 +274,18 @@ class LayerComposer {
             webGLRenderer: this.webGLRenderer,
         });
 
+        // The fill no-data radius is expressed in CRS units in the API,
+        // but in UV space in the shader. A conversion is necessary.
+        let noDataRadiusInUVSpace = 1; // Default is no limit.
+        if (Number.isFinite(options.fillNoDataRadius)) {
+            const dims = extent.dimensions(tmpVec2);
+            noDataRadiusInUVSpace = options.fillNoDataRadius / dims.width;
+        }
+
         comp.draw(texture, rect, {
             fillNoData: options.fillNoData,
+            fillNoDataAlphaReplacement: options.fillNoDataAlphaReplacement,
+            fillNoDataRadius: noDataRadiusInUVSpace,
             interpretation: options.interpretation,
             flipY: options.flipY,
             transparent: this.transparent,
@@ -328,6 +340,8 @@ class LayerComposer {
      * @param options.extent The geographic extent of the texture.
      * @param options.flipY Flip the image vertically.
      * @param options.fillNoData Fill no-data values of the image.
+     * @param options.fillNoDataRadius Fill no-data maximum radius.
+     * @param options.fillNoDataAlphaReplacement Alpha value for no-data pixels (after replacement)
      * @param options.alwaysVisible Force constant visibility of this image.
      * @param options.id The image ID.
      * @param options.min The min value of the texture.
@@ -341,6 +355,8 @@ class LayerComposer {
         min?: number;
         max?: number;
         fillNoData?: boolean;
+        fillNoDataRadius?: number;
+        fillNoDataAlphaReplacement?: number;
         alwaysVisible?: boolean;
     }) {
         const {
@@ -375,6 +391,8 @@ class LayerComposer {
                 fillNoData: options.fillNoData,
                 flipY: options.flipY,
                 interpretation: this.interpretation,
+                fillNoDataAlphaReplacement: options.fillNoDataAlphaReplacement,
+                fillNoDataRadius: options.fillNoDataRadius,
             });
         }
 

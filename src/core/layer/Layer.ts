@@ -29,6 +29,7 @@ import type Context from '../Context.js';
 import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
 import type PointsMaterial from '../../renderer/PointsMaterial.js';
 import type Progress from '../Progress.js';
+import type NoDataOptions from './NoDataOptions';
 
 export interface TextureAndPitch {
     texture: Texture
@@ -124,9 +125,9 @@ export interface LayerOptions {
      */
     showTileBorders?: boolean;
     /**
-     * Fill no-data values.
+     * How to treat no-data values.
      */
-    fillNoData?: boolean;
+    noDataOptions?: NoDataOptions;
     /**
      * Enables min/max computation of source images. Mainly used for elevation data.
      */
@@ -202,7 +203,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
     type: string;
     readonly interpretation: Interpretation;
     readonly showTileBorders: boolean;
-    readonly fillNoData: boolean;
+    readonly noDataOptions: NoDataOptions;
     readonly computeMinMax: boolean;
     private _visible: boolean;
     readonly colorMap: ColorMap;
@@ -259,7 +260,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
         this.preloadImages = options.preloadImages ?? false;
         this.fallbackImagesPromise = null;
 
-        this.fillNoData = options.fillNoData;
+        this.noDataOptions = options.noDataOptions ?? { replaceNoData: false };
         this.computeMinMax = options.computeMinMax ?? false;
         this.createReadableTextures = this.computeMinMax != null && this.computeMinMax !== false;
         this._visible = true;
@@ -460,19 +461,22 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
             if (result.status === PromiseStatus.Fullfilled) {
                 const image = (result as PromiseFulfilledResult<ImageResult>).value;
 
-                const opts = {
-                    interpretation: this.interpretation,
-                    fillNoData: this.fillNoData,
-                    alwaysVisible: true, // Ensures background images are never deleted
-                    flipY: this.source.flipY,
-                    noDataValue: this.noDataValue,
-                    ...image,
-                };
-                this.composer.add(opts);
+                this.addToComposer(image);
             }
         }
 
         await this.onInitialized();
+    }
+
+    private addToComposer(image: ImageResult) {
+        this.composer.add({
+            fillNoData: this.noDataOptions.replaceNoData,
+            fillNoDataAlphaReplacement: this.noDataOptions.alpha,
+            fillNoDataRadius: this.noDataOptions.maxSearchDistance,
+            alwaysVisible: true, // Ensures background images are never deleted
+            flipY: this.source.flipY,
+            ...image,
+        });
     }
 
     async loadFallbackImages() {
@@ -566,15 +570,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
                 id: requestId, request, priority, shouldExecute,
             }).then((image: ImageResult) => {
                 if (!this.disposed) {
-                    const opts = {
-                        interpretation: this.interpretation,
-                        fillNoData: this.fillNoData,
-                        alwaysVisible,
-                        flipY: this.source.flipY,
-                        ...image,
-                    };
-
-                    this.composer.add(opts);
+                    this.addToComposer(image);
                     if (!this.shouldCancelRequest(node)) {
                         this.composer.lock(id, node.id);
                     }
