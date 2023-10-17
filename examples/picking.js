@@ -13,7 +13,6 @@ import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import PointCloudRenderer from '@giro3d/giro3d/renderer/PointCloudRenderer.js';
 import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';
 import StatusBar from './widgets/StatusBar.js';
 
