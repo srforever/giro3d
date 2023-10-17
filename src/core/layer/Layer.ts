@@ -8,6 +8,7 @@ import {
     RGBAFormat,
     type Texture,
     Vector2,
+    type Vector4,
     WebGLRenderTarget,
 } from 'three';
 
@@ -32,7 +33,7 @@ import type Progress from '../Progress.js';
 
 export interface TextureAndPitch {
     texture: Texture
-    pitch: Vector2;
+    pitch: Vector4;
 }
 
 const POOL_SIZE = 16;
@@ -51,7 +52,7 @@ enum TargetState {
 
 class Target {
     node: Node;
-    pitch: Vector2;
+    pitch: Vector4;
     extent: Extent;
     width: number;
     height: number;
@@ -65,7 +66,7 @@ class Target {
         node: Node;
         extent: Extent;
         geometryExtent: Extent;
-        pitch: Vector2;
+        pitch: Vector4;
         width: number;
         height: number;
     }) {

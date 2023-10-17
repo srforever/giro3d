@@ -12,7 +12,7 @@ import type ElevationRange from '../ElevationRange';
 class ColorLayer extends Layer {
     private _opacity: number;
     readonly isColorLayer: boolean = true;
-    private readonly elevationRange: ElevationRange;
+    readonly elevationRange: ElevationRange;
 
     /**
      * Creates a color layer.

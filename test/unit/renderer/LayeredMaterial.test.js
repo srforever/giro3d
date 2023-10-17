@@ -1,6 +1,6 @@
 import '../setup.js';
 import { DoubleSide, FrontSide } from 'three';
-import LayeredMaterial from '../../../src/renderer/LayeredMaterial.js';
+import LayeredMaterial from '../../../src/renderer/LayeredMaterial';
 
 const defaultAtlasInfo = { minX: 0, maxX: 1 };
 const defaultRenderer = {};

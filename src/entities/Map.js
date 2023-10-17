@@ -22,7 +22,7 @@ import LayeredMaterial, {
     DEFAULT_AZIMUTH,
     DEFAULT_HILLSHADING_INTENSITY,
     DEFAULT_ZENITH,
-} from '../renderer/LayeredMaterial.js';
+} from '../renderer/LayeredMaterial';
 import TileMesh from '../core/TileMesh.js';
 import TileIndex from '../core/TileIndex.js';
 import RenderingState from '../renderer/RenderingState.js';
@@ -108,6 +108,10 @@ function getContourLineOptions(input) {
         opacity: input.opacity ?? 1,
     };
 }
+
+/**
+ * @typedef {import('../core/HillshadingOptions').HillshadingOptions} HillshadingOptions
+ */
 
 /**
  * @param {boolean|undefined|HillshadingOptions} input The input
@@ -232,16 +236,6 @@ function computeImageSize(extent) {
 }
 
 /**
- * @typedef {object} HillshadingOptions
- * @property {boolean} [enabled=true] Enables hillshading.
- * @property {number} [azimuth=135] The azimuth of the sun, in degrees.
- * @property {number} [zenith=45] The vertical angle of the sun, in degrees. (90 = zenith)
- * @property {number} [intensity=1] The intensity of the shade (0 = no shade, 1 = opaque shade)
- * @property {boolean} [elevationLayersOnly=false] If `true`, only elevation layers are shaded,
- * leaving the color layers unshaded.
- */
-
-/**
  * A map is an {@link entities.Entity | Entity} that represents a flat
  * surface displaying one or more {@link core.layer.Layer | Layers}.
  *
@@ -257,7 +251,7 @@ class Map extends Entity3D {
      * @param {Extent} options.extent The geographic extent of the map.
      * @param {number} [options.maxSubdivisionLevel=-1] Maximum tile depth of the map.
      * A value of `-1` does not limit the depth of the tile hierarchy.
-     * @param {boolean|HillshadingOptions} [options.hillshading=undefined] Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
+     * @param {boolean|import('../core/HillshadingOptions').HillshadingOptions} [options.hillshading=undefined] Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
      * If `undefined` or `false`, hillshading is disabled.
      *
      * Note: hillshading has no effect if the map does not contain an elevation layer.
@@ -320,7 +314,7 @@ class Map extends Entity3D {
         this._segments = options.segments || 8;
 
         /**
-         * @type {import('../renderer/LayeredMaterial.js').MaterialOptions}
+         * @type {import('../renderer/LayeredMaterial').MaterialOptions}
          */
         this.materialOptions = {
             hillshading: getHillshadingOptions(options.hillshading),
