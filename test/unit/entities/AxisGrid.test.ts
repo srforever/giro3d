@@ -1,47 +1,49 @@
 import '../setup.js';
 import * as THREE from 'three';
-import Extent from '../../../src/core/geographic/Extent';
-import AxisGrid from '../../../src/entities/AxisGrid.js';
-import Context from '../../../src/core/Context.js';
-import Camera from '../../../src/renderer/Camera.js';
+import Extent from 'src/core/geographic/Extent';
+import AxisGrid, { type Volume } from 'src/entities/AxisGrid';
+import Context from 'src/core/Context.js';
+import Camera from 'src/renderer/Camera.js';
 
 const DEFAULT_EXTENT = new Extent('EPSG:3857', -10, 10, -10, 10);
+const defaultVolume: Volume = {
+    extent: DEFAULT_EXTENT,
+    ceiling: 0,
+    floor: 0,
+};
 
 describe('AxisGrid', () => {
-    /** @type {Context} */
-    let context;
-    /** @type {Camera} */
-    let camera;
-    /** @type {THREE.Camera} */
-    let threeCamera;
+    let context: Context;
+    let camera : Camera;
+    let threeCamera: THREE.Camera;
 
     beforeEach(() => {
         threeCamera = new THREE.PerspectiveCamera(45);
         camera = new Camera('foo', 1, 1, { camera: threeCamera });
-        context = new Context(camera, null, null);
+        context = new Context(camera, null);
     });
 
     describe('constructor', () => {
         it('should assign the id property', () => {
-            const grid = new AxisGrid('foo', { volume: { extent: DEFAULT_EXTENT } });
+            const grid = new AxisGrid('foo', { volume: defaultVolume });
 
             expect(grid.id).toEqual('foo');
         });
 
         it('should assign the extent property', () => {
-            const grid = new AxisGrid('foo', { volume: { extent: DEFAULT_EXTENT } });
+            const grid = new AxisGrid('foo', { volume: defaultVolume });
 
             expect(grid.volume.extent).toBe(DEFAULT_EXTENT);
         });
 
         it('should assign the object3d property', () => {
-            const grid = new AxisGrid('foo', { volume: { extent: DEFAULT_EXTENT } });
+            const grid = new AxisGrid('foo', { volume: defaultVolume });
 
             expect(grid.object3d).toBeInstanceOf(THREE.Group);
         });
 
         it('should throw if volume is undefined', () => {
-            expect(() => new AxisGrid('foo', {})).toThrow(/volume is undefined/);
+            expect(() => new AxisGrid('foo', { volume: undefined })).toThrow(/volume is undefined/);
         });
     });
 
@@ -54,20 +56,26 @@ describe('AxisGrid', () => {
             threeCamera.position.set(0, 0, midHeight);
 
             const sides = [
+                // @ts-ignore
                 grid._front,
+                // @ts-ignore
                 grid._back,
+                // @ts-ignore
                 grid._left,
+                // @ts-ignore
                 grid._right,
+                // @ts-ignore
                 grid._floor,
+                // @ts-ignore
                 grid._ceiling,
             ];
 
             const vec = new THREE.Vector3();
 
-            function testSide(sideIndex) {
+            function testSide(sideIndex: number) {
                 sides[sideIndex].getWorldPosition(vec);
                 threeCamera.lookAt(vec);
-                threeCamera.updateWorldMatrix();
+                threeCamera.updateWorldMatrix(true, true);
 
                 grid.preUpdate(context);
 

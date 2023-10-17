@@ -1,31 +1,39 @@
-/**
- * @module sources/DebugSource
- */
-
 import {
     CanvasTexture,
-    Vector2,
-    MathUtils,
     Color,
+    MathUtils,
 } from 'three';
-import Extent from '../core/geographic/Extent';
+import type Extent from '../core/geographic/Extent';
 import PromiseUtils from '../utils/PromiseUtils.js';
-import ImageSource, { ImageResult } from './ImageSource.js';
-
-const tmpVec2 = new Vector2();
+import type { CustomContainsFn, GetImageOptions } from './ImageSource';
+import ImageSource, { ImageResult } from './ImageSource';
 
 class DebugSource extends ImageSource {
+    readonly isDebugSource: boolean = true;
+    private readonly delay: () => number;
+    private readonly extent: Extent;
+    private readonly opacity: number;
+    private readonly subdivisions: number;
+    private readonly color: Color;
+
     /**
-     * @param {object} options options
-     * @param {Extent} options.extent The extent.
-     * @param {number} options.delay The delay before loading the images.
-     * @param {number} options.opacity The opacity of the images.
-     * @param {Color} options.color The color of the images.
-     * @param {number} options.subdivisions The how many images per tile are served.
-     * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
-     * to test if a given extent is contained in this source.
+     * @param options options
+     * @param options.extent The extent.
+     * @param options.delay The delay before loading the images.
+     * @param options.opacity The opacity of the images.
+     * @param options.color The color of the images.
+     * @param options.subdivisions The how many images per tile are served.
+     * @param options.containsFn The custom function to test if a given extent is contained in this
+     * source.
      */
-    constructor(options) {
+    constructor(options: {
+        extent: Extent;
+        delay: number;
+        opacity: number;
+        color: Color;
+        subdivisions: number;
+        containsFn?: CustomContainsFn;
+    }) {
         super(options);
         const {
             delay, subdivisions, opacity, extent, color,
@@ -40,25 +48,16 @@ class DebugSource extends ImageSource {
             this.delay = () => 0;
         }
 
-        this.isDebugSource = true;
         this.type = 'DebugSource';
 
         this.extent = options.extent;
         this.opacity = opacity ?? 1;
         this.subdivisions = subdivisions ?? 1;
         this.color = color ?? new Color(1, 1, 1);
-        this.count = 0;
         this.extent = extent;
-        this.dimensions = this.extent.dimensions();
     }
 
-    getInterpolator(extent) {
-        const width = extent.dimensions(tmpVec2).x;
-        const SMALLEST_WIDTH = this.dimensions.x / 1048576;
-        return MathUtils.mapLinear(width, this.dimensions.x, SMALLEST_WIDTH, 0, 1);
-    }
-
-    getImage(width, height, id) {
+    private getImage(width: number, height: number, id: string) {
         const canvas = document.createElement('canvas');
         canvas.width = width;
         canvas.height = height;
@@ -82,22 +81,15 @@ class DebugSource extends ImageSource {
         return texture;
     }
 
+    getCrs(): string {
+        return this.extent.crs();
+    }
+
     getExtent() {
         return this.extent;
     }
 
-    /**
-     * Gets the images for the specified extent and pixel size.
-     *
-     * @param {object} options The options.
-     * @param {Extent} options.extent The extent of the request area.
-     * @param {string} options.id The identifier of the node that emitted the request.
-     * @param {number} options.width The pixel width of the request area.
-     * @param {number} options.height The pixel height of the request area.
-     * @param {AbortSignal} options.signal The abort signal.
-     * @returns {Array<{ id: string, request: Promise<ImageResult>}>} The generated images.
-     */
-    getImages(options) {
+    getImages(options: GetImageOptions) {
         const {
             extent, width, height, signal, id,
         } = options;
@@ -110,13 +102,14 @@ class DebugSource extends ImageSource {
         const h = height / subdivs;
 
         for (const ex of extents) {
+            const imageId = `${id}-${MathUtils.generateUUID()}`;
             const request = () => PromiseUtils.delay(this.delay())
                 .then(() => {
                     signal?.throwIfAborted();
-                    const texture = this.getImage(w, h, id);
-                    return new ImageResult({ extent: ex, texture, id });
+                    const texture = this.getImage(w, h, imageId);
+                    return new ImageResult({ extent: ex, texture, id: imageId });
                 });
-            requests.push({ id, request });
+            requests.push({ id: imageId, request });
         }
 
         return requests;

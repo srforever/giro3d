@@ -1,6 +1,3 @@
-/**
- * @module formats/GeoTIFFFormat
- */
 import { fromBlob, Pool } from 'geotiff';
 import {
     DataTexture,
@@ -9,20 +6,22 @@ import {
     RGBAFormat,
     LinearFilter,
 } from 'three';
-import TextureGenerator, { OPAQUE_BYTE, OPAQUE_FLOAT } from '../utils/TextureGenerator.js';
-import ImageFormat from './ImageFormat.js';
+import TextureGenerator, { type NumberArray, OPAQUE_BYTE, OPAQUE_FLOAT } from '../utils/TextureGenerator';
+import type { DecodeOptions } from './ImageFormat';
+import ImageFormat from './ImageFormat';
 
-let geotiffWorkerPool;
+let geotiffWorkerPool: Pool;
 
 /**
  * Decoder for TIFF images.
  *
  */
 class GeoTIFFFormat extends ImageFormat {
+    readonly isGeoTIFFFormat: boolean = true;
+
     constructor() {
         super(true);
 
-        this.isGeoTIFFFormat = true;
         this.type = 'GeoTIFFFormat';
     }
 
@@ -31,13 +30,11 @@ class GeoTIFFFormat extends ImageFormat {
      * [DataTexture](https://threejs.org/docs/?q=texture#api/en/textures/DataTexture) containing
      * the elevation data.
      *
-     * @param {Blob} blob the data to decode
-     * @param {object} options the decoding options
-     * @param {number} [options.noDataValue] what pixel value should be considered as nodata. If not
-     * present, this format will attempt to get it from the tiff metadata.
+     * @param blob the data to decode
+     * @param options the decoding options
      */
     // eslint-disable-next-line class-methods-use-this
-    async decode(blob, options = {}) {
+    async decode(blob: Blob, options: DecodeOptions = {}) {
         const tiff = await fromBlob(blob);
         const image = await tiff.getImage();
 
@@ -71,25 +68,28 @@ class GeoTIFFFormat extends ImageFormat {
         switch (spp) {
             case 1: {
                 // grayscale
-                const [v] = await image.readRasters({ pool: geotiffWorkerPool });
-                TextureGenerator.fillBuffer(buffer, { nodata, height, width }, opaqueValue, v);
+                const [v] = await image.readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
+                TextureGenerator.fillBuffer(buffer, { nodata }, opaqueValue, v);
             }
                 break;
             case 2: {
                 // grayscale with alpha
-                const [v, a] = await image.readRasters({ pool: geotiffWorkerPool });
+                const [v, a] = await image
+                    .readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
                 TextureGenerator.fillBuffer(buffer, {}, opaqueValue, v, v, v, a);
             }
                 break;
             case 3: {
                 // RGB
-                const [r, g, b] = await image.readRasters({ pool: geotiffWorkerPool });
+                const [r, g, b] = await image
+                    .readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
                 TextureGenerator.fillBuffer(buffer, {}, opaqueValue, r, g, b);
             }
                 break;
             case 4: {
                 // RGBA
-                const [r, g, b, a] = await image.readRasters({ pool: geotiffWorkerPool });
+                const [r, g, b, a] = await image
+                    .readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
                 TextureGenerator.fillBuffer(buffer, {}, opaqueValue, r, g, b, a);
             }
                 break;

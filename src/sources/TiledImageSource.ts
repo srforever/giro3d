@@ -1,17 +1,13 @@
-/**
- * @module sources/TiledImageSource
- */
-
 import { Texture, Vector2 } from 'three';
 import { TileRange } from 'ol';
-import UrlTile from 'ol/source/UrlTile';
-import TileGrid from 'ol/tilegrid/TileGrid.js';
-import Extent from '../core/geographic/Extent';
-import OpenLayersUtils from '../utils/OpenLayersUtils.js';
+import type UrlTile from 'ol/source/UrlTile';
+import type TileGrid from 'ol/tilegrid/TileGrid.js';
+import type Extent from '../core/geographic/Extent';
+import OpenLayersUtils from '../utils/OpenLayersUtils';
 import Fetcher from '../utils/Fetcher.js';
-import TextureGenerator from '../utils/TextureGenerator.js';
-import ImageSource, { ImageResult } from './ImageSource.js';
-import ImageFormat from '../formats/ImageFormat.js';
+import TextureGenerator from '../utils/TextureGenerator';
+import ImageSource, { type GetImageOptions, ImageResult, type ImageSourceOptions } from './ImageSource';
+import type ImageFormat from '../formats/ImageFormat';
 
 const MIN_LEVEL_THRESHOLD = 2;
 
@@ -19,6 +15,25 @@ const tmp = {
     dims: new Vector2(),
     tileRange: new TileRange(0, 0, 0, 0),
 };
+
+export interface TiledImageSourceOptions extends ImageSourceOptions {
+    /**
+     * The underlying OpenLayers source.
+     */
+    source: UrlTile;
+    /**
+     * The optional no-data value.
+     */
+    noDataValue?: number;
+    /**
+     * The optional image decoder.
+     */
+    format?: ImageFormat;
+    /**
+     * The optional extent of the source. If not provided, it will be computed from the source.
+     */
+    extent?: Extent;
+}
 
 /**
  * An image source powered by OpenLayers to load tiled images.
@@ -53,39 +68,36 @@ const tmp = {
  *      noDataValue: -9999,
  * });
  */
-class TiledImageSource extends ImageSource {
+export default class TiledImageSource extends ImageSource {
+    readonly isTiledImageSource: boolean = true;
+    readonly source: UrlTile;
+    readonly format: ImageFormat;
+    readonly olprojection: any;
+    readonly noDataValue: number;
+    private readonly tileGrid: TileGrid;
+    private readonly getTileUrl: any;
+    private readonly sourceExtent: Extent;
+
     /**
-     * @param {object} options The options.
-     * @param {UrlTile} options.source The OpenLayers tiled source.
-     * @param {number} [options.noDataValue] The optional no-data value.
-     * @param {Extent} [options.extent] The optional extent of the source. If not provided, it will
-     * be computed from the tile grid.
-     * @param {ImageFormat} [options.format] The optional image decoder.
-     * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
-     * to test if a given extent is contained in this source.
+     * @param options The options.
      */
-    constructor({
-        source,
-        format,
-        noDataValue,
-        ...options
-    }) {
-        super({ flipY: format?.flipY ?? true, ...options });
+    constructor(options: TiledImageSourceOptions) {
+        super({ flipY: options.format?.flipY ?? true, ...options });
 
         this.isTiledImageSource = true;
         this.type = 'TiledImageSource';
 
-        this.source = source;
-        this.format = format;
+        this.source = options.source;
+        this.format = options.format;
 
-        const projection = source.getProjection();
+        const projection = this.source.getProjection();
         this.olprojection = projection;
         /** @type {TileGrid} */
-        const tileGrid = source.getTileGridForProjection(projection);
+        const tileGrid: TileGrid = this.source.getTileGridForProjection(projection);
         // Cache the tilegrid because it is constant
         this.tileGrid = tileGrid;
-        this.getTileUrl = source.getTileUrlFunction();
-        this.noDataValue = noDataValue;
+        this.getTileUrl = this.source.getTileUrlFunction();
+        this.noDataValue = options.noDataValue;
         this.sourceExtent = options.extent ?? OpenLayersUtils.fromOLExtent(
             tileGrid.getExtent(),
             projection.getCode(),
@@ -103,15 +115,15 @@ class TiledImageSource extends ImageSource {
     /**
      * Selects the best zoom level given the provided image size and extent.
      *
-     * @param {Extent} extent The target extent.
-     * @param {number} width The width in pixel of the target extent.
-     * @returns {number} The ideal zoom level for this particular extent.
+     * @param extent The target extent.
+     * @param width The width in pixel of the target extent.
+     * @returns The ideal zoom level for this particular extent.
      */
-    getZoomLevel(extent, width) {
+    getZoomLevel(extent: Extent, width: number): number {
         const minZoom = this.tileGrid.getMinZoom();
         const maxZoom = this.tileGrid.getMaxZoom();
 
-        function round1000000(n) {
+        function round1000000(n: number) {
             return Math.round(n * 1000000) / 1000000;
         }
 
@@ -146,21 +158,7 @@ class TiledImageSource extends ImageSource {
         return maxZoom;
     }
 
-    /**
-     * Gets the images for the specified extent and pixel size.
-     *
-     * @param {object} options The options.
-     * @param {Extent} options.extent The extent of the request area, in the source CRS.
-     * @param {number} options.width The pixel width of the request area.
-     * @param {string} options.id The identifier of the node that emitted the request.
-     * @param {number} options.height The pixel height of the request area.
-     * @param {boolean} options.createReadableTextures If `true`, the generated textures must
-     * be readable (i.e `DataTextures`).
-     * @param {AbortSignal} [options.signal] The optional abort signal.
-     * @returns {Array<{ id: string, request: function(()):Promise<ImageResult>}>} An array
-     * containing the functions to generate the images asynchronously.
-     */
-    getImages(options) {
+    getImages(options: GetImageOptions) {
         const {
             extent, width, signal,
         } = options;
@@ -172,7 +170,7 @@ class TiledImageSource extends ImageSource {
         }
 
         /** @type {TileGrid} */
-        const tileGrid = this.tileGrid;
+        const tileGrid: TileGrid = this.tileGrid;
         const zoomLevel = this.getZoomLevel(extent, width);
         if (zoomLevel == null) {
             return [];
@@ -193,7 +191,7 @@ class TiledImageSource extends ImageSource {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    async fetchData(url) {
+    async fetchData(url: string) {
         try {
             const response = await Fetcher.fetch(url);
 
@@ -218,13 +216,13 @@ class TiledImageSource extends ImageSource {
     /**
      * Loads the tile once and returns a reusable promise containing the tile texture.
      *
-     * @param {string} id The id of the tile.
-     * @param {string} url The URL of the tile.
-     * @param {Extent} extent The extent of the tile.
-     * @param {boolean} createDataTexture Create readable textures.
-     * @returns {Promise<ImageResult>|Promise<null>} The tile texture, or null if there is no data.
+     * @param id The id of the tile.
+     * @param url The URL of the tile.
+     * @param extent The extent of the tile.
+     * @param createDataTexture Create readable textures.
+     * @returns The tile texture, or null if there is no data.
      */
-    async loadTile(id, url, extent, createDataTexture) {
+    async loadTile(id: string, url: string, extent: Extent, createDataTexture: boolean) {
         const blob = await this.fetchData(url);
 
         if (!blob) {
@@ -235,12 +233,12 @@ class TiledImageSource extends ImageSource {
 
         let texture;
         if (this.format) {
-            let width;
-            let height;
+            let width: number;
+            let height: number;
             if (this.tileGrid) {
                 const tileSize = this.tileGrid.getTileSize(0);
-                width = tileSize;
-                height = tileSize;
+                width = tileSize as number;
+                height = tileSize as number;
             }
             texture = await this.format.decode(blob, {
                 noDataValue: this.noDataValue,
@@ -253,7 +251,6 @@ class TiledImageSource extends ImageSource {
             });
             texture.flipY = false;
         }
-        texture.extent = extent;
         texture.generateMipmaps = false;
         texture.needsUpdate = true;
 
@@ -268,7 +265,7 @@ class TiledImageSource extends ImageSource {
      * @param {Extent} extent The extent to test.
      * @returns {boolean} True if the tile must be processed, false otherwise.
      */
-    shouldLoad(extent) {
+    shouldLoad(extent: Extent): boolean {
         // Use the custom contain function if applicable
         if (this.containsFn) {
             return this.containsFn(extent);
@@ -282,12 +279,12 @@ class TiledImageSource extends ImageSource {
     /**
      * Loads all tiles in the specified tile range.
      *
-     * @param {TileRange} tileRange The tile range.
-     * @param {string} crs The CRS of the extent.
-     * @param {number} zoom The zoom level.
-     * @param {boolean} createDataTexture Creates readable textures.
+     * @param tileRange The tile range.
+     * @param crs The CRS of the extent.
+     * @param zoom The zoom level.
+     * @param createDataTexture Creates readable textures.
      */
-    loadTiles(tileRange, crs, zoom, createDataTexture) {
+    loadTiles(tileRange: TileRange, crs: string, zoom: number, createDataTexture: boolean) {
         const source = this.source;
         const tileGrid = this.tileGrid;
 
@@ -300,7 +297,7 @@ class TiledImageSource extends ImageSource {
                 if (!fullTileRange.containsXY(i, j)) {
                     continue;
                 }
-                const tile = source.getTile(zoom, i, j);
+                const tile = source.getTile(zoom, i, j, undefined, undefined);
                 const coord = tile.tileCoord;
                 const olExtent = tileGrid.getTileCoordExtent(coord);
                 const tileExtent = OpenLayersUtils.fromOLExtent(olExtent, crs);
@@ -317,5 +314,3 @@ class TiledImageSource extends ImageSource {
         return promises;
     }
 }
-
-export default TiledImageSource;

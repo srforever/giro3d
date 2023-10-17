@@ -1,8 +1,8 @@
 import { Texture, Vector4 } from 'three';
 import ColorLayer from './ColorLayer';
-import { Node, NodeMaterial } from './Layer';
-import { ImageSource } from '../../sources';
-import { Extent } from '../geographic';
+import type { Node, NodeMaterial } from './Layer';
+import type { ImageSource } from '../../sources';
+import type { Extent } from '../geographic';
 
 /**
  * Modes of the mask layer.

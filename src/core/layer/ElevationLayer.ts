@@ -1,12 +1,14 @@
-import { FloatType, Texture } from 'three';
-import Interpretation from './Interpretation';
-import Layer, { TextureAndPitch } from './Layer';
-import ColorMap from './ColorMap.js';
-import Extent from '../geographic/Extent.js';
-import ImageSource from '../../sources/ImageSource.js';
-import TileMesh from '../TileMesh.js';
-import LayeredMaterial from '../../renderer/LayeredMaterial.js';
-import ElevationRange from '../ElevationRange.js';
+import type { Texture } from 'three';
+import { FloatType } from 'three';
+import type Interpretation from './Interpretation';
+import type { TextureAndPitch } from './Layer';
+import Layer from './Layer';
+import type ColorMap from './ColorMap';
+import type Extent from '../geographic/Extent.js';
+import type ImageSource from '../../sources/ImageSource.js';
+import type TileMesh from '../TileMesh.js';
+import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
+import type ElevationRange from '../ElevationRange.js';
 
 interface TextureWithMinMax extends Texture {
     min?: number;
@@ -45,7 +47,7 @@ class ElevationLayer extends Layer {
         source: ImageSource;
         interpretation?: Interpretation;
         extent?: Extent;
-        preloadImages: boolean,
+        preloadImages?: boolean,
         minmax?: ElevationRange;
         noDataValue?: number;
         colorMap?: ColorMap;

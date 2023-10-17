@@ -4,7 +4,12 @@
  * @module
  */
 
-import AxisGrid from './AxisGrid';
+import AxisGrid, {
+    type Style as AxisGridStyle,
+    type TickOrigin as AxisGridOrigin,
+    type Ticks as AxisGridTicks,
+    type Volume as AxisGridVolume,
+} from './AxisGrid';
 import Map from './Map';
 import PotreePointCloud from './PotreePointCloud';
 import Entity from './Entity';
@@ -17,6 +22,10 @@ export {
     Entity3D,
     Map,
     AxisGrid,
+    AxisGridStyle,
+    AxisGridOrigin,
+    AxisGridTicks,
+    AxisGridVolume,
     PotreePointCloud,
     Tiles3D,
     FeatureCollection,

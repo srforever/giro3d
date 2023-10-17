@@ -1,5 +1,5 @@
 import { EventDispatcher } from 'three';
-import Progress from './Progress';
+import type Progress from './Progress';
 
 /**
  * Provides a way to track the progress of running operations.

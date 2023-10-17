@@ -1,4 +1,4 @@
-import ProjUtils from '../../../src/utils/ProjUtils.js';
+import ProjUtils from 'src/utils/ProjUtils';
 
 describe('transformBufferInPlace', () => {
     it('should do nothing if both CRSes are equal', () => {
@@ -6,6 +6,7 @@ describe('transformBufferInPlace', () => {
         ProjUtils.transformBufferInPlace(buffer, {
             srcCrs: 'EPSG:1234',
             dstCrs: 'EPSG:1234',
+            stride: 3,
         });
 
         expect(buffer).toEqual([0, 1, 2]);

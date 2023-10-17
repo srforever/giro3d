@@ -1,10 +1,11 @@
-/**
- * @module sources/VectorTileSource
- */
-
-import { CanvasTexture, Vector2 } from 'three';
+import type { Texture } from 'three';
+import {
+    CanvasTexture,
+    MathUtils,
+    Vector2,
+} from 'three';
 import VectorTile from 'ol/source/VectorTile.js';
-import { Style } from 'ol/style.js';
+import type { Style } from 'ol/style.js';
 
 import TileState from 'ol/TileState.js';
 
@@ -29,35 +30,40 @@ import {
     getSquaredTolerance as getSquaredRenderTolerance,
     renderFeature as renderVectorFeature,
 } from 'ol/renderer/vector.js';
-import {
-    Tile,
-    VectorRenderTile,
-} from 'ol';
+import type { VectorRenderTile } from 'ol';
+import type { Transform } from 'ol/transform.js';
 import {
     create as createTransform,
     reset as resetTransform,
     scale as scaleTransform,
     translate as translateTransform,
 } from 'ol/transform.js';
-import TileSource from 'ol/source/Tile.js';
-import TileGrid from 'ol/tilegrid/TileGrid.js';
-import Feature from 'ol/Feature.js';
+import type TileGrid from 'ol/tilegrid/TileGrid.js';
+import type Feature from 'ol/Feature.js';
 
 import { MVT } from 'ol/format.js';
-import FeatureFormat from 'ol/format/Feature.js';
-import ImageSource, { ImageResult } from './ImageSource.js';
-import OpenLayersUtils from '../utils/OpenLayersUtils.js';
-import Extent from '../core/geographic/Extent';
+import type FeatureFormat from 'ol/format/Feature.js';
+import type { StyleFunction } from 'ol/style/Style';
+import type { Projection } from 'ol/proj';
+import type { OrderFunction } from 'ol/render';
+import type {
+    GetImageOptions,
+    ImageResponse,
+    ImageSourceOptions,
+} from './ImageSource';
+import ImageSource, { ImageResult } from './ImageSource';
+import OpenLayersUtils from '../utils/OpenLayersUtils';
+import type Extent from '../core/geographic/Extent';
 
-const tmpTransform_ = createTransform();
+const tmpTransform: Transform = createTransform();
 const MIN_LEVEL_THRESHOLD = 2;
 const tmpDims = new Vector2();
 
-function getZoomLevel(tileGrid, width, extent) {
+function getZoomLevel(tileGrid: TileGrid, width: number, extent: Extent) {
     const minZoom = tileGrid.getMinZoom();
     const maxZoom = tileGrid.getMaxZoom();
 
-    function round1000000(n) {
+    function round1000000(n: number) {
         return Math.round(n * 100000000) / 100000000;
     }
 
@@ -85,17 +91,22 @@ function getZoomLevel(tileGrid, width, extent) {
     return maxZoom;
 }
 
-function createCanvas(width, height) {
+function createCanvas(width: number, height: number) {
     const canvas = document.createElement('canvas');
     canvas.width = width;
     canvas.height = height;
     return canvas;
 }
 
-function handleStyleImageChange_() {
+function handleStyleImageChange() {
 }
 
-function renderFeature(feature, squaredTolerance, styles, builderGroup) {
+function renderFeature(
+    feature: Feature,
+    squaredTolerance: number,
+    styles: Style | Style[],
+    builderGroup: CanvasBuilderGroup,
+) {
     if (!styles) {
         return false;
     }
@@ -104,23 +115,39 @@ function renderFeature(feature, squaredTolerance, styles, builderGroup) {
         for (let i = 0, ii = styles.length; i < ii; ++i) {
             loading = renderVectorFeature(
                 builderGroup, feature, styles[i], squaredTolerance,
-                handleStyleImageChange_, undefined,
+                handleStyleImageChange, undefined,
             ) || loading;
         }
     } else {
         loading = renderVectorFeature(
             builderGroup, feature, styles, squaredTolerance,
-            handleStyleImageChange_, undefined,
+            handleStyleImageChange, undefined,
         );
     }
     return loading;
 }
 
-/**
- * @typedef {Function} StyleFunction
- * @param {Feature} feature - The feature to style.
- * @returns {Style} The OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
- */
+export interface VectorTileSourceOptions extends ImageSourceOptions {
+    /**
+     * The URL to the vector tile layer.
+     */
+    url: string;
+
+    /**
+     * The background color of the tiles.
+     */
+    backgroundColor?: string;
+
+    /**
+     * The format of the vector tile. Default is {@link MVT}.
+     */
+    format?: FeatureFormat;
+
+    /**
+     * The style or style function.
+     */
+    style: Style | StyleFunction;
+}
 
 /**
  * A Vector Tile source. Uses OpenLayers [styles](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
@@ -135,17 +162,20 @@ function renderFeature(feature, squaredTolerance, styles, builderGroup) {
  * });
  */
 class VectorTileSource extends ImageSource {
+    readonly isVectorTileSource: boolean = true;
+    readonly source: VectorTile;
+    readonly style: Style | StyleFunction;
+    readonly backgroundColor: string;
+    private sourceProjection: Projection;
+    private extent: Extent;
+    private readonly tileGrid: TileGrid;
+    private readonly crs: string;
+    private readonly ol_uid = MathUtils.generateUUID();
+
     /**
-     * @param {object} options Options.
-     * @param {string} options.url The URL to the vector tile layer.
-     * @param {string} options.backgroundColor The background color of the tiles.
-     * @param {FeatureFormat} [options.format] The format. Default is [MVT](https://openlayers.org/en/latest/apidoc/module-ol_format_MVT-MVT.html).
-     * @param {Style|StyleFunction} options.style The style, or style function. The style must be an
-     * OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
-     * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
-     * to test if a given extent is contained in this source.
+     * @param options Options.
      */
-    constructor(options) {
+    constructor(options: VectorTileSourceOptions) {
         super(options);
         if (!options.url) {
             throw new Error('missing parameter: url');
@@ -161,6 +191,12 @@ class VectorTileSource extends ImageSource {
         this.style = options.style;
         this.backgroundColor = options.backgroundColor;
         this.sourceProjection = null;
+
+        const projection = this.source.getProjection();
+        this.crs = projection.getCode();
+        const tileGrid = this.source.getTileGridForProjection(projection);
+        this.tileGrid = tileGrid;
+        this.sourceProjection = projection;
     }
 
     getCrs() {
@@ -176,27 +212,18 @@ class VectorTileSource extends ImageSource {
         return this.extent;
     }
 
-    async initialize() {
-        const source = this.source;
-        const projection = source.getProjection();
-        this.crs = projection.getCode();
-        const tileGrid = source.getTileGridForProjection(projection);
-        this.tileGrid = tileGrid;
-        this.sourceProjection = projection;
-        this.usedTiles = {};
-    }
-
     /**
-     * @param {VectorRenderTile} tile The tile to render.
-     * @returns {HTMLCanvasElement} The canvas.
+     * @param tile The tile to render.
+     * @returns The canvas.
      */
-    rasterize(tile) {
+    private rasterize(tile: VectorRenderTile) {
         const tileCoord = tile.getTileCoord();
 
         const width = 512;
         const height = 512;
         const canvas = createCanvas(width, height);
         const pixelRatio = 1;
+        // @ts-ignore
         const replayState = tile.getReplayState(this);
         const revision = 1;
         replayState.renderedTileRevision = revision;
@@ -217,7 +244,7 @@ class VectorTileSource extends ImageSource {
 
         const tileExtent = tileGrid.getTileCoordExtent(tileCoord);
         const pixelScale = pixelRatio / resolution;
-        const transform = resetTransform(tmpTransform_);
+        const transform = resetTransform(tmpTransform);
         scaleTransform(transform, pixelScale, -pixelScale);
         translateTransform(transform, -tileExtent[0], -tileExtent[3]);
         const executorGroups = tile.executorGroups[this.ol_uid];
@@ -231,7 +258,7 @@ class VectorTileSource extends ImageSource {
         return canvas;
     }
 
-    rasterizeTile(tile, tileExtent) {
+    private rasterizeTile(tile: VectorRenderTile) {
         const empty = this.createBuilderGroup(tile);
 
         if (empty) {
@@ -240,12 +267,12 @@ class VectorTileSource extends ImageSource {
 
         const canvas = this.rasterize(tile);
         const texture = new CanvasTexture(canvas);
-        texture.extent = tileExtent;
 
         return texture;
     }
 
-    createBuilderGroup(tile) {
+    private createBuilderGroup(tile: VectorRenderTile) {
+        // @ts-ignore
         const replayState = tile.getReplayState(this);
         const source = this.source;
         const sourceTileGrid = source.getTileGrid();
@@ -253,7 +280,7 @@ class VectorTileSource extends ImageSource {
         const tileGrid = source.getTileGridForProjection(sourceProjection);
         const resolution = tileGrid.getResolution(tile.getTileCoord()[0]);
         const tileExtent = tileGrid.getTileCoordExtent(tile.wrappedTileCoord);
-        const renderOrder = null;
+        const renderOrder: OrderFunction = null;
         const pixelRatio = 1;
 
         const tmpExtent2 = createEmptyExtent();
@@ -281,13 +308,13 @@ class VectorTileSource extends ImageSource {
 
             const defaultStyle = this.style;
 
-            const render = function render(feature) {
-                let styles;
+            const render = function render(feature: Feature) {
+                let styles: Style | Style[];
                 const style = feature.getStyleFunction() || defaultStyle;
                 if (typeof style === 'function') {
-                    styles = style(feature, resolution);
+                    styles = style(feature, resolution) as Style | Style[];
                 } else {
-                    styles = defaultStyle;
+                    styles = defaultStyle as Style | Style[];
                 }
                 if (styles) {
                     const dirty = renderFeature(feature, squaredTolerance, styles, builderGroup);
@@ -326,16 +353,15 @@ class VectorTileSource extends ImageSource {
     }
 
     /**
-     * @param {Tile} tile The tile to load.
-     * @param {Extent} tileExtent The extent of the tile.
-     * @returns {Promise<HTMLCanvasElement>} The promise containing the rasterized tile.
+     * @param tile The tile to load.
+     * @returns The promise containing the rasterized tile.
      */
-    loadTile(tile, tileExtent) {
+    private loadTile(tile: VectorRenderTile): Promise<Texture> {
         let promise;
         if (tile.getState() === TileState.EMPTY) {
             promise = Promise.resolve(null);
         } else if (tile.getState() === TileState.LOADED) {
-            promise = Promise.resolve(this.rasterizeTile(tile, tileExtent));
+            promise = Promise.resolve(this.rasterizeTile(tile));
         } else {
             promise = new Promise((resolve, reject) => {
                 const eventKey = listen(tile, 'change', evt => {
@@ -346,7 +372,7 @@ class VectorTileSource extends ImageSource {
                         reject();
                     } else if (tileState === TileState.LOADED) {
                         unlistenByKey(eventKey);
-                        resolve(this.rasterizeTile(tile2, tileExtent));
+                        resolve(this.rasterizeTile(tile2));
                     }
                 });
                 tile.load();
@@ -359,19 +385,16 @@ class VectorTileSource extends ImageSource {
     /**
      * Loads all tiles in the specified extent and zoom level.
      *
-     * @param {Extent} extent The tile extent.
-     * @param {number} zoom The zoom level.
-     * @returns {Array<{ id: string, request: function(()):Promise<ImageResult>}>} The image
-     * requests.
+     * @param extent The tile extent.
+     * @param zoom The zoom level.
+     * @returns The image requests.
      */
-    loadTiles(extent, zoom) {
-        /** @type {TileSource} */
+    private loadTiles(extent: Extent, zoom: number): Array<ImageResponse> {
         const source = this.source;
-        /** @type {TileGrid} */
         const tileGrid = this.tileGrid;
         const crs = extent.crs();
 
-        const requests = [];
+        const requests: ImageResponse[] = [];
 
         const sourceExtent = this.getExtent();
 
@@ -384,11 +407,9 @@ class VectorTileSource extends ImageSource {
                     .fromOLExtent(tileGrid.getTileCoordExtent(coord), crs);
                 // Don't bother loading tiles that are not in the source
                 if (tileExtent.intersectsExtent(sourceExtent)) {
-                    const request = () => this.loadTile(tile, tileExtent)
-                        .catch(e => {
-                            console.error(e);
-                        })
+                    const request = () => this.loadTile(tile)
                         .then(texture => new ImageResult({ texture, extent: tileExtent, id }));
+
                     requests.push({ id, request });
                 }
             }
@@ -397,7 +418,7 @@ class VectorTileSource extends ImageSource {
         return requests;
     }
 
-    getImages(options) {
+    getImages(options: GetImageOptions): Array<ImageResponse> {
         const {
             extent, width,
         } = options;

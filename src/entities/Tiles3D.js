@@ -20,7 +20,7 @@ import OperationCounter from '../core/OperationCounter';
 import $3dTilesIndex from './3dtiles/3dTilesIndex.js';
 import Fetcher from '../utils/Fetcher.js';
 import utf8Decoder from '../utils/Utf8Decoder.js';
-import { GlobalCache } from '../core/Cache.js';
+import { GlobalCache } from '../core/Cache';
 import B3dmParser from '../parser/B3dmParser.js';
 import PntsParser from '../parser/PntsParser.js';
 import PointCloud from '../core/PointCloud.js';

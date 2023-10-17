@@ -1,7 +1,7 @@
 import { NearestFilter, Texture, WebGLRenderer } from 'three';
 import Rect from '../core/Rect.js';
-import ColorMap from '../core/layer/ColorMap.js';
-import WebGLComposer from './composition/WebGLComposer.js';
+import ColorMap from '../core/layer/ColorMap';
+import WebGLComposer from './composition/WebGLComposer';
 
 /**
  * Combines color map textures into a single one.

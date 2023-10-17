@@ -1,25 +1,23 @@
-/**
- * @module entities/AxisGrid
- */
 import {
     MathUtils,
     Vector2,
     Vector3,
     Group,
-    Camera,
+    type Camera,
     Color,
     LineBasicMaterial,
     BufferGeometry,
     LineSegments,
     Float32BufferAttribute,
-    Object3D,
     Sphere,
+    type Box3,
 } from 'three';
 
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+
 import Entity3D from './Entity3D.js';
-import Extent from '../core/geographic/Extent';
-import Context from '../core/Context.js';
+import type Extent from '../core/geographic/Extent';
+import type Context from '../core/Context.js';
 import { UNIT, crsToUnit } from '../core/geographic/Coordinates';
 import Helpers from '../helpers/Helpers.js';
 
@@ -27,6 +25,8 @@ const mod = MathUtils.euclideanModulo;
 
 const UP = new Vector2(0, 1);
 const RIGHT = new Vector2(1, 0);
+const tmpVec2 = new Vector2();
+const tmpVec3 = new Vector3();
 
 const tmp = {
     position: new Vector3(),
@@ -45,52 +45,86 @@ const DEFAULT_STYLE = {
 
 /**
  * The grid step values.
- *
- * @typedef {object} Ticks
- * @property {number} x The tick distance on the x axis.
- * @property {number} y  The tick distance on the y axis.
- * @property {number} z  The tick distance on the z (vertical) axis.
  */
+export interface Ticks {
+    /** The tick distance on the x axis. */
+    x: number;
+    /** The tick distance on the y axis. */
+    y: number;
+    /** The tick distance on the z (vertical) axis. */
+    z: number;
+}
 
 /**
  * The grid volume.
- *
- * @typedef {object} Volume
- * @property {Extent} extent The grid volume extent.
- * @property {number} floor  The elevation of the grid floor.
- * @property {number} ceiling  The elevation of the grid ceiling.
  */
+export interface Volume {
+    /** The grid volume extent. */
+    extent: Extent;
+    /** The elevation of the grid floor. */
+    floor: number;
+    /** The elevation of the grid ceiling. */
+    ceiling: number;
+}
 
 /**
  * The grid formatting options.
- *
- * @typedef {object} Style
- * @property {Color} color The grid line and label colors.
- * @property {number} fontSize The fontsize, in points (pt).
- * @property {Intl.NumberFormat} numberFormat The number format for the labels.
  */
+export interface Style {
+    /** The grid line and label colors. */
+    color: Color;
+    /** The fontsize, in points (pt). */
+    fontSize: number;
+    /** The number format for the labels. */
+    numberFormat: Intl.NumberFormat;
+}
 
 /**
  * Describes the starting point of the ticks.
- *
- * @enum
  */
-const TickOrigin = {
+export enum TickOrigin {
     /**
-     * Graduations start at the bottom left corner of the grid.
-     *
-     * @type {number}
+     * Tick values represent distances to the grid's lower left corner
      */
-    Relative: 0,
+    Relative = 0,
+    /**
+     * Tick values represent coordinates in the CRS of the scene.
+     */
+    Absolute = 1,
+}
 
-    /**
-     * Graduations are measured from the origin of the coordinate reference system (CRS). In other
-     * words, ticks are coordinates.
-     *
-     * @type {number}
-     */
-    Absolute: 1,
-};
+class Side extends LineSegments {
+    logicalVisibility: boolean;
+}
+
+class Edge extends Group {
+    readonly isEdge = true;
+    side1: Side;
+    side2: Side;
+}
+
+function getCssColor(color: Color) {
+    return `#${color.getHexString()}`;
+}
+
+function createLabelElement(text: string, color: string, opacity: number, fontSize: number) {
+    const div = document.createElement('div');
+
+    // Static properties
+    div.style.textAlign = 'center';
+    div.style.verticalAlign = 'middle';
+    div.style.textShadow = 'black 0 0 3px';
+
+    // Dynamic properties
+    div.innerText = text;
+
+    // API exposed properties
+    div.style.opacity = `${opacity}`;
+    div.style.color = color;
+    div.style.fontSize = `${fontSize}pt`;
+
+    return div;
+}
 
 /**
  * Create a 3D axis grid. This is represented as a box volume where each side of the box is itself a
@@ -111,6 +145,7 @@ const TickOrigin = {
  *       floor: 0,
  *       ceiling: 2500,
  *   },
+ *   origin: TickOrigin.Relative,
  *   ticks: {
  *       x: 10,
  *       y: 10,
@@ -120,39 +155,70 @@ const TickOrigin = {
  */
 class AxisGrid extends Entity3D {
     /**
+     * Read-only flag to check if a given object is of type AxisGrid.
+     */
+    readonly isAxisGrid = true;
+
+    private readonly root: Group;
+    private readonly labelRoot: Group;
+    private readonly labels: CSS2DObject[];
+    private readonly labelElements: HTMLElement[];
+    private _style: Style;
+    private boundingSphere: Sphere;
+    private boundingBoxCenter: Vector3;
+    private _origin: TickOrigin;
+    private _ticks: Ticks;
+    private _unitSuffix: string;
+    private _material: LineBasicMaterial;
+    private _cameraForward: Vector3;
+    private _showFloorGrid: boolean;
+    private _showCeilingGrid: boolean;
+    private _showSideGrids: boolean;
+    private _volume: Volume;
+    private _disposed: boolean = false;
+    private _lastCamera: Camera;
+    private _boundingBox: Box3;
+    private _dimensions: Vector2;
+    private _arrowRoot: Group;
+    private _floor: Side;
+    private _ceiling: Side;
+    private _front: Side;
+    private _back: Side;
+    private _left: Side;
+    private _right: Side;
+    private _height: number;
+    private _midHeight: number;
+
+    showHelpers: boolean;
+
+    /**
      * Creates an instance of AxisGrid.
      *
-     * @param {string} id The unique identifier of this entity.
-     * @param {object} options The options.
-     * @param {Volume} options.volume The grid volume.
-     * @param {TickOrigin} [options.origin=TickOrigin.Relative] The origin of the ticks.
-     * @param {Ticks} [options.ticks] The distance between grid lines.
-     * @param {Style} [options.style] The styling options.
+     * @param id The unique identifier of this entity.
+     * @param options The options.
+     * @param options.volume The grid volume.
+     * @param options.origin The origin of the ticks.
+     * @param options.ticks The distance between grid lines.
+     * @param options.style The styling options.
      */
-    constructor(id, options) {
+    constructor(id: string, options: {
+        volume: Volume;
+        origin?: TickOrigin;
+        ticks?: Ticks;
+        style?: Style;
+    }) {
         super(id, new Group());
 
-        /**
-         * Read-only flag to check if a given object is of type AxisGrid.
-         *
-         * @type {boolean}
-         */
-        this.isAxisGrid = true;
         this.type = 'AxisGrid';
 
-        /** @type {Group} */
-        this.root = this.object3d;
+        this.root = this.object3d as Group;
 
         this.labelRoot = new Group();
         this.labelRoot.name = 'labels';
-        /** @type {Array<CSS2DObject>} */
         this.labels = [];
-        /** @type {Style} */
         this._style = options.style || DEFAULT_STYLE;
         this.root.add(this.labelRoot);
-        /** @type {Array<HTMLElement>} */
         this.labelElements = [];
-        /** @type {Sphere} */
         this.boundingSphere = new Sphere();
         this.boundingBoxCenter = new Vector3();
 
@@ -160,26 +226,25 @@ class AxisGrid extends Entity3D {
             throw new Error('options.volume is undefined');
         }
 
-        /** @property {Volume} volume the volume of this grid */
         this.volume = options.volume;
-        this.ticks = options.ticks || { x: 100, y: 100, z: 100 };
+        this._ticks = options.ticks || { x: 100, y: 100, z: 100 };
         this._origin = options.origin || TickOrigin.Relative;
 
         const unit = crsToUnit(this.volume.extent.crs());
         switch (unit) {
             case UNIT.METER:
-                this.unitSuffix = ' m';
+                this._unitSuffix = ' m';
                 break;
             case UNIT.DEGREE:
-                this.unitSuffix = ' °';
+                this._unitSuffix = ' °';
                 break;
             default:
-                this.unitSuffix = '';
+                this._unitSuffix = '';
                 break;
         }
 
         const color = new Color(this.style.color || 'white');
-        this.material = new LineBasicMaterial({ color });
+        this._material = new LineBasicMaterial({ color });
 
         this._cameraForward = new Vector3();
 
@@ -195,7 +260,7 @@ class AxisGrid extends Entity3D {
         const v = this.opacity;
         this.labelElements.forEach(l => { l.style.opacity = `${v}`; });
 
-        const mat = this.material;
+        const mat = this._material;
         mat.opacity = v;
         mat.transparent = v < 1.0;
         mat.needsUpdate = true;
@@ -203,10 +268,7 @@ class AxisGrid extends Entity3D {
 
     /**
      * Gets or sets the style.
-     * You will need to call {@link module:entities/AxisGrid~AxisGrid#refresh refresh()}
-     * to recreate the grid.
-     *
-     * @type {Style}
+     * You will need to call {@link refresh} to recreate the grid.
      */
     get style() {
         return this._style;
@@ -221,10 +283,7 @@ class AxisGrid extends Entity3D {
 
     /**
      * Gets or sets the volume.
-     * You will need to call {@link module:entities/AxisGrid~AxisGrid#refresh refresh()}
-     * to recreate the grid.
-     *
-     * @type {Volume}
+     * You will need to call {@link refresh} to recreate the grid.
      */
     get volume() {
         return this._volume;
@@ -239,10 +298,7 @@ class AxisGrid extends Entity3D {
 
     /**
      * Gets or sets the tick origin.
-     * You will need to call {@link module:entities/AxisGrid~AxisGrid#refresh refresh()}
-     * to recreate the grid.
-     *
-     * @type {TickOrigin}
+     * You will need to call {@link refresh} to recreate the grid.
      */
     get origin() {
         return this._origin;
@@ -257,15 +313,13 @@ class AxisGrid extends Entity3D {
 
     /**
      * Gets or sets the grid and label color.
-     *
-     * @type {Color}
      */
     get color() {
         return this.style.color;
     }
 
     set color(color) {
-        this.material.color = color;
+        this._material.color = color;
         this.style.color = color;
         const cssColor = getCssColor(color);
         this.labelElements.forEach(l => { l.style.color = cssColor; });
@@ -273,8 +327,6 @@ class AxisGrid extends Entity3D {
 
     /**
      * Shows or hides labels.
-     *
-     * @type {boolean}
      */
     get showLabels() {
         return this.labelRoot.visible;
@@ -283,14 +335,12 @@ class AxisGrid extends Entity3D {
     set showLabels(v) {
         if (v !== this.labelRoot.visible) {
             this.labelRoot.visible = v;
-            this._updateLabelsVisibility(this._lastCamera);
+            this.updateLabelsVisibility(this._lastCamera);
         }
     }
 
     /**
      * Shows or hides the floor grid.
-     *
-     * @type {boolean}
      */
     get showFloorGrid() {
         return this._showFloorGrid;
@@ -305,8 +355,6 @@ class AxisGrid extends Entity3D {
 
     /**
      * Shows or hides the ceiling grid.
-     *
-     * @type {boolean}
      */
     get showCeilingGrid() {
         return this._showCeilingGrid;
@@ -321,8 +369,6 @@ class AxisGrid extends Entity3D {
 
     /**
      * Shows or hides the side grids.
-     *
-     * @type {boolean}
      */
     get showSideGrids() {
         return this._showSideGrids;
@@ -335,27 +381,33 @@ class AxisGrid extends Entity3D {
         }
     }
 
+    get ticks() {
+        return this._ticks;
+    }
+
     /**
      * Rebuilds the grid. This is necessary after changing the ticks, volume or origin.
-     *
      */
     refresh() {
-        this.volume.extent.center(this.root.position);
+        this.volume.extent.center(tmpVec2);
 
-        this._buildSides();
-        this._buildLabels();
+        this.root.position.setX(tmpVec2.x);
+        this.root.position.setY(tmpVec2.y);
+
+        this.buildSides();
+        this.buildLabels();
 
         this.root.updateMatrixWorld();
 
-        this.boundingBox = this.volume.extent.toBox3(this.volume.floor, this.volume.ceiling);
-        this.boundingBox.getBoundingSphere(this.boundingSphere);
+        this._boundingBox = this.volume.extent.toBox3(this.volume.floor, this.volume.ceiling);
+        this._boundingBox.getBoundingSphere(this.boundingSphere);
 
-        this.boundingBox.getCenter(this.boundingBoxCenter);
+        this._boundingBox.getCenter(this.boundingBoxCenter);
 
         this.updateVisibility();
     }
 
-    removeLabels() {
+    private removeLabels() {
         const children = [...this.labelRoot.children];
         children.forEach(c => c.removeFromParent());
         this.labelElements.forEach(elt => elt.remove());
@@ -365,10 +417,10 @@ class AxisGrid extends Entity3D {
     updateVisibility() {
         super.updateVisibility();
 
-        this._updateLabelsVisibility(this._lastCamera);
+        this.updateLabelsVisibility(this._lastCamera);
     }
 
-    _buildLabels() {
+    private buildLabels() {
         // Labels are displayed along each edge of the box volume.
         // There are 12 edges in a box, and those edges are linked to their two sides.
 
@@ -383,7 +435,7 @@ class AxisGrid extends Entity3D {
         const opacity = this.opacity;
         const fontSize = this.style.fontSize;
 
-        function createLabel(lx, ly, lz, text) {
+        function createLabel(lx: number, ly: number, lz: number, text: string) {
             const label = new CSS2DObject(createLabelElement(text, cssColor, opacity, fontSize));
             labels.push(label);
             label.name = text;
@@ -393,26 +445,34 @@ class AxisGrid extends Entity3D {
         }
 
         const v = new Vector3();
-        const origin = this.volume.extent.center().xyz();
+        this.volume.extent.center(tmpVec2) as Vector2;
+        const origin = tmpVec3;
+        tmpVec3.set(tmpVec2.x, tmpVec2.y, 0);
 
         /**
-         *
-         *
-         * @param {Object3D} side1 The first shared side of this edge.
-         * @param {Object3D} side2 The second shared side of this edge.
-         * @param {Vector3} start  The position, in world space, of the start of the edge.
-         * @param {Vector3} end The position, in world space, of the end of the edge.
-         * @param {number} startValue The numerical value of the starting point.
-         * @param {string} prefix The prefix to apply to the label text.
-         * @param {string} suffix The suffix to apply to the label text.
-         * @param {number} tick The distance between each tick.
+         * @param side1 The first shared side of this edge.
+         * @param side2 The second shared side of this edge.
+         * @param start  The position, in world space, of the start of the edge.
+         * @param end The position, in world space, of the end of the edge.
+         * @param startValue The numerical value of the starting point.
+         * @param prefix The prefix to apply to the label text.
+         * @param suffix The suffix to apply to the label text.
+         * @param tick The distance between each tick.
          */
-        function createLabelsAlongEdge(side1, side2, start, end, startValue, prefix, suffix, tick) {
-            const g = new Group();
+        function createLabelsAlongEdge(
+            side1: Side,
+            side2: Side,
+            start: Vector3,
+            end: Vector3,
+            startValue: number,
+            prefix: string,
+            suffix: string,
+            tick: number,
+        ) {
+            const g = new Edge();
             g.name = `${side1.name}-${side2.name}`;
             g.side1 = side1;
             g.side2 = side2;
-            g.isEdge = true;
             const edgeCenter = v.lerpVectors(start, end, 0.5).clone();
             edgeCenter.sub(origin);
             g.position.copy(edgeCenter);
@@ -482,32 +542,32 @@ class AxisGrid extends Entity3D {
         const yPrefix = relative ? '' : 'y: ';
         const xPrefix = relative ? '' : 'x: ';
         const zPrefix = '';
-        const hSuffix = relative ? this.unitSuffix : '';
-        const vSuffix = this.unitSuffix;
+        const hSuffix = relative ? this._unitSuffix : '';
+        const vSuffix = this._unitSuffix;
 
         // floor edges
-        createLabelsAlongEdge(floor, right, brFloor, trFloor, bry, yPrefix, hSuffix, this.ticks.y);
-        createLabelsAlongEdge(floor, left, blFloor, tlFloor, bry, yPrefix, hSuffix, this.ticks.y);
-        createLabelsAlongEdge(floor, front, blFloor, brFloor, blx, xPrefix, hSuffix, this.ticks.x);
-        createLabelsAlongEdge(floor, back, tlFloor, trFloor, tlx, xPrefix, hSuffix, this.ticks.x);
+        createLabelsAlongEdge(floor, right, brFloor, trFloor, bry, yPrefix, hSuffix, this._ticks.y);
+        createLabelsAlongEdge(floor, left, blFloor, tlFloor, bry, yPrefix, hSuffix, this._ticks.y);
+        createLabelsAlongEdge(floor, front, blFloor, brFloor, blx, xPrefix, hSuffix, this._ticks.x);
+        createLabelsAlongEdge(floor, back, tlFloor, trFloor, tlx, xPrefix, hSuffix, this._ticks.x);
 
         // ceiling edges
-        createLabelsAlongEdge(ceil, right, brCeil, trCeil, bry, yPrefix, hSuffix, this.ticks.y);
-        createLabelsAlongEdge(ceil, left, blCeil, tlCeil, bry, yPrefix, hSuffix, this.ticks.y);
-        createLabelsAlongEdge(ceil, front, blCeil, brCeil, blx, xPrefix, hSuffix, this.ticks.x);
-        createLabelsAlongEdge(ceil, back, tlCeil, trCeil, tlx, xPrefix, hSuffix, this.ticks.x);
+        createLabelsAlongEdge(ceil, right, brCeil, trCeil, bry, yPrefix, hSuffix, this._ticks.y);
+        createLabelsAlongEdge(ceil, left, blCeil, tlCeil, bry, yPrefix, hSuffix, this._ticks.y);
+        createLabelsAlongEdge(ceil, front, blCeil, brCeil, blx, xPrefix, hSuffix, this._ticks.x);
+        createLabelsAlongEdge(ceil, back, tlCeil, trCeil, tlx, xPrefix, hSuffix, this._ticks.x);
 
         // vertical (elevation) edges
-        createLabelsAlongEdge(front, right, brFloor, brCeil, zmin, zPrefix, vSuffix, this.ticks.z);
-        createLabelsAlongEdge(front, left, blFloor, blCeil, zmin, zPrefix, vSuffix, this.ticks.z);
-        createLabelsAlongEdge(back, left, tlFloor, tlCeil, zmin, zPrefix, vSuffix, this.ticks.z);
-        createLabelsAlongEdge(back, right, trFloor, trCeil, zmin, zPrefix, vSuffix, this.ticks.z);
+        createLabelsAlongEdge(front, right, brFloor, brCeil, zmin, zPrefix, vSuffix, this._ticks.z);
+        createLabelsAlongEdge(front, left, blFloor, blCeil, zmin, zPrefix, vSuffix, this._ticks.z);
+        createLabelsAlongEdge(back, left, tlFloor, tlCeil, zmin, zPrefix, vSuffix, this._ticks.z);
+        createLabelsAlongEdge(back, right, trFloor, trCeil, zmin, zPrefix, vSuffix, this._ticks.z);
     }
 
-    _deleteSides() {
+    private deleteSides() {
         const root = this.root;
 
-        function remove(obj) {
+        function remove(obj: LineSegments) {
             if (obj) {
                 obj.geometry.dispose();
                 root.remove(obj);
@@ -522,52 +582,51 @@ class AxisGrid extends Entity3D {
         remove(this._right);
     }
 
-    _buildSides() {
-        this.dimensions = this.volume.extent.dimensions();
-        this.height = Math.abs(this.volume.ceiling - this.volume.floor);
-        this.midHeight = this.volume.floor + this.height / 2;
+    private buildSides() {
+        this._dimensions = this.volume.extent.dimensions();
+        this._height = Math.abs(this.volume.ceiling - this.volume.floor);
+        this._midHeight = this.volume.floor + this._height / 2;
 
-        const x = this.dimensions.x;
-        const y = this.dimensions.y;
-        const z = this.height;
-        const mat = this.material;
+        const x = this._dimensions.x;
+        const y = this._dimensions.y;
+        const z = this._height;
 
         const extent = this.volume.extent;
 
         const relative = this.origin === TickOrigin.Relative;
 
-        const xStart = relative ? 0 : (this.ticks.x - (mod(extent.west(), this.ticks.x)));
-        const yStart = relative ? 0 : (this.ticks.y - (mod(extent.south(), this.ticks.y)));
-        const zStart = this.ticks.z - (mod(this.volume.floor, this.ticks.z));
+        const xStart = relative ? 0 : (this._ticks.x - (mod(extent.west(), this._ticks.x)));
+        const yStart = relative ? 0 : (this._ticks.y - (mod(extent.south(), this._ticks.y)));
+        const zStart = this._ticks.z - (mod(this.volume.floor, this._ticks.z));
 
-        this._deleteSides();
+        this.deleteSides();
 
-        this._floor = this._buildSide('floor', x, y, xStart, this.ticks.x, yStart, this.ticks.y, mat);
-        this._ceiling = this._buildSide('ceiling', x, y, xStart, this.ticks.x, yStart, this.ticks.y, mat);
+        this._floor = this.buildSide('floor', x, y, xStart, this._ticks.x, yStart, this._ticks.y);
+        this._ceiling = this.buildSide('ceiling', x, y, xStart, this._ticks.x, yStart, this._ticks.y);
 
-        this._front = this._buildSide('front', x, z, xStart, this.ticks.x, zStart, this.ticks.z, mat);
-        this._back = this._buildSide('back', x, z, xStart, this.ticks.x, zStart, this.ticks.z, mat);
+        this._front = this.buildSide('front', x, z, xStart, this._ticks.x, zStart, this._ticks.z);
+        this._back = this.buildSide('back', x, z, xStart, this._ticks.x, zStart, this._ticks.z);
 
-        this._left = this._buildSide('left', y, z, yStart, this.ticks.y, zStart, this.ticks.z, mat);
-        this._right = this._buildSide('right', y, z, yStart, this.ticks.y, zStart, this.ticks.z, mat);
+        this._left = this.buildSide('left', y, z, yStart, this._ticks.y, zStart, this._ticks.z);
+        this._right = this.buildSide('right', y, z, yStart, this._ticks.y, zStart, this._ticks.z);
 
         // Since the root group is located at the extent's center,
         // all subsequent transformations are local to this point.
         this._front.rotateX(MathUtils.degToRad(90));
-        this._front.position.set(0, -this.dimensions.y / 2, this.midHeight);
+        this._front.position.set(0, -this._dimensions.y / 2, this._midHeight);
 
         this._back.scale.setZ(-1);
         this._back.rotateX(MathUtils.degToRad(90));
-        this._back.position.set(0, +this.dimensions.y / 2, this.midHeight);
+        this._back.position.set(0, +this._dimensions.y / 2, this._midHeight);
 
         this._right.rotateX(MathUtils.degToRad(90));
         this._right.rotateY(MathUtils.degToRad(90));
-        this._right.position.set(+this.dimensions.x / 2, 0, this.midHeight);
+        this._right.position.set(+this._dimensions.x / 2, 0, this._midHeight);
 
         this._left.scale.setZ(-1);
         this._left.rotateX(MathUtils.degToRad(90));
         this._left.rotateY(MathUtils.degToRad(90));
-        this._left.position.set(-this.dimensions.x / 2, 0, this.midHeight);
+        this._left.position.set(-this._dimensions.x / 2, 0, this._midHeight);
 
         this._ceiling.position.set(0, 0, this.volume.ceiling);
 
@@ -583,25 +642,25 @@ class AxisGrid extends Entity3D {
     }
 
     /**
-     * @param {string} name The name of the object.
-     * @param {number} width The width of the plane.
-     * @param {number} height The height of the plane.
-     * @param {number} xOffset The starting offset on the X axis.
-     * @param {number} xStep The distance between lines on the X axis.
-     * @param {number} yOffset The starting offset on the Y axis.
-     * @param {number} yStep The distance between lines on the Y axis.
-     * @returns {LineSegments} the mesh object.
+     * @param name The name of the object.
+     * @param width The width of the plane.
+     * @param height The height of the plane.
+     * @param xOffset The starting offset on the X axis.
+     * @param xStep The distance between lines on the X axis.
+     * @param yOffset The starting offset on the Y axis.
+     * @param yStep The distance between lines on the Y axis.
+     * @returns the mesh object.
      */
-    _buildSide(
-        name,
-        width,
-        height,
-        xOffset,
-        xStep,
-        yOffset,
-        yStep,
-    ) {
-        const vertices = [];
+    private buildSide(
+        name: string,
+        width: number,
+        height: number,
+        xOffset: number,
+        xStep: number,
+        yOffset: number,
+        yStep: number,
+    ): Side {
+        const vertices : number[] = [];
         const centerX = width / 2;
         const centerY = height / 2;
         let x = xOffset;
@@ -612,7 +671,7 @@ class AxisGrid extends Entity3D {
         const left = 0;
         const right = width;
 
-        function pushSegment(x0, y0, x1, y1) {
+        function pushSegment(x0: number, y0: number, x1: number, y1: number) {
             vertices.push(x0 - centerX, y0 - centerY, 0);
             vertices.push(x1 - centerX, y1 - centerY, 0);
         }
@@ -641,61 +700,52 @@ class AxisGrid extends Entity3D {
 
         geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
 
-        const mesh = new LineSegments(geometry, this.material);
+        const mesh = new Side(geometry, this._material);
 
         mesh.name = name;
 
         return mesh;
     }
 
-    _makeArrowHelper(start, end) {
-        if (!this.arrowRoot) {
-            this.arrowRoot = new Group();
-            this.root.parent.add(this.arrowRoot);
+    private makeArrowHelper(start: Vector3, end: Vector3) {
+        if (!this._arrowRoot) {
+            this._arrowRoot = new Group();
+            this.root.parent.add(this._arrowRoot);
         }
 
         const arrow = Helpers.createArrow(start.clone(), end.clone());
-        this.arrowRoot.add(arrow);
+        this._arrowRoot.add(arrow);
         arrow.updateMatrixWorld();
 
         const startPoint = Helpers.createAxes(250);
         startPoint.position.copy(start);
-        this.arrowRoot.add(startPoint);
+        this._arrowRoot.add(startPoint);
         startPoint.updateMatrixWorld(true);
 
         const endPoint = Helpers.createAxes(250);
         endPoint.position.copy(end);
-        this.arrowRoot.add(endPoint);
+        this._arrowRoot.add(endPoint);
         endPoint.updateMatrixWorld(true);
     }
 
-    /**
-     * @param {Camera} camera The camera.
-     */
-    _updateLabelsVisibility(camera) {
+    private updateLabelsVisibility(camera: Camera) {
         this._lastCamera = camera;
 
-        this._deleteArrowHelpers();
+        this.deleteArrowHelpers();
 
-        this.labelRoot.children.forEach(edge => this._updateLabelEdgeVisibility(camera, edge));
+        this.labelRoot.children.forEach(o => this.updateLabelEdgeVisibility(camera, o as Edge));
     }
 
-    _deleteArrowHelpers() {
-        if (__DEBUG__) {
-            if (this.arrowRoot) {
-                const children = [...this.arrowRoot.children];
-                for (const child of children) {
-                    child.removeFromParent();
-                }
+    private deleteArrowHelpers() {
+        if (this._arrowRoot) {
+            const children = [...this._arrowRoot.children];
+            for (const child of children) {
+                child.removeFromParent();
             }
         }
     }
 
-    /**
-     * @param {Camera} camera The camera.
-     * @param {Group} edge The label edge.
-     */
-    _updateLabelEdgeVisibility(camera, edge) {
+    private updateLabelEdgeVisibility(camera: Camera, edge: Edge) {
         if (!edge.isEdge) {
             return;
         }
@@ -746,10 +796,8 @@ class AxisGrid extends Entity3D {
 
             const boxCenter = this.boundingBoxCenter.clone();
 
-            if (__DEBUG__) {
-                if (this.showHelpers) {
-                    this._makeArrowHelper(boxCenter, edgeCenter);
-                }
+            if (this.showHelpers) {
+                this.makeArrowHelper(boxCenter, edgeCenter);
             }
 
             edgeCenter.project(camera);
@@ -787,31 +835,34 @@ class AxisGrid extends Entity3D {
 
         const showHelpers = this.showHelpers;
 
-        edge.traverse(c => {
+        edge.traverse((c: CSS2DObject) => {
             if (c.element) {
                 c.visible = visible;
                 if (visible) {
-                    /** @type {CSSStyleDeclaration} */
                     const style = c.element.style;
                     style.paddingTop = `${paddingTop}pt`;
                     style.paddingBottom = `${paddingBottom}pt`;
                     const charCount = c.element.innerText.length;
                     style.paddingRight = `${paddingRight * charCount}pt`;
                     style.paddingLeft = `${paddingLeft * charCount}pt`;
-                    if (__DEBUG__) {
-                        style.backgroundColor = showHelpers ? 'rgba(0, 255, 0, 0.2)' : 'transparent';
+                    if (showHelpers) {
+                        style.backgroundColor = 'rgba(0, 255, 0, 0.2)';
                     }
                 }
             }
         });
     }
 
-    _updateSidesVisibility(camera) {
-        function updateSideVisibility(side, sideVisibility, cameraNormal) {
+    private updateSidesVisibility(camera: Camera) {
+        function updateSideVisibility(
+            side: Side,
+            sideVisibility: boolean,
+            cameraNormal: Vector3,
+        ) {
             tmp.planeNormal.setFromMatrixColumn(side.matrixWorld, 2);
             // The reason why we distinguish between two kinds of visibility is because
             // label visibility rules must take into account the fact that the API
-            // allowse to manually hide the ceiling, floor, or side grids.
+            // allows to manually hide the ceiling, floor, or side grids.
             // Without that, we would have labels displayed when they should not.
             side.logicalVisibility = cameraNormal.dot(tmp.planeNormal) < -0.1;
             side.visible = sideVisibility && side.logicalVisibility;
@@ -825,26 +876,22 @@ class AxisGrid extends Entity3D {
         updateSideVisibility(this._ceiling, this._showCeilingGrid, this._cameraForward);
         updateSideVisibility(this._floor, this._showFloorGrid, this._cameraForward);
 
-        this._updateLabelsVisibility(camera);
+        this.updateLabelsVisibility(camera);
     }
 
-    preUpdate(context) {
-        /** @type {Camera} */
-        const camera = context.camera.camera3D;
+    preUpdate(context: Context): object[] {
+        const camera = context.camera.camera3D as Camera;
 
         this._cameraForward.setFromMatrixColumn(camera.matrixWorld, 2);
 
-        this._updateSidesVisibility(camera);
+        this.updateSidesVisibility(camera);
 
-        this._updateMinMaxDistance(context);
+        this.updateMinMaxDistance(context);
 
         return [];
     }
 
-    /**
-     * @param {Context} context The update context.
-     */
-    _updateMinMaxDistance(context) {
+    private updateMinMaxDistance(context: Context) {
         const cameraPos = context.camera.camera3D.position;
 
         const centerDistance = this.boundingSphere.center.distanceTo(cameraPos);
@@ -860,38 +907,13 @@ class AxisGrid extends Entity3D {
         }
 
         this._disposed = true;
-        this.material.dispose();
-        this._deleteSides();
+        this._material.dispose();
+        this.deleteSides();
         this.labelElements.forEach(elt => elt.remove());
         this.labelElements.length = 0;
 
-        this._deleteArrowHelpers();
+        this.deleteArrowHelpers();
     }
 }
-
-function getCssColor(color) {
-    return `#${color.getHexString()}`;
-}
-
-function createLabelElement(text, color, opacity, fontSize) {
-    const div = document.createElement('div');
-
-    // Static properties
-    div.style.textAlign = 'center';
-    div.style.verticalAlign = 'middle';
-    div.style.textShadow = 'black 0 0 3px';
-
-    // Dynamic properties
-    div.innerText = text;
-
-    // API exposed properties
-    div.style.opacity = opacity;
-    div.style.color = color;
-    div.style.fontSize = `${fontSize}pt`;
-
-    return div;
-}
-
-export { TickOrigin };
 
 export default AxisGrid;

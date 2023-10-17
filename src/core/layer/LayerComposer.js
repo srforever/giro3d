@@ -9,12 +9,12 @@ import {
 } from 'three';
 import Extent from '../geographic/Extent';
 import Interpretation from './Interpretation';
-import WebGLComposer from '../../renderer/composition/WebGLComposer.js';
+import WebGLComposer from '../../renderer/composition/WebGLComposer';
 import Rect from '../Rect.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
-import ComposerTileMaterial from '../../renderer/composition/ComposerTileMaterial.js';
-import TextureGenerator from '../../utils/TextureGenerator.js';
-import ProjUtils from '../../utils/ProjUtils.js';
+import ComposerTileMaterial from '../../renderer/composition/ComposerTileMaterial';
+import TextureGenerator from '../../utils/TextureGenerator';
+import ProjUtils from '../../utils/ProjUtils';
 
 const tmpVec2 = new Vector2();
 
@@ -111,14 +111,6 @@ class Image {
 
     get opacity() {
         return this.material.opacity;
-    }
-
-    update(now) {
-        return this.material.update(now);
-    }
-
-    isFinished() {
-        return !this.material.isAnimating();
     }
 
     dispose() {
@@ -512,18 +504,11 @@ class LayerComposer {
         // find all images that are relevant :
         // - images that are explictly requested (with the imageIds option) -or-
         // - (fallback mode) images that simply intersect the region
-        let isFallbackMode = options.isFallbackMode ?? !allImagesReady;
-
-        for (const image of this.images.values()) {
-            const isRequired = imageIds.has(image.id);
-            if (isRequired && !image.isFinished()) {
-                isFallbackMode = true;
-            }
-        }
+        const isFallbackMode = options.isFallbackMode ?? !allImagesReady;
 
         // Is this render the last one to do for this request,
         // or will we need more renders in the future ?
-        let isLastRender = !isFallbackMode;
+        const isLastRender = !isFallbackMode;
 
         let min = +Infinity;
         let max = -Infinity;
@@ -542,11 +527,6 @@ class LayerComposer {
             if (image.visible) {
                 image.state = State.Used;
                 image.opacity = 1;
-                if (isRequired && !image.isFinished()) {
-                    // We may have all required images, but they may not
-                    // be finished rendering (opacity animation)
-                    isLastRender = false;
-                }
             }
 
             if (this.computeMinMax && isRequired) {
@@ -588,8 +568,6 @@ class LayerComposer {
             this.needsCleanup = false;
         }
 
-        let needsUpdate = false;
-
         for (const image of this.images.values()) {
             switch (image.state) {
                 case State.Used:
@@ -602,13 +580,9 @@ class LayerComposer {
                     image.lastUsed = null;
                     break;
             }
-
-            const isFinished = image.isFinished();
-            image.update(this.now);
-            needsUpdate = needsUpdate || !isFinished;
         }
 
-        return needsUpdate;
+        return false;
     }
 
     cleanup() {

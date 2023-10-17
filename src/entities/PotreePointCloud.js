@@ -16,7 +16,7 @@ import {
 import Entity3D from './Entity3D.js';
 import PointsMaterial, { MODE } from '../renderer/PointsMaterial.js';
 import { DefaultQueue } from '../core/RequestQueue';
-import PotreeSource from '../sources/PotreeSource.js';
+import PotreeSource from '../sources/PotreeSource';
 import OperationCounter from '../core/OperationCounter';
 import PotreeBinParser from '../parser/PotreeBinParser.js';
 import PotreeCinParser from '../parser/PotreeCinParser.js';

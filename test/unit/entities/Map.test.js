@@ -9,7 +9,7 @@ import { setupGlobalMocks } from '../mocks.js';
 import ElevationLayer from '../../../src/core/layer/ElevationLayer';
 import RenderingState from '../../../src/renderer/RenderingState.js';
 import ColorLayer from '../../../src/core/layer/ColorLayer';
-import NullSource from '../../../src/sources/NullSource.js';
+import NullSource from '../../../src/sources/NullSource';
 import { DEFAULT_AZIMUTH, DEFAULT_ZENITH } from '../../../src/renderer/LayeredMaterial.js';
 
 const nullSource = new NullSource({ extent: new Extent('EPSG:3857', -10, 10, -10, 10) });

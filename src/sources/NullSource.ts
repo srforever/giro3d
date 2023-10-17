@@ -1,18 +1,16 @@
-/* eslint-disable class-methods-use-this */
-/**
- * @module sources/NullSource
- */
-
 import Extent from '../core/geographic/Extent';
-import ImageSource from './ImageSource.js';
+import type { ImageResponse } from './ImageSource';
+import ImageSource from './ImageSource';
 
 /**
  * An image source that produces nothing. Mainly for debugging/testing purposes.
- *
  */
 class NullSource extends ImageSource {
-    constructor(options = {}) {
-        super(options);
+    readonly isNullSource: boolean = true;
+    private readonly extent: Extent;
+
+    constructor(options : { extent?: Extent } = {}) {
+        super();
 
         this.isNullSource = true;
         this.type = 'NullSource';
@@ -24,7 +22,8 @@ class NullSource extends ImageSource {
         return this.extent.crs();
     }
 
-    getImages() {
+    // eslint-disable-next-line class-methods-use-this
+    getImages(): ImageResponse[] {
         return [];
     }
 

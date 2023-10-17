@@ -1,7 +1,3 @@
-/**
- * @module sources/VectorSource
- */
-
 import { CanvasTexture, Vector2 } from 'three';
 // Even if it's not explicited in the changelog
 // https://github.com/openlayers/openlayers/blob/main/changelog/upgrade-notes.md
@@ -16,28 +12,33 @@ import {
     getSquaredTolerance as getSquaredRenderTolerance,
     renderFeature as renderVectorFeature,
 } from 'ol/renderer/vector.js';
-import {
+import type {
     Style,
 } from 'ol/style.js';
+import type { Transform } from 'ol/transform.js';
 import {
     create as createTransform,
     reset as resetTransform,
     scale as scaleTransform,
     translate as translateTransform,
 } from 'ol/transform.js';
-import Feature from 'ol/Feature.js';
+import type Feature from 'ol/Feature.js';
 import Vector from 'ol/source/Vector.js';
-import FeatureFormat from 'ol/format/Feature.js';
-import ImageSource, { ImageResult } from './ImageSource.js';
-import OpenLayersUtils from '../utils/OpenLayersUtils.js';
-import Extent from '../core/geographic/Extent';
+import type FeatureFormat from 'ol/format/Feature.js';
+import type BaseEvent from 'ol/events/Event';
+import type { StyleFunction } from 'ol/style/Style';
+import type { Geometry } from 'ol/geom';
+import type { GetImageOptions, ImageSourceOptions } from './ImageSource';
+import ImageSource, { ImageResult } from './ImageSource';
+import OpenLayersUtils from '../utils/OpenLayersUtils';
+import type Extent from '../core/geographic/Extent';
 import Fetcher from '../utils/Fetcher.js';
 
 const tmpExtent = new Array(4);
 
-const tmpTransform_ = createTransform();
+const tmpTransform: Transform = createTransform();
 
-function createCanvas(size) {
+function createCanvas(size: Vector2) {
     const canvas = document.createElement('canvas');
     canvas.width = size.width;
     canvas.height = size.height;
@@ -47,23 +48,25 @@ function createCanvas(size) {
 /**
  * Renders a single feature into the builder group.
  *
- * @param {Feature} feature The feature to render.
- * @param {number} squaredTolerance Squared tolerance for geometry simplification.
- * @param {Style|Style[]} styles The style(s) of the feature.
- * @param {CanvasBuilderGroup} builderGroup The builder group.
- * @param {Function} onStyleChanged A callback when the styles has changed
- * (such as an image being loaded).
+ * @param feature The feature to render.
+ * @param squaredTolerance Squared tolerance for geometry simplification.
+ * @param styles The style(s) of the feature.
+ * @param builderGroup The builder group.
+ * @param onStyleChanged A callback when the styles has changed (such as an image being loaded).
  */
-function renderFeature(feature, squaredTolerance, styles, builderGroup, onStyleChanged) {
+function renderFeature(
+    feature: Feature,
+    squaredTolerance: number,
+    styles: Style | Style[],
+    builderGroup: CanvasBuilderGroup,
+    onStyleChanged: (arg0: BaseEvent) => void,
+) {
     if (!styles) {
         return;
     }
 
-    function doRender(style) {
-        renderVectorFeature(
-            builderGroup, feature, style, squaredTolerance,
-            onStyleChanged,
-        );
+    function doRender(style: Style) {
+        renderVectorFeature(builderGroup, feature, style, squaredTolerance, onStyleChanged);
     }
 
     if (Array.isArray(styles)) {
@@ -78,18 +81,23 @@ function renderFeature(feature, squaredTolerance, styles, builderGroup, onStyleC
 /**
  * Rasterizes the builder group into the canvas.
  *
- * @param {HTMLCanvasElement} canvas The target canvas.
- * @param {CanvasBuilderGroup} builderGroup The builder group.
- * @param {Extent} extent The canvas extent.
- * @param {Vector2} size The canvas size, in pixels.
+ * @param canvas The target canvas.
+ * @param builderGroup The builder group.
+ * @param extent The canvas extent.
+ * @param size The canvas size, in pixels.
  */
-function rasterizeBuilderGroup(canvas, builderGroup, extent, size) {
+function rasterizeBuilderGroup(
+    canvas: HTMLCanvasElement,
+    builderGroup: CanvasBuilderGroup,
+    extent: Extent,
+    size: Vector2,
+) {
     const pixelRatio = 1;
     const resX = extent.dimensions().x / size.width;
     const resY = extent.dimensions().y / size.height;
     const ctx = canvas.getContext('2d');
 
-    const transform = resetTransform(tmpTransform_);
+    const transform = resetTransform(tmpTransform);
     scaleTransform(transform, pixelRatio / resX, -pixelRatio / resY);
     translateTransform(transform, -extent.west(), -extent.north());
 
@@ -107,11 +115,30 @@ function rasterizeBuilderGroup(canvas, builderGroup, extent, size) {
     executor.execute(ctx, 1, transform, 0, true);
 }
 
-/**
- * @typedef {Function} StyleFunction
- * @param {Feature} feature - The feature to style.
- * @returns {Style} The OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
- */
+export interface VectorSourceOptions extends ImageSourceOptions {
+    /**
+     * The projection of the data source. Must be specified if the source
+     * does not have the same projection as the Giro3D instance.
+     */
+    dataProjection?: string;
+    /**
+     * The data format. Required if `url` or `data` are used.
+     */
+    format?: FeatureFormat;
+
+    /**
+     * The data content. Can be:
+     *  - A URL to a remote file (requires the `format` parameter)
+     *  - The content of the source (such as GeoJSON) (requires the `format` parameter)
+     *  - A list of OpenLayers features.
+     */
+    data?: string | Feature[];
+
+    /**
+     * The style, or style function.
+     */
+    style: Style | StyleFunction;
+}
 
 /**
  * An image source that reads vector data. Internally, this wraps an OpenLayers' [VectorSource](https://openlayers.org/en/latest/apidoc/module-ol_source_Vector-VectorSource.html).
@@ -142,22 +169,24 @@ function rasterizeBuilderGroup(canvas, builderGroup, extent, size) {
  * });
  */
 class VectorSource extends ImageSource {
+    readonly isVectorSource: boolean = true;
+    readonly format: FeatureFormat;
+    readonly data: string | Feature[];
+    readonly source: Vector;
+    readonly dataProjection: string;
+
+    private targetProjection: string;
+
     /**
-     * @param {object} options Options.
-     * @param {string} [options.dataProjection] The projection of the data source. Must be specified
-     * if the source does not have the same projection as the Giro3D instance.
-     * @param {FeatureFormat} [options.format] The data format. Required if `url` or `data` are
-     * used. Must be an OpenLayers [FeatureFormat](https://openlayers.org/en/latest/apidoc/module-ol_format_Feature-FeatureFormat.html).
-     * @param {string|Feature[]} options.data The data content. Can be:
-     *  - A URL to a remote file (requires the `format` parameter)
-     *  - The content of the source (such as GeoJSON) (requires the `format` parameter)
-     *  - A list of OpenLayers features.
-     * @param {Style|StyleFunction} options.style The style, or style function. The style must be an
-     * OpenLayers [Style](https://openlayers.org/en/latest/apidoc/module-ol_style_Style-Style.html).
-     * @param {import('./ImageSource.js').CustomContainsFn} [options.containsFn] The custom function
-     * to test if a given extent is contained in this source.
+     * The current style.
+     * Note: to set a new style, use `setStyle()` instead.
      */
-    constructor(options) {
+    style: Style | StyleFunction;
+
+    /**
+     * @param options Options.
+     */
+    constructor(options: VectorSourceOptions) {
         super(options);
         if (options.data == null) {
             throw new Error('"data" parameter is required');
@@ -174,23 +203,16 @@ class VectorSource extends ImageSource {
 
         this.source = new Vector();
 
-        /** @type {string} */
         this.dataProjection = options.dataProjection;
-        /**
-         * The current style.
-         * Note: to set a new style, use `setStyle()` instead.
-         *
-         * @type {Style|function(Feature):Style}
-         */
         this.style = options.style;
     }
 
     /**
      * Change the style of this source. This triggers an update of the source.
      *
-     * @param {Style|function(Feature):Style} style The style, or style function.
+     * @param style The style, or style function.
      */
-    setStyle(style) {
+    setStyle(style: Style | StyleFunction) {
         this.style = style;
         this.update();
     }
@@ -202,7 +224,7 @@ class VectorSource extends ImageSource {
      * - the features array
      */
     async loadFeatures() {
-        let features;
+        let features: Feature[];
         if (Array.isArray(this.data)) {
             features = this.data;
         } else {
@@ -220,7 +242,7 @@ class VectorSource extends ImageSource {
                 }
             }
 
-            features = this.format.readFeatures(content);
+            features = this.format.readFeatures(content) as Feature[];
         }
 
         this.source.addFeatures(features);
@@ -229,19 +251,19 @@ class VectorSource extends ImageSource {
     /**
      * Reprojects a feature from the source projection into the target (instance) projection.
      *
-     * @param {Feature} feature The feature to reproject.
+     * @param feature The feature to reproject.
      */
-    reproject(feature) {
+    reproject(feature: Feature) {
         feature.getGeometry().transform(
             this.dataProjection,
             this.targetProjection,
         );
     }
 
-    async initialize({ targetProjection }) {
+    async initialize(opts: { targetProjection: string }) {
         await this.loadFeatures();
 
-        this.targetProjection = targetProjection;
+        this.targetProjection = opts.targetProjection;
         const shouldReproject = this.dataProjection
             && this.dataProjection !== this.targetProjection;
 
@@ -267,7 +289,7 @@ class VectorSource extends ImageSource {
     /**
      * Returns an array with the feature in this source.
      *
-     * @returns {Feature[]} The features.
+     * @returns The features.
      */
     getFeatures() {
         return this.source.getFeatures();
@@ -276,19 +298,19 @@ class VectorSource extends ImageSource {
     /**
      * Returns the feature with the specified id.
      *
-     * @param {string|number} id The feature id.
-     * @returns {Feature} The feature.
+     * @param id The feature id.
+     * @returns The feature.
      */
-    getFeatureById(id) {
+    getFeatureById(id: string | number): Feature {
         return this.source.getFeatureById(id);
     }
 
     /**
      * Applies the callback for each feature in this source.
      *
-     * @param {function(Feature): void} callback The callback.
+     * @param callback The callback.
      */
-    forEachFeature(callback) {
+    forEachFeature(callback: (arg0: Feature<Geometry>) => unknown) {
         this.source.forEachFeature(callback);
     }
 
@@ -312,12 +334,11 @@ class VectorSource extends ImageSource {
     }
 
     /**
-     * @param {Extent} extent The target extent.
-     * @param {Vector2} size The target pixel size.
-     * @returns {CanvasBuilderGroup|null} The builder group, or null if no features have been
-     * rendered.
+     * @param extent The target extent.
+     * @param size The target pixel size.
+     * @returns The builder group, or null if no features have been rendered.
      */
-    createBuilderGroup(extent, size) {
+    private createBuilderGroup(extent: Extent, size: Vector2): CanvasBuilderGroup | null {
         const pixelRatio = 1;
 
         // We collect features in a larger extent than the target, because the feature extent
@@ -335,13 +356,13 @@ class VectorSource extends ImageSource {
 
         let used = false;
         const onStyleChanged = () => this.update();
-        const render = function render(feature) {
-            let styles;
+        const render = function render(feature: Feature) {
+            let styles: Style | Style[];
             const style = feature.getStyleFunction() || defaultStyle;
             if (typeof style === 'function') {
-                styles = style(feature, resolution);
+                styles = style(feature, resolution) as Style | Style[];
             } else {
-                styles = defaultStyle;
+                styles = defaultStyle as Style | Style[];
             }
             if (styles) {
                 renderFeature(feature, squaredTolerance, styles, builderGroup, onStyleChanged);
@@ -349,7 +370,7 @@ class VectorSource extends ImageSource {
             used = true;
         };
 
-        this.source.forEachFeatureInExtent(olExtent, render, this);
+        this.source.forEachFeatureInExtent(olExtent, render);
 
         if (used) {
             return builderGroup;
@@ -358,12 +379,12 @@ class VectorSource extends ImageSource {
     }
 
     /**
-     * @param {string} id The unique id of the request.
-     * @param {Extent} extent The request extent.
-     * @param {Vector2} size The size in pixels of the request.
-     * @returns {ImageResult} The image result.
+     * @param id The unique id of the request.
+     * @param extent The request extent.
+     * @param size The size in pixels of the request.
+     * @returns The image result.
      */
-    createImage(id, extent, size) {
+    private createImage(id: string, extent: Extent, size: Vector2): ImageResult {
         const builderGroup = this.createBuilderGroup(extent, size);
         let texture;
         if (!builderGroup) {
@@ -377,7 +398,7 @@ class VectorSource extends ImageSource {
         return new ImageResult({ id, texture, extent });
     }
 
-    intersects(extent) {
+    intersects(extent: Extent) {
         // It's a bit an issue with vector sources, as they are dynamic : when the user adds
         // a feature, the extent changes. Thus we cannot cache the extent.
         const sourceExtent = this.getCurrentExtent();
@@ -393,23 +414,13 @@ class VectorSource extends ImageSource {
         return false;
     }
 
-    /**
-     * Gets the images for the specified extent and pixel size.
-     *
-     * @param {object} options The options.
-     * @param {Extent} options.extent The extent of the request area.
-     * @param {number} options.width The pixel width of the request area.
-     * @param {number} options.height The pixel height of the request area.
-     * @param {AbortSignal} [options.signal] The optional abort signal.key
-     * @returns {Array<{ id: string, request: function(()):Promise<ImageResult>}>} An array
-     * containing the functions to generate the images asynchronously.
-     */
-    getImages(options) {
+    getImages(options: GetImageOptions) {
         const {
             extent, width, height, id,
         } = options;
 
-        const request = () => Promise.resolve(this.createImage(id, extent, { width, height }));
+        const size = new Vector2(width, height);
+        const request = () => Promise.resolve(this.createImage(id, extent, size));
 
         return [{ id, request }];
     }

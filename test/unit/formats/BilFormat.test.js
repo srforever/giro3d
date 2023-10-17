@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { cwd } from 'process';
 import { Blob } from 'node:buffer';
-import BilFormat from '../../../src/formats/BilFormat.js';
+import BilFormat from '../../../src/formats/BilFormat';
 
 describe('BilFormat', () => {
     const format = new BilFormat();

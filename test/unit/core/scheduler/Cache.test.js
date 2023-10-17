@@ -1,4 +1,4 @@
-import { Cache } from '../../../../src/core/Cache.js';
+import { Cache } from '../../../../src/core/Cache';
 
 let now = 0;
 /** @type {Cache} */

@@ -1,10 +1,13 @@
-import Extent from '../../../src/core/geographic/Extent';
-import ImageSource from '../../../src/sources/ImageSource.js';
+import Extent from 'src/core/geographic/Extent';
+import type { CustomContainsFn, GetImageOptions, ImageResponse } from 'src/sources/ImageSource';
+import ImageSource from 'src/sources/ImageSource';
 
 class TestSource extends ImageSource {
-    constructor({ extent, containsFn }) {
-        super({ containsFn });
-        this.extent = extent;
+    extent: Extent;
+
+    constructor(opts: { extent: Extent, containsFn?: CustomContainsFn }) {
+        super({ containsFn: opts.containsFn });
+        this.extent = opts.extent;
     }
 
     getCrs() {
@@ -13,6 +16,11 @@ class TestSource extends ImageSource {
 
     getExtent() {
         return this.extent;
+    }
+
+    // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+    getImages(options: GetImageOptions): ImageResponse[] {
+        throw new Error('Method not implemented.');
     }
 }
 

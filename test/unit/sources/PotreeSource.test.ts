@@ -1,4 +1,4 @@
-import PotreeSource from '../../../src/sources/PotreeSource.js';
+import PotreeSource from 'src/sources/PotreeSource';
 
 describe('PotreeSource', () => {
     describe('constructor', () => {

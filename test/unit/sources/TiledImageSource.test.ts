@@ -1,6 +1,6 @@
 import Stamen from 'ol/source/Stamen.js';
-import GeoTIFFFormat from '../../../src/formats/GeoTIFFFormat.js';
-import TiledImageSource from '../../../src/sources/TiledImageSource.js';
+import GeoTIFFFormat from 'src/formats/GeoTIFFFormat';
+import TiledImageSource from 'src/sources/TiledImageSource';
 
 describe('TiledImageSource', () => {
     describe('constructor', () => {
@@ -41,7 +41,12 @@ describe('TiledImageSource', () => {
 
                 const tiled = new TiledImageSource({
                     source,
-                    format: { flipY },
+                    format: {
+                        flipY,
+                        isImageFormat: false,
+                        type: '',
+                        decode: jest.fn(),
+                    },
                 });
 
                 expect(tiled.flipY).toEqual(flipY);

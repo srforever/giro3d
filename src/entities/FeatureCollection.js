@@ -15,7 +15,7 @@ import Entity3D from './Entity3D.js';
 import OperationCounter from '../core/OperationCounter';
 import { DefaultQueue } from '../core/RequestQueue';
 import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh.js';
-import OLUtils from '../utils/OpenLayersUtils.js';
+import OLUtils from '../utils/OpenLayersUtils';
 
 const vector = new Vector3();
 function subdivideNode(context, entity, node) {

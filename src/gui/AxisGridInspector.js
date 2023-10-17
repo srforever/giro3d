@@ -4,7 +4,7 @@
 import GUI from 'lil-gui';
 import Instance from '../core/Instance.js';
 import EntityInspector from './EntityInspector.js';
-import AxisGrid, { TickOrigin } from '../entities/AxisGrid.js';
+import AxisGrid from '../entities/AxisGrid';
 
 class AxisGridInspector extends EntityInspector {
     /**
@@ -28,7 +28,7 @@ class AxisGridInspector extends EntityInspector {
          */
         this.grid = grid;
 
-        this.absoluteTicks = this.grid.origin === TickOrigin.Absolute;
+        this.absoluteTicks = this.grid.origin === 'absolute';
 
         this.addColorController(this.grid, 'color')
             .name('Grid color')
@@ -36,11 +36,9 @@ class AxisGridInspector extends EntityInspector {
         this.addController(this.grid.style, 'fontSize', 1, 20, 1)
             .name('Font size')
             .onChange(() => this._rebuild());
-        if (__DEBUG__) {
-            this.addController(this.grid, 'showHelpers')
-                .name('Show debug helpers')
-                .onChange(() => this.notify(this.grid));
-        }
+        this.addController(this.grid, 'showHelpers')
+            .name('Show debug helpers')
+            .onChange(() => this.notify(this.grid));
         this.addController(this.grid, 'showLabels')
             .name('Show labels')
             .onChange(() => this.notify(this.grid));
@@ -80,7 +78,7 @@ class AxisGridInspector extends EntityInspector {
     }
 
     updateTickOrigin(v) {
-        this.grid.origin = v ? TickOrigin.Absolute : TickOrigin.Relative;
+        this.grid.origin = v ? 'absolute' : 'relative';
         this.grid.refresh();
         this.notify(this.grid);
     }
