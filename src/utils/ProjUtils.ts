@@ -1,4 +1,5 @@
 import proj from 'proj4';
+import { type TypedArray } from 'three';
 
 /**
  * Transform the position buffer in place, from the source to the destination CRS.
@@ -14,7 +15,7 @@ import proj from 'proj4';
  * @param params.offsetY The offset to the original Y coordinate before transformation.
  * @param params.stride The stride of the buffer.
  */
-function transformBufferInPlace(buf: number[],
+function transformBufferInPlace(buf: TypedArray,
     params: {
         srcCrs: string;
         dstCrs: string;

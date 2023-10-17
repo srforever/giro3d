@@ -1,18 +1,20 @@
 import {
+    type CanvasTexture,
+    type DataTexture,
+    type Material,
     MathUtils,
     Mesh,
     PlaneGeometry,
-    Texture,
+    type Texture,
     Vector2,
-    WebGLRenderer,
-    WebGLRenderTarget,
+    type WebGLRenderer,
+    type WebGLRenderTarget,
 } from 'three';
-import Extent from '../geographic/Extent';
-import Interpretation from './Interpretation';
-import WebGLComposer from '../../renderer/composition/WebGLComposer';
+import type Extent from '../geographic/Extent';
+import type Interpretation from './Interpretation';
+import WebGLComposer, { type DrawOptions } from '../../renderer/composition/WebGLComposer';
 import Rect from '../Rect.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
-import ComposerTileMaterial from '../../renderer/composition/ComposerTileMaterial';
 import TextureGenerator from '../../utils/TextureGenerator';
 import ProjUtils from '../../utils/ProjUtils';
 
@@ -22,72 +24,91 @@ const tmpVec2 = new Vector2();
  * Removes the texture data from CPU memory.
  * Important: this should only be done **after** the texture has been uploaded to the GPU.
  *
- * @param {Texture} texture The texture to purge.
+ * @param texture The texture to purge.
  */
-function onTextureUploaded(texture) {
-    if (texture.isDataTexture) {
+function onTextureUploaded(texture: Texture) {
+    if ((texture as DataTexture).isDataTexture) {
         texture.image.data = null;
-    } else if (texture.isCanvasTexture) {
+    } else if ((texture as CanvasTexture).isCanvasTexture) {
         texture.source.data = null;
     }
 }
 
+interface TextureWithMinMax extends Texture {
+    min?: number;
+    max?: number;
+}
+
 /**
- * @param {Texture} texture The texture to process.
- * @param {object} options Options.
- * @param {Interpretation} options.interpretation The interpretation.
- * @param {number} options.noDataValue The no-data value.
+ * @param texture The texture to process.
+ * @param options Options.
+ * @param options.interpretation The interpretation.
+ * @param options.noDataValue The no-data value.
  */
-function processMinMax(texture, { interpretation, noDataValue }) {
+function processMinMax(texture: TextureWithMinMax, {
+    interpretation,
+    noDataValue,
+}: {
+    interpretation: Interpretation;
+    noDataValue: number;
+}) {
     if (texture.min != null && texture.max != null) {
         return { min: texture.min, max: texture.max };
     }
 
-    if (texture.isDataTexture) {
+    if ((texture as DataTexture).isDataTexture) {
         return TextureGenerator.computeMinMax(texture.image.data, noDataValue, interpretation);
     }
-    if (texture.isCanvasTexture) {
+    if ((texture as CanvasTexture).isCanvasTexture) {
         return TextureGenerator.computeMinMaxFromImage(texture.image, interpretation);
     }
 
     throw new Error('no min/max could be computed from texture');
 }
 
-/**
- * @enum
- */
-const State = {
+enum State {
     /**
      * The image was not used at all during this render cycle.
      */
-    NotUsed: 0,
+    NotUsed = 0,
     /**
      * The image was used this cycle for at least one render.
      */
-    Used: 1,
-};
+    Used = 1,
+}
 
 class Image {
-    constructor(options) {
-        /** @type {string} */
+    readonly id: string;
+    readonly mesh: Mesh;
+    state: State;
+    lastUsed: number;
+    readonly extent: Extent;
+    readonly texture: Texture;
+    readonly alwaysVisible: boolean;
+    readonly material: Material;
+    readonly min: number;
+    readonly max: number;
+    disposed: boolean;
+    readonly owners: Set<number>;
+
+    constructor(options: {
+        id: string;
+        mesh: Mesh;
+        texture: Texture;
+        extent: Extent;
+        alwaysVisible: boolean;
+        min: number;
+        max: number;
+    }) {
         this.id = options.id;
-        /** @type {Mesh} */
         this.mesh = options.mesh;
-        /** @type {State} */
         this.state = State.NotUsed;
-        /** @type {number} */
         this.lastUsed = performance.now();
-        /** @type {Extent} */
         this.extent = options.extent;
-        /** @type {Texture} */
         this.texture = options.texture;
-        /** @type {boolean} */
         this.alwaysVisible = options.alwaysVisible ?? false;
-        /** @type {ComposerTileMaterial} */
-        this.material = this.mesh.material;
-        /** @type {number} */
+        this.material = this.mesh.material as Material;
         this.min = options.min;
-        /** @type {number} */
         this.max = options.max;
         this.disposed = false;
         this.owners = new Set();
@@ -123,25 +144,49 @@ class Image {
 }
 
 class LayerComposer {
+    readonly computeMinMax: boolean;
+    readonly extent: Extent;
+    readonly dimensions: Vector2;
+    readonly images: Map<string, Image>;
+    readonly webGLRenderer: WebGLRenderer;
+    readonly transparent: boolean;
+    readonly noDataValue: number;
+    readonly sourceCrs: string;
+    readonly targetCrs: string;
+    readonly needsReprojection: boolean;
+    readonly interpretation: Interpretation;
+    readonly composer: WebGLComposer;
+
+    disposed: boolean;
+    now: number;
+    needsCleanup: boolean;
+
     /**
-     * @param {object} options The options.
-     * @param {WebGLRenderer} options.renderer The WebGLRenderer.
-     * @param {number} [options.fadeDuration] The duration of the fade-in of new images (ms).
-     * @param {boolean} options.computeMinMax Compute min/max on generated images.
-     * @param {boolean} [options.transparent] Enables transparency.
-     * @param {number} [options.noDataValue] The no-data value.
-     * @param {string} options.sourceCrs The CRS of the source.
-     * @param {Extent} options.extent The extent.
-     * @param {boolean} options.showImageOutlines Show image outlines.
-     * @param {string} options.targetCrs The target CRS of this composer.
-     * @param {Interpretation} options.interpretation The interpretation of the layer.
+     * @param options The options.
+     * @param options.renderer The WebGLRenderer.
+     * @param options.computeMinMax Compute min/max on generated images.
+     * @param options.transparent Enables transparency.
+     * @param options.noDataValue The no-data value.
+     * @param options.sourceCrs The CRS of the source.
+     * @param options.extent The extent.
+     * @param options.showImageOutlines Show image outlines.
+     * @param options.targetCrs The target CRS of this composer.
+     * @param options.interpretation The interpretation of the layer.
      */
-    constructor(options) {
+    constructor(options: {
+        renderer: WebGLRenderer;
+        computeMinMax: boolean;
+        transparent?: boolean;
+        noDataValue?: number;
+        sourceCrs: string;
+        extent: Extent;
+        showImageOutlines: boolean;
+        targetCrs: string;
+        interpretation: Interpretation;
+    }) {
         this.computeMinMax = options.computeMinMax;
-        this.fadeDuration = options.fadeDuration;
         this.extent = options.extent;
         this.dimensions = this.extent ? this.extent.dimensions() : null;
-        /** @type {Map<string, Image>} */
         this.images = new Map();
         this.webGLRenderer = options.renderer;
         this.transparent = options.transparent;
@@ -151,14 +196,10 @@ class LayerComposer {
         this.needsReprojection = this.sourceCrs !== this.targetCrs;
         this.interpretation = options.interpretation;
 
-        delete options.computeMinMax;
-        delete options.extent;
-
-        /** @type {WebGLComposer} */
         this.composer = new WebGLComposer({
             webGLRenderer: options.renderer,
             extent: this.extent ? Rect.fromExtent(this.extent) : null,
-            ...options,
+            showImageOutlines: options.showImageOutlines,
         });
 
         this.disposed = false;
@@ -169,10 +210,10 @@ class LayerComposer {
     /**
      * Prevents the specified image from being removed during the cleanup step.
      *
-     * @param {string} id The image ID to lock.
-     * @param {number} nodeId The node id.
+     * @param id The image ID to lock.
+     * @param nodeId The node id.
      */
-    lock(id, nodeId) {
+    lock(id: string, nodeId: number) {
         const img = this.images.get(id);
         if (img) {
             img.owners.add(nodeId);
@@ -182,10 +223,10 @@ class LayerComposer {
     /**
      * Allows the specified images to be removed during the cleanup step.
      *
-     * @param {Set<string>} ids The image id to unlock.
-     * @param {number} nodeId The node id.
+     * @param ids The image id to unlock.
+     * @param nodeId The node id.
      */
-    unlock(ids, nodeId) {
+    unlock(ids: Set<string>, nodeId: number) {
         ids.forEach(id => {
             const image = this.images.get(id);
             if (image) {
@@ -200,13 +241,12 @@ class LayerComposer {
     /**
      * Computes the distance between the composition camera and the image.
      *
-     * Smaller images
-     * will be closer to the camera.
+     * Smaller images will be closer to the camera.
      *
-     * @param {Extent} extent The extent.
-     * @returns {number} The distance between the camera and the image.
+     * @param extent The extent.
+     * @returns The distance between the camera and the image.
      */
-    computeZDistance(extent) {
+    private computeZDistance(extent: Extent): number {
         if (this.dimensions) {
             const width = extent.dimensions(tmpVec2).x;
             // Since we don't know the smallest size of image that the source will output,
@@ -219,7 +259,11 @@ class LayerComposer {
         return 0;
     }
 
-    preprocessImage(extent, texture, options) {
+    private preprocessImage(extent: Extent, texture: TextureWithMinMax, options: {
+        fillNoData: boolean;
+        interpretation: Interpretation;
+        flipY: boolean;
+    }) {
         const rect = Rect.fromExtent(extent);
         const comp = new WebGLComposer({
             extent: rect,
@@ -235,11 +279,7 @@ class LayerComposer {
             transparent: this.transparent,
         });
 
-        delete options.fillNoData;
-        delete options.flipY;
-        delete options.interpretation;
-
-        const result = comp.render();
+        const result = comp.render() as TextureWithMinMax;
         result.name = 'LayerComposer - temporary';
 
         result.min = texture.min;
@@ -254,14 +294,13 @@ class LayerComposer {
     /**
      * Creates a lattice mesh whose each vertex has been warped to the target CRS.
      *
-     * @param {Extent} sourceExtent The source extent of the mesh to reproject, in the CRS of
-     * the source.
-     * @param {number} [segments=8] The number of subdivisions of the lattice.
+     * @param sourceExtent The source extent of the mesh to reproject, in the CRS of the source.
+     * @param segments The number of subdivisions of the lattice.
      * A high value will create more faithful reprojections, at the cost of performance.
      */
-    createWarpedMesh(sourceExtent, segments = 8) {
+    private createWarpedMesh(sourceExtent: Extent, segments: number = 8) {
         const dims = sourceExtent.dimensions(tmpVec2);
-        const center = sourceExtent.center(new Vector2());
+        const center = sourceExtent.center(new Vector2()) as Vector2;
         const geometry = new PlaneGeometry(dims.x, dims.y, segments, segments);
 
         const positionAttribute = geometry.getAttribute('position');
@@ -284,14 +323,26 @@ class LayerComposer {
     /**
      * Adds a texture into the composer space.
      *
-     * @param {object} options opts
-     * @param {Texture} options.texture The texture.
-     * @param {Extent} options.extent The geographic extent of the texture.
-     * @param {boolean} [options.flipY] Flip the image vertically.
-     * @param {boolean} [options.fillNoData] Fill no-data values of the image.
-     * @param {boolean} [options.alwaysVisible] Force constant visibility of this image.
+     * @param options opts
+     * @param options.texture The texture.
+     * @param options.extent The geographic extent of the texture.
+     * @param options.flipY Flip the image vertically.
+     * @param options.fillNoData Fill no-data values of the image.
+     * @param options.alwaysVisible Force constant visibility of this image.
+     * @param options.id The image ID.
+     * @param options.min The min value of the texture.
+     * @param options.max The max value of the texture.
      */
-    add(options) {
+    add(options: {
+        id: string;
+        texture: Texture;
+        extent: Extent;
+        flipY?: boolean;
+        min?: number;
+        max?: number;
+        fillNoData?: boolean;
+        alwaysVisible?: boolean;
+    }) {
         const {
             extent, texture, id,
         } = options;
@@ -310,25 +361,27 @@ class LayerComposer {
         let actualTexture = texture;
 
         if (this.computeMinMax && options.min == null && options.max == null) {
-            const { min, max } = processMinMax(actualTexture, options);
+            const { min, max } = processMinMax(actualTexture, {
+                interpretation: this.interpretation,
+                noDataValue: this.noDataValue,
+            });
             options.min = min;
             options.max = max;
         }
 
         // If the image needs some preprocessing, let's do it now
-        if (options.fillNoData || !this.interpretation.isDefault()) {
-            actualTexture = this.preprocessImage(extent, texture, options);
-        }
-
-        options.zOrder = this.computeZDistance(extent);
-        if (!options.alwaysVisible && this.transparent) {
-            options.fadeDuration = this.fadeDuration;
+        if (options.flipY || options.fillNoData || !this.interpretation.isDefault()) {
+            actualTexture = this.preprocessImage(extent, texture, {
+                fillNoData: options.fillNoData,
+                flipY: options.flipY,
+                interpretation: this.interpretation,
+            });
         }
 
         let mesh;
-        const composerOptions = {
+        const composerOptions : DrawOptions = {
             transparent: this.transparent,
-            ...options,
+            zOrder: this.computeZDistance(extent),
         };
         if (this.needsReprojection) {
             // Draw a warped image
@@ -345,7 +398,7 @@ class LayerComposer {
 
         // Register a handler to be notified when the texture has been uploaded to the GPU
         // so that we can reclaim the texture data and free memory.
-        texture.onUpdate = onTextureUploaded;
+        texture.onUpdate = () => onTextureUploaded(texture);
 
         const image = new Image({
             id,
@@ -363,10 +416,10 @@ class LayerComposer {
     /**
      * Gets whether this composer contains the specified image.
      *
-     * @param {string} imageId The image ID.
-     * @returns {boolean} True if the composer contains the image.
+     * @param imageId The image ID.
+     * @returns True if the composer contains the image.
      */
-    has(imageId) {
+    has(imageId: string): boolean {
         return this.images.has(imageId);
     }
 
@@ -374,12 +427,19 @@ class LayerComposer {
      * Copies the source texture into the destination texture, taking into account the extent
      * of both textures.
      *
-     * @param {object} options Options.
-     * @param {Extent} options.targetExtent The extent of the destination texture.
-     * @param {{ texture: Texture, extent: Extent }[]} options.source The source render targets.
-     * @param {WebGLRenderTarget} options.dest The destination render target.
+     * @param options Options.
+     * @param options.targetExtent The extent of the destination texture.
+     * @param options.source The source render targets.
+     * @param options.dest The destination render target.
      */
-    copy(options) {
+    copy(options: {
+        targetExtent: Extent;
+        source: {
+            texture: TextureWithMinMax;
+            extent: Extent;
+        }[];
+        dest: WebGLRenderTarget;
+    }) {
         const targetExtent = options.targetExtent;
         const target = options.dest;
 
@@ -415,8 +475,9 @@ class LayerComposer {
             height: target.height,
         });
 
-        target.texture.min = min;
-        target.texture.max = max;
+        const targetTexture = target.texture as TextureWithMinMax;
+        targetTexture.min = min;
+        targetTexture.max = max;
 
         for (const mesh of meshes) {
             this.composer.remove(mesh);
@@ -426,14 +487,20 @@ class LayerComposer {
     /**
      * Clears the target texture.
      *
-     * @param {object} options The options.
-     * @param {Extent} options.extent The geographic extent of the region.
-     * @param {number} options.width The width, in pixels of the target texture.
-     * @param {number} options.height The height, in pixels of the target texture.
-     * @param {boolean} options.clear Clears the target texture.
-     * @param {WebGLRenderTarget} options.target The optional render target.
+     * @param options The options.
+     * @param options.extent The geographic extent of the region.
+     * @param options.width The width, in pixels of the target texture.
+     * @param options.height The height, in pixels of the target texture.
+     * @param options.clear Clears the target texture.
+     * @param options.target The optional render target.
      */
-    clearTexture(options) {
+    clearTexture(options: {
+        extent: Extent;
+        width: number;
+        height: number;
+        clear: boolean;
+        target: WebGLRenderTarget;
+    }) {
         const {
             extent,
             width,
@@ -454,9 +521,9 @@ class LayerComposer {
     /**
      * Returns the min/max values for images that overlap the specified extent.
      *
-     * @param {Extent} extent The extent.
+     * @param extent The extent.
      */
-    getMinMax(extent) {
+    getMinMax(extent: Extent) {
         let min = +Infinity;
         let max = -Infinity;
 
@@ -473,16 +540,24 @@ class LayerComposer {
     /**
      * Renders a region of the composer space into a texture.
      *
-     * @param {object} options The options.
-     * @param {Extent} options.extent The geographic extent of the region.
-     * @param {number} options.width The width, in pixels of the target texture.
-     * @param {number} options.height The height, in pixels of the target texture.
-     * @param {boolean} [options.clear] Clears the target texture.
-     * @param {Set} options.imageIds The image ids to render.
-     * @param {boolean} [options.isFallbackMode] Fallback mode.
-     * @param {WebGLRenderTarget} options.target The optional render target.
+     * @param options The options.
+     * @param options.extent The geographic extent of the region.
+     * @param options.width The width, in pixels of the target texture.
+     * @param options.height The height, in pixels of the target texture.
+     * @param options.clear Clears the target texture.
+     * @param options.imageIds The image ids to render.
+     * @param options.isFallbackMode Fallback mode.
+     * @param options.target The optional render target.
      */
-    render(options) {
+    render(options: {
+        extent: Extent;
+        width: number;
+        height: number;
+        clear?: boolean;
+        imageIds: Set<string>;
+        isFallbackMode?: boolean;
+        target: WebGLRenderTarget;
+    }) {
         const {
             extent,
             width,
@@ -552,7 +627,7 @@ class LayerComposer {
             height,
             rect: Rect.fromExtent(extent),
             target,
-        });
+        }) as TextureWithMinMax;
 
         texture.min = min;
         texture.max = max;

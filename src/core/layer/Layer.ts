@@ -15,7 +15,7 @@ import {
 import type ColorMap from './ColorMap';
 import Interpretation from './Interpretation';
 import type Extent from '../geographic/Extent';
-import LayerComposer from './LayerComposer.js';
+import LayerComposer from './LayerComposer';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
 import type Instance from '../Instance.js';
