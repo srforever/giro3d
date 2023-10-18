@@ -1,11 +1,8 @@
 import type { Texture } from 'three';
 import { FloatType } from 'three';
-import type Interpretation from './Interpretation';
-import type { LayerEvents, TextureAndPitch } from './Layer';
+import type { LayerEvents, LayerOptions, TextureAndPitch } from './Layer';
 import Layer from './Layer';
-import type ColorMap from './ColorMap';
 import type Extent from '../geographic/Extent.js';
-import type ImageSource from '../../sources/ImageSource.js';
 import type TileMesh from '../TileMesh.js';
 import type LayeredMaterial from '../../renderer/LayeredMaterial';
 import type ElevationRange from '../ElevationRange.js';
@@ -17,11 +14,22 @@ interface TextureWithMinMax extends Texture {
 
 interface ElevationLayerEvents extends LayerEvents {}
 
+export interface ElevationLayerOptions extends LayerOptions {
+    /**
+     * The minimal/maximal elevation values of this layer.
+     * If unspecified, the layer will attempt to compute an approximation using downsampled data.
+     */
+    minmax?: ElevationRange;
+}
+
 /**
  * A layer that provides elevation data to display terrains.
  */
 class ElevationLayer extends Layer<ElevationLayerEvents> {
     minmax: ElevationRange;
+    /**
+     * Read-only flag to check if a given object is of type ElevationLayer.
+     */
     readonly isElevationLayer: boolean = true;
 
     /**
@@ -30,30 +38,8 @@ class ElevationLayer extends Layer<ElevationLayerEvents> {
      *
      * @param id The unique identifier of the layer.
      * @param options The layer options.
-     * @param options.source The data source of this layer.
-     * @param options.interpretation How to interpret the
-     * values in the dataset.
-     * @param options.extent The geographic extent of the layer. If unspecified,
-     * the extent will be inherited from the source. Note: for performance reasons, it is highly
-     * recommended to specify an extent when the source is much bigger than the map(s) that host
-     * this layer, and when `preloadImages` is `true`. Note: this extent must be in the same CRS as
-     * the instance.
-     * @param options.minmax The minimal/maximal elevation values of this layer.
-     * If unspecified, the layer will attempt to compute an approximation using downsampled data.
-     * @param options.noDataValue the optional no-data value to pass to the source.
-     * Any pixel that matches this value will not be processed.
-     * @param options.preloadImages Enables or disable preloading of low resolution fallback images.
-     * @param options.colorMap An optional color map for this layer.
      */
-    constructor(id: string, options: {
-        source: ImageSource;
-        interpretation?: Interpretation;
-        extent?: Extent;
-        preloadImages?: boolean,
-        minmax?: ElevationRange;
-        noDataValue?: number;
-        colorMap?: ColorMap;
-    }) {
+    constructor(id: string, options: ElevationLayerOptions) {
         super(id, {
             fillNoData: true,
             computeMinMax: true,
