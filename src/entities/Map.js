@@ -1037,7 +1037,7 @@ class Map extends Entity3D {
         // Prevent subdivision if node is covered by at least one elevation layer
         // and if node doesn't have a elevation texture yet.
         for (const e of this.getElevationLayers()) {
-            if (!e.frozen && e.ready && e.contains(node.getExtent())
+            if (e.visible && !e.frozen && e.ready && e.contains(node.getExtent())
                 && !node.canSubdivide()) {
                 return false;
             }
