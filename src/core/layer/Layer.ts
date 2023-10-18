@@ -702,6 +702,9 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
         this._instance.notifyChange(this);
     }
 
+    /**
+     * @ignore
+     */
     getInfo(node: Node): { state: string, imageCount: number } {
         const target = this.targets.get(node.id);
         if (target) {
