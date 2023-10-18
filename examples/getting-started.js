@@ -3,8 +3,8 @@
 // ### Welcome to Giro3D !
 
 // In this tutorial, we will cover the base features of Giro3D : the creation of the
-// [instance](../apidoc/module-core_Instance-Instance.html), the creation of a
-// [map](../apidoc/module-entities_Map-Map.html), and setting up the navigation controls.
+// [instance](../apidoc/classes/core.Instance.html), the creation of a
+// [map](../apidoc/classes/entities.Map.html), and setting up the navigation controls.
 
 // ##### Note
 // This walkthrough is based on the [2.5D Map example](../examples/getting-started.html).
@@ -59,7 +59,7 @@ const instance = new Instance(viewer, { crs: 'EPSG:3946' });
 // A map is a rectangular region of the world that will contain geographic data.
 
 // Let's define a geographic extent (or bounding box) of our map.
-// We initialize the [`Extent`](../apidoc/module-core_geographic_Extent-Extent.html) class,
+// We initialize the [`Extent`](../apidoc/classes/core.geographic.Extent.html) class,
 // specifying the CRS name (that we just defined above), with the minimum and maximum X (longitude,
 // or easting) and Y (latitude, or northing) values.
 const xmin = 1837816.94334;
@@ -93,7 +93,7 @@ instance.add(map);
 
 // Let's create a source that will pull data from a WMS service.
 // We are using the
-// [`TiledImageSource`](../apidoc/module-sources_TiledImageSource-TiledImageSource.html) for that.
+// [`TiledImageSource`](../apidoc/classes/sources.TiledImageSource.html) for that.
 // This source will wrap an OpenLayers source, in this case a `TileWMS`.
 const satelliteSource = new TiledImageSource({
     source: new TileWMS({
@@ -129,7 +129,7 @@ map.addLayer(colorLayer);
 // source, then create the layer and add it to the map.
 
 // The only difference is that we are going to use an
-// [`ElevationLayer`](../apidoc/module-core_layer_ElevationLayer-ElevationLayer.html).
+// [`ElevationLayer`](../apidoc/classes/core.layer.ElevationLayer.html).
 
 // Contrary to the color layer, the elevation layer does not produce any color information on the
 // map, but it rather deforms the map to display the terrain (hence the name 2.5D map).
@@ -203,8 +203,7 @@ instance.useTHREEControls(controls);
 // ### Optional: Set up the inspector
 
 // This is an optional step, but very useful for diagnostic and debugging issues with Giro3D.
-// The [inspector](../apidoc/module-gui_Inspector-Inspector.html) is a panel containing
-// lots of useful information about the Giro3D instance.
+// The `Inspector` is a panel containing lots of useful information about the Giro3D instance.
 
 // This supposes that we have a `div` ready to host our inspector.
 
