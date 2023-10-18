@@ -295,6 +295,13 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
     }
 
     private onSourceUpdated() {
+        this.clear();
+    }
+
+    /**
+     * Resets all render targets to a blank state and repaint all the targets.
+     */
+    clear() {
         if (!this.ready) {
             return;
         }

@@ -53,6 +53,12 @@ class LayerInspector extends Panel {
         this.addController(this, 'interpretation')
             .name('Interpretation');
 
+        this.addController(this, 'repaint')
+            .name('Repaint layer')
+            .onChange(() => {
+                this.notify(map);
+            });
+
         if (this.layer.type === 'ElevationLayer') {
             this.minmax = { min: '?', max: '?' };
             this.addController(this.minmax, 'min').name('Minimum elevation');
@@ -131,6 +137,10 @@ class LayerInspector extends Panel {
 
         this.addController(this, 'disposeLayer').name('Dispose layer');
         this.addController(this, 'removeLayer').name('Remove layer from map');
+    }
+
+    repaint() {
+        this.layer.clear();
     }
 
     get colorMap() {
