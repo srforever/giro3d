@@ -14,7 +14,7 @@ import TileGeometry from './TileGeometry.js';
 import type OBB from './OBB.js';
 import type RenderingState from '../renderer/RenderingState.js';
 import type ElevationLayer from './layer/ElevationLayer.js';
-import type TileIndex from './TileIndex.js';
+import type TileIndex from './TileIndex';
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
