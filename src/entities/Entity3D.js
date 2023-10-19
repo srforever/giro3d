@@ -10,7 +10,7 @@ import {
 } from 'three';
 
 import Picking from '../core/Picking.js';
-import Entity from './Entity.js';
+import Entity from './Entity';
 import EventUtils from '../utils/EventUtils.js';
 
 /**
@@ -86,6 +86,13 @@ class Entity3D extends Entity {
         this._clippingPlanes = null;
 
         this._renderOrder = 0;
+    }
+
+    /**
+     * The layers attached to this entity.
+     */
+    get attachedLayers() {
+        return this._attachedLayers;
     }
 
     /**

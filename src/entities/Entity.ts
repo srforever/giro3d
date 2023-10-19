@@ -1,12 +1,12 @@
-/**
- * @module entities/Entity
- */
-
 import { EventDispatcher } from 'three';
-import EventUtils from '../utils/EventUtils.js';
+import type Context from '../core/Context';
 
 /* eslint no-unused-vars: 0 */
 /* eslint class-methods-use-this: 0 */
+
+export interface EntityEventMap {
+    'frozen-property-changed': { frozen: boolean; }
+}
 
 /**
  * Abstract base class for all entities in giro3d.
@@ -46,39 +46,38 @@ import EventUtils from '../utils/EventUtils.js';
  *     const entity = new Entity('exampleEntity');
  *     instance.add(entity);
  */
-class Entity extends EventDispatcher {
+class Entity<TEventMap extends EntityEventMap = EntityEventMap>
+    extends EventDispatcher<TEventMap & EntityEventMap> {
+    private readonly _id: string;
+    private _frozen: boolean;
+    /**
+     * Read-only flag to check if a given object is of type Entity.
+     */
+    readonly isEntity: boolean = true;
+    /**
+     * The name of the type of this object.
+     */
+    type: string;
+
     /**
      * Creates an entity with the specified unique identifier.
      *
      *
-     * @param {string} id the unique identifier of this entity.
+     * @param id the unique identifier of this entity.
      */
-    constructor(id) {
+    constructor(id: string) {
         super();
         if (!id) {
             throw new Error('Missing id parameter (Entity must have a unique id defined)');
         }
 
         this._id = id;
-        /**
-         * Read-only flag to check if a given object is of type Entity.
-         *
-         * @type {boolean}
-         */
-        this.isEntity = true;
-        /**
-         * The name of the type of this object.
-         *
-         * @type {string}
-         */
         this.type = 'Entity';
         this._frozen = false;
     }
 
     /**
      * Gets the unique identifier of this entity.
-     *
-     * @type {string}
      */
     get id() {
         return this._id;
@@ -89,8 +88,6 @@ class Entity extends EventDispatcher {
      * but will not be updated automatically.
      *
      * Useful for debugging purposes.
-     *
-     * @type {boolean}
      */
     get frozen() {
         return this._frozen;
@@ -98,16 +95,13 @@ class Entity extends EventDispatcher {
 
     set frozen(v) {
         if (this._frozen !== v) {
-            const event = EventUtils.createPropertyChangedEvent(this, 'frozen', this._frozen, v);
             this._frozen = v;
-            this.dispatchEvent(event);
+            this.dispatchEvent({ type: 'frozen-property-changed', frozen: v });
         }
     }
 
     /**
      * Gets whether this entity is currently loading data.
-     *
-     * @type {boolean}
      */
     get loading() {
         // Implement this in derived classes.
@@ -117,8 +111,6 @@ class Entity extends EventDispatcher {
     /**
      * Gets the current loading progress (between 0 and 1).
      * Note: This property is only meaningful if {@link loading} is `true`.
-     *
-     * @type {number}
      */
     get progress() {
         // Implement this in derived classes.
@@ -130,9 +122,9 @@ class Entity extends EventDispatcher {
      * any operation that must be done before the entity can be used in the scene, such
      * as fetching metadata about a dataset, etc.
      *
-     * @returns {Promise<void>} A promise that resolves when the entity is ready to be used.
+     * @returns A promise that resolves when the entity is ready to be used.
      */
-    preprocess() {
+    preprocess(): Promise<void> {
         return Promise.resolve();
     }
 
@@ -147,40 +139,42 @@ class Entity extends EventDispatcher {
      *
      * Note: if this functions returns nothing, `update()` will not be called.
      *
-     * @param {module:Core/Context~Context} context the update context.
-     * @param {Set<object>} changeSources the objects that triggered an update step.
+     * @param context the update context.
+     * @param changeSources the objects that triggered an update step.
      * This is useful to filter out unnecessary updates if no sources are
      * relevant to this entity. For example, if one of the sources is a
      * camera that moved during the previous frame, any entity that depends
      * on the camera's field of view should be updated.
-     * @returns {Array<object>} the _elements_ to update during `update()`.
+     * @returns the _elements_ to update during `update()`.
      */
-    preUpdate(context, changeSources) { return null; }
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    preUpdate(context: Context, changeSources: Set<unknown>): unknown[] { return null; }
 
     /**
      * Performs an update on an _element_ of the entity.
      *
      * Note: this method will be called for each element returned by `preUpdate()`.
      *
-     * @param {module:core.Context~Context} context the update context.
+     * @param context the update context.
      * This is the same object that the entity whose `update()` is being called.
-     * @param {object} element the element to update.
-     * This is one of the elements returned by
-     * {@link module:entities.Entity#preUpdate preUpdate()}.
+     * @param element the element to update.
+     * This is one of the elements returned by {@link preUpdate()}.
      */
-    update(context, element) {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    update(context: Context, element: unknown) {}
 
     /**
      * Method called after {@link entities.Entity#update update()}.
      *
-     * @param {module:core.Context~Context} context the update context.
-     * @param {Array<object>} changeSources the objects that triggered an update step.
+     * @param context the update context.
+     * @param changeSources the objects that triggered an update step.
      * This is useful to filter out unnecessary updates if no sources are
      * relevant to this entity. For example, if one of the sources is a
      * camera that moved during the previous frame, any entity that depends
      * on the camera's field of view should be updated.
      */
-    postUpdate(context, changeSources) {}
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    postUpdate(context: Context, changeSources: unknown[]) {}
 
     /**
      * Disposes this entity and all resources associated with it.

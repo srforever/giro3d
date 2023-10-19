@@ -9,7 +9,7 @@ import { register } from 'ol/proj/proj4.js';
 import Camera from '../renderer/Camera.js';
 import MainLoop, { MAIN_LOOP_EVENTS, RENDERING_PAUSED } from './MainLoop.js';
 import C3DEngine from '../renderer/c3DEngine.js';
-import Entity from '../entities/Entity.js';
+import Entity from '../entities/Entity';
 import Picking from './Picking.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import RenderingOptions from '../renderer/RenderingOptions.js';

@@ -1,8 +1,7 @@
-import Entity from '../../../src/entities/Entity.js';
+import Entity from 'src/entities/Entity';
 
 describe('Entity', () => {
-    /** @type {Entity} */
-    let entity;
+    let entity: Entity;
 
     beforeEach(() => {
         entity = new Entity('myEntity');
