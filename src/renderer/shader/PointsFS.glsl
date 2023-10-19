@@ -19,7 +19,7 @@ void main() {
         discard;
     }
 
-    gl_FragColor = vec4(adjustBrightnessContrastSaturation(vColor.xyz, brightnessContrastSaturation), vColor.w);
+    gl_FragColor = vec4(adjustBrightnessContrastSaturation(vColor.rgb, brightnessContrastSaturation), vColor.a);
 
     #include <logdepthbuf_fragment>
 }

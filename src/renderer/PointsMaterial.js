@@ -64,9 +64,6 @@ class PointsMaterial extends ShaderMaterial {
         this._brightness = 0;
         this._contrast = 1;
         this._saturation = 1;
-        this.brightnessContrastSaturation = new Vector3(
-            this._brightness, this._contrast, this._saturation,
-        );
         this.mode = options.mode || MODE.COLOR;
         this.pickingId = 0;
 
@@ -166,7 +163,11 @@ class PointsMaterial extends ShaderMaterial {
         this.uniforms.pickingId.value = this.pickingId;
         this.uniforms.opacity.value = this.opacity;
         this.uniforms.overlayColor.value = this.overlayColor;
-        this.uniforms.brightnessContrastSaturation.value = this.brightnessContrastSaturation;
+        this.uniforms.brightnessContrastSaturation.value = new Vector3(
+            this._brightness,
+            this._contrast,
+            this._saturation,
+        );
     }
 
     update(source) {
@@ -180,7 +181,9 @@ class PointsMaterial extends ShaderMaterial {
             this.pickingId = source.pickingId;
             this.scale = source.scale;
             this.overlayColor.copy(source.overlayColor);
-            this.brightnessContrastSaturation.copy(source.brightnessContrastSaturation);
+            this._brightness = source._brightness;
+            this._contrast = source._contrast;
+            this._saturation = source._saturation;
         }
         this.updateUniforms();
         if (source) {
@@ -258,11 +261,7 @@ class PointsMaterial extends ShaderMaterial {
     set brightness(v) {
         if (this._brightness !== v) {
             this._brightness = v;
-            this.setBrightnessContrastSaturation(
-                this._brightness,
-                this._contrast,
-                this._saturation,
-            );
+            this._mustUpdateUniforms = true;
         }
     }
 
@@ -276,11 +275,7 @@ class PointsMaterial extends ShaderMaterial {
     set contrast(v) {
         if (this._contrast !== v) {
             this._contrast = v;
-            this.setBrightnessContrastSaturation(
-                this._brightness,
-                this._contrast,
-                this._saturation,
-            );
+            this._mustUpdateUniforms = true;
         }
     }
 
@@ -294,21 +289,8 @@ class PointsMaterial extends ShaderMaterial {
     set saturation(v) {
         if (this._saturation !== v) {
             this._saturation = v;
-            this.setBrightnessContrastSaturation(
-                this._brightness,
-                this._contrast,
-                this._saturation,
-            );
+            this._mustUpdateUniforms = true;
         }
-    }
-
-    setBrightnessContrastSaturation(brightness, contrast, saturation) {
-        this.brightnessContrastSaturation.set(
-            brightness,
-            contrast,
-            saturation,
-        );
-        this.updateUniforms();
     }
 
     // eslint-disable-next-line class-methods-use-this

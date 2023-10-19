@@ -90,38 +90,17 @@ controls.saveState();
 
 instance.useTHREEControls(controls);
 
-const options = {
-    brightness: 0,
-    contrast: 1,
-    saturation: 1,
-};
-
-function update() {
-    colorLayer.brightness = options.brightness;
-    colorLayer.contrast = options.contrast;
-    colorLayer.saturation = options.saturation;
-    instance.notifyChange(map);
+function bindSlider(name, fn) {
+    const slider = document.getElementById(name);
+    slider.oninput = function oninput() {
+        fn(slider.value);
+        instance.notifyChange(map);
+    };
 }
 
-const sliderBrightness = document.getElementById('slider-brightness');
-sliderBrightness.oninput = function oninput() {
-    options.brightness = Number(sliderBrightness.value);
-    update();
-};
-
-const sliderContrast = document.getElementById('slider-contrast');
-sliderContrast.oninput = function oninput() {
-    options.contrast = Number(sliderContrast.value);
-    update();
-};
-
-const sliderSaturation = document.getElementById('slider-saturation');
-sliderSaturation.oninput = function oninput() {
-    options.saturation = Number(sliderSaturation.value);
-    update();
-};
-
-update();
+bindSlider('slider-brightness', v => { colorLayer.brightness = v; });
+bindSlider('slider-contrast', v => { colorLayer.contrast = v; });
+bindSlider('slider-saturation', v => { colorLayer.saturation = v; });
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
