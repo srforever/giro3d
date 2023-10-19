@@ -485,7 +485,7 @@ class LayeredMaterial extends ShaderMaterial {
 
     setElevationTexture(
         layer: ElevationLayer,
-        { texture, pitch }: { texture: ElevationTexture, pitch: Vector4 },
+        { texture, pitch }: { texture: Texture, pitch: Vector4 },
         isFinal: boolean,
     ) {
         this._elevationLayer = layer;
@@ -493,8 +493,8 @@ class LayeredMaterial extends ShaderMaterial {
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', true);
 
         this.uniforms.elevationTexture.value = texture;
-        this.texturesInfo.elevation.texture = texture;
-        texture.isFinal = isFinal;
+        this.texturesInfo.elevation.texture = texture as ElevationTexture;
+        (texture as ElevationTexture).isFinal = isFinal;
         this.texturesInfo.elevation.offsetScale.copy(pitch);
 
         const uniform = this.uniforms.elevationLayer.value;
@@ -911,7 +911,7 @@ class LayeredMaterial extends ShaderMaterial {
         return this.progress < 1;
     }
 
-    setUuid(uuid: string) {
+    setUuid(uuid: number) {
         this.uniforms.uuid.value = uuid;
     }
 }

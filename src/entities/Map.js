@@ -23,7 +23,7 @@ import LayeredMaterial, {
     DEFAULT_HILLSHADING_INTENSITY,
     DEFAULT_ZENITH,
 } from '../renderer/LayeredMaterial';
-import TileMesh from '../core/TileMesh.js';
+import TileMesh from '../core/TileMesh';
 import TileIndex from '../core/TileIndex.js';
 import RenderingState from '../renderer/RenderingState.js';
 import ColorMapAtlas from '../renderer/ColorMapAtlas';

@@ -2,9 +2,8 @@
  * @module gui/FeatureCollectionInspector
  */
 import GUI from 'lil-gui';
-import { Color } from 'three';
+import { Color, Object3D } from 'three';
 import Instance from '../core/Instance.js';
-import TileMesh from '../core/TileMesh.js';
 import FeatureCollection from '../entities/FeatureCollection';
 import Helpers from '../helpers/Helpers.js';
 import EntityInspector from './EntityInspector.js';
@@ -154,7 +153,7 @@ class FeatureCollectionInspector extends EntityInspector {
     }
 
     /**
-     * @param {TileMesh} tile The tile to decorate.
+     * @param {Object3D} tile The tile to decorate.
      * @param {boolean} add If true, bounding box is added, otherwise it is removed.
      * @param {Color} color The bounding box color.
      */

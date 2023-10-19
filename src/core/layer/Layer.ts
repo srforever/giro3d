@@ -23,7 +23,7 @@ import ImageSource, { type ImageResult } from '../../sources/ImageSource';
 import type RequestQueue from '../RequestQueue';
 import { DefaultQueue } from '../RequestQueue';
 import OperationCounter from '../OperationCounter';
-import type TileMesh from '../TileMesh.js';
+import type TileMesh from '../TileMesh';
 import type PointCloud from '../PointCloud.js';
 import type Context from '../Context.js';
 import type LayeredMaterial from '../../renderer/LayeredMaterial.js';

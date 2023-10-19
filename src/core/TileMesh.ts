@@ -1,28 +1,31 @@
-/**
- * Generated On: 2015-10-5
- * Class: TileMesh
- * Description: Tuile de maillage, noeud du quadtree MNT. Le Materiel est issus du QuadTree ORTHO.
- */
-
-import { Mesh, Vector2, Vector4 } from 'three';
+import {
+    Mesh,
+    Vector4,
+    type Object3DEventMap,
+    type Vector2,
+    type Texture,
+    type Object3D,
+} from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker.js';
-import LayeredMaterial from '../renderer/LayeredMaterial';
-import Extent from './geographic/Extent';
+import type LayeredMaterial from '../renderer/LayeredMaterial.js';
+import type Extent from './geographic/Extent.js';
 import TileGeometry from './TileGeometry.js';
-import OBB from './OBB.js';
+import type OBB from './OBB.js';
+import type RenderingState from '../renderer/RenderingState.js';
+import type ElevationLayer from './layer/ElevationLayer.js';
+import type TileIndex from './TileIndex.js';
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
 
-function applyChangeState(n, s) {
-    if (n.changeState) {
-        n.changeState(s);
-    }
+interface Owner {
+    id: string;
+    geometryPool: Map<string, TileGeometry>;
+    tileIndex: TileIndex;
 }
 
-function makeGeometry(map, extent, segments, level) {
-    /** @type {Map} */
+function makeGeometry(map: Owner, extent: Extent, segments: number, level: number) {
     const pool = map.geometryPool;
 
     const key = `${segments}-${level}`;
@@ -41,20 +44,36 @@ function makeGeometry(map, extent, segments, level) {
     return geometry;
 }
 
-class TileMesh extends Mesh {
+export interface TileMeshEventMap extends Object3DEventMap {
+    'dispose': {};
+}
+
+class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
+    layer: any;
+    private _segments: number;
+    readonly isTileMesh: boolean = true;
+    extent: Extent;
+    textureSize: Vector2;
+    obb: OBB;
+    level: number;
+    x: number;
+    y: number;
+    z: number;
+    disposed: boolean;
+
     /**
      * Creates an instance of TileMesh.
      *
-     * @param {object} options Constructor options.
-     * @param {object} options.map The Map that owns this tile.
-     * @param {LayeredMaterial} options.material The tile material.
-     * @param {Extent} options.extent The tile extent.
-     * @param {number} options.segments The subdivisions.
-     * @param {object} options.coord The tile coordinate.
-     * @param {number} options.coord.level The tile depth level in the hierarchy.
-     * @param {number} options.coord.x The tile X coordinate in the grid.
-     * @param {number} options.coord.y The tile Y coordinate in the grid.
-     * @param {Vector2} options.textureSize The texture size.
+     * @param options Constructor options.
+     * @param options.map The Map that owns this tile.
+     * @param options.material The tile material.
+     * @param options.extent The tile extent.
+     * @param options.segments The subdivisions.
+     * @param options.coord The tile coordinate.
+     * @param options.coord.level The tile depth level in the hierarchy.
+     * @param options.coord.x The tile X coordinate in the grid.
+     * @param options.coord.y The tile Y coordinate in the grid.
+     * @param options.textureSize The texture size.
      */
     constructor({
         map,
@@ -63,6 +82,13 @@ class TileMesh extends Mesh {
         segments,
         coord: { level, x = 0, y = 0 },
         textureSize,
+    }: {
+        map: Owner;
+        material: LayeredMaterial;
+        extent: Extent;
+        segments: number;
+        coord: { level: number; x: number; y: number; };
+        textureSize: Vector2;
     }) {
         super(makeGeometry(map, extent, segments, level), material);
 
@@ -71,7 +97,6 @@ class TileMesh extends Mesh {
         this.isTileMesh = true;
 
         this.matrixAutoUpdate = false;
-        this.rotationAutoUpdate = false;
 
         this.level = level;
         this.extent = extent;
@@ -120,10 +145,10 @@ class TileMesh extends Mesh {
     }
 
     /**
-     * @param {TileMesh} neighbour The neighbour.
-     * @param {number} location Its location in the neighbour array.
+     * @param neighbour The neighbour.
+     * @param location Its location in the neighbour array.
      */
-    _processNeighbour(neighbour, location) {
+    private processNeighbour(neighbour: TileMesh, location: number) {
         const diff = neighbour.level - this.level;
 
         const uniform = this.material.uniforms.neighbours.value[location];
@@ -142,18 +167,14 @@ class TileMesh extends Mesh {
         uniform.elevationTexture = neighbourElevation.texture;
     }
 
-    onBeforeRender() {
-        this.material.onBeforeRender();
-    }
-
     /**
-     * @param {Array<TileMesh>} neighbours The neighbours.
+     * @param neighbours The neighbours.
      */
-    processNeighbours(neighbours) {
+    processNeighbours(neighbours: TileMesh[]) {
         for (let i = 0; i < neighbours.length; i++) {
             const neighbour = neighbours[i];
             if (neighbour && neighbour.material && neighbour.material.visible) {
-                this._processNeighbour(neighbour, i);
+                this.processNeighbour(neighbour, i);
             } else {
                 const uniform = this.material.uniforms.neighbours.value[i];
                 uniform.diffLevel = NO_NEIGHBOUR;
@@ -163,7 +184,7 @@ class TileMesh extends Mesh {
         }
     }
 
-    updateMatrixWorld(force) {
+    updateMatrixWorld(force: boolean) {
         super.updateMatrixWorld.call(this, force);
         this.OBB().update();
     }
@@ -172,18 +193,18 @@ class TileMesh extends Mesh {
         return this.visible;
     }
 
-    setDisplayed(show) {
+    setDisplayed(show: boolean) {
         this.material.visible = show && this.material.update();
     }
 
     /**
-     * @param {number} v The new opacity.
+     * @param v The new opacity.
      */
-    set opacity(v) {
+    set opacity(v: number) {
         this.material.opacity = v;
     }
 
-    setVisibility(show) {
+    setVisibility(show: boolean) {
         this.visible = show;
     }
 
@@ -194,35 +215,33 @@ class TileMesh extends Mesh {
     /**
      * Updates the rendering state of the tile's material.
      *
-     * @param {number} state The new rendering state.
+     * @param state The new rendering state.
      */
-    changeState(state) {
+    changeState(state: RenderingState) {
         this.material.changeState(state);
     }
 
-    pushRenderState(state) {
+    static applyChangeState(o: Object3D, s: RenderingState) {
+        if ((o as TileMesh).isTileMesh) {
+            (o as TileMesh).changeState(s);
+        }
+    }
+
+    pushRenderState(state: RenderingState) {
         if (this.material.uniforms.renderingState.value === state) {
             return () => { };
         }
 
         const oldState = this.material.uniforms.renderingState.value;
-        this.traverse(n => applyChangeState(n, state));
+        this.traverse(n => TileMesh.applyChangeState(n, state));
 
         return () => {
-            this.traverse(n => applyChangeState(n, oldState));
+            this.traverse(n => TileMesh.applyChangeState(n, oldState));
         };
     }
 
-    setFog(fog) {
-        this.material.setFogDistance(fog);
-    }
-
-    setSelected(select) {
-        this.material.setSelected(select);
-    }
-
     canSubdivide() {
-        let current = this;
+        let current: TileMesh = this;
         let ancestorLevel = 0;
 
         // To be able to subdivide a tile, we need to ensure that we
@@ -238,17 +257,22 @@ class TileMesh extends Mesh {
                 return true;
             }
             ancestorLevel++;
-            current = this.parent;
+            current = this.parent as TileMesh;
         }
 
         return false;
     }
 
-    removeElevationTexture(layer) {
-        this.material.removeElevationLayer(layer);
+    removeElevationTexture() {
+        this.material.removeElevationLayer();
     }
 
-    setElevationTexture(layer, elevation, isFinal = false) {
+    setElevationTexture(layer: ElevationLayer, elevation: {
+        texture: Texture;
+        pitch: Vector4;
+        min: number;
+        max: number;
+    }, isFinal = false) {
         if (this.material === null) {
             return;
         }
@@ -256,7 +280,7 @@ class TileMesh extends Mesh {
         this.material.setElevationTexture(layer, elevation, isFinal);
     }
 
-    setBBoxZ(min, max) {
+    setBBoxZ(min: number, max: number) {
         // 0 is an acceptable value
         if (min == null && max == null) {
             return;
@@ -268,14 +292,10 @@ class TileMesh extends Mesh {
     }
 
     /**
-     * @returns {OBB} The Oriented Bounding Box.
+     * @returns The Oriented Bounding Box.
      */
     OBB() {
         return this.obb;
-    }
-
-    removeColorLayer(idLayer) {
-        this.material.removeColorLayer(idLayer);
     }
 
     getExtent() {
@@ -285,7 +305,7 @@ class TileMesh extends Mesh {
     /**
      * Gets whether this mesh is currently performing processing.
      *
-     * @returns {boolean} `true` if the mesh is currently performing processing, `false` otherwise.
+     * @returns `true` if the mesh is currently performing processing, `false` otherwise.
      */
     get loading() {
         return this.material.loading;
@@ -294,7 +314,7 @@ class TileMesh extends Mesh {
     /**
      * Gets the progress percentage (normalized in [0, 1] range) of the processing.
      *
-     * @returns {number} The progress percentage.
+     * @returns The progress percentage.
      */
     get progress() {
         return this.material.progress;
@@ -304,10 +324,10 @@ class TileMesh extends Mesh {
      * Search for a common ancestor between this tile and another one. It goes
      * through parents on each side until one is found.
      *
-     * @param {TileMesh} tile the tile to evaluate
-     * @returns {TileMesh} the resulting common ancestor
+     * @param tile the tile to evaluate
+     * @returns the resulting common ancestor
      */
-    findCommonAncestor(tile) {
+    findCommonAncestor(tile: TileMesh): TileMesh {
         if (!tile) {
             return undefined;
         }
@@ -316,17 +336,17 @@ class TileMesh extends Mesh {
                 return tile;
             }
             if (tile.level !== 0) {
-                return this.parent.findCommonAncestor(tile.parent);
+                return (this.parent as TileMesh).findCommonAncestor(tile.parent as TileMesh);
             }
             return undefined;
         }
         if (tile.level < this.level) {
-            return this.parent.findCommonAncestor(tile);
+            return (this.parent as TileMesh).findCommonAncestor(tile);
         }
-        return this.findCommonAncestor(tile.parent);
+        return this.findCommonAncestor(tile.parent as TileMesh);
     }
 
-    isAncestorOf(node) {
+    isAncestorOf(node: TileMesh) {
         return node.findCommonAncestor(this) === this;
     }
 

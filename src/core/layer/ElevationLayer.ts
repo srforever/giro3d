@@ -3,7 +3,8 @@ import { FloatType } from 'three';
 import type { LayerEvents, LayerOptions, TextureAndPitch } from './Layer';
 import Layer from './Layer';
 import type Extent from '../geographic/Extent.js';
-import type TileMesh from '../TileMesh.js';
+import type ImageSource from '../../sources/ImageSource.js';
+import type TileMesh from '../TileMesh';
 import type LayeredMaterial from '../../renderer/LayeredMaterial';
 import type ElevationRange from '../ElevationRange.js';
 
@@ -133,8 +134,9 @@ class ElevationLayer extends Layer<ElevationLayerEvents> {
         node.setElevationTexture(this, value, isLastRender);
     }
 
+    // eslint-disable-next-line class-methods-use-this
     protected applyEmptyTextureToNode(node: TileMesh) {
-        node.removeElevationTexture(this);
+        node.removeElevationTexture();
     }
 }
 
