@@ -10,17 +10,21 @@ import AxisGrid, {
     type Ticks as AxisGridTicks,
     type Volume as AxisGridVolume,
 } from './AxisGrid';
-import Map from './Map';
+import Map, { type LayerCompareFn, type MapEventMap } from './Map';
 import PotreePointCloud from './PotreePointCloud';
-import Entity from './Entity';
-import Entity3D from './Entity3D';
+import Entity, { type EntityEventMap } from './Entity';
+import Entity3D, { type Entity3DEventMap } from './Entity3D';
 import Tiles3D from './Tiles3D';
 import FeatureCollection, { type OnMeshCreatedCallback, type OnTileCreatedCallback } from './FeatureCollection';
 
 export {
     Entity,
+    EntityEventMap,
     Entity3D,
+    Entity3DEventMap,
     Map,
+    LayerCompareFn,
+    MapEventMap,
     AxisGrid,
     AxisGridStyle,
     AxisGridOrigin,

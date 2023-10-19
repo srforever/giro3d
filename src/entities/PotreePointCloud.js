@@ -13,7 +13,7 @@ import {
     Vector2,
     Vector3,
 } from 'three';
-import Entity3D from './Entity3D.js';
+import Entity3D from './Entity3D';
 import PointsMaterial, { MODE } from '../renderer/PointsMaterial.js';
 import { DefaultQueue } from '../core/RequestQueue';
 import PotreeSource from '../sources/PotreeSource';

@@ -12,7 +12,7 @@ import type Context from '../core/Context';
 import type Extent from '../core/geographic/Extent';
 import ScreenSpaceError from '../core/ScreenSpaceError';
 import LayerUpdateState from '../core/layer/LayerUpdateState.js';
-import Entity3D from './Entity3D.js';
+import Entity3D from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
 import { DefaultQueue } from '../core/RequestQueue';
 import OlFeature2Mesh from '../utils/OlFeature2Mesh';

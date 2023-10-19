@@ -14,7 +14,7 @@ import Extent from '../core/geographic/Extent';
 import Layer from '../core/layer/Layer';
 import ColorLayer from '../core/layer/ColorLayer';
 import ElevationLayer from '../core/layer/ElevationLayer';
-import Entity3D from './Entity3D.js';
+import Entity3D from './Entity3D';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import Picking from '../core/Picking.js';
 import ScreenSpaceError from '../core/ScreenSpaceError';
@@ -498,6 +498,7 @@ class Map extends Entity3D {
         };
     }
 
+    // @ts-ignore // TODO when picking is refactored we can have static typing
     pickObjectsAt(coordinates, options, target) {
         return Picking.pickTilesAt(
             this._instance,

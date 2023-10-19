@@ -15,7 +15,7 @@ import {
 
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
-import Entity3D from './Entity3D.js';
+import Entity3D from './Entity3D';
 import type Extent from '../core/geographic/Extent';
 import type Context from '../core/Context';
 import { UNIT, crsToUnit } from '../core/geographic/Coordinates';

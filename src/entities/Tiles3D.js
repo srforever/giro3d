@@ -15,7 +15,7 @@ import {
 import Extent from '../core/geographic/Extent';
 import Picking from '../core/Picking.js';
 import ScreenSpaceError from '../core/ScreenSpaceError';
-import Entity3D from './Entity3D.js';
+import Entity3D from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
 import $3dTilesIndex from './3dtiles/3dTilesIndex.js';
 import Fetcher from '../utils/Fetcher';

@@ -11,7 +11,7 @@ import {
 } from 'three';
 import Panel from './Panel.js';
 import Instance from '../core/Instance.js';
-import Entity3D from '../entities/Entity3D.js';
+import Entity3D from '../entities/Entity3D';
 import Helpers from '../helpers/Helpers.js';
 
 const _tempArray = [];
