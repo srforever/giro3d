@@ -61,21 +61,23 @@ class Tiles3dInspector extends EntityInspector {
             .name('Cleanup delay (ms)')
             .onChange(() => this.notify());
 
-        this.gui.add(this.tiles3d.material, 'brightness')
-            .min(-1)
-            .max(1)
-            .name('Brightness')
-            .onChange(() => this.instance.notifyChange(this.tiles3d));
-        this.addController(this.tiles3d.material, 'contrast')
-            .name('Contrast')
-            .min(0)
-            .max(10)
-            .onChange(() => this.instance.notifyChange(this.tiles3d));
-        this.addController(this.tiles3d.material, 'saturation')
-            .name('Saturation')
-            .min(0)
-            .max(10)
-            .onChange(() => this.instance.notifyChange(this.tiles3d));
+        if (this.tiles3d.material) {
+            this.gui.add(this.tiles3d.material, 'brightness')
+                .min(-1)
+                .max(1)
+                .name('Brightness')
+                .onChange(() => this.instance.notifyChange(this.tiles3d));
+            this.addController(this.tiles3d.material, 'contrast')
+                .name('Contrast')
+                .min(0)
+                .max(10)
+                .onChange(() => this.instance.notifyChange(this.tiles3d));
+            this.addController(this.tiles3d.material, 'saturation')
+                .name('Saturation')
+                .min(0)
+                .max(10)
+                .onChange(() => this.instance.notifyChange(this.tiles3d));
+        }
     }
 
     toggleWireframe(value) {
