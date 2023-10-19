@@ -28,7 +28,7 @@ import type ElevationLayer from '../core/layer/ElevationLayer.js';
 import type ColorLayer from '../core/layer/ColorLayer.js';
 import type ElevationRange from '../core/ElevationRange.js';
 import type Extent from '../core/geographic/Extent';
-import type ColorMapAtlas from './ColorMapAtlas.js';
+import type ColorMapAtlas from './ColorMapAtlas';
 
 interface LayerAtlasInfo {
     x: number;
