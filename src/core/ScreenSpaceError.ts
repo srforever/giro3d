@@ -143,15 +143,15 @@ export default {
     Mode,
 
     /**
-    /* Compute a "visible" error: project geometricError in meter on screen,
-    /* based on a bounding box and a transformation matrix.
+     * Compute a "visible" error: project geometricError in meter on screen,
+     * based on a bounding box and a transformation matrix.
      *
      * @param camera the current camera of the scene
      * @param box3 the box3 to consider
      * @param matrix the matrix world of the box
      * @param geometricError the geometricError
      * @param mode Whether or not use 3D in the calculus
-    */
+     */
     computeFromBox3(
         camera: Camera,
         box3: Box3,

@@ -590,7 +590,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
      *
      * @param node The disposed node.
      */
-    protected unregisterNode(node: Node) {
+    unregisterNode(node: Node) {
         const id = node.id;
         if (this.targets.has(id)) {
             const target = this.targets.get(id);
@@ -978,7 +978,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
         // Implemented in derived classes
     }
 
-    protected abstract registerNode(node: Node, extent: Extent): void;
+    abstract registerNode(node: Node, extent: Extent): void;
 
     protected abstract applyTextureToNode(
         texture: TextureAndPitch,

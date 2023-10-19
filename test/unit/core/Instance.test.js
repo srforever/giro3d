@@ -6,7 +6,7 @@ import proj4 from 'proj4';
 import Extent from '../../../src/core/geographic/Extent';
 import Instance, { INSTANCE_EVENTS } from '../../../src/core/Instance.js';
 import MainLoop from '../../../src/core/MainLoop.js';
-import Map from '../../../src/entities/Map.js';
+import Map from '../../../src/entities/Map';
 import Tiles3D from '../../../src/entities/Tiles3D.js';
 import { setupGlobalMocks, resizeObservers } from '../mocks.js';
 import Fetcher from '../../../src/utils/Fetcher';

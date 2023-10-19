@@ -8,7 +8,7 @@ import Instance from '../core/Instance.js';
 
 export default class HillshadingPanel extends Panel {
     /**
-     * @param {import('../entities/Map.js').HillshadingOptions} hillshading The options.
+     * @param {import('../entities/Map').HillshadingOptions} hillshading The options.
      * @param {GUI} parentGui Parent GUI
      * @param {Instance} instance The instance
      */

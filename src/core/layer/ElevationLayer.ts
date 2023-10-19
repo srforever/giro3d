@@ -88,7 +88,7 @@ class ElevationLayer extends Layer<ElevationLayerEvents> {
         }
     }
 
-    protected registerNode(node: TileMesh) {
+    registerNode(node: TileMesh) {
         const material = node.material;
         if (Array.isArray(material)) {
             material.forEach(m => (m as LayeredMaterial).pushElevationLayer(this));
@@ -97,7 +97,7 @@ class ElevationLayer extends Layer<ElevationLayerEvents> {
         }
     }
 
-    protected unregisterNode(node: TileMesh) {
+    unregisterNode(node: TileMesh) {
         super.unregisterNode(node);
         const material = node.material;
         if (Array.isArray(material)) {

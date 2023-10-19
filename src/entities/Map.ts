@@ -1,6 +1,3 @@
-/**
- * @module entities/Map
- */
 import {
     Vector2,
     Vector3,
@@ -8,15 +5,18 @@ import {
     Group,
     Color,
     MathUtils,
+    type Camera as ThreeCamera,
+    type Object3D,
 } from 'three';
 
-import Extent from '../core/geographic/Extent';
+import type Extent from '../core/geographic/Extent';
 import Layer from '../core/layer/Layer';
 import ColorLayer from '../core/layer/ColorLayer';
 import ElevationLayer from '../core/layer/ElevationLayer';
-import Entity3D from './Entity3D';
+import Entity3D, { type Entity3DEventMap } from './Entity3D';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import Picking from '../core/Picking.js';
+import type { SSE } from '../core/ScreenSpaceError';
 import ScreenSpaceError from '../core/ScreenSpaceError';
 import LayeredMaterial, {
     DEFAULT_AZIMUTH,
@@ -25,19 +25,22 @@ import LayeredMaterial, {
 } from '../renderer/LayeredMaterial';
 import TileMesh from '../core/TileMesh';
 import TileIndex from '../core/TileIndex';
-import RenderingState from '../renderer/RenderingState';
+import type RenderingState from '../renderer/RenderingState';
 import ColorMapAtlas from '../renderer/ColorMapAtlas';
-import AtlasBuilder from '../renderer/AtlasBuilder.js';
+import AtlasBuilder, { type AtlasInfo } from '../renderer/AtlasBuilder';
 import Capabilities from '../core/system/Capabilities.js';
+import type { Context, ContourLineOptions, ElevationRange } from '../core';
+import type TileGeometry from '../core/TileGeometry';
+import { type MaterialOptions } from '../renderer/LayeredMaterial';
+import type HillshadingOptions from '../core/HillshadingOptions';
+import type { Coordinates } from '../core/geographic';
 
 const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 
 /**
- * @typedef {Function} LayerCompareFn
- * @param {Layer} a - The first layer.
- * @param {Layer} b - The second layer.
- * @returns {number} The comparison result.
+ * Comparison function to order layers.
  */
+export type LayerCompareFn = (a: Layer, b: Layer) => number;
 
 /**
  * The maximum supported aspect ratio for the map tiles, before we stop trying to create square
@@ -73,11 +76,8 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
 
 const tmpVector = new Vector3();
 
-/**
- * @param {boolean|undefined|import('../core').ContourLineOptions} input The input
- * @returns {import('../core').ContourLineOptions} The options.
- */
-function getContourLineOptions(input) {
+function getContourLineOptions(input: boolean | undefined | ContourLineOptions)
+    : ContourLineOptions {
     if (!input) {
         // Default values
         return {
@@ -109,15 +109,8 @@ function getContourLineOptions(input) {
     };
 }
 
-/**
- * @typedef {import('../core/HillshadingOptions').HillshadingOptions} HillshadingOptions
- */
-
-/**
- * @param {boolean|undefined|HillshadingOptions} input The input
- * @returns {HillshadingOptions} The options.
- */
-function getHillshadingOptions(input) {
+function getHillshadingOptions(input: boolean | undefined | HillshadingOptions)
+    : HillshadingOptions {
     if (!input) {
         // Default values
         return {
@@ -149,51 +142,7 @@ function getHillshadingOptions(input) {
     };
 }
 
-function subdivideNode(context, map, node) {
-    if (!node.children.some(n => n.layer === map)) {
-        const extents = node.extent.split(2, 2);
-
-        let i = 0;
-        const { x, y, z } = node;
-        for (const extent of extents) {
-            let child;
-            if (i === 0) {
-                child = map.requestNewTile(
-                    extent, node, z + 1, 2 * x + 0, 2 * y + 0,
-                );
-            } else if (i === 1) {
-                child = map.requestNewTile(
-                    extent, node, z + 1, 2 * x + 0, 2 * y + 1,
-                );
-            } else if (i === 2) {
-                child = map.requestNewTile(
-                    extent, node, z + 1, 2 * x + 1, 2 * y + 0,
-                );
-            } else if (i === 3) {
-                child = map.requestNewTile(
-                    extent, node, z + 1, 2 * x + 1, 2 * y + 1,
-                );
-            }
-            node.add(child);
-
-            // inherit our parent's textures
-            for (const e of map.getElevationLayers()) {
-                e.update(context, child, node, true);
-            }
-            if (node.material.pixelWidth > 0) {
-                for (const c of map.getColorLayers()) {
-                    c.update(context, child, node, true);
-                }
-            }
-
-            child.updateMatrixWorld(true);
-            i++;
-        }
-        context.instance.notifyChange(node);
-    }
-}
-
-function selectBestSubdivisions(extent) {
+function selectBestSubdivisions(extent: Extent) {
     const dims = extent.dimensions();
     const ratio = dims.x / dims.y;
     let x = 1; let y = 1;
@@ -212,9 +161,9 @@ function selectBestSubdivisions(extent) {
  * Compute the best image size for tiles, taking into account the extent ratio.
  * In other words, rectangular tiles will have more pixels in their longest side.
  *
- * @param {Extent} extent The map extent.
+ * @param extent The map extent.
  */
-function computeImageSize(extent) {
+function computeImageSize(extent: Extent) {
     const baseSize = 256;
     const dims = extent.dimensions();
     const ratio = dims.x / dims.y;
@@ -235,6 +184,12 @@ function computeImageSize(extent) {
     return new Vector2(baseSize, Math.round(baseSize * actualRatio));
 }
 
+export interface MapEventMap extends Entity3DEventMap {
+    'layer-order-changed': {};
+    'layer-added': { layer: Layer; };
+    'layer-removed': { layer: Layer; };
+}
+
 /**
  * A map is an {@link entities.Entity | Entity} that represents a flat
  * surface displaying one or more {@link core.layer.Layer | Layers}.
@@ -242,56 +197,92 @@ function computeImageSize(extent) {
  * If an elevation layer is added, the surface of the map is deformed to
  * display terrain.
  */
-class Map extends Entity3D {
+class Map extends Entity3D<MapEventMap> {
+    private _segments: number;
+    readonly level0Nodes: TileMesh[];
+    private readonly _layerIndices: globalThis.Map<string, number>;
+    private currentAddedLayerIds: string[];
+    readonly geometryPool: globalThis.Map<string, TileGeometry>;
+    extent: Extent;
+    readonly maxSubdivisionLevel: number;
+    /**
+     * Read-only flag to check if a given object is of type Map.
+     */
+    readonly isMap: boolean = true;
+    readonly materialOptions: MaterialOptions;
+    readonly showOutline: boolean;
+    /** @ignore */
+    readonly tileIndex: TileIndex;
+    /** @ignore */
+    sseScale: number;
+    private readonly atlasInfo: AtlasInfo;
+    private subdivisions: { x: number; y: number; };
+    private imageSize: Vector2;
+    /**
+     * Displays the map tiles in wireframe.
+     */
+    wireframe: boolean;
+
+    onTileCreated: (map: Map, parent: TileMesh, tile: TileMesh) => void;
+
     /**
      * Constructs a Map object.
      *
-     * @param {string} id The unique identifier of the map.
-     * @param {object} options Constructor options.
-     * @param {Extent} options.extent The geographic extent of the map.
-     * @param {number} [options.maxSubdivisionLevel=-1] Maximum tile depth of the map.
+     * @param id The unique identifier of the map.
+     * @param options Constructor options.
+     * @param options.extent The geographic extent of the map.
+     * @param options.maxSubdivisionLevel Maximum tile depth of the map.
      * A value of `-1` does not limit the depth of the tile hierarchy.
-     * @param {boolean|import('../core/HillshadingOptions').HillshadingOptions} [options.hillshading=undefined] Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
+     * @param options.hillshading Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
      * If `undefined` or `false`, hillshading is disabled.
      *
      * Note: hillshading has no effect if the map does not contain an elevation layer.
-     * @param {boolean|import('../core').ContourLineOptions} [options.contourLines=undefined]
-     * Enables contour lines. If `undefined` or `false`, contour lines are not displayed.
+     * @param options.contourLines Enables contour lines. If `undefined` or `false`, contour lines
+     * are not displayed.
      *
      * Note: this option has no effect if the map does not contain an elevation layer.
-     * @param {number} [options.segments=8] The number of geometry segments in each map tile.
+     * @param options.segments The number of geometry segments in each map tile.
      * The higher the better. It *must* be power of two between `1` included and `256` included.
      * Note: the number of vertices per tile side is `segments` + 1.
-     * @param {boolean} [options.doubleSided=false] If `true`, both sides of the map will be
-     * rendered, i.e when looking at the map from underneath.
-     * @param {boolean} [options.discardNoData=false] If `true`, parts of the map that relate to
-     * no-data elevation values are not displayed. Note: you should only set this value to `true` if
+     * @param options.doubleSided If `true`, both sides of the map will be rendered, i.e when
+     * looking at the map from underneath.
+     * @param options.discardNoData If `true`, parts of the map that relate to no-data elevation
+     * values are not displayed. Note: you should only set this value to `true` if
      * an elevation layer is present, otherwise the map will never be displayed.
-     * @param {module:three.Object3D} [options.object3d=undefined] The optional 3d object to use as
-     * the root object of this map. If none provided, a new one will be created.
-     * @param {string} [options.backgroundColor=undefined] The color of the map when no color layers
-     * are present.
-     * @param {number} [options.backgroundOpacity=1] The opacity of the map background.
+     * @param options.object3d The optional 3d object to use as the root object of this map.
+     * If none provided, a new one will be created.
+     * @param options.backgroundColor The color of the map when no color layers are present.
+     * @param options.backgroundOpacity The opacity of the map background.
      * Defaults is opaque (1).
-     * @param {boolean} [options.showOutline=false] Show the map tiles' borders.
-     * @param {import('../core').ElevationRange} [options.elevationRange=undefined]
-     * The optional elevation range of the map. The map will not be rendered for elevations outside
-     * of this range.
+     * @param options.showOutline Show the map tiles' borders.
+     * @param options.elevationRange The optional elevation range of the map. The map will not be
+     * rendered for elevations outside of this range.
      * Note: this feature is only useful if an elevation layer is added to this map.
      */
-    constructor(id, options) {
+    constructor(id: string, options: {
+        extent: Extent;
+        maxSubdivisionLevel?: number;
+        hillshading?: boolean | HillshadingOptions;
+        contourLines?: boolean | ContourLineOptions;
+        segments?: number;
+        doubleSided?: boolean;
+        discardNoData?: boolean;
+        object3d?: Object3D;
+        backgroundColor?: string;
+        backgroundOpacity?: number;
+        showOutline?: boolean;
+        elevationRange?: ElevationRange;
+    }) {
         super(id, options.object3d || new Group());
 
-        /** @type {Array<TileMesh>} */
         this.level0Nodes = [];
 
         this.geometryPool = new window.Map();
 
         this._layerIndices = new window.Map();
 
-        this.atlasInfo = { maxX: 0, maxY: 0 };
+        this.atlasInfo = { maxX: 0, maxY: 0, atlas: null };
 
-        /** @type {Extent} */
         if (!options.extent.isValid()) {
             throw new Error('Invalid extent: minX must be less than maxX and minY must be less than maxY.');
         }
@@ -300,22 +291,12 @@ class Map extends Entity3D {
         this.sseScale = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel || 30;
 
-        /**
-         * Read-only flag to check if a given object is of type Map.
-         *
-         * @type {boolean}
-         */
-        this.isMap = true;
         this.type = 'Map';
 
-        /** @type {boolean} */
         this.showOutline = options.showOutline;
 
         this._segments = options.segments || 8;
 
-        /**
-         * @type {import('../renderer/LayeredMaterial').MaterialOptions}
-         */
         this.materialOptions = {
             hillshading: getHillshadingOptions(options.hillshading),
             contourLines: getContourLineOptions(options.contourLines),
@@ -335,11 +316,9 @@ class Map extends Entity3D {
 
     /**
      * Returns `true` if this map is currently processing data.
-     *
-     * @type {boolean}
      */
     get loading() {
-        return this._attachedLayers.some(l => l.loading);
+        return this.attachedLayers.some(l => l.loading);
     }
 
     /**
@@ -347,16 +326,14 @@ class Map extends Entity3D {
      * layers in this map.
      * Note: if no layer is present, this will always be 1.
      * Note: This value is only meaningful is {@link loading} is `true`.
-     *
-     * @type {number}
      */
     get progress() {
-        if (this._attachedLayers.length === 0) {
+        if (this.attachedLayers.length === 0) {
             return 1;
         }
 
-        const sum = this._attachedLayers.reduce((accum, layer) => accum + layer.progress, 0);
-        return sum / this._attachedLayers.length;
+        const sum = this.attachedLayers.reduce((accum, layer) => accum + layer.progress, 0);
+        return sum / this.attachedLayers.length;
     }
 
     get segments() {
@@ -367,7 +344,7 @@ class Map extends Entity3D {
         if (this._segments !== v) {
             if (MathUtils.isPowerOfTwo(v) && v >= 1 && v <= 128) {
                 // Delete cached geometries that just became obsolete
-                this._clearGeometryPool();
+                this.clearGeometryPool();
                 this._segments = v;
                 this._updateGeometries();
             } else {
@@ -376,7 +353,51 @@ class Map extends Entity3D {
         }
     }
 
-    _clearGeometryPool() {
+    private subdivideNode(context: Context, node: TileMesh) {
+        if (!node.children.some(n => (n as TileMesh).layer === this)) {
+            const extents = node.extent.split(2, 2);
+
+            let i = 0;
+            const { x, y, z } = node;
+            for (const extent of extents) {
+                let child;
+                if (i === 0) {
+                    child = this.requestNewTile(
+                        extent, node, z + 1, 2 * x + 0, 2 * y + 0,
+                    );
+                } else if (i === 1) {
+                    child = this.requestNewTile(
+                        extent, node, z + 1, 2 * x + 0, 2 * y + 1,
+                    );
+                } else if (i === 2) {
+                    child = this.requestNewTile(
+                        extent, node, z + 1, 2 * x + 1, 2 * y + 0,
+                    );
+                } else if (i === 3) {
+                    child = this.requestNewTile(
+                        extent, node, z + 1, 2 * x + 1, 2 * y + 1,
+                    );
+                }
+                node.add(child);
+
+                // inherit our parent's textures
+                for (const e of this.getElevationLayers()) {
+                    e.update(context, child);
+                }
+                if (node.material.pixelWidth > 0) {
+                    for (const c of this.getColorLayers()) {
+                        c.update(context, child);
+                    }
+                }
+
+                child.updateMatrixWorld(true);
+                i++;
+            }
+            context.instance.notifyChange(node);
+        }
+    }
+
+    private clearGeometryPool() {
         this.geometryPool.forEach(v => v.dispose());
         this.geometryPool.clear();
     }
@@ -417,19 +438,19 @@ class Map extends Entity3D {
         }
         for (const level0 of this.level0Nodes) {
             this.object3d.add(level0);
-            level0.updateMatrixWorld();
+            level0.updateMatrixWorld(false);
         }
 
         return Promise.resolve();
     }
 
-    requestNewTile(extent, parent, level, x = 0, y = 0) {
+    private requestNewTile(extent: Extent, parent: TileMesh, level: number, x = 0, y = 0) {
         if (parent && !parent.material) {
             return null;
         }
 
         const quaternion = new Quaternion();
-        const position = new Vector3(...extent.center().values);
+        const position = new Vector3(...(extent.center() as Coordinates).values);
 
         // build tile
         const material = new LayeredMaterial({
@@ -453,7 +474,7 @@ class Map extends Entity3D {
 
         if (parent && parent instanceof TileMesh) {
             // get parent position from extent
-            const positionParent = new Vector3(...parent.extent.center().values);
+            const positionParent = new Vector3(...(parent.extent.center() as Coordinates).values);
             // place relative to his parent
             position.sub(positionParent).applyQuaternion(parent.quaternion.invert());
             quaternion.premultiply(parent.quaternion);
@@ -487,10 +508,10 @@ class Map extends Entity3D {
     /**
      * Sets the render state of the map.
      *
-     * @param {RenderingState} state The new state.
-     * @returns {Function} The function to revert to the previous state.
+     * @param state The new state.
+     * @returns The function to revert to the previous state.
      */
-    setRenderState(state) {
+    setRenderState(state: RenderingState) {
         const restores = this.level0Nodes.map(n => n.pushRenderState(state));
 
         return () => {
@@ -509,18 +530,7 @@ class Map extends Entity3D {
         );
     }
 
-    preUpdate(context, changeSources) {
-        context.colorLayers = this.getLayers(
-            (l, a) => a && a.id === this.id && l instanceof ColorLayer,
-        );
-        context.elevationLayers = this.getLayers(
-            (l, a) => a && a.id === this.id && l instanceof ElevationLayer,
-        );
-
-        if (__DEBUG__) {
-            this._latestUpdateStartingLevel = 0;
-        }
-
+    preUpdate(context: Context, changeSources: Set<unknown>) {
         this.materialOptions.colorMapAtlas?.update();
 
         this.tileIndex.update();
@@ -529,19 +539,19 @@ class Map extends Entity3D {
             return this.level0Nodes;
         }
 
-        let commonAncestor;
+        let commonAncestor: TileMesh;
         for (const source of changeSources.values()) {
-            if (source.isCamera) {
+            if ((source as ThreeCamera).isCamera) {
                 // if the change is caused by a camera move, no need to bother
                 // to find common ancestor: we need to update the whole tree:
                 // some invisible tiles may now be visible
                 return this.level0Nodes;
             }
-            if (source.layer === this.id) {
+            if ((source as TileMesh).layer === this.id) {
                 if (!commonAncestor) {
-                    commonAncestor = source;
+                    commonAncestor = source as TileMesh;
                 } else {
-                    commonAncestor = source.findCommonAncestor(commonAncestor);
+                    commonAncestor = (source as TileMesh).findCommonAncestor(commonAncestor);
                     if (!commonAncestor) {
                         return this.level0Nodes;
                     }
@@ -552,9 +562,6 @@ class Map extends Entity3D {
             }
         }
         if (commonAncestor) {
-            if (__DEBUG__) {
-                this._latestUpdateStartingLevel = commonAncestor.level;
-            }
             return [commonAncestor];
         }
         return this.level0Nodes;
@@ -563,31 +570,31 @@ class Map extends Entity3D {
     /**
      * Sort the color layers according to the comparator function.
      *
-     * @param {LayerCompareFn} compareFn The comparator function.
+     * @param compareFn The comparator function.
      */
-    sortColorLayers(compareFn) {
+    sortColorLayers(compareFn: LayerCompareFn) {
         if (compareFn == null) {
             throw new Error('missing comparator function');
         }
 
-        this._attachedLayers.sort((a, b) => {
-            if (a instanceof ColorLayer && b instanceof ColorLayer) {
+        this.attachedLayers.sort((a, b) => {
+            if ((a as ColorLayer).isColorLayer && (b as ColorLayer).isColorLayer) {
                 return compareFn(a, b);
             }
 
             // Sorting elevation layers has no effect currently, so by convention
             // we push them to the start of the list.
-            if (a instanceof ElevationLayer && b instanceof ElevationLayer) {
+            if ((a as ElevationLayer).isElevationLayer && (b as ElevationLayer).isElevationLayer) {
                 return 0;
             }
 
-            if (a instanceof ElevationLayer) {
+            if ((a as ElevationLayer).isElevationLayer) {
                 return -1;
             }
 
             return 1;
         });
-        this._reorderLayers();
+        this.reorderLayers();
     }
 
     /**
@@ -595,7 +602,7 @@ class Map extends Entity3D {
      *
      * Note: this only applies to color layers.
      *
-     * @param {ColorLayer} layer The layer to move.
+     * @param layer The layer to move.
      * @throws {Error} If the layer is not present in the map.
      * @example
      * map.addLayer(foo);
@@ -606,19 +613,19 @@ class Map extends Entity3D {
      * map.moveLayerUp(foo);
      * // Layers (back to front) : bar, foo, baz
      */
-    moveLayerUp(layer) {
-        const position = this._attachedLayers.indexOf(layer);
+    moveLayerUp(layer: ColorLayer) {
+        const position = this.attachedLayers.indexOf(layer);
 
         if (position === -1) {
             throw new Error('The layer is not present in the map.');
         }
 
-        if (position < this._attachedLayers.length - 1) {
-            const next = this._attachedLayers[position + 1];
-            this._attachedLayers[position + 1] = layer;
-            this._attachedLayers[position] = next;
+        if (position < this.attachedLayers.length - 1) {
+            const next = this.attachedLayers[position + 1];
+            this.attachedLayers[position + 1] = layer;
+            this.attachedLayers[position] = next;
 
-            this._reorderLayers();
+            this.reorderLayers();
         }
     }
 
@@ -638,9 +645,9 @@ class Map extends Entity3D {
      * map.insertLayerAfter(foo, baz);
      * // Layers (back to front) : bar, baz, foo
      */
-    insertLayerAfter(layer, target) {
-        const position = this._attachedLayers.indexOf(layer);
-        let afterPosition = this._attachedLayers.indexOf(target);
+    insertLayerAfter(layer: ColorLayer, target: ColorLayer) {
+        const position = this.attachedLayers.indexOf(layer);
+        let afterPosition = this.attachedLayers.indexOf(target);
 
         if (position === -1) {
             throw new Error('The layer is not present in the map.');
@@ -650,11 +657,11 @@ class Map extends Entity3D {
             afterPosition = 0;
         }
 
-        this._attachedLayers.splice(position, 1);
-        afterPosition = this._attachedLayers.indexOf(target);
-        this._attachedLayers.splice(afterPosition + 1, 0, layer);
+        this.attachedLayers.splice(position, 1);
+        afterPosition = this.attachedLayers.indexOf(target);
+        this.attachedLayers.splice(afterPosition + 1, 0, layer);
 
-        this._reorderLayers();
+        this.reorderLayers();
     }
 
     /**
@@ -662,7 +669,7 @@ class Map extends Entity3D {
      *
      * Note: this only applies to color layers.
      *
-     * @param {ColorLayer} layer The layer to move.
+     * @param layer The layer to move.
      * @throws {Error} If the layer is not present in the map.
      * @example
      * map.addLayer(foo);
@@ -673,34 +680,34 @@ class Map extends Entity3D {
      * map.moveLayerDown(baz);
      * // Layers (back to front) : foo, baz, bar
      */
-    moveLayerDown(layer) {
-        const position = this._attachedLayers.indexOf(layer);
+    moveLayerDown(layer: ColorLayer) {
+        const position = this.attachedLayers.indexOf(layer);
 
         if (position === -1) {
             throw new Error('The layer is not present in the map.');
         }
 
         if (position > 0) {
-            const prev = this._attachedLayers[position - 1];
-            this._attachedLayers[position - 1] = layer;
-            this._attachedLayers[position] = prev;
+            const prev = this.attachedLayers[position - 1];
+            this.attachedLayers[position - 1] = layer;
+            this.attachedLayers[position] = prev;
 
-            this._reorderLayers();
+            this.reorderLayers();
         }
     }
 
     /**
      * Returns the position of the layer in the layer list.
      *
-     * @param {Layer} layer The layer to search.
-     * @returns {number} The index of the layer.
+     * @param layer The layer to search.
+     * @returns The index of the layer.
      */
-    getIndex(layer) {
+    getIndex(layer: Layer): number {
         return this._layerIndices.get(layer.id);
     }
 
-    _reorderLayers() {
-        const layers = this._attachedLayers;
+    private reorderLayers() {
+        const layers = this.attachedLayers;
 
         for (let i = 0; i < layers.length; i++) {
             const element = layers[i];
@@ -714,28 +721,28 @@ class Map extends Entity3D {
         this._instance.notifyChange(this, true);
     }
 
-    contains(obj) {
-        if (obj instanceof Layer) {
-            return this._attachedLayers.includes(obj);
+    contains(obj: Layer) {
+        if ((obj as Layer).isLayer) {
+            return this.attachedLayers.includes(obj);
         }
 
         return false;
     }
 
-    update(context, node) {
+    update(context: Context, node: TileMesh) {
         if (!node.parent) {
             return ObjectRemovalHelper.removeChildrenAndCleanup(this, node);
         }
 
         if (context.fastUpdateHint) {
-            if (!context.fastUpdateHint.isAncestorOf(node)) {
+            if (!(context.fastUpdateHint as TileMesh).isAncestorOf(node)) {
                 // if visible, children bbox can only be smaller => stop updates
                 if (node.material.visible) {
                     this.updateMinMaxDistance(context, node);
                     return null;
                 }
                 if (node.visible) {
-                    return node.children.filter(n => n.layer === this);
+                    return node.children.filter(n => (n as TileMesh).layer === this);
                 }
                 return null;
             }
@@ -763,10 +770,8 @@ class Map extends Entity3D {
                     ScreenSpaceError.Mode.MODE_2D,
                 );
 
-                node.sse = sse; // DEBUG
-
                 if (this.testTileSSE(node, sse) && this.canSubdivide(node)) {
-                    subdivideNode(context, this, node);
+                    this.subdivideNode(context, node);
                     // display iff children aren't ready
                     node.setDisplayed(false);
                     requestChildrenUpdate = true;
@@ -789,7 +794,9 @@ class Map extends Entity3D {
             }
 
             // TODO: use Array.slice()
-            return requestChildrenUpdate ? node.children.filter(n => n.layer === this) : undefined;
+            return requestChildrenUpdate
+                ? node.children.filter(n => (n as TileMesh).layer === this)
+                : undefined;
         }
 
         node.setDisplayed(false);
@@ -801,13 +808,11 @@ class Map extends Entity3D {
 
         this._forEachTile(tile => {
             if (tile.material.visible) {
-                const neighbours = this.tileIndex.getNeighbours(tile);
+                const neighbours = this.tileIndex.getNeighbours(tile) as TileMesh[];
                 tile.processNeighbours(neighbours);
             }
         });
     }
-
-    // TODO this whole function should be either in providers or in layers
 
     /**
      * Adds a layer, then returns the created layer.
@@ -815,10 +820,10 @@ class Map extends Entity3D {
      * If the extent or the projection of the layer is not provided,
      * those values will be inherited from the map.
      *
-     * @param {module:Core/layer/Layer~Layer} layer an object describing the layer options creation
-     * @returns {Promise} a promise resolving when the layer is ready
+     * @param layer an object describing the layer options creation
+     * @returns a promise resolving when the layer is ready
      */
-    addLayer(layer) {
+    addLayer(layer: Layer) {
         return new Promise((resolve, reject) => {
             if (!this._instance) {
                 reject(new Error('map is not attached to an instance'));
@@ -836,12 +841,10 @@ class Map extends Entity3D {
             }
             this.currentAddedLayerIds.push(layer.id);
 
-            layer.instance = this._instance;
-
             this.attach(layer);
 
             if (layer instanceof ColorLayer) {
-                const colorLayers = this._attachedLayers.filter(l => l instanceof ColorLayer);
+                const colorLayers = this.attachedLayers.filter(l => l instanceof ColorLayer);
 
                 // rebuild color textures atlas
                 // We use a margin to prevent atlas bleeding.
@@ -880,9 +883,9 @@ class Map extends Entity3D {
                     return;
                 }
 
-                this._reorderLayers();
+                this.reorderLayers();
                 this._instance.notifyChange(this, false);
-                this.dispatchEvent({ type: 'layer-added' });
+                this.dispatchEvent({ type: 'layer-added', layer });
                 resolve(l);
             }).catch(r => {
                 reject(r);
@@ -900,7 +903,7 @@ class Map extends Entity3D {
      * @param {boolean} [options.disposeLayer=false] If `true`, the layer is also disposed.
      * @returns {boolean} `true` if the layer was present, `false` otherwise.
      */
-    removeLayer(layer, options = {}) {
+    removeLayer(layer: Layer, options: { disposeLayer?: boolean; } = {}): boolean {
         this.currentAddedLayerIds = this.currentAddedLayerIds.filter(l => l !== layer.id);
         if (this.detach(layer)) {
             if (layer.colorMap) {
@@ -910,8 +913,8 @@ class Map extends Entity3D {
                 layer.unregisterNode(tile);
             });
             layer.postUpdate();
-            this._reorderLayers();
-            this.dispatchEvent({ type: 'layer-removed' });
+            this.reorderLayers();
+            this.dispatchEvent({ type: 'layer-removed', layer });
             this._instance.notifyChange(this, true);
             if (options.disposeLayer) {
                 layer.dispose();
@@ -925,14 +928,13 @@ class Map extends Entity3D {
     /**
      * Gets all layers that satisfy the filter predicate.
      *
-     * @param {Function} [filter] the optional filter
-     * @returns {Array<Layer>} the layers that matched the predicate,
-     * or all layers if no predicate was provided.
+     * @param predicate the optional predicate.
+     * @returns the layers that matched the predicate or all layers if no predicate was provided.
      */
-    getLayers(filter) {
+    getLayers(predicate?: (arg0: Layer) => boolean) {
         const result = [];
-        for (const layer of this._attachedLayers) {
-            if (!filter || filter(layer)) {
+        for (const layer of this.attachedLayers) {
+            if (!predicate || predicate(layer)) {
                 result.push(layer);
             }
         }
@@ -942,19 +944,19 @@ class Map extends Entity3D {
     /**
      * Gets all color layers in this map.
      *
-     * @returns {Array<Layer>} the color layers
+     * @returns the color layers
      */
-    getColorLayers() {
-        return this.getLayers(l => l instanceof ColorLayer);
+    getColorLayers(): ColorLayer[] {
+        return this.getLayers(l => (l as ColorLayer).isColorLayer) as ColorLayer[];
     }
 
     /**
      * Gets all elevation layers in this map.
      *
-     * @returns {Array<ElevationLayer>} the color layers
+     * @returns the elevation layers
      */
-    getElevationLayers() {
-        return this.getLayers(l => l instanceof ElevationLayer);
+    getElevationLayers(): ElevationLayer[] {
+        return this.getLayers(l => (l as ElevationLayer).isElevationLayer) as ElevationLayer[];
     }
 
     /**
@@ -963,14 +965,18 @@ class Map extends Entity3D {
      * Note: By default, layers in this map are not automatically disposed, except when
      * `disposeLayers` is `true`.
      *
-     * @param {object} [options] Options.
-     * @param {boolean} [options.disposeLayers=false] If true, layers are also disposed.
+     * @param options Options.
+     * @param options.disposeLayers If true, layers are also disposed.
      */
-    dispose(options = {}) {
+    dispose(options: {
+        disposeLayers?: boolean;
+    } = {
+        disposeLayers: false,
+    }) {
         // Delete cached TileGeometry objects. This is not possible to do
         // at the TileMesh level because TileMesh objects do not own their geometry,
         // as it is shared among all tiles at the same depth level.
-        this._clearGeometryPool();
+        this.clearGeometryPool();
 
         // Dispose all tiles so that every layer will unload data relevant to those tiles.
         this._forEachTile(t => t.dispose());
@@ -987,9 +993,9 @@ class Map extends Entity3D {
      *
      * If there is no elevation layer present, returns `{ min: 0, max: 0 }`.
      *
-     * @returns {import('../core').ElevationRange} The min/max value.
+     * @returns The min/max value.
      */
-    getElevationMinMax() {
+    getElevationMinMax(): ElevationRange {
         const elevationLayers = this.getElevationLayers();
         if (elevationLayers.length > 0) {
             let min = null;
@@ -1018,23 +1024,23 @@ class Map extends Entity3D {
     /**
      * Applies the function to all tiles of this map.
      *
-     * @param {Function} fn The function to apply to each tile.
+     * @param fn The function to apply to each tile.
      */
-    _forEachTile(fn) {
+    _forEachTile(fn: (tile: TileMesh) => void) {
         for (const r of this.level0Nodes) {
             r.traverse(obj => {
-                if (obj.isTileMesh) {
-                    fn(obj);
+                if ((obj as TileMesh).isTileMesh) {
+                    fn(obj as TileMesh);
                 }
             });
         }
     }
 
     /**
-     * @param {TileMesh} node The
-     * @returns {boolean} True if the node can be subdivided.
+     * @param node The node to subdivide.
+     * @returns True if the node can be subdivided.
      */
-    canSubdivide(node) {
+    canSubdivide(node: TileMesh): boolean {
         // Prevent subdivision if node is covered by at least one elevation layer
         // and if node doesn't have a elevation texture yet.
         for (const e of this.getElevationLayers()) {
@@ -1044,7 +1050,7 @@ class Map extends Entity3D {
             }
         }
 
-        if (node.children.some(n => n.layer === this)) {
+        if (node.children.some(n => (n as TileMesh).layer === this)) {
             // No need to prevent subdivision, since we've already done it before
             return true;
         }
@@ -1052,7 +1058,7 @@ class Map extends Entity3D {
         return true;
     }
 
-    testTileSSE(tile, sse) {
+    private testTileSSE(tile: TileMesh, sse: SSE) {
         if (this.maxSubdivisionLevel > 0 && this.maxSubdivisionLevel <= tile.level) {
             return false;
         }
@@ -1076,7 +1082,7 @@ class Map extends Entity3D {
         return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
     }
 
-    updateMinMaxDistance(context, node) {
+    private updateMinMaxDistance(context: Context, node: TileMesh) {
         const bbox = node.OBB().box3D.clone()
             .applyMatrix4(node.OBB().matrixWorld);
         const distance = context.distance.plane

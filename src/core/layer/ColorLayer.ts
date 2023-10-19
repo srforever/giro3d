@@ -150,11 +150,11 @@ class ColorLayer extends Layer<ColorLayerEvents> {
         }
     }
 
-    protected registerNode(node: Node, extent: Extent) {
+    registerNode(node: Node, extent: Extent) {
         (node.material as NodeMaterial).pushColorLayer(this, extent);
     }
 
-    protected unregisterNode(node: Node) {
+    unregisterNode(node: Node) {
         super.unregisterNode(node);
         const material = node.material as NodeMaterial;
         if (material) {
