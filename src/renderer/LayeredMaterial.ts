@@ -29,18 +29,7 @@ import type ColorLayer from '../core/layer/ColorLayer.js';
 import type ElevationRange from '../core/ElevationRange.js';
 import type Extent from '../core/geographic/Extent';
 import type ColorMapAtlas from './ColorMapAtlas';
-
-interface LayerAtlasInfo {
-    x: number;
-    y: number;
-    offset: number;
-}
-
-interface AtlasInfo {
-    maxX: number;
-    maxY: number;
-    atlas: Record<string, LayerAtlasInfo>;
-}
+import type { AtlasInfo, LayerAtlasInfo } from './AtlasBuilder';
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -138,7 +127,7 @@ function updateOffsetScale(
     );
 }
 
-interface MaterialOptions {
+export interface MaterialOptions {
     /**
      * Discards no-data pixels.
      */
