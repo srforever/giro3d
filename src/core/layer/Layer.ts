@@ -25,7 +25,7 @@ import { DefaultQueue } from '../RequestQueue';
 import OperationCounter from '../OperationCounter';
 import type TileMesh from '../TileMesh';
 import type PointCloud from '../PointCloud.js';
-import type Context from '../Context.js';
+import type Context from '../Context';
 import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
 import type PointsMaterial from '../../renderer/PointsMaterial.js';
 import type Progress from '../Progress.js';
