@@ -9,7 +9,7 @@ import TileMesh from '../core/TileMesh';
 import Map from '../entities/Map.js';
 import Helpers from '../helpers/Helpers.js';
 import EntityInspector from './EntityInspector.js';
-import RenderingState from '../renderer/RenderingState.js';
+import RenderingState from '../renderer/RenderingState';
 import LayerInspector from './LayerInspector.js';
 import HillshadingPanel from './HillshadingPanel.js';
 import ContourLinePanel from './ContourLinePanel.js';

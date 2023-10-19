@@ -12,7 +12,7 @@ import {
     type WebGLRenderer,
     Vector3,
 } from 'three';
-import RenderingState from './RenderingState.js';
+import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
 import TileFS from './shader/TileFS.glsl';
 import WebGLComposer from './composition/WebGLComposer';

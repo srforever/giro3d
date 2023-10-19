@@ -7,7 +7,7 @@ import Layer from '../../../src/core/layer/Layer';
 import MainLoop from '../../../src/core/MainLoop.js';
 import { setupGlobalMocks } from '../mocks.js';
 import ElevationLayer from '../../../src/core/layer/ElevationLayer';
-import RenderingState from '../../../src/renderer/RenderingState.js';
+import RenderingState from '../../../src/renderer/RenderingState';
 import ColorLayer from '../../../src/core/layer/ColorLayer';
 import NullSource from '../../../src/sources/NullSource';
 import { DEFAULT_AZIMUTH, DEFAULT_ZENITH } from '../../../src/renderer/LayeredMaterial';

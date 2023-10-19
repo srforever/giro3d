@@ -12,7 +12,7 @@ import type LayeredMaterial from '../renderer/LayeredMaterial.js';
 import type Extent from './geographic/Extent.js';
 import TileGeometry from './TileGeometry.js';
 import type OBB from './OBB.js';
-import type RenderingState from '../renderer/RenderingState.js';
+import type RenderingState from '../renderer/RenderingState';
 import type ElevationLayer from './layer/ElevationLayer.js';
 import type TileIndex from './TileIndex';
 

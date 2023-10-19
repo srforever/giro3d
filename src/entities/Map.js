@@ -25,7 +25,7 @@ import LayeredMaterial, {
 } from '../renderer/LayeredMaterial';
 import TileMesh from '../core/TileMesh';
 import TileIndex from '../core/TileIndex';
-import RenderingState from '../renderer/RenderingState.js';
+import RenderingState from '../renderer/RenderingState';
 import ColorMapAtlas from '../renderer/ColorMapAtlas';
 import AtlasBuilder from '../renderer/AtlasBuilder.js';
 import Capabilities from '../core/system/Capabilities.js';
