@@ -31,8 +31,9 @@ vec4 computeColorLayer(
             color = computeColor(uv, layer.offsetScale, atlas);
         }
         vec3 rgb = color.rgb * layer.color.rgb;
+
         float a = color.a * layer.color.a;
-        return vec4(rgb, a);
+        return vec4(adjustBrightnessContrastSaturation(rgb, layer.brightnessContrastSaturation), a);
     }
 
     return vec4(0);

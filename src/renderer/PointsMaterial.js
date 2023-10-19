@@ -61,6 +61,9 @@ class PointsMaterial extends ShaderMaterial {
         this.size = options.size || 0;
         this.scale = options.scale || (0.05 * 0.5) / Math.tan(1.0 / 2.0); // autosizing scale
         this.overlayColor = options.overlayColor || new Vector4(0, 0, 0, 0);
+        this._brightness = 0;
+        this._contrast = 1;
+        this._saturation = 1;
         this.mode = options.mode || MODE.COLOR;
         this.pickingId = 0;
 
@@ -77,6 +80,9 @@ class PointsMaterial extends ShaderMaterial {
         this.uniforms.overlayColor = new Uniform(this.overlayColor);
         this.uniforms.overlayTexture = new Uniform();
         this.uniforms.hasOverlayTexture = new Uniform(0);
+        this.uniforms.brightnessContrastSaturation = new Uniform(
+            new Vector3(this._brightness, this._contrast, this._saturation),
+        );
 
         if (Capabilities.isLogDepthBufferSupported()) {
             this.defines.USE_LOGDEPTHBUF = 1;
@@ -157,6 +163,11 @@ class PointsMaterial extends ShaderMaterial {
         this.uniforms.pickingId.value = this.pickingId;
         this.uniforms.opacity.value = this.opacity;
         this.uniforms.overlayColor.value = this.overlayColor;
+        this.uniforms.brightnessContrastSaturation.value = new Vector3(
+            this._brightness,
+            this._contrast,
+            this._saturation,
+        );
     }
 
     update(source) {
@@ -170,6 +181,9 @@ class PointsMaterial extends ShaderMaterial {
             this.pickingId = source.pickingId;
             this.scale = source.scale;
             this.overlayColor.copy(source.overlayColor);
+            this._brightness = source._brightness;
+            this._contrast = source._contrast;
+            this._saturation = source._saturation;
         }
         this.updateUniforms();
         if (source) {
@@ -235,6 +249,53 @@ class PointsMaterial extends ShaderMaterial {
     // eslint-disable-next-line class-methods-use-this
     setLayerElevationRange() {
         // no-op
+    }
+
+    /**
+     * Gets or sets the brightness of this layer.
+     */
+    get brightness() {
+        return this._brightness;
+    }
+
+    set brightness(v) {
+        if (this._brightness !== v) {
+            this._brightness = v;
+            this._mustUpdateUniforms = true;
+        }
+    }
+
+    /**
+     * Gets or sets the contrast of this layer.
+     */
+    get contrast() {
+        return this._contrast;
+    }
+
+    set contrast(v) {
+        if (this._contrast !== v) {
+            this._contrast = v;
+            this._mustUpdateUniforms = true;
+        }
+    }
+
+    /**
+     * Gets or sets the saturation of this layer.
+     */
+    get saturation() {
+        return this._saturation;
+    }
+
+    set saturation(v) {
+        if (this._saturation !== v) {
+            this._saturation = v;
+            this._mustUpdateUniforms = true;
+        }
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    setLayerBrightnessContrastSaturation(layer, brightness, contrast, saturation) {
+        // Not implemented because the points have their own BCS controls
     }
 
     enableTransfo(v) {

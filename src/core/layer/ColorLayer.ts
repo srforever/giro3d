@@ -11,6 +11,9 @@ import type ElevationRange from '../ElevationRange';
 
 export interface ColorLayerEvents extends LayerEvents {
     'opacity-property-changed': { opacity: number; };
+    'brightness-property-changed': { brightness: number; };
+    'contrast-property-changed': { contrast: number; };
+    'saturation-property-changed': { saturation: number; };
 }
 
 /**
@@ -20,6 +23,9 @@ class ColorLayer extends Layer<ColorLayerEvents> {
     private _opacity: number;
     readonly isColorLayer: boolean = true;
     readonly elevationRange: ElevationRange;
+    private _brightness: number;
+    private _contrast: number;
+    private _saturation: number;
 
     /**
      * Creates a color layer.
@@ -54,6 +60,9 @@ class ColorLayer extends Layer<ColorLayerEvents> {
         this.type = 'ColorLayer';
         this.elevationRange = options.elevationRange;
         this._opacity = 1;
+        this._brightness = 0;
+        this._contrast = 1;
+        this._saturation = 1;
     }
 
     /**
@@ -72,12 +81,66 @@ class ColorLayer extends Layer<ColorLayerEvents> {
         }
     }
 
+    /**
+     * Gets or sets the brightness of this layer.
+     *
+     *  @fires ColorLayer#brightness-property-changed
+     */
+    get brightness() {
+        return this._brightness;
+    }
+
+    set brightness(v) {
+        if (this._brightness !== v) {
+            this._brightness = v;
+            this.dispatchEvent({ type: 'brightness-property-changed', brightness: v });
+        }
+    }
+
+    /**
+     * Gets or sets the contrast of this layer.
+     *
+     *  @fires ColorLayer#contrast-property-changed
+     */
+    get contrast() {
+        return this._contrast;
+    }
+
+    set contrast(v) {
+        if (this._contrast !== v) {
+            this._contrast = v;
+            this.dispatchEvent({ type: 'contrast-property-changed', contrast: v });
+        }
+    }
+
+    /**
+     * Gets or sets the saturation of this layer.
+     *
+     *  @fires ColorLayer#saturation-property-changed
+     */
+    get saturation() {
+        return this._saturation;
+    }
+
+    set saturation(v) {
+        if (this._saturation !== v) {
+            this._saturation = v;
+            this.dispatchEvent({ type: 'saturation-property-changed', saturation: v });
+        }
+    }
+
     protected updateMaterial(material: NodeMaterial) {
         if (material.hasColorLayer(this)) {
             // Update material parameters
             material.setLayerVisibility(this, this.visible);
             material.setLayerOpacity(this, this.opacity);
             material.setLayerElevationRange(this, this.elevationRange);
+            material.setLayerBrightnessContrastSaturation(
+                this,
+                this.brightness,
+                this.contrast,
+                this.saturation,
+            );
         }
     }
 
