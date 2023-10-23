@@ -1,4 +1,4 @@
-import Stamen from 'ol/source/Stamen.js';
+import StadiaMaps from 'ol/source/StadiaMaps.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
@@ -44,7 +44,7 @@ function init() {
         'osm',
         {
             source: new TiledImageSource({
-                source: new Stamen({ layer: 'watercolor', wrapX: false }),
+                source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }),
             }),
         },
     )).catch(e => console.error(e));

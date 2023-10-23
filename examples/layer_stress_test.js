@@ -1,4 +1,4 @@
-import Stamen from 'ol/source/Stamen.js';
+import StadiaMaps from 'ol/source/StadiaMaps.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
@@ -31,7 +31,7 @@ const map = new Map('map', { extent });
 
 instance.add(map);
 
-const source = new TiledImageSource({ source: new Stamen({ layer: 'toner', wrapX: false }) });
+const source = new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_toner', wrapX: false }) });
 
 const LAYER_COUNT = 16;
 

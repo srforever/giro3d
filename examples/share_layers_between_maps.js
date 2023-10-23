@@ -4,7 +4,7 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import Stamen from 'ol/source/Stamen.js';
+import StadiaMaps from 'ol/source/StadiaMaps.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
@@ -30,7 +30,7 @@ const instance = new Instance(viewerDiv, {
 const layer = new ColorLayer(
     'osm',
     {
-        source: new TiledImageSource({ source: new Stamen({ layer: 'watercolor', wrapX: false }) }),
+        source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
     },
 );
 
