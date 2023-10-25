@@ -27,7 +27,7 @@ import type {
     FeatureElevationCallback,
     FeatureStyle,
     FeatureStyleCallback,
-} from '../../core/FeatureTypes';
+} from '../core/FeatureTypes';
 
 const VERT_STRIDE = 3; // 3 elements per vertex position (X, Y, Z)
 const X = 0;

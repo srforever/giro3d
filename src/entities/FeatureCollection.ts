@@ -15,7 +15,7 @@ import LayerUpdateState from '../core/layer/LayerUpdateState.js';
 import Entity3D from './Entity3D.js';
 import OperationCounter from '../core/OperationCounter';
 import { DefaultQueue } from '../core/RequestQueue';
-import OlFeature2Mesh from '../renderer/extensions/OlFeature2Mesh';
+import OlFeature2Mesh from '../utils/OlFeature2Mesh';
 import {
     type FeatureStyle,
     type FeatureStyleCallback,

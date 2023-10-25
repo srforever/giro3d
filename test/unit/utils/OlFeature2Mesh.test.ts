@@ -6,7 +6,7 @@ import {
 import type { Points } from 'three';
 import { Vector3 } from 'three';
 
-import OlFeature2Mesh from 'src/renderer/extensions/OlFeature2Mesh';
+import OlFeature2Mesh from 'src/utils/OlFeature2Mesh';
 
 const SIMPLE_SQUARE = [[[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0], [0, 0, 0]]];
 const SIMPLE_SQUARE_VERTICES = new Float32Array([
