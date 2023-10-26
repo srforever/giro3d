@@ -101,6 +101,7 @@ const map = new Map('map', {
     doubleSided: true,
     backgroundOpacity: 0,
     hillshading: true,
+    discardNoData: true,
     segments: 128,
 });
 
