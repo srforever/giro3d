@@ -381,8 +381,19 @@ class AxisGrid extends Entity3D {
         }
     }
 
+    /**
+     * Gets or sets the tick intervals.
+     * You will need to call {@link refresh} to recreate the grid.
+     */
     get ticks() {
         return this._ticks;
+    }
+
+    set ticks(v: Ticks) {
+        if (v === undefined || v === null) {
+            throw new Error('cannot assign undefined/null ticks');
+        }
+        this._ticks = v;
     }
 
     /**

@@ -47,6 +47,23 @@ describe('AxisGrid', () => {
         });
     });
 
+    describe('ticks', () => {
+        it('should set the ticks property', () => {
+            const grid = new AxisGrid('foo', { volume: defaultVolume });
+            grid.ticks = { x: 1, y: 2, z: 3 };
+            expect(grid.ticks).toEqual({ x: 1, y: 2, z: 3 });
+        });
+    });
+
+    describe('volume', () => {
+        it('should set the volume property', () => {
+            const grid = new AxisGrid('foo', { volume: defaultVolume });
+            grid.volume = { ceiling: 199, floor: 111, extent: new Extent('EPSG:3857', 1, 2, 3, 4) };
+
+            expect(grid.volume).toEqual({ ceiling: 199, floor: 111, extent: new Extent('EPSG:3857', 1, 2, 3, 4) });
+        });
+    });
+
     describe('preUpdate', () => {
         it('should set each side visible if its facing toward the camera', () => {
             const grid = new AxisGrid('foo', { volume: { extent: DEFAULT_EXTENT, floor: 0, ceiling: 100 } });
