@@ -1,5 +1,68 @@
 # Changelog
 
+## v0.29.0 (2023-10-26)
+
+### BREAKING CHANGE
+
+- The API for no-data filling has changed. The options
+related to no-data manipulation are now in the [`NoDataOptions`](https://giro3d.org/apidoc/interfaces/core.layer.NoDataOptions.html) interface passed to
+the [`Layer`](https://giro3d.org/apidoc/classes/core.layer.Layer.html) constructor.
+See this [example](https://giro3d.org/examples/cog_nodata.html) for more information.
+
+### Feat
+
+- **Layer**: expose parameters for no-data filling (#361)
+- **Layer**: add `clear()` method to reset the state of the layer
+- **Layers**: add parameters to set brightness/contrast/saturation (#358)
+- **FeatureCollectionInspector**: add a button to pick a feature and display only this one
+- **FeatureCollection**: support extrusion (#326)
+- **MapInspector**: display layer info in floating labels
+- **TiledImageSource**: add option to specify extent
+
+### Fix
+
+- **Map**: don't prevent subdivision if elevation layer is not visible
+- **CogSource**: initialize() once (!438)
+- **Layer**: fix texture inheritance (#359)
+- **FeatureCollection**: be consistent on the use of null vs undefined
+- **FeatureCollection**: really clean objects when removing a 'tile'
+- **Outliner**: give names to FeatureCollection meshes
+- **examples**: put example.css after bootstrap for an easier customisation
+- **FeatureCollectionInspector**: remove duplicate button with EntityInspector
+- **OLFeature2Mesh**: fix the color handling
+- **TiledImageSource**: handle 404 errors with empty textures
+- **Layer**: fix invalid state transitions (#356)
+
+### Refactor
+
+- **Layer**: move constructor options in interface
+- **ComposerTileMaterial**: cleanup
+- **LayerComposer**: migrate to TypeScript
+- remove support for older GLTF 1 files
+- **LayeredMaterial**: migrate to TypeScript
+- **ImageSource**: migrate to TypeScript
+- **Cache**: migrate to TypeScript
+- **ColorMap**: migrate to TypeScript
+- **ImageFormat**: migrate to TypeScript
+- **WebGLComposer**: migrate to TypeScript
+- **API**: remove `TextureGenerator` from exposed API
+- **AxisGrid**: migrate to TypeScript
+- **ImageSource**: migrate to TypeScript
+- **CanvasComposer**: delete unused class
+- **ComposerTileMaterial**: migrate to TypeScript
+- **OpenLayersUtils**: migrate to TypeScript
+- **ProjUtils**: migrate to TypeScript
+- **TextureGenerator**: migrate to TypeScript
+- **FeatureCollection**: rename `extrude` to `extrusionOffset`, and `altitude` to `elevation` in options (#326)
+- **OlFeature2Mesh**: cleanup dead code
+- **LayerComposer**: remove unused resolution parameter of images
+
+### Perf
+
+- **LayeredMaterial**: update uniforms at most once per frame (!435)
+- **TextureGenerator**: optimize `NaN` checks (!433)
+- **TiledImageSource**: ignore tiles that do not belong to a given zoom level
+
 ## v0.28.0 (2023-09-04)
 
 This release offers numerous bugfixes and performance improvements, as well as some new features.
