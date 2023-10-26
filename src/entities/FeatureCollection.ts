@@ -518,7 +518,7 @@ class FeatureCollection extends Entity3D {
                 node.userData.boundingBox,
                 node.matrixWorld,
                 Math.max(s.x, s.y),
-                ScreenSpaceError.Mode._2D,
+                ScreenSpaceError.Mode.MODE_2D,
             );
 
             node.userData.sse = sse; // DEBUG

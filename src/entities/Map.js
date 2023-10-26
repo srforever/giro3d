@@ -759,7 +759,7 @@ class Map extends Entity3D {
                     obb.box3D,
                     obb.matrixWorld,
                     Math.max(s.x, s.y),
-                    ScreenSpaceError.MODE_2D,
+                    ScreenSpaceError.Mode.MODE_2D,
                 );
 
                 node.sse = sse; // DEBUG

@@ -117,11 +117,11 @@ enum Mode {
     /*
      * Compute SSE based on the 2D bounding-box (ignore z size)
      */
-    _2D = 1,
+    MODE_2D = 1,
     /*
      * Compute SSE based on the 3D bounding-box
      */
-    _3D = 2,
+    MODE_3D = 2,
 }
 
 export default {
@@ -146,20 +146,20 @@ export default {
     ) {
         // If the camera is orthographic, there is no need to do this check.
         if (!camera.camera3D.isOrthographicCamera) {
-            const distance = findBox3Distance(camera, box3, matrix, mode === this.MODE_3D);
+            const distance = findBox3Distance(camera, box3, matrix, mode === Mode.MODE_3D);
             if (distance <= geometricError) {
                 return null;
             }
         }
 
         const size = computeSizeFromGeometricError(
-            box3, geometricError, mode === this.MODE_3D,
+            box3, geometricError, mode === Mode.MODE_3D,
         );
         const offset = box3.min;
 
         const sse = computeSSE(
             offset, size, matrix,
-            camera, mode === this.MODE_3D,
+            camera, mode === Mode.MODE_3D,
         );
 
         return sse;

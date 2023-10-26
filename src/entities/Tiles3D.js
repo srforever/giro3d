@@ -762,7 +762,7 @@ function computeNodeSSE(context, node) {
             node.boundingVolume.box,
             node.matrixWorld,
             node.geometricError,
-            ScreenSpaceError.MODE_3D,
+            ScreenSpaceError.Mode.MODE_3D,
         );
 
         if (!sse) {
