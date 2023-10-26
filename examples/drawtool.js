@@ -38,6 +38,7 @@ const map = new Map('planar', {
     extent,
     hillshading: true,
     segments: 64,
+    discardNoData: true,
     backgroundColor: 'white',
 });
 
