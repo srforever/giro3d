@@ -1,6 +1,7 @@
 import {
     FloatType,
     LinearFilter,
+    MathUtils,
     UnsignedByteType,
     Vector2,
 } from 'three';
@@ -18,7 +19,7 @@ import Extent from '../core/geographic/Extent';
 import TextureGenerator, { type NumberArray } from '../utils/TextureGenerator';
 import PromiseUtils from '../utils/PromiseUtils.js';
 import ImageSource, { ImageResult, type ImageSourceOptions } from './ImageSource';
-import { Cache } from '../core/Cache';
+import { type Cache, GlobalCache } from '../core/Cache';
 
 const tmpDim = new Vector2();
 
@@ -99,7 +100,7 @@ class CogSource extends ImageSource {
 
     readonly url: string;
     readonly crs: string;
-    readonly cache: Cache;
+    private readonly cache: Cache = GlobalCache;
     private tiffImage: GeoTIFF;
     private readonly pool: Pool;
     private imageCount: number;
@@ -114,6 +115,7 @@ class CogSource extends ImageSource {
     private format: any;
     private bps: number;
     private initializePromise: Promise<void>;
+    private readonly _cacheId: string = MathUtils.generateUUID();
 
     /**
      * Creates a COG source.
@@ -130,7 +132,6 @@ class CogSource extends ImageSource {
         this.pool = window.Worker ? new Pool() : null;
         this.imageCount = 0;
         this.levels = [];
-        this.cache = new Cache();
         this._channels = options.channels;
     }
 
@@ -461,19 +462,21 @@ class CogSource extends ImageSource {
     private async getRegionBuffers(extent: Extent, level: Level, signal: AbortSignal, id: string) {
         const window = this.makeWindowFromExtent(extent, level.resolution);
 
-        const cached = this.cache.get(id);
+        const cacheKey = `${this._cacheId}-${id}`;
+        const cached = this.cache.get(cacheKey);
         if (cached) {
             return cached;
         }
 
         const buf = await this.fetchBuffer(level.image, window, signal);
+
         let size = 0;
         if (Array.isArray(buf)) {
             size = buf.map(b => b.byteLength).reduce((a, b) => a + b);
         } else {
             size = buf.byteLength;
         }
-        this.cache.set(id, buf, { size });
+        this.cache.set(cacheKey, buf, { size });
 
         return buf;
     }
@@ -497,10 +500,6 @@ class CogSource extends ImageSource {
         const request = () => this.loadImage(opts);
 
         return [{ id, request }];
-    }
-
-    dispose() {
-        this.cache.clear();
     }
 }
 
