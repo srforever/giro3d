@@ -15,7 +15,7 @@ import {
 import type ColorMap from './ColorMap';
 import Interpretation from './Interpretation';
 import type Extent from '../geographic/Extent';
-import LayerComposer from './LayerComposer.js';
+import LayerComposer from './LayerComposer';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
 import type Instance from '../Instance.js';
@@ -29,6 +29,7 @@ import type Context from '../Context.js';
 import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
 import type PointsMaterial from '../../renderer/PointsMaterial.js';
 import type Progress from '../Progress.js';
+import type NoDataOptions from './NoDataOptions';
 
 export interface TextureAndPitch {
     texture: Texture
@@ -105,6 +106,47 @@ export interface LayerEvents {
     'visible-property-changed': { visible: boolean };
 }
 
+export interface LayerOptions {
+    /**
+     * The source of the layer.
+     */
+    source: ImageSource;
+    /**
+     * The optional extent to use for this layer. If none is provided, then the extent from the
+     * source is used instead. The layer will not be visible outside this extent.
+     */
+    extent?: Extent;
+    /**
+     * How to interpret the pixel data of the source.
+     */
+    interpretation?: Interpretation;
+    /**
+     * Displays the border of source images.
+     */
+    showTileBorders?: boolean;
+    /**
+     * How to treat no-data values.
+     */
+    noDataOptions?: NoDataOptions;
+    /**
+     * Enables min/max computation of source images. Mainly used for elevation data.
+     */
+    computeMinMax?: boolean;
+    /**
+     * The optional color map to use.
+     */
+    colorMap?: ColorMap;
+    /**
+     * Enables or disable preloading of low resolution fallback images. Those fallback images
+     * are used when no data is available yet on a particular region of the layer.
+     */
+    preloadImages?:boolean;
+    /**
+     * The optional background color of the layer.
+     */
+    backgroundColor?: ColorRepresentation;
+}
+
 /**
  * Base class of layers. Layers are components of maps or any compatible entity.
  *
@@ -154,11 +196,14 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
      */
     readonly id: string;
     private readonly uuid: string;
+    /**
+     * Read-only flag to check if a given object is of type Layer.
+     */
     readonly isLayer: boolean = true;
     type: string;
     readonly interpretation: Interpretation;
     readonly showTileBorders: boolean;
-    readonly fillNoData: boolean;
+    readonly noDataOptions: NoDataOptions;
     readonly computeMinMax: boolean;
     private _visible: boolean;
     readonly colorMap: ColorMap;
@@ -175,7 +220,6 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
     private initializing: boolean;
     private sortedTargets: Target[];
     private _instance: Instance;
-    private readonly noDataValue: number;
     private readonly createReadableTextures: boolean;
     private readonly preloadImages: boolean;
     private fallbackImagesPromise: Promise<void>;
@@ -196,31 +240,8 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
      *
      * @param id The unique identifier of the layer.
      * @param options The layer options.
-     * @param options.source The data source of this layer.
-     * @param options.extent The optional extent of the layer. If defined, only parts of the layer
-     * inside the extent will be displayed. Note: this extent must be in the same CRS as the
-     * instance, otherwise an error is raised when the layer is added to an entity.
-     * @param options.interpretation How to interpret the values in the dataset.
-     * @param options.backgroundColor The background color of the layer.
-     * @param options.fillNoData Enables or disables no-data filling for images.
-     * @param options.computeMinMax Computes min/max for images.
-     * @param options.colorMap An optional color map for this layer.
-     * @param options.showTileBorders Shows the borders of the tiles.
-     * @param options.noDataValue The no-data value.
-     * @param options.preloadImages Enables or disable preloading of low resolution fallback images.
      */
-    constructor(id: string, options: {
-        source: ImageSource;
-        extent?: Extent;
-        interpretation?: Interpretation;
-        showTileBorders?: boolean;
-        fillNoData?: boolean;
-        computeMinMax?: boolean;
-        colorMap?: ColorMap;
-        preloadImages?:boolean;
-        backgroundColor?: ColorRepresentation;
-        noDataValue?: number;
-    }) {
+    constructor(id: string, options: LayerOptions) {
         super();
         if (id === undefined || id === null) {
             throw new Error('id is undefined');
@@ -239,11 +260,10 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
         this.preloadImages = options.preloadImages ?? false;
         this.fallbackImagesPromise = null;
 
-        this.fillNoData = options.fillNoData;
+        this.noDataOptions = options.noDataOptions ?? { replaceNoData: false };
         this.computeMinMax = options.computeMinMax ?? false;
         this.createReadableTextures = this.computeMinMax != null && this.computeMinMax !== false;
         this._visible = true;
-        this.noDataValue = options.noDataValue;
 
         this.colorMap = options.colorMap;
 
@@ -295,6 +315,13 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
     }
 
     private onSourceUpdated() {
+        this.clear();
+    }
+
+    /**
+     * Resets all render targets to a blank state and repaint all the targets.
+     */
+    clear() {
         if (!this.ready) {
             return;
         }
@@ -434,19 +461,22 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
             if (result.status === PromiseStatus.Fullfilled) {
                 const image = (result as PromiseFulfilledResult<ImageResult>).value;
 
-                const opts = {
-                    interpretation: this.interpretation,
-                    fillNoData: this.fillNoData,
-                    alwaysVisible: true, // Ensures background images are never deleted
-                    flipY: this.source.flipY,
-                    noDataValue: this.noDataValue,
-                    ...image,
-                };
-                this.composer.add(opts);
+                this.addToComposer(image);
             }
         }
 
         await this.onInitialized();
+    }
+
+    private addToComposer(image: ImageResult) {
+        this.composer.add({
+            fillNoData: this.noDataOptions.replaceNoData,
+            fillNoDataAlphaReplacement: this.noDataOptions.alpha,
+            fillNoDataRadius: this.noDataOptions.maxSearchDistance,
+            alwaysVisible: true, // Ensures background images are never deleted
+            flipY: this.source.flipY,
+            ...image,
+        });
     }
 
     async loadFallbackImages() {
@@ -476,7 +506,6 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
      * @param options.width The request width, in pixels.
      * @param options.height The request height, in pixels.
      * @param options.target The target of the images.
-     * @param options.alwaysVisible If true, the image is always visible on the canvas.
      * @returns A promise that is settled when all images have been fetched.
      */
     private async fetchImages(options: {
@@ -484,14 +513,12 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
         width: number;
         height: number;
         target: Target;
-        alwaysVisible?: boolean;
     }): Promise<void> {
         const {
             extent,
             width,
             height,
             target,
-            alwaysVisible,
         } = options;
 
         const node = target.node;
@@ -543,15 +570,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
                 id: requestId, request, priority, shouldExecute,
             }).then((image: ImageResult) => {
                 if (!this.disposed) {
-                    const opts = {
-                        interpretation: this.interpretation,
-                        fillNoData: this.fillNoData,
-                        alwaysVisible,
-                        flipY: this.source.flipY,
-                        ...image,
-                    };
-
-                    this.composer.add(opts);
+                    this.addToComposer(image);
                     if (!this.shouldCancelRequest(node)) {
                         this.composer.lock(id, node.id);
                     }

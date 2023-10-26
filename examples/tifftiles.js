@@ -39,7 +39,6 @@ const map = new Map('planar', {
     hillshading: true,
     segments: 128,
     doubleSided: true,
-    discardNoData: true,
     backgroundColor: 'white',
 });
 

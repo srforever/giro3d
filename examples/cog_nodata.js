@@ -4,10 +4,13 @@ import { Color } from 'three';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import CogSource from '@giro3d/giro3d/sources/CogSource.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
-import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-import Map from '@giro3d/giro3d/entities/Map.js';
+import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer';
+import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
+import MaskLayer from '@giro3d/giro3d/core/layer/MaskLayer.js';
+import Map from '@giro3d/giro3d/entities/Map';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
+import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Define projection that we will use (taken from https://epsg.io/26910, Proj4js section)
@@ -31,8 +34,7 @@ const viewerDiv = document.getElementById('viewerDiv');
 const instance = new Instance(viewerDiv, {
     crs: extent.crs(),
     renderer: {
-        clearColor: 'black',
-        checkShaderErrors: false,
+        clearColor: false,
     },
 });
 
@@ -45,17 +47,6 @@ controls.enableDamping = true;
 controls.dampingFactor = 0.2;
 controls.target.set(center.x, center.y, center.z);
 instance.useTHREEControls(controls);
-
-// Construct a map and add it to the instance
-const map = new Map('planar', {
-    extent,
-    doubleSided: true,
-    discardNoData: true,
-    backgroundColor: new Color(0, 0, 0),
-    hillshading: true,
-    segments: 128,
-});
-instance.add(map);
 
 // Use an elevation COG with nodata values
 const source = new CogSource({
@@ -70,23 +61,117 @@ const colors = values.map(v => new Color(v));
 const min = 227;
 const max = 2538;
 
-// Display it as elevation and color
 const colorMap = new ColorMap(colors, min, max, ColorMapMode.Elevation);
-map.addLayer(new ElevationLayer('elevation', {
+
+const noDataOptions = {
+    alpha: 0,
+    maxSearchDistance: 0,
+    replaceNoData: true,
+};
+
+let activeLayer;
+
+const maskLayer = new MaskLayer('mask', {
     extent,
     source,
+    noDataOptions,
+    preloadImages: false,
+    interpretation: Interpretation.CompressTo8Bit(min, max),
+});
+
+const elevationLayer = new ElevationLayer('elevation', {
+    extent,
+    source,
+    noDataOptions,
     colorMap,
+    preloadImages: false,
     minmax: { min, max },
-}));
+});
+
+const colorLayer = new ColorLayer('color', {
+    extent,
+    source,
+    noDataOptions,
+    colorMap,
+    preloadImages: false,
+});
+
+const map = new Map('map', {
+    extent,
+    doubleSided: true,
+    backgroundOpacity: 0,
+    hillshading: true,
+    segments: 128,
+});
+
+instance.add(map);
+
+map.addLayer(elevationLayer);
+map.addLayer(maskLayer);
+map.addLayer(colorLayer);
 
 // Attach the inspector
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
-const toggle = document.getElementById('discard-nodata');
-toggle.onchange = () => {
-    map.materialOptions.discardNoData = toggle.checked;
-    instance.notifyChange(map);
+const layerSourceInput = document.getElementById('noDataLayerSource');
+const alphaReplacementInput = document.getElementById('alphaReplacement');
+
+alphaReplacementInput.addEventListener('change', e => {
+    const value = parseInt(e.target.value, 10);
+    noDataOptions.alpha = value;
+});
+
+const radiusSlider = document.getElementById('maxDistanceSlider');
+radiusSlider.oninput = function oninput() {
+    noDataOptions.maxSearchDistance = radiusSlider.valueAsNumber;
 };
+
+const enableFillNoDataCheckbox = document.getElementById('enableFillNoData');
+
+enableFillNoDataCheckbox.oninput = function oninput() {
+    const state = enableFillNoDataCheckbox.checked;
+    noDataOptions.replaceNoData = state;
+    if (!state) {
+        radiusSlider.setAttribute('disabled', !state);
+        alphaReplacementInput.setAttribute('disabled', !state);
+    } else {
+        radiusSlider.removeAttribute('disabled');
+        alphaReplacementInput.removeAttribute('disabled');
+    }
+};
+
+function updateLayers() {
+    activeLayer?.clear();
+    const value = parseInt(layerSourceInput.value, 10);
+    noDataOptions.value = alphaReplacementInput.valueAsNumber;
+    noDataOptions.maxSearchDistance = radiusSlider.valueAsNumber;
+    elevationLayer.visible = false;
+    maskLayer.visible = false;
+    colorLayer.visible = false;
+    switch (value) {
+        case 0:
+            activeLayer = elevationLayer;
+            map.materialOptions.backgroundOpacity = 0;
+            break;
+        case 1:
+            activeLayer = maskLayer;
+            map.materialOptions.backgroundOpacity = 1;
+            break;
+        case 2:
+        default:
+            activeLayer = colorLayer;
+            map.materialOptions.backgroundOpacity = 0;
+            break;
+    }
+    activeLayer.visible = true;
+    instance.notifyChange(map);
+}
 
 // Bind events
 StatusBar.bind(instance);
+
+updateLayers();
+
+document.getElementById('applyChanges').onclick = function onclick() {
+    updateLayers();
+};

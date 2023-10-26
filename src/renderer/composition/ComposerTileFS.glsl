@@ -8,7 +8,7 @@ uniform sampler2D texture;
 uniform sampler2D gridTexture;
 uniform float opacity;
 uniform bool flipY;
-uniform bool fillNoData;
+uniform NoDataOptions noDataOptions;
 uniform bool showImageOutlines;
 
 void main() {
@@ -16,8 +16,8 @@ void main() {
         ? vec2(vUv.x, 1.0 - vUv.y)
         : vUv;
 
-    vec4 raw = fillNoData
-        ? texture2DFillNodata(texture, uv)
+    vec4 raw = noDataOptions.enabled
+        ? texture2DFillNodata(texture, uv, noDataOptions)
         : texture2D(texture, uv);
 
     gl_FragColor = decodeInterpretation(raw, interpretation);

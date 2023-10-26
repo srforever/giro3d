@@ -12,11 +12,18 @@ import FragmentShader from './ComposerTileFS.glsl';
 import VertexShader from './ComposerTileVS.glsl';
 import Interpretation, { Mode } from '../../core/layer/Interpretation';
 
+// Matches the NoDataOptions struct in the shader
+interface NoDataOptions {
+    replacementAlpha: number;
+    radius: number;
+    enabled: boolean;
+}
+
 export interface Options {
     texture: Texture;
     interpretation: Interpretation;
     flipY: boolean;
-    fillNoData: boolean;
+    noDataOptions: NoDataOptions;
     showImageOutlines: boolean;
     transparent: boolean;
 }
@@ -89,7 +96,7 @@ class ComposerTileMaterial extends RawShaderMaterial {
         this.uniforms.gridTexture = new Uniform(null);
         this.uniforms.interpretation = new Uniform(null);
         this.uniforms.flipY = new Uniform(false);
-        this.uniforms.fillNoData = new Uniform(false);
+        this.uniforms.noDataOptions = new Uniform({ enabled: false });
         this.uniforms.showImageOutlines = new Uniform(false);
         this.uniforms.opacity = new Uniform(this.opacity);
         this.now = performance.now();
@@ -100,56 +107,27 @@ class ComposerTileMaterial extends RawShaderMaterial {
         }
     }
 
-    /**
-     * Initializes an existing material with new values.
-     *
-     * @param opts The options.
-     * @param opts.texture The texture.
-     * @param opts.interpretation The image interpretation.
-     * @param opts.flipY If true, the image will be flipped vertically in the shader.
-     * @param opts.fillNoData If true, applies an algorithm to interpolate
-     * no-data pixels from neighbouring valid pixels.
-     * @param opts.showImageOutlines Displays the outline of the tile.
-     * @param opts.fadeDuration The fade duration.
-     * @param opts.transparent Enable transparency.
-     */
-    private init({
-        texture,
-        interpretation,
-        flipY,
-        fillNoData = false,
-        showImageOutlines,
-        transparent,
-    }: { texture: Texture;
-        interpretation: Interpretation;
-        flipY: boolean;
-        fillNoData: boolean;
-        showImageOutlines: boolean;
-        fadeDuration?: number;
-        transparent: boolean;
-    }) {
-        const interp = interpretation ?? Interpretation.Raw;
+    private init(options: Options) {
+        const interp = options.interpretation ?? Interpretation.Raw;
 
-        this.dataType = interp.mode !== Mode.Raw ? FloatType : texture.type;
-        this.pixelFormat = texture.format;
+        this.dataType = interp.mode !== Mode.Raw ? FloatType : options.texture.type;
+        this.pixelFormat = options.texture.format;
 
         const interpValue = {};
         interp.setUniform(interpValue);
-        if (texture) {
-            interp.prepareTexture(texture);
-        }
+        interp.prepareTexture(options.texture);
 
         // The no-data filling algorithm does not like transparent images
-        this.needsUpdate = this.transparent !== transparent;
-        this.transparent = transparent ?? false;
+        this.needsUpdate = this.transparent !== options.transparent;
+        this.transparent = options.transparent ?? false;
         this.opacity = 1;
         this.uniforms.opacity.value = this.opacity;
         this.uniforms.interpretation.value = interpValue;
-        this.uniforms.texture.value = texture;
-        this.uniforms.flipY.value = flipY ?? false;
-        this.uniforms.fillNoData.value = fillNoData ?? false;
-        this.uniforms.showImageOutlines.value = showImageOutlines ?? false;
-        if (showImageOutlines) {
+        this.uniforms.texture.value = options.texture;
+        this.uniforms.flipY.value = options.flipY ?? false;
+        this.uniforms.noDataOptions.value = options.noDataOptions ?? { enabled: false };
+        this.uniforms.showImageOutlines.value = options.showImageOutlines ?? false;
+        if (options.showImageOutlines) {
             if (!GRID_TEXTURE) {
                 GRID_TEXTURE = createGridTexture();
             }

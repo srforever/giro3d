@@ -147,9 +147,6 @@ class MapInspector extends EntityInspector {
             instance,
         );
 
-        this.addController(this.map.materialOptions, 'discardNoData')
-            .name('Discard no-data values')
-            .onChange(() => this.notify(this.map));
         this.addController(this, 'layerCount').name('Layer count');
         this.addController(this, 'renderState', ['Normal', 'Picking'])
             .name('Render state')

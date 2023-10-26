@@ -1,11 +1,10 @@
 import Layer, {
+    type LayerOptions,
     type LayerEvents,
     type Node,
     type NodeMaterial,
     type TextureAndPitch,
 } from './Layer';
-import type ImageSource from '../../sources/ImageSource.js';
-import type Interpretation from './Interpretation';
 import type Extent from '../geographic/Extent';
 import type ElevationRange from '../ElevationRange';
 
@@ -16,11 +15,26 @@ export interface ColorLayerEvents extends LayerEvents {
     'saturation-property-changed': { saturation: number; };
 }
 
+export interface ColorLayerOptions extends LayerOptions {
+    /**
+     * An optional elevation range to limit the display of this layer.
+     * This is only useful if there is also an elevation layer on the map.
+     */
+    elevationRange?: ElevationRange;
+    /**
+     * The opacity of the layer. Default is 1 (opaque).
+     */
+    opacity?: number;
+}
+
 /**
  * A layer that produces color images, such as vector data, or satellite imagery.
  */
 class ColorLayer extends Layer<ColorLayerEvents> {
     private _opacity: number;
+    /**
+     * Read-only flag to check if a given object is of type ColorLayer.
+     */
     readonly isColorLayer: boolean = true;
     readonly elevationRange: ElevationRange;
     private _brightness: number;
@@ -47,19 +61,11 @@ class ColorLayer extends Layer<ColorLayerEvents> {
      * display of this layer. This is only useful if there is an elevation layer on the map.
      * @param options.preloadImages Enables or disable preloading of low resolution fallback images.
      */
-    constructor(id: string, options: {
-        source: ImageSource;
-        interpretation?: Interpretation;
-        extent?: Extent;
-        showTileBorders?: boolean;
-        preloadImages?:boolean;
-        elevationRange?: ElevationRange;
-    }) {
+    constructor(id: string, options: ColorLayerOptions) {
         super(id, options);
-        this.isColorLayer = true;
         this.type = 'ColorLayer';
         this.elevationRange = options.elevationRange;
-        this._opacity = 1;
+        this._opacity = options.opacity ?? 1;
         this._brightness = 0;
         this._contrast = 1;
         this._saturation = 1;

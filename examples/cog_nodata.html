@@ -1,23 +1,52 @@
 ---
 title: No-data elimination
 shortdesc: Display an elevation COG and discard no-data values.
-longdesc: The <code>discardNoData</code> option in the <a href="../apidoc/module-entities_Map-Map.html" target="_blank"><code>Map</code></a> allows to only display portions of the map where elevation data is present. Portions with no data are discarded.
+longdesc: The <a href="../apidoc/interfaces/core.layer.NoDataOptions.html" target="_blank"><code>NoDataOptions</code></a> of the <a href="../apidoc/classes/core.layer.Layer.html" target="_blank"><code>Layer</code></a> class can be used to replace no-data values with interpolated neighbouring pixels.
 attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological Survey</a>
 ---
 <div class="m-2 position-absolute top-0 end-0">
 
     <div class="card m-1">
-        <div class="container m-1">
+        <div class="card-header">Options</div>
 
-            <!-- Toggle no-data discard -->
-            <div class="row p-1">
+        <fieldset class="container m-1" id="options">
+            <div class="mb-3">
+                <label for="noDataLayerSource" class="form-label">Layer type</label>
+                <select id="noDataLayerSource" class="form-select">
+                    <option value="0">Elevation layer</option>
+                    <option value="1">Mask layer</option>
+                    <option value="2">Color layer</option>
+                </select>
+            </div>
+
+
+            <div class="mb-3">
                 <div class="form-check form-switch">
-                    <input class="form-check-input" checked="true" type="checkbox" role="switch" id="discard-nodata">
-                    <label class="form-check-label" for="discard-nodata">Discard no-data pixels</label>
+                    <input class="form-check-input" type="checkbox" checked="true" role="switch" id="enableFillNoData">
+                    <label class="form-check-label" for="enableFillNoData">Enable fill no-data</label>
                 </div>
             </div>
 
-        </div>
+            <div class="mb-3">
+                <label for="alphaReplacement" class="form-label">Replace no-data pixels with</label>
+                <select id="alphaReplacement" class="form-select">
+                    <option value="1">Opaque alpha</option>
+                    <option value="0" selected>Transparent alpha</option>
+                </select>
+            </div>
+
+            <div class="mb-3">
+                <label for="maxDistanceSlider" class="form-label">Max distance (meters)</label>
+                <div class="input-group">
+                    <input type="range" min="0" max="10000" value="10000" step="100" class="slider" id="maxDistanceSlider">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <button type="button" class="btn btn-primary" id="applyChanges">Apply changes</button>
+            </div>
+
+        </fieldset>
     </div>
 
 </div>

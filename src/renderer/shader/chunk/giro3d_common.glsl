@@ -14,6 +14,12 @@ struct LayerInfo {
     vec3        brightnessContrastSaturation;
 };
 
+struct NoDataOptions {
+    float       replacementAlpha;
+    float       radius;
+    bool        enabled;
+};
+
 
 float getElevation(sampler2D tex, vec2 uv) {
     vec4 c = texture2D(tex, uv);
@@ -142,12 +148,13 @@ float squaredDistance(vec2 a, vec2 b) {
 /**
  * Returns the value of the valid pixel closest to uv.
  */
-vec3 getNearestPixel(sampler2D tex, vec2 uv) {
+vec4 getNearestPixel(sampler2D tex, vec2 uv, float radius, float alpha) {
     const int SAMPLES = 64;
     const float fSAMPLES = float(SAMPLES);
 
-    vec3 result = vec3(0, 0, 0);
+    vec4 result = vec4(0, 0, 0, 0);
     float nearest = 9999.;
+    float sqRadius = radius * radius;
 
     // This brute force approach produces very good visual results, but is quite costly.
     // Collect all the samples, then use only the closest valid sample to the requested position.
@@ -166,9 +173,10 @@ vec3 getNearestPixel(sampler2D tex, vec2 uv) {
                 // in the closest point: we avoid a costly square root computation.
                 float dist = squaredDistance(samplePosition, uv);
 
-                if (dist < nearest) {
+                if (dist < nearest && dist <= sqRadius) {
                     nearest = dist;
-                    result = color.rgb;
+                    result.rgb = color.rgb;
+                    result.a = alpha;
                 }
             }
         }
@@ -183,18 +191,14 @@ vec3 getNearestPixel(sampler2D tex, vec2 uv) {
  * Note: a pixel is considered no-data if its alpha channel is less than 1.
  * This way, if a bilinear interpolation touches a no-data pixel, it's also considered no-data.
  */
-vec4 texture2DFillNodata(sampler2D tex, vec2 uv) {
+vec4 texture2DFillNodata(sampler2D tex, vec2 uv, NoDataOptions options) {
     vec4 value = texture2D(tex, uv);
+    // Due to how no-data is determined here, we don't support non 1-bit alpha.
     if(value.a == 1.) {
         return value;
     }
 
-    vec3 nearest = getNearestPixel(tex, uv);
-
-    // Even though the color has been replaced by a neighbouring
-    // pixel, the alpha channel must remain transparent !
-    // This is is necessary to be able to hide those pixels in the fragment shaders.
-    return vec4(nearest.rgb, 0.);
+    return getNearestPixel(tex, uv, options.radius, options.replacementAlpha);
 }
 
 const int INTERPRETATION_RAW = 0;

@@ -58,11 +58,13 @@ interface SaveState {
     viewport: Vector4;
 }
 
-interface DrawOptions {
+export interface DrawOptions {
     interpretation?: Interpretation;
     zOrder?: number;
     flipY?: boolean;
     fillNoData?: boolean;
+    fillNoDataRadius?: number;
+    fillNoDataAlphaReplacement?: number;
     transparent?: boolean;
 }
 
@@ -113,8 +115,8 @@ class WebGLComposer {
      */
     constructor(options: {
         extent?: Rect;
-        width: number;
-        height: number;
+        width?: number;
+        height?: number;
         showImageOutlines?: boolean;
         reuseTexture?: boolean;
         minFilter?: MinificationTextureFilter;
@@ -211,7 +213,7 @@ class WebGLComposer {
      * @param extent The extent of this texture in the composition space.
      * @param options The options.
      */
-    draw(image: DrawableImage, extent: Rect, options = {}) {
+    draw(image: DrawableImage, extent: Rect, options: DrawOptions = {}) {
         const plane = new Mesh(SHARED_PLANE_GEOMETRY, null);
         MemoryTracker.track(plane, 'WebGLComposer - mesh');
         plane.scale.set(extent.width, extent.height, 1);
@@ -245,7 +247,11 @@ class WebGLComposer {
         const interpretation = options.interpretation ?? Interpretation.Raw;
         const material = ComposerTileMaterial.acquire({
             texture,
-            fillNoData: options.fillNoData,
+            noDataOptions: {
+                enabled: options.fillNoData,
+                radius: options.fillNoDataRadius,
+                replacementAlpha: options.fillNoDataAlphaReplacement,
+            },
             interpretation,
             flipY: options.flipY,
             transparent: options.transparent,

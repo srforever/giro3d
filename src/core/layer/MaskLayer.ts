@@ -1,8 +1,6 @@
 import { Texture, Vector4 } from 'three';
 import ColorLayer from './ColorLayer';
-import type { Node, NodeMaterial } from './Layer';
-import type { ImageSource } from '../../sources';
-import type { Extent } from '../geographic';
+import type { LayerOptions, Node, NodeMaterial } from './Layer';
 
 /**
  * Modes of the mask layer.
@@ -21,6 +19,13 @@ enum MaskMode {
 const EMPTY_TEXTURE = new Texture();
 const DEFAULT_PITCH = new Vector4(0, 0, 1, 1);
 
+export interface MaskLayerOptions extends LayerOptions {
+    /**
+     * How to interpret the mask.
+     */
+    maskMode?: MaskMode;
+}
+
 /**
  * A {@link ColorLayer} that can be used to mask parts of
  * a map. The source can be any source supported by the color layers.
@@ -28,6 +33,9 @@ const DEFAULT_PITCH = new Vector4(0, 0, 1, 1);
  */
 class MaskLayer extends ColorLayer {
     private _maskMode: MaskMode;
+    /**
+     * Read-only flag to check if a given object is of type MaskLayer.
+     */
     readonly isMaskLayer: boolean = true;
 
     /**
@@ -37,16 +45,8 @@ class MaskLayer extends ColorLayer {
      *
      * @param id The unique identifier of the layer.
      * @param options The layer options.
-     * @param options.source The data source of this layer.
-     * @param options.extent The geographic extent of the layer. If
-     * unspecified, the extent will be inherited from the map.
-     * @param options.maskMode The mask mode.
      */
-    constructor(id: string, options: {
-        source: ImageSource;
-        extent?: Extent;
-        maskMode?: MaskMode;
-    }) {
+    constructor(id: string, options: MaskLayerOptions) {
         super(id, options);
         this.isMaskLayer = true;
         this.type = 'MaskLayer';
@@ -55,8 +55,6 @@ class MaskLayer extends ColorLayer {
 
     /**
      * Gets or set the mask mode.
-     *
-     * @type {MaskMode}
      */
     get maskMode() {
         return this._maskMode;
