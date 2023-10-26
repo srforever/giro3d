@@ -423,6 +423,7 @@ class AxisGrid extends Entity3D {
         children.forEach(c => c.removeFromParent());
         this.labelElements.forEach(elt => elt.remove());
         this.labelElements.length = 0;
+        this.labels.length = 0;
     }
 
     updateVisibility() {
