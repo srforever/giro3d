@@ -13,6 +13,16 @@ describe('CogSource', () => {
         });
     });
 
+    describe('initialize', () => {
+        it('should always return the same promise to avoid concurrent initializations', () => {
+            const source = new CogSource({ url: 'http://example.com', crs: 'EPSG:1234' });
+            const promise1 = source.initialize();
+            const promise2 = source.initialize();
+
+            expect(promise1).toBe(promise2);
+        });
+    });
+
     describe('computeExtent', () => {
         it('should rethrow unknown exceptions', () => {
             function getBoundingBox(): number[] {

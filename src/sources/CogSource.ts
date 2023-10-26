@@ -108,6 +108,7 @@ class CogSource extends ImageSource {
     private nodata: number;
     private format: any;
     private bps: number;
+    private initializePromise: Promise<void>;
 
     /**
      * Creates a COG source.
@@ -190,7 +191,15 @@ class CogSource extends ImageSource {
         };
     }
 
-    async initialize() {
+    initialize() {
+        if (!this.initializePromise) {
+            this.initializePromise = this.initializeOnce();
+        }
+
+        return this.initializePromise;
+    }
+
+    private async initializeOnce() {
         if (this._initialized) {
             return;
         }
