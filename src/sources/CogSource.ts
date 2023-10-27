@@ -32,6 +32,11 @@ interface Level {
     resolution: number[];
 }
 
+interface SizedArray<T> extends Array<T> {
+    width: number;
+    height: number;
+}
+
 function selectDataType(format: number, bitsPerSample: number) {
     switch (format) {
         case 1: // unsigned integer data
@@ -300,11 +305,10 @@ class CogSource extends ImageSource {
      * @param buffers The buffers (one buffer per band)
      * @returns The generated texture.
      */
-    private createTexture(buffers: NumberArray[]) {
+    private createTexture(buffers: SizedArray<NumberArray>) {
         // Width and height in pixels of the returned data.
         // The geotiff.js patches the arrays with the width and height properties.
-        // @ts-ignore
-        const { width, height } = buffers;
+        const { width, height }: SizedArray<NumberArray> = buffers;
 
         const dataType = this.datatype;
 
@@ -396,7 +400,7 @@ class CogSource extends ImageSource {
 
         signal?.throwIfAborted();
 
-        const texture = this.createTexture(buffers as NumberArray[]);
+        const texture = this.createTexture(buffers as SizedArray<NumberArray>);
 
         const result = { extent: actualExtent, texture, id };
 
