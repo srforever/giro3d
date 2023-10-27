@@ -50,7 +50,7 @@ bool isEdge(int location) {
     return mod(float(location), 2.) == 0.;
 }
 
-float readNeighbourElevation(vec2 uv, int neighbour) {
+float readNeighbourElevation(vec2 uv, int neighbour, float defaultElevation) {
     // We don't want UV outside the unit square
     vec2 vv = clamp01(uv);
 
@@ -62,21 +62,21 @@ float readNeighbourElevation(vec2 uv, int neighbour) {
     // They must be indexed by a constant expression (a literal or a constant).
     // See https://stackoverflow.com/a/60110986/2704779
     if (neighbour == TOP)
-        return getElevation(neighbours[TOP].elevationTexture, neighbourUv);
+        return getElevationOrDefault(neighbours[TOP].elevationTexture, neighbourUv, defaultElevation);
     if (neighbour == TOP_RIGHT)
-        return getElevation(neighbours[TOP_RIGHT].elevationTexture, neighbourUv);
+        return getElevationOrDefault(neighbours[TOP_RIGHT].elevationTexture, neighbourUv, defaultElevation);
     if (neighbour == RIGHT)
-        return getElevation(neighbours[RIGHT].elevationTexture, neighbourUv);
+        return getElevationOrDefault(neighbours[RIGHT].elevationTexture, neighbourUv, defaultElevation);
     if (neighbour == BOTTOM_RIGHT)
-        return getElevation(neighbours[BOTTOM_RIGHT].elevationTexture, neighbourUv);
+        return getElevationOrDefault(neighbours[BOTTOM_RIGHT].elevationTexture, neighbourUv, defaultElevation);
     if (neighbour == BOTTOM)
-        return getElevation(neighbours[BOTTOM].elevationTexture, neighbourUv);
+        return getElevationOrDefault(neighbours[BOTTOM].elevationTexture, neighbourUv, defaultElevation);
     if (neighbour == BOTTOM_LEFT)
-        return getElevation(neighbours[BOTTOM_LEFT].elevationTexture, neighbourUv);
+        return getElevationOrDefault(neighbours[BOTTOM_LEFT].elevationTexture, neighbourUv, defaultElevation);
     if (neighbour == LEFT)
-        return getElevation(neighbours[LEFT].elevationTexture, neighbourUv);
+        return getElevationOrDefault(neighbours[LEFT].elevationTexture, neighbourUv, defaultElevation);
     if (neighbour == TOP_LEFT)
-        return getElevation(neighbours[TOP_LEFT].elevationTexture, neighbourUv);
+        return getElevationOrDefault(neighbours[TOP_LEFT].elevationTexture, neighbourUv, defaultElevation);
 
 }
 
@@ -268,7 +268,7 @@ float computeZStitchedElevation(vec2 uv, int location, float currentElevation) {
         // If our neighbour has the same level (hence size), we average the two elevations
         // This neighbour will do the same in its own vertex shader with our elevation, and
         // the two vertices will have the same height.
-        float neighbourElevation = readNeighbourElevation(uv, location);
+        float neighbourElevation = readNeighbourElevation(uv, location, currentElevation);
         if (diffLevel == 0.) {
             return mix(currentElevation, neighbourElevation, 0.5);
         } else if (diffLevel < 0.) {
@@ -312,15 +312,15 @@ float computeZStitchedElevation(vec2 uv, int location, float currentElevation) {
             }
 
             if (n0 != NULL) {
-                sum += readNeighbourElevation(uv, n0);
+                sum += readNeighbourElevation(uv, n0, currentElevation);
                 weight += 1.;
             }
             if (n1 != NULL) {
-                sum += readNeighbourElevation(uv, n1);
+                sum += readNeighbourElevation(uv, n1, currentElevation);
                 weight += 1.;
             }
             if (n2 != NULL) {
-                sum += readNeighbourElevation(uv, n2);
+                sum += readNeighbourElevation(uv, n2, currentElevation);
                 weight += 1.;
             }
 
