@@ -17,7 +17,7 @@ import ElevationLayer from '../core/layer/ElevationLayer';
 import Entity3D from './Entity3D.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import Picking from '../core/Picking.js';
-import ScreenSpaceError from '../core/ScreenSpaceError.js';
+import ScreenSpaceError from '../core/ScreenSpaceError';
 import LayeredMaterial, {
     DEFAULT_AZIMUTH,
     DEFAULT_HILLSHADING_INTENSITY,
@@ -759,7 +759,7 @@ class Map extends Entity3D {
                     obb.box3D,
                     obb.matrixWorld,
                     Math.max(s.x, s.y),
-                    ScreenSpaceError.MODE_2D,
+                    ScreenSpaceError.Mode.MODE_2D,
                 );
 
                 node.sse = sse; // DEBUG

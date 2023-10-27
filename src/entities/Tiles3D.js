@@ -14,7 +14,7 @@ import {
 } from 'three';
 import Extent from '../core/geographic/Extent';
 import Picking from '../core/Picking.js';
-import ScreenSpaceError from '../core/ScreenSpaceError.js';
+import ScreenSpaceError from '../core/ScreenSpaceError';
 import Entity3D from './Entity3D.js';
 import OperationCounter from '../core/OperationCounter';
 import $3dTilesIndex from './3dtiles/3dTilesIndex.js';
@@ -762,7 +762,7 @@ function computeNodeSSE(context, node) {
             node.boundingVolume.box,
             node.matrixWorld,
             node.geometricError,
-            ScreenSpaceError.MODE_3D,
+            ScreenSpaceError.Mode.MODE_3D,
         );
 
         if (!sse) {

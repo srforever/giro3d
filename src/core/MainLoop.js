@@ -1,7 +1,7 @@
 import {
     EventDispatcher, MathUtils as ThreeMath, Sphere,
 } from 'three';
-import Context from './Context.js';
+import Context from './Context';
 import C3DEngine from '../renderer/c3DEngine.js';
 
 export const RENDERING_PAUSED = 0;

@@ -147,8 +147,8 @@ class Entity extends EventDispatcher {
      *
      * Note: if this functions returns nothing, `update()` will not be called.
      *
-     * @param {module:core.Context~Context} context the update context.
-     * @param {Array<object>} changeSources the objects that triggered an update step.
+     * @param {module:Core/Context~Context} context the update context.
+     * @param {Set<object>} changeSources the objects that triggered an update step.
      * This is useful to filter out unnecessary updates if no sources are
      * relevant to this entity. For example, if one of the sources is a
      * camera that moved during the previous frame, any entity that depends

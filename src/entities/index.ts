@@ -15,7 +15,7 @@ import PotreePointCloud from './PotreePointCloud';
 import Entity from './Entity';
 import Entity3D from './Entity3D';
 import Tiles3D from './Tiles3D';
-import FeatureCollection from './FeatureCollection';
+import FeatureCollection, { type OnMeshCreatedCallback, type OnTileCreatedCallback } from './FeatureCollection';
 
 export {
     Entity,
@@ -29,4 +29,6 @@ export {
     PotreePointCloud,
     Tiles3D,
     FeatureCollection,
+    OnMeshCreatedCallback,
+    OnTileCreatedCallback,
 };
