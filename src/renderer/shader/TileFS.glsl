@@ -122,6 +122,10 @@ void main() {
     // Step 4 : process all color layers (either directly sampling the atlas texture, or use a color map).
     #include <giro3d_compose_layers_fragment>
 
+    if (gl_FragColor.a <= 0.0) {
+        discard;
+    }
+
     // Contour lines
     #include <giro3d_contour_line_fragment>
 
