@@ -72,6 +72,8 @@ describe('AxisGrid', () => {
             // Set the camera position in the middle of the volume
             threeCamera.position.set(0, 0, midHeight);
 
+            grid.preUpdate(context);
+
             const sides = [
                 // @ts-ignore
                 grid._front,
