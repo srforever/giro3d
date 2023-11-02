@@ -51,6 +51,21 @@ function selectDataType(format: number, bitsPerSample: number) {
     return FloatType;
 }
 
+export interface CogCacheOptions {
+    /**
+     * The cache size (in number of entries), of the underlying
+     * [blocked source](https://geotiffjs.github.io/geotiff.js/BlockedSource_BlockedSource.html).
+     * Default is `100`.
+     */
+    cacheSize?: number;
+    /**
+     * The block size (in bytes), of the underlying
+     * [blocked source](https://geotiffjs.github.io/geotiff.js/BlockedSource_BlockedSource.html).
+     * Default is `65536`.
+     */
+    blockSize?: number;
+}
+
 export interface CogSourceOptions extends ImageSourceOptions {
     /**
      * The URL of the COG image.
@@ -90,6 +105,11 @@ export interface CogSourceOptions extends ImageSourceOptions {
      * - I have a color image but in the B, G, R order: `[2, 1, 0]`
      */
     channels?: number[];
+
+    /**
+     * Advanced caching options.
+     */
+    cacheOptions?: CogCacheOptions;
 }
 
 /**
@@ -116,6 +136,7 @@ class CogSource extends ImageSource {
     private bps: number;
     private initializePromise: Promise<void>;
     private readonly _cacheId: string = MathUtils.generateUUID();
+    private readonly _cacheOptions: CogCacheOptions;
 
     /**
      * Creates a COG source.
@@ -133,6 +154,7 @@ class CogSource extends ImageSource {
         this.imageCount = 0;
         this.levels = [];
         this._channels = options.channels;
+        this._cacheOptions = options.cacheOptions;
     }
 
     getExtent() {
@@ -211,7 +233,10 @@ class CogSource extends ImageSource {
         }
 
         // Get the COG informations
-        const opts = {};
+        const opts = {
+            cacheSize: this._cacheOptions?.cacheSize,
+            blockSize: this._cacheOptions?.blockSize,
+        };
         const url = this.url;
         HttpConfiguration.applyConfiguration(url, opts);
         this.tiffImage = await fromUrl(url, opts);
