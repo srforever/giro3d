@@ -3,7 +3,6 @@ import { FloatType } from 'three';
 import type { LayerEvents, LayerOptions, TextureAndPitch } from './Layer';
 import Layer from './Layer';
 import type Extent from '../geographic/Extent.js';
-import type ImageSource from '../../sources/ImageSource.js';
 import type TileMesh from '../TileMesh';
 import type LayeredMaterial from '../../renderer/LayeredMaterial';
 import type ElevationRange from '../ElevationRange.js';
