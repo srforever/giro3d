@@ -19,9 +19,24 @@ const temp = [
     new Vector3(),
 ];
 
+export interface SSE {
+    origin: Vector3;
+    x: Vector3;
+    y: Vector3;
+    z: Vector3;
+    lengths: {
+        x: number;
+        y: number;
+        z: number;
+    };
+    ratio: number;
+    area: number;
+}
+
 function easeInOutQuad(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
 
-function computeSSE(offset: Vector3, size: Vector3, matrix: Matrix4, camera: Camera, _3d: boolean) {
+function computeSSE(offset: Vector3, size: Vector3, matrix: Matrix4, camera: Camera, _3d: boolean)
+    : SSE {
     temp[0].copy(offset);
     temp[0].applyMatrix4(matrix);
 
@@ -143,7 +158,7 @@ export default {
         matrix: Matrix4,
         geometricError: number,
         mode: Mode,
-    ) {
+    ): SSE {
         // If the camera is orthographic, there is no need to do this check.
         if (!camera.camera3D.isOrthographicCamera) {
             const distance = findBox3Distance(camera, box3, matrix, mode === Mode.MODE_3D);
