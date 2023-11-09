@@ -1,6 +1,7 @@
 import {
     FloatType,
     LinearFilter,
+    MathUtils,
     UnsignedByteType,
     Vector2,
 } from 'three';
@@ -18,7 +19,7 @@ import Extent from '../core/geographic/Extent';
 import TextureGenerator, { type NumberArray } from '../utils/TextureGenerator';
 import PromiseUtils from '../utils/PromiseUtils.js';
 import ImageSource, { ImageResult, type ImageSourceOptions } from './ImageSource';
-import { Cache } from '../core/Cache';
+import { type Cache, GlobalCache } from '../core/Cache';
 
 const tmpDim = new Vector2();
 
@@ -32,6 +33,11 @@ interface Level {
     resolution: number[];
 }
 
+interface SizedArray<T> extends Array<T> {
+    width: number;
+    height: number;
+}
+
 function selectDataType(format: number, bitsPerSample: number) {
     switch (format) {
         case 1: // unsigned integer data
@@ -43,6 +49,21 @@ function selectDataType(format: number, bitsPerSample: number) {
             break;
     }
     return FloatType;
+}
+
+export interface CogCacheOptions {
+    /**
+     * The cache size (in number of entries), of the underlying
+     * [blocked source](https://geotiffjs.github.io/geotiff.js/BlockedSource_BlockedSource.html).
+     * Default is `100`.
+     */
+    cacheSize?: number;
+    /**
+     * The block size (in bytes), of the underlying
+     * [blocked source](https://geotiffjs.github.io/geotiff.js/BlockedSource_BlockedSource.html).
+     * Default is `65536`.
+     */
+    blockSize?: number;
 }
 
 export interface CogSourceOptions extends ImageSourceOptions {
@@ -84,6 +105,11 @@ export interface CogSourceOptions extends ImageSourceOptions {
      * - I have a color image but in the B, G, R order: `[2, 1, 0]`
      */
     channels?: number[];
+
+    /**
+     * Advanced caching options.
+     */
+    cacheOptions?: CogCacheOptions;
 }
 
 /**
@@ -94,7 +120,7 @@ class CogSource extends ImageSource {
 
     readonly url: string;
     readonly crs: string;
-    readonly cache: Cache;
+    private readonly cache: Cache = GlobalCache;
     private tiffImage: GeoTIFF;
     private readonly pool: Pool;
     private imageCount: number;
@@ -109,6 +135,8 @@ class CogSource extends ImageSource {
     private format: any;
     private bps: number;
     private initializePromise: Promise<void>;
+    private readonly _cacheId: string = MathUtils.generateUUID();
+    private readonly _cacheOptions: CogCacheOptions;
 
     /**
      * Creates a COG source.
@@ -125,8 +153,8 @@ class CogSource extends ImageSource {
         this.pool = window.Worker ? new Pool() : null;
         this.imageCount = 0;
         this.levels = [];
-        this.cache = new Cache();
         this._channels = options.channels;
+        this._cacheOptions = options.cacheOptions;
     }
 
     getExtent() {
@@ -205,7 +233,10 @@ class CogSource extends ImageSource {
         }
 
         // Get the COG informations
-        const opts = {};
+        const opts = {
+            cacheSize: this._cacheOptions?.cacheSize,
+            blockSize: this._cacheOptions?.blockSize,
+        };
         const url = this.url;
         HttpConfiguration.applyConfiguration(url, opts);
         this.tiffImage = await fromUrl(url, opts);
@@ -300,11 +331,10 @@ class CogSource extends ImageSource {
      * @param buffers The buffers (one buffer per band)
      * @returns The generated texture.
      */
-    private createTexture(buffers: NumberArray[]) {
+    private createTexture(buffers: SizedArray<NumberArray>) {
         // Width and height in pixels of the returned data.
         // The geotiff.js patches the arrays with the width and height properties.
-        // @ts-ignore
-        const { width, height } = buffers;
+        const { width, height }: SizedArray<NumberArray> = buffers;
 
         const dataType = this.datatype;
 
@@ -396,7 +426,7 @@ class CogSource extends ImageSource {
 
         signal?.throwIfAborted();
 
-        const texture = this.createTexture(buffers as NumberArray[]);
+        const texture = this.createTexture(buffers as SizedArray<NumberArray>);
 
         const result = { extent: actualExtent, texture, id };
 
@@ -457,19 +487,21 @@ class CogSource extends ImageSource {
     private async getRegionBuffers(extent: Extent, level: Level, signal: AbortSignal, id: string) {
         const window = this.makeWindowFromExtent(extent, level.resolution);
 
-        const cached = this.cache.get(id);
+        const cacheKey = `${this._cacheId}-${id}`;
+        const cached = this.cache.get(cacheKey);
         if (cached) {
             return cached;
         }
 
         const buf = await this.fetchBuffer(level.image, window, signal);
+
         let size = 0;
         if (Array.isArray(buf)) {
             size = buf.map(b => b.byteLength).reduce((a, b) => a + b);
         } else {
             size = buf.byteLength;
         }
-        this.cache.set(id, buf, { size });
+        this.cache.set(cacheKey, buf, { size });
 
         return buf;
     }
@@ -493,10 +525,6 @@ class CogSource extends ImageSource {
         const request = () => this.loadImage(opts);
 
         return [{ id, request }];
-    }
-
-    dispose() {
-        this.cache.clear();
     }
 }
 

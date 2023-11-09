@@ -6,6 +6,7 @@
 
 import CogSource, {
     type CogSourceOptions,
+    type CogCacheOptions,
 } from './CogSource';
 import ImageSource, {
     type GetImageOptions,
@@ -45,4 +46,5 @@ export {
     TiledImageSourceOptions,
     CogSource,
     CogSourceOptions,
+    CogCacheOptions,
 };
