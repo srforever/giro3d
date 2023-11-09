@@ -4,7 +4,8 @@ import {
     MathUtils,
     Vector2,
 } from 'three';
-import VectorTile from 'ol/source/VectorTile.js';
+import OLVectorTileSourcce from 'ol/source/VectorTile.js';
+import VectorTile from 'ol/VectorTile.js';
 import type { Style } from 'ol/style.js';
 
 import TileState from 'ol/TileState.js';
@@ -30,7 +31,7 @@ import {
     getSquaredTolerance as getSquaredRenderTolerance,
     renderFeature as renderVectorFeature,
 } from 'ol/renderer/vector.js';
-import type { VectorRenderTile } from 'ol';
+import type { Tile, VectorRenderTile } from 'ol';
 import type { Transform } from 'ol/transform.js';
 import {
     create as createTransform,
@@ -46,6 +47,7 @@ import type FeatureFormat from 'ol/format/Feature.js';
 import type { StyleFunction } from 'ol/style/Style';
 import type { Projection } from 'ol/proj';
 import type { OrderFunction } from 'ol/render';
+import type { Geometry } from 'ol/geom';
 import type {
     GetImageOptions,
     ImageResponse,
@@ -54,6 +56,7 @@ import type {
 import ImageSource, { ImageResult } from './ImageSource';
 import OpenLayersUtils from '../utils/OpenLayersUtils';
 import type Extent from '../core/geographic/Extent';
+import Fetcher from '../utils/Fetcher.js';
 
 const tmpTransform: Transform = createTransform();
 const MIN_LEVEL_THRESHOLD = 2;
@@ -163,7 +166,7 @@ export interface VectorTileSourceOptions extends ImageSourceOptions {
  */
 class VectorTileSource extends ImageSource {
     readonly isVectorTileSource: boolean = true;
-    readonly source: VectorTile;
+    readonly source: OLVectorTileSourcce;
     readonly style: Style | StyleFunction;
     readonly backgroundColor: string;
     private sourceProjection: Projection;
@@ -184,10 +187,27 @@ class VectorTileSource extends ImageSource {
         this.isVectorTileSource = true;
         this.type = 'VectorTileSource';
 
-        this.source = new VectorTile({
+        this.source = new OLVectorTileSourcce({
             url: options.url,
             format: options.format ?? new MVT(),
         });
+
+        async function tileLoadFunction(image: Tile, url: string) {
+            if (image instanceof VectorTile) {
+                const response = await Fetcher.fetch(url);
+                if (response.status === 200) {
+                    const imageData = await response.arrayBuffer();
+                    const features = image.getFormat().readFeatures(imageData, {
+                        extent: image.extent,
+                        featureProjection: image.projection,
+                    });
+                    image.setFeatures(features as Array<Feature<Geometry>>);
+                }
+            }
+        }
+
+        this.source.setTileLoadFunction(tileLoadFunction);
+
         this.style = options.style;
         this.backgroundColor = options.backgroundColor;
         this.sourceProjection = null;
