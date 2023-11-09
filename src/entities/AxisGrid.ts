@@ -188,6 +188,7 @@ class AxisGrid extends Entity3D {
     private _right: Side;
     private _height: number;
     private _midHeight: number;
+    private _needsRebuild: boolean;
 
     showHelpers: boolean;
 
@@ -400,6 +401,10 @@ class AxisGrid extends Entity3D {
      * Rebuilds the grid. This is necessary after changing the ticks, volume or origin.
      */
     refresh() {
+        this._needsRebuild = true;
+    }
+
+    private rebuildObjects() {
         this.volume.extent.center(tmpVec2);
 
         this.root.position.setX(tmpVec2.x);
@@ -892,6 +897,15 @@ class AxisGrid extends Entity3D {
     }
 
     preUpdate(context: Context): object[] {
+        if (!this.visible) {
+            return [];
+        }
+
+        if (this._needsRebuild) {
+            this.rebuildObjects();
+            this._needsRebuild = false;
+        }
+
         const camera = context.camera.camera3D as Camera;
 
         this._cameraForward.setFromMatrixColumn(camera.matrixWorld, 2);
