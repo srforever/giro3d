@@ -21,6 +21,17 @@ struct NoDataOptions {
 };
 
 
+/**
+ * Returns the elevation value at the specified coordinate, or the default value if the pixel is transparent (no-data).
+ */
+float getElevationOrDefault(sampler2D tex, vec2 uv, float defaultValue) {
+    vec4 c = texture2D(tex, uv);
+    if (c.a == 0.0) {
+        return defaultValue;
+    }
+    return c.r;
+}
+
 float getElevation(sampler2D tex, vec2 uv) {
     vec4 c = texture2D(tex, uv);
     return c.r;
