@@ -70,6 +70,9 @@ class MapInspector extends EntityInspector {
         this.showGrid = false;
         this.renderState = 'Normal';
 
+        this.addController(this.map.materialOptions, 'discardNoData')
+            .name('Discard no-data values')
+            .onChange(() => this.notify(this.map));
         this.layerCount = this.map._attachedLayers.length;
         this.background = this.map.materialOptions.backgroundColor;
         this.backgroundOpacity = this.map.materialOptions.backgroundOpacity;
