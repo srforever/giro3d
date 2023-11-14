@@ -7,14 +7,16 @@ import {
 } from 'three';
 
 import {
-    fromUrl,
+    fromCustomClient,
+    BaseClient,
+    BaseResponse,
     type TypedArray,
     type GeoTIFFImage,
     Pool,
     type GeoTIFF,
 } from 'geotiff';
 
-import HttpConfiguration from '../utils/HttpConfiguration.js';
+import Fetcher from '../utils/Fetcher.js';
 import Extent from '../core/geographic/Extent';
 import TextureGenerator, { type NumberArray } from '../utils/TextureGenerator';
 import PromiseUtils from '../utils/PromiseUtils.js';
@@ -22,6 +24,52 @@ import ImageSource, { ImageResult, type ImageSourceOptions } from './ImageSource
 import { type Cache, GlobalCache } from '../core/Cache';
 
 const tmpDim = new Vector2();
+
+export class FetcherResponse extends BaseResponse {
+    readonly response: Response;
+
+    /**
+     * BaseResponse facade for fetch API Response
+     *
+     * @param response The response.
+     */
+    constructor(response: Response) {
+        super();
+        this.response = response;
+    }
+
+    // @ts-ignore (the base class does not type this getter)
+    get status() {
+        return this.response.status;
+    }
+
+    getHeader(name: string) {
+        return this.response.headers.get(name);
+    }
+
+    // @ts-ignore (incorrectly typed base method, should be a Promise, but is an ArrayBuffer)
+    async getData(): Promise<ArrayBuffer> {
+        const data = this.response.arrayBuffer
+            ? await this.response.arrayBuffer()
+            // @ts-ignore (no buffer() in response)
+            : (await this.response.buffer()).buffer;
+        return data;
+    }
+}
+
+/**
+ * A custom geotiff.js client that uses the Fetcher in order
+ * to centralize requests and benefit from the HTTP configuration module.
+ */
+class FetcherClient extends BaseClient {
+    // @ts-ignore (untyped base method)
+    async request({ headers, credentials, signal } = {}): Promise<FetcherResponse> {
+        const response = await Fetcher.fetch(this.url, {
+            headers, credentials, signal,
+        });
+        return new FetcherResponse(response);
+    }
+}
 
 /**
  * A level in the COG pyramid.
@@ -238,8 +286,12 @@ class CogSource extends ImageSource {
             blockSize: this._cacheOptions?.blockSize,
         };
         const url = this.url;
-        HttpConfiguration.applyConfiguration(url, opts);
-        this.tiffImage = await fromUrl(url, opts);
+        const client = new FetcherClient(url);
+        // We are using a custom client to ensure that outgoing requests are done through
+        // the Fetcher so we can benefit from automatic HTTP configuration and control over
+        // outgoing requests.
+        // @ts-ignore (typing issue with geotiff.js)
+        this.tiffImage = await fromCustomClient(client, opts);
 
         // Number of images (original + overviews)
         this.imageCount = await this.tiffImage.getImageCount();
