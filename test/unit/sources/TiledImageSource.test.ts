@@ -1,4 +1,4 @@
-import Stamen from 'ol/source/Stamen.js';
+import StadiaMaps from 'ol/source/StadiaMaps.js';
 import GeoTIFFFormat from 'src/formats/GeoTIFFFormat';
 import TiledImageSource from 'src/sources/TiledImageSource';
 
@@ -8,7 +8,7 @@ describe('TiledImageSource', () => {
             const containsFn = jest.fn();
             const format = new GeoTIFFFormat();
             const noDataValue = 999;
-            const source = new Stamen({ layer: 'watercolor' });
+            const source = new StadiaMaps({ layer: 'stamen_watercolor' });
 
             const tiled = new TiledImageSource({
                 source,
@@ -24,7 +24,7 @@ describe('TiledImageSource', () => {
         });
 
         it('should assign flipY to true by default', () => {
-            const source = new Stamen({ layer: 'watercolor' });
+            const source = new StadiaMaps({ layer: 'stamen_watercolor' });
 
             const tiled = new TiledImageSource({
                 source,
@@ -35,7 +35,7 @@ describe('TiledImageSource', () => {
 
         describe.each([true, false])('should assign flipY to the flipY of the format, if provided', b => {
             test(`${b}`, () => {
-                const source = new Stamen({ layer: 'watercolor' });
+                const source = new StadiaMaps({ layer: 'stamen_watercolor' });
 
                 const flipY = b;
 

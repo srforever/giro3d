@@ -1,4 +1,4 @@
-import Stamen from 'ol/source/Stamen.js';
+import StadiaMaps from 'ol/source/StadiaMaps.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import * as GUI from 'lil-gui';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
@@ -55,7 +55,7 @@ instance.add(map);
 // Adds an TMS imagery layer
 map.addLayer(new ColorLayer(
     'color', {
-        source: new TiledImageSource({ source: new Stamen({ layer: 'watercolor', wrapX: false }) }),
+        source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
     },
 ));
 

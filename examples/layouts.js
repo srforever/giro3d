@@ -4,7 +4,7 @@
 
 import { WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import Stamen from 'ol/source/Stamen.js';
+import StadiaMaps from 'ol/source/StadiaMaps.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
@@ -17,7 +17,7 @@ const extent = new Extent(
     -20037508.342789244, 20037508.342789244,
 );
 
-const source = new TiledImageSource({ source: new Stamen({ layer: 'watercolor', wrapX: false }) });
+const source = new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) });
 
 function buildViewer(viewerDiv, defaultRenderer = true) {
     const renderer = { clearColor: false };

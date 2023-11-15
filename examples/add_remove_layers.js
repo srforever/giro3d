@@ -1,4 +1,4 @@
-import Stamen from 'ol/source/Stamen.js';
+import StadiaMaps from 'ol/source/StadiaMaps.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
@@ -53,13 +53,13 @@ function createLayer(name) {
         name,
         {
             extent,
-            source: new TiledImageSource({ source: new Stamen({ layer: name, wrapX: false }) }),
+            source: new TiledImageSource({ source: new StadiaMaps({ layer: name, wrapX: false }) }),
         },
     );
 }
-const watercolor = createLayer('watercolor');
-const toner = createLayer('toner');
-const terrain = createLayer('terrain');
+const watercolor = createLayer('stamen_watercolor');
+const toner = createLayer('stamen_toner');
+const terrain = createLayer('stamen_terrain');
 
 layersRemoved.push(watercolor);
 layersRemoved.push(toner);

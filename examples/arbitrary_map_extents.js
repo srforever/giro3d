@@ -1,4 +1,4 @@
-import Stamen from 'ol/source/Stamen.js';
+import StadiaMaps from 'ol/source/StadiaMaps.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
@@ -40,7 +40,7 @@ Inspector.attach(document.getElementById('panelDiv'), instance);
 
 instance.notifyChange();
 
-const layers = ['watercolor', 'toner', 'terrain'];
+const layers = ['stamen_watercolor', 'stamen_toner', 'stamen_terrain'];
 
 let mapCount = 0;
 
@@ -74,7 +74,7 @@ function createMap(extent) {
         'osm',
         {
             extent,
-            source: new TiledImageSource({ source: new Stamen({ layer, wrapX: false }) }),
+            source: new TiledImageSource({ source: new StadiaMaps({ layer, wrapX: false }) }),
         },
     )).catch(e => console.error(e));
 

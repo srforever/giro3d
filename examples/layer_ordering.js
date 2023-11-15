@@ -1,4 +1,4 @@
-import Stamen from 'ol/source/Stamen.js';
+import StadiaMaps from 'ol/source/StadiaMaps.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
@@ -26,7 +26,7 @@ const watercolor = new ColorLayer(
     'watercolor',
     {
         extent: Extent.fromCenterAndSize(crs, { x: -100000, y: 6169226 }, layerSize, layerSize),
-        source: new TiledImageSource({ source: new Stamen({ layer: 'watercolor', wrapX: false }) }),
+        source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
     },
 );
 
@@ -34,7 +34,7 @@ const toner = new ColorLayer(
     'toner',
     {
         extent: Extent.fromCenterAndSize(crs, { x: 500000, y: 5669226 }, layerSize, layerSize),
-        source: new TiledImageSource({ source: new Stamen({ layer: 'toner', wrapX: false }) }),
+        source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_toner', wrapX: false }) }),
     },
 );
 
@@ -42,7 +42,7 @@ const terrain = new ColorLayer(
     'terrain',
     {
         extent: Extent.fromCenterAndSize(crs, { x: 900000, y: 5169226 }, layerSize, layerSize),
-        source: new TiledImageSource({ source: new Stamen({ layer: 'terrain', wrapX: false }) }),
+        source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_terrain', wrapX: false }) }),
     },
 );
 
