@@ -80,7 +80,7 @@ const cameraPosition = new THREE.Vector3(
 camera.position.copy(cameraPosition);
 
 const controls = new MapControls(camera, instance.domElement);
-controls.target = extent.center().xyz();
+controls.target = extent.centerAsVector3();
 
 controls.enableDamping = true;
 controls.dampingFactor = 0.2;

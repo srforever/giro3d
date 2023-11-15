@@ -217,7 +217,7 @@ class Extent {
         // Compute min/max in x/y by projecting 8 cardinal points,
         // and then taking the min/max of each coordinates.
             const cardinals = [];
-            const c = this.center() as Coordinates;
+            const c = this.center();
             cardinals.push(new Coordinates(this._crs, this.west(), this.north()));
             cardinals.push(new Coordinates(this._crs, c.values[0], this.north()));
             cardinals.push(new Coordinates(this._crs, this.east(), this.north()));
@@ -325,31 +325,71 @@ class Extent {
     /**
      * Sets `target` with the center of this extent.
      *
-     * @param target the object to set with the center's X.
+     * @param target the coordinate to set with the center's coordinates.
      * If none provided, a new one is created.
      * @returns the modified object passed in argument.
      */
-    center(target?: Vector2 | Coordinates) {
-        let c;
+    center(target?: Coordinates): Coordinates {
+        const center = this.centerAsVector2(tmpXY);
+
+        let result;
 
         if (target) {
-            c = target;
+            result = target;
+            result.set(this._crs, center.x, center.y, 0);
         } else {
-            c = new Coordinates(this._crs, 0, 0, 0);
+            result = new Coordinates(this._crs, center.x, center.y, 0);
         }
 
+        return result;
+    }
+
+    /**
+     * Sets `target` with the center of this extent.
+     *
+     * @param target the vector to set with the center's coordinates.
+     * If none provided, a new one is created.
+     * @returns the modified object passed in argument.
+     */
+    centerAsVector2(target?: Vector2): Vector2 {
         const dim = this.dimensions(tmpXY);
 
         const x = this._values[0] + dim.x * 0.5;
         const y = this._values[2] + dim.y * 0.5;
 
-        if (c instanceof Coordinates) {
-            c.set(this._crs, x, y, 0);
+        let result;
+
+        if (target) {
+            result = target;
+            result.set(x, y);
         } else {
-            c.x = x;
-            c.y = y;
+            result = new Vector2(x, y);
         }
-        return c;
+
+        return result;
+    }
+
+    /**
+     * Sets `target` with the center of this extent.
+     * Note: The z coordinate of the resulting vector will be set to zero.
+     *
+     * @param target the vector to set with the center's coordinates.
+     * If none provided, a new one is created.
+     * @returns the modified object passed in argument.
+     */
+    centerAsVector3(target?: Vector3): Vector3 {
+        const center = this.centerAsVector2(tmpXY);
+
+        let result;
+
+        if (target) {
+            result = target;
+            result.set(center.x, center.y, 0);
+        } else {
+            result = new Vector3(center.x, center.y, 0);
+        }
+
+        return result;
     }
 
     /**

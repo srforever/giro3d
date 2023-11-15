@@ -386,7 +386,7 @@ class MapInspector extends EntityInspector {
         } else {
             const dims = this.map.extent.dimensions();
             const size = Math.max(dims.x, dims.y) * 1.1;
-            const origin = this.map.extent.center().xyz();
+            const origin = this.map.extent.centerAsVector3();
 
             const grid = Helpers.createGrid(origin, size, 20);
             this.instance.scene.add(grid);

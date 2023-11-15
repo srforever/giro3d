@@ -101,17 +101,13 @@ const elevationLayer = new ElevationLayer(
 map.addLayer(elevationLayer);
 
 // Sets the camera position
-const cameraPosition = new Coordinates(
-    'EPSG:3946',
-    extent.west(), extent.south(), 2000,
-).xyz();
-instance.camera.camera3D.position.copy(cameraPosition);
+instance.camera.camera3D.position.set(extent.west(), extent.south(), 2000);
 
 // Creates controls
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 
 // Then looks at extent's center
-controls.target = extent.center().xyz();
+controls.target = extent.centerAsVector3();
 controls.target.z = 200;
 controls.saveState();
 

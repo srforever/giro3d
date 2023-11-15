@@ -27,7 +27,7 @@ const instance = new Instance(viewerDiv, {
 });
 
 // Instanciates camera
-const center = extent.center(new Vector3());
+const center = extent.centerAsVector3();
 instance.camera.camera3D.position.set(center.x, center.y - 1, 1000000);
 
 // Creates controls

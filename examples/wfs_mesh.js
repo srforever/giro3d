@@ -147,14 +147,9 @@ const cubeTexture = cubeTextureLoader.load([
 instance.scene.background = cubeTexture;
 
 // Place camera at the bottom left corner of the map
-const cameraPosition = new Coordinates(
-    'EPSG:3946',
-    extent.west(), extent.south(), 10000,
-).xyz();
-
-instance.camera.camera3D.position.copy(cameraPosition);
+instance.camera.camera3D.position.set(extent.west(), extent.south(), 10000);
 // and look at the center of our extent
-instance.camera.camera3D.lookAt(extent.center().xyz());
+instance.camera.camera3D.lookAt(extent.centerAsVector3());
 // we need to tell Giro3D we changed the camera position
 instance.notifyChange(instance.camera.camera3D);
 
@@ -165,7 +160,7 @@ const controls = new MapControls(
 );
 
 // MapControls needs a target, let's set it at our lookAt position
-controls.target = extent.center().xyz();
+controls.target = extent.centerAsVector3();
 controls.saveState();
 
 controls.enableDamping = true;

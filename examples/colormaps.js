@@ -33,7 +33,7 @@ instance.camera.camera3D.position.copy(cameraPosition);
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 
 // Then looks at extent's center
-controls.target = extent.center().xyz();
+controls.target = extent.centerAsVector3();
 controls.saveState();
 
 controls.enableDamping = true;

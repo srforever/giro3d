@@ -187,7 +187,7 @@ camera.position.copy(cameraPosition);
 const controls = new MapControls(camera, instance.domElement);
 
 // Let's set the controls' target to our map center.
-controls.target = extent.center().xyz();
+controls.target = extent.centerAsVector3();
 
 // And specify some parameters for the navigation.
 controls.enableDamping = true;

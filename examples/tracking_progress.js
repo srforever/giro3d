@@ -66,14 +66,14 @@ const naip = createMap(split[0], 'naip');
 const satellite = createMap(split[1], 'satellite');
 
 // Sets the camera position
-const center = extent.center();
-instance.camera.camera3D.position.set(center.x(), extent.north(), 10000);
+const center = extent.centerAsVector3();
+instance.camera.camera3D.position.set(center.x, extent.north(), 10000);
 
 // Creates controls
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 
 // Then looks at extent's center
-controls.target = extent.center().xyz();
+controls.target = center;
 controls.saveState();
 
 controls.enableDamping = true;

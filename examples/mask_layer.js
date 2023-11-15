@@ -82,8 +82,8 @@ const mask = new MaskLayer('mask', {
 map.addLayer(mask);
 
 // Sets the camera position
-const center = extent.center();
-instance.camera.camera3D.position.set(center.x(), center.y() - 1, 40000);
+const center = extent.centerAsVector3();
+instance.camera.camera3D.position.set(center.x, center.y - 1, 40000);
 
 // Creates controls
 const controls = new MapControls(
@@ -92,7 +92,7 @@ const controls = new MapControls(
 );
 
 // Then looks at extent's center
-controls.target = extent.center().xyz();
+controls.target = center;
 controls.saveState();
 
 controls.enableDamping = true;

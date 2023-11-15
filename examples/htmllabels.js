@@ -43,8 +43,8 @@ function lookTopDownAt(lookAtExtent, lookAtAltitude = 0) {
             lookAtExtent.dimensions().x / instance.camera.camera3D.aspect,
             lookAtExtent.dimensions().y,
         ) / Math.tan(hFov)) * 0.5;
-    const position = lookAtExtent.center().xyz().add(new Vector3(0, 0, altitude));
-    const lookAt = lookAtExtent.center().xyz();
+    const position = lookAtExtent.centerAsVector3().add(new Vector3(0, 0, altitude));
+    const lookAt = lookAtExtent.centerAsVector3();
     lookAt.z = lookAtAltitude;
     // place camera above
     instance.camera.camera3D.position.copy(position);
@@ -131,7 +131,7 @@ map.addLayer(geoJsonLayer).then(() => {
             giro3dExtent.intersect(extent);
         }
         const position = new Vector2();
-        giro3dExtent.center(position);
+        giro3dExtent.centerAsVector2(position);
 
         // Create our label and position it
         const label = new CSS2DObject(text);
@@ -164,14 +164,10 @@ map.addLayer(geoJsonLayer).then(() => {
     instance.notifyChange(geoJsonLayer);
 });
 
-const cameraPosition = new Coordinates(
-    'EPSG:3946',
-    extent.west(), extent.south(), 2000,
-).xyz();
-instance.camera.camera3D.position.copy(cameraPosition);
+instance.camera.camera3D.position.set(extent.west(), extent.south(), 2000);
 
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
-controls.target = extent.center().xyz();
+controls.target = extent.centerAsVector3();
 controls.saveState();
 
 controls.enableDamping = true;

@@ -218,24 +218,43 @@ describe('Extent', () => {
             expect(target.latitude()).toBe(0);
         });
 
-        it('should center the target if { x, y } provided', () => {
+        it('should return (0, 0) if extent is the EPSG:4326 bounds', () => {
+            const result = BOUNDS_EPSG4326.center();
+            expect(result.longitude()).toBe(0);
+            expect(result.latitude()).toBe(0);
+        });
+
+        it('should return (0, 0) if extent is the EPSG:3857 bounds', () => {
+            const result = BOUNDS_EPSG3857.center();
+            expect(result.x()).toBe(0);
+            expect(result.y()).toBe(0);
+        });
+    });
+
+    describe('centerAsVector2', () => {
+        it('should return a new object if none was provided', () => {
+            const result = BOUNDS_EPSG4326.center();
+            expect(result).not.toBeUndefined();
+        });
+
+        it('should return the argument object if provided', () => {
             const target = new Vector2(-1, -1);
-            const result = BOUNDS_EPSG4326.center(target) as Vector2;
+            const result = BOUNDS_EPSG4326.centerAsVector2(target);
             expect(target).toBe(result);
             expect(target.x).toBe(0);
             expect(target.y).toBe(0);
         });
 
         it('should return (0, 0) if extent is the EPSG:4326 bounds', () => {
-            const result = BOUNDS_EPSG4326.center() as Coordinates;
-            expect(result.longitude()).toBe(0);
-            expect(result.latitude()).toBe(0);
+            const result = BOUNDS_EPSG4326.centerAsVector2();
+            expect(result.x).toBe(0);
+            expect(result.y).toBe(0);
         });
 
         it('should return (0, 0) if extent is the EPSG:3857 bounds', () => {
-            const result = BOUNDS_EPSG3857.center() as Coordinates;
-            expect(result.x()).toBe(0);
-            expect(result.y()).toBe(0);
+            const result = BOUNDS_EPSG3857.centerAsVector2();
+            expect(result.x).toBe(0);
+            expect(result.y).toBe(0);
         });
     });
 
@@ -555,7 +574,7 @@ describe('Extent', () => {
             const center = { x: 2324, y: -23254 };
             const extent = Extent.fromCenterAndSize('EPSG:3857', center, 100, 100);
 
-            const newCenter = extent.center() as Coordinates;
+            const newCenter = extent.center();
             expect(newCenter.x()).toEqual(center.x);
             expect(newCenter.y()).toEqual(center.y);
         });

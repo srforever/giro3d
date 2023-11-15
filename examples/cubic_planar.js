@@ -133,7 +133,7 @@ function createElevationLayer(name, url) {
 
 for (let i = 0; i < wmsLayers.length; i++) {
     const cubeSide = new Object3D();
-    const offset = extent.center().xyz().negate().applyEuler(cubeTransformations[i].rotation);
+    const offset = extent.centerAsVector3().negate().applyEuler(cubeTransformations[i].rotation);
     offset.add(cubeTransformations[i].position.divide(scale));
     cubeSide.position.copy(offset);
     cubeSide.rotation.copy(cubeTransformations[i].rotation);

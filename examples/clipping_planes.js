@@ -152,8 +152,8 @@ function setupScene(pointCloud) {
     map.addLayer(elevationLayer);
 
     const box3 = new Box3();
-    const center = map.extent.center();
-    const boxCenter = new Vector3(center.x(), center.y(), 800);
+    const center = map.extent.centerAsVector2();
+    const boxCenter = new Vector3(center.x, center.y, 800);
 
     const volumeHelpers = new Group();
     instance.scene.add(volumeHelpers);

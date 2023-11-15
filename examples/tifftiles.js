@@ -101,7 +101,7 @@ Fetcher.json('data/MtStHelens-footprint.geojson').then(geojson => {
     )).catch(e => console.error(e));
 }).catch(e => console.error(e));
 
-const center = extent.center().xyz();
+const center = extent.centerAsVector3();
 instance.camera.camera3D.position.set(center.x, center.y - 1, 50000);
 
 // Instanciates controls
