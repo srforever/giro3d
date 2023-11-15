@@ -1,6 +1,6 @@
 import Extent from '../../../src/core/geographic/Extent';
-import TileMesh from '../../../src/core/TileMesh.js';
-import Map from '../../../src/entities/Map.js';
+import TileMesh from '../../../src/core/TileMesh';
+import Map from '../../../src/entities/Map';
 
 const extent = new Extent('EPSG:3857', 0, 1, 0, 1);
 const map = new Map('map', { extent });

@@ -16,7 +16,7 @@ import {
     type GeoTIFF,
 } from 'geotiff';
 
-import Fetcher from '../utils/Fetcher.js';
+import Fetcher from '../utils/Fetcher';
 import Extent from '../core/geographic/Extent';
 import TextureGenerator, { type NumberArray } from '../utils/TextureGenerator';
 import PromiseUtils from '../utils/PromiseUtils.js';

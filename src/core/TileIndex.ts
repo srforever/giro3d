@@ -1,3 +1,5 @@
+import { type Material } from 'three';
+
 const TOP = 0;
 const TOP_RIGHT = 1;
 const RIGHT = 2;
@@ -7,7 +9,29 @@ const BOTTOM_LEFT = 5;
 const LEFT = 6;
 const TOP_LEFT = 7;
 
+export interface Tile {
+    /**
+     * The unique ID of the tile.
+     */
+    id: number;
+    /**
+     * The tile's X coordinate in the grid.
+     */
+    x: number;
+    /**
+     * The tile's Y coordinate in the grid.
+     */
+    y: number;
+    /**
+     * The tile's Z coordinate (LOD) in the grid.
+     */
+    z: number;
+    material: Material;
+}
+
 class TileIndex {
+    tiles: Map<string, WeakRef<Tile>>;
+    tilesById: Map<number, WeakRef<Tile>>;
     constructor() {
         this.tiles = new Map();
         this.tilesById = new Map();
@@ -16,12 +40,9 @@ class TileIndex {
     /**
      * Adds a tile to the index.
      *
-     * @param {object} tile the tile to add.
-     * @param {number} tile.x the tile's X coordinate.
-     * @param {number} tile.y the tile's Y coordinate.
-     * @param {number} tile.z the tile's Z coordinate.
+     * @param tile the tile to add.
      */
-    addTile(tile) {
+    addTile(tile: Tile) {
         const key = TileIndex.getKey(tile.x, tile.y, tile.z);
         const wr = new WeakRef(tile); // eslint-disable-line no-undef
         this.tiles.set(key, wr);
@@ -31,10 +52,10 @@ class TileIndex {
     /**
      * Gets a tile by its ID.
      *
-     * @param {number} id The ID.
-     * @returns {object|undefined} The found tile, otherwise undefined.
+     * @param id The ID.
+     * @returns The found tile, otherwise undefined.
      */
-    getTile(id) {
+    getTile(id: number): Tile | undefined {
         const entry = this.tilesById.get(id);
         if (entry) {
             const value = entry.deref();
@@ -46,7 +67,7 @@ class TileIndex {
         return undefined;
     }
 
-    static getKey(x, y, z) {
+    static getKey(x: number, y: number, z: number) {
         return `${x},${y},${z}`;
     }
 
@@ -59,27 +80,27 @@ class TileIndex {
      * 5 : south west -- 4 : south -- 3 : south east
      * If there is no neighbor, if it isn't visible or if it is a smaller level one, return null.
      *
-     * @param {object} tile the tile to query
-     * @returns {Array} neighbors : Array of found neighbors
+     * @param tile the tile to query
+     * @returns neighbors : Array of found neighbors
      */
-    getNeighbours(tile) {
+    getNeighbours(tile: Tile): Tile[] {
         const { x, y, z } = tile;
 
         const result = Array(8);
 
-        result[TOP] = this._searchTileOrAncestor(x, y + 1, z);
-        result[TOP_RIGHT] = this._searchTileOrAncestor(x + 1, y + 1, z);
-        result[RIGHT] = this._searchTileOrAncestor(x + 1, y, z);
-        result[BOTTOM_RIGHT] = this._searchTileOrAncestor(x + 1, y - 1, z);
-        result[BOTTOM] = this._searchTileOrAncestor(x, y - 1, z);
-        result[BOTTOM_LEFT] = this._searchTileOrAncestor(x - 1, y - 1, z);
-        result[LEFT] = this._searchTileOrAncestor(x - 1, y, z);
-        result[TOP_LEFT] = this._searchTileOrAncestor(x - 1, y + 1, z);
+        result[TOP] = this.searchTileOrAncestor(x, y + 1, z);
+        result[TOP_RIGHT] = this.searchTileOrAncestor(x + 1, y + 1, z);
+        result[RIGHT] = this.searchTileOrAncestor(x + 1, y, z);
+        result[BOTTOM_RIGHT] = this.searchTileOrAncestor(x + 1, y - 1, z);
+        result[BOTTOM] = this.searchTileOrAncestor(x, y - 1, z);
+        result[BOTTOM_LEFT] = this.searchTileOrAncestor(x - 1, y - 1, z);
+        result[LEFT] = this.searchTileOrAncestor(x - 1, y, z);
+        result[TOP_LEFT] = this.searchTileOrAncestor(x - 1, y + 1, z);
 
         return result;
     }
 
-    static getParent(x, y, z) {
+    static getParent(x: number, y: number, z: number) {
         if (z === 0) {
             return null;
         }
@@ -111,13 +132,12 @@ class TileIndex {
     /**
      * Search for the specific tile by coordinates if any, or any valid ancestor.
      *
-     * @param {number} x The tile X coordinate.
-     * @param {number} y The tile Y coordinate.
-     * @param {number} z The tile Z coordinate (zoom level).
-     * @returns {object|null} The matching tile if found, null otherwise.
-     * @memberof TileIndex
+     * @param x The tile X coordinate.
+     * @param y The tile Y coordinate.
+     * @param z The tile Z coordinate (zoom level).
+     * @returns The matching tile if found, null otherwise.
      */
-    _searchTileOrAncestor(x, y, z) {
+    searchTileOrAncestor(x: number, y: number, z: number): object | null {
         const key = TileIndex.getKey(x, y, z);
         const entry = this.tiles.get(key);
 
@@ -134,7 +154,7 @@ class TileIndex {
             return null;
         }
 
-        return this._searchTileOrAncestor(parent.x, parent.y, parent.z);
+        return this.searchTileOrAncestor(parent.x, parent.y, parent.z);
     }
 }
 

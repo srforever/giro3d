@@ -2,7 +2,7 @@
  * @module gui/FetcherPanel
  */
 
-import Fetcher from '../utils/Fetcher.js';
+import Fetcher from '../utils/Fetcher';
 import Panel from './Panel.js';
 
 class FetcherPanel extends Panel {

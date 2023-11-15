@@ -7,7 +7,7 @@ import {
     FloatType,
     UnsignedByteType,
 } from 'three';
-import RenderingState from '../renderer/RenderingState.js';
+import RenderingState from '../renderer/RenderingState';
 import Coordinates from './geographic/Coordinates';
 
 const BLACK = new Color(0, 0, 0);

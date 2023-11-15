@@ -13,7 +13,7 @@ import DrawTool, {
     DRAWTOOL_EVENT_TYPE, DRAWTOOL_MODE, DRAWTOOL_STATE, GEOMETRY_TYPE,
 } from '@giro3d/giro3d/interactions/DrawTool.js';
 import Drawing from '@giro3d/giro3d/interactions/Drawing.js';
-import Fetcher from '@giro3d/giro3d/utils/Fetcher.js';
+import Fetcher from '@giro3d/giro3d/utils/Fetcher';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import StatusBar from './widgets/StatusBar.js';
 

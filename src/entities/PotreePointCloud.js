@@ -13,14 +13,14 @@ import {
     Vector2,
     Vector3,
 } from 'three';
-import Entity3D from './Entity3D.js';
+import Entity3D from './Entity3D';
 import PointsMaterial, { MODE } from '../renderer/PointsMaterial.js';
 import { DefaultQueue } from '../core/RequestQueue';
 import PotreeSource from '../sources/PotreeSource';
 import OperationCounter from '../core/OperationCounter';
 import PotreeBinParser from '../parser/PotreeBinParser.js';
 import PotreeCinParser from '../parser/PotreeCinParser.js';
-import Fetcher from '../utils/Fetcher.js';
+import Fetcher from '../utils/Fetcher';
 import Picking from '../core/Picking.js';
 import Extent from '../core/geographic/Extent';
 import PointCloud from '../core/PointCloud.js';

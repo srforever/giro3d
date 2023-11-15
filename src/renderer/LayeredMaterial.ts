@@ -12,7 +12,7 @@ import {
     type WebGLRenderer,
     Vector3,
 } from 'three';
-import RenderingState from './RenderingState.js';
+import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
 import TileFS from './shader/TileFS.glsl';
 import WebGLComposer from './composition/WebGLComposer';
@@ -28,19 +28,8 @@ import type ElevationLayer from '../core/layer/ElevationLayer.js';
 import type ColorLayer from '../core/layer/ColorLayer.js';
 import type ElevationRange from '../core/ElevationRange.js';
 import type Extent from '../core/geographic/Extent';
-import type ColorMapAtlas from './ColorMapAtlas.js';
-
-interface LayerAtlasInfo {
-    x: number;
-    y: number;
-    offset: number;
-}
-
-interface AtlasInfo {
-    maxX: number;
-    maxY: number;
-    atlas: Record<string, LayerAtlasInfo>;
-}
+import type ColorMapAtlas from './ColorMapAtlas';
+import type { AtlasInfo, LayerAtlasInfo } from './AtlasBuilder';
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -138,7 +127,7 @@ function updateOffsetScale(
     );
 }
 
-interface MaterialOptions {
+export interface MaterialOptions {
     /**
      * Discards no-data pixels.
      */
@@ -485,7 +474,7 @@ class LayeredMaterial extends ShaderMaterial {
 
     setElevationTexture(
         layer: ElevationLayer,
-        { texture, pitch }: { texture: ElevationTexture, pitch: Vector4 },
+        { texture, pitch }: { texture: Texture, pitch: Vector4 },
         isFinal: boolean,
     ) {
         this._elevationLayer = layer;
@@ -493,8 +482,8 @@ class LayeredMaterial extends ShaderMaterial {
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', true);
 
         this.uniforms.elevationTexture.value = texture;
-        this.texturesInfo.elevation.texture = texture;
-        texture.isFinal = isFinal;
+        this.texturesInfo.elevation.texture = texture as ElevationTexture;
+        (texture as ElevationTexture).isFinal = isFinal;
         this.texturesInfo.elevation.offsetScale.copy(pitch);
 
         const uniform = this.uniforms.elevationLayer.value;
@@ -911,7 +900,7 @@ class LayeredMaterial extends ShaderMaterial {
         return this.progress < 1;
     }
 
-    setUuid(uuid: string) {
+    setUuid(uuid: number) {
         this.uniforms.uuid.value = uuid;
     }
 }

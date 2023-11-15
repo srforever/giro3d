@@ -3,19 +3,23 @@ import {
     BoxGeometry,
     BufferGeometry,
     Group,
+    type Material,
     Mesh,
     MeshStandardMaterial,
     Object3D,
     Plane,
+    MathUtils,
 } from 'three';
-import Entity3D from '../../../src/entities/Entity3D.js';
+import Entity3D from 'src/entities/Entity3D';
+import { ColorLayer } from 'src/core/layer';
+import NullSource from 'src/sources/NullSource';
 
 /**
  * Creates a valid {@link Entity3D} for unit testing.
  *
- * @param {Object3D} obj3d an optional object3d to inject
+ * @param obj3d an optional object3d to inject
  */
-function sut(obj3d = undefined) {
+function sut(obj3d: Object3D = undefined) {
     const id = 'foo';
     const object3d = obj3d ?? new Group();
 
@@ -23,24 +27,28 @@ function sut(obj3d = undefined) {
     return entity;
 }
 
+function makeLayer() {
+    const layer = new ColorLayer(MathUtils.generateUUID(), {
+        source: new NullSource(),
+    });
+    layer._preprocessLayer = () => layer;
+    return layer;
+}
+
 describe('Entity3D', () => {
     describe('constructor', () => {
         it('should throw on undefined id and object3d', () => {
-            assert.throws(() => new Entity3D(undefined, { isObject3D: true }));
+            assert.throws(() => new Entity3D(undefined, new Object3D()));
             assert.throws(() => new Entity3D('foo', undefined));
+            // @ts-ignore
             assert.throws(() => new Entity3D('foo', { isObject3D: false }));
         });
 
         it('should assign the provided properties', () => {
             const id = 'foo';
-            const obj3d = {
-                isObject3D: true,
-            };
+            const obj3d = new Object3D();
 
             const entity = new Entity3D(id, obj3d);
-
-            assert.throws(() => { entity.id = 'bar'; }, 'id should be immutable');
-            assert.throws(() => { entity.object3d = {}; }, 'object3d should be immutable');
 
             assert.strictEqual(entity.type, 'Entity3D');
             assert.strictEqual(entity.object3d, obj3d);
@@ -49,11 +57,7 @@ describe('Entity3D', () => {
 
         it('should assign the object3d.name with id if it is a group', () => {
             const id = 'foo';
-            const obj3d = {
-                isObject3D: true,
-                name: '',
-                type: 'Group',
-            };
+            const obj3d = new Group();
 
             const entity = new Entity3D(id, obj3d);
 
@@ -112,11 +116,10 @@ describe('Entity3D', () => {
         it('should call postUpdate() on attached layers', () => {
             const entity = sut();
 
-            const layer = {
-                update: jest.fn(),
-                _preprocessLayer: () => layer,
-                postUpdate: jest.fn(),
-            };
+            const layer = makeLayer();
+            layer.update = jest.fn();
+            layer.postUpdate = jest.fn();
+            layer._preprocessLayer = () => layer;
             entity.attach(layer);
 
             expect(layer.postUpdate).not.toHaveBeenCalled();
@@ -199,9 +202,7 @@ describe('Entity3D', () => {
 
     describe('object3d', () => {
         it('should return the provided object', () => {
-            const obj = {
-                isObject3D: true,
-            };
+            const obj = new Object3D();
             const entity = sut(obj);
 
             expect(entity.object3d).toBe(obj);
@@ -230,7 +231,7 @@ describe('Entity3D', () => {
         });
 
         it('should dispatch the opacity-property-changed event', () => {
-            const o3d = { traverse: jest.fn(), isObject3D: true };
+            const o3d = new Object3D();
             const entity = sut(o3d);
             const listener = jest.fn();
 
@@ -242,7 +243,8 @@ describe('Entity3D', () => {
 
     describe('opacity', () => {
         it('should traverse the object3d', () => {
-            const o3d = { traverse: jest.fn(), isObject3D: true };
+            const o3d = new Object3D();
+            o3d.traverse = jest.fn();
             const entity = sut(o3d);
             entity.opacity = 0.5;
             expect(o3d.traverse).toHaveBeenCalled();
@@ -283,20 +285,16 @@ describe('Entity3D', () => {
             entity.opacity = 0.5;
 
             object3d.traverse(o => {
-                if (o.isMesh) {
-                    expect(o.material.opacity).toEqual(0.5);
-                    expect(o.material.transparent).toEqual(true);
+                if ((o as Mesh).isMesh) {
+                    const mesh = o as Mesh<BufferGeometry, Material>;
+                    expect(mesh.material.opacity).toEqual(0.5);
+                    expect(mesh.material.transparent).toEqual(true);
                 }
             });
         });
     });
 
     describe('attach', () => {
-        function makeLayer() {
-            const layer = { update: jest.fn(), _preprocessLayer: () => layer };
-            return layer;
-        }
-
         it('should add the layer to the list of attached layers', () => {
             const entity = sut();
             const layer1 = makeLayer();
@@ -304,10 +302,10 @@ describe('Entity3D', () => {
 
             entity.attach(layer1);
 
-            expect(entity._attachedLayers).toEqual([layer1]);
+            expect(entity.attachedLayers).toEqual([layer1]);
 
             entity.attach(layer2);
-            expect(entity._attachedLayers).toEqual([layer1, layer2]);
+            expect(entity.attachedLayers).toEqual([layer1, layer2]);
         });
     });
 
@@ -340,7 +338,8 @@ describe('Entity3D', () => {
             entity.onObjectCreated(o);
 
             for (const child of o.children) {
-                expect(child.material.clippingPlanes).toBe(planes);
+                const mesh = child as Mesh<BoxGeometry, MeshStandardMaterial>;
+                expect(mesh.material.clippingPlanes).toBe(planes);
             }
         });
     });

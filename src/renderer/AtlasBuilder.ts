@@ -1,23 +1,42 @@
-import { Vector2 } from 'three';
-import fit from './Packer.js';
+import { type Vector2 } from 'three';
+import fit, { type Node, type Block } from './Packer';
 
 /**
  * An atlas image.
- *
- * @typedef {object} AtlasImage
- * @property {string} id The unique identifier of this image in the atlas.
- * @property {Vector2} size The size of the image, in pixels.
  */
+export interface AtlasImage {
+    id: string;
+    size: Vector2;
+}
+
+export interface LayerAtlasInfo {
+    x: number;
+    y: number;
+    fit?: Node;
+    offset?: number;
+}
+
+export type Atlas = Record<string, Node>;
+
+export interface AtlasInfo {
+    maxX: number;
+    maxY: number;
+    atlas: Atlas;
+}
+
+interface LayerBlock extends Block {
+    layerId: string;
+}
 
 /**
  * Build a texture atlas from N images.
  *
- * @param {number} maxSize The maximum texture size of the atlas, in pixels.
- * @param {Array<AtlasImage>} images The images to pack.
- * @param {object} oldAtlas The previous atlas.
+ * @param maxSize The maximum texture size of the atlas, in pixels.
+ * @param images The images to pack.
+ * @param oldAtlas The previous atlas.
  */
-function pack(maxSize, images, oldAtlas) {
-    const blocks = [];
+function pack(maxSize: number, images: Array<AtlasImage>, oldAtlas: Atlas): AtlasInfo {
+    const blocks: LayerBlock[] = [];
 
     for (let i = 0; i < images.length; i++) {
         if (oldAtlas && images[i].id in oldAtlas) {
@@ -34,9 +53,10 @@ function pack(maxSize, images, oldAtlas) {
     }
 
     // sort from big > small images (the packing alg works best if big images are treated first)
+    // @ts-ignore (we ignore the typing error of casting booleans to numbers to maintain speed)
     blocks.sort((a, b) => Math.max(a.w, a.h) < Math.max(b.w, b.h));
 
-    let previousRoot;
+    let previousRoot: Node;
     if (oldAtlas) {
         for (const k of Object.keys(oldAtlas)) { // eslint-disable-line guard-for-in
             const fitResult = oldAtlas[k];

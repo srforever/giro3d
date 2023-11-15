@@ -8,7 +8,7 @@ import Layer from '../core/layer/Layer';
 import Panel from './Panel.js';
 import ColorMapInspector from './ColorMapInspector.js';
 import Helpers from '../helpers/Helpers.js';
-import Map from '../entities/Map.js';
+import Map from '../entities/Map';
 import SourceInspector from './SourceInspector.js';
 
 /**

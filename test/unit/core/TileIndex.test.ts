@@ -1,11 +1,18 @@
+import { Material } from 'three';
 import TileIndex, {
     TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT,
-} from '../../../src/core/TileIndex.js';
+    type Tile,
+} from '../../../src/core/TileIndex';
 
-class MockWeakRef {
-    constructor(obj) {
+class MockWeakRef<T extends WeakKey> implements WeakRef<T> {
+    obj: T;
+    collected: boolean;
+
+    constructor(obj: T) {
         this.obj = obj;
     }
+
+    [Symbol.toStringTag]: 'WeakRef';
 
     collect() {
         this.collected = true;
@@ -22,9 +29,15 @@ class MockWeakRef {
 
 global.WeakRef = MockWeakRef;
 
-function makeTile(x, y, z, visible = true, id = 'id') {
+function makeMaterial(visible: boolean) {
+    const mat = new Material();
+    mat.visible = visible;
+    return mat;
+}
+
+function makeTile(x: number, y: number, z: number, visible = true, id = 0): Tile {
     return {
-        id, x, y, z, material: { visible },
+        id, x, y, z, material: makeMaterial(visible),
     };
 }
 
@@ -45,20 +58,20 @@ describe('TileIndex', () => {
         });
 
         it('should keep a WeakRef in the tile by ID index at TileMesh creation', () => {
-            const foo = makeTile(0, 0, 0, true, 'foo');
-            const bar = makeTile(0, 0, 1, true, 'bar');
+            const foo = makeTile(0, 0, 0, true, 141);
+            const bar = makeTile(0, 0, 1, true, 64);
             const tileIndex = new TileIndex();
             tileIndex.addTile(foo);
             tileIndex.addTile(bar);
-            expect(tileIndex.getTile('foo')).toBe(foo);
-            expect(tileIndex.getTile('bar')).toBe(bar);
+            expect(tileIndex.getTile(141)).toBe(foo);
+            expect(tileIndex.getTile(64)).toBe(bar);
         });
     });
 
     describe('update', () => {
         it('should only remove garbage collected tiles from the map', () => {
-            const tile000 = makeTile(0, 0, 0, true, 'foo');
-            const tile001 = makeTile(0, 0, 1, true, 'bar');
+            const tile000 = makeTile(0, 0, 0, true, 141);
+            const tile001 = makeTile(0, 0, 1, true, 64);
             const tileIndex = new TileIndex();
 
             tileIndex.addTile(tile000);
@@ -68,53 +81,53 @@ describe('TileIndex', () => {
             const weakref001 = tileIndex.tiles.get('0,0,1');
             expect(weakref000.deref()).toBe(tile000);
             expect(weakref001.deref()).toBe(tile001);
-            expect(tileIndex.getTile('foo')).toBe(tile000);
-            expect(tileIndex.getTile('bar')).toBe(tile001);
+            expect(tileIndex.getTile(141)).toBe(tile000);
+            expect(tileIndex.getTile(64)).toBe(tile001);
 
-            weakref000.collect();
+            (weakref000 as MockWeakRef<Tile>).collect();
             tileIndex.update();
             expect(tileIndex.tiles.get('0,0,0')).toBeUndefined();
             expect(tileIndex.tiles.get('0,0,1')).toBe(weakref001);
-            expect(tileIndex.getTile('foo')).toBeUndefined();
-            expect(tileIndex.getTile('bar')).toBe(tile001);
+            expect(tileIndex.getTile(141)).toBeUndefined();
+            expect(tileIndex.getTile(64)).toBe(tile001);
         });
     });
 
-    describe('_searchTileOrAncestor', () => {
+    describe('searchTileOrAncestor', () => {
         it("should return null if the wanted tile isn't in the indexedTiles", () => {
             const tileIndex = new TileIndex();
 
-            expect(tileIndex._searchTileOrAncestor(1, 1, 1)).toBeNull();
+            expect(tileIndex.searchTileOrAncestor(1, 1, 1)).toBeNull();
         });
 
         it('should return the requested tile if it is present, and with a visible material', () => {
             const tileIndex = new TileIndex();
             const tile = {
-                x: 1, y: 1, z: 1, material: { visible: true },
+                x: 1, y: 1, z: 1, id: 1, material: makeMaterial(true),
             };
             tileIndex.addTile(tile);
 
-            expect(tileIndex._searchTileOrAncestor(1, 1, 1)).toBe(tile);
+            expect(tileIndex.searchTileOrAncestor(1, 1, 1)).toBe(tile);
         });
 
         it("should return null if tile's material is not visible", () => {
             const tileIndex = new TileIndex();
             const tile = {
-                x: 1, y: 1, z: 1, material: { visible: false },
+                x: 1, y: 1, z: 1, id: 1, material: makeMaterial(false),
             };
             tileIndex.addTile(tile);
 
-            expect(tileIndex._searchTileOrAncestor(1, 1, 1)).toBeNull();
+            expect(tileIndex.searchTileOrAncestor(1, 1, 1)).toBeNull();
         });
 
         it('should return a parent tile (if its visible) if no same level tile found', () => {
             const tileIndex = new TileIndex();
             const tile = {
-                x: 0, y: 0, z: 0, material: { visible: true },
+                x: 0, y: 0, z: 0, id: 1, material: makeMaterial(true),
             };
             tileIndex.addTile(tile);
 
-            expect(tileIndex._searchTileOrAncestor(1, 1, 1)).toBe(tile);
+            expect(tileIndex.searchTileOrAncestor(1, 1, 1)).toBe(tile);
         });
     });
 

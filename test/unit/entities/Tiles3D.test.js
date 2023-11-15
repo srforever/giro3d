@@ -9,7 +9,7 @@ import $3dTilesIndex from '../../../src/entities/3dtiles/3dTilesIndex.js';
 import Camera from '../../../src/renderer/Camera.js';
 import Coordinates from '../../../src/core/geographic/Coordinates';
 import Tiles3DSource from '../../../src/sources/Tiles3DSource';
-import Entity3D from '../../../src/entities/Entity3D.js';
+import Entity3D from '../../../src/entities/Entity3D';
 
 describe('Tiles3D', () => {
     const defaultSource = new Tiles3DSource('http://example.com/tileset');

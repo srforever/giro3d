@@ -1,39 +1,35 @@
-/**
- * @module utils/HttpConfiguration
- */
-
-/** @type {Map<string, Array<PrefixEntry>>} */
-const perHostProperties = new Map();
-
 class PrefixEntry {
+    urlPrefix: string;
+    headers: Map<string, string>;
+
     /**
-     * @param {string} urlPrefix The URL prefix for this host entry.
+     * @param urlPrefix The URL prefix for this host entry.
      */
-    constructor(urlPrefix) {
+    constructor(urlPrefix: string) {
         this.urlPrefix = urlPrefix;
 
-        /** @type {Map<string, string>} */
         this.headers = new Map();
     }
 
     /**
      * Sets a custom header applicable for URLs that match the prefix.
      *
-     * @param {string} name The header name.
-     * @param {string} value The header value.
-     * @memberof PrefixEntry
+     * @param name The header name.
+     * @param value The header value.
      */
-    setHeader(name, value) {
+    setHeader(name: string, value: string) {
         this.headers.set(name, value);
     }
 }
 
+const perHostProperties: Map<string, Array<PrefixEntry>> = new Map();
+
 /**
  * Update the request options with stored configuration applicable to this URL.
  *
- * @param {string} url The URL.
- * @param {?object} options The request options.
- * @returns {object|undefined} The updated options, if any. If no options object is passed, and no
+ * @param url The URL.
+ * @param options The request options.
+ * @returns The updated options, if any. If no options object is passed, and no
  * configuration applies to this URL, then returns `undefined`.
  * @example
  * HttpConfiguration.setHeader('http://example.com', 'Foo', 'bar');
@@ -62,7 +58,7 @@ class PrefixEntry {
  * // We can now send our HTTP request with correct headers
  * fetch('http://example.com/index.html', fetchOptions);
  */
-function applyConfiguration(url, options) {
+function applyConfiguration(url: string, options?: RequestInit): RequestInit | undefined {
     if (perHostProperties.size === 0) {
         return options;
     }
@@ -77,7 +73,7 @@ function applyConfiguration(url, options) {
     if (!options) {
         options = {};
     }
-    const headers = options.headers ?? {};
+    const headers = (options.headers ?? {}) as Record<string, string>;
 
     for (const entry of properties) {
         if (url.startsWith(entry.urlPrefix)) {
@@ -104,17 +100,16 @@ function applyConfiguration(url, options) {
  *
  * Note: The URL prefix must be a valid URL (e.g must contain a scheme and and host).
  *
- * @param {string} urlPrefix The URL prefix.
- * @param {string} name The header name.
- * @param {string} value The header value.
+ * @param urlPrefix The URL prefix.
+ * @param name The header name.
+ * @param value The header value.
  */
-function setHeader(urlPrefix, name, value) {
+function setHeader(urlPrefix: string, name: string, value: string) {
     const url = new URL(urlPrefix);
     const hostname = url.hostname;
 
     let hostEntry = perHostProperties.get(hostname);
-    /** @type {PrefixEntry} */
-    let prefixEntry;
+    let prefixEntry: PrefixEntry;
 
     if (!hostEntry) {
         hostEntry = [];
@@ -141,8 +136,8 @@ function setHeader(urlPrefix, name, value) {
  *  setHeader(urlPrefix, 'Authorization', value)
  *  ```
  *
- * @param {string} urlPrefix The URL prefix.
- * @param {string} value The header value
+ * @param urlPrefix The URL prefix.
+ * @param value The header value
  * @example
  * // We wish to set the Authorization header for the 'example.com'
  * // domain to 'Bearer TOPLEVEL', except for the resources under
@@ -159,13 +154,12 @@ function setHeader(urlPrefix, name, value) {
  * HttpConfiguration.applyConfiguration('https://example.com/sub/resource/index.html')
  * // -> { 'Authorization', 'Bearer SUBRESOURCE' }
  */
-function setAuth(urlPrefix, value) {
+function setAuth(urlPrefix: string, value: string) {
     setHeader(urlPrefix, 'Authorization', value);
 }
 
 /**
  * Removes all configurations.
- *
  */
 function clear() {
     perHostProperties.clear();

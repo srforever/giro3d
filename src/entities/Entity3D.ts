@@ -1,57 +1,61 @@
-/**
- * @module entities/Entity3D
- */
 import {
     Box3,
-    Material,
-    Mesh,
-    Object3D,
-    Plane,
+    type Material,
+    type Mesh,
+    type Object3D,
+    type Plane,
 } from 'three';
 
 import Picking from '../core/Picking.js';
-import Entity from './Entity.js';
-import EventUtils from '../utils/EventUtils.js';
+import Entity, { type EntityEventMap } from './Entity';
+import type Instance from '../core/Instance.js';
+import type Layer from '../core/layer/Layer.js';
 
-/**
- * Fired when the entity visibility changed.
- *
- * @event Entity3D#visible-property-changed
- * @property {object} new the new value of the property
- * @property {boolean} new.visible the new value of the entity visibility
- * @property {object} previous the previous value of the property
- * @property {boolean} previous.visible the previous value of the entity visibility
- * @property {Entity3D} target dispatched on entity
- * @property {string} type visible-property-changed
- */
-
-/**
- * Fired when the entity opacity changed.
- *
- * @event Entity3D#opacity-property-changed
- * @property {object} new the new value of the property
- * @property {number} new.opacity the new value of the entity opacity
- * @property {object} previous the previous value of the property
- * @property {number} previous.opacity the previous value of the entity opacity
- * @property {Entity3D} target dispatched on entity
- * @property {string} type opacity-property-changed
- */
+export interface Entity3DEventMap extends EntityEventMap {
+    /**
+     * Fired when the entity opacity changed.
+     */
+    'opacity-property-changed': { opacity: number; }
+    /**
+     * Fired when the entity visibility changed.
+     */
+    'visible-property-changed': { visible: boolean; }
+    /**
+     * Fired when the entity's clipping planes have changed.
+     */
+    'clippingPlanes-property-changed': { clippingPlanes: Plane[]; }
+    /**
+     * Fired when the entity render order changed.
+     */
+    'renderOrder-property-changed': { renderOrder: number; }
+}
 
 /**
  * Base class for {@link entities.Entity entities} that display 3D objects.
- *
- * @fires Entity3D#opacity-property-changed
- * @fires Entity3D#visible-property-changed
- * @fires Entity3D#clippingPlanes-property-changed
  */
-class Entity3D extends Entity {
+class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
+    extends Entity<TEventMap & Entity3DEventMap> {
+    protected _instance: Instance;
+    private _attachedLayers: Layer[];
+    private _visible: boolean;
+    private _opacity: number;
+    private _object3d: Object3D;
+    protected _distance: { min: number; max: number; };
+    private _clippingPlanes: Plane[];
+    private _renderOrder: number;
+
+    /**
+     * Read-only flag to check if a given object is of type Entity3D.
+     */
+    readonly isEntity3D: boolean = true;
+
     /**
      * Creates a Entity3D with the specified parameters.
      *
-     * @param {string} id the unique identifier of this entity
-     * @param {module:three.Object3D} object3d the root Three.js of this entity
+     * @param id the unique identifier of this entity
+     * @param object3d the root Three.js of this entity
      */
-    constructor(id, object3d) {
+    constructor(id: string, object3d: Object3D) {
         super(id);
         if (!object3d || !object3d.isObject3D) {
             throw new Error(
@@ -65,33 +69,28 @@ class Entity3D extends Entity {
             object3d.name = id;
         }
 
-        /**
-         * Read-only flag to check if a given object is of type Entity3D.
-         *
-         * @type {boolean}
-         */
-        this.isEntity3D = true;
         this.type = 'Entity3D';
-        /** @type {boolean} */
         this._visible = true;
-        /** @type {number} */
         this._opacity = 1;
-        /** @type {Object3D} */
         this._object3d = object3d;
 
         // processing can overwrite that with values calculating from this layer's Object3D
         this._distance = { min: Infinity, max: 0 };
 
-        /** @type {Plane[]} */
         this._clippingPlanes = null;
 
         this._renderOrder = 0;
     }
 
     /**
+     * The layers attached to this entity.
+     */
+    get attachedLayers() {
+        return this._attachedLayers;
+    }
+
+    /**
      * Returns the root object of this entity.
-     *
-     * @type {Object3D}
      */
     get object3d() {
         return this._object3d;
@@ -101,7 +100,6 @@ class Entity3D extends Entity {
      * Gets or sets the visibility of this entity.
      * A non-visible entity will not be automatically updated.
      *
-     * @type {boolean}
      * @fires Entity3D#visible-property-changed
      */
     get visible() {
@@ -110,36 +108,32 @@ class Entity3D extends Entity {
 
     set visible(v) {
         if (this._visible !== v) {
-            const event = EventUtils.createPropertyChangedEvent(this, 'visible', this._visible, v);
             this._visible = v;
             this.updateVisibility();
-            this.dispatchEvent(event);
+            this.dispatchEvent({ type: 'visible-property-changed', visible: v });
         }
     }
 
     /**
      * Gets or sets the render order of this entity.
      *
-     * @type {number}
      * @fires Entity3D#renderOrder-property-changed
      */
     get renderOrder() {
         return this._renderOrder;
     }
 
-    set renderOrder(v) {
+    set renderOrder(v: number) {
         if (v !== this._renderOrder) {
-            const event = EventUtils.createPropertyChangedEvent(this, 'renderOrder', this._renderOrder, v);
             this._renderOrder = v;
             this.traverse(o => { o.renderOrder = v; });
-            this.dispatchEvent(event);
+            this.dispatchEvent({ type: 'renderOrder-property-changed', renderOrder: v });
         }
     }
 
     /**
      * Gets or sets the opacity of this entity.
      *
-     * @type {number}
      * @fires Entity3D#opacity-property-changed
      */
     get opacity() {
@@ -148,10 +142,9 @@ class Entity3D extends Entity {
 
     set opacity(v) {
         if (this._opacity !== v) {
-            const event = EventUtils.createPropertyChangedEvent(this, 'opacity', this._opacity, v);
             this._opacity = v;
             this.updateOpacity();
-            this.dispatchEvent(event);
+            this.dispatchEvent({ type: 'opacity-property-changed', opacity: v });
         }
     }
 
@@ -162,18 +155,16 @@ class Entity3D extends Entity {
      * the [clipping plane feature](https://threejs.org/docs/index.html?q=materi#api/en/materials/Material.clippingPlanes) of three.js.
      * Refer to the three.js documentation for more information.
      *
-     * @type {Plane[]}
      * @fires Entity3D#clippingPlanes-property-changed
      */
     get clippingPlanes() {
         return this._clippingPlanes;
     }
 
-    set clippingPlanes(planes) {
-        const event = EventUtils.createPropertyChangedEvent(this, 'clippingPlanes', this._clippingPlanes, planes);
+    set clippingPlanes(planes: Plane[]) {
         this._clippingPlanes = planes;
         this.updateClippingPlanes();
-        this.dispatchEvent(event);
+        this.dispatchEvent({ type: 'clippingPlanes-property-changed', clippingPlanes: planes });
     }
 
     /**
@@ -220,9 +211,9 @@ class Entity3D extends Entity {
     /**
      * Returns an approximated bounding box of this entity in the scene.
      *
-     * @returns {Box3|null} the resulting bounding box, or `null` if it could not be computed.
+     * @returns the resulting bounding box, or `null` if it could not be computed.
      */
-    getBoundingBox() {
+    getBoundingBox(): Box3 | null {
         if (this.object3d) {
             const box = new Box3().setFromObject(this.object3d);
             return box;
@@ -244,9 +235,9 @@ class Entity3D extends Entity {
      *
      * // Notify the parent class
      * this.onObjectCreated(obj);
-     * @param {Object3D} obj The object to prepare.
+     * @param obj The object to prepare.
      */
-    onObjectCreated(obj) {
+    onObjectCreated(obj: Object3D) {
         // note: we use traverse() because the object might have its own sub-hierarchy as well.
 
         this.traverse(o => {
@@ -271,11 +262,11 @@ class Entity3D extends Entity {
      * layer must provide a getObjectToUpdateForAttachedLayers function that returns the correct
      * object to update for attached layer from the objects returned by preUpdate.
      *
-     * @param {object} obj the Mesh or the object containing a Mesh. These are the objects returned
+     * @param obj the Mesh or the object containing a Mesh. These are the objects returned
      * by preUpdate or update.
-     * @returns {object} an object passed to the update function of attached layers.
+     * @returns an object passed to the update function of attached layers.
      */
-    getObjectToUpdateForAttachedLayers(obj) {
+    getObjectToUpdateForAttachedLayers(obj: Mesh) {
         if (!obj.parent || !obj.material) {
             return null;
         }
@@ -294,6 +285,7 @@ class Entity3D extends Entity {
      * @param {object[]} [target=undefined] Target array to fill
      * @returns {object[]} Picked objects (node)
      */
+    // @ts-ignore // TODO when Picking is refactored into TS, we can have static typing here
     pickObjectsAt(coordinates, options, target) {
         return Picking.pickObjectsAt(
             this._instance,
@@ -309,13 +301,13 @@ class Entity3D extends Entity {
      *
      * The object may be a component of the entity, or a 3D object.
      *
-     * @param {any} obj The object to test.
-     * @returns {boolean} true if the entity contains the object.
+     * @param obj The object to test.
+     * @returns true if the entity contains the object.
      */
-    // eslint-disable-next-line class-methods-use-this, no-unused-vars
-    contains(obj) { return false; }
+    // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
+    contains(obj: unknown): boolean { return false; }
 
-    attach(layer) {
+    attach(layer: Layer) {
         if (!layer.update) {
             throw new Error(`Missing 'update' function -> can't attach layer ${layer.id}`);
         }
@@ -324,7 +316,7 @@ class Entity3D extends Entity {
         this._attachedLayers.push(layer);
     }
 
-    detach(layer) {
+    detach(layer: Layer) {
         const count = this._attachedLayers.length;
         this._attachedLayers = this._attachedLayers.filter(attached => attached.id !== layer.id);
         return this._attachedLayers.length < count;
@@ -333,11 +325,10 @@ class Entity3D extends Entity {
     /**
      * Get all the layers attached to this object.
      *
-     * @param {function(module:Core/Layer~Layer):boolean} filter
-     * Optional filter function for attached layers
-     * @returns {Array<module:Core/Layer~Layer>} the layers attached to this object
+     * @param filter Optional filter function for attached layers
+     * @returns the layers attached to this object
      */
-    getLayers(filter) {
+    getLayers(filter: (arg0: Layer) => boolean): Layer[] {
         const result = [];
         for (const attached of this._attachedLayers) {
             if (!filter || filter(attached)) {
@@ -350,16 +341,16 @@ class Entity3D extends Entity {
     /**
      * Traverses all materials in the hierarchy of this entity.
      *
-     * @param {function(Material): void} callback The callback.
-     * @param {Object3D} [root] The traversal root. If undefined, the traversal starts at the root
+     * @param callback The callback.
+     * @param root The traversal root. If undefined, the traversal starts at the root
      * object of this entity.
      */
-    traverseMaterials(callback, root = undefined) {
-        this.traverse(o => {
+    traverseMaterials(callback: (arg0: Material) => void, root: Object3D = undefined) {
+        this.traverse((o: any) => {
             if (Array.isArray(o.material)) {
-                o.material.forEach(m => callback(m));
+                o.material.forEach((m: Material) => callback(m));
             } else if (o.material) {
-                callback(o.material);
+                callback(o.material as Material);
             }
         }, root);
     }
@@ -367,17 +358,17 @@ class Entity3D extends Entity {
     /**
      * Traverses all meshes in the hierarchy of this entity.
      *
-     * @param {function(Mesh): void} callback The callback.
-     * @param {Object3D} [root] The raversal root. If undefined, the traversal starts at the root
+     * @param callback The callback.
+     * @param root The raversal root. If undefined, the traversal starts at the root
      * object of this entity.
      */
-    traverseMeshes(callback, root = undefined) {
+    traverseMeshes(callback: (arg0: Mesh) => void, root: Object3D = undefined) {
         const origin = root ?? this.object3d;
 
         if (origin) {
             origin.traverse(o => {
-                if (o.isMesh) {
-                    callback(o);
+                if ((o as Mesh).isMesh) {
+                    callback(o as Mesh);
                 }
             });
         }
@@ -386,11 +377,11 @@ class Entity3D extends Entity {
     /**
      * Traverses all objects in the hierarchy of this entity.
      *
-     * @param {function(Object3D): void} callback The callback.
-     * @param {Object3D} [root] The traversal root. If undefined, the traversal starts at the root
+     * @param callback The callback.
+     * @param root The traversal root. If undefined, the traversal starts at the root
      * object of this entity.
      */
-    traverse(callback, root = undefined) {
+    traverse(callback: (arg0: Object3D) => void, root: Object3D = undefined) {
         const origin = root ?? this.object3d;
 
         if (origin) {

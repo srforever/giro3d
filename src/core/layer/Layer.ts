@@ -23,9 +23,9 @@ import ImageSource, { type ImageResult } from '../../sources/ImageSource';
 import type RequestQueue from '../RequestQueue';
 import { DefaultQueue } from '../RequestQueue';
 import OperationCounter from '../OperationCounter';
-import type TileMesh from '../TileMesh.js';
+import type TileMesh from '../TileMesh';
 import type PointCloud from '../PointCloud.js';
-import type Context from '../Context.js';
+import type Context from '../Context';
 import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
 import type PointsMaterial from '../../renderer/PointsMaterial.js';
 import type Progress from '../Progress.js';
@@ -590,7 +590,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
      *
      * @param node The disposed node.
      */
-    protected unregisterNode(node: Node) {
+    unregisterNode(node: Node) {
         const id = node.id;
         if (this.targets.has(id)) {
             const target = this.targets.get(id);
@@ -978,7 +978,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
         // Implemented in derived classes
     }
 
-    protected abstract registerNode(node: Node, extent: Extent): void;
+    abstract registerNode(node: Node, extent: Extent): void;
 
     protected abstract applyTextureToNode(
         texture: TextureAndPitch,

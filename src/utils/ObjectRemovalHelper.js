@@ -1,5 +1,5 @@
 import { Object3D } from 'three';
-import Entity from '../entities/Entity.js';
+import Entity from '../entities/Entity';
 
 export default {
     /**

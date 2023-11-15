@@ -1,6 +1,10 @@
-import { NearestFilter, Texture, WebGLRenderer } from 'three';
+import {
+    NearestFilter,
+    type Texture,
+    type WebGLRenderer,
+} from 'three';
 import Rect from '../core/Rect.js';
-import ColorMap from '../core/layer/ColorMap';
+import type ColorMap from '../core/layer/ColorMap';
 import WebGLComposer from './composition/WebGLComposer';
 
 /**
@@ -8,11 +12,17 @@ import WebGLComposer from './composition/WebGLComposer';
  * This is necessary to avoid consuming too many texture units.
  */
 class ColorMapAtlas {
+    private readonly _renderer: WebGLRenderer;
+    private _colorMaps: Map<ColorMap, { offset: number; texture: string }>;
+    private _texture: Texture;
+    private _dirty: boolean;
+    private _atlas: WebGLComposer;
+    private _disposed: boolean;
+
     /**
-     * @param {WebGLRenderer} renderer The renderer
+     * @param renderer The renderer
      */
-    constructor(renderer) {
-        /** @type {Map<ColorMap, object>} */
+    constructor(renderer: WebGLRenderer) {
         this._colorMaps = new Map();
         this._texture = null;
         this._dirty = false;
@@ -22,9 +32,9 @@ class ColorMapAtlas {
     /**
      * Adds a color map to the atlas.
      *
-     * @param {ColorMap} colorMap The color map.
+     * @param colorMap The color map.
      */
-    add(colorMap) {
+    add(colorMap: ColorMap) {
         this._colorMaps.set(colorMap, { offset: 0, texture: '' });
         this._dirty = true;
     }
@@ -32,9 +42,9 @@ class ColorMapAtlas {
     /**
      * Removes a color map from the atlas.
      *
-     * @param {ColorMap} colorMap The color map.
+     * @param colorMap The color map.
      */
-    remove(colorMap) {
+    remove(colorMap: ColorMap) {
         this._colorMaps.delete(colorMap);
         this._dirty = true;
     }
@@ -50,7 +60,7 @@ class ColorMapAtlas {
         }
     }
 
-    _createTexture() {
+    private createTexture() {
         this._texture?.dispose();
         this._texture = null;
 
@@ -101,12 +111,10 @@ class ColorMapAtlas {
 
     /**
      * Gets the atlas texture.
-     *
-     * @type {Texture}
      */
     get texture() {
         if (this._dirty) {
-            this._createTexture();
+            this.createTexture();
         }
         return this._texture;
     }
@@ -114,12 +122,12 @@ class ColorMapAtlas {
     /**
      * Gets the vertical offset for the specified color map.
      *
-     * @param {ColorMap} colorMap The color map.
-     * @returns {number} The offset.
+     * @param colorMap The color map.
+     * @returns The offset.
      */
-    getOffset(colorMap) {
+    getOffset(colorMap: ColorMap): number {
         if (this._dirty) {
-            this._createTexture();
+            this.createTexture();
         }
         return this._colorMaps.get(colorMap)?.offset;
     }
