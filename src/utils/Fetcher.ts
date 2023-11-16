@@ -117,8 +117,8 @@ interface ErrorWithResponse extends Error {
  * @fires error On Network/HTTP error
  */
 async function fetchInternal(url: string, options?: RequestInit): Promise<Response> {
-    HttpConfiguration.applyConfiguration(url, options);
-    const req = new Request(url, options);
+    const augmentedOptions = HttpConfiguration.applyConfiguration(url, options);
+    const req = new Request(url, augmentedOptions);
     const response = await enqueue(req).catch(error => {
         eventTarget.dispatchEvent({ type: 'error', error });
         throw error;
