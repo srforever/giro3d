@@ -8,6 +8,7 @@ describe('Fetcher', () => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         window.Request = function Request(input: RequestInfo | URL, init?: RequestInit) {
             this.url = input;
+            this.headers = init?.headers ?? {};
         };
     });
     afterEach(() => {
@@ -54,14 +55,39 @@ describe('Fetcher', () => {
         });
 
         it('should pass the request to the HttpConfiguration', async () => {
+            HttpConfiguration.setAuth('http://example.com', 'the auth');
+
             global.fetch = jest.fn(() => Promise.resolve({ ok: true })) as jest.Mock;
 
-            HttpConfiguration.applyConfiguration = jest.fn();
+            await expect(Fetcher.fetch('http://example.com')).resolves.toEqual({ ok: true });
 
-            const opts = { headers: { foo: 'bar' } };
+            expect(global.fetch).toHaveBeenCalledWith({
+                url: 'http://example.com',
+                headers: {
+                    Authorization: 'the auth',
+                },
+            });
+        });
+
+        it('should honor existing headers', async () => {
+            HttpConfiguration.setAuth('http://example.com', 'the auth');
+
+            global.fetch = jest.fn(() => Promise.resolve({ ok: true })) as jest.Mock;
+
+            const opts = {
+                headers: {
+                    ExistingHeader: 'value',
+                },
+            };
             await expect(Fetcher.fetch('http://example.com', opts)).resolves.toEqual({ ok: true });
 
-            expect(HttpConfiguration.applyConfiguration).toHaveBeenCalledWith('http://example.com', opts);
+            expect(global.fetch).toHaveBeenCalledWith({
+                url: 'http://example.com',
+                headers: {
+                    Authorization: 'the auth',
+                    ExistingHeader: 'value',
+                },
+            });
         });
     });
 

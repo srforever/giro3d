@@ -1,5 +1,40 @@
 # Changelog
 
+## v0.30.0 (2023-11-16)
+
+Mostly performance/memory improvements and bugfixes, as well as a better integration of sources with the `Fetcher` module.
+
+### Feat
+
+- **CogSource**: use the Fetcher for automatic HTTP configuration (#312)
+- **VectorTileSource**: use the Fetcher for automatic HTTP configuration (!449)
+- **CogSource**: add options for the underlying `BlockedSource` cache (#364)
+
+### Fix
+
+- **TileVS.glsl**: ignore no-data for stitching (#366)
+- **Map**: don't apply contour lines on transparent pixels (#365)
+
+### Refactor
+
+- **Map**: migrate to TypeScript
+- **ScreenSpaceError**: export `SSE` type
+- **Entity3D**: migrate to TypeScript
+- **Entity**: migrate to TypeScript
+- **AtlasBuilder**: migrate to TypeScript
+- **Context**: migrate to TypeScript
+- **RenderingState**: migrate to TypeScript
+- **TileIndex**: migrate to TypeScript
+- **TileMesh**: migrate to TypeScript
+- **ColorMapAtlas**: migrate to TypeScript
+- **http**: migrate to TypeScript
+- **CogSource**: improve static typing
+
+### Perf
+
+- **AxisGrid**: rebuild objects at most once per frame, and only if the grid is visible (!448)
+- **CogSource**: use the global cache (#364)
+
 ## v0.29.0 (2023-10-26)
 
 ### BREAKING CHANGE
