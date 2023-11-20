@@ -461,19 +461,19 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
             if (result.status === PromiseStatus.Fullfilled) {
                 const image = (result as PromiseFulfilledResult<ImageResult>).value;
 
-                this.addToComposer(image);
+                this.addToComposer(image, true);
             }
         }
 
         await this.onInitialized();
     }
 
-    private addToComposer(image: ImageResult) {
+    private addToComposer(image: ImageResult, alwaysVisible: boolean) {
         this.composer.add({
             fillNoData: this.noDataOptions.replaceNoData,
             fillNoDataAlphaReplacement: this.noDataOptions.alpha,
             fillNoDataRadius: this.noDataOptions.maxSearchDistance,
-            alwaysVisible: true, // Ensures background images are never deleted
+            alwaysVisible, // Ensures background images are never deleted
             flipY: this.source.flipY,
             ...image,
         });
@@ -570,7 +570,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
                 id: requestId, request, priority, shouldExecute,
             }).then((image: ImageResult) => {
                 if (!this.disposed) {
-                    this.addToComposer(image);
+                    this.addToComposer(image, false);
                     if (!this.shouldCancelRequest(node)) {
                         this.composer.lock(id, node.id);
                     }
