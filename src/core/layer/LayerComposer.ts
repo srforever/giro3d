@@ -66,22 +66,9 @@ function processMinMax(texture: TextureWithMinMax, {
     throw new Error('no min/max could be computed from texture');
 }
 
-enum State {
-    /**
-     * The image was not used at all during this render cycle.
-     */
-    NotUsed = 0,
-    /**
-     * The image was used this cycle for at least one render.
-     */
-    Used = 1,
-}
-
 class Image {
     readonly id: string;
     readonly mesh: Mesh;
-    state: State;
-    lastUsed: number;
     readonly extent: Extent;
     readonly texture: Texture;
     readonly alwaysVisible: boolean;
@@ -102,8 +89,6 @@ class Image {
     }) {
         this.id = options.id;
         this.mesh = options.mesh;
-        this.state = State.NotUsed;
-        this.lastUsed = performance.now();
         this.extent = options.extent;
         this.texture = options.texture;
         this.alwaysVisible = options.alwaysVisible ?? false;
@@ -156,10 +141,9 @@ class LayerComposer {
     readonly needsReprojection: boolean;
     readonly interpretation: Interpretation;
     readonly composer: WebGLComposer;
+    private needsCleanup: boolean;
 
     disposed: boolean;
-    now: number;
-    needsCleanup: boolean;
 
     /**
      * @param options The options.
@@ -203,7 +187,6 @@ class LayerComposer {
         });
 
         this.disposed = false;
-        this.now = performance.now();
         this.needsCleanup = false;
     }
 
@@ -429,6 +412,8 @@ class LayerComposer {
         });
 
         this.images.set(id, image);
+
+        this.needsCleanup = true;
     }
 
     /**
@@ -618,7 +603,6 @@ class LayerComposer {
             // - if its is part of the required images,
             // - if no required images are available (fallback mode)
             if (image.visible) {
-                image.state = State.Used;
                 image.opacity = 1;
             }
 
@@ -654,25 +638,9 @@ class LayerComposer {
     }
 
     postUpdate() {
-        this.now = performance.now();
-
         if (this.needsCleanup) {
             this.cleanup();
             this.needsCleanup = false;
-        }
-
-        for (const image of this.images.values()) {
-            switch (image.state) {
-                case State.Used:
-                    image.opacity = 1;
-                    image.lastUsed = this.now;
-                    image.state = State.NotUsed;
-                    break;
-                default:
-                    image.opacity = image.alwaysVisible ? 1 : 0;
-                    image.lastUsed = null;
-                    break;
-            }
         }
 
         return false;
