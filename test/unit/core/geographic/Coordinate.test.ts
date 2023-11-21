@@ -169,8 +169,8 @@ describe('Coordinates', () => {
             // and convert back to EPSG:4626 standard in degree.
             const coord3 = coord2.as('EPSG:4326');
             // verify coordinates
-            expect(coord3.longitude()).toBeCloseTo(longIn, 5);
-            expect(coord3.latitude()).toBeCloseTo(latIn, 5);
+            expect(coord3.longitude).toBeCloseTo(longIn, 5);
+            expect(coord3.latitude).toBeCloseTo(latIn, 5);
         });
     });
 

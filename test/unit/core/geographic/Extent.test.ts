@@ -214,14 +214,14 @@ describe('Extent', () => {
             const target = new Coordinates('EPSG:4326', -1, -1);
             const result = BOUNDS_EPSG4326.center(target);
             expect(target).toBe(result);
-            expect(target.longitude()).toBe(0);
-            expect(target.latitude()).toBe(0);
+            expect(target.longitude).toBe(0);
+            expect(target.latitude).toBe(0);
         });
 
         it('should return (0, 0) if extent is the EPSG:4326 bounds', () => {
             const result = BOUNDS_EPSG4326.center();
-            expect(result.longitude()).toBe(0);
-            expect(result.latitude()).toBe(0);
+            expect(result.longitude).toBe(0);
+            expect(result.latitude).toBe(0);
         });
 
         it('should return (0, 0) if extent is the EPSG:3857 bounds', () => {
