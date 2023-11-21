@@ -141,9 +141,9 @@ class LayerComposer {
     readonly needsReprojection: boolean;
     readonly interpretation: Interpretation;
     readonly composer: WebGLComposer;
+    private needsCleanup: boolean;
 
     disposed: boolean;
-    needsCleanup: boolean;
 
     /**
      * @param options The options.
@@ -412,6 +412,8 @@ class LayerComposer {
         });
 
         this.images.set(id, image);
+
+        this.needsCleanup = true;
     }
 
     /**
