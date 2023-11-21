@@ -226,8 +226,8 @@ describe('Extent', () => {
 
         it('should return (0, 0) if extent is the EPSG:3857 bounds', () => {
             const result = BOUNDS_EPSG3857.center();
-            expect(result.x()).toBe(0);
-            expect(result.y()).toBe(0);
+            expect(result.x).toBe(0);
+            expect(result.y).toBe(0);
         });
     });
 
@@ -480,20 +480,20 @@ describe('Extent', () => {
             const extent = new Extent('EPSG:3857', xmin, xmax, ymin, ymax);
 
             const tl = extent.topLeft();
-            expect(tl.x()).toEqual(xmin);
-            expect(tl.y()).toEqual(ymax);
+            expect(tl.x).toEqual(xmin);
+            expect(tl.y).toEqual(ymax);
 
             const tr = extent.topRight();
-            expect(tr.x()).toEqual(xmax);
-            expect(tr.y()).toEqual(ymax);
+            expect(tr.x).toEqual(xmax);
+            expect(tr.y).toEqual(ymax);
 
             const bl = extent.bottomLeft();
-            expect(bl.x()).toEqual(xmin);
-            expect(bl.y()).toEqual(ymin);
+            expect(bl.x).toEqual(xmin);
+            expect(bl.y).toEqual(ymin);
 
             const br = extent.bottomRight();
-            expect(br.x()).toEqual(xmax);
-            expect(br.y()).toEqual(ymin);
+            expect(br.x).toEqual(xmax);
+            expect(br.y).toEqual(ymin);
         });
     });
 
@@ -575,8 +575,8 @@ describe('Extent', () => {
             const extent = Extent.fromCenterAndSize('EPSG:3857', center, 100, 100);
 
             const newCenter = extent.center();
-            expect(newCenter.x()).toEqual(center.x);
-            expect(newCenter.y()).toEqual(center.y);
+            expect(newCenter.x).toEqual(center.x);
+            expect(newCenter.y).toEqual(center.y);
         });
 
         it('should return an extent with the correct size', () => {

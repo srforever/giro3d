@@ -298,7 +298,7 @@ class Coordinates {
      *
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
-     * coordinates.x();  // Geocentric system
+     * coordinates.x;  // Geocentric system
      * // returns : 20885167
      *
      * // or
@@ -308,11 +308,11 @@ class Coordinates {
      * const coords =
      *     new Coordinates('EPSG:4326', position.longitude, position.latitude, position.altitude);
      * const coordinates = coords.as('EPSG:4978'); // Geocentric system
-     * coordinates.x(); // Geocentric system
+     * coordinates.x; // Geocentric system
      * // returns : 20888561.0301258
      * @returns The `x` component of the position.
      */
-    x() {
+    get x() {
         assertIsGeocentric(this.crs);
         return this._values[0];
     }
@@ -325,11 +325,11 @@ class Coordinates {
      * @example
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
-     * coordinates.y();  // Geocentric system
+     * coordinates.y;  // Geocentric system
      * // returns :  849862
      * @returns The `y` component of the position.
      */
-    y() {
+    get y() {
         assertIsGeocentric(this.crs);
         return this._values[1];
     }
@@ -342,11 +342,11 @@ class Coordinates {
      * @example
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
-     * coordinates.z();  // Geocentric system
+     * coordinates.z;  // Geocentric system
      * // returns :  23385912
      * @returns The `z` component of the position.
      */
-    z() {
+    get z() {
         assertIsGeocentric(this.crs);
         return this._values[2];
     }

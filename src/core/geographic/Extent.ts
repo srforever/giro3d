@@ -423,10 +423,10 @@ class Extent {
                && c.latitude() <= this.north() + epsilon
                && c.latitude() >= this.south() - epsilon;
         }
-        return c.x() <= this.east() + epsilon
-               && c.x() >= this.west() - epsilon
-               && c.y() <= this.north() + epsilon
-               && c.y() >= this.south() - epsilon;
+        return c.x <= this.east() + epsilon
+               && c.x >= this.west() - epsilon
+               && c.y <= this.north() + epsilon
+               && c.y >= this.south() - epsilon;
     }
 
     /**
@@ -700,8 +700,8 @@ class Extent {
         const dimX = Math.abs(this.east() - this.west());
         const dimY = Math.abs(this.north() - this.south());
 
-        const x = crsIsGeocentric(coordinate.crs) ? coordinate.x() : coordinate.longitude();
-        const y = crsIsGeocentric(coordinate.crs) ? coordinate.y() : coordinate.latitude();
+        const x = crsIsGeocentric(coordinate.crs) ? coordinate.x : coordinate.longitude();
+        const y = crsIsGeocentric(coordinate.crs) ? coordinate.y : coordinate.latitude();
 
         const originX = (x - this.west()) / dimX;
         const originY = (y - this.south()) / dimY;

@@ -20,25 +20,25 @@ describe('Coordinates', () => {
         it('should support coordinates from a 2-number array', () => {
             const c = new Coordinates('EPSG:3857', 8, 9);
 
-            expect(c.x()).toEqual(8);
-            expect(c.y()).toEqual(9);
-            expect(c.z()).toEqual(0);
+            expect(c.x).toEqual(8);
+            expect(c.y).toEqual(9);
+            expect(c.z).toEqual(0);
         });
 
         it('should support coordinates from a 3-number array', () => {
             const c = new Coordinates('EPSG:3857', 0, 1, 2);
 
-            expect(c.x()).toEqual(0);
-            expect(c.y()).toEqual(1);
-            expect(c.z()).toEqual(2);
+            expect(c.x).toEqual(0);
+            expect(c.y).toEqual(1);
+            expect(c.z).toEqual(2);
         });
 
         it('should support coordinates from Vector3', () => {
             const c = new Coordinates('EPSG:3857', new Vector3(0, 1, 2));
 
-            expect(c.x()).toEqual(0);
-            expect(c.y()).toEqual(1);
-            expect(c.z()).toEqual(2);
+            expect(c.x).toEqual(0);
+            expect(c.y).toEqual(1);
+            expect(c.z).toEqual(2);
         });
     });
 
@@ -74,9 +74,9 @@ describe('Coordinates', () => {
 
             c.set('EPSG:3857', 9, 5);
 
-            expect(c.x()).toEqual(9);
-            expect(c.y()).toEqual(5);
-            expect(c.z()).toEqual(0);
+            expect(c.x).toEqual(9);
+            expect(c.y).toEqual(5);
+            expect(c.z).toEqual(0);
         });
 
         it('should support coordinates from a 3-number array', () => {
@@ -84,18 +84,18 @@ describe('Coordinates', () => {
 
             c.set('EPSG:3857', 1, 2, 3);
 
-            expect(c.x()).toEqual(1);
-            expect(c.y()).toEqual(2);
-            expect(c.z()).toEqual(3);
+            expect(c.x).toEqual(1);
+            expect(c.y).toEqual(2);
+            expect(c.z).toEqual(3);
         });
 
         it('should support coordinates from Vector3', () => {
             const c = new Coordinates('EPSG:3857', 0, 0, 0);
 
             c.set('EPSG:3857', new Vector3(1, 2, 3));
-            expect(c.x()).toEqual(1);
-            expect(c.y()).toEqual(2);
-            expect(c.z()).toEqual(3);
+            expect(c.x).toEqual(1);
+            expect(c.y).toEqual(2);
+            expect(c.z).toEqual(3);
         });
     });
 
@@ -104,27 +104,27 @@ describe('Coordinates', () => {
             const c0 = new Coordinates('EPSG:3857', 1, 2, 3);
             const c1 = c0.clone();
 
-            expect(c0.x()).toEqual(c0.x());
-            expect(c1.y()).toEqual(c0.y());
-            expect(c1.z()).toEqual(c0.z());
+            expect(c0.x).toEqual(c0.x);
+            expect(c1.y).toEqual(c0.y);
+            expect(c1.z).toEqual(c0.z);
         });
     });
 
-    describe('x(), y(), z()', () => {
+    describe('x, y, z', () => {
         it('should return the correct values', () => {
             const c = new Coordinates('EPSG:3857', 1, 2, 3);
 
-            expect(c.x()).toEqual(1);
-            expect(c.y()).toEqual(2);
-            expect(c.z()).toEqual(3);
+            expect(c.x).toEqual(1);
+            expect(c.y).toEqual(2);
+            expect(c.z).toEqual(3);
         });
 
         it('should throw if the CRS is geographic', () => {
             const c = new Coordinates('EPSG:4326', 1, 2, 3);
 
-            expect(() => c.x()).toThrow();
-            expect(() => c.y()).toThrow();
-            expect(() => c.z()).toThrow();
+            expect(() => c.x).toThrow();
+            expect(() => c.y).toThrow();
+            expect(() => c.z).toThrow();
         });
     });
 
@@ -164,8 +164,8 @@ describe('Coordinates', () => {
             // convert coordinate in EPSG:3946
             const coord2 = coord1.as('EPSG:3946');
             // verify intermediate values
-            expect(coord2.x()).toBeCloseTo(1841825.45, 2);
-            expect(coord2.y()).toBeCloseTo(5170916.93, 2);
+            expect(coord2.x).toBeCloseTo(1841825.45, 2);
+            expect(coord2.y).toBeCloseTo(5170916.93, 2);
             // and convert back to EPSG:4626 standard in degree.
             const coord3 = coord2.as('EPSG:4326');
             // verify coordinates

@@ -60,10 +60,10 @@ function customIntersectionTest(tileExtent) {
     }
 
     const corners = [
-        [tileExtent.topLeft().x(), tileExtent.topLeft().y()],
-        [tileExtent.topRight().x(), tileExtent.topRight().y()],
-        [tileExtent.bottomRight().x(), tileExtent.bottomRight().y()],
-        [tileExtent.bottomLeft().x(), tileExtent.bottomLeft().y()],
+        [tileExtent.topLeft().x, tileExtent.topLeft().y],
+        [tileExtent.topRight().x, tileExtent.topRight().y],
+        [tileExtent.bottomRight().x, tileExtent.bottomRight().y],
+        [tileExtent.bottomLeft().x, tileExtent.bottomLeft().y],
     ];
 
     const extentAsPolygon = turf.helpers.polygon([[
