@@ -194,6 +194,7 @@ class LayeredMaterial extends ShaderMaterial {
 
     private disposed: boolean;
     private readonly atlasInfo: AtlasInfo;
+    private options: MaterialOptions;
 
     /**
      * @param param0 the params.
@@ -246,7 +247,6 @@ class LayeredMaterial extends ShaderMaterial {
         this.side = options.doubleSided ? DoubleSide : FrontSide;
 
         this.uniforms.renderingState = new Uniform(RenderingState.FINAL);
-        this._updateBlendingMode();
 
         this.defines.COLOR_LAYERS = 0;
 
@@ -647,6 +647,8 @@ class LayeredMaterial extends ShaderMaterial {
      * @param  materialOptions The material options.
      */
     update(materialOptions: MaterialOptions = {}) {
+        this.options = materialOptions;
+
         if (this._colorMapAtlas) {
             this._updateColorMaps();
         }
@@ -782,7 +784,7 @@ class LayeredMaterial extends ShaderMaterial {
     _updateBlendingMode() {
         const state = this.uniforms.renderingState.value;
         if (state === RenderingState.FINAL) {
-            this.transparent = true;
+            this.transparent = this.opacity < 1 || this.options.backgroundOpacity < 1;
             this.needsUpdate = true;
             this.blending = NormalBlending;
         } else {
