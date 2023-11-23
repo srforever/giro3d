@@ -289,7 +289,7 @@ class Map extends Entity3D<MapEventMap> {
         this.extent = options.extent;
 
         this.sseScale = 1.5;
-        this.maxSubdivisionLevel = options.maxSubdivisionLevel || 30;
+        this.maxSubdivisionLevel = options.maxSubdivisionLevel ?? 30;
 
         this.type = 'Map';
 
@@ -1059,7 +1059,7 @@ class Map extends Entity3D<MapEventMap> {
     }
 
     private testTileSSE(tile: TileMesh, sse: SSE) {
-        if (this.maxSubdivisionLevel > 0 && this.maxSubdivisionLevel <= tile.level) {
+        if (this.maxSubdivisionLevel <= tile.level) {
             return false;
         }
 
