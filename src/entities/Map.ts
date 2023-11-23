@@ -848,8 +848,9 @@ class Map extends Entity3D<MapEventMap> {
                 // rebuild color textures atlas
                 // We use a margin to prevent atlas bleeding.
                 const margin = 1.1;
+                const factor = layer.resolutionFactor * margin;
                 const { x, y } = this.imageSize;
-                const size = new Vector2(Math.round(x * margin), Math.round(y * margin));
+                const size = new Vector2(Math.round(x * factor), Math.round(y * factor));
 
                 const { atlas, maxX, maxY } = AtlasBuilder.pack(
                     Capabilities.getMaxTextureSize(),
