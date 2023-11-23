@@ -60,14 +60,12 @@ float atan2(in float y, in float x) {
     return x == 0.0 ? sign(y) * M_PI / 2. : atan(y, x);
 }
 
-vec2 computeDerivatives(vec2 dimensions, vec2 uv, sampler2D tex, vec2 textureSize, vec4 offsetScale) {
+vec2 computeDerivatives(vec2 dimensions, vec2 uv, sampler2D tex, vec4 offsetScale) {
+    ivec2 texSize = textureSize(tex, 0);
     // Compute pixel dimensions, in normalized coordinates.
     // Since textures are not necessarily square, we must compute both width and height separately.
-    float texWidth = textureSize.x;
-    float texHeight = textureSize.y;
-
-    float width = 1.0 / texWidth;
-    float height = 1.0 / texHeight;
+    float width = float(texSize.x);
+    float height = float(texSize.y);
 
     // Now compute the elevations for the 8 neigbouring pixels
     // +---+---+---+
@@ -78,17 +76,19 @@ vec2 computeDerivatives(vec2 dimensions, vec2 uv, sampler2D tex, vec2 textureSiz
     // | g | h | i |
     // +---+---+---+
     // Note: 'e' is the center of the sample. We don't use it for derivative computation.
-    float a = getElevation(tex, uv + vec2(-width, height));
-    float b = getElevation(tex, uv + vec2( 0.0, height));
-    float c = getElevation(tex, uv + vec2( width, height));
-    float d = getElevation(tex, uv + vec2(-width, 0.0));
-    float f = getElevation(tex, uv + vec2( width, 0.0));
-    float g = getElevation(tex, uv + vec2(-width, -height));
-    float h = getElevation(tex, uv + vec2( 0.0, -height));
-    float i = getElevation(tex, uv + vec2( width, -height));
+    ivec2 p = ivec2(int(uv.x * width), int(uv.y * height));
 
-    float cellWidth = dimensions.x / (offsetScale.z * textureSize.x);
-    float cellHeight = dimensions.y / (offsetScale.w * textureSize.y);
+    float a = texelFetch(tex, p + ivec2(-1, +1), 0).r;
+    float b = texelFetch(tex, p + ivec2(+0, +1), 0).r;
+    float c = texelFetch(tex, p + ivec2(+1, +1), 0).r;
+    float d = texelFetch(tex, p + ivec2(-1, +0), 0).r;
+    float f = texelFetch(tex, p + ivec2(+1, +0), 0).r;
+    float g = texelFetch(tex, p + ivec2(-1, -1), 0).r;
+    float h = texelFetch(tex, p + ivec2(+0, -1), 0).r;
+    float i = texelFetch(tex, p + ivec2(+1, -1), 0).r;
+
+    float cellWidth = dimensions.x / (offsetScale.z * width);
+    float cellHeight = dimensions.y / (offsetScale.w * height);
     float dzdx = ((c + 2.0 * f + i) - (a + 2.0 * d + g)) / (8.0 * cellWidth);
     float dzdy = ((g + 2.0 * h + i) - (a + 2.0 * b + c)) / (8.0 * cellHeight);
 
@@ -126,9 +126,9 @@ float map(float value, float min1, float max1, float min2, float max2) {
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
 
-float calcHillshade(vec2 tileDimensions, vec2 textureSize, float zenith, float azimuth, float intensity, vec4 offsetScale, sampler2D tex, vec2 uv){
+float calcHillshade(vec2 tileDimensions, float zenith, float azimuth, float intensity, vec4 offsetScale, sampler2D tex, vec2 uv){
     // https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-hillshade-works.htm
-    vec2 derivatives = computeDerivatives(tileDimensions, uv, tex, textureSize, offsetScale);
+    vec2 derivatives = computeDerivatives(tileDimensions, uv, tex, offsetScale);
     float slope = calcSlope(derivatives);
     float aspect = calcAspect(derivatives);
     float zenith_rad = zenith * M_PI / 180.0; // in radians
@@ -296,7 +296,7 @@ vec4 computeColorMap(
     if (colorMap.mode == COLORMAP_MODE_ELEVATION) {
         value = getElevation(sampledTexture, uv);
     } else {
-        vec2 derivatives = computeDerivatives(tileDimensions, uv, sampledTexture, layer.textureSize, layer.offsetScale);
+        vec2 derivatives = computeDerivatives(tileDimensions, uv, sampledTexture, layer.offsetScale);
         if (colorMap.mode == COLORMAP_MODE_SLOPE) {
             value = calcSlope(derivatives);
         } else if (colorMap.mode == COLORMAP_MODE_ASPECT) {

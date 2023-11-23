@@ -57,27 +57,7 @@ float readNeighbourElevation(vec2 uv, int neighbour, float defaultElevation) {
     vec4 offsetScale = neighbours[neighbour].offsetScale;
     vec2 neighbourUv = computeUv(vv, offsetScale.xy, offsetScale.zw);
 
-    // Why can't we simply do neighbours[neighbour].elevationTexture ?
-    // It's because of a limitation of GLSL ES : texture arrays cannot be indexed dynamically.
-    // They must be indexed by a constant expression (a literal or a constant).
-    // See https://stackoverflow.com/a/60110986/2704779
-    if (neighbour == TOP)
-        return getElevationOrDefault(neighbours[TOP].elevationTexture, neighbourUv, defaultElevation);
-    if (neighbour == TOP_RIGHT)
-        return getElevationOrDefault(neighbours[TOP_RIGHT].elevationTexture, neighbourUv, defaultElevation);
-    if (neighbour == RIGHT)
-        return getElevationOrDefault(neighbours[RIGHT].elevationTexture, neighbourUv, defaultElevation);
-    if (neighbour == BOTTOM_RIGHT)
-        return getElevationOrDefault(neighbours[BOTTOM_RIGHT].elevationTexture, neighbourUv, defaultElevation);
-    if (neighbour == BOTTOM)
-        return getElevationOrDefault(neighbours[BOTTOM].elevationTexture, neighbourUv, defaultElevation);
-    if (neighbour == BOTTOM_LEFT)
-        return getElevationOrDefault(neighbours[BOTTOM_LEFT].elevationTexture, neighbourUv, defaultElevation);
-    if (neighbour == LEFT)
-        return getElevationOrDefault(neighbours[LEFT].elevationTexture, neighbourUv, defaultElevation);
-    if (neighbour == TOP_LEFT)
-        return getElevationOrDefault(neighbours[TOP_LEFT].elevationTexture, neighbourUv, defaultElevation);
-
+    return getElevationOrDefault(neighbours[neighbour].elevationTexture, neighbourUv, defaultElevation);
 }
 
 // Returns the seam or corner that this UV belongs to.

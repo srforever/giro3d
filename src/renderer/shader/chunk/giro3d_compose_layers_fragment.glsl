@@ -1,7 +1,6 @@
 #if COLOR_LAYERS
     float maskOpacity = 1.;
 
-    #pragma unroll_loop_start
     for (int i = 0; i < COLOR_LAYERS; i++) {
         LayerInfo layer = layers[i];
         if (layer.color.a > 0.) {
@@ -38,7 +37,5 @@
 #endif
         }
     }
-    #pragma unroll_loop_end
-
     gl_FragColor.a *= maskOpacity;
 #endif

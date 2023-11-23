@@ -11,6 +11,7 @@ import giro3d_colormap_pars_fragment from './giro3d_colormap_pars_fragment.glsl'
 import giro3d_precision_qualifiers from './giro3d_precision_qualifiers.glsl';
 import giro3d_contour_line_pars_fragment from './giro3d_contour_line_pars_fragment.glsl';
 import giro3d_contour_line_fragment from './giro3d_contour_line_fragment.glsl';
+import giro3d_fragment_shader_header from './giro3d_fragment_shader_header.glsl';
 
 export default function registerChunks() {
     ShaderChunk.giro3d_precision_qualifiers = giro3d_precision_qualifiers;
@@ -22,5 +23,6 @@ export default function registerChunks() {
     ShaderChunk.giro3d_colormap_pars_fragment = giro3d_colormap_pars_fragment;
     ShaderChunk.giro3d_contour_line_pars_fragment = giro3d_contour_line_pars_fragment;
     ShaderChunk.giro3d_contour_line_fragment = giro3d_contour_line_fragment;
+    ShaderChunk.giro3d_fragment_shader_header = giro3d_fragment_shader_header;
 }
 /* eslint-enable camelcase */
