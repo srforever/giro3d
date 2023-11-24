@@ -1,5 +1,21 @@
 # Changelog
 
+## v0.31.0 (2023-11-24)
+
+Mainly bugfixes, including memory leaks.
+
+### Fix
+
+- **LayeredMaterial**: enable transparency only if opacity is < 1 (!455)
+- **LayerComposer**: ensure that images with no owner are always removed (!453)
+- **Layer**: fix memory leak where composer images were never freed (!453)
+- **MapInspector**: restore the `discardNoData` checkbox (!454)
+- **Inspector**: display memory usage numbers as integers rather than real numbers (!454)
+
+### Refactor
+
+- **LayerComposer**: remove dead code related to progressive rendering of tiles (!453)
+
 ## v0.30.0 (2023-11-16)
 
 Mostly performance/memory improvements and bugfixes, as well as a better integration of sources with the `Fetcher` module.
