@@ -218,6 +218,7 @@ class AxisGrid extends Entity3D {
         this.labelRoot.name = 'labels';
         this.labels = [];
         this._style = options.style || DEFAULT_STYLE;
+        this.onObjectCreated(this.labelRoot);
         this.root.add(this.labelRoot);
         this.labelElements = [];
         this.boundingSphere = new Sphere();
@@ -476,7 +477,7 @@ class AxisGrid extends Entity3D {
          * @param suffix The suffix to apply to the label text.
          * @param tick The distance between each tick.
          */
-        function createLabelsAlongEdge(
+        const createLabelsAlongEdge = (
             side1: Side,
             side2: Side,
             start: Vector3,
@@ -485,7 +486,7 @@ class AxisGrid extends Entity3D {
             prefix: string,
             suffix: string,
             tick: number,
-        ) {
+        ) => {
             const g = new Edge();
             g.name = `${side1.name}-${side2.name}`;
             g.side1 = side1;
@@ -521,8 +522,9 @@ class AxisGrid extends Entity3D {
                 t += step;
             } while (t <= 1);
 
+            this.onObjectCreated(g);
             labelRoot.add(g);
-        }
+        };
 
         const e = this.volume.extent;
 
@@ -650,6 +652,12 @@ class AxisGrid extends Entity3D {
         this._floor.position.set(0, 0, this.volume.floor);
         this._floor.scale.setZ(-1);
 
+        this.onObjectCreated(this._back);
+        this.onObjectCreated(this._left);
+        this.onObjectCreated(this._right);
+        this.onObjectCreated(this._front);
+        this.onObjectCreated(this._floor);
+        this.onObjectCreated(this._ceiling);
         this.root.add(this._back);
         this.root.add(this._left);
         this.root.add(this._right);
@@ -718,6 +726,7 @@ class AxisGrid extends Entity3D {
         geometry.setAttribute('position', new Float32BufferAttribute(vertices, 3));
 
         const mesh = new Side(geometry, this._material);
+        this.onObjectCreated(mesh);
 
         mesh.name = name;
 
@@ -727,20 +736,25 @@ class AxisGrid extends Entity3D {
     private makeArrowHelper(start: Vector3, end: Vector3) {
         if (!this._arrowRoot) {
             this._arrowRoot = new Group();
+            this.onObjectCreated(this._arrowRoot);
             this.root.parent.add(this._arrowRoot);
         }
 
         const arrow = Helpers.createArrow(start.clone(), end.clone());
+
+        this.onObjectCreated(arrow);
         this._arrowRoot.add(arrow);
         arrow.updateMatrixWorld();
 
         const startPoint = Helpers.createAxes(250);
         startPoint.position.copy(start);
+        this.onObjectCreated(startPoint);
         this._arrowRoot.add(startPoint);
         startPoint.updateMatrixWorld(true);
 
         const endPoint = Helpers.createAxes(250);
         endPoint.position.copy(end);
+        this.onObjectCreated(endPoint);
         this._arrowRoot.add(endPoint);
         endPoint.updateMatrixWorld(true);
     }

@@ -469,7 +469,6 @@ class Map extends Entity3D<MapEventMap> {
             coord: { level, x, y },
         });
 
-        tile.renderOrder = this.renderOrder;
         tile.material.opacity = this.opacity;
 
         if (parent && parent instanceof TileMesh) {
