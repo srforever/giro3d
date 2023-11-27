@@ -137,6 +137,7 @@ class FeatureCollection extends Entity3D {
     public material: Material;
     public extrusionOffset: FeatureExtrusionOffsetCallback | number | Array<number>;
     public elevation: FeatureElevationCallback | number | Array<number>;
+    public dataProjection: string;
 
     /**
      *
@@ -146,6 +147,10 @@ class FeatureCollection extends Entity3D {
      * @param [options={}] Constructor options.
      * @param options.source The [ol.VectorSource](https://openlayers.org/en/latest/apidoc/module-ol_source_Vector-VectorSource.html) providing features to this
      * entity
+     * @param options.dataProjection The EPSG code for the projections of the features. If null or
+     * empty, no reprojection will be done. If a valid epsg code is given and if different from
+     * instance.referenceCrs, each feature will be reprojected before mesh conversion occurs. Please
+     * note that reprojection can be somewhat heavy on cpu ressources.
      * @param options.extent The geographic extent of the map, mandatory.
      * @param [options.object3d=new THREE.Group()] The optional 3d object to
      * use as the root
@@ -178,6 +183,7 @@ class FeatureCollection extends Entity3D {
         id: string,
         options: {
             source: VectorSource;
+            dataProjection?: string;
             extent: Extent;
             object3d?: Object3D;
             minLevel?: number;
@@ -205,6 +211,7 @@ class FeatureCollection extends Entity3D {
         if (!options.source) {
             throw new Error('options.source is mandatory.');
         }
+        this.dataProjection = options.dataProjection;
         this.extent = options.extent;
         this.subdivisions = selectBestSubdivisions(this.extent);
 
@@ -407,13 +414,22 @@ class FeatureCollection extends Entity3D {
             node.userData.layerUpdateState.newTry();
 
             const request = () => new Promise((resolve, reject) => {
-                const source = this.source;
-                const extent = OLUtils.toOLExtent(node.userData.extent);
+                let extent = node.userData.extent;
+                if (this.dataProjection) {
+                    extent = extent.as(this.dataProjection);
+                }
+                extent = OLUtils.toOLExtent(extent);
+
                 (this.source as any).loader_(
                     extent,
                     /* resolution */ undefined,
-                    source.getProjection(),
+                    ctx.instance.referenceCrs,
                     (features: Feature[]) => {
+                        // if the node is not visible any more, don't bother
+                        if (!node.visible) {
+                            resolve(null);
+                            return;
+                        }
                         if (features.length === 0) {
                             resolve(null);
                             return;
