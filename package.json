@@ -33,7 +33,7 @@
     "eslint": "npm run transpile && eslint \"src/**/*.js\" \"src/**/*.ts\" \"test/**/*.js\" \"test/**/*.ts\" \"examples/**/*.js\"",
     "lint": "npm run doclint && npm run check-folders && npm run eslint",
     "apidoc": "tsc -p doc && shx rm -rf build/site/apidoc && typedoc",
-    "serve-apidoc": "rm -rf build/site/apidoc && typedoc && concurrently --kill-others \"typedoc --watch\" \"npx http-server -o build/site/apidoc\"",
+    "serve-apidoc": "rm -rf build/site/apidoc && npm run apidoc && typedoc && concurrently --kill-others \"typedoc --watch\" \"npx http-server -o build/site/apidoc\"",
     "copy-static-images": "mkdir -p build/site/images && cp -vr graphics/* build/site/images",
     "build-static-site": "mkdir -p build/site && npm run copy-static-images && cp -v site/*.html build/site/ && cp -v site/favicon* build/site/",
     "build-doc": "npm run apidoc && npm run build-tutorials",
