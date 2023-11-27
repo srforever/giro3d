@@ -142,27 +142,27 @@ class FeatureCollection extends Entity3D {
      *
      * Construct a `FeatureCollection`.
      *
-     * @param {string} id The unique identifier of this FeatureCollection
-     * @param {object} [options={}] Constructor options.
-     * @param {VectorSource} options.source The [ol.VectorSource](https://openlayers.org/en/latest/apidoc/module-ol_source_Vector-VectorSource.html) providing features to this
+     * @param id The unique identifier of this FeatureCollection
+     * @param [options={}] Constructor options.
+     * @param options.source The [ol.VectorSource](https://openlayers.org/en/latest/apidoc/module-ol_source_Vector-VectorSource.html) providing features to this
      * entity
      * @param options.extent The geographic extent of the map, mandatory.
-     * @param {module:THREE.Object3D} [options.object3d=new THREE.Group()] The optional 3d object to
+     * @param [options.object3d=new THREE.Group()] The optional 3d object to
      * use as the root
-     * @param {number} [options.minLevel=0] The min subdivision level to start processing features.
+     * @param [options.minLevel=0] The min subdivision level to start processing features.
      * Useful for WFS or other untiled servers, to avoid to download the entire dataset when the
      * whole extent is visible.
-     * @param {number} [options.maxLevel=Infinity] The max level to subdivide the extent and
+     * @param [options.maxLevel=Infinity] The max level to subdivide the extent and
      * process features.
      * @param [options.onMeshCreated] called when a mesh is created (just
      * after conversion of the source data)
-     * @param {module:THREE.Material} [options.material] the
+     * @param [options.material] the
      * [THREE.Material](https://threejs.org/docs/#api/en/materials/Material) to use for meshes
-     * @param {number|FeatureElevationCallback} [options.elevation] Set the elevation of the
+     * @param [options.elevation] Set the elevation of the
      * features received from the source. It can be a constant for every feature, or a callback. The
      * callback version is particularly useful to derive the elevation from the properties of the
      * feature.
-     * @param {FeatureStyleCallback|FeatureStyle} [options.style] an object or a callback
+     * @param [options.style] an object or a callback
      * returning such object to style the individual feature. If an object is returned, the
      * informations it contains will be used to style every feature the same way. If a callback is
      * provided, it
@@ -205,7 +205,6 @@ class FeatureCollection extends Entity3D {
         if (!options.source) {
             throw new Error('options.source is mandatory.');
         }
-        /** @type {Extent} */
         this.extent = options.extent;
         this.subdivisions = selectBestSubdivisions(this.extent);
 
