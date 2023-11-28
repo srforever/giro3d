@@ -302,7 +302,6 @@ class FeatureCollection extends Entity3D {
         if (this.renderOrder !== undefined || this.renderOrder !== null) {
             tile.renderOrder = this.renderOrder;
         }
-        data.parentEntity = this;
         tile.visible = false;
 
         // we initialize it with fake z to avoid a degenerate bounding box
@@ -313,6 +312,7 @@ class FeatureCollection extends Entity3D {
         );
 
         this.onTileCreated(tile);
+        this.onObjectCreated(tile);
         return tile;
     }
 

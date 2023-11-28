@@ -32,6 +32,9 @@ export interface Entity3DEventMap extends EntityEventMap {
 
 /**
  * Base class for {@link entities.Entity entities} that display 3D objects.
+ *
+ * Subclasses *must* call `onObjectCreated` when creating new Object3D, before adding them to the
+ * scene
  */
 class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
     extends Entity<TEventMap & Entity3DEventMap> {
@@ -243,6 +246,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
         this.traverse(o => {
             // To be able to link an object to its parent entity (e.g for picking purposes)
             o.userData.parentEntity = this;
+            o.renderOrder = this.renderOrder;
         }, obj);
 
         // Setup materials
