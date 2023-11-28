@@ -65,36 +65,9 @@ const colorMap = new ColorMap(colors, min, max, ColorMapMode.Elevation);
 
 const noDataOptions = {
     alpha: 0,
-    maxSearchDistance: 0,
+    maxSearchDistance: 10000,
     replaceNoData: true,
 };
-
-let activeLayer;
-
-const maskLayer = new MaskLayer('mask', {
-    extent,
-    source,
-    noDataOptions,
-    preloadImages: false,
-    interpretation: Interpretation.CompressTo8Bit(min, max),
-});
-
-const elevationLayer = new ElevationLayer('elevation', {
-    extent,
-    source,
-    noDataOptions,
-    colorMap,
-    preloadImages: false,
-    minmax: { min, max },
-});
-
-const colorLayer = new ColorLayer('color', {
-    extent,
-    source,
-    noDataOptions,
-    colorMap,
-    preloadImages: false,
-});
 
 const map = new Map('map', {
     extent,
@@ -107,14 +80,79 @@ const map = new Map('map', {
 
 instance.add(map);
 
-map.addLayer(elevationLayer);
-map.addLayer(maskLayer);
-map.addLayer(colorLayer);
+let elevationLayer;
+let maskLayer;
+let colorLayer;
+
+let activeLayer = 0;
+
+function updateActiveLayer() {
+    elevationLayer.visible = false;
+    maskLayer.visible = false;
+    colorLayer.visible = false;
+
+    switch (activeLayer) {
+        case 0:
+            elevationLayer.visible = true;
+            map.materialOptions.backgroundOpacity = 0;
+            map.materialOptions.discardNoData = true;
+            break;
+        case 1:
+            maskLayer.visible = true;
+            map.materialOptions.backgroundOpacity = 1;
+            map.materialOptions.discardNoData = false;
+            break;
+        case 2:
+        default:
+            colorLayer.visible = true;
+            map.materialOptions.backgroundOpacity = 0;
+            map.materialOptions.discardNoData = false;
+            break;
+    }
+}
+
+function buildLayers() {
+    map.removeLayer(elevationLayer);
+    map.removeLayer(maskLayer);
+    map.removeLayer(colorLayer);
+
+    maskLayer = new MaskLayer('mask', {
+        extent,
+        source,
+        noDataOptions,
+        preloadImages: false,
+        interpretation: Interpretation.CompressTo8Bit(min, max),
+    });
+
+    elevationLayer = new ElevationLayer('elevation', {
+        extent,
+        source,
+        noDataOptions,
+        colorMap,
+        preloadImages: false,
+        minmax: { min, max },
+    });
+
+    colorLayer = new ColorLayer('color', {
+        extent,
+        source,
+        noDataOptions,
+        colorMap,
+        preloadImages: false,
+    });
+
+    map.addLayer(elevationLayer);
+    map.addLayer(maskLayer);
+    map.addLayer(colorLayer);
+
+    updateActiveLayer();
+
+    instance.notifyChange(map);
+}
 
 // Attach the inspector
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
-const layerSourceInput = document.getElementById('noDataLayerSource');
 const alphaReplacementInput = document.getElementById('alphaReplacement');
 
 alphaReplacementInput.addEventListener('change', e => {
@@ -141,38 +179,27 @@ enableFillNoDataCheckbox.oninput = function oninput() {
     }
 };
 
-function updateLayers() {
-    activeLayer?.clear();
-    const value = parseInt(layerSourceInput.value, 10);
-    noDataOptions.value = alphaReplacementInput.valueAsNumber;
-    noDataOptions.maxSearchDistance = radiusSlider.valueAsNumber;
-    elevationLayer.visible = false;
-    maskLayer.visible = false;
-    colorLayer.visible = false;
-    switch (value) {
-        case 0:
-            activeLayer = elevationLayer;
-            map.materialOptions.backgroundOpacity = 0;
-            break;
-        case 1:
-            activeLayer = maskLayer;
-            map.materialOptions.backgroundOpacity = 1;
-            break;
-        case 2:
-        default:
-            activeLayer = colorLayer;
-            map.materialOptions.backgroundOpacity = 0;
-            break;
-    }
-    activeLayer.visible = true;
-    instance.notifyChange(map);
+function bindDropdown(id, action) {
+    document.getElementById(id).addEventListener('change', e => {
+        const value = parseInt(e.target.value, 10);
+        action(value);
+        instance.notifyChange(map);
+    });
 }
+
+bindDropdown('noDataLayerSource', v => {
+    activeLayer = v;
+});
+
+bindDropdown('alphaReplacement', v => {
+    noDataOptions.value = v;
+});
 
 // Bind events
 StatusBar.bind(instance);
 
-updateLayers();
+buildLayers();
 
 document.getElementById('applyChanges').onclick = function onclick() {
-    updateLayers();
+    buildLayers();
 };

@@ -405,6 +405,9 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
             sourceCrs: this.source.getCrs(),
             targetCrs: targetProjection,
             interpretation: this.interpretation,
+            fillNoData: this.noDataOptions.replaceNoData,
+            fillNoDataAlphaReplacement: this.noDataOptions.alpha,
+            fillNoDataRadius: this.noDataOptions.maxSearchDistance,
         });
 
         if (this.preloadImages) {
@@ -470,9 +473,6 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
 
     private addToComposer(image: ImageResult, alwaysVisible: boolean) {
         this.composer.add({
-            fillNoData: this.noDataOptions.replaceNoData,
-            fillNoDataAlphaReplacement: this.noDataOptions.alpha,
-            fillNoDataRadius: this.noDataOptions.maxSearchDistance,
             alwaysVisible, // Ensures background images are never deleted
             flipY: this.source.flipY,
             ...image,

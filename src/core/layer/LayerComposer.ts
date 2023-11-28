@@ -11,7 +11,7 @@ import {
     type WebGLRenderTarget,
 } from 'three';
 import type Extent from '../geographic/Extent';
-import type Interpretation from './Interpretation';
+import Interpretation from './Interpretation';
 import WebGLComposer, { type DrawOptions } from '../../renderer/composition/WebGLComposer';
 import Rect from '../Rect.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
@@ -141,6 +141,9 @@ class LayerComposer {
     readonly needsReprojection: boolean;
     readonly interpretation: Interpretation;
     readonly composer: WebGLComposer;
+    readonly fillNoDataAlphaReplacement: number;
+    readonly fillNoData: boolean;
+    readonly fillNoDataRadius: number;
     private needsCleanup: boolean;
 
     disposed: boolean;
@@ -156,6 +159,9 @@ class LayerComposer {
      * @param options.showImageOutlines Show image outlines.
      * @param options.targetCrs The target CRS of this composer.
      * @param options.interpretation The interpretation of the layer.
+     * @param options.fillNoData Fill no-data values of the image.
+     * @param options.fillNoDataRadius Fill no-data maximum radius.
+     * @param options.fillNoDataAlphaReplacement Alpha value for no-data pixels (after replacement)
      */
     constructor(options: {
         renderer: WebGLRenderer;
@@ -167,6 +173,9 @@ class LayerComposer {
         showImageOutlines: boolean;
         targetCrs: string;
         interpretation: Interpretation;
+        fillNoData: boolean;
+        fillNoDataAlphaReplacement: number;
+        fillNoDataRadius: number;
     }) {
         this.computeMinMax = options.computeMinMax;
         this.extent = options.extent;
@@ -179,6 +188,9 @@ class LayerComposer {
         this.targetCrs = options.targetCrs;
         this.needsReprojection = this.sourceCrs !== this.targetCrs;
         this.interpretation = options.interpretation;
+        this.fillNoData = options.fillNoData;
+        this.fillNoDataAlphaReplacement = options.fillNoDataAlphaReplacement;
+        this.fillNoDataRadius = options.fillNoDataRadius;
 
         this.composer = new WebGLComposer({
             webGLRenderer: options.renderer,
@@ -248,6 +260,7 @@ class LayerComposer {
         flipY: boolean;
         fillNoDataAlphaReplacement: number;
         fillNoDataRadius: number;
+        target?: WebGLRenderTarget<Texture>
     }) {
         const rect = Rect.fromExtent(extent);
         const comp = new WebGLComposer({
@@ -260,7 +273,7 @@ class LayerComposer {
         // The fill no-data radius is expressed in CRS units in the API,
         // but in UV space in the shader. A conversion is necessary.
         let noDataRadiusInUVSpace = 1; // Default is no limit.
-        if (Number.isFinite(options.fillNoDataRadius)) {
+        if (options.fillNoData && Number.isFinite(options.fillNoDataRadius)) {
             const dims = extent.dimensions(tmpVec2);
             noDataRadiusInUVSpace = options.fillNoDataRadius / dims.width;
         }
@@ -274,7 +287,9 @@ class LayerComposer {
             transparent: this.transparent,
         });
 
-        const result = comp.render() as TextureWithMinMax;
+        const result = comp.render({
+            target: options.target,
+        }) as TextureWithMinMax;
         result.name = 'LayerComposer - temporary';
 
         result.min = texture.min;
@@ -322,9 +337,6 @@ class LayerComposer {
      * @param options.texture The texture.
      * @param options.extent The geographic extent of the texture.
      * @param options.flipY Flip the image vertically.
-     * @param options.fillNoData Fill no-data values of the image.
-     * @param options.fillNoDataRadius Fill no-data maximum radius.
-     * @param options.fillNoDataAlphaReplacement Alpha value for no-data pixels (after replacement)
      * @param options.alwaysVisible Force constant visibility of this image.
      * @param options.id The image ID.
      * @param options.min The min value of the texture.
@@ -337,9 +349,6 @@ class LayerComposer {
         flipY?: boolean;
         min?: number;
         max?: number;
-        fillNoData?: boolean;
-        fillNoDataRadius?: number;
-        fillNoDataAlphaReplacement?: number;
         alwaysVisible?: boolean;
     }) {
         const {
@@ -369,18 +378,18 @@ class LayerComposer {
         }
 
         // If the image needs some preprocessing, let's do it now
-        if (options.flipY || options.fillNoData || !this.interpretation.isDefault()) {
+        if (options.flipY || !this.interpretation.isDefault()) {
             actualTexture = this.preprocessImage(extent, texture, {
-                fillNoData: options.fillNoData,
+                fillNoData: false,
                 flipY: options.flipY,
                 interpretation: this.interpretation,
-                fillNoDataAlphaReplacement: options.fillNoDataAlphaReplacement,
-                fillNoDataRadius: options.fillNoDataRadius,
+                fillNoDataAlphaReplacement: 0,
+                fillNoDataRadius: 0,
             });
         }
 
         let mesh;
-        const composerOptions : DrawOptions = {
+        const composerOptions: DrawOptions = {
             transparent: this.transparent,
             zOrder: this.computeZDistance(extent),
         };
@@ -624,17 +633,40 @@ class LayerComposer {
             }
         }
 
-        const texture = this.composer.render({
+        // If some post-processing is required, we will render into a temporary texture,
+        // otherwise we can directly render to the client's target.
+        let texture = this.composer.render({
             width,
             height,
             rect: Rect.fromExtent(extent),
-            target,
+            target: this.fillNoData ? undefined : target,
         }) as TextureWithMinMax;
 
         texture.min = min;
         texture.max = max;
 
+        // Apply nodata filling on the final texture. This was originally done as a pre-processing
+        // step, but this would lead to artifacts in the case where the image is reprojected.
+        if (this.fillNoData) {
+            texture = this.processFillNoData(texture, extent, target);
+        }
+
         return { texture, isLastRender };
+    }
+
+    private processFillNoData(
+        texture: TextureWithMinMax,
+        extent: Extent,
+        target: WebGLRenderTarget<Texture>,
+    ) {
+        return this.preprocessImage(extent, texture, {
+            fillNoData: this.fillNoData,
+            fillNoDataAlphaReplacement: this.fillNoDataAlphaReplacement,
+            fillNoDataRadius: this.fillNoDataRadius,
+            flipY: false,
+            interpretation: Interpretation.Raw,
+            target,
+        });
     }
 
     postUpdate() {
