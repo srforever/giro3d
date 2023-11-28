@@ -423,7 +423,7 @@ class FeatureCollection extends Entity3D {
                 (this.source as any).loader_(
                     extent,
                     /* resolution */ undefined,
-                    ctx.instance.referenceCrs,
+                    this._instance.referenceCrs,
                     (features: Feature[]) => {
                         // if the node is not visible any more, don't bother
                         if (!node.visible) {
@@ -586,7 +586,7 @@ class FeatureCollection extends Entity3D {
                 child.updateMatrixWorld(true);
                 i++;
             }
-            context.instance.notifyChange(node);
+            this._instance.notifyChange(node);
         }
     }
 
