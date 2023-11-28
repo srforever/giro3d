@@ -560,7 +560,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
 
             // More recent requests should be served first.
             const priority = performance.now();
-            const shouldExecute = () => this.filter(id);
+            const shouldExecute = () => node.visible && this.filter(id);
 
             this.opCounter.increment();
 
