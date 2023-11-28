@@ -11,6 +11,7 @@ import {
     NoBlending,
     type WebGLRenderer,
     Vector3,
+    GLSL3,
 } from 'three';
 import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
@@ -214,7 +215,7 @@ class LayeredMaterial extends ShaderMaterial {
         atlasInfo: AtlasInfo;
         getIndexFn: (arg0: Layer) => number;
     }) {
-        super({ clipping: true });
+        super({ clipping: true, glslVersion: GLSL3 });
 
         this.atlasInfo = atlasInfo;
         this.defines.STITCHING = 1;

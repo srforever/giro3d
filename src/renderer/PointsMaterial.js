@@ -12,6 +12,7 @@ import {
     NoBlending,
     NormalBlending,
     ShaderMaterial,
+    GLSL3,
 } from 'three';
 import PointsVS from './shader/PointsVS.glsl';
 import PointsFS from './shader/PointsFS.glsl';
@@ -51,7 +52,7 @@ class PointsMaterial extends ShaderMaterial {
      * @param {number} [options.mode=MODE.COLOR] Specifies the criterion to colorize points.
      */
     constructor(options = {}) {
-        super({ clipping: true });
+        super({ clipping: true, glslVersion: GLSL3 });
         if (__DEBUG__) {
             this.defines.DEBUG = 1;
         }

@@ -1,10 +1,11 @@
 #include <giro3d_precision_qualifiers>
+#include <giro3d_fragment_shader_header>
 #include <giro3d_common>
 
 varying vec2 vUv;
 
 uniform Interpretation interpretation;
-uniform sampler2D texture;
+uniform sampler2D tex;
 uniform sampler2D gridTexture;
 uniform float opacity;
 uniform bool flipY;
@@ -17,8 +18,8 @@ void main() {
         : vUv;
 
     vec4 raw = noDataOptions.enabled
-        ? texture2DFillNodata(texture, uv, noDataOptions)
-        : texture2D(texture, uv);
+        ? texture2DFillNodata(tex, uv, noDataOptions)
+        : texture2D(tex, uv);
 
     gl_FragColor = decodeInterpretation(raw, interpretation);
 

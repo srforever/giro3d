@@ -1,5 +1,6 @@
-#include <giro3d_common>
 #include <giro3d_precision_qualifiers>
+#include <giro3d_fragment_shader_header>
+#include <giro3d_common>
 #include <logdepthbuf_pars_fragment>
 #include <clipping_planes_pars_fragment>
 

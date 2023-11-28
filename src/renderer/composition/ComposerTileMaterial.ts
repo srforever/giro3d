@@ -1,11 +1,12 @@
 import {
     Uniform,
-    RawShaderMaterial,
     type Texture,
     FloatType,
     CanvasTexture,
     type TextureDataType,
     type AnyPixelFormat,
+    GLSL3,
+    ShaderMaterial,
 } from 'three';
 
 import FragmentShader from './ComposerTileFS.glsl';
@@ -71,11 +72,11 @@ function createGridTexture() {
     return new CanvasTexture(canvas);
 }
 
-const POOL: RawShaderMaterial[] = [];
+const POOL: ShaderMaterial[] = [];
 const POOL_SIZE = 2048;
 let GRID_TEXTURE: Texture;
 
-class ComposerTileMaterial extends RawShaderMaterial {
+class ComposerTileMaterial extends ShaderMaterial {
     now: number;
     dataType: TextureDataType;
     pixelFormat: AnyPixelFormat;
@@ -87,12 +88,12 @@ class ComposerTileMaterial extends RawShaderMaterial {
      * @param options The options
      */
     constructor(options?: Options) {
-        super();
+        super({ glslVersion: GLSL3 });
 
         this.fragmentShader = FragmentShader;
         this.vertexShader = VertexShader;
 
-        this.uniforms.texture = new Uniform(null);
+        this.uniforms.tex = new Uniform(null);
         this.uniforms.gridTexture = new Uniform(null);
         this.uniforms.interpretation = new Uniform(null);
         this.uniforms.flipY = new Uniform(false);
@@ -123,7 +124,7 @@ class ComposerTileMaterial extends RawShaderMaterial {
         this.opacity = 1;
         this.uniforms.opacity.value = this.opacity;
         this.uniforms.interpretation.value = interpValue;
-        this.uniforms.texture.value = options.texture;
+        this.uniforms.tex.value = options.texture;
         this.uniforms.flipY.value = options.flipY ?? false;
         this.uniforms.noDataOptions.value = options.noDataOptions ?? { enabled: false };
         this.uniforms.showImageOutlines.value = options.showImageOutlines ?? false;
@@ -136,7 +137,7 @@ class ComposerTileMaterial extends RawShaderMaterial {
     }
 
     private reset() {
-        this.uniforms.texture.value = null;
+        this.uniforms.tex.value = null;
     }
 
     /**

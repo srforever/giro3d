@@ -1,4 +1,5 @@
 #include <giro3d_precision_qualifiers>
+#include <giro3d_fragment_shader_header>
 #include <giro3d_common>
 
 #include <logdepthbuf_pars_fragment>
@@ -107,7 +108,7 @@ void main() {
 #if defined(ELEVATION_LAYER)
     // Step 5 : compute shading
 #if defined(ENABLE_HILLSHADING)
-    hillshade = calcHillshade(tileDimensions, elevationLayer.textureSize, zenith, azimuth, hillshadingIntensity, elevationLayer.offsetScale, elevationTexture, elevUv);
+    hillshade = calcHillshade(tileDimensions, zenith, azimuth, hillshadingIntensity, elevationLayer.offsetScale, elevationTexture, elevUv);
 #endif
 #endif
 
