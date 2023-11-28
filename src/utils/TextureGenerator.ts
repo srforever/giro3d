@@ -193,26 +193,6 @@ function fillBuffer<T extends NumberArray>(
 }
 
 /**
- * Loads the specified image with a blob.
- *
- * @param img The image to load.
- * @param blob The data blob containing the encoded image data (PNG, JPEG, etc.).
- * @returns A Promise that resolves when the image is loaded, or rejects
- * when any error occurs during the loading process.
- */
-function load8bitImage(img: HTMLImageElement, blob: Blob): Promise<HTMLImageElement> {
-    // Note: the reason why we don't create the image element inside this function is
-    // to prevent it from being eliminated by an aggressive garbage collector, and thus
-    // creating a promise that never finished.
-    return new Promise((resolve, reject) => {
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        const objUrl = URL.createObjectURL(blob);
-        img.src = objUrl;
-    });
-}
-
-/**
  * Returns the number of channels per pixel.
  *
  * @param pixelFormat The pixel format.
@@ -278,7 +258,7 @@ function createDataCopy(target: WebGLRenderTarget, renderer: WebGLRenderer) {
  * @param image The image.
  * @returns The pixel buffer.
  */
-function getPixels(image: HTMLImageElement | HTMLCanvasElement): Uint8ClampedArray {
+function getPixels(image: ImageBitmap | HTMLImageElement | HTMLCanvasElement): Uint8ClampedArray {
     const canvas = document.createElement('canvas');
     canvas.width = image.width;
     canvas.height = image.height;
@@ -311,8 +291,7 @@ async function decodeBlob(
         case 'image/jpg': // not a valid media type, but we support it for compatibility
         case 'image/jpeg': {
             // Use the browser capabilities to decode the image
-            const img = new Image();
-            await load8bitImage(img, blob);
+            const img = await createImageBitmap(blob);
             let tex;
             if (options.createDataTexture) {
                 const buf = getPixels(img);
