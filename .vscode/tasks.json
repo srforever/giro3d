@@ -27,6 +27,33 @@
 			},
 			"problemMatcher": [],
 			"label": "npm: prepare-package",
+		},
+		{
+			"type": "npm",
+			"script": "serve-apidoc",
+			"group": {
+				"kind": "build"
+			},
+			"problemMatcher": [],
+			"label": "Serve API doc",
+		},
+		{
+			"type": "npm",
+			"script": "start",
+			"group": {
+				"kind": "build"
+			},
+			"problemMatcher": [],
+			"label": "Build and serve examples",
+		},
+		{
+			"type": "npm",
+			"script": "build-package",
+			"group": {
+				"kind": "build"
+			},
+			"problemMatcher": [],
+			"label": "Generate local tgz",
 		}
 	]
 }
