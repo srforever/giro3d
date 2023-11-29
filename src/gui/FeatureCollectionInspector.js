@@ -119,8 +119,14 @@ class FeatureCollectionInspector extends EntityInspector {
          */
         this.frozen = this.features.frozen || false;
 
+        /**
+         * Store the CRS code of this.features
+         */
+        this.dataProjection = this.features.dataProjection || '';
+
         this.showGrid = false;
 
+        this.addController(this, 'dataProjection').name('Data projection');
         this.addController(this, 'wireframe')
             .name('Wireframe')
             .onChange(v => this.toggleWireframe(v));
@@ -140,8 +146,7 @@ class FeatureCollectionInspector extends EntityInspector {
         this.filterState = state;
         state.enter(this.applyFilterState.bind(this), {
             features: this.features,
-            instance:
-            this.instance,
+            instance: this.instance,
         }, ...args);
     }
 

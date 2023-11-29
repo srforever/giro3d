@@ -137,32 +137,37 @@ class FeatureCollection extends Entity3D {
     public material: Material;
     public extrusionOffset: FeatureExtrusionOffsetCallback | number | Array<number>;
     public elevation: FeatureElevationCallback | number | Array<number>;
+    public dataProjection: string;
 
     /**
      *
      * Construct a `FeatureCollection`.
      *
-     * @param {string} id The unique identifier of this FeatureCollection
-     * @param {object} [options={}] Constructor options.
-     * @param {VectorSource} options.source The [ol.VectorSource](https://openlayers.org/en/latest/apidoc/module-ol_source_Vector-VectorSource.html) providing features to this
+     * @param id The unique identifier of this FeatureCollection
+     * @param [options={}] Constructor options.
+     * @param options.source The [ol.VectorSource](https://openlayers.org/en/latest/apidoc/module-ol_source_Vector-VectorSource.html) providing features to this
      * entity
+     * @param options.dataProjection The EPSG code for the projections of the features. If null or
+     * empty, no reprojection will be done. If a valid epsg code is given and if different from
+     * instance.referenceCrs, each feature will be reprojected before mesh conversion occurs. Please
+     * note that reprojection can be somewhat heavy on cpu ressources.
      * @param options.extent The geographic extent of the map, mandatory.
-     * @param {module:THREE.Object3D} [options.object3d=new THREE.Group()] The optional 3d object to
+     * @param [options.object3d=new THREE.Group()] The optional 3d object to
      * use as the root
-     * @param {number} [options.minLevel=0] The min subdivision level to start processing features.
+     * @param [options.minLevel=0] The min subdivision level to start processing features.
      * Useful for WFS or other untiled servers, to avoid to download the entire dataset when the
      * whole extent is visible.
-     * @param {number} [options.maxLevel=Infinity] The max level to subdivide the extent and
+     * @param [options.maxLevel=Infinity] The max level to subdivide the extent and
      * process features.
      * @param [options.onMeshCreated] called when a mesh is created (just
      * after conversion of the source data)
-     * @param {module:THREE.Material} [options.material] the
+     * @param [options.material] the
      * [THREE.Material](https://threejs.org/docs/#api/en/materials/Material) to use for meshes
-     * @param {number|FeatureElevationCallback} [options.elevation] Set the elevation of the
+     * @param [options.elevation] Set the elevation of the
      * features received from the source. It can be a constant for every feature, or a callback. The
      * callback version is particularly useful to derive the elevation from the properties of the
      * feature.
-     * @param {FeatureStyleCallback|FeatureStyle} [options.style] an object or a callback
+     * @param [options.style] an object or a callback
      * returning such object to style the individual feature. If an object is returned, the
      * informations it contains will be used to style every feature the same way. If a callback is
      * provided, it
@@ -178,6 +183,7 @@ class FeatureCollection extends Entity3D {
         id: string,
         options: {
             source: VectorSource;
+            dataProjection?: string;
             extent: Extent;
             object3d?: Object3D;
             minLevel?: number;
@@ -205,7 +211,7 @@ class FeatureCollection extends Entity3D {
         if (!options.source) {
             throw new Error('options.source is mandatory.');
         }
-        /** @type {Extent} */
+        this.dataProjection = options.dataProjection;
         this.extent = options.extent;
         this.subdivisions = selectBestSubdivisions(this.extent);
 
@@ -408,13 +414,22 @@ class FeatureCollection extends Entity3D {
             node.userData.layerUpdateState.newTry();
 
             const request = () => new Promise((resolve, reject) => {
-                const source = this.source;
-                const extent = OLUtils.toOLExtent(node.userData.extent);
+                let extent = node.userData.extent;
+                if (this.dataProjection) {
+                    extent = extent.as(this.dataProjection);
+                }
+                extent = OLUtils.toOLExtent(extent);
+
                 (this.source as any).loader_(
                     extent,
                     /* resolution */ undefined,
-                    source.getProjection(),
+                    this._instance.referenceCrs,
                     (features: Feature[]) => {
+                        // if the node is not visible any more, don't bother
+                        if (!node.visible) {
+                            resolve(null);
+                            return;
+                        }
                         if (features.length === 0) {
                             resolve(null);
                             return;
@@ -571,7 +586,7 @@ class FeatureCollection extends Entity3D {
                 child.updateMatrixWorld(true);
                 i++;
             }
-            context.instance.notifyChange(node);
+            this._instance.notifyChange(node);
         }
     }
 
