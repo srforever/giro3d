@@ -1,5 +1,27 @@
 # Changelog
 
+## v0.32.0 (2023-12-01)
+
+### Feat
+
+- **Layer**: enable changing the resolution of the layer (#301)
+- **FeatureCollection**: support reprojection of features (#328)
+
+### Fix
+
+- **LayerComposer**: apply no-data filling as post-process (!456)
+- **Layer**: avoid loading data for non visible tiles (!465)
+- **Map**: allow maxSubdivisionLevel to be zero (!459)
+
+### Refactor
+
+- **Entity3D**: deal with renderOrder at the entity level (!463)
+- upgrade shaders to GLSL 3 (!462)
+
+### Perf
+
+- **TextureGenerator**: decode images using `createImageBitmap()` (!458)
+
 ## v0.31.0 (2023-11-24)
 
 Mainly bugfixes, including memory leaks.
