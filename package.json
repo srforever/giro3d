@@ -27,7 +27,7 @@
     "geometry"
   ],
   "scripts": {
-    "_build-static-site": "shx mkdir -p build/site && npm run _copy-static-images && shx cp site/*.html build/site/ && shx cp site/favicon* build/site/",
+    "_build-static-site": "shx mkdir -p build/site && npm run _copy-static-images && shx cp site/*.html build/site/ && shx cp graphics/favicon* build/site/",
     "_build-tutorials": "shx mkdir -p build/site/ && docco examples/getting-started.js --css site/docco.css -s github-light -l parallel -t site/getting-started.ejs --output build/site/ && shx mv build/site/examples build/site/tutorials",
     "_check-folders": "node tasks/check-folders.mjs src test",
     "_copy-static-images": "shx mkdir -p build/site/images && shx cp -r graphics/* build/site/images",
