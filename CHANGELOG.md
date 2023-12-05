@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.32.1 (2023-12-05)
+
+Hotfix release for #374
+
+### Fix
+
+- **TileVS.glsl**: remove dynamic indexing of sampler arrays (#374)
+
 ## v0.32.0 (2023-12-01)
 
 ### Feat
