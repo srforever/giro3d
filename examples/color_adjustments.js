@@ -40,7 +40,8 @@ const satelliteSource = new TiledImageSource({
     }),
 });
 
-const colorLayer = new ColorLayer('satellite', {
+const colorLayer = new ColorLayer({
+    name: 'satellite',
     source: satelliteSource,
     extent: map.extent,
 });
@@ -60,13 +61,11 @@ const demSource = new TiledImageSource({
     noDataValue: -1000,
 });
 
-const elevationLayer = new ElevationLayer(
-    'dem',
-    {
-        extent: map.extent,
-        source: demSource,
-    },
-);
+const elevationLayer = new ElevationLayer({
+    name: 'dem',
+    extent: map.extent,
+    source: demSource,
+});
 map.addLayer(elevationLayer);
 
 const camera = instance.camera.camera3D;

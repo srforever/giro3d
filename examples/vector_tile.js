@@ -362,13 +362,11 @@ function createMapboxStreetsV6Style() {
     };
 }
 
-const vectorTileLayer = new ColorLayer(
-    'osm',
-    {
-        extent,
-        source: vectorTileSource,
-    },
-);
+const vectorTileLayer = new ColorLayer({
+    name: 'osm',
+    extent,
+    source: vectorTileSource,
+});
 
 map.addLayer(vectorTileLayer);
 

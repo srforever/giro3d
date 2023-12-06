@@ -102,12 +102,10 @@ function createColorLayer(name, url) {
         }),
     });
 
-    return new ColorLayer(
-        'wms_imagery',
-        {
-            source,
-        },
-    );
+    return new ColorLayer({
+        name: 'wms_imagery',
+        source,
+    });
 }
 
 function createElevationLayer(name, url) {
@@ -122,13 +120,11 @@ function createElevationLayer(name, url) {
         }),
     });
 
-    return new ElevationLayer(
-        'wms_elevation',
-        {
-            source,
-            interpretation: Interpretation.ScaleToMinMax(149, 621),
-        },
-    );
+    return new ElevationLayer({
+        name: 'wms_elevation',
+        source,
+        interpretation: Interpretation.ScaleToMinMax(149, 621),
+    });
 }
 
 for (let i = 0; i < wmsLayers.length; i++) {

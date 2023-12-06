@@ -49,12 +49,10 @@ const olSource = new TileWMS({
 });
 const wmsSource = new TiledImageSource({ source: olSource });
 
-const colorLayer = new ColorLayer(
-    'wms_imagery',
-    {
-        source: wmsSource,
-    },
-);
+const colorLayer = new ColorLayer({
+    name: 'wms_imagery',
+    source: wmsSource,
+});
 map.addLayer(colorLayer);
 
 // define the source of our data

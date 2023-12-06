@@ -49,13 +49,11 @@ const map = new Map('planar', { extent, maxSubdivisionLevel: 13 });
 instance.add(map);
 
 function createLayer(name) {
-    return new ColorLayer(
+    return new ColorLayer({
         name,
-        {
-            extent,
-            source: new TiledImageSource({ source: new StadiaMaps({ layer: name, wrapX: false }) }),
-        },
-    );
+        extent,
+        source: new TiledImageSource({ source: new StadiaMaps({ layer: name, wrapX: false }) }),
+    });
 }
 const watercolor = createLayer('stamen_watercolor');
 const toner = createLayer('stamen_toner');

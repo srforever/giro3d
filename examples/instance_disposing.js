@@ -40,14 +40,12 @@ function init() {
     instance.add(map);
 
     // Adds an TMS imagery layer
-    map.addLayer(new ColorLayer(
-        'osm',
-        {
-            source: new TiledImageSource({
-                source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }),
-            }),
-        },
-    )).catch(e => console.error(e));
+    map.addLayer(new ColorLayer({
+        name: 'osm',
+        source: new TiledImageSource({
+            source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }),
+        }),
+    })).catch(e => console.error(e));
 
     // Instanciates camera
     instance.camera.camera3D.position.set(

@@ -116,7 +116,8 @@ function buildLayers() {
     map.removeLayer(maskLayer);
     map.removeLayer(colorLayer);
 
-    maskLayer = new MaskLayer('mask', {
+    maskLayer = new MaskLayer({
+        name: 'mask',
         extent,
         source,
         noDataOptions,
@@ -124,7 +125,8 @@ function buildLayers() {
         interpretation: Interpretation.CompressTo8Bit(min, max),
     });
 
-    elevationLayer = new ElevationLayer('elevation', {
+    elevationLayer = new ElevationLayer({
+        name: 'elevation',
         extent,
         source,
         noDataOptions,
@@ -133,7 +135,8 @@ function buildLayers() {
         minmax: { min, max },
     });
 
-    colorLayer = new ColorLayer('color', {
+    colorLayer = new ColorLayer({
+        name: 'color',
         extent,
         source,
         noDataOptions,

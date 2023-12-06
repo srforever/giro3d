@@ -36,7 +36,7 @@ const source = new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_to
 const LAYER_COUNT = 16;
 
 for (let i = 0; i < LAYER_COUNT; i++) {
-    map.addLayer(new ColorLayer(`color layer ${i}`, { extent, source }));
+    map.addLayer(new ColorLayer({ name: `color layer ${i}`, extent, source }));
 }
 
 // Instanciates camera

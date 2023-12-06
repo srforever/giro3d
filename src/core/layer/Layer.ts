@@ -108,6 +108,10 @@ export interface LayerEvents {
 
 export interface LayerOptions {
     /**
+     * An optional name for this layer.
+     */
+    name?: string;
+    /**
      * The source of the layer.
      */
     source: ImageSource;
@@ -200,10 +204,13 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
     extends EventDispatcher<TEvents & LayerEvents>
     implements Progress {
     /**
+     * Optional name of this layer.
+     */
+    readonly name: string;
+    /**
      * The unique identifier of this layer.
      */
     readonly id: string;
-    private readonly uuid: string;
     /**
      * Read-only flag to check if a given object is of type Layer.
      */
@@ -251,20 +258,14 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
     /**
      * Creates a layer.
      *
-     * @param id The unique identifier of the layer.
      * @param options The layer options.
      */
-    constructor(id: string, options: LayerOptions) {
+    constructor(options: LayerOptions) {
         super();
-        if (id === undefined || id === null) {
-            throw new Error('id is undefined');
-        }
-
-        this.id = id;
+        this.name = options.name;
 
         // We need a globally unique ID for this layer, to avoid collisions in the request queue.
-        // The "id" property is not globally unique (only unique within a given map).
-        this.uuid = MathUtils.generateUUID();
+        this.id = MathUtils.generateUUID();
 
         this.type = 'Layer';
         this.interpretation = options.interpretation ?? Interpretation.Raw;
@@ -578,7 +579,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
 
             this.opCounter.increment();
 
-            const requestId = `${this.uuid}-${id}`;
+            const requestId = `${this.id}-${id}`;
 
             const p = this.queue.enqueue({
                 id: requestId, request, priority, shouldExecute,

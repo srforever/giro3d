@@ -65,12 +65,10 @@ const colorize = new TiledImageSource({
     }),
 });
 
-const colorLayer = new ColorLayer(
-    'wms_imagery',
-    {
-        source: colorize,
-    },
-);
+const colorLayer = new ColorLayer({
+    name: 'wms_imagery',
+    source: colorize,
+});
 
 instance.add(pointcloud).then(pc => pc.attach(colorLayer));
 

@@ -124,12 +124,11 @@ const source = new VectorSource({
     style,
 });
 
-const layer = new ColorLayer(
-    'geojson', {
-        extent,
-        source,
-    },
-);
+const layer = new ColorLayer({
+    name: 'geojson',
+    extent,
+    source,
+});
 
 map.addLayer(layer);
 

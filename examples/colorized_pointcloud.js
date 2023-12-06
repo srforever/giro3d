@@ -87,13 +87,11 @@ function initializeCamera() {
         }),
     });
 
-    colorLayer = new ColorLayer(
-        'wms_imagery',
-        {
-            extent,
-            source: colorize,
-        },
-    );
+    colorLayer = new ColorLayer({
+        name: 'wms_imagery',
+        extent,
+        source: colorize,
+    });
 
     pointcloud.attach(colorLayer);
 

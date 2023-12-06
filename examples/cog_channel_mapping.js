@@ -54,7 +54,12 @@ function createLayer() {
         crs: extent.crs(),
         channels,
     });
-    return new ColorLayer('color-layer', { source, extent, interpretation: Interpretation.CompressTo8Bit(0, 900) });
+    return new ColorLayer({
+        name: 'color-layer',
+        source,
+        extent,
+        interpretation: Interpretation.CompressTo8Bit(0, 900),
+    });
 }
 
 let layer = createLayer();

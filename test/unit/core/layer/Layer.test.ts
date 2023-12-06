@@ -7,7 +7,7 @@ import { setupGlobalMocks } from '../../mocks.js';
 
 class TestLayer extends Layer {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
-    protected registerNode(_node: Node, _extent: Extent): void {
+    registerNode(_node: Node, _extent: Extent): void {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
@@ -31,7 +31,7 @@ describe('Layer', () => {
 
     describe('progress & loading', () => {
         it('should return the progress and loading of the underlying queue', () => {
-            const layer = new TestLayer('foo', { source: new NullSource() });
+            const layer = new TestLayer({ source: new NullSource() });
 
             expect(layer.progress).toBe(layer.getQueue().progress);
             expect(layer.loading).toBe(layer.getQueue().loading);
@@ -42,7 +42,7 @@ describe('Layer', () => {
         it('should dispose the source', () => {
             const source = new NullSource();
             source.dispose = jest.fn();
-            const layer = new TestLayer('foo', { source });
+            const layer = new TestLayer({ source });
 
             expect(source.dispose).not.toHaveBeenCalled();
 
@@ -56,23 +56,24 @@ describe('Layer', () => {
         it('should assign the provided properties', () => {
             const id = 'foo';
             const extent = new Extent('EPSG:4326', 0, 0, 0, 0);
-            const layer = new TestLayer(id, {
+            const layer = new TestLayer({
+                name: id,
                 extent,
                 source: new NullSource(),
             });
 
-            expect(layer.id).toEqual(id);
+            expect(layer.name).toEqual(id);
             expect(layer.extent).toEqual(extent);
         });
 
         it('should not accept all sources', () => {
-            expect(() => new TestLayer('id', { source: null })).toThrowError(/missing or invalid source/);
+            expect(() => new TestLayer({ source: null })).toThrowError(/missing or invalid source/);
         });
     });
 
     describe('visible', () => {
         it('should return the correct value', () => {
-            const layer = new TestLayer('foo', { source: new NullSource() });
+            const layer = new TestLayer({ source: new NullSource() });
 
             expect(layer.visible).toEqual(true);
 
@@ -81,7 +82,7 @@ describe('Layer', () => {
         });
 
         it('should raise the visible-property-changed event', () => {
-            const layer = new TestLayer('foo', { source: new NullSource() });
+            const layer = new TestLayer({ source: new NullSource() });
 
             const listener = jest.fn();
             layer.addEventListener('visible-property-changed', listener);

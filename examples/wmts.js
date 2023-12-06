@@ -44,7 +44,7 @@ fetch('https://wxs.ign.fr/essentiels/geoportail/wmts?service=WMTS&request=GetCap
         });
 
         const source = new TiledImageSource({ source: new WMTS(options), extent });
-        map.addLayer(new ColorLayer('wmts', { source }));
+        map.addLayer(new ColorLayer({ name: 'wmts', source }));
     })
     .catch(e => console.error(e));
 

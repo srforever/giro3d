@@ -87,7 +87,8 @@ const source = new TiledImageSource({
     }),
 });
 
-const elevationLayer = new ElevationLayer('elevation', {
+const elevationLayer = new ElevationLayer({
+    name: 'elevation',
     extent,
     source,
     colorMap: new ColorMap(
@@ -99,7 +100,8 @@ const elevationLayer = new ElevationLayer('elevation', {
     interpretation: Interpretation.MapboxTerrainRGB,
 });
 
-const bottomLayer = new ColorLayer('color', {
+const bottomLayer = new ColorLayer({
+    name: 'color',
     extent,
     source,
     colorMap: new ColorMap(
@@ -111,7 +113,8 @@ const bottomLayer = new ColorLayer('color', {
     interpretation: Interpretation.MapboxTerrainRGB,
 });
 
-const topLayer = new ColorLayer('color2', {
+const topLayer = new ColorLayer({
+    name: 'color2',
     extent,
     source,
     colorMap: new ColorMap(

@@ -47,7 +47,7 @@ const source = new CogSource({
     url: 'https://s2downloads.eox.at/demo/Sentinel-2/3857/TCI.tif',
     crs: extent.crs(),
 });
-const layer = new ColorLayer('color-layer', { source, extent });
+const layer = new ColorLayer({ name: 'color-layer', source, extent });
 
 map.addLayer(layer);
 

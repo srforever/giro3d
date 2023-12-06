@@ -70,13 +70,11 @@ function createMap(extent) {
 
     // Adds an TMS imagery layer
     const layer = layers[mapCount % layers.length];
-    currentMap.addLayer(new ColorLayer(
-        'osm',
-        {
-            extent,
-            source: new TiledImageSource({ source: new StadiaMaps({ layer, wrapX: false }) }),
-        },
-    )).catch(e => console.error(e));
+    currentMap.addLayer(new ColorLayer({
+        name: 'osm',
+        extent,
+        source: new TiledImageSource({ source: new StadiaMaps({ layer, wrapX: false }) }),
+    })).catch(e => console.error(e));
 
     instance.notifyChange();
 }

@@ -8,7 +8,6 @@ import {
     MeshStandardMaterial,
     Object3D,
     Plane,
-    MathUtils,
 } from 'three';
 import Entity3D from 'src/entities/Entity3D';
 import { ColorLayer } from 'src/core/layer';
@@ -28,7 +27,7 @@ function sut(obj3d: Object3D = undefined) {
 }
 
 function makeLayer() {
-    const layer = new ColorLayer(MathUtils.generateUUID(), {
+    const layer = new ColorLayer({
         source: new NullSource(),
     });
     layer._preprocessLayer = () => layer;

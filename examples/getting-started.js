@@ -111,7 +111,8 @@ const satelliteSource = new TiledImageSource({
 // Now we can create the layer. Note that we specify an extent for the layer. This is not
 // strictly required, but since our map is much smaller than the WMS source, we want to avoid
 // processing data that is outside our layer.
-const colorLayer = new ColorLayer('satellite', {
+const colorLayer = new ColorLayer({
+    name: 'satellite',
     source: satelliteSource,
     extent: map.extent,
 });
@@ -150,13 +151,11 @@ const demSource = new TiledImageSource({
 });
 
 // Then create the elevation layer.
-const elevationLayer = new ElevationLayer(
-    'dem',
-    {
-        extent: map.extent,
-        source: demSource,
-    },
-);
+const elevationLayer = new ElevationLayer({
+    name: 'dem',
+    extent: map.extent,
+    source: demSource,
+});
 
 // ##### Add the layer
 

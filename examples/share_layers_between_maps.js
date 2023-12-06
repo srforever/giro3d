@@ -27,12 +27,10 @@ const instance = new Instance(viewerDiv, {
 });
 
 // Adds an TMS imagery layer
-const layer = new ColorLayer(
-    'osm',
-    {
-        source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
-    },
-);
+const layer = new ColorLayer({
+    name: 'osm',
+    source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
+});
 
 let index = 0;
 const promises = [];

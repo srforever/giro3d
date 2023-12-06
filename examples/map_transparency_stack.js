@@ -51,7 +51,8 @@ const values = colormap({ colormap: 'viridis', nshades: 256 });
 const colors = values.map(v => new Color(v));
 const colorMap = new ColorMap(colors, min, max);
 
-const elevationLayer = new ElevationLayer('terrain', {
+const elevationLayer = new ElevationLayer({
+    name: 'terrain',
     extent,
     colorMap,
     minmax: { min, max },
@@ -75,7 +76,8 @@ terrainMap.addLayer(elevationLayer);
 const orthophotoMap = new Map('orthophoto', { extent, doubleSided: true });
 instance.add(orthophotoMap);
 
-const orthophotoLayer = new ColorLayer('orthophoto', {
+const orthophotoLayer = new ColorLayer({
+    name: 'orthophoto',
     extent,
     source: new TiledImageSource({
         source: new TileWMS({
@@ -93,7 +95,8 @@ orthophotoMap.addLayer(orthophotoLayer);
 const vectorMap = new Map('geojson', { extent, doubleSided: true, backgroundOpacity: 0 });
 instance.add(vectorMap);
 
-const geoJsonLayer = new ColorLayer('geojson', {
+const geoJsonLayer = new ColorLayer({
+    name: 'geojson',
     extent,
     source: new VectorSource({
         data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.geojson',
@@ -102,7 +105,6 @@ const geoJsonLayer = new ColorLayer('geojson', {
         style: new Style({
             fill: new Fill({
                 color: 'rgba(255, 165, 0, 0.6)',
-                opacity: 0.2,
             }),
             stroke: new Stroke({
                 color: 'white',

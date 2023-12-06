@@ -57,7 +57,8 @@ const ceiling = 2500;
 const values = colormap({ colormap: 'viridis', nshades: 256 });
 const colors = values.map(v => new Color(v));
 
-const dem = new ElevationLayer('dem', {
+const dem = new ElevationLayer({
+    name: 'dem',
     source,
     extent,
     colorMap: new ColorMap(

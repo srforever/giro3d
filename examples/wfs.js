@@ -50,13 +50,11 @@ const colorSource = new TiledImageSource({
     }),
 });
 
-const colorLayer = new ColorLayer(
-    'wms_imagery',
-    {
-        extent,
-        source: colorSource,
-    },
-);
+const colorLayer = new ColorLayer({
+    name: 'orthoimagery',
+    extent,
+    source: colorSource,
+});
 map.addLayer(colorLayer);
 
 const featureColors = new window.Map();
@@ -97,13 +95,11 @@ const wfsSource = new VectorSource({
     style,
 });
 
-const wfsLayer = new ColorLayer(
-    'lyon_tcl_bus',
-    {
-        extent,
-        source: wfsSource,
-    },
-);
+const wfsLayer = new ColorLayer({
+    name: 'lyon_tcl_bus',
+    extent,
+    source: wfsSource,
+});
 
 map.addLayer(wfsLayer);
 

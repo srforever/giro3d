@@ -92,13 +92,11 @@ Fetcher.json('data/MtStHelens-footprint.geojson').then(geojson => {
         format: new GeoTIFFFormat(),
     });
 
-    map.addLayer(new ElevationLayer(
-        'osm',
-        {
-            extent,
-            source,
-        },
-    )).catch(e => console.error(e));
+    map.addLayer(new ElevationLayer({
+        name: 'osm',
+        extent,
+        source,
+    })).catch(e => console.error(e));
 }).catch(e => console.error(e));
 
 const center = extent.center().xyz();

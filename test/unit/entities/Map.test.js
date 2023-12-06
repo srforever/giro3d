@@ -274,23 +274,22 @@ describe('Map', () => {
         });
 
         it('should add a layer', () => {
-            const layer = new Layer('layer', { source: nullSource });
+            const layer = new Layer({ source: nullSource });
 
             map.addLayer(layer).then(() => {
                 expect(map.getLayers()).toStrictEqual([layer]);
             });
         });
 
-        it('should not add 2 layers with the same id', async () => {
-            const layer1 = new Layer('layer', { source: nullSource });
-            const layer2 = new Layer('layer', { source: nullSource });
+        it('should not add the same layer twice', async () => {
+            const layer = new Layer({ source: nullSource });
 
-            map.addLayer(layer1);
-            await expect(map.addLayer(layer2)).rejects.toThrowError('id already used');
+            map.addLayer(layer);
+            await expect(map.addLayer(layer)).rejects.toThrowError(/is already present in this map/);
         });
 
         it('should fire the layer-added event', async () => {
-            const layer = new Layer('layer', { source: nullSource });
+            const layer = new Layer({ source: nullSource });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -387,13 +386,13 @@ describe('Map', () => {
 
     describe('sortColorLayers', () => {
         function mkColorLayer(key) {
-            const layer = new ColorLayer(`${key}`, { source: nullSource });
+            const layer = new ColorLayer({ name: `${key}`, source: nullSource });
             layer.key = key;
             return layer;
         }
 
         function mkElevationLayer(key) {
-            const layer = new ElevationLayer(`${key}`, { source: nullSource });
+            const layer = new ElevationLayer({ name: `${key}`, source: nullSource });
             layer.key = key;
             return layer;
         }
@@ -578,8 +577,8 @@ describe('Map', () => {
         });
 
         it('should return true if any layer is loading', async () => {
-            const layer1 = new ElevationLayer('layer', { source: new NullSource({ extent }) });
-            const layer2 = new ColorLayer('layer2', { source: new NullSource({ extent }) });
+            const layer1 = new ElevationLayer({ source: new NullSource({ extent }) });
+            const layer2 = new ColorLayer({ source: new NullSource({ extent }) });
 
             let layer1Loading = false;
             let layer2Loading = false;
@@ -617,8 +616,8 @@ describe('Map', () => {
 
     describe('progress', () => {
         it('should return the average progress of all layers', async () => {
-            const layer1 = new ElevationLayer('layer', { source: nullSource });
-            const layer2 = new ColorLayer('layer2', { source: nullSource });
+            const layer1 = new ElevationLayer({ source: nullSource });
+            const layer2 = new ColorLayer({ source: nullSource });
 
             let layer1Progress = 0;
             let layer2Progress = 0;
@@ -663,7 +662,7 @@ describe('Map', () => {
         });
 
         it('should return the min/max value of the elevation layer if present', async () => {
-            const layer = new ElevationLayer('layer', { source: nullSource });
+            const layer = new ElevationLayer({ source: nullSource });
             layer.minmax = { min: -123, max: 555 };
 
             await map.addLayer(layer);
@@ -675,7 +674,7 @@ describe('Map', () => {
         });
 
         it('should return {0, 0} if an elevation layer is present, but has no minmax', async () => {
-            const layer = new ElevationLayer('layer', { source: new NullSource() });
+            const layer = new ElevationLayer({ source: new NullSource() });
             layer.minmax = null;
 
             map.addLayer(layer);
@@ -687,8 +686,8 @@ describe('Map', () => {
         });
 
         it('should return the computed min/max value of all elevation layers', async () => {
-            const layer1 = new ElevationLayer('layer1', { source: nullSource });
-            const layer2 = new ElevationLayer('layer2', { source: nullSource });
+            const layer1 = new ElevationLayer({ source: nullSource });
+            const layer2 = new ElevationLayer({ source: nullSource });
 
             layer1.minmax = { min: -123, max: 555 };
             layer2.minmax = { min: -969, max: 342 };
@@ -705,7 +704,7 @@ describe('Map', () => {
 
     describe('removeLayer', () => {
         it('should not call dispose() on the removed layer', async () => {
-            const layer = new Layer('layer', { source: nullSource });
+            const layer = new Layer({ source: nullSource });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -717,7 +716,7 @@ describe('Map', () => {
         });
 
         it('should call dispose() on the removed layer if disposeLayer = true', async () => {
-            const layer = new Layer('layer', { source: nullSource });
+            const layer = new Layer({ source: nullSource });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -729,7 +728,7 @@ describe('Map', () => {
         });
 
         it('should fire the layer-removed event', async () => {
-            const layer = new Layer('layer', { source: nullSource });
+            const layer = new Layer({ source: nullSource });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -745,7 +744,7 @@ describe('Map', () => {
         });
 
         it('should return true if the layer was present', async () => {
-            const layer = new Layer('layer', { source: nullSource });
+            const layer = new Layer({ source: nullSource });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -758,11 +757,11 @@ describe('Map', () => {
 
     describe('dispose', () => {
         it('should not call dispose on underlying layers', async () => {
-            const layer1 = new Layer('layer1', { source: new NullSource() });
+            const layer1 = new Layer({ source: new NullSource() });
             layer1.dispose = jest.fn();
             layer1.whenReady = Promise.resolve();
 
-            const layer2 = new Layer('layer2', { source: nullSource });
+            const layer2 = new Layer({ source: nullSource });
             layer2.whenReady = Promise.resolve();
             layer2.dispose = jest.fn();
 
@@ -776,11 +775,11 @@ describe('Map', () => {
         });
 
         it('should call dispose on underlying layers if disposeLayers = true', async () => {
-            const layer1 = new Layer('layer1', { source: new NullSource() });
+            const layer1 = new Layer({ source: new NullSource() });
             layer1.dispose = jest.fn();
             layer1.whenReady = Promise.resolve();
 
-            const layer2 = new Layer('layer2', { source: nullSource });
+            const layer2 = new Layer({ source: nullSource });
             layer2.whenReady = Promise.resolve();
             layer2.dispose = jest.fn();
 

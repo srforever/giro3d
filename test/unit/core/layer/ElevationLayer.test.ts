@@ -4,18 +4,21 @@ import NullSource from 'src/sources/NullSource';
 
 describe('ElevationLayer', () => {
     describe('constructor', () => {
-        it('should throw on undefined id', () => {
-            expect(() => new ElevationLayer(undefined, { source: new NullSource() })).toThrow('id is undefined');
+        it('should auto-generate an id if no id is specified', () => {
+            const layer = new ElevationLayer({ source: new NullSource() });
+
+            expect(layer.id).toBeDefined();
         });
 
         it('should define layer properties', () => {
-            const layer = new ElevationLayer('id', {
+            const layer = new ElevationLayer({
                 interpretation: Interpretation.Raw,
                 source: new NullSource(),
                 minmax: { min: 111, max: 333 },
+                name: 'foo',
             });
 
-            expect(layer.id).toEqual('id');
+            expect(layer.name).toEqual('foo');
             expect(layer.frozen).toStrictEqual(false);
             expect(layer.interpretation).toEqual(Interpretation.Raw);
             expect(layer.type).toEqual('ElevationLayer');

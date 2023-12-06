@@ -23,7 +23,7 @@ class LayerInspector extends Panel {
      * @param {Layer} layer The layer to inspect
      */
     constructor(gui, instance, map, layer) {
-        super(gui, instance, `${layer.type} ('${layer.id}')`);
+        super(gui, instance, `${layer.type} ('${layer.name ?? layer.id}')`);
 
         /**
          * The inspected layer.
@@ -39,6 +39,7 @@ class LayerInspector extends Panel {
         this.updateValues();
 
         this.addController(this.layer, 'id').name('Identifier');
+        this.addController(this.layer, 'name').name('Name');
         this.addController(this, 'sourceCrs').name('Source CRS');
 
         this.addController(this, 'state')
