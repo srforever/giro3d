@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.32.2 (2023-12-06)
+
+Hotfix release for #375.
+
+### Fix
+
+- **giro3d_common.glsl**: don't use `texelFetch()` in derivative computation (#375)
+
 ## v0.32.1 (2023-12-05)
 
 Hotfix release for #374
