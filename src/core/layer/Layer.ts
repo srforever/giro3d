@@ -214,10 +214,13 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
     readonly noDataOptions: NoDataOptions;
     readonly computeMinMax: boolean;
     private _visible: boolean;
+    /** The colormap of this layer */
     readonly colorMap: ColorMap;
+    /** The extent of this layer */
     readonly extent: Extent;
     private readonly renderTargetPool: Map<string, Array<WebGLRenderTarget>>;
-    private readonly source: ImageSource;
+    /** The source of this layer */
+    readonly source: ImageSource;
     protected composer: LayerComposer;
     private readonly targets: Map<number, Target>;
     private readonly filter: Function;
