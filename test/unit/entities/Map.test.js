@@ -274,22 +274,22 @@ describe('Map', () => {
         });
 
         it('should add a layer', () => {
-            const layer = new Layer({ source: nullSource });
+            const layer = new ColorLayer({ source: nullSource });
 
             map.addLayer(layer).then(() => {
                 expect(map.getLayers()).toStrictEqual([layer]);
             });
         });
 
-        it('should not add the same layer twice', async () => {
-            const layer = new Layer({ source: nullSource });
+        it('should not add 2 layers with the same id', async () => {
+            const layer = new ColorLayer({ source: nullSource });
 
             map.addLayer(layer);
             await expect(map.addLayer(layer)).rejects.toThrowError(/is already present in this map/);
         });
 
         it('should fire the layer-added event', async () => {
-            const layer = new Layer({ source: nullSource });
+            const layer = new ColorLayer({ source: nullSource });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -704,7 +704,7 @@ describe('Map', () => {
 
     describe('removeLayer', () => {
         it('should not call dispose() on the removed layer', async () => {
-            const layer = new Layer({ source: nullSource });
+            const layer = new ColorLayer({ source: nullSource });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -716,7 +716,7 @@ describe('Map', () => {
         });
 
         it('should call dispose() on the removed layer if disposeLayer = true', async () => {
-            const layer = new Layer({ source: nullSource });
+            const layer = new ColorLayer({ source: nullSource });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -728,7 +728,7 @@ describe('Map', () => {
         });
 
         it('should fire the layer-removed event', async () => {
-            const layer = new Layer({ source: nullSource });
+            const layer = new ColorLayer({ source: nullSource });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -744,7 +744,7 @@ describe('Map', () => {
         });
 
         it('should return true if the layer was present', async () => {
-            const layer = new Layer({ source: nullSource });
+            const layer = new ColorLayer({ source: nullSource });
             layer.dispose = jest.fn();
             layer.whenReady = Promise.resolve();
 
@@ -757,11 +757,11 @@ describe('Map', () => {
 
     describe('dispose', () => {
         it('should not call dispose on underlying layers', async () => {
-            const layer1 = new Layer({ source: new NullSource() });
+            const layer1 = new ColorLayer({ source: new NullSource() });
             layer1.dispose = jest.fn();
             layer1.whenReady = Promise.resolve();
 
-            const layer2 = new Layer({ source: nullSource });
+            const layer2 = new ColorLayer({ source: nullSource });
             layer2.whenReady = Promise.resolve();
             layer2.dispose = jest.fn();
 
@@ -775,11 +775,11 @@ describe('Map', () => {
         });
 
         it('should call dispose on underlying layers if disposeLayers = true', async () => {
-            const layer1 = new Layer({ source: new NullSource() });
+            const layer1 = new ColorLayer({ source: new NullSource() });
             layer1.dispose = jest.fn();
             layer1.whenReady = Promise.resolve();
 
-            const layer2 = new Layer({ source: nullSource });
+            const layer2 = new ColorLayer({ source: nullSource });
             layer2.whenReady = Promise.resolve();
             layer2.dispose = jest.fn();
 

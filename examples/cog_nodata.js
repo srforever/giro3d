@@ -122,7 +122,6 @@ function buildLayers() {
         source,
         noDataOptions,
         preloadImages: false,
-        interpretation: Interpretation.CompressTo8Bit(min, max),
     });
 
     elevationLayer = new ElevationLayer({

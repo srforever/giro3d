@@ -32,6 +32,13 @@ describe('GeoTIFFFormat', () => {
             expect(pixels[offset + 3]).toEqual(a);
         }
 
+        function verifyRG(texture, pixelIndex, r, g) {
+            const pixels = texture.image.data;
+            const offset = pixelIndex * 2;
+            expect(pixels[offset + 0]).toEqual(r);
+            expect(pixels[offset + 1]).toEqual(g);
+        }
+
         describe('should return the correct pixels', () => {
             describe('grayscale', () => {
                 it('8-bit pixels', async () => {
@@ -42,10 +49,10 @@ describe('GeoTIFFFormat', () => {
                     expect(texture.image.width).toEqual(2);
                     expect(texture.image.height).toEqual(2);
 
-                    verifyRGBA(texture, 0, 255, 255, 255, 255);
-                    verifyRGBA(texture, 1, 50, 50, 50, 255);
-                    verifyRGBA(texture, 2, 127, 127, 127, 255);
-                    verifyRGBA(texture, 3, 0, 0, 0, 255);
+                    verifyRG(texture, 0, 255, 255);
+                    verifyRG(texture, 1, 50, 255);
+                    verifyRG(texture, 2, 127, 255);
+                    verifyRG(texture, 3, 0, 255);
                 });
 
                 it.each([
@@ -60,10 +67,10 @@ describe('GeoTIFFFormat', () => {
                     expect(texture.image.width).toEqual(2);
                     expect(texture.image.height).toEqual(2);
 
-                    verifyRGBA(texture, 0, 255, 255, 255, 1);
-                    verifyRGBA(texture, 1, 50, 50, 50, 1);
-                    verifyRGBA(texture, 2, 127, 127, 127, 1);
-                    verifyRGBA(texture, 3, 0, 0, 0, 1);
+                    verifyRG(texture, 0, 255, 1);
+                    verifyRG(texture, 1, 50, 1);
+                    verifyRG(texture, 2, 127, 1);
+                    verifyRG(texture, 3, 0, 1);
                 });
             });
 

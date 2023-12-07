@@ -1,5 +1,5 @@
-import type { Texture } from 'three';
-import { FloatType } from 'three';
+import type { PixelFormat, Texture, TextureDataType } from 'three';
+import { FloatType, RGFormat } from 'three';
 import type { LayerEvents, LayerOptions, TextureAndPitch } from './Layer';
 import Layer from './Layer';
 import type Extent from '../geographic/Extent.js';
@@ -61,8 +61,19 @@ class ElevationLayer extends Layer<ElevationLayerEvents> {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    protected getRenderTargetDataType() {
+    getRenderTargetDataType(): TextureDataType {
         return FloatType;
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    getRenderTargetPixelFormat(): PixelFormat {
+        // Elevation textures need two channels:
+        // - The elevation values
+        // - A bitmask to indicate no-data values
+        // The closest format that suits those needs is the RGFormat,
+        // although we have to be aware that the bitmask is not located
+        // in the alpha channel, but in the green channel.
+        return RGFormat;
     }
 
     protected adjustExtent(extent: Extent) {

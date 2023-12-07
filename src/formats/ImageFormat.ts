@@ -1,4 +1,4 @@
-import type { Texture } from 'three';
+import type { Texture, TextureDataType } from 'three';
 
 export type DecodeOptions = {
     /** The texture width. */
@@ -17,12 +17,14 @@ abstract class ImageFormat {
     readonly isImageFormat: boolean = true;
     type: string;
     readonly flipY: boolean;
+    readonly dataType: TextureDataType;
 
-    constructor(flipY: boolean) {
+    constructor(flipY: boolean, dataType: TextureDataType) {
         this.isImageFormat = true;
         this.type = 'ImageFormat';
 
         this.flipY = flipY;
+        this.dataType = dataType;
     }
 
     /**

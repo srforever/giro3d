@@ -12,7 +12,7 @@ import {
 import FragmentShader from './ComposerTileFS.glsl';
 import VertexShader from './ComposerTileVS.glsl';
 import Interpretation, { Mode } from '../../core/layer/Interpretation';
-
+import TextureGenerator from '../../utils/TextureGenerator';
 // Matches the NoDataOptions struct in the shader
 interface NoDataOptions {
     replacementAlpha: number;
@@ -27,6 +27,7 @@ export interface Options {
     noDataOptions: NoDataOptions;
     showImageOutlines: boolean;
     transparent: boolean;
+    expandRGB: boolean;
 }
 
 function createGridTexture() {
@@ -100,6 +101,8 @@ class ComposerTileMaterial extends ShaderMaterial {
         this.uniforms.noDataOptions = new Uniform({ enabled: false });
         this.uniforms.showImageOutlines = new Uniform(false);
         this.uniforms.opacity = new Uniform(this.opacity);
+        this.uniforms.channelCount = new Uniform(3);
+        this.uniforms.expandRGB = new Uniform(options.expandRGB ?? false);
         this.now = performance.now();
         this.type = 'ComposerTileMaterial';
 
@@ -128,6 +131,10 @@ class ComposerTileMaterial extends ShaderMaterial {
         this.uniforms.flipY.value = options.flipY ?? false;
         this.uniforms.noDataOptions.value = options.noDataOptions ?? { enabled: false };
         this.uniforms.showImageOutlines.value = options.showImageOutlines ?? false;
+        this.uniforms.expandRGB.value = options.expandRGB ?? false;
+
+        const channelCount = TextureGenerator.getChannelCount(this.pixelFormat);
+        this.uniforms.channelCount.value = channelCount;
         if (options.showImageOutlines) {
             if (!GRID_TEXTURE) {
                 GRID_TEXTURE = createGridTexture();

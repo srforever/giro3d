@@ -1,7 +1,9 @@
 import {
     NearestFilter,
+    UnsignedByteType,
     type Texture,
     type WebGLRenderer,
+    RGBAFormat,
 } from 'three';
 import Rect from '../core/Rect.js';
 import type ColorMap from '../core/layer/ColorMap';
@@ -82,6 +84,8 @@ class ColorMapAtlas {
             minFilter: NearestFilter,
             magFilter: NearestFilter,
             reuseTexture: false,
+            textureDataType: UnsignedByteType,
+            pixelFormat: RGBAFormat,
         });
 
         const height = 1 / this._colorMaps.size;

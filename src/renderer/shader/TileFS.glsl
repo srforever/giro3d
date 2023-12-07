@@ -77,7 +77,7 @@ void main() {
     // Let's discard transparent pixels in the elevation texture
     // Important note : if there is no elevation texture, all fragments are discarded
     // because the default value for texture pixels is zero.
-    if (abs(texture2D(elevationTexture, elevUv).a) < 0.001) {
+    if (isNoData(elevationTexture, elevUv)) {
         discard;
     }
 #else

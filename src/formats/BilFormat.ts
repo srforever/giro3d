@@ -41,7 +41,7 @@ import TextureGenerator from '../utils/TextureGenerator';
 class BilFormat extends ImageFormat {
     readonly isBilFormat: boolean = true;
     constructor() {
-        super(true);
+        super(true, FloatType);
 
         this.type = 'BilFormat';
     }
