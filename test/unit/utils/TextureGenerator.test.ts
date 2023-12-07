@@ -20,7 +20,7 @@ describe('TextureGenerator', () => {
                     const data = [5, 4, 3, 2];
                     const w = 2;
                     const h = 2;
-                    const expectedOutputLength = data.length * 4; // RGBA
+                    const expectedOutputLength = data.length * 2; // RGBA
 
                     const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, UnsignedByteType, data,
@@ -33,11 +33,9 @@ describe('TextureGenerator', () => {
 
                     for (let i = 0; i < data.length; i++) {
                         const v = data[i];
-                        const idx = i * 4;
+                        const idx = i * 2;
                         expect(buf[idx + 0]).toEqual(v);
-                        expect(buf[idx + 1]).toEqual(v);
-                        expect(buf[idx + 2]).toEqual(v);
-                        expect(buf[idx + 3]).toEqual(OPAQUE_BYTE);
+                        expect(buf[idx + 1]).toEqual(OPAQUE_BYTE);
                     }
                 });
             });
@@ -83,7 +81,7 @@ describe('TextureGenerator', () => {
                     const a = [0, 255, 127, 60];
                     const w = 2;
                     const h = 2;
-                    const expectedOutputLength = r.length * 4; // RGBA
+                    const expectedOutputLength = r.length * 4; // RG
 
                     const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, UnsignedByteType, r, g, b, a,
@@ -118,7 +116,7 @@ describe('TextureGenerator', () => {
                     const data = [5.2, 4.1, 3.34, 13.2];
                     const w = 2;
                     const h = 2;
-                    const expectedOutputLength = data.length * 4; // RGBA
+                    const expectedOutputLength = data.length * 2; // RG
 
                     const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, FloatType, data,
@@ -132,13 +130,11 @@ describe('TextureGenerator', () => {
 
                     for (let i = 0; i < data.length; i++) {
                         const v = data[i];
-                        const idx = i * 4;
+                        const idx = i * 2;
                         // We use toBeCloseTo because our input data is made of numbers
                         // (64-bit floats), whereas the txture only supports 32-bit floats.
                         expect(buf[idx + 0]).toBeCloseTo(v, 2);
-                        expect(buf[idx + 1]).toBeCloseTo(v, 2);
-                        expect(buf[idx + 2]).toBeCloseTo(v, 2);
-                        expect(buf[idx + 3]).toEqual(OPAQUE_FLOAT);
+                        expect(buf[idx + 1]).toEqual(OPAQUE_FLOAT);
                     }
                 });
 
@@ -148,7 +144,7 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const min = 0;
                     const max = 15000;
-                    const expectedOutputLength = data.length * 4; // RGBA
+                    const expectedOutputLength = data.length * 2; // RG
                     const type = FloatType;
 
                     const result = TextureGenerator.createDataTexture(
@@ -163,14 +159,12 @@ describe('TextureGenerator', () => {
 
                     for (let i = 0; i < data.length; i++) {
                         const v = data[i];
-                        const idx = i * 4;
+                        const idx = i * 2;
                         // We use toBeCloseTo because our input data is made of numbers
                         // (64-bit floats), whereas the txture only supports 32-bit floats.
                         const expectedV = Math.floor(MathUtils.mapLinear(v, min, max, 0, 255));
                         expect(buf[idx + 0]).toBeCloseTo(expectedV, 2);
-                        expect(buf[idx + 1]).toBeCloseTo(expectedV, 2);
-                        expect(buf[idx + 2]).toBeCloseTo(expectedV, 2);
-                        expect(buf[idx + 3]).toEqual(OPAQUE_BYTE);
+                        expect(buf[idx + 1]).toEqual(OPAQUE_BYTE);
                     }
                 });
 
@@ -178,7 +172,7 @@ describe('TextureGenerator', () => {
                     const data = [5.2, NaN, 5.2, NaN];
                     const w = 2;
                     const h = 2;
-                    const expectedOutputLength = data.length * 4; // RGBA
+                    const expectedOutputLength = data.length * 2; // RG
 
                     const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, FloatType, data,
@@ -192,18 +186,14 @@ describe('TextureGenerator', () => {
 
                     for (let i = 0; i < data.length; i++) {
                         const v = data[i];
-                        const idx = i * 4;
+                        const idx = i * 2;
                         // We use toBeCloseTo because our input data is made of numbers
                         // (64-bit floats), whereas the txture only supports 32-bit floats.
                         const r = buf[idx + 0];
                         const g = buf[idx + 1];
-                        const b = buf[idx + 2];
-                        const a = buf[idx + 3];
 
                         expect(r).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
-                        expect(g).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
-                        expect(b).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
-                        expect(a).toEqual(Number.isNaN(v)
+                        expect(g).toEqual(Number.isNaN(v)
                             ? TRANSPARENT
                             : OPAQUE_FLOAT);
                     }
@@ -213,7 +203,7 @@ describe('TextureGenerator', () => {
                     const data = [5.2, NaN, 5.2, NaN];
                     const w = 2;
                     const h = 2;
-                    const expectedOutputLength = data.length * 4; // RGBA
+                    const expectedOutputLength = data.length * 2; // RG
 
                     const result = TextureGenerator.createDataTexture(
                         { width: w, height: h }, FloatType, data,
@@ -227,18 +217,14 @@ describe('TextureGenerator', () => {
 
                     for (let i = 0; i < data.length; i++) {
                         const v = data[i];
-                        const idx = i * 4;
+                        const idx = i * 2;
                         // We use toBeCloseTo because our input data is made of numbers
                         // (64-bit floats), whereas the txture only supports 32-bit floats.
                         const r = buf[idx + 0];
                         const g = buf[idx + 1];
-                        const b = buf[idx + 2];
-                        const a = buf[idx + 3];
 
                         expect(r).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
-                        expect(g).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
-                        expect(b).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
-                        expect(a).toEqual((Number.isNaN(v))
+                        expect(g).toEqual((Number.isNaN(v))
                             ? TRANSPARENT
                             : OPAQUE_FLOAT);
                     }

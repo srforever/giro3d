@@ -33,6 +33,7 @@ import {
     type TextureDataType,
     type WebGLRenderer,
     type Color,
+    type PixelFormat,
 } from 'three';
 import Interpretation, { Mode } from '../core/layer/Interpretation';
 
@@ -107,7 +108,7 @@ function fillBuffer<T extends NumberArray>(
         const v = pixelData[0];
         const length = v.length;
         for (let i = 0; i < length; i++) {
-            const idx = i * 4;
+            const idx = i * 2;
             let value;
             let a;
             const raw = v[i];
@@ -119,9 +120,24 @@ function fillBuffer<T extends NumberArray>(
                 a = opaqueValue;
             }
             buf[idx + 0] = value;
-            buf[idx + 1] = value;
-            buf[idx + 2] = value;
-            buf[idx + 3] = a;
+            buf[idx + 1] = a;
+        }
+    }
+    if (pixelData.length === 2) {
+        const v = pixelData[0];
+        const a = pixelData[1];
+        const length = v.length;
+        for (let i = 0; i < length; i++) {
+            const idx = i * 2;
+            let value;
+            const raw = v[i];
+            if (raw !== raw || raw === options.nodata) {
+                value = DEFAULT_NODATA;
+            } else {
+                value = getValue(raw);
+            }
+            buf[idx + 0] = value;
+            buf[idx + 1] = a[i];
         }
     }
     if (pixelData.length === 3) {
@@ -345,7 +361,6 @@ function createDataTexture(
     const width = options.width;
     const height = options.height;
     const pixelCount = width * height;
-    const channelCount = 4; // For now, we force RGBA
 
     // If we apply scaling, it means that we force a 8-bit output.
     const targetDataType = options.scaling === undefined
@@ -353,6 +368,20 @@ function createDataTexture(
         : UnsignedByteType;
 
     let result;
+
+    let format: PixelFormat;
+    let channelCount: number;
+    switch (pixelData.length) {
+        case 1:
+        case 2:
+            format = RGFormat;
+            channelCount = 2;
+            break;
+        default:
+            format = RGBAFormat;
+            channelCount = 4;
+            break;
+    }
 
     switch (targetDataType) {
         case UnsignedByteType:
@@ -364,14 +393,15 @@ function createDataTexture(
                 OPAQUE_BYTE,
                 ...pixelData,
             );
-            result = new DataTexture(data, width, height, RGBAFormat, UnsignedByteType);
+
+            result = new DataTexture(data, width, height, format, UnsignedByteType);
             break;
         }
         case FloatType:
         {
             const buf = new Float32Array(pixelCount * channelCount);
             const data = fillBuffer(buf, options, OPAQUE_FLOAT, ...pixelData);
-            result = new DataTexture(data, width, height, RGBAFormat, FloatType);
+            result = new DataTexture(data, width, height, format, FloatType);
             break;
         }
         default:

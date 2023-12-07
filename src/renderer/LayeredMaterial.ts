@@ -31,6 +31,7 @@ import type ElevationRange from '../core/ElevationRange.js';
 import type Extent from '../core/geographic/Extent';
 import type ColorMapAtlas from './ColorMapAtlas';
 import type { AtlasInfo, LayerAtlasInfo } from './AtlasBuilder';
+import OutputMode from '../core/layer/OutputMode';
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -711,6 +712,7 @@ class LayeredMaterial extends ShaderMaterial {
             height: this.atlasInfo.maxY,
             reuseTexture: true,
             webGLRenderer: this._renderer,
+            outputMode: OutputMode.Color,
         });
         return newComposer;
     }

@@ -7,6 +7,7 @@ import Layer, {
 } from './Layer';
 import type Extent from '../geographic/Extent';
 import type ElevationRange from '../ElevationRange';
+import OutputMode from './OutputMode';
 
 export interface ColorLayerEvents extends LayerEvents {
     'opacity-property-changed': { opacity: number; };
@@ -62,7 +63,7 @@ class ColorLayer extends Layer<ColorLayerEvents> {
      * @param options.preloadImages Enables or disable preloading of low resolution fallback images.
      */
     constructor(id: string, options: ColorLayerOptions) {
-        super(id, options);
+        super(id, { outputMode: OutputMode.Color, ...options });
         this.type = 'ColorLayer';
         this.elevationRange = options.elevationRange;
         this._opacity = options.opacity ?? 1;

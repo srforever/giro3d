@@ -25,6 +25,7 @@ import Rect from '../../core/Rect.js';
 import TextureGenerator from '../../utils/TextureGenerator';
 import MemoryTracker from '../MemoryTracker.js';
 import ComposerTileMaterial from './ComposerTileMaterial';
+import OutputMode from '../../core/layer/OutputMode';
 
 let SHARED_PLANE_GEOMETRY: PlaneGeometry = null;
 
@@ -86,6 +87,7 @@ class WebGLComposer {
     readonly width: number;
     readonly height: number;
     private renderTarget: WebGLRenderTarget;
+    private readonly outputMode: OutputMode;
 
     /**
      * Creates an instance of WebGLComposer.
@@ -112,6 +114,7 @@ class WebGLComposer {
      * same renderer as the one used to display the rendered textures, because WebGL contexts are
      * isolated from each other.
      * @param options.clearColor The clear (background) color.
+     * @param options.outputMode Are the textures used for color or for elevation, or masks.
      */
     constructor(options: {
         extent?: Rect;
@@ -123,6 +126,7 @@ class WebGLComposer {
         magFilter?: MagnificationTextureFilter;
         webGLRenderer: WebGLRenderer;
         clearColor?: ColorRepresentation
+        outputMode?: OutputMode;
     }) {
         this.showImageOutlines = options.showImageOutlines;
         this.extent = options.extent;
@@ -133,6 +137,7 @@ class WebGLComposer {
         this.clearColor = options.clearColor;
         this.minFilter = options.minFilter || LinearFilter;
         this.magFilter = options.magFilter || LinearFilter;
+        this.outputMode = options.outputMode ?? OutputMode.Color;
         if (!SHARED_PLANE_GEOMETRY) {
             SHARED_PLANE_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
             MemoryTracker.track(SHARED_PLANE_GEOMETRY, 'WebGLComposer - PlaneGeometry');
@@ -256,6 +261,7 @@ class WebGLComposer {
             flipY: options.flipY,
             transparent: options.transparent,
             showImageOutlines: this.showImageOutlines,
+            outputMode: this.outputMode,
         });
         MemoryTracker.track(material, 'WebGLComposer - material');
 

@@ -1,4 +1,9 @@
-import { Texture, Vector4 } from 'three';
+import {
+    Texture,
+    type TextureDataType,
+    UnsignedByteType,
+    Vector4,
+} from 'three';
 import ColorLayer from './ColorLayer';
 import type { LayerOptions, Node, NodeMaterial } from './Layer';
 
@@ -62,6 +67,11 @@ class MaskLayer extends ColorLayer {
 
     set maskMode(v) {
         this._maskMode = v;
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    protected override getRenderTargetDataType(): TextureDataType {
+        return UnsignedByteType;
     }
 
     applyEmptyTextureToNode(node: Node) {

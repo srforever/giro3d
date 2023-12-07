@@ -20,16 +20,31 @@ struct NoDataOptions {
     bool        enabled;
 };
 
+float getElevationAlpha(vec4 c) {
+    // Elevation textures are in the RG Format, so the transparency/no-data
+    // information is actually in the green channel rather than the alpha channel.
+    return c.g;
+}
 
 /**
  * Returns the elevation value at the specified coordinate, or the default value if the pixel is transparent (no-data).
  */
 float getElevationOrDefault(sampler2D tex, vec2 uv, float defaultValue) {
     vec4 c = texture2D(tex, uv);
-    if (c.a == 0.0) {
+    float alpha = getElevationAlpha(c);
+    if (alpha == 0.0) {
         return defaultValue;
     }
     return c.r;
+}
+
+bool isNoData(sampler2D tex, vec2 uv) {
+    float alpha = getElevationAlpha(texture2D(tex, uv));
+    if (abs(alpha) < 0.001) {
+        return true;
+    }
+
+    return false;
 }
 
 float getElevation(sampler2D tex, vec2 uv) {
@@ -157,7 +172,7 @@ float squaredDistance(vec2 a, vec2 b) {
 /**
  * Returns the value of the valid pixel closest to uv.
  */
-vec4 getNearestPixel(sampler2D tex, vec2 uv, float radius, float alpha) {
+vec4 getNearestPixel(sampler2D tex, vec2 uv, int alphaChannel, float radius, float alpha) {
     const int SAMPLES = 64;
     const float fSAMPLES = float(SAMPLES);
 
@@ -177,7 +192,7 @@ vec4 getNearestPixel(sampler2D tex, vec2 uv, float radius, float alpha) {
             vec4 color = texture2D(tex, samplePosition);
 
             // Is it a valid sample ?
-            if(color.a == 1.) {
+            if(color[alphaChannel] == 1.) {
                 // We don't need the absolute distance, since we are only interested
                 // in the closest point: we avoid a costly square root computation.
                 float dist = squaredDistance(samplePosition, uv);
@@ -185,7 +200,7 @@ vec4 getNearestPixel(sampler2D tex, vec2 uv, float radius, float alpha) {
                 if (dist < nearest && dist <= sqRadius) {
                     nearest = dist;
                     result.rgb = color.rgb;
-                    result.a = alpha;
+                    result[alphaChannel] = alpha;
                 }
             }
         }
@@ -200,14 +215,15 @@ vec4 getNearestPixel(sampler2D tex, vec2 uv, float radius, float alpha) {
  * Note: a pixel is considered no-data if its alpha channel is less than 1.
  * This way, if a bilinear interpolation touches a no-data pixel, it's also considered no-data.
  */
-vec4 texture2DFillNodata(sampler2D tex, vec2 uv, NoDataOptions options) {
+vec4 texture2DFillNodata(sampler2D tex, vec2 uv, NoDataOptions options, int alphaChannel) {
     vec4 value = texture2D(tex, uv);
+
     // Due to how no-data is determined here, we don't support non 1-bit alpha.
-    if(value.a == 1.) {
+    if(value[alphaChannel] == 1.) {
         return value;
     }
 
-    return getNearestPixel(tex, uv, options.radius, options.replacementAlpha);
+    return getNearestPixel(tex, uv, alphaChannel, options.radius, options.replacementAlpha);
 }
 
 const int INTERPRETATION_RAW = 0;
@@ -221,6 +237,20 @@ struct Interpretation {
     float min; // only for INTERPRETATION_SCALED
     float max; // only for INTERPRETATION_SCALED
 };
+
+vec4 toRGBA(vec4 c, int channelCount) {
+    if (channelCount == 1) {
+        // Expand gray-scale to RGBA
+        return vec4(c.rrr, 1.0);
+    } else if (channelCount == 2) {
+        // Expand gray-scale with alpha to RGBA
+        return c.rrra;
+    }
+    return c;
+}
+
+const int OUTPUT_MODE_COLOR = 0;
+const int OUTPUT_MODE_ELEVATION = 1;
 
 /**
  * Decodes the raw color according to the specified interpretation.

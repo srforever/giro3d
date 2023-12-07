@@ -11,17 +11,24 @@ uniform float opacity;
 uniform bool flipY;
 uniform NoDataOptions noDataOptions;
 uniform bool showImageOutlines;
+uniform int channelCount;
+uniform int outputMode;
 
 void main() {
     vec2 uv = flipY
         ? vec2(vUv.x, 1.0 - vUv.y)
         : vUv;
 
+    int alphaChannelLocation = channelCount - 1;
     vec4 raw = noDataOptions.enabled
-        ? texture2DFillNodata(tex, uv, noDataOptions)
+        ? texture2DFillNodata(tex, uv, noDataOptions, alphaChannelLocation)
         : texture2D(tex, uv);
 
     gl_FragColor = decodeInterpretation(raw, interpretation);
+
+    if (outputMode == OUTPUT_MODE_COLOR) {
+        gl_FragColor = toRGBA(gl_FragColor, channelCount);
+    }
 
     if (showImageOutlines) {
         vec4 grid = texture2D(gridTexture, uv);

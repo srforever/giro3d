@@ -6,6 +6,7 @@ import type Extent from '../geographic/Extent.js';
 import type TileMesh from '../TileMesh';
 import type LayeredMaterial from '../../renderer/LayeredMaterial';
 import type ElevationRange from '../ElevationRange.js';
+import OutputMode from './OutputMode';
 
 interface TextureWithMinMax extends Texture {
     min?: number;
@@ -41,6 +42,7 @@ class ElevationLayer extends Layer<ElevationLayerEvents> {
      */
     constructor(id: string, options: ElevationLayerOptions) {
         super(id, {
+            outputMode: OutputMode.Elevation,
             noDataOptions: options.noDataOptions ?? {
                 replaceNoData: true,
                 maxSearchDistance: +Infinity,

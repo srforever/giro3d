@@ -12,6 +12,8 @@ import {
 import FragmentShader from './ComposerTileFS.glsl';
 import VertexShader from './ComposerTileVS.glsl';
 import Interpretation, { Mode } from '../../core/layer/Interpretation';
+import TextureGenerator from '../../utils/TextureGenerator';
+import OutputMode from '../../core/layer/OutputMode';
 
 // Matches the NoDataOptions struct in the shader
 interface NoDataOptions {
@@ -22,6 +24,7 @@ interface NoDataOptions {
 
 export interface Options {
     texture: Texture;
+    outputMode: OutputMode;
     interpretation: Interpretation;
     flipY: boolean;
     noDataOptions: NoDataOptions;
@@ -100,6 +103,8 @@ class ComposerTileMaterial extends ShaderMaterial {
         this.uniforms.noDataOptions = new Uniform({ enabled: false });
         this.uniforms.showImageOutlines = new Uniform(false);
         this.uniforms.opacity = new Uniform(this.opacity);
+        this.uniforms.channelCount = new Uniform(3);
+        this.uniforms.outputMode = new Uniform(OutputMode.Color);
         this.now = performance.now();
         this.type = 'ComposerTileMaterial';
 
@@ -128,6 +133,10 @@ class ComposerTileMaterial extends ShaderMaterial {
         this.uniforms.flipY.value = options.flipY ?? false;
         this.uniforms.noDataOptions.value = options.noDataOptions ?? { enabled: false };
         this.uniforms.showImageOutlines.value = options.showImageOutlines ?? false;
+        this.uniforms.outputMode.value = options.outputMode ?? OutputMode.Color;
+
+        const channelCount = TextureGenerator.getChannelCount(this.pixelFormat);
+        this.uniforms.channelCount.value = channelCount;
         if (options.showImageOutlines) {
             if (!GRID_TEXTURE) {
                 GRID_TEXTURE = createGridTexture();
