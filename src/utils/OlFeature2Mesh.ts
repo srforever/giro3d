@@ -461,7 +461,7 @@ function featureToMesh(feature: Feature, options: OlFeature2MeshOptions | {}): P
  */
 export default {
     /**
-     * Converts [Features]{@link module:GeoJsonParser} to Meshes. Feature
+     * Converts OpenLayers features to Meshes. Feature
      * collection will be converted to a Group.
      *
      * @param features the ol features to convert
