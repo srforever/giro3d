@@ -406,7 +406,7 @@ class AxisGrid extends Entity3D {
     }
 
     private rebuildObjects() {
-        this.volume.extent.center(tmpVec2);
+        this.volume.extent.centerAsVector2(tmpVec2);
 
         this.root.position.setX(tmpVec2.x);
         this.root.position.setY(tmpVec2.y);
@@ -463,7 +463,7 @@ class AxisGrid extends Entity3D {
         }
 
         const v = new Vector3();
-        this.volume.extent.center(tmpVec2) as Vector2;
+        this.volume.extent.centerAsVector2(tmpVec2);
         const origin = tmpVec3;
         tmpVec3.set(tmpVec2.x, tmpVec2.y, 0);
 

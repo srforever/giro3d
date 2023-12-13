@@ -754,12 +754,12 @@ class Instance extends EventDispatcher {
             // Configure camera
             // TODO support different CRS
             const dim = obj.extent.dimensions();
-            const positionCamera = obj.extent.center().clone();
+            const positionCamera = obj.extent.centerAsVector3();
             positionCamera.values[2] = Math.max(dim.x, dim.y);
-            const lookat = positionCamera.xyz();
+            const lookat = positionCamera;
             lookat.z = 0; // TODO this supposes there is no terrain, nor z-displacement
 
-            cam.position.copy(positionCamera.xyz());
+            cam.position.copy(positionCamera);
             cam.lookAt(lookat);
             cam.updateMatrixWorld(true);
         } else if (obj.getBoundingBox) {

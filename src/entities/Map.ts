@@ -33,7 +33,6 @@ import type { Context, ContourLineOptions, ElevationRange } from '../core';
 import type TileGeometry from '../core/TileGeometry';
 import { type MaterialOptions } from '../renderer/LayeredMaterial';
 import type HillshadingOptions from '../core/HillshadingOptions';
-import type { Coordinates } from '../core/geographic';
 
 const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 
@@ -450,7 +449,7 @@ class Map extends Entity3D<MapEventMap> {
         }
 
         const quaternion = new Quaternion();
-        const position = new Vector3(...(extent.center() as Coordinates).values);
+        const position = extent.centerAsVector3();
 
         // build tile
         const material = new LayeredMaterial({
@@ -473,7 +472,7 @@ class Map extends Entity3D<MapEventMap> {
 
         if (parent && parent instanceof TileMesh) {
             // get parent position from extent
-            const positionParent = new Vector3(...(parent.extent.center() as Coordinates).values);
+            const positionParent = parent.extent.centerAsVector3();
             // place relative to his parent
             position.sub(positionParent).applyQuaternion(parent.quaternion.invert());
             quaternion.premultiply(parent.quaternion);

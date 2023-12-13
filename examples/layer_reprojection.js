@@ -103,8 +103,8 @@ function createScene(crs, crsDef, extent) {
     addVectorLayer();
 
     // Sets the camera position
-    const center = extent.center();
-    instance.camera.camera3D.position.set(center.x(), center.y() - 1, extent.dimensions().y * 2);
+    const center = extent.centerAsVector3();
+    instance.camera.camera3D.position.set(center.x, center.y - 1, extent.dimensions().y * 2);
 
     // Creates controls
     controls = new MapControls(
@@ -113,7 +113,7 @@ function createScene(crs, crsDef, extent) {
     );
 
     // Then looks at extent's center
-    controls.target = extent.center().xyz();
+    controls.target = center;
     controls.saveState();
 
     controls.enableDamping = true;

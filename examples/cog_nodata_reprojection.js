@@ -21,8 +21,6 @@ const datasetExtent = new Extent(
 
 const extent = datasetExtent.clone().as('EPSG:32742');
 
-const center = extent.center().xyz();
-
 // `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 

@@ -203,7 +203,7 @@ class Coordinates {
      * const position = { longitude: 2.33, latitude: 48.24, altitude: 24999549 };
      * const coordinates = new Coordinates(
      *   'EPSG:4326', position.longitude, position.latitude, position.altitude); // Geographic
-     * coordinates.longitude(); // Longitude in geographic system
+     * coordinates.longitude; // Longitude in geographic system
      * // returns 2.33
      *
      * // or
@@ -212,11 +212,11 @@ class Coordinates {
      * // Geocentric system
      * const coords = new Coordinates('EPSG:4978', position.x, position.y, position.z);
      * const coordinates = coords.as('EPSG:4326');  // Geographic system
-     * coordinates.longitude(); // Longitude in geographic system
+     * coordinates.longitude; // Longitude in geographic system
      * // returns 2.330201911389028
      * @returns The longitude of the position.
      */
-    longitude() {
+    get longitude() {
         assertIsGeographic(this.crs);
         return this._values[0];
     }
@@ -231,7 +231,7 @@ class Coordinates {
      * const position = { longitude: 2.33, latitude: 48.24, altitude: 24999549 };
      * const coordinates = new Coordinates(
      *     'EPSG:4326', position.longitude, position.latitude, position.altitude); // Geographic
-     * coordinates.latitude(); // Latitude in geographic system
+     * coordinates.latitude; // Latitude in geographic system
      * // returns : 48.24
      *
      * // or
@@ -240,11 +240,12 @@ class Coordinates {
      * // Geocentric system
      * const coords = new Coordinates('EPSG:4978', position.x, position.y, position.z);
      * const coordinates = coords.as('EPSG:4326');  // Geographic system
-     * coordinates.latitude(); // Latitude in geographic system
+     * coordinates.latitude; // Latitude in geographic system
      * // returns : 48.24830764643365
      * @returns The latitude of the position.
      */
-    latitude() {
+    get latitude() {
+        assertIsGeographic(this.crs);
         return this._values[1];
     }
 
@@ -298,7 +299,7 @@ class Coordinates {
      *
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
-     * coordinates.x();  // Geocentric system
+     * coordinates.x;  // Geocentric system
      * // returns : 20885167
      *
      * // or
@@ -308,11 +309,11 @@ class Coordinates {
      * const coords =
      *     new Coordinates('EPSG:4326', position.longitude, position.latitude, position.altitude);
      * const coordinates = coords.as('EPSG:4978'); // Geocentric system
-     * coordinates.x(); // Geocentric system
+     * coordinates.x; // Geocentric system
      * // returns : 20888561.0301258
      * @returns The `x` component of the position.
      */
-    x() {
+    get x() {
         assertIsGeocentric(this.crs);
         return this._values[0];
     }
@@ -325,11 +326,11 @@ class Coordinates {
      * @example
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
-     * coordinates.y();  // Geocentric system
+     * coordinates.y;  // Geocentric system
      * // returns :  849862
      * @returns The `y` component of the position.
      */
-    y() {
+    get y() {
         assertIsGeocentric(this.crs);
         return this._values[1];
     }
@@ -342,11 +343,11 @@ class Coordinates {
      * @example
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
-     * coordinates.z();  // Geocentric system
+     * coordinates.z;  // Geocentric system
      * // returns :  23385912
      * @returns The `z` component of the position.
      */
-    z() {
+    get z() {
         assertIsGeocentric(this.crs);
         return this._values[2];
     }

@@ -118,8 +118,8 @@ instance.add(feat);
 // place camera above paris
 const position = new Coordinates('EPSG:2154', 652212.5, 6860754.1, 27717.3);
 const lookAtCoords = new Coordinates('EPSG:2154', 652338.3, 6862087.1, 200);
-const lookAt = new Vector3(lookAtCoords.x(), lookAtCoords.y(), lookAtCoords.z());
-instance.camera.camera3D.position.set(position.x(), position.y(), position.z());
+const lookAt = new Vector3(lookAtCoords.x, lookAtCoords.y, lookAtCoords.z);
+instance.camera.camera3D.position.set(position.x, position.y, position.z);
 instance.camera.camera3D.lookAt(lookAt);
 // Notify giro3d we've changed the three.js camera position directly
 instance.notifyChange(instance.camera.camera3D);

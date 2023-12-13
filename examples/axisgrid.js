@@ -140,7 +140,7 @@ bindToggle('sides', false, v => { axisGrid.showSideGrids = v; });
 document.getElementById('randomize-position').onclick = () => {
     const current = axisGrid.volume.extent;
     const dims = current.dimensions();
-    const center = current.center().xyz();
+    const center = current.centerAsVector3();
     const range = 5000;
     center.set(
         center.x + (Math.random() - 0.5) * range,

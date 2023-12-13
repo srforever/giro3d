@@ -16,7 +16,7 @@ const extent = new Extent(
     666285, 668533.5,
     3997174, 3998444,
 );
-const center = extent.center().xyz();
+const center = extent.centerAsVector3();
 
 // `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');

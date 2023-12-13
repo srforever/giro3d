@@ -18,6 +18,7 @@ import MemoryTracker from '../../renderer/MemoryTracker.js';
 import TextureGenerator from '../../utils/TextureGenerator';
 import ProjUtils from '../../utils/ProjUtils';
 
+const tmpVec1 = new Vector2();
 const tmpVec2 = new Vector2();
 
 /**
@@ -309,8 +310,8 @@ class LayerComposer {
      * A high value will create more faithful reprojections, at the cost of performance.
      */
     private createWarpedMesh(sourceExtent: Extent, segments: number = 8) {
-        const dims = sourceExtent.dimensions(tmpVec2);
-        const center = sourceExtent.center(new Vector2()) as Vector2;
+        const dims = sourceExtent.dimensions(tmpVec1);
+        const center = sourceExtent.centerAsVector2(tmpVec2);
         const geometry = new PlaneGeometry(dims.x, dims.y, segments, segments);
 
         const positionAttribute = geometry.getAttribute('position');
