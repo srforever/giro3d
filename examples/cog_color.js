@@ -44,7 +44,7 @@ instance.add(map);
 // Data coming from the same source as
 // https://openlayers.org/en/latest/examples/cog-math-multisource.html
 const source = new CogSource({
-    url: 'https://s2downloads.eox.at/demo/Sentinel-2/3857/TCI.tif',
+    url: 'https://3d.oslandia.com/giro3d/rasters/TCI.tif',
     crs: extent.crs(),
 });
 const layer = new ColorLayer({ name: 'color-layer', source, extent });

@@ -1,4 +1,4 @@
-import { Texture, Vector2 } from 'three';
+import { Texture, UnsignedByteType, Vector2 } from 'three';
 import { TileRange } from 'ol';
 import type UrlTile from 'ol/source/UrlTile';
 import type TileGrid from 'ol/tilegrid/TileGrid.js';
@@ -82,7 +82,11 @@ export default class TiledImageSource extends ImageSource {
      * @param options The options.
      */
     constructor(options: TiledImageSourceOptions) {
-        super({ flipY: options.format?.flipY ?? true, ...options });
+        super({
+            flipY: options.format?.flipY ?? true,
+            is8bit: (options.format?.dataType ?? UnsignedByteType) === UnsignedByteType,
+            ...options,
+        });
 
         this.isTiledImageSource = true;
         this.type = 'TiledImageSource';

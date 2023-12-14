@@ -9,6 +9,8 @@ import {
     Vector2,
     type WebGLRenderer,
     type WebGLRenderTarget,
+    type PixelFormat,
+    type TextureDataType,
 } from 'three';
 import type Extent from '../geographic/Extent';
 import Interpretation from './Interpretation';
@@ -146,6 +148,8 @@ class LayerComposer {
     readonly fillNoData: boolean;
     readonly fillNoDataRadius: number;
     private needsCleanup: boolean;
+    readonly pixelFormat: PixelFormat;
+    readonly textureDataType: TextureDataType;
 
     disposed: boolean;
 
@@ -163,6 +167,8 @@ class LayerComposer {
      * @param options.fillNoData Fill no-data values of the image.
      * @param options.fillNoDataRadius Fill no-data maximum radius.
      * @param options.fillNoDataAlphaReplacement Alpha value for no-data pixels (after replacement)
+     * @param options.pixelFormat The pixel format of the output textures.
+     * @param options.textureDataType The type of the output textures.
      */
     constructor(options: {
         renderer: WebGLRenderer;
@@ -177,6 +183,8 @@ class LayerComposer {
         fillNoData: boolean;
         fillNoDataAlphaReplacement: number;
         fillNoDataRadius: number;
+        pixelFormat: PixelFormat,
+        textureDataType: TextureDataType,
     }) {
         this.computeMinMax = options.computeMinMax;
         this.extent = options.extent;
@@ -192,11 +200,15 @@ class LayerComposer {
         this.fillNoData = options.fillNoData;
         this.fillNoDataAlphaReplacement = options.fillNoDataAlphaReplacement;
         this.fillNoDataRadius = options.fillNoDataRadius;
+        this.pixelFormat = options.pixelFormat;
+        this.textureDataType = options.textureDataType;
 
         this.composer = new WebGLComposer({
             webGLRenderer: options.renderer,
             extent: this.extent ? Rect.fromExtent(this.extent) : null,
             showImageOutlines: options.showImageOutlines,
+            pixelFormat: options.pixelFormat,
+            textureDataType: options.textureDataType,
         });
 
         this.disposed = false;
@@ -261,7 +273,9 @@ class LayerComposer {
         flipY: boolean;
         fillNoDataAlphaReplacement: number;
         fillNoDataRadius: number;
+        outputType: TextureDataType;
         target?: WebGLRenderTarget<Texture>
+        expandRGB?: boolean;
     }) {
         const rect = Rect.fromExtent(extent);
         const comp = new WebGLComposer({
@@ -269,6 +283,9 @@ class LayerComposer {
             width: texture.image.width,
             height: texture.image.height,
             webGLRenderer: this.webGLRenderer,
+            textureDataType: options.outputType,
+            pixelFormat: this.pixelFormat,
+            expandRGB: options.expandRGB ?? false,
         });
 
         // The fill no-data radius is expressed in CRS units in the API,
@@ -378,14 +395,21 @@ class LayerComposer {
             options.max = max;
         }
 
+        const expandRGB = TextureGenerator.shouldExpandRGB(
+            texture.format as PixelFormat,
+            this.pixelFormat,
+        );
+
         // If the image needs some preprocessing, let's do it now
-        if (options.flipY || !this.interpretation.isDefault()) {
+        if (expandRGB || options.flipY || !this.interpretation.isDefault()) {
             actualTexture = this.preprocessImage(extent, texture, {
                 fillNoData: false,
                 flipY: options.flipY,
                 interpretation: this.interpretation,
                 fillNoDataAlphaReplacement: 0,
                 fillNoDataRadius: 0,
+                expandRGB,
+                outputType: this.textureDataType,
             });
         }
 
@@ -667,6 +691,7 @@ class LayerComposer {
             flipY: false,
             interpretation: Interpretation.Raw,
             target,
+            outputType: this.textureDataType,
         });
     }
 

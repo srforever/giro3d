@@ -6,30 +6,27 @@ import {
     Texture,
     PlaneGeometry,
     type WebGLRenderer,
-    RGBAFormat,
-    UnsignedByteType,
     ClampToEdgeWrapping,
     LinearFilter,
     Color,
     Vector4,
     MathUtils,
     type ColorRepresentation,
-    type AnyPixelFormat,
     type TextureDataType,
     type MinificationTextureFilter,
     type MagnificationTextureFilter,
+    type PixelFormat,
 } from 'three';
 import Interpretation from '../../core/layer/Interpretation';
 
 import Rect from '../../core/Rect.js';
-import TextureGenerator from '../../utils/TextureGenerator';
 import MemoryTracker from '../MemoryTracker.js';
 import ComposerTileMaterial from './ComposerTileMaterial';
 
 let SHARED_PLANE_GEOMETRY: PlaneGeometry = null;
 
 const IMAGE_Z = -10;
-const textureOwners = new Map();
+const textureOwners = new Map<string, WebGLRenderTarget>();
 const NEAR = 1;
 const FAR = 100;
 const DEFAULT_CLEAR = new Color(0, 0, 0);
@@ -82,6 +79,10 @@ class WebGLComposer {
     private readonly ownedTextures: Texture[];
     private readonly scene: Scene;
     private readonly camera: OrthographicCamera;
+    private readonly expandRGB: boolean;
+
+    readonly dataType: TextureDataType;
+    readonly pixelFormat: PixelFormat;
 
     readonly width: number;
     readonly height: number;
@@ -112,6 +113,10 @@ class WebGLComposer {
      * same renderer as the one used to display the rendered textures, because WebGL contexts are
      * isolated from each other.
      * @param options.clearColor The clear (background) color.
+     * @param options.pixelFormat The pixel format of the output textures.
+     * @param options.textureDataType The data type of the output textures.
+     * @param options.expandRGB If `true`, textures are considered grayscale and will be expanded
+     * to RGB by copying the R channel into the G and B channels.
      */
     constructor(options: {
         extent?: Rect;
@@ -123,6 +128,9 @@ class WebGLComposer {
         magFilter?: MagnificationTextureFilter;
         webGLRenderer: WebGLRenderer;
         clearColor?: ColorRepresentation
+        pixelFormat: PixelFormat;
+        textureDataType: TextureDataType;
+        expandRGB?: boolean;
     }) {
         this.showImageOutlines = options.showImageOutlines;
         this.extent = options.extent;
@@ -133,6 +141,9 @@ class WebGLComposer {
         this.clearColor = options.clearColor;
         this.minFilter = options.minFilter || LinearFilter;
         this.magFilter = options.magFilter || LinearFilter;
+        this.dataType = options.textureDataType;
+        this.pixelFormat = options.pixelFormat;
+        this.expandRGB = options.expandRGB ?? false;
         if (!SHARED_PLANE_GEOMETRY) {
             SHARED_PLANE_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
             MemoryTracker.track(SHARED_PLANE_GEOMETRY, 'WebGLComposer - PlaneGeometry');
@@ -175,7 +186,7 @@ class WebGLComposer {
 
     private createRenderTarget(
         type: TextureDataType,
-        format: AnyPixelFormat,
+        format: PixelFormat,
         width: number,
         height: number,
     ) {
@@ -256,6 +267,7 @@ class WebGLComposer {
             flipY: options.flipY,
             transparent: options.transparent,
             showImageOutlines: this.showImageOutlines,
+            expandRGB: this.expandRGB,
         });
         MemoryTracker.track(material, 'WebGLComposer - material');
 
@@ -294,31 +306,6 @@ class WebGLComposer {
             }
             this.scene.remove(child);
         }
-    }
-
-    private selectPixelTypeAndTextureFormat() {
-        let type: TextureDataType = UnsignedByteType;
-        let format: AnyPixelFormat = RGBAFormat;
-        let currentBpp = -1;
-        let currentChannelCount = -1;
-
-        this.scene.traverse(o => {
-            const mat = (o as Mesh).material as ComposerTileMaterial;
-            if (mat && mat.isComposerTileMaterial) {
-                const bpp = TextureGenerator.getBytesPerChannel(mat.dataType);
-                if (bpp > currentBpp) {
-                    currentBpp = bpp;
-                    type = mat.dataType;
-                }
-                const channelCount = TextureGenerator.getChannelCount(mat.pixelFormat);
-                if (channelCount > currentChannelCount) {
-                    format = mat.pixelFormat;
-                    currentChannelCount = channelCount;
-                }
-            }
-        });
-
-        return { type, format };
     }
 
     private saveState(): SaveState {
@@ -364,31 +351,20 @@ class WebGLComposer {
         let target;
         if (opts.target) {
             target = opts.target;
+        } else if (!this.reuseTexture) {
+            // We create a new render target for this render
+            target = this.createRenderTarget(this.dataType, this.pixelFormat, width, height);
         } else {
-            // select the best data type and format according to
-            // currently drawn images and constraints
-            const { type, format } = this.selectPixelTypeAndTextureFormat();
-
-            if (!this.reuseTexture) {
-                // We create a new render target for this render
-                target = this.createRenderTarget(type, format, width, height);
-            } else {
-                // We reuse the same render target across all renders, but if the format changes,
-                // we still have to recreate a new texture.
-                if (this.renderTarget === undefined
-                    || type !== this.renderTarget.texture.type
-                    || format !== this.renderTarget.texture.format) {
-                    this.renderTarget?.dispose();
-                    this.renderTarget = this.createRenderTarget(
-                        type,
-                        format,
-                        this.width,
-                        this.height,
-                    );
-                }
-
-                target = this.renderTarget;
+            if (!this.renderTarget) {
+                this.renderTarget = this.createRenderTarget(
+                    this.dataType,
+                    this.pixelFormat,
+                    this.width,
+                    this.height,
+                );
             }
+
+            target = this.renderTarget;
         }
 
         const previousState = this.saveState();

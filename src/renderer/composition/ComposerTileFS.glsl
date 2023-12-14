@@ -11,17 +11,26 @@ uniform float opacity;
 uniform bool flipY;
 uniform NoDataOptions noDataOptions;
 uniform bool showImageOutlines;
+uniform int channelCount;
+uniform bool expandRGB;
 
 void main() {
     vec2 uv = flipY
         ? vec2(vUv.x, 1.0 - vUv.y)
         : vUv;
 
-    vec4 raw = noDataOptions.enabled
-        ? texture2DFillNodata(tex, uv, noDataOptions)
-        : texture2D(tex, uv);
+    if (noDataOptions.enabled) {
+        int alphaChannelLocation = channelCount - 1;
+        gl_FragColor = texture2DFillNodata(tex, uv, noDataOptions, alphaChannelLocation);
+    } else {
+        gl_FragColor = texture2D(tex, uv);
 
-    gl_FragColor = decodeInterpretation(raw, interpretation);
+        gl_FragColor = decodeInterpretation(gl_FragColor, interpretation);
+
+        if (expandRGB) {
+            gl_FragColor = grayscaleToRGB(gl_FragColor, interpretation);
+        }
+    }
 
     if (showImageOutlines) {
         vec4 grid = texture2D(gridTexture, uv);

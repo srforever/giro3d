@@ -5,11 +5,12 @@ import {
     LinearFilter,
     type Material,
     MathUtils,
-    RGBAFormat,
     type Texture,
     Vector2,
     type Vector4,
     WebGLRenderTarget,
+    type PixelFormat,
+    type TextureDataType,
 } from 'three';
 
 import type ColorMap from './ColorMap';
@@ -423,6 +424,8 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
             fillNoData: this.noDataOptions.replaceNoData,
             fillNoDataAlphaReplacement: this.noDataOptions.alpha,
             fillNoDataRadius: this.noDataOptions.maxSearchDistance,
+            textureDataType: this.getRenderTargetDataType(),
+            pixelFormat: this.getRenderTargetPixelFormat(),
         });
 
         if (this.preloadImages) {
@@ -914,9 +917,9 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
         return this.source.contains(extent);
     }
 
-    protected getRenderTargetDataType() {
-        return this.source.datatype;
-    }
+    abstract getRenderTargetPixelFormat(): PixelFormat;
+
+    abstract getRenderTargetDataType(): TextureDataType;
 
     /**
      * @param target The render target to release.
@@ -962,7 +965,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
         const result = new WebGLRenderTarget(
             width,
             height, {
-                format: RGBAFormat,
+                format: this.getRenderTargetPixelFormat(),
                 magFilter: LinearFilter,
                 minFilter: LinearFilter,
                 type,

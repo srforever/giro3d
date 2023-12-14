@@ -5,6 +5,8 @@ import {
     FloatType,
     RGBAFormat,
     LinearFilter,
+    type PixelFormat,
+    RGFormat,
 } from 'three';
 import TextureGenerator, { type NumberArray, OPAQUE_BYTE, OPAQUE_FLOAT } from '../utils/TextureGenerator';
 import type { DecodeOptions } from './ImageFormat';
@@ -20,7 +22,7 @@ class GeoTIFFFormat extends ImageFormat {
     readonly isGeoTIFFFormat: boolean = true;
 
     constructor() {
-        super(true);
+        super(true, FloatType);
 
         this.type = 'GeoTIFFFormat';
     }
@@ -65,10 +67,12 @@ class GeoTIFFFormat extends ImageFormat {
             geotiffWorkerPool = new Pool();
         }
 
+        let format: PixelFormat;
         switch (spp) {
             case 1: {
                 // grayscale
                 const [v] = await image.readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
+                format = RGFormat;
                 TextureGenerator.fillBuffer(buffer, { nodata }, opaqueValue, v);
             }
                 break;
@@ -76,13 +80,15 @@ class GeoTIFFFormat extends ImageFormat {
                 // grayscale with alpha
                 const [v, a] = await image
                     .readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
-                TextureGenerator.fillBuffer(buffer, {}, opaqueValue, v, v, v, a);
+                format = RGFormat;
+                TextureGenerator.fillBuffer(buffer, {}, opaqueValue, v, a);
             }
                 break;
             case 3: {
                 // RGB
                 const [r, g, b] = await image
                     .readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
+                format = RGBAFormat;
                 TextureGenerator.fillBuffer(buffer, {}, opaqueValue, r, g, b);
             }
                 break;
@@ -90,6 +96,7 @@ class GeoTIFFFormat extends ImageFormat {
                 // RGBA
                 const [r, g, b, a] = await image
                     .readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
+                format = RGBAFormat;
                 TextureGenerator.fillBuffer(buffer, {}, opaqueValue, r, g, b, a);
             }
                 break;
@@ -97,7 +104,7 @@ class GeoTIFFFormat extends ImageFormat {
                 throw new Error(`unsupported channel count: ${spp}`);
         }
 
-        const texture = new DataTexture(buffer, width, height, RGBAFormat, dataType);
+        const texture = new DataTexture(buffer, width, height, format, dataType);
         texture.magFilter = LinearFilter;
         texture.minFilter = LinearFilter;
         texture.needsUpdate = true;

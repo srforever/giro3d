@@ -1,5 +1,5 @@
 import '../setup.js';
-import { DoubleSide, FrontSide } from 'three';
+import { DoubleSide, FrontSide, UnsignedByteType } from 'three';
 import LayeredMaterial from '../../../src/renderer/LayeredMaterial';
 
 const defaultAtlasInfo = { minX: 0, maxX: 1 };
@@ -50,7 +50,9 @@ describe('LayeredMaterial', () => {
             });
             expect(mat.defines.ENABLE_ELEVATION_RANGE).not.toBeDefined();
 
-            const layer = {};
+            const layer = {
+                getRenderTargetDataType: () => UnsignedByteType,
+            };
             mat.pushColorLayer(layer);
 
             mat.setLayerElevationRange(layer, { min: 0, max: 100 });

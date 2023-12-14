@@ -48,7 +48,7 @@ function addCogLayer() {
         name: 'cog',
         showTileBorders: true,
         source: new CogSource({
-            url: 'https://s2downloads.eox.at/demo/Sentinel-2/3857/TCI.tif',
+            url: 'https://3d.oslandia.com/giro3d/rasters/TCI.tif',
             crs: 'EPSG:3857',
         }),
     });

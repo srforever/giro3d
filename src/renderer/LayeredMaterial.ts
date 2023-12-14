@@ -12,6 +12,9 @@ import {
     type WebGLRenderer,
     Vector3,
     GLSL3,
+    RGBAFormat,
+    type TextureDataType,
+    UnsignedByteType,
 } from 'three';
 import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
@@ -31,6 +34,7 @@ import type ElevationRange from '../core/ElevationRange.js';
 import type Extent from '../core/geographic/Extent';
 import type ColorMapAtlas from './ColorMapAtlas';
 import type { AtlasInfo, LayerAtlasInfo } from './AtlasBuilder';
+import TextureGenerator from '../utils/TextureGenerator';
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -170,7 +174,7 @@ export interface MaterialOptions {
 class LayeredMaterial extends ShaderMaterial {
     private readonly _getIndexFn: (arg0: Layer) => number;
     private readonly _renderer: WebGLRenderer;
-    private readonly _colorLayers: ColorLayer[];
+    private readonly _colorLayers: ColorLayer[] = [];
 
     readonly texturesInfo: {
         color: {
@@ -190,6 +194,7 @@ class LayeredMaterial extends ShaderMaterial {
     private _needsAtlasRepaint: boolean;
     private _composer: WebGLComposer;
     private _colorMapAtlas: ColorMapAtlas;
+    private _composerDataType: TextureDataType = UnsignedByteType;
 
     showOutline: boolean;
 
@@ -298,8 +303,6 @@ class LayeredMaterial extends ShaderMaterial {
         this.uniforms.opacity = new Uniform(1.0);
 
         this._needsAtlasRepaint = false;
-
-        this._colorLayers = [];
 
         this.update(options);
 
@@ -508,6 +511,8 @@ class LayeredMaterial extends ShaderMaterial {
 
         const info = new TextureInfo(newLayer);
 
+        this._composerDataType = this.selectComposerTextureDataType();
+
         if (newLayer.type === 'MaskLayer') {
             MaterialUtils.setDefine(this, 'ENABLE_LAYER_MASKS', true);
         }
@@ -704,6 +709,26 @@ class LayeredMaterial extends ShaderMaterial {
         return this.rebuildAtlasIfNecessary();
     }
 
+    private selectComposerTextureDataType(): TextureDataType {
+        // Select the type that can contain all the layers
+        let bpp = -1;
+        let result: TextureDataType = UnsignedByteType;
+
+        for (let i = 0; i < this._colorLayers.length; i++) {
+            const layer = this._colorLayers[i];
+
+            const type = layer.getRenderTargetDataType();
+            const layerBpp = TextureGenerator.getBytesPerChannel(type);
+
+            if (layerBpp > bpp) {
+                bpp = layerBpp;
+                result = type;
+            }
+        }
+
+        return result;
+    }
+
     createComposer() {
         const newComposer = new WebGLComposer({
             extent: new Rect(0, this.atlasInfo.maxX, 0, this.atlasInfo.maxY),
@@ -711,13 +736,16 @@ class LayeredMaterial extends ShaderMaterial {
             height: this.atlasInfo.maxY,
             reuseTexture: true,
             webGLRenderer: this._renderer,
+            pixelFormat: RGBAFormat,
+            textureDataType: this._composerDataType,
         });
         return newComposer;
     }
 
     rebuildAtlasIfNecessary() {
         if (this.atlasInfo.maxX > this._composer.width
-            || this.atlasInfo.maxY > this._composer.height) {
+            || this.atlasInfo.maxY > this._composer.height
+            || this._composer.dataType !== this._composerDataType) {
             const newComposer = this.createComposer();
 
             let newTexture;

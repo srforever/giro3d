@@ -1,3 +1,9 @@
+import {
+    type PixelFormat,
+    type TextureDataType,
+    RGBAFormat,
+    FloatType,
+} from 'three';
 import Layer, {
     type LayerOptions,
     type LayerEvents,
@@ -7,6 +13,7 @@ import Layer, {
 } from './Layer';
 import type Extent from '../geographic/Extent';
 import type ElevationRange from '../ElevationRange';
+import { Mode as InterpretationMode } from './Interpretation';
 
 export interface ColorLayerEvents extends LayerEvents {
     'opacity-property-changed': { opacity: number; };
@@ -147,6 +154,21 @@ class ColorLayer extends Layer<ColorLayerEvents> {
                 this.saturation,
             );
         }
+    }
+
+    getRenderTargetDataType(): TextureDataType {
+        switch (this.interpretation.mode) {
+            case InterpretationMode.MapboxTerrainRGB:
+            case InterpretationMode.ScaleToMinMax:
+                return FloatType;
+            default:
+                return this.source.datatype;
+        }
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    getRenderTargetPixelFormat(): PixelFormat {
+        return RGBAFormat;
     }
 
     registerNode(node: Node, extent: Extent) {

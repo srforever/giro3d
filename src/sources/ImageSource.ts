@@ -105,7 +105,7 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
         this.type = 'ImageSource';
 
         this.flipY = options.flipY ?? false;
-        this.datatype = options.is8bit ? UnsignedByteType : FloatType;
+        this.datatype = (options.is8bit ?? true) ? UnsignedByteType : FloatType;
 
         this.version = 0;
 
