@@ -52,13 +52,11 @@ const colorSource = new TiledImageSource({
     }),
 });
 
-const colorLayer = new ColorLayer(
-    'wms_imagery',
-    {
-        extent,
-        source: colorSource,
-    },
-);
+const colorLayer = new ColorLayer({
+    name: 'wms_imagery',
+    extent,
+    source: colorSource,
+});
 map.addLayer(colorLayer);
 
 // Adds a WMS elevation layer
@@ -76,72 +74,64 @@ const elevationSource = new TiledImageSource({
     noDataValue: -1000,
 });
 
-const elevationLayer = new ElevationLayer(
-    'wms_elevation',
-    {
-        extent,
-        source: elevationSource,
-    },
-);
+const elevationLayer = new ElevationLayer({
+    name: 'wms_elevation',
+    extent,
+    source: elevationSource,
+});
 
 map.addLayer(elevationLayer);
 
 // Creates the layer
-const gpxLayer = new ColorLayer(
-    'gpx',
-    {
-        extent,
-        source: new VectorSource({
-            data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.gpx',
-            dataProjection: 'EPSG:4326',
-            format: new GPX(),
-            style: new Style({
-                stroke: new Stroke({
-                    color: 'blue',
-                }),
+const gpxLayer = new ColorLayer({
+    name: 'gpx',
+    extent,
+    source: new VectorSource({
+        data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.gpx',
+        dataProjection: 'EPSG:4326',
+        format: new GPX(),
+        style: new Style({
+            stroke: new Stroke({
+                color: 'blue',
             }),
         }),
-    },
-);
+    }),
+});
 
 map.addLayer(gpxLayer);
 
-const geoJsonLayer = new ColorLayer(
-    'geo',
-    {
-        extent,
-        source: new VectorSource({
-            data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.geojson',
-            format: new GeoJSON(),
-            dataProjection: 'EPSG:3946',
-            style: new Style({
-                fill: new Fill({
-                    color: 'rgba(255, 165, 0, 0.2)',
-                    opacity: 0.2,
-                }),
-                stroke: new Stroke({
-                    color: 'white',
-                }),
+const geoJsonLayer = new ColorLayer({
+    name: 'geo',
+    extent,
+    source: new VectorSource({
+        data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.geojson',
+        format: new GeoJSON(),
+        dataProjection: 'EPSG:3946',
+        style: new Style({
+            fill: new Fill({
+                color: 'rgba(255, 165, 0, 0.2)',
+                opacity: 0.2,
+            }),
+            stroke: new Stroke({
+                color: 'white',
             }),
         }),
-    },
-);
+    }),
+});
 
 map.addLayer(geoJsonLayer);
 
 // Adds a third source from a KML file.
 // Note : with the KML format, styles are not necessary as they are contained in the file.
-const kmlLayer = new ColorLayer(
-    'kml',
-    {
-        extent,
-        source: new VectorSource({
-            data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.kml',
-            format: new KML(),
-            dataProjection: 'EPSG:4326',
-        }),
-    },
-);
+const kmlLayer = new ColorLayer({
+    name: 'kml',
+    extent,
+    source: new VectorSource({
+        data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.kml',
+        format: new KML(),
+        dataProjection: 'EPSG:4326',
+    }),
+});
 
 map.addLayer(kmlLayer);
 

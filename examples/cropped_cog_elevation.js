@@ -46,7 +46,8 @@ const source = new CogSource({
 const min = 263;
 const max = 4347;
 
-map.addLayer(new ElevationLayer('elevation', {
+map.addLayer(new ElevationLayer({
+    name: 'elevation',
     extent,
     source,
     preloadImages: false,

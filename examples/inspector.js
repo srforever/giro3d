@@ -53,11 +53,10 @@ const map = new Map('planar', { extent });
 instance.add(map);
 
 // Adds an TMS imagery layer
-map.addLayer(new ColorLayer(
-    'color', {
-        source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
-    },
-));
+map.addLayer(new ColorLayer({
+    name: 'color',
+    source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
+}));
 
 // Create camera and controls
 instance.camera.camera3D.position.set(0, 0, 25000000);

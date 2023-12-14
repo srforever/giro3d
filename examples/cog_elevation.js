@@ -76,7 +76,8 @@ function updateMode(value) {
 
     switch (value) {
         case 'elevation-colormap':
-            map.addLayer(new ElevationLayer('elevation', {
+            map.addLayer(new ElevationLayer({
+                name: value,
                 extent,
                 source,
                 colorMap: viridis,
@@ -84,21 +85,24 @@ function updateMode(value) {
             }));
             break;
         case 'elevation':
-            map.addLayer(new ElevationLayer('elevation', {
+            map.addLayer(new ElevationLayer({
+                name: value,
                 extent,
                 source,
                 minmax: { min, max },
             }));
             break;
         case '8bit':
-            map.addLayer(new ColorLayer('color-8bit', {
+            map.addLayer(new ColorLayer({
+                name: value,
                 extent,
                 source,
                 interpretation: Interpretation.CompressTo8Bit(min, max),
             }));
             break;
         case 'colormap':
-            map.addLayer(new ColorLayer('color-8bit', {
+            map.addLayer(new ColorLayer({
+                name: value,
                 extent,
                 source,
                 colorMap: magma,

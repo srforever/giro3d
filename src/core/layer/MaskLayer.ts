@@ -40,14 +40,13 @@ class MaskLayer extends ColorLayer {
 
     /**
      * Creates a mask layer.
-     * It should be added in a {@link module:entities/Map~Map Map} to be displayed in the instance.
+     * It should be added in a `Map` to be displayed in the instance.
      * See the example for more information on layer creation.
      *
-     * @param id The unique identifier of the layer.
      * @param options The layer options.
      */
-    constructor(id: string, options: MaskLayerOptions) {
-        super(id, options);
+    constructor(options: MaskLayerOptions) {
+        super(options);
         this.isMaskLayer = true;
         this.type = 'MaskLayer';
         this._maskMode = options.maskMode || MaskMode.Normal;

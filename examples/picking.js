@@ -66,13 +66,11 @@ const colorSource = new TiledImageSource({
     }),
 });
 
-const colorLayer = new ColorLayer(
-    'wms_imagery',
-    {
-        extent: map.extent,
-        source: colorSource,
-    },
-);
+const colorLayer = new ColorLayer({
+    name: 'wms_imagery',
+    extent: map.extent,
+    source: colorSource,
+});
 map.addLayer(colorLayer);
 
 // Adds a WMS elevation layer
@@ -90,13 +88,11 @@ const elevationSource = new TiledImageSource({
     noDataValue: -1000,
 });
 
-const elevationLayer = new ElevationLayer(
-    'wms_elevation',
-    {
-        extent: map.extent,
-        source: elevationSource,
-    },
-);
+const elevationLayer = new ElevationLayer({
+    name: 'wms_elevation',
+    extent: map.extent,
+    source: elevationSource,
+});
 
 map.addLayer(elevationLayer);
 

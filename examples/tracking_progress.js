@@ -25,36 +25,32 @@ function createMap(mapExtent, tileset) {
     instance.add(map);
 
     // Adds a XYZ elevation layer with MapBox terrain RGB tileset
-    const elevationLayer = new ElevationLayer(
-        'xyz_elevation',
-        {
-            extent,
-            source: new TiledImageSource({
-                source: new XYZ({
-                    url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
-                    projection: extent.crs(),
-                    crossOrigin: 'anonymous',
-                }),
+    const elevationLayer = new ElevationLayer({
+        name: 'xyz_elevation',
+        extent,
+        source: new TiledImageSource({
+            source: new XYZ({
+                url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
+                projection: extent.crs(),
+                crossOrigin: 'anonymous',
             }),
-            interpretation: Interpretation.MapboxTerrainRGB,
-        },
-    );
+        }),
+        interpretation: Interpretation.MapboxTerrainRGB,
+    });
     map.addLayer(elevationLayer);
 
     // Adds a XYZ color layer with MapBox satellite tileset
-    const colorLayer = new ColorLayer(
-        'xyz_color',
-        {
-            extent,
-            source: new TiledImageSource({
-                source: new XYZ({
-                    url: `https://api.mapbox.com/v4/mapbox.${tileset}/{z}/{x}/{y}.webp?access_token=${key}`,
-                    projection: extent.crs(),
-                    crossOrigin: 'anonymous',
-                }),
+    const colorLayer = new ColorLayer({
+        name: 'xyz_color',
+        extent,
+        source: new TiledImageSource({
+            source: new XYZ({
+                url: `https://api.mapbox.com/v4/mapbox.${tileset}/{z}/{x}/{y}.webp?access_token=${key}`,
+                projection: extent.crs(),
+                crossOrigin: 'anonymous',
             }),
-        },
-    );
+        }),
+    });
     map.addLayer(colorLayer);
 
     return { map, colorLayer, elevationLayer };

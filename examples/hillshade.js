@@ -54,13 +54,11 @@ const colorSource = new TiledImageSource({
     }),
 });
 
-const colorLayer = new ColorLayer(
-    'wms_imagery',
-    {
-        extent: extent.split(2, 1)[0],
-        source: colorSource,
-    },
-);
+const colorLayer = new ColorLayer({
+    name: 'wms_imagery',
+    extent: extent.split(2, 1)[0],
+    source: colorSource,
+});
 map.addLayer(colorLayer);
 
 // Adds a WMS elevation layer
@@ -81,14 +79,12 @@ const elevationSource = new TiledImageSource({
 const min = 149;
 const max = 621;
 
-const elevationLayer = new ElevationLayer(
-    'wms_elevation',
-    {
-        extent,
-        minmax: { min, max },
-        source: elevationSource,
-    },
-);
+const elevationLayer = new ElevationLayer({
+    name: 'wms_elevation',
+    extent,
+    minmax: { min, max },
+    source: elevationSource,
+});
 
 map.addLayer(elevationLayer);
 

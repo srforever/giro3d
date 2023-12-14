@@ -34,19 +34,17 @@ const map = new Map('Paris', { extent, segments: 128 });
 instance.add(map);
 
 // Adds a satellite basemap
-const basemap = new ColorLayer(
-    'basemap',
-    {
-        extent,
-        source: new TiledImageSource({
-            source: new XYZ({
-                url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${apiKey}`,
-                projection: extent.crs(),
-                crossOrigin: 'anonymous',
-            }),
+const basemap = new ColorLayer({
+    name: 'basemap',
+    extent,
+    source: new TiledImageSource({
+        source: new XYZ({
+            url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${apiKey}`,
+            projection: extent.crs(),
+            crossOrigin: 'anonymous',
         }),
-    },
-);
+    }),
+});
 map.addLayer(basemap);
 
 const outlineStyle = new Style({
@@ -55,7 +53,8 @@ const outlineStyle = new Style({
 
 // Display the footprint using a red outline. This layer is not necessary for the mask to work,
 // and is only present for illustration purposes.
-const outline = new ColorLayer('outline', {
+const outline = new ColorLayer({
+    name: 'outline',
     source: new VectorSource({
         format: new GeoJSON(),
         data: 'https://3d.oslandia.com/giro3d/vectors/paris.geojson',
@@ -71,7 +70,8 @@ const maskStyle = new Style({
 });
 
 // Create the actual mask layer with the same source as the outline.
-const mask = new MaskLayer('mask', {
+const mask = new MaskLayer({
+    name: 'mask',
     source: new VectorSource({
         format: new GeoJSON(),
         data: 'https://3d.oslandia.com/giro3d/vectors/paris.geojson',

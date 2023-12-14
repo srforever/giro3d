@@ -22,29 +22,23 @@ instance.add(map);
 
 const layerSize = 1000000;
 
-const watercolor = new ColorLayer(
-    'watercolor',
-    {
-        extent: Extent.fromCenterAndSize(crs, { x: -100000, y: 6169226 }, layerSize, layerSize),
-        source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
-    },
-);
+const watercolor = new ColorLayer({
+    name: 'watercolor',
+    extent: Extent.fromCenterAndSize(crs, { x: -100000, y: 6169226 }, layerSize, layerSize),
+    source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
+});
 
-const toner = new ColorLayer(
-    'toner',
-    {
-        extent: Extent.fromCenterAndSize(crs, { x: 500000, y: 5669226 }, layerSize, layerSize),
-        source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_toner', wrapX: false }) }),
-    },
-);
+const toner = new ColorLayer({
+    name: 'toner',
+    extent: Extent.fromCenterAndSize(crs, { x: 500000, y: 5669226 }, layerSize, layerSize),
+    source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_toner', wrapX: false }) }),
+});
 
-const terrain = new ColorLayer(
-    'terrain',
-    {
-        extent: Extent.fromCenterAndSize(crs, { x: 900000, y: 5169226 }, layerSize, layerSize),
-        source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_terrain', wrapX: false }) }),
-    },
-);
+const terrain = new ColorLayer({
+    name: 'terrain',
+    extent: Extent.fromCenterAndSize(crs, { x: 900000, y: 5169226 }, layerSize, layerSize),
+    source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_terrain', wrapX: false }) }),
+});
 
 map.addLayer(watercolor);
 map.addLayer(toner);

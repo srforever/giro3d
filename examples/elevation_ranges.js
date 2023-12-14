@@ -46,38 +46,34 @@ const colorRamp = makeColorRamp('viridis');
 
 const key = 'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
 // Adds a XYZ elevation layer with MapBox terrain RGB tileset
-const elevationLayer = new ElevationLayer(
-    'xyz_elevation',
-    {
-        extent,
-        source: new TiledImageSource({
-            source: new XYZ({
-                url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
-                projection: extent.crs(),
-                crossOrigin: 'anonymous',
-            }),
+const elevationLayer = new ElevationLayer({
+    name: 'xyz_elevation',
+    extent,
+    source: new TiledImageSource({
+        source: new XYZ({
+            url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
+            projection: extent.crs(),
+            crossOrigin: 'anonymous',
         }),
-        colorMap: new ColorMap(colorRamp, 700, 2500),
-        interpretation: Interpretation.MapboxTerrainRGB,
-    },
-);
+    }),
+    colorMap: new ColorMap(colorRamp, 700, 2500),
+    interpretation: Interpretation.MapboxTerrainRGB,
+});
 map.addLayer(elevationLayer);
 
 // Adds a XYZ color layer with MapBox satellite tileset
-const colorLayer = new ColorLayer(
-    'xyz_color',
-    {
-        extent,
-        source: new TiledImageSource({
-            source: new XYZ({
-                url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${key}`,
-                projection: extent.crs(),
-                crossOrigin: 'anonymous',
-            }),
+const colorLayer = new ColorLayer({
+    name: 'xyz_color',
+    extent,
+    source: new TiledImageSource({
+        source: new XYZ({
+            url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${key}`,
+            projection: extent.crs(),
+            crossOrigin: 'anonymous',
         }),
-        elevationRange: { min: 500, max: 3000 },
-    },
-);
+    }),
+    elevationRange: { min: 500, max: 3000 },
+});
 map.addLayer(colorLayer);
 
 // Sets the camera position

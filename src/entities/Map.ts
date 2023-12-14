@@ -834,7 +834,7 @@ class Map extends Entity3D<MapEventMap> {
             }
             const duplicate = this.getLayers((l => l.id === layer.id));
             if (duplicate.length > 0 || this.currentAddedLayerIds.includes(layer.id)) {
-                reject(new Error(`Invalid id '${layer.id}': id already used`));
+                reject(new Error(`layer ${layer.name || layer.id} is already present in this map`));
                 return;
             }
             this.currentAddedLayerIds.push(layer.id);

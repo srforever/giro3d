@@ -51,17 +51,16 @@ const ecoRegionLayerStyle = feature => {
     });
 };
 
-const ecoRegionLayer = new ColorLayer(
-    'ecoregions', {
-        extent,
-        source: new VectorSource({
-            format: new GeoJSON(),
-            data: 'https://openlayers.org/data/vector/ecoregions.json',
-            dataProjection: 'EPSG:4326',
-            style: ecoRegionLayerStyle,
-        }),
-    },
-);
+const ecoRegionLayer = new ColorLayer({
+    name: 'ecoregions',
+    extent,
+    source: new VectorSource({
+        format: new GeoJSON(),
+        data: 'https://openlayers.org/data/vector/ecoregions.json',
+        dataProjection: 'EPSG:4326',
+        style: ecoRegionLayerStyle,
+    }),
+});
 
 map.addLayer(ecoRegionLayer);
 
@@ -73,18 +72,16 @@ const countryLayerStyle = new Style({
     }),
 });
 
-const countryLayer = new ColorLayer(
-    'countries',
-    {
-        extent,
-        source: new VectorSource({
-            format: new GeoJSON(),
-            data: 'https://openlayers.org/en/v5.3.0/examples/data/geojson/countries.geojson',
-            dataProjection: 'EPSG:4326',
-            style: countryLayerStyle,
-        }),
-    },
-);
+const countryLayer = new ColorLayer({
+    name: 'countries',
+    extent,
+    source: new VectorSource({
+        format: new GeoJSON(),
+        data: 'https://openlayers.org/en/v5.3.0/examples/data/geojson/countries.geojson',
+        dataProjection: 'EPSG:4326',
+        style: countryLayerStyle,
+    }),
+});
 
 map.addLayer(countryLayer);
 
@@ -150,17 +147,16 @@ const customVectorLayerStyle = new Style({
     }),
 });
 
-const customVectorLayer = new ColorLayer(
-    'geojson', {
-        extent,
-        source: new VectorSource({
-            format: new GeoJSON(),
-            data: geojson,
-            dataProjection: 'EPSG:4326',
-            style: customVectorLayerStyle,
-        }),
-    },
-);
+const customVectorLayer = new ColorLayer({
+    name: 'geojson',
+    extent,
+    source: new VectorSource({
+        format: new GeoJSON(),
+        data: geojson,
+        dataProjection: 'EPSG:4326',
+        style: customVectorLayerStyle,
+    }),
+});
 
 map.addLayer(customVectorLayer);
 

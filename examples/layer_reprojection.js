@@ -28,25 +28,24 @@ function addMapboxLayer(extent) {
     const apiKey = 'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
 
     // Adds a satellite basemap
-    const tiledLayer = new ColorLayer(
-        'basemap',
-        {
-            extent,
-            showTileBorders: true,
-            source: new TiledImageSource({
-                source: new XYZ({
-                    url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${apiKey}`,
-                    projection: 'EPSG:3857',
-                    crossOrigin: 'anonymous',
-                }),
+    const tiledLayer = new ColorLayer({
+        name: 'basemap',
+        extent,
+        showTileBorders: true,
+        source: new TiledImageSource({
+            source: new XYZ({
+                url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${apiKey}`,
+                projection: 'EPSG:3857',
+                crossOrigin: 'anonymous',
             }),
-        },
-    );
+        }),
+    });
     map.addLayer(tiledLayer).catch(e => console.error(e));
 }
 
 function addCogLayer() {
-    const cogLayer = new ColorLayer('cog', {
+    const cogLayer = new ColorLayer({
+        name: 'cog',
         showTileBorders: true,
         source: new CogSource({
             url: 'https://s2downloads.eox.at/demo/Sentinel-2/3857/TCI.tif',
@@ -62,7 +61,8 @@ function addVectorLayer() {
     });
 
     // Display the countries boundaries.
-    const boundaries = new ColorLayer('Boundaries', {
+    const boundaries = new ColorLayer({
+        name: 'boundaries',
         source: new VectorSource({
             format: new GeoJSON(),
             data: 'https://3d.oslandia.com/giro3d/vectors/countries.geojson',

@@ -60,7 +60,8 @@ const noDataOptions = {
     replaceNoData: true,
 };
 
-const elevationLayer = new ElevationLayer('elevation', {
+const elevationLayer = new ElevationLayer({
+    name: 'elevation',
     extent,
     source,
     noDataOptions,

@@ -65,15 +65,13 @@ function initializeCameraPosition(layer) {
     controls.target.copy(lookAt);
     controls.saveState();
 
-    const colorLayer = new ColorLayer(
-        'orthophoto-ign',
-        {
-            // The extent is useful to restrict the processing of the image layer
-            // (which is much bigger than our point cloud).
-            extent: Extent.fromBox3('EPSG:2154', bbox),
-            source: wmsOthophotoSource,
-        },
-    );
+    const colorLayer = new ColorLayer({
+        name: 'orthophoto-ign',
+        // The extent is useful to restrict the processing of the image layer
+        // (which is much bigger than our point cloud).
+        extent: Extent.fromBox3('EPSG:2154', bbox),
+        source: wmsOthophotoSource,
+    });
 
     pointcloud.attach(colorLayer);
 

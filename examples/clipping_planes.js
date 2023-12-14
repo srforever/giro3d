@@ -110,17 +110,14 @@ function setupScene(pointCloud) {
                 LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
                 FORMAT: 'image/jpeg',
             },
-            version: '1.3.0',
         }),
     });
 
-    const colorLayer = new ColorLayer(
-        'orthophoto-ign',
-        {
-            extent: map.extent,
-            source: wmsOthophotoSource,
-        },
-    );
+    const colorLayer = new ColorLayer({
+        name: 'orthophoto-ign',
+        extent: map.extent,
+        source: wmsOthophotoSource,
+    });
     const noDataValue = -1000;
 
     // Adds a WMS elevation layer
@@ -133,20 +130,16 @@ function setupScene(pointCloud) {
                 LAYERS: ['ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'],
                 FORMAT: 'image/x-bil;bits=32',
             },
-            version: '1.3.0',
         }),
         format: new BilFormat(),
         noDataValue,
     });
 
-    const elevationLayer = new ElevationLayer(
-        'wms_elevation',
-        {
-            extent: map.extent,
-            source: elevationSource,
-            noDataValue,
-        },
-    );
+    const elevationLayer = new ElevationLayer({
+        name: 'wms_elevation',
+        extent: map.extent,
+        source: elevationSource,
+    });
 
     map.addLayer(colorLayer);
     map.addLayer(elevationLayer);

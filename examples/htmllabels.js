@@ -70,13 +70,11 @@ const wmsSource = new TiledImageSource({
     }),
 });
 
-const colorLayer = new ColorLayer(
-    'wms_imagery',
-    {
-        extent,
-        source: wmsSource,
-    },
-);
+const colorLayer = new ColorLayer({
+    name: 'wms_imagery',
+    extent,
+    source: wmsSource,
+});
 map.addLayer(colorLayer);
 
 const style = new Style({
@@ -95,12 +93,11 @@ const geojsonSource = new VectorSource({
     style,
 });
 
-const geoJsonLayer = new ColorLayer(
-    'geo', {
-        extent,
-        source: geojsonSource,
-    },
-);
+const geoJsonLayer = new ColorLayer({
+    name: 'geojson',
+    extent,
+    source: geojsonSource,
+});
 
 map.addLayer(geoJsonLayer).then(() => {
     // Traverse the OpenLayers features that were added

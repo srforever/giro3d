@@ -84,7 +84,8 @@ function makeGeoJSONLayer(name, geojson, color) {
         style,
         dataProjection: 'EPSG:4326',
     });
-    const layer = new ColorLayer(name, {
+    const layer = new ColorLayer({
+        name,
         extent,
         source,
     });

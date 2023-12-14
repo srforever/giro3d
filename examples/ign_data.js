@@ -59,13 +59,11 @@ const wmsOthophotoSource = new TiledImageSource({
     }),
 });
 
-const colorLayer = new ColorLayer(
-    'orthophoto-ign',
-    {
-        extent: map.extent,
-        source: wmsOthophotoSource,
-    },
-);
+const colorLayer = new ColorLayer({
+    name: 'orthophoto-ign',
+    extent: map.extent,
+    source: wmsOthophotoSource,
+});
 map.addLayer(colorLayer);
 
 const noDataValue = -1000;
@@ -85,14 +83,11 @@ const elevationSource = new TiledImageSource({
     noDataValue,
 });
 
-const elevationLayer = new ElevationLayer(
-    'wms_elevation',
-    {
-        extent: map.extent,
-        source: elevationSource,
-        noDataValue,
-    },
-);
+const elevationLayer = new ElevationLayer({
+    name: 'wms_elevation',
+    extent: map.extent,
+    source: elevationSource,
+});
 map.addLayer(elevationLayer);
 
 const vectorSource = new VectorSource({

@@ -45,7 +45,6 @@ class ColorLayer extends Layer<ColorLayerEvents> {
      * Creates a color layer.
      * See the example for more information on layer creation.
      *
-     * @param id The unique identifier of the layer.
      * @param options The layer options.
      * @param options.source The data source of this layer.
      * @param options.interpretation How to interpret the
@@ -61,8 +60,8 @@ class ColorLayer extends Layer<ColorLayerEvents> {
      * display of this layer. This is only useful if there is an elevation layer on the map.
      * @param options.preloadImages Enables or disable preloading of low resolution fallback images.
      */
-    constructor(id: string, options: ColorLayerOptions) {
-        super(id, options);
+    constructor(options: ColorLayerOptions) {
+        super(options);
         this.type = 'ColorLayer';
         this.elevationRange = options.elevationRange;
         this._opacity = options.opacity ?? 1;

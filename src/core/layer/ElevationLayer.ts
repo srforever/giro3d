@@ -36,11 +36,10 @@ class ElevationLayer extends Layer<ElevationLayerEvents> {
      * Creates an elevation layer.
      * See the example for more information on layer creation.
      *
-     * @param id The unique identifier of the layer.
      * @param options The layer options.
      */
-    constructor(id: string, options: ElevationLayerOptions) {
-        super(id, {
+    constructor(options: ElevationLayerOptions) {
+        super({
             noDataOptions: options.noDataOptions ?? {
                 replaceNoData: true,
                 maxSearchDistance: +Infinity,
