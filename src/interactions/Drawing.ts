@@ -12,7 +12,6 @@ import {
     Group,
     Line,
     LineBasicMaterial,
-    Material,
     Mesh,
     MeshBasicMaterial,
     Plane,
@@ -21,9 +20,11 @@ import {
     PointsMaterial,
     Points,
 } from 'three';
+import type { Material } from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import * as olformat from 'ol/format.js';
-import Instance from '../core/Instance.js';
+import type { SimpleGeometry } from 'ol/geom.js';
+import type Instance from '../core/Instance.js';
 
 const planesGeom = new PlaneGeometry(100, 100);
 
@@ -58,77 +59,145 @@ const tmpBox3 = new Box3();
 const STRIDE3D = 3;
 
 /**
- * Types of geometries to draw
- *
- * @enum {string}
- * @namespace GEOMETRY_TYPE
- * @readonly
+ * Types of geometries to draw.
  */
-export const GEOMETRY_TYPE = {
-    /**
-     * Draw one point
-     *
-     */
-    POINT: 'Point',
-    /**
-     * Draw several points
-     *
-     */
-    MULTIPOINT: 'MultiPoint',
-    /**
-     * Draw a line
-     *
-     */
-    LINE: 'LineString',
-    /**
-     * Draw a polygon
-     *
-     */
-    POLYGON: 'Polygon',
-};
+export type DrawingGeometryType = 'Point' | 'MultiPoint' | 'LineString' | 'Polygon';
 
 /**
- * @callback point2DFactory
- * @description
- * Method to create a HTML element for points for CSS2DObject
- * @param {number} index Index of the point to display
- * @param {Vector3} position Position of the point in world space
- * @returns {HTMLElement} HTML Element
+ * Types of geometries to draw.
+ *
+ * @deprecated Use {@link DrawingGeometryType} instead.
  */
+export const GEOMETRY_TYPE: Record<string, DrawingGeometryType> = {
+    POINT: 'Point',
+    MULTIPOINT: 'MultiPoint',
+    LINE: 'LineString',
+    POLYGON: 'Polygon',
+} as const;
+
+/**
+ * Callback to create a HTML element for points for CSS2DObject
+ *
+ * @param index Index of the point in the current geometry
+ * @param position 3D position of the point
+ * @returns HTML element for the point
+ */
+export type Point2DFactory = (index: number, position: Vector3) => HTMLElement;
+
+/**
+ * Material options.
+ */
+export interface MaterialsOptions {
+    /** Material to be used for faces */
+    faceMaterial?: Material;
+    /** Material to be used for the extruded sides */
+    sideMaterial?: Material;
+    /** Material to be used for the borders */
+    lineMaterial?: LineBasicMaterial;
+    /** Material to be used for the points (not used if `use3Dpoints` is `false`) */
+    pointMaterial?: PointsMaterial;
+    /** Material to be used for the plane helper (if visible) */
+    planeHelperMaterial?: Material;
+}
+
+/**
+ * Drawing options.
+ */
+export interface DrawingOptions extends MaterialsOptions {
+    /** Name for this shape */
+    name?: string;
+    /** Minimum depth for the extrusion */
+    minExtrudeDepth?: number;
+    /** Maximum depth for the extrusion */
+    maxExtrudeDepth?: number;
+    /** Render points as 3D objects - if false, must provide `point2DFactory` option */
+    use3Dpoints?: boolean;
+    /**
+     * Callback for creating DOM element for points for CSS2DObject - used only if
+     * `use3Dpoints` is `false`)
+     */
+    point2DFactory?: Point2DFactory;
+    /**
+     * True to make the plane helper visible.
+     * When drawing the shape, we project the points on a plane for triangulation. This enables
+     * seeing the plane used for projecting while debugging.
+     */
+    planeHelperVisible?: boolean;
+    /** Initial number of points to allocate when drawing */
+    pointsBudget?: number;
+}
 
 /**
  * Simple geometry object for drawing.
  * Instanciated via DrawTool, but can also be added to Giro3D to view and edit simple geometries.
- *
  */
 class Drawing extends Group {
+    private instance: Instance;
+    public isDrawing: boolean = true;
+    private minExtrudeDepth: number;
+    private maxExtrudeDepth: number;
+    private faceMaterial: Material;
+    private backfaceMaterial: Material | undefined;
+    private sideMaterial: Material;
+    private lineMaterial: LineBasicMaterial;
+    private pointMaterial: PointsMaterial;
+    private use3Dpoints: boolean;
+    private point2DFactory: Point2DFactory;
+    private planeHelperMaterial: Material;
+    private planeHelperVisible: boolean;
+    private pointsBudget: number;
+
+    private plane: Plane;
+    private planeHelper: Mesh | undefined;
+    private _extrudeDepth: number | undefined;
+    private center: Vector3;
+    private _coordinates: number[];
+    private _geometryType: DrawingGeometryType | null;
+
+    private positions: Float32Array | undefined;
+    private positionsBuffer: BufferAttribute | undefined;
+    private pointsGeometry: BufferGeometry | undefined;
+    private points: Points | undefined;
+
+    private positionsTop: Float32Array | undefined;
+    private positionsTopBuffer: BufferAttribute | undefined;
+    private positionsBottom: Float32Array | undefined;
+    private positionsBottomBuffer: BufferAttribute | undefined;
+    private positionsSide: Float32Array | undefined;
+    private positionsSideBuffer: BufferAttribute | undefined;
+    private lineTopGeometry: BufferGeometry | undefined;
+    private lineBottomGeometry: BufferGeometry | undefined;
+    private sideGeometry: BufferGeometry | undefined;
+    private lineTop: Line | undefined;
+    private lineBottom: Line | undefined;
+    private side: Mesh | undefined;
+
+    private surfaceTopGeometry: BufferGeometry | undefined;
+    private surfaceBottomGeometry: BufferGeometry | undefined;
+    private surfaceTop: Mesh | undefined;
+    private surfaceBottom: Mesh | undefined;
+
+    /** Computed extrude depth, based on the geometry and min/max parameters */
+    public get extrudeDepth(): number | undefined { return this._extrudeDepth; }
+    /** Get flat coordinates of the geometry */
+    public get coordinates(): number[] { return this._coordinates; }
+    /** Get local flat coordinates (in 3d) */
+    public get localCoordinates(): Float32Array { return this.positionsTop; }
+    /** Get the geometry type of the object */
+    public get geometryType(): DrawingGeometryType | null { return this._geometryType; }
+
     /**
      * Creates a new 3D Object
      *
-     * @param {Instance} instance Giro3D instance
-     * @param {object} [options] Optional properties
-     * @param {string} [options.name] Name for this shape
-     * @param {number} [options.minExtrudeDepth=3] Minimum depth for the extrusion
-     * @param {number} [options.maxExtrudeDepth=20] Maximum depth for the extrusion
-     * @param {Material} [options.faceMaterial] Material to be used for faces
-     * @param {Material} [options.sideMaterial] Material to be used for the extruded sides
-     * @param {LineBasicMaterial} [options.lineMaterial] Material to be used for the borders
-     * @param {PointsMaterial} [options.pointMaterial] Material to be used for the points (not used
-     * if `use3Dpoints` is `false`)
-     * @param {boolean} [options.use3Dpoints=true] Render points as 3D objects - if false, must
-     * provide `point2DFactory` option
-     * @param {point2DFactory} [options.point2DFactory]
-     * Callback for creating DOM element for points for CSS2DObject - used only if `use3Dpoints`
-     * is `false`)
-     * @param {boolean} [options.planeHelperVisible=false] True to make the plane helper visible.
-     * When drawing the shape, we project the points on a plane for triangulation. This enables
-     * seeing the plane used for projecting while debugging.
-     * @param {Material} options.planeHelperMaterial Material to be used for the plane helper
-     * (if visible)
-     * @param {number} [options.pointsBudget=100] Initial number of points to allocate when drawing
-     * @param {object} [geojson] Initial GeoJSON shape
+     * @param instance Giro3D instance
+     * @param options Options
+     * @param geojson Initial GeoJSON shape
      */
-    constructor(instance, options = {}, geojson = null) {
+    constructor(
+        instance: Instance,
+        options: DrawingOptions = {},
+        geojson: GeoJSON.Geometry = null,
+    ) {
         super();
         this.name = options.name ?? 'drawobject';
         this.instance = instance;
@@ -171,8 +240,8 @@ class Drawing extends Group {
             this.setGeojson(geojson);
         } else {
             // Don't allocate buffers yet, we'll allocate them when needed
-            this.coordinates = [];
-            this.geometryType = null;
+            this._coordinates = [];
+            this._geometryType = null;
         }
     }
 
@@ -180,7 +249,7 @@ class Drawing extends Group {
      * Disposes of the object
      *
      */
-    dispose() {
+    dispose(): void {
         this.clear();
         this.instance = null;
     }
@@ -188,16 +257,16 @@ class Drawing extends Group {
     /**
      *  Removes all child objects.
      */
-    clear() {
+    clear(): this {
         if (
             !this.use3Dpoints
             && (
-                this.geometryType === GEOMETRY_TYPE.POINT
-                || this.geometryType === GEOMETRY_TYPE.MULTIPOINT
+                this.geometryType === 'Point'
+                || this.geometryType === 'MultiPoint'
             )
         ) {
             for (const o of this.children) {
-                o.element.remove();
+                (o as CSS2DObject).element.remove();
             }
         }
         return super.clear();
@@ -206,12 +275,12 @@ class Drawing extends Group {
     /**
      * Default Point2D factory for creating labels.
      *
-     * @param {number} index Index of the point
-     * @param {Vector3} position Position of the point
-     * @returns {HTMLElement} DOM Element to attach to the CSS2DObject
+     * @param index Index of the point
+     * @param position Position of the point
+     * @returns DOM Element to attach to the CSS2DObject
      */
-    // eslint-disable-next-line class-methods-use-this, no-unused-vars
-    _defaultPoint2DFactory(index, position) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
+    private _defaultPoint2DFactory(index: number, position: Vector3): HTMLElement {
         const pt = document.createElement('div');
         pt.style.position = 'absolute';
         pt.style.borderRadius = '50%';
@@ -231,9 +300,9 @@ class Drawing extends Group {
     /**
      * Initializes buffers & geometries for drawing points
      *
-     * @param {number} size Number of points to allocate
+     * @param size Number of points to allocate
      */
-    _initPointsBuffers(size) {
+    private _initPointsBuffers(size: number): void {
         this.positions = new Float32Array(size * STRIDE3D);
         this.positionsBuffer = new BufferAttribute(this.positions, STRIDE3D);
 
@@ -246,9 +315,9 @@ class Drawing extends Group {
     /**
      * Initializes buffers & geometries for drawing lines
      *
-     * @param {number} size Number of points to allocate
+     * @param size Number of points to allocate
      */
-    _initLineBuffers(size) {
+    private _initLineBuffers(size: number): void {
         this.positionsTop = new Float32Array(size * STRIDE3D);
         this.positionsTopBuffer = new BufferAttribute(this.positionsTop, STRIDE3D);
 
@@ -280,9 +349,9 @@ class Drawing extends Group {
     /**
      * Initializes buffers & geometries for drawing polygons
      *
-     * @param {number} size Number of points to allocate
+     * @param size Number of points to allocate
      */
-    _initPolygonBuffers(size) {
+    private _initPolygonBuffers(size: number): void {
         this._initLineBuffers(size);
 
         this.surfaceTopGeometry = new BufferGeometry();
@@ -302,13 +371,13 @@ class Drawing extends Group {
     /**
      * Initializes or resizes buffers and geometries for current shape
      */
-    _prepareBuffers() {
+    private _prepareBuffers(): void {
         const nbPoints = this.coordinates.length / STRIDE3D;
 
         // First we check if buffers are created, or need to be resized
         switch (this.geometryType) {
-            case GEOMETRY_TYPE.POINT:
-            case GEOMETRY_TYPE.MULTIPOINT:
+            case 'Point':
+            case 'MultiPoint':
                 if (this.use3Dpoints) {
                     if (!this.points) {
                         this._initPointsBuffers(nbPoints);
@@ -324,7 +393,7 @@ class Drawing extends Group {
                 }
                 break;
 
-            case GEOMETRY_TYPE.LINE:
+            case 'LineString':
                 if (!this.lineTop) {
                     this._initLineBuffers(nbPoints);
                 } else if (this.positionsTop.length < this.coordinates.length) {
@@ -338,7 +407,7 @@ class Drawing extends Group {
                 }
                 break;
 
-            case GEOMETRY_TYPE.POLYGON:
+            case 'Polygon':
                 if (!this.surfaceTop) {
                     this._initPolygonBuffers(nbPoints);
                 } else if (this.positionsTop.length < this.coordinates.length) {
@@ -354,6 +423,9 @@ class Drawing extends Group {
         }
     }
 
+    /**
+     * Forces update from the coordinates
+     */
     update() {
         this.setCoordinates(this.coordinates, this.geometryType);
     }
@@ -361,9 +433,9 @@ class Drawing extends Group {
     /**
      * Sets the shape to draw.
      *
-     * @param {object} geojson GeoJSON shape to draw
+     * @param geojson GeoJSON shape to draw
      */
-    setGeojson(geojson) {
+    setGeojson(geojson: GeoJSON.Geometry): void {
         if (!geojson) return;
 
         const geometry = format
@@ -372,37 +444,40 @@ class Drawing extends Group {
                 geometry: geojson,
             })
             .getGeometry();
-        this.setCoordinates(geometry.flatCoordinates, geometry.getType());
+        this.setCoordinates(
+            (geometry as SimpleGeometry).getFlatCoordinates(),
+            geometry.getType() as DrawingGeometryType,
+        );
     }
 
     /**
      * Sets the shape to draw.
      *
-     * @param {Array<number>} coordinates Array of flat coordinates
-     * @param {GEOMETRY_TYPE} geometryType Type of geometry
+     * @param coordinates Array of flat coordinates
+     * @param geometryType Type of geometry
      */
-    setCoordinates(coordinates, geometryType) {
+    setCoordinates(coordinates: number[], geometryType: DrawingGeometryType): void {
         // Remove all children
         this.clear();
 
         const nbPoints = coordinates.length / STRIDE3D;
 
         if (nbPoints > 0) {
-            this.geometryType = geometryType;
+            this._geometryType = geometryType;
 
             switch (geometryType) {
-                case GEOMETRY_TYPE.POINT:
-                case GEOMETRY_TYPE.MULTIPOINT:
+                case 'Point':
+                case 'MultiPoint':
                     if (nbPoints < 1) {
                         // Not a point, do nothing
                         break;
                     }
 
-                    this.coordinates = coordinates;
+                    this._coordinates = coordinates;
                     this._drawPoints();
                     break;
 
-                case GEOMETRY_TYPE.LINE:
+                case 'LineString':
                     if (nbPoints < 2) {
                         // A single point is selected, do nothing
                         break;
@@ -426,11 +501,11 @@ class Drawing extends Group {
                         coordinates = coordinates.slice(0, -STRIDE3D);
                     }
 
-                    this.coordinates = coordinates;
+                    this._coordinates = coordinates;
                     this._drawLine();
                     break;
 
-                case GEOMETRY_TYPE.POLYGON:
+                case 'Polygon':
                     // Polygon is closed, so:
                     // - 2 points means there is only one "real" point,
                     // - 3 points means there are 2 "real" points
@@ -441,7 +516,7 @@ class Drawing extends Group {
                     }
                     if (nbPoints < 4) {
                         // Only two points are there, draw as a line
-                        this.coordinates = coordinates.slice(0, -STRIDE3D);
+                        this._coordinates = coordinates.slice(0, -STRIDE3D);
                         this._drawLine();
                         break;
                     }
@@ -454,21 +529,21 @@ class Drawing extends Group {
                             && coordinates[1 * STRIDE3D + 1] === coordinates[2 * STRIDE3D + 1]
                             && coordinates[1 * STRIDE3D + 2] === coordinates[2 * STRIDE3D + 2]
                         ) {
-                            this.coordinates = coordinates.slice(0, -2 * STRIDE3D);
+                            this._coordinates = coordinates.slice(0, -2 * STRIDE3D);
                             this._drawLine();
                             break;
                         }
                     }
-                    this.coordinates = coordinates;
+                    this._coordinates = coordinates;
                     this._drawPolygon();
                     break;
 
                 default:
-                    this.geometryType = null;
+                    this._geometryType = null;
                     throw new Error(`Invalid geometry type ${geometryType}`);
             }
         } else {
-            this.geometryType = null;
+            this._geometryType = null;
         }
 
         this.instance.notifyChange(this);
@@ -477,21 +552,14 @@ class Drawing extends Group {
     /**
      * Sets materials for this object
      *
-     * @param {object} [materials] Optional materials
-     * @param {?Material} materials.faceMaterial Material to be used for faces
-     * @param {?Material} materials.sideMaterial Material to be used for the extruded sides
-     * @param {?LineBasicMaterial} materials.lineMaterial Material to be used for the borders
-     * @param {?PointsMaterial} materials.pointMaterial Material to be used for the points
-     * @param {?Material} materials.planeHelperMaterial Material to be used for the plane helper
+     * @param options Materials
      */
-    setMaterials({
-        faceMaterial, sideMaterial, lineMaterial, pointMaterial, planeHelperMaterial,
-    }) {
-        this.faceMaterial = faceMaterial ?? defaultFaceMaterial;
-        this.sideMaterial = sideMaterial ?? defaultSideMaterial;
-        this.lineMaterial = lineMaterial ?? defaultLineMaterial;
-        this.pointMaterial = pointMaterial ?? defaultPointMaterial;
-        this.planeHelperMaterial = planeHelperMaterial ?? defaultPlaneHelperMaterial;
+    setMaterials(options: MaterialsOptions): void {
+        this.faceMaterial = options.faceMaterial ?? defaultFaceMaterial;
+        this.sideMaterial = options.sideMaterial ?? defaultSideMaterial;
+        this.lineMaterial = options.lineMaterial ?? defaultLineMaterial;
+        this.pointMaterial = options.pointMaterial ?? defaultPointMaterial;
+        this.planeHelperMaterial = options.planeHelperMaterial ?? defaultPlaneHelperMaterial;
 
         this._doSanityChecksMaterials();
 
@@ -516,7 +584,7 @@ class Drawing extends Group {
      * Makes sure materials are correctly set for optimal display
      * (e.g. sides rendering & depth settings)
      */
-    _doSanityChecksMaterials() {
+    private _doSanityChecksMaterials(): void {
         this.faceMaterial.side = FrontSide;
         this.backfaceMaterial = this.faceMaterial.clone();
         this.backfaceMaterial.side = BackSide;
@@ -541,7 +609,7 @@ class Drawing extends Group {
      * Note: "best fitting" is pretentious. Finding the best fitting plane is a hard problem.
      * We are just finding a plane that is "fitting enough to have a decent triangulation".
      */
-    _findBestFittingPlane() {
+    private _findBestFittingPlane(): void {
         const nbPoints = this.coordinates.length / STRIDE3D;
 
         if (nbPoints > 3) {
@@ -608,7 +676,7 @@ class Drawing extends Group {
 
         // Compute how much we should extrude, as a fixed value will not work in all cases,
         // depending on how large the geometry is, resolution of our data, etc.
-        this.extrudeDepth = this.minExtrudeDepth;
+        this._extrudeDepth = this.minExtrudeDepth;
         for (let i = 0; i < nbPoints; i += 1) {
             tmpVec3s[0].set(
                 this.coordinates[i * STRIDE3D + 0],
@@ -616,15 +684,15 @@ class Drawing extends Group {
                 this.coordinates[i * STRIDE3D + 2],
             );
             this.planeHelper.worldToLocal(tmpVec3s[0]);
-            this.extrudeDepth = Math.max(this.extrudeDepth, tmpVec3s[0].z);
+            this._extrudeDepth = Math.max(this.extrudeDepth, tmpVec3s[0].z);
         }
-        this.extrudeDepth = Math.min(this.extrudeDepth, this.maxExtrudeDepth);
+        this._extrudeDepth = Math.min(this.extrudeDepth, this.maxExtrudeDepth);
     }
 
     /**
      * Computes and updates geometries for lines & polygons with new coordinates
      */
-    _computeExtrudedCoordinates() {
+    private _computeExtrudedCoordinates(): void {
         const nbPoints = this.coordinates.length / STRIDE3D;
 
         // First we check if buffers are created, or need to be resized
@@ -684,7 +752,7 @@ class Drawing extends Group {
     /**
      * Computes and updates geometries for points (without extrusion)
      */
-    _computePointsCoordinates() {
+    private _computePointsCoordinates(): void {
         // First we check if buffers are created, or need to be resized
         this._prepareBuffers();
         this.positions.set(this.coordinates);
@@ -696,7 +764,7 @@ class Drawing extends Group {
     /**
      * Draws points
      */
-    _drawPoints() {
+    private _drawPoints(): void {
         if (this.use3Dpoints) {
             // Render as Three.js objects
             this._computePointsCoordinates();
@@ -724,7 +792,7 @@ class Drawing extends Group {
     /**
      * Draws a line/polyline
      */
-    _drawLine() {
+    private _drawLine(): void {
         this._findBestFittingPlane();
         this._computeExtrudedCoordinates();
 
@@ -741,7 +809,7 @@ class Drawing extends Group {
     /**
      * Draws a valid polygon
      */
-    _drawPolygon() {
+    private _drawPolygon(): void {
         const nbPoints = this.coordinates.length / STRIDE3D;
 
         // Earcut does not work when the shape is not along XY axis (i.e. if vertical)

@@ -1,3 +1,4 @@
+import * as turf from '@turf/turf';
 import XYZ from 'ol/source/XYZ.js';
 import {
     Group, LineBasicMaterial, MeshBasicMaterial, PointsMaterial, Vector2, Vector3,
@@ -9,9 +10,7 @@ import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
-import DrawTool, {
-    DRAWTOOL_EVENT_TYPE, DRAWTOOL_MODE, DRAWTOOL_STATE, GEOMETRY_TYPE,
-} from '@giro3d/giro3d/interactions/DrawTool.js';
+import DrawTool, { DrawToolMode, DrawToolState } from '@giro3d/giro3d/interactions/DrawTool.js';
 import Drawing from '@giro3d/giro3d/interactions/Drawing.js';
 import Fetcher from '@giro3d/giro3d/utils/Fetcher';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
@@ -24,7 +23,7 @@ const y = 5811042.273912458;
 const extent = new Extent(
     'EPSG:3857',
     x - 12000, x + 13000,
-    y - 4000, y + 21000,
+    y - 4000, y + 26000,
 );
 
 const instance = new Instance(document.getElementById('viewerDiv'), {
@@ -37,30 +36,69 @@ const instance = new Instance(document.getElementById('viewerDiv'), {
 const map = new Map('planar', {
     extent,
     hillshading: true,
-    segments: 64,
+    segments: 128,
     discardNoData: true,
     backgroundColor: 'white',
 });
 
 instance.add(map);
 
-const source = new TiledImageSource({
-    source: new XYZ({
-        minZoom: 10,
-        maxZoom: 16,
-        url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
-    }),
-    format: new GeoTIFFFormat(),
-});
+let footprint;
 
-map.addLayer(new ElevationLayer({
-    name: 'osm',
-    extent,
-    source,
-})).catch(e => console.error(e));
+/**
+ * A function that will override the default intersection test for image sources (by default
+ * performing intersection on extents, i.e rectangles). Here we want to exclude tiles that do not
+ * intersect with the GeoJSON footprint of the dataset.
+ *
+ * @param {Extent} tileExtent The extent to test.
+ */
+function customIntersectionTest(tileExtent) {
+    if (!footprint) {
+        return true;
+    }
+
+    const corners = [
+        [tileExtent.topLeft().x, tileExtent.topLeft().y],
+        [tileExtent.topRight().x, tileExtent.topRight().y],
+        [tileExtent.bottomRight().x, tileExtent.bottomRight().y],
+        [tileExtent.bottomLeft().x, tileExtent.bottomLeft().y],
+    ];
+
+    const extentAsPolygon = turf.helpers.polygon([[
+        corners[0],
+        corners[1],
+        corners[2],
+        corners[3],
+        corners[0],
+    ]]);
+
+    const intersects = turf.booleanIntersects(turf.toWgs84(extentAsPolygon), footprint);
+
+    return intersects;
+}
+
+Fetcher.json('data/MtStHelens-footprint.geojson').then(geojson => {
+    footprint = turf.toWgs84(geojson);
+
+    const source = new TiledImageSource({
+        containsFn: customIntersectionTest, // Here we specify our custom intersection test
+        source: new XYZ({
+            minZoom: 10,
+            maxZoom: 16,
+            url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
+        }),
+        format: new GeoTIFFFormat(),
+    });
+
+    map.addLayer(new ElevationLayer({
+        name: 'osm',
+        extent,
+        source,
+    })).catch(e => console.error(e));
+}).catch(e => console.error(e));
 
 const center = extent.centerAsVector3();
-instance.camera.camera3D.position.set(center.x, center.y, 25000);
+instance.camera.camera3D.position.set(center.x, center.y - 1, 50000);
 
 // Instanciates controls
 // Beware: we need to bind them to *instance.domElement* so we can interact over 2D labels!
@@ -95,6 +133,8 @@ const drawToolOptions = {
             : undefined
     ),
     enableAddPointsOnEdit: document.getElementById('addpointsEnabled').checked,
+    use3Dpoints: document.getElementById('pointsrendering').value === '0',
+    point2DFactory: point2DFactoryHighlighted,
 };
 const drawTool = new DrawTool(instance, drawToolOptions);
 
@@ -140,9 +180,9 @@ document.getElementById('maxpoints').addEventListener('change', updateMaxpoints)
 document.getElementById('addpointsEnabled').addEventListener('change', updateAddPoints);
 
 document.getElementById('addPoint').onclick = () => {
-    if (drawTool.state !== DRAWTOOL_STATE.READY) {
+    if (drawTool.state !== DrawToolState.READY) {
         // We're already drawing, do something with the current drawing
-        if (drawTool.mode === DRAWTOOL_MODE.EDIT) drawTool.end();
+        if (drawTool.mode === DrawToolMode.EDIT) drawTool.end();
         else drawTool.reset();
     }
 
@@ -154,12 +194,12 @@ document.getElementById('addPoint').onclick = () => {
     document.getElementById('options').setAttribute('disabled', true);
 
     // Start drawing!
-    drawTool.start(GEOMETRY_TYPE.MULTIPOINT);
+    drawTool.start('MultiPoint');
 };
 
 document.getElementById('addLine').onclick = () => {
-    if (drawTool.state !== DRAWTOOL_STATE.READY) {
-        if (drawTool.mode === DRAWTOOL_MODE.EDIT) drawTool.end();
+    if (drawTool.state !== DrawToolState.READY) {
+        if (drawTool.mode === DrawToolMode.EDIT) drawTool.end();
         else drawTool.reset();
     }
 
@@ -169,12 +209,12 @@ document.getElementById('addLine').onclick = () => {
     document.getElementById('addLineHelper').classList.remove('d-none');
     document.getElementById('options').setAttribute('disabled', true);
 
-    drawTool.start(GEOMETRY_TYPE.LINE);
+    drawTool.start('LineString');
 };
 
 document.getElementById('addPolygon').onclick = () => {
-    if (drawTool.state !== DRAWTOOL_STATE.READY) {
-        if (drawTool.mode === DRAWTOOL_MODE.EDIT) drawTool.end();
+    if (drawTool.state !== DrawToolState.READY) {
+        if (drawTool.mode === DrawToolMode.EDIT) drawTool.end();
         else drawTool.reset();
     }
 
@@ -184,11 +224,11 @@ document.getElementById('addPolygon').onclick = () => {
     document.getElementById('addPolygonHelper').classList.remove('d-none');
     document.getElementById('options').setAttribute('disabled', true);
 
-    drawTool.start(GEOMETRY_TYPE.POLYGON);
+    drawTool.start('Polygon');
 };
 
 // Hide the help when we're done drawing
-drawTool.addEventListener(DRAWTOOL_EVENT_TYPE.END, () => {
+drawTool.addEventListener('end', () => {
     for (const o of document.getElementsByClassName('helper')) {
         o.classList.add('d-none');
     }
@@ -220,7 +260,7 @@ const drawnPointMaterial = new PointsMaterial({
 });
 
 // If using CSS2DRenderer for points, we define our own (optional) factory
-function point2DFactory(index) {
+function point2DFactory(text) {
     const pt = document.createElement('div');
     pt.style.position = 'absolute';
     pt.style.borderRadius = '50%';
@@ -233,15 +273,31 @@ function point2DFactory(index) {
     pt.style.textAlign = 'center';
     pt.style.pointerEvents = 'auto';
     pt.style.cursor = 'pointer';
-    pt.innerText = `${index + 1}`;
-    pt.addEventListener('click', () => drawTool.edit(this));
+    pt.innerText = text;
+    return pt;
+}
+
+function point2DFactoryHighlighted(text) {
+    const pt = document.createElement('div');
+    pt.style.position = 'absolute';
+    pt.style.borderRadius = '50%';
+    pt.style.width = '28px';
+    pt.style.height = '28px';
+    pt.style.backgroundColor = '#347330';
+    pt.style.color = '#ffffff';
+    pt.style.border = '2px solid #070607';
+    pt.style.fontSize = '14px';
+    pt.style.textAlign = 'center';
+    pt.style.pointerEvents = 'auto';
+    pt.style.cursor = 'pointer';
+    pt.innerText = text;
     return pt;
 }
 
 const updatePointsRendering = () => {
     // Update existing drawings
     for (const o of drawnShapes.children) {
-        if (o.geometryType === GEOMETRY_TYPE.MULTIPOINT) {
+        if (o.geometryType === 'MultiPoint') {
             o.clear();
             o.use3Dpoints = document.getElementById('pointsrendering').value === '0';
             o.update();
@@ -260,8 +316,17 @@ function addShape(geojson) {
         minExtrudeDepth: 40,
         maxExtrudeDepth: 100,
         use3Dpoints: document.getElementById('pointsrendering').value === '0',
-        point2DFactory,
+        point2DFactory: index => point2DFactory(`${index + 1}`),
     }, geojson);
+
+    if (!o.use3Dpoints && (o.geometryType === 'Point' || o.geometryType === 'MultiPoint')) {
+        // Edit the shape when clicking on points
+        for (const pt of o.children) {
+            pt.element.addEventListener('click', () => {
+                drawTool.edit(o);
+            });
+        }
+    }
 
     // And add it to our scene
     drawnShapes.add(o);
@@ -269,7 +334,7 @@ function addShape(geojson) {
 }
 
 // Listen to when we are done drawing
-drawTool.addEventListener(DRAWTOOL_EVENT_TYPE.END, evt => addShape(evt.geojson));
+drawTool.addEventListener('end', evt => addShape(evt.geojson));
 
 // At this point we:
 // - can add new shapes,
@@ -285,14 +350,14 @@ function getDrawnShapeAt(evt) {
 
 // Display a nice pointer when the user is over a drawn shape
 instance.domElement.addEventListener('mousemove', evt => {
-    if (drawTool.state !== DRAWTOOL_STATE.READY) return;
+    if (drawTool.state !== DrawToolState.READY) return;
     const picked = getDrawnShapeAt(evt);
     instance.domElement.style.cursor = picked ? 'pointer' : 'default';
 });
 
 // Edit a shape when clicking on it
 instance.domElement.addEventListener('click', evt => {
-    if (drawTool.state !== DRAWTOOL_STATE.READY) return;
+    if (drawTool.state !== DrawToolState.READY) return;
     const picked = getDrawnShapeAt(evt);
     if (picked) {
         for (const o of document.getElementsByClassName('helper')) {
