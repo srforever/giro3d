@@ -198,9 +198,9 @@ class LayeredMaterial extends ShaderMaterial {
 
     showOutline: boolean;
 
-    private disposed: boolean;
-    private readonly atlasInfo: AtlasInfo;
-    private options: MaterialOptions;
+    private _disposed: boolean;
+    private readonly _atlasInfo: AtlasInfo;
+    private _options: MaterialOptions;
 
     /**
      * @param param0 the params.
@@ -222,7 +222,7 @@ class LayeredMaterial extends ShaderMaterial {
     }) {
         super({ clipping: true, glslVersion: GLSL3 });
 
-        this.atlasInfo = atlasInfo;
+        this._atlasInfo = atlasInfo;
         this.defines.STITCHING = 1;
         this.defines.ENABLE_CONTOUR_LINES = 1;
         this._renderer = renderer;
@@ -367,7 +367,7 @@ class LayeredMaterial extends ShaderMaterial {
         this.dispatchEvent({
             type: 'dispose',
         });
-        this.disposed = true;
+        this._disposed = true;
 
         for (const layer of this._colorLayers) {
             const index = this.indexOfColorLayer(layer);
@@ -409,7 +409,7 @@ class LayeredMaterial extends ShaderMaterial {
         // Redraw all color layers on the canvas
         for (const l of this._colorLayers) {
             const idx = this.indexOfColorLayer(l);
-            const atlas = this.atlasInfo.atlas[l.id];
+            const atlas = this._atlasInfo.atlas[l.id];
 
             const layerTexture = this.texturesInfo.color.infos[idx].texture;
 
@@ -418,7 +418,7 @@ class LayeredMaterial extends ShaderMaterial {
 
             updateOffsetScale(
                 new Vector2(w, h),
-                this.atlasInfo.atlas[l.id],
+                this._atlasInfo.atlas[l.id],
                 this.texturesInfo.color.infos[idx].originalOffsetScale,
                 this._composer.width,
                 this._composer.height,
@@ -653,7 +653,7 @@ class LayeredMaterial extends ShaderMaterial {
      * @param  materialOptions The material options.
      */
     update(materialOptions: MaterialOptions = {}) {
-        this.options = materialOptions;
+        this._options = materialOptions;
 
         if (this._colorMapAtlas) {
             this._updateColorMaps();
@@ -731,9 +731,9 @@ class LayeredMaterial extends ShaderMaterial {
 
     createComposer() {
         const newComposer = new WebGLComposer({
-            extent: new Rect(0, this.atlasInfo.maxX, 0, this.atlasInfo.maxY),
-            width: this.atlasInfo.maxX,
-            height: this.atlasInfo.maxY,
+            extent: new Rect(0, this._atlasInfo.maxX, 0, this._atlasInfo.maxY),
+            width: this._atlasInfo.maxX,
+            height: this._atlasInfo.maxY,
             reuseTexture: true,
             webGLRenderer: this._renderer,
             pixelFormat: RGBAFormat,
@@ -743,8 +743,8 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     rebuildAtlasIfNecessary() {
-        if (this.atlasInfo.maxX > this._composer.width
-            || this.atlasInfo.maxY > this._composer.height
+        if (this._atlasInfo.maxX > this._composer.width
+            || this._atlasInfo.maxY > this._composer.height
             || this._composer.dataType !== this._composerDataType) {
             const newComposer = this.createComposer();
 
@@ -767,7 +767,7 @@ class LayeredMaterial extends ShaderMaterial {
 
             for (let i = 0; i < this._colorLayers.length; i++) {
                 const layer = this._colorLayers[i];
-                const atlas = this.atlasInfo.atlas[layer.id];
+                const atlas = this._atlasInfo.atlas[layer.id];
                 const pitch = this.texturesInfo.color.infos[i].originalOffsetScale;
                 const texture = this.texturesInfo.color.infos[i].texture;
 
@@ -813,7 +813,7 @@ class LayeredMaterial extends ShaderMaterial {
     _updateBlendingMode() {
         const state = this.uniforms.renderingState.value;
         if (state === RenderingState.FINAL) {
-            this.transparent = this.opacity < 1 || this.options.backgroundOpacity < 1;
+            this.transparent = this.opacity < 1 || this._options.backgroundOpacity < 1;
             this.needsUpdate = true;
             this.blending = NormalBlending;
         } else {

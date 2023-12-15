@@ -74,9 +74,9 @@ export default class TiledImageSource extends ImageSource {
     readonly format: ImageFormat;
     readonly olprojection: any;
     readonly noDataValue: number;
-    private readonly tileGrid: TileGrid;
-    private readonly getTileUrl: any;
-    private readonly sourceExtent: Extent;
+    private readonly _tileGrid: TileGrid;
+    private readonly _getTileUrl: any;
+    private readonly _sourceExtent: Extent;
 
     /**
      * @param options The options.
@@ -99,17 +99,17 @@ export default class TiledImageSource extends ImageSource {
         /** @type {TileGrid} */
         const tileGrid: TileGrid = this.source.getTileGridForProjection(projection);
         // Cache the tilegrid because it is constant
-        this.tileGrid = tileGrid;
-        this.getTileUrl = this.source.getTileUrlFunction();
+        this._tileGrid = tileGrid;
+        this._getTileUrl = this.source.getTileUrlFunction();
         this.noDataValue = options.noDataValue;
-        this.sourceExtent = options.extent ?? OpenLayersUtils.fromOLExtent(
+        this._sourceExtent = options.extent ?? OpenLayersUtils.fromOLExtent(
             tileGrid.getExtent(),
             projection.getCode(),
         );
     }
 
     getExtent() {
-        return this.sourceExtent;
+        return this._sourceExtent;
     }
 
     getCrs() {
@@ -124,8 +124,8 @@ export default class TiledImageSource extends ImageSource {
      * @returns The ideal zoom level for this particular extent.
      */
     getZoomLevel(extent: Extent, width: number): number {
-        const minZoom = this.tileGrid.getMinZoom();
-        const maxZoom = this.tileGrid.getMaxZoom();
+        const minZoom = this._tileGrid.getMinZoom();
+        const maxZoom = this._tileGrid.getMaxZoom();
 
         function round1000000(n: number) {
             return Math.round(n * 1000000) / 1000000;
@@ -133,7 +133,7 @@ export default class TiledImageSource extends ImageSource {
 
         const dims = extent.dimensions(tmp.dims);
         const targetResolution = round1000000(dims.x / width);
-        const minResolution = this.tileGrid.getResolution(minZoom);
+        const minResolution = this._tileGrid.getResolution(minZoom);
 
         if (targetResolution / minResolution > MIN_LEVEL_THRESHOLD) {
             // The minimum zoom level has more than twice the resolution
@@ -152,7 +152,7 @@ export default class TiledImageSource extends ImageSource {
 
         // Let's determine the best zoom level for the target tile.
         for (let z = minZoom; z <= maxZoom; z++) {
-            const sourceResolution = round1000000(this.tileGrid.getResolution(z));
+            const sourceResolution = round1000000(this._tileGrid.getResolution(z));
 
             if (targetResolution >= sourceResolution) {
                 return z;
@@ -174,7 +174,7 @@ export default class TiledImageSource extends ImageSource {
         }
 
         /** @type {TileGrid} */
-        const tileGrid: TileGrid = this.tileGrid;
+        const tileGrid: TileGrid = this._tileGrid;
         const zoomLevel = this.getZoomLevel(extent, width);
         if (zoomLevel == null) {
             return [];
@@ -239,8 +239,8 @@ export default class TiledImageSource extends ImageSource {
         if (this.format) {
             let width: number;
             let height: number;
-            if (this.tileGrid) {
-                const tileSize = this.tileGrid.getTileSize(0);
+            if (this._tileGrid) {
+                const tileSize = this._tileGrid.getTileSize(0);
                 width = tileSize as number;
                 height = tileSize as number;
             }
@@ -277,7 +277,7 @@ export default class TiledImageSource extends ImageSource {
 
         const convertedExtent = extent.clone().as(this.getCrs());
 
-        return convertedExtent.intersectsExtent(this.sourceExtent);
+        return convertedExtent.intersectsExtent(this._sourceExtent);
     }
 
     /**
@@ -290,7 +290,7 @@ export default class TiledImageSource extends ImageSource {
      */
     loadTiles(tileRange: TileRange, crs: string, zoom: number, createDataTexture: boolean) {
         const source = this.source;
-        const tileGrid = this.tileGrid;
+        const tileGrid = this._tileGrid;
 
         const fullTileRange = tileGrid.getFullTileRange(zoom);
 
@@ -308,7 +308,7 @@ export default class TiledImageSource extends ImageSource {
                 const id = `${coord[0]}-${coord[1]}-${coord[2]}`;
                 // Don't bother loading tiles that are not in the layer
                 if (this.shouldLoad(tileExtent)) {
-                    const url = this.getTileUrl(coord, 1, this.olprojection);
+                    const url = this._getTileUrl(coord, 1, this.olprojection);
                     const request = () => this.loadTile(id, url, tileExtent, createDataTexture);
                     promises.push({ id, request });
                 }

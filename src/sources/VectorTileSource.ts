@@ -169,11 +169,11 @@ class VectorTileSource extends ImageSource {
     readonly source: OLVectorTileSourcce;
     readonly style: Style | StyleFunction;
     readonly backgroundColor: string;
-    private sourceProjection: Projection;
-    private extent: Extent;
-    private readonly tileGrid: TileGrid;
-    private readonly crs: string;
-    private readonly ol_uid = MathUtils.generateUUID();
+    private _sourceProjection: Projection;
+    private _extent: Extent;
+    private readonly _tileGrid: TileGrid;
+    private readonly _crs: string;
+    private readonly _olUID = MathUtils.generateUUID();
 
     /**
      * @param options Options.
@@ -210,26 +210,26 @@ class VectorTileSource extends ImageSource {
 
         this.style = options.style;
         this.backgroundColor = options.backgroundColor;
-        this.sourceProjection = null;
+        this._sourceProjection = null;
 
         const projection = this.source.getProjection();
-        this.crs = projection.getCode();
+        this._crs = projection.getCode();
         const tileGrid = this.source.getTileGridForProjection(projection);
-        this.tileGrid = tileGrid;
-        this.sourceProjection = projection;
+        this._tileGrid = tileGrid;
+        this._sourceProjection = projection;
     }
 
     getCrs() {
-        return this.crs;
+        return this._crs;
     }
 
     getExtent() {
-        if (!this.extent) {
-            const tileGrid = this.source.getTileGridForProjection(this.sourceProjection);
+        if (!this._extent) {
+            const tileGrid = this.source.getTileGridForProjection(this._sourceProjection);
             const sourceExtent = tileGrid.getExtent();
-            this.extent = OpenLayersUtils.fromOLExtent(sourceExtent, this.crs);
+            this._extent = OpenLayersUtils.fromOLExtent(sourceExtent, this._crs);
         }
-        return this.extent;
+        return this._extent;
     }
 
     /**
@@ -267,7 +267,7 @@ class VectorTileSource extends ImageSource {
         const transform = resetTransform(tmpTransform);
         scaleTransform(transform, pixelScale, -pixelScale);
         translateTransform(transform, -tileExtent[0], -tileExtent[3]);
-        const executorGroups = tile.executorGroups[this.ol_uid];
+        const executorGroups = tile.executorGroups[this._olUID];
         for (let i = 0, ii = executorGroups.length; i < ii; ++i) {
             const executorGroup = executorGroups[i];
             executorGroup.execute(ctx, 1, transform, 0, true);
@@ -306,7 +306,7 @@ class VectorTileSource extends ImageSource {
         const tmpExtent2 = createEmptyExtent();
         let empty = true;
 
-        tile.executorGroups[this.ol_uid] = [];
+        tile.executorGroups[this._olUID] = [];
         const sourceTiles = source.getSourceTiles(pixelRatio, sourceProjection, tile);
         for (let t = 0, tt = sourceTiles.length; t < tt; ++t) {
             const sourceTile = sourceTiles[t];
@@ -364,7 +364,7 @@ class VectorTileSource extends ImageSource {
                     builderGroup.finish(),
                     renderBuffer,
                 );
-                tile.executorGroups[this.ol_uid].push(renderingReplayGroup);
+                tile.executorGroups[this._olUID].push(renderingReplayGroup);
             }
         }
         replayState.renderedRevision = 1;
@@ -411,7 +411,7 @@ class VectorTileSource extends ImageSource {
      */
     private loadTiles(extent: Extent, zoom: number): Array<ImageResponse> {
         const source = this.source;
-        const tileGrid = this.tileGrid;
+        const tileGrid = this._tileGrid;
         const crs = extent.crs();
 
         const requests: ImageResponse[] = [];
@@ -419,7 +419,7 @@ class VectorTileSource extends ImageSource {
         const sourceExtent = this.getExtent();
 
         tileGrid.forEachTileCoord(OpenLayersUtils.toOLExtent(extent), zoom, ([z, i, j]) => {
-            const tile = source.getTile(z, i, j, 1, this.sourceProjection);
+            const tile = source.getTile(z, i, j, 1, this._sourceProjection);
             const coord = tile.getTileCoord();
             const id = `${z}-${i}-${j}`;
             if (coord) {
@@ -443,7 +443,7 @@ class VectorTileSource extends ImageSource {
             extent, width,
         } = options;
 
-        const tileGrid = this.source.getTileGridForProjection(this.sourceProjection);
+        const tileGrid = this.source.getTileGridForProjection(this._sourceProjection);
         const zoomLevel = getZoomLevel(tileGrid, width, extent);
 
         if (zoomLevel == null) {

@@ -92,6 +92,24 @@ module.exports = {
                 message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.',
             },
         ],
+        '@typescript-eslint/naming-convention': [
+            "error", {
+                selector: 'classProperty',
+                format: ['camelCase'],
+                trailingUnderscore: 'forbid',
+            }, {
+                selector: 'classProperty',
+                modifiers: ['private'],
+                format: ['camelCase'],
+                leadingUnderscore: 'require',
+            },
+            {
+                selector: 'classProperty',
+                modifiers: ['public'],
+                format: ['camelCase'],
+                leadingUnderscore: 'forbid',
+            },
+        ],
         // disabling this because it is not yet possible to be subtle enough.
         // For instance, ok:
         // [this.zoom, this.row, this.col] = values

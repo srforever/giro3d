@@ -10,11 +10,12 @@ import ImageSource, { ImageResult } from './ImageSource';
 
 class DebugSource extends ImageSource {
     readonly isDebugSource: boolean = true;
-    private readonly delay: () => number;
-    private readonly extent: Extent;
-    private readonly opacity: number;
-    private readonly subdivisions: number;
-    private readonly color: Color;
+
+    private readonly _delay: () => number;
+    private readonly _extent: Extent;
+    private readonly _opacity: number;
+    private readonly _subdivisions: number;
+    private readonly _color: Color;
 
     /**
      * @param options options
@@ -40,21 +41,21 @@ class DebugSource extends ImageSource {
         } = options;
         if (delay) {
             if (typeof delay === 'function') {
-                this.delay = delay;
+                this._delay = delay;
             } else if (typeof delay === 'number') {
-                this.delay = () => delay;
+                this._delay = () => delay;
             }
         } else {
-            this.delay = () => 0;
+            this._delay = () => 0;
         }
 
         this.type = 'DebugSource';
 
-        this.extent = options.extent;
-        this.opacity = opacity ?? 1;
-        this.subdivisions = subdivisions ?? 1;
-        this.color = color ?? new Color(1, 1, 1);
-        this.extent = extent;
+        this._extent = options.extent;
+        this._opacity = opacity ?? 1;
+        this._subdivisions = subdivisions ?? 1;
+        this._color = color ?? new Color(1, 1, 1);
+        this._extent = extent;
     }
 
     private getImage(width: number, height: number, id: string) {
@@ -64,11 +65,11 @@ class DebugSource extends ImageSource {
         const context = canvas.getContext('2d');
         const prefix = id.substring(0, 10);
 
-        context.fillStyle = `#${this.color.getHexString()}`;
-        context.globalAlpha = this.opacity ?? 1;
+        context.fillStyle = `#${this._color.getHexString()}`;
+        context.globalAlpha = this._opacity ?? 1;
         context.fillRect(0, 0, width, height);
         context.globalAlpha = 1;
-        context.strokeStyle = `#${this.color.getHexString()}`;
+        context.strokeStyle = `#${this._color.getHexString()}`;
         context.lineWidth = 16;
         context.strokeRect(0, 0, width, height);
         context.fillStyle = 'black';
@@ -82,18 +83,18 @@ class DebugSource extends ImageSource {
     }
 
     getCrs(): string {
-        return this.extent.crs();
+        return this._extent.crs();
     }
 
     getExtent() {
-        return this.extent;
+        return this._extent;
     }
 
     getImages(options: GetImageOptions) {
         const {
             extent, width, height, signal, id,
         } = options;
-        const subdivs = this.subdivisions;
+        const subdivs = this._subdivisions;
         const extents = extent.split(subdivs, subdivs);
 
         const requests = [];
@@ -103,7 +104,7 @@ class DebugSource extends ImageSource {
 
         for (const ex of extents) {
             const imageId = `${id}-${MathUtils.generateUUID()}`;
-            const request = () => PromiseUtils.delay(this.delay())
+            const request = () => PromiseUtils.delay(this._delay())
                 .then(() => {
                     signal?.throwIfAborted();
                     const texture = this.getImage(w, h, imageId);
