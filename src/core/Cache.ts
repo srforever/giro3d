@@ -41,8 +41,8 @@ const DEFAULT_CAPACITY: number = 512 * 1024 * 1024;
  *
  */
 class Cache {
-    private readonly deleteHandlers: Map<string, Function>;
-    private readonly lru: LRUCache<string, unknown, unknown>;
+    private readonly _deleteHandlers: Map<string, Function>;
+    private readonly _lru: LRUCache<string, unknown, unknown>;
     private _enabled: boolean;
 
     /**
@@ -63,11 +63,11 @@ class Cache {
         byteCapacity: DEFAULT_CAPACITY,
         maxNumberOfEntries: DEFAULT_MAX_ENTRIES,
     }) {
-        this.deleteHandlers = new Map();
+        this._deleteHandlers = new Map();
 
         const that = this;
         this._enabled = true;
-        this.lru = new LRUCache({
+        this._lru = new LRUCache({
             ttl: opts.ttl ?? DEFAULT_TTL,
             ttlResolution: 1000, // 1 second
             updateAgeOnGet: true,
@@ -95,25 +95,25 @@ class Cache {
      * Gets or sets the default TTL (time to live) of the cache.
      */
     get defaultTtl() {
-        return this.lru.ttl;
+        return this._lru.ttl;
     }
 
     set defaultTtl(v) {
-        this.lru.ttl = v;
+        this._lru.ttl = v;
     }
 
     /**
      * Gets the maximum size of the cache, in bytes.
      */
     get maxSize() {
-        return this.lru.maxSize;
+        return this._lru.maxSize;
     }
 
     /**
      * Gets the maximum number of entries.
      */
     get capacity() {
-        return this.lru.max;
+        return this._lru.max;
     }
 
     /**
@@ -122,7 +122,7 @@ class Cache {
      * @type {number}
      */
     get count() {
-        return this.lru.size;
+        return this._lru.size;
     }
 
     /**
@@ -131,20 +131,20 @@ class Cache {
      * @type {number}
      */
     get size() {
-        return this.lru.calculatedSize;
+        return this._lru.calculatedSize;
     }
 
     /**
      * Returns an array of entries.
      */
     entries(): Array<unknown> {
-        return [...this.lru.entries()];
+        return [...this._lru.entries()];
     }
 
     private onDisposed(key: string, value: unknown) {
-        const handler: Function = this.deleteHandlers.get(key);
+        const handler: Function = this._deleteHandlers.get(key);
         if (handler) {
-            this.deleteHandlers.delete(key);
+            this._deleteHandlers.delete(key);
             handler(value);
         }
     }
@@ -153,7 +153,7 @@ class Cache {
      * Removes stale entries.
      */
     purge() {
-        this.lru.purgeStale();
+        this._lru.purgeStale();
     }
 
     /**
@@ -167,7 +167,7 @@ class Cache {
             return undefined;
         }
 
-        return this.lru.get(key);
+        return this._lru.get(key);
     }
 
     /**
@@ -186,13 +186,13 @@ class Cache {
             throw new Error('the cache expects strings as keys.');
         }
 
-        this.lru.set(key, value, {
+        this._lru.set(key, value, {
             ttl: options.ttl ?? this.defaultTtl,
             size: options.size ?? 1024, // Use a default size if not provided
         });
 
         if (options.onDelete) {
-            this.deleteHandlers.set(key, options.onDelete);
+            this._deleteHandlers.set(key, options.onDelete);
         }
 
         return value;
@@ -205,7 +205,7 @@ class Cache {
      * @returns `true` if the entry was deleted, `false` otherwise.
      */
     delete(key: string): boolean {
-        return this.lru.delete(key);
+        return this._lru.delete(key);
     }
 
     /**
@@ -213,7 +213,7 @@ class Cache {
      *
      */
     clear() {
-        this.lru.clear();
+        this._lru.clear();
     }
 }
 

@@ -147,9 +147,10 @@ class LayerComposer {
     readonly fillNoDataAlphaReplacement: number;
     readonly fillNoData: boolean;
     readonly fillNoDataRadius: number;
-    private needsCleanup: boolean;
     readonly pixelFormat: PixelFormat;
     readonly textureDataType: TextureDataType;
+
+    private _needsCleanup: boolean;
 
     disposed: boolean;
 
@@ -212,7 +213,7 @@ class LayerComposer {
         });
 
         this.disposed = false;
-        this.needsCleanup = false;
+        this._needsCleanup = false;
     }
 
     /**
@@ -240,7 +241,7 @@ class LayerComposer {
             if (image) {
                 image.owners.delete(nodeId);
                 if (image.owners.size === 0) {
-                    this.needsCleanup = true;
+                    this._needsCleanup = true;
                 }
             }
         });
@@ -447,7 +448,7 @@ class LayerComposer {
 
         this.images.set(id, image);
 
-        this.needsCleanup = true;
+        this._needsCleanup = true;
     }
 
     /**
@@ -696,9 +697,9 @@ class LayerComposer {
     }
 
     postUpdate() {
-        if (this.needsCleanup) {
+        if (this._needsCleanup) {
             this.cleanup();
-            this.needsCleanup = false;
+            this._needsCleanup = false;
         }
 
         return false;

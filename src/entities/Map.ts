@@ -198,9 +198,13 @@ export interface MapEventMap extends Entity3DEventMap {
  */
 class Map extends Entity3D<MapEventMap> {
     private _segments: number;
+    private readonly _atlasInfo: AtlasInfo;
+    private _subdivisions: { x: number; y: number; };
+    private _imageSize: Vector2;
+    /** @ignore */
     readonly level0Nodes: TileMesh[];
     private readonly _layerIndices: globalThis.Map<string, number>;
-    private currentAddedLayerIds: string[];
+    private _currentAddedLayerIds: string[];
     readonly geometryPool: globalThis.Map<string, TileGeometry>;
     extent: Extent;
     readonly maxSubdivisionLevel: number;
@@ -214,9 +218,7 @@ class Map extends Entity3D<MapEventMap> {
     readonly tileIndex: TileIndex;
     /** @ignore */
     sseScale: number;
-    private readonly atlasInfo: AtlasInfo;
-    private subdivisions: { x: number; y: number; };
-    private imageSize: Vector2;
+
     /**
      * Displays the map tiles in wireframe.
      */
@@ -280,7 +282,7 @@ class Map extends Entity3D<MapEventMap> {
 
         this._layerIndices = new window.Map();
 
-        this.atlasInfo = { maxX: 0, maxY: 0, atlas: null };
+        this._atlasInfo = { maxX: 0, maxY: 0, atlas: null };
 
         if (!options.extent.isValid()) {
             throw new Error('Invalid extent: minX must be less than maxX and minY must be less than maxY.');
@@ -309,7 +311,7 @@ class Map extends Entity3D<MapEventMap> {
                 : DEFAULT_BACKGROUND_COLOR.clone(),
         };
 
-        this.currentAddedLayerIds = [];
+        this._currentAddedLayerIds = [];
         this.tileIndex = new TileIndex();
     }
 
@@ -405,26 +407,30 @@ class Map extends Entity3D<MapEventMap> {
         this._forEachTile(tile => { tile.segments = this.segments; });
     }
 
+    get subdivisions(): { x: number, y: number } {
+        return this._subdivisions;
+    }
+
     preprocess() {
         this.extent = this.extent.as(this._instance.referenceCrs);
 
-        this.subdivisions = selectBestSubdivisions(this.extent);
+        this._subdivisions = selectBestSubdivisions(this.extent);
 
         this.onTileCreated = this.onTileCreated || (() => {});
 
         // If the map is not square, we want to have more than a single
         // root tile to avoid elongated tiles that hurt visual quality and SSE computation.
-        const rootExtents = this.extent.split(this.subdivisions.x, this.subdivisions.y);
+        const rootExtents = this.extent.split(this._subdivisions.x, this._subdivisions.y);
 
-        this.imageSize = computeImageSize(rootExtents[0]);
+        this._imageSize = computeImageSize(rootExtents[0]);
 
         let i = 0;
         for (const root of rootExtents) {
-            if (this.subdivisions.x > this.subdivisions.y) {
+            if (this._subdivisions.x > this._subdivisions.y) {
                 this.level0Nodes.push(
                     this.requestNewTile(root, undefined, 0, i, 0),
                 );
-            } else if (this.subdivisions.y > this.subdivisions.x) {
+            } else if (this._subdivisions.y > this._subdivisions.x) {
                 this.level0Nodes.push(
                     this.requestNewTile(root, undefined, 0, 0, i),
                 );
@@ -454,7 +460,7 @@ class Map extends Entity3D<MapEventMap> {
         // build tile
         const material = new LayeredMaterial({
             renderer: this._instance.renderer,
-            atlasInfo: this.atlasInfo,
+            atlasInfo: this._atlasInfo,
             options: this.materialOptions,
             getIndexFn: this.getIndex.bind(this),
         });
@@ -463,7 +469,7 @@ class Map extends Entity3D<MapEventMap> {
             map: this,
             material,
             extent,
-            textureSize: this.imageSize,
+            textureSize: this._imageSize,
             segments: this.segments,
             coord: { level, x, y },
         });
@@ -833,11 +839,11 @@ class Map extends Entity3D<MapEventMap> {
                 return;
             }
             const duplicate = this.getLayers((l => l.id === layer.id));
-            if (duplicate.length > 0 || this.currentAddedLayerIds.includes(layer.id)) {
+            if (duplicate.length > 0 || this._currentAddedLayerIds.includes(layer.id)) {
                 reject(new Error(`layer ${layer.name || layer.id} is already present in this map`));
                 return;
             }
-            this.currentAddedLayerIds.push(layer.id);
+            this._currentAddedLayerIds.push(layer.id);
 
             this.attach(layer);
 
@@ -848,17 +854,17 @@ class Map extends Entity3D<MapEventMap> {
                 // We use a margin to prevent atlas bleeding.
                 const margin = 1.1;
                 const factor = layer.resolutionFactor * margin;
-                const { x, y } = this.imageSize;
+                const { x, y } = this._imageSize;
                 const size = new Vector2(Math.round(x * factor), Math.round(y * factor));
 
                 const { atlas, maxX, maxY } = AtlasBuilder.pack(
                     Capabilities.getMaxTextureSize(),
                     colorLayers.map(l => ({ id: l.id, size })),
-                    this.atlasInfo.atlas,
+                    this._atlasInfo.atlas,
                 );
-                this.atlasInfo.atlas = atlas;
-                this.atlasInfo.maxX = Math.max(this.atlasInfo.maxX, maxX);
-                this.atlasInfo.maxY = Math.max(this.atlasInfo.maxY, maxY);
+                this._atlasInfo.atlas = atlas;
+                this._atlasInfo.maxX = Math.max(this._atlasInfo.maxX, maxX);
+                this._atlasInfo.maxY = Math.max(this._atlasInfo.maxY, maxY);
             } else if (layer instanceof ElevationLayer) {
                 const minmax = this.getElevationMinMax();
                 this._forEachTile(tile => {
@@ -877,7 +883,7 @@ class Map extends Entity3D<MapEventMap> {
             }
 
             layer.whenReady.then(l => {
-                if (!this.currentAddedLayerIds.includes(layer.id)) {
+                if (!this._currentAddedLayerIds.includes(layer.id)) {
                     // The layer was removed, stop attaching it.
                     return;
                 }
@@ -889,7 +895,7 @@ class Map extends Entity3D<MapEventMap> {
             }).catch(r => {
                 reject(r);
             }).then(() => {
-                this.currentAddedLayerIds = this.currentAddedLayerIds.filter(l => l !== layer.id);
+                this._currentAddedLayerIds = this._currentAddedLayerIds.filter(l => l !== layer.id);
             });
         });
     }
@@ -903,7 +909,7 @@ class Map extends Entity3D<MapEventMap> {
      * @returns {boolean} `true` if the layer was present, `false` otherwise.
      */
     removeLayer(layer: Layer, options: { disposeLayer?: boolean; } = {}): boolean {
-        this.currentAddedLayerIds = this.currentAddedLayerIds.filter(l => l !== layer.id);
+        this._currentAddedLayerIds = this._currentAddedLayerIds.filter(l => l !== layer.id);
         if (this.detach(layer)) {
             if (layer.colorMap) {
                 this.materialOptions.colorMapAtlas.remove(layer.colorMap);

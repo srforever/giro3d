@@ -175,7 +175,7 @@ class VectorSource extends ImageSource {
     readonly source: Vector;
     readonly dataProjection: string;
 
-    private targetProjection: string;
+    private _targetProjection: string;
 
     /**
      * The current style.
@@ -256,16 +256,16 @@ class VectorSource extends ImageSource {
     reproject(feature: Feature) {
         feature.getGeometry().transform(
             this.dataProjection,
-            this.targetProjection,
+            this._targetProjection,
         );
     }
 
     async initialize(opts: { targetProjection: string }) {
         await this.loadFeatures();
 
-        this.targetProjection = opts.targetProjection;
+        this._targetProjection = opts.targetProjection;
         const shouldReproject = this.dataProjection
-            && this.dataProjection !== this.targetProjection;
+            && this.dataProjection !== this._targetProjection;
 
         if (shouldReproject) {
             for (const feature of this.source.getFeatures()) {
@@ -318,7 +318,7 @@ class VectorSource extends ImageSource {
         // Note that since we are reprojecting vector _inside_ the source,
         // the source projection is the same as the target projection, indicating
         // that no projection needs to be done on images produced by this source.
-        return this.targetProjection;
+        return this._targetProjection;
     }
 
     getExtent() {
@@ -330,7 +330,7 @@ class VectorSource extends ImageSource {
         if (!Number.isFinite(sourceExtent[0])) {
             return null;
         }
-        return OpenLayersUtils.fromOLExtent(sourceExtent, this.targetProjection);
+        return OpenLayersUtils.fromOLExtent(sourceExtent, this._targetProjection);
     }
 
     /**

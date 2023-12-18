@@ -120,8 +120,8 @@ export type OnTileCreatedCallback = (tile: Group) => void;
  */
 class FeatureCollection extends Entity3D {
     readonly extent: Extent;
-    private subdivisions: { x: number; y: number };
-    private source: VectorSource;
+    private _subdivisions: { x: number; y: number };
+    private _source: VectorSource;
     private _opCounter: OperationCounter;
     private _tileIdSet: Set<string | number>;
 
@@ -213,7 +213,7 @@ class FeatureCollection extends Entity3D {
         }
         this.dataProjection = options.dataProjection;
         this.extent = options.extent;
-        this.subdivisions = selectBestSubdivisions(this.extent);
+        this._subdivisions = selectBestSubdivisions(this.extent);
 
         this.maxLevel = options.maxLevel ?? Infinity;
         this.minLevel = options.minLevel ?? 0;
@@ -239,7 +239,7 @@ class FeatureCollection extends Entity3D {
         this.onMeshCreated = options.onMeshCreated || (() => {});
         this.level0Nodes = [];
 
-        this.source = options.source;
+        this._source = options.source;
 
         this._opCounter = new OperationCounter();
 
@@ -251,13 +251,13 @@ class FeatureCollection extends Entity3D {
     preprocess() {
         // If the map is not square, we want to have more than a single
         // root tile to avoid elongated tiles that hurt visual quality and SSE computation.
-        const rootExtents = this.extent.split(this.subdivisions.x, this.subdivisions.y);
+        const rootExtents = this.extent.split(this._subdivisions.x, this._subdivisions.y);
 
         let i = 0;
         for (const root of rootExtents) {
-            if (this.subdivisions.x > this.subdivisions.y) {
+            if (this._subdivisions.x > this._subdivisions.y) {
                 this.level0Nodes.push(this.buildNewTile(root, 0, i, 0));
-            } else if (this.subdivisions.y > this.subdivisions.x) {
+            } else if (this._subdivisions.y > this._subdivisions.x) {
                 this.level0Nodes.push(this.buildNewTile(root, 0, 0, i));
             } else {
                 this.level0Nodes.push(this.buildNewTile(root, 0, 0, 0));
@@ -420,7 +420,7 @@ class FeatureCollection extends Entity3D {
                 }
                 extent = OLUtils.toOLExtent(extent);
 
-                (this.source as any).loader_(
+                (this._source as any).loader_(
                     extent,
                     /* resolution */ undefined,
                     this._instance.referenceCrs,

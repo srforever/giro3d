@@ -159,13 +159,13 @@ class AxisGrid extends Entity3D {
      */
     readonly isAxisGrid = true;
 
-    private readonly root: Group;
-    private readonly labelRoot: Group;
-    private readonly labels: CSS2DObject[];
-    private readonly labelElements: HTMLElement[];
+    private readonly _root: Group;
+    private readonly _labelRoot: Group;
+    private readonly _labels: CSS2DObject[];
+    private readonly _labelElements: HTMLElement[];
     private _style: Style;
-    private boundingSphere: Sphere;
-    private boundingBoxCenter: Vector3;
+    private _boundingSphere: Sphere;
+    private _boundingBoxCenter: Vector3;
     private _origin: TickOrigin;
     private _ticks: Ticks;
     private _unitSuffix: string;
@@ -212,17 +212,17 @@ class AxisGrid extends Entity3D {
 
         this.type = 'AxisGrid';
 
-        this.root = this.object3d as Group;
+        this._root = this.object3d as Group;
 
-        this.labelRoot = new Group();
-        this.labelRoot.name = 'labels';
-        this.labels = [];
+        this._labelRoot = new Group();
+        this._labelRoot.name = 'labels';
+        this._labels = [];
         this._style = options.style || DEFAULT_STYLE;
-        this.onObjectCreated(this.labelRoot);
-        this.root.add(this.labelRoot);
-        this.labelElements = [];
-        this.boundingSphere = new Sphere();
-        this.boundingBoxCenter = new Vector3();
+        this.onObjectCreated(this._labelRoot);
+        this._root.add(this._labelRoot);
+        this._labelElements = [];
+        this._boundingSphere = new Sphere();
+        this._boundingBoxCenter = new Vector3();
 
         if (!options.volume) {
             throw new Error('options.volume is undefined');
@@ -260,7 +260,7 @@ class AxisGrid extends Entity3D {
 
     updateOpacity() {
         const v = this.opacity;
-        this.labelElements.forEach(l => { l.style.opacity = `${v}`; });
+        this._labelElements.forEach(l => { l.style.opacity = `${v}`; });
 
         const mat = this._material;
         mat.opacity = v;
@@ -324,19 +324,19 @@ class AxisGrid extends Entity3D {
         this._material.color = color;
         this.style.color = color;
         const cssColor = getCssColor(color);
-        this.labelElements.forEach(l => { l.style.color = cssColor; });
+        this._labelElements.forEach(l => { l.style.color = cssColor; });
     }
 
     /**
      * Shows or hides labels.
      */
     get showLabels() {
-        return this.labelRoot.visible;
+        return this._labelRoot.visible;
     }
 
     set showLabels(v) {
-        if (v !== this.labelRoot.visible) {
-            this.labelRoot.visible = v;
+        if (v !== this._labelRoot.visible) {
+            this._labelRoot.visible = v;
             this.updateLabelsVisibility(this._lastCamera);
         }
     }
@@ -408,28 +408,28 @@ class AxisGrid extends Entity3D {
     private rebuildObjects() {
         this.volume.extent.centerAsVector2(tmpVec2);
 
-        this.root.position.setX(tmpVec2.x);
-        this.root.position.setY(tmpVec2.y);
+        this._root.position.setX(tmpVec2.x);
+        this._root.position.setY(tmpVec2.y);
 
         this.buildSides();
         this.buildLabels();
 
-        this.root.updateMatrixWorld();
+        this._root.updateMatrixWorld();
 
         this._boundingBox = this.volume.extent.toBox3(this.volume.floor, this.volume.ceiling);
-        this._boundingBox.getBoundingSphere(this.boundingSphere);
+        this._boundingBox.getBoundingSphere(this._boundingSphere);
 
-        this._boundingBox.getCenter(this.boundingBoxCenter);
+        this._boundingBox.getCenter(this._boundingBoxCenter);
 
         this.updateVisibility();
     }
 
     private removeLabels() {
-        const children = [...this.labelRoot.children];
+        const children = [...this._labelRoot.children];
         children.forEach(c => c.removeFromParent());
-        this.labelElements.forEach(elt => elt.remove());
-        this.labelElements.length = 0;
-        this.labels.length = 0;
+        this._labelElements.forEach(elt => elt.remove());
+        this._labelElements.length = 0;
+        this._labels.length = 0;
     }
 
     updateVisibility() {
@@ -442,9 +442,9 @@ class AxisGrid extends Entity3D {
         // Labels are displayed along each edge of the box volume.
         // There are 12 edges in a box, and those edges are linked to their two sides.
 
-        const labelRoot = this.labelRoot;
-        const labelElements = this.labelElements;
-        const labels = this.labels;
+        const labelRoot = this._labelRoot;
+        const labelElements = this._labelElements;
+        const labels = this._labels;
 
         this.removeLabels();
 
@@ -584,7 +584,7 @@ class AxisGrid extends Entity3D {
     }
 
     private deleteSides() {
-        const root = this.root;
+        const root = this._root;
 
         function remove(obj: LineSegments) {
             if (obj) {
@@ -658,12 +658,12 @@ class AxisGrid extends Entity3D {
         this.onObjectCreated(this._front);
         this.onObjectCreated(this._floor);
         this.onObjectCreated(this._ceiling);
-        this.root.add(this._back);
-        this.root.add(this._left);
-        this.root.add(this._right);
-        this.root.add(this._front);
-        this.root.add(this._floor);
-        this.root.add(this._ceiling);
+        this._root.add(this._back);
+        this._root.add(this._left);
+        this._root.add(this._right);
+        this._root.add(this._front);
+        this._root.add(this._floor);
+        this._root.add(this._ceiling);
     }
 
     /**
@@ -737,7 +737,7 @@ class AxisGrid extends Entity3D {
         if (!this._arrowRoot) {
             this._arrowRoot = new Group();
             this.onObjectCreated(this._arrowRoot);
-            this.root.parent.add(this._arrowRoot);
+            this._root.parent.add(this._arrowRoot);
         }
 
         const arrow = Helpers.createArrow(start.clone(), end.clone());
@@ -764,7 +764,7 @@ class AxisGrid extends Entity3D {
 
         this.deleteArrowHelpers();
 
-        this.labelRoot.children.forEach(o => this.updateLabelEdgeVisibility(camera, o as Edge));
+        this._labelRoot.children.forEach(o => this.updateLabelEdgeVisibility(camera, o as Edge));
     }
 
     private deleteArrowHelpers() {
@@ -781,7 +781,7 @@ class AxisGrid extends Entity3D {
             return;
         }
 
-        const rootVisible = this.object3d.visible && this.labelRoot.visible;
+        const rootVisible = this.object3d.visible && this._labelRoot.visible;
         const fontSize = this.style.fontSize;
 
         // Labels on an edge should be displayed only if one of their side is visible,
@@ -825,7 +825,7 @@ class AxisGrid extends Entity3D {
             tmp.edgeCenter.set(0, 0, 0);
             const edgeCenter = edge.localToWorld(tmp.edgeCenter);
 
-            const boxCenter = this.boundingBoxCenter.clone();
+            const boxCenter = this._boundingBoxCenter.clone();
 
             if (this.showHelpers) {
                 this.makeArrowHelper(boxCenter, edgeCenter);
@@ -934,8 +934,8 @@ class AxisGrid extends Entity3D {
     private updateMinMaxDistance(context: Context) {
         const cameraPos = context.camera.camera3D.position;
 
-        const centerDistance = this.boundingSphere.center.distanceTo(cameraPos);
-        const radius = this.boundingSphere.radius;
+        const centerDistance = this._boundingSphere.center.distanceTo(cameraPos);
+        const radius = this._boundingSphere.radius;
 
         this._distance.min = centerDistance - radius;
         this._distance.max = centerDistance + radius;
@@ -949,8 +949,8 @@ class AxisGrid extends Entity3D {
         this._disposed = true;
         this._material.dispose();
         this.deleteSides();
-        this.labelElements.forEach(elt => elt.remove());
-        this.labelElements.length = 0;
+        this._labelElements.forEach(elt => elt.remove());
+        this._labelElements.length = 0;
 
         this.deleteArrowHelpers();
     }

@@ -69,24 +69,25 @@ export interface DrawOptions {
  * Composes images together using a three.js scene and an orthographic camera.
  */
 class WebGLComposer {
-    private readonly showImageOutlines: boolean;
-    private readonly extent: Rect;
-    private readonly renderer: WebGLRenderer;
-    private readonly reuseTexture: boolean;
-    private readonly clearColor: ColorRepresentation;
-    private readonly minFilter: MinificationTextureFilter;
-    private readonly magFilter: MagnificationTextureFilter;
-    private readonly ownedTextures: Texture[];
-    private readonly scene: Scene;
-    private readonly camera: OrthographicCamera;
-    private readonly expandRGB: boolean;
+    private readonly _showImageOutlines: boolean;
+    private readonly _extent: Rect;
+    private readonly _renderer: WebGLRenderer;
+    private readonly _reuseTexture: boolean;
+    private readonly _clearColor: ColorRepresentation;
+    private readonly _minFilter: MinificationTextureFilter;
+    private readonly _magFilter: MagnificationTextureFilter;
+    private readonly _ownedTextures: Texture[];
+    private readonly _scene: Scene;
+    private readonly _camera: OrthographicCamera;
+    private readonly _expandRGB: boolean;
+
+    private _renderTarget: WebGLRenderTarget;
 
     readonly dataType: TextureDataType;
     readonly pixelFormat: PixelFormat;
 
     readonly width: number;
     readonly height: number;
-    private renderTarget: WebGLRenderTarget;
 
     /**
      * Creates an instance of WebGLComposer.
@@ -132,36 +133,36 @@ class WebGLComposer {
         textureDataType: TextureDataType;
         expandRGB?: boolean;
     }) {
-        this.showImageOutlines = options.showImageOutlines;
-        this.extent = options.extent;
+        this._showImageOutlines = options.showImageOutlines;
+        this._extent = options.extent;
         this.width = options.width;
         this.height = options.height;
-        this.renderer = options.webGLRenderer;
-        this.reuseTexture = options.reuseTexture;
-        this.clearColor = options.clearColor;
-        this.minFilter = options.minFilter || LinearFilter;
-        this.magFilter = options.magFilter || LinearFilter;
+        this._renderer = options.webGLRenderer;
+        this._reuseTexture = options.reuseTexture;
+        this._clearColor = options.clearColor;
+        this._minFilter = options.minFilter || LinearFilter;
+        this._magFilter = options.magFilter || LinearFilter;
         this.dataType = options.textureDataType;
         this.pixelFormat = options.pixelFormat;
-        this.expandRGB = options.expandRGB ?? false;
+        this._expandRGB = options.expandRGB ?? false;
         if (!SHARED_PLANE_GEOMETRY) {
             SHARED_PLANE_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
             MemoryTracker.track(SHARED_PLANE_GEOMETRY, 'WebGLComposer - PlaneGeometry');
         }
 
         // An array containing textures that this composer has created, to be disposed later.
-        this.ownedTextures = [];
+        this._ownedTextures = [];
 
-        this.scene = new Scene();
+        this._scene = new Scene();
 
         // Define a camera centered on (0, 0), with its
         // orthographic size matching size of the extent.
-        this.camera = new OrthographicCamera();
-        this.camera.near = NEAR;
-        this.camera.far = FAR;
+        this._camera = new OrthographicCamera();
+        this._camera.near = NEAR;
+        this._camera.far = FAR;
 
-        if (this.extent) {
-            this.setCameraRect(this.extent);
+        if (this._extent) {
+            this.setCameraRect(this._extent);
         }
     }
 
@@ -174,14 +175,14 @@ class WebGLComposer {
         const halfWidth = rect.width / 2;
         const halfHeight = rect.height / 2;
 
-        this.camera.position.set(rect.centerX, rect.centerY, 0);
+        this._camera.position.set(rect.centerX, rect.centerY, 0);
 
-        this.camera.left = -halfWidth;
-        this.camera.right = +halfWidth;
-        this.camera.top = +halfHeight;
-        this.camera.bottom = -halfHeight;
+        this._camera.left = -halfWidth;
+        this._camera.right = +halfWidth;
+        this._camera.top = +halfHeight;
+        this._camera.bottom = -halfHeight;
 
-        this.camera.updateProjectionMatrix();
+        this._camera.updateProjectionMatrix();
     }
 
     private createRenderTarget(
@@ -194,9 +195,9 @@ class WebGLComposer {
             width,
             height, {
                 format,
-                anisotropy: this.renderer.capabilities.getMaxAnisotropy(),
-                magFilter: this.magFilter,
-                minFilter: this.minFilter,
+                anisotropy: this._renderer.capabilities.getMaxAnisotropy(),
+                magFilter: this._magFilter,
+                minFilter: this._minFilter,
                 type,
                 depthBuffer: false,
                 generateMipmaps: true,
@@ -228,7 +229,7 @@ class WebGLComposer {
         const plane = new Mesh(SHARED_PLANE_GEOMETRY, null);
         MemoryTracker.track(plane, 'WebGLComposer - mesh');
         plane.scale.set(extent.width, extent.height, 1);
-        this.scene.add(plane);
+        this._scene.add(plane);
 
         const x = extent.centerX;
         const y = extent.centerY;
@@ -250,7 +251,7 @@ class WebGLComposer {
         if (!(image as Texture).isTexture) {
             texture = new Texture(image as HTMLImageElement);
             texture.needsUpdate = true;
-            this.ownedTextures.push(texture);
+            this._ownedTextures.push(texture);
             MemoryTracker.track(texture, 'WebGLComposer - owned texture');
         } else {
             texture = image as Texture;
@@ -266,8 +267,8 @@ class WebGLComposer {
             interpretation,
             flipY: options.flipY,
             transparent: options.transparent,
-            showImageOutlines: this.showImageOutlines,
-            expandRGB: this.expandRGB,
+            showImageOutlines: this._showImageOutlines,
+            expandRGB: this._expandRGB,
         });
         MemoryTracker.track(material, 'WebGLComposer - material');
 
@@ -276,7 +277,7 @@ class WebGLComposer {
         const z = IMAGE_Z + (options.zOrder ?? 0);
         mesh.position.setZ(z);
 
-        this.scene.add(mesh);
+        this._scene.add(mesh);
 
         mesh.updateMatrixWorld(true);
         mesh.matrixAutoUpdate = false;
@@ -287,7 +288,7 @@ class WebGLComposer {
 
     remove(mesh: Mesh) {
         ComposerTileMaterial.release(mesh.material as ComposerTileMaterial);
-        this.scene.remove(mesh);
+        this._scene.remove(mesh);
     }
 
     /**
@@ -299,33 +300,33 @@ class WebGLComposer {
     }
 
     private removeObjects() {
-        const childrenCopy = [...this.scene.children];
+        const childrenCopy = [...this._scene.children];
         for (const child of childrenCopy) {
             if ((child as Mesh).isMesh) {
                 ComposerTileMaterial.release((child as Mesh).material as ComposerTileMaterial);
             }
-            this.scene.remove(child);
+            this._scene.remove(child);
         }
     }
 
     private saveState(): SaveState {
         return {
-            clearAlpha: this.renderer.getClearAlpha(),
-            renderTarget: this.renderer.getRenderTarget(),
-            scissorTest: this.renderer.getScissorTest(),
-            scissor: this.renderer.getScissor(new Vector4()),
-            clearColor: this.renderer.getClearColor(new Color()),
-            viewport: this.renderer.getViewport(new Vector4()),
+            clearAlpha: this._renderer.getClearAlpha(),
+            renderTarget: this._renderer.getRenderTarget(),
+            scissorTest: this._renderer.getScissorTest(),
+            scissor: this._renderer.getScissor(new Vector4()),
+            clearColor: this._renderer.getClearColor(new Color()),
+            viewport: this._renderer.getViewport(new Vector4()),
         };
     }
 
     private restoreState(state: SaveState) {
-        this.renderer.setClearAlpha(state.clearAlpha);
-        this.renderer.setRenderTarget(state.renderTarget);
-        this.renderer.setScissorTest(state.scissorTest);
-        this.renderer.setScissor(state.scissor);
-        this.renderer.setClearColor(state.clearColor, state.clearAlpha);
-        this.renderer.setViewport(state.viewport);
+        this._renderer.setClearAlpha(state.clearAlpha);
+        this._renderer.setRenderTarget(state.renderTarget);
+        this._renderer.setScissorTest(state.scissorTest);
+        this._renderer.setScissor(state.scissor);
+        this._renderer.setClearColor(state.clearColor, state.clearAlpha);
+        this._renderer.setViewport(state.viewport);
     }
 
     /**
@@ -351,12 +352,12 @@ class WebGLComposer {
         let target;
         if (opts.target) {
             target = opts.target;
-        } else if (!this.reuseTexture) {
+        } else if (!this._reuseTexture) {
             // We create a new render target for this render
             target = this.createRenderTarget(this.dataType, this.pixelFormat, width, height);
         } else {
-            if (!this.renderTarget) {
-                this.renderTarget = this.createRenderTarget(
+            if (!this._renderTarget) {
+                this._renderTarget = this.createRenderTarget(
                     this.dataType,
                     this.pixelFormat,
                     this.width,
@@ -364,21 +365,21 @@ class WebGLComposer {
                 );
             }
 
-            target = this.renderTarget;
+            target = this._renderTarget;
         }
 
         const previousState = this.saveState();
 
-        if (this.clearColor) {
-            this.renderer.setClearColor(this.clearColor);
+        if (this._clearColor) {
+            this._renderer.setClearColor(this._clearColor);
         } else {
-            this.renderer.setClearColor(DEFAULT_CLEAR, 0);
+            this._renderer.setClearColor(DEFAULT_CLEAR, 0);
         }
-        this.renderer.setRenderTarget(target);
-        this.renderer.setViewport(0, 0, target.width, target.height);
-        this.renderer.clear();
+        this._renderer.setRenderTarget(target);
+        this._renderer.setViewport(0, 0, target.width, target.height);
+        this._renderer.clear();
 
-        const rect = opts.rect ?? this.extent;
+        const rect = opts.rect ?? this._extent;
         if (!rect) {
             throw new Error('no rect provided and no default rect to setup camera');
         }
@@ -388,9 +389,9 @@ class WebGLComposer {
         // then it is a partial render.
         // We need to scissor the output in order to render only the overlap between
         // the requested extent and the extent of this composer.
-        if (this.extent && opts.rect && !opts.rect.equals(this.extent)) {
-            this.renderer.setScissorTest(true);
-            const intersection = this.extent.getIntersection(opts.rect);
+        if (this._extent && opts.rect && !opts.rect.equals(this._extent)) {
+            this._renderer.setScissorTest(true);
+            const intersection = this._extent.getIntersection(opts.rect);
             const sRect = Rect.getNormalizedRect(intersection, opts.rect);
 
             // The pixel margin is necessary to avoid bleeding
@@ -401,14 +402,14 @@ class WebGLComposer {
             const sw = Math.ceil(sRect.w * width + 2 * pixelMargin);
             const sh = Math.ceil(sRect.h * height + 2 * pixelMargin);
 
-            this.renderer.setScissor(
+            this._renderer.setScissor(
                 MathUtils.clamp(sx, 0, width),
                 MathUtils.clamp(sy, 0, height),
                 MathUtils.clamp(sw, 0, width),
                 MathUtils.clamp(sh, 0, height),
             );
         }
-        this.renderer.render(this.scene, this.camera);
+        this._renderer.render(this._scene, this._camera);
 
         target.texture.wrapS = ClampToEdgeWrapping;
         target.texture.wrapT = ClampToEdgeWrapping;
@@ -420,8 +421,8 @@ class WebGLComposer {
     }
 
     private _removeTextures() {
-        this.ownedTextures.forEach(t => t.dispose());
-        this.ownedTextures.length = 0;
+        this._ownedTextures.forEach(t => t.dispose());
+        this._ownedTextures.length = 0;
     }
 
     /**
@@ -430,8 +431,8 @@ class WebGLComposer {
     dispose() {
         this._removeTextures();
         this.removeObjects();
-        if (this.renderTarget) {
-            this.renderTarget.dispose();
+        if (this._renderTarget) {
+            this._renderTarget.dispose();
         }
     }
 }

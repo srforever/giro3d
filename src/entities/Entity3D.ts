@@ -39,7 +39,7 @@ export interface Entity3DEventMap extends EntityEventMap {
 class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
     extends Entity<TEventMap & Entity3DEventMap> {
     protected _instance: Instance;
-    private _attachedLayers: Layer[];
+    protected _attachedLayers: Layer[];
     private _visible: boolean;
     private _opacity: number;
     private _object3d: Object3D;
