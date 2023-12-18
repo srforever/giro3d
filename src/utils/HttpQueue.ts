@@ -12,8 +12,8 @@ interface Task {
  * emitters of the requests.
  */
 class HttpQueue {
-    private readonly maxConcurrentRequests: number;
-    private readonly queue: Task[];
+    private readonly _maxConcurrentRequests: number;
+    private readonly _queue: Task[];
     private _concurrentRequests: number;
 
     /**
@@ -25,9 +25,9 @@ class HttpQueue {
     } = {
         maxConcurrentRequests: DEFAULT_CONCURRENT_REQUESTS,
     }) {
-        this.maxConcurrentRequests = options.maxConcurrentRequests;
+        this._maxConcurrentRequests = options.maxConcurrentRequests;
         this._concurrentRequests = 0;
-        this.queue = [];
+        this._queue = [];
     }
 
     get concurrentRequests() : number {
@@ -38,18 +38,18 @@ class HttpQueue {
      * Returns the size of the queue.
      */
     get size() {
-        return this.queue.length;
+        return this._queue.length;
     }
 
     /**
      * Checks if new requests can be executed.
      */
     private checkQueue() {
-        if (this.queue.length > 0 && this._concurrentRequests < this.maxConcurrentRequests) {
-            const diff = this.maxConcurrentRequests - this._concurrentRequests;
-            const count = Math.min(this.queue.length, diff);
+        if (this._queue.length > 0 && this._concurrentRequests < this._maxConcurrentRequests) {
+            const diff = this._maxConcurrentRequests - this._concurrentRequests;
+            const count = Math.min(this._queue.length, diff);
 
-            const requests = this.queue.splice(0, count);
+            const requests = this._queue.splice(0, count);
             this._concurrentRequests += requests.length;
 
             requests.forEach(item => {
@@ -87,7 +87,7 @@ class HttpQueue {
      */
     public enqueue(req: Request): Promise<Response> {
         return new Promise((resolve, reject) => {
-            this.queue.push({ req, resolve, reject });
+            this._queue.push({ req, resolve, reject });
             this.checkQueue();
         });
     }

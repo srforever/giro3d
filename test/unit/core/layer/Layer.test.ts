@@ -5,6 +5,7 @@ import NullSource from 'src/sources/NullSource';
 import type RequestQueue from 'src/core/RequestQueue';
 import { setupGlobalMocks } from '../../mocks.js';
 
+// @ts-expect-error missing implementations of abstract superclass
 class TestLayer extends Layer {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
     registerNode(_node: Node, _extent: Extent): void {
@@ -20,7 +21,7 @@ class TestLayer extends Layer {
     }
 
     getQueue(): RequestQueue {
-        return this.queue;
+        return this._queue;
     }
 }
 

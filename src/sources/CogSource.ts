@@ -168,21 +168,21 @@ class CogSource extends ImageSource {
 
     readonly url: string;
     readonly crs: string;
-    private readonly cache: Cache = GlobalCache;
-    private tiffImage: GeoTIFF;
-    private readonly pool: Pool;
-    private imageCount: number;
-    private extent: Extent;
-    private dimensions: Vector2;
-    private levels: Level[];
-    private sampleCount: number;
+    private readonly _cache: Cache = GlobalCache;
+    private _tiffImage: GeoTIFF;
+    private readonly _pool: Pool;
+    private _imageCount: number;
+    private _extent: Extent;
+    private _dimensions: Vector2;
+    private _levels: Level[];
+    private _sampleCount: number;
     private _channels: number[];
     private _initialized: boolean;
-    private origin: number[];
-    private nodata: number;
-    private format: any;
-    private bps: number;
-    private initializePromise: Promise<void>;
+    private _origin: number[];
+    private _nodata: number;
+    private _format: any;
+    private _bps: number;
+    private _initializePromise: Promise<void>;
     private readonly _cacheId: string = MathUtils.generateUUID();
     private readonly _cacheOptions: CogCacheOptions;
 
@@ -198,15 +198,15 @@ class CogSource extends ImageSource {
 
         this.url = options.url;
         this.crs = options.crs;
-        this.pool = window.Worker ? new Pool() : null;
-        this.imageCount = 0;
-        this.levels = [];
+        this._pool = window.Worker ? new Pool() : null;
+        this._imageCount = 0;
+        this._levels = [];
         this._channels = options.channels;
         this._cacheOptions = options.cacheOptions;
     }
 
     getExtent() {
-        return this.extent;
+        return this._extent;
     }
 
     getCrs() {
@@ -250,12 +250,12 @@ class CogSource extends ImageSource {
             requestHeight,
         );
 
-        const pixelWidth = this.dimensions.x / level.width;
-        const pixelHeight = this.dimensions.y / level.height;
+        const pixelWidth = this._dimensions.x / level.width;
+        const pixelHeight = this._dimensions.y / level.height;
 
         const marginExtent = requestExtent
             .withMargin(pixelWidth * margin, pixelHeight * margin)
-            .intersect(this.extent);
+            .intersect(this._extent);
 
         const width = marginExtent.dimensions(tmpDim).x / pixelWidth;
         const height = marginExtent.dimensions(tmpDim).y / pixelHeight;
@@ -268,11 +268,11 @@ class CogSource extends ImageSource {
     }
 
     initialize() {
-        if (!this.initializePromise) {
-            this.initializePromise = this.initializeOnce();
+        if (!this._initializePromise) {
+            this._initializePromise = this.initializeOnce();
         }
 
-        return this.initializePromise;
+        return this._initializePromise;
     }
 
     private async initializeOnce() {
@@ -291,34 +291,34 @@ class CogSource extends ImageSource {
         // the Fetcher so we can benefit from automatic HTTP configuration and control over
         // outgoing requests.
         // @ts-ignore (typing issue with geotiff.js)
-        this.tiffImage = await fromCustomClient(client, opts);
+        this._tiffImage = await fromCustomClient(client, opts);
 
         // Number of images (original + overviews)
-        this.imageCount = await this.tiffImage.getImageCount();
+        this._imageCount = await this._tiffImage.getImageCount();
         // Get original image header
-        const firstImage = await this.tiffImage.getImage();
+        const firstImage = await this._tiffImage.getImage();
 
-        this.extent = CogSource.computeExtent(this.crs, firstImage);
-        this.dimensions = this.extent.dimensions();
+        this._extent = CogSource.computeExtent(this.crs, firstImage);
+        this._dimensions = this._extent.dimensions();
 
-        this.origin = firstImage.getOrigin();
+        this._origin = firstImage.getOrigin();
         // Samples are equivalent to GDAL's bands
-        this.sampleCount = firstImage.getSamplesPerPixel();
+        this._sampleCount = firstImage.getSamplesPerPixel();
 
         // Automatic selection of channels, if the user did not specify a mapping.
         if (this._channels == null || this._channels.length === 0) {
-            if (this.sampleCount >= 3) {
+            if (this._sampleCount >= 3) {
                 this._channels = [0, 1, 2];
             } else {
                 this._channels = [0];
             }
         }
 
-        this.nodata = firstImage.getGDALNoData();
+        this._nodata = firstImage.getGDALNoData();
 
-        this.format = firstImage.getSampleFormat();
-        this.bps = firstImage.getBitsPerSample();
-        this.datatype = selectDataType(this.format, this.bps);
+        this._format = firstImage.getSampleFormat();
+        this._bps = firstImage.getBitsPerSample();
+        this.datatype = selectDataType(this._format, this._bps);
 
         function makeLevel(image: GeoTIFFImage, resolution: number[]): Level {
             return {
@@ -329,14 +329,14 @@ class CogSource extends ImageSource {
             };
         }
 
-        this.levels.push(makeLevel(firstImage, firstImage.getResolution()));
+        this._levels.push(makeLevel(firstImage, firstImage.getResolution()));
 
         // We want to preserve the order of the overviews so we await them inside
         // the loop not to have the smallest overviews coming before the biggest
         /* eslint-disable no-await-in-loop */
-        for (let i = 1; i < this.imageCount; i++) {
-            const image = await this.tiffImage.getImage(i);
-            this.levels.push(makeLevel(image, image.getResolution(firstImage)));
+        for (let i = 1; i < this._imageCount; i++) {
+            const image = await this._tiffImage.getImage(i);
+            this._levels.push(makeLevel(image, image.getResolution(firstImage)));
         }
 
         this._initialized = true;
@@ -350,7 +350,7 @@ class CogSource extends ImageSource {
      * @returns The window.
      */
     private makeWindowFromExtent(extent: Extent, resolution: number[]) {
-        const [oX, oY] = this.origin;
+        const [oX, oY] = this._origin;
         const [imageResX, imageResY] = resolution;
         const ext = extent.values;
 
@@ -394,7 +394,7 @@ class CogSource extends ImageSource {
             {
                 width,
                 height,
-                nodata: this.nodata,
+                nodata: this._nodata,
             },
             dataType,
             ...buffers,
@@ -416,8 +416,8 @@ class CogSource extends ImageSource {
      */
     private selectLevel(requestExtent: Extent, requestWidth: number, requestHeight: number) {
         // Number of images  = original + overviews if any
-        const imageCount = this.imageCount;
-        const cropped = requestExtent.clone().intersect(this.extent);
+        const imageCount = this._imageCount;
+        const cropped = requestExtent.clone().intersect(this._extent);
         // Dimensions of the requested extent
         const extentDimension = cropped.dimensions(tmpDim);
 
@@ -430,10 +430,10 @@ class CogSource extends ImageSource {
 
         // Select the image with the best resolution for our needs
         for (let i = imageCount - 1; i >= 0; i--) {
-            level = this.levels[i];
+            level = this._levels[i];
             const sourceResolution = Math.min(
-                this.dimensions.x / level.width,
-                this.dimensions.y / level.height,
+                this._dimensions.x / level.width,
+                this._dimensions.y / level.height,
             );
 
             if (targetResolution >= sourceResolution) {
@@ -465,7 +465,7 @@ class CogSource extends ImageSource {
         const level = this.selectLevel(extent, width, height);
 
         const adjusted = extent.fitToGrid(
-            this.extent,
+            this._extent,
             level.width,
             level.height,
             8,
@@ -503,8 +503,8 @@ class CogSource extends ImageSource {
             // waste time resampling the blocks since resampling is already done in the composer.
             // We would create more textures, but it could be worth it.
             const buf = await image.readRasters({
-                pool: this.pool,
-                fillValue: this.nodata,
+                pool: this._pool,
+                fillValue: this._nodata,
                 samples: this._channels,
                 window,
                 signal,
@@ -540,7 +540,7 @@ class CogSource extends ImageSource {
         const window = this.makeWindowFromExtent(extent, level.resolution);
 
         const cacheKey = `${this._cacheId}-${id}`;
-        const cached = this.cache.get(cacheKey);
+        const cached = this._cache.get(cacheKey);
         if (cached) {
             return cached;
         }
@@ -553,7 +553,7 @@ class CogSource extends ImageSource {
         } else {
             size = buf.byteLength;
         }
-        this.cache.set(cacheKey, buf, { size });
+        this._cache.set(cacheKey, buf, { size });
 
         return buf;
     }

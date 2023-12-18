@@ -1,6 +1,3 @@
-/**
- * @module interactions/Drawing
- */
 import Earcut from 'earcut';
 import {
     Box3,
@@ -132,57 +129,58 @@ export interface DrawingOptions extends MaterialsOptions {
  * Instanciated via DrawTool, but can also be added to Giro3D to view and edit simple geometries.
  */
 class Drawing extends Group {
-    private instance: Instance;
     public isDrawing: boolean = true;
-    private minExtrudeDepth: number;
-    private maxExtrudeDepth: number;
-    private faceMaterial: Material;
-    private backfaceMaterial: Material | undefined;
-    private sideMaterial: Material;
-    private lineMaterial: LineBasicMaterial;
-    private pointMaterial: PointsMaterial;
-    private use3Dpoints: boolean;
-    private point2DFactory: Point2DFactory;
-    private planeHelperMaterial: Material;
-    private planeHelperVisible: boolean;
-    private pointsBudget: number;
 
-    private plane: Plane;
-    private planeHelper: Mesh | undefined;
+    private _instance: Instance;
+    private _minExtrudeDepth: number;
+    private _maxExtrudeDepth: number;
+    private _faceMaterial: Material;
+    private _backfaceMaterial: Material | undefined;
+    private _sideMaterial: Material;
+    private _lineMaterial: LineBasicMaterial;
+    private _pointMaterial: PointsMaterial;
+    private _use3Dpoints: boolean;
+    private _point2DFactory: Point2DFactory;
+    private _planeHelperMaterial: Material;
+    private _planeHelperVisible: boolean;
+    private _pointsBudget: number;
+
+    private _plane: Plane;
+    private _planeHelper: Mesh | undefined;
     private _extrudeDepth: number | undefined;
-    private center: Vector3;
+    private _center: Vector3;
     private _coordinates: number[];
     private _geometryType: DrawingGeometryType | null;
 
-    private positions: Float32Array | undefined;
-    private positionsBuffer: BufferAttribute | undefined;
-    private pointsGeometry: BufferGeometry | undefined;
-    private points: Points | undefined;
+    private _positions: Float32Array | undefined;
+    private _positionsBuffer: BufferAttribute | undefined;
+    private _pointsGeometry: BufferGeometry | undefined;
+    private _points: Points | undefined;
 
-    private positionsTop: Float32Array | undefined;
-    private positionsTopBuffer: BufferAttribute | undefined;
-    private positionsBottom: Float32Array | undefined;
-    private positionsBottomBuffer: BufferAttribute | undefined;
-    private positionsSide: Float32Array | undefined;
-    private positionsSideBuffer: BufferAttribute | undefined;
-    private lineTopGeometry: BufferGeometry | undefined;
-    private lineBottomGeometry: BufferGeometry | undefined;
-    private sideGeometry: BufferGeometry | undefined;
-    private lineTop: Line | undefined;
-    private lineBottom: Line | undefined;
-    private side: Mesh | undefined;
+    private _positionsTop: Float32Array | undefined;
+    private _positionsTopBuffer: BufferAttribute | undefined;
+    private _positionsBottom: Float32Array | undefined;
+    private _positionsBottomBuffer: BufferAttribute | undefined;
+    private _positionsSide: Float32Array | undefined;
+    private _positionsSideBuffer: BufferAttribute | undefined;
+    private _lineTopGeometry: BufferGeometry | undefined;
+    private _lineBottomGeometry: BufferGeometry | undefined;
+    private _sideGeometry: BufferGeometry | undefined;
+    private _lineTop: Line | undefined;
+    private _lineBottom: Line | undefined;
+    private _side: Mesh | undefined;
 
-    private surfaceTopGeometry: BufferGeometry | undefined;
-    private surfaceBottomGeometry: BufferGeometry | undefined;
-    private surfaceTop: Mesh | undefined;
-    private surfaceBottom: Mesh | undefined;
+    private _surfaceTopGeometry: BufferGeometry | undefined;
+    private _surfaceBottomGeometry: BufferGeometry | undefined;
+    private _surfaceTop: Mesh | undefined;
+    private _surfaceBottom: Mesh | undefined;
 
     /** Computed extrude depth, based on the geometry and min/max parameters */
     public get extrudeDepth(): number | undefined { return this._extrudeDepth; }
     /** Get flat coordinates of the geometry */
     public get coordinates(): number[] { return this._coordinates; }
     /** Get local flat coordinates (in 3d) */
-    public get localCoordinates(): Float32Array { return this.positionsTop; }
+    public get localCoordinates(): Float32Array { return this._positionsTop; }
     /** Get the geometry type of the object */
     public get geometryType(): DrawingGeometryType | null { return this._geometryType; }
 
@@ -200,40 +198,40 @@ class Drawing extends Group {
     ) {
         super();
         this.name = options.name ?? 'drawobject';
-        this.instance = instance;
-        this.minExtrudeDepth = options.minExtrudeDepth ?? 1;
-        this.maxExtrudeDepth = options.maxExtrudeDepth ?? 5;
-        this.faceMaterial = options.faceMaterial ?? defaultFaceMaterial;
-        this.sideMaterial = options.sideMaterial ?? defaultSideMaterial;
-        this.lineMaterial = options.lineMaterial ?? defaultLineMaterial;
-        this.pointMaterial = options.pointMaterial ?? defaultPointMaterial;
-        this.use3Dpoints = options.use3Dpoints ?? true;
-        this.point2DFactory = (
+        this._instance = instance;
+        this._minExtrudeDepth = options.minExtrudeDepth ?? 1;
+        this._maxExtrudeDepth = options.maxExtrudeDepth ?? 5;
+        this._faceMaterial = options.faceMaterial ?? defaultFaceMaterial;
+        this._sideMaterial = options.sideMaterial ?? defaultSideMaterial;
+        this._lineMaterial = options.lineMaterial ?? defaultLineMaterial;
+        this._pointMaterial = options.pointMaterial ?? defaultPointMaterial;
+        this._use3Dpoints = options.use3Dpoints ?? true;
+        this._point2DFactory = (
             options.point2DFactory !== null && options.point2DFactory !== undefined
         ) ? options.point2DFactory.bind(this) : this._defaultPoint2DFactory.bind(this);
-        this.planeHelperMaterial = options.planeHelperMaterial ?? defaultPlaneHelperMaterial;
-        this.planeHelperMaterial.depthTest = false;
-        this.planeHelperMaterial.depthWrite = false;
-        this.planeHelperVisible = options.planeHelperVisible ?? false;
-        this.pointsBudget = options.pointsBudget ?? 100;
+        this._planeHelperMaterial = options.planeHelperMaterial ?? defaultPlaneHelperMaterial;
+        this._planeHelperMaterial.depthTest = false;
+        this._planeHelperMaterial.depthWrite = false;
+        this._planeHelperVisible = options.planeHelperVisible ?? false;
+        this._pointsBudget = options.pointsBudget ?? 100;
 
-        if (typeof this.minExtrudeDepth !== 'number' || this.minExtrudeDepth < 0) {
+        if (typeof this._minExtrudeDepth !== 'number' || this._minExtrudeDepth < 0) {
             throw new Error('minExtrudeDepth should be a non-negative number');
         }
-        if (typeof this.maxExtrudeDepth !== 'number' || this.maxExtrudeDepth < 0) {
+        if (typeof this._maxExtrudeDepth !== 'number' || this._maxExtrudeDepth < 0) {
             throw new Error('maxExtrudeDepth should be a non-negative number');
         }
-        if (this.maxExtrudeDepth < this.minExtrudeDepth) {
+        if (this._maxExtrudeDepth < this._minExtrudeDepth) {
             throw new Error('maxExtrudeDepth should be greater or equal to minExtrudeDepth');
         }
-        if (typeof this.pointsBudget !== 'number' || this.pointsBudget <= 0) {
+        if (typeof this._pointsBudget !== 'number' || this._pointsBudget <= 0) {
             throw new Error('pointsBudget should be a positive number');
         }
 
         this._doSanityChecksMaterials();
 
-        this.plane = new Plane();
-        this.center = new Vector3();
+        this._plane = new Plane();
+        this._center = new Vector3();
 
         if (geojson) {
             // Will allocate buffers with optimal size
@@ -251,7 +249,7 @@ class Drawing extends Group {
      */
     dispose(): void {
         this.clear();
-        this.instance = null;
+        this._instance = null;
     }
 
     /**
@@ -259,7 +257,7 @@ class Drawing extends Group {
      */
     clear(): this {
         if (
-            !this.use3Dpoints
+            !this._use3Dpoints
             && (
                 this.geometryType === 'Point'
                 || this.geometryType === 'MultiPoint'
@@ -303,13 +301,13 @@ class Drawing extends Group {
      * @param size Number of points to allocate
      */
     private _initPointsBuffers(size: number): void {
-        this.positions = new Float32Array(size * STRIDE3D);
-        this.positionsBuffer = new BufferAttribute(this.positions, STRIDE3D);
+        this._positions = new Float32Array(size * STRIDE3D);
+        this._positionsBuffer = new BufferAttribute(this._positions, STRIDE3D);
 
-        this.pointsGeometry = new BufferGeometry();
-        this.pointsGeometry.setAttribute('position', this.positionsBuffer);
+        this._pointsGeometry = new BufferGeometry();
+        this._pointsGeometry.setAttribute('position', this._positionsBuffer);
 
-        this.points = new Points(this.pointsGeometry, this.pointMaterial);
+        this._points = new Points(this._pointsGeometry, this._pointMaterial);
     }
 
     /**
@@ -318,32 +316,32 @@ class Drawing extends Group {
      * @param size Number of points to allocate
      */
     private _initLineBuffers(size: number): void {
-        this.positionsTop = new Float32Array(size * STRIDE3D);
-        this.positionsTopBuffer = new BufferAttribute(this.positionsTop, STRIDE3D);
+        this._positionsTop = new Float32Array(size * STRIDE3D);
+        this._positionsTopBuffer = new BufferAttribute(this._positionsTop, STRIDE3D);
 
-        this.positionsBottom = new Float32Array(size * STRIDE3D);
-        this.positionsBottomBuffer = new BufferAttribute(this.positionsBottom, STRIDE3D);
+        this._positionsBottom = new Float32Array(size * STRIDE3D);
+        this._positionsBottomBuffer = new BufferAttribute(this._positionsBottom, STRIDE3D);
 
-        this.positionsSide = new Float32Array(size * 2 * STRIDE3D);
-        this.positionsSideBuffer = new BufferAttribute(this.positionsSide, STRIDE3D);
+        this._positionsSide = new Float32Array(size * 2 * STRIDE3D);
+        this._positionsSideBuffer = new BufferAttribute(this._positionsSide, STRIDE3D);
 
-        this.lineTopGeometry = new BufferGeometry();
-        this.lineTopGeometry.setAttribute('position', this.positionsTopBuffer);
+        this._lineTopGeometry = new BufferGeometry();
+        this._lineTopGeometry.setAttribute('position', this._positionsTopBuffer);
 
-        this.lineBottomGeometry = new BufferGeometry();
-        this.lineBottomGeometry.setAttribute('position', this.positionsBottomBuffer);
+        this._lineBottomGeometry = new BufferGeometry();
+        this._lineBottomGeometry.setAttribute('position', this._positionsBottomBuffer);
 
-        this.sideGeometry = new BufferGeometry();
-        this.sideGeometry.setAttribute('position', this.positionsSideBuffer);
-        this.sideGeometry.setIndex([]);
+        this._sideGeometry = new BufferGeometry();
+        this._sideGeometry.setAttribute('position', this._positionsSideBuffer);
+        this._sideGeometry.setIndex([]);
 
-        this.lineTop = new Line(this.lineTopGeometry, this.lineMaterial);
-        this.lineTop.name = 'lineTop';
-        this.lineTop.renderOrder = 1;
-        this.lineBottom = new Line(this.lineBottomGeometry, this.lineMaterial);
-        this.lineBottom.name = 'lineBottom';
-        this.side = new Mesh(this.sideGeometry, this.sideMaterial);
-        this.side.name = 'side';
+        this._lineTop = new Line(this._lineTopGeometry, this._lineMaterial);
+        this._lineTop.name = 'lineTop';
+        this._lineTop.renderOrder = 1;
+        this._lineBottom = new Line(this._lineBottomGeometry, this._lineMaterial);
+        this._lineBottom.name = 'lineBottom';
+        this._side = new Mesh(this._sideGeometry, this._sideMaterial);
+        this._side.name = 'side';
     }
 
     /**
@@ -354,18 +352,18 @@ class Drawing extends Group {
     private _initPolygonBuffers(size: number): void {
         this._initLineBuffers(size);
 
-        this.surfaceTopGeometry = new BufferGeometry();
-        this.surfaceTopGeometry.setAttribute('position', this.positionsTopBuffer);
-        this.surfaceTopGeometry.setIndex([]);
+        this._surfaceTopGeometry = new BufferGeometry();
+        this._surfaceTopGeometry.setAttribute('position', this._positionsTopBuffer);
+        this._surfaceTopGeometry.setIndex([]);
 
-        this.surfaceBottomGeometry = new BufferGeometry();
-        this.surfaceBottomGeometry.setAttribute('position', this.positionsBottomBuffer);
-        this.surfaceBottomGeometry.setIndex([]);
+        this._surfaceBottomGeometry = new BufferGeometry();
+        this._surfaceBottomGeometry.setAttribute('position', this._positionsBottomBuffer);
+        this._surfaceBottomGeometry.setIndex([]);
 
-        this.surfaceTop = new Mesh(this.surfaceTopGeometry, this.faceMaterial);
-        this.surfaceTop.name = 'surfaceTop';
-        this.surfaceBottom = new Mesh(this.surfaceBottomGeometry, this.backfaceMaterial);
-        this.surfaceBottom.name = 'surfaceBottom';
+        this._surfaceTop = new Mesh(this._surfaceTopGeometry, this._faceMaterial);
+        this._surfaceTop.name = 'surfaceTop';
+        this._surfaceBottom = new Mesh(this._surfaceBottomGeometry, this._backfaceMaterial);
+        this._surfaceBottom.name = 'surfaceBottom';
     }
 
     /**
@@ -378,14 +376,14 @@ class Drawing extends Group {
         switch (this.geometryType) {
             case 'Point':
             case 'MultiPoint':
-                if (this.use3Dpoints) {
-                    if (!this.points) {
+                if (this._use3Dpoints) {
+                    if (!this._points) {
                         this._initPointsBuffers(nbPoints);
-                    } else if (this.positions.length < this.coordinates.length) {
+                    } else if (this._positions.length < this.coordinates.length) {
                         // Need to resize the buffers & all
                         this._initPointsBuffers(
                             Math.max(
-                                this.positions.length / STRIDE3D + this.pointsBudget,
+                                this._positions.length / STRIDE3D + this._pointsBudget,
                                 nbPoints,
                             ),
                         );
@@ -394,13 +392,13 @@ class Drawing extends Group {
                 break;
 
             case 'LineString':
-                if (!this.lineTop) {
+                if (!this._lineTop) {
                     this._initLineBuffers(nbPoints);
-                } else if (this.positionsTop.length < this.coordinates.length) {
+                } else if (this._positionsTop.length < this.coordinates.length) {
                     // Need to resize the buffers & all
                     this._initLineBuffers(
                         Math.max(
-                            this.positionsTop.length / STRIDE3D + this.pointsBudget,
+                            this._positionsTop.length / STRIDE3D + this._pointsBudget,
                             nbPoints,
                         ),
                     );
@@ -408,12 +406,15 @@ class Drawing extends Group {
                 break;
 
             case 'Polygon':
-                if (!this.surfaceTop) {
+                if (!this._surfaceTop) {
                     this._initPolygonBuffers(nbPoints);
-                } else if (this.positionsTop.length < this.coordinates.length) {
+                } else if (this._positionsTop.length < this.coordinates.length) {
                     // Need to resize the buffers & all
                     this._initPolygonBuffers(
-                        Math.max(this.positionsTop.length / STRIDE3D + this.pointsBudget, nbPoints),
+                        Math.max(
+                            this._positionsTop.length / STRIDE3D + this._pointsBudget,
+                            nbPoints,
+                        ),
                     );
                 }
                 break;
@@ -546,7 +547,7 @@ class Drawing extends Group {
             this._geometryType = null;
         }
 
-        this.instance.notifyChange(this);
+        this._instance.notifyChange(this);
     }
 
     /**
@@ -555,29 +556,29 @@ class Drawing extends Group {
      * @param options Materials
      */
     setMaterials(options: MaterialsOptions): void {
-        this.faceMaterial = options.faceMaterial ?? defaultFaceMaterial;
-        this.sideMaterial = options.sideMaterial ?? defaultSideMaterial;
-        this.lineMaterial = options.lineMaterial ?? defaultLineMaterial;
-        this.pointMaterial = options.pointMaterial ?? defaultPointMaterial;
-        this.planeHelperMaterial = options.planeHelperMaterial ?? defaultPlaneHelperMaterial;
+        this._faceMaterial = options.faceMaterial ?? defaultFaceMaterial;
+        this._sideMaterial = options.sideMaterial ?? defaultSideMaterial;
+        this._lineMaterial = options.lineMaterial ?? defaultLineMaterial;
+        this._pointMaterial = options.pointMaterial ?? defaultPointMaterial;
+        this._planeHelperMaterial = options.planeHelperMaterial ?? defaultPlaneHelperMaterial;
 
         this._doSanityChecksMaterials();
 
-        if (this.points) {
-            this.points.material = this.pointMaterial;
+        if (this._points) {
+            this._points.material = this._pointMaterial;
         }
-        if (this.lineTop) {
-            this.lineTop.material = this.lineMaterial;
-            this.lineBottom.material = this.lineMaterial;
+        if (this._lineTop) {
+            this._lineTop.material = this._lineMaterial;
+            this._lineBottom.material = this._lineMaterial;
         }
-        if (this.surfaceTop) {
-            this.surfaceTop.material = this.faceMaterial;
-            this.surfaceBottom.material = this.backfaceMaterial;
+        if (this._surfaceTop) {
+            this._surfaceTop.material = this._faceMaterial;
+            this._surfaceBottom.material = this._backfaceMaterial;
         }
-        if (this.side) {
-            this.side.material = this.sideMaterial;
+        if (this._side) {
+            this._side.material = this._sideMaterial;
         }
-        this.instance.notifyChange(this);
+        this._instance.notifyChange(this);
     }
 
     /**
@@ -585,18 +586,18 @@ class Drawing extends Group {
      * (e.g. sides rendering & depth settings)
      */
     private _doSanityChecksMaterials(): void {
-        this.faceMaterial.side = FrontSide;
-        this.backfaceMaterial = this.faceMaterial.clone();
-        this.backfaceMaterial.side = BackSide;
-        this.sideMaterial.side = DoubleSide;
+        this._faceMaterial.side = FrontSide;
+        this._backfaceMaterial = this._faceMaterial.clone();
+        this._backfaceMaterial.side = BackSide;
+        this._sideMaterial.side = DoubleSide;
 
-        [this.faceMaterial, this.backfaceMaterial, this.sideMaterial].forEach(m => {
+        [this._faceMaterial, this._backfaceMaterial, this._sideMaterial].forEach(m => {
             m.depthWrite = false;
             if (m.opacity !== 1) m.transparent = true;
         });
-        this.lineMaterial.depthWrite = true;
-        this.lineMaterial.depthTest = false;
-        if (this.lineMaterial.opacity !== 1) this.lineMaterial.transparent = true;
+        this._lineMaterial.depthWrite = true;
+        this._lineMaterial.depthTest = false;
+        if (this._lineMaterial.opacity !== 1) this._lineMaterial.transparent = true;
     }
 
     /**
@@ -617,7 +618,7 @@ class Drawing extends Group {
             tmpBox3.makeEmpty();
             tmpBox3.setFromArray(this.coordinates);
             tmpBox3.getSize(tmpVec3s[0]);
-            tmpBox3.getCenter(this.center);
+            tmpBox3.getCenter(this._center);
 
             // Find normal of the geometry based on the smallest dimension
             // of our bounding box
@@ -638,16 +639,16 @@ class Drawing extends Group {
                     this.coordinates[0 * STRIDE3D + 1],
                     this.coordinates[0 * STRIDE3D + 2],
                 )
-                .sub(this.center);
+                .sub(this._center);
 
             // Third point will be our second point rotated around our normal
             tmpVec3s[1].copy(tmpVec3s[0]).applyAxisAngle(tmpVec3s[2], Math.PI / 2);
 
-            tmpVec3s[0].add(this.center);
-            tmpVec3s[1].add(this.center);
+            tmpVec3s[0].add(this._center);
+            tmpVec3s[1].add(this._center);
 
             // Find plane based on those three points
-            this.plane.setFromCoplanarPoints(this.center, tmpVec3s[0], tmpVec3s[1]);
+            this._plane.setFromCoplanarPoints(this._center, tmpVec3s[0], tmpVec3s[1]);
         } else {
             // Take first point and consider the normal is up
             tmpVec3s[0].set(0, 0, 1);
@@ -656,37 +657,37 @@ class Drawing extends Group {
                 this.coordinates[0 * STRIDE3D + 1],
                 this.coordinates[0 * STRIDE3D + 2],
             );
-            this.plane.setFromNormalAndCoplanarPoint(tmpVec3s[0], tmpVec3s[1]);
-            this.center.copy(tmpVec3s[1]);
+            this._plane.setFromNormalAndCoplanarPoint(tmpVec3s[0], tmpVec3s[1]);
+            this._center.copy(tmpVec3s[1]);
         }
-        this.plane.normalize();
+        this._plane.normalize();
 
-        if (!this.planeHelper) {
-            this.planeHelper = new Mesh(planesGeom, this.planeHelperMaterial);
-            this.planeHelper.name = 'planehelper';
+        if (!this._planeHelper) {
+            this._planeHelper = new Mesh(planesGeom, this._planeHelperMaterial);
+            this._planeHelper.name = 'planehelper';
         }
 
         // Our planeHelper will help us project points
-        this.planeHelper.position.set(0, 0, 0);
-        this.planeHelper.lookAt(this.plane.normal);
-        this.planeHelper.position.copy(this.center);
-        this.planeHelper.updateMatrixWorld(true);
+        this._planeHelper.position.set(0, 0, 0);
+        this._planeHelper.lookAt(this._plane.normal);
+        this._planeHelper.position.copy(this._center);
+        this._planeHelper.updateMatrixWorld(true);
 
-        if (this.planeHelperVisible) this.add(this.planeHelper);
+        if (this._planeHelperVisible) this.add(this._planeHelper);
 
         // Compute how much we should extrude, as a fixed value will not work in all cases,
         // depending on how large the geometry is, resolution of our data, etc.
-        this._extrudeDepth = this.minExtrudeDepth;
+        this._extrudeDepth = this._minExtrudeDepth;
         for (let i = 0; i < nbPoints; i += 1) {
             tmpVec3s[0].set(
                 this.coordinates[i * STRIDE3D + 0],
                 this.coordinates[i * STRIDE3D + 1],
                 this.coordinates[i * STRIDE3D + 2],
             );
-            this.planeHelper.worldToLocal(tmpVec3s[0]);
+            this._planeHelper.worldToLocal(tmpVec3s[0]);
             this._extrudeDepth = Math.max(this.extrudeDepth, tmpVec3s[0].z);
         }
-        this._extrudeDepth = Math.min(this.extrudeDepth, this.maxExtrudeDepth);
+        this._extrudeDepth = Math.min(this.extrudeDepth, this._maxExtrudeDepth);
     }
 
     /**
@@ -707,23 +708,23 @@ class Drawing extends Group {
                 this.coordinates[i * STRIDE3D + 2],
             );
             // Earcut works best when the shape is along XY axis - see _findBestFittingPlane
-            this.planeHelper.worldToLocal(tmpVec3s[0]);
+            this._planeHelper.worldToLocal(tmpVec3s[0]);
 
-            this.positionsTop[i * STRIDE3D + 0] = tmpVec3s[0].x;
-            this.positionsTop[i * STRIDE3D + 1] = tmpVec3s[0].y;
-            this.positionsTop[i * STRIDE3D + 2] = tmpVec3s[0].z + this.extrudeDepth;
+            this._positionsTop[i * STRIDE3D + 0] = tmpVec3s[0].x;
+            this._positionsTop[i * STRIDE3D + 1] = tmpVec3s[0].y;
+            this._positionsTop[i * STRIDE3D + 2] = tmpVec3s[0].z + this.extrudeDepth;
 
-            this.positionsBottom[i * STRIDE3D + 0] = tmpVec3s[0].x;
-            this.positionsBottom[i * STRIDE3D + 1] = tmpVec3s[0].y;
-            this.positionsBottom[i * STRIDE3D + 2] = tmpVec3s[0].z - this.extrudeDepth;
+            this._positionsBottom[i * STRIDE3D + 0] = tmpVec3s[0].x;
+            this._positionsBottom[i * STRIDE3D + 1] = tmpVec3s[0].y;
+            this._positionsBottom[i * STRIDE3D + 2] = tmpVec3s[0].z - this.extrudeDepth;
 
-            this.positionsSide[i * STRIDE3D + 0] = tmpVec3s[0].x;
-            this.positionsSide[i * STRIDE3D + 1] = tmpVec3s[0].y;
-            this.positionsSide[i * STRIDE3D + 2] = tmpVec3s[0].z + this.extrudeDepth;
+            this._positionsSide[i * STRIDE3D + 0] = tmpVec3s[0].x;
+            this._positionsSide[i * STRIDE3D + 1] = tmpVec3s[0].y;
+            this._positionsSide[i * STRIDE3D + 2] = tmpVec3s[0].z + this.extrudeDepth;
 
-            this.positionsSide[(i + nbPoints) * STRIDE3D + 0] = tmpVec3s[0].x;
-            this.positionsSide[(i + nbPoints) * STRIDE3D + 1] = tmpVec3s[0].y;
-            this.positionsSide[(i + nbPoints) * STRIDE3D + 2] = tmpVec3s[0].z - this.extrudeDepth;
+            this._positionsSide[(i + nbPoints) * STRIDE3D + 0] = tmpVec3s[0].x;
+            this._positionsSide[(i + nbPoints) * STRIDE3D + 1] = tmpVec3s[0].y;
+            this._positionsSide[(i + nbPoints) * STRIDE3D + 2] = tmpVec3s[0].z - this.extrudeDepth;
 
             if (i < nbPoints - 1) {
                 // Simplified logic from PlaneGeometry constructor
@@ -738,15 +739,15 @@ class Drawing extends Group {
             }
         }
 
-        this.positionsTopBuffer.needsUpdate = true;
-        this.positionsBottomBuffer.needsUpdate = true;
-        this.positionsSideBuffer.needsUpdate = true;
+        this._positionsTopBuffer.needsUpdate = true;
+        this._positionsBottomBuffer.needsUpdate = true;
+        this._positionsSideBuffer.needsUpdate = true;
 
-        this.lineTopGeometry.setDrawRange(0, nbPoints);
-        this.lineBottomGeometry.setDrawRange(0, nbPoints);
+        this._lineTopGeometry.setDrawRange(0, nbPoints);
+        this._lineBottomGeometry.setDrawRange(0, nbPoints);
 
-        this.sideGeometry.setIndex(sidesIndices);
-        this.sideGeometry.computeVertexNormals();
+        this._sideGeometry.setIndex(sidesIndices);
+        this._sideGeometry.computeVertexNormals();
     }
 
     /**
@@ -755,20 +756,20 @@ class Drawing extends Group {
     private _computePointsCoordinates(): void {
         // First we check if buffers are created, or need to be resized
         this._prepareBuffers();
-        this.positions.set(this.coordinates);
-        this.positionsBuffer.needsUpdate = true;
+        this._positions.set(this.coordinates);
+        this._positionsBuffer.needsUpdate = true;
 
-        this.pointsGeometry.setDrawRange(0, this.coordinates.length / STRIDE3D);
+        this._pointsGeometry.setDrawRange(0, this.coordinates.length / STRIDE3D);
     }
 
     /**
      * Draws points
      */
     private _drawPoints(): void {
-        if (this.use3Dpoints) {
+        if (this._use3Dpoints) {
             // Render as Three.js objects
             this._computePointsCoordinates();
-            this.add(this.points);
+            this.add(this._points);
         } else {
             // Render via CSS2DRenderer
             const nbPoints = this.coordinates.length / STRIDE3D;
@@ -780,7 +781,7 @@ class Drawing extends Group {
                     this.coordinates[i * STRIDE3D + 2],
                 );
 
-                const pt = this.point2DFactory(i, vec3);
+                const pt = this._point2DFactory(i, vec3);
                 const pt3d = new CSS2DObject(pt);
                 pt3d.position.copy(vec3);
                 pt3d.updateMatrixWorld();
@@ -796,11 +797,11 @@ class Drawing extends Group {
         this._findBestFittingPlane();
         this._computeExtrudedCoordinates();
 
-        [this.side, this.lineTop, this.lineBottom].forEach(o => {
+        [this._side, this._lineTop, this._lineBottom].forEach(o => {
             this.add(o);
             o.position.set(0, 0, 0);
-            o.lookAt(this.plane.normal);
-            o.position.copy(this.center);
+            o.lookAt(this._plane.normal);
+            o.position.copy(this._center);
             o.updateMatrix();
             o.updateMatrixWorld(true);
         });
@@ -822,20 +823,20 @@ class Drawing extends Group {
         this._findBestFittingPlane();
         this._computeExtrudedCoordinates();
 
-        this.surfaceTopGeometry.setIndex(
-            Earcut(this.positionsTop.slice(0, (nbPoints - 1) * STRIDE3D), [], STRIDE3D),
+        this._surfaceTopGeometry.setIndex(
+            Earcut(this._positionsTop.slice(0, (nbPoints - 1) * STRIDE3D), [], STRIDE3D),
         );
-        this.surfaceBottomGeometry.setIndex(
-            Earcut(this.positionsBottom.slice(0, (nbPoints - 1) * STRIDE3D), [], STRIDE3D),
+        this._surfaceBottomGeometry.setIndex(
+            Earcut(this._positionsBottom.slice(0, (nbPoints - 1) * STRIDE3D), [], STRIDE3D),
         );
 
         [
-            this.side, this.lineTop, this.lineBottom, this.surfaceTop, this.surfaceBottom,
+            this._side, this._lineTop, this._lineBottom, this._surfaceTop, this._surfaceBottom,
         ].forEach(o => {
             this.add(o);
             o.position.set(0, 0, 0);
-            o.lookAt(this.plane.normal);
-            o.position.copy(this.center);
+            o.lookAt(this._plane.normal);
+            o.position.copy(this._center);
             o.updateMatrix();
             o.updateMatrixWorld(true);
         });

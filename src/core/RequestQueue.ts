@@ -9,10 +9,10 @@ function defaultShouldExecute() {
 
 class Task {
     readonly id: string;
-    private readonly priority: number;
-    private readonly signal: AbortSignal;
-    private readonly resolve: Function;
-    private readonly request: () => Promise<unknown>;
+    private readonly _priority: number;
+    private readonly _signal: AbortSignal;
+    private readonly _resolve: Function;
+    private readonly _request: () => Promise<unknown>;
 
     readonly reject: (reason?: Error | string) => void;
     readonly shouldExecute: () => boolean;
@@ -27,11 +27,11 @@ class Task {
         shouldExecute: () => boolean,
     ) {
         this.id = id;
-        this.priority = priority;
-        this.signal = signal;
-        this.resolve = resolve;
+        this._priority = priority;
+        this._signal = signal;
+        this._resolve = resolve;
         this.reject = reject;
-        this.request = request;
+        this._request = request;
         this.shouldExecute = shouldExecute ?? defaultShouldExecute;
     }
 
@@ -40,22 +40,22 @@ class Task {
     }
 
     getPriority() {
-        if (this.signal?.aborted) {
+        if (this._signal?.aborted) {
             // means "drop the request"
             return Infinity;
         }
 
-        return this.priority;
+        return this._priority;
     }
 
     execute() {
-        if (this.signal?.aborted) {
+        if (this._signal?.aborted) {
             this.reject(PromiseUtils.abortError());
             return Promise.reject();
         }
 
-        return this.request()
-            .then(x => this.resolve(x))
+        return this._request()
+            .then(x => this._resolve(x))
             .catch(e => this.reject(e));
     }
 }
@@ -85,10 +85,10 @@ export interface RequestQueueEvents {
  * A generic priority queue that ensures that the same request cannot be added twice in the queue.
  */
 class RequestQueue extends EventDispatcher<RequestQueueEvents> {
-    private readonly pendingIds: Map<string, Promise<unknown>>;
-    private readonly queue: PriorityQueue<Task>;
-    private readonly opCounter: OperationCounter;
-    private readonly maxConcurrentRequests: number;
+    private readonly _pendingIds: Map<string, Promise<unknown>>;
+    private readonly _queue: PriorityQueue<Task>;
+    private readonly _opCounter: OperationCounter;
+    private readonly _maxConcurrentRequests: number;
 
     private _concurrentRequests: number;
 
@@ -98,23 +98,23 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> {
      */
     constructor(options: { maxConcurrentRequests?: number; } = {}) {
         super();
-        this.pendingIds = new Map();
-        this.queue = new PriorityQueue(priorityFn, keyFn);
-        this.opCounter = new OperationCounter();
+        this._pendingIds = new Map();
+        this._queue = new PriorityQueue(priorityFn, keyFn);
+        this._opCounter = new OperationCounter();
         this._concurrentRequests = 0;
-        this.maxConcurrentRequests = options.maxConcurrentRequests ?? MAX_CONCURRENT_REQUESTS;
+        this._maxConcurrentRequests = options.maxConcurrentRequests ?? MAX_CONCURRENT_REQUESTS;
     }
 
     get progress() {
-        return this.opCounter.progress;
+        return this._opCounter.progress;
     }
 
     get loading() {
-        return this.opCounter.loading;
+        return this._opCounter.loading;
     }
 
     get pendingRequests() {
-        return this.pendingIds.size;
+        return this._pendingIds.size;
     }
 
     get concurrentRequests() {
@@ -122,30 +122,30 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> {
     }
 
     onQueueAvailable() {
-        if (this.queue.isEmpty()) {
+        if (this._queue.isEmpty()) {
             return;
         }
 
-        while (this._concurrentRequests < this.maxConcurrentRequests) {
-            if (this.queue.isEmpty()) {
+        while (this._concurrentRequests < this._maxConcurrentRequests) {
+            if (this._queue.isEmpty()) {
                 break;
             }
 
-            const task = this.queue.dequeue();
+            const task = this._queue.dequeue();
             const key = task.getKey();
 
             if (task.shouldExecute()) {
                 this._concurrentRequests++;
                 task.execute().finally(() => {
-                    this.opCounter.decrement();
-                    this.pendingIds.delete(key);
+                    this._opCounter.decrement();
+                    this._pendingIds.delete(key);
                     this._concurrentRequests--;
                     this.onQueueAvailable();
                     this.dispatchEvent({ type: 'task-executed' });
                 });
             } else {
-                this.opCounter.decrement();
-                this.pendingIds.delete(key);
+                this._opCounter.decrement();
+                this._pendingIds.delete(key);
                 this.onQueueAvailable();
                 task.reject(PromiseUtils.abortError());
                 this.dispatchEvent({ type: 'task-cancelled' });
@@ -183,22 +183,22 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> {
             return Promise.reject(PromiseUtils.abortError());
         }
 
-        if (this.pendingIds.has(id)) {
-            return this.pendingIds.get(id);
+        if (this._pendingIds.has(id)) {
+            return this._pendingIds.get(id);
         }
 
-        this.opCounter.increment();
+        this._opCounter.increment();
 
         const promise = new Promise((resolve, reject) => {
             const task = new Task(id, signal, priority, request, resolve, reject, shouldExecute);
-            if (this.queue.isEmpty()) {
-                this.queue.enqueue(task);
+            if (this._queue.isEmpty()) {
+                this._queue.enqueue(task);
                 this.onQueueAvailable();
             } else {
-                this.queue.enqueue(task);
+                this._queue.enqueue(task);
             }
         });
-        this.pendingIds.set(id, promise);
+        this._pendingIds.set(id, promise);
 
         return promise;
     }

@@ -1,6 +1,3 @@
-/**
- * @module interactions/DrawTool
- */
 import {
     BoxGeometry,
     EventDispatcher,
@@ -241,8 +238,8 @@ type EventListenersMap = {
 };
 
 class Edge extends Mesh {
-    _edgeIndex: number;
-    _line: Line3;
+    edgeIndex: number;
+    line: Line3;
 }
 
 /**
@@ -269,40 +266,40 @@ class Edge extends Mesh {
  * drawTool.start();
  */
 class DrawTool extends EventDispatcher<DrawToolEventMap> {
-    private instance: Instance;
+    private _instance: Instance;
     private _drawObject: Drawing | null;
-    private pointsGroup: Group | null;
+    private _pointsGroup: Group | null;
     private _state: DrawToolState;
     private _mode: DrawToolMode | null;
-    private maxPoints: number | null;
-    private minPoints: number | null;
-    private getPointAt: GetPointAtCallback;
-    private point2DFactory: Point2DFactory;
-    private drawObjectOptions: DrawingOptions;
-    private endDrawingOnRightClick: boolean;
-    private enableSplicing: boolean;
-    private splicingHitTolerance: number | null;
-    private enableDragging: boolean;
-    private enableAddPointsOnEdit: boolean;
+    private _maxPoints: number | null;
+    private _minPoints: number | null;
+    private _getPointAt: GetPointAtCallback;
+    private _point2DFactory: Point2DFactory;
+    private _drawObjectOptions: DrawingOptions;
+    private _endDrawingOnRightClick: boolean;
+    private _enableSplicing: boolean;
+    private _splicingHitTolerance: number | null;
+    private _enableDragging: boolean;
+    private _enableAddPointsOnEdit: boolean;
 
     private _oldState: DrawToolInternalState | null;
-    private internalState: DrawToolInternalState | null;
-    private realMinPoints: number | null;
-    private realMaxPoints: number | null;
-    private coordinates: [number, number, number][];
-    private canAddNewPoint: boolean | null;
-    private nextPoint3D: CSS2DObject | null;
-    private nextPointCoordinates: [number, number, number] | null;
-    private canSplice: boolean | null;
-    private splicingPoint3D: CSS2DObject | null;
-    private splicingPointEdge: number | null;
-    private splicingPointCoordinates: Vector3 | null;
-    private draggedPointIndex: number | null;
-    private edges: Group | null;
-    private geometryType: DrawingGeometryType;
+    private _internalState: DrawToolInternalState | null;
+    private _realMinPoints: number | null;
+    private _realMaxPoints: number | null;
+    private _coordinates: [number, number, number][];
+    private _canAddNewPoint: boolean | null;
+    private _nextPoint3D: CSS2DObject | null;
+    private _nextPointCoordinates: [number, number, number] | null;
+    private _canSplice: boolean | null;
+    private _splicingPoint3D: CSS2DObject | null;
+    private _splicingPointEdge: number | null;
+    private _splicingPointCoordinates: Vector3 | null;
+    private _draggedPointIndex: number | null;
+    private _edges: Group | null;
+    private _geometryType: DrawingGeometryType;
     private _eventHandlers: EventListenersMap | null;
-    private resolve: ((value: GeoJSON.Geometry) => void) | undefined;
-    private reject: ((reason?: any) => void) | undefined;
+    private _resolve: ((value: GeoJSON.Geometry) => void) | undefined;
+    private _reject: ((reason?: any) => void) | undefined;
 
     /** Object currently being drawn */
     public get drawObject(): Drawing | null { return this._drawObject; }
@@ -319,11 +316,11 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     constructor(instance: Instance, options: DrawToolOptions = {}) {
         super();
-        this.instance = instance;
+        this._instance = instance;
         this.setOptions(options);
 
         this._drawObject = null;
-        this.pointsGroup = null;
+        this._pointsGroup = null;
         this._state = DrawToolState.READY;
         this._mode = null;
     }
@@ -334,16 +331,16 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @param options See constructor
      */
     setOptions(options: DrawToolOptions): this {
-        this.maxPoints = options.maxPoints ?? Infinity;
-        this.minPoints = options.minPoints ?? null;
-        this.getPointAt = options.getPointAt ?? this._defaultPickPointAt.bind(this);
-        this.point2DFactory = options.point2DFactory ?? this._defaultPoint2DFactory.bind(this);
-        this.drawObjectOptions = options.drawObjectOptions ?? {};
-        this.endDrawingOnRightClick = options.endDrawingOnRightClick ?? true;
-        this.enableSplicing = options.enableSplicing ?? true;
-        this.splicingHitTolerance = options.splicingHitTolerance ?? null;
-        this.enableDragging = options.enableDragging ?? true;
-        this.enableAddPointsOnEdit = options.enableAddPointsOnEdit ?? true;
+        this._maxPoints = options.maxPoints ?? Infinity;
+        this._minPoints = options.minPoints ?? null;
+        this._getPointAt = options.getPointAt ?? this._defaultPickPointAt.bind(this);
+        this._point2DFactory = options.point2DFactory ?? this._defaultPoint2DFactory.bind(this);
+        this._drawObjectOptions = options.drawObjectOptions ?? {};
+        this._endDrawingOnRightClick = options.endDrawingOnRightClick ?? true;
+        this._enableSplicing = options.enableSplicing ?? true;
+        this._splicingHitTolerance = options.splicingHitTolerance ?? null;
+        this._enableDragging = options.enableDragging ?? true;
+        this._enableAddPointsOnEdit = options.enableAddPointsOnEdit ?? true;
         return this;
     }
 
@@ -356,7 +353,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @returns Object
      */
     private _defaultPickPointAt(evt: MouseEvent): PickedResult {
-        const picked = this.instance.pickObjectsAt(evt, {
+        const picked = this._instance.pickObjectsAt(evt, {
             radius: 5,
             limit: 1,
         });
@@ -425,8 +422,8 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         geometryType: DrawingGeometryType = 'Polygon',
     ): Promise<GeoJSON.Geometry> {
         return new Promise((resolveFn, rejectFn) => {
-            this.resolve = resolveFn;
-            this.reject = rejectFn;
+            this._resolve = resolveFn;
+            this._reject = rejectFn;
             this.start(geometryType);
         });
     }
@@ -463,8 +460,8 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     editAsAPromise(geometry: GeoJSON.Geometry | Drawing): Promise<GeoJSON.Geometry> {
         return new Promise((resolveFn, rejectFn) => {
-            this.resolve = resolveFn;
-            this.reject = rejectFn;
+            this._resolve = resolveFn;
+            this._reject = rejectFn;
             this.edit(geometry);
         });
     }
@@ -508,11 +505,11 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         const geojson = this.toGeoJSON();
         this.dispatchEvent({ type: 'end', geojson });
 
-        if (this.resolve) {
-            this.resolve(geojson);
+        if (this._resolve) {
+            this._resolve(geojson);
         }
-        this.resolve = null;
-        this.reject = null;
+        this._resolve = null;
+        this._reject = null;
         this.reset();
         return geojson;
     }
@@ -552,10 +549,10 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
 
         this._setState(DrawToolInternalState.NOOP);
 
-        if (this.reject) {
-            this.reject(PromiseUtils.abortError());
-            this.resolve = null;
-            this.reject = null;
+        if (this._reject) {
+            this._reject(PromiseUtils.abortError());
+            this._resolve = null;
+            this._reject = null;
         }
         this.dispatchEvent({ type: 'abort' });
         this._clean();
@@ -580,21 +577,21 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     toGeoJSON(): GeoJSON.Geometry {
         if (this._state === DrawToolState.READY) return null;
-        if (this.coordinates.length === 0) return null;
+        if (this._coordinates.length === 0) return null;
 
         // Deep clone
-        const coords = this.coordinates.map(c => [c[0], c[1], c[2]]);
-        if (this.nextPointCoordinates !== null) {
+        const coords = this._coordinates.map(c => [c[0], c[1], c[2]]);
+        if (this._nextPointCoordinates !== null) {
             // Add next point into geometry
-            if (this.geometryType === 'Polygon') {
-                coords.splice(-1, 0, this.nextPointCoordinates);
+            if (this._geometryType === 'Polygon') {
+                coords.splice(-1, 0, this._nextPointCoordinates);
             } else {
-                coords.push(this.nextPointCoordinates);
+                coords.push(this._nextPointCoordinates);
             }
         }
 
         let coordinates;
-        switch (this.geometryType) {
+        switch (this._geometryType) {
             case 'Point':
                 coordinates = coords[0];
                 break;
@@ -612,7 +609,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
                 break;
         }
         const geojson = {
-            type: this.geometryType,
+            type: this._geometryType,
             coordinates,
         } as GeoJSON.Geometry;
         return geojson;
@@ -631,18 +628,18 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @param coords Position of the new point
      */
     addPointAt(coords: Vector3): void {
-        let index = this.coordinates.length;
-        if (this.geometryType === 'Polygon') {
-            if (this.coordinates.length === 0) {
+        let index = this._coordinates.length;
+        if (this._geometryType === 'Polygon') {
+            if (this._coordinates.length === 0) {
                 // Push initial coords twice to close the polygon
-                this.coordinates.push([coords.x, coords.y, coords.z]);
-                this.coordinates.push([coords.x, coords.y, coords.z]);
+                this._coordinates.push([coords.x, coords.y, coords.z]);
+                this._coordinates.push([coords.x, coords.y, coords.z]);
             } else {
-                this.coordinates.splice(-1, 0, [coords.x, coords.y, coords.z]);
+                this._coordinates.splice(-1, 0, [coords.x, coords.y, coords.z]);
                 index--;
             }
         } else {
-            this.coordinates.push([coords.x, coords.y, coords.z]);
+            this._coordinates.push([coords.x, coords.y, coords.z]);
         }
 
         this._updateInteractionsCapabilities();
@@ -656,7 +653,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         });
         this.dispatchEvent({ type: 'drawing' });
 
-        if (this.coordinates.length >= this.realMaxPoints) {
+        if (this._coordinates.length >= this._realMaxPoints) {
             this._endAfterEventloop();
         }
     }
@@ -671,32 +668,32 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @param coords New position of the point
      */
     updatePointAt(pointIdx: number, coords: Vector3): void {
-        this.coordinates[pointIdx] = [coords.x, coords.y, coords.z];
+        this._coordinates[pointIdx] = [coords.x, coords.y, coords.z];
 
         // Update rendering
-        this.pointsGroup.children[pointIdx].visible = true;
-        this.pointsGroup.children[pointIdx].position.copy(coords);
-        this.pointsGroup.children[pointIdx].updateMatrixWorld();
-        this.instance.notifyChange(this.pointsGroup.children[pointIdx]);
+        this._pointsGroup.children[pointIdx].visible = true;
+        this._pointsGroup.children[pointIdx].position.copy(coords);
+        this._pointsGroup.children[pointIdx].updateMatrixWorld();
+        this._instance.notifyChange(this._pointsGroup.children[pointIdx]);
 
-        if (this.geometryType === 'Polygon') {
+        if (this._geometryType === 'Polygon') {
             // We have a closed polygon, also update last one if we update the first and vice-versa
             if (pointIdx === 0) {
                 // We have a closed polygon, also update last one
-                const lastIndex = this.pointsGroup.children.length - 1;
-                this.pointsGroup.children[lastIndex].visible = true;
-                this.pointsGroup.children[lastIndex].position.copy(coords);
-                this.pointsGroup.children[lastIndex].updateMatrixWorld();
-                this.instance.notifyChange(this.pointsGroup.children[lastIndex]);
+                const lastIndex = this._pointsGroup.children.length - 1;
+                this._pointsGroup.children[lastIndex].visible = true;
+                this._pointsGroup.children[lastIndex].position.copy(coords);
+                this._pointsGroup.children[lastIndex].updateMatrixWorld();
+                this._instance.notifyChange(this._pointsGroup.children[lastIndex]);
 
-                this.coordinates[this.coordinates.length - 1] = [coords.x, coords.y, coords.z];
-            } else if (pointIdx === this.coordinates.length - 1) {
-                this.pointsGroup.children[0].visible = true;
-                this.pointsGroup.children[0].position.copy(coords);
-                this.pointsGroup.children[0].updateMatrixWorld();
-                this.instance.notifyChange(this.pointsGroup.children[0]);
+                this._coordinates[this._coordinates.length - 1] = [coords.x, coords.y, coords.z];
+            } else if (pointIdx === this._coordinates.length - 1) {
+                this._pointsGroup.children[0].visible = true;
+                this._pointsGroup.children[0].position.copy(coords);
+                this._pointsGroup.children[0].updateMatrixWorld();
+                this._instance.notifyChange(this._pointsGroup.children[0]);
 
-                this.coordinates[0] = [coords.x, coords.y, coords.z];
+                this._coordinates[0] = [coords.x, coords.y, coords.z];
             }
         }
 
@@ -704,8 +701,8 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
 
         // If dragging, don't dispatch EDIT event from here, wait until drag is stopped
         if (
-            this.internalState !== DrawToolInternalState.DRAGGING
-            && this.internalState !== DrawToolInternalState.DRAGGING_STARTED
+            this._internalState !== DrawToolInternalState.DRAGGING
+            && this._internalState !== DrawToolInternalState.DRAGGING_STARTED
         ) {
             // Calling this from API, dispatch EDIT event
             this._updateEdges();
@@ -714,7 +711,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
             this.dispatchEvent({
                 type: 'edit',
                 index: pointIdx,
-                at: this.pointsGroup.children[pointIdx].position,
+                at: this._pointsGroup.children[pointIdx].position,
             });
         }
         this.dispatchEvent({ type: 'drawing' });
@@ -730,18 +727,18 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     deletePoint(pointIdx: number): void {
         if (
-            this.geometryType === 'Polygon'
-            && (pointIdx === 0 || pointIdx === this.coordinates.length - 1)
+            this._geometryType === 'Polygon'
+            && (pointIdx === 0 || pointIdx === this._coordinates.length - 1)
         ) {
             // We have a closed polygon, delete first one and set last one to the "new" first
-            this.coordinates.splice(0, 1);
-            this.coordinates[this.coordinates.length - 1] = [
-                this.coordinates[0][0],
-                this.coordinates[0][1],
-                this.coordinates[0][2],
+            this._coordinates.splice(0, 1);
+            this._coordinates[this._coordinates.length - 1] = [
+                this._coordinates[0][0],
+                this._coordinates[0][1],
+                this._coordinates[0][2],
             ];
         } else {
-            this.coordinates.splice(pointIdx, 1);
+            this._coordinates.splice(pointIdx, 1);
         }
 
         this._updateInteractionsCapabilities();
@@ -766,12 +763,12 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @param coords Position for the new point
      */
     insertPointAt(pointIdx: number, coords: Vector3): void {
-        this.coordinates.splice(pointIdx, 0, [coords.x, coords.y, coords.z]);
-        if (this.geometryType === 'Polygon' && pointIdx === 0) {
-            this.coordinates[this.coordinates.length - 1] = [
-                this.coordinates[0][0],
-                this.coordinates[0][1],
-                this.coordinates[0][2],
+        this._coordinates.splice(pointIdx, 0, [coords.x, coords.y, coords.z]);
+        if (this._geometryType === 'Polygon' && pointIdx === 0) {
+            this._coordinates[this._coordinates.length - 1] = [
+                this._coordinates[0][0],
+                this._coordinates[0][1],
+                this._coordinates[0][2],
             ];
         }
 
@@ -800,69 +797,69 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     ): void {
         this._mode = mode;
 
-        this.coordinates = [];
-        this.nextPoint3D = null;
-        this.nextPointCoordinates = null;
-        this.splicingPoint3D = null;
-        this.splicingPointEdge = null;
-        this.splicingPointCoordinates = null;
-        this.draggedPointIndex = null;
+        this._coordinates = [];
+        this._nextPoint3D = null;
+        this._nextPointCoordinates = null;
+        this._splicingPoint3D = null;
+        this._splicingPointEdge = null;
+        this._splicingPointCoordinates = null;
+        this._draggedPointIndex = null;
 
         if (geometry) {
             if ('isDrawing' in geometry) {
-                this.geometryType = geometry.geometryType;
+                this._geometryType = geometry.geometryType;
                 this._drawObject = geometry;
             } else {
                 // GeoJSON
-                this.geometryType = geometry.type as DrawingGeometryType;
+                this._geometryType = geometry.type as DrawingGeometryType;
                 this._drawObject = new Drawing(
-                    this.instance, this.drawObjectOptions, geometry,
+                    this._instance, this._drawObjectOptions, geometry,
                 );
             }
 
             // Get initial coordinates from drawObject
             const nbPoints = this._drawObject.coordinates.length / 3;
             for (let i = 0; i < nbPoints; i += 1) {
-                this.coordinates.push([
+                this._coordinates.push([
                     this._drawObject.coordinates[i * 3 + 0],
                     this._drawObject.coordinates[i * 3 + 1],
                     this._drawObject.coordinates[i * 3 + 2],
                 ]);
             }
         } else {
-            this.geometryType = geometryType;
-            this._drawObject = new Drawing(this.instance, this.drawObjectOptions);
+            this._geometryType = geometryType;
+            this._drawObject = new Drawing(this._instance, this._drawObjectOptions);
         }
 
-        if (this.geometryType === 'Point' || this.geometryType === 'MultiPoint'
+        if (this._geometryType === 'Point' || this._geometryType === 'MultiPoint'
         ) {
             // Actually by-pass completely the drawobject, as we do
             // all rendering in this tool
             this._drawObject.clear();
             this._drawObject.removeFromParent();
         } else {
-            this.instance.threeObjects.add(this._drawObject);
+            this._instance.threeObjects.add(this._drawObject);
         }
 
-        switch (this.geometryType) {
+        switch (this._geometryType) {
             case 'Point':
             case 'MultiPoint':
-                this.realMinPoints = this.minPoints ?? 1;
-                this.realMaxPoints = this.maxPoints ?? Infinity;
+                this._realMinPoints = this._minPoints ?? 1;
+                this._realMaxPoints = this._maxPoints ?? Infinity;
                 break;
             case 'LineString':
-                this.realMinPoints = this.minPoints ?? 2;
-                this.realMaxPoints = this.maxPoints ?? Infinity;
+                this._realMinPoints = this._minPoints ?? 2;
+                this._realMaxPoints = this._maxPoints ?? Infinity;
                 break;
             case 'Polygon':
-                this.realMinPoints = (
-                    this.minPoints !== null && this.minPoints !== undefined
-                        ? Math.max(this.minPoints + 1, 4)
+                this._realMinPoints = (
+                    this._minPoints !== null && this._minPoints !== undefined
+                        ? Math.max(this._minPoints + 1, 4)
                         : 4
                 );
-                this.realMaxPoints = (
-                    this.maxPoints !== null && this.maxPoints !== undefined
-                        ? this.maxPoints + 1
+                this._realMaxPoints = (
+                    this._maxPoints !== null && this._maxPoints !== undefined
+                        ? this._maxPoints + 1
                         : Infinity
                 );
                 break;
@@ -873,15 +870,15 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         this._updateInteractionsCapabilities();
         this._restoreDefaultState();
 
-        this.pointsGroup = new Group();
-        this.pointsGroup.name = 'drawtool-points';
-        this.instance.threeObjects.add(this.pointsGroup);
+        this._pointsGroup = new Group();
+        this._pointsGroup.name = 'drawtool-points';
+        this._instance.threeObjects.add(this._pointsGroup);
 
         // Used for raycasting against the edges
         // (raycasting against the lines don't always work depending on the camera angle)
-        this.edges = new Group();
-        this.edges.name = 'drawtool-edges';
-        this.instance.threeObjects.add(this.edges);
+        this._edges = new Group();
+        this._edges.name = 'drawtool-edges';
+        this._instance.threeObjects.add(this._edges);
 
         this._updatePoints3D();
         this._createEventHandlers();
@@ -902,9 +899,9 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         this._removeDrawings();
         this._cleanEventHandlers();
         this._state = DrawToolState.READY;
-        this.internalState = DrawToolInternalState.NOOP;
+        this._internalState = DrawToolInternalState.NOOP;
         this._mode = null;
-        this.coordinates = null;
+        this._coordinates = null;
     }
 
     /**
@@ -915,38 +912,38 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
             this._drawObject.removeFromParent();
             this._drawObject.dispose();
             this._drawObject = null;
-            this.instance.notifyChange(this.instance.threeObjects);
+            this._instance.notifyChange(this._instance.threeObjects);
         }
 
-        if (this.pointsGroup) {
-            for (const o of this.pointsGroup.children) {
+        if (this._pointsGroup) {
+            for (const o of this._pointsGroup.children) {
                 (o as CSS2DObject).element.remove();
             }
-            this.pointsGroup.clear();
-            this.pointsGroup.removeFromParent();
-            this.pointsGroup = null;
-            this.instance.notifyChange(this.instance.threeObjects);
+            this._pointsGroup.clear();
+            this._pointsGroup.removeFromParent();
+            this._pointsGroup = null;
+            this._instance.notifyChange(this._instance.threeObjects);
         }
 
-        if (this.nextPoint3D) {
-            this.nextPoint3D.element.remove();
-            this.nextPoint3D.removeFromParent();
-            this.nextPoint3D = null;
-            this.instance.notifyChange(this.instance.threeObjects);
+        if (this._nextPoint3D) {
+            this._nextPoint3D.element.remove();
+            this._nextPoint3D.removeFromParent();
+            this._nextPoint3D = null;
+            this._instance.notifyChange(this._instance.threeObjects);
         }
 
-        if (this.splicingPoint3D) {
-            this.splicingPoint3D.element.remove();
-            this.splicingPoint3D.removeFromParent();
-            this.splicingPoint3D = null;
-            this.instance.notifyChange(this.instance.threeObjects);
+        if (this._splicingPoint3D) {
+            this._splicingPoint3D.element.remove();
+            this._splicingPoint3D.removeFromParent();
+            this._splicingPoint3D = null;
+            this._instance.notifyChange(this._instance.threeObjects);
         }
 
-        if (this.edges) {
-            this.edges.clear();
-            this.edges.removeFromParent();
-            this.edges = null;
-            this.instance.notifyChange(this.instance.threeObjects);
+        if (this._edges) {
+            this._edges.clear();
+            this._edges.removeFromParent();
+            this._edges = null;
+            this._instance.notifyChange(this._instance.threeObjects);
         }
     }
 
@@ -956,21 +953,21 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * Updates canSplice & canAddNewPoint based on mode, geometry and number of points.
      */
     private _updateInteractionsCapabilities(): void {
-        this.canSplice = (
-            this.enableSplicing
-            && this.coordinates.length < this.realMaxPoints
-            && (this.geometryType === 'LineString' || this.geometryType === 'Polygon')
+        this._canSplice = (
+            this._enableSplicing
+            && this._coordinates.length < this._realMaxPoints
+            && (this._geometryType === 'LineString' || this._geometryType === 'Polygon')
         );
 
         switch (this._mode) {
             case DrawToolMode.CREATE:
-                this.canAddNewPoint = this.coordinates.length < this.realMaxPoints;
+                this._canAddNewPoint = this._coordinates.length < this._realMaxPoints;
                 break;
             case DrawToolMode.EDIT:
-                this.canAddNewPoint = (
-                    this.enableAddPointsOnEdit
-                    && this.coordinates.length < this.realMaxPoints
-                    && (this.geometryType === 'LineString' || this.geometryType === 'MultiPoint')
+                this._canAddNewPoint = (
+                    this._enableAddPointsOnEdit
+                    && this._coordinates.length < this._realMaxPoints
+                    && (this._geometryType === 'LineString' || this._geometryType === 'MultiPoint')
                 );
                 break;
             default:
@@ -983,7 +980,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     private _restoreDefaultState(): void {
         this._setState(
-            this.canAddNewPoint
+            this._canAddNewPoint
                 ? DrawToolInternalState.NEW_POINT
                 : DrawToolInternalState.NOOP,
         );
@@ -995,7 +992,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @param state State
      */
     private _pushState(state: DrawToolInternalState): void {
-        this._oldState = this.internalState;
+        this._oldState = this._internalState;
         this._setState(state);
     }
 
@@ -1006,7 +1003,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @param state State
      */
     private _popState(state: DrawToolInternalState): void {
-        if (state === this.internalState) {
+        if (state === this._internalState) {
             this._setState(this._oldState);
         }
     }
@@ -1017,14 +1014,14 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @param state New state
      */
     private _setState(state: DrawToolInternalState): void {
-        if (this.internalState === state) return;
+        if (this._internalState === state) return;
 
         // Do stuff based on previous state
         // (we know the new one is different from the old one)
-        switch (this.internalState) {
+        switch (this._internalState) {
             case DrawToolInternalState.OVER_EDGE:
                 this._hideSplicingPoint();
-                this.instance.viewport.style.cursor = 'auto';
+                this._instance.viewport.style.cursor = 'auto';
                 break;
             case DrawToolInternalState.NEW_POINT:
                 this._hideNextPoint();
@@ -1050,13 +1047,13 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
                 this._setPointerEventsEnabled(false);
                 break;
             case DrawToolInternalState.OVER_EDGE:
-                this.instance.viewport.style.cursor = 'pointer';
+                this._instance.viewport.style.cursor = 'pointer';
                 break;
             default:
                 // do nothing
         }
 
-        this.internalState = state;
+        this._internalState = state;
     }
 
     /// EVENTS
@@ -1077,10 +1074,10 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
 
         // Use mouseup event to correctly trigger when right-click is *released* (and not pressed)
         // (so we can use controls with right-click)
-        this.instance.viewport.addEventListener('mousedown', this._eventHandlers.mousedown);
-        this.instance.viewport.addEventListener('mouseup', this._eventHandlers.mouseup);
-        this.instance.viewport.addEventListener('mousemove', this._eventHandlers.mousemove);
-        this.instance.viewport.addEventListener('contextmenu', this._eventHandlers.contextmenu);
+        this._instance.viewport.addEventListener('mousedown', this._eventHandlers.mousedown);
+        this._instance.viewport.addEventListener('mouseup', this._eventHandlers.mouseup);
+        this._instance.viewport.addEventListener('mousemove', this._eventHandlers.mousemove);
+        this._instance.viewport.addEventListener('contextmenu', this._eventHandlers.contextmenu);
     }
 
     /**
@@ -1090,11 +1087,11 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     private _cleanEventHandlers(): void {
         if (this._state !== DrawToolState.ACTIVE) return;
 
-        if (this.instance && this._eventHandlers) {
-            this.instance.viewport.removeEventListener('mousedown', this._eventHandlers.mousedown);
-            this.instance.viewport.removeEventListener('mouseup', this._eventHandlers.mouseup);
-            this.instance.viewport.removeEventListener('mousemove', this._eventHandlers.mousemove);
-            this.instance.viewport.removeEventListener('contextmenu', this._eventHandlers.contextmenu);
+        if (this._instance && this._eventHandlers) {
+            this._instance.viewport.removeEventListener('mousedown', this._eventHandlers.mousedown);
+            this._instance.viewport.removeEventListener('mouseup', this._eventHandlers.mouseup);
+            this._instance.viewport.removeEventListener('mousemove', this._eventHandlers.mousemove);
+            this._instance.viewport.removeEventListener('contextmenu', this._eventHandlers.contextmenu);
             this._eventHandlers = null;
         }
     }
@@ -1107,7 +1104,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     private _onMouseDown(evt: MouseEvent): void {
         let res = false;
         if (evt.button === 0) {
-            if (this.enableDragging && this.internalState === DrawToolInternalState.OVER_EDGE) {
+            if (this._enableDragging && this._internalState === DrawToolInternalState.OVER_EDGE) {
                 // Point displayed is on edge, but because of hit tolerance the cursor
                 // might not be over the displayed point, so also handle event here
                 this._spliceAndStartDrag();
@@ -1129,16 +1126,16 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         if (evt.button === 0) {
             // First, check if we are clicking on the first point of a polygon
             // to close the shape
-            if (this.internalState === DrawToolInternalState.DRAGGING_STARTED) {
-                if (this.enableDragging
+            if (this._internalState === DrawToolInternalState.DRAGGING_STARTED) {
+                if (this._enableDragging
                     && this._mode === DrawToolMode.CREATE
-                    && this.geometryType === 'Polygon'
-                    && this.draggedPointIndex === 0
+                    && this._geometryType === 'Polygon'
+                    && this._draggedPointIndex === 0
                 ) {
                     // Abort dragging - bypass states to avoid creating a new point
-                    this.draggedPointIndex = null;
+                    this._draggedPointIndex = null;
                     // FIXME: this is a hard assumption on the controls API!
-                    (this.instance.controls as any).enabled = true;
+                    (this._instance.controls as any).enabled = true;
 
                     this._endAfterEventloop();
                     res = true;
@@ -1147,8 +1144,8 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
 
             if (
                 !res
-                && !this.enableDragging
-                && this.internalState === DrawToolInternalState.OVER_EDGE
+                && !this._enableDragging
+                && this._internalState === DrawToolInternalState.OVER_EDGE
             ) {
                 // Point displayed is on edge, but because of hit tolerance the cursor
                 // might not be over the displayed point, so also handle event here
@@ -1158,17 +1155,17 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
 
             // Then, check other interactions:
             if (!res && (
-                this.internalState === DrawToolInternalState.DRAGGING
-                || this.internalState === DrawToolInternalState.DRAGGING_STARTED
+                this._internalState === DrawToolInternalState.DRAGGING
+                || this._internalState === DrawToolInternalState.DRAGGING_STARTED
             )) {
                 // Were we dragging a point?
                 res = this._endDraggingPoint();
-            } else if (this.internalState === DrawToolInternalState.NEW_POINT) {
+            } else if (this._internalState === DrawToolInternalState.NEW_POINT) {
                 // Were we clicking for a new point?
                 res = this._tryAddNewPoint(evt);
             }
             // Do nothing with that event
-        } else if (evt.button === 2 && this.endDrawingOnRightClick) {
+        } else if (evt.button === 2 && this._endDrawingOnRightClick) {
             res = this._tryEndDraw(evt);
         }
 
@@ -1185,29 +1182,29 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         let res = false;
 
         if (
-            this.internalState === DrawToolInternalState.DRAGGING_STARTED
-            || this.internalState === DrawToolInternalState.DRAGGING
+            this._internalState === DrawToolInternalState.DRAGGING_STARTED
+            || this._internalState === DrawToolInternalState.DRAGGING
         ) {
             // A point is being dragged, move it
             res = this._tryMovePoint(evt);
-        } else if (this.internalState === DrawToolInternalState.OVER_POINT) {
+        } else if (this._internalState === DrawToolInternalState.OVER_POINT) {
             // we're hovering a point, do nothing
         } else {
-            if (this.canSplice) {
+            if (this._canSplice) {
                 // Are we close to an edge for splicing?
                 res = this._tryShowSplicePoint(evt);
                 if (res) {
                     // We found a point
                     this._setState(DrawToolInternalState.OVER_EDGE);
-                } else if (this.internalState === DrawToolInternalState.OVER_EDGE) {
+                } else if (this._internalState === DrawToolInternalState.OVER_EDGE) {
                     // No point anymore, restore
                     this._restoreDefaultState();
                 }
             }
 
             if (!res
-                && this.canAddNewPoint
-                && this.internalState === DrawToolInternalState.NEW_POINT
+                && this._canAddNewPoint
+                && this._internalState === DrawToolInternalState.NEW_POINT
             ) {
                 // Display next point
                 res = this._tryShowNextPoint(evt);
@@ -1226,12 +1223,12 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * under the mouse
      */
     private _tryAddNewPoint(evt: MouseEvent): boolean {
-        if (this.internalState !== DrawToolInternalState.NEW_POINT) {
-            console.warn('_tryAddNewPoint with unexpected state', this.internalState);
+        if (this._internalState !== DrawToolInternalState.NEW_POINT) {
+            console.warn('_tryAddNewPoint with unexpected state', this._internalState);
             return false;
         }
 
-        const picked = this.getPointAt(evt);
+        const picked = this._getPointAt(evt);
         // did we *really* click on something
         if (!picked || !picked.picked) {
             return false;
@@ -1250,7 +1247,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     private _tryEndDraw(evt: MouseEvent): boolean {
         // have we picked up enough point?
-        if (this.coordinates.length < this.realMinPoints) return false;
+        if (this._coordinates.length < this._realMinPoints) return false;
         this._endAfterEventloop();
         return true;
     }
@@ -1262,12 +1259,12 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @returns `true` if there is a point, or `false` otherwise
      */
     private _tryShowNextPoint(evt: MouseEvent): boolean {
-        if (this.internalState !== DrawToolInternalState.NEW_POINT) {
-            console.warn('_tryShowNextPoint with unexpected state', this.internalState);
+        if (this._internalState !== DrawToolInternalState.NEW_POINT) {
+            console.warn('_tryShowNextPoint with unexpected state', this._internalState);
             return false;
         }
 
-        const picked = this.getPointAt(evt);
+        const picked = this._getPointAt(evt);
         if (!picked || !picked.picked) {
             // If we don't have a "real" point picked, hide the label following the cursor
             this._hideNextPoint();
@@ -1286,18 +1283,18 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     private _tryShowSplicePoint(evt: MouseEvent): boolean {
         if (
-            this.internalState !== DrawToolInternalState.NOOP
-            && this.internalState !== DrawToolInternalState.NEW_POINT
-            && this.internalState !== DrawToolInternalState.OVER_EDGE
+            this._internalState !== DrawToolInternalState.NOOP
+            && this._internalState !== DrawToolInternalState.NEW_POINT
+            && this._internalState !== DrawToolInternalState.OVER_EDGE
         ) {
-            console.warn('_tryShowSplicePoint with unexpected state', this.internalState);
+            console.warn('_tryShowSplicePoint with unexpected state', this._internalState);
             return false;
         }
 
-        const mouse = this.instance.eventToCanvasCoords(evt, tmpVec2);
-        const pointer = this.instance.canvasToNormalizedCoords(mouse, tmpVec2);
-        raycaster.setFromCamera(pointer, this.instance.camera.camera3D);
-        const picked = raycaster.intersectObject(this.edges, true);
+        const mouse = this._instance.eventToCanvasCoords(evt, tmpVec2);
+        const pointer = this._instance.canvasToNormalizedCoords(mouse, tmpVec2);
+        raycaster.setFromCamera(pointer, this._instance.camera.camera3D);
+        const picked = raycaster.intersectObject(this._edges, true);
 
         if (picked.length === 0) {
             return false;
@@ -1305,8 +1302,8 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
 
         const pickedEdge = picked[0].object as Edge;
 
-        pickedEdge._line.closestPointToPoint(picked[0].point, true, tmpVec3);
-        this._updateSplicingPoint(pickedEdge._edgeIndex, tmpVec3);
+        pickedEdge.line.closestPointToPoint(picked[0].point, true, tmpVec3);
+        this._updateSplicingPoint(pickedEdge.edgeIndex, tmpVec3);
         return true;
     }
 
@@ -1318,14 +1315,14 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     private _tryMovePoint(evt: MouseEvent): boolean {
         if (
-            this.internalState !== DrawToolInternalState.DRAGGING_STARTED
-            && this.internalState !== DrawToolInternalState.DRAGGING
+            this._internalState !== DrawToolInternalState.DRAGGING_STARTED
+            && this._internalState !== DrawToolInternalState.DRAGGING
         ) {
-            console.warn('_tryMovePoint with unexpected state', this.internalState);
+            console.warn('_tryMovePoint with unexpected state', this._internalState);
             return false;
         }
 
-        const picked = this.getPointAt(evt);
+        const picked = this._getPointAt(evt);
         if (!picked || !picked.picked) {
             // If we don't have a "real" point picked, just ignore the new position
             // so it doesn't go in the limbo
@@ -1333,7 +1330,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         }
 
         this._setState(DrawToolInternalState.DRAGGING);
-        this.updatePointAt(this.draggedPointIndex, picked.point);
+        this.updatePointAt(this._draggedPointIndex, picked.point);
         return true;
     }
 
@@ -1350,29 +1347,29 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     private _updatePoints3D(): void {
         // First clean the existing 2D & 3D points
-        for (const o of this.pointsGroup.children) {
+        for (const o of this._pointsGroup.children) {
             (o as CSS2DObject).element.remove();
         }
-        this.pointsGroup.clear();
+        this._pointsGroup.clear();
 
         // Create new ones
-        const nbPoints = this.coordinates.length;
+        const nbPoints = this._coordinates.length;
 
         for (let i = 0; i < nbPoints; i += 1) {
-            const pt = this.point2DFactory(`${i + 1}`);
+            const pt = this._point2DFactory(`${i + 1}`);
             pt.style.pointerEvents = 'auto';
             pt.style.cursor = 'pointer';
             const pt3d = new CSS2DObject(pt);
             pt3d.renderOrder = 1;
             pt3d.position.set(
-                this.coordinates[i][0], this.coordinates[i][1], this.coordinates[i][2],
+                this._coordinates[i][0], this._coordinates[i][1], this._coordinates[i][2],
             );
             pt3d.updateMatrixWorld();
-            this.pointsGroup.add(pt3d);
+            this._pointsGroup.add(pt3d);
 
             // if drag-and-drop: mouseup event is handled in generic _onMouseUp
             // if on click: we bind to click to not interfer with general mouseup
-            pt.addEventListener(this.enableDragging ? 'mousedown' : 'click', evt => {
+            pt.addEventListener(this._enableDragging ? 'mousedown' : 'click', evt => {
                 if (evt.button === 0) {
                     this._startDraggingPoint(i);
                     evt.stopPropagation();
@@ -1383,11 +1380,11 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
             pt.addEventListener('mouseover', () => this._pushState(DrawToolInternalState.OVER_POINT));
             pt.addEventListener('mouseout', () => this._popState(DrawToolInternalState.OVER_POINT));
 
-            if (this.canAddNewPoint) {
+            if (this._canAddNewPoint) {
                 // We *should* always bind click event on pt if polygon and pt is the first point
                 // to close the shape, but it does not work with drag and drop (event is swallowed
                 // by drag and drop, so it's (also) handled in _onMouseUp
-                if (!this.enableDragging && this.geometryType === 'Polygon' && i === 0) {
+                if (!this._enableDragging && this._geometryType === 'Polygon' && i === 0) {
                     pt.addEventListener('click', evt => {
                         this._endAfterEventloop();
                         evt.stopPropagation();
@@ -1396,19 +1393,19 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
             }
         }
 
-        if (this.canAddNewPoint) {
+        if (this._canAddNewPoint) {
             const nextPointNumber = (
-                this.geometryType === 'Polygon' && nbPoints > 0
+                this._geometryType === 'Polygon' && nbPoints > 0
                     ? nbPoints
                     : nbPoints + 1
             );
-            if (this.nextPoint3D) {
-                this.nextPoint3D.element.innerText = `${nextPointNumber}`;
+            if (this._nextPoint3D) {
+                this._nextPoint3D.element.innerText = `${nextPointNumber}`;
             } else {
-                const nextPoint2D = this.point2DFactory(`${nextPointNumber}`);
-                this.nextPoint3D = new CSS2DObject(nextPoint2D);
-                this.nextPoint3D.name = 'next-point';
-                this.instance.threeObjects.add(this.nextPoint3D);
+                const nextPoint2D = this._point2DFactory(`${nextPointNumber}`);
+                this._nextPoint3D = new CSS2DObject(nextPoint2D);
+                this._nextPoint3D.name = 'next-point';
+                this._instance.threeObjects.add(this._nextPoint3D);
             }
         }
 
@@ -1419,24 +1416,24 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * Updates edges for splicing.
      */
     private _updateEdges(): void {
-        const nbPoints = this.coordinates.length;
+        const nbPoints = this._coordinates.length;
         const edgeSize = (
             // this.splicingHitTolerance can be null for auto
             // this.drawObject.extrudeDepth can be undefined if we just started drawing a line
-            this.splicingHitTolerance ?? Math.max((this._drawObject.extrudeDepth ?? 10) * 1.5, 15)
+            this._splicingHitTolerance ?? Math.max((this._drawObject.extrudeDepth ?? 10) * 1.5, 15)
         );
 
-        this.edges.clear();
+        this._edges.clear();
 
         for (let i = 1; i < nbPoints; i += 1) {
             // We need to use new Vector3s to pass them to Line object
             const start = new Vector3(
-                this.coordinates[i - 1][0],
-                this.coordinates[i - 1][1],
-                this.coordinates[i - 1][2],
+                this._coordinates[i - 1][0],
+                this._coordinates[i - 1][1],
+                this._coordinates[i - 1][2],
             );
             const end = new Vector3(
-                this.coordinates[i][0], this.coordinates[i][1], this.coordinates[i][2],
+                this._coordinates[i][0], this._coordinates[i][1], this._coordinates[i][2],
             );
 
             // Find orientation of the edge
@@ -1459,11 +1456,11 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
             edge.updateMatrixWorld(true);
 
             // Add metadata for picking
-            edge._edgeIndex = i - 1;
-            edge._line = new Line3(start, end);
-            this.edges.add(edge);
+            edge.edgeIndex = i - 1;
+            edge.line = new Line3(start, end);
+            this._edges.add(edge);
         }
-        this.instance.notifyChange(this.edges);
+        this._instance.notifyChange(this._edges);
     }
 
     /// INTERACTIONS
@@ -1472,8 +1469,8 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * Splices at the current position and starts dragging the new point
      */
     private _spliceAndStartDrag(): void {
-        const idx = this.splicingPointEdge + 1;
-        this.insertPointAt(idx, this.splicingPointCoordinates);
+        const idx = this._splicingPointEdge + 1;
+        this.insertPointAt(idx, this._splicingPointCoordinates);
         this._hideSplicingPoint();
         this._startDraggingPoint(idx);
     }
@@ -1485,14 +1482,14 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @param idx Index of the point
      */
     private _startDraggingPoint(idx: number): void {
-        if (this.enableDragging) {
+        if (this._enableDragging) {
             // Make sure controls are disabled while we are dragging
             // FIXME: this is a hard assumption on the controls API!
-            (this.instance.controls as any).enabled = false;
+            (this._instance.controls as any).enabled = false;
         }
 
         this._setState(DrawToolInternalState.DRAGGING_STARTED);
-        this.draggedPointIndex = idx;
+        this._draggedPointIndex = idx;
     }
 
     /**
@@ -1502,23 +1499,23 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     private _endDraggingPoint(): boolean {
         this._updateEdges();
-        const hasChanged = this.internalState === DrawToolInternalState.DRAGGING;
+        const hasChanged = this._internalState === DrawToolInternalState.DRAGGING;
 
         if (hasChanged) {
             // Dispatch event
             this.dispatchEvent({
                 type: 'edit',
-                index: this.draggedPointIndex,
-                at: this.pointsGroup.children[this.draggedPointIndex].position,
+                index: this._draggedPointIndex,
+                at: this._pointsGroup.children[this._draggedPointIndex].position,
             });
             this.dispatchEvent({ type: 'drawing' });
         }
 
         // Clean-up
-        this.draggedPointIndex = null;
-        if (this.enableDragging) {
+        this._draggedPointIndex = null;
+        if (this._enableDragging) {
             // FIXME: this is a hard assumption on the controls API!
-            (this.instance.controls as any).enabled = true;
+            (this._instance.controls as any).enabled = true;
         }
 
         this._restoreDefaultState();
@@ -1533,20 +1530,20 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     private _updateNextPoint(coords: Vector3): void {
         if (
-            this.internalState !== DrawToolInternalState.NEW_POINT
-            && this.internalState !== DrawToolInternalState.OVER_EDGE
+            this._internalState !== DrawToolInternalState.NEW_POINT
+            && this._internalState !== DrawToolInternalState.OVER_EDGE
         ) {
-            console.warn('_updateNextPoint with unexpected state', this.internalState);
+            console.warn('_updateNextPoint with unexpected state', this._internalState);
             return;
         }
 
-        this.nextPoint3D.visible = true;
-        this.nextPoint3D.position.copy(coords);
-        this.nextPoint3D.updateMatrixWorld();
-        this.instance.notifyChange(this.nextPoint3D);
+        this._nextPoint3D.visible = true;
+        this._nextPoint3D.position.copy(coords);
+        this._nextPoint3D.updateMatrixWorld();
+        this._instance.notifyChange(this._nextPoint3D);
 
         // update the last position
-        this.nextPointCoordinates = [coords.x, coords.y, coords.z];
+        this._nextPointCoordinates = [coords.x, coords.y, coords.z];
         this.update();
         this.dispatchEvent({ type: 'drawing' });
     }
@@ -1555,10 +1552,10 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * Hides the next point, so it's simply not visible
      */
     private _hideNextPoint(): void {
-        if (this.nextPoint3D) {
-            this.nextPoint3D.visible = false;
-            this.nextPointCoordinates = null;
-            this.instance.notifyChange(this.nextPoint3D);
+        if (this._nextPoint3D) {
+            this._nextPoint3D.visible = false;
+            this._nextPointCoordinates = null;
+            this._instance.notifyChange(this._nextPoint3D);
             this.update();
             this.dispatchEvent({ type: 'drawing' });
         }
@@ -1572,28 +1569,28 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     private _updateSplicingPoint(edgeIndex: number, coords: Vector3): void {
         if (
-            this.internalState !== DrawToolInternalState.NOOP
-            && this.internalState !== DrawToolInternalState.NEW_POINT
-            && this.internalState !== DrawToolInternalState.OVER_EDGE
+            this._internalState !== DrawToolInternalState.NOOP
+            && this._internalState !== DrawToolInternalState.NEW_POINT
+            && this._internalState !== DrawToolInternalState.OVER_EDGE
         ) {
-            console.warn('_updateSplicingPoint with unexpected state', this.internalState);
+            console.warn('_updateSplicingPoint with unexpected state', this._internalState);
             return;
         }
 
-        this.splicingPointCoordinates = coords.clone();
-        this.splicingPointEdge = edgeIndex;
+        this._splicingPointCoordinates = coords.clone();
+        this._splicingPointEdge = edgeIndex;
 
-        if (this.splicingPoint3D === null) {
-            const pt = this.point2DFactory(' ');
+        if (this._splicingPoint3D === null) {
+            const pt = this._point2DFactory(' ');
             pt.style.pointerEvents = 'auto';
             pt.style.cursor = 'pointer';
-            this.splicingPoint3D = new CSS2DObject(pt);
-            this.instance.threeObjects.add(this.splicingPoint3D);
-            this.instance.notifyChange(this.instance.threeObjects);
+            this._splicingPoint3D = new CSS2DObject(pt);
+            this._instance.threeObjects.add(this._splicingPoint3D);
+            this._instance.notifyChange(this._instance.threeObjects);
 
             // if drag-and-drop: mouseup event is handled in generic _onMouseUp
             // if on click: we bind to click to not interfer with general mouseup
-            this.splicingPoint3D.element.addEventListener(this.enableDragging ? 'mousedown' : 'click', evt => {
+            this._splicingPoint3D.element.addEventListener(this._enableDragging ? 'mousedown' : 'click', evt => {
                 if (evt.button === 0) {
                     this._spliceAndStartDrag();
                     evt.stopPropagation();
@@ -1601,25 +1598,25 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
             });
         }
 
-        this.splicingPoint3D.visible = true;
+        this._splicingPoint3D.visible = true;
 
         // Make sure splicing point is always *behind* any node point
-        this.splicingPoint3D.renderOrder = -1;
-        this.splicingPoint3D.position.copy(coords);
-        this.splicingPoint3D.updateMatrixWorld();
+        this._splicingPoint3D.renderOrder = -1;
+        this._splicingPoint3D.position.copy(coords);
+        this._splicingPoint3D.updateMatrixWorld();
 
-        this.instance.notifyChange(this.splicingPoint3D);
+        this._instance.notifyChange(this._splicingPoint3D);
     }
 
     /**
      * Removes the point for splicing (if exists)
      */
     private _hideSplicingPoint(): void {
-        if (this.splicingPoint3D) {
-            this.splicingPoint3D.visible = false;
-            this.splicingPointCoordinates = null;
-            this.splicingPointEdge = null;
-            this.instance.notifyChange(this.splicingPoint3D);
+        if (this._splicingPoint3D) {
+            this._splicingPoint3D.visible = false;
+            this._splicingPointCoordinates = null;
+            this._splicingPointEdge = null;
+            this._instance.notifyChange(this._splicingPoint3D);
         }
     }
 
@@ -1630,7 +1627,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @param enable Enable or disable
      */
     private _setPointerEventsEnabled(enable: boolean): void {
-        for (const o of this.pointsGroup.children) {
+        for (const o of this._pointsGroup.children) {
             const style = (o as CSS2DObject).element.style;
             style.pointerEvents = enable ? 'auto' : 'none';
             style.cursor = enable ? 'pointer' : 'auto';

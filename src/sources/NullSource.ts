@@ -7,7 +7,7 @@ import ImageSource from './ImageSource';
  */
 class NullSource extends ImageSource {
     readonly isNullSource: boolean = true;
-    private readonly extent: Extent;
+    private readonly _extent: Extent;
 
     constructor(options : { extent?: Extent } = {}) {
         super();
@@ -15,11 +15,11 @@ class NullSource extends ImageSource {
         this.isNullSource = true;
         this.type = 'NullSource';
 
-        this.extent = options?.extent ?? new Extent('EPSG:3857', 0, 10, 0, 10);
+        this._extent = options?.extent ?? new Extent('EPSG:3857', 0, 10, 0, 10);
     }
 
     getCrs() {
-        return this.extent.crs();
+        return this._extent.crs();
     }
 
     // eslint-disable-next-line class-methods-use-this
@@ -28,7 +28,7 @@ class NullSource extends ImageSource {
     }
 
     getExtent() {
-        return this.extent;
+        return this._extent;
     }
 }
 
