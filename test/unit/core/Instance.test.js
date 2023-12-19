@@ -4,7 +4,7 @@ import {
 } from 'three';
 import proj4 from 'proj4';
 import Extent from '../../../src/core/geographic/Extent';
-import Instance, { INSTANCE_EVENTS } from '../../../src/core/Instance.js';
+import Instance, { INSTANCE_EVENTS } from '../../../src/core/Instance';
 import MainLoop from '../../../src/core/MainLoop.js';
 import Map from '../../../src/entities/Map';
 import Tiles3D from '../../../src/entities/Tiles3D.js';
@@ -58,13 +58,37 @@ describe('Instance', () => {
     });
 
     describe('eventToNormalizedCoords', () => {
-        it('should return the passed target', () => {
+        it('should return the passed target, using TouchEvent', () => {
             if (window.TouchEvent) {
                 const target = new Vector2();
-                const event = new TouchEvent('foo');
+                const event = new TouchEvent('foo', {
+                    touches: [{
+                        clientX: 10,
+                        clientY: 10,
+                    }],
+                });
                 const result = instance.eventToNormalizedCoords(event, target);
                 expect(result).toBe(target);
             }
+        });
+        it('should return the passed target, using MouseEvent on domElement', () => {
+            const target = new Vector2();
+            const event = new MouseEvent('foo', {
+                target: viewerDiv,
+                offsetX: 10,
+                offsetY: 10,
+            });
+            const result = instance.eventToNormalizedCoords(event, target);
+            expect(result).toBe(target);
+        });
+        it('should return the passed target, using MouseEvent on other element', () => {
+            const target = new Vector2();
+            const event = new MouseEvent('foo', {
+                clientX: 10,
+                clientY: 10,
+            });
+            const result = instance.eventToNormalizedCoords(event, target);
+            expect(result).toBe(target);
         });
     });
 
@@ -72,10 +96,34 @@ describe('Instance', () => {
         it('should return the passed target', () => {
             if (window.TouchEvent) {
                 const target = new Vector2();
-                const event = new TouchEvent('foo');
+                const event = new TouchEvent('foo', {
+                    touches: [{
+                        clientX: 10,
+                        clientY: 10,
+                    }],
+                });
                 const result = instance.eventToCanvasCoords(event, target);
                 expect(result).toBe(target);
             }
+        });
+        it('should return the passed target, using MouseEvent on domElement', () => {
+            const target = new Vector2();
+            const event = new MouseEvent('foo', {
+                target: viewerDiv,
+                offsetX: 10,
+                offsetY: 10,
+            });
+            const result = instance.eventToCanvasCoords(event, target);
+            expect(result).toBe(target);
+        });
+        it('should return the passed target, using MouseEvent on other element', () => {
+            const target = new Vector2();
+            const event = new MouseEvent('foo', {
+                clientX: 10,
+                clientY: 10,
+            });
+            const result = instance.eventToCanvasCoords(event, target);
+            expect(result).toBe(target);
         });
     });
 

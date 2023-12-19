@@ -1,7 +1,7 @@
 import '../setup.js';
 import { Color, Group, Object3D } from 'three';
 import Extent from '../../../src/core/geographic/Extent';
-import Instance from '../../../src/core/Instance.js';
+import Instance from '../../../src/core/Instance';
 import Map from '../../../src/entities/Map';
 import Layer from '../../../src/core/layer/Layer';
 import MainLoop from '../../../src/core/MainLoop.js';

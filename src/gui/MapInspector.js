@@ -4,7 +4,7 @@
 import GUI from 'lil-gui';
 import { Color, MathUtils } from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import Instance, { INSTANCE_EVENTS } from '../core/Instance.js';
+import Instance from '../core/Instance';
 import TileMesh from '../core/TileMesh';
 import Map from '../entities/Map';
 import Helpers from '../helpers/Helpers.js';
@@ -170,10 +170,7 @@ class MapInspector extends EntityInspector {
         this.layers = [];
 
         this._fillLayersCb = () => this.fillLayers();
-        this.instance.addEventListener(
-            INSTANCE_EVENTS.LAYERS_INITIALIZED,
-            this._fillLayersCb,
-        );
+        this.instance.addEventListener('layers-initialized', this._fillLayersCb);
 
         this.map.addEventListener('layer-added', this._fillLayersCb);
         this.map.addEventListener('layer-removed', this._fillLayersCb);
@@ -323,10 +320,7 @@ class MapInspector extends EntityInspector {
     }
 
     removeEventListeners() {
-        this.instance.removeEventListener(
-            INSTANCE_EVENTS.LAYERS_INITIALIZED,
-            this._fillLayersCb,
-        );
+        this.instance.removeEventListener('layers-initialized', this._fillLayersCb);
 
         this.map.removeEventListener('layer-added', this._fillLayersCb);
         this.map.removeEventListener('layer-removed', this._fillLayersCb);

@@ -2,7 +2,7 @@
  * @module gui/Panel
  */
 import GUI, { ColorController, Controller } from 'lil-gui';
-import Instance from '../core/Instance.js';
+import Instance from '../core/Instance';
 
 /**
  * Base class for the panels in the inspector.

@@ -22,7 +22,7 @@ import type TileMesh from './TileMesh';
 
 const BLACK = new Color(0, 0, 0);
 
-type FilterCallback = (coord: { x: number, y: number, z: number }) => boolean;
+export type CanvasFilterCallback = (coord: { x: number, y: number, z: number }) => boolean;
 type PickingCircleCallback = (x: number, y: number, idx: number) => boolean | void;
 
 function traversePickingCircle(radius: number, callback: PickingCircleCallback) {
@@ -67,7 +67,7 @@ function renderTileBuffer(
     map: Map,
     coords: Vector2 | undefined,
     radius: number,
-    filter: FilterCallback,
+    filter: CanvasFilterCallback,
 ) {
     const dim = instance.mainLoop.gfxEngine.getWindowSize();
 
@@ -137,40 +137,60 @@ function findLayerInParent(obj: Object3D): Layer | Entity3D | null {
 const raycaster = new Raycaster();
 const tmpCoords = new Coordinates('EPSG:3857', 0, 0, 0);
 
-type PickResultBase = {
+/** Base class for picking results. */
+export interface PickResultBase {
+    /** Distance from the camera to the picked result. */
     distance: number,
+    /** Point picked. */
     point: Vector3,
+    /** THREE.js object picked. */
     object: Object3D,
-};
+}
 
-export type PickTilesAtResult = PickResultBase & {
+/** Pick result on tiles (e.g. map) */
+export interface PickTilesAtResult extends PickResultBase {
+    /** Tile containing the picked result. */
     object: TileMesh,
+    /** Giro3D map object */
     layer: Map,
+    /** Coordinates of the point picked. */
     coord: Coordinates,
-};
-type PickResultFilterCallback = (result: PickResultBase) => boolean;
+}
+export type PickResultFilterCallback = (result: PickResultBase) => boolean;
 
-type PickPointsCandidate = {
+interface PickPointsCandidate {
     pickingId: number,
     index: number,
     coord: { x: number, y: number, z: number }
-};
-type PickPointsAtResult = PickResultBase & {
+}
+/** Pick result on point cloud */
+export interface PickPointsAtResult extends PickResultBase {
+    /** Point cloud picked */
     object: Points,
+    /** Index of the point in the point cloud */
     index: number,
+    /** Giro3D entity object */
     layer: Entity3D,
+    /** Coordinates of the point picked. */
     coord: { x: number, y: number, z: number },
-};
+}
 
-export type PickObjectsAtResult = PickResultBase & Intersection & {
+/** Pick result. */
+export interface PickObjectsAtResult extends PickResultBase, Intersection {
+    /** Giro3D entity object */
     layer: Layer | Entity3D | null,
-};
-export type PickObjectsAtOptions = {
+}
+/** Options for picking */
+export interface PickObjectsAtOptions {
+    /** Radius (in pixels) for picking (default 0) */
     radius?: number,
+    /** Maximum number of objects to return (default Infinity) */
     limit?: number,
-    filterCanvas?: FilterCallback,
+    /** Filter on points on the canvas */
+    filterCanvas?: CanvasFilterCallback,
+    /** Filter on the picked results */
     filter?: PickResultFilterCallback,
-};
+}
 
 /**
  * @module Picking

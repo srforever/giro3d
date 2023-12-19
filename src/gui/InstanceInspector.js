@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import Panel from './Panel.js';
-import Instance from '../core/Instance.js';
+import Instance from '../core/Instance';
 import RenderingInspector from './RenderingInspector.js';
 import WebGLRendererInspector from './WebGLRendererInspector.js';
 

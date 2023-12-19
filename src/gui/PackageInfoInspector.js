@@ -4,7 +4,7 @@
 
 import GUI from 'lil-gui';
 import { VERSION as olversion } from 'ol/util.js';
-import Instance from '../core/Instance.js';
+import Instance from '../core/Instance';
 import Panel from './Panel.js';
 import VERSION from '../version.js';
 

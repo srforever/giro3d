@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import Panel from './Panel.js';
-import Instance from '../core/Instance.js';
+import Instance from '../core/Instance';
 import FrameDuration from './charts/FrameDuration.js';
 import MemoryUsage from './charts/MemoryUsage.js';
 import MemoryTracker from '../renderer/MemoryTracker.js';

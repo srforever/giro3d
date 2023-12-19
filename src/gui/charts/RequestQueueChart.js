@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import { Chart } from 'chart.js';
-import Instance from '../../core/Instance.js';
+import Instance from '../../core/Instance';
 import ChartPanel, { pushTrim } from './ChartPanel.js';
 import { DefaultQueue } from '../../core/RequestQueue';
 

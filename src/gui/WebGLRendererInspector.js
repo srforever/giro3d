@@ -4,7 +4,7 @@
 import GUI from 'lil-gui';
 import { WebGLRenderer } from 'three';
 import Panel from './Panel.js';
-import Instance from '../core/Instance.js';
+import Instance from '../core/Instance';
 
 class WebGLRendererInspector extends Panel {
     /**

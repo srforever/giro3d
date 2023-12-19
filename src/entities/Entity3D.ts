@@ -9,7 +9,7 @@ import {
 
 import Picking, { type PickObjectsAtOptions, type PickObjectsAtResult } from '../core/Picking';
 import Entity, { type EntityEventMap } from './Entity';
-import type Instance from '../core/Instance.js';
+import type Instance from '../core/Instance';
 import type Layer from '../core/layer/Layer.js';
 
 export interface Entity3DEventMap extends EntityEventMap {
@@ -336,7 +336,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
      * @param filter Optional filter function for attached layers
      * @returns the layers attached to this object
      */
-    getLayers(filter: (arg0: Layer) => boolean): Layer[] {
+    getLayers(filter?: (arg0: Layer) => boolean): Layer[] {
         const result = [];
         for (const attached of this._attachedLayers) {
             if (!filter || filter(attached)) {

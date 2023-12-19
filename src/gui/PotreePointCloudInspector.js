@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import { Group } from 'three';
-import Instance from '../core/Instance.js';
+import Instance from '../core/Instance';
 import PotreePointCloud from '../entities/PotreePointCloud.js';
 import EntityInspector from './EntityInspector.js';
 

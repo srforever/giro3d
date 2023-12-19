@@ -19,7 +19,7 @@ import type Extent from '../geographic/Extent';
 import LayerComposer from './LayerComposer';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils.js';
 import MemoryTracker from '../../renderer/MemoryTracker.js';
-import type Instance from '../Instance.js';
+import type Instance from '../Instance';
 import ImageSource, { type ImageResult } from '../../sources/ImageSource';
 import type RequestQueue from '../RequestQueue';
 import { DefaultQueue } from '../RequestQueue';
