@@ -184,7 +184,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         frameRequester: FrameRequester
     }[];
     private readonly _objects: Entity[];
-    private readonly resizeObserver?: ResizeObserver;
+    private readonly _resizeObserver?: ResizeObserver;
     private _resizeTimeout?: string | number | NodeJS.Timeout;
     private readonly _changeSources: Set<any>;
     public readonly isDebugMode: boolean;
@@ -267,10 +267,10 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         this._objects = [];
 
         if (window.ResizeObserver) {
-            this.resizeObserver = new ResizeObserver(() => {
+            this._resizeObserver = new ResizeObserver(() => {
                 this._updateRendererSize(this.viewport);
             });
-            this.resizeObserver.observe(viewerDiv);
+            this._resizeObserver.observe(viewerDiv);
         }
 
         this._changeSources = new Set();
@@ -440,7 +440,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             return;
         }
         this._isDisposing = true;
-        this.resizeObserver?.disconnect();
+        this._resizeObserver?.disconnect();
         this.removeTHREEControls();
         for (const obj of this.getObjects()) {
             this.remove(obj);
