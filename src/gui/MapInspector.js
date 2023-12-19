@@ -86,8 +86,6 @@ class MapInspector extends EntityInspector {
 
         this.labels = new window.Map();
 
-        this.addController(this.map, 'projection')
-            .name('Projection');
         this.addController(this.map, 'renderOrder')
             .name('Render order')
             .onChange(() => this.notify(map));

@@ -1,21 +1,19 @@
-/**
- * @module core/Instance
- */
 import {
     Scene, Group, EventDispatcher, Vector2, Vector3, Object3D, type Box3, type WebGLRenderer,
 } from 'three';
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4.js';
 import Camera from '../renderer/Camera.js';
-import MainLoop, { RENDERING_PAUSED } from './MainLoop.js';
-import { type MainLoopEvents } from './MainLoopEvents';
 import C3DEngine, { type RendererOptions } from '../renderer/c3DEngine.js';
 import type RenderingOptions from '../renderer/RenderingOptions.js';
+import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
+import MainLoop, { RENDERING_PAUSED } from './MainLoop.js';
+import { type MainLoopEvents } from './MainLoopEvents';
 import Entity from '../entities/Entity';
 import Entity3D from '../entities/Entity3D';
 import Map from '../entities/Map';
 import Picking, { type PickObjectsAtOptions, type PickObjectsAtResult } from './Picking';
-import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
+import type Progress from './Progress.js';
 
 const vectors = {
     pos: new Vector3(),
@@ -139,10 +137,10 @@ export interface InstancePickObjectsAtOptions extends PickObjectsAtOptions {
     where?: (string | Object3D | Entity)[],
 }
 
-export interface CustomControls {
+export interface CustomCameraControls {
     enabled: boolean;
 }
-export interface ThreeControls extends CustomControls {
+export interface ThreeControls extends CustomCameraControls {
     update: () => void,
     addEventListener: (event: string, callback: any) => void,
     removeEventListener: (event: string, callback: any) => void,
@@ -172,13 +170,12 @@ interface ControlFunctions {
  *     instance.camera.camera3D.lookAt(lookAt);
  *
  */
-class Instance extends EventDispatcher<InstanceEvents> {
+class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private readonly _referenceCrs: string;
     private readonly _viewport: HTMLDivElement;
     private readonly _mainLoop: MainLoop;
     private readonly _engine: C3DEngine;
     private readonly _scene: Scene;
-    private readonly _scene2D: Scene;
     private readonly _threeObjects: Group;
     private readonly _camera: Camera;
     private _frameRequesters: Partial<Record<keyof MainLoopEvents, FrameRequester[]>>;
@@ -192,7 +189,7 @@ class Instance extends EventDispatcher<InstanceEvents> {
     private readonly _changeSources: Set<any>;
     public readonly isDebugMode: boolean;
     private _allLayersAreReadyCallback: () => void;
-    private _controls?: CustomControls;
+    private _controls?: CustomCameraControls;
     private _controlFunctions?: ControlFunctions;
     private _isDisposing: boolean;
 
@@ -255,7 +252,6 @@ class Instance extends EventDispatcher<InstanceEvents> {
         this._threeObjects.name = 'threeObjects';
 
         this._scene.add(this._threeObjects);
-        this._scene2D = new Scene();
         if (!options.scene3D) {
             this._scene.matrixWorldAutoUpdate = false;
         }
@@ -387,11 +383,6 @@ class Instance extends EventDispatcher<InstanceEvents> {
         return this._scene;
     }
 
-    /** Gets the [2D Scene](https://threejs.org/docs/#api/en/scenes/Scene). */
-    get scene2D(): Scene {
-        return this._scene2D;
-    }
-
     /** Gets the group containing native Three.js objects. */
     get threeObjects(): Group {
         return this._threeObjects;
@@ -402,16 +393,16 @@ class Instance extends EventDispatcher<InstanceEvents> {
         return this._camera;
     }
 
-    /** Gets the binded controls. */
-    get controls(): CustomControls | undefined {
+    /** Gets the currently bound camera controls. */
+    get controls(): CustomCameraControls | undefined {
         return this._controls;
     }
 
     /**
-     * Sets custom controls.
+     * Sets custom camera controls.
      * Prefer {@link Instance.useTHREEControls} when possible.
      */
-    set controls(controls: CustomControls) {
+    set controls(controls: CustomCameraControls) {
         this._controls = controls;
     }
 
@@ -446,7 +437,6 @@ class Instance extends EventDispatcher<InstanceEvents> {
      */
     dispose(): void {
         if (this._isDisposing) {
-            console.warn('This instance is already in the process of being disposed');
             return;
         }
         this._isDisposing = true;
@@ -476,15 +466,15 @@ class Instance extends EventDispatcher<InstanceEvents> {
      * or rejected if any error occurred.
      */
     async add(object: Object3D | Entity): Promise<Object3D | Entity> {
-        if (!(object as Object3D).isObject3D && !(object instanceof Entity)) {
+        if (!object) {
+            throw new Error('object is undefined');
+        }
+
+        if (!(object as Object3D).isObject3D && !(object as Entity).isEntity) {
             throw new Error('object is not an instance of THREE.Object3D or Giro3d.Entity');
         }
         // @ts-ignore
         object._instance = this;
-
-        if (!object) {
-            throw new Error('object is undefined');
-        }
 
         if ((object as Object3D).isObject3D) {
             // case of a simple THREE.js object3D
@@ -503,10 +493,6 @@ class Instance extends EventDispatcher<InstanceEvents> {
         }
 
         entity.startPreprocess();
-
-        if (!entity.projection) {
-            entity.projection = this._referenceCrs;
-        }
 
         this._objects.push(entity);
         await entity.whenReady;
@@ -800,7 +786,7 @@ class Instance extends EventDispatcher<InstanceEvents> {
      * @returns Object found
      * @throws Error if object cannot be found
      */
-    objectIdToObject(objectId: string): Object3D | Entity {
+    private objectIdToObject(objectId: string | number): Object3D | Entity {
         const lookup = this.getObjects(l => l.id === objectId);
         if (!lookup.length) {
             throw new Error(`Invalid object id used as where argument (value = ${objectId})`);

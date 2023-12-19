@@ -150,7 +150,7 @@ class Tiles3D extends Entity3D {
                     this.tileIndex.index[tile.tileId].obj = tile;
                     this.root = tile;
                     this.extent = boundingVolumeToExtent(
-                        this.projection || this._instance.referenceCrs,
+                        this._instance.referenceCrs,
                         tile.boundingVolume,
                         tile.matrixWorld,
                     );

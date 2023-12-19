@@ -13,7 +13,7 @@ import Instance, {
     type InstanceOptions,
     type InstanceEvents,
     type InstancePickObjectsAtOptions,
-    type CustomControls,
+    type CustomCameraControls,
     type ThreeControls,
     type FrameRequesterCallback,
 } from './Instance';
@@ -46,7 +46,7 @@ export {
     InstanceOptions,
     InstanceEvents,
     InstancePickObjectsAtOptions,
-    CustomControls,
+    CustomCameraControls,
     ThreeControls,
     FrameRequesterCallback,
     MainLoopEvents,
