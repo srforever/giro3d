@@ -15,7 +15,11 @@ class InstanceInspector extends Panel {
     constructor(gui, instance) {
         super(gui, instance, 'Instance');
 
-        this.addController(this.instance, 'referenceCrs').name('CRS');
+        /**
+         * Store the CRS code of the instance
+         */
+        this.instanceCrs = this.instance.referenceCrs;
+        this.addController(this, 'instanceCrs').name('CRS');
 
         this.state = 'idle';
         this.addController(this, 'state').name('Status');

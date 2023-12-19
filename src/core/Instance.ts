@@ -321,13 +321,6 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         return this._referenceCrs;
     }
 
-    /** @ignore */
-    // eslint-disable-next-line class-methods-use-this
-    set referenceCrs(_value: string) {
-        // do nothing, just to avoid crash if changed via the Inspector
-        console.warn('Setting referenceCrs has no effect');
-    }
-
     /** Gets whether at least one entity is currently loading data. */
     get loading(): boolean {
         const entities = this.getObjects(o => o instanceof Entity) as Entity[];
