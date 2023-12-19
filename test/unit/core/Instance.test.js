@@ -7,7 +7,8 @@ import Extent from '../../../src/core/geographic/Extent';
 import Instance, { INSTANCE_EVENTS } from '../../../src/core/Instance';
 import MainLoop from '../../../src/core/MainLoop';
 import Map from '../../../src/entities/Map';
-import Tiles3D from '../../../src/entities/Tiles3D.js';
+import Tiles3D from '../../../src/entities/Tiles3D';
+import Tiles3DSource from '../../../src/sources/Tiles3DSource';
 import { setupGlobalMocks, resizeObservers } from '../mocks.js';
 import Fetcher from '../../../src/utils/Fetcher';
 
@@ -159,10 +160,8 @@ describe('Instance', () => {
                 },
                 geometricError: 50,
             };
-            Fetcher.json.mockReturnValueOnce({
-                then: () => Promise.resolve(tileset),
-            });
-            const tiles3d = new Tiles3D('myEntity', { url: 'https://domain.tld/tileset.json' });
+            Fetcher.json.mockResolvedValue(tileset);
+            const tiles3d = new Tiles3D('myEntity', new Tiles3DSource('https://domain.tld/tileset.json'));
             return instance.add(tiles3d).then(() => {
                 expect(instance.getObjects()).toStrictEqual([tiles3d]);
             });

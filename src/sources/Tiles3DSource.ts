@@ -5,14 +5,13 @@ class Tiles3DSource {
     readonly isTiles3DSource: boolean = true;
     readonly type: string = 'Tiles3DSource';
     readonly url: string;
-    readonly networkOptions: { crossOrigin: string };
+    readonly networkOptions: RequestInit;
 
     /**
      * @param url The URL to the root tileset.
      * @param networkOptions the network options.
-     * @param networkOptions.crossOrigin The CORS policy.
      */
-    constructor(url: string, networkOptions?: { crossOrigin: string }) {
+    constructor(url: string, networkOptions?: RequestInit) {
         this.url = url;
         this.networkOptions = networkOptions;
     }

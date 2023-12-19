@@ -20,7 +20,7 @@ import {
     GridHelper,
     ArrowHelper,
 } from 'three';
-import Tiles3D from '../entities/Tiles3D.js';
+import Tiles3D from '../entities/Tiles3D';
 import OBB from '../core/OBB.js';
 import OBBHelper from './OBBHelper.js';
 

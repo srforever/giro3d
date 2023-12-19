@@ -35,8 +35,8 @@ export interface MainLoopOptions {
 }
 
 export interface ObjectToUpdate {
-    element: any,
-    parent: any,
+    element?: any,
+    parent?: any,
     elements?: any[],
 }
 

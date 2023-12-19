@@ -7,7 +7,7 @@ import {
     type Plane,
 } from 'three';
 
-import Picking, { type PickObjectsAtOptions, type PickObjectsAtResult } from '../core/Picking';
+import Picking, { type PickResultBase, type PickObjectsAtOptions } from '../core/Picking';
 import Entity, { type EntityEventMap } from './Entity';
 import type Instance from '../core/Instance';
 import type Layer from '../core/layer/Layer.js';
@@ -325,7 +325,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
     pickObjectsAt(
         coordinates: Vector2,
         options?: PickObjectsAtOptions,
-        target?: PickObjectsAtResult[],
+        target?: PickResultBase[],
     ) {
         return Picking.pickObjectsAt(
             this._instance,

@@ -281,7 +281,7 @@ export default {
         canvasCoords: Vector2,
         layer: Entity3D,
         options: PickObjectsAtOptions = {},
-        target: PickPointsAtResult[] = [],
+        target: PickResultBase[] = [],
     ) => {
         const radius = Math.floor(options.radius || 0);
         const limit = options.limit || Infinity;
@@ -412,7 +412,7 @@ export default {
         canvasCoords: Vector2,
         object: Object3D,
         options: PickObjectsAtOptions = {},
-        target: PickObjectsAtResult[] = [],
+        target: PickResultBase[] = [],
     ) {
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;
