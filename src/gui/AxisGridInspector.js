@@ -2,7 +2,7 @@
  * @module gui/AxisGridInspector
  */
 import GUI from 'lil-gui';
-import Instance from '../core/Instance.js';
+import Instance from '../core/Instance';
 import EntityInspector from './EntityInspector.js';
 import AxisGrid from '../entities/AxisGrid';
 

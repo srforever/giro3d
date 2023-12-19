@@ -3,39 +3,18 @@ import {
 } from 'three';
 import Context from './Context';
 import C3DEngine from '../renderer/c3DEngine.js';
+import { MAIN_LOOP_EVENTS } from './MainLoopEvents';
 
 export const RENDERING_PAUSED = 0;
 export const RENDERING_SCHEDULED = 1;
+
+// For backward-compatibility
+export { MAIN_LOOP_EVENTS };
 
 const MIN_DISTANCE = 2;
 const MAX_DISTANCE = 2000000000;
 
 const _tmpSphere = new Sphere();
-
-/**
- * MainLoop's update events list that are fired using
- * {@link Instance#execFrameRequesters}.
- *
- * @property {string} UPDATE_START fired at the start of the update
- * @property {string} BEFORE_CAMERA_UPDATE fired before the camera update
- * @property {string} AFTER_CAMERA_UPDATE fired after the camera update
- * @property {string} BEFORE_LAYER_UPDATE fired before the layer update
- * @property {string} AFTER_LAYER_UPDATE fired after the layer update
- * @property {string} BEFORE_RENDER fired before the render
- * @property {string} AFTER_RENDER fired after the render
- * @property {string} UPDATE_END fired at the end of the update
- */
-
-export const MAIN_LOOP_EVENTS = {
-    UPDATE_START: 'update_start',
-    BEFORE_CAMERA_UPDATE: 'before_camera_update',
-    AFTER_CAMERA_UPDATE: 'after_camera_update',
-    BEFORE_LAYER_UPDATE: 'before_layer_update',
-    AFTER_LAYER_UPDATE: 'after_layer_update',
-    BEFORE_RENDER: 'before_render',
-    AFTER_RENDER: 'after_render',
-    UPDATE_END: 'update_end',
-};
 
 class MainLoop extends EventDispatcher {
     constructor(engine, options = {}) {

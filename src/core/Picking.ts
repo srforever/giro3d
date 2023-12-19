@@ -6,67 +6,26 @@ import {
     BufferAttribute,
     FloatType,
     UnsignedByteType,
+    type Object3D,
+    type Points,
+    type Intersection,
+    type BufferGeometry,
 } from 'three';
 import RenderingState from '../renderer/RenderingState';
 import Coordinates from './geographic/Coordinates';
+import type Instance from './Instance';
+import type Map from '../entities/Map';
+import type Entity3D from '../entities/Entity3D';
+import type PointsMaterial from '../renderer/PointsMaterial';
+import type Layer from './layer/Layer';
+import type TileMesh from './TileMesh';
 
 const BLACK = new Color(0, 0, 0);
 
-function renderTileBuffer(instance, map, coords, radius, filter) {
-    const dim = instance.mainLoop.gfxEngine.getWindowSize();
+export type CanvasFilterCallback = (coord: { x: number, y: number, z: number }) => boolean;
+type PickingCircleCallback = (x: number, y: number, idx: number) => boolean | void;
 
-    coords = coords || new Vector2(Math.floor(dim.x / 2), Math.floor(dim.y / 2));
-
-    const restore = map.setRenderState(RenderingState.PICKING);
-
-    /** @type {Float32Array} */
-    const buffer = instance.mainLoop.gfxEngine.renderToBuffer({
-        camera: instance.camera.camera3D,
-        scene: map.object3d,
-        clearColor: BLACK,
-        datatype: FloatType,
-        zone: {
-            x: coords.x - radius,
-            y: coords.y - radius,
-            width: 1 + radius * 2,
-            height: 1 + radius * 2,
-        },
-    });
-
-    restore();
-
-    const ids = [];
-    const uvs = [];
-    const zs = [];
-
-    traversePickingCircle(radius, (x, y, idx) => {
-        if (filter) {
-            const coord = {
-                x: x + coords.x,
-                y: y + coords.y,
-                z: 0,
-            };
-
-            if (!filter(coord)) {
-                return;
-            }
-        }
-
-        const px = idx * 4;
-        const id = buffer[px + 0];
-        const z = buffer[px + 1];
-        const u = buffer[px + 2];
-        const v = buffer[px + 3];
-
-        ids.push(id);
-        zs.push(z);
-        uvs.push(new Vector2(u, v));
-    });
-
-    return { ids, uvs, zs };
-}
-
-function traversePickingCircle(radius, callback) {
+function traversePickingCircle(radius: number, callback: PickingCircleCallback) {
     // iterate on radius so we get closer to the mouse
     // results first.
     // Result traversal order for radius=2
@@ -103,12 +62,71 @@ function traversePickingCircle(radius, callback) {
     }
 }
 
-function findLayerInParent(obj) {
-    if (obj.layer) {
-        return obj.layer;
+function renderTileBuffer(
+    instance: Instance,
+    map: Map,
+    coords: Vector2 | undefined,
+    radius: number,
+    filter: CanvasFilterCallback,
+) {
+    const dim = instance.mainLoop.gfxEngine.getWindowSize();
+
+    coords = coords || new Vector2(Math.floor(dim.x / 2), Math.floor(dim.y / 2));
+
+    const restore = map.setRenderState(RenderingState.PICKING);
+
+    const buffer = instance.mainLoop.gfxEngine.renderToBuffer({
+        camera: instance.camera.camera3D,
+        scene: map.object3d,
+        clearColor: BLACK,
+        datatype: FloatType,
+        zone: {
+            x: coords.x - radius,
+            y: coords.y - radius,
+            width: 1 + radius * 2,
+            height: 1 + radius * 2,
+        },
+    }) as Float32Array;
+
+    restore();
+
+    const ids: number[] = [];
+    const uvs: Vector2[] = [];
+    const zs: number[] = [];
+
+    traversePickingCircle(radius, (x, y, idx) => {
+        if (filter) {
+            const coord = {
+                x: x + coords.x,
+                y: y + coords.y,
+                z: 0,
+            };
+
+            if (!filter(coord)) {
+                return;
+            }
+        }
+
+        const px = idx * 4;
+        const id = buffer[px + 0];
+        const z = buffer[px + 1];
+        const u = buffer[px + 2];
+        const v = buffer[px + 3];
+
+        ids.push(id);
+        zs.push(z);
+        uvs.push(new Vector2(u, v));
+    });
+
+    return { ids, uvs, zs };
+}
+
+function findLayerInParent(obj: Object3D): Layer | Entity3D | null {
+    if ('layer' in obj && obj.layer) {
+        return obj.layer as Layer;
     }
     if (obj.userData.parentEntity) {
-        return obj.userData.parentEntity;
+        return obj.userData.parentEntity as Entity3D;
     }
     if (obj.parent) {
         return findLayerInParent(obj.parent);
@@ -118,6 +136,61 @@ function findLayerInParent(obj) {
 
 const raycaster = new Raycaster();
 const tmpCoords = new Coordinates('EPSG:3857', 0, 0, 0);
+
+/** Base class for picking results. */
+export interface PickResultBase {
+    /** Distance from the camera to the picked result. */
+    distance: number,
+    /** Point picked. */
+    point: Vector3,
+    /** THREE.js object picked. */
+    object: Object3D,
+}
+
+/** Pick result on tiles (e.g. map) */
+export interface PickTilesAtResult extends PickResultBase {
+    /** Tile containing the picked result. */
+    object: TileMesh,
+    /** Giro3D map object */
+    layer: Map,
+    /** Coordinates of the point picked. */
+    coord: Coordinates,
+}
+export type PickResultFilterCallback = (result: PickResultBase) => boolean;
+
+interface PickPointsCandidate {
+    pickingId: number,
+    index: number,
+    coord: { x: number, y: number, z: number }
+}
+/** Pick result on point cloud */
+export interface PickPointsAtResult extends PickResultBase {
+    /** Point cloud picked */
+    object: Points,
+    /** Index of the point in the point cloud */
+    index: number,
+    /** Giro3D entity object */
+    layer: Entity3D,
+    /** Coordinates of the point picked. */
+    coord: { x: number, y: number, z: number },
+}
+
+/** Pick result. */
+export interface PickObjectsAtResult extends PickResultBase, Intersection {
+    /** Giro3D entity object */
+    layer: Layer | Entity3D | null,
+}
+/** Options for picking */
+export interface PickObjectsAtOptions {
+    /** Radius (in pixels) for picking (default 0) */
+    radius?: number,
+    /** Maximum number of objects to return (default Infinity) */
+    limit?: number,
+    /** Filter on points on the canvas */
+    filterCanvas?: CanvasFilterCallback,
+    /** Filter on the picked results */
+    filter?: PickResultFilterCallback,
+}
 
 /**
  * @module Picking
@@ -133,7 +206,13 @@ const tmpCoords = new Coordinates('EPSG:3857', 0, 0, 0);
  *   - layer: the geometry layer used for picking
  */
 export default {
-    pickTilesAt: (_instance, canvasCoords, map, options = {}, target = []) => {
+    pickTilesAt: (
+        _instance: Instance,
+        canvasCoords: Vector2,
+        map: Map,
+        options: PickObjectsAtOptions = {},
+        target: PickTilesAtResult[] = [],
+    ) => {
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;
         const filterCanvas = options.filterCanvas;
@@ -155,9 +234,9 @@ export default {
             const uv = uvs[i];
             const z = zs[i];
 
-            const tile = map.tileIndex.getTile(id);
+            const tile = map.tileIndex.getTile(id) as TileMesh;
 
-            if (tile) {
+            if (tile && tile.isTileMesh) {
                 const ex = tile.extent;
                 tmpCoords.set(
                     crs,
@@ -172,14 +251,10 @@ export default {
                     tmpCoords.values[2] = elevation;
                     // convert to instance crs
                     // here (and only here) should be the Coordinates instance creation
-                    const coord = tmpCoords.as(
-                        _instance.referenceCrs,
-                        new Coordinates(_instance.referenceCrs),
-                    );
-
+                    const coord = tmpCoords.as(_instance.referenceCrs);
                     const point = tmpCoords.xyz(new Vector3());
 
-                    const p = {
+                    const p: PickTilesAtResult = {
                         object: tile,
                         layer: map,
                         point,
@@ -201,7 +276,13 @@ export default {
         return target;
     },
 
-    pickPointsAt: (instance, canvasCoords, layer, options = {}, target = []) => {
+    pickPointsAt: (
+        instance: Instance,
+        canvasCoords: Vector2,
+        layer: Entity3D,
+        options: PickObjectsAtOptions = {},
+        target: PickPointsAtResult[] = [],
+    ) => {
         const radius = Math.floor(options.radius || 0);
         const limit = options.limit || Infinity;
         const filterCanvas = options.filterCanvas;
@@ -213,11 +294,16 @@ export default {
         // 12 bits reserved for the ids (= 4096 instances)
         const maxVisibleId = 1 << 12;
         layer.object3d.traverse(o => {
-            if (o.isPoints && o.visible && o.material.visible && o.material.enablePicking) {
-                o.material.enablePicking(visibleId++);
+            if (!('isPoints' in o) || !o.isPoints || !o.visible) return;
+            const pts = o as Points;
+            if (!('enablePicking' in pts.material)) return;
+
+            const mat = pts.material as PointsMaterial;
+            if (mat.visible && mat.enablePicking) {
+                mat.enablePicking(visibleId++);
 
                 if (visibleId === maxVisibleId) {
-                    console.warn('Too much visible point instance. The next one won\'t be pickable');
+                    console.warn("Too much visible point instance. The next one won't be pickable");
                 }
             }
         });
@@ -236,7 +322,7 @@ export default {
             },
         });
 
-        const candidates = [];
+        const candidates: PickPointsCandidate[] = [];
 
         traversePickingCircle(radius, (x, y, idx) => {
             const coord = {
@@ -266,7 +352,7 @@ export default {
             // the remaining 20 bits = the point index
             const index = ((data[1] & 0x0f) << 16) + (data[2] << 8) + data[3];
 
-            const r = {
+            const r: PickPointsCandidate = {
                 pickingId,
                 index,
                 coord,
@@ -283,30 +369,36 @@ export default {
         });
 
         layer.object3d.traverse(o => {
-            if (o.isPoints && o.visible && o.material.visible) {
-                for (let i = 0; i < candidates.length && target.length < limit; i++) {
-                    if (candidates[i].pickingId === o.material.pickingId) {
-                        const position = new Vector3()
-                            .fromArray(
-                                o.geometry.attributes.position.array, 3 * candidates[i].index,
-                            )
-                            .applyMatrix4(o.matrixWorld);
-                        const p = {
-                            object: o,
-                            index: candidates[i].index,
-                            layer,
-                            point: position,
-                            coord: candidates[i].coord,
-                            distance: instance.camera.camera3D.position.distanceTo(position),
-                        };
-                        if (!filter || filter(p)) {
-                            target.push(p);
-                        }
+            if (!('isPoints' in o) || !o.isPoints || !o.visible) return;
+            const pts = o as Points;
+            if (!('enablePicking' in pts.material)) return;
+
+            const mat = pts.material as PointsMaterial;
+            if (!mat.visible) return;
+
+            for (let i = 0; i < candidates.length && target.length < limit; i++) {
+                if (candidates[i].pickingId === mat.pickingId) {
+                    const position = new Vector3()
+                        .fromArray(
+                            pts.geometry.attributes.position.array,
+                            3 * candidates[i].index,
+                        )
+                        .applyMatrix4(o.matrixWorld);
+                    const p: PickPointsAtResult = {
+                        object: pts,
+                        index: candidates[i].index,
+                        layer,
+                        point: position,
+                        coord: candidates[i].coord,
+                        distance: instance.camera.camera3D.position.distanceTo(position),
+                    };
+                    if (!filter || filter(p)) {
+                        target.push(p);
                     }
                 }
-                // disable picking mode
-                o.material.enablePicking(0);
             }
+            // disable picking mode
+            mat.enablePicking(0);
         });
 
         return target;
@@ -315,12 +407,17 @@ export default {
     /*
      * Default picking method. Uses Raycaster
      */
-    pickObjectsAt(instance, canvasCoords, object, options = {}, target = []) {
+    pickObjectsAt(
+        instance: Instance,
+        canvasCoords: Vector2,
+        object: Object3D,
+        options: PickObjectsAtOptions = {},
+        target: PickObjectsAtResult[] = [],
+    ) {
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;
         const filterCanvas = options.filterCanvas;
         const filter = options.filter;
-        const vec2 = options.vec2 || new Vector2();
 
         // Instead of doing N raycast (1 per x,y returned by traversePickingCircle),
         // we force render the zone of interest.
@@ -346,6 +443,7 @@ export default {
         const clearB = Math.round(255 * clearColor.b);
 
         // Raycaster use NDC coordinate
+        const vec2 = new Vector2();
         const normalized = instance.canvasToNormalizedCoords(canvasCoords, vec2);
         const tmp = normalized.clone();
         traversePickingCircle(radius, (x, y) => {
@@ -386,7 +484,7 @@ export default {
                 instance.camera.camera3D,
             );
 
-            const intersects = raycaster.intersectObject(object, true);
+            const intersects = raycaster.intersectObject(object, true) as PickObjectsAtResult[];
             for (const inter of intersects) {
                 inter.layer = findLayerInParent(inter.object);
                 if (!filter || filter(inter)) {
@@ -402,7 +500,7 @@ export default {
         return target;
     },
 
-    preparePointGeometryForPicking: pointsGeometry => {
+    preparePointGeometryForPicking: (pointsGeometry: BufferGeometry) => {
         // generate unique id for picking
         const numPoints = pointsGeometry.attributes.position.count;
         // reserve 12 bits for the entity id

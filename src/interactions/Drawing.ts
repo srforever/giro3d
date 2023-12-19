@@ -21,7 +21,7 @@ import type { Material } from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import * as olformat from 'ol/format.js';
 import type { SimpleGeometry } from 'ol/geom.js';
-import type Instance from '../core/Instance.js';
+import type Instance from '../core/Instance';
 
 const planesGeom = new PlaneGeometry(100, 100);
 

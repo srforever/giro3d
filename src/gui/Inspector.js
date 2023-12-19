@@ -3,7 +3,7 @@
  */
 
 import GUI from 'lil-gui';
-import Instance from '../core/Instance.js';
+import Instance from '../core/Instance';
 import CameraInspector from './CameraInspector.js';
 import EntityPanel from './EntityPanel.js';
 import { MAIN_LOOP_EVENTS } from '../core/MainLoop.js';

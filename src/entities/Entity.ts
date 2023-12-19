@@ -50,6 +50,9 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
     extends EventDispatcher<TEventMap & EntityEventMap> {
     private readonly _id: string;
     private _frozen: boolean;
+    public whenReady?: Promise<Entity>;
+    public ready?: boolean;
+
     /**
      * Read-only flag to check if a given object is of type Entity.
      */
@@ -126,6 +129,25 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
      */
     preprocess(): Promise<void> {
         return Promise.resolve();
+    }
+
+    startPreprocess(): this {
+        let preprocessingPromise;
+        if (this.preprocess) {
+            preprocessingPromise = this.preprocess();
+        }
+
+        if (!preprocessingPromise) {
+            preprocessingPromise = Promise.resolve(this);
+        }
+
+        // the last promise in the chain must return the layer
+        this.whenReady = preprocessingPromise.then(() => {
+            this.ready = true;
+            return this;
+        });
+
+        return this;
     }
 
     /**

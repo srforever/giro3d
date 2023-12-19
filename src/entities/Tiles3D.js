@@ -13,7 +13,7 @@ import {
     Object3D,
 } from 'three';
 import Extent from '../core/geographic/Extent';
-import Picking from '../core/Picking.js';
+import Picking from '../core/Picking';
 import ScreenSpaceError from '../core/ScreenSpaceError';
 import Entity3D from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
@@ -150,7 +150,7 @@ class Tiles3D extends Entity3D {
                     this.tileIndex.index[tile.tileId].obj = tile;
                     this.root = tile;
                     this.extent = boundingVolumeToExtent(
-                        this.projection || this._instance.referenceCrs,
+                        this._instance.referenceCrs,
                         tile.boundingVolume,
                         tile.matrixWorld,
                     );

@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import Panel from './Panel.js';
-import Instance from '../core/Instance.js';
+import Instance from '../core/Instance';
 import RenderingInspector from './RenderingInspector.js';
 import WebGLRendererInspector from './WebGLRendererInspector.js';
 
@@ -15,7 +15,11 @@ class InstanceInspector extends Panel {
     constructor(gui, instance) {
         super(gui, instance, 'Instance');
 
-        this.addController(this.instance, 'referenceCrs').name('CRS');
+        /**
+         * Store the CRS code of the instance
+         */
+        this.instanceCrs = this.instance.referenceCrs;
+        this.addController(this, 'instanceCrs').name('CRS');
 
         this.state = 'idle';
         this.addController(this, 'state').name('Status');

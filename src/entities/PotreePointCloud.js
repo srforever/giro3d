@@ -21,7 +21,7 @@ import OperationCounter from '../core/OperationCounter';
 import PotreeBinParser from '../parser/PotreeBinParser.js';
 import PotreeCinParser from '../parser/PotreeCinParser.js';
 import Fetcher from '../utils/Fetcher';
-import Picking from '../core/Picking.js';
+import Picking from '../core/Picking';
 import Extent from '../core/geographic/Extent';
 import PointCloud from '../core/PointCloud.js';
 

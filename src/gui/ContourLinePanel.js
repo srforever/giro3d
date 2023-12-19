@@ -4,7 +4,7 @@
 
 import GUI from 'lil-gui';
 import Panel from './Panel.js';
-import Instance from '../core/Instance.js';
+import Instance from '../core/Instance';
 
 export default class ContourLinePanel extends Panel {
     /**

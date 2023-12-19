@@ -15,7 +15,7 @@ import ColorLayer from '../core/layer/ColorLayer';
 import ElevationLayer from '../core/layer/ElevationLayer';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
-import Picking from '../core/Picking.js';
+import Picking, { type PickObjectsAtOptions, type PickTilesAtResult } from '../core/Picking';
 import type { SSE } from '../core/ScreenSpaceError';
 import ScreenSpaceError from '../core/ScreenSpaceError';
 import LayeredMaterial, {
@@ -527,8 +527,11 @@ class Map extends Entity3D<MapEventMap> {
         };
     }
 
-    // @ts-ignore // TODO when picking is refactored we can have static typing
-    pickObjectsAt(coordinates, options, target) {
+    pickObjectsAt(
+        coordinates: Vector2,
+        options?: PickObjectsAtOptions,
+        target?: PickTilesAtResult[],
+    ) {
         return Picking.pickTilesAt(
             this._instance,
             coordinates,

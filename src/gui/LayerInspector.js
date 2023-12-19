@@ -3,7 +3,7 @@
  */
 import GUI from 'lil-gui';
 import { Color } from 'three';
-import Instance from '../core/Instance.js';
+import Instance from '../core/Instance';
 import Layer from '../core/layer/Layer';
 import Panel from './Panel.js';
 import ColorMapInspector from './ColorMapInspector.js';

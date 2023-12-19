@@ -2,7 +2,7 @@
  * @module gui/EntityPanel
  */
 import GUI from 'lil-gui';
-import Instance, { INSTANCE_EVENTS } from '../core/Instance.js';
+import Instance from '../core/Instance';
 import EntityInspector from './EntityInspector.js';
 import FeatureCollectionInspector from './FeatureCollectionInspector';
 import MapInspector from './MapInspector.js';
@@ -42,14 +42,8 @@ class EntityPanel extends Panel {
 
         // rebuild the inspectors when the instance is updated
         this._createInspectorsCb = () => this.createInspectors();
-        this.instance.addEventListener(
-            INSTANCE_EVENTS.ENTITY_ADDED,
-            this._createInspectorsCb,
-        );
-        this.instance.addEventListener(
-            INSTANCE_EVENTS.ENTITY_REMOVED,
-            this._createInspectorsCb,
-        );
+        this.instance.addEventListener('entity-added', this._createInspectorsCb);
+        this.instance.addEventListener('entity-removed', this._createInspectorsCb);
 
         this.folders = [];
         this.inspectors = [];
@@ -57,18 +51,9 @@ class EntityPanel extends Panel {
     }
 
     dispose() {
-        this.instance.removeFrameRequester(
-            MAIN_LOOP_EVENTS.UPDATE_START,
-            this._frameRequester,
-        );
-        this.instance.removeEventListener(
-            INSTANCE_EVENTS.ENTITY_ADDED,
-            this._createInspectorsCb,
-        );
-        this.instance.removeEventListener(
-            INSTANCE_EVENTS.ENTITY_REMOVED,
-            this._createInspectorsCb,
-        );
+        this.instance.removeFrameRequester(MAIN_LOOP_EVENTS.UPDATE_START, this._frameRequester);
+        this.instance.removeEventListener('entity-added', this._createInspectorsCb);
+        this.instance.removeEventListener('entity-removed', this._createInspectorsCb);
         while (this.folders.length > 0) {
             this.folders.pop().destroy();
         }
