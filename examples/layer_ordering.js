@@ -54,7 +54,7 @@ const layers = {
 };
 
 function bindUI(layer) {
-    const id = layer.id;
+    const id = layer.name;
     const btnUp = document.getElementById(`btn-${id}-up`);
     const btnDown = document.getElementById(`btn-${id}-down`);
     const layerElt = document.getElementById(`${id}`);
