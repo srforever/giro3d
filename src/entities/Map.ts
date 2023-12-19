@@ -354,6 +354,10 @@ class Map extends Entity3D<MapEventMap> {
         }
     }
 
+    get imageSize(): Vector2 {
+        return this._imageSize;
+    }
+
     private subdivideNode(context: Context, node: TileMesh) {
         if (!node.children.some(n => (n as TileMesh).layer === this)) {
             const extents = node.extent.split(2, 2);
