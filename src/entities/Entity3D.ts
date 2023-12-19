@@ -1,12 +1,13 @@
 import {
     Box3,
+    type Vector2,
     type Material,
     type Mesh,
     type Object3D,
     type Plane,
 } from 'three';
 
-import Picking from '../core/Picking.js';
+import Picking, { type PickObjectsAtOptions, type PickObjectsAtResult } from '../core/Picking';
 import Entity, { type EntityEventMap } from './Entity';
 import type Instance from '../core/Instance.js';
 import type Layer from '../core/layer/Layer.js';
@@ -284,13 +285,16 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
     /**
      * Picks objects given a position and a radius from the layer.
      *
-     * @param {object} coordinates The x/y position in the layer
-     * @param {object} [options] Optional properties. See Instance.pickObjectsAt
-     * @param {object[]} [target=undefined] Target array to fill
-     * @returns {object[]} Picked objects (node)
+     * @param coordinates The x/y position in the layer
+     * @param options Optional properties. See Instance.pickObjectsAt
+     * @param target Target array to fill
+     * @returns Picked objects (node)
      */
-    // @ts-ignore // TODO when Picking is refactored into TS, we can have static typing here
-    pickObjectsAt(coordinates, options, target) {
+    pickObjectsAt(
+        coordinates: Vector2,
+        options?: PickObjectsAtOptions,
+        target?: PickObjectsAtResult[],
+    ) {
         return Picking.pickObjectsAt(
             this._instance,
             coordinates,

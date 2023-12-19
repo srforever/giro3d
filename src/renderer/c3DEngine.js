@@ -275,7 +275,7 @@ class C3DEngine {
      * @param {Color} options.clearColor The clear color to apply before rendering.
      * @param {Object3D} options.scene The scene to render.
      * @param {Camera} options.camera The camera to render.
-     * @param {number} options.datatype The type of pixels in the buffer.
+     * @param {number} [options.datatype] The type of pixels in the buffer.
      * Defaults to `UnsignedByteType`.
      * @param {object} [options.zone] partial zone to render. If undefined, the whole
      * viewport is used.
