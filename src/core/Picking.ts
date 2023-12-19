@@ -69,13 +69,13 @@ function renderTileBuffer(
     radius: number,
     filter: CanvasFilterCallback,
 ) {
-    const dim = instance.mainLoop.gfxEngine.getWindowSize();
+    const dim = instance.engine.getWindowSize();
 
     coords = coords || new Vector2(Math.floor(dim.x / 2), Math.floor(dim.y / 2));
 
     const restore = map.setRenderState(RenderingState.PICKING);
 
-    const buffer = instance.mainLoop.gfxEngine.renderToBuffer({
+    const buffer = instance.engine.renderToBuffer({
         camera: instance.camera.camera3D,
         scene: map.object3d,
         clearColor: BLACK,
@@ -309,7 +309,7 @@ export default {
         });
 
         // render 1 pixel
-        const buffer = instance.mainLoop.gfxEngine.renderToBuffer({
+        const buffer = instance.engine.renderToBuffer({
             camera: instance.camera.camera3D,
             scene: layer.object3d,
             clearColor: BLACK,
@@ -431,7 +431,7 @@ export default {
 
         const clearColor = BLACK;
 
-        const pixels = instance.mainLoop.gfxEngine.renderToBuffer({
+        const pixels = instance.engine.renderToBuffer({
             scene: object,
             camera: instance.camera.camera3D,
             zone,

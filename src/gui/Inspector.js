@@ -6,7 +6,7 @@ import GUI from 'lil-gui';
 import Instance from '../core/Instance';
 import CameraInspector from './CameraInspector.js';
 import EntityPanel from './EntityPanel.js';
-import { MAIN_LOOP_EVENTS } from '../core/MainLoop.js';
+import { MAIN_LOOP_EVENTS } from '../core/MainLoop';
 import Outliner from './outliner/Outliner.js';
 import ProcessingInspector from './ProcessingInspector.js';
 import Panel from './Panel.js';

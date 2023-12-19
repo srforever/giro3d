@@ -3,7 +3,7 @@
  */
 import { Chart } from 'chart.js';
 import ChartPanel, { pushTrim } from './ChartPanel.js';
-import { MAIN_LOOP_EVENTS } from '../../core/MainLoop.js';
+import { MAIN_LOOP_EVENTS } from '../../core/MainLoop';
 
 const MAX_DATA_POINTS = 30;
 
@@ -11,7 +11,7 @@ class FrameDuration extends ChartPanel {
     constructor(parentGui, instance) {
         super(parentGui, instance, 'Frame duration (ms)');
 
-        this.render = instance.mainLoop.gfxEngine.renderer.info.render;
+        this.render = instance.renderer.info.render;
 
         const totalFrameLength = {
             label: 'Total',

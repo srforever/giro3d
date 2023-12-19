@@ -11,6 +11,8 @@ import Picking, { type PickObjectsAtOptions, type PickObjectsAtResult } from '..
 import Entity, { type EntityEventMap } from './Entity';
 import type Instance from '../core/Instance';
 import type Layer from '../core/layer/Layer.js';
+import type Context from '../core/Context';
+import { type ObjectToUpdate } from '../core/MainLoop';
 
 export interface Entity3DEventMap extends EntityEventMap {
     /**
@@ -45,6 +47,10 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
     private _opacity: number;
     private _object3d: Object3D;
     protected _distance: { min: number; max: number; };
+    /** @ignore */
+    public get distance(): { min: number; max: number; } {
+        return { min: this._distance.min, max: this._distance.max };
+    }
     private _clippingPlanes: Plane[];
     private _renderOrder: number;
 
@@ -208,7 +214,33 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
         this.traverseMaterials(mat => { mat.clippingPlanes = this._clippingPlanes; });
     }
 
-    postUpdate() {
+    shouldCheckForUpdate(): boolean {
+        return super.shouldCheckForUpdate() && this._visible;
+    }
+
+    shouldFullUpdate(updateSource: unknown): boolean {
+        return super.shouldFullUpdate(updateSource) || this.contains(updateSource);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    shouldUpdate(updateSource: unknown): boolean {
+        return super.shouldUpdate(updateSource) || (updateSource as any).layer === this;
+    }
+
+    preUpdate(context: Context, changeSources: Set<unknown>): unknown[] | null {
+        if (changeSources.size > 0) {
+            // if we don't have any element in srcs, it means we don't need to update
+            // our layer to display it correctly.  but in this case we still need to
+            // use layer._distance to calculate near / far hence the reset is here,
+            // and the update of context.distance is outside of this if
+            this._distance.min = Infinity;
+            this._distance.max = 0;
+        }
+        return null;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    postUpdate(context: Context, changeSources: Set<unknown>) {
         this._attachedLayers.forEach(layer => layer.postUpdate());
     }
 
@@ -271,7 +303,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
      * by preUpdate or update.
      * @returns an object passed to the update function of attached layers.
      */
-    getObjectToUpdateForAttachedLayers(obj: Mesh) {
+    getObjectToUpdateForAttachedLayers(obj: any): ObjectToUpdate | null {
         if (!obj.parent || !obj.material) {
             return null;
         }
