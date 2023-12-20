@@ -1,12 +1,7 @@
-/**
- * @module helpers/Helpers
- */
 import {
     Color,
-    Object3D,
     Box3,
     Vector3,
-    BoxHelper,
     Box3Helper,
     BufferGeometry,
     BufferAttribute,
@@ -19,10 +14,54 @@ import {
     AxesHelper,
     GridHelper,
     ArrowHelper,
+    type Object3D,
+    type Sphere,
+    type Material,
 } from 'three';
-import Tiles3D from '../entities/Tiles3D';
-import OBB from '../core/OBB.js';
-import OBBHelper from './OBBHelper.js';
+import type Tiles3D from '../entities/Tiles3D';
+import type OBB from '../core/OBB.js';
+import OBBHelper from './OBBHelper';
+import type { TileSet } from '../entities/3dtiles/3dTilesIndex';
+
+class VolumeHelper extends OBBHelper {
+    readonly isvolumeHelper = true;
+}
+
+class SphereHelper extends Mesh {
+    readonly isHelper = true;
+}
+
+class BoundingBoxHelper extends Box3Helper {
+    readonly isHelper = true;
+    readonly isvolumeHelper = true;
+}
+
+interface HasOBB extends Object3D {
+    OBB: () => OBB;
+}
+
+interface HasBoundingBox extends Object3D {
+    boundingBox: Box3;
+}
+
+interface HasVolumeHelper extends Object3D {
+    volumeHelper: VolumeHelper;
+}
+
+// interface HasSelectionHelper extends Object3D {
+//     selectionHelper: BoundingBoxHelper;
+// }
+
+interface HasBoundingVolumeHelper extends Object3D {
+    boundingVolumeHelper: {
+        object3d: Object3D,
+        absolute: boolean,
+    }
+}
+
+interface HasGeometry extends Object3D {
+    geometry: BufferGeometry;
+}
 
 const _vector = new Vector3();
 const invMatrixChangeUpVectorZtoY = new Matrix4().makeRotationX(Math.PI / 2).invert();
@@ -30,20 +69,19 @@ const invMatrixChangeUpVectorZtoX = new Matrix4().makeRotationZ(-Math.PI / 2).in
 let _axisSize = 500;
 
 /**
- * @param {Color|string} colorDesc A THREE color or hex string.
- * @returns {Color} The THREE color.
+ * @param colorDesc A THREE color or hex string.
+ * @returns The THREE color.
  */
-function getColor(colorDesc) {
-    if (colorDesc instanceof String) {
+function getColor(colorDesc: Color | string) {
+    if (typeof colorDesc === 'string' || colorDesc instanceof String) {
         return new Color(colorDesc);
     }
 
     return colorDesc;
 }
 
-function create3dTileRegion(region, color) {
-    const helper = new OBBHelper(region, color);
-    helper.isvolumeHelper = true;
+function create3dTileRegion(region: OBB, color: Color) {
+    const helper = new VolumeHelper(region, color);
     helper.position.copy(region.position);
     helper.rotation.copy(region.rotation);
     return helper;
@@ -53,24 +91,24 @@ function create3dTileRegion(region, color) {
  * This function creates a Box3 by matching the object's bounding box,
  * without including its children.
  *
- * @param {Object3D} object The object to expand.
- * @param {boolean} precise If true, the computation uses the vertices from the geometry.
- * @returns {Box3} The expanded box.
+ * @param object The object to expand.
+ * @param precise If true, the computation uses the vertices from the geometry.
+ * @returns The expanded box.
  */
-function makeLocalBbox(object, precise = false) {
+function makeLocalBbox(object: Object3D, precise: boolean = false): Box3 {
     // The object provides a specific bounding box
-    if (object.OBB) {
-        const obb = object.OBB();
+    if ((object as HasOBB).OBB) {
+        const obb = (object as HasOBB).OBB();
         return obb.box3D;
     }
 
-    if (object.boundingBox) {
-        return object.boundingBox;
+    if ((object as HasBoundingBox).boundingBox) {
+        return (object as HasBoundingBox).boundingBox;
     }
 
     const box = new Box3();
 
-    const geometry = object.geometry;
+    const geometry = (object as HasGeometry).geometry;
 
     if (geometry !== undefined) {
         if (precise && geometry.attributes !== undefined
@@ -109,7 +147,7 @@ const unitBoxMesh = (function _() {
     geometry.setIndex(new BufferAttribute(indices, 1));
     geometry.setAttribute('position', new BufferAttribute(positions, 3));
 
-    return function _unitBoxMesh(color) {
+    return function _unitBoxMesh(color: Color) {
         const material = new LineBasicMaterial({
             color,
             linewidth: 3,
@@ -122,24 +160,23 @@ const unitBoxMesh = (function _() {
 }());
 
 /**
- * @param {Box3} box The box.
- * @param {Color} color The color.
+ * @param box The box.
+ * @param color The color.
  */
-function createBoxVolume(box, color) {
+function createBoxVolume(box: Box3, color: Color) {
     const helper = unitBoxMesh(color);
     helper.scale.copy(box.getSize(_vector));
     box.getCenter(helper.position);
     return helper;
 }
 
-function createSphereVolume(sphere, color) {
+function createSphereVolume(sphere: Sphere, color: Color) {
     const geometry = new SphereGeometry(
         sphere.radius, 32, 32,
     );
     const material = new MeshBasicMaterial({ wireframe: true, color });
-    const helper = new Mesh(geometry, material);
+    const helper = new SphereHelper(geometry, material);
     helper.position.copy(sphere.center);
-    helper.isHelper = true;
     return helper;
 }
 
@@ -153,34 +190,32 @@ class Helpers {
      * If a bounding box is already present, it is updated instead.
      *
      * @static
-     * @param {Object3D} obj The object to decorate.
-     * @param {Color|string} color The color.
+     * @param obj The object to decorate.
+     * @param color The color.
      * @example
      * // add a bounding box to 'obj'
      * Helpers.addBoundingBox(obj, 'green');
      */
-    static addBoundingBox(obj, color) {
+    static addBoundingBox(obj: Object3D, color: Color | string) {
         // Don't add a bounding box helper to a bounding box helper !
-        if (obj.isvolumeHelper) {
+        if ((obj as VolumeHelper).isvolumeHelper) {
             return;
         }
-        if (obj.volumeHelper) {
-            obj.volumeHelper.updateMatrixWorld(true);
+        if ((obj as HasVolumeHelper).volumeHelper) {
+            (obj as HasVolumeHelper).volumeHelper.updateMatrixWorld(true);
         } else {
             const helper = Helpers.createBoxHelper(makeLocalBbox(obj), getColor(color));
             obj.add(helper);
-            obj.volumeHelper = helper;
+            (obj as any).volumeHelper = helper;
             helper.updateMatrixWorld(true);
         }
     }
 
-    static createBoxHelper(box, color) {
-        const helper = new Box3Helper(box, color);
+    static createBoxHelper(box: Box3, color: Color) {
+        const helper = new BoundingBoxHelper(box, color);
         helper.name = 'bounding box';
-        helper.isHelper = true;
-        helper.isvolumeHelper = true;
-        helper.material.transparent = true;
-        helper.material.needsUpdate = true;
+        (helper.material as Material).transparent = true;
+        (helper.material as Material).needsUpdate = true;
         return helper;
     }
 
@@ -196,16 +231,16 @@ class Helpers {
      * Creates a selection bounding box helper around the specified object.
      *
      * @static
-     * @param {Object3D} obj The object to decorate.
-     * @param {Color|string} color The color.
-     * @returns {BoxHelper} the created box helper.
+     * @param obj The object to decorate.
+     * @param color The color.
+     * @returns the created box helper.
      * @example
      * // add a bounding box to 'obj'
      * Helpers.createSelectionBox(obj, 'green');
      */
-    static createSelectionBox(obj, color) {
+    static createSelectionBox(obj: Object3D, color: Color) {
         const helper = Helpers.createBoxHelper(makeLocalBbox(obj), getColor(color));
-        obj.selectionHelper = helper;
+        (obj as any).selectionHelper = helper;
         obj.add(helper);
         obj.updateMatrixWorld(true);
         return helper;
@@ -216,30 +251,31 @@ class Helpers {
      * If a bounding box is already present, it is updated instead.
      *
      * @static
-     * @param {Object3D} obj The object to decorate.
-     * @param {OBB} obb The OBB.
-     * @param {Color|string} color The color.
+     * @param obj The object to decorate.
+     * @param obb The OBB.
+     * @param color The color.
      * @example
      * // add an OBB to 'obj'
      * Helpers.addOBB(obj, obj.OBB(), 'green');
      */
-    static addOBB(obj, obb, color) {
-        if (obj.volumeHelper) {
-            obj.volumeHelper.update(obb, color);
+    static addOBB(obj: Object3D, obb: OBB, color: Color) {
+        if ((obj as HasVolumeHelper).volumeHelper) {
+            (obj as HasVolumeHelper).volumeHelper.update(obb, color);
         } else {
-            const helper = new OBBHelper(obb, color);
+            const helper = new VolumeHelper(obb, color);
             helper.name = 'OBBHelper';
             obj.add(helper);
-            obj.volumeHelper = helper;
+            (obj as any).volumeHelper = helper;
             helper.updateMatrixWorld(true);
         }
     }
 
-    static removeOBB(obj) {
-        if (obj.volumeHelper) {
-            obj.volumeHelper.parent.remove(obj.volumeHelper);
-            obj.volumeHelper.dispose();
-            delete obj.volumeHelper;
+    static removeOBB(obj: Object3D) {
+        if ((obj as HasVolumeHelper).volumeHelper) {
+            const helper = (obj as HasVolumeHelper).volumeHelper;
+            helper.parent.remove(helper);
+            helper.dispose();
+            delete (obj as HasVolumeHelper).volumeHelper;
         }
     }
 
@@ -248,34 +284,30 @@ class Helpers {
      * The bounding volume can contain a sphere, a region, or a box.
      *
      * @static
-     * @param {Tiles3D} entity The entity.
-     * @param {Object3D} obj The object to decorate.
-     * @param {object} metadata The tile metadata
-     * @param {string} metadata.magic The tile metadata magic number.
-     * @param {object} metadata.boundingVolume The bounding volume.
-     * @param {object} metadata.boundingVolume.region The bounding volume region.
-     * @param {Vector3} metadata.boundingVolume.region.position The region position.
-     * @param {Vector3} metadata.boundingVolume.region.rotation The region rotation.
-     * @param {object} metadata.boundingVolume.sphere The bounding volume sphere.
-     * @param {number} metadata.boundingVolume.sphere.radius The sphere radius.
-     * @param {Vector3} metadata.boundingVolume.sphere.center The sphere center.
-     * @param {Box3} metadata.boundingVolume.box The bounding volume box.
-     * @param {Color|string} color The color.
-     * @returns {object|null} The helper object, or null if it could not be created.
+     * @param entity The entity.
+     * @param obj The object to decorate.
+     * @param metadata The tile metadata
+     * @param color The color.
+     * @returns The helper object, or null if it could not be created.
      * @example
      * // add a bounding box to 'obj'
      * Helpers.create3DTileBoundingVolume(entity, obj, volume, 'green');
      */
-    static create3DTileBoundingVolume(entity, obj, metadata, color) {
-        if (obj.boundingVolumeHelper) {
-            obj.boundingVolumeHelper.object3d.visible = obj.visible;
-            return obj.boundingVolumeHelper;
+    static create3DTileBoundingVolume(
+        entity: Tiles3D,
+        obj: Object3D,
+        metadata: TileSet,
+        color: Color | string,
+    ) {
+        if ((obj as HasBoundingVolumeHelper).boundingVolumeHelper) {
+            (obj as HasBoundingVolumeHelper).boundingVolumeHelper.object3d.visible = obj.visible;
+            return (obj as HasBoundingVolumeHelper).boundingVolumeHelper;
         }
 
         color = getColor(color);
         let object3d;
         let absolute = false;
-        const { boundingVolume } = metadata;
+        const { boundingVolumeObject: boundingVolume } = metadata;
 
         if (boundingVolume.region) {
             object3d = create3dTileRegion(boundingVolume.region, color);
@@ -305,7 +337,7 @@ class Helpers {
         if (object3d) {
             object3d.name = `${obj.name} volume`;
             const result = { object3d, absolute };
-            obj.boundingVolumeHelper = result;
+            (obj as any).boundingVolumeHelper = result;
             return result;
         }
 
@@ -316,11 +348,11 @@ class Helpers {
      * Create a grid on the XZ plane.
      *
      * @static
-     * @param {Vector3} origin The grid origin.
-     * @param {number} size The size of the grid.
-     * @param {number} subdivs The number of grid subdivisions.
+     * @param origin The grid origin.
+     * @param size The size of the grid.
+     * @param subdivs The number of grid subdivisions.
      */
-    static createGrid(origin, size, subdivs) {
+    static createGrid(origin: Vector3, size: number, subdivs: number) {
         const grid = new GridHelper(size, subdivs);
         grid.name = 'grid';
 
@@ -336,46 +368,46 @@ class Helpers {
      * Create an axis helper.
      *
      * @static
-     * @param {number} size The size of the helper.
+     * @param size The size of the helper.
      */
-    static createAxes(size) {
+    static createAxes(size: number) {
         const axes = new AxesHelper(size);
         // We want the axes to be always visible,
         // and rendered on top of any other object in the scene.
         axes.renderOrder = 9999;
-        axes.material.depthTest = false;
+        (axes.material as Material).depthTest = false;
         return axes;
     }
 
-    static remove3DTileBoundingVolume(obj) {
-        if (obj.boundingVolumeHelper) {
+    static remove3DTileBoundingVolume(obj: Object3D) {
+        if ((obj as HasBoundingVolumeHelper).boundingVolumeHelper) {
             // The helper is not necessarily attached to the object, in the
             // case of helpers with absolute position.
-            /** @type {Object3D} */
-            const obj3d = obj.boundingVolumeHelper.object3d;
+            const obj3d = (obj as HasBoundingVolumeHelper).boundingVolumeHelper.object3d;
             obj3d.parent.remove(obj3d);
-            obj3d.geometry?.dispose();
-            obj3d.material?.dispose();
-            delete obj.boundingVolumeHelper;
+            (obj3d as any).geometry?.dispose();
+            (obj3d as any).material?.dispose();
+            delete (obj as HasBoundingVolumeHelper).boundingVolumeHelper;
         }
     }
 
-    static update3DTileBoundingVolume(obj, properties) {
-        if (!obj.boundingVolumeHelper) {
+    static update3DTileBoundingVolume(obj: Object3D, properties: { color: Color }) {
+        if (!(obj as HasBoundingVolumeHelper).boundingVolumeHelper) {
             return;
         }
         if (properties.color) {
-            obj.boundingVolumeHelper.object3d.material.color = properties.color;
+            ((obj as HasBoundingVolumeHelper).boundingVolumeHelper
+                .object3d as any).material.color = properties.color;
         }
     }
 
     /**
      * Creates an arrow between the two points.
      *
-     * @param {Vector3} start The starting point.
-     * @param {Vector3} end The end point.
+     * @param start The starting point.
+     * @param end The end point.
      */
-    static createArrow(start, end) {
+    static createArrow(start: Vector3, end: Vector3) {
         const length = start.distanceTo(end);
         const dir = end.sub(start).normalize();
         const arrow = new ArrowHelper(dir, start, length);
@@ -386,15 +418,16 @@ class Helpers {
      * Removes an existing bounding box from the object, if any.
      *
      * @static
-     * @param {Object3D} obj The object to update.
+     * @param obj The object to update.
      * @example
      * Helpers.removeBoundingBox(obj);
      */
-    static removeBoundingBox(obj) {
-        if (obj.volumeHelper) {
-            obj.remove(obj.volumeHelper);
-            obj.volumeHelper.dispose();
-            delete obj.volumeHelper;
+    static removeBoundingBox(obj: Object3D) {
+        if ((obj as HasVolumeHelper).volumeHelper) {
+            const volumeHelper = (obj as HasVolumeHelper).volumeHelper;
+            obj.remove(volumeHelper);
+            volumeHelper.dispose();
+            delete (obj as any).volumeHelper;
         }
     }
 }

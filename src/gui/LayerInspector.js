@@ -7,7 +7,7 @@ import Instance from '../core/Instance';
 import Layer from '../core/layer/Layer';
 import Panel from './Panel.js';
 import ColorMapInspector from './ColorMapInspector.js';
-import Helpers from '../helpers/Helpers.js';
+import Helpers from '../helpers/Helpers';
 import Map from '../entities/Map';
 import SourceInspector from './SourceInspector.js';
 

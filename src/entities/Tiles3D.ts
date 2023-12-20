@@ -93,20 +93,41 @@ function isTilesetContentReady(tileset: $3dTilesTile, node: Tile): boolean {
 class Tiles3D extends Entity3D {
     /** Read-only flag to check if a given object is of type Tiles3D. */
     readonly isTiles3D = true;
-    readonly url: string;
-    readonly networkOptions: RequestInit;
+    private readonly _url: string;
+    private _networkOptions: RequestInit;
+    /**
+     * Network options of the source.
+     *
+     * @deprecated
+     */
+    get networkOptions(): RequestInit {
+        // TODO: remove this
+        return this._networkOptions;
+    }
+    /** The Screen Space Error (SSE) threshold to use for this tileset. */
     sseThreshold: number;
+    /** The delay, in milliseconds, to cleanup unused objects. */
     cleanupDelay: number;
+    /** The material to use */
     material?: Material;
-    cleanableTiles: any[];
+    private _cleanableTiles: Tile[];
     private _opCounter: OperationCounter;
-    queue: RequestQueue;
-    imageSize: Vector2;
-    tileset?: $3dTilesTileset;
-    tileIndex?: $3dTilesIndex;
-    asset?: $3dTilesAsset;
-    root?: Tile;
-    extent?: Extent;
+    private _queue: RequestQueue;
+    private _imageSize: Vector2;
+    get imageSize(): Vector2 {
+        return this._imageSize;
+    }
+    private _tileset?: $3dTilesTileset;
+    private _tileIndex?: $3dTilesIndex;
+    private _asset?: $3dTilesAsset;
+    get asset(): $3dTilesAsset {
+        return this._asset;
+    }
+    private _root?: Tile;
+    public get root(): Tile {
+        return this._root;
+    }
+    private _extent?: Extent;
     wireframe?: boolean;
 
     /**
@@ -128,17 +149,17 @@ class Tiles3D extends Entity3D {
         }
 
         this.type = 'Tiles3D';
-        this.url = source.url;
-        this.networkOptions = source.networkOptions;
+        this._url = source.url;
+        this._networkOptions = source.networkOptions;
         this.sseThreshold = options.sseThreshold ?? 16;
         this.cleanupDelay = options.cleanupDelay ?? 1000;
         this.material = options.material ?? undefined;
 
-        this.cleanableTiles = [];
+        this._cleanableTiles = [];
 
         this._opCounter = new OperationCounter();
 
-        this.queue = DefaultQueue;
+        this._queue = DefaultQueue;
     }
 
     get loading() {
@@ -162,10 +183,10 @@ class Tiles3D extends Entity3D {
     }
 
     async preprocess(): Promise<void> {
-        this.imageSize = new Vector2(128, 128);
+        this._imageSize = new Vector2(128, 128);
 
         // Download the root tileset to complete the preparation.
-        const tileset = await Fetcher.json(this.url, this.networkOptions);
+        const tileset = await Fetcher.json(this._url, this._networkOptions) as $3dTilesTileset;
         if (!tileset.root.refine) {
             tileset.root.refine = tileset.refine;
         }
@@ -184,22 +205,22 @@ class Tiles3D extends Entity3D {
         tileset.root.transform = undefined;
         // Replace root
         tileset.root = fakeroot;
-        this.tileset = tileset;
+        this._tileset = tileset;
 
-        const urlPrefix = this.url.slice(0, this.url.lastIndexOf('/') + 1);
+        const urlPrefix = this._url.slice(0, this._url.lastIndexOf('/') + 1);
         // Note: Constructing $3dTilesIndex makes tileset.root become a TileSet object !
-        this.tileIndex = new $3dTilesIndex(tileset, urlPrefix);
-        this.asset = tileset.asset;
+        this._tileIndex = new $3dTilesIndex(tileset, urlPrefix);
+        this._asset = tileset.asset;
 
-        const tile = await this.requestNewTile(this.tileset.root as TileSet, undefined, true);
-        delete this.tileset;
+        const tile = await this.requestNewTile(this._tileset.root as TileSet, undefined, true);
+        delete this._tileset;
 
         this.object3d.add(tile);
         tile.updateMatrixWorld();
 
-        this.tileIndex.index[tile.tileId].obj = tile;
-        this.root = tile;
-        this.extent = boundingVolumeToExtent(
+        this._tileIndex.index[tile.tileId].obj = tile;
+        this._root = tile;
+        this._extent = boundingVolumeToExtent(
             this._instance.referenceCrs,
             tile.boundingVolume,
             tile.matrixWorld,
@@ -251,7 +272,7 @@ class Tiles3D extends Entity3D {
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    requestNewTile(metadata: TileSet, parent?: Tile, _redraw = false) {
+    private requestNewTile(metadata: TileSet, parent?: Tile, _redraw = false) {
         if (metadata.obj) {
             const tileset = metadata as TileSet;
             this.unmarkTileForDeletion(tileset.obj);
@@ -266,7 +287,7 @@ class Tiles3D extends Entity3D {
             // Additive refinement can be done independently for each child,
             // so we can compute a per child priority
             const size = metadata.boundingVolumeObject.box.clone()
-                .applyMatrix4(metadata._worldFromLocalTransform)
+                .applyMatrix4(metadata.worldFromLocalTransform)
                 .getSize(tmpVector);
             priority = size.x * size.y;
         } else {
@@ -289,7 +310,7 @@ class Tiles3D extends Entity3D {
             request: () => this.executeCommand(metadata, parent),
         };
 
-        return this.queue
+        return this._queue
             .enqueue(request)
             .then((node: Tile) => {
                 metadata.obj = node;
@@ -307,10 +328,10 @@ class Tiles3D extends Entity3D {
         // Since we simply push in this array, the first item is always
         // the oldest one.
         const now = Date.now();
-        if (this.cleanableTiles.length
-            && (now - this.cleanableTiles[0].cleanableSince) > this.cleanupDelay) {
-            while (this.cleanableTiles.length) {
-                const elt = this.cleanableTiles[0];
+        if (this._cleanableTiles.length
+            && (now - this._cleanableTiles[0].cleanableSince) > this.cleanupDelay) {
+            while (this._cleanableTiles.length) {
+                const elt = this._cleanableTiles[0];
                 if ((now - elt.cleanableSince) > this.cleanupDelay) {
                     this.cleanup3dTileset(elt);
                 } else {
@@ -320,7 +341,7 @@ class Tiles3D extends Entity3D {
             }
         }
 
-        return [this.root];
+        return [this._root];
     }
 
     update(context: Context, node: Tile): Tile[] {
@@ -358,7 +379,7 @@ class Tiles3D extends Entity3D {
                         // If one of our child is a tileset, this node must be displayed until this
                         // child content is ready, to avoid hiding our content too early (= when our
                         // child is loaded but its content is not)
-                        const subtilesets = this.tileIndex.index[node.tileId].children.filter(
+                        const subtilesets = this._tileIndex.index[node.tileId].children.filter(
                             tile => tile.isTileset,
                         );
 
@@ -417,7 +438,7 @@ class Tiles3D extends Entity3D {
                     }
                 });
             }
-        } else if (node !== this.root) {
+        } else if (node !== this._root) {
             if (node.parent && node.parent.additiveRefinement) {
                 this.markTileForDeletion(node);
             }
@@ -426,16 +447,16 @@ class Tiles3D extends Entity3D {
         return returnValue;
     }
 
-    markTileForDeletion(node: Tile) {
+    protected markTileForDeletion(node: Tile) {
         if (!node.cleanableSince) {
             node.markForDeletion();
-            this.cleanableTiles.push(node);
+            this._cleanableTiles.push(node);
         }
     }
 
-    unmarkTileForDeletion(node: Tile) {
+    protected unmarkTileForDeletion(node: Tile) {
         if (node.cleanableSince) {
-            this.cleanableTiles.splice(this.cleanableTiles.indexOf(node), 1);
+            this._cleanableTiles.splice(this._cleanableTiles.indexOf(node), 1);
             node.unmarkForDeletion();
         }
     }
@@ -446,12 +467,12 @@ class Tiles3D extends Entity3D {
     //     be cleaned with cleanup3dTileset()
     //   - doesn't have 'content' -> it's a raw Object3D object,
     //     and must be cleaned with _cleanupObject3D()
-    cleanup3dTileset(n: Tile, depth: number = 0): void {
+    protected cleanup3dTileset(n: Tile, depth: number = 0): void {
         this.unmarkTileForDeletion(n);
 
-        if (this.tileIndex.index[n.tileId].obj) {
-            this.tileIndex.index[n.tileId].obj.deleted = Date.now();
-            this.tileIndex.index[n.tileId].obj = undefined;
+        if (this._tileIndex.index[n.tileId].obj) {
+            this._tileIndex.index[n.tileId].obj.deleted = Date.now();
+            this._tileIndex.index[n.tileId].obj = undefined;
         }
 
         // clean children tiles recursively
@@ -477,11 +498,11 @@ class Tiles3D extends Entity3D {
         // }
     }
 
-    subdivisionTest(context: Context, node: Tile): boolean {
-        if (this.tileIndex.index[node.tileId].children === undefined) {
+    protected subdivisionTest(context: Context, node: Tile): boolean {
+        if (this._tileIndex.index[node.tileId].children === undefined) {
             return false;
         }
-        if (this.tileIndex.index[node.tileId].isTileset) {
+        if (this._tileIndex.index[node.tileId].isTileset) {
             return true;
         }
 
@@ -491,8 +512,8 @@ class Tiles3D extends Entity3D {
         return sse > this.sseThreshold;
     }
 
-    subdivideNodeAdditive(context: Context, node: Tile): void {
-        for (const child of this.tileIndex.index[node.tileId].children) {
+    protected subdivideNodeAdditive(context: Context, node: Tile): void {
+        for (const child of this._tileIndex.index[node.tileId].children) {
             // child being downloaded or already added => skip
             if (child.promise || node.children.filter(n => n.tileId === child.tileId).length > 0) {
                 continue;
@@ -523,7 +544,7 @@ class Tiles3D extends Entity3D {
                         tile.updateMatrixWorld();
 
                         const extent = boundingVolumeToExtent(
-                            this.extent.crs(), tile.boundingVolume, tile.matrixWorld,
+                            this._extent.crs(), tile.boundingVolume, tile.matrixWorld,
                         );
                         tile.traverse((obj: any) => {
                             obj.extent = extent;
@@ -538,7 +559,7 @@ class Tiles3D extends Entity3D {
         }
     }
 
-    subdivideNodeSubstractive(node: Tile): void {
+    protected subdivideNodeSubstractive(node: Tile): void {
         // Subdivision in progress => nothing to do
         if (node.pendingSubdivision) {
             return;
@@ -548,7 +569,7 @@ class Tiles3D extends Entity3D {
             return;
         }
         // No child => nothing to do either
-        const childrenTiles = this.tileIndex.index[node.tileId].children;
+        const childrenTiles = this._tileIndex.index[node.tileId].children;
         if (childrenTiles === undefined || childrenTiles.length === 0) {
             return;
         }
@@ -556,14 +577,14 @@ class Tiles3D extends Entity3D {
         node.pendingSubdivision = true;
 
         // Substractive (refine = 'REPLACE') is an all or nothing subdivision mode
-        const promises = [];
-        for (const child of this.tileIndex.index[node.tileId].children) {
+        const promises: Promise<any>[] = [];
+        for (const child of this._tileIndex.index[node.tileId].children) {
             const p = this.requestNewTile(child, node, false).then(tile => {
                 node.add(tile);
                 tile.updateMatrixWorld();
 
                 const extent = boundingVolumeToExtent(
-                    this.extent.crs(), tile.boundingVolume, tile.matrixWorld,
+                    this._extent.crs(), tile.boundingVolume, tile.matrixWorld,
                 );
                 tile.traverse((obj: any) => {
                     obj.extent = extent;
@@ -586,7 +607,7 @@ class Tiles3D extends Entity3D {
         });
     }
 
-    subdivideNode(context: Context, node: Tile): void {
+    protected subdivideNode(context: Context, node: Tile): void {
         if (node.additiveRefinement) {
             // Additive refinement can only fetch visible children.
             this.subdivideNodeAdditive(context, node);
@@ -623,7 +644,7 @@ class Tiles3D extends Entity3D {
             // Check if we have relative or absolute url (with tileset's lopocs for example)
             const url = path.startsWith('http') ? path : metadata.baseURL + path;
             const dl = (GlobalCache.get(url)
-                    || GlobalCache.set(url, Fetcher.arrayBuffer(url, this.networkOptions))
+                    || GlobalCache.set(url, Fetcher.arrayBuffer(url, this._networkOptions))
             ) as Promise<ArrayBuffer>;
 
             const result = await dl;
@@ -635,7 +656,7 @@ class Tiles3D extends Entity3D {
                     const { newTileset, newPrefix } = await $3dTilesLoader.jsonParse(
                         result, this, url,
                     );
-                    this.tileIndex.extendTileset(newTileset, metadata.tileId, newPrefix);
+                    this._tileIndex.extendTileset(newTileset, metadata.tileId, newPrefix);
                 } else if (magic === 'b3dm') {
                     content = await $3dTilesLoader.b3dmToMesh(result, this, url);
                 } else if (magic === 'pnts') {

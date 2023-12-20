@@ -19,7 +19,7 @@ import Entity3D from './Entity3D';
 import type Extent from '../core/geographic/Extent';
 import type Context from '../core/Context';
 import { UNIT, crsToUnit } from '../core/geographic/Coordinates';
-import Helpers from '../helpers/Helpers.js';
+import Helpers from '../helpers/Helpers';
 
 const mod = MathUtils.euclideanModulo;
 

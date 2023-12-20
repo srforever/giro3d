@@ -11,7 +11,7 @@ import type { $3dTilesTileset, $3dTilesTile, $3dTilesBoundingVolume } from './3d
 export interface TileSet extends $3dTilesTile {
     isTileset: boolean;
     transformMatrix: Matrix4,
-    _worldFromLocalTransform: Matrix4;
+    worldFromLocalTransform: Matrix4;
     viewerRequestVolumeObject?: BoundingVolume,
     boundingVolumeObject: BoundingVolume,
     promise?: Promise<any>,
@@ -76,7 +76,7 @@ function getBox(
 
 class $3dTilesIndex {
     private _counter: number;
-    index: Record<number, TileSet>;
+    readonly index: Record<number, TileSet>;
     private _inverseTileTransform: Matrix4;
 
     constructor(tileset: $3dTilesTileset, baseURL: string) {
@@ -94,22 +94,22 @@ class $3dTilesIndex {
 
         // The only reason to store _worldFromLocalTransform is because of extendTileset where we
         // need the transform chain for one node.
-        indexedNode._worldFromLocalTransform = indexedNode.transformMatrix;
-        if (parent && parent._worldFromLocalTransform) {
+        indexedNode.worldFromLocalTransform = indexedNode.transformMatrix;
+        if (parent && parent.worldFromLocalTransform) {
             if (indexedNode.transform) {
-                indexedNode._worldFromLocalTransform = new Matrix4().multiplyMatrices(
-                    parent._worldFromLocalTransform, indexedNode.transformMatrix,
+                indexedNode.worldFromLocalTransform = new Matrix4().multiplyMatrices(
+                    parent.worldFromLocalTransform, indexedNode.transformMatrix,
                 );
             } else {
-                indexedNode._worldFromLocalTransform = parent._worldFromLocalTransform;
+                indexedNode.worldFromLocalTransform = parent.worldFromLocalTransform;
             }
         }
 
         // this._inverseTileTransform.copy(node._worldFromLocalTransform).invert();
         // getBox only use this._inverseTileTransform for volume.region so let's not
         // compute the inverse matrix each time
-        if (indexedNode._worldFromLocalTransform) {
-            this._inverseTileTransform.copy(indexedNode._worldFromLocalTransform).invert();
+        if (indexedNode.worldFromLocalTransform) {
+            this._inverseTileTransform.copy(indexedNode.worldFromLocalTransform).invert();
         } else {
             this._inverseTileTransform.identity();
         }

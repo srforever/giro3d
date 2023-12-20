@@ -26,7 +26,7 @@ describe('Tiles3D', () => {
 
         it('should assign the source', () => {
             const sut = new Tiles3D('foo', new Tiles3DSource('http://example.com/tileset'));
-            expect(sut.url).toBe('http://example.com/tileset');
+            expect(sut._url).toBe('http://example.com/tileset');
         });
 
         it('should assign default values if options do not provide them', () => {

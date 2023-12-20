@@ -122,4 +122,7 @@ export interface $3dTilesTileset {
     geometricError: number;
     /** The root tile. */
     root: $3dTilesTile;
+
+    // Not part of the spec
+    refine?: 'ADD' | 'REPLACE';
 }
