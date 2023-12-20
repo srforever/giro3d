@@ -38,11 +38,10 @@ function placeCamera() {
     camera.position.copy(pos);
 
     instance.useTHREEControls(controls);
-    StatusBar.bind(instance, 5);
+    StatusBar.bind(instance, { radius: 5 });
 }
 
 instance.add(potree).then(placeCamera);
 instance.notifyChange(instance.camera.camera3D);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
-StatusBar.bind(instance, { radius: 5 });

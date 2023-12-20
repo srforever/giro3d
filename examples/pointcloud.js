@@ -55,6 +55,8 @@ function initializeCamera() {
     const lookAt = bbox.getCenter(tmpVec3);
     lookAt.z = bbox.min.z;
     placeCamera(position, lookAt);
+
+    StatusBar.bind(instance);
 }
 
 instance.add(pointcloud).then(initializeCamera);
@@ -100,5 +102,3 @@ instance.domElement.addEventListener('dblclick', e => {
         resultsTable.replaceChildren(...rows);
     }
 });
-
-StatusBar.bind(instance);
