@@ -4,7 +4,7 @@
 
 import { BufferAttribute, BufferGeometry } from 'three';
 
-import OBB from './OBB.js';
+import OBB from './OBB';
 
 /**
  * The TileGeometry provides a new buffer geometry for each

@@ -3,7 +3,7 @@ import proj4 from 'proj4';
 import assert from 'assert';
 import Extent from '../../../src/core/geographic/Extent';
 import TileGeometry from '../../../src/core/TileGeometry.js';
-import OBB from '../../../src/core/OBB.js';
+import OBB from '../../../src/core/OBB';
 
 const max = new Vector3(10, 10, 10);
 const min = new Vector3(-10, -10, -10);
