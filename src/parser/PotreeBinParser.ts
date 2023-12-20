@@ -3,10 +3,21 @@ import {
     BufferGeometry,
 } from 'three';
 
+interface Attribute {
+    numElements: number,
+    numByte?: number,
+    ArrayType: any,
+    attributeName: string,
+    normalized?: boolean,
+    potreeName?: string,
+    byteSize?: number,
+    getValue?: (view: DataView, offset: number) => number,
+}
+
 // See the different constants holding ordinal, name, numElements, byteSize in PointAttributes.cpp
 // in PotreeConverter
 // elementByteSize is byteSize / numElements
-const POINT_ATTTRIBUTES = {
+const POINT_ATTTRIBUTES: Record<string, Attribute> = {
     POSITION_CARTESIAN: {
         numElements: 3,
         ArrayType: Float32Array,
@@ -61,8 +72,10 @@ for (const potreeName of Object.keys(POINT_ATTTRIBUTES)) {
     // chrome is known to perform badly when we call a method without respecting its arity
     const fnName = `getUint${attr.numByte * 8}`;
     attr.getValue = attr.numByte === 1
-        ? function getValue(view, offset) { return view[fnName](offset); }
-        : function getValue(view, offset) { return view[fnName](offset, true); };
+        // @ts-ignore
+        ? (view: DataView, offset: number) => view[fnName](offset)
+        // @ts-ignore
+        : (view: DataView, offset: number) => view[fnName](offset, true);
 }
 
 export default {
@@ -71,12 +84,12 @@ export default {
     /**
      * Parse .bin PotreeConverter format and convert to a BufferGeometry
      *
-     * @param {ArrayBuffer} buffer the bin buffer.
-     * @param {object} pointAttributes the point attributes information contained in
+     * @param buffer the bin buffer.
+     * @param pointAttributes the point attributes information contained in
      * layer.metadata coming from cloud.js
-     * @returns {Promise} - a promise that resolves with a BufferGeometry.
+     * @returns a promise that resolves with a BufferGeometry.
      */
-    parse: function parse(buffer, pointAttributes) {
+    parse: function parse(buffer: ArrayBuffer, pointAttributes: string[]) {
         if (!buffer) {
             throw new Error('No array buffer provided.');
         }

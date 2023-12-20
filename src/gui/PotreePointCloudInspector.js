@@ -4,7 +4,7 @@
 import GUI from 'lil-gui';
 import { Group } from 'three';
 import Instance from '../core/Instance';
-import PotreePointCloud from '../entities/PotreePointCloud.js';
+import PotreePointCloud from '../entities/PotreePointCloud';
 import EntityInspector from './EntityInspector.js';
 
 class PotreePointCloudInspector extends EntityInspector {

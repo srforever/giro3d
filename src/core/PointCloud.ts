@@ -31,6 +31,7 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap> {
     extent?: Extent;
     textureSize?: Vector2;
     disposed: boolean;
+    material: PointsMaterial;
 
     constructor({
         layer,
@@ -57,10 +58,7 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap> {
         // @ts-ignore - Points declaration seems broken
         this.dispatchEvent({ type: 'dispose' });
         this.geometry.dispose();
-        if (this.material) {
-            if (Array.isArray(this.material)) this.material.forEach(m => m.dispose());
-            else this.material.dispose();
-        }
+        this.material.dispose();
     }
 }
 
