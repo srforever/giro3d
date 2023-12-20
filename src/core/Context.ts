@@ -38,8 +38,11 @@ class Context {
      * or a partial update and to act accordingly.
      */
     fastUpdateHint: unknown;
-    /** Current entity being updated. */
-    entity: Entity;
+    private _entity: Entity;
+    /**
+     * Current entity being updated.
+     */
+    get entity() { return this._entity; }
 
     /**
      * Constructs a context.
@@ -65,9 +68,9 @@ class Context {
         this.fastUpdateHint = undefined;
     }
 
-    setForEntity(entity: Entity): void {
+    resetForEntity(entity: Entity): void {
         this.fastUpdateHint = undefined;
-        this.entity = entity;
+        this._entity = entity;
     }
 }
 

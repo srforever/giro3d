@@ -8,7 +8,7 @@ import C3DEngine, { type RendererOptions } from '../renderer/c3DEngine.js';
 import type RenderingOptions from '../renderer/RenderingOptions.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import MainLoop, { RenderingState } from './MainLoop';
-import { type MainLoopEvents } from './MainLoopEvents';
+import { type MainLoopFrameEvents } from './MainLoopEvents';
 import Entity from '../entities/Entity';
 import Entity3D from '../entities/Entity3D';
 import Map from '../entities/Map';
@@ -178,9 +178,9 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private readonly _scene: Scene;
     private readonly _threeObjects: Group;
     private readonly _camera: Camera;
-    private _frameRequesters: Partial<Record<keyof MainLoopEvents, FrameRequester[]>>;
+    private _frameRequesters: Partial<Record<keyof MainLoopFrameEvents, FrameRequester[]>>;
     private _delayedFrameRequesterRemoval: {
-        when: keyof MainLoopEvents,
+        when: keyof MainLoopFrameEvents,
         frameRequester: FrameRequester
     }[];
     private readonly _objects: Entity[];
@@ -340,12 +340,12 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         return sum / entities.length;
     }
 
-    /** @ignore */
+    /** Gets the main loop */
     get mainLoop(): MainLoop {
         return this._mainLoop;
     }
 
-    /** @ignore */
+    /** Gets the rendering engine */
     get engine(): C3DEngine {
         return this._engine;
     }
@@ -620,7 +620,10 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * MainLoop update with the time delta between last update, or 0 if the MainLoop
      * has just been relaunched.
      */
-    addFrameRequester(when: keyof MainLoopEvents, frameRequester: FrameRequesterCallback): void {
+    addFrameRequester(
+        when: keyof MainLoopFrameEvents,
+        frameRequester: FrameRequesterCallback,
+    ): void {
         if (typeof frameRequester !== 'function') {
             throw new Error('frameRequester must be a function');
         }
@@ -640,7 +643,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * @param when attach point of this requester.
      * @param frameRequester the frameRequester to remove
      */
-    removeFrameRequester(when: keyof MainLoopEvents, frameRequester: FrameRequester): void {
+    removeFrameRequester(when: keyof MainLoopFrameEvents, frameRequester: FrameRequester): void {
         const index = this._frameRequesters[when].indexOf(frameRequester);
         if (index >= 0) {
             this._delayedFrameRequesterRemoval.push({ when, frameRequester });
@@ -691,7 +694,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * @param args optional arguments
      */
     execFrameRequesters(
-        when: keyof MainLoopEvents,
+        when: keyof MainLoopFrameEvents,
         dt: number,
         updateLoopRestarted: boolean,
         ...args: any

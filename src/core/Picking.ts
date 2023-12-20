@@ -211,7 +211,7 @@ export default {
         canvasCoords: Vector2,
         map: Map,
         options: PickObjectsAtOptions = {},
-        target: PickTilesAtResult[] = [],
+        target: PickResultBase[] = [],
     ) => {
         const radius = options.radius || 0;
         const limit = options.limit || Infinity;

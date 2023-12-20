@@ -17,7 +17,8 @@ import Instance, {
     type ThreeControls,
     type FrameRequesterCallback,
 } from './Instance';
-import type { MainLoopEvents, MAIN_LOOP_EVENTS } from './MainLoopEvents';
+import MainLoop, { type RenderingState, type MainLoopEvents, type MainLoopOptions } from './MainLoop';
+import type { MainLoopFrameEvents, MAIN_LOOP_EVENTS } from './MainLoopEvents';
 import OperationCounter, { type OperationCounterEvents } from './OperationCounter';
 import type Progress from './Progress';
 import {
@@ -29,6 +30,7 @@ import {
     type PickResultFilterCallback,
     type CanvasFilterCallback,
 } from './Picking';
+import PointCloud, { type PointCloudEventMap, type PointCloudOptions } from './PointCloud';
 import type ElevationRange from './ElevationRange';
 import type ContourLineOptions from './ContourLineOptions';
 import {
@@ -49,7 +51,11 @@ export {
     CustomCameraControls,
     ThreeControls,
     FrameRequesterCallback,
+    RenderingState,
     MainLoopEvents,
+    MainLoopOptions,
+    MainLoop,
+    MainLoopFrameEvents,
     MAIN_LOOP_EVENTS,
     Rect,
     Context,
@@ -63,6 +69,9 @@ export {
     PickObjectsAtResult,
     PickResultFilterCallback,
     CanvasFilterCallback,
+    PointCloud,
+    PointCloudEventMap,
+    PointCloudOptions,
     ElevationRange,
     ContourLineOptions,
     FeatureStyle,

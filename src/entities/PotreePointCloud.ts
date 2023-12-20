@@ -597,8 +597,8 @@ class PotreePointCloud extends Entity3D {
             // only load geometry if this elements has points
             if (elt.numPoints > 0) {
                 if (elt.obj) {
-                    if (elt.obj.material.update) {
-                        elt.obj.material.update(this.material);
+                    if ((elt.obj.material as any).update) {
+                        (elt.obj.material as any).update(this.material);
                     } else {
                         elt.obj.material.copy(this.material);
                     }
@@ -789,7 +789,7 @@ class PotreePointCloud extends Entity3D {
             textureSize: this.imageSize,
         });
         points.name = `r${metadata.name}.${this.extension}`;
-        if (points.material.enablePicking) {
+        if ((points.material as any).enablePicking) {
             Picking.preparePointGeometryForPicking(points.geometry);
         }
         points.frustumCulled = false;

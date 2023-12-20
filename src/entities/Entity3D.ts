@@ -47,7 +47,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
     private _opacity: number;
     private _object3d: Object3D;
     protected _distance: { min: number; max: number; };
-    /** @ignore */
     public get distance(): { min: number; max: number; } {
         return { min: this._distance.min, max: this._distance.max };
     }

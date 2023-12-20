@@ -2,9 +2,9 @@ import {
     Points,
     type BufferGeometry,
     type EventDispatcher,
-    type Material,
     type Vector2,
     type Object3DEventMap,
+    type Material,
 } from 'three';
 import PointsMaterial from '../renderer/PointsMaterial.js';
 import type Entity from '../entities/Entity.js';
@@ -14,10 +14,15 @@ export interface PointCloudEventMap extends Object3DEventMap {
     'dispose': { };
 }
 
+/** Options for constructing {@link PointCloud} */
 export interface PointCloudOptions {
+    /** Parent entity */
     layer: Entity,
+    /** Geometry */
     geometry: BufferGeometry,
-    material?: Material | Material[],
+    /** Material */
+    material?: Material,
+    /** Texture size */
     textureSize: Vector2,
 }
 
@@ -27,11 +32,11 @@ export interface PointCloudOptions {
  */
 class PointCloud extends Points implements EventDispatcher<PointCloudEventMap> {
     readonly isPointClound: boolean = true;
-    private _layer: Entity;
+    private _layer: Entity; // TODO: potentially not used
     extent?: Extent;
     textureSize?: Vector2;
     disposed: boolean;
-    material: PointsMaterial;
+    material: Material;
 
     constructor({
         layer,

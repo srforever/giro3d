@@ -21,7 +21,7 @@ import {
 import type Tiles3D from '../entities/Tiles3D';
 import type OBB from '../core/OBB.js';
 import OBBHelper from './OBBHelper';
-import type { TileSet } from '../entities/3dtiles/3dTilesIndex';
+import type { Tileset } from '../entities/3dtiles/3dTilesIndex';
 
 class VolumeHelper extends OBBHelper {
     readonly isvolumeHelper = true;
@@ -296,7 +296,7 @@ class Helpers {
     static create3DTileBoundingVolume(
         entity: Tiles3D,
         obj: Object3D,
-        metadata: TileSet,
+        metadata: Tileset,
         color: Color | string,
     ) {
         if ((obj as HasBoundingVolumeHelper).boundingVolumeHelper) {

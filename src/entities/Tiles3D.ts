@@ -5,14 +5,13 @@ import {
     Matrix4,
     type Object3D,
     type Material,
-    type BufferGeometry,
     Vector3,
 } from 'three';
 import type Extent from '../core/geographic/Extent';
 import Picking, { type PickObjectsAtOptions, type PickResultBase } from '../core/Picking';
 import Entity3D from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
-import $3dTilesIndex, { type TileSet } from './3dtiles/3dTilesIndex';
+import $3dTilesIndex, { type Tileset } from './3dtiles/3dTilesIndex';
 import Fetcher from '../utils/Fetcher';
 import utf8Decoder from '../utils/Utf8Decoder.js';
 import { GlobalCache } from '../core/Cache';
@@ -70,12 +69,8 @@ function _cleanupObject3D(n: Object3D): void {
         n.dispose();
     } else {
         // free resources
-        if ('material' in n && n.material) {
-            (n.material as Material).dispose();
-        }
-        if ('geometry' in n && n.geometry) {
-            (n.geometry as BufferGeometry).dispose();
-        }
+        (n as any)?.material?.dispose();
+        (n as any)?.geometry?.dispose();
     }
     n.remove(...n.children);
 }
@@ -208,17 +203,20 @@ class Tiles3D extends Entity3D {
         this._tileset = tileset;
 
         const urlPrefix = this._url.slice(0, this._url.lastIndexOf('/') + 1);
-        // Note: Constructing $3dTilesIndex makes tileset.root become a TileSet object !
+        // Note: Constructing $3dTilesIndex makes tileset.root become a Tileset object !
         this._tileIndex = new $3dTilesIndex(tileset, urlPrefix);
         this._asset = tileset.asset;
 
-        const tile = await this.requestNewTile(this._tileset.root as TileSet, undefined, true);
+        const tile = await this.requestNewTile(this._tileset.root as Tileset, undefined, true);
+        if (tile === null) {
+            throw new Error('Could not load root tile');
+        }
         delete this._tileset;
 
         this.object3d.add(tile);
         tile.updateMatrixWorld();
 
-        this._tileIndex.index[tile.tileId].obj = tile;
+        this._tileIndex.get(tile).obj = tile;
         this._root = tile;
         this._extent = boundingVolumeToExtent(
             this._instance.referenceCrs,
@@ -271,13 +269,17 @@ class Tiles3D extends Entity3D {
         return super.pickObjectsAt(coordinates, options, target);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    private requestNewTile(metadata: TileSet, parent?: Tile, _redraw = false) {
+    private async requestNewTile(
+        metadata: Tileset,
+        parent?: Tile,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        _redraw = false,
+    ): Promise<Tile | null> {
         if (metadata.obj) {
-            const tileset = metadata as TileSet;
+            const tileset = metadata as Tileset;
             this.unmarkTileForDeletion(tileset.obj);
             this._instance.notifyChange(parent);
-            return Promise.resolve(tileset.obj);
+            return tileset.obj;
         }
 
         this._opCounter.increment();
@@ -310,13 +312,17 @@ class Tiles3D extends Entity3D {
             request: () => this.executeCommand(metadata, parent),
         };
 
-        return this._queue
-            .enqueue(request)
-            .then((node: Tile) => {
-                metadata.obj = node;
-                this._instance.notifyChange(this);
-                return node;
-            }).finally(() => this._opCounter.decrement());
+        try {
+            const node = await this._queue.enqueue(request) as Tile;
+            metadata.obj = node;
+            this._instance.notifyChange(this);
+            return node;
+        } catch {
+            // ignore
+            return null;
+        } finally {
+            this._opCounter.decrement();
+        }
     }
 
     preUpdate(): Tile[] {
@@ -379,7 +385,7 @@ class Tiles3D extends Entity3D {
                         // If one of our child is a tileset, this node must be displayed until this
                         // child content is ready, to avoid hiding our content too early (= when our
                         // child is loaded but its content is not)
-                        const subtilesets = this._tileIndex.index[node.tileId].children.filter(
+                        const subtilesets = this._tileIndex.get(node).children.filter(
                             tile => tile.isTileset,
                         );
 
@@ -470,9 +476,11 @@ class Tiles3D extends Entity3D {
     protected cleanup3dTileset(n: Tile, depth: number = 0): void {
         this.unmarkTileForDeletion(n);
 
-        if (this._tileIndex.index[n.tileId].obj) {
-            this._tileIndex.index[n.tileId].obj.deleted = Date.now();
-            this._tileIndex.index[n.tileId].obj = undefined;
+        const tileset = this._tileIndex.get(n);
+
+        if (tileset.obj) {
+            tileset.obj.deleted = Date.now();
+            tileset.obj = undefined;
         }
 
         // clean children tiles recursively
@@ -499,10 +507,11 @@ class Tiles3D extends Entity3D {
     }
 
     protected subdivisionTest(context: Context, node: Tile): boolean {
-        if (this._tileIndex.index[node.tileId].children === undefined) {
+        const tileset = this._tileIndex.get(node);
+        if (tileset.children === undefined) {
             return false;
         }
-        if (this._tileIndex.index[node.tileId].isTileset) {
+        if (tileset.isTileset) {
             return true;
         }
 
@@ -513,7 +522,7 @@ class Tiles3D extends Entity3D {
     }
 
     protected subdivideNodeAdditive(context: Context, node: Tile): void {
-        for (const child of this._tileIndex.index[node.tileId].children) {
+        for (const child of this._tileIndex.get(node).children) {
             // child being downloaded or already added => skip
             if (child.promise || node.children.filter(n => n.tileId === child.tileId).length > 0) {
                 continue;
@@ -552,10 +561,7 @@ class Tiles3D extends Entity3D {
 
                         this._instance.notifyChange(child);
                     }
-                    delete child.promise;
-                }, () => {
-                    delete child.promise;
-                });
+                }).finally(() => delete child.promise);
         }
     }
 
@@ -569,7 +575,7 @@ class Tiles3D extends Entity3D {
             return;
         }
         // No child => nothing to do either
-        const childrenTiles = this._tileIndex.index[node.tileId].children;
+        const childrenTiles = this._tileIndex.get(node).children;
         if (childrenTiles === undefined || childrenTiles.length === 0) {
             return;
         }
@@ -577,18 +583,22 @@ class Tiles3D extends Entity3D {
         node.pendingSubdivision = true;
 
         // Substractive (refine = 'REPLACE') is an all or nothing subdivision mode
-        const promises: Promise<any>[] = [];
-        for (const child of this._tileIndex.index[node.tileId].children) {
+        const promises: Promise<void>[] = [];
+        for (const child of this._tileIndex.get(node).children) {
             const p = this.requestNewTile(child, node, false).then(tile => {
-                node.add(tile);
-                tile.updateMatrixWorld();
+                if (!tile || !node.parent) {
+                    // cancelled promise or node has been deleted
+                } else {
+                    node.add(tile);
+                    tile.updateMatrixWorld();
 
-                const extent = boundingVolumeToExtent(
-                    this._extent.crs(), tile.boundingVolume, tile.matrixWorld,
-                );
-                tile.traverse((obj: any) => {
-                    obj.extent = extent;
-                });
+                    const extent = boundingVolumeToExtent(
+                        this._extent.crs(), tile.boundingVolume, tile.matrixWorld,
+                    );
+                    tile.traverse((obj: any) => {
+                        obj.extent = extent;
+                    });
+                }
             });
             promises.push(p);
         }
@@ -619,7 +629,7 @@ class Tiles3D extends Entity3D {
     }
 
     async executeCommand(
-        metadata: TileSet,
+        metadata: Tileset,
         requester?: Tile,
     ): Promise<Tile> {
         const tile = new Tile(this, metadata, requester);

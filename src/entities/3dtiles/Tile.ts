@@ -8,7 +8,7 @@ import {
 import type Tiles3D from '../Tiles3D';
 import ScreenSpaceError from '../../core/ScreenSpaceError';
 import { type Camera } from '../../renderer';
-import { type TileSet } from './3dTilesIndex';
+import { type Tileset } from './3dTilesIndex';
 import { type BoundingVolume } from './BoundingVolume';
 
 const tmp = {
@@ -17,9 +17,19 @@ const tmp = {
     s: new Sphere(),
 };
 
+/**
+ * Represents a tile from a {@link Tiles3D} object.
+ */
 class Tile extends Object3D {
-    isTile: boolean = true;
+    /** Read-only flag to check if a given object is of type Tile. */
+    readonly isTile: boolean = true;
+    /** Parent tile */
     parent: Tile;
+    /**
+     * Parent entity
+     *
+     * @deprecated
+     */
     layer: Tiles3D;
     geometricError: number;
     tileId: number;
@@ -35,7 +45,7 @@ class Tile extends Object3D {
     cleanableSince?: number;
     sse?: number;
 
-    constructor(entity: Tiles3D, metadata: TileSet, parent?: Tile) {
+    constructor(entity: Tiles3D, metadata: Tileset, parent?: Tile) {
         super();
         this.name = '3D tile';
         this.frustumCulled = false;

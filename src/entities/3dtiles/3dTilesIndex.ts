@@ -8,19 +8,21 @@ import type Tile from './Tile';
 import { type BoundingVolume } from './BoundingVolume';
 import type { $3dTilesTileset, $3dTilesTile, $3dTilesBoundingVolume } from './3dTilesSpec';
 
-export interface TileSet extends $3dTilesTile {
+// TODO: rename Tileset to Tile or something (this object is *not* a Tileset)
+/** Processed tile metadata */
+export interface Tileset extends $3dTilesTile {
     isTileset: boolean;
     transformMatrix: Matrix4,
     worldFromLocalTransform: Matrix4;
     viewerRequestVolumeObject?: BoundingVolume,
     boundingVolumeObject: BoundingVolume,
-    promise?: Promise<any>,
+    promise?: Promise<void>,
 
     tileId: number;
     magic?: string,
 
     obj?: Tile;
-    children?: TileSet[],
+    children?: Tileset[],
 }
 
 const identity = new Matrix4();
@@ -74,9 +76,11 @@ function getBox(
     }
 }
 
+/** Tile index */
 class $3dTilesIndex {
     private _counter: number;
-    readonly index: Record<number, TileSet>;
+    /** Map by tileId */
+    readonly index: Record<number, Tileset>;
     private _inverseTileTransform: Matrix4;
 
     constructor(tileset: $3dTilesTileset, baseURL: string) {
@@ -86,8 +90,10 @@ class $3dTilesIndex {
         this._recurse(tileset.root, baseURL);
     }
 
-    _recurse(node: $3dTilesTile, baseURL: string, parent?: TileSet) {
-        const indexedNode = node as TileSet;
+    get(tile: Tile): Tileset { return this.index[tile.tileId]; }
+
+    _recurse(node: $3dTilesTile, baseURL: string, parent?: Tileset) {
+        const indexedNode = node as Tileset;
         // compute transform (will become Object3D.matrix when the object is downloaded)
         indexedNode.transformMatrix = node.transform
             ? (new Matrix4()).fromArray(node.transform) : identity;
@@ -143,9 +149,10 @@ class $3dTilesIndex {
     }
 
     extendTileset(tileset: $3dTilesTileset, nodeId: number, baseURL: string) {
-        this._recurse(tileset.root, baseURL, this.index[nodeId]);
-        this.index[nodeId].children = [tileset.root as TileSet];
-        this.index[nodeId].isTileset = true;
+        const tile = this.index[nodeId];
+        this._recurse(tileset.root, baseURL, tile);
+        tile.children = [tileset.root as Tileset];
+        tile.isTileset = true;
     }
 }
 

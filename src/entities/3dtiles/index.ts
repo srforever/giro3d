@@ -4,16 +4,23 @@
  * @module
  */
 
-import {
-    type $3dTilesAsset,
-    type $3dTilesBoundingVolume,
-    type $3dTilesTile,
-    type $3dTilesTileset,
-} from './3dTilesSpec';
+import $3dTilesIndex, { type Tileset } from './3dTilesIndex';
+import type {
+    BoundingVolume,
+    boundingVolumeToExtent,
+    cullingTestViewer,
+    cullingTestBoundingVolume,
+    cullingTest,
+} from './BoundingVolume';
+import type Tile from './Tile';
 
 export {
-    $3dTilesAsset,
-    $3dTilesBoundingVolume,
-    $3dTilesTile,
-    $3dTilesTileset,
+    $3dTilesIndex,
+    Tileset,
+    BoundingVolume,
+    boundingVolumeToExtent,
+    cullingTestViewer,
+    cullingTestBoundingVolume,
+    cullingTest,
+    Tile,
 };

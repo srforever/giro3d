@@ -8,8 +8,11 @@ import type Instance from './Instance';
 import Entity from '../entities/Entity';
 import type Layer from './layer/Layer';
 
+/** Rendering state */
 export enum RenderingState {
+    /* Paused */
     RENDERING_PAUSED = 0,
+    /* Scheduled */
     RENDERING_SCHEDULED = 1,
 }
 
@@ -18,7 +21,7 @@ export const RENDERING_PAUSED = RenderingState.RENDERING_PAUSED;
 /** @deprecated Use {@link RenderingState} */
 export const RENDERING_SCHEDULED = RenderingState.RENDERING_SCHEDULED;
 
-/** @deprecated Use {@link MainLoopEvents} */
+/** @deprecated Use {@link MainLoopFrameEvents} */
 export { MAIN_LOOP_EVENTS };
 
 const MIN_DISTANCE = 2;
@@ -26,20 +29,30 @@ const MAX_DISTANCE = 2000000000;
 
 const tmpSphere = new Sphere();
 
+/** Events supported by {@link MainLoop} */
 export interface MainLoopEvents {
 }
 
+/** Options for creating the {@link MainLoop} */
 export interface MainLoopOptions {
     maxFar?: number,
     minNear?: number;
 }
 
+/**
+ * Objects to update from an entity.
+ *
+ * TODO: This is a mess and requires some clean-up.
+ *
+ * @ignore
+ */
 export interface ObjectToUpdate {
     element?: any,
     parent?: any,
     elements?: any[],
 }
 
+// TODO: clean this up
 function updateElements(context: Context, entity: Entity, elements?: unknown[]) {
     if (!elements) {
         return;
@@ -99,7 +112,9 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
     }
     private _needsRedraw: boolean;
     private readonly _gfxEngine: C3DEngine;
-    /** @deprecated */
+    /**
+     * @deprecated - Use {@link Instance#engine Instance.engine}
+     */
     public get gfxEngine(): C3DEngine {
         return this._gfxEngine;
     }
@@ -138,7 +153,7 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
         }
     }
 
-    _update(instance: Instance, updateSources: Set<unknown>, dt: number) {
+    private _update(instance: Instance, updateSources: Set<unknown>, dt: number) {
         const context = new Context(instance.camera, instance);
 
         // Reset near/far to default value to allow update function to test
@@ -152,7 +167,7 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
         instance.camera.update();
 
         for (const entity of instance.getObjects(o => o instanceof Entity) as Entity[]) {
-            context.setForEntity(entity);
+            context.resetForEntity(entity);
             if (entity.shouldCheckForUpdate()) {
                 instance.execFrameRequesters(
                     'before_layer_update', dt, this._updateLoopRestarted, entity,
@@ -222,7 +237,7 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
         instance.camera.update();
     }
 
-    _step(instance: Instance, timestamp: number) {
+    private _step(instance: Instance, timestamp: number) {
         const dt = timestamp - this._lastTimestamp;
 
         instance.execFrameRequesters('update_start', dt, this._updateLoopRestarted);
@@ -271,7 +286,7 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
         instance.execFrameRequesters('update_end', dt, this._updateLoopRestarted);
     }
 
-    _renderInstance(instance: Instance, dt: number) {
+    private _renderInstance(instance: Instance, dt: number) {
         instance.execFrameRequesters('before_render', dt, this._updateLoopRestarted);
         instance.render();
         instance.execFrameRequesters('after_render', dt, this._updateLoopRestarted);

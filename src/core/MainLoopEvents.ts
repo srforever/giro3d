@@ -2,7 +2,7 @@
  * MainLoop's update events list that are fired using
  * {@link Instance#execFrameRequesters}.
  */
-export interface MainLoopEvents {
+export interface MainLoopFrameEvents {
     /** fired at the start of the update */
     'update_start': {},
     /** fired before the camera update */
@@ -25,9 +25,9 @@ export interface MainLoopEvents {
  * MainLoop's update events list that are fired using
  * {@link Instance#execFrameRequesters}.
  *
- * @deprecated Use {@link MainLoopEvents} instead.
+ * @deprecated Use {@link MainLoopFrameEvents} instead.
  */
-export const MAIN_LOOP_EVENTS: Record<string, keyof MainLoopEvents> = {
+export const MAIN_LOOP_EVENTS: Record<string, keyof MainLoopFrameEvents> = {
     /** fired at the start of the update */
     UPDATE_START: 'update_start',
     /** fired before the camera update */
