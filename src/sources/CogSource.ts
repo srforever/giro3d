@@ -25,6 +25,16 @@ import { type Cache, GlobalCache } from '../core/Cache';
 
 const tmpDim = new Vector2();
 
+let sharedPool: Pool = null;
+
+function getPool(): Pool {
+    if (!sharedPool && window.Worker) {
+        sharedPool = new Pool();
+    }
+
+    return sharedPool;
+}
+
 export class FetcherResponse extends BaseResponse {
     readonly response: Response;
 
@@ -198,7 +208,7 @@ class CogSource extends ImageSource {
 
         this.url = options.url;
         this.crs = options.crs;
-        this._pool = window.Worker ? new Pool() : null;
+        this._pool = getPool();
         this._imageCount = 0;
         this._levels = [];
         this._channels = options.channels;
