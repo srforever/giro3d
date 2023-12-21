@@ -252,7 +252,7 @@ export default {
                     // convert to instance crs
                     // here (and only here) should be the Coordinates instance creation
                     const coord = tmpCoords.as(_instance.referenceCrs);
-                    const point = tmpCoords.xyz(new Vector3());
+                    const point = tmpCoords.toVector3(new Vector3());
 
                     const p: PickTilesAtResult = {
                         object: tile,

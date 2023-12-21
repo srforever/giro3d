@@ -128,17 +128,17 @@ describe('Coordinates', () => {
         });
     });
 
-    describe('xyz()', () => {
+    describe('toVector3()', () => {
         it('should return the x, y, z values', () => {
             const c = new Coordinates('EPSG:3857', 1, 2, 3);
-            expect(c.xyz()).toEqual({ x: 1, y: 2, z: 3 });
+            expect(c.toVector3()).toEqual({ x: 1, y: 2, z: 3 });
         });
 
         it('should honor the passed target the x, y, z values', () => {
             const c = new Coordinates('EPSG:3857', 1, 2, 3);
             const target = new Vector3(-1, -1, -1);
-            expect(c.xyz(target)).toEqual({ x: 1, y: 2, z: 3 });
-            expect(c.xyz(target)).toBe(target);
+            expect(c.toVector3(target)).toEqual({ x: 1, y: 2, z: 3 });
+            expect(c.toVector3(target)).toBe(target);
         });
     });
 
