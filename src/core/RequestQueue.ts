@@ -2,6 +2,7 @@ import { EventDispatcher } from 'three';
 import PriorityQueue from 'ol/structs/PriorityQueue.js';
 import OperationCounter from './OperationCounter';
 import PromiseUtils from '../utils/PromiseUtils.js';
+import type Progress from './Progress';
 
 function defaultShouldExecute() {
     return true;
@@ -84,7 +85,7 @@ export interface RequestQueueEvents {
 /**
  * A generic priority queue that ensures that the same request cannot be added twice in the queue.
  */
-class RequestQueue extends EventDispatcher<RequestQueueEvents> {
+class RequestQueue extends EventDispatcher<RequestQueueEvents> implements Progress {
     private readonly _pendingIds: Map<string, Promise<unknown>>;
     private readonly _queue: PriorityQueue<Task>;
     private readonly _opCounter: OperationCounter;
