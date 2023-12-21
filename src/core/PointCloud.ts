@@ -17,13 +17,13 @@ export interface PointCloudEventMap extends Object3DEventMap {
 /** Options for constructing {@link PointCloud} */
 export interface PointCloudOptions {
     /** Parent entity */
-    layer: Entity,
+    layer?: Entity,
     /** Geometry */
-    geometry: BufferGeometry,
+    geometry?: BufferGeometry,
     /** Material */
     material?: Material,
     /** Texture size */
-    textureSize: Vector2,
+    textureSize?: Vector2,
 }
 
 /**

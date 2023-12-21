@@ -84,25 +84,25 @@ function createErrorMessage() {
 
 /**
  * @typedef {object} RendererOptions
- * @property {boolean} antialias Enables antialiasing (default true).
+ * @property {boolean} [antialias] Enables antialiasing (default true).
  * Not used if renderer is provided.
- * @property {boolean} alpha Enables transparency on the renderer (default true).
+ * @property {boolean} [alpha] Enables transparency on the renderer (default true).
  * Necessary for transparent backgrounds.
  * Not used if renderer is provided.
- * @property {boolean} logarithmicDepthBuffer Enables the
+ * @property {boolean} [logarithmicDepthBuffer] Enables the
  * [logarithmic depth buffer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.logarithmicDepthBuffer)
  * (default false).
  * Not used if renderer is provided.
- * @property {boolean} checkShaderErrors Enables shader validation.
+ * @property {boolean} [checkShaderErrors] Enables shader validation.
  * Note: shader validation is a costly operation that should be disabled in production.
  * That can be toggled at any moment using the corresponding property in the renderer.
  * See the [Three.js documentation](https://threejs.org/docs/index.html?q=webglren#api/en/renderers/WebGLRenderer.debug)
  * for more information.
- * @property {boolean} colorManagement Enables color management (default false).
+ * @property {boolean} [colorManagement] Enables color management (default false).
  * Not used if renderer is provided.
- * @property {Color|string|number|boolean} clearColor The background color.
+ * @property {Color|string|number|boolean} [clearColor] The background color.
  * Can be a hex color or `false` for transparent backgrounds (requires alpha true).
- * @property {WebGLRenderer} renderer Custom renderer to be used.
+ * @property {WebGLRenderer} [renderer] Custom renderer to be used.
  * If provided, it will be automatically added in the DOM in viewerDiv.
  */
 
