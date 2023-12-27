@@ -48,9 +48,13 @@ interface HasVolumeHelper extends Object3D {
     volumeHelper: VolumeHelper;
 }
 
-// interface HasSelectionHelper extends Object3D {
-//     selectionHelper: BoundingBoxHelper;
-// }
+interface HasBoundingBoxHelper extends Object3D {
+    volumeHelper: BoundingBoxHelper;
+}
+
+interface HasSelectionHelper extends Object3D {
+    selectionHelper: BoundingBoxHelper;
+}
 
 interface HasBoundingVolumeHelper extends Object3D {
     boundingVolumeHelper: {
@@ -198,15 +202,15 @@ class Helpers {
      */
     static addBoundingBox(obj: Object3D, color: Color | string) {
         // Don't add a bounding box helper to a bounding box helper !
-        if ((obj as VolumeHelper).isvolumeHelper) {
+        if ((obj as BoundingBoxHelper).isvolumeHelper) {
             return;
         }
-        if ((obj as HasVolumeHelper).volumeHelper) {
-            (obj as HasVolumeHelper).volumeHelper.updateMatrixWorld(true);
+        if ((obj as HasBoundingBoxHelper).volumeHelper) {
+            (obj as HasBoundingBoxHelper).volumeHelper.updateMatrixWorld(true);
         } else {
             const helper = Helpers.createBoxHelper(makeLocalBbox(obj), getColor(color));
             obj.add(helper);
-            (obj as any).volumeHelper = helper;
+            (obj as HasBoundingBoxHelper).volumeHelper = helper;
             helper.updateMatrixWorld(true);
         }
     }
@@ -240,7 +244,7 @@ class Helpers {
      */
     static createSelectionBox(obj: Object3D, color: Color) {
         const helper = Helpers.createBoxHelper(makeLocalBbox(obj), getColor(color));
-        (obj as any).selectionHelper = helper;
+        (obj as HasSelectionHelper).selectionHelper = helper;
         obj.add(helper);
         obj.updateMatrixWorld(true);
         return helper;
@@ -265,7 +269,7 @@ class Helpers {
             const helper = new VolumeHelper(obb, color);
             helper.name = 'OBBHelper';
             obj.add(helper);
-            (obj as any).volumeHelper = helper;
+            (obj as HasVolumeHelper).volumeHelper = helper;
             helper.updateMatrixWorld(true);
         }
     }
@@ -337,7 +341,7 @@ class Helpers {
         if (object3d) {
             object3d.name = `${obj.name} volume`;
             const result = { object3d, absolute };
-            (obj as any).boundingVolumeHelper = result;
+            (obj as HasBoundingVolumeHelper).boundingVolumeHelper = result;
             return result;
         }
 
@@ -427,7 +431,7 @@ class Helpers {
             const volumeHelper = (obj as HasVolumeHelper).volumeHelper;
             obj.remove(volumeHelper);
             volumeHelper.dispose();
-            delete (obj as any).volumeHelper;
+            delete (obj as HasVolumeHelper).volumeHelper;
         }
     }
 }

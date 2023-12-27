@@ -1,4 +1,4 @@
-import { EventDispatcher } from 'three';
+import { type Camera, EventDispatcher } from 'three';
 import type Context from '../core/Context';
 import { type ObjectToUpdate } from '../core/MainLoop';
 
@@ -178,7 +178,7 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
      * @returns `true` if requires a full update of this object
      */
     shouldFullUpdate(updateSource: unknown): boolean {
-        return updateSource === this || (updateSource as any).isCamera;
+        return updateSource === this || (updateSource as Camera).isCamera;
     }
 
     /**

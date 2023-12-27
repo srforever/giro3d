@@ -17,13 +17,15 @@ import utf8Decoder from '../utils/Utf8Decoder.js';
 import { GlobalCache } from '../core/Cache';
 import type RequestQueue from '../core/RequestQueue';
 import { DefaultQueue } from '../core/RequestQueue';
-import { type Tiles3DSource } from '../sources';
+import type Tiles3DSource from '../sources/Tiles3DSource';
 import { type ObjectToUpdate } from '../core/MainLoop';
-import { type Context } from '../core';
+import type Context from '../core/Context';
+import type PointCloud from '../core/PointCloud';
 import Tile from './3dtiles/Tile';
 import { boundingVolumeToExtent, cullingTest } from './3dtiles/BoundingVolume';
 import type { $3dTilesTileset, $3dTilesTile, $3dTilesAsset } from './3dtiles/types';
 import $3dTilesLoader from './3dtiles/3dTilesLoader';
+import type PointsMaterial from '../renderer/PointsMaterial';
 
 /** Options to create a Tiles3D object. */
 export interface Tiles3DOptions {
@@ -257,7 +259,7 @@ class Tiles3D extends Entity3D {
         // If this is a pointcloud but with no default material defined,
         // we don't go in that if, but we could.
         // TODO: find a better way to know that this layer is about pointcloud ?
-        if (this.material && (this.material as any).enablePicking) {
+        if (this.material && (this.material as PointsMaterial).enablePicking) {
             return Picking.pickPointsAt(
                 this._instance,
                 coordinates,
@@ -431,14 +433,15 @@ class Tiles3D extends Entity3D {
                     this._distance.max = Math.max(this._distance.max, node.distance.max);
                 }
                 node.content.traverse(o => {
-                    if ((o as any).layer === this && (o as any).material) {
-                        (o as any).material.wireframe = this.wireframe;
-                        if ('isPoints' in o && o.isPoints) {
-                            const ptsMaterial = (o as any).material as Material;
-                            if ('update' in ptsMaterial && typeof ptsMaterial.update === 'function') {
-                                ptsMaterial.update(this.material);
+                    const pointcloud = o as PointCloud;
+                    if (pointcloud.layer === this && pointcloud.material) {
+                        // TODO: is wireframe still supported?
+                        (pointcloud.material as any).wireframe = this.wireframe;
+                        if (pointcloud.isPoints) {
+                            if ((pointcloud.material as PointsMaterial).update) {
+                                (pointcloud.material as PointsMaterial).update(this.material);
                             } else {
-                                ptsMaterial.copy(this.material);
+                                pointcloud.material.copy(this.material);
                             }
                         }
                     }

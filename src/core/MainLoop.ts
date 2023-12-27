@@ -207,8 +207,9 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
             if (!o.visible) {
                 return;
             }
-            if ((o as any).geometry && ((o as any).geometry as any).boundingSphere) {
-                tmpSphere.copy(((o as any).geometry as any).boundingSphere);
+            const boundingSphere = ((o as any)?.geometry as any)?.boundingSphere as Sphere;
+            if (boundingSphere && !boundingSphere.isEmpty()) {
+                tmpSphere.copy(boundingSphere);
                 tmpSphere.applyMatrix4(o.matrixWorld);
                 const d = tmpSphere.distanceToPoint(context.camera.camera3D.position);
                 context.distance.min = ThreeMath.clamp(d, 0, context.distance.min);

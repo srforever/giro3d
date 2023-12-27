@@ -7,7 +7,7 @@ import {
     type Material,
 } from 'three';
 import PointsMaterial from '../renderer/PointsMaterial.js';
-import type Entity from '../entities/Entity.js';
+import type Entity3D from '../entities/Entity3D.js';
 import type Extent from './geographic/Extent.js';
 
 export interface PointCloudEventMap extends Object3DEventMap {
@@ -17,7 +17,7 @@ export interface PointCloudEventMap extends Object3DEventMap {
 /** Options for constructing {@link PointCloud} */
 export interface PointCloudOptions {
     /** Parent entity */
-    layer?: Entity,
+    layer?: Entity3D,
     /** Geometry */
     geometry?: BufferGeometry,
     /** Material */
@@ -32,7 +32,7 @@ export interface PointCloudOptions {
  */
 class PointCloud extends Points implements EventDispatcher<PointCloudEventMap> {
     readonly isPointCloud: boolean = true;
-    private _layer: Entity; // TODO: potentially not used
+    private _layer: Entity3D;
     extent?: Extent;
     textureSize?: Vector2;
     disposed: boolean;
@@ -49,6 +49,13 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap> {
         this.extent = undefined;
         this.textureSize = textureSize;
         this.disposed = false;
+    }
+
+    get layer() {
+        return this._layer;
+    }
+    set layer(value: Entity3D) {
+        this._layer = value;
     }
 
     getExtent() {

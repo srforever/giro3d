@@ -9,6 +9,7 @@ import {
     MathUtils,
     Vector2,
     Vector3,
+    type Camera,
 } from 'three';
 import Entity3D from './Entity3D';
 import PointsMaterial, { MODE } from '../renderer/PointsMaterial.js';
@@ -499,20 +500,22 @@ class PotreePointCloud extends Entity3D {
         // lookup lowest common ancestor of changeSources
         let commonAncestorName: string;
         for (const source of changeSources.values()) {
-            if ((source as any).isCamera || source === this) {
+            if ((source as Camera).isCamera || source === this) {
                 // if the change is caused by a camera move, no need to bother
                 // to find common ancestor: we need to update the whole tree:
                 // some invisible tiles may now be visible
                 return [this.root];
             }
-            if ((source as any).obj === undefined) {
+            if ((source as OctreeItem).obj === undefined) {
                 continue;
             }
-            const obj = (source as any).obj;
+
+            const octreeItem = source as OctreeItem;
+            const obj = octreeItem.obj;
 
             // filter sources that belong to our entity
             if (obj.isPoints && obj.layer === this) {
-                const name = (source as any).name;
+                const name = octreeItem.name;
                 if (!commonAncestorName) {
                     commonAncestorName = name;
                 } else {
@@ -597,8 +600,8 @@ class PotreePointCloud extends Entity3D {
             // only load geometry if this elements has points
             if (elt.numPoints > 0) {
                 if (elt.obj) {
-                    if ((elt.obj.material as any).update) {
-                        (elt.obj.material as any).update(this.material);
+                    if ((elt.obj.material as PointsMaterial).update) {
+                        (elt.obj.material as PointsMaterial).update(this.material);
                     } else {
                         elt.obj.material.copy(this.material);
                     }
@@ -789,7 +792,7 @@ class PotreePointCloud extends Entity3D {
             textureSize: this.imageSize,
         });
         points.name = `r${metadata.name}.${this.extension}`;
-        if ((points.material as any).enablePicking) {
+        if ((points.material as PointsMaterial).enablePicking) {
             Picking.preparePointGeometryForPicking(points.geometry);
         }
         points.frustumCulled = false;
