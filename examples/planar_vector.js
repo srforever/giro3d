@@ -1,9 +1,11 @@
-import { Vector2 } from 'three';
-import { Fill, Stroke, Style } from 'ol/style.js';
+import {
+    Fill, Stroke, Style, RegularShape,
+} from 'ol/style.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import GPX from 'ol/format/GPX.js';
 import KML from 'ol/format/KML.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
+import GML32 from 'ol/format/GML32.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -22,6 +24,7 @@ import StatusBar from './widgets/StatusBar.js';
 // Defines projection that we will use (taken from https://epsg.io/3946, Proj4js section)
 Instance.registerCRS('EPSG:3946',
     '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+Instance.registerCRS('EPSG:4171', '+proj=longlat +ellps=GRS80 +no_defs +type=crs');
 
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
@@ -82,35 +85,20 @@ const elevationLayer = new ElevationLayer({
 
 map.addLayer(elevationLayer);
 
-// Creates the layer
-const gpxLayer = new ColorLayer({
-    name: 'gpx',
-    extent,
-    source: new VectorSource({
-        data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.gpx',
-        dataProjection: 'EPSG:4326',
-        format: new GPX(),
-        style: new Style({
-            stroke: new Stroke({
-                color: 'blue',
-            }),
-        }),
-    }),
-});
-
-map.addLayer(gpxLayer);
-
+// Adds our first layer from a geojson file
+// Initial source: https://data.grandlyon.com/jeux-de-donnees/parcs-places-jardins-indice-canopee-metropole-lyon/info
 const geoJsonLayer = new ColorLayer({
-    name: 'geo',
-    extent,
+    name: 'geojson',
     source: new VectorSource({
-        data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.geojson',
+        data: 'https://3d.oslandia.com/lyon/evg_esp_veg.evgparcindiccanope_latest.geojson',
+        // Defines the dataProjection to reproject the data,
+        // GeoJSON specifications say that the crs should be EPSG:4326 but
+        // here we are using a different one.
+        dataProjection: 'EPSG:4171',
         format: new GeoJSON(),
-        dataProjection: 'EPSG:3946',
-        style: new Style({
+        style: feature => new Style({
             fill: new Fill({
-                color: 'rgba(255, 165, 0, 0.2)',
-                opacity: 0.2,
+                color: `rgba(0, 128, 0, ${feature.get('indiccanop')})`,
             }),
             stroke: new Stroke({
                 color: 'white',
@@ -118,22 +106,73 @@ const geoJsonLayer = new ColorLayer({
         }),
     }),
 });
-
 map.addLayer(geoJsonLayer);
 
-// Adds a third source from a KML file.
-// Note : with the KML format, styles are not necessary as they are contained in the file.
-const kmlLayer = new ColorLayer({
-    name: 'kml',
-    extent,
+// Adds a second vector layer from a gpx file
+const gpxLayer = new ColorLayer({
+    name: 'gpx',
     source: new VectorSource({
-        data: 'https://raw.githubusercontent.com/iTowns/iTowns2-sample-data/master/lyon.kml',
-        format: new KML(),
+        data: 'https://3d.oslandia.com/lyon/track.gpx',
+        // Defines the dataProjection to reproject the data,
+        // KML and GPX specifications say that the crs is EPSG:4326.
         dataProjection: 'EPSG:4326',
+        format: new GPX(),
+        style: new Style({
+            stroke: new Stroke({
+                color: '#FA8C22',
+                width: 2,
+            }),
+        }),
     }),
 });
+map.addLayer(gpxLayer);
 
+// Adds a third source from a KML file
+// Initial source: https://data.grandlyon.com/jeux-de-donnees/lignes-metro-funiculaire-reseau-transports-commun-lyonnais-v2/info
+// Edited for convering to KML+adding proper colors
+const kmlLayer = new ColorLayer({
+    name: 'kml',
+    source: new VectorSource({
+        data: 'https://3d.oslandia.com/lyon/tcl_sytral.tcllignemf_2_0_0.kml',
+        dataProjection: 'EPSG:3946',
+        format: new KML(),
+        // With KML format, there is not necessary to specify style rules,
+        // there are already present in the file.
+    }),
+});
 map.addLayer(kmlLayer);
+
+// Adds our fourth layer from a gml file
+// Initial source: https://data.grandlyon.com/jeux-de-donnees/bornes-fontaine-metropole-lyon/info
+// Edited for having a simple GML FeatureCollection
+const gmlLayer = new ColorLayer({
+    name: 'gml',
+    source: new VectorSource({
+        data: 'https://3d.oslandia.com/lyon/adr_voie_lieu.adrbornefontaine_latest.gml',
+        dataProjection: 'EPSG:4171',
+        format: new GML32(),
+        style: (feature, resolution) => {
+            const meters = 1 / resolution; // Assuming pixel ratio is 1
+            // We want to display a 5*5m square, except
+            // for when we're too far away, use a 2*2px square
+            const size = Math.max(5 * meters, 2);
+            return new Style({
+                image: new RegularShape({
+                    radius: size,
+                    points: 4,
+                    stroke: new Stroke({
+                        width: 1,
+                        color: [255, 255, 255, 1],
+                    }),
+                    fill: new Fill({
+                        color: [0, 0, 128, 1],
+                    }),
+                }),
+            });
+        },
+    }),
+});
+map.addLayer(gmlLayer);
 
 // Sets the camera position
 instance.camera.camera3D.position.set(extent.west(), extent.south(), 2000);
@@ -152,13 +191,22 @@ instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
-instance.domElement.addEventListener('dblclick', e => {
-    console.log('pickedObjects', instance.pickObjectsAt(e, {
+const resultTable = document.getElementById('results');
+instance.domElement.addEventListener('mousemove', e => {
+    const pickedObject = instance.pickObjectsAt(e, {
         radius: 5,
         limit: 1,
         pickFeatures: true,
         sortByDistance: true,
-    }));
+    }).at(0);
+    resultTable.innerHTML = '';
+    if (pickedObject?.features && pickedObject.features.length > 0) {
+        for (const { layer, feature } of pickedObject.features) {
+            const layerName = layer.name;
+            const featureName = feature.get('nom') ?? feature.get('name') ?? feature.get('gid');
+            resultTable.innerHTML += `${layerName}: ${featureName}<br>`;
+        }
+    }
 });
 
 // Bind events
