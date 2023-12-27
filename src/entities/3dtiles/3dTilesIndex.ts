@@ -6,7 +6,7 @@ import {
 } from 'three';
 import type Tile from './Tile';
 import { type BoundingVolume } from './BoundingVolume';
-import type { $3dTilesTileset, $3dTilesTile, $3dTilesBoundingVolume } from './3dTilesSpec';
+import type { $3dTilesTileset, $3dTilesTile, $3dTilesBoundingVolume } from './types';
 
 // TODO: rename Tileset to Tile or something (this object is *not* a Tileset)
 /** Processed tile metadata */

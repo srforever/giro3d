@@ -1,4 +1,11 @@
 /**
+ * Types re-created from the 3DTiles specs.
+ *
+ * We could use more advanced tooling to generate TS types from the JSON schemas from
+ * the specifications, but for now this is enough.
+ */
+
+/**
  * Bounding Volume
  *
  * A bounding volume that encloses a tile or its content.

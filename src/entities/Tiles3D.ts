@@ -22,7 +22,7 @@ import { type ObjectToUpdate } from '../core/MainLoop';
 import { type Context } from '../core';
 import Tile from './3dtiles/Tile';
 import { boundingVolumeToExtent, cullingTest } from './3dtiles/BoundingVolume';
-import type { $3dTilesTileset, $3dTilesTile, $3dTilesAsset } from './3dtiles/3dTilesSpec';
+import type { $3dTilesTileset, $3dTilesTile, $3dTilesAsset } from './3dtiles/types';
 import $3dTilesLoader from './3dtiles/3dTilesLoader';
 
 /** Options to create a Tiles3D object. */
