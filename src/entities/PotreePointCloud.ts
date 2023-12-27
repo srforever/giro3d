@@ -20,12 +20,13 @@ import OperationCounter from '../core/OperationCounter';
 import PotreeBinParser from '../parser/PotreeBinParser';
 import PotreeCinParser from '../parser/PotreeCinParser';
 import Fetcher from '../utils/Fetcher';
-import type { PickObjectsAtOptions, PickResultBase } from '../core/Picking';
-import Picking from '../core/Picking';
 import Extent from '../core/geographic/Extent';
 import PointCloud from '../core/PointCloud';
 import type { ObjectToUpdate } from '../core/MainLoop';
-import type { Context } from '../core';
+import type Context from '../core/Context';
+import type Pickable from '../core/picking/Pickable';
+import type PickOptions from '../core/picking/PickOptions';
+import pickPointsAt, { type PointsPickResult, preparePointGeometryForPicking } from '../core/picking/PickPointsAt';
 
 // Draw a cube with lines (12 lines).
 function cube(size: Vector3) {
@@ -206,7 +207,7 @@ type OnPointsCreatedCallback = (entity: PotreePointCloud, pnts: PointCloud) => v
  * A [Potree](https://github.com/potree/potree) point cloud.
  *
  */
-class PotreePointCloud extends Entity3D {
+class PotreePointCloud extends Entity3D implements Pickable<PointsPickResult> {
     readonly isPotreePointCloud = true;
     source: PotreeSource;
     queue: RequestQueue;
@@ -452,12 +453,8 @@ class PotreePointCloud extends Entity3D {
         this.extent = Extent.fromBox3(this._instance.referenceCrs, root.bbox);
     }
 
-    pickObjectsAt(
-        coordinates: Vector2,
-        options?: PickObjectsAtOptions,
-        target?: PickResultBase[],
-    ): PickResultBase[] {
-        return Picking.pickPointsAt(this._instance, coordinates, this, options, target);
+    pick(coordinates: Vector2, options?: PickOptions): PointsPickResult[] {
+        return pickPointsAt(this._instance, coordinates, this, options);
     }
 
     updateMinMaxDistance(context: Context, bbox: Box3) {
@@ -793,7 +790,7 @@ class PotreePointCloud extends Entity3D {
         });
         points.name = `r${metadata.name}.${this.extension}`;
         if ((points.material as PointsMaterial).enablePicking) {
-            Picking.preparePointGeometryForPicking(points.geometry);
+            preparePointGeometryForPicking(points.geometry);
         }
         points.frustumCulled = false;
         points.matrixAutoUpdate = false;

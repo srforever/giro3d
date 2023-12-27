@@ -1,3 +1,4 @@
+import { Vector2 } from 'three';
 import { Fill, Stroke, Style } from 'ol/style.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import GPX from 'ol/format/GPX.js';
@@ -11,7 +12,6 @@ import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
-import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
 
@@ -151,6 +151,15 @@ controls.maxPolarAngle = Math.PI / 2.3;
 instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+
+instance.domElement.addEventListener('dblclick', e => {
+    console.log('pickedObjects', instance.pickObjectsAt(e, {
+        radius: 5,
+        limit: 1,
+        pickFeatures: true,
+        sortByDistance: true,
+    }));
+});
 
 // Bind events
 StatusBar.bind(instance);

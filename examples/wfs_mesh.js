@@ -190,9 +190,9 @@ instance.domElement.addEventListener('mousemove', e => {
     if (picked.length !== 0) {
         const found = picked[0];
         const obj = found.object;
-        if (found.layer === busStops) {
+        if (found.entity === busStops) {
             text.innerText = `Bus stop "${obj.userData.properties.nom}"`;
-        } else if (found.layer === busLines) {
+        } else if (found.entity === busLines) {
             text.innerText = `Bus line ${obj.userData.properties.ligne}`;
         }
         // Virtually any inner markup is supported, here we're just inserting text

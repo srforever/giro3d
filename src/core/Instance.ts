@@ -12,8 +12,12 @@ import { type MainLoopFrameEvents } from './MainLoopEvents';
 import Entity from '../entities/Entity';
 import Entity3D from '../entities/Entity3D';
 import Map from '../entities/Map';
-import Picking, { type PickObjectsAtOptions, type PickObjectsAtResult } from './Picking';
-import type Progress from './Progress.js';
+import type PickOptions from './picking/PickOptions';
+import type PickResult from './picking/PickResult';
+import type Progress from './Progress';
+import pickObjectsAt from './picking/PickObjectsAt';
+import { isPickable } from './picking/Pickable';
+import { isPickableFeatures } from './picking/PickableFeatures';
 
 const vectors = {
     pos: new Vector3(),
@@ -128,13 +132,28 @@ export type FrameRequester = FrameRequesterCallback | FrameRequesterObject;
 /**
  * Options for picking objects from the Giro3D {@link Instance}.
  */
-export interface InstancePickObjectsAtOptions extends PickObjectsAtOptions {
+export interface PickObjectsAtOptions extends PickOptions {
     /**
      * List of entities to pick from.
      * If not provided, will pick from all the objects in the scene.
      * Strings consist in the IDs of the object.
      */
     where?: (string | Object3D | Entity)[],
+    /**
+     * Indicates if the results should be sorted by distance, as Three.js raycasting does.
+     * This prevents the `limit` option to be fully used as it is applied after sorting,
+     * thus it may be slow and is disabled by default.
+     *
+     * @default false
+     */
+    sortByDistance?: boolean,
+    /**
+     * Indicates if features information are also retrieved from the picked object.
+     * On complex objects, this may be slow, and therefore is disabled by default.
+     *
+     * @default false
+     */
+    pickFeatures?: boolean;
 }
 
 export interface CustomCameraControls {
@@ -813,20 +832,14 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     /**
      * Return objects from some layers/objects3d under the mouse in this instance.
      *
-     * @param {Vector2|MouseEvent|TouchEvent} mouseOrEvt mouse position in window coordinates, i.e
-     * [0, 0] = top-left, or `MouseEvent` or `TouchEvent`
-     * @param {object} [options] Optional properties.
-     * @param {number} [options.radius=0] picking will happen in a circle centered on mouseOrEvt.
-     * Radius is the radius of this circle, in pixels
-     * @param {number} [options.limit=Infinity] maximum number of objects to return
-     * @param {Array} [options.where] where to look for objects. Can be either: empty (= look
-     * in all layers with type === 'geometry'), layer ids or layers or a mix of all
-     * the above.
-     * @param {object} [options.filter] Filter on resulting objects
-     * @returns {Array} an array of objects. Each element contains at least an object
+     * @param mouseOrEvt mouse position in window coordinates, i.e [0, 0] = top-left,
+     * or `MouseEvent` or `TouchEvent`
+     * @param options Options
+     * @returns An array of objects. Each element contains at least an object
      * property which is the Object3D under the cursor. Then depending on the queried
      * layer/source, there may be additionnal properties (coming from THREE.Raycaster
      * for instance).
+     * If `options.pickFeatures` if `true`, `features` property may be set.
      * @example
      * instance.pickObjectsAt({ x, y })
      * instance.pickObjectsAt({ x, y }, { radius: 1, where: ['wfsBuilding'] })
@@ -834,15 +847,17 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      */
     pickObjectsAt(
         mouseOrEvt: Vector2 | MouseEvent | TouchEvent,
-        options: InstancePickObjectsAtOptions = {},
-    ): PickObjectsAtResult[] {
-        const results: PickObjectsAtResult[] = [];
+        options: PickObjectsAtOptions = {},
+    ): PickResult[] {
+        let results: PickResult[] = [];
         const sources = options.where && options.where.length > 0
-            ? [...options.where] : this.getObjects().concat(this._threeObjects);
+            ? [...options.where] : this.getObjects();
         const mouse = (mouseOrEvt instanceof Event)
             ? this.eventToCanvasCoords(mouseOrEvt, vectors.evtToCanvas) : mouseOrEvt;
         const radius = options.radius ?? 0;
         const limit = options.limit ?? Infinity;
+        const sortByDistance = options.sortByDistance ?? false;
+        const pickFeatures = options.pickFeatures ?? false;
 
         for (const source of sources) {
             const object = (typeof (source) === 'string')
@@ -854,28 +869,50 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             }
 
             const pickOptions = {
+                ...options,
                 radius,
-                limit, // Use same limit as requested, since we pass the results array
-                filterCanvas: options.filterCanvas,
-                filter: options.filter,
+                limit: limit - results.length,
                 vec2: vectors.pickVec2,
+                sortByDistance: false,
             };
+            if (sortByDistance) {
+                pickOptions.limit = Infinity;
+                pickOptions.pickFeatures = false;
+            }
 
-            if (typeof (object as any).pickObjectsAt === 'function') {
-                // TODO ability to pick on a layer instead of a geometric object?
-                (object as any).pickObjectsAt(mouse, pickOptions, results);
+            if (isPickable(object)) {
+                const res = object.pick(mouse, pickOptions);
+                results.push(...res);
             } else if ((object as Object3D).isObject3D) {
-                Picking.pickObjectsAt(
+                const res = pickObjectsAt(
                     this,
                     mouse,
                     object as Object3D,
                     pickOptions,
-                    results,
                 );
-            } else {
-                throw new Error(`Invalid where arg (value = ${source}). Expected layers, layer ids or Object3Ds`);
+                results.push(...res);
             }
-            if (results.length >= limit) { break; }
+
+            if (results.length >= limit && !sortByDistance) { break; }
+        }
+
+        if (sortByDistance) {
+            results.sort((a, b) => (a.distance - b.distance));
+            if (limit !== Infinity) {
+                results = results.slice(0, limit);
+            }
+        }
+
+        if (pickFeatures) {
+            const pickFeaturesOptions = options;
+
+            results.forEach(result => {
+                if (result.entity && isPickableFeatures(result.entity)) {
+                    result.entity.pickFeaturesFrom(result, pickFeaturesOptions);
+                } else if (result.object && isPickableFeatures(result.object)) {
+                    result.object.pickFeaturesFrom(result, pickFeaturesOptions);
+                }
+            });
         }
 
         return results;

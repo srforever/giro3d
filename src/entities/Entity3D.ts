@@ -7,12 +7,15 @@ import {
     type Plane,
 } from 'three';
 
-import Picking, { type PickResultBase, type PickObjectsAtOptions } from '../core/Picking';
 import Entity, { type EntityEventMap } from './Entity';
 import type Instance from '../core/Instance';
 import type Layer from '../core/layer/Layer.js';
 import type Context from '../core/Context';
 import { type ObjectToUpdate } from '../core/MainLoop';
+import type Pickable from '../core/picking/Pickable';
+import pickObjectsAt from '../core/picking/PickObjectsAt';
+import type PickResult from '../core/picking/PickResult';
+import type PickOptions from '../core/picking/PickOptions';
 
 export interface Entity3DEventMap extends EntityEventMap {
     /**
@@ -40,7 +43,8 @@ export interface Entity3DEventMap extends EntityEventMap {
  * scene
  */
 class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
-    extends Entity<TEventMap & Entity3DEventMap> {
+    extends Entity<TEventMap & Entity3DEventMap>
+    implements Pickable {
     protected _instance: Instance;
     protected _attachedLayers: Layer[];
     private _visible: boolean;
@@ -53,6 +57,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
     private _clippingPlanes: Plane[];
     private _renderOrder: number;
 
+    readonly isPickable = true;
     /**
      * Read-only flag to check if a given object is of type Entity3D.
      */
@@ -314,28 +319,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
     /* eslint-enable class-methods-use-this */
 
     /**
-     * Picks objects given a position and a radius from the layer.
-     *
-     * @param coordinates The x/y position in the layer
-     * @param options Optional properties. See Instance.pickObjectsAt
-     * @param target Target array to fill
-     * @returns Picked objects (node)
-     */
-    pickObjectsAt(
-        coordinates: Vector2,
-        options?: PickObjectsAtOptions,
-        target?: PickResultBase[],
-    ) {
-        return Picking.pickObjectsAt(
-            this._instance,
-            coordinates,
-            this.object3d,
-            options,
-            target,
-        );
-    }
-
-    /**
      * Test whether this entity contains the given object.
      *
      * The object may be a component of the entity, or a 3D object.
@@ -426,6 +409,10 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
         if (origin) {
             origin.traverse(callback);
         }
+    }
+
+    pick(canvasCoords: Vector2, options?: PickOptions): PickResult[] {
+        return pickObjectsAt(this._instance, canvasCoords, this.object3d, options);
     }
 }
 

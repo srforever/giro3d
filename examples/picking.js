@@ -131,12 +131,12 @@ document.getElementById('pickSource').addEventListener('change', e => {
 
 const raycaster = new Raycaster();
 
-function findLayerInParent(obj) {
-    if (obj.layer) {
-        return obj.layer;
+function findEntityInParent(obj) {
+    if (obj.userData.parentEntity) {
+        return obj.userData.parentEntity;
     }
     if (obj.parent) {
-        return findLayerInParent(obj.parent);
+        return findEntityInParent(obj.parent);
     }
     return null;
 }
@@ -150,7 +150,7 @@ function raycast(evt) {
     raycaster.setFromCamera(pointer, instance.camera.camera3D);
     const picked = raycaster.intersectObject(instance.scene, true);
     for (const inter of picked) {
-        inter.layer = findLayerInParent(inter.object);
+        inter.entity = findEntityInParent(inter.object);
         results.push(inter);
     }
     return results;
@@ -192,7 +192,7 @@ instance.domElement.addEventListener('dblclick', e => {
     elem('pickingCount').innerHTML = `${picked.length}`;
     elem('pickingCoord').innerHTML = picked.length > 0 ? format(picked[0].point) : '-';
     elem('pickingFirstResult').innerHTML = picked.length > 0
-        ? `${picked[0].layer.id} (${picked[0].layer.type})`
+        ? `${picked[0].entity.id} (${picked[0].entity.type})`
         : '-';
 
     t0 = performance.now();
@@ -204,7 +204,7 @@ instance.domElement.addEventListener('dblclick', e => {
     elem('raycastingCount').innerHTML = `${raycasted.length}`;
     elem('raycastingCoord').innerHTML = raycasted.length > 0 ? format(raycasted[0].point) : '-';
     elem('raycastingFirstResult').innerHTML = raycasted.length > 0
-        ? `${raycasted[0].layer.id} (${raycasted[0].layer.type})`
+        ? `${raycasted[0].entity.id} (${raycasted[0].entity.type})`
         : '-';
 
     t0 = performance.now();

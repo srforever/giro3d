@@ -440,13 +440,14 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
      * Returns the final extent of this layer. If this layer has its own extent defined,
      * this will be used.
      * Otherwise, will return the source extent (if any).
+     * May return undefined if not pre-processed yet.
      *
      * @returns The layer final extent.
      */
-    public getExtent(): Extent {
+    public getExtent(): Extent | undefined {
         // The layer extent takes precedence over the source extent,
         // since it maye be used for some cropping effect.
-        return this.extent ?? this.source.getExtent().clone().as(this._instance.referenceCrs);
+        return this.extent ?? this.source.getExtent()?.clone()?.as(this._instance.referenceCrs);
     }
 
     async loadFallbackImagesInternal() {
