@@ -92,7 +92,7 @@ class $3dTilesIndex {
 
     get(tile: Tile): Tileset { return this.index[tile.tileId]; }
 
-    _recurse(node: $3dTilesTile, baseURL: string, parent?: Tileset) {
+    private _recurse(node: $3dTilesTile, baseURL: string, parent?: Tileset) {
         const indexedNode = node as Tileset;
         // compute transform (will become Object3D.matrix when the object is downloaded)
         indexedNode.transformMatrix = node.transform

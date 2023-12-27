@@ -36,6 +36,8 @@ class Context {
      * Attribute allowing processing code to remember whether they
      * did a full update (in which case the value is `undefined`)
      * or a partial update and to act accordingly.
+     *
+     * @ignore
      */
     fastUpdateHint: unknown;
     private _entity: Entity;
