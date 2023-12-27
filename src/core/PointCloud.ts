@@ -31,7 +31,7 @@ export interface PointCloudOptions {
  *
  */
 class PointCloud extends Points implements EventDispatcher<PointCloudEventMap> {
-    readonly isPointClound: boolean = true;
+    readonly isPointCloud: boolean = true;
     private _layer: Entity; // TODO: potentially not used
     extent?: Extent;
     textureSize?: Vector2;
