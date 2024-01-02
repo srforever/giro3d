@@ -94,7 +94,7 @@ const vectorSource = new VectorSource({
     format: new GeoJSON(),
     url: function url(bbox) {
         return (
-            `${'https://wxs.ign.fr/topographie/geoportail/wfs'
+            `${'https://data.geopf.fr/wfs/ows'
             + '?SERVICE=WFS'
             + '&VERSION=2.0.0'
             + '&request=GetFeature'
