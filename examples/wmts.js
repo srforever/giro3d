@@ -33,7 +33,7 @@ instance.add(map);
 
 // We use OpenLayer's optionsFromCapabilities to parse the capabilities document
 // and create our WMTS source.
-fetch('https://wxs.ign.fr/essentiels/geoportail/wmts?service=WMTS&request=GetCapabilities')
+fetch('https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities')
     .then(async response => {
         const data = await response.text();
         const parser = new WMTSCapabilities();
