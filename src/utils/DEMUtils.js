@@ -393,7 +393,7 @@ function _updateVector3(entity, method, nodes, vecCRS, vec, offset, matrices = {
         return null;
     }
     result.coord.values[2] += offset;
-    result.coord.as(vecCRS, temp.coord2).xyz(vec);
+    result.coord.as(vecCRS, temp.coord2).toVector3(vec);
     if (matrices.localFromWorld) {
         vec.applyMatrix4(matrices.localFromWorld);
     }

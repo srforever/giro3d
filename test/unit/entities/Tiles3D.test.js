@@ -72,7 +72,7 @@ describe('Tiles3D', () => {
             '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
 
         const camera = new Camera('EPSG:3946', 100, 100);
-        camera.camera3D.position.copy(new Coordinates('EPSG:3946', 0, 0, 100).xyz());
+        camera.camera3D.position.copy(new Coordinates('EPSG:3946', 0, 0, 100).toVector3());
         camera.camera3D.updateMatrixWorld(true);
 
         it('should compute distance correctly', () => {
@@ -109,7 +109,7 @@ describe('Tiles3D', () => {
             '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
 
         const camera = new Camera('EPSG:3946', 100, 100);
-        camera.camera3D.position.copy(new Coordinates('EPSG:3946', 0, 0, 100).xyz());
+        camera.camera3D.position.copy(new Coordinates('EPSG:3946', 0, 0, 100).toVector3());
         camera.camera3D.updateMatrixWorld(true);
 
         it('should compute distance correctly', () => {

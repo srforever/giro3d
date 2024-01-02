@@ -531,10 +531,10 @@ class AxisGrid extends Entity3D {
         const zmax = this.volume.ceiling;
         const zmin = this.volume.floor;
 
-        const br = e.bottomRight().xyz();
-        const tr = e.topRight().xyz();
-        const bl = e.bottomLeft().xyz();
-        const tl = e.topLeft().xyz();
+        const br = e.bottomRight().toVector3();
+        const tr = e.topRight().toVector3();
+        const bl = e.bottomLeft().toVector3();
+        const tl = e.topLeft().toVector3();
 
         const tlFloor = new Vector3(tl.x, tl.y, zmin);
         const trFloor = new Vector3(tr.x, tr.y, zmin);
