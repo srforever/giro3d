@@ -14,7 +14,7 @@ import TextureGenerator from '../utils/TextureGenerator';
  * ```js
  * // Create an elevation source
  * const elevationSource = new WMSSource({
- *     url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
+ *     url: 'https://data.geopf.fr/wms-r',
  *     projection: 'EPSG:2154',
  *     crossOrigin: 'anonymous',
  *     params: {

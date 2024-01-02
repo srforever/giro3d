@@ -97,7 +97,7 @@ instance.add(map);
 // This source will wrap an OpenLayers source, in this case a `TileWMS`.
 const satelliteSource = new TiledImageSource({
     source: new TileWMS({
-        url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
+        url: 'https://data.geopf.fr/wms-r',
         projection: 'EPSG:3946',
         params: {
             LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
@@ -138,7 +138,7 @@ map.addLayer(colorLayer);
 // Let's create a WMS source for this layer.
 const demSource = new TiledImageSource({
     source: new TileWMS({
-        url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
+        url: 'https://data.geopf.fr/wms-r',
         projection: 'EPSG:3946',
         crossOrigin: 'anonymous',
         params: {
