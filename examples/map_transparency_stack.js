@@ -58,7 +58,7 @@ const elevationLayer = new ElevationLayer({
     minmax: { min, max },
     source: new TiledImageSource({
         source: new TileWMS({
-            url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
+            url: 'https://data.geopf.fr/wms-r',
             projection: 'EPSG:3946',
             crossOrigin: 'anonymous',
             params: {
@@ -81,7 +81,7 @@ const orthophotoLayer = new ColorLayer({
     extent,
     source: new TiledImageSource({
         source: new TileWMS({
-            url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
+            url: 'https://data.geopf.fr/wms-r',
             projection: 'EPSG:3946',
             params: {
                 LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],

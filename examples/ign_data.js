@@ -50,7 +50,7 @@ instance.add(map);
 // Create a WMS imagery layer
 const wmsOthophotoSource = new TiledImageSource({
     source: new TileWMS({
-        url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
+        url: 'https://data.geopf.fr/wms-r',
         projection: 'EPSG:2154',
         params: {
             LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
@@ -71,7 +71,7 @@ const noDataValue = -1000;
 // Adds a WMS elevation layer
 const elevationSource = new TiledImageSource({
     source: new TileWMS({
-        url: 'https://wxs.ign.fr/altimetrie/geoportail/r/wms',
+        url: 'https://data.geopf.fr/wms-r',
         projection: 'EPSG:2154',
         crossOrigin: 'anonymous',
         params: {
@@ -94,7 +94,7 @@ const vectorSource = new VectorSource({
     format: new GeoJSON(),
     url: function url(bbox) {
         return (
-            `${'https://wxs.ign.fr/topographie/geoportail/wfs'
+            `${'https://data.geopf.fr/wfs/ows'
             + '?SERVICE=WFS'
             + '&VERSION=2.0.0'
             + '&request=GetFeature'

@@ -31,7 +31,7 @@ instance.useTHREEControls(controls);
 // Adds a WMS imagery layer
 const wmsOthophotoSource = new TiledImageSource({
     source: new TileWMS({
-        url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
+        url: 'https://data.geopf.fr/wms-r',
         projection: 'EPSG:2154',
         crossOrigin: 'anonymous',
         params: {

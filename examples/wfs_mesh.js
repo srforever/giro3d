@@ -40,7 +40,7 @@ instance.add(map);
 
 // Adds a WMS imagery layer
 const olSource = new TileWMS({
-    url: 'https://wxs.ign.fr/ortho/geoportail/r/wms',
+    url: 'https://data.geopf.fr/wms-r',
     projection: 'EPSG:3946',
     params: {
         LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
