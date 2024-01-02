@@ -11,7 +11,7 @@ import type Extent from '../core/geographic/Extent';
 import Picking, { type PickObjectsAtOptions, type PickResultBase } from '../core/Picking';
 import Entity3D from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
-import $3dTilesIndex, { type Tileset } from './3dtiles/3dTilesIndex';
+import $3dTilesIndex, { type ProcessedTile } from './3dtiles/3dTilesIndex';
 import Fetcher from '../utils/Fetcher';
 import utf8Decoder from '../utils/Utf8Decoder.js';
 import { GlobalCache } from '../core/Cache';
@@ -209,7 +209,9 @@ class Tiles3D extends Entity3D {
         this._tileIndex = new $3dTilesIndex(tileset, urlPrefix);
         this._asset = tileset.asset;
 
-        const tile = await this.requestNewTile(this._tileset.root as Tileset, undefined, true);
+        const tile = await this.requestNewTile(
+            this._tileset.root as ProcessedTile, undefined, true,
+        );
         if (tile === null) {
             throw new Error('Could not load root tile');
         }
@@ -272,13 +274,13 @@ class Tiles3D extends Entity3D {
     }
 
     private async requestNewTile(
-        metadata: Tileset,
+        metadata: ProcessedTile,
         parent?: Tile,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         _redraw = false,
     ): Promise<Tile | null> {
         if (metadata.obj) {
-            const tileset = metadata as Tileset;
+            const tileset = metadata as ProcessedTile;
             this.unmarkTileForDeletion(tileset.obj);
             this._instance.notifyChange(parent);
             return tileset.obj;
@@ -388,7 +390,7 @@ class Tiles3D extends Entity3D {
                         // child content is ready, to avoid hiding our content too early (= when our
                         // child is loaded but its content is not)
                         const subtilesets = this._tileIndex.get(node).children.filter(
-                            tile => tile.isTileset,
+                            tile => tile.isProcessedTile,
                         );
 
                         if (subtilesets.length) {
@@ -514,7 +516,7 @@ class Tiles3D extends Entity3D {
         if (tileset.children === undefined) {
             return false;
         }
-        if (tileset.isTileset) {
+        if (tileset.isProcessedTile) {
             return true;
         }
 
@@ -632,7 +634,7 @@ class Tiles3D extends Entity3D {
     }
 
     async executeCommand(
-        metadata: Tileset,
+        metadata: ProcessedTile,
         requester?: Tile,
     ): Promise<Tile> {
         const tile = new Tile(this, metadata, requester);

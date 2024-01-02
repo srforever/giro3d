@@ -8,7 +8,7 @@ import {
 import type Tiles3D from '../Tiles3D';
 import ScreenSpaceError from '../../core/ScreenSpaceError';
 import { type Camera } from '../../renderer';
-import { type Tileset } from './3dTilesIndex';
+import { type ProcessedTile } from './3dTilesIndex';
 import { type BoundingVolume } from './BoundingVolume';
 
 const tmp = {
@@ -45,7 +45,7 @@ class Tile extends Object3D {
     cleanableSince?: number;
     sse?: number;
 
-    constructor(entity: Tiles3D, metadata: Tileset, parent?: Tile) {
+    constructor(entity: Tiles3D, metadata: ProcessedTile, parent?: Tile) {
         super();
         this.name = '3D tile';
         this.frustumCulled = false;

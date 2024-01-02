@@ -8,10 +8,9 @@ import type Tile from './Tile';
 import { type BoundingVolume } from './BoundingVolume';
 import type { $3dTilesTileset, $3dTilesTile, $3dTilesBoundingVolume } from './types';
 
-// TODO: rename Tileset to Tile or something (this object is *not* a Tileset)
 /** Processed tile metadata */
-export interface Tileset extends $3dTilesTile {
-    isTileset: boolean;
+export interface ProcessedTile extends $3dTilesTile {
+    isProcessedTile: boolean;
     transformMatrix: Matrix4,
     worldFromLocalTransform: Matrix4;
     viewerRequestVolumeObject?: BoundingVolume,
@@ -22,7 +21,7 @@ export interface Tileset extends $3dTilesTile {
     magic?: string,
 
     obj?: Tile;
-    children?: Tileset[],
+    children?: ProcessedTile[],
 }
 
 const identity = new Matrix4();
@@ -80,7 +79,7 @@ function getBox(
 class $3dTilesIndex {
     private _counter: number;
     /** Map by tileId */
-    readonly index: Record<number, Tileset>;
+    readonly index: Record<number, ProcessedTile>;
     private _inverseTileTransform: Matrix4;
 
     constructor(tileset: $3dTilesTileset, baseURL: string) {
@@ -90,10 +89,10 @@ class $3dTilesIndex {
         this._recurse(tileset.root, baseURL);
     }
 
-    get(tile: Tile): Tileset { return this.index[tile.tileId]; }
+    get(tile: Tile): ProcessedTile { return this.index[tile.tileId]; }
 
-    private _recurse(node: $3dTilesTile, baseURL: string, parent?: Tileset) {
-        const indexedNode = node as Tileset;
+    private _recurse(node: $3dTilesTile, baseURL: string, parent?: ProcessedTile) {
+        const indexedNode = node as ProcessedTile;
         // compute transform (will become Object3D.matrix when the object is downloaded)
         indexedNode.transformMatrix = node.transform
             ? (new Matrix4()).fromArray(node.transform) : identity;
@@ -151,8 +150,8 @@ class $3dTilesIndex {
     extendTileset(tileset: $3dTilesTileset, nodeId: number, baseURL: string) {
         const tile = this.index[nodeId];
         this._recurse(tileset.root, baseURL, tile);
-        tile.children = [tileset.root as Tileset];
-        tile.isTileset = true;
+        tile.children = [tileset.root as ProcessedTile];
+        tile.isProcessedTile = true;
     }
 }
 

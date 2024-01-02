@@ -2,7 +2,7 @@ import {
     Vector3, Box3, type Matrix4, Sphere,
 } from 'three';
 import type OBB from '../../core/OBB';
-import { type Tileset } from './3dTilesIndex';
+import { type ProcessedTile } from './3dTilesIndex';
 import type Camera from '../../renderer/Camera';
 import Extent from '../../core/geographic/Extent';
 import Tile from './Tile';
@@ -94,7 +94,7 @@ export function cullingTestBoundingVolume(
 
 export function cullingTest(
     camera: Camera,
-    node: Tileset | Tile,
+    node: ProcessedTile | Tile,
     tileMatrixWorld: Matrix4,
 ): boolean {
     const viewerRequestVolume = (node instanceof Tile)
