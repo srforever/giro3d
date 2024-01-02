@@ -11,7 +11,6 @@ class OBB extends Object3D {
     readonly natBox: Box3;
     z: { min: number, max: number };
     topPointsWorld: Vector3[];
-    oPosition: Vector3;
 
     constructor(min: Vector3, max: Vector3) {
         super();
@@ -24,7 +23,6 @@ class OBB extends Object3D {
             new Vector3(),
             new Vector3(),
         ];
-        this.oPosition = new Vector3();
         this.update();
     }
 
@@ -41,7 +39,6 @@ class OBB extends Object3D {
         this.box3D.max.copy(max);
         this.natBox.copy(this.box3D);
         this.update();
-        this.oPosition.copy(this.position);
     }
 
     update() {
