@@ -35,7 +35,7 @@ function pickObjectsAt(
     object: Object3D,
     options: PickOptions = {},
 ) {
-    const radius = options.radius ?? 0;
+    const radius = Math.max(options.radius ?? 1, 1);
     const limit = options.limit ?? Infinity;
     const filter = options.filter;
     const target: PickResult[] = [];
