@@ -157,6 +157,7 @@ void main() {
         discard;
     } else if (renderingState == STATE_FINAL) {
         gl_FragColor.rgb = adjustBrightnessContrastSaturation(gl_FragColor.rgb, brightnessContrastSaturation);
+        #include <colorspace_fragment>
     } else if (renderingState == STATE_PICKING) {
         float id = float(uuid);
         float z = height;
