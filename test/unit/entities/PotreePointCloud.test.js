@@ -1,5 +1,5 @@
 import assert from 'assert';
-import PotreePointCloud from '../../../src/entities/PotreePointCloud.js';
+import PotreePointCloud from '../../../src/entities/PotreePointCloud';
 
 const context = { camera: { height: 1, camera3D: { fov: 1 } } };
 

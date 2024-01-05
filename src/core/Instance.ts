@@ -7,8 +7,8 @@ import Camera from '../renderer/Camera.js';
 import C3DEngine, { type RendererOptions } from '../renderer/c3DEngine.js';
 import type RenderingOptions from '../renderer/RenderingOptions.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
-import MainLoop, { RENDERING_PAUSED } from './MainLoop.js';
-import { type MainLoopEvents } from './MainLoopEvents';
+import MainLoop, { RenderingState } from './MainLoop';
+import { type MainLoopFrameEvents } from './MainLoopEvents';
 import Entity from '../entities/Entity';
 import Entity3D from '../entities/Entity3D';
 import Map from '../entities/Map';
@@ -178,15 +178,14 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private readonly _scene: Scene;
     private readonly _threeObjects: Group;
     private readonly _camera: Camera;
-    private _frameRequesters: Partial<Record<keyof MainLoopEvents, FrameRequester[]>>;
+    private _frameRequesters: Partial<Record<keyof MainLoopFrameEvents, FrameRequester[]>>;
     private _delayedFrameRequesterRemoval: {
-        when: keyof MainLoopEvents,
+        when: keyof MainLoopFrameEvents,
         frameRequester: FrameRequester
     }[];
     private readonly _objects: Entity[];
     private readonly _resizeObserver?: ResizeObserver;
     private _resizeTimeout?: string | number | NodeJS.Timeout;
-    private readonly _changeSources: Set<any>;
     public readonly isDebugMode: boolean;
     private _allLayersAreReadyCallback: () => void;
     private _controls?: CustomCameraControls;
@@ -224,6 +223,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
 
         if (options.mainLoop) {
             this._mainLoop = options.mainLoop;
+            this._engine = options.mainLoop.gfxEngine;
         } else {
             // viewerDiv may have padding/borders, which is annoying when retrieving its size
             // Wrap our canvas in a new div so we make sure the display
@@ -258,8 +258,8 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
 
         this._camera = new Camera(
             this._referenceCrs,
-            this._mainLoop.gfxEngine.getWindowSize().x,
-            this._mainLoop.gfxEngine.getWindowSize().y,
+            this._engine.getWindowSize().x,
+            this._engine.getWindowSize().y,
             options,
         );
 
@@ -272,8 +272,6 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             });
             this._resizeObserver.observe(viewerDiv);
         }
-
-        this._changeSources = new Set();
 
         // @ts-ignore
         if (__DEBUG__) {
@@ -296,7 +294,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
                 return true;
             });
             if (allReady
-                && this._mainLoop.renderingState === RENDERING_PAUSED) {
+                && this._mainLoop.renderingState === RenderingState.RENDERING_PAUSED) {
                 this.dispatchEvent({ type: 'layers-initialized' });
                 this.removeFrameRequester('update_end', this._allLayersAreReadyCallback);
             }
@@ -308,7 +306,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
 
     /** Gets the canvas that this instance renders into. */
     get domElement(): HTMLCanvasElement {
-        return this._mainLoop.gfxEngine.renderer.domElement;
+        return this._engine.renderer.domElement;
     }
 
     /** Gets the DOM element that contains the giro3d viewport. */
@@ -342,12 +340,12 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         return sum / entities.length;
     }
 
-    /** @ignore */
+    /** Gets the main loop */
     get mainLoop(): MainLoop {
         return this._mainLoop;
     }
 
-    /** @ignore */
+    /** Gets the rendering engine */
     get engine(): C3DEngine {
         return this._engine;
     }
@@ -359,7 +357,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * the changes into account.
      */
     get renderingOptions(): RenderingOptions {
-        return this._mainLoop.gfxEngine.renderingOptions;
+        return this._engine.renderingOptions;
     }
 
     /**
@@ -368,7 +366,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * @readonly
      */
     get renderer(): WebGLRenderer {
-        return this._mainLoop.gfxEngine.renderer;
+        return this._engine.renderer;
     }
 
     /** Gets the [3D Scene](https://threejs.org/docs/#api/en/scenes/Scene). */
@@ -400,7 +398,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     }
 
     private _doUpdateRendererSize(div: HTMLDivElement): void {
-        this._mainLoop.gfxEngine.onWindowResize(div.clientWidth, div.clientHeight);
+        this._engine.onWindowResize(div.clientWidth, div.clientHeight);
         this.notifyChange(this._camera.camera3D);
     }
 
@@ -440,7 +438,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         }
         this._scene.remove(this._threeObjects);
 
-        this._mainLoop.gfxEngine.dispose();
+        this._engine.dispose();
         this.viewport.remove();
     }
 
@@ -549,11 +547,8 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * @param changeSource the source of the change
      * @param needsRedraw indicates if notified change requires a full scene redraw.
      */
-    notifyChange(changeSource: any = undefined, needsRedraw = true): void {
-        if (changeSource) {
-            this._changeSources.add(changeSource);
-        }
-        this._mainLoop.scheduleUpdate(this, needsRedraw);
+    notifyChange(changeSource: unknown = undefined, needsRedraw = true): void {
+        this._mainLoop.scheduleUpdate(this, needsRedraw, changeSource);
     }
 
     /**
@@ -625,7 +620,10 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * MainLoop update with the time delta between last update, or 0 if the MainLoop
      * has just been relaunched.
      */
-    addFrameRequester(when: keyof MainLoopEvents, frameRequester: FrameRequesterCallback): void {
+    addFrameRequester(
+        when: keyof MainLoopFrameEvents,
+        frameRequester: FrameRequesterCallback,
+    ): void {
         if (typeof frameRequester !== 'function') {
             throw new Error('frameRequester must be a function');
         }
@@ -645,7 +643,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * @param when attach point of this requester.
      * @param frameRequester the frameRequester to remove
      */
-    removeFrameRequester(when: keyof MainLoopEvents, frameRequester: FrameRequester): void {
+    removeFrameRequester(when: keyof MainLoopFrameEvents, frameRequester: FrameRequester): void {
         const index = this._frameRequesters[when].indexOf(frameRequester);
         if (index >= 0) {
             this._delayedFrameRequesterRemoval.push({ when, frameRequester });
@@ -667,6 +665,27 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     }
 
     /**
+     * Executes the camera update.
+     * Internal use only.
+     *
+     * @ignore
+     */
+    execCameraUpdate() {
+        const dim = this._engine.getWindowSize();
+        this.camera.update(dim.x, dim.y);
+    }
+
+    /**
+     * Executes the rendering.
+     * Internal use only.
+     *
+     * @ignore
+     */
+    render() {
+        this._engine.render(this._scene, this._camera.camera3D);
+    }
+
+    /**
      * Execute a frameRequester.
      *
      * @param when attach point of this (these) requester(s).
@@ -675,11 +694,15 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * @param args optional arguments
      */
     execFrameRequesters(
-        when: keyof MainLoopEvents,
+        when: keyof MainLoopFrameEvents,
         dt: number,
         updateLoopRestarted: boolean,
         ...args: any
     ) {
+        if (when === 'update_start') {
+            this._executeFrameRequestersRemovals();
+        }
+
         if (!this._frameRequesters[when]) {
             return;
         }

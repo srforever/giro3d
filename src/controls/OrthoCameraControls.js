@@ -42,7 +42,7 @@ class OrthoCameraControls {
     onMouseMove(event) {
         if (this.dragStartPosition) {
             const camera3d = this.instance.camera.camera3D;
-            const windowSize = this.instance.mainLoop.gfxEngine.getWindowSize();
+            const windowSize = this.instance.engine.getWindowSize();
             const width = camera3d.right - camera3d.left;
             const deltaX = (width * (event.offsetX - this.dragStartPosition.x)) / -windowSize.x;
             const deltaY = (width * (event.offsetY - this.dragStartPosition.y)) / windowSize.y;

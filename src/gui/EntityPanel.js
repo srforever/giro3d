@@ -9,7 +9,7 @@ import MapInspector from './MapInspector.js';
 import AxisGridInspector from './AxisGridInspector.js';
 import Panel from './Panel.js';
 import Tiles3dInspector from './Tiles3dInspector.js';
-import { MAIN_LOOP_EVENTS } from '../core/MainLoop.js';
+import { MAIN_LOOP_EVENTS } from '../core/MainLoop';
 import PotreePointCloudInspector from './PotreePointCloudInspector.js';
 
 const customInspectors = {

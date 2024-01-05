@@ -12,7 +12,7 @@ import {
 import Panel from './Panel.js';
 import Instance from '../core/Instance';
 import Entity3D from '../entities/Entity3D';
-import Helpers from '../helpers/Helpers.js';
+import Helpers from '../helpers/Helpers';
 
 const _tempArray = [];
 

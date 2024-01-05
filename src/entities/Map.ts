@@ -732,15 +732,15 @@ class Map extends Entity3D<MapEventMap> {
         this._instance.notifyChange(this, true);
     }
 
-    contains(obj: Layer) {
+    contains(obj: unknown) {
         if ((obj as Layer).isLayer) {
-            return this.attachedLayers.includes(obj);
+            return this.attachedLayers.includes(obj as Layer);
         }
 
         return false;
     }
 
-    update(context: Context, node: TileMesh) {
+    update(context: Context, node: TileMesh): unknown[] | undefined {
         if (!node.parent) {
             return ObjectRemovalHelper.removeChildrenAndCleanup(this, node);
         }
@@ -750,12 +750,12 @@ class Map extends Entity3D<MapEventMap> {
                 // if visible, children bbox can only be smaller => stop updates
                 if (node.material.visible) {
                     this.updateMinMaxDistance(context, node);
-                    return null;
+                    return undefined;
                 }
                 if (node.visible) {
                     return node.children.filter(n => (n as TileMesh).layer === this);
                 }
-                return null;
+                return undefined;
             }
         }
 
@@ -814,8 +814,8 @@ class Map extends Entity3D<MapEventMap> {
         return ObjectRemovalHelper.removeChildren(this, node);
     }
 
-    postUpdate() {
-        super.postUpdate();
+    postUpdate(context: Context, changeSources: Set<unknown>) {
+        super.postUpdate(context, changeSources);
 
         this._forEachTile(tile => {
             if (tile.material.visible) {

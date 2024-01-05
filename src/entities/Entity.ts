@@ -1,5 +1,6 @@
-import { EventDispatcher } from 'three';
+import { type Camera, EventDispatcher } from 'three';
 import type Context from '../core/Context';
+import { type ObjectToUpdate } from '../core/MainLoop';
 
 /* eslint no-unused-vars: 0 */
 /* eslint class-methods-use-this: 0 */
@@ -50,7 +51,7 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
     extends EventDispatcher<TEventMap & EntityEventMap> {
     private readonly _id: string;
     private _frozen: boolean;
-    public whenReady?: Promise<Entity>;
+    public whenReady?: Promise<this>;
     public ready?: boolean;
 
     /**
@@ -151,6 +152,75 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
     }
 
     /**
+     * This method is called before `update` to check if the MainLoop
+     * should try to update this entity or not. For better performances,
+     * it should return `false` if the entity has no impact on the
+     * rendering (e.g. the element is not visible).
+     *
+     * The inherited child _can_ completely ignore this value if it makes sense.
+     *
+     * @returns `true` if should check for update
+     */
+    shouldCheckForUpdate(): boolean {
+        return this.ready;
+    }
+
+    /**
+     * This method is called at the beginning of the `update` step to determine
+     * if we should do a full render of the object. This should be the case if, for
+     * instance, the source is the camera.
+     *
+     * You can override this depending on your needs. The inherited child should
+     * not ignore this value, it should do a boolean OR, e.g.:
+     * `return super.shouldFullUpdate(updateSource) || this.contains(updateSource);`
+     *
+     * @param updateSource Source of change
+     * @returns `true` if requires a full update of this object
+     */
+    shouldFullUpdate(updateSource: unknown): boolean {
+        return updateSource === this || (updateSource as Camera).isCamera;
+    }
+
+    /**
+     * This method is called at the beginning of the `update` step to determine
+     * if we should re-render `updateSource`.
+     * Not used when `shouldFullUpdate` returns `true`.
+     *
+     * You can override this depending on your needs.  The inherited child should
+     * not ignore this value, it should do a boolean OR, e.g.:
+     * `return super.shouldUpdate(updateSource) || this.contains(updateSource);`
+     *
+     * @param updateSource Source of change
+     * @returns `true` if requires an update of `updateSource`
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    shouldUpdate(updateSource: unknown): boolean {
+        return false;
+    }
+
+    /**
+     * Filters what objects need to be updated, based on `updatedSources`.
+     * The returned objects are then passed to {@link preUpdate} and {@link postUpdate}.
+     *
+     * Inherited classes should override {@link shouldFullUpdate} and {@link shouldUpdate}
+     * if they need to change this behavior.
+     *
+     * @param updateSources Sources that triggered an update
+     * @returns Set of objects to update
+     */
+    filterChangeSources(updateSources: Set<unknown>): Set<unknown> {
+        let fullUpdate = false;
+        const filtered = new Set<unknown>();
+        updateSources.forEach(src => {
+            fullUpdate = fullUpdate || this.shouldFullUpdate(src);
+            if (this.shouldUpdate(src)) {
+                filtered.add(src);
+            }
+        });
+        return fullUpdate ? new Set([this]) : filtered;
+    }
+
+    /**
      * This method is called just before `update()` to filter and select
      * which _elements_ should be actually updated. For example, in the
      * case of complex entities made of a hierarchy of elements, the entire
@@ -170,7 +240,20 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
      * @returns the _elements_ to update during `update()`.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    preUpdate(context: Context, changeSources: Set<unknown>): unknown[] { return null; }
+    preUpdate(context: Context, changeSources: Set<unknown>): unknown[] | null { return null; }
+
+    /**
+     * Attached layers expect to receive the visual representation of a layer (= THREE object
+     * with a material).  So if a layer's update function don't process this kind of object, the
+     * layer must provide a getObjectToUpdateForAttachedLayers function that returns the correct
+     * object to update for attached layer from the objects returned by preUpdate.
+     *
+     * @param obj the Mesh or the object containing a Mesh. These are the objects returned
+     * by preUpdate or update.
+     * @returns an object passed to the update function of attached layers.
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    getObjectToUpdateForAttachedLayers(obj: unknown): ObjectToUpdate | null { return null; }
 
     /**
      * Performs an update on an _element_ of the entity.
@@ -181,9 +264,10 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
      * This is the same object that the entity whose `update()` is being called.
      * @param element the element to update.
      * This is one of the elements returned by {@link preUpdate()}.
+     * @returns New elements to update
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    update(context: Context, element: unknown) {}
+    update(context: Context, element: unknown): unknown[] | undefined { return undefined; }
 
     /**
      * Method called after {@link entities.Entity#update update()}.
@@ -196,7 +280,7 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
      * on the camera's field of view should be updated.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    postUpdate(context: Context, changeSources: unknown[]) {}
+    postUpdate(context: Context, changeSources: Set<unknown>) {}
 
     /**
      * Disposes this entity and all resources associated with it.

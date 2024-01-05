@@ -56,6 +56,13 @@ class Camera {
         return this._crs;
     }
 
+    get preSSE() {
+        return this._preSSE;
+    }
+    set preSSE(value) {
+        this._preSSE = value;
+    }
+
     update(width, height) {
         resize(this, width, height);
 

@@ -6,7 +6,7 @@ import {
     Vector2,
     Vector3,
 } from 'three';
-import { MAIN_LOOP_EVENTS } from '../core/MainLoop.js';
+import { MAIN_LOOP_EVENTS } from '../core/MainLoop';
 
 // Note: we could use existing js controls (like
 // https://github.com/mrdoob/js/blob/dev/examples/js/controls/FirstPersonControls.js) but
@@ -100,7 +100,7 @@ class FirstPersonControls extends EventDispatcher {
         };
         this.reset();
 
-        const { domElement } = instance.mainLoop.gfxEngine.renderer;
+        const domElement = instance.domElement;
         if (!options.disableEventListeners) {
             domElement.addEventListener('mousedown', this.onMouseDown.bind(this), false);
             domElement.addEventListener('touchstart', this.onMouseDown.bind(this), false);
@@ -234,7 +234,7 @@ class FirstPersonControls extends EventDispatcher {
             // (where deltaH is the vertical amount we moved, and H the renderer height)
             // we loosely approximate tan(x) by x
             const pxToAngleRatio = MathUtils.degToRad(this.camera.fov)
-                / this.instance.mainLoop.gfxEngine.height;
+                / this.instance.engine.height;
 
             const coords = this.instance.eventToCanvasCoords(event, tmpVec2);
 

@@ -7,7 +7,7 @@ import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Instance from '../core/Instance';
 import TileMesh from '../core/TileMesh';
 import Map from '../entities/Map';
-import Helpers from '../helpers/Helpers.js';
+import Helpers from '../helpers/Helpers';
 import EntityInspector from './EntityInspector.js';
 import RenderingState from '../renderer/RenderingState';
 import LayerInspector from './LayerInspector.js';

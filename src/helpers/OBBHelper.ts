@@ -1,13 +1,12 @@
-/**
- * @module helpers/OBBHelper
- */
 import {
     BufferAttribute,
     BufferGeometry,
+    type Color,
     LineBasicMaterial,
     LineSegments,
     Vector3,
 } from 'three';
+import type OBB from '../core/OBB';
 
 const points = [
     new Vector3(),
@@ -24,8 +23,11 @@ const points = [
  * Displays an Oriented Bounding Box (OBB).
  *
  */
-class OBBHelper extends LineSegments {
-    constructor(OBB, color) {
+class OBBHelper extends LineSegments<BufferGeometry, LineBasicMaterial> {
+    override readonly type: string | 'OBBHelper';
+    readonly isHelper: true;
+
+    constructor(OBB: OBB | undefined, color: Color) {
         const indices = new Uint16Array(
             [0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7],
         );
@@ -40,8 +42,6 @@ class OBBHelper extends LineSegments {
             linewidth: 3,
         }));
 
-        this.type = 'OBBHelper';
-        this.isHelper = true;
         this.frustumCulled = false;
 
         if (OBB !== undefined) { this.update(OBB, color); }
@@ -52,12 +52,12 @@ class OBBHelper extends LineSegments {
         this.geometry.dispose();
     }
 
-    setMaterialVisibility(show) {
+    setMaterialVisibility(show: boolean) {
         this.material.visible = show;
-        this.textMesh.material.visible = show;
+        // this.textMesh.material.visible = show;
     }
 
-    update(OBB, color) {
+    update(OBB: OBB, color: Color) {
         const { position } = this.geometry.attributes;
         const { array } = position;
 

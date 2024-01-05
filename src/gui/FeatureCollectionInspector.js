@@ -5,7 +5,7 @@ import GUI from 'lil-gui';
 import { Color, Object3D } from 'three';
 import Instance from '../core/Instance';
 import FeatureCollection from '../entities/FeatureCollection';
-import Helpers from '../helpers/Helpers.js';
+import Helpers from '../helpers/Helpers';
 import EntityInspector from './EntityInspector.js';
 
 function applyToMaterial(root, entity, callback) {

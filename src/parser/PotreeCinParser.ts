@@ -11,10 +11,13 @@ export default {
     /**
      * Parse .cin PotreeConverter format (see {@link https://github.com/peppsac/PotreeConverter/tree/custom_bin}) and convert to a BufferGeometry
      *
-     * @param {ArrayBuffer} buffer the cin buffer.
-     * @returns {Promise} a promise that resolves with a BufferGeometry.
+     * @param buffer the cin buffer.
+     * @param pointAttributes the point attributes information contained in
+     * layer.metadata coming from cloud.js
+     * @returns a promise that resolves with a BufferGeometry.
      */
-    parse: function parse(buffer) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    parse: function parse(buffer: ArrayBuffer, pointAttributes: string[]) {
         if (!buffer) {
             throw new Error('No array buffer provided.');
         }

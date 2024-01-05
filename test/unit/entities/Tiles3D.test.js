@@ -2,10 +2,11 @@ import '../setup.js';
 import assert from 'assert';
 import proj4 from 'proj4';
 import {
-    Group, Matrix4, Mesh, Object3D,
+    Group, Matrix4, Mesh,
 } from 'three';
-import Tiles3D, { calculateCameraDistance, configureTile } from '../../../src/entities/Tiles3D.js';
-import $3dTilesIndex from '../../../src/entities/3dtiles/3dTilesIndex.js';
+import Tiles3D from '../../../src/entities/Tiles3D';
+import $3dTilesIndex from '../../../src/entities/3dtiles/3dTilesIndex';
+import Tile from '../../../src/entities/3dtiles/Tile';
 import Camera from '../../../src/renderer/Camera.js';
 import Coordinates from '../../../src/core/geographic/Coordinates';
 import Tiles3DSource from '../../../src/sources/Tiles3DSource';
@@ -25,7 +26,7 @@ describe('Tiles3D', () => {
 
         it('should assign the source', () => {
             const sut = new Tiles3D('foo', new Tiles3DSource('http://example.com/tileset'));
-            expect(sut.url).toBe('http://example.com/tileset');
+            expect(sut._url).toBe('http://example.com/tileset');
         });
 
         it('should assign default values if options do not provide them', () => {
@@ -79,10 +80,9 @@ describe('Tiles3D', () => {
             const tileset = tilesetWithBox();
             const tileIndex = new $3dTilesIndex(tileset, '');
 
-            const tile = new Object3D();
-            configureTile(tile, defaultEntity, tileIndex.index['1']);
+            const tile = new Tile(defaultEntity, tileIndex.index['1']);
 
-            calculateCameraDistance(camera.camera3D, tile);
+            tile.calculateCameraDistance(camera.camera3D);
 
             expect(tile.distance).toEqual({ min: 99, max: 102.46410161513775 });
         });
@@ -95,10 +95,9 @@ describe('Tiles3D', () => {
 
             const tileIndex = new $3dTilesIndex(tileset, '');
 
-            const tile = new Object3D();
-            configureTile(tile, defaultEntity, tileIndex.index['1']);
+            const tile = new Tile(defaultEntity, tileIndex.index['1']);
 
-            calculateCameraDistance(camera.camera3D, tile);
+            tile.calculateCameraDistance(camera.camera3D);
 
             expect(tile.distance).toEqual({ max: 90.02464101615138, min: 89.99 });
         });
@@ -116,10 +115,9 @@ describe('Tiles3D', () => {
             const tileset = tilesetWithSphere();
             const tileIndex = new $3dTilesIndex(tileset, '');
 
-            const tile = new Object3D();
-            configureTile(tile, defaultEntity, tileIndex.index['1']);
+            const tile = new Tile(defaultEntity, tileIndex.index['1']);
 
-            calculateCameraDistance(camera.camera3D, tile);
+            tile.calculateCameraDistance(camera.camera3D);
 
             expect(tile.distance).toEqual({ max: 101, min: 99 });
         });
@@ -132,12 +130,11 @@ describe('Tiles3D', () => {
 
             const tileIndex = new $3dTilesIndex(tileset, '');
 
-            const tile = new Object3D();
-            configureTile(tile, defaultEntity, tileIndex.index['1']);
+            const tile = new Tile(defaultEntity, tileIndex.index['1']);
 
-            calculateCameraDistance(camera.camera3D, tile);
+            tile.calculateCameraDistance(camera.camera3D);
 
-            calculateCameraDistance(camera.camera3D, tile);
+            tile.calculateCameraDistance(camera.camera3D);
 
             // floats...
             expect(tile.distance.min).toBeCloseTo(89.99, 12);

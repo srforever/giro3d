@@ -4,7 +4,7 @@ import Extent from '../../../src/core/geographic/Extent';
 import Instance from '../../../src/core/Instance';
 import Map from '../../../src/entities/Map';
 import Layer from '../../../src/core/layer/Layer';
-import MainLoop from '../../../src/core/MainLoop.js';
+import MainLoop from '../../../src/core/MainLoop';
 import { setupGlobalMocks } from '../mocks.js';
 import ElevationLayer from '../../../src/core/layer/ElevationLayer';
 import RenderingState from '../../../src/renderer/RenderingState';

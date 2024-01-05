@@ -19,8 +19,8 @@ class MemoryUsage extends ChartPanel {
     constructor(parentGui, instance) {
         super(parentGui, instance, 'Memory');
 
-        this.render = instance.mainLoop.gfxEngine.renderer.info.render;
-        this.memory = instance.mainLoop.gfxEngine.renderer.info.memory;
+        this.render = instance.renderer.info.render;
+        this.memory = instance.renderer.info.memory;
         this.labels = [];
 
         this.textures = {

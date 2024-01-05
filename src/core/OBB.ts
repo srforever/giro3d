@@ -5,10 +5,15 @@ import {
 } from 'three';
 
 class OBB extends Object3D {
-    constructor(min, max) {
+    readonly isHelper: boolean = true;
+    readonly type: string | 'OBB';
+    readonly box3D: Box3;
+    readonly natBox: Box3;
+    z: { min: number, max: number };
+    topPointsWorld: Vector3[];
+
+    constructor(min: Vector3, max: Vector3) {
         super();
-        this.type = 'OBB';
-        this.isHelper = true;
         this.box3D = new Box3(min.clone(), max.clone());
         this.natBox = this.box3D.clone();
         this.z = { min: 0, max: 0 };
@@ -21,19 +26,19 @@ class OBB extends Object3D {
         this.update();
     }
 
-    clone() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    clone(): this {
         const cOBB = new OBB(this.natBox.min, this.natBox.max);
         cOBB.position.copy(this.position);
         cOBB.quaternion.copy(this.quaternion);
-        return cOBB;
+        return cOBB as this;
     }
 
-    updateMinMax(min, max) {
+    updateMinMax(min: Vector3, max: Vector3) {
         this.box3D.min.copy(min);
         this.box3D.max.copy(max);
         this.natBox.copy(this.box3D);
         this.update();
-        this.oPosition.copy(this.position);
     }
 
     update() {
@@ -41,14 +46,14 @@ class OBB extends Object3D {
         this._cPointsWorld(this._points(this.topPointsWorld));
     }
 
-    updateZ(min, max) {
+    updateZ(min: number, max: number) {
         this.z = { min, max };
         this.box3D.min.z = this.natBox.min.z + min;
         this.box3D.max.z = this.natBox.max.z + max;
         this.update();
     }
 
-    _points(points) {
+    _points(points: Vector3[]) {
         // top points of bounding box
         points[0].set(this.box3D.max.x, this.box3D.max.y, this.box3D.max.z);
         points[1].set(this.box3D.min.x, this.box3D.max.y, this.box3D.max.z);
@@ -65,7 +70,7 @@ class OBB extends Object3D {
         return points;
     }
 
-    _cPointsWorld(points) {
+    _cPointsWorld(points: Vector3[]) {
         const m = this.matrixWorld;
 
         for (let i = 0, max = points.length; i < max; i++) {
