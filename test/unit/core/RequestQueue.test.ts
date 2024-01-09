@@ -74,5 +74,19 @@ describe('RequestQueue', () => {
             expect(promise1).toBe(promise2);
             expect(promise1).toBe(promise3);
         });
+
+        it('should infer the return type of the promise', async () => {
+            const queue = new RequestQueue({ maxConcurrentRequests: 1 });
+
+            const id = 'uniqueId';
+
+            const request = () => Promise.resolve(1);
+
+            const promise1: Promise<number> = queue.enqueue({ id, request });
+
+            const result = await promise1;
+
+            expect(result).toEqual(1);
+        });
     });
 });

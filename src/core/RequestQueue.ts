@@ -167,13 +167,13 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> implements Progre
      * @param options.priority The priority of this request.
      * @returns A promise that resolves when the requested is completed.
      */
-    enqueue(options: {
+    enqueue<T>(options: {
         id: string,
-        request: () => Promise<unknown>,
+        request: () => Promise<T>,
         signal?: AbortSignal,
         priority?: number,
         shouldExecute?: () => boolean,
-    }) {
+    }): Promise<T> {
         const {
             id, request, signal, shouldExecute,
         } = options;
@@ -185,7 +185,7 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> implements Progre
         }
 
         if (this._pendingIds.has(id)) {
-            return this._pendingIds.get(id);
+            return this._pendingIds.get(id) as Promise<T>;
         }
 
         this._opCounter.increment();
@@ -201,7 +201,7 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> implements Progre
         });
         this._pendingIds.set(id, promise);
 
-        return promise;
+        return promise as Promise<T>;
     }
 }
 
