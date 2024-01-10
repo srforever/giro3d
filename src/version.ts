@@ -1,8 +1,4 @@
-/**
- * Giro3D version.
- *
- * @type {string}
- */
+/** Giro3D version. */
 const VERSION = 'latest';
 
 export default VERSION;
