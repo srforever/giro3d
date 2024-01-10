@@ -13,7 +13,7 @@ import {
 } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { TexturePass } from 'three/examples/jsm/postprocessing/TexturePass.js';
-import PointCloudRenderer from './PointCloudRenderer.js';
+import PointCloudRenderer from './PointCloudRenderer';
 import RenderingOptions from './RenderingOptions.js';
 
 const BUCKETS = {

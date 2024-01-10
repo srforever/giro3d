@@ -1,3 +1,4 @@
+import type { Camera, Object3D, WebGLRenderer } from 'three';
 import {
     BufferGeometry,
     DepthTexture,
@@ -14,7 +15,6 @@ import {
     UnsignedByteType,
     Vector2,
     WebGLRenderTarget,
-    WebGLRenderer,
 } from 'three';
 import BasicVS from './shader/BasicVS.glsl';
 import EDLPassZeroFS from './shader/pointcloud/EDLPassZeroFS.glsl';
@@ -30,24 +30,74 @@ const RT = {
     EDL_ZERO: 3,
 };
 
-/**
- * @typedef {object} Stage
- * @property {ShaderMaterial[]} passes The render passes of this stage.
- * @property {object} parameters The parameters of this stage.
- * @property {boolean} enabled Is the stage enabled ?
- * @property {Function} setup The setup function.
- */
+interface Stage<TParams extends object> {
+    /** The render passes of this stage. */
+    passes: ShaderMaterial[],
+    /** The parameters of this stage. */
+    parameters?: TParams,
+    /** Is the stage enabled ? */
+    enabled: boolean,
+    /** The setup function. */
+    setup: (args: {
+        // eslint-disable-next-line no-use-before-define
+        renderer: PointCloudRenderer,
+        input: WebGLRenderTarget,
+        passIdx: number,
+        camera: Camera,
+    }) => {
+        material?: ShaderMaterial,
+        output?: WebGLRenderTarget,
+    },
+}
+
+interface EdlParams {
+    /** distance to neighbours pixels */
+    radius: number,
+    /** edl value coefficient */
+    strength: number,
+    /** directions count where neighbours are taken */
+    directions: number,
+    /** how many neighbours per direction */
+    n: number,
+}
+
+interface OcclusionParams {
+    /** pixel suppression threshold */
+    threshold: number,
+    /** debug feature to colorize removed pixels */
+    showRemoved: boolean,
+}
+
+interface InpaintingParams {
+    /** how many fill step should be performed */
+    fill_steps: number,
+    /** depth contribution to the final color (?) */
+    depth_contrib: number,
+    enableZAttenuation: boolean,
+    zAttMin: number,
+    zAttMax: number,
+}
 
 /**
  * A post-processing renderer that adds effects to point clouds.
  */
 class PointCloudRenderer {
+    scene: Scene;
+    mesh: Mesh;
+    camera: OrthographicCamera;
+    classic: Stage<never>;
+    edl: Stage<EdlParams>;
+    occlusion: Stage<OcclusionParams>;
+    inpainting: Stage<InpaintingParams>;
+    renderer: WebGLRenderer;
+    renderTargets: WebGLRenderTarget[] | null;
+
     /**
      * Creates a point cloud renderer.
      *
-     * @param {WebGLRenderer} webGLRenderer The WebGL renderer.
+     * @param webGLRenderer The WebGL renderer.
      */
-    constructor(webGLRenderer) {
+    constructor(webGLRenderer: WebGLRenderer) {
         this.scene = new Scene();
 
         // create 1 big triangle covering the screen
@@ -63,7 +113,6 @@ class PointCloudRenderer {
         // our camera
         this.camera = new OrthographicCamera(0, 1, 1, 0, 0, 10);
 
-        /** @type {Stage} */
         this.classic = {
             passes: [undefined],
             enabled: true,
@@ -74,7 +123,6 @@ class PointCloudRenderer {
         // References:
         //    - https://tel.archives-ouvertes.fr/tel-00438464/document
         //    - Potree (https://github.com/potree/potree/)
-        /** @type {Stage} */
         this.edl = {
             passes: [
                 new ShaderMaterial({
@@ -127,13 +175,9 @@ class PointCloudRenderer {
             enabled: true,
             // EDL tuning
             parameters: {
-                // distance to neighbours pixels
                 radius: 1.5,
-                // edl value coefficient
                 strength: 0.7,
-                // directions count where neighbours are taken
                 directions: 8,
-                // how many neighbours per direction
                 n: 1,
             },
             setup({
@@ -149,8 +193,8 @@ class PointCloudRenderer {
                 if (passIdx === 1) {
                     uniforms.depthTexture.value = renderer.renderTargets[RT.EDL_ZERO].depthTexture;
                     uniforms.resolution.value.set(input.width, input.height);
-                    uniforms.cameraNear.value = camera.near;
-                    uniforms.cameraFar.value = camera.far;
+                    uniforms.cameraNear.value = (camera as any).near;
+                    uniforms.cameraFar.value = (camera as any).far;
                     uniforms.radius.value = this.parameters.radius;
                     uniforms.strength.value = this.parameters.strength;
                     uniforms.directions.value = this.parameters.directions;
@@ -167,7 +211,6 @@ class PointCloudRenderer {
 
         // Screen-space occlusion
         // References: http://www.crs4.it/vic/data/papers/vast2011-pbr.pdf
-        /** @type {Stage} */
         this.occlusion = {
             passes: [
                 // EDL 1st pass material
@@ -194,15 +237,13 @@ class PointCloudRenderer {
             enabled: true,
             // EDL tuning
             parameters: {
-                // pixel suppression threshold
                 threshold: 0.9,
-                // debug feature to colorize removed pixels
                 showRemoved: false,
             },
             setup({ input, camera }) {
                 const m = this.passes[0];
-                const n = camera.near;
-                const f = camera.far;
+                const n = (camera as any).near;
+                const f = (camera as any).far;
                 const m43 = -(2 * f * n) / (f - n);
                 const m33 = -(f + n) / (f - n);
                 const mat = new Matrix4();
@@ -227,7 +268,6 @@ class PointCloudRenderer {
 
         // Screen-space filling
         // References: http://www.crs4.it/vic/data/papers/vast2011-pbr.pdf
-        /** @type {Stage} */
         this.inpainting = {
             passes: [
                 // Inpainting material
@@ -254,9 +294,7 @@ class PointCloudRenderer {
             enabled: true,
             // EDL tuning
             parameters: {
-                // how many fill step should be performed
                 fill_steps: 2,
-                // depth contribution to the final color (?)
                 depth_contrib: 0.5,
                 enableZAttenuation: false,
                 zAttMin: 10,
@@ -264,8 +302,8 @@ class PointCloudRenderer {
             },
             setup({ input, camera }) {
                 const m = this.passes[0];
-                const n = camera.near;
-                const f = camera.far;
+                const n = (camera as any).near;
+                const f = (camera as any).far;
                 const m43 = -(2 * f * n) / (f - n);
                 const m33 = -(f + n) / (f - n);
 
@@ -284,12 +322,11 @@ class PointCloudRenderer {
             },
         };
 
-        /** @type {WebGLRenderer} */
         this.renderer = webGLRenderer;
         this.renderTargets = null;
     }
 
-    updateRenderTargets(renderTarget) {
+    updateRenderTargets(renderTarget: WebGLRenderTarget) {
         if (!this.renderTargets
             || renderTarget.width !== this.renderTargets[RT.FULL_RES_0].width
             || renderTarget.height !== this.renderTargets[RT.FULL_RES_0].height) {
@@ -302,7 +339,7 @@ class PointCloudRenderer {
         }
     }
 
-    createRenderTarget(width, height, depthBuffer) {
+    createRenderTarget(width: number, height: number, depthBuffer: boolean) {
         const supportsFloatTextures = this.renderer.capabilities.floatFragmentTextures;
         return new WebGLRenderTarget(width, height, {
             format: RGBAFormat,
@@ -319,7 +356,7 @@ class PointCloudRenderer {
         });
     }
 
-    createRenderTargets(width, height) {
+    createRenderTargets(width: number, height: number) {
         const renderTargets = [];
 
         renderTargets.push(this.createRenderTarget(width, height, true));
@@ -330,26 +367,28 @@ class PointCloudRenderer {
         return renderTargets;
     }
 
-    render(scene, camera, renderTarget) {
+    render(scene: Object3D, camera: Camera, renderTarget: WebGLRenderTarget) {
         this.updateRenderTargets(renderTarget);
 
-        /** @type {WebGLRenderer} */
         const r = this.renderer;
 
-        /** @type {Stage[]} */
-        const stages = [];
+        const stages: Stage<any>[] = [];
 
         stages.push(this.classic);
 
-        if (this.occlusion.enabled) {
+        // EDL requires far & near properties on Camera, which may not exist
+        const cameraHasFarNear = 'far' in camera && 'near' in camera;
+
+        if (this.occlusion.enabled && cameraHasFarNear) {
             stages.push(this.occlusion);
         }
-        if (this.inpainting.enabled) {
-            for (let i = 0; i < this.inpainting.parameters.fill_steps; i++) {
+        if (this.inpainting.enabled && cameraHasFarNear) {
+            const fill_steps = (this.inpainting.parameters as any).fill_steps as number;
+            for (let i = 0; i < fill_steps; i++) {
                 stages.push(this.inpainting);
             }
         }
-        if (this.edl.enabled) {
+        if (this.edl.enabled && cameraHasFarNear) {
             stages.push(this.edl);
         }
 
@@ -390,7 +429,9 @@ class PointCloudRenderer {
                 }
                 r.setViewport(
                     0, 0,
+                    // @ts-ignore
                     output ? output.width : camera.width,
+                    // @ts-ignore
                     output ? output.height : camera.height,
                 );
 
