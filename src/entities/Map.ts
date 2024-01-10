@@ -27,7 +27,7 @@ import TileIndex from '../core/TileIndex';
 import type RenderingState from '../renderer/RenderingState';
 import ColorMapAtlas from '../renderer/ColorMapAtlas';
 import AtlasBuilder, { type AtlasInfo } from '../renderer/AtlasBuilder';
-import Capabilities from '../core/system/Capabilities.js';
+import Capabilities from '../core/system/Capabilities';
 import type { Context, ContourLineOptions, ElevationRange } from '../core';
 import type TileGeometry from '../core/TileGeometry';
 import { type MaterialOptions } from '../renderer/LayeredMaterial';

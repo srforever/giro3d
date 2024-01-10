@@ -16,7 +16,7 @@ import {
 } from 'three';
 import PointsVS from './shader/PointsVS.glsl';
 import PointsFS from './shader/PointsFS.glsl';
-import Capabilities from '../core/system/Capabilities.js';
+import Capabilities from '../core/system/Capabilities';
 
 /**
  * Specifies the way points are colored.

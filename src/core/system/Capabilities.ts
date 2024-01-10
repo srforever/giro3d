@@ -1,3 +1,4 @@
+import { type WebGLRenderer } from 'three';
 import SampleTestFS from '../../renderer/shader/SampleTestFS.glsl';
 import SampleTestVS from '../../renderer/shader/SampleTestVS.glsl';
 
@@ -6,11 +7,11 @@ let logDepthBufferSupported = false;
 let maxTexturesUnits = 8;
 let maxTextureSize = 2048;
 
-function _WebGLShader(renderer, type, string) {
+function _WebGLShader(renderer: WebGLRenderer, type: number, source: string) {
     const gl = renderer.getContext();
     const shader = gl.createShader(type);
 
-    gl.shaderSource(shader, string);
+    gl.shaderSource(shader, source);
     gl.compileShader(shader);
     return shader;
 }
@@ -25,6 +26,7 @@ export default {
     },
     isFirefox,
     isInternetExplorer() {
+        // @ts-ignore
         const internetExplorer = false || !!document.documentMode;
         return internetExplorer;
     },
@@ -34,7 +36,7 @@ export default {
     getMaxTextureSize() {
         return maxTextureSize;
     },
-    updateCapabilities(renderer) {
+    updateCapabilities(renderer: WebGLRenderer) {
         const gl = renderer.getContext();
         maxTexturesUnits = gl.getParameter(gl.MAX_TEXTURE_IMAGE_UNITS);
         maxTextureSize = gl.getParameter(gl.MAX_TEXTURE_SIZE);
