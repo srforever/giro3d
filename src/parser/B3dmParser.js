@@ -3,7 +3,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import BatchTableParser from './BatchTableParser.js';
 import Capabilities from '../core/system/Capabilities';
-import shaderUtils from '../renderer/shader/ShaderUtils.js';
+import shaderUtils from '../renderer/shader/ShaderUtils';
 import utf8Decoder from '../utils/Utf8Decoder';
 
 const matrixChangeUpVectorZtoY = (new Matrix4()).makeRotationX(Math.PI / 2);
