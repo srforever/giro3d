@@ -14,7 +14,7 @@ import {
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { TexturePass } from 'three/examples/jsm/postprocessing/TexturePass.js';
 import PointCloudRenderer from './PointCloudRenderer';
-import RenderingOptions from './RenderingOptions.js';
+import RenderingOptions from './RenderingOptions';
 
 const BUCKETS = {
     OPAQUE: 0,

@@ -21,7 +21,7 @@ import {
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Capabilities from '../core/system/Capabilities';
 import RenderPipeline from './RenderPipeline.js';
-import RenderingOptions from './RenderingOptions.js';
+import RenderingOptions from './RenderingOptions';
 
 import registerChunks from './shader/chunk/registerChunks.js';
 
