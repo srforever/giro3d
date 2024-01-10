@@ -6,7 +6,7 @@ import { register } from 'ol/proj/proj4.js';
 import Camera, { type CameraOptions } from '../renderer/Camera';
 import C3DEngine, { type RendererOptions } from '../renderer/c3DEngine';
 import type RenderingOptions from '../renderer/RenderingOptions';
-import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
+import ObjectRemovalHelper from '../utils/ObjectRemovalHelper';
 import MainLoop, { RenderingState } from './MainLoop';
 import { type MainLoopFrameEvents } from './MainLoopEvents';
 import Entity from '../entities/Entity';

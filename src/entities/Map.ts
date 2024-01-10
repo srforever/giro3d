@@ -14,7 +14,7 @@ import Layer from '../core/layer/Layer';
 import ColorLayer from '../core/layer/ColorLayer';
 import ElevationLayer from '../core/layer/ElevationLayer';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
-import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
+import ObjectRemovalHelper from '../utils/ObjectRemovalHelper';
 import type { SSE } from '../core/ScreenSpaceError';
 import ScreenSpaceError from '../core/ScreenSpaceError';
 import LayeredMaterial, {
