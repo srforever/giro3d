@@ -2,73 +2,15 @@ import { Vector3, BufferAttribute, BufferGeometry } from 'three';
 import BatchTableParser from './BatchTableParser.js';
 import utf8Decoder from '../utils/Utf8Decoder';
 
-export default {
-    /** @module PntsParser */
-
-    /**
-     * Parse pnts buffer and extract Points and batch table
-     *
-     * @param {ArrayBuffer} buffer the pnts buffer.
-     * @returns {Promise} - a promise that resolves with an object containig a Points (point)
-     * and a batch table (batchTable).
-     */
-    parse: function parse(buffer) {
-        if (!buffer) {
-            throw new Error('No array buffer provided.');
-        }
-        const view = new DataView(buffer);
-
-        let byteOffset = 0;
-        const pntsHeader = {};
-        let batchTable = {};
-        let point = {};
-
-        // Magic type is unsigned char [4]
-        pntsHeader.magic = utf8Decoder.decode(new Uint8Array(buffer, byteOffset, 4));
-        byteOffset += 4;
-
-        if (pntsHeader.magic) {
-            // Version, byteLength, batchTableJSONByteLength, batchTableBinaryByteLength and
-            // batchTable types are uint32
-            pntsHeader.version = view.getUint32(byteOffset, true);
-            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
-
-            pntsHeader.byteLength = view.getUint32(byteOffset, true);
-            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
-
-            pntsHeader.FTJSONLength = view.getUint32(byteOffset, true);
-            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
-
-            pntsHeader.FTBinaryLength = view.getUint32(byteOffset, true);
-            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
-
-            pntsHeader.BTJSONLength = view.getUint32(byteOffset, true);
-            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
-
-            pntsHeader.BTBinaryLength = view.getUint32(byteOffset, true);
-            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
-
-            // binary table
-            if (pntsHeader.FTBinaryLength > 0) {
-                point = parseFeatureBinary(buffer, byteOffset, pntsHeader.FTJSONLength);
-            }
-
-            // batch table
-            if (pntsHeader.BTJSONLength > 0) {
-                const sizeBegin = 28 + pntsHeader.FTJSONLength + pntsHeader.FTBinaryLength;
-                batchTable = BatchTableParser.parse(
-                    buffer.slice(sizeBegin, pntsHeader.BTJSONLength + sizeBegin),
-                );
-            }
-
-            const pnts = { point, batchTable };
-            return Promise.resolve(pnts);
-        }
-        throw new Error('Invalid pnts file.');
+export interface Pnts {
+    point: {
+        geometry?: BufferGeometry,
+        offset?: Vector3,
     },
-};
+    batchTable: any,
+}
 
-function parseFeatureBinary(array, byteOffset, FTJSONLength) {
+function parseFeatureBinary(array: ArrayBuffer, byteOffset: number, FTJSONLength: number) {
     // Init geometry
     const geometry = new BufferGeometry();
 
@@ -117,3 +59,69 @@ function parseFeatureBinary(array, byteOffset, FTJSONLength) {
         offset,
     };
 }
+
+export default {
+    /** @module PntsParser */
+
+    /**
+     * Parse pnts buffer and extract Points and batch table
+     *
+     * @param buffer the pnts buffer.
+     * @returns a promise that resolves with an object containig a Points (point)
+     * and a batch table (batchTable).
+     */
+    parse: function parse(buffer: ArrayBuffer): Promise<Pnts> {
+        if (!buffer) {
+            throw new Error('No array buffer provided.');
+        }
+        const view = new DataView(buffer);
+
+        let byteOffset = 0;
+        const pntsHeader: any = {};
+        let batchTable = {};
+        let point = {};
+
+        // Magic type is unsigned char [4]
+        pntsHeader.magic = utf8Decoder.decode(new Uint8Array(buffer, byteOffset, 4));
+        byteOffset += 4;
+
+        if (pntsHeader.magic) {
+            // Version, byteLength, batchTableJSONByteLength, batchTableBinaryByteLength and
+            // batchTable types are uint32
+            pntsHeader.version = view.getUint32(byteOffset, true);
+            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
+
+            pntsHeader.byteLength = view.getUint32(byteOffset, true);
+            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
+
+            pntsHeader.FTJSONLength = view.getUint32(byteOffset, true);
+            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
+
+            pntsHeader.FTBinaryLength = view.getUint32(byteOffset, true);
+            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
+
+            pntsHeader.BTJSONLength = view.getUint32(byteOffset, true);
+            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
+
+            pntsHeader.BTBinaryLength = view.getUint32(byteOffset, true);
+            byteOffset += Uint32Array.BYTES_PER_ELEMENT;
+
+            // binary table
+            if (pntsHeader.FTBinaryLength > 0) {
+                point = parseFeatureBinary(buffer, byteOffset, pntsHeader.FTJSONLength);
+            }
+
+            // batch table
+            if (pntsHeader.BTJSONLength > 0) {
+                const sizeBegin = 28 + pntsHeader.FTJSONLength + pntsHeader.FTBinaryLength;
+                batchTable = BatchTableParser.parse(
+                    buffer.slice(sizeBegin, pntsHeader.BTJSONLength + sizeBegin),
+                );
+            }
+
+            const pnts = { point, batchTable };
+            return Promise.resolve(pnts);
+        }
+        throw new Error('Invalid pnts file.');
+    },
+};
