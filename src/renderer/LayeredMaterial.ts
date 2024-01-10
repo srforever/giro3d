@@ -22,7 +22,7 @@ import TileFS from './shader/TileFS.glsl';
 import WebGLComposer from './composition/WebGLComposer';
 import Rect from '../core/Rect';
 import MemoryTracker from './MemoryTracker.js';
-import MaterialUtils from './MaterialUtils.js';
+import MaterialUtils from './MaterialUtils';
 import type { TextureAndPitch } from '../core/layer/Layer.js';
 import type Layer from '../core/layer/Layer.js';
 import type MaskLayer from '../core/layer/MaskLayer.js';
