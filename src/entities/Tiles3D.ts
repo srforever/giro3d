@@ -12,7 +12,7 @@ import Entity3D from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
 import $3dTilesIndex, { type ProcessedTile } from './3dtiles/3dTilesIndex';
 import Fetcher from '../utils/Fetcher';
-import utf8Decoder from '../utils/Utf8Decoder.js';
+import utf8Decoder from '../utils/Utf8Decoder';
 import { GlobalCache } from '../core/Cache';
 import type RequestQueue from '../core/RequestQueue';
 import { DefaultQueue } from '../core/RequestQueue';

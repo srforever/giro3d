@@ -1,4 +1,4 @@
-import utf8Decoder from '../utils/Utf8Decoder.js';
+import utf8Decoder from '../utils/Utf8Decoder';
 
 export default {
     /** @module BatchTableParser */

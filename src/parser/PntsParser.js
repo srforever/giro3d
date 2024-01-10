@@ -1,6 +1,6 @@
 import { Vector3, BufferAttribute, BufferGeometry } from 'three';
 import BatchTableParser from './BatchTableParser.js';
-import utf8Decoder from '../utils/Utf8Decoder.js';
+import utf8Decoder from '../utils/Utf8Decoder';
 
 export default {
     /** @module PntsParser */
