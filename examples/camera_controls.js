@@ -8,7 +8,7 @@ import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import Panel from '@giro3d/giro3d/gui/Panel.js';
+import Panel from '@giro3d/giro3d/gui/Panel';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 
 import {

@@ -1,12 +1,17 @@
-/**
- * @module gui/CachePanel
- */
-
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
 import { GlobalCache } from '../core/Cache';
-import Panel from './Panel.js';
+import Panel from './Panel';
+import type Instance from '../core/Instance';
 
 class CachePanel extends Panel {
-    constructor(parentGui, instance) {
+    count: string;
+    size: string;
+    ttl: number;
+    capacityMb: number;
+    capacityEntries: number;
+
+    constructor(parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Cache');
 
         this.count = '?';
@@ -15,8 +20,8 @@ class CachePanel extends Panel {
         this.capacityMb = GlobalCache.maxSize / 1024 / 1024;
         this.capacityEntries = GlobalCache.capacity;
 
-        this.addController(GlobalCache, 'enabled').name('Enable cache');
-        this.addController(this, 'ttl')
+        this.addController<boolean>(GlobalCache, 'enabled').name('Enable cache');
+        this.addController<number>(this, 'ttl')
             .name('Default TTL (seconds)')
             .min(1)
             .max(3600)
@@ -24,27 +29,27 @@ class CachePanel extends Panel {
                 this.ttl = Math.floor(v);
                 GlobalCache.defaultTtl = this.ttl * 1000;
             });
-        this.addController(this, 'capacityMb')
+        this.addController<number>(this, 'capacityMb')
             .name('Capacity (MB)')
             .min(2)
             .max(1024)
             .onChange(v => {
                 this.capacityMb = Math.floor(v);
-                GlobalCache.maxSize = this.capacityMb * 1024 * 1024;
+                // GlobalCache.maxSize = this.capacityMb * 1024 * 1024;
             });
-        this.addController(this, 'capacityEntries')
+        this.addController<number>(this, 'capacityEntries')
             .name('Capacity (entries)')
             .min(0)
             .max(16000)
             .onChange(v => {
                 this.capacityEntries = Math.floor(v);
-                GlobalCache.capacity = this.capacityEntries;
+                // GlobalCache.capacity = this.capacityEntries;
             });
-        this.addController(this, 'count').name('Entries');
-        this.addController(this, 'size').name('Memory usage (approx)');
-        this.addController(this, 'purge').name('Purge stale entries');
-        this.addController(this, 'clear').name('Clear the cache');
-        this.addController(this, 'dump').name('Dump cache to console');
+        this.addController<string>(this, 'count').name('Entries');
+        this.addController<string>(this, 'size').name('Memory usage (approx)');
+        this.addController<never>(this, 'purge').name('Purge stale entries');
+        this.addController<never>(this, 'clear').name('Clear the cache');
+        this.addController<never>(this, 'dump').name('Dump cache to console');
     }
 
     purge() {

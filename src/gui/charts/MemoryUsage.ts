@@ -1,30 +1,38 @@
-/**
- * @module gui/charts/MemoryUsage
- */
-import GUI from 'lil-gui';
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
+import type { ChartData, ChartDataset, ScatterDataPoint } from 'chart.js';
 import { Chart } from 'chart.js';
-import Instance from '../../core/Instance';
-import ChartPanel, { pushTrim } from './ChartPanel.js';
-import { DefaultQueue } from '../../core/RequestQueue';
+import type { WebGLInfo } from 'three';
+import type Instance from '../../core/Instance';
+import ChartPanel, { pushTrim } from './ChartPanel';
 
 const MAX_DATA_POINTS = 20;
 
-class RequestQueueChart extends ChartPanel {
+class MemoryUsage extends ChartPanel {
+    render: typeof WebGLInfo.prototype.render;
+    memory: typeof WebGLInfo.prototype.memory;
+    labels: string[];
+    textures: ChartDataset<'line', ScatterDataPoint[]>;
+    geometries: ChartDataset<'line', ScatterDataPoint[]>;
+    data: ChartData<'line', ScatterDataPoint[], string>;
+    chart: Chart;
+
     /**
-     * Creates an instance of RequestQueueChart.
+     * Creates an instance of MemoryUsage.
      *
-     * @param {GUI} parentGui The parent GUI.
-     * @param {Instance} instance The giro3D instance.
-     * @memberof RequestQueueChart
+     * @param parentGui The parent GUI.
+     * @param instance The giro3D instance.
+     * @memberof MemoryUsage
      */
-    constructor(parentGui, instance) {
-        super(parentGui, instance, 'Request queue');
+    constructor(parentGui: GUI, instance: Instance) {
+        super(parentGui, instance, 'Memory');
 
+        this.render = instance.renderer.info.render;
+        this.memory = instance.renderer.info.memory;
         this.labels = [];
-        this.queue = DefaultQueue;
 
-        this.currentRequests = {
-            label: 'Executing',
+        this.textures = {
+            label: 'Textures',
             data: [],
             fill: false,
             borderWidth: 2,
@@ -34,8 +42,8 @@ class RequestQueueChart extends ChartPanel {
             yAxisID: 'y',
         };
 
-        this.pendingRequests = {
-            label: 'Pending',
+        this.geometries = {
+            label: 'Geometries',
             data: [],
             fill: false,
             borderWidth: 2,
@@ -47,7 +55,7 @@ class RequestQueueChart extends ChartPanel {
 
         this.data = {
             labels: this.labels,
-            datasets: [this.currentRequests, this.pendingRequests],
+            datasets: [this.textures, this.geometries],
         };
 
         this.chart = new Chart(this.ctx, {
@@ -63,7 +71,7 @@ class RequestQueueChart extends ChartPanel {
                     },
                     title: {
                         display: true,
-                        text: 'Requests queue',
+                        text: 'three.js object count',
                     },
                 },
                 scales: {
@@ -78,12 +86,14 @@ class RequestQueueChart extends ChartPanel {
                         suggestedMin: 0,
                         position: 'left',
                         ticks: {
+                            precision: 0,
                             color: '#FF5000',
                         },
                     },
                     y1: {
                         position: 'right',
                         ticks: {
+                            precision: 0,
                             color: '#0050FF',
                         },
                     },
@@ -97,16 +107,13 @@ class RequestQueueChart extends ChartPanel {
             return;
         }
 
-        const t = performance.now();
-        const q = this.queue;
-        console.log(q.pendingRequests);
-
-        pushTrim(this.currentRequests.data, { x: t, y: q.concurrentRequests }, MAX_DATA_POINTS);
-        pushTrim(this.pendingRequests.data, { x: t, y: q.pendingRequests }, MAX_DATA_POINTS);
+        const frame = this.render.frame;
+        pushTrim(this.textures.data, { x: frame, y: this.memory.textures }, MAX_DATA_POINTS);
+        pushTrim(this.geometries.data, { x: frame, y: this.memory.geometries }, MAX_DATA_POINTS);
         pushTrim(this.labels, '', MAX_DATA_POINTS);
 
         this.chart.update();
     }
 }
 
-export default RequestQueueChart;
+export default MemoryUsage;

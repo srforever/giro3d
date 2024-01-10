@@ -1,29 +1,30 @@
-/**
- * @module gui/InstanceInspector
- */
-import GUI from 'lil-gui';
-import Panel from './Panel.js';
-import Instance from '../core/Instance';
-import RenderingInspector from './RenderingInspector.js';
-import WebGLRendererInspector from './WebGLRendererInspector.js';
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
+import Panel from './Panel';
+import type Instance from '../core/Instance';
+import RenderingInspector from './RenderingInspector';
+import WebGLRendererInspector from './WebGLRendererInspector';
 
 class InstanceInspector extends Panel {
+    /** Store the CRS code of the instance */
+    instanceCrs: string;
+    state: string;
+    webGlRendererPanel: WebGLRendererInspector;
+    enginePanel: RenderingInspector;
+
     /**
-     * @param {GUI} gui The GUI.
-     * @param {Instance} instance The Giro3D instance.
+     * @param gui The GUI.
+     * @param instance The Giro3D instance.
      */
-    constructor(gui, instance) {
+    constructor(gui: GUI, instance: Instance) {
         super(gui, instance, 'Instance');
 
-        /**
-         * Store the CRS code of the instance
-         */
         this.instanceCrs = this.instance.referenceCrs;
-        this.addController(this, 'instanceCrs').name('CRS');
+        this.addController<string>(this, 'instanceCrs').name('CRS');
 
         this.state = 'idle';
-        this.addController(this, 'state').name('Status');
-        this.addController(this, 'triggerUpdate').name('Trigger update');
+        this.addController<string>(this, 'state').name('Status');
+        this.addController<never>(this, 'triggerUpdate').name('Trigger update');
 
         this.webGlRendererPanel = new WebGLRendererInspector(this.gui, instance);
         this.enginePanel = new RenderingInspector(this.gui, instance);

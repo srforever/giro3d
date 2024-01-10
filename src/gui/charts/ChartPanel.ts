@@ -1,6 +1,3 @@
-/**
- * @module gui/charts/ChartPanel
- */
 import {
     BarController,
     BarElement,
@@ -13,16 +10,19 @@ import {
     PointElement,
     Title,
 } from 'chart.js';
-import Panel from '../Panel.js';
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
+import Panel from '../Panel';
+import type Instance from '../../core/Instance';
 
 /**
  * Pushes the value in the array, removing old values in array length exceeds MAX_DATA_POINTS.
  *
- * @param {Array} array The array
- * @param {any} value The value
- * @param {number} limit The limit of the array size, before trimming.
+ * @param array The array
+ * @param value The value
+ * @param limit The limit of the array size, before trimming.
  */
-export function pushTrim(array, value, limit) {
+export function pushTrim<T extends any>(array: Array<T>, value: T, limit: number) {
     if (array.length > limit) {
         array.shift();
     }
@@ -31,11 +31,11 @@ export function pushTrim(array, value, limit) {
 
 /**
  * Base class for all chart panels.
- *
- * @abstract
  */
-class ChartPanel extends Panel {
-    constructor(parentGui, instance, name) {
+abstract class ChartPanel extends Panel {
+    ctx: HTMLCanvasElement;
+
+    constructor(parentGui: GUI, instance: Instance, name: string) {
         super(parentGui, instance, name);
 
         Chart.register(

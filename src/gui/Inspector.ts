@@ -1,17 +1,14 @@
-/**
- * @module gui/Inspector
- */
-
+// eslint-disable-next-line import/no-named-as-default
 import GUI from 'lil-gui';
-import Instance from '../core/Instance';
-import CameraInspector from './CameraInspector.js';
-import EntityPanel from './EntityPanel.js';
-import { MAIN_LOOP_EVENTS } from '../core/MainLoop';
-import Outliner from './outliner/Outliner.js';
-import ProcessingInspector from './ProcessingInspector.js';
-import Panel from './Panel.js';
-import PackageInfoInspector from './PackageInfoInspector.js';
-import InstanceInspector from './InstanceInspector.js';
+import type { FrameRequesterCallback } from '../core/Instance';
+import type Instance from '../core/Instance';
+import CameraInspector from './CameraInspector';
+import EntityPanel from './EntityPanel';
+import Outliner from './outliner/Outliner';
+import ProcessingInspector from './ProcessingInspector';
+import type Panel from './Panel';
+import PackageInfoInspector from './PackageInfoInspector';
+import InstanceInspector from './InstanceInspector';
 
 // Here follows the style adaptation to lil-gui
 const styles = `
@@ -27,11 +24,20 @@ styleSheet.type = 'text/css';
 styleSheet.innerText = styles;
 document.head.appendChild(styleSheet);
 
-/**
- * @typedef {object} Options
- * @property {number} [width=450] The panel width, in pixels.
- * @property {string} [title='Inspector'] The title of the inspector.
- */
+export interface InspectorOptions {
+    /**
+     * The panel width, in pixels.
+     *
+     * @default 450
+     */
+    width?: number;
+    /**
+     * The title of the inspector.
+     *
+     * @default Inspector
+     */
+    title?: string;
+}
 
 /**
  * Provides a user interface to inspect and edit the Giro3D scene.
@@ -41,14 +47,19 @@ document.head.appendChild(styleSheet);
  *
  */
 class Inspector {
+    private _frameRequesterCb: FrameRequesterCallback;
+    instance: Instance;
+    gui: GUI;
+    folders: Panel[];
+
     /**
      * Creates an instance of the inspector.
      *
-     * @param {HTMLDivElement} div The div element to attach the panel to.
-     * @param {Instance} instance The Giro3D instance.
-     * @param {Options} options The options.
+     * @param div The div element to attach the panel to.
+     * @param instance The Giro3D instance.
+     * @param options The options.
      */
-    constructor(div, instance, options = {}) {
+    constructor(div: HTMLDivElement, instance: Instance, options: InspectorOptions = {}) {
         this.instance = instance;
         this.gui = new GUI({
             autoPlace: false,
@@ -60,10 +71,7 @@ class Inspector {
         div.appendChild(this.gui.domElement);
 
         this._frameRequesterCb = () => this.update();
-        instance.addFrameRequester(
-            MAIN_LOOP_EVENTS.UPDATE_START,
-            this._frameRequesterCb,
-        );
+        instance.addFrameRequester('update_start', this._frameRequesterCb);
 
         this.folders = [];
 
@@ -85,28 +93,29 @@ class Inspector {
      */
     clearPanels() {
         while (this.folders.length > 0) {
-            this.folders.pop().dispose();
+            const gui = this.folders.pop();
+            if ((gui as any).dispose) (gui as any).dispose();
         }
     }
 
     /**
      * Adds a panel to the inspector.
      *
-     * @param {Panel} panel The panel to add.
+     * @param panel The panel to add.
      */
-    addPanel(panel) {
+    addPanel(panel: Panel) {
         this.folders.push(panel);
     }
 
     /**
      * Attaches the inspector to the specified DOM element.
      *
-     * @param {HTMLDivElement} div The div element to attach the panel to.
-     * @param {Instance} instance The Giro3D instance.
-     * @param {Options} [options] The options.
-     * @returns {Inspector} The created inspector.
+     * @param div The div element to attach the panel to.
+     * @param instance The Giro3D instance.
+     * @param options The options.
+     * @returns The created inspector.
      */
-    static attach(div, instance, options = {}) {
+    static attach(div: HTMLDivElement, instance: Instance, options: InspectorOptions = {}) {
         const inspector = new Inspector(div, instance, options);
         return inspector;
     }
@@ -117,10 +126,7 @@ class Inspector {
      */
     detach() {
         this.clearPanels();
-        this.instance.removeFrameRequester(
-            MAIN_LOOP_EVENTS.UPDATE_START,
-            this._frameRequesterCb,
-        );
+        this.instance.removeFrameRequester('update_start', this._frameRequesterCb);
         this.gui.domElement.remove();
     }
 

@@ -461,6 +461,11 @@ class CogSource extends ImageSource {
         return this._channels;
     }
 
+    set channels(value: number[]) {
+        this._channels = value;
+        this.update();
+    }
+
     private async loadImage(opts: {
         extent: Extent,
         width: number,

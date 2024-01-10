@@ -1,22 +1,22 @@
-/**
- * @module gui/ProcessingInspector
- */
-import GUI from 'lil-gui';
-import Panel from './Panel.js';
-import Instance from '../core/Instance';
-import FrameDuration from './charts/FrameDuration.js';
-import MemoryUsage from './charts/MemoryUsage.js';
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
+import Panel from './Panel';
+import type Instance from '../core/Instance';
+import FrameDuration from './charts/FrameDuration';
+import MemoryUsage from './charts/MemoryUsage';
 import MemoryTracker from '../renderer/MemoryTracker';
-import CachePanel from './CachePanel.js';
-import FetcherPanel from './FetcherPanel.js';
-import RequestQueueChart from './charts/RequestQueueChart.js';
+import CachePanel from './CachePanel';
+import FetcherPanel from './FetcherPanel';
+import RequestQueueChart from './charts/RequestQueueChart';
 
 class ProcessingInspector extends Panel {
+    charts: Panel[];
+
     /**
-     * @param {GUI} gui The GUI.
-     * @param {Instance} instance The Giro3D instance.
+     * @param gui The GUI.
+     * @param instance The Giro3D instance.
      */
-    constructor(gui, instance) {
+    constructor(gui: GUI, instance: Instance) {
         super(gui, instance, 'Processing');
 
         this.charts = [];

@@ -1,19 +1,19 @@
-/**
- * @module gui/PackageInfoInspector
- */
-
-import GUI from 'lil-gui';
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
 import { VERSION as olversion } from 'ol/util.js';
-import Instance from '../core/Instance';
-import Panel from './Panel.js';
+import type Instance from '../core/Instance';
+import Panel from './Panel';
 import VERSION from '../version.js';
 
 class PackageInfoInspector extends Panel {
+    olversion: string;
+    giro3dVersion: string;
+
     /**
-     * @param {GUI} parentGui The parent GUI.
-     * @param {Instance} instance The Giro3D instance.
+     * @param parentGui The parent GUI.
+     * @param instance The Giro3D instance.
      */
-    constructor(parentGui, instance) {
+    constructor(parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Info');
 
         this.olversion = olversion;

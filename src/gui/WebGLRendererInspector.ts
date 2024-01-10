@@ -1,38 +1,37 @@
-/**
- * @module gui/WebGLRendererInspector
- */
-import GUI from 'lil-gui';
-import { WebGLRenderer } from 'three';
-import Panel from './Panel.js';
-import Instance from '../core/Instance';
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
+import type { WebGLRenderer } from 'three';
+import Panel from './Panel';
+import type Instance from '../core/Instance';
 
 class WebGLRendererInspector extends Panel {
+    renderer: WebGLRenderer;
+
     /**
-     * @param {GUI} gui The GUI.
-     * @param {Instance} instance The Giro3D instance.
+     * @param gui The GUI.
+     * @param instance The Giro3D instance.
      */
-    constructor(gui, instance) {
+    constructor(gui: GUI, instance: Instance) {
         super(gui, instance, 'WebGLRenderer');
 
-        /** @type {WebGLRenderer} */
         this.renderer = this.instance.renderer;
 
-        this.addController(this.renderer, 'localClippingEnabled').onChange(() => this.notify());
+        this.addController<boolean>(this.renderer, 'localClippingEnabled').onChange(() => this.notify());
 
         this._addCapabilities(this.renderer, this.gui.addFolder('Capabilities'));
     }
 
     /**
-     * @param {WebGLRenderer} renderer The renderer
-     * @param {GUI} rendererPanel The GUI
+     * @param renderer The renderer
+     * @param rendererPanel The GUI
      */
-    _addCapabilities(renderer, rendererPanel) {
+    _addCapabilities(renderer: WebGLRenderer, rendererPanel: GUI) {
         const cap = renderer.capabilities;
         const debug = renderer.debug;
 
         const ctrls = this._controllers;
 
-        function add(ctrl, prop, name) {
+        function add(ctrl: object, prop: string, name: string) {
             ctrls.push(rendererPanel.add(ctrl, prop).name(name));
         }
 
@@ -49,7 +48,7 @@ class WebGLRendererInspector extends Panel {
         extensionPanel.close();
 
         const supported = renderer.getContext().getSupportedExtensions();
-        const suppObj = {};
+        const suppObj: Record<string, boolean> = {};
 
         for (const supp of supported) {
             suppObj[supp] = true;

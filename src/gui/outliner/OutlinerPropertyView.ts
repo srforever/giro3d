@@ -1,11 +1,13 @@
-/**
- * @module gui/outliner/OutlinerPropertyView
- */
 import { Object3D } from 'three';
-import Panel from '../Panel.js';
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
+import Panel from '../Panel';
+import type Instance from '../../core/Instance';
 
 class OutlinerPropertyView extends Panel {
-    constructor(parentGui, instance) {
+    protected _folders: GUI[];
+
+    constructor(parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Properties');
 
         this._folders = [];
@@ -17,7 +19,7 @@ class OutlinerPropertyView extends Panel {
         this.populateProperties(new Object3D());
     }
 
-    createControllers(obj, gui) {
+    createControllers(obj: any, gui: GUI) {
         if (!obj) {
             return;
         }
@@ -33,15 +35,15 @@ class OutlinerPropertyView extends Panel {
     }
 
     /**
-     * @param {Object3D} obj The object to update.
+     * @param obj The object to update.
      */
-    updateObject(obj) {
+    updateObject(obj: Object3D) {
         obj.updateMatrixWorld(true);
         obj.updateWorldMatrix(true, true);
         this.notify();
     }
 
-    populateProperties(obj) {
+    populateProperties(obj: Object3D) {
         while (this._controllers.length > 0) {
             this._controllers.pop().destroy();
         }
@@ -64,22 +66,23 @@ class OutlinerPropertyView extends Panel {
         this._controllers.push(scale.add(obj.scale, 'y').onChange(() => this.updateObject(obj)));
         this._controllers.push(scale.add(obj.scale, 'z').onChange(() => this.updateObject(obj)));
 
-        if (obj.material) {
+        if ('material' in obj && obj.material) {
             const material = this.gui.addFolder('Material');
             this._folders.push(material);
             material.close();
             this.createControllers(obj.material, material);
         }
 
-        if (obj.geometry) {
+        if ('geometry' in obj && obj.geometry) {
             const geometry = this.gui.addFolder('Geometry');
             this._folders.push(geometry);
             geometry.close();
             this.createControllers(obj.geometry, geometry);
-            if (obj.geometry.attributes) {
+            if ((obj as any).geometry.attributes) {
+                const attrs = (obj as any).geometry.attributes;
                 const attributes = geometry.addFolder('Attributes');
-                Object.keys(obj.geometry.attributes).forEach(p => {
-                    const attrValue = obj.geometry.attributes[p];
+                Object.keys(attrs).forEach(p => {
+                    const attrValue = attrs[p];
                     if (p && attrValue) {
                         const attr = attributes.addFolder(p);
                         attr.close();

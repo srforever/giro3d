@@ -1,18 +1,17 @@
-/**
- * @module gui/EntityPanel
- */
-import GUI from 'lil-gui';
-import Instance from '../core/Instance';
-import EntityInspector from './EntityInspector.js';
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
+import type { FrameRequesterCallback } from '../core/Instance';
+import type Instance from '../core/Instance';
+import type EntityInspector from './EntityInspector';
 import FeatureCollectionInspector from './FeatureCollectionInspector';
-import MapInspector from './MapInspector.js';
-import AxisGridInspector from './AxisGridInspector.js';
-import Panel from './Panel.js';
-import Tiles3dInspector from './Tiles3dInspector.js';
-import { MAIN_LOOP_EVENTS } from '../core/MainLoop';
-import PotreePointCloudInspector from './PotreePointCloudInspector.js';
+import MapInspector from './MapInspector';
+import AxisGridInspector from './AxisGridInspector';
+import Panel from './Panel';
+import Tiles3dInspector from './Tiles3dInspector';
+import PotreePointCloudInspector from './PotreePointCloudInspector';
+import type Entity3D from '../entities/Entity3D';
 
-const customInspectors = {
+const customInspectors: Record<string, typeof EntityInspector> = {
     Map: MapInspector,
     Tiles3D: Tiles3dInspector,
     PotreePointCloud: PotreePointCloudInspector,
@@ -27,18 +26,20 @@ const customInspectors = {
  *
  */
 class EntityPanel extends Panel {
+    private _frameRequester: FrameRequesterCallback;
+    private _createInspectorsCb: () => void;
+    folders: GUI[];
+    inspectors: EntityInspector[];
+
     /**
-     * @param {GUI} gui The GUI.
-     * @param {Instance} instance The Giro3D instance.
+     * @param gui The GUI.
+     * @param instance The Giro3D instance.
      */
-    constructor(gui, instance) {
+    constructor(gui: GUI, instance: Instance) {
         super(gui, instance, 'Entities');
 
         this._frameRequester = () => this.update();
-        this.instance.addFrameRequester(
-            MAIN_LOOP_EVENTS.UPDATE_START,
-            this._frameRequester,
-        );
+        this.instance.addFrameRequester('update_start', this._frameRequester);
 
         // rebuild the inspectors when the instance is updated
         this._createInspectorsCb = () => this.createInspectors();
@@ -51,7 +52,7 @@ class EntityPanel extends Panel {
     }
 
     dispose() {
-        this.instance.removeFrameRequester(MAIN_LOOP_EVENTS.UPDATE_START, this._frameRequester);
+        this.instance.removeFrameRequester('update_start', this._frameRequester);
         this.instance.removeEventListener('entity-added', this._createInspectorsCb);
         this.instance.removeEventListener('entity-removed', this._createInspectorsCb);
         while (this.folders.length > 0) {
@@ -66,12 +67,12 @@ class EntityPanel extends Panel {
      * Registers an inspector for an entity type.
      *
      * @static
-     * @param {string} type The entity type. This should match the property `type` on the entity.
-     * @param {EntityInspector} inspector The inspector.
+     * @param type The entity type. This should match the property `type` on the entity.
+     * @param inspector The inspector.
      * @example
      * EntityPanel.registerInspector('Map', MyCustomMapInspector);
      */
-    static registerInspector(type, inspector) {
+    static registerInspector(type: string, inspector: typeof EntityInspector) {
         customInspectors[type] = inspector;
     }
 
@@ -88,8 +89,8 @@ class EntityPanel extends Panel {
         }
 
         this.instance
-            .getObjects(x => !x.isObject3D)
-            .forEach(entity => {
+            .getObjects(x => (x as Entity3D).isEntity3D)
+            .forEach((entity: Entity3D) => {
                 const type = entity.type;
                 if (customInspectors[type]) {
                     const inspector = new customInspectors[type](this.gui, this.instance, entity);

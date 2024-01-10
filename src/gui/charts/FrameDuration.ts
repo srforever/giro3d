@@ -1,14 +1,22 @@
-/**
- * @module gui/charts/FrameDuration
- */
+import type { ChartData, ScatterDataPoint } from 'chart.js';
 import { Chart } from 'chart.js';
-import ChartPanel, { pushTrim } from './ChartPanel.js';
-import { MAIN_LOOP_EVENTS } from '../../core/MainLoop';
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
+import type { WebGLInfo } from 'three';
+import ChartPanel, { pushTrim } from './ChartPanel';
+import type { Instance } from '../../core';
 
 const MAX_DATA_POINTS = 30;
 
 class FrameDuration extends ChartPanel {
-    constructor(parentGui, instance) {
+    render: typeof WebGLInfo.prototype.render;
+    data: ChartData<'bar', ScatterDataPoint[], string>;
+    chart: Chart;
+    updateStart: number;
+    renderStart: number;
+    frame: number;
+
+    constructor(parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Frame duration (ms)');
 
         this.render = instance.renderer.info.render;
@@ -16,7 +24,7 @@ class FrameDuration extends ChartPanel {
         const totalFrameLength = {
             label: 'Total',
             tension: 0.2,
-            data: [],
+            data: [] as ScatterDataPoint[],
             fill: false,
             borderWidth: 2,
             pointRadius: 0,
@@ -27,7 +35,7 @@ class FrameDuration extends ChartPanel {
         const renderTime = {
             label: 'Render',
             tension: 0.2,
-            data: [],
+            data: [] as ScatterDataPoint[],
             fill: false,
             borderWidth: 2,
             pointRadius: 0,
@@ -35,7 +43,7 @@ class FrameDuration extends ChartPanel {
             borderColor: '#0050FFFF',
         };
 
-        const labels = [];
+        const labels: string[] = [];
 
         this.data = {
             labels,
@@ -79,7 +87,7 @@ class FrameDuration extends ChartPanel {
         this.frame = 0;
 
         instance.addFrameRequester(
-            MAIN_LOOP_EVENTS.UPDATE_START,
+            'update_start',
             () => {
                 this.frame++;
                 this.updateStart = performance.now();
@@ -87,7 +95,7 @@ class FrameDuration extends ChartPanel {
         );
 
         instance.addFrameRequester(
-            MAIN_LOOP_EVENTS.UPDATE_END,
+            'update_end',
             () => {
                 const now = performance.now();
                 pushTrim(
@@ -101,14 +109,14 @@ class FrameDuration extends ChartPanel {
         );
 
         instance.addFrameRequester(
-            MAIN_LOOP_EVENTS.BEFORE_RENDER,
+            'before_render',
             () => {
                 this.renderStart = performance.now();
             },
         );
 
         instance.addFrameRequester(
-            MAIN_LOOP_EVENTS.AFTER_RENDER,
+            'after_render',
             () => {
                 const now = performance.now();
                 pushTrim(

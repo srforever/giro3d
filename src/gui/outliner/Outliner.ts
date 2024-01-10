@@ -1,20 +1,30 @@
-/**
- * @module gui/outliner/Outliner
- */
-import GUI from 'lil-gui';
-import { Object3D } from 'three';
-import Instance from '../../core/Instance';
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
+import type { Object3D } from 'three';
+import { Color } from 'three';
+import type Instance from '../../core/Instance';
+import type { BoundingBoxHelper } from '../../helpers/Helpers';
 import Helpers from '../../helpers/Helpers';
-import Panel from '../Panel.js';
-import OutlinerPropertyView from './OutlinerPropertyView.js';
+import Panel from '../Panel';
+import OutlinerPropertyView from './OutlinerPropertyView';
+
+type OutlinedObject3D = Object3D & {
+    treeviewVisible: boolean;
+};
+type ClickHandler = (obj: OutlinedObject3D) => void;
+interface Filter {
+    showHelpers?: boolean;
+    searchRegex?: RegExp | null;
+    searchQuery: string;
+}
 
 /**
  * Returns the colors associated with the THREE object type.
  *
- * @param {Object3D} obj the THREE object
- * @returns {object} the object containing foreground and background colors
+ * @param obj the THREE object
+ * @returns the object containing foreground and background colors
  */
-function selectColor(obj) {
+function selectColor(obj: OutlinedObject3D): { back: string, fore: string } {
     switch (obj.type) {
         case 'Mesh':
             return { back: 'orange', fore: 'black' };
@@ -31,7 +41,7 @@ function selectColor(obj) {
     }
 }
 
-function createTreeViewNode(obj, marginLeft, clickHandler) {
+function createTreeViewNode(obj: OutlinedObject3D, marginLeft: number, clickHandler: ClickHandler) {
     const div = document.createElement('button');
     div.style.textAlign = 'left';
     div.onclick = () => clickHandler(obj);
@@ -52,11 +62,15 @@ function createTreeViewNode(obj, marginLeft, clickHandler) {
 /**
  * Creates a treeview node for the specified object and its children.
  *
- * @param {Object3D} obj the THREE object.
- * @param {Function} clickHandler the function to call when a node is clicked.
- * @param {number} level the hierarchy level
+ * @param obj the THREE object.
+ * @param clickHandler the function to call when a node is clicked.
+ * @param level the hierarchy level
  */
-function createTreeViewNodeWithDescendants(obj, clickHandler, level = 0) {
+function createTreeViewNodeWithDescendants(
+    obj: OutlinedObject3D,
+    clickHandler: ClickHandler,
+    level = 0,
+) {
     if (obj.type !== 'Scene' && obj.treeviewVisible === false) {
         return null;
     }
@@ -71,7 +85,7 @@ function createTreeViewNodeWithDescendants(obj, clickHandler, level = 0) {
 
     // recursively create the DOM elements for the children
     const childLevel = level + 1;
-    obj.children.forEach(child => {
+    obj.children.forEach((child: OutlinedObject3D) => {
         const childNode = createTreeViewNodeWithDescendants(
             child,
             clickHandler,
@@ -85,33 +99,15 @@ function createTreeViewNodeWithDescendants(obj, clickHandler, level = 0) {
     return div;
 }
 
-function setAncestorsVisible(obj) {
+function setAncestorsVisible(obj: OutlinedObject3D) {
     if (obj) {
         obj.treeviewVisible = true;
-        setAncestorsVisible(obj.parent);
+        setAncestorsVisible(obj.parent as OutlinedObject3D);
     }
 }
 
-/**
- * @param {Object3D} obj the object to process
- * @param {object} [filter] the search filter
- * @param {boolean} [filter.showHelpers] should we show helpers ?
- * @param {RegExp} [filter.searchRegex=null] the name filter
- */
-function applySearchFilter(obj, filter) {
-    if (shouldBeDisplayedInTree(obj, filter)) {
-        setAncestorsVisible(obj);
-    } else {
-        obj.treeviewVisible = false;
-    }
-
-    if (obj.children) {
-        obj.children.forEach(c => applySearchFilter(c, filter));
-    }
-}
-
-function shouldBeDisplayedInTree(obj, filter) {
-    if (obj.isHelper && !filter.showHelpers) {
+function shouldBeDisplayedInTree(obj: OutlinedObject3D, filter: Filter) {
+    if ((obj as any).isHelper && !filter.showHelpers) {
         return false;
     }
 
@@ -123,20 +119,39 @@ function shouldBeDisplayedInTree(obj, filter) {
 }
 
 /**
+ * @param obj the object to process
+ * @param filter the search filter
+ */
+function applySearchFilter(obj: OutlinedObject3D, filter: Filter) {
+    if (shouldBeDisplayedInTree(obj, filter)) {
+        setAncestorsVisible(obj);
+    } else {
+        obj.treeviewVisible = false;
+    }
+
+    if (obj.children) {
+        obj.children.forEach((c: OutlinedObject3D) => applySearchFilter(c, filter));
+    }
+}
+
+/**
  * Provides a tree view of the three.js [scene](https://threejs.org/docs/index.html?q=scene#api/en/scenes/Scene).
  *
  */
 class Outliner extends Panel {
-    /**
-     * @param {GUI} gui The GUI.
-     * @param {Instance} instance The Giro3D instance.
-     */
-    constructor(gui, instance) {
-        super(gui, instance, 'Outliner');
-        this.instance = instance;
+    filters: Filter;
+    treeviewContainer: HTMLDivElement;
+    treeview: HTMLDivElement;
+    rootNode: HTMLDivElement;
+    propView: OutlinerPropertyView;
+    selectionHelper?: BoundingBoxHelper;
 
-        this._controllers = [];
-        this._folders = [];
+    /**
+     * @param gui The GUI.
+     * @param instance The Giro3D instance.
+     */
+    constructor(gui: GUI, instance: Instance) {
+        super(gui, instance, 'Outliner');
 
         this.filters = {
             showHelpers: false,
@@ -154,13 +169,13 @@ class Outliner extends Panel {
         // avoid wrapping ids and coordinates for deep-nested elements
         this.treeview.style.whiteSpace = 'nowrap';
 
-        this.addController(this.filters, 'showHelpers')
+        this.addController<boolean>(this.filters, 'showHelpers')
             .name('Show helpers')
             .onChange(() => {
                 this.search();
                 this.instance.notifyChange();
             });
-        this.addController(this.filters, 'searchQuery')
+        this.addController<string>(this.filters, 'searchQuery')
             .name('Name filter')
             .onChange(() => {
                 this.search();
@@ -182,7 +197,7 @@ class Outliner extends Panel {
         this.updateTreeView();
     }
 
-    onNodeClicked(obj) {
+    onNodeClicked(obj: OutlinedObject3D) {
         this.select(obj);
         this.propView.populateProperties(obj);
         this.instance.notifyChange();
@@ -191,16 +206,16 @@ class Outliner extends Panel {
     /**
      * Selects the object by displaying a bright bounding box around it.
      *
-     * @param {Object3D} obj The object to select.
+     * @param obj The object to select.
      */
-    select(obj) {
+    select(obj: OutlinedObject3D) {
         this.clearSelection();
 
-        if (obj === this.selectionHelper) {
+        if ((obj as any) === this.selectionHelper) {
             return;
         }
 
-        this.selectionHelper = Helpers.createSelectionBox(obj, '#00FF00');
+        this.selectionHelper = Helpers.createSelectionBox(obj, new Color('#00FF00'));
         this.selectionHelper.name = 'selection';
     }
 
@@ -222,7 +237,7 @@ class Outliner extends Panel {
         this.updateTreeView();
     }
 
-    updateObject(o) {
+    updateObject(o: Object3D) {
         o.updateMatrixWorld(true);
         this.instance.notifyChange();
     }
@@ -237,10 +252,10 @@ class Outliner extends Panel {
             this.treeview.removeChild(this.rootNode);
         }
 
-        applySearchFilter(this.instance.scene, this.filters);
+        applySearchFilter(this.instance.scene as unknown as OutlinedObject3D, this.filters);
 
         this.rootNode = createTreeViewNodeWithDescendants(
-            this.instance.scene,
+            this.instance.scene as unknown as OutlinedObject3D,
             obj => this.onNodeClicked(obj),
         );
         this.treeview.appendChild(this.rootNode);

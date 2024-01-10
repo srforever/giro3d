@@ -1,35 +1,39 @@
-/**
- * @module gui/Panel
- */
-import GUI, { ColorController, Controller } from 'lil-gui';
-import Instance from '../core/Instance';
+import type { Controller } from 'lil-gui';
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
+import type { Color } from 'three';
+import type Instance from '../core/Instance';
+
+export interface TypedController<T> extends Controller {
+    initialValue: T | undefined;
+    onChange: (callback: (value: T) => void) => this;
+    onFinishChange: (callback: (value: T) => void) => this;
+    getValue: () => T;
+    setValue: (value: T) => this;
+}
 
 /**
  * Base class for the panels in the inspector.
- *
- * @abstract
  */
-class Panel {
+abstract class Panel {
+    gui: GUI;
+    instance: Instance;
+    /** The controllers. */
+    protected _controllers: Controller[];
+
     /**
-     * @param {GUI} parentGui The parent GUI.
-     * @param {Instance} instance The Giro3D instance.
-     * @param {string} name The name of the panel.
-     * @abstract
+     * @param parentGui The parent GUI.
+     * @param instance The Giro3D instance.
+     * @param name The name of the panel.
      */
-    constructor(parentGui, instance, name) {
+    constructor(parentGui: GUI, instance: Instance, name: string) {
         this.gui = parentGui.addFolder(name);
         this.gui.close();
         this.instance = instance;
-
-        /**
-         * The controllers.
-         *
-         * @type {Controller[]}
-         */
         this._controllers = [];
     }
 
-    notify(source = undefined) {
+    notify(source: any = undefined) {
         this.instance.notifyChange(source);
     }
 
@@ -40,12 +44,12 @@ class Panel {
     /**
      * Adds a color controller to the panel.
      *
-     * @param {object} obj The object.
-     * @param {string} prop The name of the property.
-     * @returns {ColorController} The created controller.
+     * @param obj The object.
+     * @param prop The name of the property.
+     * @returns The created controller.
      */
-    addColorController(obj, prop) {
-        const controller = this.gui.addColor(obj, prop);
+    addColorController(obj: any, prop: string) {
+        const controller = this.gui.addColor(obj, prop) as TypedController<Color>;
         this._controllers.push(controller);
         return controller;
     }
@@ -54,21 +58,27 @@ class Panel {
      * Adds a (non-color) controller to the panel.
      * See [the lil-gui API](https://lil-gui.georgealways.com/#GUI#add) for more information.
      *
-     * @param {object} obj The object.
-     * @param {string} prop The name of the property.
-     * @param {object|number|any[]|undefined} [$1=undefined] Minimum value for number controllers,
+     * @param obj The object.
+     * @param prop The name of the property.
+     * @param $1 Minimum value for number controllers,
      * or the set of selectable values for a dropdown.
-     * @param {number|undefined} [max=undefined] Maximum value for number controllers.
-     * @param {number|undefined} [step=undefined] Step value for number controllers.
-     * @returns {Controller} The created controller.
+     * @param max Maximum value for number controllers.
+     * @param step Step value for number controllers.
+     * @returns The created controller.
      */
-    addController(obj, prop, $1, max, step) {
-        const controller = this.gui.add(obj, prop, $1, max, step);
+    addController<T>(
+        obj: any,
+        prop: string,
+        $1?: object | number | any[],
+        max?: number,
+        step?: number,
+    ) {
+        const controller = this.gui.add(obj, prop, $1, max, step) as TypedController<T>;
         this._controllers.push(controller);
         return controller;
     }
 
-    removeController(controller) {
+    removeController(controller: Controller) {
         this._controllers.slice(this._controllers.indexOf(controller));
         this.updateControllers();
     }
