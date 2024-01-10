@@ -26,7 +26,7 @@ async function pntsParse(data: ArrayBuffer, entity: Tiles3D) {
     const material = entity.material
         ? entity.material.clone()
         : new PointsMaterial();
-    if ((material as PointsMaterial).enablePicking) {
+    if (PointsMaterial.isPointsMaterial(material)) {
         preparePointGeometryForPicking(result.point.geometry);
     }
     // creation points with geometry and material

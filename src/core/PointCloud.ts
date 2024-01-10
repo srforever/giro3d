@@ -6,7 +6,7 @@ import {
     type Object3DEventMap,
     type Material,
 } from 'three';
-import PointsMaterial from '../renderer/PointsMaterial.js';
+import PointsMaterial from '../renderer/PointsMaterial';
 import type Entity3D from '../entities/Entity3D.js';
 import type Extent from './geographic/Extent.js';
 

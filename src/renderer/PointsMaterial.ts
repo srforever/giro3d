@@ -1,7 +1,3 @@
-/**
- * @module renderer/PointsMaterial
- */
-
 import {
     Matrix4,
     Color,
@@ -17,6 +13,9 @@ import {
 import PointsVS from './shader/PointsVS.glsl';
 import PointsFS from './shader/PointsFS.glsl';
 import Capabilities from '../core/system/Capabilities';
+import type ColorLayer from '../core/layer/ColorLayer';
+import type Extent from '../core/geographic/Extent';
+import type { TextureAndPitch } from '../core/layer/Layer';
 
 /**
  * Specifies the way points are colored.
@@ -39,37 +38,77 @@ export const MODE = {
     ELEVATION: 5,
 };
 
+export type Mode = typeof MODE[keyof typeof MODE];
+
 const NUM_TRANSFO = 16;
 
+export interface PointsMaterialOptions {
+    /**
+     * The point size.
+     *
+     * @default 0
+     */
+    size?: number;
+    /** The point scale. */
+    scale?: number;
+    /**
+     * An additional color to use.
+     *
+     * @default `new Vector4(0, 0, 0, 0)`
+     */
+    overlayColor?: Vector4;
+    /**
+     * Specifies the criterion to colorize points.
+     *
+     * @default MODE.COLOR
+     */
+    mode?: Mode;
+}
+
 class PointsMaterial extends ShaderMaterial {
+    size: number;
+    scale: number;
+    overlayColor: Vector4;
+    private _brightness: number;
+    private _contrast: number;
+    private _saturation: number;
+    mode: Mode;
+    pickingId: number;
+    transformations: Matrix4[];
+    vec: Vector3[];
+    origin: Vector2[];
+    influence: Vector2[];
+    tColors: Color[];
+    colorLayer: ColorLayer | null;
+    disposed?: boolean;
+    private _mustUpdateUniforms?: boolean;
+
     /**
      * Creates a PointsMaterial using the specified options.
      *
-     * @param {object} options The options.
-     * @param {number} [options.size=0] The point size.
-     * @param {number} [options.scale] The point scale.
-     * @param {Vector4} [options.overlayColor=new Vector4(0, 0, 0, 0)] An additional color to use.
-     * @param {number} [options.mode=MODE.COLOR] Specifies the criterion to colorize points.
+     * @param options The options.
      */
-    constructor(options = {}) {
+    constructor(options: PointsMaterialOptions = {}) {
         super({ clipping: true, glslVersion: GLSL3 });
+        // @ts-ignore
         if (__DEBUG__) {
             this.defines.DEBUG = 1;
         }
         this.vertexShader = PointsVS;
         this.fragmentShader = PointsFS;
 
-        this.size = options.size || 0;
-        this.scale = options.scale || (0.05 * 0.5) / Math.tan(1.0 / 2.0); // autosizing scale
-        this.overlayColor = options.overlayColor || new Vector4(0, 0, 0, 0);
+        this.size = options.size ?? 0;
+        this.scale = options.scale ?? (0.05 * 0.5) / Math.tan(1.0 / 2.0); // autosizing scale
+        this.overlayColor = options.overlayColor ?? new Vector4(0, 0, 0, 0);
         this._brightness = 0;
         this._contrast = 1;
         this._saturation = 1;
-        this.mode = options.mode || MODE.COLOR;
+        this.mode = options.mode ?? MODE.COLOR;
         this.pickingId = 0;
 
         for (const key of Object.keys(MODE)) {
             if (Object.prototype.hasOwnProperty.call(MODE, key)) {
+                // @ts-ignore
                 this.defines[`MODE_${key}`] = MODE[key];
             }
         }
@@ -79,7 +118,7 @@ class PointsMaterial extends ShaderMaterial {
         this.uniforms.pickingId = new Uniform(this.pickingId);
         this.uniforms.opacity = new Uniform(this.opacity);
         this.uniforms.overlayColor = new Uniform(this.overlayColor);
-        this.uniforms.overlayTexture = new Uniform();
+        this.uniforms.overlayTexture = new Uniform(undefined);
         this.uniforms.hasOverlayTexture = new Uniform(0);
         this.uniforms.brightnessContrastSaturation = new Uniform(
             new Vector3(this._brightness, this._contrast, this._saturation),
@@ -142,18 +181,18 @@ class PointsMaterial extends ShaderMaterial {
     }
 
     clone() {
-        const cl = super.clone(this);
+        const cl = super.clone();
         cl.update(this);
         return cl;
     }
 
-    enablePicking(picking) {
+    enablePicking(picking: number) {
         this.pickingId = picking;
         this.blending = picking ? NoBlending : NormalBlending;
         this.updateUniforms();
     }
 
-    hasColorLayer(layer) {
+    hasColorLayer(layer: ColorLayer) {
         return this.colorLayer === layer;
     }
 
@@ -171,7 +210,7 @@ class PointsMaterial extends ShaderMaterial {
         );
     }
 
-    update(source) {
+    update(source?: PointsMaterial) {
         if (source) {
             this.visible = source.visible;
             this.opacity = source.opacity;
@@ -202,12 +241,12 @@ class PointsMaterial extends ShaderMaterial {
     }
 
     // Coloring support
-    pushColorLayer(layer, extent) {
+    pushColorLayer(layer: ColorLayer, extent: Extent) {
         this.mode = MODE.TEXTURE;
         this.updateUniforms();
 
         this.colorLayer = layer;
-        this.uniforms.overlayTexture = new Uniform();
+        this.uniforms.overlayTexture = new Uniform(undefined);
         this.uniforms.hasOverlayTexture = new Uniform(0);
         this.uniforms.offsetScale = new Uniform(new Vector4(0, 0, 1, 1));
         this.uniforms.extentBottomLeft = new Uniform(new Vector2(extent.west(), extent.south()));
@@ -216,7 +255,7 @@ class PointsMaterial extends ShaderMaterial {
         this.needsUpdate = true;
     }
 
-    indexOfColorLayer(layer) {
+    indexOfColorLayer(layer: ColorLayer) {
         if (layer === this.colorLayer) {
             return 0;
         }
@@ -224,14 +263,15 @@ class PointsMaterial extends ShaderMaterial {
         return -1;
     }
 
-    getColorTexture(layer) {
+    getColorTexture(layer: ColorLayer) {
         if (layer !== this.colorLayer) {
             return null;
         }
         return this.uniforms.overlayTexture?.value;
     }
 
-    setColorTextures(layer, { texture, pitch }) {
+    setColorTextures(layer: ColorLayer, textureAndPitch: TextureAndPitch) {
+        const { texture, pitch } = textureAndPitch;
         this.uniforms.overlayTexture.value = texture;
         this.uniforms.hasOverlayTexture.value = 1;
         this.uniforms.offsetScale.value.copy(pitch);
@@ -295,11 +335,20 @@ class PointsMaterial extends ShaderMaterial {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    setLayerBrightnessContrastSaturation(layer, brightness, contrast, saturation) {
+    setLayerBrightnessContrastSaturation(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        layer: ColorLayer,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        brightness: number,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        contrast: number,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        saturation: number,
+    ) {
         // Not implemented because the points have their own BCS controls
     }
 
-    enableTransfo(v) {
+    enableTransfo(v: boolean) {
         if (v) {
             this.defines.DEFORMATION_SUPPORT = 1;
             this.defines.NUM_TRANSFO = NUM_TRANSFO;
@@ -309,6 +358,8 @@ class PointsMaterial extends ShaderMaterial {
         }
         this.needsUpdate = true;
     }
+
+    static isPointsMaterial = (obj: any): obj is PointsMaterial => obj?.enablePicking;
 }
 
 export default PointsMaterial;

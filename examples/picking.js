@@ -10,7 +10,7 @@ import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
-import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
+import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';

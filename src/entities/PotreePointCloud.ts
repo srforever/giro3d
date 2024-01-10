@@ -12,7 +12,7 @@ import {
     type Camera,
 } from 'three';
 import Entity3D from './Entity3D';
-import PointsMaterial, { MODE } from '../renderer/PointsMaterial.js';
+import PointsMaterial, { MODE, type Mode } from '../renderer/PointsMaterial';
 import type RequestQueue from '../core/RequestQueue';
 import { DefaultQueue } from '../core/RequestQueue';
 import type PotreeSource from '../sources/PotreeSource';
@@ -219,7 +219,7 @@ class PotreePointCloud extends Entity3D implements Pickable<PointsPickResult> {
     pointSize: number;
     sseThreshold: number;
     material: PointsMaterial;
-    mode: MODE;
+    mode: Mode;
     onPointsCreated: OnPointsCreatedCallback | null;
     isFromPotreeConverter?: boolean;
     metadata?: PotreeMetadata;
@@ -597,8 +597,8 @@ class PotreePointCloud extends Entity3D implements Pickable<PointsPickResult> {
             // only load geometry if this elements has points
             if (elt.numPoints > 0) {
                 if (elt.obj) {
-                    if ((elt.obj.material as PointsMaterial).update) {
-                        (elt.obj.material as PointsMaterial).update(this.material);
+                    if (PointsMaterial.isPointsMaterial(elt.obj.material)) {
+                        elt.obj.material.update(this.material);
                     } else {
                         elt.obj.material.copy(this.material);
                     }
@@ -789,7 +789,7 @@ class PotreePointCloud extends Entity3D implements Pickable<PointsPickResult> {
             textureSize: this.imageSize,
         });
         points.name = `r${metadata.name}.${this.extension}`;
-        if ((points.material as PointsMaterial).enablePicking) {
+        if (PointsMaterial.isPointsMaterial(points.material)) {
             preparePointGeometryForPicking(points.geometry);
         }
         points.frustumCulled = false;

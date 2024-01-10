@@ -4,7 +4,7 @@ import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
+import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';

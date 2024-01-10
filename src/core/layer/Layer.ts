@@ -28,7 +28,7 @@ import type TileMesh from '../TileMesh';
 import type PointCloud from '../PointCloud.js';
 import type Context from '../Context';
 import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
-import type PointsMaterial from '../../renderer/PointsMaterial.js';
+import type PointsMaterial from '../../renderer/PointsMaterial';
 import type Progress from '../Progress.js';
 import type NoDataOptions from './NoDataOptions';
 
