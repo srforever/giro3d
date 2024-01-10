@@ -1,4 +1,8 @@
-import { Matrix4, MeshLambertMaterial, Material } from 'three';
+import type {
+    Material, Object3D, Mesh, RawShaderMaterial, Group,
+} from 'three';
+import { Matrix4, MeshLambertMaterial } from 'three';
+import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 import BatchTableParser from './BatchTableParser';
@@ -12,7 +16,7 @@ const matrixChangeUpVectorZtoX = (new Matrix4()).makeRotationZ(-Math.PI / 2);
 
 const glTFLoader = new GLTFLoader();
 
-function filterUnsupportedSemantics(obj) {
+function filterUnsupportedSemantics(obj: Object3D) {
     // see GLTFLoader GLTFShader.prototype.update function
     const supported = [
         'MODELVIEW',
@@ -20,22 +24,24 @@ function filterUnsupportedSemantics(obj) {
         'PROJECTION',
         'JOINTMATRIX'];
 
-    if (obj.gltfShader) {
+    const gltfShader = (obj as any).gltfShader;
+
+    if (gltfShader) {
         const names = [];
         // eslint-disable-next-line guard-for-in
-        for (const name of Object.keys(obj.gltfShader.boundUniforms)) {
+        for (const name of Object.keys(gltfShader.boundUniforms)) {
             names.push(name);
         }
         for (const name of names) {
-            const { semantic } = obj.gltfShader.boundUniforms[name];
+            const { semantic } = gltfShader.boundUniforms[name];
             if (supported.indexOf(semantic) < 0) {
-                delete obj.gltfShader.boundUniforms[name];
+                delete gltfShader.boundUniforms[name];
             }
         }
     }
 }
 // parse for RTC values
-function applyOptionalCesiumRTC(data, gltf) {
+function applyOptionalCesiumRTC(data: ArrayBuffer, gltf: Group) {
     const headerView = new DataView(data, 0, 20);
     const contentArray = new Uint8Array(data, 20, headerView.getUint32(12, true));
     const content = utf8Decoder.decode(new Uint8Array(contentArray));
@@ -46,27 +52,48 @@ function applyOptionalCesiumRTC(data, gltf) {
     }
 }
 
+export interface B3dmParserOptions {
+    /**
+     * embedded glTF model up axis.
+     *
+     * @default Y
+     */
+    gltfUpAxis?: string;
+    /** the base url of the b3dm file (used to fetch textures for the embedded glTF model). */
+    urlBase: string;
+    /**
+     * disable patching material with logarithmic depth buffer support.
+     *
+     * @default false
+     */
+    doNotPatchMaterial?: boolean;
+    /**
+     * the b3dm opacity.
+     *
+     * @default 1.0
+     */
+    opacity?: number;
+    /**
+     * override b3dm's embedded glTF materials.
+     * If overrideMaterials is a three.js material, it will be the material used to override.
+     *
+     * @default false
+     */
+    overrideMaterials?: boolean | Material;
+}
+
 export default {
     /** @module B3dmParser */
 
     /**
      * Parse b3dm buffer and extract Scene and batch table
      *
-     * @param {ArrayBuffer} buffer the b3dm buffer.
-     * @param {object} options additional properties.
-     * @param {string} [options.gltfUpAxis='Y'] embedded glTF model up axis.
-     * @param {string} options.urlBase the base url of the b3dm file (used to fetch textures for
-     * the embedded glTF model).
-     * @param {boolean} [options.doNotPatchMaterial='false'] disable patching material with
-     * logarithmic depth buffer support.
-     * @param {number} [options.opacity=1.0] the b3dm opacity.
-     * @param {boolean|Material} [options.overrideMaterials='false'] override b3dm's embedded
-     * glTF materials. If overrideMaterials is a three.js material, it will be the material used to
-     * override.
+     * @param buffer the b3dm buffer.
+     * @param options additional properties.
      * @returns {Promise} - a promise that resolves with an object containig
      * a Scene (gltf) and a batch table (batchTable).
      */
-    parse(buffer, options) {
+    parse(buffer: ArrayBuffer, options: B3dmParserOptions) {
         const { gltfUpAxis } = options;
         const { urlBase } = options;
         if (!buffer) {
@@ -76,7 +103,7 @@ export default {
         const view = new DataView(buffer, 4); // starts after magic
 
         let byteOffset = 0;
-        const b3dmHeader = {};
+        const b3dmHeader: any = {};
 
         // Magic type is unsigned char [4]
         b3dmHeader.magic = utf8Decoder.decode(new Uint8Array(buffer, 0, 4));
@@ -115,8 +142,8 @@ export default {
             }
             // TODO: missing feature table
             promises.push(new Promise(resolve => {
-                const onerror = error => console.error(error);
-                const onload = gltf => {
+                const onerror = (error: ErrorEvent) => console.error(error);
+                const onload = (gltf: GLTF) => {
                     for (const scene of gltf.scenes) {
                         scene.traverse(filterUnsupportedSemantics);
                     }
@@ -132,9 +159,9 @@ export default {
                         + b3dmHeader.FTBinaryLength + b3dmHeader.BTJSONLength
                         + b3dmHeader.BTBinaryLength), gltf.scene);
 
-                    const initMesh = function initFn(mesh) {
+                    const initMesh = function initFn(mesh: Mesh) {
                         mesh.frustumCulled = false;
-                        if (!mesh.material) {
+                        if (!mesh.material || Array.isArray(mesh.material)) {
                             return;
                         }
                         if (options.overrideMaterials) {
@@ -146,9 +173,12 @@ export default {
                                 mesh.material = new MeshLambertMaterial({ color: 0xffffff });
                             }
                         } else if (Capabilities.isLogDepthBufferSupported()
-                                    && mesh.material.isRawShaderMaterial
+                                    // @ts-ignore definition of RawShaderMaterial lacks the property
+                                    && (mesh.material as RawShaderMaterial).isRawShaderMaterial
                                     && !options.doNotPatchMaterial) {
-                            shaderUtils.patchMaterialForLogDepthSupport(mesh.material);
+                            shaderUtils.patchMaterialForLogDepthSupport(
+                                mesh.material as RawShaderMaterial,
+                            );
                             console.warn(
                                 'b3dm shader has been patched to add log depth buffer support',
                             );
