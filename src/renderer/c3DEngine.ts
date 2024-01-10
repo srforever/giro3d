@@ -23,7 +23,7 @@ import Capabilities from '../core/system/Capabilities';
 import RenderPipeline from './RenderPipeline';
 import RenderingOptions from './RenderingOptions';
 
-import registerChunks from './shader/chunk/registerChunks.js';
+import registerChunks from './shader/chunk/registerChunks';
 
 const tmpClear = new Color();
 const tmpVec2 = new Vector2();

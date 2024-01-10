@@ -14,15 +14,16 @@ import giro3d_contour_line_fragment from './giro3d_contour_line_fragment.glsl';
 import giro3d_fragment_shader_header from './giro3d_fragment_shader_header.glsl';
 
 export default function registerChunks() {
-    ShaderChunk.giro3d_precision_qualifiers = giro3d_precision_qualifiers;
-    ShaderChunk.giro3d_common = giro3d_common;
-    ShaderChunk.giro3d_outline_pars_fragment = giro3d_outline_pars_fragment;
-    ShaderChunk.giro3d_outline_fragment = giro3d_outline_fragment;
-    ShaderChunk.giro3d_compose_layers_fragment = giro3d_compose_layers_fragment;
-    ShaderChunk.giro3d_compose_layers_pars_fragment = giro3d_compose_layers_pars_fragment;
-    ShaderChunk.giro3d_colormap_pars_fragment = giro3d_colormap_pars_fragment;
-    ShaderChunk.giro3d_contour_line_pars_fragment = giro3d_contour_line_pars_fragment;
-    ShaderChunk.giro3d_contour_line_fragment = giro3d_contour_line_fragment;
-    ShaderChunk.giro3d_fragment_shader_header = giro3d_fragment_shader_header;
+    const Giro3dShaderChunk = ShaderChunk as any;
+    Giro3dShaderChunk.giro3d_precision_qualifiers = giro3d_precision_qualifiers;
+    Giro3dShaderChunk.giro3d_common = giro3d_common;
+    Giro3dShaderChunk.giro3d_outline_pars_fragment = giro3d_outline_pars_fragment;
+    Giro3dShaderChunk.giro3d_outline_fragment = giro3d_outline_fragment;
+    Giro3dShaderChunk.giro3d_compose_layers_fragment = giro3d_compose_layers_fragment;
+    Giro3dShaderChunk.giro3d_compose_layers_pars_fragment = giro3d_compose_layers_pars_fragment;
+    Giro3dShaderChunk.giro3d_colormap_pars_fragment = giro3d_colormap_pars_fragment;
+    Giro3dShaderChunk.giro3d_contour_line_pars_fragment = giro3d_contour_line_pars_fragment;
+    Giro3dShaderChunk.giro3d_contour_line_fragment = giro3d_contour_line_fragment;
+    Giro3dShaderChunk.giro3d_fragment_shader_header = giro3d_fragment_shader_header;
 }
 /* eslint-enable camelcase */
