@@ -1,10 +1,25 @@
-/**
- * @module core/TileGeometry
- */
-
+import type { Vector2 } from 'three';
 import { BufferAttribute, BufferGeometry } from 'three';
 
 import OBB from './OBB';
+
+export interface TileGeometryOptions {
+    dimensions: Vector2;
+    segments: number;
+}
+
+interface TileGeometryProperties {
+    width: number;
+    height: number;
+    uvStepX: number;
+    uvStepY: number;
+    rowStep: number;
+    columnStep: number;
+    translateX: number;
+    translateY: number;
+    triangles: number;
+    numVertices: number;
+}
 
 /**
  * The TileGeometry provides a new buffer geometry for each
@@ -23,11 +38,19 @@ import OBB from './OBB';
  * const extent = new Extent('EPSG:3857', -1000, -1000, 1000, 1000);
  * const paramsGeometry = { extent, segment: 8 };
  * const geometry = new TileGeometry(paramsGeometry);
- * @param {object} params : Parameters to construct the grid. Should contain an extent
- *  and a size, either a number of segment or a width and an height in pixels.
  */
 class TileGeometry extends BufferGeometry {
-    constructor(params) {
+    dimensions: Vector2;
+    private _segments: number;
+    props: TileGeometryProperties;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    OBB: OBB; // FIXME: case of this variable
+
+    /**
+     * @param params : Parameters to construct the grid. Should contain an extent
+     *  and a size, either a number of segment or a width and an height in pixels.
+     */
+    constructor(params: TileGeometryOptions) {
         super();
         // Still mandatory to have on the geometry ?
         this.dimensions = params.dimensions;
@@ -77,9 +100,9 @@ class TileGeometry extends BufferGeometry {
     /**
      * Construct a simple grid buffer geometry using a fast rolling approach.
      *
-     * @param {object} props : Properties of the TileGeometry grid, as prepared by this.prepare.
+     * @param props : Properties of the TileGeometry grid, as prepared by this.prepare.
      */
-    computeBuffers(props) {
+    computeBuffers(props: TileGeometryProperties) {
         const width = props.width;
         const height = props.height;
         const rowStep = props.rowStep;

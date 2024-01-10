@@ -2,7 +2,7 @@ import { Matrix4, Vector3 } from 'three';
 import proj4 from 'proj4';
 import assert from 'assert';
 import Extent from '../../../src/core/geographic/Extent';
-import TileGeometry from '../../../src/core/TileGeometry.js';
+import TileGeometry from '../../../src/core/TileGeometry';
 import OBB from '../../../src/core/OBB';
 
 const max = new Vector3(10, 10, 10);
