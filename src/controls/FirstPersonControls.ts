@@ -1,3 +1,4 @@
+import type { PerspectiveCamera } from 'three';
 import {
     Euler,
     EventDispatcher,
@@ -6,7 +7,7 @@ import {
     Vector2,
     Vector3,
 } from 'three';
-import { MAIN_LOOP_EVENTS } from '../core/MainLoop';
+import type Instance from '../core/Instance';
 
 // Note: we could use existing js controls (like
 // https://github.com/mrdoob/js/blob/dev/examples/js/controls/FirstPersonControls.js) but
@@ -14,9 +15,16 @@ import { MAIN_LOOP_EVENTS } from '../core/MainLoop';
 // the existing controls are expecting a continuous update loop while we have a pausable one (so our
 // controls use .notifyChange when needed)
 
+interface State {
+    rotateX: number;
+    rotateY: number;
+    snapshot?: () => State;
+}
+
 const tmpVec2 = new Vector2();
 
-function limitRotation(camera3D, rot /* , verticalFOV */) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function limitRotation(camera3D: PerspectiveCamera, rot: number, verticalFOV: number) {
     // Limit vertical rotation (look up/down) to make sure the user cannot see
     // outside of the cone defined by verticalFOV
     // const limit = MathUtils.degToRad(verticalFOV - camera3D.fov * 0.5) * 0.5;
@@ -24,7 +32,7 @@ function limitRotation(camera3D, rot /* , verticalFOV */) {
     return MathUtils.clamp(rot, -limit, limit);
 }
 
-function applyRotation(instance, camera3D, state) {
+function applyRotation(instance: Instance, camera3D: PerspectiveCamera, state: State) {
     camera3D.quaternion.setFromUnitVectors(
         new Vector3(0, 1, 0), camera3D.up,
     );
@@ -42,29 +50,61 @@ const MOVEMENTS = {
     39: { method: 'translateX', sign: 1 }, // STRAFE_RIGHT: right key
     33: { method: 'translateY', sign: 1 }, // UP: PageUp key
     34: { method: 'translateY', sign: -1 }, // DOWN: PageDown key
-};
+} as const;
 
-class FirstPersonControls extends EventDispatcher {
+type Movement = typeof MOVEMENTS[keyof typeof MOVEMENTS];
+
+export interface FirstPersonControlsEventMap {
+}
+
+export interface FirstPersonControlsOptions {
+    /* whether or not to focus the renderer domElement on click */
+    focusOnClick?: boolean;
+    /** whether or not to focus when the mouse is over the domElement */
+    focusOnMouseOver?: boolean;
+    /** if > 0, pressing the arrow keys will move the camera */
+    moveSpeed?: number;
     /**
-     * @param {module:Core/Instance~Instance} instance the giro3d instance to control
-     * @param {object} options additional options
-     * @param {boolean} options.focusOnClick whether or not to focus the renderer domElement on
-     * click
-     * @param {boolean} options.focusOnMouseOver whether or not to focus when the mouse is over
-     * the domElement
-     * @param {boolean} options.moveSpeed if > 0, pressing the arrow keys will move the camera
-     * @param {number} options.verticalFOV define the max visible vertical angle of the scene in
-     * degrees (default 180)
-     * @param {number} options.panoramaRatio alternative way to specify the max vertical angle
-     * when using a panorama.  You can specify the panorama width/height ratio and the verticalFOV
-     * will be computed automatically
-     * @param {boolean} options.disableEventListeners if true, the controls will not self listen
-     * to mouse/key events.  You'll have to manually forward the events to the appropriate
-     * functions: onMouseDown, onMouseMove, onMouseUp, onKeyUp, onKeyDown and onMouseWheel.
-     * @param {number} options.minHeight the minimal height of the instance camera
-     * @param {number} options.maxHeight the maximal height of the instance camera
+     * define the max visible vertical angle of the scene in degrees
+     *
+     * @default  180
      */
-    constructor(instance, options = {}) {
+    verticalFOV?: number;
+    /**
+     * alternative way to specify the max vertical angle when using a panorama.
+     * You can specify the panorama width/height ratio and the verticalFOV
+     * will be computed automatically
+     */
+    panoramaRatio?: number;
+    /**
+     * if true, the controls will not self listen to mouse/key events.
+     * You'll have to manually forward the events to the appropriate
+     * functions: onMouseDown, onMouseMove, onMouseUp, onKeyUp, onKeyDown and onMouseWheel.
+     */
+    disableEventListeners?: boolean;
+    /** the minimal height of the instance camera */
+    minHeight?: number;
+    /** the maximal height of the instance camera */
+    maxHeight?: number;
+}
+
+class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
+    camera: PerspectiveCamera;
+    instance: Instance;
+    enabled: boolean;
+    moves: Set<Movement>;
+    options: FirstPersonControlsOptions;
+    private _isMouseDown: boolean;
+    private _onMouseDownMouseX: number;
+    private _onMouseDownMouseY: number;
+    private _state: State;
+    private _stateOnMouseDown?: State;
+
+    /**
+     * @param instance the giro3d instance to control
+     * @param options additional options
+     */
+    constructor(instance: Instance, options: FirstPersonControlsOptions = {}) {
         super();
         this.camera = instance.camera.camera3D;
         this.instance = instance;
@@ -75,13 +115,13 @@ class FirstPersonControls extends EventDispatcher {
             options.verticalFOV = options.panoramaRatio === 2
                 ? 180 : MathUtils.radToDeg(2 * Math.atan(200 / (2 * radius)));
         }
-        options.verticalFOV = options.verticalFOV || 180;
+        options.verticalFOV = options.verticalFOV ?? 180;
 
-        options.minHeight = options.minHeight === undefined ? null : options.minHeight;
-        options.maxHeight = options.maxHeight === undefined ? null : options.maxHeight;
+        options.minHeight = options.minHeight ?? null;
+        options.maxHeight = options.maxHeight ?? null;
 
         // backward or forward move speed in m/s
-        options.moveSpeed = options.moveSpeed === undefined ? 10 : options.moveSpeed;
+        options.moveSpeed = options.moveSpeed ?? 10;
         this.options = options;
 
         this._isMouseDown = false;
@@ -114,9 +154,7 @@ class FirstPersonControls extends EventDispatcher {
             domElement.addEventListener('DOMMouseScroll', this.onMouseWheel.bind(this), false); // firefox
         }
 
-        this.instance.addFrameRequester(
-            MAIN_LOOP_EVENTS.AFTER_CAMERA_UPDATE, this.update.bind(this),
-        );
+        this.instance.addFrameRequester('after_camera_update', this.update.bind(this));
 
         // focus policy
         if (options.focusOnMouseOver) {
@@ -135,10 +173,10 @@ class FirstPersonControls extends EventDispatcher {
      * Resets the controls internal state to match the camera' state.
      * This must be called when manually modifying the camera's position or rotation.
      *
-     * @param {boolean} preserveRotationOnX if true, the look up/down rotation will
+     * @param preserveRotationOnX if true, the look up/down rotation will
      * not be copied from the camera
      */
-    reset(preserveRotationOnX = false) {
+    reset(preserveRotationOnX: boolean = false) {
         // Compute the correct init state, given the calculus in applyRotation:
         // cam.quaternion = q * r
         // => r = invert(q) * cam.quaterion
@@ -162,12 +200,12 @@ class FirstPersonControls extends EventDispatcher {
      * Updates the camera position / rotation based on occured input events.
      * This is done automatically when needed but can also be done if needed.
      *
-     * @param {number} dt ellpased time since last update in seconds
-     * @param {boolean} updateLoopRestarted true if giro3d' update loop just restarted
-     * @param {boolean} force set to true if you want to force the update, even if it
+     * @param dt ellpased time since last update in seconds
+     * @param updateLoopRestarted true if giro3d' update loop just restarted
+     * @param force set to true if you want to force the update, even if it
      * appears unneeded.
      */
-    update(dt, updateLoopRestarted, force) {
+    update(dt: number, updateLoopRestarted: boolean, force: boolean) {
         if (!this.enabled) {
             return;
         }
@@ -197,14 +235,14 @@ class FirstPersonControls extends EventDispatcher {
             applyRotation(this.instance, this.camera, this._state);
         }
 
-        if (this.moves.size) {
+        if (this.moves.size > 0) {
             this.instance.notifyChange(this.instance.camera.camera3D);
         }
     }
 
     // Event callback functions
     // Mouse movement handling
-    onMouseDown(event) {
+    onMouseDown(event: MouseEvent) {
         if (!this.enabled || event.button !== 0) {
             return;
         }
@@ -218,14 +256,14 @@ class FirstPersonControls extends EventDispatcher {
         this._stateOnMouseDown = this._state.snapshot();
     }
 
-    onMouseUp(event) {
+    onMouseUp(event: MouseEvent) {
         if (!this.enabled || event.button !== 0) {
             return;
         }
         this._isMouseDown = false;
     }
 
-    onMouseMove(event) {
+    onMouseMove(event: MouseEvent) {
         if (!this.enabled || event.button !== 0) {
             return;
         }
@@ -253,12 +291,12 @@ class FirstPersonControls extends EventDispatcher {
     }
 
     // Mouse wheel
-    onMouseWheel(event) {
+    onMouseWheel(event: WheelEvent) {
         if (!this.enabled) {
             return;
         }
         let delta = 0;
-        if (event.wheelDelta !== undefined) {
+        if ('wheelDelta' in event && event.wheelDelta !== undefined) {
             delta = -event.wheelDelta;
         // Firefox
         } else if (event.detail !== undefined) {
@@ -281,11 +319,11 @@ class FirstPersonControls extends EventDispatcher {
     }
 
     // Keyboard handling
-    onKeyUp(e) {
+    onKeyUp(e: KeyboardEvent) {
         if (!this.enabled) {
             return;
         }
-        const move = MOVEMENTS[e.keyCode];
+        const move = (MOVEMENTS as any)[e.keyCode];
         if (move) {
             this.moves.delete(move);
             this.instance.notifyChange(undefined, false);
@@ -293,11 +331,11 @@ class FirstPersonControls extends EventDispatcher {
         }
     }
 
-    onKeyDown(e) {
+    onKeyDown(e: KeyboardEvent) {
         if (!this.enabled) {
             return;
         }
-        const move = MOVEMENTS[e.keyCode];
+        const move = (MOVEMENTS as any)[e.keyCode];
         if (move) {
             this.moves.add(move);
             this.instance.notifyChange(undefined, false);
