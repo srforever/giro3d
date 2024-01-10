@@ -20,7 +20,7 @@ import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
 import TileFS from './shader/TileFS.glsl';
 import WebGLComposer from './composition/WebGLComposer';
-import Rect from '../core/Rect.js';
+import Rect from '../core/Rect';
 import MemoryTracker from './MemoryTracker.js';
 import MaterialUtils from './MaterialUtils.js';
 import type { TextureAndPitch } from '../core/layer/Layer.js';

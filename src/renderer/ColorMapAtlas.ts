@@ -5,7 +5,7 @@ import {
     type WebGLRenderer,
     RGBAFormat,
 } from 'three';
-import Rect from '../core/Rect.js';
+import Rect from '../core/Rect';
 import type ColorMap from '../core/layer/ColorMap';
 import WebGLComposer from './composition/WebGLComposer';
 

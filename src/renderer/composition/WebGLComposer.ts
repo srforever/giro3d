@@ -19,7 +19,7 @@ import {
 } from 'three';
 import Interpretation from '../../core/layer/Interpretation';
 
-import Rect from '../../core/Rect.js';
+import Rect from '../../core/Rect';
 import MemoryTracker from '../MemoryTracker.js';
 import ComposerTileMaterial from './ComposerTileMaterial';
 

@@ -1,10 +1,15 @@
-/** @module core/Rect */
+import type Extent from './geographic/Extent';
 
 /**
  * A rectangle.
  */
 class Rect {
-    constructor(xMin, xMax, yMin, yMax) {
+    xMin: number;
+    xMax: number;
+    yMin: number;
+    yMax: number;
+
+    constructor(xMin: number, xMax: number, yMin: number, yMax: number) {
         this.xMin = xMin;
         this.xMax = xMax;
         this.yMin = yMin;
@@ -43,23 +48,23 @@ class Rect {
         return this.yMin + ((this.yMax - this.yMin) * 0.5);
     }
 
-    static fromExtent(extent) {
+    static fromExtent(extent: Extent) {
         return new Rect(extent.west(), extent.east(), extent.south(), extent.north());
     }
 
     /**
-     * @param {Rect} other The other rect.
-     * @param {number} [epsilon] The comparison epsilon.
-     * @returns {boolean} True if they are equal.
+     * @param other The other rect.
+     * @param [epsilon] The comparison epsilon.
+     * @returns True if they are equal.
      */
-    equals(other, epsilon = 0.0001) {
+    equals(other: Rect, epsilon: number = 0.0001) {
         return Math.abs(other.xMin - this.xMin) <= epsilon
             && Math.abs(other.xMax - this.xMax) <= epsilon
             && Math.abs(other.yMin - this.yMin) <= epsilon
             && Math.abs(other.yMax - this.yMax) <= epsilon;
     }
 
-    getIntersection(other) {
+    getIntersection(other: Rect) {
         const xMin = Math.max(this.xMin, other.xMin);
         const xMax = Math.min(this.xMax, other.xMax);
         const yMin = Math.max(this.yMin, other.yMin);
@@ -71,10 +76,10 @@ class Rect {
     /**
      * Returns the equivalent rectangle of `source` normalized over the dimensions of `dest`.
      *
-     * @param {Rect} source The source rect.
-     * @param {Rect} dest The destination rect.
+     * @param source The source rect.
+     * @param dest The destination rect.
      */
-    static getNormalizedRect(source, dest) {
+    static getNormalizedRect(source: Rect, dest: Rect) {
         const dstDim = { x: dest.width, y: dest.height };
         const srcDim = { x: source.width, y: source.height };
         let x = (source.left - dest.left) / dstDim.x;
