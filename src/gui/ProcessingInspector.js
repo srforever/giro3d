@@ -6,7 +6,7 @@ import Panel from './Panel.js';
 import Instance from '../core/Instance';
 import FrameDuration from './charts/FrameDuration.js';
 import MemoryUsage from './charts/MemoryUsage.js';
-import MemoryTracker from '../renderer/MemoryTracker.js';
+import MemoryTracker from '../renderer/MemoryTracker';
 import CachePanel from './CachePanel.js';
 import FetcherPanel from './FetcherPanel.js';
 import RequestQueueChart from './charts/RequestQueueChart.js';

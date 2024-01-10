@@ -21,7 +21,7 @@ import TileVS from './shader/TileVS.glsl';
 import TileFS from './shader/TileFS.glsl';
 import WebGLComposer from './composition/WebGLComposer';
 import Rect from '../core/Rect';
-import MemoryTracker from './MemoryTracker.js';
+import MemoryTracker from './MemoryTracker';
 import MaterialUtils from './MaterialUtils';
 import type { TextureAndPitch } from '../core/layer/Layer.js';
 import type Layer from '../core/layer/Layer.js';

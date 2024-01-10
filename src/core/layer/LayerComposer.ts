@@ -16,7 +16,7 @@ import type Extent from '../geographic/Extent';
 import Interpretation from './Interpretation';
 import WebGLComposer, { type DrawOptions } from '../../renderer/composition/WebGLComposer';
 import Rect from '../Rect';
-import MemoryTracker from '../../renderer/MemoryTracker.js';
+import MemoryTracker from '../../renderer/MemoryTracker';
 import TextureGenerator from '../../utils/TextureGenerator';
 import ProjUtils from '../../utils/ProjUtils';
 

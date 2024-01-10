@@ -1,8 +1,12 @@
-/** @module renderer/MemoryTracker */
+interface AllocatedItem {
+    name: string,
+    weakref: WeakRef<object>,
+}
 
-let ALLOCATED = [];
+let allocated: AllocatedItem[] = [];
 const FLUSH_EVERY_NTH = 100;
 
+// @ts-ignore
 let enabled = __DEBUG__;
 let counter = 0;
 
@@ -27,14 +31,12 @@ let counter = 0;
 class MemoryTracker {
     /**
      * Enables the tracking of allocated objects.
-     *
-     * @type {boolean}
      */
-    static set enable(v) {
+    static set enable(v: boolean) {
         if (enabled !== v) {
             enabled = v;
             if (!enabled) {
-                ALLOCATED.length = 0;
+                allocated.length = 0;
             }
         }
     }
@@ -46,13 +48,13 @@ class MemoryTracker {
     /**
      * Registers an object to the memory tracker.
      *
-     * @param {object} obj The object to track.
-     * @param {string} name The name of the tracked object. Does not have to be unique.
+     * @param obj The object to track.
+     * @param name The name of the tracked object. Does not have to be unique.
      */
-    static track(obj, name) {
+    static track(obj: object, name: string) {
         if (enabled) {
             // eslint-disable-next-line no-undef
-            ALLOCATED.push({ name, weakref: new WeakRef(obj) });
+            allocated.push({ name, weakref: new WeakRef(obj) });
             counter++;
 
             if (counter === FLUSH_EVERY_NTH) {
@@ -69,7 +71,7 @@ class MemoryTracker {
     static flush() {
         const newArray = [];
         let hasChanged = false;
-        for (const entry of ALLOCATED) {
+        for (const entry of allocated) {
             const { weakref } = entry;
             const value = weakref.deref();
             if (value) {
@@ -80,7 +82,7 @@ class MemoryTracker {
         }
 
         if (hasChanged) {
-            ALLOCATED = newArray;
+            allocated = newArray;
         }
     }
 
@@ -91,11 +93,11 @@ class MemoryTracker {
      * They will no longer be removed by the garbage collector as long as values in this arrays
      * exist ! You should make sure to empty this array when you are finished with it.
      *
-     * @returns {Array<{name: string, value: object }>} The tracked objects.
+     * @returns The tracked objects.
      */
     static getTrackedObjects() {
-        const map = {};
-        for (const entry of ALLOCATED) {
+        const map: Record<string, { name: string, value: object }[]> = {};
+        for (const entry of allocated) {
             const { name, weakref } = entry;
             const value = weakref.deref();
             if (value) {

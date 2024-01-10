@@ -7,7 +7,7 @@ import {
     type Object3D,
 } from 'three';
 
-import MemoryTracker from '../renderer/MemoryTracker.js';
+import MemoryTracker from '../renderer/MemoryTracker';
 import type LayeredMaterial from '../renderer/LayeredMaterial.js';
 import type Extent from './geographic/Extent.js';
 import TileGeometry from './TileGeometry';
