@@ -20,7 +20,7 @@ import {
 } from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Capabilities from '../core/system/Capabilities';
-import RenderPipeline from './RenderPipeline.js';
+import RenderPipeline from './RenderPipeline';
 import RenderingOptions from './RenderingOptions';
 
 import registerChunks from './shader/chunk/registerChunks.js';

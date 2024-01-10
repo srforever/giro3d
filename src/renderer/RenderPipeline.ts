@@ -1,20 +1,20 @@
-import {
+import type {
     Camera,
+    Material,
+    Object3D,
+    WebGLRenderer,
+} from 'three';
+import {
     DepthTexture,
     FloatType,
-    Material,
-    Mesh,
     NearestFilter,
-    Object3D,
-    Scene,
     UnsignedByteType,
     WebGLRenderTarget,
-    WebGLRenderer,
 } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { TexturePass } from 'three/examples/jsm/postprocessing/TexturePass.js';
 import PointCloudRenderer from './PointCloudRenderer';
-import RenderingOptions from './RenderingOptions';
+import type RenderingOptions from './RenderingOptions';
 
 const BUCKETS = {
     OPAQUE: 0,
@@ -23,10 +23,17 @@ const BUCKETS = {
 };
 
 /**
- * @param {Mesh[]} meshes The meshes to update.
- * @param {boolean} visible The new material visibility.
+ * Can be a Mesh or a PointCloud for instance
  */
-function setVisibility(meshes, visible) {
+type Object3DWithMaterial = Object3D & {
+    material: Material,
+};
+
+/**
+ * @param meshes The meshes to update.
+ * @param visible The new material visibility.
+ */
+function setVisibility(meshes: Object3DWithMaterial[], visible: boolean) {
     for (let i = 0; i < meshes.length; i++) {
         meshes[i].material.visible = visible;
     }
@@ -36,20 +43,24 @@ function setVisibility(meshes, visible) {
  * A render pipeline that supports various effects.
  */
 export default class RenderPipeline {
+    renderer: WebGLRenderer;
+    buckets: Object3DWithMaterial[][];
+    sceneRenderTarget: WebGLRenderTarget | null;
+    effectComposer?: EffectComposer;
+    pointCloudRenderer?: PointCloudRenderer;
+
     /**
-     * @param {WebGLRenderer} renderer The WebGL renderer.
+     * @param renderer The WebGL renderer.
      */
-    constructor(renderer) {
+    constructor(renderer: WebGLRenderer) {
         this.renderer = renderer;
 
-        /** @type {Mesh[][]} */
         this.buckets = [[], [], []];
 
-        /** @type {WebGLRenderTarget} */
         this.sceneRenderTarget = null;
     }
 
-    prepareRenderTargets(width, height) {
+    prepareRenderTargets(width: number, height: number) {
         if (!this.sceneRenderTarget
             || this.sceneRenderTarget.width !== width
             || this.sceneRenderTarget.height !== height) {
@@ -79,13 +90,19 @@ export default class RenderPipeline {
     }
 
     /**
-     * @param {Object3D} scene The scene to render.
-     * @param {Camera} camera The camera to render.
-     * @param {number} width The width in pixels of the render target.
-     * @param {number} height The height in pixels of the render target.
-     * @param {RenderingOptions} options The options.
+     * @param scene The scene to render.
+     * @param camera The camera to render.
+     * @param width The width in pixels of the render target.
+     * @param height The height in pixels of the render target.
+     * @param options The options.
      */
-    render(scene, camera, width, height, options) {
+    render(
+        scene: Object3D,
+        camera: Camera,
+        width: number,
+        height: number,
+        options: RenderingOptions,
+    ) {
         const renderer = this.renderer;
 
         this.prepareRenderTargets(width, height);
@@ -115,12 +132,17 @@ export default class RenderPipeline {
     }
 
     /**
-     * @param {Object3D} scene The scene to render.
-     * @param {Camera} camera The camera.
-     * @param {Mesh[]} meshes The meshes to render.
-     * @param {RenderingOptions} opts The rendering options.
+     * @param scene The scene to render.
+     * @param camera The camera.
+     * @param meshes The meshes to render.
+     * @param opts The rendering options.
      */
-    renderPointClouds(scene, camera, meshes, opts) {
+    renderPointClouds(
+        scene: Object3D,
+        camera: Camera,
+        meshes: Object3DWithMaterial[],
+        opts: RenderingOptions,
+    ) {
         if (meshes.length === 0) {
             return;
         }
@@ -147,11 +169,11 @@ export default class RenderPipeline {
     }
 
     /**
-     * @param {Object3D} scene The scene to render.
-     * @param {Camera} camera The camera.
-     * @param {Mesh[]} meshes The meshes to render.
+     * @param scene The scene to render.
+     * @param camera The camera.
+     * @param meshes The meshes to render.
      */
-    renderMeshes(scene, camera, meshes) {
+    renderMeshes(scene: Object3D, camera: Camera, meshes: Object3DWithMaterial[]) {
         if (meshes.length === 0) {
             return;
         }
@@ -168,10 +190,7 @@ export default class RenderPipeline {
     onAfterRender() {
         // Reset the visibility of all rendered objects
         for (const bucket of this.buckets) {
-            for (let i = 0; i < bucket.length; i++) {
-                const mesh = bucket[i];
-                mesh.material.visible = true;
-            }
+            setVisibility(bucket, true);
             bucket.length = 0;
         }
     }
@@ -183,25 +202,25 @@ export default class RenderPipeline {
     }
 
     /**
-     * @param {Scene} scene The root scene.
+     * @param scene The root scene.
      */
-    collectRenderBuckets(scene) {
+    collectRenderBuckets(scene: Object3D) {
         const renderBuckets = this.buckets;
 
         scene.traverse(obj => {
-            /** @type {Material} */
-            const material = obj.material;
+            const mesh = obj as Object3DWithMaterial;
+            const material = mesh.material;
 
-            if (obj.visible && material && material.visible) {
+            if (mesh.visible && material && material.visible) {
                 material.visible = false;
 
-                if (obj.isPointCloud) {
+                if ((mesh as any).isPointCloud) {
                     // The point cloud bucket will receive special effects
-                    renderBuckets[BUCKETS.POINT_CLOUD].push(obj);
-                } else if (obj.material.transparent) {
-                    renderBuckets[BUCKETS.TRANSPARENT].push(obj);
+                    renderBuckets[BUCKETS.POINT_CLOUD].push(mesh);
+                } else if (mesh.material.transparent) {
+                    renderBuckets[BUCKETS.TRANSPARENT].push(mesh);
                 } else {
-                    renderBuckets[BUCKETS.OPAQUE].push(obj);
+                    renderBuckets[BUCKETS.OPAQUE].push(mesh);
                 }
             }
         });
