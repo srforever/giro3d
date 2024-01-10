@@ -1,10 +1,10 @@
 /**
  * Returns a promise that will resolve after the specified duration.
  *
- * @param {number} duration The duration, in milliseconds.
- * @returns {Promise} The promise.
+ * @param duration The duration, in milliseconds.
+ * @returns The promise.
  */
-function delay(duration) {
+function delay(duration: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, duration));
 }
 
@@ -13,18 +13,16 @@ function delay(duration) {
  * @readonly
  */
 export const PromiseStatus = {
-    /** @type {string} */
     Fullfilled: 'fulfilled',
-    /** @type {string} */
     Rejected: 'rejected',
 };
 
 /**
  * Returns an Error with the 'aborted' reason.
  *
- * @returns {Error} The error.
+ * @returns The error.
  */
-function abortError() {
+function abortError(): Error {
     return new Error('aborted');
 }
 

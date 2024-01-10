@@ -19,7 +19,7 @@ import {
 import Fetcher from '../utils/Fetcher';
 import Extent from '../core/geographic/Extent';
 import TextureGenerator, { type NumberArray } from '../utils/TextureGenerator';
-import PromiseUtils from '../utils/PromiseUtils.js';
+import PromiseUtils from '../utils/PromiseUtils';
 import ImageSource, { ImageResult, type ImageSourceOptions } from './ImageSource';
 import { type Cache, GlobalCache } from '../core/Cache';
 

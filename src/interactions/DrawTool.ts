@@ -13,7 +13,7 @@ import {
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import type Instance from '../core/Instance';
 import Drawing, { GEOMETRY_TYPE, type DrawingOptions, type DrawingGeometryType } from './Drawing';
-import PromiseUtils from '../utils/PromiseUtils.js';
+import PromiseUtils from '../utils/PromiseUtils';
 
 /**
  * Types of geometries to draw - for backward compatibility.

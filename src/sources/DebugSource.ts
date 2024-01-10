@@ -4,7 +4,7 @@ import {
     MathUtils,
 } from 'three';
 import type Extent from '../core/geographic/Extent';
-import PromiseUtils from '../utils/PromiseUtils.js';
+import PromiseUtils from '../utils/PromiseUtils';
 import type { CustomContainsFn, GetImageOptions } from './ImageSource';
 import ImageSource, { ImageResult } from './ImageSource';
 
