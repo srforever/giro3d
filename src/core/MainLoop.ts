@@ -2,7 +2,7 @@ import {
     EventDispatcher, MathUtils as ThreeMath, Sphere,
 } from 'three';
 import Context from './Context';
-import type C3DEngine from '../renderer/c3DEngine.js';
+import type C3DEngine from '../renderer/c3DEngine';
 import { MAIN_LOOP_EVENTS } from './MainLoopEvents';
 import type Instance from './Instance';
 import Entity from '../entities/Entity';

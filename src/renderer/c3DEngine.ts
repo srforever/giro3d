@@ -1,12 +1,11 @@
-/**
- * Generated On: 2015-10-5
- * Class: C3DEngine
- * Description: 3DEngine est l'interface avec le framework webGL.
- */
-
-import {
+import type {
     Object3D,
     Camera,
+    Scene,
+    TextureDataType,
+    ColorRepresentation,
+} from 'three';
+import {
     Color,
     DepthTexture,
     LinearFilter,
@@ -17,7 +16,6 @@ import {
     WebGLRenderTarget,
     RGBAFormat,
     UnsignedByteType,
-    Scene,
     ColorManagement,
 } from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
@@ -30,7 +28,7 @@ import registerChunks from './shader/chunk/registerChunks.js';
 const tmpClear = new Color();
 const tmpVec2 = new Vector2();
 
-function createRenderTarget(width, height, type) {
+function createRenderTarget(width: number, height: number, type: TextureDataType) {
     const result = new WebGLRenderTarget(
         width,
         height, {
@@ -42,17 +40,16 @@ function createRenderTarget(width, height, type) {
     result.texture.magFilter = NearestFilter;
     result.texture.generateMipmaps = false;
     result.depthBuffer = true;
-    result.depthTexture = new DepthTexture();
-    result.depthTexture.type = UnsignedShortType;
+    result.depthTexture = new DepthTexture(width, height, UnsignedShortType);
 
     return result;
 }
 
 /**
- * @param {RenderingOptions} options The options.
- * @returns {boolean} True if the options requires a custom pipeline.
+ * @param options The options.
+ * @returns True if the options requires a custom pipeline.
  */
-function requiresCustomPipeline(options) {
+function requiresCustomPipeline(options: RenderingOptions) {
     return options.enableEDL || options.enableInpainting || options.enablePointCloudOcclusion;
 }
 
@@ -82,36 +79,100 @@ function createErrorMessage() {
     return element;
 }
 
-/**
- * @typedef {object} RendererOptions
- * @property {boolean} [antialias] Enables antialiasing (default true).
- * Not used if renderer is provided.
- * @property {boolean} [alpha] Enables transparency on the renderer (default true).
- * Necessary for transparent backgrounds.
- * Not used if renderer is provided.
- * @property {boolean} [logarithmicDepthBuffer] Enables the
- * [logarithmic depth buffer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.logarithmicDepthBuffer)
- * (default false).
- * Not used if renderer is provided.
- * @property {boolean} [checkShaderErrors] Enables shader validation.
- * Note: shader validation is a costly operation that should be disabled in production.
- * That can be toggled at any moment using the corresponding property in the renderer.
- * See the [Three.js documentation](https://threejs.org/docs/index.html?q=webglren#api/en/renderers/WebGLRenderer.debug)
- * for more information.
- * @property {boolean} [colorManagement] Enables color management (default false).
- * Not used if renderer is provided.
- * @property {Color|string|number|boolean} [clearColor] The background color.
- * Can be a hex color or `false` for transparent backgrounds (requires alpha true).
- * @property {WebGLRenderer} [renderer] Custom renderer to be used.
- * If provided, it will be automatically added in the DOM in viewerDiv.
- */
+export interface RenderToBufferZone {
+    /** x (in instance coordinate) */
+    x: number,
+    /** y (in instance coordinate) */
+    y: number,
+    /** width of area to render (in pixels) */
+    width: number,
+    /** height of area to render (in pixels) */
+    height: number,
+}
+
+export interface RenderToBufferOptions {
+    /** The clear color to apply before rendering. */
+    clearColor?: ColorRepresentation;
+    /** The scene to render. */
+    scene: Object3D;
+    /** The camera to render. */
+    camera: Camera;
+    /**
+     * The type of pixels in the buffer.
+     *
+     * @default `UnsignedByteType`.
+     */
+    datatype?: TextureDataType;
+    /** partial zone to render. If undefined, the whole viewport is used. */
+    zone?: RenderToBufferZone;
+}
+
+export interface RendererOptions {
+    /**
+     * Enables antialiasing.
+     * Not used if renderer is provided.
+     *
+     * @default true
+     */
+    antialias?: boolean;
+    /**
+     * Enables transparency on the renderer.
+     * Necessary for transparent backgrounds.
+     * Not used if renderer is provided.
+     *
+     * @default true
+     */
+    alpha?: boolean;
+    /**
+     * Enables the [logarithmic depth buffer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.logarithmicDepthBuffer).
+     * Not used if renderer is provided.
+     *
+     * @default false
+     */
+    logarithmicDepthBuffer?: boolean;
+    /**
+     * Enables shader validation.
+     * Note: shader validation is a costly operation that should be disabled in production.
+     * That can be toggled at any moment using the corresponding property in the renderer.
+     * See the [Three.js documentation](https://threejs.org/docs/index.html?q=webglren#api/en/renderers/WebGLRenderer.debug)
+     * for more information.
+     *
+     * @default false
+     */
+    checkShaderErrors?: boolean;
+    /**
+     * Enables color management.
+     * Not used if renderer is provided.
+     *
+     * @default false
+     */
+    colorManagement?: boolean;
+    /**
+     * The background color.
+     * Can be a hex color or `false` for transparent backgrounds (requires alpha true).
+     */
+    clearColor?: ColorRepresentation | boolean;
+    /**
+     * Custom renderer to be used.
+     * If provided, it will be automatically added in the DOM in viewerDiv.
+     */
+    renderer?: WebGLRenderer;
+}
 
 class C3DEngine {
+    width: number;
+    height: number;
+    renderTargets: Map<number, WebGLRenderTarget>;
+    renderer: WebGLRenderer;
+    labelRenderer: CSS2DRenderer;
+    renderPipeline: RenderPipeline | null;
+    renderingOptions: RenderingOptions;
+
     /**
-     * @param {HTMLDivElement} viewerDiv The parent div that will contain the canvas.
-     * @param {RendererOptions} options The options.
+     * @param viewerDiv The parent div that will contain the canvas.
+     * @param options The options.
      */
-    constructor(viewerDiv, options = {}) {
+    constructor(viewerDiv: HTMLDivElement, options: RendererOptions = {}) {
         // pick sensible default options
         if (options.antialias === undefined) {
             options.antialias = true;
@@ -135,10 +196,8 @@ class C3DEngine {
         this.width = viewerDiv.clientWidth;
         this.height = viewerDiv.clientHeight;
 
-        /** @type {Map<number, WebGLRenderTarget>} */
         this.renderTargets = new Map();
 
-        /** @type {WebGLRenderer} */
         this.renderer = null;
 
         // Create renderer
@@ -164,6 +223,7 @@ class C3DEngine {
         }
 
         // Don't verify shaders if not debug (it is very costly)
+        // @ts-ignore
         this.renderer.debug.checkShaderErrors = options.checkShaderErrors ?? __DEBUG__;
         this.labelRenderer = new CSS2DRenderer();
 
@@ -179,7 +239,7 @@ class C3DEngine {
         Capabilities.updateCapabilities(this.renderer);
 
         if (options.clearColor !== false) {
-            this.renderer.setClearColor(options.clearColor);
+            this.renderer.setClearColor(options.clearColor as ColorRepresentation);
         }
         this.renderer.clear();
         this.renderer.autoClear = false;
@@ -195,9 +255,11 @@ class C3DEngine {
         this.labelRenderer.domElement.style.pointerEvents = 'none';
         // Make sure labelRenderer starts a new stacking context, so the labels don't
         // stay on top of other components (e.g. inspector, etc.)
-        this.labelRenderer.domElement.style.zIndex = 0;
+        this.labelRenderer.domElement.style.zIndex = '0';
 
         // Set default size
+        // FIXME: this does not work (undefined), only defined on window
+        // @ts-ignore
         this.renderer.setPixelRatio(viewerDiv.devicePixelRatio);
         this.renderer.setSize(this.width, this.height);
         this.labelRenderer.setSize(this.width, this.height);
@@ -206,7 +268,6 @@ class C3DEngine {
         viewerDiv.appendChild(this.renderer.domElement);
         viewerDiv.appendChild(this.labelRenderer.domElement);
 
-        /** @type {RenderPipeline} */
         this.renderPipeline = null;
 
         this.renderingOptions = new RenderingOptions();
@@ -222,7 +283,7 @@ class C3DEngine {
         this.renderer.dispose();
     }
 
-    onWindowResize(w, h) {
+    onWindowResize(w: number, h: number) {
         this.width = w;
         this.height = h;
         for (const rt of this.renderTargets.values()) {
@@ -235,7 +296,7 @@ class C3DEngine {
     /**
      * Gets the viewport size, in pixels.
      *
-     * @returns {Vector2} The viewport size, in pixels.
+     * @returns The viewport size, in pixels.
      */
     getWindowSize() {
         return new Vector2(this.width, this.height);
@@ -244,10 +305,10 @@ class C3DEngine {
     /**
      * Renders the scene.
      *
-     * @param {Scene} scene The scene to render.
-     * @param {Camera} camera The camera.
+     * @param scene The scene to render.
+     * @param camera The camera.
      */
-    render(scene, camera) {
+    render(scene: Scene, camera: Camera) {
         this.renderer.setRenderTarget(null);
         const size = this.renderer.getDrawingBufferSize(tmpVec2);
 
@@ -270,10 +331,10 @@ class C3DEngine {
     /**
      * Use a custom pipeline when post-processing is required.
      *
-     * @param {Object3D} scene The scene to render.
-     * @param {Camera} camera The camera.
+     * @param scene The scene to render.
+     * @param camera The camera.
      */
-    renderUsingCustomPipeline(scene, camera) {
+    renderUsingCustomPipeline(scene: Object3D, camera: Camera) {
         if (!this.renderPipeline) {
             this.renderPipeline = new RenderPipeline(this.renderer);
         }
@@ -284,22 +345,10 @@ class C3DEngine {
     /**
      * Renders the scene into a readable buffer.
      *
-     * @param {object} options Options.
-     * @param {Color} options.clearColor The clear color to apply before rendering.
-     * @param {Object3D} options.scene The scene to render.
-     * @param {Camera} options.camera The camera to render.
-     * @param {number} [options.datatype] The type of pixels in the buffer.
-     * Defaults to `UnsignedByteType`.
-     * @param {object} [options.zone] partial zone to render. If undefined, the whole
-     * viewport is used.
-     * @param {number} options.zone.x x (in instance coordinate)
-     * @param {number} options.zone.y y (in instance coordinate)
-     * @param {number} options.zone.width width of area to render (in pixels)
-     * @param {number} options.zone.height height of area to render (in pixels)
-     * @returns {Uint8Array|Float32Array} The buffer. The first pixel in
-     * the buffer is the bottom-left pixel.
+     * @param options Options.
+     * @returns The buffer. The first pixel in the buffer is the bottom-left pixel.
      */
-    renderToBuffer(options) {
+    renderToBuffer(options: RenderToBufferOptions): Uint8Array | Float32Array {
         const zone = options.zone || {
             x: 0,
             y: 0,
@@ -346,15 +395,20 @@ class C3DEngine {
     /**
      * Render the scene to a render target.
      *
-     * @param {Object3D} scene The scene root.
-     * @param {Camera} camera The camera to render.
-     * @param {WebGLRenderTarget} [target] destination render target. Default value: full size
+     * @param scene The scene root.
+     * @param camera The camera to render.
+     * @param target destination render target. Default value: full size
      * render target owned by C3DEngine.
-     * @param {object} [zone] partial zone to render (zone x/y uses canvas coordinates)
+     * @param zone partial zone to render (zone x/y uses canvas coordinates)
      * Note: target must contain complete zone
-     * @returns {WebGLRenderTarget} - the destination render target
+     * @returns the destination render target
      */
-    _renderToRenderTarget(scene, camera, target, zone) {
+    private _renderToRenderTarget(
+        scene: Object3D,
+        camera: Camera,
+        target: WebGLRenderTarget,
+        zone: RenderToBufferZone,
+    ): WebGLRenderTarget {
         if (!target) {
             target = this.renderTargets.get(UnsignedByteType);
         }
@@ -385,12 +439,16 @@ class C3DEngine {
     /**
      * Converts the pixel buffer into an image element.
      *
-     * @param {*} pixelBuffer The 8-bit RGBA buffer.
-     * @param {number} width The width of the buffer, in pixels.
-     * @param {number} height The height of the buffer, in pixels.
-     * @returns {HTMLImageElement} The image.
+     * @param pixelBuffer The 8-bit RGBA buffer.
+     * @param width The width of the buffer, in pixels.
+     * @param height The height of the buffer, in pixels.
+     * @returns The image.
      */
-    static bufferToImage(pixelBuffer, width, height) {
+    static bufferToImage(
+        pixelBuffer: ArrayLike<number>,
+        width: number,
+        height: number,
+    ): HTMLImageElement {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
 

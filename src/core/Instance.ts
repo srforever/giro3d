@@ -4,7 +4,7 @@ import {
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4.js';
 import Camera from '../renderer/Camera.js';
-import C3DEngine, { type RendererOptions } from '../renderer/c3DEngine.js';
+import C3DEngine, { type RendererOptions } from '../renderer/c3DEngine';
 import type RenderingOptions from '../renderer/RenderingOptions.js';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
 import MainLoop, { RenderingState } from './MainLoop';
