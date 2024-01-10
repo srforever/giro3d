@@ -1,5 +1,5 @@
 import { Vector3, BufferAttribute, BufferGeometry } from 'three';
-import BatchTableParser from './BatchTableParser.js';
+import BatchTableParser from './BatchTableParser';
 import utf8Decoder from '../utils/Utf8Decoder';
 
 export interface Pnts {

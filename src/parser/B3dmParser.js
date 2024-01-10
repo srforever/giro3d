@@ -1,7 +1,7 @@
 import { Matrix4, MeshLambertMaterial, Material } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-import BatchTableParser from './BatchTableParser.js';
+import BatchTableParser from './BatchTableParser';
 import Capabilities from '../core/system/Capabilities';
 import shaderUtils from '../renderer/shader/ShaderUtils';
 import utf8Decoder from '../utils/Utf8Decoder';
