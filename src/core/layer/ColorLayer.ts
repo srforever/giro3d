@@ -217,6 +217,7 @@ class ColorLayer
 
         return this.getVectorFeaturesAtCoordinate(pickedResult.coord, vectorOptions)
             .map(feature => ({
+                isVectorPickFeature: true,
                 layer: this,
                 feature,
             }));

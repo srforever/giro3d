@@ -32,10 +32,19 @@ interface PickResult<TFeature extends any = any> extends Intersection {
  * on {@link entities.Map} for instance.
  */
 export interface VectorPickFeature {
+    isVectorPickFeature: true;
     /** Layer within the entity where the feature was picked from */
     layer: ColorLayer;
     /** OpenLayers feature */
     feature: Feature;
 }
+
+/**
+ * Tests whether an object implements {@link VectorPickFeature}.
+ *
+ * @param obj Object
+ * @returns `true` if the object implements the interface.
+ */
+export const isVectorPickFeature = (obj: any): obj is VectorPickFeature => obj.isVectorPickFeature;
 
 export default PickResult;

@@ -1,13 +1,13 @@
 import type Pickable from './Pickable';
-import type { isPickable } from './Pickable';
+import { isPickable } from './Pickable';
 import type PickableFeatures from './PickableFeatures';
-import type { isPickableFeatures } from './PickableFeatures';
+import { isPickableFeatures } from './PickableFeatures';
 import type PickOptions from './PickOptions';
 import type { PickFilterCallback } from './PickOptions';
 import type PickResult from './PickResult';
-import type { VectorPickFeature } from './PickResult';
-import type { PointsPickResult } from './PickPointsAt';
-import type { MapPickResult } from './PickTilesAt';
+import { type VectorPickFeature, isVectorPickFeature } from './PickResult';
+import { type PointsPickResult, isPointsPickResult } from './PickPointsAt';
+import { type MapPickResult, isMapPickResult } from './PickTilesAt';
 
 export {
     Pickable,
@@ -18,6 +18,9 @@ export {
     PickFilterCallback,
     PickResult,
     MapPickResult,
+    isMapPickResult,
     VectorPickFeature,
+    isVectorPickFeature,
     PointsPickResult,
+    isPointsPickResult,
 };

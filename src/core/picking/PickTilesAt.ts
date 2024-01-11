@@ -12,12 +12,21 @@ import traversePickingCircle from './PickingCircle';
 
 /** Pick result on tiles (e.g. map) */
 export interface MapPickResult<TFeature extends any = any> extends PickResult<TFeature & any> {
+    isMapPickResult: true;
     entity: Map;
     /** Tile containing the picked result. */
     object: TileMesh;
     /** Coordinates of the point picked. */
     coord: Coordinates;
 }
+
+/**
+ * Tests whether an object implements {@link MapPickResult}.
+ *
+ * @param obj Object
+ * @returns `true` if the object implements the interface.
+ */
+export const isMapPickResult = (obj: any): obj is MapPickResult => obj.isMapPickResult;
 
 const BLACK = new Color(0, 0, 0);
 const tmpCoords = new Coordinates('EPSG:3857', 0, 0, 0);
@@ -125,6 +134,7 @@ function pickTilesAt(
                 const point = tmpCoords.toVector3(new Vector3());
 
                 const p: MapPickResult = {
+                    isMapPickResult: true,
                     object: tile,
                     entity: map,
                     point,

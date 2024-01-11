@@ -16,6 +16,7 @@ import traversePickingCircle from './PickingCircle';
 
 /** Pick result on PointCloud-like objects */
 export interface PointsPickResult<TFeature extends any = any> extends PickResult<TFeature & any> {
+    isPointsPickResult: true;
     /** Point cloud picked */
     object: Points;
     /** Index of the point in the `Points` object */
@@ -23,6 +24,14 @@ export interface PointsPickResult<TFeature extends any = any> extends PickResult
     /** Coordinates of the point picked. */
     coord: { x: number; y: number; z: number; };
 }
+
+/**
+ * Tests whether an object implements {@link PointsPickResult}.
+ *
+ * @param obj Object
+ * @returns `true` if the object implements the interface.
+ */
+export const isPointsPickResult = (obj: any): obj is PointsPickResult => obj.isPointsPickResult;
 
 const BLACK = new Color(0, 0, 0);
 
@@ -164,6 +173,7 @@ function pickPointsAt(
                     )
                     .applyMatrix4(o.matrixWorld);
                 const p: PointsPickResult = {
+                    isPointsPickResult: true,
                     object: pts,
                     index: candidates[i].index,
                     entity,
