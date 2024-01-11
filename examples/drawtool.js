@@ -4,6 +4,7 @@ import {
     Group, LineBasicMaterial, MeshBasicMaterial, PointsMaterial, Vector2, Vector3,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
@@ -14,6 +15,7 @@ import DrawTool, { DrawToolMode, DrawToolState } from '@giro3d/giro3d/interactio
 import Drawing from '@giro3d/giro3d/interactions/Drawing.js';
 import Fetcher from '@giro3d/giro3d/utils/Fetcher';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 // Initialize Giro3d (see tifftiles for more details)

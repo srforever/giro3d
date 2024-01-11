@@ -1,6 +1,7 @@
 import * as turf from '@turf/turf';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import XYZ from 'ol/source/XYZ.js';
+
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
@@ -8,7 +9,7 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
-import Fetcher from '@giro3d/giro3d/utils/Fetcher';
+import Fetcher from '@giro3d/giro3d/utils/Fetcher.js';
 
 import StatusBar from './widgets/StatusBar.js';
 

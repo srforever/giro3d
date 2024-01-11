@@ -1,16 +1,13 @@
 import { Color, CubeTextureLoader } from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-
+import GeoJSON from 'ol/format/GeoJSON.js';
+import VectorSource from 'ol/source/Vector.js';
+import TileWMS from 'ol/source/TileWMS.js';
 import { createXYZ } from 'ol/tilegrid.js';
 import { tile } from 'ol/loadingstrategy.js';
 
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
-import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
-import GeoJSON from 'ol/format/GeoJSON.js';
-import VectorSource from 'ol/source/Vector.js';
-import TileWMS from 'ol/source/TileWMS.js';
-
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';

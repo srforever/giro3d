@@ -1,9 +1,10 @@
 import colormap from 'colormap';
 import { Color } from 'three';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { Fill, Stroke, Style } from 'ol/style.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
-import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';

@@ -10,7 +10,7 @@
 // This walkthrough is based on the [2.5D Map example](../examples/getting-started.html).
 // Feel free to visit this example to see the final result of this tutorial.
 
-import * as THREE from 'three';
+import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import TileWMS from 'ol/source/TileWMS.js';
@@ -174,7 +174,7 @@ const camera = instance.camera.camera3D;
 // altitude of 2000 meters.
 const cameraAltitude = 2000;
 
-const cameraPosition = new THREE.Vector3(
+const cameraPosition = new Vector3(
     extent.west(),
     extent.south(),
     cameraAltitude,
