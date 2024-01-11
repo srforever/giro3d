@@ -14,7 +14,7 @@ import Map, { type LayerCompareFn, type MapEventMap } from './Map';
 import PotreePointCloud from './PotreePointCloud';
 import Entity, { type EntityEventMap } from './Entity';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
-import Tiles3D, { type Tiles3DOptions } from './Tiles3D';
+import Tiles3D, { type Tiles3DOptions, type Tiles3DPickResult } from './Tiles3D';
 import FeatureCollection, { type OnMeshCreatedCallback, type OnTileCreatedCallback } from './FeatureCollection';
 
 export {
@@ -33,6 +33,7 @@ export {
     PotreePointCloud,
     Tiles3D,
     Tiles3DOptions,
+    Tiles3DPickResult,
     FeatureCollection,
     OnMeshCreatedCallback,
     OnTileCreatedCallback,

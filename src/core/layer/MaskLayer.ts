@@ -4,6 +4,8 @@ import {
     UnsignedByteType,
     Vector4,
 } from 'three';
+import { type Feature } from 'ol';
+import { type Geometry } from 'ol/geom';
 import ColorLayer from './ColorLayer';
 import type { LayerOptions, Node, NodeMaterial } from './Layer';
 
@@ -81,6 +83,16 @@ class MaskLayer extends ColorLayer {
             texture: EMPTY_TEXTURE,
             pitch: DEFAULT_PITCH,
         });
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    override getVectorFeaturesAtCoordinate(): Feature<Geometry>[] {
+        return [];
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    override getVectorFeaturesInExtent(): Feature<Geometry>[] {
+        return [];
     }
 }
 

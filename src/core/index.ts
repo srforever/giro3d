@@ -7,12 +7,13 @@
 import * as cache from './Cache';
 import * as layer from './layer';
 import * as geographic from './geographic';
+import * as picking from './picking';
 import Rect from './Rect';
 import Context from './Context';
 import Instance, {
     type InstanceOptions,
     type InstanceEvents,
-    type InstancePickObjectsAtOptions,
+    type PickObjectsAtOptions,
     type CustomCameraControls,
     type ThreeControls,
     type FrameRequesterCallback,
@@ -21,15 +22,6 @@ import MainLoop, { type RenderingState, type MainLoopEvents, type MainLoopOption
 import type { MainLoopFrameEvents, MAIN_LOOP_EVENTS } from './MainLoopEvents';
 import OperationCounter, { type OperationCounterEvents } from './OperationCounter';
 import type Progress from './Progress';
-import {
-    type PickObjectsAtOptions,
-    type PickResultBase,
-    type PickTilesAtResult,
-    type PickObjectsAtResult,
-    type PickPointsAtResult,
-    type PickResultFilterCallback,
-    type CanvasFilterCallback,
-} from './Picking';
 import PointCloud, { type PointCloudEventMap, type PointCloudOptions } from './PointCloud';
 import type ElevationRange from './ElevationRange';
 import type ContourLineOptions from './ContourLineOptions';
@@ -44,10 +36,11 @@ export {
     geographic,
     layer,
     cache,
+    picking,
     Instance,
     InstanceOptions,
     InstanceEvents,
-    InstancePickObjectsAtOptions,
+    PickObjectsAtOptions,
     CustomCameraControls,
     ThreeControls,
     FrameRequesterCallback,
@@ -62,13 +55,6 @@ export {
     OperationCounter,
     OperationCounterEvents,
     Progress,
-    PickObjectsAtOptions,
-    PickResultBase,
-    PickTilesAtResult,
-    PickPointsAtResult,
-    PickObjectsAtResult,
-    PickResultFilterCallback,
-    CanvasFilterCallback,
     PointCloud,
     PointCloudEventMap,
     PointCloudOptions,

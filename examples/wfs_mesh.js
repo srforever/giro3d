@@ -18,6 +18,8 @@ import FeatureCollection from '@giro3d/giro3d/entities/FeatureCollection.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 
+import StatusBar from './widgets/StatusBar.js';
+
 // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)
 Instance.registerCRS('EPSG:3946',
     '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
@@ -186,13 +188,16 @@ const label = new CSS2DObject(wrapper);
 instance.add(label);
 
 instance.domElement.addEventListener('mousemove', e => {
-    const picked = instance.pickObjectsAt(e, { radius: 2, limit: 1, where: [busStops, busLines] });
-    if (picked.length !== 0) {
-        const found = picked[0];
+    const found = instance.pickObjectsAt(e, {
+        radius: 2,
+        limit: 1,
+        where: [busStops, busLines],
+    }).at(0);
+    if (found) {
         const obj = found.object;
-        if (found.layer === busStops) {
+        if (found.entity === busStops) {
             text.innerText = `Bus stop "${obj.userData.properties.nom}"`;
-        } else if (found.layer === busLines) {
+        } else if (found.entity === busLines) {
             text.innerText = `Bus line ${obj.userData.properties.ligne}`;
         }
         // Virtually any inner markup is supported, here we're just inserting text
@@ -202,7 +207,11 @@ instance.domElement.addEventListener('mousemove', e => {
         label.updateMatrixWorld();
         label.visible = true;
         instance.notifyChange(label);
+    } else {
+        label.visible = false;
+        instance.notifyChange(label);
     }
 });
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
+StatusBar.bind(instance);

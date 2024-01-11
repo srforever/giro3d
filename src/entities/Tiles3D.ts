@@ -8,7 +8,6 @@ import {
     Vector3,
 } from 'three';
 import type Extent from '../core/geographic/Extent';
-import Picking, { type PickObjectsAtOptions, type PickResultBase } from '../core/Picking';
 import Entity3D from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
 import $3dTilesIndex, { type ProcessedTile } from './3dtiles/3dTilesIndex';
@@ -26,9 +25,14 @@ import { boundingVolumeToExtent, cullingTest } from './3dtiles/BoundingVolume';
 import type { $3dTilesTileset, $3dTilesTile, $3dTilesAsset } from './3dtiles/types';
 import $3dTilesLoader from './3dtiles/3dTilesLoader';
 import type PointsMaterial from '../renderer/PointsMaterial';
+import type Pickable from '../core/picking/Pickable';
+import type PickOptions from '../core/picking/PickOptions';
+import type PickResult from '../core/picking/PickResult';
+import pickObjectsAt from '../core/picking/PickObjectsAt';
+import pickPointsAt, { type PointsPickResult } from '../core/picking/PickPointsAt';
 
 /** Options to create a Tiles3D object. */
-export interface Tiles3DOptions {
+export interface Tiles3DOptions<TMaterial extends Material> {
     /**
      * The delay, in milliseconds, to cleanup unused objects.
      *
@@ -47,7 +51,7 @@ export interface Tiles3DOptions {
      */
     object3d?: Object3D,
     /** The optional material to use. */
-    material?: Material,
+    material?: TMaterial,
 }
 
 const tmpVector = new Vector3();
@@ -84,10 +88,20 @@ function isTilesetContentReady(tileset: $3dTilesTile, node: Tile): boolean {
 }
 
 /**
+ * Types of results for picking on {@link Tiles3D}.
+ *
+ * If Tiles3D uses {@link PointsMaterial}, then results will be of {@link PointsPickResult}.
+ * Otherwise, they will be of {@link PickResult}.
+ */
+export type Tiles3DPickResult = PointsPickResult | PickResult;
+
+/**
  * A [3D Tiles](https://www.ogc.org/standards/3DTiles) dataset.
  *
  */
-class Tiles3D extends Entity3D {
+class Tiles3D<TMaterial extends Material = Material>
+    extends Entity3D
+    implements Pickable<Tiles3DPickResult> {
     /** Read-only flag to check if a given object is of type Tiles3D. */
     readonly isTiles3D = true;
     private readonly _url: string;
@@ -106,7 +120,7 @@ class Tiles3D extends Entity3D {
     /** The delay, in milliseconds, to cleanup unused objects. */
     cleanupDelay: number;
     /** The material to use */
-    material?: Material;
+    material?: TMaterial;
     private _cleanableTiles: Tile[];
     private _opCounter: OperationCounter;
     private _queue: RequestQueue;
@@ -134,7 +148,7 @@ class Tiles3D extends Entity3D {
      * @param source The data source.
      * @param options Optional properties.
      */
-    constructor(id: string, source: Tiles3DSource, options: Tiles3DOptions = {}) {
+    constructor(id: string, source: Tiles3DSource, options: Tiles3DOptions<TMaterial> = {}) {
         super(id, options.object3d || new Group());
 
         if (!source) {
@@ -252,26 +266,6 @@ class Tiles3D extends Entity3D {
         };
     }
     /* eslint-enable class-methods-use-this */
-
-    pickObjectsAt(
-        coordinates: Vector2,
-        options?: PickObjectsAtOptions,
-        target?: PickResultBase[],
-    ): PickResultBase[] {
-        // If this is a pointcloud but with no default material defined,
-        // we don't go in that if, but we could.
-        // TODO: find a better way to know that this layer is about pointcloud ?
-        if (this.material && (this.material as PointsMaterial).enablePicking) {
-            return Picking.pickPointsAt(
-                this._instance,
-                coordinates,
-                this,
-                options,
-                target,
-            );
-        }
-        return super.pickObjectsAt(coordinates, options, target);
-    }
 
     private async requestNewTile(
         metadata: ProcessedTile,
@@ -717,6 +711,14 @@ class Tiles3D extends Entity3D {
         if (node.sse < this.sseThreshold) { return false; }
 
         return true;
+    }
+
+    pick(coordinates: Vector2, options?: PickOptions): Tiles3DPickResult[] {
+        // FIXME: get rid of the unknown when PointsMaterial is converted to TS
+        if (this.material && (this.material as unknown as PointsMaterial).enablePicking) {
+            return pickPointsAt(this._instance, coordinates, this, options);
+        }
+        return pickObjectsAt(this._instance, coordinates, this.object3d, options);
     }
 }
 

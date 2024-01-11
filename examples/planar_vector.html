@@ -1,5 +1,22 @@
 ---
 title: Native Vector Data
-shortdesc: Display vector data (KML, GeoJSON, GPX) using the native Giro3d loaders.
-attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>©, <href="http://www.itowns-project.org/">iTowns</a>
+shortdesc: Display vector data (KML, GeoJSON, GPX, GML) using the native Giro3d loaders.
+attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>©, <a target="_blank" href="https://www.grandlyon.com/">Métropole Grand Lyon</a>
 ---
+
+<div class="p-2 position-absolute top-0 end-0 col-2" style="min-height: 9rem">
+    <div class="card">
+        <h5 class="card-header">Information</h5>
+
+        <!-- tooltip -->
+        <span class="badge bg-secondary position-absolute top-0 end-0 m-2" data-bs-toggle="popover"
+        data-bs-content="pickingHelper">?</span>
+        <p class="card-text d-none" id="pickingHelper">Some informations embedded in the vector data</p>
+
+        <div class="card-body overflow-auto">
+
+            <!-- Result table -->
+            <div id="results"></div>
+        </div>
+    </div>
+</div>

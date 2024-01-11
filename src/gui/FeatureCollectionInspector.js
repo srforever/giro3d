@@ -25,8 +25,8 @@ const FILTER_STATE = {
         cursor: 'auto',
         buttonLabel: 'Hide all but clicked',
         enter: function enter(switchState, context) {
-            const { instance, features } = context;
-            features.object3d.traverse(o => {
+            const { instance, featureCollection } = context;
+            featureCollection.object3d.traverse(o => {
                 if (o.material) {
                     o.material.visible = true;
                 }
@@ -41,12 +41,12 @@ const FILTER_STATE = {
         cursor: 'crosshair',
         buttonLabel: 'Cancel picking',
         enter: function enter(switchState, context) {
-            const { instance, features } = context;
+            const { instance, featureCollection } = context;
             if (!this._filteringFn) {
                 this._filteringFn = e => {
                     const picked = instance.pickObjectsAt(
                         e,
-                        { limit: 1, radius: 1, where: [features] },
+                        { limit: 1, radius: 1, where: [featureCollection] },
                     );
                     if (picked.length !== 0) {
                         instance.domElement.removeEventListener('click', this._filteringFn);
@@ -65,10 +65,10 @@ const FILTER_STATE = {
         cursor: 'auto',
         buttonLabel: 'Cancel hiding',
         enter(switchState, context, picked) {
-            const { instance, features } = context;
+            const { instance, featureCollection } = context;
             console.log('Filtering', picked, picked.object);
             const filteringFeature = picked.object.userData;
-            features.object3d.traverse(o => {
+            featureCollection.object3d.traverse(o => {
                 if (o.material && o.userData !== filteringFeature) {
                     o.material.visible = false;
                 }
@@ -87,11 +87,11 @@ class FeatureCollectionInspector extends EntityInspector {
      *
      * @param {GUI} parentGui The parent GUI.
      * @param {Instance} instance The Giro3D instance.
-     * @param {FeatureCollection} features The inspected Features.
+     * @param {FeatureCollection} featureCollection The inspected Features.
      */
-    constructor(parentGui, instance, features) {
-        super(parentGui, instance, features, {
-            title: `Features ('${features.id}')`,
+    constructor(parentGui, instance, featureCollection) {
+        super(parentGui, instance, featureCollection, {
+            title: `Features ('${featureCollection.id}')`,
             visibility: true,
             boundingBoxColor: true,
             boundingBoxes: true,
@@ -99,30 +99,30 @@ class FeatureCollectionInspector extends EntityInspector {
         });
 
         /**
-         * The inspected features.
+         * The inspected FeatureCollection.
          *
          * @type {FeatureCollection}
          */
-        this.features = features;
+        this.featureCollection = featureCollection;
 
         /**
          * Toggle the wireframe rendering of the features.
          *
          * @type {boolean}
          */
-        this.wireframe = this.features.wireframe || false;
+        this.wireframe = this.featureCollection.wireframe || false;
 
         /**
          * Toggle the frozen property of the features.
          *
          * @type {boolean}
          */
-        this.frozen = this.features.frozen || false;
+        this.frozen = this.featureCollection.frozen || false;
 
         /**
-         * Store the CRS code of this.features
+         * Store the CRS code of this.featureCollection
          */
-        this.dataProjection = this.features.dataProjection || '';
+        this.dataProjection = this.featureCollection.dataProjection || '';
 
         this.showGrid = false;
 
@@ -133,11 +133,11 @@ class FeatureCollectionInspector extends EntityInspector {
         this.addController(this, 'dumpTiles').name('Dump tiles in console');
         this.hideAllController = this.addController(this, 'hideAllButClicked');
         this.filterState = FILTER_STATE.NONE;
-        this.applyFilterState(this.filterState, this.features);
+        this.applyFilterState(this.filterState, this.featureCollection);
     }
 
     dumpTiles() {
-        console.log(this.features.level0Nodes);
+        console.log(this.featureCollection.level0Nodes);
     }
 
     applyFilterState(state, ...args) {
@@ -145,14 +145,14 @@ class FeatureCollectionInspector extends EntityInspector {
         this.hideAllController.name(state.buttonLabel);
         this.filterState = state;
         state.enter(this.applyFilterState.bind(this), {
-            features: this.features,
+            featureCollection: this.featureCollection,
             instance: this.instance,
         }, ...args);
     }
 
     hideAllButClicked() {
         this.filterState.doButtonAction(this.applyFilterState.bind(this), {
-            features: this.features,
+            featureCollection: this.featureCollection,
             instance: this.instance,
         });
     }
@@ -172,11 +172,11 @@ class FeatureCollectionInspector extends EntityInspector {
     }
 
     toggleWireframe(value) {
-        this.features.wireframe = value;
-        applyToMaterial(this.rootObject, this.features, material => {
+        this.featureCollection.wireframe = value;
+        applyToMaterial(this.rootObject, this.featureCollection, material => {
             material.wireframe = value;
         });
-        this.notify(this.features);
+        this.notify(this.featureCollection);
     }
 }
 

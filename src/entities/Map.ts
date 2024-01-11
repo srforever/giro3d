@@ -15,7 +15,6 @@ import ColorLayer from '../core/layer/ColorLayer';
 import ElevationLayer from '../core/layer/ElevationLayer';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
-import Picking, { type PickObjectsAtOptions, type PickTilesAtResult } from '../core/Picking';
 import type { SSE } from '../core/ScreenSpaceError';
 import ScreenSpaceError from '../core/ScreenSpaceError';
 import LayeredMaterial, {
@@ -33,6 +32,11 @@ import type { Context, ContourLineOptions, ElevationRange } from '../core';
 import type TileGeometry from '../core/TileGeometry';
 import { type MaterialOptions } from '../renderer/LayeredMaterial';
 import type HillshadingOptions from '../core/HillshadingOptions';
+import type Pickable from '../core/picking/Pickable';
+import type PickOptions from '../core/picking/PickOptions';
+import pickTilesAt, { type MapPickResult } from '../core/picking/PickTilesAt';
+import type PickableFeatures from '../core/picking/PickableFeatures';
+import { isPickableFeatures } from '../core/picking/PickableFeatures';
 
 const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 
@@ -196,7 +200,9 @@ export interface MapEventMap extends Entity3DEventMap {
  * If an elevation layer is added, the surface of the map is deformed to
  * display terrain.
  */
-class Map extends Entity3D<MapEventMap> {
+class Map
+    extends Entity3D<MapEventMap>
+    implements Pickable<MapPickResult>, PickableFeatures<any, MapPickResult> {
     private _segments: number;
     private readonly _atlasInfo: AtlasInfo;
     private _subdivisions: { x: number; y: number; };
@@ -212,6 +218,7 @@ class Map extends Entity3D<MapEventMap> {
      * Read-only flag to check if a given object is of type Map.
      */
     readonly isMap: boolean = true;
+    readonly isPickableFeatures = true;
     readonly materialOptions: MaterialOptions;
     readonly showOutline: boolean;
     /** @ignore */
@@ -527,18 +534,26 @@ class Map extends Entity3D<MapEventMap> {
         };
     }
 
-    pickObjectsAt(
-        coordinates: Vector2,
-        options?: PickObjectsAtOptions,
-        target?: PickTilesAtResult[],
-    ) {
-        return Picking.pickTilesAt(
+    pick(coordinates: Vector2, options?: PickOptions): MapPickResult[] {
+        return pickTilesAt(
             this._instance,
             coordinates,
             this,
             options,
-            target,
         );
+    }
+
+    pickFeaturesFrom(pickedResult: MapPickResult, options?: PickOptions): any[] {
+        const result: any[] = [];
+        for (const layer of this._attachedLayers) {
+            if (isPickableFeatures(layer)) {
+                const res = layer.pickFeaturesFrom(pickedResult, options);
+                result.push(...res);
+            }
+        }
+
+        pickedResult.features = result;
+        return result;
     }
 
     preUpdate(context: Context, changeSources: Set<unknown>) {
