@@ -154,6 +154,7 @@ const emptyMaterial = new MeshBasicMaterial();
 const tmpQuat = new Quaternion();
 const unitVector = new Vector3(1, 0, 0);
 const tmpVec3 = new Vector3();
+const EDGE_LAYER = 30;
 
 /**
  * Callback to create a HTML element for points for CSS2DObject
@@ -240,6 +241,11 @@ type EventListenersMap = {
 class Edge extends Mesh {
     edgeIndex: number;
     line: Line3;
+
+    constructor(geometry: BoxGeometry, material: MeshBasicMaterial) {
+        super(geometry, material);
+        this.layers.set(EDGE_LAYER);
+    }
 }
 
 /**
@@ -877,6 +883,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         // Used for raycasting against the edges
         // (raycasting against the lines don't always work depending on the camera angle)
         this._edges = new Group();
+        this._edges.layers.set(EDGE_LAYER);
         this._edges.name = 'drawtool-edges';
         this._instance.threeObjects.add(this._edges);
 
@@ -1294,6 +1301,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         const mouse = this._instance.eventToCanvasCoords(evt, tmpVec2);
         const pointer = this._instance.canvasToNormalizedCoords(mouse, tmpVec2);
         raycaster.setFromCamera(pointer, this._instance.camera.camera3D);
+        raycaster.layers.set(EDGE_LAYER);
         const picked = raycaster.intersectObject(this._edges, true);
 
         if (picked.length === 0) {
