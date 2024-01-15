@@ -19,9 +19,8 @@ import {
 } from 'three';
 import type { Material } from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
-import * as olformat from 'ol/format.js';
-import type { SimpleGeometry } from 'ol/geom.js';
-import type Instance from '../core/Instance';
+import type DrawingCollection from '../entities/DrawingCollection';
+import GeoJSONUtils from '../utils/GeoJSONUtils';
 
 const planesGeom = new PlaneGeometry(100, 100);
 
@@ -48,8 +47,6 @@ const defaultPlaneHelperMaterial = new MeshBasicMaterial({
     wireframe: true,
 });
 
-const format = new olformat.GeoJSON();
-
 const tmpVec3s = [new Vector3(), new Vector3(), new Vector3()];
 const tmpBox3 = new Box3();
 
@@ -61,25 +58,16 @@ const STRIDE3D = 3;
 export type DrawingGeometryType = 'Point' | 'MultiPoint' | 'LineString' | 'Polygon';
 
 /**
- * Types of geometries to draw.
+ * Callback to create a HTML element for points for CSS2DObject.
  *
- * @deprecated Use {@link DrawingGeometryType} instead.
- */
-export const GEOMETRY_TYPE: Record<string, DrawingGeometryType> = {
-    POINT: 'Point',
-    MULTIPOINT: 'MultiPoint',
-    LINE: 'LineString',
-    POLYGON: 'Polygon',
-} as const;
-
-/**
- * Callback to create a HTML element for points for CSS2DObject
+ * For picking to work correctly, the returned DOM element must:
+ * - have `pointerEvents` to `none`,
+ * - fill more or less its bounding box
  *
- * @param index Index of the point in the current geometry
- * @param position 3D position of the point
+ * @param text Text to display
  * @returns HTML element for the point
  */
-export type Point2DFactory = (index: number, position: Vector3) => HTMLElement;
+export type Point2DFactory = (text: string) => HTMLElement;
 
 /**
  * Material options.
@@ -103,35 +91,82 @@ export interface MaterialsOptions {
 export interface DrawingOptions extends MaterialsOptions {
     /** Name for this shape */
     name?: string;
-    /** Minimum depth for the extrusion */
+    /**
+     * Minimum depth for the extrusion
+     *
+     * @default 1
+     */
     minExtrudeDepth?: number;
-    /** Maximum depth for the extrusion */
+    /**
+     * Maximum depth for the extrusion
+     *
+     * @default 5
+     */
     maxExtrudeDepth?: number;
-    /** Render points as 3D objects - if false, must provide `point2DFactory` option */
+    /**
+     * Render points as 3D objects - if false, may provide `point2DFactory` option
+     *
+     * @default false
+     */
     use3Dpoints?: boolean;
     /**
      * Callback for creating DOM element for points for CSS2DObject - used only if
-     * `use3Dpoints` is `false`)
+     * `use3Dpoints` is `false`).
+     *
+     * For picking to work correctly, the returned DOM element must:
+     * - have `pointerEvents` to `none`,
+     * - fill more or less its bounding box
      */
     point2DFactory?: Point2DFactory;
     /**
      * True to make the plane helper visible.
      * When drawing the shape, we project the points on a plane for triangulation. This enables
      * seeing the plane used for projecting while debugging.
+     *
+     * @default false
      */
     planeHelperVisible?: boolean;
-    /** Initial number of points to allocate when drawing */
+    /**
+     * Initial number of points to allocate when drawing
+     *
+     * @default 100
+     */
     pointsBudget?: number;
 }
 
 /**
+ * Default Point2D factory for creating labels.
+ *
+ * @param text Text to display
+ * @returns DOM Element to attach to the CSS2DObject
+ */
+function defaultPoint2DFactory(text: string): HTMLElement {
+    const pt = document.createElement('div');
+    pt.style.position = 'absolute';
+    pt.style.borderRadius = '50%';
+    pt.style.width = '28px';
+    pt.style.height = '28px';
+    pt.style.backgroundColor = '#070607';
+    pt.style.color = '#ffffff';
+    pt.style.border = '2px solid #ebebec';
+    pt.style.fontSize = '14px';
+    pt.style.fontWeight = 'bold';
+    pt.style.textAlign = 'center';
+    pt.style.pointerEvents = 'none';
+    pt.innerText = text;
+    return pt;
+}
+
+/**
  * Simple geometry object for drawing.
- * Instanciated via DrawTool, but can also be added to Giro3D to view and edit simple geometries.
+ *
+ * Instanciated via {@link DrawTool}, but can also be added to {@link DrawingCollection} to
+ * view and edit simple geometries.
  */
 class Drawing extends Group {
-    public isDrawing: boolean = true;
+    public readonly isDrawing: boolean = true;
+    public entity?: DrawingCollection;
 
-    private _instance: Instance;
     private _minExtrudeDepth: number;
     private _maxExtrudeDepth: number;
     private _faceMaterial: Material;
@@ -183,22 +218,30 @@ class Drawing extends Group {
     public get localCoordinates(): Float32Array { return this._positionsTop; }
     /** Get the geometry type of the object */
     public get geometryType(): DrawingGeometryType | null { return this._geometryType; }
+    /** Returns whether we're rendering points as 3D objects or not */
+    public get use3Dpoints() { return this._use3Dpoints; }
+    /**
+     * Updates the rendering of points.
+     * You'll need to call `instance.notifyChange()` to notify the changes.
+     */
+    public set use3Dpoints(value: boolean) {
+        this.clear();
+        this._use3Dpoints = value;
+        this.refresh();
+    }
 
     /**
      * Creates a new 3D Object
      *
-     * @param instance Giro3D instance
      * @param options Options
-     * @param geojson Initial GeoJSON shape
+     * @param geojson Initial GeoJSON geometry
      */
     constructor(
-        instance: Instance,
         options: DrawingOptions = {},
         geojson: GeoJSON.Geometry = null,
     ) {
         super();
         this.name = options.name ?? 'drawobject';
-        this._instance = instance;
         this._minExtrudeDepth = options.minExtrudeDepth ?? 1;
         this._maxExtrudeDepth = options.maxExtrudeDepth ?? 5;
         this._faceMaterial = options.faceMaterial ?? defaultFaceMaterial;
@@ -206,9 +249,7 @@ class Drawing extends Group {
         this._lineMaterial = options.lineMaterial ?? defaultLineMaterial;
         this._pointMaterial = options.pointMaterial ?? defaultPointMaterial;
         this._use3Dpoints = options.use3Dpoints ?? true;
-        this._point2DFactory = (
-            options.point2DFactory !== null && options.point2DFactory !== undefined
-        ) ? options.point2DFactory.bind(this) : this._defaultPoint2DFactory.bind(this);
+        this._point2DFactory = options.point2DFactory ?? defaultPoint2DFactory;
         this._planeHelperMaterial = options.planeHelperMaterial ?? defaultPlaneHelperMaterial;
         this._planeHelperMaterial.depthTest = false;
         this._planeHelperMaterial.depthWrite = false;
@@ -245,54 +286,33 @@ class Drawing extends Group {
 
     /**
      * Disposes of the object
-     *
      */
     dispose(): void {
+        for (const o of this.children) {
+            const material = (o as any).material;
+            const geometry = (o as any).geometry;
+
+            if (material && 'dispose' in material && typeof material.dispose === 'function') {
+                material.dispose();
+            }
+            if (geometry && 'dispose' in geometry && typeof geometry.dispose === 'function') {
+                geometry.dispose();
+            }
+        }
         this.clear();
-        this._instance = null;
     }
 
     /**
-     *  Removes all child objects.
+     * Removes all child objects.
+     * You'll need to call `instance.notifyChange()` to notify the changes.
      */
     clear(): this {
-        if (
-            !this._use3Dpoints
-            && (
-                this.geometryType === 'Point'
-                || this.geometryType === 'MultiPoint'
-            )
-        ) {
-            for (const o of this.children) {
-                (o as CSS2DObject).element.remove();
+        if (!this._use3Dpoints && (this.geometryType === 'Point' || this.geometryType === 'MultiPoint')) {
+            for (const o of this.children as CSS2DObject[]) {
+                o.element.remove();
             }
         }
         return super.clear();
-    }
-
-    /**
-     * Default Point2D factory for creating labels.
-     *
-     * @param index Index of the point
-     * @param position Position of the point
-     * @returns DOM Element to attach to the CSS2DObject
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
-    private _defaultPoint2DFactory(index: number, position: Vector3): HTMLElement {
-        const pt = document.createElement('div');
-        pt.style.position = 'absolute';
-        pt.style.borderRadius = '50%';
-        pt.style.width = '28px';
-        pt.style.height = '28px';
-        pt.style.backgroundColor = '#070607';
-        pt.style.color = '#ffffff';
-        pt.style.border = '2px solid #ebebec';
-        pt.style.fontSize = '14px';
-        pt.style.fontWeight = 'bold';
-        pt.style.textAlign = 'center';
-        pt.style.pointerEvents = 'none';
-        pt.innerText = `${index + 1}`;
-        return pt;
     }
 
     /**
@@ -425,34 +445,28 @@ class Drawing extends Group {
     }
 
     /**
-     * Forces update from the coordinates
+     * Forces update from the coordinates.
+     * You'll need to call `instance.notifyChange()` to notify the changes.
      */
-    update() {
+    refresh() {
         this.setCoordinates(this.coordinates, this.geometryType);
     }
 
     /**
      * Sets the shape to draw.
+     * You'll need to call `instance.notifyChange()` to notify the changes.
      *
      * @param geojson GeoJSON shape to draw
      */
     setGeojson(geojson: GeoJSON.Geometry): void {
         if (!geojson) return;
-
-        const geometry = format
-            .readFeature({
-                type: 'Feature',
-                geometry: geojson,
-            })
-            .getGeometry();
-        this.setCoordinates(
-            (geometry as SimpleGeometry).getFlatCoordinates(),
-            geometry.getType() as DrawingGeometryType,
-        );
+        const flatCoordinates = GeoJSONUtils.toFlatCoordinates(geojson);
+        this.setCoordinates(flatCoordinates, geojson.type as DrawingGeometryType);
     }
 
     /**
      * Sets the shape to draw.
+     * You'll need to call `instance.notifyChange()` to notify the changes.
      *
      * @param coordinates Array of flat coordinates
      * @param geometryType Type of geometry
@@ -546,12 +560,23 @@ class Drawing extends Group {
         } else {
             this._geometryType = null;
         }
-
-        this._instance.notifyChange(this);
     }
 
     /**
-     * Sets materials for this object
+     * Gets the current GeoJSON corresponding to this shape.
+     *
+     * Returns `null` if the shape is empty.
+     *
+     * @returns GeoJSON geometry object
+     */
+    toGeoJSON(): GeoJSON.Geometry {
+        if (this._coordinates.length === 0) return null;
+        return GeoJSONUtils.fromFlatCoordinates(this._coordinates, this._geometryType);
+    }
+
+    /**
+     * Sets materials for this object.
+     * You'll need to call `instance.notifyChange()` to notify the changes.
      *
      * @param options Materials
      */
@@ -578,7 +603,6 @@ class Drawing extends Group {
         if (this._side) {
             this._side.material = this._sideMaterial;
         }
-        this._instance.notifyChange(this);
     }
 
     /**
@@ -673,7 +697,10 @@ class Drawing extends Group {
         this._planeHelper.position.copy(this._center);
         this._planeHelper.updateMatrixWorld(true);
 
-        if (this._planeHelperVisible) this.add(this._planeHelper);
+        if (this._planeHelperVisible) {
+            this.add(this._planeHelper);
+            this.entity?.onObjectCreated(this._planeHelper);
+        }
 
         // Compute how much we should extrude, as a fixed value will not work in all cases,
         // depending on how large the geometry is, resolution of our data, etc.
@@ -770,6 +797,7 @@ class Drawing extends Group {
             // Render as Three.js objects
             this._computePointsCoordinates();
             this.add(this._points);
+            this.entity?.onObjectCreated(this._points);
         } else {
             // Render via CSS2DRenderer
             const nbPoints = this.coordinates.length / STRIDE3D;
@@ -781,11 +809,12 @@ class Drawing extends Group {
                     this.coordinates[i * STRIDE3D + 2],
                 );
 
-                const pt = this._point2DFactory(i, vec3);
+                const pt = this._point2DFactory(`${i + 1}`);
                 const pt3d = new CSS2DObject(pt);
                 pt3d.position.copy(vec3);
                 pt3d.updateMatrixWorld();
                 this.add(pt3d);
+                this.entity?.onObjectCreated(pt3d);
             }
         }
     }
@@ -804,6 +833,7 @@ class Drawing extends Group {
             o.position.copy(this._center);
             o.updateMatrix();
             o.updateMatrixWorld(true);
+            this.entity?.onObjectCreated(o);
         });
     }
 
@@ -839,6 +869,7 @@ class Drawing extends Group {
             o.position.copy(this._center);
             o.updateMatrix();
             o.updateMatrixWorld(true);
+            this.entity?.onObjectCreated(o);
         });
     }
 }

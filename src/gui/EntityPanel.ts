@@ -1,6 +1,7 @@
 // eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import type Instance from '../core/Instance';
+import type Entity3D from '../entities/Entity3D';
 import type EntityInspector from './EntityInspector';
 import FeatureCollectionInspector from './FeatureCollectionInspector';
 import MapInspector from './MapInspector';
@@ -8,7 +9,7 @@ import AxisGridInspector from './AxisGridInspector';
 import Panel from './Panel';
 import Tiles3dInspector from './Tiles3dInspector';
 import PotreePointCloudInspector from './PotreePointCloudInspector';
-import type Entity3D from '../entities/Entity3D';
+import DrawingCollectionInspector from './DrawingCollectionInspector';
 
 const customInspectors: Record<string, typeof EntityInspector> = {
     Map: MapInspector,
@@ -16,6 +17,7 @@ const customInspectors: Record<string, typeof EntityInspector> = {
     PotreePointCloud: PotreePointCloudInspector,
     AxisGrid: AxisGridInspector,
     FeatureCollection: FeatureCollectionInspector,
+    DrawingCollection: DrawingCollectionInspector,
 };
 
 /**
