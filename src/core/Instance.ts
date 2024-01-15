@@ -3,10 +3,10 @@ import {
 } from 'three';
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4.js';
-import Camera from '../renderer/Camera.js';
-import C3DEngine, { type RendererOptions } from '../renderer/c3DEngine.js';
-import type RenderingOptions from '../renderer/RenderingOptions.js';
-import ObjectRemovalHelper from '../utils/ObjectRemovalHelper.js';
+import Camera, { type CameraOptions } from '../renderer/Camera';
+import C3DEngine, { type RendererOptions } from '../renderer/c3DEngine';
+import type RenderingOptions from '../renderer/RenderingOptions';
+import ObjectRemovalHelper from '../utils/ObjectRemovalHelper';
 import MainLoop, { RenderingState } from './MainLoop';
 import { type MainLoopFrameEvents } from './MainLoopEvents';
 import Entity from '../entities/Entity';
@@ -67,7 +67,7 @@ export const INSTANCE_EVENTS: Record<string, keyof InstanceEvents> = {
 } as const;
 
 /** Options for creating Instance */
-export interface InstanceOptions {
+export interface InstanceOptions extends CameraOptions {
     /**
      * The coordinate reference system of the scene.
      * Must be a cartesian system.

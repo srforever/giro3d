@@ -1,8 +1,7 @@
-import {
-    Vector3, CubeTextureLoader,
-} from 'three';
 import TileWMS from 'ol/source/TileWMS.js';
+import { Vector3, CubeTextureLoader } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
@@ -10,6 +9,7 @@ import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)

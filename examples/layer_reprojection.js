@@ -1,9 +1,8 @@
 import XYZ from 'ol/source/XYZ.js';
-import {
-    Stroke, Style,
-} from 'ol/style.js';
+import { Stroke, Style } from 'ol/style.js';
 import { GeoJSON } from 'ol/format.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
@@ -13,6 +12,7 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
 import CogSource from '@giro3d/giro3d/sources/CogSource.js';
 import { crsToUnit } from '@giro3d/giro3d/core/geographic/Coordinates.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 /** @type {Instance} */

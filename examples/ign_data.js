@@ -1,20 +1,3 @@
-import TileWMS from 'ol/source/TileWMS.js';
-import GeoJSON from 'ol/format/GeoJSON.js';
-import VectorSource from 'ol/source/Vector.js';
-import { createXYZ } from 'ol/tilegrid.js';
-import { tile } from 'ol/loadingstrategy.js';
-
-import Instance, { INSTANCE_EVENTS } from '@giro3d/giro3d/core/Instance.js';
-import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
-import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-// NOTE: changing the imported name because we use the native `Map` object in this example.
-import Giro3dMap from '@giro3d/giro3d/entities/Map.js';
-import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
-import FeatureCollection from '@giro3d/giro3d/entities/FeatureCollection.js';
-
 import {
     Vector3,
     CubeTextureLoader,
@@ -24,9 +7,24 @@ import {
     Mesh,
     Material,
     DoubleSide,
-    SRGBColorSpace,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+import TileWMS from 'ol/source/TileWMS.js';
+import GeoJSON from 'ol/format/GeoJSON.js';
+import VectorSource from 'ol/source/Vector.js';
+import { createXYZ } from 'ol/tilegrid.js';
+import { tile } from 'ol/loadingstrategy.js';
+
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
+import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
+// NOTE: changing the imported name because we use the native `Map` object in this example.
+import Giro3dMap from '@giro3d/giro3d/entities/Map.js';
+import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
+import FeatureCollection from '@giro3d/giro3d/entities/FeatureCollection.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -265,7 +263,7 @@ instance.domElement.addEventListener('mousemove', pick);
 
 // NOTE: let's not forget to clean our event when the entity is removed, otherwise the webglrenderer
 // recreates everything when picking.
-instance.addEventListener(INSTANCE_EVENTS.ENTITY_REMOVED, () => {
+instance.addEventListener('entity-removed', () => {
     if (instance.getObjects(obj => obj.id === feat.id).length === 0) {
         instance.domElement.removeEventListener('mousemove', pick);
     }

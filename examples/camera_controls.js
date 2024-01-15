@@ -1,16 +1,3 @@
-import TileWMS from 'ol/source/TileWMS.js';
-// We import from unpkg.com
-// import CameraControls from 'camera-controls';
-
-import Instance from '@giro3d/giro3d/core/Instance.js';
-import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
-import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
-import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
-import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import Panel from '@giro3d/giro3d/gui/Panel.js';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
-
 import {
     Clock,
     CubeTextureLoader,
@@ -24,6 +11,19 @@ import {
     Sphere,
     Raycaster,
 } from 'three';
+import TileWMS from 'ol/source/TileWMS.js';
+// We import from unpkg.com
+// import CameraControls from 'camera-controls';
+
+import Instance from '@giro3d/giro3d/core/Instance.js';
+import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
+import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
+import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
+import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
+import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Panel from '@giro3d/giro3d/gui/Panel.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 // eslint-disable-next-line no-undef

@@ -2,19 +2,14 @@ import GeoJSON from 'ol/format/GeoJSON.js';
 import VectorSource from 'ol/source/Vector.js';
 import { createXYZ } from 'ol/tilegrid.js';
 import { tile } from 'ol/loadingstrategy.js';
+import { Color, Vector3 } from 'three';
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
-import Instance, { INSTANCE_EVENTS } from '@giro3d/giro3d/core/Instance.js';
+import Instance from '@giro3d/giro3d/core/Instance.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
-// NOTE: changing the imported name because we use the native `Map` object in this example.
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import FeatureCollection from '@giro3d/giro3d/entities/FeatureCollection.js';
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates';
-
-import {
-    Color,
-    Vector3,
-} from 'three';
-import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -183,7 +178,7 @@ instance.domElement.addEventListener('mousemove', pick);
 
 // NOTE: let's not forget to clean our event when the entity is removed, otherwise the webglrenderer
 // recreates everything when picking.
-instance.addEventListener(INSTANCE_EVENTS.ENTITY_REMOVED, () => {
+instance.addEventListener('entity-removed', () => {
     if (instance.getObjects(obj => obj.id === feat.id).length === 0) {
         instance.domElement.removeEventListener('mousemove', pick);
     }

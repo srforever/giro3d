@@ -11,7 +11,7 @@ import type { Geometry, GeometryCollection, SimpleGeometry } from 'ol/geom';
 import type Context from '../core/Context';
 import type Extent from '../core/geographic/Extent';
 import ScreenSpaceError from '../core/ScreenSpaceError';
-import LayerUpdateState from '../core/layer/LayerUpdateState.js';
+import LayerUpdateState from '../core/layer/LayerUpdateState';
 import Entity3D from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
 import { DefaultQueue } from '../core/RequestQueue';

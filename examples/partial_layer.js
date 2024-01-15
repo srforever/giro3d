@@ -1,14 +1,15 @@
 import TileWMS from 'ol/source/TileWMS.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 // # Planar (EPSG:3946) viewer

@@ -1,0 +1,119 @@
+// eslint-disable-next-line import/no-named-as-default
+import type GUI from 'lil-gui';
+import type { ChartData, ChartDataset, ScatterDataPoint } from 'chart.js';
+import { Chart } from 'chart.js';
+import type { WebGLInfo } from 'three';
+import type Instance from '../../core/Instance';
+import ChartPanel, { pushTrim } from './ChartPanel';
+
+const MAX_DATA_POINTS = 20;
+
+class MemoryUsage extends ChartPanel {
+    render: typeof WebGLInfo.prototype.render;
+    memory: typeof WebGLInfo.prototype.memory;
+    labels: string[];
+    textures: ChartDataset<'line', ScatterDataPoint[]>;
+    geometries: ChartDataset<'line', ScatterDataPoint[]>;
+    data: ChartData<'line', ScatterDataPoint[], string>;
+    chart: Chart;
+
+    /**
+     * Creates an instance of MemoryUsage.
+     *
+     * @param parentGui The parent GUI.
+     * @param instance The giro3D instance.
+     * @memberof MemoryUsage
+     */
+    constructor(parentGui: GUI, instance: Instance) {
+        super(parentGui, instance, 'Memory');
+
+        this.render = instance.renderer.info.render;
+        this.memory = instance.renderer.info.memory;
+        this.labels = [];
+
+        this.textures = {
+            label: 'Textures',
+            data: [],
+            fill: false,
+            borderWidth: 2,
+            pointRadius: 0,
+            backgroundColor: '#FF000030',
+            borderColor: '#FF000080',
+            yAxisID: 'y',
+        };
+
+        this.geometries = {
+            label: 'Geometries',
+            data: [],
+            fill: false,
+            borderWidth: 2,
+            pointRadius: 0,
+            backgroundColor: '#0050FF30',
+            borderColor: '#0050FFFF',
+            yAxisID: 'y1',
+        };
+
+        this.data = {
+            labels: this.labels,
+            datasets: [this.textures, this.geometries],
+        };
+
+        this.chart = new Chart(this.ctx, {
+            type: 'line',
+            data: this.data,
+            options: {
+                animation: false,
+                parsing: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom',
+                    },
+                    title: {
+                        display: true,
+                        text: 'three.js object count',
+                    },
+                },
+                scales: {
+                    x: {
+                        display: false,
+                        bounds: 'data',
+                        type: 'linear',
+                    },
+                    y: {
+                        bounds: 'data',
+                        type: 'linear',
+                        suggestedMin: 0,
+                        position: 'left',
+                        ticks: {
+                            precision: 0,
+                            color: '#FF5000',
+                        },
+                    },
+                    y1: {
+                        position: 'right',
+                        ticks: {
+                            precision: 0,
+                            color: '#0050FF',
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    updateValues() {
+        if (this.gui._closed) {
+            return;
+        }
+
+        const frame = this.render.frame;
+        pushTrim(this.textures.data, { x: frame, y: this.memory.textures }, MAX_DATA_POINTS);
+        pushTrim(this.geometries.data, { x: frame, y: this.memory.geometries }, MAX_DATA_POINTS);
+        pushTrim(this.labels, '', MAX_DATA_POINTS);
+
+        this.chart.update();
+    }
+}
+
+export default MemoryUsage;

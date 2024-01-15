@@ -19,8 +19,8 @@ import {
 } from 'three';
 import Interpretation from '../../core/layer/Interpretation';
 
-import Rect from '../../core/Rect.js';
-import MemoryTracker from '../MemoryTracker.js';
+import Rect from '../../core/Rect';
+import MemoryTracker from '../MemoryTracker';
 import ComposerTileMaterial from './ComposerTileMaterial';
 
 let SHARED_PLANE_GEOMETRY: PlaneGeometry = null;

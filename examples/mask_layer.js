@@ -2,6 +2,7 @@ import XYZ from 'ol/source/XYZ.js';
 import { Fill, Stroke, Style } from 'ol/style.js';
 import { GeoJSON } from 'ol/format.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
@@ -10,6 +11,7 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import MaskLayer, { MaskMode } from '@giro3d/giro3d/core/layer/MaskLayer.js';
 import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y

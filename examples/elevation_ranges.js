@@ -1,7 +1,8 @@
 import XYZ from 'ol/source/XYZ.js';
-import { Color, Vector3 } from 'three';
 import colormap from 'colormap';
+import { Color, Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
@@ -11,6 +12,7 @@ import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap from '@giro3d/giro3d/core/layer/ColorMap.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 const center = { x: -13601505, y: 5812315 };

@@ -1,8 +1,9 @@
 import {
     Vector3, Mesh, BoxGeometry, MeshBasicMaterial, Box3, Box3Helper, Group, Plane,
 } from 'three';
-import TileWMS from 'ol/source/TileWMS.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+import TileWMS from 'ol/source/TileWMS.js';
+
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Tiles3D, { boundingVolumeToExtent } from '@giro3d/giro3d/entities/Tiles3D.js';
@@ -14,6 +15,7 @@ import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)

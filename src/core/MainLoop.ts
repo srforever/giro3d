@@ -2,7 +2,7 @@ import {
     EventDispatcher, MathUtils as ThreeMath, Sphere,
 } from 'three';
 import Context from './Context';
-import type C3DEngine from '../renderer/c3DEngine.js';
+import type C3DEngine from '../renderer/c3DEngine';
 import { MAIN_LOOP_EVENTS } from './MainLoopEvents';
 import type Instance from './Instance';
 import Entity from '../entities/Entity';
@@ -219,13 +219,6 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
         });
 
         let minDistance = context.distance.min;
-        if (instance.camera.camera3D.isPerspective) {
-            // NOTE: if the object responsible of this value of minDistance is near one
-            // end of the field of instance, the near plane must be at near = minDistance *
-            // cos(fov)
-            const cos = Math.cos(ThreeMath.degToRad(instance.camera.camera3D.fov / 2));
-            minDistance *= minDistance * cos;
-        }
         // clamp it to minNear / maxFar
         minDistance = minDistance === Infinity
             ? this._minNear : ThreeMath.clamp(minDistance, this._minNear, this._maxFar);

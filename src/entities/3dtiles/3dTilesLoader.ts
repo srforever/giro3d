@@ -5,7 +5,7 @@ import PntsParser from '../../parser/PntsParser';
 import PointsMaterial from '../../renderer/PointsMaterial';
 import PointCloud from '../../core/PointCloud';
 import type { $3dTilesTileset } from './types';
-import utf8Decoder from '../../utils/Utf8Decoder.js';
+import utf8Decoder from '../../utils/Utf8Decoder';
 import { preparePointGeometryForPicking } from '../../core/picking/PickPointsAt';
 
 async function b3dmToMesh(data: ArrayBuffer, entity: Tiles3D, url: string) {
@@ -26,7 +26,7 @@ async function pntsParse(data: ArrayBuffer, entity: Tiles3D) {
     const material = entity.material
         ? entity.material.clone()
         : new PointsMaterial();
-    if ((material as PointsMaterial).enablePicking) {
+    if (PointsMaterial.isPointsMaterial(material)) {
         preparePointGeometryForPicking(result.point.geometry);
     }
     // creation points with geometry and material

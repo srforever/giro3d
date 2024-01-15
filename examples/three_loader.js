@@ -10,15 +10,14 @@ import {
     PlaneGeometry,
     Vector3,
     WebGLRenderer,
-    SRGBColorSpace,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
-import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 const viewerDiv = document.getElementById('viewerDiv');
@@ -124,7 +123,7 @@ loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', gltf => {
     controls.saveState();
 
     // you can hook yourself to event of the rendering loop.
-    instance.addFrameRequester(MAIN_LOOP_EVENTS.AFTER_CAMERA_UPDATE,
+    instance.addFrameRequester('after_camera_update',
         () => {
             const delta = clock.getDelta();
 

@@ -1,5 +1,5 @@
 import { OrthographicCamera, PerspectiveCamera } from 'three';
-import Camera from '../../../src/renderer/Camera.js';
+import Camera from '../../../src/renderer/Camera';
 
 const DEFAULT_CRS = 'EPSG:1234';
 

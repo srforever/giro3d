@@ -23,17 +23,18 @@ import type OBB from '../core/OBB.js';
 import OBBHelper from './OBBHelper';
 import type { ProcessedTile } from '../entities/3dtiles/3dTilesIndex';
 
-class VolumeHelper extends OBBHelper {
+export class VolumeHelper extends OBBHelper {
     readonly isvolumeHelper = true;
 }
 
-class SphereHelper extends Mesh {
+export class SphereHelper extends Mesh {
     readonly isHelper = true;
 }
 
-class BoundingBoxHelper extends Box3Helper {
+export class BoundingBoxHelper extends Box3Helper {
     readonly isHelper = true;
     readonly isvolumeHelper = true;
+    material: Material;
 }
 
 interface HasOBB extends Object3D {
@@ -218,8 +219,8 @@ class Helpers {
     static createBoxHelper(box: Box3, color: Color) {
         const helper = new BoundingBoxHelper(box, color);
         helper.name = 'bounding box';
-        (helper.material as Material).transparent = true;
-        (helper.material as Material).needsUpdate = true;
+        helper.material.transparent = true;
+        helper.material.needsUpdate = true;
         return helper;
     }
 

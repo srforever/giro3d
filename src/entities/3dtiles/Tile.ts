@@ -100,7 +100,7 @@ class Tile extends Object3D {
                 // This test is needed in case geometricError = distance = 0
                 return Infinity;
             }
-            return camera._preSSE * (this.geometricError / this.distance.max);
+            return camera.preSSE * (this.geometricError / this.distance.max);
         } else {
             // TODO invalid tileset, should we throw?
             return Infinity;

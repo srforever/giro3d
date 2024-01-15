@@ -1,6 +1,6 @@
 import '../setup.js';
 import assert from 'assert';
-import PntsParser from '../../../src/parser/PntsParser.js';
+import PntsParser from '../../../src/parser/PntsParser';
 
 function bufferFromString(pnts, size) {
     const buffer = new ArrayBuffer(size);

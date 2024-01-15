@@ -1,10 +1,7 @@
-/*
- * This code uses the same one as the orthographic example; see that one for explanations.
- */
-
 import { WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import StadiaMaps from 'ol/source/StadiaMaps.js';
+
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';

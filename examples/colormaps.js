@@ -14,6 +14,7 @@ import ColorMap from '@giro3d/giro3d/core/layer/ColorMap.js';
 import ColorMapMode from '@giro3d/giro3d/core/layer/ColorMapMode.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import XYZ from 'ol/source/XYZ.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y

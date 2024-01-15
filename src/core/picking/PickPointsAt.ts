@@ -9,7 +9,7 @@ import {
 } from 'three';
 import type Instance from '../Instance';
 import type Entity3D from '../../entities/Entity3D';
-import type PointsMaterial from '../../renderer/PointsMaterial';
+import PointsMaterial from '../../renderer/PointsMaterial';
 import type PickResult from './PickResult';
 import type PickOptions from './PickOptions';
 import traversePickingCircle from './PickingCircle';
@@ -86,9 +86,9 @@ function pickPointsAt(
     entity.object3d.traverse(o => {
         if (!('isPoints' in o) || !o.isPoints || !o.visible) return;
         const pts = o as Points;
-        if (!('enablePicking' in pts.material)) return;
+        if (!PointsMaterial.isPointsMaterial(pts.material)) return;
 
-        const mat = pts.material as PointsMaterial;
+        const mat = pts.material;
         if (mat.visible && mat.enablePicking) {
             mat.enablePicking(visibleId++);
 
@@ -159,9 +159,9 @@ function pickPointsAt(
     entity.object3d.traverse(o => {
         if (!('isPoints' in o) || !o.isPoints || !o.visible) return;
         const pts = o as Points;
-        if (!('enablePicking' in pts.material)) return;
+        if (!PointsMaterial.isPointsMaterial(pts.material)) return;
 
-        const mat = pts.material as PointsMaterial;
+        const mat = pts.material;
         if (!mat.visible) return;
 
         for (let i = 0; i < candidates.length; i++) {

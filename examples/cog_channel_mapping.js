@@ -1,4 +1,5 @@
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import CogSource from '@giro3d/giro3d/sources/CogSource.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
@@ -6,6 +7,7 @@ import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 Instance.registerCRS('EPSG:32611', '+proj=utm +zone=11 +datum=WGS84 +units=m +no_defs +type=crs');

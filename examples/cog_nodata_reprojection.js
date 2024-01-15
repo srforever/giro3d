@@ -1,6 +1,7 @@
 import colormap from 'colormap';
+import { Box3Helper, Color } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import { Box3Helper, BoxHelper, Color } from 'three';
+
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import CogSource from '@giro3d/giro3d/sources/CogSource.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
@@ -8,6 +9,7 @@ import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer';
 import Map from '@giro3d/giro3d/entities/Map';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 // Define projection that we will use (taken from https://epsg.io/26910, Proj4js section)

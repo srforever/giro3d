@@ -1,6 +1,6 @@
 import XYZ from 'ol/source/XYZ.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';
+
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
@@ -9,6 +9,7 @@ import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 const extent = new Extent('EPSG:3857',
@@ -93,7 +94,7 @@ function updateProgressBar(domElement, source) {
 }
 
 // Let's poll the main loop: at each update, we can update the progress bars
-instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, () => {
+instance.addFrameRequester('update_end', () => {
     updateProgressBar(instanceProgress, instance);
 
     updateProgressBar(naipMapProgress, naip.map);

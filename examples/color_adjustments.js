@@ -1,6 +1,5 @@
-import * as THREE from 'three';
+import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-
 import TileWMS from 'ol/source/TileWMS.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
@@ -71,7 +70,7 @@ map.addLayer(elevationLayer);
 const camera = instance.camera.camera3D;
 const cameraAltitude = 2000;
 
-const cameraPosition = new THREE.Vector3(
+const cameraPosition = new Vector3(
     extent.west(),
     extent.south(),
     cameraAltitude,

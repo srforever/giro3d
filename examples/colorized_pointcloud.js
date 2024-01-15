@@ -1,6 +1,7 @@
 import { Vector3 } from 'three';
-import TileWMS from 'ol/source/TileWMS.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+import TileWMS from 'ol/source/TileWMS.js';
+
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
@@ -9,6 +10,7 @@ import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+
 import StatusBar from './widgets/StatusBar.js';
 
 const tmpVec3 = new Vector3();

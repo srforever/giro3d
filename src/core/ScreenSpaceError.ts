@@ -55,7 +55,7 @@ function computeSSE(offset: Vector3, size: Vector3, matrix: Matrix4, camera: Cam
     for (let i = 1; i < (_3d ? 5 : 4); i++) {
         temp[i].add(temp[0]);
     }
-    const worldToNDC = camera._viewMatrix;
+    const worldToNDC = camera.viewMatrix;
     for (let i = 0; i < (_3d ? 5 : 4); i++) {
         temp[i].applyMatrix4(worldToNDC);
         temp[i].z = 0;
@@ -159,12 +159,9 @@ export default {
         geometricError: number,
         mode: Mode,
     ): SSE {
-        // If the camera is orthographic, there is no need to do this check.
-        if (!camera.camera3D.isOrthographicCamera) {
-            const distance = findBox3Distance(camera, box3, matrix, mode === Mode.MODE_3D);
-            if (distance <= geometricError) {
-                return null;
-            }
+        const distance = findBox3Distance(camera, box3, matrix, mode === Mode.MODE_3D);
+        if (distance <= geometricError) {
+            return null;
         }
 
         const size = computeSizeFromGeometricError(

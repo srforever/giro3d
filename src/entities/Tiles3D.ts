@@ -12,7 +12,7 @@ import Entity3D from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
 import $3dTilesIndex, { type ProcessedTile } from './3dtiles/3dTilesIndex';
 import Fetcher from '../utils/Fetcher';
-import utf8Decoder from '../utils/Utf8Decoder.js';
+import utf8Decoder from '../utils/Utf8Decoder';
 import { GlobalCache } from '../core/Cache';
 import type RequestQueue from '../core/RequestQueue';
 import { DefaultQueue } from '../core/RequestQueue';
@@ -24,7 +24,7 @@ import Tile from './3dtiles/Tile';
 import { boundingVolumeToExtent, cullingTest } from './3dtiles/BoundingVolume';
 import type { $3dTilesTileset, $3dTilesTile, $3dTilesAsset } from './3dtiles/types';
 import $3dTilesLoader from './3dtiles/3dTilesLoader';
-import type PointsMaterial from '../renderer/PointsMaterial';
+import PointsMaterial from '../renderer/PointsMaterial';
 import type Pickable from '../core/picking/Pickable';
 import type PickOptions from '../core/picking/PickOptions';
 import type PickResult from '../core/picking/PickResult';
@@ -428,20 +428,23 @@ class Tiles3D<TMaterial extends Material = Material>
                     this._distance.min = Math.min(this._distance.min, node.distance.min);
                     this._distance.max = Math.max(this._distance.max, node.distance.max);
                 }
-                node.content.traverse(o => {
-                    const pointcloud = o as PointCloud;
-                    if (pointcloud.layer === this && pointcloud.material) {
-                        // TODO: is wireframe still supported?
-                        (pointcloud.material as any).wireframe = this.wireframe;
-                        if (pointcloud.isPoints) {
-                            if ((pointcloud.material as PointsMaterial).update) {
-                                (pointcloud.material as PointsMaterial).update(this.material);
-                            } else {
-                                pointcloud.material.copy(this.material);
+                if (this.material) {
+                    node.content.traverse(o => {
+                        const pointcloud = o as PointCloud;
+                        if (pointcloud.layer === this && pointcloud.material) {
+                            // TODO: is wireframe still supported?
+                            (pointcloud.material as any).wireframe = this.wireframe;
+                            if (pointcloud.isPoints) {
+                                if (PointsMaterial.isPointsMaterial(pointcloud.material)
+                                    && PointsMaterial.isPointsMaterial(this.material)) {
+                                    pointcloud.material.update(this.material);
+                                } else {
+                                    pointcloud.material.copy(this.material);
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
         } else if (node !== this._root) {
             if (node.parent && node.parent.additiveRefinement) {
@@ -714,8 +717,7 @@ class Tiles3D<TMaterial extends Material = Material>
     }
 
     pick(coordinates: Vector2, options?: PickOptions): Tiles3DPickResult[] {
-        // FIXME: get rid of the unknown when PointsMaterial is converted to TS
-        if (this.material && (this.material as unknown as PointsMaterial).enablePicking) {
+        if (this.material && PointsMaterial.isPointsMaterial(this.material)) {
             return pickPointsAt(this._instance, coordinates, this, options);
         }
         return pickObjectsAt(this._instance, coordinates, this.object3d, options);

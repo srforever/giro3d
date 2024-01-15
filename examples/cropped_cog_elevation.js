@@ -1,11 +1,13 @@
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import CogSource from '@giro3d/giro3d/sources/CogSource.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import StatusBar from './widgets/StatusBar';
+
+import StatusBar from './widgets/StatusBar.js';
 
 const extent = Extent.fromCenterAndSize('EPSG:3857', { x: -13555565, y: 5919254 }, 20000, 20000);
 
