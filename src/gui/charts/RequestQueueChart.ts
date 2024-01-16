@@ -85,12 +85,14 @@ class RequestQueueChart extends ChartPanel {
                         position: 'left',
                         ticks: {
                             color: '#FF5000',
+                            precision: 0,
                         },
                     },
                     y1: {
                         position: 'right',
                         ticks: {
                             color: '#0050FF',
+                            precision: 0,
                         },
                     },
                 },

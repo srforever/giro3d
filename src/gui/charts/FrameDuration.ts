@@ -77,6 +77,9 @@ class FrameDuration extends ChartPanel {
                         bounds: 'data',
                         type: 'linear',
                         suggestedMin: 0,
+                        ticks: {
+                            precision: 0,
+                        },
                     },
                 },
             },
