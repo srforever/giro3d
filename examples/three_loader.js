@@ -123,7 +123,7 @@ loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', gltf => {
     controls.saveState();
 
     // you can hook yourself to event of the rendering loop.
-    instance.addFrameRequester('after_camera_update',
+    instance.addEventListener('after-camera-update',
         () => {
             const delta = clock.getDelta();
 

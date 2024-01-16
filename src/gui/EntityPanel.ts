@@ -1,6 +1,5 @@
 // eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
-import type { FrameRequesterCallback } from '../core/Instance';
 import type Instance from '../core/Instance';
 import type EntityInspector from './EntityInspector';
 import FeatureCollectionInspector from './FeatureCollectionInspector';
@@ -26,7 +25,6 @@ const customInspectors: Record<string, typeof EntityInspector> = {
  *
  */
 class EntityPanel extends Panel {
-    private _frameRequester: FrameRequesterCallback;
     private _createInspectorsCb: () => void;
     folders: GUI[];
     inspectors: EntityInspector[];
@@ -38,8 +36,7 @@ class EntityPanel extends Panel {
     constructor(gui: GUI, instance: Instance) {
         super(gui, instance, 'Entities');
 
-        this._frameRequester = () => this.update();
-        this.instance.addFrameRequester('update_start', this._frameRequester);
+        this.instance.addEventListener('update-start', () => this.update());
 
         // rebuild the inspectors when the instance is updated
         this._createInspectorsCb = () => this.createInspectors();
@@ -52,7 +49,7 @@ class EntityPanel extends Panel {
     }
 
     dispose() {
-        this.instance.removeFrameRequester('update_start', this._frameRequester);
+        this.instance.removeEventListener('update-start', () => this.update());
         this.instance.removeEventListener('entity-added', this._createInspectorsCb);
         this.instance.removeEventListener('entity-removed', this._createInspectorsCb);
         while (this.folders.length > 0) {

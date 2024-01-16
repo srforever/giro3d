@@ -154,7 +154,7 @@ class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
             domElement.addEventListener('DOMMouseScroll', this.onMouseWheel.bind(this), false); // firefox
         }
 
-        this.instance.addFrameRequester('after_camera_update', this.update.bind(this));
+        this.instance.addEventListener('after-camera-update', this.update.bind(this));
 
         // focus policy
         if (options.focusOnMouseOver) {

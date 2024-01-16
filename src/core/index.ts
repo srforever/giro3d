@@ -16,10 +16,8 @@ import Instance, {
     type PickObjectsAtOptions,
     type CustomCameraControls,
     type ThreeControls,
-    type FrameRequesterCallback,
 } from './Instance';
-import MainLoop, { type RenderingState, type MainLoopEvents, type MainLoopOptions } from './MainLoop';
-import type { MainLoopFrameEvents, MAIN_LOOP_EVENTS } from './MainLoopEvents';
+import MainLoop, { type RenderingState, type MainLoopOptions } from './MainLoop';
 import OperationCounter, { type OperationCounterEvents } from './OperationCounter';
 import type Progress from './Progress';
 import PointCloud, { type PointCloudEventMap, type PointCloudOptions } from './PointCloud';
@@ -43,13 +41,9 @@ export {
     PickObjectsAtOptions,
     CustomCameraControls,
     ThreeControls,
-    FrameRequesterCallback,
     RenderingState,
-    MainLoopEvents,
     MainLoopOptions,
     MainLoop,
-    MainLoopFrameEvents,
-    MAIN_LOOP_EVENTS,
     Rect,
     Context,
     OperationCounter,

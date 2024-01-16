@@ -1,6 +1,5 @@
 // eslint-disable-next-line import/no-named-as-default
 import GUI from 'lil-gui';
-import type { FrameRequesterCallback } from '../core/Instance';
 import type Instance from '../core/Instance';
 import CameraInspector from './CameraInspector';
 import EntityPanel from './EntityPanel';
@@ -47,7 +46,6 @@ export interface InspectorOptions {
  *
  */
 class Inspector {
-    private _frameRequesterCb: FrameRequesterCallback;
     instance: Instance;
     gui: GUI;
     folders: Panel[];
@@ -70,8 +68,7 @@ class Inspector {
         this.gui.add(this, 'collapse');
         div.appendChild(this.gui.domElement);
 
-        this._frameRequesterCb = () => this.update();
-        instance.addFrameRequester('update_start', this._frameRequesterCb);
+        instance.addEventListener('update-start', () => this.update());
 
         this.folders = [];
 
@@ -126,7 +123,7 @@ class Inspector {
      */
     detach() {
         this.clearPanels();
-        this.instance.removeFrameRequester('update_start', this._frameRequesterCb);
+        this.instance.removeEventListener('update-start', () => this.update());
         this.gui.domElement.remove();
     }
 

@@ -7,8 +7,7 @@ import Camera, { type CameraOptions } from '../renderer/Camera';
 import C3DEngine, { type RendererOptions } from '../renderer/c3DEngine';
 import type RenderingOptions from '../renderer/RenderingOptions';
 import ObjectRemovalHelper from '../utils/ObjectRemovalHelper';
-import MainLoop, { RenderingState } from './MainLoop';
-import { type MainLoopFrameEvents } from './MainLoopEvents';
+import MainLoop from './MainLoop';
 import Entity from '../entities/Entity';
 import Entity3D from '../entities/Entity3D';
 import Map from '../entities/Map';
@@ -50,6 +49,38 @@ export interface InstanceEvents {
      * Fires when an entity is removed from the instance.
      */
     'entity-removed': {},
+    /**
+     * Fires at the start of the update
+     */
+    'update-start': {},
+    /**
+     * Fires before the camera update
+     */
+    'before-camera-update': {},
+    /**
+     * Fires after the camera update
+     */
+    'after-camera-update': {},
+    /**
+     * Fires before the layer update
+     */
+    'before-layer-update': { entity: Entity; },
+    /**
+     * Fires after the layer update
+     */
+    'after-layer-update': { entity: Entity; },
+    /**
+     * Fires before the render
+     */
+    'before-render': {},
+    /**
+     * Fires after the render
+     */
+    'after-render': {},
+    /**
+     * Fires at the end of the update
+     */
+    'update-end': {},
 }
 
 /**
@@ -86,50 +117,6 @@ export interface InstanceOptions extends CameraOptions {
 }
 
 /**
- * Method that will be called each time the `MainLoop` updates.
- *
- * @param dt delta between this update and the previous one
- * @param updateLoopRestarted `true` if giro3d' update loop just restarted
- * @param args optional arguments
- */
-export type FrameRequesterCallback = (
-    dt: number,
-    updateLoopRestarted: boolean,
-    ...args: any
-) => void;
-export interface FrameRequesterObject {
-    update: FrameRequesterCallback,
-}
-/**
- * Method that will be called each time the `MainLoop` updates.
- *
- * This function will be given as parameter the delta (in ms) between this update and
- * the previous one, and whether or not we just started to render again. This
- * update is considered as the "next" update if <code>instance.notifyChange</code>
- * was called during a precedent update. If <code>instance.notifyChange</code> has
- * been called by something else (other micro/macrotask, UI events etc...), then
- * this update is considered as being the "first". It can also receive optional
- * arguments, depending on the attach point of this function.  Currently only
- * <code>BEFORE_LAYER_UPDATE / AFTER_LAYER_UPDATE</code> attach points provide
- * an additional argument: the layer being updated.
- * <br><br>
- *
- * This means that if a <code>frameRequester</code> function wants to animate something, it
- * should keep on calling <code>instance.notifyChange</code> until its task is done.
- * <br><br>
- *
- * Implementors of <code>frameRequester</code> should keep in mind that this
- * function will be potentially called at each frame, thus care should be given
- * about performance.
- * <br><br>
- *
- * Typical frameRequesters are controls, module wanting to animate moves or UI
- * elements etc... Basically anything that would want to call
- * requestAnimationFrame.
- */
-export type FrameRequester = FrameRequesterCallback | FrameRequesterObject;
-
-/**
  * Options for picking objects from the Giro3D {@link Instance}.
  */
 export interface PickObjectsAtOptions extends PickOptions {
@@ -159,14 +146,16 @@ export interface PickObjectsAtOptions extends PickOptions {
 export interface CustomCameraControls {
     enabled: boolean;
 }
+
 export interface ThreeControls extends CustomCameraControls {
     update: () => void,
     addEventListener: (event: string, callback: any) => void,
     removeEventListener: (event: string, callback: any) => void,
 }
+
 interface ControlFunctions {
-    frameRequester: FrameRequesterCallback,
-    eventListener: () => void,
+    update: () => void;
+    eventListener: () => void;
 }
 
 /**
@@ -197,16 +186,10 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private readonly _scene: Scene;
     private readonly _threeObjects: Group;
     private readonly _camera: Camera;
-    private _frameRequesters: Partial<Record<keyof MainLoopFrameEvents, FrameRequester[]>>;
-    private _delayedFrameRequesterRemoval: {
-        when: keyof MainLoopFrameEvents,
-        frameRequester: FrameRequester
-    }[];
     private readonly _objects: Entity[];
     private readonly _resizeObserver?: ResizeObserver;
     private _resizeTimeout?: string | number | NodeJS.Timeout;
     public readonly isDebugMode: boolean;
-    private _allLayersAreReadyCallback: () => void;
     private _controls?: CustomCameraControls;
     private _controlFunctions?: ControlFunctions;
     private _isDisposing: boolean;
@@ -282,7 +265,6 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             options,
         );
 
-        this._frameRequesters = {};
         this._objects = [];
 
         if (window.ResizeObserver) {
@@ -299,28 +281,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             this.isDebugMode = false;
         }
 
-        this._delayedFrameRequesterRemoval = [];
-
-        this._allLayersAreReadyCallback = () => {
-            const allReady = this.getObjects().every(obj => {
-                if (obj instanceof Entity3D) {
-                    return obj.ready && obj.getLayers().every(layer => layer.ready);
-                }
-                if (obj instanceof Entity) {
-                    return obj.ready;
-                }
-                // Object 3d
-                return true;
-            });
-            if (allReady
-                && this._mainLoop.renderingState === RenderingState.RENDERING_PAUSED) {
-                this.dispatchEvent({ type: 'layers-initialized' });
-                this.removeFrameRequester('update_end', this._allLayersAreReadyCallback);
-            }
-        };
-
         this._controls = null;
-        this._controlFunctions = null;
     }
 
     /** Gets the canvas that this instance renders into. */
@@ -524,10 +485,6 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         }
 
         this.notifyChange(object, false);
-        const updateEndFR = this._frameRequesters.update_end;
-        if (!updateEndFR || !updateEndFR.includes(this._allLayersAreReadyCallback)) {
-            this.addFrameRequester('update_end', this._allLayersAreReadyCallback);
-        }
         this.dispatchEvent({ type: 'entity-added' });
         return object;
     }
@@ -629,61 +586,6 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     }
 
     /**
-     * Add a frame requester to this instance.
-     *
-     * FrameRequesters can activate the MainLoop update by calling instance.notifyChange.
-     *
-     * @param when decide when the frameRequester should be called during
-     * the update cycle.
-     * @param frameRequester this function will be called at each
-     * MainLoop update with the time delta between last update, or 0 if the MainLoop
-     * has just been relaunched.
-     */
-    addFrameRequester(
-        when: keyof MainLoopFrameEvents,
-        frameRequester: FrameRequesterCallback,
-    ): void {
-        if (typeof frameRequester !== 'function') {
-            throw new Error('frameRequester must be a function');
-        }
-
-        if (!this._frameRequesters[when]) {
-            this._frameRequesters[when] = [frameRequester];
-        } else {
-            this._frameRequesters[when].push(frameRequester);
-        }
-    }
-
-    /**
-     * Remove a frameRequester.
-     * The effective removal will happen either later; at worst it'll be at
-     * the beginning of the next frame.
-     *
-     * @param when attach point of this requester.
-     * @param frameRequester the frameRequester to remove
-     */
-    removeFrameRequester(when: keyof MainLoopFrameEvents, frameRequester: FrameRequester): void {
-        const index = this._frameRequesters[when].indexOf(frameRequester);
-        if (index >= 0) {
-            this._delayedFrameRequesterRemoval.push({ when, frameRequester });
-        } else {
-            console.error('Invalid call to removeFrameRequester: frameRequester isn\'t registered');
-        }
-    }
-
-    private _executeFrameRequestersRemovals(): void {
-        for (const toDelete of this._delayedFrameRequesterRemoval) {
-            const index = this._frameRequesters[toDelete.when].indexOf(toDelete.frameRequester);
-            if (index >= 0) {
-                this._frameRequesters[toDelete.when].splice(index, 1);
-            } else {
-                console.warn('FrameReq has already been removed');
-            }
-        }
-        this._delayedFrameRequesterRemoval.length = 0;
-    }
-
-    /**
      * Executes the camera update.
      * Internal use only.
      *
@@ -702,40 +604,6 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      */
     render() {
         this._engine.render(this._scene, this._camera.camera3D);
-    }
-
-    /**
-     * Execute a frameRequester.
-     *
-     * @param when attach point of this (these) requester(s).
-     * @param dt delta between this update and the previous one
-     * @param updateLoopRestarted `true` if giro3d' update loop just restarted
-     * @param args optional arguments
-     */
-    execFrameRequesters(
-        when: keyof MainLoopFrameEvents,
-        dt: number,
-        updateLoopRestarted: boolean,
-        ...args: any
-    ) {
-        if (when === 'update_start') {
-            this._executeFrameRequestersRemovals();
-        }
-
-        if (!this._frameRequesters[when]) {
-            return;
-        }
-
-        if (this._delayedFrameRequesterRemoval.length > 0) {
-            this._executeFrameRequestersRemovals();
-        }
-
-        for (const frameRequester of this._frameRequesters[when]) {
-            // TODO: Is FrameRequesterObject still supported?
-            const callback = (frameRequester as FrameRequesterObject).update
-                ?? (frameRequester as FrameRequesterCallback);
-            callback(dt, updateLoopRestarted, args);
-        }
     }
 
     /**
@@ -968,22 +836,20 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         }
 
         this._controlFunctions = {
-            frameRequester: () => controls.update(),
             eventListener: () => this.notifyChange(this._camera.camera3D),
+            update: () => this.updateControls(),
         };
 
+        this._controls = controls;
         if (typeof controls.addEventListener === 'function') {
             controls.addEventListener('change', this._controlFunctions.eventListener);
+            this.addEventListener('before-camera-update', this._controlFunctions.update);
             // Some THREE controls don't inherit of EventDispatcher
         } else {
             throw new Error(
                 'Unsupported control class: only event dispatcher controls are supported.',
             );
         }
-
-        this.addFrameRequester('before_camera_update', this._controlFunctions.frameRequester);
-
-        this._controls = controls;
     }
 
     /**
@@ -996,11 +862,17 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
 
         if (typeof (this._controls as ThreeControls).removeEventListener === 'function') {
             (this._controls as ThreeControls).removeEventListener('change', this._controlFunctions.eventListener);
-            this.removeFrameRequester('before_camera_update', this._controlFunctions.frameRequester);
+            this.removeEventListener('before-camera-update', this._controlFunctions.update);
         }
 
         this._controls = null;
         this._controlFunctions = null;
+    }
+
+    private updateControls() {
+        if (typeof (this._controls as ThreeControls).update === 'function') {
+            (this._controls as ThreeControls).update();
+        }
     }
 }
 

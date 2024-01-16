@@ -1,6 +1,5 @@
 import { Vector3 } from 'three';
 import Instance from '@giro3d/giro3d/core/Instance.js';
-import { MAIN_LOOP_EVENTS } from '@giro3d/giro3d/core/MainLoop.js';
 
 const VIEW_PARAM = 'view';
 
@@ -95,11 +94,11 @@ function bind(instance, options = {}) {
     progressBar = document.getElementById('progress-bar');
     percent = document.getElementById('loading-percent');
 
-    instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, updateProgressFrameRequester);
+    instance.addEventListener('update-end', updateProgressFrameRequester);
 
     if (!options.disableUrlUpdate) {
         processUrl(instance, document.URL);
-        instance.addFrameRequester(MAIN_LOOP_EVENTS.UPDATE_END, updateUrlFrameRequester);
+        instance.addEventListener('update-end', updateUrlFrameRequester);
     }
 }
 

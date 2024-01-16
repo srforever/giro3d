@@ -94,7 +94,7 @@ function updateProgressBar(domElement, source) {
 }
 
 // Let's poll the main loop: at each update, we can update the progress bars
-instance.addFrameRequester('update_end', () => {
+instance.addEventListener('update-end', () => {
     updateProgressBar(instanceProgress, instance);
 
     updateProgressBar(naipMapProgress, naip.map);
