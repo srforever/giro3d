@@ -126,4 +126,4 @@ Giro3d is currently maintained by [Oslandia](http://www.oslandia.com).
 
 #### Where does the name Giro3D come from ?
 
-The name is a reference to the italian mathematician and inventor [Girolamo Cardano](https://en.wikipedia.org/,wiki/Gerolamo_Cardano).
+The name is a reference to the italian mathematician and inventor [Girolamo Cardano](https://en.wikipedia.org/wiki/Gerolamo_Cardano).
