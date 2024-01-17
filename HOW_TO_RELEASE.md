@@ -50,16 +50,14 @@ For the `BREAKING CHANGE` section, edit the text to add a migration guide.
 
 ## Publish on NPM
 
-Checkout the created tag, then
+Checkout the created tag, then:
 
 ```bash
 # check authentification
 npm who
 
 # build the package
-npm run prepare-package
-cd build/giro3d
-
-# publish the package
-npm publish --access public
+npm run make-package
+# publish the package - make sure the path "build/giro3d/" is specified!
+npm publish build/giro3d/ --access public
 ```

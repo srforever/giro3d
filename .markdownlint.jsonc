@@ -1,0 +1,8 @@
+{
+    // Disable line-length
+    "MD013": false,
+    "MD033": {
+        // Enable line breaks in tables
+        "allowed_elements": ["br"]
+    }
+}

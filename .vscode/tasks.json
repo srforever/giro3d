@@ -3,9 +3,9 @@
 	"tasks": [
 		{
 			"type": "npm",
-			"script": "test-unit",
+			"script": "test",
 			"problemMatcher": [],
-			"label": "npm: test-unit",
+			"label": "Run tests",
 			"group": {
 				"kind": "test",
 				"isDefault": true
@@ -13,47 +13,41 @@
 		},
 		{
 			"type": "npm",
-			"script": "test-with-coverage",
-			"problemMatcher": [],
-			"label": "npm: test-with-coverage",
-			"group": "test"
-		},
-		{
-			"type": "npm",
-			"script": "prepare-package",
+			"script": "start",
 			"group": {
 				"kind": "build",
 				"isDefault": true
 			},
 			"problemMatcher": [],
-			"label": "npm: prepare-package",
+			"label": "Build and run",
 		},
 		{
 			"type": "npm",
 			"script": "serve-apidoc",
-			"group": {
-				"kind": "build"
-			},
+			"group": "build",
 			"problemMatcher": [],
 			"label": "Serve API doc",
 		},
 		{
 			"type": "npm",
-			"script": "start",
-			"group": {
-				"kind": "build"
-			},
+			"script": "serve-examples",
+			"group": "build",
 			"problemMatcher": [],
-			"label": "Build and serve examples",
+			"label": "Serve examples",
 		},
 		{
 			"type": "npm",
-			"script": "build-package",
-			"group": {
-				"kind": "build"
-			},
+			"script": "serve-site",
+			"group": "build",
 			"problemMatcher": [],
-			"label": "Generate local tgz",
+			"label": "Serve site",
+		},
+		{
+			"type": "npm",
+			"script": "make-package",
+			"group": "build",
+			"problemMatcher": [],
+			"label": "Generate package",
 		}
 	]
 }

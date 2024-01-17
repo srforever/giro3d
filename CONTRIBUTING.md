@@ -42,6 +42,21 @@ Ideally, any code change starts with an issue, so if you plan to work on somethi
 
 To be able to do some changes, you must first [fork the project](https://gitlab.com/giro3d/giro3d/-/forks/new) and open a merge request as detailed in the next section.
 
+#### Development process
+
+As this repository serves both [Giro3D npm package](https://www.npmjs.com/package/@giro3d/giro3d) and [the whole website](https://giro3d.org/), knowing what NPM tasks to run is not that straightforward. If you're modifying Giro3D code, chances are you'll just need `npm start` to get started and launch the examples, and `npm test` to execute the lints and tests.
+
+Here's a cheatsheet on what to do :
+
+| What I am editing ? | What should I run to build the changes | What should I run to test my changes |
+|--|--|--|
+| Examples | Run the examples: `npm start` (VSCode: "Run Build Task" or task `Build and run`) | Run the tests: `npm test` |
+| Internal code (no API changes) | Run the examples: `npm start` (VSCode: "Run Build Task" or task `Build and run`) | Run the tests: `npm test` |
+| API documentation (no code change) | See the generated API documentation: `npm run serve-apidoc` (VSCode: Task `Serve API doc`) | Run the tests: `npm test`<br>Run only the linter: `npm run lint` |
+| Public code with API changes | Run the examples: `npm start` (VSCode: "Run Build Task" or task `Build and run`)<br>See the generated API documentation: `npm run serve-apidoc` (VSCode: Task `Serve API doc`) | Run the tests: `npm test` |
+| Website | See the generated site: `npm run serve-site` (VSCode: Task `Serve site`) | N/A |
+| Code that I want to use in an external project | Generate the npm tarball: `npm run make-package` (VSCode: Task `Generate package`) | N/A |
+
 ### 🚀 Opening a Merge Request (MR)
 
 We welcome merge requests (MRs) with great interest. We try to promptly review them, provide feedback, and merge. Following the tips in this guide will help your merge request be merged quickly.
