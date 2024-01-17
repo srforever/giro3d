@@ -143,16 +143,27 @@
 
             const fullScreenButton = document.getElementById('btnFullscreen');
 
+            function updateFullScreenIcon() {
+                const target = document.getElementById('icon-fullscreen');
+                if (document.fullscreen) {
+                    target.className = "bi bi-fullscreen-exit";
+                } else {
+                    target.className = "bi bi-arrows-fullscreen";
+                }
+            }
+
+            document.addEventListener('fullscreenchange', () => {
+                updateFullScreenIcon();
+            });
+
             function toggleFullScreen() {
                 if (!fullScreen) {
                     document.getElementById('main-view').requestFullscreen().then(() => {
                         fullScreen = true;
-                        document.getElementById('icon-fullscreen').className = "bi bi-fullscreen-exit";
                     });
                 } else {
                     document.exitFullscreen().then(() => {
                         fullScreen = false;
-                        document.getElementById('icon-fullscreen').className = "bi bi-arrows-fullscreen";
                     });
                 }
             }
