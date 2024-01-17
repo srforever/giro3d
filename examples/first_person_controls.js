@@ -30,7 +30,9 @@ instance.camera.camera3D.position.set(831542.2870560559, 6287655.35350404, 31.86
 instance.camera.camera3D.lookAt(new Vector3(831585.923, 6287652.23, 27.461));
 instance.camera.camera3D.updateMatrixWorld();
 // And create our controls
-const controls = new FirstPersonControls(instance);
+const controls = new FirstPersonControls(instance, {
+    focusOnMouseOver: true,
+});
 controls.reset();
 instance.domElement.focus();
 
