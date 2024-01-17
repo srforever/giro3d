@@ -50,7 +50,7 @@ build_lts:
     image: node:lts-alpine
     script:
         - npm i
-        - npm run build-package
+        - npm run make-package
     artifacts:
         paths:
             - build
@@ -65,7 +65,7 @@ build_current:
     script:
         - export NODE_OPTIONS=--openssl-legacy-provider
         - npm i
-        - npm run build-package
+        - npm run make-package
     only:
         - main
 
