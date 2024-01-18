@@ -176,7 +176,7 @@ export class CustomTheme extends DefaultTheme {
 export function load(app: Application) {
     // we need bootstrap
     app.renderer.hooks.on("head.end", () => (
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="/assets/bootstrap-custom.css" rel="stylesheet" />
     ));
     // hack to hide the "Giro3D" title on the root page of the apidoc
     // (we display the logo instead)
