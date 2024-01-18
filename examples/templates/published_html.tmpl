@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Giro3D - %example_name%</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <style>
+    body {
+      padding: 0;
+      margin: 0;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #viewerDiv {
+      width: 100%;
+      height: 100%;
+    }
+
+    #panelDiv {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+    %customcss%
+  </style>
+</head>
+
+<body>
+  <div id="viewerDiv"></div>
+  <div id="panelDiv"></div>
+  %content%
+
+  <script type="module" src="index.js"></script>
+  <script>
+    /* activate popovers */
+    const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+    popoverTriggerList.map(
+      // bootstrap is used as script in the template, disable warning about undef
+      // eslint-disable-next-line no-undef
+      popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
+        trigger: 'hover',
+        placement: 'left',
+        content: document.getElementById(popoverTriggerEl.getAttribute('data-bs-content')).innerHTML,
+        html: true,
+      }),
+    );
+  </script>
+</body>
+
+</html>

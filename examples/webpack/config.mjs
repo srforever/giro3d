@@ -80,6 +80,7 @@ export default (env, argv) => {
         plugins: [
             new ExampleBuilder({
                 debug: argv.mode !== 'production',
+                rootDir: path.join(baseDir, '..', '..'),
                 templates: path.join(baseDir, '..', 'templates'),
                 examplesDir: path.join(baseDir, '..'),
                 buildDir,
