@@ -89,16 +89,16 @@ class FrameDuration extends ChartPanel {
         this.renderStart = -1;
         this.frame = 0;
 
-        instance.addFrameRequester(
-            'update_start',
+        instance.addEventListener(
+            'update-start',
             () => {
                 this.frame++;
                 this.updateStart = performance.now();
             },
         );
 
-        instance.addFrameRequester(
-            'update_end',
+        instance.addEventListener(
+            'update-end',
             () => {
                 const now = performance.now();
                 pushTrim(
@@ -111,15 +111,15 @@ class FrameDuration extends ChartPanel {
             },
         );
 
-        instance.addFrameRequester(
-            'before_render',
+        instance.addEventListener(
+            'before-render',
             () => {
                 this.renderStart = performance.now();
             },
         );
 
-        instance.addFrameRequester(
-            'after_render',
+        instance.addEventListener(
+            'after-render',
             () => {
                 const now = performance.now();
                 pushTrim(

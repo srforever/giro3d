@@ -94,7 +94,7 @@ const clock = new Clock();
 
 // Update controls from event loop - this replaces the requestAnimationFrame logic from
 // camera-controls sample code
-instance.addFrameRequester('before_camera_update', () => {
+instance.addEventListener('before-camera-update', () => {
     // Called from giro3d
     const delta = clock.getDelta();
     const hasControlsUpdated = controls.update(delta);
@@ -117,7 +117,7 @@ const executeInteraction = callback => {
     // Execute the interaction
     const res = callback() ?? Promise.resolve();
 
-    // As mainloop can pause, before_camera_update can be triggered irregularly
+    // As mainloop can pause, before-camera-update can be triggered irregularly
     // Make sure to "reset" the clock to enable smooth transitions with camera-controls
     clock.getDelta();
     // Dispatch events so giro3d and giro3dservice gets notified

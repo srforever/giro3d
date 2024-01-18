@@ -1,9 +1,8 @@
 import {
-    EventDispatcher, MathUtils as ThreeMath, Sphere,
+    MathUtils as ThreeMath, Sphere,
 } from 'three';
 import Context from './Context';
 import type C3DEngine from '../renderer/c3DEngine';
-import { MAIN_LOOP_EVENTS } from './MainLoopEvents';
 import type Instance from './Instance';
 import Entity from '../entities/Entity';
 import type Layer from './layer/Layer';
@@ -16,22 +15,10 @@ export enum RenderingState {
     RENDERING_SCHEDULED = 1,
 }
 
-/** @deprecated Use {@link RenderingState} */
-export const RENDERING_PAUSED = RenderingState.RENDERING_PAUSED;
-/** @deprecated Use {@link RenderingState} */
-export const RENDERING_SCHEDULED = RenderingState.RENDERING_SCHEDULED;
-
-/** @deprecated Use {@link MainLoopFrameEvents} */
-export { MAIN_LOOP_EVENTS };
-
 const MIN_DISTANCE = 2;
 const MAX_DISTANCE = 2000000000;
 
 const tmpSphere = new Sphere();
-
-/** Events supported by {@link MainLoop} */
-export interface MainLoopEvents {
-}
 
 /** Options for creating the {@link MainLoop} */
 export interface MainLoopOptions {
@@ -105,7 +92,7 @@ function updateElements(context: Context, entity: Entity, elements?: unknown[]) 
     }
 }
 
-class MainLoop extends EventDispatcher<MainLoopEvents> {
+class MainLoop {
     private _renderingState: RenderingState;
     public get renderingState(): RenderingState {
         return this._renderingState;
@@ -125,7 +112,6 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
     private readonly _changeSources: Set<unknown>;
 
     constructor(engine: C3DEngine, options: MainLoopOptions = {}) {
-        super();
         this._renderingState = RenderingState.RENDERING_PAUSED;
         this._needsRedraw = false;
         this._gfxEngine = engine; // TODO: remove me
@@ -149,11 +135,11 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
         if (this._renderingState !== RenderingState.RENDERING_SCHEDULED) {
             this._renderingState = RenderingState.RENDERING_SCHEDULED;
 
-            requestAnimationFrame(timestamp => { this._step(instance, timestamp); });
+            requestAnimationFrame(timestamp => { this.step(instance, timestamp); });
         }
     }
 
-    private _update(instance: Instance, updateSources: Set<unknown>, dt: number) {
+    private update(instance: Instance, updateSources: Set<unknown>) {
         const context = new Context(instance.camera, instance);
 
         // Reset near/far to default value to allow update function to test
@@ -169,9 +155,7 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
         for (const entity of instance.getObjects(o => o instanceof Entity) as Entity[]) {
             context.resetForEntity(entity);
             if (entity.shouldCheckForUpdate()) {
-                instance.execFrameRequesters(
-                    'before_layer_update', dt, this._updateLoopRestarted, entity,
-                );
+                instance.dispatchEvent({ type: 'before-layer-update', entity });
 
                 // Filter updateSources that are relevant for the entity
                 const srcs = entity.filterChangeSources(updateSources);
@@ -195,9 +179,8 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
                         );
                     }
                 }
-                instance.execFrameRequesters(
-                    'after_layer_update', dt, this._updateLoopRestarted, entity,
-                );
+
+                instance.dispatchEvent({ type: 'after-layer-update', entity });
             }
         }
 
@@ -231,10 +214,8 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
         instance.camera.update();
     }
 
-    private _step(instance: Instance, timestamp: number) {
-        const dt = timestamp - this._lastTimestamp;
-
-        instance.execFrameRequesters('update_start', dt, this._updateLoopRestarted);
+    private step(instance: Instance, timestamp: number) {
+        instance.dispatchEvent({ type: 'update-start' });
 
         const willRedraw = this._needsRedraw;
         this._lastTimestamp = timestamp;
@@ -246,9 +227,9 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
         const updateSources = new Set(this._changeSources);
         this._changeSources.clear();
 
-        instance.execFrameRequesters('before_camera_update', dt, this._updateLoopRestarted);
+        instance.dispatchEvent({ type: 'before-camera-update' });
         instance.execCameraUpdate();
-        instance.execFrameRequesters('after_camera_update', dt, this._updateLoopRestarted);
+        instance.dispatchEvent({ type: 'after-camera-update' });
 
         // Disable camera's matrix auto update to make sure the camera's
         // world matrix is never updated mid-update.
@@ -261,7 +242,7 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
         instance.camera.camera3D.matrixAutoUpdate = false;
 
         // update data-structure
-        this._update(instance, updateSources, dt);
+        this.update(instance, updateSources);
 
         // Redraw *only* if needed.
         // (redraws only happen when this.needsRedraw is true, which in turn only happens when
@@ -269,7 +250,9 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
         // As such there's no continuous update-loop, instead we use a ad-hoc update/render
         // mechanism.
         if (willRedraw) {
-            this._renderInstance(instance, dt);
+            instance.dispatchEvent({ type: 'before-render' });
+            instance.render();
+            instance.dispatchEvent({ type: 'after-render' });
         }
 
         // next time, we'll consider that we've just started the loop if we are still PAUSED now
@@ -277,13 +260,7 @@ class MainLoop extends EventDispatcher<MainLoopEvents> {
 
         instance.camera.camera3D.matrixAutoUpdate = oldAutoUpdate;
 
-        instance.execFrameRequesters('update_end', dt, this._updateLoopRestarted);
-    }
-
-    private _renderInstance(instance: Instance, dt: number) {
-        instance.execFrameRequesters('before_render', dt, this._updateLoopRestarted);
-        instance.render();
-        instance.execFrameRequesters('after_render', dt, this._updateLoopRestarted);
+        instance.dispatchEvent({ type: 'update-end' });
     }
 }
 
