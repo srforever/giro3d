@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://giro3d.org">
-    <img src="graphics/giro3d_logo.svg" height="120">
+    <img src="https://giro3d.org/images/giro3d_logo.svg" height="120">
   </a>
 </div>
 

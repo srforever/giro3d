@@ -98,10 +98,9 @@ export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Ref
     <header class="navbar navbar-expand-lg bg-light sticky-top shadow-sm">
         <div class="container-fluid">
 
-            <a class="navbar-brand" href="#">
-                <img src="/images/giro3d_logo_compact.svg" height={32} class="brand"></img>
+            <a href="#" class="navbar-brand mx-0">
+                <img src="/images/favicon.svg" class="brand" width={32} height={32} />
             </a>
-
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -177,7 +176,7 @@ export class CustomTheme extends DefaultTheme {
 export function load(app: Application) {
     // we need bootstrap
     app.renderer.hooks.on("head.end", () => (
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+        <link href="/assets/bootstrap-custom.css" rel="stylesheet" />
     ));
     // hack to hide the "Giro3D" title on the root page of the apidoc
     // (we display the logo instead)
