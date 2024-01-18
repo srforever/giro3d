@@ -99,7 +99,7 @@ export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Ref
         <div class="container-fluid">
 
             <a href="#" class="navbar-brand mx-0">
-                <img src="/favicon.svg" class="brand" width={32} height={32} />
+                <img src="/images/favicon.svg" class="brand" width={32} height={32} />
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>

@@ -67,6 +67,14 @@ export default (env, argv) => {
                     directory: path.join(baseDir, '..'),
                     publicPath: '/',
                 },
+                {
+                    directory: path.join(buildDir, '..', 'assets'),
+                    publicPath: '/assets/',
+                },
+                {
+                    directory: path.join(buildDir, '..', 'images'),
+                    publicPath: '/images/',
+                },
             ],
         },
         plugins: [
