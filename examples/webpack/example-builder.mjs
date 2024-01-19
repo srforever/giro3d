@@ -10,55 +10,6 @@ const relativeImportRegex = /\.\.\/src/;
 
 let exampleId = 0;
 
-function generateExampleCard(pathToHtmlFile, template) {
-    const name = path.parse(pathToHtmlFile).name;
-    const { attributes } = parseExample(pathToHtmlFile);
-    exampleId++;
-    return template
-        .replaceAll('%title%', attributes.title)
-        .replaceAll('%description%', attributes.shortdesc)
-        .replaceAll('%id%', exampleId)
-        .replaceAll('%name%', name);
-}
-
-function generateExample(pathToHtmlFile, template, highlighter) {
-    const filename = path.basename(pathToHtmlFile);
-    const js = filename.replace('.html', '.js');
-    const sourceCode = fse
-        .readFileSync(pathToHtmlFile.replace('.html', '.js'), 'utf-8');
-    const name = path.parse(pathToHtmlFile).name;
-    const { attributes, body } = parseExample(pathToHtmlFile);
-    let customCss = '';
-    const css = pathToHtmlFile.replace('.html', '.css');
-    if (fse.existsSync(css)) {
-        customCss = fse.readFileSync(css);
-    }
-    const html = template
-        .replaceAll('%title%', `${attributes.title}`)
-        .replaceAll('%description%', attributes.shortdesc)
-        .replaceAll('%long_description%', attributes.longdesc ?? '')
-        .replaceAll('%attribution%', attributes.attribution ?? '')
-        .replaceAll('%name%', name)
-        .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/main/examples/${js}`)
-        .replaceAll('%js%', js)
-        .replaceAll('%customcss%', customCss)
-        .replaceAll('%code%', highlighter?.codeToHtml(sourceCode, { lang: 'js' }))
-        .replaceAll('%content%', body);
-
-    return { filename, html };
-}
-
-function validateExample(pathToHtmlFile) {
-    const jsFile = pathToHtmlFile.replace('.html', '.js');
-    const html = fse.readFileSync(jsFile, 'utf-8');
-    if (relativeImportRegex.test(html)) {
-        const filename = path.basename(jsFile);
-        throw new Error(
-            `${filename}: relative import path detected. Use absolute path in the form @giro3d\\giro3d`,
-        );
-    }
-}
-
 function parseExample(pathToHtmlFile) {
     const html = fse.readFileSync(pathToHtmlFile, 'utf-8');
 
@@ -74,6 +25,28 @@ function parseExample(pathToHtmlFile) {
     return { attributes, body };
 }
 
+function generateExampleCard(pathToHtmlFile, template) {
+    const name = path.parse(pathToHtmlFile).name;
+    const { attributes } = parseExample(pathToHtmlFile);
+    exampleId++;
+    return template
+        .replaceAll('%title%', attributes.title)
+        .replaceAll('%description%', attributes.shortdesc)
+        .replaceAll('%id%', exampleId)
+        .replaceAll('%name%', name);
+}
+
+function validateExample(pathToHtmlFile) {
+    const jsFile = pathToHtmlFile.replace('.html', '.js');
+    const html = fse.readFileSync(jsFile, 'utf-8');
+    if (relativeImportRegex.test(html)) {
+        const filename = path.basename(jsFile);
+        throw new Error(
+            `${filename}: relative import path detected. Use absolute path in the form @giro3d\\giro3d`,
+        );
+    }
+}
+
 export default class ExampleBuilder {
     /**
      * A webpack plugin that builds the html files for our examples.
@@ -87,6 +60,7 @@ export default class ExampleBuilder {
         this.name = 'ExampleBuilder';
         this.templates = config.templates;
         this.examplesDir = config.examplesDir;
+        this.rootDir = config.rootDir;
         this.buildDir = config.buildDir;
     }
 
@@ -101,6 +75,61 @@ export default class ExampleBuilder {
                 await this.addAssets(compilation.assets, compiler.context);
             });
         });
+    }
+
+    generateExample(pathToHtmlFile, template, highlighter, giro3dVersion) {
+        const filename = path.basename(pathToHtmlFile);
+
+        const js = filename.replace('.html', '.js');
+
+        const rawSourceCode = fse
+            .readFileSync(pathToHtmlFile.replace('.html', '.js'), 'utf-8');
+
+        const htmlCodeTemplate = fse
+            .readFileSync(path.resolve(this.examplesDir, 'templates/published_html.tmpl'), 'utf-8');
+
+        const packageJsonCode = fse
+            .readFileSync(path.resolve(this.examplesDir, 'templates/published_package_json.tmpl'), 'utf-8');
+
+        const name = path.parse(pathToHtmlFile).name;
+        const { attributes, body } = parseExample(pathToHtmlFile);
+        let customCss = '';
+        const css = pathToHtmlFile.replace('.html', '.css');
+        if (fse.existsSync(css)) {
+            customCss = fse.readFileSync(css);
+        }
+
+        const htmlCode = htmlCodeTemplate
+            .replaceAll('%content%', body.trim())
+            .replaceAll('%customcss%', customCss)
+            .replaceAll('%example_name%', attributes.title)
+            .trim();
+
+        const packageJson = packageJsonCode
+            .replaceAll('%name%', name)
+            .replaceAll('%giro3d_version%', giro3dVersion)
+            .trim();
+
+        const sourceCode = rawSourceCode
+            .replaceAll(/import StatusBar from.*/gi, '')
+            .replaceAll(/StatusBar\.bind[^;]*;/gim, '')
+            .trim();
+
+        const html = template
+            .replaceAll('%title%', `${attributes.title}`)
+            .replaceAll('%description%', attributes.shortdesc)
+            .replaceAll('%long_description%', attributes.longdesc ?? '')
+            .replaceAll('%attribution%', attributes.attribution ?? '')
+            .replaceAll('%name%', name)
+            .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/main/examples/${js}`)
+            .replaceAll('%js%', js)
+            .replaceAll('%customcss%', customCss)
+            .replaceAll('%code%', highlighter?.codeToHtml(sourceCode, { lang: 'js' }))
+            .replaceAll('%html%', highlighter?.codeToHtml(htmlCode, { lang: 'html' }))
+            .replaceAll('%package_json%', highlighter?.codeToHtml(packageJson, { lang: 'json' }))
+            .replaceAll('%content%', body);
+
+        return { filename, html };
     }
 
     async addAssets(assets) {
@@ -118,7 +147,7 @@ export default class ExampleBuilder {
 
         let highlighter;
         if (!this.debug) {
-            highlighter = await shiki.getHighlighter({ theme: 'github-light' });
+            highlighter = await shiki.getHighlighter({ theme: 'github-light', langs: ['js', 'html', 'json'] });
         }
 
         // Fill the index.html file with the example cards
@@ -131,8 +160,12 @@ export default class ExampleBuilder {
             : 'templates/example.tmpl';
         const exampleTemplate = await fse.readFile(path.resolve(this.examplesDir, templateFile), 'utf-8');
 
+        const packageJsonPath = path.resolve(this.rootDir, 'package.json');
+        const packageJson = await fse.readFile(packageJsonPath, 'utf-8');
+        const giro3dVersion = JSON.parse(packageJson).version;
+
         htmlFiles
-            .map(f => generateExample(f, exampleTemplate, highlighter))
+            .map(f => this.generateExample(f, exampleTemplate, highlighter, giro3dVersion))
             .forEach(ex => {
                 assets[ex.filename] = new RawSource(ex.html);
             });
