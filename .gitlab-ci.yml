@@ -30,6 +30,13 @@ default:
     tags:
         - saas-linux-large-amd64
 
+# Run pipelines on MR, tags and push on 'main'
+workflow:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - if: $CI_COMMIT_TAG
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
 cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
@@ -56,8 +63,6 @@ build_lts:
             - build
             - giro3d-*.tgz
         name: "$CI_COMMIT_REF_SLUG"
-    only:
-        - main
 
 build_current:
     stage: build
@@ -66,8 +71,6 @@ build_current:
         - export NODE_OPTIONS=--openssl-legacy-provider
         - npm i
         - npm run make-package
-    only:
-        - main
 
 lint:
     stage: lint
@@ -116,5 +119,6 @@ pages:
     artifacts:
         paths:
             - public
-    only:
-        - main
+    rules:
+        # Only publish website on releases (and exclude pre-releases)
+        - if: $CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
