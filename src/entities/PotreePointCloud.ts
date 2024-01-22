@@ -27,6 +27,10 @@ import type Context from '../core/Context';
 import type Pickable from '../core/picking/Pickable';
 import type PickOptions from '../core/picking/PickOptions';
 import pickPointsAt, { type PointsPickResult, preparePointGeometryForPicking } from '../core/picking/PickPointsAt';
+import type HasLayers from '../core/layer/HasLayers';
+import type ColorLayer from '../core/layer/ColorLayer';
+import type { LayerEvents } from '../core/layer/Layer';
+import type Layer from '../core/layer/Layer';
 
 // Draw a cube with lines (12 lines).
 function cube(size: Vector3) {
@@ -207,8 +211,10 @@ type OnPointsCreatedCallback = (entity: PotreePointCloud, pnts: PointCloud) => v
  * A [Potree](https://github.com/potree/potree) point cloud.
  *
  */
-class PotreePointCloud extends Entity3D implements Pickable<PointsPickResult> {
+class PotreePointCloud extends Entity3D implements Pickable<PointsPickResult>, HasLayers {
     readonly isPotreePointCloud = true;
+    readonly hasLayers = true;
+    private _colorLayer: ColorLayer;
     source: PotreeSource;
     queue: RequestQueue;
     private _opCounter: OperationCounter;
@@ -351,6 +357,29 @@ class PotreePointCloud extends Entity3D implements Pickable<PointsPickResult> {
             );
         }
         return bbox;
+    }
+
+    getLayers(predicate?: (arg0: Layer) => boolean): Layer<LayerEvents>[] {
+        if (this._colorLayer) {
+            if (predicate && predicate(this._colorLayer)) {
+                return [this._colorLayer];
+            }
+        }
+
+        return [];
+    }
+
+    forEachLayer(callback: (layer: Layer) => void): void {
+        if (this._colorLayer) {
+            callback(this._colorLayer);
+        }
+    }
+
+    get layerCount(): number {
+        if (this._colorLayer) {
+            return 1;
+        }
+        return 0;
     }
 
     parseMetadata(metadata: PotreeMetadata) {
@@ -667,13 +696,17 @@ class PotreePointCloud extends Entity3D implements Pickable<PointsPickResult> {
     }
 
     get loading() {
-        return this._opCounter.loading || this._attachedLayers.some(l => l.loading);
+        return this._opCounter.loading || this._colorLayer?.loading;
     }
 
     get progress() {
         let sum = this._opCounter.progress;
-        sum = this._attachedLayers.reduce((accum, current) => accum + current.progress, sum);
-        return sum / (this._attachedLayers.length + 1);
+        let count = 1;
+        if (this._colorLayer) {
+            sum += this._colorLayer.progress;
+            count = 2;
+        }
+        return sum / count;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

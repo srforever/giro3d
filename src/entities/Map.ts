@@ -37,6 +37,8 @@ import type PickOptions from '../core/picking/PickOptions';
 import pickTilesAt, { type MapPickResult } from '../core/picking/PickTilesAt';
 import type PickableFeatures from '../core/picking/PickableFeatures';
 import { isPickableFeatures } from '../core/picking/PickableFeatures';
+import type { ColorMap } from '../core/layer';
+import type HasLayers from '../core/layer/HasLayers';
 
 const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 
@@ -202,15 +204,17 @@ export interface MapEventMap extends Entity3DEventMap {
  */
 class Map
     extends Entity3D<MapEventMap>
-    implements Pickable<MapPickResult>, PickableFeatures<any, MapPickResult> {
+    implements Pickable<MapPickResult>, PickableFeatures<any, MapPickResult>, HasLayers {
+    readonly hasLayers = true;
     private _segments: number;
     private readonly _atlasInfo: AtlasInfo;
     private _subdivisions: { x: number; y: number; };
     private _imageSize: Vector2;
+    private readonly _layers: Layer[] = [];
     /** @ignore */
     readonly level0Nodes: TileMesh[];
     private readonly _layerIndices: globalThis.Map<string, number>;
-    private _currentAddedLayerIds: string[];
+    private readonly _layerIds: Set<string> = new Set();
     readonly geometryPool: globalThis.Map<string, TileGeometry>;
     extent: Extent;
     readonly maxSubdivisionLevel: number;
@@ -318,7 +322,6 @@ class Map
                 : DEFAULT_BACKGROUND_COLOR.clone(),
         };
 
-        this._currentAddedLayerIds = [];
         this.tileIndex = new TileIndex();
     }
 
@@ -326,7 +329,7 @@ class Map
      * Returns `true` if this map is currently processing data.
      */
     get loading() {
-        return this.attachedLayers.some(l => l.loading);
+        return this._layers.some(l => l.loading);
     }
 
     /**
@@ -336,12 +339,12 @@ class Map
      * Note: This value is only meaningful is {@link loading} is `true`.
      */
     get progress() {
-        if (this.attachedLayers.length === 0) {
+        if (this._layers.length === 0) {
             return 1;
         }
 
-        const sum = this.attachedLayers.reduce((accum, layer) => accum + layer.progress, 0);
-        return sum / this.attachedLayers.length;
+        const sum = this._layers.reduce((accum, layer) => accum + layer.progress, 0);
+        return sum / this._layers.length;
     }
 
     get segments() {
@@ -545,7 +548,7 @@ class Map
 
     pickFeaturesFrom(pickedResult: MapPickResult, options?: PickOptions): any[] {
         const result: any[] = [];
-        for (const layer of this._attachedLayers) {
+        for (const layer of this._layers) {
             if (isPickableFeatures(layer)) {
                 const res = layer.pickFeaturesFrom(pickedResult, options);
                 result.push(...res);
@@ -603,7 +606,7 @@ class Map
             throw new Error('missing comparator function');
         }
 
-        this.attachedLayers.sort((a, b) => {
+        this._layers.sort((a, b) => {
             if ((a as ColorLayer).isColorLayer && (b as ColorLayer).isColorLayer) {
                 return compareFn(a, b);
             }
@@ -640,16 +643,16 @@ class Map
      * // Layers (back to front) : bar, foo, baz
      */
     moveLayerUp(layer: ColorLayer) {
-        const position = this.attachedLayers.indexOf(layer);
+        const position = this._layers.indexOf(layer);
 
         if (position === -1) {
             throw new Error('The layer is not present in the map.');
         }
 
-        if (position < this.attachedLayers.length - 1) {
-            const next = this.attachedLayers[position + 1];
-            this.attachedLayers[position + 1] = layer;
-            this.attachedLayers[position] = next;
+        if (position < this._layers.length - 1) {
+            const next = this._layers[position + 1];
+            this._layers[position + 1] = layer;
+            this._layers[position] = next;
 
             this.reorderLayers();
         }
@@ -672,8 +675,8 @@ class Map
      * // Layers (back to front) : bar, baz, foo
      */
     insertLayerAfter(layer: ColorLayer, target: ColorLayer) {
-        const position = this.attachedLayers.indexOf(layer);
-        let afterPosition = this.attachedLayers.indexOf(target);
+        const position = this._layers.indexOf(layer);
+        let afterPosition = this._layers.indexOf(target);
 
         if (position === -1) {
             throw new Error('The layer is not present in the map.');
@@ -683,9 +686,9 @@ class Map
             afterPosition = 0;
         }
 
-        this.attachedLayers.splice(position, 1);
-        afterPosition = this.attachedLayers.indexOf(target);
-        this.attachedLayers.splice(afterPosition + 1, 0, layer);
+        this._layers.splice(position, 1);
+        afterPosition = this._layers.indexOf(target);
+        this._layers.splice(afterPosition + 1, 0, layer);
 
         this.reorderLayers();
     }
@@ -707,16 +710,16 @@ class Map
      * // Layers (back to front) : foo, baz, bar
      */
     moveLayerDown(layer: ColorLayer) {
-        const position = this.attachedLayers.indexOf(layer);
+        const position = this._layers.indexOf(layer);
 
         if (position === -1) {
             throw new Error('The layer is not present in the map.');
         }
 
         if (position > 0) {
-            const prev = this.attachedLayers[position - 1];
-            this.attachedLayers[position - 1] = layer;
-            this.attachedLayers[position] = prev;
+            const prev = this._layers[position - 1];
+            this._layers[position - 1] = layer;
+            this._layers[position] = prev;
 
             this.reorderLayers();
         }
@@ -733,7 +736,7 @@ class Map
     }
 
     private reorderLayers() {
-        const layers = this.attachedLayers;
+        const layers = this._layers;
 
         for (let i = 0; i < layers.length; i++) {
             const element = layers[i];
@@ -749,7 +752,7 @@ class Map
 
     contains(obj: unknown) {
         if ((obj as Layer).isLayer) {
-            return this.attachedLayers.includes(obj as Layer);
+            return this._layers.includes(obj as Layer);
         }
 
         return false;
@@ -829,8 +832,8 @@ class Map
         return ObjectRemovalHelper.removeChildren(this, node);
     }
 
-    postUpdate(context: Context, changeSources: Set<unknown>) {
-        super.postUpdate(context, changeSources);
+    postUpdate() {
+        this._layers.forEach(l => l.postUpdate());
 
         this._forEachTile(tile => {
             if (tile.material.visible) {
@@ -840,86 +843,88 @@ class Map
         });
     }
 
+    private registerColorLayer(layer: ColorLayer) {
+        const colorLayers = this._layers.filter(l => l instanceof ColorLayer);
+
+        // rebuild color textures atlas
+        // We use a margin to prevent atlas bleeding.
+        const margin = 1.1;
+        const factor = layer.resolutionFactor * margin;
+        const { x, y } = this._imageSize;
+        const size = new Vector2(Math.round(x * factor), Math.round(y * factor));
+
+        const { atlas, maxX, maxY } = AtlasBuilder.pack(
+            Capabilities.getMaxTextureSize(),
+            colorLayers.map(l => ({ id: l.id, size })),
+            this._atlasInfo.atlas,
+        );
+        this._atlasInfo.atlas = atlas;
+        this._atlasInfo.maxX = Math.max(this._atlasInfo.maxX, maxX);
+        this._atlasInfo.maxY = Math.max(this._atlasInfo.maxY, maxY);
+    }
+
+    private updateGlobalMinMax() {
+        const minmax = this.getElevationMinMax();
+        this._forEachTile(tile => {
+            tile.setBBoxZ(minmax.min, minmax.max);
+        });
+    }
+
+    private registerColorMap(colorMap: ColorMap) {
+        if (!this.materialOptions.colorMapAtlas) {
+            this.materialOptions.colorMapAtlas = new ColorMapAtlas(this._instance.renderer);
+            this._forEachTile(t => {
+                t.material.setColorMapAtlas(this.materialOptions.colorMapAtlas);
+            });
+        }
+        this.materialOptions.colorMapAtlas.add(colorMap);
+    }
+
     /**
      * Adds a layer, then returns the created layer.
      * Before using this method, make sure that the map is added in an instance.
      * If the extent or the projection of the layer is not provided,
      * those values will be inherited from the map.
      *
-     * @param layer an object describing the layer options creation
+     * @param layer the layer to add
      * @returns a promise resolving when the layer is ready
      */
-    addLayer(layer: Layer) {
-        return new Promise((resolve, reject) => {
-            if (!this._instance) {
-                reject(new Error('map is not attached to an instance'));
-                return;
-            }
+    async addLayer<TLayer extends Layer>(layer: TLayer): Promise<TLayer> {
+        if (!this._instance) {
+            throw new Error('map is not attached to an instance');
+        }
 
-            if (!(layer instanceof Layer)) {
-                reject(new Error('layer is not an instance of Layer'));
-                return;
-            }
-            const duplicate = this.getLayers((l => l.id === layer.id));
-            if (duplicate.length > 0 || this._currentAddedLayerIds.includes(layer.id)) {
-                reject(new Error(`layer ${layer.name || layer.id} is already present in this map`));
-                return;
-            }
-            this._currentAddedLayerIds.push(layer.id);
+        if (!(layer instanceof Layer)) {
+            throw new Error('layer is not an instance of Layer');
+        }
 
-            this.attach(layer);
+        if (this._layerIds.has(layer.id)) {
+            throw new Error(`layer ${layer.name || layer.id} is already present in this map`);
+        }
 
-            if (layer instanceof ColorLayer) {
-                const colorLayers = this.attachedLayers.filter(l => l instanceof ColorLayer);
+        this._layerIds.add(layer.id);
 
-                // rebuild color textures atlas
-                // We use a margin to prevent atlas bleeding.
-                const margin = 1.1;
-                const factor = layer.resolutionFactor * margin;
-                const { x, y } = this._imageSize;
-                const size = new Vector2(Math.round(x * factor), Math.round(y * factor));
+        this._layers.push(layer);
 
-                const { atlas, maxX, maxY } = AtlasBuilder.pack(
-                    Capabilities.getMaxTextureSize(),
-                    colorLayers.map(l => ({ id: l.id, size })),
-                    this._atlasInfo.atlas,
-                );
-                this._atlasInfo.atlas = atlas;
-                this._atlasInfo.maxX = Math.max(this._atlasInfo.maxX, maxX);
-                this._atlasInfo.maxY = Math.max(this._atlasInfo.maxY, maxY);
-            } else if (layer instanceof ElevationLayer) {
-                const minmax = this.getElevationMinMax();
-                this._forEachTile(tile => {
-                    tile.setBBoxZ(minmax.min, minmax.max);
-                });
-            }
+        if (layer instanceof ColorLayer) {
+            this.registerColorLayer(layer);
+        } else if (layer instanceof ElevationLayer) {
+            this.updateGlobalMinMax();
+        }
 
-            if (layer.colorMap) {
-                if (!this.materialOptions.colorMapAtlas) {
-                    this.materialOptions.colorMapAtlas = new ColorMapAtlas(this._instance.renderer);
-                    this._forEachTile(t => {
-                        t.material.setColorMapAtlas(this.materialOptions.colorMapAtlas);
-                    });
-                }
-                this.materialOptions.colorMapAtlas.add(layer.colorMap);
-            }
+        if (layer.colorMap) {
+            this.registerColorMap(layer.colorMap);
+        }
 
-            layer.whenReady.then(l => {
-                if (!this._currentAddedLayerIds.includes(layer.id)) {
-                    // The layer was removed, stop attaching it.
-                    return;
-                }
+        await layer.initialize({ instance: this._instance });
 
-                this.reorderLayers();
-                this._instance.notifyChange(this, false);
-                this.dispatchEvent({ type: 'layer-added', layer });
-                resolve(l);
-            }).catch(r => {
-                reject(r);
-            }).then(() => {
-                this._currentAddedLayerIds = this._currentAddedLayerIds.filter(l => l !== layer.id);
-            });
-        });
+        this.reorderLayers();
+
+        this._instance.notifyChange(this, false);
+
+        this.dispatchEvent({ type: 'layer-added', layer });
+
+        return layer;
     }
 
     /**
@@ -931,8 +936,13 @@ class Map
      * @returns {boolean} `true` if the layer was present, `false` otherwise.
      */
     removeLayer(layer: Layer, options: { disposeLayer?: boolean; } = {}): boolean {
-        this._currentAddedLayerIds = this._currentAddedLayerIds.filter(l => l !== layer.id);
-        if (this.detach(layer)) {
+        if (!layer) {
+            return false;
+        }
+
+        if (this._layerIds.has(layer.id)) {
+            this._layerIds.delete(layer.id);
+            this._layers.splice(this._layers.indexOf(layer));
             if (layer.colorMap) {
                 this.materialOptions.colorMapAtlas.remove(layer.colorMap);
             }
@@ -952,6 +962,14 @@ class Map
         return false;
     }
 
+    get layerCount() {
+        return this._layers.length;
+    }
+
+    forEachLayer(callback: (layer: Layer) => void): void {
+        this._layers.forEach(l => callback(l));
+    }
+
     /**
      * Gets all layers that satisfy the filter predicate.
      *
@@ -960,7 +978,7 @@ class Map
      */
     getLayers(predicate?: (arg0: Layer) => boolean) {
         const result = [];
-        for (const layer of this.attachedLayers) {
+        for (const layer of this._layers) {
             if (!predicate || predicate(layer)) {
                 result.push(layer);
             }

@@ -81,7 +81,7 @@ class MapInspector extends EntityInspector {
         this.addController<never>(this.map.materialOptions, 'discardNoData')
             .name('Discard no-data values')
             .onChange(() => this.notify(this.map));
-        this.layerCount = this.map.attachedLayers.length;
+        this.layerCount = this.map.layerCount;
         this.background = this.map.materialOptions.backgroundColor;
         this.backgroundOpacity = this.map.materialOptions.backgroundOpacity;
 
@@ -353,7 +353,7 @@ class MapInspector extends EntityInspector {
     updateValues() {
         super.updateValues();
         this.toggleBoundingBoxes();
-        this.layerCount = this.map.attachedLayers.length;
+        this.layerCount = this.map.layerCount;
         this.layers.forEach(l => l.updateValues());
     }
 

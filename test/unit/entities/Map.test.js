@@ -69,7 +69,7 @@ describe('Map', () => {
     });
 
     function checkLayerIndices() {
-        const indices = map._attachedLayers.map(lyr => map.getIndex(lyr));
+        const indices = map._layers.map(lyr => map.getIndex(lyr));
         for (let i = 0; i < indices.length; i++) {
             expect(indices[i]).toEqual(i);
         }
@@ -263,6 +263,33 @@ describe('Map', () => {
         });
     });
 
+    describe('getLayers', () => {
+        it('should return all layers if predicate is unspecified', async () => {
+            const layer1 = new ColorLayer({ source: nullSource });
+            const layer2 = new ColorLayer({ source: nullSource });
+            const layer3 = new ElevationLayer({ source: nullSource });
+
+            await map.addLayer(layer1);
+            await map.addLayer(layer2);
+            await map.addLayer(layer3);
+
+            expect(map.getLayers().map(l => l.id)).toEqual([layer1.id, layer2.id, layer3.id]);
+        });
+
+        it('should honor the predicate', async () => {
+            const col1 = new ColorLayer({ source: nullSource });
+            const col2 = new ColorLayer({ source: nullSource });
+            const elev1 = new ElevationLayer({ source: nullSource });
+
+            await map.addLayer(col1);
+            await map.addLayer(col2);
+            await map.addLayer(elev1);
+
+            expect(map.getLayers(l => l.isColorLayer).map(l => l.id)).toEqual([col1.id, col2.id]);
+            expect(map.getLayers(l => l.isElevationLayer).map(l => l.id)).toEqual([elev1.id]);
+        });
+    });
+
     describe('addLayers', () => {
         it('should accept only Layer object', async () => {
             await expect(map.addLayer()).rejects.toThrowError('layer is not an instance of Layer');
@@ -275,6 +302,8 @@ describe('Map', () => {
 
         it('should add a layer', () => {
             const layer = new ColorLayer({ source: nullSource });
+
+            map._instance = { referenceCrs: 'EPSG:3857', notifyChange: jest.fn() };
 
             map.addLayer(layer).then(() => {
                 expect(map.getLayers()).toStrictEqual([layer]);
@@ -291,7 +320,6 @@ describe('Map', () => {
         it('should fire the layer-added event', async () => {
             const layer = new ColorLayer({ source: nullSource });
             layer.dispose = jest.fn();
-            layer.whenReady = Promise.resolve();
 
             const listener = jest.fn();
 
@@ -301,13 +329,64 @@ describe('Map', () => {
 
             expect(listener).toHaveBeenCalledTimes(1);
         });
+
+        it('should increment layerCount', async () => {
+            const layer1 = new ColorLayer({ source: nullSource });
+            const layer2 = new ColorLayer({ source: nullSource });
+
+            await map.addLayer(layer1);
+
+            expect(map.layerCount).toEqual(1);
+
+            await map.addLayer(layer2);
+
+            expect(map.layerCount).toEqual(2);
+        });
+    });
+
+    describe('postUpdate', () => {
+        it('should call postUpdate() on attached layers', async () => {
+            const layer1 = new ColorLayer({ source: nullSource });
+            const layer2 = new ColorLayer({ source: nullSource });
+
+            layer1.postUpdate = jest.fn();
+            layer2.postUpdate = jest.fn();
+
+            await map.addLayer(layer1);
+            await map.addLayer(layer2);
+
+            map.postUpdate();
+
+            expect(layer1.postUpdate).toHaveBeenCalledTimes(1);
+            expect(layer2.postUpdate).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    describe('forEachLayer', () => {
+        it('should call the callback for each layer', async () => {
+            const layer1 = new ColorLayer({ source: nullSource });
+            const layer2 = new ColorLayer({ source: nullSource });
+
+            await map.addLayer(layer1);
+            await map.addLayer(layer2);
+
+            const called = [];
+
+            map.forEachLayer(l => {
+                called.push(l.id);
+            });
+
+            expect(called).toHaveLength(2);
+            expect(called).toContain(layer1.id);
+            expect(called).toContain(layer2.id);
+        });
     });
 
     describe('insertLayerAfter', () => {
         it('should throw if the layer is not present', () => {
             const absent = { id: 'a' };
             const present = { id: 'b' };
-            map._attachedLayers.push(present);
+            map._layers.push(present);
             expect(() => map.insertLayerAfter(absent, present)).toThrow(/The layer is not present/);
         });
 
@@ -317,13 +396,13 @@ describe('Map', () => {
             const c = { id: 'c' };
             const d = { id: 'd' };
 
-            map._attachedLayers.push(a);
-            map._attachedLayers.push(b);
-            map._attachedLayers.push(c);
-            map._attachedLayers.push(d);
+            map._layers.push(a);
+            map._layers.push(b);
+            map._layers.push(c);
+            map._layers.push(d);
 
             map.insertLayerAfter(d, null);
-            expect(map._attachedLayers).toStrictEqual([d, a, b, c]);
+            expect(map._layers).toStrictEqual([d, a, b, c]);
         });
 
         it('should move the layer just after the target', () => {
@@ -332,30 +411,30 @@ describe('Map', () => {
             const c = { id: 'c' };
             const d = { id: 'd' };
 
-            map._attachedLayers.push(a);
-            map._attachedLayers.push(b);
-            map._attachedLayers.push(c);
-            map._attachedLayers.push(d);
+            map._layers.push(a);
+            map._layers.push(b);
+            map._layers.push(c);
+            map._layers.push(d);
 
             map.insertLayerAfter(a, d);
 
-            expect(map._attachedLayers).toStrictEqual([b, c, d, a]);
+            expect(map._layers).toStrictEqual([b, c, d, a]);
             checkLayerIndices();
 
             map.insertLayerAfter(d, a);
 
-            expect(map._attachedLayers).toStrictEqual([b, c, a, d]);
+            expect(map._layers).toStrictEqual([b, c, a, d]);
             checkLayerIndices();
 
             map.insertLayerAfter(c, b);
 
-            expect(map._attachedLayers).toStrictEqual([b, c, a, d]);
+            expect(map._layers).toStrictEqual([b, c, a, d]);
             checkLayerIndices();
 
             map.insertLayerAfter(a, b);
 
             checkLayerIndices();
-            expect(map._attachedLayers).toStrictEqual([b, a, c, d]);
+            expect(map._layers).toStrictEqual([b, a, c, d]);
         });
 
         it('should signal the order change to tiles', () => {
@@ -371,10 +450,10 @@ describe('Map', () => {
             const c = { id: 'c' };
             const d = { id: 'd' };
 
-            map._attachedLayers.push(a);
-            map._attachedLayers.push(b);
-            map._attachedLayers.push(c);
-            map._attachedLayers.push(d);
+            map._layers.push(a);
+            map._layers.push(b);
+            map._layers.push(c);
+            map._layers.push(d);
 
             expect(tile.reorderLayers).not.toHaveBeenCalled();
 
@@ -409,11 +488,11 @@ describe('Map', () => {
             const d = mkColorLayer(0);
             const elev = mkElevationLayer(999);
 
-            map._attachedLayers.push(a);
-            map._attachedLayers.push(b);
-            map._attachedLayers.push(elev);
-            map._attachedLayers.push(c);
-            map._attachedLayers.push(d);
+            map._layers.push(a);
+            map._layers.push(b);
+            map._layers.push(elev);
+            map._layers.push(c);
+            map._layers.push(d);
 
             map.sortColorLayers((l1, l2) => (l1.key < l2.key ? -1 : 1));
 
@@ -440,10 +519,10 @@ describe('Map', () => {
             const c = mkColorLayer(6);
             const d = mkColorLayer(0);
 
-            map._attachedLayers.push(a);
-            map._attachedLayers.push(b);
-            map._attachedLayers.push(c);
-            map._attachedLayers.push(d);
+            map._layers.push(a);
+            map._layers.push(b);
+            map._layers.push(c);
+            map._layers.push(d);
 
             expect(tile.reorderLayers).not.toHaveBeenCalled();
 
@@ -471,10 +550,10 @@ describe('Map', () => {
             const c = { id: 'c' };
             const d = { id: 'd' };
 
-            map._attachedLayers.push(a);
-            map._attachedLayers.push(b);
-            map._attachedLayers.push(c);
-            map._attachedLayers.push(d);
+            map._layers.push(a);
+            map._layers.push(b);
+            map._layers.push(c);
+            map._layers.push(d);
 
             expect(tile.reorderLayers).not.toHaveBeenCalled();
 
@@ -489,25 +568,25 @@ describe('Map', () => {
             const c = { id: 'c' };
             const d = { id: 'd' };
 
-            map._attachedLayers.push(a);
-            map._attachedLayers.push(b);
-            map._attachedLayers.push(c);
-            map._attachedLayers.push(d);
+            map._layers.push(a);
+            map._layers.push(b);
+            map._layers.push(c);
+            map._layers.push(d);
 
             map.moveLayerUp(a);
-            expect(map._attachedLayers).toStrictEqual([b, a, c, d]);
+            expect(map._layers).toStrictEqual([b, a, c, d]);
             checkLayerIndices();
 
             map.moveLayerUp(a);
-            expect(map._attachedLayers).toStrictEqual([b, c, a, d]);
+            expect(map._layers).toStrictEqual([b, c, a, d]);
             checkLayerIndices();
 
             map.moveLayerUp(a);
-            expect(map._attachedLayers).toStrictEqual([b, c, d, a]);
+            expect(map._layers).toStrictEqual([b, c, d, a]);
             checkLayerIndices();
 
             map.moveLayerUp(a);
-            expect(map._attachedLayers).toStrictEqual([b, c, d, a]);
+            expect(map._layers).toStrictEqual([b, c, d, a]);
             checkLayerIndices();
         });
     });
@@ -530,10 +609,10 @@ describe('Map', () => {
             const c = { id: 'c' };
             const d = { id: 'd' };
 
-            map._attachedLayers.push(a);
-            map._attachedLayers.push(b);
-            map._attachedLayers.push(c);
-            map._attachedLayers.push(d);
+            map._layers.push(a);
+            map._layers.push(b);
+            map._layers.push(c);
+            map._layers.push(d);
 
             expect(tile.reorderLayers).not.toHaveBeenCalled();
 
@@ -548,25 +627,25 @@ describe('Map', () => {
             const c = { id: 'c' };
             const d = { id: 'd' };
 
-            map._attachedLayers.push(a);
-            map._attachedLayers.push(b);
-            map._attachedLayers.push(c);
-            map._attachedLayers.push(d);
+            map._layers.push(a);
+            map._layers.push(b);
+            map._layers.push(c);
+            map._layers.push(d);
 
             map.moveLayerDown(d);
-            expect(map._attachedLayers).toStrictEqual([a, b, d, c]);
+            expect(map._layers).toStrictEqual([a, b, d, c]);
             checkLayerIndices();
 
             map.moveLayerDown(d);
-            expect(map._attachedLayers).toStrictEqual([a, d, b, c]);
+            expect(map._layers).toStrictEqual([a, d, b, c]);
             checkLayerIndices();
 
             map.moveLayerDown(d);
-            expect(map._attachedLayers).toStrictEqual([d, a, b, c]);
+            expect(map._layers).toStrictEqual([d, a, b, c]);
             checkLayerIndices();
 
             map.moveLayerDown(d);
-            expect(map._attachedLayers).toStrictEqual([d, a, b, c]);
+            expect(map._layers).toStrictEqual([d, a, b, c]);
             checkLayerIndices();
         });
     });
@@ -706,7 +785,6 @@ describe('Map', () => {
         it('should not call dispose() on the removed layer', async () => {
             const layer = new ColorLayer({ source: nullSource });
             layer.dispose = jest.fn();
-            layer.whenReady = Promise.resolve();
 
             await map.addLayer(layer);
 
@@ -718,7 +796,6 @@ describe('Map', () => {
         it('should call dispose() on the removed layer if disposeLayer = true', async () => {
             const layer = new ColorLayer({ source: nullSource });
             layer.dispose = jest.fn();
-            layer.whenReady = Promise.resolve();
 
             await map.addLayer(layer);
 
@@ -730,7 +807,6 @@ describe('Map', () => {
         it('should fire the layer-removed event', async () => {
             const layer = new ColorLayer({ source: nullSource });
             layer.dispose = jest.fn();
-            layer.whenReady = Promise.resolve();
 
             const listener = jest.fn();
 
@@ -746,7 +822,6 @@ describe('Map', () => {
         it('should return true if the layer was present', async () => {
             const layer = new ColorLayer({ source: nullSource });
             layer.dispose = jest.fn();
-            layer.whenReady = Promise.resolve();
 
             await map.addLayer(layer);
 
@@ -759,10 +834,8 @@ describe('Map', () => {
         it('should not call dispose on underlying layers', async () => {
             const layer1 = new ColorLayer({ source: new NullSource() });
             layer1.dispose = jest.fn();
-            layer1.whenReady = Promise.resolve();
 
             const layer2 = new ColorLayer({ source: nullSource });
-            layer2.whenReady = Promise.resolve();
             layer2.dispose = jest.fn();
 
             await map.addLayer(layer1);
@@ -777,10 +850,8 @@ describe('Map', () => {
         it('should call dispose on underlying layers if disposeLayers = true', async () => {
             const layer1 = new ColorLayer({ source: new NullSource() });
             layer1.dispose = jest.fn();
-            layer1.whenReady = Promise.resolve();
 
             const layer2 = new ColorLayer({ source: nullSource });
-            layer2.whenReady = Promise.resolve();
             layer2.dispose = jest.fn();
 
             await map.addLayer(layer1);
