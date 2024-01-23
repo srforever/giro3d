@@ -12,15 +12,9 @@ import {
 } from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import type Instance from '../core/Instance';
-import Drawing, { GEOMETRY_TYPE, type DrawingOptions, type DrawingGeometryType } from './Drawing';
+import Drawing, { type DrawingOptions, type DrawingGeometryType, type Point2DFactory } from './Drawing';
 import PromiseUtils from '../utils/PromiseUtils';
-
-/**
- * Types of geometries to draw - for backward compatibility.
- *
- * @deprecated Use {@link DrawingGeometryType} instead
- */
-export { GEOMETRY_TYPE };
+import GeoJSONUtils from '../utils/GeoJSONUtils';
 
 /**
  * Events fired by {@link DrawTool}.
@@ -51,27 +45,12 @@ export interface DrawToolEventMap {
     },
     /** Fires when the drawing has ended */
     'end': {
-        /** GeoJSON object representing the geometry drawn */
+        /** GeoJSON geometry of the geometry drawn */
         geojson: GeoJSON.Geometry,
     },
     /** Fires when the drawing has been aborted */
     'abort': {},
 }
-
-/**
- * Events fired by {@link DrawTool}.
- *
- * @deprecated Use {@link DrawToolEventMap} instead.
- */
-export const DRAWTOOL_EVENT_TYPE: Record<string, keyof DrawToolEventMap> = {
-    START: 'start',
-    DRAWING: 'drawing',
-    ADD: 'add',
-    EDIT: 'edit',
-    DELETE: 'delete',
-    END: 'end',
-    ABORT: 'abort',
-} as const;
 
 /**
  * State of the {@link DrawTool} object.
@@ -97,17 +76,6 @@ export enum DrawToolState {
      */
     PAUSED = 'paused',
 }
-
-/**
- * State of the {@link DrawTool} object.
- *
- * @deprecated Use {@link DrawToolState} instead.
- */
-export const DRAWTOOL_STATE = {
-    READY: DrawToolState.READY,
-    ACTIVE: DrawToolState.ACTIVE,
-    PAUSED: DrawToolState.PAUSED,
-} as const;
 
 /**
  * Internal state for the tool.
@@ -137,16 +105,6 @@ export enum DrawToolMode {
     EDIT = 'edit',
 }
 
-/**
- * Edition mode of the {@link DrawTool} object.
- *
- * @deprecated Use {@link DrawToolMode} instead.
- */
-export const DRAWTOOL_MODE = {
-    CREATE: DrawToolMode.CREATE,
-    EDIT: DrawToolMode.EDIT,
-} as const;
-
 const raycaster = new Raycaster();
 const tmpVec2 = new Vector2();
 
@@ -154,33 +112,33 @@ const emptyMaterial = new MeshBasicMaterial();
 const tmpQuat = new Quaternion();
 const unitVector = new Vector3(1, 0, 0);
 const tmpVec3 = new Vector3();
+const EDGE_LAYER = 30;
 
-/**
- * Callback to create a HTML element for points for CSS2DObject
- *
- * @param text Text to display
- * @returns HTML Element for the point
- */
-export type Point2DFactory = (text: string) => HTMLElement;
-
-export type PickedResult = {
+interface GetPointAtResult {
     point: Vector3;
-    picked: boolean;
-};
+}
 
 /**
  * Method to get the X,Y,Z coordinates corresponding to where the user clicked.
  *
  * Must return:
- * - if a point is found, an object with the following properties:
+ * - if a point is found, an object with at least the following properties:
  *   - `point`: `Vector3`
- *   - `picked`: `boolean`, `true` if correspond to real data, `false` if interpolated
  * - if no point is found, `null`
  *
  * @param evt Mouse event
  * @returns Result object
+ * @example
+ * const mycallback = (evt) => {
+ *     const picked = instance.pickObjectsAt(evt, {
+ *         radius: 5,
+ *         limit: 1,
+ *         filter: myfilter,
+ *     }).at(0);
+ *     return picked ?? null;
+ * }
  */
-export type GetPointAtCallback = (evt: MouseEvent) => PickedResult | null;
+export type GetPointAtCallback = (evt: MouseEvent) => GetPointAtResult | null;
 
 export interface DrawToolOptions {
     /**
@@ -199,7 +157,7 @@ export interface DrawToolOptions {
     getPointAt?: GetPointAtCallback,
     /** Callback to create DOM elements at points. */
     point2DFactory?: Point2DFactory,
-    /** Options for creating GeometryObject */
+    /** Options for creating the {@link Drawing} */
     drawObjectOptions?: DrawingOptions,
     /**
      * Capture right-click to end the drawing.
@@ -240,6 +198,11 @@ type EventListenersMap = {
 class Edge extends Mesh {
     edgeIndex: number;
     line: Line3;
+
+    constructor(geometry: BoxGeometry, material: MeshBasicMaterial) {
+        super(geometry, material);
+        this.layers.set(EDGE_LAYER);
+    }
 }
 
 /**
@@ -352,15 +315,17 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * @param evt Mouse event
      * @returns Object
      */
-    private _defaultPickPointAt(evt: MouseEvent): PickedResult {
+    private _defaultPickPointAt(evt: MouseEvent): GetPointAtResult {
         const picked = this._instance.pickObjectsAt(evt, {
             radius: 5,
             limit: 1,
-        });
-        if (picked.length > 0) {
+        }).at(0);
+        if (picked) {
             // We found an object on click, return its position
-            const s = picked[0].point.clone();
-            return { ...picked[0], point: s, picked: true };
+            return {
+                ...picked,
+                point: picked.point.clone(),
+            };
         }
 
         return null;
@@ -567,20 +532,20 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     }
 
     /**
-     * Gets the current GeoJSON corresponding to the shape being drawn.
+     * Gets the current coordinates of the shape being drawn.
      * In case of polygons, ensures the shape is closed.
      *
      * Returns `null` if the state is {@link DrawToolState.READY} or
      * if the shape is empty.
      *
-     * @returns {object} GeoJSON object
+     * @returns Array of 3D coordinates
      */
-    toGeoJSON(): GeoJSON.Geometry {
-        if (this._state === DrawToolState.READY) return null;
-        if (this._coordinates.length === 0) return null;
+    toCoordinates(): [number, number, number][] {
+        if (this._state === DrawToolState.READY) return [];
+        if (this._coordinates.length === 0) return [];
 
         // Deep clone
-        const coords = this._coordinates.map(c => [c[0], c[1], c[2]]);
+        const coords: [number, number, number][] = this._coordinates.map(c => [c[0], c[1], c[2]]);
         if (this._nextPointCoordinates !== null) {
             // Add next point into geometry
             if (this._geometryType === 'Polygon') {
@@ -589,30 +554,23 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
                 coords.push(this._nextPointCoordinates);
             }
         }
+        return coords;
+    }
 
-        let coordinates;
-        switch (this._geometryType) {
-            case 'Point':
-                coordinates = coords[0];
-                break;
-            case 'LineString':
-            case 'MultiPoint':
-                coordinates = coords;
-                break;
-            case 'Polygon':
-            default:
-                {
-                    // Polygon is always closed
-                    const outerRing = coords;
-                    coordinates = [outerRing];
-                }
-                break;
-        }
-        const geojson = {
-            type: this._geometryType,
-            coordinates,
-        } as GeoJSON.Geometry;
-        return geojson;
+    /**
+     * Gets the current GeoJSON geometry corresponding to the shape being drawn.
+     * In case of polygons, ensures the shape is closed.
+     *
+     * Returns `null` if the state is {@link DrawToolState.READY} or
+     * if the shape is empty.
+     *
+     * @returns GeoJSON geometry object
+     */
+    toGeoJSON(): GeoJSON.Geometry | null {
+        if (this._state === DrawToolState.READY) return null;
+        if (this._coordinates.length === 0) return null;
+
+        return GeoJSONUtils.fromFlat3Coordinates(this.toCoordinates(), this._geometryType);
     }
 
     /// PUBLIC MODIFIERS FUNCTIONS
@@ -812,9 +770,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
             } else {
                 // GeoJSON
                 this._geometryType = geometry.type as DrawingGeometryType;
-                this._drawObject = new Drawing(
-                    this._instance, this._drawObjectOptions, geometry,
-                );
+                this._drawObject = new Drawing(this._drawObjectOptions, geometry);
             }
 
             // Get initial coordinates from drawObject
@@ -828,7 +784,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
             }
         } else {
             this._geometryType = geometryType;
-            this._drawObject = new Drawing(this._instance, this._drawObjectOptions);
+            this._drawObject = new Drawing(this._drawObjectOptions);
         }
 
         if (this._geometryType === 'Point' || this._geometryType === 'MultiPoint'
@@ -836,9 +792,10 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
             // Actually by-pass completely the drawobject, as we do
             // all rendering in this tool
             this._drawObject.clear();
-            this._drawObject.removeFromParent();
-        } else {
-            this._instance.threeObjects.add(this._drawObject);
+            this._instance.remove(this._drawObject);
+        } else if (this._instance.getObjects((l => l.id === this._drawObject.id)).length === 0) {
+            // Add it to the scene only if not already added (e.g. editing it)
+            this._instance.add(this._drawObject);
         }
 
         switch (this._geometryType) {
@@ -877,6 +834,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         // Used for raycasting against the edges
         // (raycasting against the lines don't always work depending on the camera angle)
         this._edges = new Group();
+        this._edges.layers.set(EDGE_LAYER);
         this._edges.name = 'drawtool-edges';
         this._instance.threeObjects.add(this._edges);
 
@@ -889,7 +847,8 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     update(): void {
         if (this._state === DrawToolState.READY) return;
-        this._drawObject.setGeojson(this.toGeoJSON());
+        this._drawObject.setCoordinates(this.toCoordinates().flat(), this._geometryType);
+        this._instance.notifyChange(this._drawObject);
     }
 
     /**
@@ -909,10 +868,10 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      */
     private _removeDrawings(): void {
         if (this._drawObject) {
-            this._drawObject.removeFromParent();
+            this._instance.remove(this._drawObject);
             this._drawObject.dispose();
             this._drawObject = null;
-            this._instance.notifyChange(this._instance.threeObjects);
+            this._instance.notifyChange();
         }
 
         if (this._pointsGroup) {
@@ -1230,7 +1189,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
 
         const picked = this._getPointAt(evt);
         // did we *really* click on something
-        if (!picked || !picked.picked) {
+        if (!picked) {
             return false;
         }
         this.addPointAt(picked.point);
@@ -1265,7 +1224,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         }
 
         const picked = this._getPointAt(evt);
-        if (!picked || !picked.picked) {
+        if (!picked) {
             // If we don't have a "real" point picked, hide the label following the cursor
             this._hideNextPoint();
             return false;
@@ -1294,6 +1253,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         const mouse = this._instance.eventToCanvasCoords(evt, tmpVec2);
         const pointer = this._instance.canvasToNormalizedCoords(mouse, tmpVec2);
         raycaster.setFromCamera(pointer, this._instance.camera.camera3D);
+        raycaster.layers.set(EDGE_LAYER);
         const picked = raycaster.intersectObject(this._edges, true);
 
         if (picked.length === 0) {
@@ -1323,7 +1283,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
         }
 
         const picked = this._getPointAt(evt);
-        if (!picked || !picked.picked) {
+        if (!picked) {
             // If we don't have a "real" point picked, just ignore the new position
             // so it doesn't go in the limbo
             return false;

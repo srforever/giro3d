@@ -1,7 +1,7 @@
 import * as turf from '@turf/turf';
 import XYZ from 'ol/source/XYZ.js';
 import {
-    Group, LineBasicMaterial, MeshBasicMaterial, PointsMaterial, Vector2, Vector3,
+    LineBasicMaterial, MeshBasicMaterial, PointsMaterial, ShapeUtils, Vector2, Vector3,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
@@ -13,10 +13,58 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
 import DrawTool, { DrawToolMode, DrawToolState } from '@giro3d/giro3d/interactions/DrawTool.js';
 import Drawing from '@giro3d/giro3d/interactions/Drawing.js';
+import DrawingCollection from '@giro3d/giro3d/entities/DrawingCollection.js';
 import Fetcher from '@giro3d/giro3d/utils/Fetcher';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
+
+// Create some functions for measurement
+
+function getPerimeter(drawing) {
+    if (drawing.coordinates.length < 6) return null;
+
+    let length = 0;
+    for (let i = 0; i < drawing.coordinates.length / 3 - 1; i += 1) {
+        length += new Vector3(
+            drawing.coordinates[i * 3 + 0],
+            drawing.coordinates[i * 3 + 1],
+            drawing.coordinates[i * 3 + 2],
+        ).distanceTo(
+            new Vector3(
+                drawing.coordinates[(i + 1) * 3 + 0],
+                drawing.coordinates[(i + 1) * 3 + 1],
+                drawing.coordinates[(i + 1) * 3 + 2],
+            ),
+        );
+    }
+    return length;
+}
+
+function getMinMaxAltitudes(drawing) {
+    let min = +Infinity;
+    let max = -Infinity;
+
+    for (let i = 0; i < drawing.coordinates.length / 3; i += 1) {
+        min = Math.min(min, drawing.coordinates[i * 3 + 2]);
+        max = Math.max(max, drawing.coordinates[i * 3 + 2]);
+    }
+    return [min, max];
+}
+
+function getArea(drawing) {
+    if (drawing.coordinates.length < 6) return null;
+
+    const localFlatCoords = drawing.localCoordinates;
+    const localCoords = new Array(localFlatCoords.length / 3);
+    for (let i = 0; i < localFlatCoords.length / 3; i += 1) {
+        localCoords[i] = new Vector2(
+            localFlatCoords[i * 3 + 0],
+            localFlatCoords[i * 3 + 1],
+        );
+    }
+    return Math.abs(ShapeUtils.area(localCoords));
+}
 
 // Initialize Giro3d (see tifftiles for more details)
 const x = -13602618.385789588;
@@ -240,9 +288,10 @@ drawTool.addEventListener('end', () => {
 
 // When we're done drawing, the drawTool removes the shape.
 // We want to keep it displayed so we can edit it.
-// We'll add our shapes in a group, so we can also raycast against them for hovering/clicking.
-const drawnShapes = new Group();
-instance.add(drawnShapes);
+// We'll keep track of our shapes, so we can edit their rendering parameters
+// and optimize the picking on hover&click.
+const drawEntity = new DrawingCollection();
+instance.add(drawEntity);
 
 // We'll use different materials for displaying drawn shapes
 const drawnFaceMaterial = new MeshBasicMaterial({
@@ -273,7 +322,7 @@ function point2DFactory(text) {
     pt.style.border = '2px solid #070607';
     pt.style.fontSize = '14px';
     pt.style.textAlign = 'center';
-    pt.style.pointerEvents = 'auto';
+    pt.style.pointerEvents = 'none';
     pt.style.cursor = 'pointer';
     pt.innerText = text;
     return pt;
@@ -290,7 +339,7 @@ function point2DFactoryHighlighted(text) {
     pt.style.border = '2px solid #070607';
     pt.style.fontSize = '14px';
     pt.style.textAlign = 'center';
-    pt.style.pointerEvents = 'auto';
+    pt.style.pointerEvents = 'none';
     pt.style.cursor = 'pointer';
     pt.innerText = text;
     return pt;
@@ -298,11 +347,10 @@ function point2DFactoryHighlighted(text) {
 
 const updatePointsRendering = () => {
     // Update existing drawings
-    for (const o of drawnShapes.children) {
+    for (const o of drawEntity.children) {
         if (o.geometryType === 'MultiPoint') {
-            o.clear();
             o.use3Dpoints = document.getElementById('pointsrendering').value === '0';
-            o.update();
+            instance.notifyChange(o);
         }
     }
 };
@@ -310,7 +358,7 @@ document.getElementById('pointsrendering').addEventListener('change', updatePoin
 
 function addShape(geojson) {
     // Create and show a new object with the same geometry but with different materials
-    const o = new Drawing(instance, {
+    const o = new Drawing({
         faceMaterial: drawnFaceMaterial,
         sideMaterial: drawnSideMaterial,
         lineMaterial: drawnLineMaterial,
@@ -318,21 +366,25 @@ function addShape(geojson) {
         minExtrudeDepth: 40,
         maxExtrudeDepth: 100,
         use3Dpoints: document.getElementById('pointsrendering').value === '0',
-        point2DFactory: index => point2DFactory(`${index + 1}`),
+        point2DFactory,
     }, geojson);
 
-    if (!o.use3Dpoints && (o.geometryType === 'Point' || o.geometryType === 'MultiPoint')) {
-        // Edit the shape when clicking on points
-        for (const pt of o.children) {
-            pt.element.addEventListener('click', () => {
-                drawTool.edit(o);
-            });
-        }
+    // Compute some measurements
+    o.userData.measurements = {
+        minmax: getMinMaxAltitudes(o),
+        nbPoints: o.coordinates.length / 3,
+    };
+
+    if (o.geometryType === 'Polygon' || o.geometryType === 'LineString') {
+        o.userData.measurements.perimeter = getPerimeter(o);
+    }
+    if (o.geometryType === 'Polygon') {
+        o.userData.measurements.area = getArea(o);
     }
 
-    // And add it to our scene
-    drawnShapes.add(o);
-    instance.notifyChange(drawnShapes);
+    // Add it to our scene
+    drawEntity.add(o);
+    instance.notifyChange(drawEntity);
 }
 
 // Listen to when we are done drawing
@@ -344,24 +396,46 @@ drawTool.addEventListener('end', evt => addShape(evt.geojson));
 
 // Let's add selection & edition!
 
-function getDrawnShapeAt(evt) {
-    const picked = instance.pickObjectsAt(evt, { where: [drawnShapes], limit: 1, radius: 5 });
-    // If we pick something, return the drawn shape (parent of the mesh found)
-    return picked.length > 0 ? picked[0].object.parent : null;
-}
-
 // Display a nice pointer when the user is over a drawn shape
+// and show measurement info
 instance.domElement.addEventListener('mousemove', evt => {
+    // Do nothing if we're editing a shape
     if (drawTool.state !== DrawToolState.READY) return;
-    const picked = getDrawnShapeAt(evt);
+
+    // In case we're using points with CSS2DRenderer, instance.pickObjectsAt will take
+    // care of returning the elements corresponding to the points
+    // You can therefore use the same API whatever rendering method you're using for points
+    const picked = instance.pickObjectsAt(evt, {
+        where: [drawEntity],
+        limit: 1,
+        radius: 5,
+        pickFeatures: true,
+    }).at(0);
     instance.domElement.style.cursor = picked ? 'pointer' : 'default';
+
+    if (picked && picked.drawing) {
+        const mesurements = picked.drawing.userData.measurements;
+        const hoverHelper = document.getElementById('hoverHelper');
+        hoverHelper.innerText = `
+            Number of points: ${mesurements.nbPoints}
+            Min altitude: ${mesurements.minmax[0].toFixed()}m
+            Max altitude: ${mesurements.minmax[1].toFixed()}m
+            ${mesurements.perimeter ? `Perimeter: ${mesurements.perimeter.toFixed()}m` : ''}
+            ${mesurements.area ? `Area: ${mesurements.area.toFixed()}m²` : ''}
+        `;
+        hoverHelper.classList.remove('d-none');
+    } else {
+        document.getElementById('hoverHelper').classList.add('d-none');
+    }
 });
 
 // Edit a shape when clicking on it
 instance.domElement.addEventListener('click', evt => {
     if (drawTool.state !== DrawToolState.READY) return;
-    const picked = getDrawnShapeAt(evt);
+    const picked = instance.pickObjectsAt(evt, { where: [drawEntity], limit: 1, radius: 5 }).at(0);
     if (picked) {
+        const drawing = picked.drawing;
+
         for (const o of document.getElementsByClassName('helper')) {
             o.classList.add('d-none');
         }
@@ -370,26 +444,30 @@ instance.domElement.addEventListener('click', evt => {
 
         instance.domElement.style.cursor = 'default';
 
-        // When editing a DrawObject3D directly, materials and options are not reset from drawTool.
-        picked.setMaterials({}); // Reset the materials
-        drawTool.edit(picked);
+        // When editing a Drawing object directly, materials and options are not reset from drawTool
+        drawing.setMaterials({}); // Reset the materials
+        instance.notifyChange(drawEntity); // And notify Giro3D for the changes
+
+        drawEntity.remove(drawing);
+        drawTool.edit(drawing); // Start the edit
     }
 });
 
 // Load some shapes
 Fetcher.json('https://3d.oslandia.com/dem/features.json').then(features => {
     features.forEach(feature => {
-        drawTool.edit(feature);
         // Mess around with the API
+        drawTool.edit(feature);
         drawTool.insertPointAt(0, new Vector3(0, 0, 0));
         drawTool.updatePointAt(0, new Vector2(1, 2, 3));
         drawTool.deletePoint(0);
         drawTool.end();
+        // In real use case, we'd call addShape directly
     });
 });
 
 // Add some shapes via API
-drawTool.start();
+drawTool.start('Polygon');
 drawTool.addPointAt(new Vector3(0, 0, 0));
 drawTool.addPointAt(new Vector3(1, 2, 3));
 drawTool.addPointAt(new Vector3(-13601375.735757545, 5811313.553932933, 2263.4501953125));
