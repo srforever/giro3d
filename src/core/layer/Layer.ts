@@ -183,23 +183,21 @@ export interface LayerOptions {
  * Note that doing so will have a performance cost in both CPU and memory.
  *
  * @example
- * // Add and create a new Layer to a map.
- * const newLayer = ColorLayer('myColorLayerId', { ... });
- * map.addLayer(newLayer);
+ * // Add and create a new Layer to an existing map.
+ * const newLayer = new ColorLayer({ ... });
+ *
+ * await map.addLayer(newLayer);
  *
  * // Change layer's visibilty
- * const layerToChange = map.getLayers(layer => layer.id === 'idLayerToChange')[0];
- * layerToChange.visible = false;
+ * newLayer.visible = false;
  * instance.notifyChange(); // update instance
  *
  * // Change layer's opacity
- * const layerToChange = map.getLayers(layer => layer.id === 'idLayerToChange')[0];
- * layerToChange.opacity = 0.5;
+ * newLayer.opacity = 0.5;
  * instance.notifyChange(); // update instance
  *
  * // Listen to properties
- * const layerToListen = map.getLayers(layer => layer.id === 'idLayerToListen')[0];
- * layerToListen.addEventListener('visible-property-changed', (event) => console.log(event));
+ * newLayer.addEventListener('visible-property-changed', (event) => console.log(event));
  */
 abstract class Layer<TEvents extends LayerEvents = LayerEvents>
     extends EventDispatcher<TEvents & LayerEvents>
