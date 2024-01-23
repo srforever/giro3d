@@ -5,7 +5,7 @@ import Context from './Context';
 import type C3DEngine from '../renderer/c3DEngine';
 import type Instance from './Instance';
 import Entity from '../entities/Entity';
-import type Layer from './layer/Layer';
+import { hasLayers } from './layer/HasLayers';
 
 /** Rendering state */
 export enum RenderingState {
@@ -46,8 +46,6 @@ function updateElements(context: Context, entity: Entity, elements?: unknown[]) 
     }
     for (const element of elements) {
         // update element
-        // TODO find a way to notify attachedLayers when entity deletes some elements
-        // and then update Debug.js:addGeometryLayerDebugFeatures
         const newElementsToUpdate = entity.update(context, element);
 
         const sub = entity.getObjectToUpdateForAttachedLayers(element);
@@ -62,13 +60,14 @@ function updateElements(context: Context, entity: Entity, elements?: unknown[]) 
                             Must be a THREE.Object and have a THREE.Material`);
                     }
                 }
+
                 // update attached layers
-                if ('attachedLayers' in entity) {
-                    for (const attachedLayer of (entity.attachedLayers) as Layer[]) {
+                if (hasLayers(entity)) {
+                    entity.forEachLayer(attachedLayer => {
                         if (attachedLayer.ready) {
                             attachedLayer.update(context, sub.element);
                         }
-                    }
+                    });
                 }
             } else if (sub.elements) {
                 for (let i = 0; i < sub.elements.length; i++) {
@@ -77,13 +76,14 @@ function updateElements(context: Context, entity: Entity, elements?: unknown[]) 
                             Invalid object for attached layer to update.
                             Must be a THREE.Object and have a THREE.Material`);
                     }
+
                     // update attached layers
-                    if ('attachedLayers' in entity) {
-                        for (const attachedLayer of (entity.attachedLayers) as Layer[]) {
+                    if (hasLayers(entity)) {
+                        entity.forEachLayer(attachedLayer => {
                             if (attachedLayer.ready) {
                                 attachedLayer.update(context, sub.elements[i]);
                             }
-                        }
+                        });
                     }
                 }
             }

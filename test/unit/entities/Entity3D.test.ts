@@ -10,8 +10,6 @@ import {
     Plane,
 } from 'three';
 import Entity3D from 'src/entities/Entity3D';
-import { ColorLayer } from 'src/core/layer';
-import NullSource from 'src/sources/NullSource';
 
 /**
  * Creates a valid {@link Entity3D} for unit testing.
@@ -24,14 +22,6 @@ function sut(obj3d: Object3D = undefined) {
 
     const entity = new Entity3D(id, object3d);
     return entity;
-}
-
-function makeLayer() {
-    const layer = new ColorLayer({
-        source: new NullSource(),
-    });
-    layer._preprocessLayer = () => layer;
-    return layer;
 }
 
 describe('Entity3D', () => {
@@ -108,24 +98,6 @@ describe('Entity3D', () => {
             expect(child1.material.clippingPlanes).toBe(newValue);
             expect(child2.material.clippingPlanes).toBe(newValue);
             expect(child3.material.clippingPlanes).toBe(newValue);
-        });
-    });
-
-    describe('postUpdate', () => {
-        it('should call postUpdate() on attached layers', () => {
-            const entity = sut();
-
-            const layer = makeLayer();
-            layer.update = jest.fn();
-            layer.postUpdate = jest.fn();
-            layer._preprocessLayer = () => layer;
-            entity.attach(layer);
-
-            expect(layer.postUpdate).not.toHaveBeenCalled();
-
-            entity.postUpdate();
-
-            expect(layer.postUpdate).toHaveBeenCalled();
         });
     });
 
@@ -290,21 +262,6 @@ describe('Entity3D', () => {
                     expect(mesh.material.transparent).toEqual(true);
                 }
             });
-        });
-    });
-
-    describe('attach', () => {
-        it('should add the layer to the list of attached layers', () => {
-            const entity = sut();
-            const layer1 = makeLayer();
-            const layer2 = makeLayer();
-
-            entity.attach(layer1);
-
-            expect(entity.attachedLayers).toEqual([layer1]);
-
-            entity.attach(layer2);
-            expect(entity.attachedLayers).toEqual([layer1, layer2]);
         });
     });
 

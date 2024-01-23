@@ -30,6 +30,8 @@ import type PickOptions from '../core/picking/PickOptions';
 import type PickResult from '../core/picking/PickResult';
 import pickObjectsAt from '../core/picking/PickObjectsAt';
 import pickPointsAt, { type PointsPickResult } from '../core/picking/PickPointsAt';
+import type { ColorLayer, Layer, LayerEvents } from '../core/layer';
+import type HasLayers from '../core/layer/HasLayers';
 
 /** Options to create a Tiles3D object. */
 export interface Tiles3DOptions<TMaterial extends Material> {
@@ -101,11 +103,13 @@ export type Tiles3DPickResult = PointsPickResult | PickResult;
  */
 class Tiles3D<TMaterial extends Material = Material>
     extends Entity3D
-    implements Pickable<Tiles3DPickResult> {
+    implements Pickable<Tiles3DPickResult>, HasLayers {
+    readonly hasLayers = true;
     /** Read-only flag to check if a given object is of type Tiles3D. */
     readonly isTiles3D = true;
     private readonly _url: string;
     private _networkOptions: RequestInit;
+    private _colorLayer: ColorLayer;
     /**
      * Network options of the source.
      *
@@ -173,14 +177,46 @@ class Tiles3D<TMaterial extends Material = Material>
         this._queue = DefaultQueue;
     }
 
+    async attach(colorLayer: ColorLayer) {
+        this._colorLayer = colorLayer;
+        await colorLayer.initialize({ instance: this._instance });
+    }
+
     get loading() {
-        return this._opCounter.loading || this._attachedLayers.some(l => l.loading);
+        return this._opCounter.loading || this._colorLayer?.loading;
     }
 
     get progress() {
         let sum = this._opCounter.progress;
-        sum = this._attachedLayers.reduce((accum, current) => accum + current.progress, sum);
-        return sum / (this._attachedLayers.length + 1);
+        let count = 1;
+        if (this._colorLayer) {
+            sum += this._colorLayer.progress;
+            count = 2;
+        }
+        return sum / count;
+    }
+
+    getLayers(predicate?: (arg0: Layer) => boolean): Layer<LayerEvents>[] {
+        if (this._colorLayer) {
+            if (predicate && predicate(this._colorLayer)) {
+                return [this._colorLayer];
+            }
+        }
+
+        return [];
+    }
+
+    forEachLayer(callback: (layer: Layer) => void): void {
+        if (this._colorLayer) {
+            callback(this._colorLayer);
+        }
+    }
+
+    get layerCount(): number {
+        if (this._colorLayer) {
+            return 1;
+        }
+        return 0;
     }
 
     updateOpacity() {

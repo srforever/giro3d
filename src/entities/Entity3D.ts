@@ -9,7 +9,6 @@ import {
 
 import Entity, { type EntityEventMap } from './Entity';
 import type Instance from '../core/Instance';
-import type Layer from '../core/layer/Layer.js';
 import type Context from '../core/Context';
 import { type ObjectToUpdate } from '../core/MainLoop';
 import type Pickable from '../core/picking/Pickable';
@@ -46,7 +45,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
     extends Entity<TEventMap & Entity3DEventMap>
     implements Pickable {
     protected _instance: Instance;
-    protected _attachedLayers: Layer[];
     private _visible: boolean;
     private _opacity: number;
     private _object3d: Object3D;
@@ -76,7 +74,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
                 'Missing/Invalid object3d parameter (must be a three.js Object3D instance)',
             );
         }
-        this._attachedLayers = [];
         this._instance = null; // will be filled when we add the object to an instance
 
         if (object3d && object3d.type === 'Group' && object3d.name === '') {
@@ -94,13 +91,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
         this._clippingPlanes = null;
 
         this._renderOrder = 0;
-    }
-
-    /**
-     * The layers attached to this entity.
-     */
-    get attachedLayers() {
-        return this._attachedLayers;
     }
 
     /**
@@ -243,11 +233,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
         return null;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    postUpdate(context: Context, changeSources: Set<unknown>) {
-        this._attachedLayers.forEach(layer => layer.postUpdate());
-    }
-
     /**
      * Returns an approximated bounding box of this entity in the scene.
      *
@@ -328,37 +313,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
      */
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
     contains(obj: unknown): boolean { return false; }
-
-    attach(layer: Layer) {
-        if (!layer.update) {
-            throw new Error(`Missing 'update' function -> can't attach layer ${layer.id}`);
-        }
-        layer = layer._preprocessLayer(this._instance);
-
-        this._attachedLayers.push(layer);
-    }
-
-    detach(layer: Layer) {
-        const count = this._attachedLayers.length;
-        this._attachedLayers = this._attachedLayers.filter(attached => attached.id !== layer.id);
-        return this._attachedLayers.length < count;
-    }
-
-    /**
-     * Get all the layers attached to this object.
-     *
-     * @param filter Optional filter function for attached layers
-     * @returns the layers attached to this object
-     */
-    getLayers(filter?: (arg0: Layer) => boolean): Layer[] {
-        const result = [];
-        for (const attached of this._attachedLayers) {
-            if (!filter || filter(attached)) {
-                result.push(attached);
-            }
-        }
-        return result;
-    }
 
     /**
      * Traverses all materials in the hierarchy of this entity.
