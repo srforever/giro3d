@@ -1,5 +1,124 @@
 # Changelog
 
+## 0.33.0-beta.0 (2024-01-26)
+
+Quality of Life improvements, with most of the codebase migrated to TypeScript.
+
+### BREAKING CHANGE
+
+- The `GeoJsonParser`, `GpxParser` and `VectorTileParser` modules are deleted as they are not
+being used by Giro3D. Please use dedicated libraries such as OpenLayers or loaders.gl instead
+(!479)
+- `Extent.center()` now only returns an object of type `Coordinates`. To compute the extent as a
+`Vector2`, use the new method `Extent.centerAsVector2()` instead. Similarly, to compute the
+extent as a `Vector3`, use `Extent.centerAsVector3()` (!451)
+- `Coordinates.xyz()` is renamed to `Coordinates.toVector3()`. The signature is the same. (!486)
+- The `latitude()` and `longitude()` methods of the `Coordinates` class become accessors. To use
+them, remove the parentheses, e.g: `Coordinates.latitude()` becomes `Coordinates.latitude`, and so
+on. (!451)
+- the `x()`, `y()`, `z()` methods of the `Coordinates` class become accessors. To use them, remove
+the parentheses, e.g: `Coordinates.x()` becomes `Coordinates.x`, and so on. (!451)
+- The `id` parameter of Layer constructor is removed. (!476)
+- `Layer.whenReady` is removed. If you want to await the initialization of the layer, just do
+`await Layer.initialize()`. Note that this should not be necessary, as the layer is initialized
+when added to the map. (#387)
+- The methods `addFrameRequester` and `removeFrameRequester` are removed from `Instance`. Instead,
+use the methods of the `EventDispatcher` (#379):
+
+  ```ts
+  // before
+  instance.addFrameRequester('before_update', callback);
+  instance.removeFrameRequester('before_update', callback)
+  
+  // after
+  instance.addEventListener('before-update', callback);
+  instance.removeEventListener('before-update', callback);
+  ```
+
+- removed broken `DEMUtils` (`getElevationValueAt`, `placeObjectOnGround`) (!490)
+- removed broken support for `OrthographicCamera` (!490)
+- `Drawing` doesn't take a reference to `Instance` anymore (!493):
+  - its constructor doesn't take the reference to `Instance` anymore
+  - calls to update the shape (`update`, `setGeojson`, `setCoordinates`, `setMaterials`)
+    require a call to `instance.notifyChange` afterwards
+- `point2DFactory` option of `Drawing` now uses the same prototype as `DrawTool` (text as a
+string) (!493)
+- picking results use the property `entity` instead of `layer` for more consistency (!489)
+- entities that were defining `pickObjectsAt` method now define `pick` instead for clarity (!489)
+- Build scripts are renamed (!500):
+  - script `prepare-package` renamed to `build-package`/`build` (alias),
+  - script `build-package` replaced by `make-package`,
+  - script `apidoc` renamed to `build-apidoc`
+
+### Feat
+
+- **Instance**: enable picking vector features (#168)
+- **Extent**: add methods to compute center as vectors (!451)
+- **DrawTool**: add entity for handling multiple Drawings and help picking (#384)
+- **examples**: add example for FirstPersonControls (!490)
+- **examples**: wfs_mesh: enable status bar and fixed label not disappearing (!489)
+- **examples**: more sources in planar_vector and display metadata on hover (!489)
+
+### Fix
+
+- **DrawTool**: prevent splicing meshes to be picked up by raycasting (#384)
+- **Map**: guarantee that addLayer() always resolve (#387)
+- **Map**: add imageSize accessor (!482)
+- **Inspector**: use integers for relevant charts (!495)
+- **Picking**: pickObjectsAt does not work with radius=0 (#168)
+- **RequestQueue**: improve typing of enqueue() to infer return type (!492)
+- **examples**: fix examples with view parameter (!484)
+- **examples**: fix IGN WFS, WMS and WMTS endpoints (!491)
+- **examples**: fix layer_ordering (!476)
+
+### Refactor
+
+- **Instance**: remove frame requester API (#379)
+- **DEMUtils**: remove DEMUtils (!490)
+- **FirstPersonControls**: migrate FirstPersonControls to TS (!490)
+- **version**: migrate version to TS (!490)
+- **registerChunks**: migrate registerChunks to TS (!490)
+- **Inspector**: migrate Inspectors to TS (!490)
+- **B3dmParser**: migrate B3dmParser to TS (!490)
+- **BatchTableParser**: migrate BatchTableParser to TS (!490)
+- **PntsParser**: migrate PntsParser to TS (!490)
+- **ShaderUtils**: migrate ShaderUtils to TS (!490)
+- **Utf8Decoder**: migrate Utf8Decoder to TS (!490)
+- **PromiseUtils**: migrate PromiseUtils to TS (!490)
+- **ObjectRemovalHelper**: migrate ObjectRemovalHelper to TS (!490)
+- **RenderPipeline**: migrate RenderPipeline to TS (!490)
+- **RenderingOptions**: migrate RenderingOptions to TS (!490)
+- **PointsMaterial**: migrate PointsMaterial to TS (!490)
+- **PointCloudRenderer**: migrate PointCloudRenderer to TS (!490)
+- **MemoryTracker**: migrate MemoryTracker to TS (!490)
+- **MaterialUtils**: migrate MaterialUtils to TS (!490)
+- **Camera**: migrate Camera to TS (!490)
+- **c3DEngine**: migrate c3DEngine to TS (!490)
+- **TileGeometry**: migrate TileGeometry to TS (!490)
+- **Capabilities**: migrate Capabilities to TS (!490)
+- **LayerUpdateState**: migrate LayerUpdateState to TS (!490)
+- **Rect**: migrate Rect to TS (!490)
+- **OBB**: migrate OBB to TS (!484)
+- **PotreePointCloud**: migrate to TS (!484)
+- **Helpers**: migrate helpers to TS (!484)
+- **Tiles3D**: migrate Tiles3D to TypeScript (!484)
+- **MainLoop**: migrate MainLoop to TypeScript (!484)
+- **Coordinates**: rename xyz() -> toVector3() (!486)
+- **RequestQueue**: explicitly implement interface Progress (!487)
+- **Instance**: migrate Instance to TypeScript (!480)
+- **Picking**: migrate Picking to TypeScript (!480)
+- **DrawTool**: migrate to TS and fix its typing definitions (#372)
+- **Layer**: remove id constructor parameter and introduce name (!476)
+- **Layer**: expose source as readonly (!476)
+- **Coordinates**: longitude() and latitude() becomes accessors (!451)
+- **Coordinates**: x, y, and z become accessors (!451)
+- **Parsers**: delete unused parsers (!479)
+
+### Perf
+
+- **CogSource**: reuse the same worker pool to avoid creating many workers (!485)
+- **Map**: use 2 channels instead of 4 for elevation textures (#376)
+
 ## v0.32.2 (2023-12-06)
 
 Hotfix release for #375.
