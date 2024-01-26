@@ -52,35 +52,35 @@ export interface InstanceEvents {
     /**
      * Fires at the start of the update
      */
-    'update-start': {},
+    'update-start': { dt: number, updateLoopRestarted: boolean },
     /**
      * Fires before the camera update
      */
-    'before-camera-update': {},
+    'before-camera-update': { dt: number, updateLoopRestarted: boolean },
     /**
      * Fires after the camera update
      */
-    'after-camera-update': {},
+    'after-camera-update': { dt: number, updateLoopRestarted: boolean },
     /**
      * Fires before the layer update
      */
-    'before-layer-update': { entity: Entity; },
+    'before-layer-update': { entity: Entity, dt: number, updateLoopRestarted: boolean },
     /**
      * Fires after the layer update
      */
-    'after-layer-update': { entity: Entity; },
+    'after-layer-update': { entity: Entity, dt: number, updateLoopRestarted: boolean },
     /**
      * Fires before the render
      */
-    'before-render': {},
+    'before-render': { dt: number, updateLoopRestarted: boolean },
     /**
      * Fires after the render
      */
-    'after-render': {},
+    'after-render': { dt: number, updateLoopRestarted: boolean },
     /**
      * Fires at the end of the update
      */
-    'update-end': {},
+    'update-end': { dt: number, updateLoopRestarted: boolean },
 }
 
 /**
