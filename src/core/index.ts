@@ -13,6 +13,8 @@ import Context from './Context';
 import Instance, {
     type InstanceOptions,
     type InstanceEvents,
+    type FrameEventPayload,
+    type EntityEventPayload,
     type PickObjectsAtOptions,
     type CustomCameraControls,
     type ThreeControls,
@@ -38,6 +40,8 @@ export {
     Instance,
     InstanceOptions,
     InstanceEvents,
+    FrameEventPayload,
+    EntityEventPayload,
     PickObjectsAtOptions,
     CustomCameraControls,
     ThreeControls,

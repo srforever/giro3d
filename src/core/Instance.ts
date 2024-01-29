@@ -25,6 +25,20 @@ const vectors = {
     pickVec2: new Vector2(),
 };
 
+/** Frame event payload */
+export type FrameEventPayload = {
+    /** Time elapsed since previous update loop, in milliseconds */
+    dt: number;
+    /** `true` if the update loop restarted */
+    updateLoopRestarted: boolean;
+};
+
+/** Entity event payload */
+export type EntityEventPayload = {
+    /** Entity */
+    entity: Entity;
+};
+
 /**
  * Events supported by
  * [`Instance.addEventListener()`](https://threejs.org/docs/#api/en/core/EventDispatcher.addEventListener)
@@ -52,35 +66,35 @@ export interface InstanceEvents {
     /**
      * Fires at the start of the update
      */
-    'update-start': { dt: number, updateLoopRestarted: boolean },
+    'update-start': FrameEventPayload,
     /**
      * Fires before the camera update
      */
-    'before-camera-update': { dt: number, updateLoopRestarted: boolean },
+    'before-camera-update': FrameEventPayload,
     /**
      * Fires after the camera update
      */
-    'after-camera-update': { dt: number, updateLoopRestarted: boolean },
+    'after-camera-update': FrameEventPayload,
     /**
-     * Fires before the layer update
+     * Fires before the entity update
      */
-    'before-layer-update': { entity: Entity, dt: number, updateLoopRestarted: boolean },
+    'before-entity-update': EntityEventPayload & FrameEventPayload,
     /**
-     * Fires after the layer update
+     * Fires after the entity update
      */
-    'after-layer-update': { entity: Entity, dt: number, updateLoopRestarted: boolean },
+    'after-entity-update': EntityEventPayload & FrameEventPayload,
     /**
      * Fires before the render
      */
-    'before-render': { dt: number, updateLoopRestarted: boolean },
+    'before-render': FrameEventPayload,
     /**
      * Fires after the render
      */
-    'after-render': { dt: number, updateLoopRestarted: boolean },
+    'after-render': FrameEventPayload,
     /**
      * Fires at the end of the update
      */
-    'update-end': { dt: number, updateLoopRestarted: boolean },
+    'update-end': FrameEventPayload,
 }
 
 /**

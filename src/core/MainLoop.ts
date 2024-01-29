@@ -156,7 +156,7 @@ class MainLoop {
             context.resetForEntity(entity);
             if (entity.shouldCheckForUpdate()) {
                 instance.dispatchEvent({
-                    type: 'before-layer-update',
+                    type: 'before-entity-update',
                     entity,
                     dt,
                     updateLoopRestarted: this._updateLoopRestarted,
@@ -186,7 +186,7 @@ class MainLoop {
                 }
 
                 instance.dispatchEvent({
-                    type: 'after-layer-update',
+                    type: 'after-entity-update',
                     entity,
                     dt,
                     updateLoopRestarted: this._updateLoopRestarted,
