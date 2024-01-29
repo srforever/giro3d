@@ -47,10 +47,13 @@ For the `BREAKING CHANGE` section, edit the text to add a migration guide.
 
 - open a MR on the repo with these changes
 - once merged, tag the commit on main branch (Don't forget the `v` prefix)
+- the pipeline will automatically be triggered to publish the package on NPM
+
+**Note:** for pre-releases, you can use a release branch to tag the version, but that branch **MUST** be protected.
 
 ## Publish on NPM
 
-Checkout the created tag, then:
+If you wish to manually create a NPM release:
 
 ```bash
 # check authentification

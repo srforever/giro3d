@@ -23,12 +23,18 @@ stages:
     - audit
     - build
     - lint
-    - test-unit
-    - pages
+    - test
+    - publish
 
 default:
+    image: node:lts-alpine
+    interruptible: true
     tags:
         - saas-linux-large-amd64
+
+variables:
+    version_stable_release: '/^v([0-9]+)\.([0-9]+)\.([0-9]+)$/'
+    version_pre_release: '/^v[0-9]+\.[0-9]+\.[0-9]+\-(alpha|beta|rc)\.[0-9]+$/'
 
 # Run pipelines on MR, tags and push on 'main'
 workflow:
@@ -44,7 +50,6 @@ cache:
 
 check-commit-message:
     stage: lint
-    image: node:lts-alpine
     script:
         - npm i
         - apk add --no-cache git
@@ -54,7 +59,6 @@ check-commit-message:
 
 build_lts:
     stage: build
-    image: node:lts-alpine
     script:
         - npm i
         - npm run make-package
@@ -74,22 +78,19 @@ build_current:
 
 lint:
     stage: lint
-    image: node:lts-alpine
     script:
         - npm i
         - npm run lint -- --max-warnings=0
 
 audit:
     stage: audit
-    image: node:lts-alpine
     script:
         - npm audit --omit=dev
     allow_failure: true
 
 test_unit_lts:
-    stage: test-unit
+    stage: test
     coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
-    image: node:lts-alpine
     script:
         - npm i
         - npm run test-with-coverage
@@ -98,20 +99,50 @@ test_unit_lts:
             - build
 
 test_unit_current:
-    stage: test-unit
+    stage: test
     coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
     image: node:current-alpine
     script:
         - npm i
         - npm run test-with-coverage
 
-pages:
-    stage: pages
+publish_prerelease_package:
+    stage: publish
+    interruptible: false
+    retry: 1
     needs:
         - lint
         - test_unit_lts
         - build_lts
-    image: node:lts-alpine
+    script:
+        - channel="$(echo "$CI_COMMIT_TAG" | sed -E 's/^v[0-9]+\.[0-9]+\.[0-9]+-([[:alnum:]]+)\.[0-9]+$/\1/')"
+        - npm i
+        - npm config set -- '//registry.npmjs.org/:_authToken' "${NPM_AUTH_TOKEN}"
+        - npm run make-package
+        - npm publish build/giro3d/ --access public --tag ${channel}
+    rules:
+        - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ $version_pre_release'
+
+publish_package:
+    stage: publish
+    interruptible: false
+    retry: 1
+    needs:
+        - lint
+        - test_unit_lts
+        - build_lts
+    script:
+        - npm i
+        - npm config set -- '//registry.npmjs.org/:_authToken' "${NPM_AUTH_TOKEN}"
+        - npm run make-package
+        - npm publish build/giro3d/ --access public
+    rules:
+        - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ $version_stable_release'
+
+pages:
+    stage: publish
+    needs:
+        - publish_package
     script:
         - npm i
         - npm run build-site
@@ -121,4 +152,4 @@ pages:
             - public
     rules:
         # Only publish website on releases (and exclude pre-releases)
-        - if: $CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^v[0-9]+\.[0-9]+\.[0-9]+$/
+        - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ $version_stable_release'
