@@ -28,6 +28,7 @@ export interface ColorLayerEvents extends LayerEvents {
     'brightness-property-changed': { brightness: number; };
     'contrast-property-changed': { contrast: number; };
     'saturation-property-changed': { saturation: number; };
+    'elevationRange-property-changed': { range: ElevationRange; };
 }
 
 export interface ColorLayerOptions extends LayerOptions {
@@ -54,7 +55,7 @@ class ColorLayer
      */
     readonly isColorLayer: boolean = true;
     readonly isPickableFeatures = true;
-    readonly elevationRange: ElevationRange;
+    private _elevationRange: ElevationRange;
     private _brightness: number;
     private _contrast: number;
     private _saturation: number;
@@ -81,11 +82,28 @@ class ColorLayer
     constructor(options: ColorLayerOptions) {
         super(options);
         this.type = 'ColorLayer';
-        this.elevationRange = options.elevationRange;
+        this._elevationRange = options.elevationRange;
         this._opacity = options.opacity ?? 1;
         this._brightness = 0;
         this._contrast = 1;
         this._saturation = 1;
+    }
+
+    /**
+     * Gets the elevation range of this layer, if any.
+     */
+    get elevationRange(): ElevationRange {
+        return this._elevationRange;
+    }
+
+    /**
+     * Sets the elevation range of this layer. Setting it to null removes the elevation range.
+     *
+     *  @fires ColorLayer#elevationRange-property-changed
+     */
+    set elevationRange(range: ElevationRange | null) {
+        this._elevationRange = range;
+        this.dispatchEvent({ type: 'elevationRange-property-changed', range });
     }
 
     /**
@@ -157,7 +175,7 @@ class ColorLayer
             // Update material parameters
             material.setLayerVisibility(this, this.visible);
             material.setLayerOpacity(this, this.opacity);
-            material.setLayerElevationRange(this, this.elevationRange);
+            material.setLayerElevationRange(this, this._elevationRange);
             material.setLayerBrightnessContrastSaturation(
                 this,
                 this.brightness,

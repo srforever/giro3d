@@ -106,7 +106,35 @@ function bindSlider(name, fn) {
     };
 }
 
+function bindToggle(name, action) {
+    const toggle = document.getElementById(`toggle-${name}`);
+    toggle.oninput = () => {
+        const state = toggle.checked;
+        action(state);
+        instance.notifyChange(map);
+    };
+}
+
+let colorLayerRange = null;
+
+bindToggle('colorlayer-range', enabled => {
+    if (enabled) {
+        colorLayer.elevationRange = colorLayerRange;
+    } else {
+        colorLayer.elevationRange = null;
+    }
+
+    document.getElementById('layerMin').disabled = !enabled;
+    document.getElementById('layerMax').disabled = !enabled;
+});
+
 bindSlider('mapMin', v => { map.materialOptions.elevationRange.min = v; });
 bindSlider('mapMax', v => { map.materialOptions.elevationRange.max = v; });
-bindSlider('layerMin', v => { colorLayer.elevationRange.min = v; });
-bindSlider('layerMax', v => { colorLayer.elevationRange.max = v; });
+bindSlider('layerMin', v => {
+    colorLayer.elevationRange = { min: v, max: colorLayer.elevationRange.max };
+    colorLayerRange = colorLayer.elevationRange;
+});
+bindSlider('layerMax', v => {
+    colorLayer.elevationRange = { min: colorLayer.elevationRange.min, max: v };
+    colorLayerRange = colorLayer.elevationRange;
+});
