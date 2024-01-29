@@ -30,6 +30,18 @@ describe('Layer', () => {
         setupGlobalMocks();
     });
 
+    describe('userData', () => {
+        it('returns correct values', () => {
+            const layer = new TestLayer({ source: new NullSource() });
+
+            layer.userData.bar = 3;
+            layer.userData.foo = 'hello';
+
+            expect(layer.userData.bar).toEqual(3);
+            expect(layer.userData.foo).toEqual('hello');
+        });
+    });
+
     describe('progress & loading', () => {
         it('should return the progress and loading of the underlying queue', () => {
             const layer = new TestLayer({ source: new NullSource() });

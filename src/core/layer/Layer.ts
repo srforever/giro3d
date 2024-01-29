@@ -247,6 +247,11 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
     backgroundColor: Color;
 
     /**
+     * An object that can be used to store custom data about the {@link Layer}.
+     */
+    readonly userData: Record<string, any> = {};
+
+    /**
      * Disables automatic updates of this layer. Useful for debugging purposes.
      */
     frozen: boolean = false;
