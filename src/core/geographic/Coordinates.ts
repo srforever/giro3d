@@ -1,4 +1,4 @@
-import { Vector3, MathUtils } from 'three';
+import { Vector3, MathUtils, Vector2 } from 'three';
 import proj4 from 'proj4';
 
 const projectionCache : Map<string, Map<string, proj4.Converter>> = new Map();
@@ -385,6 +385,41 @@ class Coordinates {
     toVector3(target?: Vector3): Vector3 {
         assertIsGeocentric(this.crs);
         const v = target || new Vector3();
+        v.fromArray(this._values);
+        return v;
+    }
+
+    /**
+     * Returns the equivalent `Vector2` of this coordinate. Coordinates must be in geocentric system
+     * (can be converted by using {@link as as()}). Note that the Z component (elevation) is lost.
+     *
+     * @example
+     *
+     * const position = { x: 20885167, y: 849862, z: 23385912 };
+     * // Geocentric system
+     * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
+     * coordinates.toVector2();  // Geocentric system
+     * // returns : Vector2
+     * // x: 20885167
+     * // y: 849862
+     *
+     * // or
+     *
+     * const position = { longitude: 2.33, latitude: 48.24, altitude: 24999549 };
+     * // Geographic system
+     * const coords =
+     *      new Coordinates('EPSG:4326', position.longitude, position.latitude, position.altitude);
+     * const coordinates = coords.as('EPSG:4978'); // Geocentric system
+     * coordinates.toVector2(); // Geocentric system
+     * // returns : Vector2
+     * // x: 20885167
+     * // y: 849862
+     * @param target the geocentric coordinate
+     * @returns target position
+     */
+    toVector2(target?: Vector2): Vector2 {
+        assertIsGeocentric(this.crs);
+        const v = target || new Vector2();
         v.fromArray(this._values);
         return v;
     }
