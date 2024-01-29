@@ -4,7 +4,7 @@ import {
 } from 'three';
 import proj4 from 'proj4';
 import Extent from '../../../src/core/geographic/Extent';
-import Instance, { INSTANCE_EVENTS } from '../../../src/core/Instance';
+import Instance from '../../../src/core/Instance';
 import MainLoop from '../../../src/core/MainLoop';
 import Map from '../../../src/entities/Map';
 import Tiles3D from '../../../src/entities/Tiles3D';
@@ -184,7 +184,7 @@ describe('Instance', () => {
                 maxSubdivisionLevel: 15,
             });
 
-            instance.addEventListener(INSTANCE_EVENTS.ENTITY_ADDED, () => { eventFired = true; });
+            instance.addEventListener('entity-added', () => { eventFired = true; });
 
             expect(eventFired).toBeFalsy();
 
@@ -256,7 +256,7 @@ describe('Instance', () => {
                 maxSubdivisionLevel: 15,
             });
 
-            instance.addEventListener(INSTANCE_EVENTS.ENTITY_REMOVED, () => { eventFired = true; });
+            instance.addEventListener('entity-removed', () => { eventFired = true; });
 
             expect(eventFired).toBeFalsy();
 
