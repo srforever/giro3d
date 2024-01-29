@@ -132,7 +132,7 @@ export interface VectorSourceOptions extends ImageSourceOptions {
      *  - The content of the source (such as GeoJSON) (requires the `format` parameter)
      *  - A list of OpenLayers features.
      */
-    data?: string | Feature[];
+    data?: string | object | Feature[];
 
     /**
      * The style, or style function.
@@ -171,7 +171,7 @@ export interface VectorSourceOptions extends ImageSourceOptions {
 class VectorSource extends ImageSource {
     readonly isVectorSource: boolean = true;
     readonly format: FeatureFormat;
-    readonly data: string | Feature[];
+    readonly data: string | object | Feature[];
     readonly source: Vector;
     readonly dataProjection: string;
 
@@ -231,7 +231,7 @@ class VectorSource extends ImageSource {
             let content;
             try {
                 // Download the data file.
-                const url = new URL(this.data);
+                const url = new URL(this.data as string);
                 content = await Fetcher.text(url.toString());
             } catch (e) {
                 if (e instanceof TypeError) {

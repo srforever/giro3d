@@ -139,7 +139,7 @@ class MainLoop {
         }
     }
 
-    private update(instance: Instance, updateSources: Set<unknown>) {
+    private update(instance: Instance, updateSources: Set<unknown>, dt: number) {
         const context = new Context(instance.camera, instance);
 
         // Reset near/far to default value to allow update function to test
@@ -155,7 +155,12 @@ class MainLoop {
         for (const entity of instance.getObjects(o => o instanceof Entity) as Entity[]) {
             context.resetForEntity(entity);
             if (entity.shouldCheckForUpdate()) {
-                instance.dispatchEvent({ type: 'before-layer-update', entity });
+                instance.dispatchEvent({
+                    type: 'before-entity-update',
+                    entity,
+                    dt,
+                    updateLoopRestarted: this._updateLoopRestarted,
+                });
 
                 // Filter updateSources that are relevant for the entity
                 const srcs = entity.filterChangeSources(updateSources);
@@ -180,7 +185,12 @@ class MainLoop {
                     }
                 }
 
-                instance.dispatchEvent({ type: 'after-layer-update', entity });
+                instance.dispatchEvent({
+                    type: 'after-entity-update',
+                    entity,
+                    dt,
+                    updateLoopRestarted: this._updateLoopRestarted,
+                });
             }
         }
 
@@ -215,7 +225,13 @@ class MainLoop {
     }
 
     private step(instance: Instance, timestamp: number) {
-        instance.dispatchEvent({ type: 'update-start' });
+        const dt = timestamp - this._lastTimestamp;
+
+        instance.dispatchEvent({
+            type: 'update-start',
+            dt,
+            updateLoopRestarted: this._updateLoopRestarted,
+        });
 
         const willRedraw = this._needsRedraw;
         this._lastTimestamp = timestamp;
@@ -227,9 +243,17 @@ class MainLoop {
         const updateSources = new Set(this._changeSources);
         this._changeSources.clear();
 
-        instance.dispatchEvent({ type: 'before-camera-update' });
+        instance.dispatchEvent({
+            type: 'before-camera-update',
+            dt,
+            updateLoopRestarted: this._updateLoopRestarted,
+        });
         instance.execCameraUpdate();
-        instance.dispatchEvent({ type: 'after-camera-update' });
+        instance.dispatchEvent({
+            type: 'after-camera-update',
+            dt,
+            updateLoopRestarted: this._updateLoopRestarted,
+        });
 
         // Disable camera's matrix auto update to make sure the camera's
         // world matrix is never updated mid-update.
@@ -242,7 +266,7 @@ class MainLoop {
         instance.camera.camera3D.matrixAutoUpdate = false;
 
         // update data-structure
-        this.update(instance, updateSources);
+        this.update(instance, updateSources, dt);
 
         // Redraw *only* if needed.
         // (redraws only happen when this.needsRedraw is true, which in turn only happens when
@@ -250,9 +274,17 @@ class MainLoop {
         // As such there's no continuous update-loop, instead we use a ad-hoc update/render
         // mechanism.
         if (willRedraw) {
-            instance.dispatchEvent({ type: 'before-render' });
+            instance.dispatchEvent({
+                type: 'before-render',
+                dt,
+                updateLoopRestarted: this._updateLoopRestarted,
+            });
             instance.render();
-            instance.dispatchEvent({ type: 'after-render' });
+            instance.dispatchEvent({
+                type: 'after-render',
+                dt,
+                updateLoopRestarted: this._updateLoopRestarted,
+            });
         }
 
         // next time, we'll consider that we've just started the loop if we are still PAUSED now
@@ -260,7 +292,11 @@ class MainLoop {
 
         instance.camera.camera3D.matrixAutoUpdate = oldAutoUpdate;
 
-        instance.dispatchEvent({ type: 'update-end' });
+        instance.dispatchEvent({
+            type: 'update-end',
+            dt,
+            updateLoopRestarted: this._updateLoopRestarted,
+        });
     }
 }
 

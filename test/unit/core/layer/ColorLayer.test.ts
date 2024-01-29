@@ -132,4 +132,33 @@ describe('ColorLayer', () => {
             expect(listener).toHaveBeenCalledTimes(1);
         });
     });
+
+    describe('elevationRange', () => {
+        it('should return the correct value', () => {
+            const layer = new ColorLayer({ source: new NullSource() });
+
+            expect(layer.elevationRange).toBeUndefined();
+
+            layer.elevationRange = { min: 1, max: 2 };
+
+            expect(layer.elevationRange).toEqual({ min: 1, max: 2 });
+        });
+
+        it('should raise the elevationRange-property-changed event', () => {
+            const layer = new ColorLayer({ source: new NullSource() });
+
+            const listener = jest.fn();
+            layer.addEventListener('elevationRange-property-changed', listener);
+
+            expect(listener).not.toHaveBeenCalled();
+
+            layer.elevationRange = { min: 1, max: 2 };
+
+            expect(listener).toHaveBeenCalledTimes(1);
+
+            layer.elevationRange = null;
+
+            expect(listener).toHaveBeenCalledTimes(2);
+        });
+    });
 });

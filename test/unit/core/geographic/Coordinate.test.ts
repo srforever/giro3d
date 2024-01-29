@@ -1,5 +1,5 @@
 import * as proj4 from 'proj4';
-import { Vector3 } from 'three';
+import { Vector2, Vector3 } from 'three';
 import Coordinates from 'src/core/geographic/Coordinates';
 
 // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)
@@ -139,6 +139,20 @@ describe('Coordinates', () => {
             const target = new Vector3(-1, -1, -1);
             expect(c.toVector3(target)).toEqual({ x: 1, y: 2, z: 3 });
             expect(c.toVector3(target)).toBe(target);
+        });
+    });
+
+    describe('toVector2()', () => {
+        it('should return the x, y values', () => {
+            const c = new Coordinates('EPSG:3857', 1, 2, 3);
+            expect(c.toVector2()).toEqual({ x: 1, y: 2 });
+        });
+
+        it('should honor the passed target the x, y values', () => {
+            const c = new Coordinates('EPSG:3857', 1, 2, 3);
+            const target = new Vector2(-1, -1);
+            expect(c.toVector2(target)).toEqual({ x: 1, y: 2 });
+            expect(c.toVector2(target)).toBe(target);
         });
     });
 
