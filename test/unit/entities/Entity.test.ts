@@ -7,6 +7,16 @@ describe('Entity', () => {
         entity = new Entity('myEntity');
     });
 
+    describe('userData', () => {
+        it('returns correct values', () => {
+            entity.userData.bar = 3;
+            entity.userData.foo = 'hello';
+
+            expect(entity.userData.bar).toEqual(3);
+            expect(entity.userData.foo).toEqual('hello');
+        });
+    });
+
     describe('constructor', () => {
         it('should throw on undefined id', () => {
             expect(() => new Entity(undefined)).toThrow(/Missing id parameter/);

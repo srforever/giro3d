@@ -55,6 +55,11 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
     public ready?: boolean;
 
     /**
+     * An object that can be used to store custom data about the {@link Entity}.
+     */
+    readonly userData: Record<string, any> = {};
+
+    /**
      * Read-only flag to check if a given object is of type Entity.
      */
     readonly isEntity: boolean = true;
