@@ -8,6 +8,7 @@ import {
     Vector3,
 } from 'three';
 import type Instance from '../core/Instance';
+import { type InstanceEvents } from '../core/Instance';
 
 // Note: we could use existing js controls (like
 // https://github.com/mrdoob/js/blob/dev/examples/js/controls/FirstPersonControls.js) but
@@ -200,20 +201,17 @@ class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
      * Updates the camera position / rotation based on occured input events.
      * This is done automatically when needed but can also be done if needed.
      *
-     * @param dt ellpased time since last update in seconds
-     * @param updateLoopRestarted true if giro3d' update loop just restarted
+     * @param event Event
      * @param force set to true if you want to force the update, even if it
      * appears unneeded.
      */
-    update(dt: number, updateLoopRestarted: boolean, force: boolean) {
+    update(event: InstanceEvents['after-camera-update'], force: boolean = false) {
         if (!this.enabled) {
             return;
         }
         // dt will not be relevant when we just started rendering, we consider a 1-frame move in
         // this case
-        if (updateLoopRestarted) {
-            dt = 16;
-        }
+        const dt = event.updateLoopRestarted ? 16 : event.dt;
 
         for (const move of this.moves) {
             if (move.method === 'translateY') {
