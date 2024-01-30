@@ -335,7 +335,7 @@ class PointsMaterial extends ShaderMaterial {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    setLayerBrightnessContrastSaturation(
+    setColorimetry(
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         layer: ColorLayer,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
