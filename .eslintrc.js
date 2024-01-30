@@ -39,6 +39,7 @@ module.exports = {
         'jest/no-identical-title': 'error',
         'jest/prefer-to-have-length': 'warn',
         'jest/valid-expect': 'error',
+        'jsdoc/tag-lines': ['error', 'any', { 'startLines': 1 }],
         'jsdoc/require-jsdoc': 'off',
         'jsdoc/require-returns': 'off',
         'jsdoc/check-tag-names': [

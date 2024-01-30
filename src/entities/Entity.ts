@@ -71,7 +71,6 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
     /**
      * Creates an entity with the specified unique identifier.
      *
-     *
      * @param id the unique identifier of this entity.
      */
     constructor(id: string) {
