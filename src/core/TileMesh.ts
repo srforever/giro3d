@@ -8,12 +8,13 @@ import {
 } from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker';
-import type LayeredMaterial from '../renderer/LayeredMaterial.js';
-import type Extent from './geographic/Extent.js';
+import type LayeredMaterial from '../renderer/LayeredMaterial';
+import type { MaterialOptions } from '../renderer/LayeredMaterial';
+import type Extent from './geographic/Extent';
 import TileGeometry from './TileGeometry';
-import type OBB from './OBB.js';
+import type OBB from './OBB';
 import type RenderingState from '../renderer/RenderingState';
-import type ElevationLayer from './layer/ElevationLayer.js';
+import type ElevationLayer from './layer/ElevationLayer';
 import type TileIndex from './TileIndex';
 
 const NO_NEIGHBOUR = -99;
@@ -52,6 +53,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
     layer: any;
     private _segments: number;
     readonly isTileMesh: boolean = true;
+    private _minmax: { min: number; max: number; };
     extent: Extent;
     textureSize: Vector2;
     obb: OBB;
@@ -184,6 +186,14 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
         }
     }
 
+    update(materialOptions: MaterialOptions) {
+        if (!materialOptions.terrain.enabled) {
+            this.OBB().updateZ(0, 0);
+        } else {
+            this.OBB().updateZ(this._minmax.min, this._minmax.max);
+        }
+    }
+
     updateMatrixWorld(force: boolean) {
         super.updateMatrixWorld.call(this, force);
         this.OBB().update();
@@ -277,6 +287,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
             return;
         }
         this.setBBoxZ(elevation.min, elevation.max);
+        this._minmax = { min: elevation.min, max: elevation.max };
         this.material.setElevationTexture(layer, elevation, isFinal);
     }
 
@@ -285,6 +296,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
         if (min == null && max == null) {
             return;
         }
+        this._minmax = { min, max };
         if (Math.floor(min) !== Math.floor(this.obb.z.min)
             || Math.floor(max) !== Math.floor(this.obb.z.max)) {
             this.OBB().updateZ(min, max);

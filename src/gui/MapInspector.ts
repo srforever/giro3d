@@ -120,6 +120,12 @@ class MapInspector extends EntityInspector {
         this.addController<boolean>(this, 'showGrid')
             .name('Show grid')
             .onChange(v => this.toggleGrid(v));
+        this.addController<boolean>(this.map.materialOptions.terrain, 'enabled')
+            .name('Terrain deformation')
+            .onChange(() => this.notify(map));
+        this.addController<boolean>(this.map.materialOptions.terrain, 'stitching')
+            .name('Terrain stitching')
+            .onChange(() => this.notify(map));
         this.addColorController(this, 'background')
             .name('Background')
             .onChange(v => this.updateBackgroundColor(v));

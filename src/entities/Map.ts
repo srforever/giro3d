@@ -32,6 +32,7 @@ import type { Context, ContourLineOptions, ElevationRange } from '../core';
 import type TileGeometry from '../core/TileGeometry';
 import { type MaterialOptions } from '../renderer/LayeredMaterial';
 import type HillshadingOptions from '../core/HillshadingOptions';
+import type TerrainOptions from '../core/TerrainOptions';
 import type Pickable from '../core/picking/Pickable';
 import type PickOptions from '../core/picking/PickOptions';
 import pickTilesAt, { type MapPickResult } from '../core/picking/PickTilesAt';
@@ -114,7 +115,29 @@ function getContourLineOptions(input: boolean | undefined | ContourLineOptions)
     };
 }
 
-function getHillshadingOptions(input: boolean | undefined | HillshadingOptions)
+function getTerrainOptions(input?: boolean | TerrainOptions): TerrainOptions {
+    if (input == null) {
+        // Default values
+        return {
+            enabled: true,
+            stitching: true,
+        };
+    }
+
+    if (typeof input === 'boolean') {
+        return {
+            enabled: input,
+            stitching: true,
+        };
+    }
+
+    return {
+        enabled: input.enabled ?? true,
+        stitching: input.stitching ?? true,
+    };
+}
+
+function getHillshadingOptions(input?: boolean | HillshadingOptions)
     : HillshadingOptions {
     if (!input) {
         // Default values
@@ -270,6 +293,7 @@ class Map
      * @param options.elevationRange The optional elevation range of the map. The map will not be
      * rendered for elevations outside of this range.
      * Note: this feature is only useful if an elevation layer is added to this map.
+     * @param options.terrain Options for geometric terrain rendering.
      */
     constructor(id: string, options: {
         extent: Extent;
@@ -278,6 +302,7 @@ class Map
         contourLines?: boolean | ContourLineOptions;
         segments?: number;
         doubleSided?: boolean;
+        terrain?: boolean | TerrainOptions;
         discardNoData?: boolean;
         object3d?: Object3D;
         backgroundColor?: string;
@@ -314,6 +339,7 @@ class Map
             contourLines: getContourLineOptions(options.contourLines),
             discardNoData: options.discardNoData || false,
             doubleSided: options.doubleSided || false,
+            terrain: getTerrainOptions(options.terrain),
             segments: this.segments,
             elevationRange: options.elevationRange,
             backgroundOpacity: options.backgroundOpacity == null ? 1 : options.backgroundOpacity,
@@ -812,6 +838,7 @@ class Map
             }
 
             if (node.material.visible) {
+                node.update(this.materialOptions);
                 node.material.update(this.materialOptions);
 
                 this.updateMinMaxDistance(context, node);
@@ -1086,6 +1113,12 @@ class Map
      * @returns True if the node can be subdivided.
      */
     canSubdivide(node: TileMesh): boolean {
+        // No problem subdividing if terrain deformation is disabled,
+        // since bounding boxes are always up to date (as they don't have an elevation component).
+        if (!this.materialOptions.terrain.enabled) {
+            return true;
+        }
+
         // Prevent subdivision if node is covered by at least one elevation layer
         // and if node doesn't have a elevation texture yet.
         for (const e of this.getElevationLayers()) {

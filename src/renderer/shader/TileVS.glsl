@@ -336,6 +336,7 @@ void main() {
     vUv = uv;
     #include <begin_vertex>
 
+#if defined(TERRAIN_DEFORMATION)
 #if defined(ELEVATION_LAYER)
     if(elevationLayer.offsetScale.z > 0.) {
         vec2 vVv = computeUv(vUv, elevationLayer.offsetScale.xy, elevationLayer.offsetScale.zw);
@@ -414,11 +415,12 @@ void main() {
             // Then apply Z-stitching
             elevation = computeZStitchedElevation(vUv, location, currentElevation);
         }
-#endif
+#endif // STITCHING
 
         transformed.z = elevation;
     }
-#endif
+#endif // ELEVATION_LAYER
+#endif // TERRAIN_DEFORMATION
 
     #include <project_vertex>
     #include <logdepthbuf_vertex>

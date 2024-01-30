@@ -176,6 +176,40 @@ describe('Map', () => {
             expect(m2.materialOptions.contourLines.color).toEqual(new Color('black'));
         });
 
+        it.each([true, false], 'should honor terrain parameters when terrain is a boolean', b => {
+            const m = new Map('foo', {
+                extent,
+                terrain: b,
+            });
+
+            expect(m.materialOptions.terrain.enabled).toEqual(b);
+            expect(m.materialOptions.terrain.stitching).toEqual(true);
+        });
+
+        it('should honor terrain parameters', () => {
+            const m1 = new Map('foo', {
+                extent,
+                terrain: {
+                    enabled: true,
+                    stitching: false,
+                },
+            });
+
+            expect(m1.materialOptions.terrain.enabled).toEqual(true);
+            expect(m1.materialOptions.terrain.stitching).toEqual(false);
+
+            // Check if the map assigns default values to parameters
+            const m2 = new Map('foo', {
+                extent,
+                terrain: {
+                    enabled: true,
+                },
+            });
+
+            expect(m2.materialOptions.terrain.enabled).toEqual(true);
+            expect(m2.materialOptions.terrain.stitching).toEqual(true);
+        });
+
         it.each([true, false])('should assign the correct materialOptions', b => {
             const opts = {
                 extent,
