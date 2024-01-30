@@ -10,6 +10,7 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
 import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -82,4 +83,5 @@ instance.useTHREEControls(controls);
 
 instance.notifyChange();
 
+Inspector.attach(document.getElementById('panelDiv'), instance);
 StatusBar.bind(instance);
