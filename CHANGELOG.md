@@ -35,6 +35,19 @@ use the methods of the `EventDispatcher` (#379):
   instance.removeEventListener('before-update', callback);
   ```
 
+- Event names for the `Instance` are `kebab-case`:
+  - `before_update` -> `before-update`
+  - `after_update` -> `after-update`
+  - `before_camera_update` -> `before-camera-update`
+  - `after_camera_update` -> `after-camera-update`
+  - `before_render` -> `before-render`
+  - `after_render` -> `after-render`
+  - `update_end` -> `update-end`
+  - `update_start` -> `update-start`
+
+  The events mentioning layers are renamed to mention entities
+  - `before_layer_update` -> `before-entity-update`
+  - `after_layer_update` -> `after-entity-update`
 - removed broken `DEMUtils` (`getElevationValueAt`, `placeObjectOnGround`) (!490)
 - removed broken support for `OrthographicCamera` (!490)
 - `Drawing` doesn't take a reference to `Instance` anymore (!493):
@@ -55,6 +68,10 @@ string) (!493)
 - **Instance**: enable picking vector features (#168)
 - **Extent**: add methods to compute center as vectors (!451)
 - **DrawTool**: add entity for handling multiple `Drawing`s and help picking (#384)
+- **Coordinates**: add `toVector2`() (!508)
+- **ColorLayer**: allow setting the elevation range (!509)
+- **Entity**: add the `userData` property (!512)
+- **Layer**: add the `userData` property (!512)
 - **examples**: add example for `FirstPersonControls` (!490)
 - **examples**: `wfs_mesh`: enable status bar and fixed label not disappearing (!489)
 - **examples**: more sources in `planar_vector` and display metadata on hover (!489)
@@ -104,7 +121,6 @@ string) (!493)
 - **Tiles3D**: migrate `Tiles3D` to TypeScript (!484)
 - **MainLoop**: migrate `MainLoop` to TypeScript (!484)
 - **Coordinates**: rename `xyz()` -> `toVector3()` (!486)
-- **Coordinates**: add `toVector2`() (!486)
 - **RequestQueue**: explicitly implement interface `Progress` (!487)
 - **Instance**: migrate `Instance` to TypeScript (!480)
 - **Picking**: migrate `Picking` to TypeScript (!480)
