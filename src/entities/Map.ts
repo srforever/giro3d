@@ -431,6 +431,7 @@ class Map
                     }
                 }
 
+                child.update(this.materialOptions);
                 child.updateMatrixWorld(true);
                 i++;
             }
@@ -535,13 +536,13 @@ class Map
         tile.material.wireframe = this.wireframe || false;
 
         if (parent) {
-            tile.setBBoxZ(parent.OBB().z.min, parent.OBB().z.max);
+            tile.setBBoxZ(parent.OBB.z.min, parent.OBB.z.max);
         } else {
             const { min, max } = this.getElevationMinMax();
             tile.setBBoxZ(min, max);
         }
 
-        tile.add(tile.OBB());
+        tile.add(tile.OBB);
         this.onTileCreated(this, parent, tile);
 
         this.onObjectCreated(tile);
@@ -805,8 +806,10 @@ class Map
 
         // do proper culling
         if (!this.frozen) {
+            node.update(this.materialOptions);
+
             const isVisible = context.camera.isBox3Visible(
-                node.OBB().box3D, node.OBB().matrixWorld,
+                node.OBB.box3D, node.OBB.matrixWorld,
             );
             node.visible = isVisible;
         }
@@ -815,8 +818,8 @@ class Map
             let requestChildrenUpdate = false;
 
             if (!this.frozen) {
-                const s = node.OBB().box3D.getSize(tmpVector);
-                const obb = node.OBB();
+                const s = node.OBB.box3D.getSize(tmpVector);
+                const obb = node.OBB;
                 const sse = ScreenSpaceError.computeFromBox3(
                     context.camera,
                     obb.box3D,
@@ -838,7 +841,6 @@ class Map
             }
 
             if (node.material.visible) {
-                node.update(this.materialOptions);
                 node.material.update(this.materialOptions);
 
                 this.updateMinMaxDistance(context, node);
@@ -1161,8 +1163,8 @@ class Map
     }
 
     private updateMinMaxDistance(context: Context, node: TileMesh) {
-        const bbox = node.OBB().box3D.clone()
-            .applyMatrix4(node.OBB().matrixWorld);
+        const bbox = node.OBB.box3D.clone()
+            .applyMatrix4(node.OBB.matrixWorld);
         const distance = context.distance.plane
             .distanceToPoint(bbox.getCenter(tmpVector));
         const radius = bbox.getSize(tmpVector).length() * 0.5;
