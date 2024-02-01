@@ -1,8 +1,6 @@
 import type { Vector2 } from 'three';
 import { BufferAttribute, BufferGeometry } from 'three';
 
-import OBB from './OBB';
-
 export interface TileGeometryOptions {
     dimensions: Vector2;
     segments: number;
@@ -43,8 +41,6 @@ class TileGeometry extends BufferGeometry {
     dimensions: Vector2;
     private _segments: number;
     props: TileGeometryProperties;
-    // eslint-disable-next-line @typescript-eslint/naming-convention
-    OBB: OBB; // FIXME: case of this variable
 
     /**
      * @param params : Parameters to construct the grid. Should contain an extent
@@ -60,7 +56,6 @@ class TileGeometry extends BufferGeometry {
         this.computeBuffers(this.props);
         // Compute the Oriented Bounding Box for spatial operations
         this.computeBoundingBox();
-        this.OBB = new OBB(this.boundingBox.min, this.boundingBox.max);
     }
 
     _updateProps() {

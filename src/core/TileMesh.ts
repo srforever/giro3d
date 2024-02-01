@@ -8,12 +8,13 @@ import {
 } from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker';
-import type LayeredMaterial from '../renderer/LayeredMaterial.js';
-import type Extent from './geographic/Extent.js';
+import type LayeredMaterial from '../renderer/LayeredMaterial';
+import type { MaterialOptions } from '../renderer/LayeredMaterial';
+import type Extent from './geographic/Extent';
 import TileGeometry from './TileGeometry';
-import type OBB from './OBB.js';
+import OBB from './OBB';
 import type RenderingState from '../renderer/RenderingState';
-import type ElevationLayer from './layer/ElevationLayer.js';
+import type ElevationLayer from './layer/ElevationLayer';
 import type TileIndex from './TileIndex';
 
 const NO_NEIGHBOUR = -99;
@@ -52,14 +53,16 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
     layer: any;
     private _segments: number;
     readonly isTileMesh: boolean = true;
+    private _minmax: { min: number; max: number; };
     extent: Extent;
     textureSize: Vector2;
-    obb: OBB;
+    private readonly _obb: OBB;
     level: number;
     x: number;
     y: number;
     z: number;
     disposed: boolean;
+    private _enableTerrainDeformation: boolean;
 
     /**
      * Creates an instance of TileMesh.
@@ -102,11 +105,10 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
         this.extent = extent;
         this.textureSize = textureSize;
 
-        // Needs to clone it because the geometry is not copied anymore
-        this.obb = this.geometry.OBB.clone();
+        this._obb = new OBB(this.geometry.boundingBox.min, this.geometry.boundingBox.max);
 
         this.name = `tile @ (z=${level}, x=${x}, y=${y})`;
-        this.obb.name = 'obb';
+        this._obb.name = 'obb';
 
         this.frustumCulled = false;
 
@@ -184,9 +186,13 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
         }
     }
 
+    update(materialOptions: MaterialOptions) {
+        this._enableTerrainDeformation = materialOptions.terrain.enabled;
+    }
+
     updateMatrixWorld(force: boolean) {
         super.updateMatrixWorld.call(this, force);
-        this.OBB().update();
+        this._obb.update();
     }
 
     isVisible() {
@@ -277,6 +283,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
             return;
         }
         this.setBBoxZ(elevation.min, elevation.max);
+        this._minmax = { min: elevation.min, max: elevation.max };
         this.material.setElevationTexture(layer, elevation, isFinal);
     }
 
@@ -285,17 +292,28 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
         if (min == null && max == null) {
             return;
         }
-        if (Math.floor(min) !== Math.floor(this.obb.z.min)
-            || Math.floor(max) !== Math.floor(this.obb.z.max)) {
-            this.OBB().updateZ(min, max);
+        this._minmax = { min, max };
+    }
+
+    private updateOBB(min: number, max: number) {
+        const obb = this._obb;
+        if (Math.floor(min) !== Math.floor(obb.z.min)
+            || Math.floor(max) !== Math.floor(obb.z.max)) {
+            this._obb.updateZ(min, max);
         }
     }
 
     /**
      * @returns The Oriented Bounding Box.
      */
-    OBB() {
-        return this.obb;
+    get OBB() {
+        if (!this._enableTerrainDeformation) {
+            this.updateOBB(0, 0);
+        } else {
+            const { min, max } = this._minmax;
+            this.updateOBB(min, max);
+        }
+        return this._obb;
     }
 
     getExtent() {

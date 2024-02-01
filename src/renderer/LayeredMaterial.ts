@@ -23,14 +23,15 @@ import WebGLComposer from './composition/WebGLComposer';
 import Rect from '../core/Rect';
 import MemoryTracker from './MemoryTracker';
 import MaterialUtils from './MaterialUtils';
-import type { TextureAndPitch } from '../core/layer/Layer.js';
-import type Layer from '../core/layer/Layer.js';
-import type MaskLayer from '../core/layer/MaskLayer.js';
-import type ContourLineOptions from '../core/ContourLineOptions.js';
-import type HillshadingOptions from '../core/HillshadingOptions.js';
-import type ElevationLayer from '../core/layer/ElevationLayer.js';
-import type ColorLayer from '../core/layer/ColorLayer.js';
-import type ElevationRange from '../core/ElevationRange.js';
+import type { TextureAndPitch } from '../core/layer/Layer';
+import type Layer from '../core/layer/Layer';
+import type MaskLayer from '../core/layer/MaskLayer';
+import type ContourLineOptions from '../core/ContourLineOptions';
+import type TerrainOptions from '../core/TerrainOptions';
+import type HillshadingOptions from '../core/HillshadingOptions';
+import type ElevationLayer from '../core/layer/ElevationLayer';
+import type ColorLayer from '../core/layer/ColorLayer';
+import type ElevationRange from '../core/ElevationRange';
 import type Extent from '../core/geographic/Extent';
 import type ColorMapAtlas from './ColorMapAtlas';
 import type { AtlasInfo, LayerAtlasInfo } from './AtlasBuilder';
@@ -138,6 +139,10 @@ export interface MaterialOptions {
      */
     discardNoData?: boolean;
     /**
+     * Geometric terrain options.
+     */
+    terrain?: TerrainOptions;
+    /**
      * Toggles double-sided surfaces.
      */
     doubleSided?: boolean;
@@ -223,7 +228,8 @@ class LayeredMaterial extends ShaderMaterial {
         super({ clipping: true, glslVersion: GLSL3 });
 
         this._atlasInfo = atlasInfo;
-        this.defines.STITCHING = 1;
+        MaterialUtils.setDefine(this, 'STITCHING', options.terrain?.stitching);
+        MaterialUtils.setDefine(this, 'TERRAIN_DEFORMATION', options.terrain?.enabled);
         this.defines.ENABLE_CONTOUR_LINES = 1;
         this._renderer = renderer;
 
@@ -685,6 +691,11 @@ class LayeredMaterial extends ShaderMaterial {
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this._elevationLayer?.visible);
         MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', this.showOutline);
         MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', materialOptions.discardNoData);
+
+        if (materialOptions.terrain) {
+            MaterialUtils.setDefine(this, 'TERRAIN_DEFORMATION', materialOptions.terrain.enabled);
+            MaterialUtils.setDefine(this, 'STITCHING', materialOptions.terrain.stitching);
+        }
 
         const hillshadingParams = materialOptions.hillshading;
         if (hillshadingParams) {

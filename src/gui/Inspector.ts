@@ -68,7 +68,7 @@ class Inspector {
         this.gui.add(this, 'collapse');
         div.appendChild(this.gui.domElement);
 
-        instance.addEventListener('update-start', () => this.update());
+        instance.addEventListener('update-end', () => this.update());
 
         this.folders = [];
 
@@ -123,7 +123,7 @@ class Inspector {
      */
     detach() {
         this.clearPanels();
-        this.instance.removeEventListener('update-start', () => this.update());
+        this.instance.removeEventListener('update-end', () => this.update());
         this.gui.domElement.remove();
     }
 

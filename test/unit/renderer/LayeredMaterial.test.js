@@ -40,6 +40,60 @@ describe('LayeredMaterial', () => {
 
             expect(disabled.defines.ENABLE_ELEVATION_RANGE).not.toBeDefined();
         });
+
+        it('should enable the STITCHING define if options has stitching enabled', () => {
+            const enabled = new LayeredMaterial({
+                options: {
+                    terrain: {
+                        enabled: true,
+                        stitching: true,
+                    },
+                },
+                renderer: defaultRenderer,
+                atlasInfo: defaultAtlasInfo,
+            });
+
+            expect(enabled.defines.STITCHING).toBeDefined();
+
+            const disabled = new LayeredMaterial({
+                options: {
+                    terrain: {
+                        enabled: true,
+                        stitching: false,
+                    },
+                },
+                renderer: defaultRenderer,
+                atlasInfo: defaultAtlasInfo,
+            });
+
+            expect(disabled.defines.STITCHING).not.toBeDefined();
+        });
+
+        it('should enable the TERRAIN_DEFORMATION define if options has it enabled', () => {
+            const enabled = new LayeredMaterial({
+                options: {
+                    terrain: {
+                        enabled: true,
+                    },
+                },
+                renderer: defaultRenderer,
+                atlasInfo: defaultAtlasInfo,
+            });
+
+            expect(enabled.defines.TERRAIN_DEFORMATION).toBeDefined();
+
+            const disabled = new LayeredMaterial({
+                options: {
+                    terrain: {
+                        enabled: false,
+                    },
+                },
+                renderer: defaultRenderer,
+                atlasInfo: defaultAtlasInfo,
+            });
+
+            expect(disabled.defines.TERRAIN_DEFORMATION).not.toBeDefined();
+        });
     });
 
     describe('setLayerElevationRange', () => {

@@ -108,14 +108,21 @@ controls.maxPolarAngle = Math.PI / 2.3;
 instance.useTHREEControls(controls);
 
 const hillshadingCheckbox = document.getElementById('hillshadingCheckbox');
-const hillshadingOptions = document.getElementById('hillshadingOptions');
 const shadeColorLayersCheckbox = document.getElementById('colorLayers');
+const terrainDeformationCheckbox = document.getElementById('terrainDeformation');
+const terrainStitchingCheckbox = document.getElementById('terrainStitching');
+const azimuthSlider = document.getElementById('azimuthSlider');
+const zenithSlider = document.getElementById('zenithSlider');
+const opacitySlider = document.getElementById('opacitySlider');
 
 hillshadingCheckbox.oninput = function oninput() {
     const state = hillshadingCheckbox.checked;
     map.materialOptions.hillshading.enabled = state;
     instance.notifyChange(map);
-    hillshadingOptions.disabled = !state;
+
+    shadeColorLayersCheckbox.disabled = !state;
+    azimuthSlider.disabled = !state;
+    zenithSlider.disabled = !state;
 };
 
 shadeColorLayersCheckbox.oninput = function oninput() {
@@ -123,8 +130,6 @@ shadeColorLayersCheckbox.oninput = function oninput() {
     map.materialOptions.hillshading.elevationLayersOnly = !state;
     instance.notifyChange(map);
 };
-
-const opacitySlider = document.getElementById('opacitySlider');
 
 opacitySlider.oninput = function oninput() {
     const percentage = opacitySlider.value;
@@ -134,17 +139,26 @@ opacitySlider.oninput = function oninput() {
     opacitySlider.innerHTML = `${percentage}%`;
 };
 
-const azimuthSlider = document.getElementById('azimuthSlider');
-
 azimuthSlider.oninput = function oninput() {
     map.materialOptions.hillshading.azimuth = azimuthSlider.value;
     instance.notifyChange(map);
 };
 
-const zenithSlider = document.getElementById('zenithSlider');
-
 zenithSlider.oninput = function oninput() {
     map.materialOptions.hillshading.zenith = zenithSlider.value;
+    instance.notifyChange(map);
+};
+
+terrainDeformationCheckbox.oninput = function oninput() {
+    const state = terrainDeformationCheckbox.checked;
+    map.materialOptions.terrain.enabled = state;
+    instance.notifyChange(map);
+    terrainStitchingCheckbox.disabled = !state;
+};
+
+terrainStitchingCheckbox.oninput = function oninput() {
+    const state = terrainStitchingCheckbox.checked;
+    map.materialOptions.terrain.stitching = state;
     instance.notifyChange(map);
 };
 

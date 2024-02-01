@@ -1,7 +1,10 @@
 #if defined(ENABLE_CONTOUR_LINES)
     // Code inspired from https://github.com/NASA-AMMOS/3DTilesRendererJS/blob/master/example/customMaterial.js
-    vec3 fdx = vec3( dFdx( wPosition.x ), dFdx( wPosition.y ), dFdx( wPosition.z ) );
-    vec3 fdy = vec3( dFdy( wPosition.x ), dFdy( wPosition.y ), dFdy( wPosition.z ) );
+    // Note: we use the 'height' variable rather than wPosition.z because we want
+    // this feature to work event when terrain deformation is disabled, and height
+    // is always available.
+    vec3 fdx = vec3( dFdx( wPosition.x ), dFdx( wPosition.y ), dFdx( height ) );
+    vec3 fdy = vec3( dFdy( wPosition.x ), dFdy( wPosition.y ), dFdy( height ) );
     vec3 worldNormal = normalize( cross( fdx, fdy ) );
 
     // thickness scale
@@ -15,7 +18,7 @@
     float thickness2 = thickness / 2.0;
 
     if (contourLineInterval > 0.) {
-        float m = mod(wPosition.z, contourLineInterval);
+        float m = mod(height, contourLineInterval);
         float dist = clamp( abs( m - thickness2 ), 0.0, 1.0 );
 
         vec4 contourLine1 = mix(contourLineColor, vec4(0), dist);
@@ -23,7 +26,7 @@
     }
 
     if (secondaryContourLineInterval > 0.) {
-        float m = mod(wPosition.z, secondaryContourLineInterval);
+        float m = mod(height, secondaryContourLineInterval);
         float dist = clamp( abs( m - thickness2 ), 0.0, 1.0 );
 
         vec4 contourLine2 = mix(contourLineColor, vec4(0), dist);
