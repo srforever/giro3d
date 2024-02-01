@@ -10,6 +10,7 @@ import Helpers from '../helpers/Helpers';
 import type Map from '../entities/Map';
 import SourceInspector from './SourceInspector';
 import type { ColorLayer, ElevationLayer } from '../core/layer';
+import ColorimetryPanel from './ColorimetryPanel';
 
 /**
  * Inspector for a {@link module:Core/layer/Layer~Layer Layer}.
@@ -31,6 +32,7 @@ class LayerInspector extends Panel {
     colorMapInspector: ColorMapInspector;
     /** The source inspector. */
     sourceInspector: SourceInspector;
+    colorimetryPanel: ColorimetryPanel;
 
     /**
      * @param gui The GUI.
@@ -87,21 +89,11 @@ class LayerInspector extends Panel {
                     .onChange(() => this.notify(map));
             }
 
-            this.addController<number>(this.layer, 'brightness')
-                .name('Brightness')
-                .min(-1)
-                .max(1)
-                .onChange(() => this.notify(map));
-            this.addController<number>(this.layer, 'contrast')
-                .name('Contrast')
-                .min(0)
-                .max(10)
-                .onChange(() => this.notify(map));
-            this.addController<number>(this.layer, 'saturation')
-                .name('Saturation')
-                .min(0)
-                .max(10)
-                .onChange(() => this.notify(map));
+            this.colorimetryPanel = new ColorimetryPanel(
+                this.map.materialOptions.colorimetry,
+                this.gui,
+                instance,
+            );
         }
 
         if ('opacity' in this.layer && this.layer.opacity !== undefined) {

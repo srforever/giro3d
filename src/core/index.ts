@@ -26,6 +26,7 @@ import PointCloud, { type PointCloudEventMap, type PointCloudOptions } from './P
 import type ElevationRange from './ElevationRange';
 import type ContourLineOptions from './ContourLineOptions';
 import type TerrainOptions from './TerrainOptions';
+import type ColorimetryOptions from './ColorimetryOptions';
 import {
     type FeatureStyle,
     type FeatureElevationCallback,
@@ -58,6 +59,7 @@ export {
     PointCloudEventMap,
     PointCloudOptions,
     ElevationRange,
+    ColorimetryOptions,
     ContourLineOptions,
     TerrainOptions,
     FeatureStyle,

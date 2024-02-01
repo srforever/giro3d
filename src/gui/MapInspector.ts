@@ -13,6 +13,7 @@ import RenderingState from '../renderer/RenderingState';
 import LayerInspector from './LayerInspector';
 import HillshadingPanel from './HillshadingPanel';
 import ContourLinePanel from './ContourLinePanel';
+import ColorimetryPanel from './ColorimetryPanel';
 
 function createTileLabel() {
     const text = document.createElement('div');
@@ -48,6 +49,7 @@ class MapInspector extends EntityInspector {
     labels: globalThis.Map<number, CSS2DObject>;
     hillshadingPanel: HillshadingPanel;
     contourLinePanel: ContourLinePanel;
+    colorimetryPanel: ColorimetryPanel;
     /** The layer folder. */
     layerFolder: GUI;
     layers: LayerInspector[];
@@ -158,6 +160,12 @@ class MapInspector extends EntityInspector {
 
         this.contourLinePanel = new ContourLinePanel(
             this.map.materialOptions.contourLines,
+            this.gui,
+            instance,
+        );
+
+        this.colorimetryPanel = new ColorimetryPanel(
+            this.map.materialOptions.colorimetry,
             this.gui,
             instance,
         );

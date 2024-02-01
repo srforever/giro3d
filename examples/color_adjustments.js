@@ -1,6 +1,10 @@
+import {
+    Fill, Stroke, Style, RegularShape,
+} from 'ol/style.js';
 import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import TileWMS from 'ol/source/TileWMS.js';
+import GeoJSON from 'ol/format/GeoJSON.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -10,12 +14,16 @@ import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
 const viewer = document.getElementById('viewerDiv');
+
 Instance.registerCRS('EPSG:3946',
     '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+Instance.registerCRS('EPSG:4171', '+proj=longlat +ellps=GRS80 +no_defs +type=crs');
+
 const instance = new Instance(viewer, { crs: 'EPSG:3946' });
 
 const xmin = 1837816.94334;
@@ -46,26 +54,28 @@ const colorLayer = new ColorLayer({
 });
 map.addLayer(colorLayer);
 
-const demSource = new TiledImageSource({
-    source: new TileWMS({
-        url: 'https://data.geopf.fr/wms-r',
-        projection: 'EPSG:3946',
-        crossOrigin: 'anonymous',
-        params: {
-            LAYERS: ['ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'],
-            FORMAT: 'image/x-bil;bits=32',
-        },
+// Adds our first layer from a geojson file
+// Initial source: https://data.grandlyon.com/jeux-de-donnees/parcs-places-jardins-indice-canopee-metropole-lyon/info
+const geoJsonLayer = new ColorLayer({
+    name: 'geojson',
+    source: new VectorSource({
+        data: 'https://3d.oslandia.com/lyon/evg_esp_veg.evgparcindiccanope_latest.geojson',
+        // Defines the dataProjection to reproject the data,
+        // GeoJSON specifications say that the crs should be EPSG:4326 but
+        // here we are using a different one.
+        dataProjection: 'EPSG:4171',
+        format: new GeoJSON(),
+        style: feature => new Style({
+            fill: new Fill({
+                color: `rgba(0, 128, 0, ${feature.get('indiccanop')})`,
+            }),
+            stroke: new Stroke({
+                color: 'white',
+            }),
+        }),
     }),
-    format: new BilFormat(),
-    noDataValue: -1000,
 });
-
-const elevationLayer = new ElevationLayer({
-    name: 'dem',
-    extent: map.extent,
-    source: demSource,
-});
-map.addLayer(elevationLayer);
+map.addLayer(geoJsonLayer);
 
 const camera = instance.camera.camera3D;
 const cameraAltitude = 2000;
@@ -96,9 +106,33 @@ function bindSlider(name, fn) {
     };
 }
 
-bindSlider('slider-brightness', v => { colorLayer.brightness = v; });
-bindSlider('slider-contrast', v => { colorLayer.contrast = v; });
-bindSlider('slider-saturation', v => { colorLayer.saturation = v; });
+function bindLayerSliders(id, layer) {
+    document.getElementById(`${id}-reset`).onclick = function onclick() {
+        layer.brightness = 0;
+        layer.saturation = 1;
+        layer.contrast = 1;
+        instance.notifyChange(map);
+    };
+    bindSlider(`${id}-brightness`, v => { layer.brightness = v; });
+    bindSlider(`${id}-contrast`, v => { layer.contrast = v; });
+    bindSlider(`${id}-saturation`, v => { layer.saturation = v; });
+}
+
+bindLayerSliders('satellite', colorLayer);
+bindLayerSliders('vector', geoJsonLayer);
+
+const mapParams = map.materialOptions.colorimetry;
+bindSlider('map-brightness', v => { mapParams.brightness = v; });
+bindSlider('map-contrast', v => { mapParams.contrast = v; });
+bindSlider('map-saturation', v => { mapParams.saturation = v; });
+
+document.getElementById('map-reset').onclick = function onclick() {
+    mapParams.brightness = 0;
+    mapParams.contrast = 1;
+    mapParams.saturation = 1;
+
+    instance.notifyChange(map);
+};
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 

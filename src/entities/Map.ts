@@ -33,6 +33,7 @@ import type TileGeometry from '../core/TileGeometry';
 import { type MaterialOptions } from '../renderer/LayeredMaterial';
 import type HillshadingOptions from '../core/HillshadingOptions';
 import type TerrainOptions from '../core/TerrainOptions';
+import type ColorimetryOptions from '../core/ColorimetryOptions';
 import type Pickable from '../core/picking/Pickable';
 import type PickOptions from '../core/picking/PickOptions';
 import pickTilesAt, { type MapPickResult } from '../core/picking/PickTilesAt';
@@ -40,6 +41,7 @@ import type PickableFeatures from '../core/picking/PickableFeatures';
 import { isPickableFeatures } from '../core/picking/PickableFeatures';
 import type { ColorMap } from '../core/layer';
 import type HasLayers from '../core/layer/HasLayers';
+import { defaultColorimetryOptions } from '../core/ColorimetryOptions';
 
 const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 
@@ -135,6 +137,11 @@ function getTerrainOptions(input?: boolean | TerrainOptions): TerrainOptions {
         enabled: input.enabled ?? true,
         stitching: input.stitching ?? true,
     };
+}
+
+function getColorimetryOptions(input?: ColorimetryOptions)
+    : ColorimetryOptions {
+    return input ?? defaultColorimetryOptions();
 }
 
 function getHillshadingOptions(input?: boolean | HillshadingOptions)
@@ -294,12 +301,15 @@ class Map
      * rendered for elevations outside of this range.
      * Note: this feature is only useful if an elevation layer is added to this map.
      * @param options.terrain Options for geometric terrain rendering.
+     * @param options.colorimetry The colorimetry for the whole map.
+     * Those are distinct from the individual layers' own colorimetry.
      */
     constructor(id: string, options: {
         extent: Extent;
         maxSubdivisionLevel?: number;
         hillshading?: boolean | HillshadingOptions;
         contourLines?: boolean | ContourLineOptions;
+        colorimetry?: ColorimetryOptions;
         segments?: number;
         doubleSided?: boolean;
         terrain?: boolean | TerrainOptions;
@@ -340,6 +350,7 @@ class Map
             discardNoData: options.discardNoData || false,
             doubleSided: options.doubleSided || false,
             terrain: getTerrainOptions(options.terrain),
+            colorimetry: getColorimetryOptions(options.colorimetry),
             segments: this.segments,
             elevationRange: options.elevationRange,
             backgroundOpacity: options.backgroundOpacity == null ? 1 : options.backgroundOpacity,
@@ -961,7 +972,7 @@ class Map
      *
      * @param {Layer} layer the layer to remove
      * @param {object} [options] The options.
-     * @param {boolean} [options.disposeLayer=false] If `true`, the layer is also disposed.
+     * @param {boolean} options.disposeLayer If `true`, the layer is also disposed.
      * @returns {boolean} `true` if the layer was present, `false` otherwise.
      */
     removeLayer(layer: Layer, options: { disposeLayer?: boolean; } = {}): boolean {

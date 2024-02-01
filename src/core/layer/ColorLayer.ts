@@ -22,6 +22,8 @@ import { type MapPickResult } from '../picking/PickTilesAt';
 import { type VectorPickFeature } from '../picking/PickResult';
 import { OpenLayersUtils } from '../../utils';
 import type PickableFeatures from '../picking/PickableFeatures';
+import type ColorimetryOptions from '../ColorimetryOptions';
+import { defaultColorimetryOptions } from '../ColorimetryOptions';
 
 export interface ColorLayerEvents extends LayerEvents {
     'opacity-property-changed': { opacity: number; };
@@ -56,9 +58,7 @@ class ColorLayer
     readonly isColorLayer: boolean = true;
     readonly isPickableFeatures = true;
     private _elevationRange: ElevationRange;
-    private _brightness: number;
-    private _contrast: number;
-    private _saturation: number;
+    private _colorimetry: ColorimetryOptions = defaultColorimetryOptions();
 
     /**
      * Creates a color layer.
@@ -84,9 +84,6 @@ class ColorLayer
         this.type = 'ColorLayer';
         this._elevationRange = options.elevationRange;
         this._opacity = options.opacity ?? 1;
-        this._brightness = 0;
-        this._contrast = 1;
-        this._saturation = 1;
     }
 
     /**
@@ -123,17 +120,24 @@ class ColorLayer
     }
 
     /**
+     * Gets the colorimetry parameters of this layer.
+     */
+    get colorimetry() {
+        return this._colorimetry;
+    }
+
+    /**
      * Gets or sets the brightness of this layer.
      *
      *  @fires ColorLayer#brightness-property-changed
      */
     get brightness() {
-        return this._brightness;
+        return this._colorimetry.brightness;
     }
 
     set brightness(v) {
-        if (this._brightness !== v) {
-            this._brightness = v;
+        if (this._colorimetry.brightness !== v) {
+            this._colorimetry.brightness = v;
             this.dispatchEvent({ type: 'brightness-property-changed', brightness: v });
         }
     }
@@ -144,12 +148,12 @@ class ColorLayer
      *  @fires ColorLayer#contrast-property-changed
      */
     get contrast() {
-        return this._contrast;
+        return this._colorimetry.contrast;
     }
 
     set contrast(v) {
-        if (this._contrast !== v) {
-            this._contrast = v;
+        if (this._colorimetry.contrast !== v) {
+            this._colorimetry.contrast = v;
             this.dispatchEvent({ type: 'contrast-property-changed', contrast: v });
         }
     }
@@ -160,12 +164,12 @@ class ColorLayer
      *  @fires ColorLayer#saturation-property-changed
      */
     get saturation() {
-        return this._saturation;
+        return this._colorimetry.saturation;
     }
 
     set saturation(v) {
-        if (this._saturation !== v) {
-            this._saturation = v;
+        if (this._colorimetry.saturation !== v) {
+            this._colorimetry.saturation = v;
             this.dispatchEvent({ type: 'saturation-property-changed', saturation: v });
         }
     }
@@ -176,11 +180,11 @@ class ColorLayer
             material.setLayerVisibility(this, this.visible);
             material.setLayerOpacity(this, this.opacity);
             material.setLayerElevationRange(this, this._elevationRange);
-            material.setLayerBrightnessContrastSaturation(
+            material.setColorimetry(
                 this,
-                this.brightness,
-                this.contrast,
-                this.saturation,
+                this._colorimetry.brightness,
+                this._colorimetry.contrast,
+                this._colorimetry.saturation,
             );
         }
     }

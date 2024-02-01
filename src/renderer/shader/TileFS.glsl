@@ -26,6 +26,7 @@ uniform int         uuid;           // The ID of the tile mesh (used for the STA
 
 uniform float       opacity;        // The entire map opacity
 uniform vec4        backgroundColor; // The background color
+uniform vec3        brightnessContrastSaturation; // Brightness/contrast/saturation for the entire map
 
 #include <giro3d_colormap_pars_fragment>
 #include <giro3d_outline_pars_fragment>
@@ -153,7 +154,7 @@ void main() {
         // The fragment is transparent, discard it to short-circuit rendering state evaluation.
         discard;
     } else if (renderingState == STATE_FINAL) {
-        gl_FragColor = gl_FragColor;
+        gl_FragColor.rgb = adjustBrightnessContrastSaturation(gl_FragColor.rgb, brightnessContrastSaturation);
     } else if (renderingState == STATE_PICKING) {
         float id = float(uuid);
         float z = height;

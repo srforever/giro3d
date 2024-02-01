@@ -29,6 +29,7 @@ import type MaskLayer from '../core/layer/MaskLayer';
 import type ContourLineOptions from '../core/ContourLineOptions';
 import type TerrainOptions from '../core/TerrainOptions';
 import type HillshadingOptions from '../core/HillshadingOptions';
+import type ColorimetryOptions from '../core/ColorimetryOptions';
 import type ElevationLayer from '../core/layer/ElevationLayer';
 import type ColorLayer from '../core/layer/ColorLayer';
 import type ElevationRange from '../core/ElevationRange';
@@ -142,6 +143,10 @@ export interface MaterialOptions {
      * Geometric terrain options.
      */
     terrain?: TerrainOptions;
+    /**
+     * Colorimetry options for the entire material.
+     */
+    colorimetry?: ColorimetryOptions;
     /**
      * Toggles double-sided surfaces.
      */
@@ -281,6 +286,7 @@ class LayeredMaterial extends ShaderMaterial {
         };
 
         this.uniforms.tileDimensions = new Uniform(new Vector2());
+        this.uniforms.brightnessContrastSaturation = new Uniform(new Vector3(0, 1, 1));
         this.uniforms.neighbours = new Uniform(new Array(8));
         for (let i = 0; i < 8; i++) {
             this.uniforms.neighbours.value[i] = {};
@@ -672,6 +678,12 @@ class LayeredMaterial extends ShaderMaterial {
             this.uniforms.backgroundColor.value.copy(vec4);
         }
 
+        if (materialOptions.colorimetry) {
+            const opts = materialOptions.colorimetry;
+            this.uniforms.brightnessContrastSaturation.value
+                .set(opts.brightness, opts.contrast, opts.saturation);
+        }
+
         if (materialOptions.contourLines) {
             const opts = materialOptions.contourLines;
             this.uniforms.contourLineInterval.value = opts.interval ?? 100;
@@ -871,7 +883,7 @@ class LayeredMaterial extends ShaderMaterial {
         this._mustUpdateUniforms = true;
     }
 
-    setLayerBrightnessContrastSaturation(
+    setColorimetry(
         layer: ColorLayer,
         brightness: number,
         contrast: number,

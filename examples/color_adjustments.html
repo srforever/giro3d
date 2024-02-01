@@ -1,29 +1,87 @@
 ---
 title: Color Adjustment
-shortdesc: Illustrates adjusting brightness, constrast, and saturation on a color layer.
-attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
+shortdesc: Illustrates adjusting brightness, constrast, and saturation on color layers and a maps.
+attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>, <a target="_blank" href="https://www.grandlyon.com/">Métropole Grand Lyon</a>
 ---
 <div class="m-2 position-absolute top-0 end-0">
     <div class="card m-1">
-        <fieldset class="container m-1" id="options">
-            <label for="slider-brightness" class="form-label">Brightness</label>
-            <div class="input-group mb-3">
-                <div class="input-group">
-                    <input type="range" min="-1" max="1" value="0" step="0.02" class="slider" id="slider-brightness">
-                </div>
-            </div>
-            <label for="slider-contrast" class="form-label">Contrast</label>
-            <div class="input-group mb-3">
-                <div class="input-group">
-                    <input type="range" min="0" max="5" value="1" step="0.1" class="slider" id="slider-contrast">
-                </div>
-            </div>
-            <label for="slider-saturation" class="form-label">Saturation</label>
-            <div class="input-group mb-3">
-                <div class="input-group">
-                    <input type="range" min="0" max="5" value="1" step="0.1" class="slider" id="slider-saturation">
-                </div>
-            </div>
-        </fieldset>
+        <div class="card-header">
+            Colorimetry
+        </div>
+
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+                <!-- Map parameters -->
+                <h6 class="card-subtitle mb-2 text-body-secondary">Map</h6>
+                <form class="container m-1">
+                    <label for="map-brightness" class="form-label">Brightness</label>
+                    <div class="input-group">
+                        <input type="range" min="-1" max="1" value="0" class="slider" step="0.05" id="map-brightness">
+                    </div>
+
+                    <label for="map-contrast" class="form-label">Contrast</label>
+                    <div class="input-group">
+                        <input type="range" min="0" max="3" value="1" class="slider" step="0.05" id="map-contrast">
+                    </div>
+
+                    <label for="map-saturation" class="form-label">Saturation</label>
+                    <div class="input-group">
+                        <input type="range" min="0" max="3" value="1" class="slider" step="0.05" id="map-saturation">
+                    </div>
+
+                    <div class="input-group my-2">
+                        <input id="map-reset" type="reset" class="btn btn-primary" value="Reset"/>
+                    </div>
+                </form>
+            </li>
+            <li class="list-group-item">
+                <!-- Satellite layer parameters -->
+                <h6 class="card-subtitle mb-2 text-body-secondary">Satellite layer</h6>
+                <form class="container m-1">
+                    <label for="satellite-brightness" class="form-label">Brightness</label>
+                    <div class="input-group">
+                        <input type="range" min="-1" max="1" value="0" class="slider" step="0.05" id="satellite-brightness">
+                    </div>
+
+                    <label for="satellite-contrast" class="form-label">Contrast</label>
+                    <div class="input-group">
+                        <input type="range" min="0" max="3" value="1" class="slider" step="0.05" id="satellite-contrast">
+                    </div>
+
+                    <label for="satellite-saturation" class="form-label">Saturation</label>
+                    <div class="input-group">
+                        <input type="range" min="0" max="3" value="1" class="slider" step="0.05" id="satellite-saturation">
+                    </div>
+
+                    <div class="input-group my-2">
+                        <input id="satellite-reset" type="reset" class="btn btn-primary" value="Reset"/>
+                    </div>
+                </form>
+            </li>
+            <li class="list-group-item">
+                <!-- Vector layer parameters -->
+                <h6 class="card-subtitle mb-2 text-body-secondary">GeoJSON layer</h6>
+                <form class="container m-1">
+                    <label for="vector-brightness" class="form-label">Brightness</label>
+                    <div class="input-group">
+                        <input type="range" min="-1" max="1" value="0" class="slider" step="0.05" id="vector-brightness">
+                    </div>
+
+                    <label for="vector-contrast" class="form-label">Contrast</label>
+                    <div class="input-group">
+                        <input type="range" min="0" max="3" value="1" class="slider" step="0.05" id="vector-contrast">
+                    </div>
+
+                    <label for="vector-saturation" class="form-label">Saturation</label>
+                    <div class="input-group">
+                        <input type="range" min="0" max="3" value="1" class="slider" step="0.05" id="vector-saturation">
+                    </div>
+
+                    <div class="input-group my-2">
+                        <input id="vector-reset" type="reset" class="btn btn-primary" value="Reset"/>
+                    </div>
+                </form>
+            </li>
+        </ul>
     </div>
 </div>
