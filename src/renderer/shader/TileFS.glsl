@@ -128,8 +128,10 @@ void main() {
         discard;
     }
 
+#if defined(ELEVATION_LAYER)
     // Contour lines
     #include <giro3d_contour_line_fragment>
+#endif
 
 #if defined(APPLY_SHADING_ON_COLORLAYERS)
     gl_FragColor.rgb *= hillshade;
