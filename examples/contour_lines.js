@@ -111,3 +111,4 @@ function bindDropDown(name, fn) {
 bindDropDown('mainInterval', v => { map.materialOptions.contourLines.interval = v; });
 bindDropDown('secondaryInterval', v => { map.materialOptions.contourLines.secondaryInterval = v; });
 bindSlider('opacitySlider', v => { map.materialOptions.contourLines.opacity = v; });
+bindSlider('thicknessSlider', v => { map.materialOptions.contourLines.thickness = v; });

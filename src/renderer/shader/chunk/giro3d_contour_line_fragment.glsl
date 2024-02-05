@@ -15,21 +15,12 @@
 
     // thickness
     float thickness = 0.01 * thicknessScale;
-    float thickness2 = thickness / 2.0;
 
-    if (contourLineInterval > 0.) {
-        float m = mod(height, contourLineInterval);
-        float dist = clamp( abs( m - thickness2 ), 0.0, 1.0 );
+    float finalThickness = thickness * contourLines.thickness * 0.15;
 
-        vec4 contourLine1 = mix(contourLineColor, vec4(0), dist);
-        gl_FragColor = blend(vec4(contourLine1.rgb, contourLine1.a), gl_FragColor);
-    }
+    float contourLineAlpha = contourLines.color.a * 1.0;
 
-    if (secondaryContourLineInterval > 0.) {
-        float m = mod(height, secondaryContourLineInterval);
-        float dist = clamp( abs( m - thickness2 ), 0.0, 1.0 );
+    drawContourLine(height, contourLines.primaryInterval, finalThickness, vec4(contourLines.color.rgb, contourLineAlpha));
 
-        vec4 contourLine2 = mix(contourLineColor, vec4(0), dist);
-        gl_FragColor = blend(vec4(contourLine2.rgb, contourLine2.a * 0.4), gl_FragColor);
-    }
+    drawContourLine(height, contourLines.secondaryInterval, finalThickness, vec4(contourLines.color.rgb, contourLineAlpha *  0.4));
 #endif

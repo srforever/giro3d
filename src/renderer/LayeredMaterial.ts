@@ -248,9 +248,12 @@ class LayeredMaterial extends ShaderMaterial {
 
         this.uniforms.segments = new Uniform(options.segments);
 
-        this.uniforms.contourLineInterval = new Uniform(100);
-        this.uniforms.secondaryContourLineInterval = new Uniform(20);
-        this.uniforms.contourLineColor = new Uniform(new Vector4(0, 0, 0, 1));
+        this.uniforms.contourLines = new Uniform({
+            thickness: 1,
+            primaryInterval: 100,
+            secondaryInterval: 20,
+            color: new Vector4(0, 0, 0, 1),
+        });
 
         const elevationRange = options.elevationRange
             ? new Vector2(options.elevationRange.min, options.elevationRange.max)
@@ -686,12 +689,19 @@ class LayeredMaterial extends ShaderMaterial {
 
         if (materialOptions.contourLines) {
             const opts = materialOptions.contourLines;
-            this.uniforms.contourLineInterval.value = opts.interval ?? 100;
-            this.uniforms.secondaryContourLineInterval.value = opts.secondaryInterval ?? 0;
-            const c = opts.color;
-            const a = opts.opacity;
-            const vec4 = new Vector4(c.r, c.g, c.b, a);
-            this.uniforms.contourLineColor.value = vec4;
+
+            if (opts.enabled) {
+                const c = opts.color;
+                const a = opts.opacity;
+
+                this.uniforms.contourLines.value = {
+                    thickness: opts.thickness ?? 1,
+                    primaryInterval: opts.interval ?? 100,
+                    secondaryInterval: opts.secondaryInterval ?? 0,
+                    color: new Vector4(c.r, c.g, c.b, a),
+                };
+            }
+
             MaterialUtils.setDefine(this, 'ENABLE_CONTOUR_LINES', opts.enabled);
         }
 

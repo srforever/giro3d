@@ -1,6 +1,7 @@
 ---
 title: Contour lines
 shortdesc: A map with elevation contour lines
+longdesc: Contour lines can be enabled on Map entities to visualize relief. Change line intervals, opacity, thickness and color, as well as opacity. Note that on very flat surfaces, contour lines can produce artifacts where their displayed thickness is greater than desired.
 attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological Survey</a>
 ---
 <div class="m-2 position-absolute top-0 end-0">
@@ -41,6 +42,11 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
             <label for="opacitySlider" class="form-label">Opacity</label>
             <div class="input-group">
                 <input type="range" min="0" max="1" value="1" step="0.05" class="slider" id="opacitySlider">
+            </div>
+
+            <label for="thicknessSlider" class="form-label">Thickness</label>
+            <div class="input-group">
+                <input type="range" min="0" max="2" value="1" step="0.05" class="slider" id="thicknessSlider">
             </div>
         </fieldset>
     </div>

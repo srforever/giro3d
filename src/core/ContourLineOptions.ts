@@ -21,6 +21,10 @@ export default interface ContourLineOptions {
      */
     opacity?: number;
     /**
+     * The thickness of the lines.
+     */
+    thickness?: number;
+    /**
      * The color of the lines.
      */
     color?: Color;

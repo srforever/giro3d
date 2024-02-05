@@ -19,6 +19,9 @@ class ContourLinePanel extends Panel {
         this.addColorController(options, 'color')
             .name('Color')
             .onChange(() => this.notify());
+        this.addController<number>(options, 'thickness', 0, 4, 0.1)
+            .name('Thickness')
+            .onChange(() => this.notify());
         this.addController<number>(options, 'opacity', 0, 1)
             .name('Opacity')
             .onChange(() => this.notify());

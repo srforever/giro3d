@@ -90,6 +90,7 @@ function getContourLineOptions(input: boolean | undefined | ContourLineOptions)
         // Default values
         return {
             enabled: false,
+            thickness: 1,
             interval: 100,
             secondaryInterval: 20,
             color: new Color(0, 0, 0),
@@ -101,6 +102,7 @@ function getContourLineOptions(input: boolean | undefined | ContourLineOptions)
         // Default values
         return {
             enabled: true,
+            thickness: 1,
             interval: 100,
             secondaryInterval: 20,
             color: new Color(0, 0, 0),
@@ -110,6 +112,7 @@ function getContourLineOptions(input: boolean | undefined | ContourLineOptions)
 
     return {
         enabled: input.enabled ?? false,
+        thickness: input.thickness ?? 1,
         interval: input.interval ?? 100,
         secondaryInterval: input.secondaryInterval ?? 20,
         color: input.color ?? new Color(0, 0, 0),
