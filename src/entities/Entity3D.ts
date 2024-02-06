@@ -18,6 +18,10 @@ import type PickOptions from '../core/picking/PickOptions';
 
 export interface Entity3DEventMap extends EntityEventMap {
     /**
+     * Fired when the entity creates an object.
+     */
+    'object-created': { object: Object3D; }
+    /**
      * Fired when the entity opacity changed.
      */
     'opacity-property-changed': { opacity: number; }
@@ -288,6 +292,8 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
                 material.transparent = true;
             }
         }, obj);
+
+        this.dispatchEvent({ type: 'object-created', object: obj });
     }
 
     /* eslint-disable class-methods-use-this */
