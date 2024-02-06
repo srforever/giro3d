@@ -76,7 +76,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
         }
         this._instance = null; // will be filled when we add the object to an instance
 
-        if (object3d && object3d.type === 'Group' && object3d.name === '') {
+        if (object3d.type === 'Group' && object3d.name === '') {
             object3d.name = id;
         }
 
@@ -91,6 +91,8 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
         this._clippingPlanes = null;
 
         this._renderOrder = 0;
+
+        this.onObjectCreated(object3d);
     }
 
     /**
