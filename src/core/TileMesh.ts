@@ -52,6 +52,7 @@ export interface TileMeshEventMap extends Object3DEventMap {
 class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
     layer: any;
     private _segments: number;
+    readonly type: string = 'TileMesh';
     readonly isTileMesh: boolean = true;
     private _minmax: { min: number; max: number; };
     extent: Extent;
@@ -97,7 +98,6 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
 
         this.layer = map;
         this._segments = segments;
-        this.isTileMesh = true;
 
         this.matrixAutoUpdate = false;
 
