@@ -190,7 +190,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private readonly _scene: Scene;
     private readonly _threeObjects: Group;
     private readonly _camera: Camera;
-    private readonly _objects: Entity[];
+    private readonly _entities: Set<Entity>;
     private readonly _resizeObserver?: ResizeObserver;
     private _resizeTimeout?: string | number | NodeJS.Timeout;
     public readonly isDebugMode: boolean;
@@ -269,7 +269,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             options,
         );
 
-        this._objects = [];
+        this._entities = new Set();
 
         if (window.ResizeObserver) {
             this._resizeObserver = new ResizeObserver(() => {
@@ -305,7 +305,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
 
     /** Gets whether at least one entity is currently loading data. */
     get loading(): boolean {
-        const entities = this.getObjects(o => o instanceof Entity) as Entity[];
+        const entities = this.getEntities();
         return entities.some(e => e.loading);
     }
 
@@ -316,7 +316,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * Note: if no entity is present in the instance, this will always return 1.
      */
     get progress(): number {
-        const entities = this.getObjects(o => o instanceof Entity) as Entity[];
+        const entities = this.getEntities();
         if (entities.length === 0) {
             return 1;
         }
@@ -462,23 +462,15 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         // We know it's an Entity
         const entity = object as Entity;
 
-        const duplicate = this.getObjects((l => l.id === object.id));
+        const duplicate = this.getObjects(l => l.id === object.id);
         if (duplicate.length > 0) {
             throw new Error(`Invalid id '${object.id}': id already used`);
         }
 
         entity.startPreprocess();
 
-        this._objects.push(entity);
+        this._entities.add(entity);
         await entity.whenReady;
-
-        // TODO remove object from this._objects maybe ?
-        if (typeof (entity.update) !== 'function') {
-            throw new Error('Cant add Entity: missing a update function');
-        }
-        if (typeof (entity.preUpdate) !== 'function') {
-            throw new Error('Cant add Entity: missing a preUpdate function');
-        }
 
         if (entity instanceof Entity3D
             && entity.object3d
@@ -510,10 +502,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             (object as any).dispose();
         }
         if (object instanceof Entity) {
-            const idx = this._objects.indexOf(object);
-            if (idx >= 0) {
-                this._objects.splice(idx, 1);
-            }
+            this._entities.delete(object);
         }
         this.notifyChange(this._camera.camera3D, true);
         this.dispatchEvent({ type: 'entity-removed' });
@@ -563,20 +552,20 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     }
 
     /**
-     * Get all objects, with an optional filter applied.
-     * The filter method allows to get only a subset of objects
+     * Get all top-level objects (entities and regular THREE objects), using an optional filter
+     * predicate.
      *
      * @example
      * // get all objects
-     * instance.getObjects();
-     * // get one layer with id
-     * instance.getObjects(obj => obj.id === 'itt');
-     * @param filter the optional query filter
+     * const allObjects = instance.getObjects();
+     * // get all object whose name includes 'foo'
+     * const fooObjects = instance.getObjects(obj => obj.name === 'foo');
+     * @param filter the optional filter predicate.
      * @returns an array containing the queried objects
      */
     getObjects(filter?: (obj: Object3D | Entity) => boolean): (Object3D | Entity)[] {
         const result = [];
-        for (const obj of this._objects) {
+        for (const obj of this._entities) {
             if (!filter || filter(obj)) {
                 result.push(obj);
             }
@@ -586,6 +575,30 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
                 result.push(obj);
             }
         }
+        return result;
+    }
+
+    /**
+     * Get all entities, with an optional predicate applied.
+     *
+     * @example
+     * // get all entities
+     * const allEntities = instance.getEntities();
+     *
+     * // get all entities whose name contains 'building'
+     * const buildings = instance.getEntities(entity => entity.name.includes('building'));
+     * @param filter the optional filter predicate
+     * @returns an array containing the queried entities
+     */
+    getEntities(filter?: (obj: Entity) => boolean): Entity[] {
+        const result = [];
+
+        for (const obj of this._entities) {
+            if (!filter || filter(obj)) {
+                result.push(obj);
+            }
+        }
+
         return result;
     }
 

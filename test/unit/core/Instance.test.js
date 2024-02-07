@@ -311,6 +311,56 @@ describe('Instance', () => {
         });
     });
 
+    describe('getEntities', () => {
+        it('should return added entities', () => {
+            const extent = new Extent('EPSG:4326', 0, 0, 0, 0);
+            const map1 = new Map('map1', { extent });
+            const map2 = new Map('map2', { extent });
+
+            instance.add(map1);
+
+            expect(instance.getEntities()).toEqual(expect.arrayContaining([map1]));
+
+            instance.add(map2);
+
+            expect(instance.getEntities()).toEqual(expect.arrayContaining([map1, map2]));
+
+            instance.remove(map1);
+
+            expect(instance.getEntities()).toEqual(expect.arrayContaining([map2]));
+
+            instance.remove(map2);
+
+            expect(instance.getEntities()).toEqual(expect.arrayContaining([]));
+        });
+    });
+
+    describe('getObjects', () => {
+        it('should return added objects and entities', () => {
+            const extent = new Extent('EPSG:4326', 0, 0, 0, 0);
+            const map1 = new Map('map1', { extent });
+            const map2 = new Map('map2', { extent });
+            const object1 = new Object3D();
+            const object2 = new Object3D();
+
+            instance.add(map1);
+            instance.add(object1);
+
+            expect(instance.getObjects()).toEqual(expect.arrayContaining([map1, object1]));
+
+            instance.add(object2);
+            instance.add(map2);
+
+            expect(instance.getObjects())
+                .toEqual(expect.arrayContaining([map1, object1, object2, map2]));
+
+            instance.remove(object1);
+            instance.remove(map2);
+
+            expect(instance.getObjects()).toEqual(expect.arrayContaining([map1, object2]));
+        });
+    });
+
     describe('progress', () => {
         it('should return 1 if no entity is present', () => {
             expect(instance.progress).toEqual(1);
