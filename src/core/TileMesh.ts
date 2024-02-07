@@ -15,6 +15,7 @@ import TileGeometry from './TileGeometry';
 import OBB from './OBB';
 import type RenderingState from '../renderer/RenderingState';
 import type ElevationLayer from './layer/ElevationLayer';
+import type Disposable from './Disposable';
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
@@ -39,7 +40,7 @@ export interface TileMeshEventMap extends Object3DEventMap {
     'dispose': {};
 }
 
-class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
+class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> implements Disposable {
     private readonly _pool: GeometryPool;
     private _segments: number;
     readonly type: string = 'TileMesh';

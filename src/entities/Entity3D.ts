@@ -387,4 +387,8 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
     }
 }
 
+export function isEntity3D(o: unknown): o is Entity3D {
+    return (o as Entity3D).isEntity3D;
+}
+
 export default Entity3D;

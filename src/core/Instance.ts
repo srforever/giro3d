@@ -6,10 +6,10 @@ import { register } from 'ol/proj/proj4.js';
 import Camera, { type CameraOptions } from '../renderer/Camera';
 import C3DEngine, { type RendererOptions } from '../renderer/c3DEngine';
 import type RenderingOptions from '../renderer/RenderingOptions';
-import ObjectRemovalHelper from '../utils/ObjectRemovalHelper';
 import MainLoop from './MainLoop';
-import Entity from '../entities/Entity';
-import Entity3D from '../entities/Entity3D';
+import type Entity from '../entities/Entity';
+import { isEntity } from '../entities/Entity';
+import Entity3D, { isEntity3D } from '../entities/Entity3D';
 import Map from '../entities/Map';
 import type PickOptions from './picking/PickOptions';
 import type PickResult from './picking/PickResult';
@@ -17,6 +17,7 @@ import type Progress from './Progress';
 import pickObjectsAt from './picking/PickObjectsAt';
 import { isPickable } from './picking/Pickable';
 import { isPickableFeatures } from './picking/PickableFeatures';
+import { isDisposable } from './Disposable';
 
 const vectors = {
     pos: new Vector3(),
@@ -160,6 +161,10 @@ export interface ThreeControls extends CustomCameraControls {
 interface ControlFunctions {
     update: () => void;
     eventListener: () => void;
+}
+
+function isObject3D(o: unknown): o is Object3D {
+    return (o as Object3D).isObject3D;
 }
 
 /**
@@ -491,21 +496,25 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * @param object the object to remove.
      */
     remove(object: Object3D | Entity): void {
-        if ((object as Object3D).isObject3D) {
-            this._threeObjects.remove(object as Object3D);
-        } else if ((object as Entity3D).object3d) {
-            const obj3d = (object as Entity3D).object3d;
-            ObjectRemovalHelper.removeChildrenAndCleanupRecursively(object as Entity, obj3d);
-            this._scene.remove(obj3d);
-        }
-        if (typeof (object as any).dispose === 'function') {
-            (object as any).dispose();
-        }
-        if (object instanceof Entity) {
+        if (isEntity(object)) {
+            object.dispose();
+
+            if (isEntity3D(object)) {
+                this._scene.remove(object.object3d);
+            }
+
             this._entities.delete(object);
+
+            this.dispatchEvent({ type: 'entity-removed' });
+        } else if (isObject3D(object)) {
+            if (isDisposable(object)) {
+                object.dispose();
+            }
+
+            this._threeObjects.remove(object);
         }
+
         this.notifyChange(this._camera.camera3D, true);
-        this.dispatchEvent({ type: 'entity-removed' });
     }
 
     /**
