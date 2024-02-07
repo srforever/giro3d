@@ -32,6 +32,7 @@ interface Filter {
 function selectColor(obj: OutlinedObject3D): { back: string, fore: string } {
     switch (obj.type) {
         case 'Mesh':
+        case 'TileMesh':
             return { back: 'orange', fore: 'black' };
         case 'Points':
             return { back: 'red', fore: 'white' };
