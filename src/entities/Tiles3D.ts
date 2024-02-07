@@ -280,7 +280,7 @@ class Tiles3D<TMaterial extends Material = Material>
     }
 
     /* eslint-disable class-methods-use-this */
-    getObjectToUpdateForAttachedLayers(meta: any): ObjectToUpdate | null {
+    getObjectToUpdateForAttachedLayers(meta: Tile): ObjectToUpdate | null {
         if (!meta.content) {
             return null;
         }
@@ -301,7 +301,6 @@ class Tiles3D<TMaterial extends Material = Material>
             elements: result,
         };
     }
-    /* eslint-enable class-methods-use-this */
 
     private async requestNewTile(
         metadata: ProcessedTile,
