@@ -50,7 +50,7 @@ export interface TileMeshEventMap extends Object3DEventMap {
 }
 
 class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
-    layer: any;
+    private readonly _owner: Owner;
     private _segments: number;
     readonly type: string = 'TileMesh';
     readonly isTileMesh: boolean = true;
@@ -96,7 +96,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
     }) {
         super(makeGeometry(map, extent, segments, level), material);
 
-        this.layer = map;
+        this._owner = map;
         this._segments = segments;
 
         this.matrixAutoUpdate = false;
@@ -137,7 +137,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
     set segments(v) {
         if (this._segments !== v) {
             this._segments = v;
-            this.geometry = makeGeometry(this.layer, this.extent, this._segments, this.level);
+            this.geometry = makeGeometry(this._owner, this.extent, this._segments, this.level);
             this.material.segments = v;
         }
     }
@@ -295,6 +295,17 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
         this._minmax = { min, max };
     }
 
+    /**
+     * Removes the child tiles and returns the detached tiles.
+     */
+    detachChildren(): TileMesh[] {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        const childTiles = this.children.filter(c => isTileMesh(c)) as TileMesh[];
+        childTiles.forEach(c => c.dispose());
+        this.remove(...childTiles);
+        return childTiles;
+    }
+
     private updateOBB(min: number, max: number) {
         const obb = this._obb;
         if (Math.floor(min) !== Math.floor(obb.z.min)
@@ -381,4 +392,9 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
         this.geometry = null;
     }
 }
+
+export function isTileMesh(o: unknown): o is TileMesh {
+    return (o as TileMesh).isTileMesh;
+}
+
 export default TileMesh;

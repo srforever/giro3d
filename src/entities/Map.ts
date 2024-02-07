@@ -14,7 +14,6 @@ import Layer from '../core/layer/Layer';
 import ColorLayer from '../core/layer/ColorLayer';
 import ElevationLayer from '../core/layer/ElevationLayer';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
-import ObjectRemovalHelper from '../utils/ObjectRemovalHelper';
 import type { SSE } from '../core/ScreenSpaceError';
 import ScreenSpaceError from '../core/ScreenSpaceError';
 import LayeredMaterial, {
@@ -22,7 +21,7 @@ import LayeredMaterial, {
     DEFAULT_HILLSHADING_INTENSITY,
     DEFAULT_ZENITH,
 } from '../renderer/LayeredMaterial';
-import TileMesh from '../core/TileMesh';
+import TileMesh, { isTileMesh } from '../core/TileMesh';
 import TileIndex from '../core/TileIndex';
 import type RenderingState from '../renderer/RenderingState';
 import ColorMapAtlas from '../renderer/ColorMapAtlas';
@@ -409,7 +408,7 @@ class Map
     }
 
     private subdivideNode(context: Context, node: TileMesh) {
-        if (!node.children.some(n => (n as TileMesh).layer === this)) {
+        if (!node.children.some(n => isTileMesh(n))) {
             const extents = node.extent.split(2, 2);
 
             let i = 0;
@@ -617,11 +616,11 @@ class Map
                 // some invisible tiles may now be visible
                 return this.level0Nodes;
             }
-            if ((source as TileMesh).layer === this.id) {
+            if (isTileMesh(source)) {
                 if (!commonAncestor) {
-                    commonAncestor = source as TileMesh;
+                    commonAncestor = source;
                 } else {
-                    commonAncestor = (source as TileMesh).findCommonAncestor(commonAncestor);
+                    commonAncestor = source.findCommonAncestor(commonAncestor);
                     if (!commonAncestor) {
                         return this.level0Nodes;
                     }
@@ -801,7 +800,8 @@ class Map
 
     update(context: Context, node: TileMesh): unknown[] | undefined {
         if (!node.parent) {
-            return ObjectRemovalHelper.removeChildrenAndCleanup(this, node);
+            node.dispose();
+            return undefined;
         }
 
         if (context.fastUpdateHint) {
@@ -812,7 +812,7 @@ class Map
                     return undefined;
                 }
                 if (node.visible) {
-                    return node.children.filter(n => (n as TileMesh).layer === this);
+                    return node.children.filter(n => isTileMesh(n));
                 }
                 return undefined;
             }
@@ -861,18 +861,17 @@ class Map
 
                 // update uniforms
                 if (!requestChildrenUpdate) {
-                    return ObjectRemovalHelper.removeChildren(this, node);
+                    return node.detachChildren();
                 }
             }
 
-            // TODO: use Array.slice()
             return requestChildrenUpdate
-                ? node.children.filter(n => (n as TileMesh).layer === this)
+                ? node.children.filter(n => isTileMesh(n))
                 : undefined;
         }
 
         node.setDisplayed(false);
-        return ObjectRemovalHelper.removeChildren(this, node);
+        return node.detachChildren();
     }
 
     postUpdate() {
@@ -1144,7 +1143,7 @@ class Map
             }
         }
 
-        if (node.children.some(n => (n as TileMesh).layer === this)) {
+        if (node.children.some(n => isTileMesh(n))) {
             // No need to prevent subdivision, since we've already done it before
             return true;
         }
@@ -1170,10 +1169,10 @@ class Map
         // if (values.filter(v => v < 200).length >= 2) {
         //     return false;
         // }
-        if (values.filter(v => v < (100 * tile.layer.sseScale)).length >= 1) {
+        if (values.filter(v => v < (100 * this.sseScale)).length >= 1) {
             return false;
         }
-        return values.filter(v => v >= (384 * tile.layer.sseScale)).length >= 2;
+        return values.filter(v => v >= (384 * this.sseScale)).length >= 2;
     }
 
     private updateMinMaxDistance(context: Context, node: TileMesh) {

@@ -218,9 +218,24 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
         return super.shouldFullUpdate(updateSource) || this.contains(updateSource);
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     shouldUpdate(updateSource: unknown): boolean {
-        return super.shouldUpdate(updateSource) || (updateSource as any).layer === this;
+        return super.shouldUpdate(updateSource) || this.isOwned(updateSource);
+    }
+
+    /**
+     * Returns true if this object belongs to this entity.
+     *
+     * @param obj The object to test.
+     */
+    protected isOwned(obj: unknown) {
+        if ((obj as Object3D).isObject3D) {
+            const obj3d = obj as Object3D;
+            if (obj3d.userData?.parentEntity === this) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     preUpdate(context: Context, changeSources: Set<unknown>): unknown[] | null {

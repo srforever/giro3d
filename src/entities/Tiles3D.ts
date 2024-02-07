@@ -286,7 +286,9 @@ class Tiles3D<TMaterial extends Material = Material>
         }
         const result: any[] = [];
         meta.content.traverse((obj: any) => {
-            if (obj.isObject3D && obj.material && obj.layer === meta.layer) {
+            if (obj.isObject3D
+                && obj.material
+                && obj.userData.parentEntity === meta.userData.parentEntity) {
                 result.push(obj);
             }
         });
@@ -466,7 +468,7 @@ class Tiles3D<TMaterial extends Material = Material>
                 if (this.material) {
                     node.content.traverse(o => {
                         const pointcloud = o as PointCloud;
-                        if (pointcloud.layer === this && pointcloud.material) {
+                        if (this.isOwned(pointcloud) && pointcloud.material) {
                             // TODO: is wireframe still supported?
                             (pointcloud.material as any).wireframe = this.wireframe;
                             if (pointcloud.isPoints) {
@@ -684,7 +686,6 @@ class Tiles3D<TMaterial extends Material = Material>
 
         const setupObject = (obj: any) => {
             obj.userData.metadata = metadata;
-            obj.layer = this;
             this.onObjectCreated(obj);
         };
         if (path) {

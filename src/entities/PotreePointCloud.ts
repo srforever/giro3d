@@ -540,7 +540,7 @@ class PotreePointCloud extends Entity3D implements Pickable<PointsPickResult>, H
             const obj = octreeItem.obj;
 
             // filter sources that belong to our entity
-            if (obj.isPoints && obj.layer === this) {
+            if (obj.isPoints && this.isOwned(obj)) {
                 const name = octreeItem.name;
                 if (!commonAncestorName) {
                     commonAncestorName = name;
