@@ -305,7 +305,7 @@ class PotreePointCloud extends Entity3D implements Pickable<PointsPickResult>, H
     }
 
     // eslint-disable-next-line class-methods-use-this
-    getObjectToUpdateForAttachedLayers(meta: any): ObjectToUpdate | null {
+    getObjectToUpdateForAttachedLayers(meta: OctreeItem): ObjectToUpdate | null {
         if (!meta.obj) {
             return null;
         }
