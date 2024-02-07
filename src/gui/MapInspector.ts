@@ -182,7 +182,6 @@ class MapInspector extends EntityInspector {
         this.layers = [];
 
         this._fillLayersCb = () => this.fillLayers();
-        this.instance.addEventListener('layers-initialized', this._fillLayersCb);
 
         this.map.addEventListener('layer-added', this._fillLayersCb);
         this.map.addEventListener('layer-removed', this._fillLayersCb);
@@ -334,8 +333,6 @@ class MapInspector extends EntityInspector {
     }
 
     removeEventListeners() {
-        this.instance.removeEventListener('layers-initialized', this._fillLayersCb);
-
         this.map.removeEventListener('layer-added', this._fillLayersCb);
         this.map.removeEventListener('layer-removed', this._fillLayersCb);
         this.map.removeEventListener('layer-order-changed', this._fillLayersCb);
