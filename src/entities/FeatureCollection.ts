@@ -8,6 +8,7 @@ import type VectorSource from 'ol/source/Vector';
 import type Feature from 'ol/Feature';
 import type { Geometry, GeometryCollection, SimpleGeometry } from 'ol/geom';
 
+import { GlobalCache } from '../core/Cache';
 import type Context from '../core/Context';
 import type Extent from '../core/geographic/Extent';
 import ScreenSpaceError from '../core/ScreenSpaceError';
@@ -346,6 +347,79 @@ class FeatureCollection extends Entity3D {
         return this.level0Nodes;
     }
 
+    private getMeshesWithCache(node: Group): Promise<Mesh[]> {
+        const cacheKey = `${this.id} - ${node.name}`;
+        const cachedFeatures = GlobalCache.get(cacheKey);
+
+        if (cachedFeatures) {
+            return Promise.resolve(cachedFeatures as Mesh[]);
+        }
+        const request = () => new Promise((resolve, reject) => {
+            let extent = node.userData.extent;
+            if (this.dataProjection) {
+                extent = extent.as(this.dataProjection);
+            }
+            extent = OLUtils.toOLExtent(extent);
+
+            (this._source as any).loader_(
+                extent,
+                /* resolution */ undefined,
+                this._instance.referenceCrs,
+                (features: Feature[]) => {
+                    resolve(features);
+                },
+                (err: Error) => reject(err),
+            );
+        }) as Promise<Feature[]>;
+        return DefaultQueue.enqueue({
+            id: node.uuid, // we only make one query per "tile"
+            request,
+            priority: performance.now(), // Last in first out, like in Layer.js
+            shouldExecute: () => node.visible,
+        }).then(features => {
+            // if the node is not visible any more, don't bother
+            if (!node.visible) {
+                return null;
+            }
+            if (features.length === 0) {
+                return null;
+            }
+            if (!node.parent) {
+                // node have been removed before we got the result, cancelling
+                return null;
+            }
+            const offset = new Vector3();
+            const geom = getFirstSimpleGeom(features[0].getGeometry());
+            const stride = geom.getStride();
+            const firstCoordinates = geom.getFirstCoordinate();
+            offset.x = firstCoordinates[0];
+            offset.y = firstCoordinates[1];
+
+            if (stride > 2) {
+                offset.z = firstCoordinates[2];
+            }
+            features.filter(f => !this._tileIdSet.has(f.getId()));
+
+            const meshes = OlFeature2Mesh.convert(features, {
+                offset,
+                elevation: this.elevation,
+                extrusionOffset: this.extrusionOffset,
+                style: this.style,
+                material: this.material,
+            });
+            for (const mesh of meshes) {
+                this.onObjectCreated(mesh);
+
+                // call onMeshCreated callback if needed
+                if (this.onMeshCreated) {
+                    this.onMeshCreated((mesh as Mesh));
+                }
+            }
+            GlobalCache.set(cacheKey, meshes);
+            return meshes;
+        }) as Promise<Mesh[]>;
+    }
+
     update(ctx: Context, node: Group) {
         if (!node.parent) {
             // if node has been removed dispose three.js resource
@@ -413,114 +487,49 @@ class FeatureCollection extends Entity3D {
                 && node.userData.layerUpdateState.canTryUpdate(ts)) {
             node.userData.layerUpdateState.newTry();
 
-            const request = () => new Promise((resolve, reject) => {
-                let extent = node.userData.extent;
-                if (this.dataProjection) {
-                    extent = extent.as(this.dataProjection);
-                }
-                extent = OLUtils.toOLExtent(extent);
-
-                (this._source as any).loader_(
-                    extent,
-                    /* resolution */ undefined,
-                    this._instance.referenceCrs,
-                    (features: Feature[]) => {
-                        // if the node is not visible any more, don't bother
-                        if (!node.visible) {
-                            resolve(null);
-                            return;
-                        }
-                        if (features.length === 0) {
-                            resolve(null);
-                            return;
-                        }
-                        const offset = new Vector3();
-                        const geom = getFirstSimpleGeom(features[0].getGeometry());
-                        const stride = geom.getStride();
-                        const firstCoordinates = geom.getFirstCoordinate();
-                        offset.x = firstCoordinates[0];
-                        offset.y = firstCoordinates[1];
-
-                        if (stride > 2) {
-                            offset.z = firstCoordinates[2];
-                        }
-                        features.filter(f => !this._tileIdSet.has(f.getId()));
-
-                        resolve(
-                            OlFeature2Mesh.convert(features, {
-                                offset,
-                                elevation: this.elevation,
-                                extrusionOffset: this.extrusionOffset,
-                                style: this.style,
-                                material: this.material,
-                            }),
-                        );
-                    },
-                    (err: Error) => reject(err),
-                );
-            });
-
             this._opCounter.increment();
 
-            DefaultQueue.enqueue({
-                id: node.uuid, // we only make one query per "tile"
-                request,
-                priority: performance.now(), // Last in first out, like in Layer.js
-                shouldExecute: () => node.visible,
-            })
-                .then((result: Mesh[]) => {
-                    if (!node.parent) {
-                        // node have been removed before we got the result, cancelling
-                        return;
-                    }
-                    // if request return empty json, result will be null
-                    if (result) {
-                        if (
-                            node.children.filter(
-                                n => n.userData.parentEntity === this && !n.userData.isTile,
-                            ).length > 0
-                        ) {
-                            console.warn(
-                                `We received results for this tile: ${node},`
+            this.getMeshesWithCache(node).then(meshes => {
+                // if request return empty json, result will be null
+                if (meshes) {
+                    if (
+                        node.children.filter(
+                            n => n.userData.parentEntity === this && !n.userData.isTile,
+                        ).length > 0
+                    ) {
+                        console.warn(
+                            `We received results for this tile: ${node},`
                                 + 'but it already contains children for the current entity.',
-                            );
-                        }
-                        for (const mesh of result) {
-                            this.onObjectCreated(mesh);
-
-                            // call onMeshCreated callback if needed
-                            if (this.onMeshCreated) {
-                                this.onMeshCreated(mesh);
-                            }
-
-                            if (!this._tileIdSet.has(mesh.userData.id)
-                                    // exclude null or undefined, but keep 0
-                                    /* eslint-disable-next-line eqeqeq */
-                                    || mesh.userData.id == null) {
-                                this._tileIdSet.add(mesh.userData.id);
-                                node.add(mesh);
-                                node.userData.boundingBox.expandByObject(mesh);
-                                this._instance.notifyChange(node);
-                            }
-                        }
-                        node.userData.layerUpdateState.noMoreUpdatePossible();
-                    } else {
-                        node.userData.layerUpdateState.failure(1, true);
+                        );
                     }
-                })
-                .catch(err => {
-                    // Abort errors are perfectly normal, so we don't need to log them.
-                    // However any other error implies an abnormal termination of the processing.
-                    if (err.message === 'aborted') {
-                        // the query has been aborted because giro3d thinks it doesn't need this any
-                        // more, so we put back the state to IDLE
-                        node.userData.layerUpdateState.success();
-                    } else {
-                        console.error(err);
-                        node.userData.layerUpdateState.failure(Date.now(), true);
+
+                    for (const mesh of meshes) {
+                        if (!this._tileIdSet.has(mesh.userData.id)
+                            // exclude null or undefined, but keep 0
+                            /* eslint-disable-next-line eqeqeq */
+                            || mesh.userData.id == null) {
+                            this._tileIdSet.add(mesh.userData.id);
+                            node.add(mesh);
+                            node.userData.boundingBox.expandByObject(mesh);
+                            this._instance.notifyChange(node);
+                        }
                     }
-                })
-                .finally(() => this._opCounter.decrement());
+                    node.userData.layerUpdateState.noMoreUpdatePossible();
+                } else {
+                    node.userData.layerUpdateState.failure(1, true);
+                }
+            }).catch(err => {
+                // Abort errors are perfectly normal, so we don't need to log them.
+                // However any other error implies an abnormal termination of the processing.
+                if (err.message === 'aborted') {
+                    // the query has been aborted because giro3d thinks it doesn't need this any
+                    // more, so we put back the state to IDLE
+                    node.userData.layerUpdateState.success();
+                } else {
+                    console.error(err);
+                    node.userData.layerUpdateState.failure(Date.now(), true);
+                }
+            }).finally(() => this._opCounter.decrement());
         }
 
         // Do we need children ?
