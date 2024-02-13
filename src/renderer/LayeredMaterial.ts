@@ -327,7 +327,7 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     private _updateColorLayerUniforms() {
-        this._sortLayersIfNecessary();
+        this.sortLayersIfNecessary();
 
         if (this._mustUpdateUniforms) {
             const layersUniform = [];
@@ -546,7 +546,7 @@ class LayeredMaterial extends ShaderMaterial {
         this._needsSorting = true;
     }
 
-    _sortLayersIfNecessary() {
+    private sortLayersIfNecessary() {
         const idx = this._getIndexFn;
         if (this._needsSorting) {
             this._colorLayers.sort((a, b) => idx(a) - idx(b));
@@ -604,7 +604,7 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     _updateColorMaps() {
-        this._sortLayersIfNecessary();
+        this.sortLayersIfNecessary();
 
         const atlas = this._colorMapAtlas;
 
