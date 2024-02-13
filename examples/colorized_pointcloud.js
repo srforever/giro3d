@@ -7,7 +7,7 @@ import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import WmsSource from '@giro3d/giro3d/sources/WmsSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 
@@ -78,15 +78,11 @@ function initializeCamera() {
 
     placeCamera(position, lookAt);
 
-    const colorize = new TiledImageSource({
-        source: new TileWMS({
-            url: 'https://data.geopf.fr/wms-r',
-            projection: 'EPSG:3946',
-            params: {
-                LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
-                FORMAT: 'image/jpeg',
-            },
-        }),
+    const colorize = new WmsSource({
+        url: 'https://data.geopf.fr/wms-r',
+        projection: 'EPSG:3946',
+        layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
+        imageFormat: 'image/jpeg',
     });
 
     colorLayer = new ColorLayer({

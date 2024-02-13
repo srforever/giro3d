@@ -22,6 +22,7 @@ import VectorTileSource, {
 } from './VectorTileSource';
 import PotreeSource from './PotreeSource';
 import WmtsSource, { type WmtsSourceOptions, type WmtsFromCapabilitiesOptions } from './WmtsSource';
+import WmsSource, { type WmsSourceOptions } from './WmsSource';
 
 /**
  * Data sources.
@@ -48,4 +49,6 @@ export {
     WmtsSource,
     WmtsSourceOptions,
     WmtsFromCapabilitiesOptions,
+    WmsSource,
+    WmsSourceOptions,
 };
