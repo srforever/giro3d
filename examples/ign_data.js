@@ -9,17 +9,14 @@ import {
     DoubleSide,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import TileWMS from 'ol/source/TileWMS.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 import VectorSource from 'ol/source/Vector.js';
 import { createXYZ } from 'ol/tilegrid.js';
 import { tile } from 'ol/loadingstrategy.js';
-import { WMTSCapabilities } from 'ol/format.js';
-import WMTS, { optionsFromCapabilities } from 'ol/source/WMTS.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import WmtsSource from '@giro3d/giro3d/sources/WmtsSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 // NOTE: changing the imported name because we use the native `Map` object in this example.
@@ -51,31 +48,15 @@ instance.add(map);
 
 const noDataValue = -1000;
 
-function loadWmtsCapabilities(url) {
-    return fetch(url)
-        .then(async response => {
-            const data = await response.text();
-            const parser = new WMTSCapabilities();
-            const capabilities = parser.read(data);
-            return capabilities;
-        });
-}
+const capabilitiesUrl = 'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities';
 
-// We use OpenLayer's optionsFromCapabilities to parse the capabilities document
-// and create our WMTS source.
-loadWmtsCapabilities('https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities')
-    .then(capabilities => {
-        const elevationOptions = optionsFromCapabilities(capabilities, {
-            layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES.MNS',
-        });
-
-        const elevationWmts = new TiledImageSource({
-            extent,
-            source: new WMTS(elevationOptions),
-            format: new BilFormat(),
-            noDataValue,
-        });
-
+WmtsSource
+    .fromCapabilities(capabilitiesUrl, {
+        layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
+        format: new BilFormat(),
+        noDataValue,
+    })
+    .then(elevationWmts => {
         map.addLayer(new ElevationLayer({
             name: 'wmts_elevation',
             extent: map.extent,
@@ -84,24 +65,21 @@ loadWmtsCapabilities('https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQU
             },
             source: elevationWmts,
         }));
+    })
+    .catch(console.error);
 
-        const orthophotosOptions = optionsFromCapabilities(capabilities, {
-            layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
-        });
-
-        const orthophotoWmts = new TiledImageSource({
-            extent,
-            source: new WMTS(orthophotosOptions),
-            noDataValue,
-        });
-
+WmtsSource
+    .fromCapabilities(capabilitiesUrl, {
+        layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
+    })
+    .then(orthophotoWmts => {
         map.addLayer(new ColorLayer({
             name: 'wmts_orthophotos',
             extent: map.extent,
             source: orthophotoWmts,
         }));
     })
-    .catch(e => console.error(e));
+    .catch(console.error);
 
 const vectorSource = new VectorSource({
     format: new GeoJSON(),
