@@ -520,13 +520,15 @@ class Map
         });
 
         const tile = new TileMesh({
-            map: this,
+            geometryPool: this.geometryPool,
             material,
             extent,
             textureSize: this._imageSize,
             segments: this.segments,
             coord: { level, x, y },
         });
+
+        this.tileIndex.addTile(tile);
 
         tile.material.opacity = this.opacity;
 

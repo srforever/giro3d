@@ -1,9 +1,7 @@
 import Extent from '../../../src/core/geographic/Extent';
 import TileMesh from '../../../src/core/TileMesh';
-import Map from '../../../src/entities/Map';
 
 const extent = new Extent('EPSG:3857', 0, 1, 0, 1);
-const map = new Map('map', { extent });
 
 describe('TileMesh', () => {
     let defaultMaterial;
@@ -18,19 +16,6 @@ describe('TileMesh', () => {
         };
     });
 
-    describe('constructor', () => {
-        it('should register itself to the tile index', () => {
-            const mesh = new TileMesh({
-                map,
-                material: defaultMaterial,
-                extent,
-                segments: 8,
-                coord: { level: 3, x: 1, y: 2 },
-            });
-            expect(map.tileIndex.tiles.get('1,2,3').deref()).toEqual(mesh);
-        });
-    });
-
     describe('dispose', () => {
         it('should dispose the material but NOT the geometry', () => {
             const material = {
@@ -41,7 +26,7 @@ describe('TileMesh', () => {
                 },
             };
             const mesh = new TileMesh({
-                map,
+                geometryPool: new Map(),
                 material,
                 extent,
                 segments: 8,
