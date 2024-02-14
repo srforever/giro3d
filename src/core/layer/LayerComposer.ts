@@ -30,6 +30,10 @@ const tmpVec2 = new Vector2();
  * @param texture The texture to purge.
  */
 function onTextureUploaded(texture: Texture) {
+    // The texture is empty.
+    if (!texture.image) {
+        return;
+    }
     if ((texture as DataTexture).isDataTexture) {
         texture.image.data = null;
     } else if ((texture as CanvasTexture).isCanvasTexture) {
@@ -387,31 +391,35 @@ class LayerComposer {
 
         let actualTexture = texture;
 
-        if (this.computeMinMax && options.min == null && options.max == null) {
-            const { min, max } = processMinMax(actualTexture, {
-                interpretation: this.interpretation,
-                noDataValue: this.noDataValue,
-            });
-            options.min = min;
-            options.max = max;
-        }
+        // The texture might be an empty texture, appearing completely transparent.
+        // Since is has no data, it cannot be preprocessed.
+        if (texture.image) {
+            if (this.computeMinMax && options.min == null && options.max == null) {
+                const { min, max } = processMinMax(actualTexture, {
+                    interpretation: this.interpretation,
+                    noDataValue: this.noDataValue,
+                });
+                options.min = min;
+                options.max = max;
+            }
 
-        const expandRGB = TextureGenerator.shouldExpandRGB(
-            texture.format as PixelFormat,
-            this.pixelFormat,
-        );
+            const expandRGB = TextureGenerator.shouldExpandRGB(
+                texture.format as PixelFormat,
+                this.pixelFormat,
+            );
 
-        // If the image needs some preprocessing, let's do it now
-        if (expandRGB || options.flipY || !this.interpretation.isDefault()) {
-            actualTexture = this.preprocessImage(extent, texture, {
-                fillNoData: false,
-                flipY: options.flipY,
-                interpretation: this.interpretation,
-                fillNoDataAlphaReplacement: 0,
-                fillNoDataRadius: 0,
-                expandRGB,
-                outputType: this.textureDataType,
-            });
+            // If the image needs some preprocessing, let's do it now
+            if (expandRGB || options.flipY || !this.interpretation.isDefault()) {
+                actualTexture = this.preprocessImage(extent, texture, {
+                    fillNoData: false,
+                    flipY: options.flipY,
+                    interpretation: this.interpretation,
+                    fillNoDataAlphaReplacement: 0,
+                    fillNoDataRadius: 0,
+                    expandRGB,
+                    outputType: this.textureDataType,
+                });
+            }
         }
 
         let mesh;
