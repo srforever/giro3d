@@ -13,6 +13,7 @@ import {
 } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { TexturePass } from 'three/examples/jsm/postprocessing/TexturePass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import PointCloudRenderer from './PointCloudRenderer';
 import type RenderingOptions from './RenderingOptions';
 
@@ -86,6 +87,9 @@ export default class RenderPipeline {
             // After the buckets have been rendered into the render target,
             // the effect composer will render this render target to the canvas.
             this.effectComposer.addPass(new TexturePass(this.sceneRenderTarget.texture));
+
+            // Final pass to output to the canvas (including colorspace transformation).
+            this.effectComposer.addPass(new OutputPass());
         }
     }
 
