@@ -497,6 +497,12 @@ describe('Map', () => {
         });
     });
 
+    describe('Name of the group', () => {
+        it('should register the newly created TileMesh to the index', () => {
+            expect(map.tileIndex.tiles.get('0,0,0').deref()).toEqual(map.level0Nodes[0]);
+        });
+    });
+
     describe('sortColorLayers', () => {
         function mkColorLayer(key) {
             const layer = new ColorLayer({ name: `${key}`, source: nullSource });

@@ -15,20 +15,13 @@ import TileGeometry from './TileGeometry';
 import OBB from './OBB';
 import type RenderingState from '../renderer/RenderingState';
 import type ElevationLayer from './layer/ElevationLayer';
-import type TileIndex from './TileIndex';
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
 
-interface Owner {
-    id: string;
-    geometryPool: Map<string, TileGeometry>;
-    tileIndex: TileIndex;
-}
+type GeometryPool = Map<string, TileGeometry>;
 
-function makeGeometry(map: Owner, extent: Extent, segments: number, level: number) {
-    const pool = map.geometryPool;
-
+function makeGeometry(pool: GeometryPool, extent: Extent, segments: number, level: number) {
     const key = `${segments}-${level}`;
 
     const cached = pool.get(key);
@@ -38,9 +31,6 @@ function makeGeometry(map: Owner, extent: Extent, segments: number, level: numbe
 
     const dimensions = extent.dimensions();
     const geometry = new TileGeometry({ dimensions, segments });
-    if (MemoryTracker.enable) {
-        MemoryTracker.track(geometry, `TileGeometry (map=${map.id}, segments=${segments}, level=${level})`);
-    }
     pool.set(key, geometry);
     return geometry;
 }
@@ -50,17 +40,18 @@ export interface TileMeshEventMap extends Object3DEventMap {
 }
 
 class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
-    layer: any;
+    private readonly _pool: GeometryPool;
     private _segments: number;
+    readonly type: string = 'TileMesh';
     readonly isTileMesh: boolean = true;
     private _minmax: { min: number; max: number; };
-    extent: Extent;
-    textureSize: Vector2;
+    readonly extent: Extent;
+    readonly textureSize: Vector2;
     private readonly _obb: OBB;
-    level: number;
-    x: number;
-    y: number;
-    z: number;
+    readonly level: number;
+    readonly x: number;
+    readonly y: number;
+    readonly z: number;
     disposed: boolean;
     private _enableTerrainDeformation: boolean;
 
@@ -68,7 +59,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
      * Creates an instance of TileMesh.
      *
      * @param options Constructor options.
-     * @param options.map The Map that owns this tile.
+     * @param options.geometryPool The geometry pool to use.
      * @param options.material The tile material.
      * @param options.extent The tile extent.
      * @param options.segments The subdivisions.
@@ -79,25 +70,24 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
      * @param options.textureSize The texture size.
      */
     constructor({
-        map,
+        geometryPool,
         material,
         extent,
         segments,
         coord: { level, x = 0, y = 0 },
         textureSize,
     }: {
-        map: Owner;
+        geometryPool: GeometryPool;
         material: LayeredMaterial;
         extent: Extent;
         segments: number;
         coord: { level: number; x: number; y: number; };
         textureSize: Vector2;
     }) {
-        super(makeGeometry(map, extent, segments, level), material);
+        super(makeGeometry(geometryPool, extent, segments, level), material);
 
-        this.layer = map;
+        this._pool = geometryPool;
         this._segments = segments;
-        this.isTileMesh = true;
 
         this.matrixAutoUpdate = false;
 
@@ -125,7 +115,6 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
         this.x = x;
         this.y = y;
         this.z = level;
-        map.tileIndex.addTile(this);
 
         MemoryTracker.track(this, this.name);
     }
@@ -137,7 +126,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
     set segments(v) {
         if (this._segments !== v) {
             this._segments = v;
-            this.geometry = makeGeometry(this.layer, this.extent, this._segments, this.level);
+            this.geometry = makeGeometry(this._pool, this.extent, this._segments, this.level);
             this.material.segments = v;
         }
     }
@@ -295,6 +284,17 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
         this._minmax = { min, max };
     }
 
+    /**
+     * Removes the child tiles and returns the detached tiles.
+     */
+    detachChildren(): TileMesh[] {
+        // eslint-disable-next-line @typescript-eslint/no-use-before-define
+        const childTiles = this.children.filter(c => isTileMesh(c)) as TileMesh[];
+        childTiles.forEach(c => c.dispose());
+        this.remove(...childTiles);
+        return childTiles;
+    }
+
     private updateOBB(min: number, max: number) {
         const obb = this._obb;
         if (Math.floor(min) !== Math.floor(obb.z.min)
@@ -381,4 +381,9 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> {
         this.geometry = null;
     }
 }
+
+export function isTileMesh(o: unknown): o is TileMesh {
+    return (o as TileMesh).isTileMesh;
+}
+
 export default TileMesh;

@@ -47,15 +47,6 @@ export type EntityEventPayload = {
  */
 export interface InstanceEvents {
     /**
-     * Fires when all the layers of the instance are considered initialized.
-     * Initialized in this context means: all layers are ready to be
-     * displayed (no pending network access, no visual improvement to be
-     * expected, ...).
-     * If you add new layers, the event will be fired again when all
-     * layers are ready.
-     */
-    'layers-initialized': {},
-    /**
      * Fires when an entity is added to the instance.
      */
     'entity-added': {},
@@ -106,7 +97,6 @@ export interface InstanceEvents {
  * @deprecated Use InstanceEvents instead.
  */
 export const INSTANCE_EVENTS: Record<string, keyof InstanceEvents> = {
-    LAYERS_INITIALIZED: 'layers-initialized',
     ENTITY_ADDED: 'entity-added',
     ENTITY_REMOVED: 'entity-removed',
 } as const;

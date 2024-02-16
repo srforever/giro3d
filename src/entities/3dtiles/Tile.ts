@@ -25,12 +25,6 @@ class Tile extends Object3D {
     readonly isTile: boolean = true;
     /** Parent tile */
     parent: Tile;
-    /**
-     * Parent entity
-     *
-     * @deprecated
-     */
-    layer: Tiles3D;
     geometricError: number;
     tileId: number;
     additiveRefinement: boolean;
@@ -49,7 +43,6 @@ class Tile extends Object3D {
         super();
         this.name = '3D tile';
         this.frustumCulled = false;
-        this.layer = entity;
 
         entity.onObjectCreated(this);
 
@@ -75,7 +68,7 @@ class Tile extends Object3D {
 
     getChildTiles(): Tile[] {
         // only keep children that have the same layer and a valid tileId
-        return this.children.filter(n => n.layer === this.layer && n.tileId);
+        return this.children.filter(n => n.isTile && n.tileId);
     }
 
     computeNodeSSE(camera: Camera): number {

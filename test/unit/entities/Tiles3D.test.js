@@ -144,15 +144,15 @@ describe('Tiles3D', () => {
 
     describe('getObjectToUpdateForAttachedLayers', () => {
         it('should correctly return all children', () => {
-            const layer = { };
+            const parentEntity = { };
             const tile = {
                 content: new Group(),
-                layer,
+                userData: { parentEntity },
             };
 
             for (let i = 0; i < 3; i++) {
                 const mesh = new Mesh();
-                mesh.layer = layer;
+                mesh.userData.parentEntity = parentEntity;
                 tile.content.add(mesh);
             }
 

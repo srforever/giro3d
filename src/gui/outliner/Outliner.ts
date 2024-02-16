@@ -1,6 +1,11 @@
 // eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
-import type { Object3D } from 'three';
+import type {
+    BufferGeometry,
+    Material,
+    Mesh,
+    Object3D,
+} from 'three';
 import { Color } from 'three';
 import type Instance from '../../core/Instance';
 import type { BoundingBoxHelper } from '../../helpers/Helpers';
@@ -27,6 +32,7 @@ interface Filter {
 function selectColor(obj: OutlinedObject3D): { back: string, fore: string } {
     switch (obj.type) {
         case 'Mesh':
+        case 'TileMesh':
             return { back: 'orange', fore: 'black' };
         case 'Points':
             return { back: 'red', fore: 'white' };
@@ -41,6 +47,22 @@ function selectColor(obj: OutlinedObject3D): { back: string, fore: string } {
     }
 }
 
+function isMesh(obj: Object3D): obj is Mesh {
+    return (obj as Mesh).isMesh;
+}
+
+function hasSingleMaterial(mesh: Mesh): mesh is Mesh<BufferGeometry, Material> {
+    return !Array.isArray(mesh.material);
+}
+
+function getMaterialVisibility(obj: Object3D): boolean {
+    if (isMesh(obj) && hasSingleMaterial(obj)) {
+        return obj.material.visible;
+    }
+
+    return true;
+}
+
 function createTreeViewNode(obj: OutlinedObject3D, marginLeft: number, clickHandler: ClickHandler) {
     const div = document.createElement('button');
     div.style.textAlign = 'left';
@@ -51,8 +73,9 @@ function createTreeViewNode(obj: OutlinedObject3D, marginLeft: number, clickHand
     name.style.marginTop = '0px';
     name.style.marginBottom = '0px';
     name.style.background = 'transparent';
+    const textColor = getMaterialVisibility(obj) ? 'white' : 'rgba(222, 208, 105, 0.59)';
     const { fore, back } = selectColor(obj);
-    name.innerHTML = `<span style="border-radius: 6px; padding: 2px; font-family: monospace; background-color: ${back}; color: ${fore}">${obj.type}</span> <span style="font-family: monospace;">${obj.name}</span>`;
+    name.innerHTML = `<span style="border-radius: 6px; padding: 2px; font-family: monospace; background-color: ${back}; color: ${fore}">${obj.type}</span> <span style="font-family: monospace; color: ${textColor}";>${obj.name}</span>`;
 
     div.appendChild(name);
 
