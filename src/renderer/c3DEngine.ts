@@ -180,7 +180,6 @@ class C3DEngine {
         if (options.alpha === undefined) {
             options.alpha = true;
         }
-        ColorManagement.enabled = options.colorManagement ?? false;
         if (options.logarithmicDepthBuffer === undefined) {
             options.logarithmicDepthBuffer = false;
         }
@@ -212,6 +211,7 @@ class C3DEngine {
             // Necessary to enable clipping planes per-entity or per-object, rather
             // than per-renderer (global) clipping planes.
             this.renderer.localClippingEnabled = true;
+            ColorManagement.enabled = options.colorManagement ?? true;
         } catch (ex) {
             console.error('Failed to create WebGLRenderer', ex);
             this.renderer = null;
