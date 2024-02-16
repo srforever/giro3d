@@ -47,6 +47,7 @@ describe('LayeredMaterial', () => {
             const mat = new LayeredMaterial({
                 renderer: defaultRenderer,
                 atlasInfo: defaultAtlasInfo,
+                textureDataType: UnsignedByteType,
             });
             expect(mat.defines.ENABLE_ELEVATION_RANGE).not.toBeDefined();
 

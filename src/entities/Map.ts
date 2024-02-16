@@ -7,6 +7,8 @@ import {
     MathUtils,
     type Camera as ThreeCamera,
     type Object3D,
+    type TextureDataType,
+    UnsignedByteType,
 } from 'three';
 
 import type Extent from '../core/geographic/Extent';
@@ -39,6 +41,7 @@ import type PickableFeatures from '../core/picking/PickableFeatures';
 import { isPickableFeatures } from '../core/picking/PickableFeatures';
 import type { ColorMap } from '../core/layer';
 import type HasLayers from '../core/layer/HasLayers';
+import TextureGenerator from '../utils/TextureGenerator';
 
 const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
 
@@ -189,6 +192,26 @@ function computeImageSize(extent: Extent) {
     return new Vector2(baseSize, Math.round(baseSize * actualRatio));
 }
 
+function getWidestDataType(layers: Layer[]): TextureDataType {
+    // Select the type that can contain all the layers (i.e the widest data type.)
+    let currentSize = -1;
+    let result: TextureDataType = UnsignedByteType;
+
+    for (let i = 0; i < layers.length; i++) {
+        const layer = layers[i];
+
+        const type = layer.getRenderTargetDataType();
+        const size = TextureGenerator.getBytesPerChannel(type);
+
+        if (size > currentSize) {
+            currentSize = size;
+            result = type;
+        }
+    }
+
+    return result;
+}
+
 export interface MapEventMap extends Entity3DEventMap {
     'layer-order-changed': {};
     'layer-added': { layer: Layer; };
@@ -209,6 +232,7 @@ class Map
     private _segments: number;
     private readonly _atlasInfo: AtlasInfo;
     private _subdivisions: { x: number; y: number; };
+    private _colorAtlasDataType: TextureDataType = UnsignedByteType;
     private _imageSize: Vector2;
     private readonly _layers: Layer[] = [];
     /** @ignore */
@@ -477,6 +501,7 @@ class Map
             atlasInfo: this._atlasInfo,
             options: this.materialOptions,
             getIndexFn: this.getIndex.bind(this),
+            textureDataType: this._colorAtlasDataType,
         });
 
         const tile = new TileMesh({
@@ -861,6 +886,8 @@ class Map
         this._atlasInfo.atlas = atlas;
         this._atlasInfo.maxX = Math.max(this._atlasInfo.maxX, maxX);
         this._atlasInfo.maxY = Math.max(this._atlasInfo.maxY, maxY);
+
+        this._colorAtlasDataType = getWidestDataType(this.getColorLayers());
     }
 
     private updateGlobalMinMax() {

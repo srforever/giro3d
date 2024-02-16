@@ -208,17 +208,20 @@ class LayeredMaterial extends ShaderMaterial {
      * @param param0.renderer the WebGL renderer.
      * @param param0.atlasInfo the Atlas info.
      * @param param0.getIndexFn The function to help sorting color layers.
+     * @param param0.textureDataType The texture data type to be used for the atlas texture.
      */
     constructor({
         options = {},
         renderer,
         atlasInfo,
         getIndexFn,
+        textureDataType,
     }: {
         options: MaterialOptions;
         renderer: WebGLRenderer;
         atlasInfo: AtlasInfo;
         getIndexFn: (arg0: Layer) => number;
+        textureDataType: TextureDataType;
     }) {
         super({ clipping: true, glslVersion: GLSL3 });
 
@@ -227,6 +230,7 @@ class LayeredMaterial extends ShaderMaterial {
         this.defines.ENABLE_CONTOUR_LINES = 1;
         this._renderer = renderer;
 
+        this._composerDataType = textureDataType;
         this.uniforms.zenith = new Uniform(DEFAULT_ZENITH);
         this.uniforms.azimuth = new Uniform(DEFAULT_AZIMUTH);
         this.uniforms.hillshadingIntensity = new Uniform(0.5);
@@ -327,7 +331,7 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     private _updateColorLayerUniforms() {
-        this._sortLayersIfNecessary();
+        this.sortLayersIfNecessary();
 
         if (this._mustUpdateUniforms) {
             const layersUniform = [];
@@ -447,6 +451,14 @@ class LayeredMaterial extends ShaderMaterial {
         const { pitch, texture } = textureAndPitch;
         this.texturesInfo.color.infos[index].originalOffsetScale.copy(pitch);
         this.texturesInfo.color.infos[index].texture = texture;
+
+        const currentSize = TextureGenerator.getBytesPerChannel(this._composerDataType);
+        const textureSize = TextureGenerator.getBytesPerChannel(texture.type);
+        if (textureSize > currentSize) {
+            // The new layer uses a bigger data type, we need to recreate the atlas
+            this._composerDataType = texture.type;
+        }
+
         this._needsAtlasRepaint = true;
     }
 
@@ -511,8 +523,6 @@ class LayeredMaterial extends ShaderMaterial {
 
         const info = new TextureInfo(newLayer);
 
-        this._composerDataType = this.selectComposerTextureDataType();
-
         if (newLayer.type === 'MaskLayer') {
             MaterialUtils.setDefine(this, 'ENABLE_LAYER_MASKS', true);
         }
@@ -546,7 +556,7 @@ class LayeredMaterial extends ShaderMaterial {
         this._needsSorting = true;
     }
 
-    _sortLayersIfNecessary() {
+    private sortLayersIfNecessary() {
         const idx = this._getIndexFn;
         if (this._needsSorting) {
             this._colorLayers.sort((a, b) => idx(a) - idx(b));
@@ -604,7 +614,7 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     _updateColorMaps() {
-        this._sortLayersIfNecessary();
+        this.sortLayersIfNecessary();
 
         const atlas = this._colorMapAtlas;
 
@@ -707,26 +717,6 @@ class LayeredMaterial extends ShaderMaterial {
             return true;
         }
         return this.rebuildAtlasIfNecessary();
-    }
-
-    private selectComposerTextureDataType(): TextureDataType {
-        // Select the type that can contain all the layers
-        let bpp = -1;
-        let result: TextureDataType = UnsignedByteType;
-
-        for (let i = 0; i < this._colorLayers.length; i++) {
-            const layer = this._colorLayers[i];
-
-            const type = layer.getRenderTargetDataType();
-            const layerBpp = TextureGenerator.getBytesPerChannel(type);
-
-            if (layerBpp > bpp) {
-                bpp = layerBpp;
-                result = type;
-            }
-        }
-
-        return result;
     }
 
     createComposer() {
