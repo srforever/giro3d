@@ -282,11 +282,12 @@ vec4 decodeInterpretation(vec4 raw, Interpretation interpretation) {
         float min = interpretation.min;
         float max = interpretation.max;
         float scale = 1.0 / (max - min);
-        result = vec4(
+        vec3 srgb = vec3(
             (raw.r - min) * scale,
             (raw.g - min) * scale,
-            (raw.b - min) * scale,
-            raw.a);
+            (raw.b - min) * scale);
+
+        result = sRGBToLinear(vec4(srgb, raw.a));
     }
 
     if (interpretation.negateValues) {
