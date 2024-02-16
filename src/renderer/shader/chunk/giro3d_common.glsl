@@ -20,6 +20,17 @@ struct NoDataOptions {
     bool        enabled;
 };
 
+float linearTransfer(float v) {
+    return (v < 0.04045) ? v * 0.0773993808 : pow(v * 0.9478672986 + 0.0521327014, 2.4);
+}
+
+vec4 sRGBToLinear( in vec4 srgb ) {
+    float r = linearTransfer(srgb.r);
+    float g = linearTransfer(srgb.g);
+    float b = linearTransfer(srgb.b);
+    return vec4(r, g, b, srgb.a);
+}
+
 float getElevationAlpha(vec4 c) {
     // Elevation textures are in the RG Format, so the transparency/no-data
     // information is actually in the green channel rather than the alpha channel.
