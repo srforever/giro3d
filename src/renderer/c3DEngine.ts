@@ -16,7 +16,6 @@ import {
     WebGLRenderTarget,
     RGBAFormat,
     UnsignedByteType,
-    ColorManagement,
 } from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Capabilities from '../core/system/Capabilities';
@@ -141,13 +140,6 @@ export interface RendererOptions {
      */
     checkShaderErrors?: boolean;
     /**
-     * Enables color management.
-     * Not used if renderer is provided.
-     *
-     * @default false
-     */
-    colorManagement?: boolean;
-    /**
      * The background color.
      * Can be a hex color or `false` for transparent backgrounds (requires alpha true).
      */
@@ -211,7 +203,6 @@ class C3DEngine {
             // Necessary to enable clipping planes per-entity or per-object, rather
             // than per-renderer (global) clipping planes.
             this.renderer.localClippingEnabled = true;
-            ColorManagement.enabled = options.colorManagement ?? true;
         } catch (ex) {
             console.error('Failed to create WebGLRenderer', ex);
             this.renderer = null;
