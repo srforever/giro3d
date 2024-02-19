@@ -1,6 +1,7 @@
 import { type Camera, EventDispatcher } from 'three';
 import type Context from '../core/Context';
 import { type ObjectToUpdate } from '../core/MainLoop';
+import type Disposable from '../core/Disposable';
 
 /* eslint no-unused-vars: 0 */
 /* eslint class-methods-use-this: 0 */
@@ -48,7 +49,8 @@ export interface EntityEventMap {
  *     instance.add(entity);
  */
 class Entity<TEventMap extends EntityEventMap = EntityEventMap>
-    extends EventDispatcher<TEventMap & EntityEventMap> {
+    extends EventDispatcher<TEventMap & EntityEventMap>
+    implements Disposable {
     private readonly _id: string;
     private _frozen: boolean;
     public whenReady?: Promise<this>;
@@ -296,6 +298,10 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
      *
      */
     dispose() {}
+}
+
+export function isEntity(o: unknown): o is Entity {
+    return (o as Entity).isEntity;
 }
 
 export default Entity;

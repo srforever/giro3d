@@ -6,10 +6,10 @@ import { register } from 'ol/proj/proj4.js';
 import Camera, { type CameraOptions } from '../renderer/Camera';
 import C3DEngine, { type RendererOptions } from '../renderer/c3DEngine';
 import type RenderingOptions from '../renderer/RenderingOptions';
-import ObjectRemovalHelper from '../utils/ObjectRemovalHelper';
 import MainLoop from './MainLoop';
-import Entity from '../entities/Entity';
-import Entity3D from '../entities/Entity3D';
+import type Entity from '../entities/Entity';
+import { isEntity } from '../entities/Entity';
+import Entity3D, { isEntity3D } from '../entities/Entity3D';
 import Map from '../entities/Map';
 import type PickOptions from './picking/PickOptions';
 import type PickResult from './picking/PickResult';
@@ -17,6 +17,7 @@ import type Progress from './Progress';
 import pickObjectsAt from './picking/PickObjectsAt';
 import { isPickable } from './picking/Pickable';
 import { isPickableFeatures } from './picking/PickableFeatures';
+import { isDisposable } from './Disposable';
 
 const vectors = {
     pos: new Vector3(),
@@ -162,6 +163,10 @@ interface ControlFunctions {
     eventListener: () => void;
 }
 
+function isObject3D(o: unknown): o is Object3D {
+    return (o as Object3D).isObject3D;
+}
+
 /**
  * The instance is the core component of Giro3D. It encapsulates the 3D scene,
  * the current camera and one or more {@link entities.Entity | entities},
@@ -190,7 +195,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private readonly _scene: Scene;
     private readonly _threeObjects: Group;
     private readonly _camera: Camera;
-    private readonly _objects: Entity[];
+    private readonly _entities: Set<Entity>;
     private readonly _resizeObserver?: ResizeObserver;
     private _resizeTimeout?: string | number | NodeJS.Timeout;
     public readonly isDebugMode: boolean;
@@ -269,7 +274,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             options,
         );
 
-        this._objects = [];
+        this._entities = new Set();
 
         if (window.ResizeObserver) {
             this._resizeObserver = new ResizeObserver(() => {
@@ -305,7 +310,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
 
     /** Gets whether at least one entity is currently loading data. */
     get loading(): boolean {
-        const entities = this.getObjects(o => o instanceof Entity) as Entity[];
+        const entities = this.getEntities();
         return entities.some(e => e.loading);
     }
 
@@ -316,7 +321,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * Note: if no entity is present in the instance, this will always return 1.
      */
     get progress(): number {
-        const entities = this.getObjects(o => o instanceof Entity) as Entity[];
+        const entities = this.getEntities();
         if (entities.length === 0) {
             return 1;
         }
@@ -462,23 +467,15 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         // We know it's an Entity
         const entity = object as Entity;
 
-        const duplicate = this.getObjects((l => l.id === object.id));
+        const duplicate = this.getObjects(l => l.id === object.id);
         if (duplicate.length > 0) {
             throw new Error(`Invalid id '${object.id}': id already used`);
         }
 
         entity.startPreprocess();
 
-        this._objects.push(entity);
+        this._entities.add(entity);
         await entity.whenReady;
-
-        // TODO remove object from this._objects maybe ?
-        if (typeof (entity.update) !== 'function') {
-            throw new Error('Cant add Entity: missing a update function');
-        }
-        if (typeof (entity.preUpdate) !== 'function') {
-            throw new Error('Cant add Entity: missing a preUpdate function');
-        }
 
         if (entity instanceof Entity3D
             && entity.object3d
@@ -499,24 +496,25 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * @param object the object to remove.
      */
     remove(object: Object3D | Entity): void {
-        if ((object as Object3D).isObject3D) {
-            this._threeObjects.remove(object as Object3D);
-        } else if ((object as Entity3D).object3d) {
-            const obj3d = (object as Entity3D).object3d;
-            ObjectRemovalHelper.removeChildrenAndCleanupRecursively(object as Entity, obj3d);
-            this._scene.remove(obj3d);
-        }
-        if (typeof (object as any).dispose === 'function') {
-            (object as any).dispose();
-        }
-        if (object instanceof Entity) {
-            const idx = this._objects.indexOf(object);
-            if (idx >= 0) {
-                this._objects.splice(idx, 1);
+        if (isEntity(object)) {
+            object.dispose();
+
+            if (isEntity3D(object)) {
+                this._scene.remove(object.object3d);
             }
+
+            this._entities.delete(object);
+
+            this.dispatchEvent({ type: 'entity-removed' });
+        } else if (isObject3D(object)) {
+            if (isDisposable(object)) {
+                object.dispose();
+            }
+
+            this._threeObjects.remove(object);
         }
+
         this.notifyChange(this._camera.camera3D, true);
-        this.dispatchEvent({ type: 'entity-removed' });
     }
 
     /**
@@ -563,20 +561,20 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     }
 
     /**
-     * Get all objects, with an optional filter applied.
-     * The filter method allows to get only a subset of objects
+     * Get all top-level objects (entities and regular THREE objects), using an optional filter
+     * predicate.
      *
      * @example
      * // get all objects
-     * instance.getObjects();
-     * // get one layer with id
-     * instance.getObjects(obj => obj.id === 'itt');
-     * @param filter the optional query filter
+     * const allObjects = instance.getObjects();
+     * // get all object whose name includes 'foo'
+     * const fooObjects = instance.getObjects(obj => obj.name === 'foo');
+     * @param filter the optional filter predicate.
      * @returns an array containing the queried objects
      */
     getObjects(filter?: (obj: Object3D | Entity) => boolean): (Object3D | Entity)[] {
         const result = [];
-        for (const obj of this._objects) {
+        for (const obj of this._entities) {
             if (!filter || filter(obj)) {
                 result.push(obj);
             }
@@ -586,6 +584,30 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
                 result.push(obj);
             }
         }
+        return result;
+    }
+
+    /**
+     * Get all entities, with an optional predicate applied.
+     *
+     * @example
+     * // get all entities
+     * const allEntities = instance.getEntities();
+     *
+     * // get all entities whose name contains 'building'
+     * const buildings = instance.getEntities(entity => entity.name.includes('building'));
+     * @param filter the optional filter predicate
+     * @returns an array containing the queried entities
+     */
+    getEntities(filter?: (obj: Entity) => boolean): Entity[] {
+        const result = [];
+
+        for (const obj of this._entities) {
+            if (!filter || filter(obj)) {
+                result.push(obj);
+            }
+        }
+
         return result;
     }
 

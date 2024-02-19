@@ -9,6 +9,7 @@ import {
 import PointsMaterial from '../renderer/PointsMaterial';
 import type Entity3D from '../entities/Entity3D.js';
 import type Extent from './geographic/Extent.js';
+import type Disposable from './Disposable';
 
 export interface PointCloudEventMap extends Object3DEventMap {
     'dispose': { };
@@ -30,7 +31,7 @@ export interface PointCloudOptions {
  * A point cloud object with geospatial properties.
  *
  */
-class PointCloud extends Points implements EventDispatcher<PointCloudEventMap> {
+class PointCloud extends Points implements EventDispatcher<PointCloudEventMap>, Disposable {
     readonly isPointCloud: boolean = true;
     private _layer: Entity3D;
     extent?: Extent;

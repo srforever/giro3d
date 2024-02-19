@@ -33,12 +33,14 @@ import {
     type FeatureStyleCallback,
     type FeatureExtrusionOffsetCallback,
 } from './FeatureTypes';
+import type Disposable from './Disposable';
 
 export {
     geographic,
     layer,
     cache,
     picking,
+    Disposable,
     Instance,
     InstanceOptions,
     InstanceEvents,
