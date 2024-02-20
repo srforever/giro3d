@@ -11,6 +11,7 @@ import TextureGenerator, {
     TRANSPARENT,
     DEFAULT_NODATA,
 } from 'src/utils/TextureGenerator';
+import Interpretation from 'src/core/layer/Interpretation';
 
 describe('TextureGenerator', () => {
     describe('createDataTexture', () => {
@@ -312,17 +313,28 @@ describe('TextureGenerator', () => {
         });
     });
 
-    describe('computeMinMax', () => {
+    describe('computeMinMaxFromBuffer', () => {
+        it('should honor 2-channel textures', () => {
+            const ALPHA_ZERO = 0;
+            const ALPHA_ONE = 1;
+            const buf = [999, ALPHA_ZERO, -100, ALPHA_ONE, +100, ALPHA_ONE, -999, ALPHA_ZERO];
+            const channelCount = 2;
+            const minmax = TextureGenerator
+                .computeMinMaxFromBuffer(buf, 0, Interpretation.Raw, channelCount);
+            expect(minmax.min).toEqual(-100);
+            expect(minmax.max).toEqual(+100);
+        });
+
         it('should only use the first channel of each pixel', () => {
             const buf = [1, 999, 999, 999, 2, 999, 999, 999];
-            const minmax = TextureGenerator.computeMinMax(buf);
+            const minmax = TextureGenerator.computeMinMaxFromBuffer(buf);
             expect(minmax.min).toEqual(1);
             expect(minmax.max).toEqual(2);
         });
 
         it('should ignore NaN', () => {
             const buf = [1, 0, 0, 1, 3, 0, 0, 1, NaN, 0, 0, 1];
-            const minmax = TextureGenerator.computeMinMax(buf);
+            const minmax = TextureGenerator.computeMinMaxFromBuffer(buf);
             expect(minmax.min).toEqual(1);
             expect(minmax.max).toEqual(3);
         });
@@ -330,7 +342,7 @@ describe('TextureGenerator', () => {
         it('should ignore no-data', () => {
             const nodata = 32032.2323;
             const buf = [1, 0, 0, 1, 3, 0, 0, 1, nodata, 0, 0, 1];
-            const minmax = TextureGenerator.computeMinMax(buf, nodata);
+            const minmax = TextureGenerator.computeMinMaxFromBuffer(buf, nodata);
             expect(minmax.min).toEqual(1);
             expect(minmax.max).toEqual(3);
         });

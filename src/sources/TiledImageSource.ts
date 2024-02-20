@@ -123,7 +123,7 @@ export default class TiledImageSource extends ImageSource {
      * @param width The width in pixel of the target extent.
      * @returns The ideal zoom level for this particular extent.
      */
-    getZoomLevel(extent: Extent, width: number): number {
+    private getZoomLevel(extent: Extent, width: number): number {
         const minZoom = this._tileGrid.getMinZoom();
         const maxZoom = this._tileGrid.getMaxZoom();
 
@@ -173,13 +173,11 @@ export default class TiledImageSource extends ImageSource {
             throw new Error('invalid CRS');
         }
 
-        /** @type {TileGrid} */
-        const tileGrid: TileGrid = this._tileGrid;
         const zoomLevel = this.getZoomLevel(extent, width);
         if (zoomLevel == null) {
             return [];
         }
-        const tileRange = tileGrid.getTileRangeForExtentAndZ(
+        const tileRange = this._tileGrid.getTileRangeForExtentAndZ(
             OpenLayersUtils.toOLExtent(extent),
             zoomLevel,
         );
@@ -195,7 +193,7 @@ export default class TiledImageSource extends ImageSource {
     }
 
     // eslint-disable-next-line class-methods-use-this
-    async fetchData(url: string) {
+    private async fetchData(url: string) {
         try {
             const response = await Fetcher.fetch(url);
 
@@ -226,7 +224,7 @@ export default class TiledImageSource extends ImageSource {
      * @param createDataTexture Create readable textures.
      * @returns The tile texture, or null if there is no data.
      */
-    async loadTile(id: string, url: string, extent: Extent, createDataTexture: boolean) {
+    private async loadTile(id: string, url: string, extent: Extent, createDataTexture: boolean) {
         const blob = await this.fetchData(url);
 
         if (!blob) {
@@ -269,7 +267,7 @@ export default class TiledImageSource extends ImageSource {
      * @param {Extent} extent The extent to test.
      * @returns {boolean} True if the tile must be processed, false otherwise.
      */
-    shouldLoad(extent: Extent): boolean {
+    private shouldLoad(extent: Extent): boolean {
         // Use the custom contain function if applicable
         if (this.containsFn) {
             return this.containsFn(extent);
@@ -288,7 +286,7 @@ export default class TiledImageSource extends ImageSource {
      * @param zoom The zoom level.
      * @param createDataTexture Creates readable textures.
      */
-    loadTiles(tileRange: TileRange, crs: string, zoom: number, createDataTexture: boolean) {
+    private loadTiles(tileRange: TileRange, crs: string, zoom: number, createDataTexture: boolean) {
         const source = this.source;
         const tileGrid = this._tileGrid;
 
