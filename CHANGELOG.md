@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.33.1 (2024-02-20)
+
+Hotfix release for 0.33.
+
+### Fix
+
+- **TextureGenerator**: honors RGFormat in computeMinMax() (#399)
+- **LayerComposer**: handle empty textures (#388)
+- **LayeredMaterial**: use the Map's texture data type (#398)
+
+### Refactor
+
+- **TiledImageSource**: encapsulate private methods
+
 ## 0.33.0 (2024-01-30)
 
 Quality of Life improvements, with most of the codebase migrated to TypeScript.
