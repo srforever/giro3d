@@ -933,6 +933,8 @@ class Map
 
         this._layers.push(layer);
 
+        await layer.initialize({ instance: this._instance });
+
         if (layer instanceof ColorLayer) {
             this.registerColorLayer(layer);
         } else if (layer instanceof ElevationLayer) {
@@ -942,8 +944,6 @@ class Map
         if (layer.colorMap) {
             this.registerColorMap(layer.colorMap);
         }
-
-        await layer.initialize({ instance: this._instance });
 
         this.reorderLayers();
 

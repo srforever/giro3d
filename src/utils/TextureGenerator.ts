@@ -34,6 +34,7 @@ import {
     type WebGLRenderer,
     type Color,
     type PixelFormat,
+    type CanvasTexture,
 } from 'three';
 import Interpretation, { Mode } from '../core/layer/Interpretation';
 
@@ -53,6 +54,14 @@ export type NumberArray =
     | Int32Array
     | Float32Array
     | Float64Array;
+
+function isDataTexture(texture: Texture): texture is DataTexture {
+    return (texture as DataTexture).isDataTexture;
+}
+
+function isCanvasTexture(texture: Texture): texture is CanvasTexture {
+    return (texture as CanvasTexture).isCanvasTexture;
+}
 
 /**
  * Returns the number of bytes per channel.
@@ -458,18 +467,20 @@ function create1DTexture(colors: Color[]): DataTexture {
 }
 
 /**
- * Computes the minimum and maximum value of the RGBA buffer, but only taking into account the first
+ * Computes the minimum and maximum value of the buffer, but only taking into account the first
  * channel (R channel). This is typically used for elevation data.
  *
- * @param rgba The RGBA buffer.
+ * @param buffer The pixel buffer. May be an RGBA or an RG buffer.
  * @param nodata The no-data value. Pixels with this value will be ignored.
  * @param interpretation The image interpretation.
+ * @param channelCount The channel count of the buffer
  * @returns The computed min/max.
  */
-function computeMinMax(
-    rgba: NumberArray,
+function computeMinMaxFromBuffer(
+    buffer: NumberArray,
     nodata?: number,
     interpretation: Interpretation = Interpretation.Raw,
+    channelCount = 4,
 ): { min: number; max: number; } {
     let min = Infinity;
     let max = -Infinity;
@@ -477,13 +488,13 @@ function computeMinMax(
     const RED_CHANNEL = 0;
     const GREEN_CHANNEL = 1;
     const BLUE_CHANNEL = 2;
-    const ALPHA_CHANNEL = 3;
+    const alphaChannel = channelCount - 1;
 
     switch (interpretation.mode) {
         case Mode.Raw:
-            for (let i = 0; i < rgba.length; i += 4) {
-                const value = rgba[i + RED_CHANNEL];
-                const alpha = rgba[i + ALPHA_CHANNEL];
+            for (let i = 0; i < buffer.length; i += channelCount) {
+                const value = buffer[i + RED_CHANNEL];
+                const alpha = buffer[i + alphaChannel];
                 if (!(value !== value) && value !== nodata && alpha !== 0) {
                     min = Math.min(min, value);
                     max = Math.max(max, value);
@@ -496,10 +507,10 @@ function computeMinMax(
                 const upper = interpretation.max;
                 const scale = upper - lower;
 
-                for (let i = 0; i < rgba.length; i += 4) {
-                    const value = rgba[i + RED_CHANNEL] / 255;
+                for (let i = 0; i < buffer.length; i += channelCount) {
+                    const value = buffer[i + RED_CHANNEL] / 255;
                     const r = lower + value * scale;
-                    const alpha = rgba[i + ALPHA_CHANNEL];
+                    const alpha = buffer[i + alphaChannel];
 
                     if (!(r !== r) && r !== nodata && alpha !== 0) {
                         min = Math.min(min, r);
@@ -509,11 +520,11 @@ function computeMinMax(
             }
             break;
         case Mode.MapboxTerrainRGB:
-            for (let i = 0; i < rgba.length; i += 4) {
-                const r = rgba[i + RED_CHANNEL];
-                const g = rgba[i + GREEN_CHANNEL];
-                const b = rgba[i + BLUE_CHANNEL];
-                const alpha = rgba[i + ALPHA_CHANNEL];
+            for (let i = 0; i < buffer.length; i += 4) {
+                const r = buffer[i + RED_CHANNEL];
+                const g = buffer[i + GREEN_CHANNEL];
+                const b = buffer[i + BLUE_CHANNEL];
+                const alpha = buffer[i + alphaChannel];
 
                 const value = -10000.0 + (r * 256.0 * 256.0 + g * 256.0 + b) * 0.1;
 
@@ -564,7 +575,28 @@ function computeMinMaxFromImage(
 ): { min: number; max: number; } {
     const buf = getPixels(image);
 
-    return computeMinMax(buf, 0, interpretation);
+    return computeMinMaxFromBuffer(buf, 0, interpretation);
+}
+
+function computeMinMax(
+    texture: Texture,
+    noDataValue = 0,
+    interpretation = Interpretation.Raw,
+): { min: number; max: number } | null {
+    if (isDataTexture(texture)) {
+        const channelCount = getChannelCount(texture.format);
+        return computeMinMaxFromBuffer(
+            texture.image.data,
+            noDataValue,
+            interpretation,
+            channelCount,
+        );
+    }
+    if (isCanvasTexture(texture)) {
+        return computeMinMaxFromImage(texture.image, interpretation);
+    }
+
+    return null;
 }
 
 export default {
@@ -578,7 +610,10 @@ export default {
     create1DTexture,
     createDataCopy,
     computeMinMax,
-    estimateSize,
+    isDataTexture,
+    isCanvasTexture,
+    computeMinMaxFromBuffer,
     computeMinMaxFromImage,
+    estimateSize,
     shouldExpandRGB,
 };

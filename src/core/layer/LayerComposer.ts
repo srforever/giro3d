@@ -63,14 +63,13 @@ function processMinMax(texture: TextureWithMinMax, {
         return { min: texture.min, max: texture.max };
     }
 
-    if ((texture as DataTexture).isDataTexture) {
-        return TextureGenerator.computeMinMax(texture.image.data, noDataValue, interpretation);
-    }
-    if ((texture as CanvasTexture).isCanvasTexture) {
-        return TextureGenerator.computeMinMaxFromImage(texture.image, interpretation);
-    }
+    const result = TextureGenerator.computeMinMax(texture, noDataValue, interpretation);
 
-    throw new Error('no min/max could be computed from texture');
+    if (!result) {
+        throw new Error('no min/max could be computed from texture');
+    } else {
+        return result;
+    }
 }
 
 class Image {
