@@ -69,7 +69,7 @@ dirLight.updateMatrixWorld();
 
 // Let's now setup a "ground" to receive the shadows
 const mesh = new Mesh(new PlaneGeometry(200, 200),
-    new MeshPhongMaterial({ color: 0x999999, depthWrite: false }));
+    new MeshPhongMaterial({ color: 0xcbcbcb, depthWrite: false }));
 mesh.receiveShadow = true;
 // Contrary to lights, every meshes should be added through `instance.add`, in order for giro3d to
 // be aware of them. Otherwise the objects will just disappear.
