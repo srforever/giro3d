@@ -114,13 +114,16 @@ export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Ref
                         <a class="nav-link" href="/tutorials/getting-started.html">Getting started</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" aria-current="page" href="/examples/index.html">Examples</a>
+                        <a class="nav-link" href="/examples/index.html">Examples</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" href="/apidoc/index.html">API</a>
+                        <a class="nav-link active" aria-current="page" href="/apidoc/index.html">API</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/governance.html">Governance</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link piero" href="https://app.giro3d.org">Piero</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="https://gitlab.com/giro3d/giro3D" target="_blank">GitLab</a>

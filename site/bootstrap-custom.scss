@@ -1,6 +1,15 @@
 
 $blue: #2978b4;
 $primary: $blue;
+$green: #377c5f; // Piero!
 
 // set changes
 @import "../node_modules/bootstrap/scss/bootstrap";
+
+.nav-link:hover {
+    color: $blue;
+}
+
+.nav-link.piero:hover {
+    color: $green;
+}
