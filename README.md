@@ -122,6 +122,16 @@ It has been funded through various research programs involving the [French Natio
 
 Giro3D is currently maintained by [Oslandia](http://www.oslandia.com).
 
+## No code with Piero
+
+In case you don't want to code your own application, you can also use [Piero](https://app.giro3d.org), our sister project - also available on [GitLab](https://gitlab.com/giro3d/piero).
+
+<div align="center">
+  <a href="https://app.giro3d.org">
+    <img src="https://app.giro3d.org/piero_logo.svg" height="120">
+  </a>
+</div>
+
 ## FAQ
 
 ### Where does the name Giro3D come from ?
