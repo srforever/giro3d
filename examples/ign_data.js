@@ -157,7 +157,7 @@ instance.camera.camera3D.position.set(913349.2364044407, 6456426.459171033, 1706
 // and look at the Bastille
 const lookAt = new Vector3(913896, 6459191, 200);
 instance.camera.camera3D.lookAt(lookAt);
-// Notify giro3d we've changed the three.js camera position directly
+// Notify Giro3D we've changed the three.js camera position directly
 instance.notifyChange(instance.camera.camera3D);
 
 // Creates controls

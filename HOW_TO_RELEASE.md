@@ -1,4 +1,4 @@
-# How to release Giro3d
+# How to release Giro3D
 
 [[_TOC_]]
 

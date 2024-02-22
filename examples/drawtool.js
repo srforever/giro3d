@@ -66,7 +66,7 @@ function getArea(drawing) {
     return Math.abs(ShapeUtils.area(localCoords));
 }
 
-// Initialize Giro3d (see tifftiles for more details)
+// Initialize Giro3D (see tifftiles for more details)
 const x = -13602618.385789588;
 const y = 5811042.273912458;
 

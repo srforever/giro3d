@@ -21,7 +21,7 @@
 
 ## Supported data sources
 
-[Giro3d](https://giro3d.org) is powered by **[OpenLayers](https://openlayers.org/)** for maps,
+[Giro3D](https://giro3d.org) is powered by **[OpenLayers](https://openlayers.org/)** for maps,
 and **[Three.js](https://threejs.org)** for 3d assets, and can be easily extended to support more. Below is a non-exhaustive list of supported data sources.
 
 ### Maps
@@ -79,7 +79,7 @@ See our [release page](https://gitlab.com/giro3d/giro3d/-/releases).
 
 ## With [npm link](https://docs.npmjs.com/cli/v8/commands/npm-link)
 
-This is handy if you need to develop on Giro3d alongside your project. You need to first prepare the
+This is handy if you need to develop on Giro3D alongside your project. You need to first prepare the
 package folder and link from there:
 
 ```bash
@@ -112,18 +112,18 @@ Browse the [API Documentation](http://giro3d.org/apidoc/index.html) documentatio
 
 ## Contributors
 
-Giro3d has received contributions from people listed in [CONTRIBUTORS.md](CONTRIBUTORS.md).
-If you are interested in contributing to giro3d, please read [CONTRIBUTING.md](CONTRIBUTING.md).
+Giro3D has received contributions from people listed in [CONTRIBUTORS.md](CONTRIBUTORS.md).
+If you are interested in contributing to Giro3D, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Support
 
-Giro3d is the successor of [iTowns](https://www.itowns-project.org/), an original work from [IGN](https://www.ign.fr/institut/identity-card) and [MATIS research laboratory](https://www.ensg.eu/MATIS-laboratory).
+Giro3D is the successor of [iTowns](https://www.itowns-project.org/), an original work from [IGN](https://www.ign.fr/institut/identity-card) and [MATIS research laboratory](https://www.ensg.eu/MATIS-laboratory).
 It has been funded through various research programs involving the [French National Research Agency](https://anr.fr/en/), [Cap Digital](https://www.capdigital.com/en/), [The Sorbonne University](https://www.sorbonne-universite.fr/en), [Mines ParisTech](https://mines-paristech.eu/), [CNRS](https://www.cnrs.fr/en), [IFSTTAR](https://www.ifsttar.fr/en).
 
-Giro3d is currently maintained by [Oslandia](http://www.oslandia.com).
+Giro3D is currently maintained by [Oslandia](http://www.oslandia.com).
 
 ## FAQ
 
-#### Where does the name Giro3D come from ?
+### Where does the name Giro3D come from ?
 
 The name is a reference to the italian mathematician and inventor [Girolamo Cardano](https://en.wikipedia.org/wiki/Gerolamo_Cardano).

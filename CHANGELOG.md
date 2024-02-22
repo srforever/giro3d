@@ -1287,7 +1287,7 @@ individual files
 
 ### Features
 
-* Add helpers method to integrate any THREE controls in giro3d
+* Add helpers method to integrate any THREE controls in Giro3D
 * add min/max height options on FirstPersonControls
 
 ### Fixes

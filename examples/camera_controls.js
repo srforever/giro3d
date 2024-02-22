@@ -88,21 +88,21 @@ controls.mouseButtons.wheel = CameraControls.ACTION.DOLLY;
 // eslint-disable-next-line no-undef
 controls.mouseButtons.middle = CameraControls.ACTION.DOLLY;
 
-// Giro3d integration
+// Giro3D integration
 instance.controls = controls;
 const clock = new Clock();
 
 // Update controls from event loop - this replaces the requestAnimationFrame logic from
 // camera-controls sample code
 instance.addEventListener('before-camera-update', () => {
-    // Called from giro3d
+    // Called from Giro3D
     const delta = clock.getDelta();
     const hasControlsUpdated = controls.update(delta);
     if (hasControlsUpdated) {
         instance.notifyChange(instance.camera.camera3D);
     }
 });
-// As Giro3d runs the event loop only when needed, we need to notify Giro3d when
+// As Giro3D runs the event loop only when needed, we need to notify Giro3D when
 // the controls update the view.
 // We need both events to make sure the view is updated from user interactions and from animations
 controls.addEventListener('update', () => instance.notifyChange(instance.camera.camera3D));
@@ -120,7 +120,7 @@ const executeInteraction = callback => {
     // As mainloop can pause, before-camera-update can be triggered irregularly
     // Make sure to "reset" the clock to enable smooth transitions with camera-controls
     clock.getDelta();
-    // Dispatch events so giro3d and giro3dservice gets notified
+    // Dispatch events so Giro3D gets notified
     controls.dispatchEvent({ type: 'update' });
     return res;
 };

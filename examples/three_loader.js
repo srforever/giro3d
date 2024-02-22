@@ -30,7 +30,7 @@ const viewerDiv = document.getElementById('viewerDiv');
 const renderer = new WebGLRenderer({ antialias: true });
 renderer.shadowMap.enabled = true;
 
-// Create the giro3d instance
+// Create the Giro3D instance
 const instance = new Instance(viewerDiv, { crs: 'EPSG:3857', renderer: { renderer } });
 const camera = instance.camera.camera3D;
 
@@ -71,7 +71,7 @@ dirLight.updateMatrixWorld();
 const mesh = new Mesh(new PlaneGeometry(200, 200),
     new MeshPhongMaterial({ color: 0x999999, depthWrite: false }));
 mesh.receiveShadow = true;
-// Contrary to lights, every meshes should be added through `instance.add`, in order for giro3d to
+// Contrary to lights, every meshes should be added through `instance.add`, in order for Giro3D to
 // be aware of them. Otherwise the objects will just disappear.
 // For technical details, see how MainLoop.js calculates camera near and far.
 instance.add(mesh);
@@ -109,7 +109,7 @@ loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', gltf => {
     model3.rotation.x = Math.PI / 2;
     model3.updateMatrixWorld();
 
-    // except for this part, we add directly to instance to make giro3d aware of these models
+    // except for this part, we add directly to instance to make Giro3D aware of these models
     instance.add(model1);
     instance.add(model2);
     instance.add(model3);

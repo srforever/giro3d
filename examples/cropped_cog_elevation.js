@@ -11,7 +11,7 @@ import StatusBar from './widgets/StatusBar.js';
 
 const extent = Extent.fromCenterAndSize('EPSG:3857', { x: -13555565, y: 5919254 }, 20000, 20000);
 
-// `viewerDiv` will contain giro3d' rendering area (the canvas element)
+// `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Instantiate Giro3D

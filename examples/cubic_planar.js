@@ -69,12 +69,12 @@ const extent = new Extent(
     5170100, 5170100 + 8000,
 );
 
-// `viewerDiv` will contain giro3d' rendering area (the canvas element)
+// `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 const scale = new Vector3(1, 1, 1).divideScalar(extent.dimensions().x);
 
-// Instantiate giro3d
+// Instantiate Giro3D
 const instance = new Instance(viewerDiv, {
     crs: extent.crs(),
     renderer: {

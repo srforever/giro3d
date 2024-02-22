@@ -1,8 +1,8 @@
-# giro3d Testing suite
+# Giro3D Testing suite
 
 [[_TOC_]]
 
-This document describes the giro3d testing framework and details how to write tests, run test suite and more.
+This document describes the Giro3D testing framework and details how to write tests, run test suite and more.
 
 ## ℹ️ Typescript considerations
 
@@ -60,7 +60,7 @@ npm run test-with-coverage
 
 The [example page](https://giro3d.org/examples/) contains a lot of examples, each tackling a single feature, or a combination of features.
 
-Examples are both used to showcase giro3d capabilities, but also as interactive tests, when unit testing is impossible or impractical, for example to test visual results.
+Examples are both used to showcase Giro3D capabilities, but also as interactive tests, when unit testing is impossible or impractical, for example to test visual results.
 
 ### Structure
 

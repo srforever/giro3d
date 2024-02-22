@@ -18,10 +18,10 @@ Instance.registerCRS('EPSG:3857', '+proj=merc +a=6378137 +b=6378137 +lat_ts=0 +l
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent('EPSG:3857', 659030, 735596, 5535152, 5647497);
 
-// `viewerDiv` will contain giro3d' rendering area (the canvas element)
+// `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
-// Creates the giro3d instance
+// Creates the Giro3D instance
 const instance = new Instance(viewerDiv, { crs: 'EPSG:3857' });
 
 // Adds the map that will contain the layers.
@@ -64,7 +64,7 @@ function addLayers(key) {
     map.addLayer(satelliteLayer);
 }
 
-// Create our elevation layer using giro3d's default mapbox api key
+// Create our elevation layer using Giro3D's default mapbox api key
 addLayers('pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A');
 
 // Sets the camera position

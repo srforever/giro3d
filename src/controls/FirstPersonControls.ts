@@ -12,7 +12,7 @@ import { type InstanceEvents } from '../core/Instance';
 
 // Note: we could use existing js controls (like
 // https://github.com/mrdoob/js/blob/dev/examples/js/controls/FirstPersonControls.js) but
-// including these controls in giro3d allows use to integrate them tightly with giro3d.  Especially
+// including these controls in Giro3D allows use to integrate them tightly with Giro3D.  Especially
 // the existing controls are expecting a continuous update loop while we have a pausable one (so our
 // controls use .notifyChange when needed)
 
@@ -102,7 +102,7 @@ class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
     private _stateOnMouseDown?: State;
 
     /**
-     * @param instance the giro3d instance to control
+     * @param instance the Giro3D instance to control
      * @param options additional options
      */
     constructor(instance: Instance, options: FirstPersonControlsOptions = {}) {

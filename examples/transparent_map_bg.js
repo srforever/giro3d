@@ -17,10 +17,10 @@ const extent = new Extent(
     -3910697 - 1000000, -3910697 + 1000000,
 );
 
-// `viewerDiv` will contain giro3d' rendering area (the canvas element)
+// `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
-// Creates a giro3d instance
+// Creates a Giro3D instance
 const instance = new Instance(viewerDiv, {
     crs: extent.crs(),
     renderer: {

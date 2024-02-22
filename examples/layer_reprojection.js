@@ -84,10 +84,10 @@ function createScene(crs, crsDef, extent) {
 
     Instance.registerCRS(crs, crsDef);
 
-    // `viewerDiv` will contain giro3d' rendering area (the canvas element)
+    // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
     const viewerDiv = document.getElementById('viewerDiv');
 
-    // Creates a giro3d instance
+    // Creates a Giro3D instance
     instance = new Instance(viewerDiv, { crs, renderer: { clearColor: 'grey' } });
 
     // Adds the map that will contain the layers.

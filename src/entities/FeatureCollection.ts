@@ -522,7 +522,7 @@ class FeatureCollection extends Entity3D {
                 // Abort errors are perfectly normal, so we don't need to log them.
                 // However any other error implies an abnormal termination of the processing.
                 if (err.message === 'aborted') {
-                    // the query has been aborted because giro3d thinks it doesn't need this any
+                    // the query has been aborted because Giro3D thinks it doesn't need this any
                     // more, so we put back the state to IDLE
                     node.userData.layerUpdateState.success();
                 } else {

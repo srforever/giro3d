@@ -13,7 +13,7 @@ const crs = 'EPSG:3857';
 const mapExtent = Extent.fromCenterAndSize(crs, { x: 256227, y: 5882214 }, 2000000, 2000000);
 const viewerDiv = document.getElementById('viewerDiv');
 
-// Creates a giro3d instance
+// Creates a Giro3D instance
 const instance = new Instance(viewerDiv, { crs });
 
 // Instanciates camera

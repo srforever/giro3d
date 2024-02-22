@@ -21,7 +21,7 @@ const extent = Extent.fromCenterAndSize('EPSG:3857', center, 20000, 20000);
 
 const viewerDiv = document.getElementById('viewerDiv');
 
-// Creates a giro3d instance
+// Creates a Giro3D instance
 const instance = new Instance(viewerDiv, {
     crs: extent.crs(),
     renderer: {
