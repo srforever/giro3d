@@ -1,3 +1,4 @@
+import type { TypedArray } from 'three';
 import {
     Box3,
     Vector2,
@@ -707,6 +708,50 @@ class Extent {
         const originY = (y - this.south()) / dimY;
 
         target.set(originX, originY);
+        return target;
+    }
+
+    /**
+     * Divides this extent into a regular grid.
+     * The number of points in each direction is equal to the number of subdivisions + 1.
+     * The points are laid out row-wise, from west to east, and north to south:
+     *
+     * ```
+     * 1 -- 2
+     * |    |
+     * 3 -- 4
+     * ```
+     *
+     * @param xSubdivs The number of grid subdivisions in the x-axis.
+     * @param ySubdivs The number of grid subdivisions in the y-axis.
+     * @param target The array to fill.
+     * @param stride The number of elements per item (2 for XY, 3 for XYZ).
+     * @returns the target.
+     */
+    toGrid<T extends TypedArray>(xSubdivs: number, ySubdivs: number, target: T, stride: number): T {
+        const dims = this.dimensions(tmpXY);
+        const west = this.west();
+        const north = this.north();
+
+        // The size of an horizontal/vertical step
+        const xStep = dims.x / xSubdivs;
+        const yStep = dims.y / ySubdivs;
+
+        // The number of vertices in each direction
+        const xCount = xSubdivs + 1;
+        const yCount = ySubdivs + 1;
+
+        for (let j = 0; j < yCount; j++) {
+            for (let i = 0; i < xCount; i++) {
+                const x = west + xStep * i;
+                const y = north - yStep * j;
+
+                const index = stride * (xCount * j + i);
+                target[index + 0] = x;
+                target[index + 1] = y;
+            }
+        }
+
         return target;
     }
 
