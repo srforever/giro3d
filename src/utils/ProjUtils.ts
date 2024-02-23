@@ -1,5 +1,7 @@
 import proj from 'proj4';
-import { type TypedArray } from 'three';
+import { Vector2, type TypedArray } from 'three';
+
+const ZERO = new Vector2(0, 0);
 
 /**
  * Transform the position buffer in place, from the source to the destination CRS.
@@ -11,17 +13,15 @@ import { type TypedArray } from 'three';
  * @param params The transformation parameters.
  * @param params.srcCrs The source CRS code. Must be known to PROJ.
  * @param params.dstCrs The destination CRS code. Must be known to PROJ.
- * @param params.offsetX The offset to the original X coordinate before transformation.
- * @param params.offsetY The offset to the original Y coordinate before transformation.
  * @param params.stride The stride of the buffer.
+ * @param params.offset The offset to apply after transforming the coordinate.
  */
 function transformBufferInPlace(buf: TypedArray,
     params: {
         srcCrs: string;
         dstCrs: string;
         stride: number;
-        offsetX?: number;
-        offsetY?: number;
+        offset?: Vector2;
     }) {
     if (params.srcCrs === params.dstCrs) {
         return;
@@ -36,16 +36,15 @@ function transformBufferInPlace(buf: TypedArray,
     const tmp = { x: 0, y: 0 };
     const length = buf.length;
 
-    const offsetX = params.offsetX ?? 0;
-    const offsetY = params.offsetY ?? 0;
     const stride = params.stride;
+    const offset = params.offset ?? ZERO;
 
     for (let i = 0; i < length; i += stride) {
-        tmp.x = buf[i + 0] + offsetX;
-        tmp.y = buf[i + 1] + offsetY;
+        tmp.x = buf[i + 0];
+        tmp.y = buf[i + 1];
         const out = proj.transform(src, dst, tmp);
-        buf[i + 0] = out.x;
-        buf[i + 1] = out.y;
+        buf[i + 0] = out.x + offset.x;
+        buf[i + 1] = out.y + offset.y;
     }
 }
 
