@@ -5,6 +5,8 @@ $green: #377c5f; // Piero!
 
 // set changes
 @import "../node_modules/bootstrap/scss/bootstrap";
+$bootstrap-icons-font-dir: 'fonts';
+@import '../node_modules/bootstrap-icons/font/bootstrap-icons';
 
 .nav-link:hover {
     color: $blue;
