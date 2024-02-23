@@ -1,328 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
+    <head>
+        <title>Giro3D - Welcome</title>
 
-<head>
-    <title>Giro3D - Welcome</title>
+        <meta charset="utf-8" />
+        <!-- OpenGraph -->
+        <meta
+            property="og:description"
+            content="A versatile framework to visualize geospatial data in the browser."
+        />
+        <meta property="og:image" content="https://giro3d.org/images/giro3d_logo_big.jpg" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:title" content="Giro3D" />
+        <meta property="og:site_name" content="Giro3D" />
+        <meta property="og:type" content="object" />
+        <meta property="og:url" content="https://giro3d.org" />
 
-    <meta charset="utf-8">
-    <!-- OpenGraph -->
-    <meta property="og:description" content="A versatile framework to visualize geospatial data in the browser.">
-    <meta property="og:image" content="https://giro3d.org/images/giro3d_logo_big.jpg">
-    <meta property="og:locale" content="en_US" />
-    <meta property="og:title" content="Giro3D">
-    <meta property="og:site_name" content="Giro3D">
-    <meta property="og:type" content="object">
-    <meta property="og:url" content="https://giro3d.org">
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+            name="twitter:description"
+            content="A versatile framework to visualize geospatial data in the browser."
+        />
+        <meta name="twitter:dnt" content="on" />
+        <meta name="twitter:image" content="https://giro3d.org/images/giro3d_logo_big.jpg" />
+        <meta name="twitter:title" content="Giro3D - Welcome" />
+        <meta name="twitter:widgets:align" content="center" />
 
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:description" content="A versatile framework to visualize geospatial data in the browser.">
-    <meta name="twitter:dnt" content="on">
-    <meta name="twitter:image" content="https://giro3d.org/images/giro3d_logo_big.jpg">
-    <meta name="twitter:title" content="Giro3D - Welcome">
-    <meta name="twitter:widgets:align" content="center">
+        <link rel="icon" href="/images/favicon.svg" />
+        <link href="/assets/bootstrap-custom.css" rel="stylesheet" />
+        <script src="/assets/bootstrap.bundle.min.js"></script>
+    </head>
 
-    <link rel="icon" href="/images/favicon.svg">
-    <link href="/assets/bootstrap-custom.css" rel="stylesheet" />
-    <script src="/assets/bootstrap.bundle.min.js"></script>
-</head>
+    <body class="bg-light d-flex flex-column min-vh-100">
+        <header class="header">
+            <div class="container-fluid">
+                <a href="#" class="navbar-brand mx-0">
+                    <img src="/images/favicon.svg" class="brand" width="32" height="32" />
+                </a>
 
-<body class="bg-light">
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-    <header class="navbar navbar-expand-lg bg-light sticky-top shadow-sm">
-
-        <div class="container-fluid">
-
-            <a href="#" class="navbar-brand mx-0">
-                <img src="/images/favicon.svg" class="brand" width="32" height="32">
-            </a>
-
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="#">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="tutorials/getting-started.html">Getting started</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="examples/index.html">Examples</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="apidoc/index.html">API</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="governance.html">Governance</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link piero" href="https://app.giro3d.org">Piero</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="https://gitlab.com/giro3d/giro3D" target="_blank">GitLab</a>
-                    </li>
-                </ul>
-
-            </div>
-        </div>
-    </header>
-
-    <main>
-        <section class="my-1 container">
-            <div class="text-center row py-lg-5">
-
-                <div class="col-lg-8 col-md-8 mx-auto">
-                    <div class="my-3">
-                        <a href="https://giro3d.org">
-                            <img src="/images/giro3d_logo.svg">
-                        </a>
-                    </div>
-                    <p class="lead text-muted">A versatile framework to visualize geospatial data in the browser.</p>
-                    <p>
-                        <a href="tutorials/getting-started.html" class="btn btn-primary my-2">Getting started</a>
-                        <a href="examples/index.html" class="btn btn-secondary my-2">Examples</a>
-                        <a href="apidoc/index.html" class="btn btn-secondary my-2">Documentation</a>
-                        <a href="governance.html" class="btn btn-secondary my-2">Governance</a>
-                        <a href="#piero" class="btn btn-success my-2">Piero, the Giro3D app</a>
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <div class="album my-lg-2">
-            <div class="container">
-                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-2 g-3">
-                    <!-- Maps -->
-                    <div class="col">
-                        <div class="card mb-3">
-                            <div class="row g-0">
-                                <div class="col-md-4">
-                                    <img src="images/screenshots/maps.jpg" class="img-fluid rounded-start"
-                                        alt="map">
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Maps</h5>
-                                        <p class="card-text">Combine raster, vector and elevation layers to display 2D
-                                            and 2.5 maps with terrain.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- OpenLayers sources -->
-                    <div class="col">
-                        <div class="card mb-3">
-                            <div class="row g-0">
-                                <div class="col-md-4">
-                                    <img src="images/screenshots/vectors.jpg" class="img-fluid rounded-start"
-                                        alt="map">
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Use <a href="https://openlayers.org/">OpenLayers</a> sources</h5>
-                                        <p class="card-text">Connect layers to sources including
-                                        WMS/WMTS, MapBox, GeoJSON. Supports reprojections.</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Point clouds -->
-                    <div class="col">
-                        <div class="card mb-3">
-                            <div class="row g-0">
-                                <div class="col-md-4">
-                                    <img src="images/screenshots/pointcloud.jpg" class="img-fluid rounded-start"
-                                        alt="Pointcloud screenshot">
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Point clouds</h5>
-                                        <p class="card-text">
-                                            Display point clouds in various formats,
-                                            including <a href="https://www.ogc.org/standard/3dtiles/">3D Tiles</a>
-                                            and <a href="https://github.com/potree/potree">Potree.</a></p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Features -->
-                    <div class="col">
-                        <div class="card mb-3">
-                            <div class="row g-0">
-                                <div class="col-md-4">
-                                    <img src="images/screenshots/ign_data.jpg" class="img-fluid rounded-start"
-                                        alt="Meshes">
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Vector sources as meshes</h5>
-                                        <p class="card-text">
-                                            Display and extrude feature data from various supported
-                                            sources.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- it's nice!  -->
-                    <div class="col">
-                        <div class="card mb-3">
-                            <div class="row g-0">
-                                <div class="col-md-4">
-                                    <img src="images/screenshots/demo.jpg" class="img-fluid rounded-start"
-                                        alt="Meshes">
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Combine everything</h5>
-                                        <p class="card-text">
-                                            Put everything together into one scene, use
-                                            default  or custom controls and
-                                            leverage the rich API to build the right app for your
-                                            business.
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Three.js -->
-                    <div class="col">
-                        <div class="card mb-3">
-                            <div class="row g-0">
-                                <div class="col-md-4">
-                                    <img src="images/screenshots/three_logo.jpg" class="img-fluid rounded-start"
-                                        alt="map">
-                                </div>
-                                <div class="col-md-8">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Powered by <a href="https://threejs.org">three.js</a></h5>
-                                        <p class="card-text">Giro3D uses the three.js rendering engine to display 3D datasets.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Feature list -->
-        <section class="my-lg-5 container">
-            <div class="row">
-                <div class="col">
-                    <h4>Features</h4>
-                    <p class="text-muted">
-                        Giro3D is built on top of the three.js engine, and is compatible with any object or plugin that three.js supports.
-                    </p>
-                    <div class="container">
-                        <h5>Graphics</h5>
-                            <ul class="text-muted">
-                            <li>Direct access to three.js renderer</li>
-                            <li>Eye Dome Lighting on point clouds</li>
-                            <li>Inpainting on point clouds</li>
-                            <li>Color ramps on terrains and point clouds</li>
-                            <li>Contour lines</li>
-                            <li>Clipping planes</li>
-                            <li>Point cloud coloring with imagery layers</li>
-                            <li>Color layers as masks</li>
-                            <li>3D Grid</li>
-                            <li>Unlimited color layers per map</li>
-                        </ul>
-                        <h5>Processing</h5>
-                        <ul class="text-muted">
-                            <li>Support of many projected coordinate systems</li>
-                            <li>Reprojection of imagery layers</li>
-                            <li>3D buildings</li>
-                            <li>Vector styling with OpenLayers styles</li>
-                            <li>No-data elimination on elevation rasters</li>
-                        </ul>
-                        <h5>Other</h5>
-                        <ul class="text-muted">
-                            <li>Draw lines and polygons</li>
-                        </ul>
-                    </div>
-                </div>
-
-            <div class="col">
-                <h4>Supported formats</h4>
-                <p class="text-muted">
-                    Giro3D supports a broad range of data sources, from 2D raster and vector data,
-                    to 3D point clouds and tilesets.
-                </p>
-                <div class="container">
-                    <h5>Imagery</h5>
-                    <ul class="text-muted">
-                        <li>WMS</li>
-                        <li>WMTS</li>
-                        <li>OpenLayers sources</li>
-                        <li><a href="http://cogeo.org" target="_blank">Cloud optimized GeoTIFF (COG)</a> (color and elevation rasters)</li>
-                        <li><a target="_blank" href="https://docs.mapbox.com/data/tilesets/reference/mapbox-terrain-rgb-v1/">Mapbox Terrain-RGB</a></li>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <li class="nav-item">
+                            <a class="nav-link active" aria-current="page" href="#">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-primary" href="giro3d.html"
+                                >Giro3D framework</a
+                            >
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-success" href="piero.html"
+                                >Piero application</a
+                            >
+                        </li>
                     </ul>
-                    <h5>Vectors</h5>
-                    <ul class="text-muted">
-                        <li>WFS</li>
-                        <li>GeoJSON</li>
-                        <li>GML</li>
-                        <li>KML</li>
-                        <li>GPX</li>
-                        <li>Vector tiles</li>
-                    </ul>
-                    <h5>Other</h5>
-                    <ul class="text-muted">
-                        <li><a href="https://cesium.com/why-cesium/3d-tiles/" target="_blank" rel="noopener noreferrer">3D Tiles</a> (meshes and point clouds)</li>
-                        <li><a href="https://github.com/potree/potree/" target="_blank" rel="noopener noreferrer">Potree point clouds</a></li>
-                        <li>glTF models</li>
-                        <li>compatible with objects supported by three.js</li>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="https://gitlab.com/giro3d/giro3D"
+                                target="_blank"
+                                >GitLab <i class="bi bi-box-arrow-up-right"></i
+                            ></a>
+                        </li>
                     </ul>
                 </div>
             </div>
+        </header>
 
+        <main class="flex-fill row g-0">
+            <section class="col-lg-6 bg-primary-subtle">
+                <div class="card row shadow m-5">
+                    <img src="images/giro3d_code.png" class="card-img-top card-img-bg" />
 
-        </div>
-        </section>
+                    <div class="card-body col-xl-8 mx-auto text-center p-5">
+                        <h1 class="mb-5">
+                            <img src="/images/giro3d_logo.svg" alt="Giro3D" class="img-fluid" />
+                        </h1>
 
-        <section class="mt-lg-5 py-1 container card" id="piero">
-            <div class="text-center row py-lg-2">
-                <div class="col-lg-8 col-md-8 mx-auto">
-                    <div class="my-3">
-                        <a href="https://app.giro3d.org">
-                            <img src="/images/piero_logo.svg">
-                        </a>
+                        <div class="about">
+                            <h2 class="lead text-primary-emphasis my-4">
+                                A versatile <strong>framework</strong> to visualize geospatial data
+                                in the browser.
+                            </h2>
+                            <p class="text-muted">
+                                Giro3D is an open-source JavaScript framework for visualizing and
+                                interacting with heterogenous 2D, 2.5D and 3D data.
+                            </p>
+                        </div>
+                        <p class="links">
+                            <a href="giro3d.html" class="btn btn-primary my-2">Learn more</a>
+                            <a href="tutorials/getting-started.html" class="btn btn-secondary my-2"
+                                >Get started</a
+                            >
+                            <a href="examples/index.html" class="btn btn-secondary my-2"
+                                >Examples</a
+                            >
+                            <a href="apidoc/index.html" class="btn btn-secondary my-2"
+                                >Documentation</a
+                            >
+                        </p>
                     </div>
-                    <p class="lead text-muted">The Giro3D web application for 3D visualization.</p>
-                    <p>
-                        Brought to you by the Giro3D team, <strong>Piero</strong> is a fully-fledged web application for working on your 2D and 3D data within your browser. Bring in your best IFC or CityJSON models, display your 3D point clouds, import your vector files, and start analyzing your data with our advanced tools.<br>
-                        For even more advanced usages, as Piero is fully open-source, you can customize it and host it yourself.
-                    </p>
-                    <p>
-                        <a href="https://app.giro3d.org" class="btn btn-success my-2">Get started</a>
-                        <a href="https://gitlab.com/giro3d/piero" class="btn btn-secondary my-2">GitLab</a>
-                    </p>
+                    <img src="images/giro3d_code.png" class="card-img-bottom card-img-bg" />
                 </div>
-            </div>
-        </section>
-    </main>
+            </section>
 
-    <div class="container">
-        <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-          <div class="col-md-4 d-flex align-items-center">
-            <a href="/" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1">
-              <svg class="bi" width="30" height="24"><use xlink:href="#bootstrap"></use></svg>
-            </a>
-            <span class="mb-3 mb-md-0 text-body-secondary">© 2023-2024 Giro3D</span>
-          </div>
+            <section class="col-lg-6 bg-success-subtle">
+                <div class="card row shadow m-5">
+                    <img src="images/piero_window.png" class="card-img-top card-img-bg" />
+
+                    <div class="card-body col-xl-8 mx-auto text-center p-5">
+                        <h1 class="mb-5">
+                            <img src="/images/piero_logo.svg" alt="Piero" class="img-fluid" />
+                        </h1>
+
+                        <div class="about">
+                            <h2 class="lead text-success-emphasis my-4">
+                                Fully-configurable open-source web <strong>application</strong> for
+                                3D visualization.
+                            </h2>
+                            <p class="text-muted">
+                                Piero is an open-source web application for visualizing and
+                                interacting with 2D, 2.5D and 3D data, powered by Giro3D.
+                            </p>
+                        </div>
+                        <p class="links">
+                            <a href="piero.html" class="btn btn-success my-2">Learn more</a>
+                            <a href="https://app.giro3d.org" class="btn btn-secondary my-2"
+                                >Try the app <i class="bi bi-box-arrow-up-right"></i
+                                    ></a
+                            >
+                            <a href="https://gitlab.com/giro3d/piero" class="btn btn-secondary my-2"
+                                >Check on GitLab <i class="bi bi-box-arrow-up-right"></i
+                            ></a>
+                        </p>
+                    </div>
+                    <img src="images/piero_window.png" class="card-img-bottom card-img-bg" />
+                </div>
+            </section>
+        </main>
+
+        <footer class="container-fluid bg-light d-flex py-3 px-5 border-top">
+            <div>© 2023-2024 Giro3D</div>
         </footer>
-    </div>
-
-</body>
-
+    </body>
 </html>

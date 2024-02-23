@@ -120,7 +120,7 @@ export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Ref
                         <a class="nav-link nav-link-primary" href="/examples/index.html">Examples</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link active" aria-current="page" href="/apidoc/index.html">API</a>
+                        <a class="nav-link nav-link-primary active" aria-current="page" href="/apidoc/index.html">API</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link nav-link-primary" href="/governance.html">Governance</a>
