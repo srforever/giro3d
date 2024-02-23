@@ -43,6 +43,7 @@ const defaultLayout = (
             <meta name="description" content={"Documentation for " + props.project.name} />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+            <link rel="icon" href="/images/favicon.svg" />
             <link rel="stylesheet" href={context.relativeURL("assets/style.css", true)} />
             <link rel="stylesheet" href={context.relativeURL("assets/highlight.css", true)} />
             {context.options.getValue("customCss") && (
@@ -95,9 +96,8 @@ const defaultLayout = (
 
 // bootstrap toolbars, instead of the default theme toolbar
 export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Reflection>) => (
-    <header class="navbar navbar-expand-lg bg-light sticky-top shadow-sm">
+    <header class="header">
         <div class="container-fluid">
-
             <a href="#" class="navbar-brand mx-0">
                 <img src="/images/favicon.svg" class="brand" width={32} height={32} />
             </a>
@@ -111,22 +111,32 @@ export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Ref
                         <a class="nav-link" href="/index.html">Home</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/tutorials/getting-started.html">Getting started</a>
+                        <a class="nav-link nav-link-primary" href="../giro3d.html">Giro3D framework</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/examples/index.html">Examples</a>
+                        <a class="nav-link nav-link-primary" href="/tutorials/getting-started.html">Getting started</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-primary" href="/examples/index.html">Examples</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="/apidoc/index.html">API</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="/governance.html">Governance</a>
+                        <a class="nav-link nav-link-primary" href="/governance.html">Governance</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link piero" href="https://app.giro3d.org">Piero</a>
+                        <a class="nav-link nav-link-success" href="piero.html">Piero application</a>
                     </li>
+                </ul>
+                <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a class="nav-link" href="https://gitlab.com/giro3d/giro3D" target="_blank">GitLab</a>
+                        <a
+                            class="nav-link"
+                            href="https://gitlab.com/giro3d/giro3D"
+                            target="_blank"
+                            >GitLab <i class="bi bi-box-arrow-up-right"></i
+                        ></a>
                     </li>
                 </ul>
                 <form class="form-inline" id="tsd-search" role="search" data-base={context.relativeURL("./")}>
