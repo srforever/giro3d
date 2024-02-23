@@ -4,7 +4,7 @@
     "out": "build/site/apidoc",
     "theme": "custom",
     "plugin": ["./build/theme.js"],
-    "name": "Giro3D",
+    "name": "Giro3D API",
     "readme": "doc/README.md",
     "basePath": "src",
     "customCss": "doc/theme.css",
