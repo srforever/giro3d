@@ -76,6 +76,16 @@ build_current:
         - npm i
         - npm run make-package
 
+build_site:
+    stage: build
+    script:
+        - npm i
+        - npm run build-site
+        - mv build/site public
+    artifacts:
+        paths:
+            - public
+
 lint:
     stage: lint
     script:
