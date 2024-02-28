@@ -216,7 +216,7 @@ class Extent {
         if (this._crs !== crs && !(is4326(this._crs) && is4326(crs))) {
         // Compute min/max in x/y by projecting 8 cardinal points,
         // and then taking the min/max of each coordinates.
-            const cardinals = [];
+            const cardinals: Coordinates[] = [];
             const c = this.center();
             cardinals.push(new Coordinates(this._crs, this.west(), this.north()));
             cardinals.push(new Coordinates(this._crs, c.values[0], this.north()));
