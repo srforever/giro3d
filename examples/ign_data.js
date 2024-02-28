@@ -14,6 +14,8 @@ import GeoJSON from 'ol/format/GeoJSON.js';
 import VectorSource from 'ol/source/Vector.js';
 import { createXYZ } from 'ol/tilegrid.js';
 import { tile } from 'ol/loadingstrategy.js';
+import { WMTSCapabilities } from 'ol/format.js';
+import WMTS, { optionsFromCapabilities } from 'ol/source/WMTS.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -30,6 +32,7 @@ import StatusBar from './widgets/StatusBar.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
 Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
+Instance.registerCRS('IGNF:WGS84G', 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]');
 
 const viewerDiv = document.getElementById('viewerDiv');
 const instance = new Instance(viewerDiv, { crs: 'EPSG:2154' });
@@ -38,6 +41,7 @@ const instance = new Instance(viewerDiv, { crs: 'EPSG:2154' });
 const extent = new Extent('EPSG:2154', -111629.52, 1275028.84, 5976033.79, 7230161.64);
 const map = new Giro3dMap('planar', {
     extent,
+    backgroundColor: 'gray',
     hillshading: false,
     segments: 64,
     discardNoData: true,
@@ -45,48 +49,59 @@ const map = new Giro3dMap('planar', {
 });
 instance.add(map);
 
-// Create a WMS imagery layer
-const wmsOthophotoSource = new TiledImageSource({
-    source: new TileWMS({
-        url: 'https://data.geopf.fr/wms-r',
-        projection: 'EPSG:2154',
-        params: {
-            LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
-            FORMAT: 'image/jpeg',
-        },
-    }),
-});
-
-const colorLayer = new ColorLayer({
-    name: 'orthophoto-ign',
-    extent: map.extent,
-    source: wmsOthophotoSource,
-});
-map.addLayer(colorLayer);
-
 const noDataValue = -1000;
 
-// Adds a WMS elevation layer
-const elevationSource = new TiledImageSource({
-    source: new TileWMS({
-        url: 'https://data.geopf.fr/wms-r',
-        projection: 'EPSG:2154',
-        crossOrigin: 'anonymous',
-        params: {
-            LAYERS: ['ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'],
-            FORMAT: 'image/x-bil;bits=32',
-        },
-    }),
-    format: new BilFormat(),
-    noDataValue,
-});
+function loadWmtsCapabilities(url) {
+    return fetch(url)
+        .then(async response => {
+            const data = await response.text();
+            const parser = new WMTSCapabilities();
+            const capabilities = parser.read(data);
+            return capabilities;
+        });
+}
 
-const elevationLayer = new ElevationLayer({
-    name: 'wms_elevation',
-    extent: map.extent,
-    source: elevationSource,
-});
-map.addLayer(elevationLayer);
+// We use OpenLayer's optionsFromCapabilities to parse the capabilities document
+// and create our WMTS source.
+loadWmtsCapabilities('https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities')
+    .then(capabilities => {
+        const elevationOptions = optionsFromCapabilities(capabilities, {
+            layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES.MNS',
+        });
+
+        const elevationWmts = new TiledImageSource({
+            extent,
+            source: new WMTS(elevationOptions),
+            format: new BilFormat(),
+            noDataValue,
+        });
+
+        map.addLayer(new ElevationLayer({
+            name: 'wmts_elevation',
+            extent: map.extent,
+            noDataOptions: {
+                replaceNoData: false,
+            },
+            source: elevationWmts,
+        }));
+
+        const orthophotosOptions = optionsFromCapabilities(capabilities, {
+            layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
+        });
+
+        const orthophotoWmts = new TiledImageSource({
+            extent,
+            source: new WMTS(orthophotosOptions),
+            noDataValue,
+        });
+
+        map.addLayer(new ColorLayer({
+            name: 'wmts_orthophotos',
+            extent: map.extent,
+            source: orthophotoWmts,
+        }));
+    })
+    .catch(e => console.error(e));
 
 const vectorSource = new VectorSource({
     format: new GeoJSON(),
