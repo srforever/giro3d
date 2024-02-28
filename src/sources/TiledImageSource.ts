@@ -2,6 +2,7 @@ import { Texture, UnsignedByteType, Vector2 } from 'three';
 import { TileRange } from 'ol';
 import type UrlTile from 'ol/source/UrlTile';
 import type TileGrid from 'ol/tilegrid/TileGrid.js';
+import type Projection from 'ol/proj/Projection';
 import type Extent from '../core/geographic/Extent';
 import OpenLayersUtils from '../utils/OpenLayersUtils';
 import Fetcher from '../utils/Fetcher';
@@ -72,7 +73,7 @@ export default class TiledImageSource extends ImageSource {
     readonly isTiledImageSource: boolean = true;
     readonly source: UrlTile;
     readonly format: ImageFormat;
-    readonly olprojection: any;
+    readonly olprojection: Projection;
     readonly noDataValue: number;
     private readonly _tileGrid: TileGrid;
     private readonly _getTileUrl: any;
