@@ -1,4 +1,5 @@
 import * as cache from './Cache';
+import * as persistentCache from './PersistentCache';
 import * as layer from './layer';
 import * as geographic from './geographic';
 import * as picking from './picking';
@@ -36,6 +37,7 @@ export {
     geographic,
     layer,
     cache,
+    persistentCache,
     picking,
     Disposable,
     Instance,
