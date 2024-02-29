@@ -1,16 +1,18 @@
 import {
     FloatType,
     LinearFilter,
-    MathUtils,
+    type TypedArray,
     UnsignedByteType,
     Vector2,
 } from 'three';
 
 import {
+    type ReadRasterResult,
+    type TypedArrayWithDimensions,
+    type TypedArrayArrayWithDimensions,
     fromCustomClient,
     BaseClient,
     BaseResponse,
-    type TypedArray,
     type GeoTIFFImage,
     Pool,
     type GeoTIFF,
@@ -18,7 +20,7 @@ import {
 
 import Fetcher from '../utils/Fetcher';
 import Extent from '../core/geographic/Extent';
-import TextureGenerator, { type NumberArray } from '../utils/TextureGenerator';
+import TextureGenerator from '../utils/TextureGenerator';
 import PromiseUtils from '../utils/PromiseUtils';
 import ImageSource, { ImageResult, type ImageSourceOptions } from './ImageSource';
 import { type Cache, GlobalCache } from '../core/Cache';
@@ -81,19 +83,17 @@ class FetcherClient extends BaseClient {
     }
 }
 
+type PixelRegion = [number, number, number, number];
+
 /**
  * A level in the COG pyramid.
  */
 interface Level {
+    index: number;
     image: GeoTIFFImage;
     width: number;
     height: number;
     resolution: number[];
-}
-
-interface SizedArray<T> extends Array<T> {
-    width: number;
-    height: number;
 }
 
 function selectDataType(format: number, bitsPerSample: number) {
@@ -123,6 +123,9 @@ export interface CogCacheOptions {
      */
     blockSize?: number;
 }
+
+// channel count, width, height
+type CacheMetadata = [number, number, number];
 
 export interface CogSourceOptions extends ImageSourceOptions {
     /**
@@ -193,7 +196,6 @@ class CogSource extends ImageSource {
     private _format: number;
     private _bps: number;
     private _initializePromise: Promise<void>;
-    private readonly _cacheId: string = MathUtils.generateUUID();
     private readonly _cacheOptions: CogCacheOptions;
 
     /**
@@ -330,8 +332,9 @@ class CogSource extends ImageSource {
         this._bps = firstImage.getBitsPerSample();
         this.datatype = selectDataType(this._format, this._bps);
 
-        function makeLevel(image: GeoTIFFImage, resolution: number[]): Level {
+        function makeLevel(index: number, image: GeoTIFFImage, resolution: number[]): Level {
             return {
+                index,
                 image,
                 width: image.getWidth(),
                 height: image.getHeight(),
@@ -339,14 +342,14 @@ class CogSource extends ImageSource {
             };
         }
 
-        this._levels.push(makeLevel(firstImage, firstImage.getResolution()));
+        this._levels.push(makeLevel(0, firstImage, firstImage.getResolution()));
 
         // We want to preserve the order of the overviews so we await them inside
         // the loop not to have the smallest overviews coming before the biggest
         /* eslint-disable no-await-in-loop */
         for (let i = 1; i < this._imageCount; i++) {
             const image = await this._tiffImage.getImage(i);
-            this._levels.push(makeLevel(image, image.getResolution(firstImage)));
+            this._levels.push(makeLevel(i, image, image.getResolution(firstImage)));
         }
 
         this._initialized = true;
@@ -359,7 +362,7 @@ class CogSource extends ImageSource {
      * @param resolution - The spatial resolution of the window.
      * @returns The window.
      */
-    private makeWindowFromExtent(extent: Extent, resolution: number[]) {
+    private makeWindowFromExtent(extent: Extent, resolution: number[]): PixelRegion {
         const [oX, oY] = this._origin;
         const [imageResX, imageResY] = resolution;
         const ext = extent.values;
@@ -393,10 +396,10 @@ class CogSource extends ImageSource {
      * @param buffers - The buffers (one buffer per band)
      * @returns The generated texture.
      */
-    private createTexture(buffers: SizedArray<NumberArray>) {
+    private createTexture(buffers: ReadRasterResult) {
         // Width and height in pixels of the returned data.
         // The geotiff.js patches the arrays with the width and height properties.
-        const { width, height }: SizedArray<NumberArray> = buffers;
+        const { width, height } = buffers;
 
         const dataType = this.datatype;
 
@@ -407,6 +410,7 @@ class CogSource extends ImageSource {
                 nodata: this._nodata,
             },
             dataType,
+            // @ts-expect-error
             ...buffers,
         );
 
@@ -489,11 +493,11 @@ class CogSource extends ImageSource {
 
         const actualExtent = adjusted.extent;
 
-        const buffers = await this.getRegionBuffers(actualExtent, level, signal, id);
+        const buffers = await this.getRegionBuffers(actualExtent, level, signal);
 
         signal?.throwIfAborted();
 
-        const texture = this.createTexture(buffers as SizedArray<NumberArray>);
+        const texture = this.createTexture(buffers);
 
         const result = { extent: actualExtent, texture, id };
 
@@ -507,7 +511,7 @@ class CogSource extends ImageSource {
      * @returns The buffers.
      */
     private async fetchBuffer(image: GeoTIFFImage, window: number[], signal?: AbortSignal)
-        : Promise<TypedArray | TypedArray[]> {
+        : Promise<ReadRasterResult> {
         try {
             signal?.throwIfAborted();
 
@@ -542,34 +546,115 @@ class CogSource extends ImageSource {
         }
     }
 
+    private async getCached(key: string): Promise<ReadRasterResult> {
+        const cached = this._cache.get(key);
+        if (cached) {
+            return Promise.resolve(cached as ReadRasterResult);
+        }
+
+        return this.getFromPersistentCache(key);
+    }
+
+    private async getFromPersistentCache(key: string): Promise<ReadRasterResult> {
+        if (!this._persistentCache) {
+            return null;
+        }
+
+        const meta = await this._persistentCache.get<CacheMetadata>(`${key}-size`);
+        if (!meta) {
+            return null;
+        }
+
+        const [size, width, height] = meta;
+
+        if (size === 1) {
+            // @ts-expect-error
+            const buf: TypedArrayWithDimensions = await this._persistentCache.get<TypedArray>(key);
+            if (!buf) {
+                return null;
+            }
+            buf.width = width;
+            buf.height = height;
+            return buf;
+        }
+
+        const buffers: TypedArrayWithDimensions[] = [];
+        for (let index = 0; index < size; index++) {
+            const buf = await this._persistentCache.get<TypedArrayWithDimensions>(`${key}-${index}`);
+            if (!buf) {
+                return null;
+            }
+            buffers.push(buf);
+        }
+
+        // @ts-expect-error
+        const result: TypedArrayArrayWithDimensions = buffers;
+        result.width = width;
+        result.height = height;
+
+        return result;
+    }
+
+    private storeInPersistentCache(key: string, buf: ReadRasterResult) {
+        const { width, height } = buf;
+
+        if (Array.isArray(buf)) {
+            this._persistentCache.set(`${key}-size`, [buf.length, width, height]);
+
+            if (buf.length === 1) {
+                this._persistentCache.set(key, buf);
+            } else {
+                for (let index = 0; index < buf.length; index++) {
+                    this._persistentCache.set(`${key}-${index}`, buf[index]);
+                }
+            }
+        } else {
+            this._persistentCache.set(key, buf);
+            this._persistentCache.set(`${key}-size`, [1, width, height]);
+        }
+    }
+
+    private storeInCache(key: string, buf: ReadRasterResult) {
+        let size = 0;
+        console.log(key);
+        if (Array.isArray(buf)) {
+            size = buf.map(b => b.byteLength).reduce((a, b) => a + b);
+        } else {
+            size = buf.byteLength;
+        }
+        this._cache.set(key, buf, { size });
+
+        if (this._persistentCache) {
+            this.storeInPersistentCache(key, buf);
+        }
+    }
+
+    private getCacheKey(level: Level, region: PixelRegion, channels: number[]): string {
+        return `${this.url}-${level.index}::${region.join('-')}::${channels.join('-')}`;
+    }
+
     /**
      * Extract a region from the specified image.
      *
      * @param extent - The request extent.
      * @param level - The level to sample.
      * @param signal - The abort signal.
-     * @param id - The request id.
      * @returns The buffer(s).
      */
-    private async getRegionBuffers(extent: Extent, level: Level, signal: AbortSignal, id: string) {
-        const window = this.makeWindowFromExtent(extent, level.resolution);
+    private async getRegionBuffers(extent: Extent, level: Level, signal: AbortSignal)
+        : Promise<ReadRasterResult> {
+        const region = this.makeWindowFromExtent(extent, level.resolution);
 
-        const cacheKey = `${this._cacheId}-${id}`;
-        const cached = this._cache.get(cacheKey);
+        const cacheKey = this.getCacheKey(level, region, this._channels);
+
+        const cached = await this.getCached(cacheKey);
         if (cached) {
             return cached;
         }
 
-        const buf = await this.fetchBuffer(level.image, window, signal);
+        const buf = await this.fetchBuffer(level.image, region, signal);
 
-        let size = 0;
-        if (Array.isArray(buf)) {
-            size = buf.map(b => b.byteLength).reduce((a, b) => a + b);
-        } else {
-            size = buf.byteLength;
-        }
-        this._cache.set(cacheKey, buf, { size });
-
+        this.storeInCache(cacheKey, buf);
         return buf;
     }
 
