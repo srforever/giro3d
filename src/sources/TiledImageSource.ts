@@ -209,6 +209,12 @@ export default class TiledImageSource extends ImageSource {
     }
 
     private async fetchData(url: string, signal: AbortSignal) {
+        const persistent = await this._persistentCache?.get<Blob>(url);
+        if (persistent) {
+            console.log('hit');
+            return persistent;
+        }
+
         try {
             const response = await this._downloader.fetch(url, signal);
 
@@ -220,6 +226,8 @@ export default class TiledImageSource extends ImageSource {
             }
 
             const blob = await response.blob();
+
+            this._persistentCache?.set(url, blob);
 
             return blob;
         } catch (e) {
