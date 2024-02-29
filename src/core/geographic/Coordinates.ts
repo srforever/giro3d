@@ -15,13 +15,18 @@ export const UNIT = {
  * @returns the unit of measure (see `UNIT`)
  */
 function unitFromProj4Unit(projunit: string) {
-    if (projunit === 'degrees') {
-        return UNIT.DEGREE;
+    switch (projunit) {
+        case 'deg':
+        case 'degrees':
+        case 'degree':
+            return UNIT.DEGREE;
+        case 'm':
+        case 'meter':
+        case 'meters':
+            return UNIT.METER;
+        default:
+            return undefined;
     }
-    if (projunit === 'm') {
-        return UNIT.METER;
-    }
-    return undefined;
 }
 
 /**
