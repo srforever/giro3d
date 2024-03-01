@@ -16,7 +16,6 @@ import {
     WebGLRenderTarget,
     RGBAFormat,
     UnsignedByteType,
-    ColorManagement,
 } from 'three';
 import { CSS2DRenderer } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import Capabilities from '../core/system/Capabilities';
@@ -141,13 +140,6 @@ export interface RendererOptions {
      */
     checkShaderErrors?: boolean;
     /**
-     * Enables color management.
-     * Not used if renderer is provided.
-     *
-     * @default false
-     */
-    colorManagement?: boolean;
-    /**
      * The background color.
      * Can be a hex color or `false` for transparent backgrounds (requires alpha true).
      */
@@ -180,7 +172,6 @@ class C3DEngine {
         if (options.alpha === undefined) {
             options.alpha = true;
         }
-        ColorManagement.enabled = options.colorManagement ?? false;
         if (options.logarithmicDepthBuffer === undefined) {
             options.logarithmicDepthBuffer = false;
         }

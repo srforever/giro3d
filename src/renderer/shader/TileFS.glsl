@@ -51,6 +51,15 @@ uniform LayerInfo   elevationLayer;
 uniform ColorMap    elevationColorMap;  // The elevation layer's optional color map
 #endif
 
+void applyHillshading(float hillshade) {
+    // Hillshading expects an sRGB color space, so we have to convert the color
+    // temporarily to sRGB, then back to sRGB-linear. Otherwise the result
+    // looks washed out and lacks contrast.
+    gl_FragColor = sRGBTransferOETF(gl_FragColor);
+    gl_FragColor.rgb *= hillshade;
+    gl_FragColor = sRGBToLinear(gl_FragColor);
+}
+
 void main() {
     #include <clipping_planes_fragment>
 
@@ -118,7 +127,7 @@ void main() {
 // - or after the color layers (i.e all pixels will be shaded).
 #if defined(APPLY_SHADING_ON_COLORLAYERS)
 #else
-    gl_FragColor.rgb *= hillshade;
+    applyHillshading(hillshade);
 #endif
 
     // Step 4 : process all color layers (either directly sampling the atlas texture, or use a color map).
@@ -134,7 +143,7 @@ void main() {
 #endif
 
 #if defined(APPLY_SHADING_ON_COLORLAYERS)
-    gl_FragColor.rgb *= hillshade;
+    applyHillshading(hillshade);
 #endif
 
     gl_FragColor.a *= opacity;
@@ -157,6 +166,7 @@ void main() {
         discard;
     } else if (renderingState == STATE_FINAL) {
         gl_FragColor.rgb = adjustBrightnessContrastSaturation(gl_FragColor.rgb, brightnessContrastSaturation);
+        #include <colorspace_fragment>
     } else if (renderingState == STATE_PICKING) {
         float id = float(uuid);
         float z = height;

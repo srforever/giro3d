@@ -1,5 +1,5 @@
 import type { PixelFormat, Texture, TextureDataType } from 'three';
-import { FloatType, RGFormat } from 'three';
+import { FloatType, NoColorSpace, RGFormat } from 'three';
 import type { LayerEvents, LayerOptions, TextureAndPitch } from './Layer';
 import Layer from './Layer';
 import type Extent from '../geographic/Extent.js';
@@ -146,6 +146,14 @@ class ElevationLayer extends Layer<ElevationLayerEvents> {
     // eslint-disable-next-line class-methods-use-this
     protected applyEmptyTextureToNode(node: TileMesh) {
         node.removeElevationTexture();
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    protected onTextureCreated(texture: Texture): void {
+        // Elevation textures not being color textures, they must not be
+        // subjected to colorspace transformations that would alter their values.
+        // See https://threejs.org/docs/#manual/en/introduction/Color-management
+        texture.colorSpace = NoColorSpace;
     }
 }
 

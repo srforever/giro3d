@@ -1,4 +1,5 @@
 #include <giro3d_precision_qualifiers>
+#include <giro3d_common>
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
 
@@ -111,39 +112,47 @@ void main() {
         vColor = vec4(mix(textureColor, overlayColor.rgb, overlayColor.a), opacity * hasOverlayTexture);
     } else if (mode == MODE_ELEVATION) {
         float z = (modelMatrix * vec4(position, 1.0)).z;
+        vec4 gradient;
         // colors from OGC EL.GridCoverage.Default style
         if (z < -100.0) {
-            vColor = vec4(float(0x00) / 255.0, float(0x5C) / 255.0, float(0xE6) / 255.0, 1.0);
+            gradient = vec4(float(0x00) / 255.0, float(0x5C) / 255.0, float(0xE6) / 255.0, 1.0);
         } else if (z <= 0.0) {
-            vColor = mix(
+            gradient = mix(
                 vec4(float(0x00) / 255.0, float(0x5C) / 255.0, float(0xE6) / 255.0, 1.0),
                 vec4(float(0x28) / 255.0, float(0xED) / 255.0, float(0xD6) / 255.0, 1.0),
                 -z / 100.0);
         } else if (z <= 50.0) {
-            vColor = mix(
+            gradient = mix(
                 vec4(float(0x00) / 255.0, float(0x5C) / 255.0, float(0xE6) / 255.0, 1.0),
                 vec4(float(0x28) / 255.0, float(0xED) / 255.0, float(0xD6) / 255.0, 1.0),
                 -z / 100.0);
         } else if (z <= 50.0) {
-            vColor = mix(
+            gradient = mix(
                 vec4(float(0x28) / 255.0, float(0xED) / 255.0, float(0xD6) / 255.0, 1.0),
                 vec4(float(0x54) / 255.0, float(0xF7) / 255.0, float(0x6D) / 255.0, 1.0),
                 z / 50.0);
         } else if (z <= 100.0) {
-            vColor = mix(
+            gradient = mix(
                 vec4(float(0x54) / 255.0, float(0xF7) / 255.0, float(0x6D) / 255.0, 1.0),
                 vec4(float(0x9A) / 255.0, float(0xFA) / 255.0, float(0x66) / 255.0, 1.0),
                 (z - 50.0)/ 50.0);
         } else {
-            vColor = mix(
+            gradient = mix(
                 vec4(float(0x9A) / 255.0, float(0xFA) / 255.0, float(0x66) / 255.0, 1.0),
                 vec4(float(0x7B) / 255.0, float(0xF2) / 255.0, float(0x3A) / 255.0, 1.0),
                 (z - 100.0)/ 50.0);
         }
+        vColor = sRGBToLinear(vec4(gradient.rgb, 1.0));
         vColor.a = opacity;
     } else {
         // default to color mode
-        vColor = vec4(mix(color, overlayColor.rgb, overlayColor.a), opacity);
+
+        // We need to convert to linear color space because the colors are in sRGB and they
+        // are not automatically converted to sRGB-linear. This is due to the fact that those
+        // colors come from a vertex buffer and not from a texture (automatically converted)
+        // or a single color uniform (also automatically converted).
+        vec4 linear = sRGBToLinear(vec4(color, 1.0));
+        vColor = vec4(mix(linear.rgb, overlayColor.rgb, overlayColor.a), opacity);
     }
 
     mat4 mvMatrix = modelViewMatrix;

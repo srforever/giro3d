@@ -84,7 +84,7 @@ class MapInspector extends EntityInspector {
             .name('Discard no-data values')
             .onChange(() => this.notify(this.map));
         this.layerCount = this.map.layerCount;
-        this.background = this.map.materialOptions.backgroundColor;
+        this.background = new Color().copyLinearToSRGB(this.map.materialOptions.backgroundColor);
         this.backgroundOpacity = this.map.materialOptions.backgroundOpacity;
 
         this.extentColor = new Color('red');
@@ -276,9 +276,9 @@ class MapInspector extends EntityInspector {
         this.notify(this.map);
     }
 
-    updateBackgroundColor(color: Color) {
-        this.background = color;
-        this.map.materialOptions.backgroundColor = color;
+    updateBackgroundColor(srgb: Color) {
+        this.background.copy(srgb);
+        this.map.materialOptions.backgroundColor.copySRGBToLinear(srgb);
         this.notify(this.map);
     }
 

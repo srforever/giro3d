@@ -1,5 +1,6 @@
 // eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
+import { Color } from 'three';
 import Panel from './Panel';
 import type Instance from '../core/Instance';
 import RenderingInspector from './RenderingInspector';
@@ -11,6 +12,7 @@ class InstanceInspector extends Panel {
     state: string;
     webGlRendererPanel: WebGLRendererInspector;
     enginePanel: RenderingInspector;
+    clearColor: Color;
 
     /**
      * @param gui The GUI.
@@ -21,6 +23,14 @@ class InstanceInspector extends Panel {
 
         this.instanceCrs = this.instance.referenceCrs;
         this.addController<string>(this, 'instanceCrs').name('CRS');
+
+        this.clearColor = this.instance.renderer.getClearColor(new Color()).convertLinearToSRGB();
+        this.addColorController(this, 'clearColor')
+            .name('Clear color')
+            .onChange(() => {
+                this.instance.renderer.setClearColor(this.clearColor.clone().convertSRGBToLinear());
+                this.notify();
+            });
 
         this.state = 'idle';
         this.addController<string>(this, 'state').name('Status');

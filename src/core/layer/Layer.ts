@@ -504,7 +504,14 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
         await this.onInitialized();
     }
 
+    protected onTextureCreated(texture: Texture): void {
+        // Interpretation color space have a higher precedence.
+        texture.colorSpace = this.interpretation.colorSpace ?? this.source.colorSpace;
+    }
+
     private addToComposer(image: ImageResult, alwaysVisible: boolean) {
+        this.onTextureCreated(image.texture);
+
         this._composer.add({
             alwaysVisible, // Ensures background images are never deleted
             flipY: this.source.flipY,

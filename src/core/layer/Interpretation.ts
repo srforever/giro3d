@@ -1,5 +1,5 @@
-import type { Texture } from 'three';
-import { NearestFilter } from 'three';
+import type { ColorSpace, Texture } from 'three';
+import { NearestFilter, NoColorSpace } from 'three';
 
 /**
  * Describes how an image pixel should be interpreted.
@@ -124,6 +124,20 @@ class Interpretation {
      */
     static get Raw(): Interpretation {
         return new Interpretation(Mode.Raw);
+    }
+
+    /**
+     * Gets the color space required for a correct decoding of textures in this interpretation.
+     * If color space cannot be determined, returns `undefined`.
+     */
+    get colorSpace(): ColorSpace | undefined {
+        switch (this._mode) {
+            case Mode.MapboxTerrainRGB:
+            case Mode.ScaleToMinMax:
+                return NoColorSpace;
+            default:
+                return undefined;
+        }
     }
 
     /**

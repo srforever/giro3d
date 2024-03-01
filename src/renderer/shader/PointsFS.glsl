@@ -22,5 +22,6 @@ void main() {
 
     gl_FragColor = vec4(adjustBrightnessContrastSaturation(vColor.rgb, brightnessContrastSaturation), vColor.a);
 
+    #include <colorspace_fragment>
     #include <logdepthbuf_fragment>
 }

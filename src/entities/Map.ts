@@ -45,7 +45,7 @@ import type HasLayers from '../core/layer/HasLayers';
 import { defaultColorimetryOptions } from '../core/ColorimetryOptions';
 import TextureGenerator from '../utils/TextureGenerator';
 
-const DEFAULT_BACKGROUND_COLOR = new Color(0.04, 0.23, 0.35);
+const DEFAULT_BACKGROUND_COLOR = new Color().setRGB(0.04, 0.23, 0.35, 'srgb');
 
 /**
  * Comparison function to order layers.

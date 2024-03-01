@@ -121,9 +121,9 @@ const feat = new FeatureCollection('buildings', {
         const properties = feature.getProperties();
         let color = '#FFFFFF';
         if (properties.usage_1 === 'Résidentiel') {
-            color = '#9d9484';
+            color = '#cec8be';
         } else if (properties.usage_1 === 'Commercial et services') {
-            color = '#b0ffa7';
+            color = '#d8ffd4';
         }
         return { color };
     },

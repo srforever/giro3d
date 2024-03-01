@@ -5,6 +5,7 @@ import type {
     WebGLRenderer,
 } from 'three';
 import {
+    Color,
     DepthTexture,
     FloatType,
     NearestFilter,
@@ -13,6 +14,7 @@ import {
 } from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { TexturePass } from 'three/examples/jsm/postprocessing/TexturePass.js';
+import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import PointCloudRenderer from './PointCloudRenderer';
 import type RenderingOptions from './RenderingOptions';
 
@@ -29,6 +31,9 @@ type Object3DWithMaterial = Object3D & {
     material: Material,
 };
 
+const currentClearColor = new Color();
+const tmpColor = new Color();
+
 /**
  * @param meshes The meshes to update.
  * @param visible The new material visibility.
@@ -37,6 +42,17 @@ function setVisibility(meshes: Object3DWithMaterial[], visible: boolean) {
     for (let i = 0; i < meshes.length; i++) {
         meshes[i].material.visible = visible;
     }
+}
+
+function clear(renderer: WebGLRenderer) {
+    // Since our render target is in linear color space, we need to convert
+    // the current clear color (that is expected to be in sRGB).
+    const current = renderer.getClearColor(currentClearColor);
+    const clearColor = tmpColor.setRGB(current.r, current.g, current.b, 'srgb-linear');
+
+    renderer.setClearColor(clearColor);
+    renderer.clear();
+    renderer.setClearColor(currentClearColor);
 }
 
 /**
@@ -86,6 +102,9 @@ export default class RenderPipeline {
             // After the buckets have been rendered into the render target,
             // the effect composer will render this render target to the canvas.
             this.effectComposer.addPass(new TexturePass(this.sceneRenderTarget.texture));
+
+            // Final pass to output to the canvas (including colorspace transformation).
+            this.effectComposer.addPass(new OutputPass());
         }
     }
 
@@ -113,7 +132,8 @@ export default class RenderPipeline {
 
         // Ensure that any background (texture or skybox) is properly handled
         // by rendering it separately first.
-        this.renderer.clear();
+        clear(renderer);
+
         this.renderer.render(scene, camera);
 
         this.renderMeshes(scene, camera, this.buckets[BUCKETS.OPAQUE]);

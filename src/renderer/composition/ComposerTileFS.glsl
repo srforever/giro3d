@@ -38,4 +38,6 @@ void main() {
     }
 
     gl_FragColor.a *= opacity;
+
+    #include <colorspace_fragment>
 }
