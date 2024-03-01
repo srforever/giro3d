@@ -77,23 +77,32 @@ export type OnMeshCreatedCallback = (mesh: Mesh) => void;
 export type OnTileCreatedCallback = (tile: Group) => void;
 
 /**
- * A FeatureCollection is an {@link entities.Entity} that manages 2.5D features
- * as 3D meshes in giro3D scene.
+ * A FeatureCollection is an {@link Entity3D entity} that represent simple features as 3D meshes.
  *
- * In this context, 2.5D means that there is only one Z per x,y coordinates in the source data. So
- * this deals with lines, polyline, (multi)polygons and points.
+ * Arbitrary triangulated meshes (TINs) are not supported.
  *
- * This entity will represent them as 3D object as-is, but an elevation can be set (see
- * `options.elevation` in the constructor), if not already in the source coordinates.
+ * ## Supported geometries
  *
- * At the moment, this entity accepts every openlayers source that returns features.
+ * Both 2D and 3D geometries are supported. In the case of 2D geometries (with only XY coordinates),
+ * you can specify an elevation (Z) to display the geometries at arbitrary heights, using the
+ * `elevation` option in the constructor.
+ *
+ * Supported geometries:
+ * - [Point](https://openlayers.org/en/latest/apidoc/module-ol_geom_Point-Point.html) and [MultiPoint](https://openlayers.org/en/latest/apidoc/module-ol_geom_MultiPoint-MultiPoint.html)
+ * - [LineString](https://openlayers.org/en/latest/apidoc/module-ol_geom_LineString-LineString.html) and [MultiLineString](https://openlayers.org/en/latest/apidoc/module-ol_geom_MultiLineString-MultiLineString.html)
+ * - [Polygon](https://openlayers.org/en/latest/apidoc/module-ol_geom_Polygon-Polygon.html) and [MultiPolygon](https://openlayers.org/en/latest/apidoc/module-ol_geom_MultiPolygon-MultiPolygon.html).
+ * Polygons can additionally be extruded (e.g to display buildings from footprints) with the
+ * `extrusionOffset` constructor option.
+ *
+ * ## Data sources
+ *
+ * At the moment, this entity accepts any OpenLayers source that returns [features](https://openlayers.org/en/latest/apidoc/module-ol_Feature-Feature.html).
  *
  * NOTE: if your source doesn't have a notion of level of detail, like a WFS server, you must choose
  * one level where data will be downloaded. The level giving the best user experience depends on the
  * data source. You must configure both `minLevel` and `maxLevel` to this level.
  *
- *
- * Examples:
+ * For example, in the case of a WFS source:
  *
  * ```js
  * import VectorSource from 'ol/source/Vector.js';
@@ -112,6 +121,10 @@ export type OnTileCreatedCallback = (tile: Group) => void;
  * instance.add(featureCollection);
  *
  * ```
+ * ## Supported CRSes
+ *
+ * `FeatureCollection` supports the reprojection of geometries if the source has a different CRS
+ * than the scene. Any custom CRS must be registered first with `Instance.registerCRS()`.
  *
  * Related examples:
  *

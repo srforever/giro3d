@@ -65,7 +65,6 @@ class EntityPanel extends Panel {
     /**
      * Registers an inspector for an entity type.
      *
-     * @static
      * @param type The entity type. This should match the property `type` on the entity.
      * @param inspector The inspector.
      * @example

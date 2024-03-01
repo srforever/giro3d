@@ -22,6 +22,8 @@ import ProjUtils from '../../utils/ProjUtils';
 
 const tmpVec1 = new Vector2();
 const tmpVec2 = new Vector2();
+const DEFAULT_WARP_SUBDIVISIONS = 8;
+const tmpFloat64 = new Float64Array(DEFAULT_WARP_SUBDIVISIONS * DEFAULT_WARP_SUBDIVISIONS * 3);
 
 /**
  * Removes the texture data from CPU memory.
@@ -330,26 +332,43 @@ class LayerComposer {
      * @param segments The number of subdivisions of the lattice.
      * A high value will create more faithful reprojections, at the cost of performance.
      */
-    private createWarpedMesh(sourceExtent: Extent, segments: number = 8) {
+    private createWarpedMesh(sourceExtent: Extent, segments: number = DEFAULT_WARP_SUBDIVISIONS) {
         const dims = sourceExtent.dimensions(tmpVec1);
-        const center = sourceExtent.centerAsVector2(tmpVec2);
-        const geometry = new PlaneGeometry(dims.x, dims.y, segments, segments);
+        // Vector3
+        const itemSize = 3;
+        const arraySize = (segments + 1) * (segments + 1) * itemSize;
+        const float64 = tmpFloat64.length === arraySize ? tmpFloat64 : new Float64Array(arraySize);
+        const grid = sourceExtent.toGrid(segments, segments, float64, itemSize);
+        const targetExtent = sourceExtent.as(this.targetCrs);
+        const center = targetExtent.centerAsVector2(tmpVec2);
 
-        const positionAttribute = geometry.getAttribute('position');
-
-        ProjUtils.transformBufferInPlace(positionAttribute.array, {
+        // Transformations must occur in double precision
+        ProjUtils.transformBufferInPlace(grid, {
             srcCrs: this.sourceCrs,
             dstCrs: this.targetCrs,
-            offsetX: center.x,
-            offsetY: center.y,
-            stride: 3,
+            offset: new Vector2(-center.x, -center.y),
+            stride: itemSize,
         });
+
+        const geometry = new PlaneGeometry(dims.x, dims.y, segments, segments);
+        const positionAttribute = geometry.getAttribute('position');
+
+        // But vertex buffers are in single precision.
+        const float32 = positionAttribute.array;
+
+        for (let i = 0; i < float64.length; i++) {
+            float32[i] = float64[i];
+        }
 
         positionAttribute.needsUpdate = true;
         geometry.computeBoundingBox();
 
         // Note: the material will be set by the WebGLComposer itself.
-        return new Mesh(geometry);
+        const result = new Mesh(geometry);
+        result.position.set(center.x, center.y, 0);
+        result.updateMatrixWorld();
+
+        return result;
     }
 
     /**

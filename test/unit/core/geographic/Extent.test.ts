@@ -231,6 +231,52 @@ describe('Extent', () => {
         });
     });
 
+    describe('toGrid', () => {
+        it('should return the correct coordinates', () => {
+            const stride = 3;
+            const array = new Float64Array(3 * 3 * stride);
+            const grid = BOUNDS_EPSG4326.toGrid(2, 2, array, stride);
+
+            expect(grid).toHaveLength(3 * 3 * stride);
+
+            expect(grid[0]).toEqual(-180);
+            expect(grid[1]).toEqual(+90);
+            expect(grid[2]).toEqual(0);
+
+            expect(grid[3]).toEqual(0);
+            expect(grid[4]).toEqual(+90);
+            expect(grid[5]).toEqual(0);
+
+            expect(grid[6]).toEqual(180);
+            expect(grid[7]).toEqual(+90);
+            expect(grid[8]).toEqual(0);
+
+            expect(grid[9]).toEqual(-180);
+            expect(grid[10]).toEqual(0);
+            expect(grid[11]).toEqual(0);
+
+            expect(grid[12]).toEqual(0);
+            expect(grid[13]).toEqual(0);
+            expect(grid[14]).toEqual(0);
+
+            expect(grid[15]).toEqual(180);
+            expect(grid[16]).toEqual(0);
+            expect(grid[17]).toEqual(0);
+
+            expect(grid[18]).toEqual(-180);
+            expect(grid[19]).toEqual(-90);
+            expect(grid[20]).toEqual(0);
+
+            expect(grid[21]).toEqual(0);
+            expect(grid[22]).toEqual(-90);
+            expect(grid[23]).toEqual(0);
+
+            expect(grid[24]).toEqual(180);
+            expect(grid[25]).toEqual(-90);
+            expect(grid[26]).toEqual(0);
+        });
+    });
+
     describe('centerAsVector2', () => {
         it('should return a new object if none was provided', () => {
             const result = BOUNDS_EPSG4326.center();

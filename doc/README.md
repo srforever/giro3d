@@ -76,3 +76,63 @@ Most objects in Giro3D are automatically managed by the garbage collector, ensur
 However, some objects, such as three.js [textures](https://threejs.org/docs/?q=texture#api/en/textures/Texture), must be manually disposed. In this case, refer to the relevant documentation to determine if the object is manually managed.
 
 💡 three.js's [`WebGLRenderer`](https://threejs.org/docs/index.html?q=webglrenderer#api/en/renderers/WebGLRenderer.info) has an `info` property that returns the number of unmanaged resources in GPU memory. You can access this renderer from the `Instance` using the [`renderer`](./classes/core.Instance.html#renderer) property.
+
+## Coordinate systems
+
+Giro3D can combine many different coordinate systems (CRS):
+
+- The `Instance` has its own coordinate system, accessible from the [`referenceCrs`](./classes/core.Instance.html#referenceCrs) property. Once specified in the `Instance` constructor, this cannot be changed.
+
+- Some entities supports various CRS transformations, while others only supports a single CRS (of their data source). In the latter case, this CRS must be compatible with referenceCRS to be displayed correctly.
+
+### Register a custom CRS
+
+To display a Giro3D scene in a specific CRS, you must first register its definition with the [`Instance.registerCRS()`](./classes/core.Instance.html#registerCRS) static method.
+
+For example, to display the scene in the [`TM65 / Irish Grid -- Ireland`](https://epsg.io/29902) CRS (EPSG:29902), we must register it with the following parameters:
+
+```ts
+Instance.registerCRS('EPSG:29902', '+proj=tmerc +lat_0=53.5 +lon_0=-8 +k=1.000035 +x_0=200000 +y_0=250000 +a=6377340.189 +rf=299.3249646 +towgs84=482.5,-130.6,564.6,-1.042,-0.214,-0.631,8.15 +units=m +no_defs +type=crs');
+```
+
+💡 Some CRS definitions are built-in the proj4.js library used by Giro3D, such as `EPSG:4326` (WGS84), `EPSG:3857` (pseudo-mercator) and `EPSG:4269` (NAD83). Please refer to the [PROJ4JS](http://proj4js.org/) documentation for more information.
+
+💡 CRS definition must be performed before any entity is added to the instance.
+
+❗ In some (rare) cases, the CRS in the proj format is incomplete. In this case, you can try using the WKT format instead:
+
+```ts
+Instance.registerCRS('EPSG:29902',
+`PROJCS["TM65 / Irish Grid",
+    GEOGCS["TM65",
+        DATUM["TM65",
+            SPHEROID["Airy Modified 1849",6377340.189,299.3249646],
+            TOWGS84[482.5,-130.6,564.6,-1.042,-0.214,-0.631,8.15]],
+        PRIMEM["Greenwich",0,
+            AUTHORITY["EPSG","8901"]],
+        UNIT["degree",0.0174532925199433,
+            AUTHORITY["EPSG","9122"]],
+        AUTHORITY["EPSG","4299"]],
+    PROJECTION["Transverse_Mercator"],
+    PARAMETER["latitude_of_origin",53.5],
+    PARAMETER["central_meridian",-8],
+    PARAMETER["scale_factor",1.000035],
+    PARAMETER["false_easting",200000],
+    PARAMETER["false_northing",250000],
+    UNIT["metre",1,
+        AUTHORITY["EPSG","9001"]],
+    AXIS["Easting",EAST],
+    AXIS["Northing",NORTH],
+    AUTHORITY["EPSG","29902"]]`
+);
+```
+
+### Maps and layers
+
+The [`Layer`](./classes/core.layer.Layer.html) class supports transformation of data from their source CRS (the one in the [`ImageSource`](./classes/sources.ImageSource.html)) to the Instance CRS.
+
+💡 All CRSes used by layers must be registered with [`Instance.registerCRS()`](./classes/core.Instance.html#registerCRS) as well.
+
+### Other entities
+
+Except otherwise specified, entities do not support transformation of data from their source into the Instance CRS. This means that it is not possible to display a point cloud that is in a different CRS than the instance's.

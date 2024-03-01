@@ -194,7 +194,6 @@ class Helpers {
      * Adds a bounding box helper to the object.
      * If a bounding box is already present, it is updated instead.
      *
-     * @static
      * @param obj The object to decorate.
      * @param color The color.
      * @example
@@ -235,7 +234,6 @@ class Helpers {
     /**
      * Creates a selection bounding box helper around the specified object.
      *
-     * @static
      * @param obj The object to decorate.
      * @param color The color.
      * @returns the created box helper.
@@ -255,7 +253,6 @@ class Helpers {
      * Adds an oriented bounding box (OBB) helper to the object.
      * If a bounding box is already present, it is updated instead.
      *
-     * @static
      * @param obj The object to decorate.
      * @param obb The OBB.
      * @param color The color.
@@ -288,7 +285,6 @@ class Helpers {
      * Creates a bounding volume helper to the 3D Tile object and returns it.
      * The bounding volume can contain a sphere, a region, or a box.
      *
-     * @static
      * @param entity The entity.
      * @param obj The object to decorate.
      * @param metadata The tile metadata
@@ -352,7 +348,6 @@ class Helpers {
     /**
      * Create a grid on the XZ plane.
      *
-     * @static
      * @param origin The grid origin.
      * @param size The size of the grid.
      * @param subdivs The number of grid subdivisions.
@@ -372,7 +367,6 @@ class Helpers {
     /**
      * Create an axis helper.
      *
-     * @static
      * @param size The size of the helper.
      */
     static createAxes(size: number) {
@@ -422,7 +416,6 @@ class Helpers {
     /**
      * Removes an existing bounding box from the object, if any.
      *
-     * @static
      * @param obj The object to update.
      * @example
      * Helpers.removeBoundingBox(obj);
