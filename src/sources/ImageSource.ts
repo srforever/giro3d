@@ -9,6 +9,7 @@ import {
     LinearSRGBColorSpace,
 } from 'three';
 import type Extent from '../core/geographic/Extent';
+import type { PersistentCache } from '../core/PersistentCache';
 
 class ImageResult {
     id: string;
@@ -93,6 +94,10 @@ export interface ImageSourceOptions {
      * color space, otherwise `NoColorSpace`.
      */
     colorSpace?: ColorSpace;
+    /**
+     * An optional persistent cache that will save data across sessions.
+     */
+    persistentCache?: PersistentCache;
 }
 
 export interface ImageSourceEvents {
@@ -109,6 +114,8 @@ export interface ImageSourceEvents {
 abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
     readonly isImageSource: boolean = true;
     private readonly _customColorSpace: ColorSpace;
+    /** The optional persistent cache. */
+    protected readonly _persistentCache?: PersistentCache;
     type: string;
     /**
      * Gets whether images generated from this source should be flipped vertically.
@@ -133,6 +140,7 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
         this.flipY = options.flipY ?? false;
         this.datatype = (options.is8bit ?? true) ? UnsignedByteType : FloatType;
         this._customColorSpace = options.colorSpace;
+        this._persistentCache = options.persistentCache;
 
         this.version = 0;
 
