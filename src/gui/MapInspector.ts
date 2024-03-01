@@ -272,7 +272,7 @@ class MapInspector extends EntityInspector {
             if (obj instanceof TileMesh) {
                 const tile = obj as TileMesh;
                 let finalColor = new Color();
-                const layerCount = obj.material.getLayerCount();
+                const layerCount = obj.material?.getLayerCount();
                 if (layerCount === 0) {
                     finalColor = noDataColor;
                 } else {
