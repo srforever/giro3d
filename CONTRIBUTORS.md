@@ -1,6 +1,6 @@
-See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to giro3d.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to Giro3D.
 
-The following people have contributed to giro3d.
+The following people have contributed to Giro3D.
 
 * [IGN](http://www.ign.fr)
   * [Gérald Choqueux](https://github.com/gchoqueux)
@@ -42,7 +42,7 @@ The following people have contributed to giro3d.
 * [Argeo](https://argeo.no)
   * Charlie Ives
 
-The following organizations supported giro3d :
+The following organizations supported Giro3D:
 * IGN ( http://www.ign.fr )
 * Oslandia ( http://www.oslandia.com )
 * AtolCD ( http://www.atolcd.com )

@@ -11,8 +11,8 @@ export interface EntityEventMap {
 }
 
 /**
- * Abstract base class for all entities in giro3d.
- * The Entity is the core component of giro3d and represent an updatable
+ * Abstract base class for all entities in Giro3D.
+ * The Entity is the core component of Giro3D and represent an updatable
  * object that is added to an {@link core.Instance.Instance}.
  *
  * The class inherits three.js' [`EventDispatcher`](https://threejs.org/docs/index.html?q=even#api/en/core/EventDispatcher).

@@ -204,7 +204,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private _isDisposing: boolean;
 
     /**
-     * Constructs a giro3d Instance
+     * Constructs a Giro3D Instance
      *
      * @param viewerDiv Where to instanciate the Three.js scene in the DOM
      * @param options Options
@@ -255,7 +255,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         this._scene = options.scene3D || new Scene();
         // will contain simple three objects that need to be taken into
         // account, for example camera near / far calculation maybe it'll be
-        // better to do the contrary: having a group where *all* the giro3d
+        // better to do the contrary: having a group where *all* the Giro3D
         // object will be added, and traverse all other objects for near far
         // calculation but actually I'm not even sure near far calculation is
         // worthy of this.
@@ -298,7 +298,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         return this._engine.renderer.domElement;
     }
 
-    /** Gets the DOM element that contains the giro3d viewport. */
+    /** Gets the DOM element that contains the Giro3D viewport. */
     get viewport(): HTMLDivElement {
         return this._viewport;
     }
@@ -451,7 +451,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         }
 
         if (!(object as Object3D).isObject3D && !(object as Entity).isEntity) {
-            throw new Error('object is not an instance of THREE.Object3D or Giro3d.Entity');
+            throw new Error('object is not an instance of THREE.Object3D or Giro3D.Entity');
         }
         // @ts-ignore
         object._instance = this;
@@ -848,9 +848,9 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
 
     /**
      * This function allows to use three.js controls (files in `examples/{js,jsm}/controls` folder
-     * of THREE.js) into giro3d 3D scene.
+     * of THREE.js) into Giro3D 3D scene.
      *
-     * Giro3d supports the controls that check the following assumptions:
+     * Giro3D supports the controls that check the following assumptions:
      *
      * - they fire 'change' events when something happens
      * - they have an `update` method

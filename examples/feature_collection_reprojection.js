@@ -41,7 +41,7 @@ const arrondissements = new FeatureCollection('arrondissements', {
 });
 instance.add(arrondissements);
 
-// another geojson in 3857 (openlayers, and thus giro3d, supports the non-official yet supported
+// another geojson in 3857 (openlayers, and thus Giro3D, supports the non-official yet supported
 // everywhere way of specifying the crs in the geojson file itself)
 const perimeterqaaSource = new VectorSource({
     format: new GeoJSON(),
@@ -116,7 +116,7 @@ const lookAtCoords = new Coordinates('EPSG:2154', 652338.3, 6862087.1, 200);
 const lookAt = new Vector3(lookAtCoords.x, lookAtCoords.y, lookAtCoords.z);
 instance.camera.camera3D.position.set(position.x, position.y, position.z);
 instance.camera.camera3D.lookAt(lookAt);
-// Notify giro3d we've changed the three.js camera position directly
+// Notify Giro3D we've changed the three.js camera position directly
 instance.notifyChange(instance.camera.camera3D);
 
 // Creates controls

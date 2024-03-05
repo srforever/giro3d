@@ -1,17 +1,17 @@
-# Contributing to giro3d
+# Contributing to Giro3D
 
-:heart: Thanks for helping the giro3d project!
+:heart: Thanks for helping the Giro3D project!
 
 [[_TOC_]]
 
 ## 🏅 Getting Started Contributing
 
-Everyone is welcome to contribute to giro3d!
+Everyone is welcome to contribute to Giro3D!
 
-In addition to contributing to core giro3d code, we appreciate many types of contributions:
+In addition to contributing to core Giro3D code, we appreciate many types of contributions:
 
 - Being active on issues, MR and other communication channel.
-- Showcasing your application built with giro3d: submit an issue with a link to your demo on the project issue tracker.
+- Showcasing your application built with Giro3D: submit an issue with a link to your demo on the project issue tracker.
 - Writing tutorials, creating examples, and improving the reference documentation.
 - Submitting issues as [described below](#-submitting-an-issue).
 - Triaging issues. Browse the [issues](https://gitlab.com/giro3d/giro3d/-/issues) and comment on issues that are no longer reproducible or on issues for which you have additional information.
@@ -22,15 +22,15 @@ Browse the [issues](https://gitlab.com/giro3d/giro3d/-/issues) and search for th
 
 ### 💬 Submitting an Issue
 
-If you think you've found a bug in giro3d, first search the [issues](https://gitlab.com/giro3d/giro3d/-/issues). If an issue already exists, you can add a comment with any additional information. Use reactions (not comments) to express your interest. This helps prioritize issues.
+If you think you've found a bug in Giro3D, first search the [issues](https://gitlab.com/giro3d/giro3d/-/issues). If an issue already exists, you can add a comment with any additional information. Use reactions (not comments) to express your interest. This helps prioritize issues.
 
 If a related issue does not exist, submit a new one. Please include as much of the following information as is relevant:
 
 - Sample data to reproduce the issue
 - Screenshot, video or animated .gif if appropriate. Screenshots are particularly useful for exceptions and rendering artifacts. If it is a rendering artifact, also include the output of [webglreport.com](http://webglreport.com/) for the computer you have the problem on
 - Your operating system and version, browser and version, and video card.  Are they all up-to-date? Is the issue specific to one of them?
-- The exact version of giro3d. Did this work in a previous version?
-- Ideas for how to fix or workaround the issue. Also mention if you are willing to help fix it. If so, the giro3d team can often provide guidance and the issue may get fixed more quickly with your help
+- The exact version of Giro3D. Did this work in a previous version?
+- Ideas for how to fix or workaround the issue. Also mention if you are willing to help fix it. If so, the Giro3D team can often provide guidance and the issue may get fixed more quickly with your help
 
 You don't need to bother with the metadata of the issue (assignees, labels, etc) if you are unsure about them, they will be added later on by other contributors.
 
@@ -62,12 +62,12 @@ Here's a cheatsheet on what to do :
 We welcome merge requests (MRs) with great interest. We try to promptly review them, provide feedback, and merge. Following the tips in this guide will help your merge request be merged quickly.
 
 - If you plan to make a major change, please open an issue first.
-- If this is your first contribution to giro3d, add your name to [CONTRIBUTORS.md](CONTRIBUTORS.md)
+- If this is your first contribution to Giro3D, add your name to [CONTRIBUTORS.md](CONTRIBUTORS.md)
 - If your merge request fixes an existing issue, include a link to the issue in the description.
 - If your merge request needs additional work, include a task list, or better, split it in several MRs
 - Ping `@giro3d` in the comments to get your code reviewed, and also when you are done making new commits to address feedback
 - Verify your code passes the linter and tests (`npm test`).
-- If you added new identifiers to the giro3d API:
+- If you added new identifiers to the Giro3D API:
   - Include reference documentation with code examples
   - If your change adds significant features, provide a demo
 - Write commit message that follow the [Angular convention](https://github.com/angular/angular/blob/main/CONTRIBUTING.md#-commit-message-format). To help you doing so, you can use the `commitizen` CLI to write commit messages (use the `git cz` command instead of `git commit`). Alternatively, you can set [git hooks](https://github.com/commitizen/cz-cli#optional-running-commitizen-on-git-commit) and use the `git commit` command.
@@ -95,7 +95,7 @@ Triaging consists mainly in settings labels. Labels provide a clear view on what
   | Label | Description |
   |-------|-------------|
   | ~"build" | About the build/packaging system, not the code itself - _may_ impact the API |
-  | ~"documentation" | Documentation of Giro3d, including the website |
+  | ~"documentation" | Documentation of Giro3D, including the website |
   | ~"example" | Examples provided on the website |
 
   TODO:

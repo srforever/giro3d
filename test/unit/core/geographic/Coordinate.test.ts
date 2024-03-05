@@ -167,7 +167,7 @@ describe('Coordinates', () => {
     });
 
     describe('as()', () => {
-        // This case happend in giro3d when we convert the tile extent (4326) to a target WFS server
+        // This case happend in Giro3D when we convert the tile extent (4326) to a target WFS server
         // (EPSG:3946 for example) to request Lyon bus line in WFS.
         it('should correctly convert from EPSG:4326 (tiles extent) to EPSG:3946 (Lyon WFS) and back to EPSG:4326 (degrees)', () => {
             // geographic example for EPSG 4326 in degrees

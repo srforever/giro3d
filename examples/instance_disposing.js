@@ -18,7 +18,7 @@ const extent = new Extent(
 );
 const dimensions = extent.dimensions();
 
-// `viewerDiv` will contain giro3d' rendering area (the canvas element)
+// `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
 let instance = null;
@@ -28,7 +28,7 @@ let controls = null;
 let map = null;
 
 function init() {
-    // Creates a giro3d instance
+    // Creates a Giro3D instance
     instance = new Instance(viewerDiv, {
         crs: extent.crs(),
         renderer: {

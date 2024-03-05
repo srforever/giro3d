@@ -27,7 +27,7 @@
     "geometry"
   ],
   "scripts": {
-    "_build-site-theme": "shx mkdir -p build/site/assets && npx sass site/bootstrap-custom.scss build/site/assets/bootstrap-custom.css && shx cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js build/site/assets && shx mkdir -p build/site/images && shx cp -r graphics/* build/site/images",
+    "_build-site-theme": "shx mkdir -p build/site/assets && shx mkdir -p build/site/assets/fonts && npx sass site/bootstrap-custom.scss:build/site/assets/bootstrap-custom.css site/index.scss:build/site/assets/index.css && shx cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js build/site/assets && shx cp -r node_modules/bootstrap-icons/font/fonts/* build/site/assets/fonts && shx mkdir -p build/site/images && shx cp -r graphics/* build/site/images",
     "_build-static-site": "shx mkdir -p build/site && npm run _build-site-theme && shx cp site/*.html build/site/ && shx cp graphics/favicon* build/site/",
     "_build-tutorials": "shx mkdir -p build/site/ && docco examples/getting-started.js --css site/docco.css -s github-light -l parallel -t site/getting-started.ejs --output build/site/ && shx mv build/site/examples build/site/tutorials",
     "_check-folders": "node tasks/check-folders.mjs src test",
@@ -106,7 +106,8 @@
     "babel-plugin-minify-dead-code-elimination": "^0.5.2",
     "babel-plugin-minify-replace": "^0.5.0",
     "babel-polyfill": "^6.26.0",
-    "bootstrap": "^5.3.2",
+    "bootstrap": "^5.3.3",
+    "bootstrap-icons": "^1.11.3",
     "browserslist": "^4.21.4",
     "chokidar": "^3.5.3",
     "colormap": "^2.3.2",

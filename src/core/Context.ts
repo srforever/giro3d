@@ -16,7 +16,7 @@ class Context {
      */
     readonly camera: Camera;
     /**
-     * The giro3d instance
+     * The Giro3D instance
      */
     readonly instance: Instance;
 
@@ -50,7 +50,7 @@ class Context {
      * Constructs a context.
      *
      * @param camera the active camera.
-     * @param instance the giro3d instance.
+     * @param instance the Giro3D instance.
      */
     constructor(camera: Camera, instance: Instance) {
         this.camera = camera;

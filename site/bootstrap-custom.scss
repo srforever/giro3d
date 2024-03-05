@@ -1,6 +1,146 @@
 
 $blue: #2978b4;
 $primary: $blue;
+$green: #377c5f; // Piero!
 
 // set changes
 @import "../node_modules/bootstrap/scss/bootstrap";
+$bootstrap-icons-font-dir: 'fonts';
+@import '../node_modules/bootstrap-icons/font/bootstrap-icons';
+
+.header {
+    @extend .navbar;
+    @extend .navbar-expand-lg;
+    @extend .bg-light;
+    @extend .sticky-top;
+    @extend .shadow-sm;
+}
+
+.navbar-nav-left {
+    @extend .me-auto;
+    @extend .mb-2;
+    @extend .mb-lg-0;
+}
+
+.navbar-nav .nav-link.nav-link-primary:hover, .navbar-nav .nav-link.nav-link-primary.active:hover {
+    color: $blue;
+}
+
+.navbar-nav .nav-link.nav-link-primary.active {
+    color: $primary-text-emphasis;
+}
+
+.navbar-nav .nav-link.nav-link-success:hover, .navbar-nav .nav-link.nav-link-success.active:hover {
+    color: $green;
+}
+
+.navbar-nav .nav-link.nav-link-success.active {
+    color: $success-text-emphasis;
+}
+
+.jumbo {
+    @extend .container-fluid;
+    @extend .py-1;
+    @extend .px-5;
+    @extend .border-bottom;
+    background-position: center center;
+    background-size: cover;
+}
+
+.jumbo > h1 {
+    @extend .my-5;
+}
+
+.jumbo > .about {
+    @extend .my-1;
+}
+
+@include media-breakpoint-up(sm) {
+    .jumbo > .about {
+        max-width: 50%;
+    }
+}
+
+@include media-breakpoint-down(sm) {
+    .jumbo {
+        background-image: none !important;
+    }
+}
+
+.jumbo > .links {
+    @extend .my-2;
+}
+
+.cards-container {
+    @extend .row;
+    @extend .row-cols-1;
+    @extend .row-cols-sm-2;
+    @extend .g-3;
+    @extend .align-self-stretch;
+}
+
+.cards-container .card {
+    height: 100%;
+}
+
+.cards-container .card .card-content {
+    @extend .g-0;
+    height: 100%;
+}
+
+.cards-container .card .card-content.row .card-image {
+    @extend .col-md-4;
+    @extend .d-sm-none;
+    @extend .d-md-block;
+}
+
+.cards-container .card .card-image {
+    background-position: center center;
+    background-size: cover;
+}
+
+.cards-container .card .card-content .card-body {
+    @extend .col-md-8;
+}
+
+.bg-primary-subtle .cards-container .card {
+    @extend .border-primary;
+}
+
+.bg-primary-subtle .cards-container .btn-card {
+    @extend .btn-outline-primary;
+}
+
+
+.bg-success-subtle .cards-container .card {
+    @extend .border-success;
+}
+
+.bg-success-subtle .cards-container .btn-card {
+    @extend .btn-outline-success;
+}
+
+.card.shadow, .card.shadow-sm {
+    transition: box-shadow 0.2s;
+}
+.card.shadow:hover {
+    @extend .shadow-lg;
+}
+.card.shadow-sm:hover {
+    @extend .shadow;
+}
+
+.card-img-bg {
+    @extend .p-0;
+    filter: blur(2px) opacity(40%);
+    height: 100px;
+    object-fit: cover;
+}
+
+.card-img-bg.card-img-top {
+    object-position: top;
+}
+
+.card-img-bg.card-img-bottom {
+    object-position: bottom;
+}
