@@ -8,6 +8,20 @@ $green: #377c5f; // Piero!
 $bootstrap-icons-font-dir: 'fonts';
 @import '../node_modules/bootstrap-icons/font/bootstrap-icons';
 
+.header {
+    @extend .navbar;
+    @extend .navbar-expand-lg;
+    @extend .bg-light;
+    @extend .sticky-top;
+    @extend .shadow-sm;
+}
+
+.navbar-nav-left {
+    @extend .me-auto;
+    @extend .mb-2;
+    @extend .mb-lg-0;
+}
+
 .navbar-nav .nav-link.nav-link-primary:hover, .navbar-nav .nav-link.nav-link-primary.active:hover {
     color: $blue;
 }
@@ -22,14 +36,6 @@ $bootstrap-icons-font-dir: 'fonts';
 
 .navbar-nav .nav-link.nav-link-success.active {
     color: $success-text-emphasis;
-}
-
-.header {
-    @extend .navbar;
-    @extend .navbar-expand-lg;
-    @extend .bg-light;
-    @extend .sticky-top;
-    @extend .shadow-sm;
 }
 
 .jumbo {
