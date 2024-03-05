@@ -1,0 +1,39 @@
+@import "../node_modules/bootstrap/scss/functions";
+@import "../node_modules/bootstrap/scss/variables";
+@import "../node_modules/bootstrap/scss/maps";
+@import "../node_modules/bootstrap/scss/mixins";
+
+.logo-container {
+    position: relative;
+}
+
+.fancy-title {
+    opacity: 1;
+    display: inline-block;
+    overflow: visible;
+    position: absolute;
+    z-index: 10;
+}
+
+.fancy-title.giro3d {
+    margin-top: -140px;
+    margin-left: 5px;
+    right: 0;
+}
+
+.fancy-title.piero {
+    margin-top: -100px;
+    margin-right: 5px;
+    left: 0;
+}
+
+@include media-breakpoint-up(xl) {
+    .fancy-title.giro3d {
+        right: auto;
+        margin-top: -140px;
+    }
+    .fancy-title.piero {
+        left: auto;
+        margin-top: -20px;
+    }
+}
