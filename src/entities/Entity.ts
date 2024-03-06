@@ -10,12 +10,30 @@ export interface EntityEventMap {
     'frozen-property-changed': { frozen: boolean; }
 }
 
+export interface EntityUserData extends Record<string, any> {}
+
 /**
  * Abstract base class for all entities in Giro3D.
  * The Entity is the core component of Giro3D and represent an updatable
  * object that is added to an {@link core.Instance.Instance}.
  *
  * The class inherits three.js' [`EventDispatcher`](https://threejs.org/docs/index.html?q=even#api/en/core/EventDispatcher).
+ *
+ * ### The `userData` property
+ *
+ * The `userData` property can be used to attach custom data to the entity, in a type safe manner.
+ * It is recommended to use this property instead of attaching arbitrary properties to the object:
+ *
+ * ```ts
+ * type MyCustomUserData = {
+ *   creationDate: Date;
+ *   owner: string;
+ * };
+ * const entity: Entity<MyCustomUserData> = ...;
+ *
+ * entity.userData.creationDate = Date.now();
+ * entity.userData.owner = 'John Doe';
+ * ```
  *
  * ### Lifetime
  *
@@ -48,7 +66,7 @@ export interface EntityEventMap {
  *     const entity = new Entity('exampleEntity');
  *     instance.add(entity);
  */
-class Entity<TEventMap extends EntityEventMap = EntityEventMap>
+class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = EntityUserData>
     extends EventDispatcher<TEventMap & EntityEventMap>
     implements Disposable {
     private readonly _id: string;
@@ -59,7 +77,7 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
     /**
      * An object that can be used to store custom data about the {@link Entity}.
      */
-    readonly userData: Record<string, any> = {};
+    readonly userData: TUserData;
 
     /**
      * Read-only flag to check if a given object is of type Entity.
@@ -84,6 +102,8 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap>
         this._id = id;
         this.type = 'Entity';
         this._frozen = false;
+        // @ts-expect-error {} cannot be assigned to TUserData, but it's better than null/undefined.
+        this.userData = {};
     }
 
     /**

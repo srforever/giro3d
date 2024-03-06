@@ -13,6 +13,7 @@ import type Context from '../core/Context';
 import type Extent from '../core/geographic/Extent';
 import ScreenSpaceError from '../core/ScreenSpaceError';
 import LayerUpdateState from '../core/layer/LayerUpdateState';
+import type { Entity3DEventMap } from './Entity3D';
 import Entity3D from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
 import { DefaultQueue } from '../core/RequestQueue';
@@ -24,6 +25,7 @@ import {
     type FeatureExtrusionOffsetCallback,
 } from '../core/FeatureTypes';
 import OLUtils from '../utils/OpenLayersUtils';
+import type { EntityUserData } from './Entity';
 
 const vector = new Vector3();
 
@@ -132,7 +134,7 @@ export type OnTileCreatedCallback = (tile: Group) => void;
  * - [IGN data](/examples/ign_data.html)
  *
  */
-class FeatureCollection extends Entity3D {
+class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, UserData> {
     readonly extent: Extent;
     private _subdivisions: { x: number; y: number };
     private _source: VectorSource;
@@ -158,7 +160,7 @@ class FeatureCollection extends Entity3D {
      * Construct a `FeatureCollection`.
      *
      * @param id The unique identifier of this FeatureCollection
-     * @param [options={}] Constructor options.
+     * @param [options] Constructor options.
      * @param options.source The [ol.VectorSource](https://openlayers.org/en/latest/apidoc/module-ol_source_Vector-VectorSource.html) providing features to this
      * entity
      * @param options.dataProjection The EPSG code for the projections of the features. If null or
@@ -166,12 +168,12 @@ class FeatureCollection extends Entity3D {
      * instance.referenceCrs, each feature will be reprojected before mesh conversion occurs. Please
      * note that reprojection can be somewhat heavy on cpu ressources.
      * @param options.extent The geographic extent of the map, mandatory.
-     * @param [options.object3d=new THREE.Group()] The optional 3d object to
+     * @param [options.object3d] The optional 3d object to
      * use as the root
-     * @param [options.minLevel=0] The min subdivision level to start processing features.
+     * @param [options.minLevel] The min subdivision level to start processing features.
      * Useful for WFS or other untiled servers, to avoid to download the entire dataset when the
      * whole extent is visible.
-     * @param [options.maxLevel=Infinity] The max level to subdivide the extent and
+     * @param [options.maxLevel] The max level to subdivide the extent and
      * process features.
      * @param [options.onMeshCreated] called when a mesh is created (just
      * after conversion of the source data)

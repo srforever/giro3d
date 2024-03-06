@@ -7,7 +7,7 @@ import {
     type Plane,
 } from 'three';
 
-import Entity, { type EntityEventMap } from './Entity';
+import Entity, { type EntityUserData, type EntityEventMap } from './Entity';
 import type Instance from '../core/Instance';
 import type Context from '../core/Context';
 import { type ObjectToUpdate } from '../core/MainLoop';
@@ -41,8 +41,8 @@ export interface Entity3DEventMap extends EntityEventMap {
  * Subclasses *must* call `onObjectCreated` when creating new Object3D, before adding them to the
  * scene
  */
-class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap>
-    extends Entity<TEventMap & Entity3DEventMap>
+class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData = EntityUserData>
+    extends Entity<TEventMap & Entity3DEventMap, TUserData>
     implements Pickable {
     protected _instance: Instance;
     private _visible: boolean;

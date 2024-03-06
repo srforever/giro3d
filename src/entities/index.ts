@@ -12,7 +12,7 @@ import AxisGrid, {
 } from './AxisGrid';
 import Map, { type LayerCompareFn, type MapEventMap } from './Map';
 import PotreePointCloud from './PotreePointCloud';
-import Entity, { type EntityEventMap } from './Entity';
+import Entity, { type EntityEventMap, type EntityUserData } from './Entity';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
 import DrawingCollection, { type DrawingCollectionEventMap } from './DrawingCollection';
 import Tiles3D, { type Tiles3DOptions, type Tiles3DPickResult } from './Tiles3D';
@@ -21,6 +21,7 @@ import FeatureCollection, { type OnMeshCreatedCallback, type OnTileCreatedCallba
 export {
     Entity,
     EntityEventMap,
+    EntityUserData,
     Entity3D,
     Entity3DEventMap,
     Map,
