@@ -7,7 +7,12 @@ import {
 import { type Feature } from 'ol';
 import { type Geometry } from 'ol/geom';
 import ColorLayer from './ColorLayer';
-import type { LayerOptions, Node, NodeMaterial } from './Layer';
+import type {
+    LayerOptions,
+    LayerUserData,
+    Node,
+    NodeMaterial,
+} from './Layer';
 
 /**
  * Modes of the mask layer.
@@ -38,7 +43,7 @@ export interface MaskLayerOptions extends LayerOptions {
  * a map. The source can be any source supported by the color layers.
  *
  */
-class MaskLayer extends ColorLayer {
+class MaskLayer<UserData = LayerUserData> extends ColorLayer<UserData> {
     private _maskMode: MaskMode;
     /**
      * Read-only flag to check if a given object is of type MaskLayer.

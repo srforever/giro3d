@@ -1,6 +1,11 @@
 import type { PixelFormat, Texture, TextureDataType } from 'three';
 import { FloatType, NoColorSpace, RGFormat } from 'three';
-import type { LayerEvents, LayerOptions, TextureAndPitch } from './Layer';
+import type {
+    LayerEvents,
+    LayerOptions,
+    LayerUserData,
+    TextureAndPitch,
+} from './Layer';
 import Layer from './Layer';
 import type Extent from '../geographic/Extent.js';
 import type TileMesh from '../TileMesh';
@@ -25,7 +30,7 @@ export interface ElevationLayerOptions extends LayerOptions {
 /**
  * A layer that provides elevation data to display terrains.
  */
-class ElevationLayer extends Layer<ElevationLayerEvents> {
+class ElevationLayer<UserData = LayerUserData> extends Layer<ElevationLayerEvents, UserData> {
     minmax: ElevationRange;
     /**
      * Read-only flag to check if a given object is of type ElevationLayer.

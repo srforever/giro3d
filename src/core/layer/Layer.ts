@@ -160,6 +160,8 @@ export interface LayerOptions {
     resolutionFactor?: number;
 }
 
+export interface LayerUserData extends Record<string, any> {}
+
 /**
  * Base class of layers. Layers are components of maps or any compatible entity.
  *
@@ -174,6 +176,22 @@ export interface LayerOptions {
  * - `ColorLayer` for color information, such as satellite imagery, vector data, etc.
  * - `ElevationLayer` for elevation and terrain data.
  * - `MaskLayer`: a special kind of layer that applies a mask on its host map.
+ *
+ * ## The `userData` property
+ *
+ * The `userData` property can be used to attach custom data to the layer, in a type safe manner.
+ * It is recommended to use this property instead of attaching arbitrary properties to the object:
+ *
+ * ```ts
+ * type MyCustomUserData = {
+ *   creationDate: Date;
+ *   owner: string;
+ * };
+ * const newLayer = new ColorLayer<MyCustomUserData>({ ... });
+ *
+ * newLayer.userData.creationDate = Date.now();
+ * newLayer.userData.owner = 'John Doe';
+ * ```
  *
  * ## Reprojection capabilities
  *
@@ -199,7 +217,9 @@ export interface LayerOptions {
  * // Listen to properties
  * newLayer.addEventListener('visible-property-changed', (event) => console.log(event));
  */
-abstract class Layer<TEvents extends LayerEvents = LayerEvents>
+abstract class Layer<
+    TEvents extends LayerEvents = LayerEvents,
+    TUserData extends LayerUserData = LayerUserData>
     extends EventDispatcher<TEvents & LayerEvents>
     implements Progress {
     /**
@@ -249,7 +269,7 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
     /**
      * An object that can be used to store custom data about the {@link Layer}.
      */
-    readonly userData: Record<string, any> = {};
+    readonly userData: TUserData;
 
     /**
      * Disables automatic updates of this layer. Useful for debugging purposes.
@@ -268,6 +288,12 @@ abstract class Layer<TEvents extends LayerEvents = LayerEvents>
     constructor(options: LayerOptions) {
         super();
         this.name = options.name;
+
+        // @ts-expect-error {} is not assignable to TUserData in the case when the initial
+        // value is not provided. However, we have no way to initialize the userData to a
+        // correct default value. Instead of assigning to null/undefined, the compromise is
+        // to assign to the empty object.
+        this.userData = {};
 
         // We need a globally unique ID for this layer, to avoid collisions in the request queue.
         this.id = MathUtils.generateUUID();

@@ -11,6 +11,7 @@ import Layer, {
     type Node,
     type NodeMaterial,
     type TextureAndPitch,
+    type LayerUserData,
 } from './Layer';
 import type Coordinates from '../geographic/Coordinates';
 import Extent from '../geographic/Extent';
@@ -48,8 +49,8 @@ export interface ColorLayerOptions extends LayerOptions {
 /**
  * A layer that produces color images, such as vector data, or satellite imagery.
  */
-class ColorLayer
-    extends Layer<ColorLayerEvents>
+class ColorLayer<UserData = LayerUserData>
+    extends Layer<ColorLayerEvents, UserData>
     implements PickableFeatures<VectorPickFeature, MapPickResult<VectorPickFeature>> {
     private _opacity: number;
     /**
