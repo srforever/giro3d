@@ -1,5 +1,72 @@
 # Changelog
 
+## v0.34.0 (2024-03-06)
+
+Full color space mangement and performance improvements.
+
+Plus a new website featuring our sister project [Piero](https://app.giro3d.org), the official web application based on Giro3D!
+
+### BREAKING CHANGE
+
+- The `colorManagement` option in the `Instance` constructor
+is removed. [THREE.js color management](https://threejs.org/docs/#manual/en/introduction/Color-management) is now always enabled.
+- The event `layer-initialized` is removed from the `Instance`,
+as it was never triggered.
+- TileMesh.OBB is now an accessor:
+
+    ```ts
+    // before
+    const obb = tileMesh.OBB();
+
+    // after
+    const obb = tileMesh.OBB;
+    ```
+
+### Feat
+
+- **ci**: enable building website on CI
+- **doc**: add Piero in the readme and on the website
+- **Extent**: add `toGrid()` to subdivide an `Extent` into a regular grid (!530)
+- **FeatureCollection**: add resulting meshes to cache (#329, !521)
+- **Inspector**: support TileMesh objects (!518)
+- **Inspector**: use a different color for non-visible materials (!518)
+- **InstanceInspector**: add color picker for clear color (!525)
+- **Map**: make stitching and terrain deformation optional (#392, #391, !514)
+- **Map**: support colorimetry (#393, !515)
+
+### Fix
+
+- **c3DEngine**: default to enabled `ColorManagement` (#373, !525)
+- **Coordinates**: recognize variants of well-known units (deg, degree, degress...) (!530)
+- **Entity3D**: call onObjectCreated on root object (#395, !517)
+- **giro3d_common.glsl**: adjust color space for `Interpretation.CompressTo8Bit` (#373, !525)
+- **Layer**: adjust color space of input textures (#373, !525)
+- **LayerComposer**: use 64-bit floating point instead of 32-bit for warping tiles (!530)
+- **Map**: use correct color space for default background color (#373, !525)
+- **Map**: use screen-space thickness for contour lines (#396, !516)
+- **MapInspector**: use correct color space for background color (#373, !525)
+- **PointFS.glsl**: convert point colors to linear (#373, !525)
+- **RenderPipeline**: add missing final OutputPass (#373, !525)
+- **RenderPipeline**: adjust the clear color in linear-sRGB color space (#373, !525)
+- **shaders**: add missing chunk `<colorspace_fragment>` (#373, !525)
+- **TileFS.glsl**: apply hillshading on sRGB color (#373, !525)
+
+### Refactor
+
+- **c3DEngine**: remove ColorManagement option (#373, !525)
+- **entities**: remove spurious layer properties (#47, !518)
+- **Extent**: add typing (#403, !530)
+- **Instance**: add `getEntities()` (!520)
+- **Instance**: cleanup `remove()` (!520)
+- **Instance**: remove `layers-initialized` (!518)
+- **ObjectRemovalHelper.ts**: removed class (!520)
+- **PotreePointCloud**: add types to `getObjectToUpdateForAttachedLayers()` (!518)
+- **TiledImageSource**: add correct type for projection property (#403, !530)
+- **TileMesh**: override the type property (!518)
+- **TileMesh**: property OBB becomes an accessor (!514)
+- **TileMesh**: reduce dependency to Map (#47, !518)
+- **Tiles3D**: add types to `getObjectToUpdateForAttachedLayers()` (!518)
+
 ## v0.33.1 (2024-02-20)
 
 Hotfix release for 0.33.
