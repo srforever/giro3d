@@ -118,8 +118,6 @@ class Cache {
 
     /**
      * Gets the number of entries.
-     *
-     * @type {number}
      */
     get count() {
         return this._lru.size;
@@ -127,8 +125,6 @@ class Cache {
 
     /**
      * Gets the size of entries, in bytes
-     *
-     * @type {number}
      */
     get size() {
         return this._lru.calculatedSize;

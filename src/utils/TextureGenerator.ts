@@ -356,7 +356,7 @@ async function decodeBlob(
 }
 
 /**
- * Returns a @type {DataTexture} initialized with the specified data.
+ * Returns a {@link DataTexture} initialized with the specified data.
  *
  * @param options The creation options.
  * @param options.width width The texture width.

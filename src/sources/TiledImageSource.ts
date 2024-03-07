@@ -97,7 +97,6 @@ export default class TiledImageSource extends ImageSource {
 
         const projection = this.source.getProjection();
         this.olprojection = projection;
-        /** @type {TileGrid} */
         const tileGrid: TileGrid = this.source.getTileGridForProjection(projection);
         // Cache the tilegrid because it is constant
         this._tileGrid = tileGrid;
