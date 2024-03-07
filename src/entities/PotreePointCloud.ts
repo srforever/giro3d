@@ -259,8 +259,6 @@ class PotreePointCloud<UserData = EntityUserData>
         this.source = source;
         /**
          * Read-only flag to check if a given object is of type PotreePointCloud.
-         *
-         * @type {boolean}
          */
         this.type = 'PotreePointCloud';
 
@@ -297,8 +295,7 @@ class PotreePointCloud<UserData = EntityUserData>
          * Optional hook called when a new point tile is loaded.
          * The parameter is a {@link module:Core/Points~Points Points} object.
          *
-         * @type {Function}
-         * @example
+         *  @example
          * const cloud = new PotreePointCloud('myCloud', source);
          * cloud.onPointsCreated = function(pnts) {
          *  // Do something with the points.

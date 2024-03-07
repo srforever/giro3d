@@ -243,9 +243,6 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
 
         /**
          * Read-only flag to check if a given object is of type FeatureCollection.
-         *
-         * @type {boolean}
-         * @api
          */
         this.isFeatureCollection = true;
         this.type = 'FeatureCollection';
@@ -290,9 +287,6 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
 
     /**
      * Gets whether this entity is currently loading data.
-     *
-     * @api
-     * @type {boolean}
      */
     get loading() {
         return this._opCounter.loading;
@@ -300,9 +294,6 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
 
     /**
      * Gets the progress value of the data loading.
-     *
-     * @api
-     * @type {number}
      */
     get progress() {
         return this._opCounter.progress;

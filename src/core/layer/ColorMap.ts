@@ -106,8 +106,6 @@ class ColorMap {
 
     /**
      * Enables or disables the color map.
-     *
-     * @type {boolean}
      */
     get active() {
         return this._active;
@@ -119,8 +117,6 @@ class ColorMap {
 
     /**
      * Gets or sets the lower bound of the color map range.
-     *
-     * @type {number}
      */
     get min() {
         return this._min;
@@ -134,8 +130,6 @@ class ColorMap {
 
     /**
      * Gets or sets the upper bound of the color map range.
-     *
-     * @type {number}
      */
     get max() {
         return this._max;
@@ -149,8 +143,6 @@ class ColorMap {
 
     /**
      * Gets or sets the colors of the color map.
-     *
-     * @type {Color[]}
      */
     get colors() {
         return this._colors;
