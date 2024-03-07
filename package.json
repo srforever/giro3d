@@ -46,7 +46,7 @@
     "lint": "npm run lint-doc && npm run _check-folders && npm run lint-eslint",
     "make-package": "npm run build-package && npm pack build/giro3d/",
     "prepack": "npm run build-package",
-    "serve-apidoc": "npm run build-apidoc && npm run _build-site-theme && shx cp build/site/assets/* build/site/apidoc/assets/ && shx cp -r build/site/images build/site/apidoc/images && concurrently --kill-others \"typedoc --watch --cleanOutputDir false\" \"npx http-server build/site/apidoc\"",
+    "serve-apidoc": "npm run build-apidoc && npm run _build-site-theme && shx cp -r build/site/assets/* build/site/apidoc/assets/ && shx cp -r build/site/images build/site/apidoc/images && concurrently --kill-others \"typedoc --watch --cleanOutputDir false\" \"npx http-server build/site/apidoc\"",
     "serve-examples": "npm run build-examples && npm run _build-site-theme && concurrently --kill-others \"npm run watch\" \"webpack serve --config examples/webpack/config.mjs --mode=production\"",
     "serve-site": "npm run build-site && npx http-server build/site/",
     "start": "npm run build-examples:dev && npm run _build-site-theme && concurrently --kill-others \"npm run watch\" \"webpack serve --config examples/webpack/config.mjs --mode=development\"",
