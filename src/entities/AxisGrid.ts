@@ -15,11 +15,13 @@ import {
 
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
+import type { Entity3DEventMap } from './Entity3D';
 import Entity3D from './Entity3D';
 import type Extent from '../core/geographic/Extent';
 import type Context from '../core/Context';
 import { UNIT, crsToUnit } from '../core/geographic/Coordinates';
 import Helpers from '../helpers/Helpers';
+import type { EntityUserData } from './Entity';
 
 const mod = MathUtils.euclideanModulo;
 
@@ -153,7 +155,7 @@ function createLabelElement(text: string, color: string, opacity: number, fontSi
  *   },
  * });
  */
-class AxisGrid extends Entity3D {
+class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, UserData> {
     /**
      * Read-only flag to check if a given object is of type AxisGrid.
      */

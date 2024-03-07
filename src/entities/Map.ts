@@ -44,6 +44,7 @@ import type { ColorMap } from '../core/layer';
 import type HasLayers from '../core/layer/HasLayers';
 import { defaultColorimetryOptions } from '../core/ColorimetryOptions';
 import TextureGenerator from '../utils/TextureGenerator';
+import type { EntityUserData } from './Entity';
 
 const DEFAULT_BACKGROUND_COLOR = new Color().setRGB(0.04, 0.23, 0.35, 'srgb');
 
@@ -257,8 +258,8 @@ export interface MapEventMap extends Entity3DEventMap {
  * If an elevation layer is added, the surface of the map is deformed to
  * display terrain.
  */
-class Map
-    extends Entity3D<MapEventMap>
+class Map<UserData = EntityUserData>
+    extends Entity3D<MapEventMap, UserData>
     implements Pickable<MapPickResult>, PickableFeatures<any, MapPickResult>, HasLayers {
     readonly hasLayers = true;
     private _segments: number;

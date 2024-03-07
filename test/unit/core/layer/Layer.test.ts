@@ -1,4 +1,9 @@
-import type { Node, TextureAndPitch } from 'src/core/layer/Layer';
+import type {
+    LayerEvents,
+    LayerUserData,
+    Node,
+    TextureAndPitch,
+} from 'src/core/layer/Layer';
 import Layer from 'src/core/layer/Layer';
 import Extent from 'src/core/geographic/Extent';
 import NullSource from 'src/sources/NullSource';
@@ -6,7 +11,7 @@ import type RequestQueue from 'src/core/RequestQueue';
 import { setupGlobalMocks } from '../../mocks.js';
 
 // @ts-expect-error missing implementations of abstract superclass
-class TestLayer extends Layer {
+class TestLayer<T, U> extends Layer<T, U> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
     registerNode(_node: Node, _extent: Extent): void {
     }
@@ -25,6 +30,11 @@ class TestLayer extends Layer {
     }
 }
 
+interface UserData extends LayerUserData {
+    'bar': number;
+    'foo': string;
+}
+
 describe('Layer', () => {
     beforeEach(() => {
         setupGlobalMocks();
@@ -32,7 +42,7 @@ describe('Layer', () => {
 
     describe('userData', () => {
         it('returns correct values', () => {
-            const layer = new TestLayer({ source: new NullSource() });
+            const layer = new TestLayer<LayerEvents, UserData>({ source: new NullSource() });
 
             layer.userData.bar = 3;
             layer.userData.foo = 'hello';

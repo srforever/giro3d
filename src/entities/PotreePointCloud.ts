@@ -11,7 +11,7 @@ import {
     Vector3,
     type Camera,
 } from 'three';
-import Entity3D from './Entity3D';
+import Entity3D, { type Entity3DEventMap } from './Entity3D';
 import PointsMaterial, { MODE, type Mode } from '../renderer/PointsMaterial';
 import type RequestQueue from '../core/RequestQueue';
 import { DefaultQueue } from '../core/RequestQueue';
@@ -31,6 +31,7 @@ import type HasLayers from '../core/layer/HasLayers';
 import type ColorLayer from '../core/layer/ColorLayer';
 import type { LayerEvents } from '../core/layer/Layer';
 import type Layer from '../core/layer/Layer';
+import { type EntityUserData } from './Entity';
 
 // Draw a cube with lines (12 lines).
 function cube(size: Vector3) {
@@ -211,7 +212,9 @@ type OnPointsCreatedCallback = (entity: PotreePointCloud, pnts: PointCloud) => v
  * A [Potree](https://github.com/potree/potree) point cloud.
  *
  */
-class PotreePointCloud extends Entity3D implements Pickable<PointsPickResult>, HasLayers {
+class PotreePointCloud<UserData = EntityUserData>
+    extends Entity3D<Entity3DEventMap, UserData>
+    implements Pickable<PointsPickResult>, HasLayers {
     readonly isPotreePointCloud = true;
     readonly hasLayers = true;
     private _colorLayer: ColorLayer;

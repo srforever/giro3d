@@ -8,7 +8,7 @@ import {
     Vector3,
 } from 'three';
 import type Extent from '../core/geographic/Extent';
-import Entity3D from './Entity3D';
+import Entity3D, { type Entity3DEventMap } from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
 import $3dTilesIndex, { type ProcessedTile } from './3dtiles/3dTilesIndex';
 import Fetcher from '../utils/Fetcher';
@@ -32,6 +32,7 @@ import pickObjectsAt from '../core/picking/PickObjectsAt';
 import pickPointsAt, { type PointsPickResult } from '../core/picking/PickPointsAt';
 import type { ColorLayer, Layer, LayerEvents } from '../core/layer';
 import type HasLayers from '../core/layer/HasLayers';
+import { type EntityUserData } from './Entity';
 
 /** Options to create a Tiles3D object. */
 export interface Tiles3DOptions<TMaterial extends Material> {
@@ -101,8 +102,8 @@ export type Tiles3DPickResult = PointsPickResult | PickResult;
  * A [3D Tiles](https://www.ogc.org/standards/3DTiles) dataset.
  *
  */
-class Tiles3D<TMaterial extends Material = Material>
-    extends Entity3D
+class Tiles3D<TMaterial extends Material = Material, UserData = EntityUserData>
+    extends Entity3D<Entity3DEventMap, UserData>
     implements Pickable<Tiles3DPickResult>, HasLayers {
     readonly hasLayers = true;
     /** Read-only flag to check if a given object is of type Tiles3D. */
