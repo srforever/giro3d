@@ -16,7 +16,7 @@ class HillshadingPanel extends Panel {
         this.addController<boolean>(hillshading, 'enabled')
             .name('Enable')
             .onChange(() => this.notify());
-        this.addController<number>(hillshading, 'intensity', 0, 1)
+        this.addController<number>(hillshading, 'intensity', 0, 10)
             .name('Intensity')
             .onChange(() => this.notify());
         this.addController<number>(hillshading, 'zenith', 0, 90)
