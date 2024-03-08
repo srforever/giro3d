@@ -130,12 +130,11 @@ const tmp = {
 function markForDeletion(elt: OctreeItem) {
     if (elt.obj) {
         elt.obj.material.visible = false;
-        // @ts-ignore
-        if (__DEBUG__) {
-            if (elt.obj.boxHelper) {
-                elt.obj.boxHelper.material.visible = false;
-            }
-        }
+        // if (__DEBUG__) {
+        //     if (elt.obj.boxHelper) {
+        //         elt.obj.boxHelper.material.visible = false;
+        //     }
+        // }
     }
 
     if (!elt.notVisibleSince) {
@@ -212,7 +211,7 @@ type OnPointsCreatedCallback = (entity: PotreePointCloud, pnts: PointCloud) => v
  * A [Potree](https://github.com/potree/potree) point cloud.
  *
  */
-class PotreePointCloud<UserData = EntityUserData>
+class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
     extends Entity3D<Entity3DEventMap, UserData>
     implements Pickable<PointsPickResult>, HasLayers {
     readonly isPotreePointCloud = true;
@@ -241,7 +240,6 @@ class PotreePointCloud<UserData = EntityUserData>
      * ```
      */
     onPointsCreated: OnPointsCreatedCallback | null;
-    isFromPotreeConverter?: boolean;
     metadata?: PotreeMetadata;
     table?: string;
     parse?: (data: ArrayBuffer, pointAttributes: object) => Promise<BufferGeometry>;
@@ -333,30 +331,12 @@ class PotreePointCloud<UserData = EntityUserData>
     }
 
     computeBbox() {
-        let bbox;
-        if (this.isFromPotreeConverter) {
-            const entityBbox = this.metadata.boundingBox;
-            bbox = new Box3(
-                new Vector3(entityBbox.lx, entityBbox.ly, entityBbox.lz),
-                new Vector3(entityBbox.ux, entityBbox.uy, entityBbox.uz),
-            );
-        } else {
-            // lopocs
-            let idx = 0;
-            // @ts-ignore - I have no idea how that could work
-            for (const entry of this.metadata) {
-                if (entry.table === this.table) {
-                    break;
-                }
-                idx++;
-            }
-            // @ts-ignore - I have no idea how that could work
-            const entityBbox = this.metadata[idx].bbox;
-            bbox = new Box3(
-                new Vector3(entityBbox.xmin, entityBbox.ymin, entityBbox.zmin),
-                new Vector3(entityBbox.xmax, entityBbox.ymax, entityBbox.zmax),
-            );
-        }
+        const entityBbox = this.metadata.boundingBox;
+        const bbox = new Box3(
+            new Vector3(entityBbox.lx, entityBbox.ly, entityBbox.lz),
+            new Vector3(entityBbox.ux, entityBbox.uy, entityBbox.uz),
+        );
+
         return bbox;
     }
 
@@ -388,26 +368,13 @@ class PotreePointCloud<UserData = EntityUserData>
 
         let customBinFormat = true;
 
-        // Lopocs pointcloud server can expose the same file structure as PotreeConverter output.
-        // The only difference is the metadata root file (cloud.js vs infos/sources), and we can
-        // check for the existence of a `scale` field.
-        // (if `scale` is defined => we're fetching files from PotreeConverter)
-        if (this.metadata.scale !== undefined) {
-            this.isFromPotreeConverter = true;
-            // PotreeConverter format
-            customBinFormat = this.metadata.pointAttributes === 'CIN';
-            // do we have normal information
-            const normal = Array.isArray(this.metadata.pointAttributes)
-                && this.metadata.pointAttributes.find(elem => elem.startsWith('NORMAL'));
-            if (normal) {
-                this.material.defines[normal] = 1;
-            }
-        } else {
-            // Lopocs
-            this.metadata.scale = 1;
-            this.metadata.octreeDir = `giro3d/${this.table}.points`;
-            this.metadata.hierarchyStepSize = 1000000; // ignore this with lopocs
-            customBinFormat = true;
+        // PotreeConverter format
+        customBinFormat = this.metadata.pointAttributes === 'CIN';
+        // do we have normal information
+        const normal = Array.isArray(this.metadata.pointAttributes)
+            && this.metadata.pointAttributes.find(elem => elem.startsWith('NORMAL'));
+        if (normal) {
+            this.material.defines[normal] = 1;
         }
 
         this.parse = customBinFormat ? PotreeCinParser.parse : PotreeBinParser.parse;
@@ -632,17 +599,16 @@ class PotreePointCloud<UserData = EntityUserData>
                     } else {
                         elt.obj.material.copy(this.material);
                     }
-                    // @ts-ignore
-                    if (__DEBUG__) {
-                        if (this.bboxes.visible) {
-                            if (!elt.obj.boxHelper) {
-                                this.initBoundingBox(elt);
-                            }
-                            elt.obj.boxHelper.visible = true;
-                            elt.obj.boxHelper.material.color.r = 1 - elt.sse;
-                            elt.obj.boxHelper.material.color.g = elt.sse;
-                        }
-                    }
+                    // if (__DEBUG__) {
+                    //     if (this.bboxes.visible) {
+                    //         if (!elt.obj.boxHelper) {
+                    //             this.initBoundingBox(elt);
+                    //         }
+                    //         elt.obj.boxHelper.visible = true;
+                    //         elt.obj.boxHelper.material.color.r = 1 - elt.sse;
+                    //         elt.obj.boxHelper.material.color.g = elt.sse;
+                    //     }
+                    // }
                 } else if (!elt.promise) {
                     // Increase priority of nearest node
                     const priority = this.computeScreenSpaceError(context, elt, distance)
@@ -654,7 +620,7 @@ class PotreePointCloud<UserData = EntityUserData>
                         id: MathUtils.generateUUID(),
                         priority,
                         shouldExecute: () => elt.visible && this.visible,
-                        request: () => this.executeCommand(elt, elt.childrenBitField === 0),
+                        request: () => this.executeCommand(elt),
                     }).then((pts: PotreeTilePointCloud) => {
                         if (this.onPointsCreated) {
                             this.onPointsCreated(this, pts);
@@ -784,35 +750,29 @@ class PotreePointCloud<UserData = EntityUserData>
                 obj.geometry = null;
                 obj.userData.metadata.obj = null;
 
-                // @ts-ignore
-                if (__DEBUG__) {
-                    if (obj.boxHelper) {
-                        obj.boxHelper.removeMe = true;
-                        obj.boxHelper.material.dispose();
-                        obj.boxHelper.geometry.dispose();
-                    }
-                }
+                // if (__DEBUG__) {
+                //     if (obj.boxHelper) {
+                //         obj.boxHelper.removeMe = true;
+                //         obj.boxHelper.material.dispose();
+                //         obj.boxHelper.geometry.dispose();
+                //     }
+                // }
             }
         }
 
-        // @ts-ignore
-        if (__DEBUG__) {
-            this.bboxes.children = this.bboxes.children.filter((b: BoxHelper) => !b.removeMe);
-        }
+        // if (__DEBUG__) {
+        //     this.bboxes.children = this.bboxes.children.filter((b: BoxHelper) => !b.removeMe);
+        // }
     }
 
-    async executeCommand(metadata: OctreeItem, isLeaf: boolean) {
+    async executeCommand(metadata: OctreeItem) {
         // Query HRC if we don't have children metadata yet.
         if (metadata.childrenBitField && metadata.children.length === 0) {
             this.parseOctree(this.metadata.hierarchyStepSize, metadata)
                 .then(() => this._instance.notifyChange(this, false));
         }
 
-        // `isLeaf` is for lopocs and allows the pointcloud server to consider that the current
-        // node is the last one, even if we could subdivide even further.
-        // It's necessary because lopocs doens't know about the hierarchy (it generates it on the
-        // fly when we request .hrc files)
-        const url = `${metadata.baseurl}/r${metadata.name}.${this.extension}?isleaf=${isLeaf ? 1 : 0}`;
+        const url = `${metadata.baseurl}/r${metadata.name}.${this.extension}`;
 
         const buffer = await Fetcher.arrayBuffer(url, this.source.networkOptions);
         const geometry = await this.parse(buffer, this.metadata.pointAttributes);

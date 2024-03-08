@@ -10,7 +10,7 @@ export interface EntityEventMap {
     'frozen-property-changed': { frozen: boolean; }
 }
 
-export interface EntityUserData extends Record<string, any> {}
+export type EntityUserData = Record<string, unknown>;
 
 /**
  * Abstract base class for all entities in Giro3D.
@@ -309,7 +309,7 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      * on the camera's field of view should be updated.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    postUpdate(context: Context, changeSources: Set<unknown>) {}
+    postUpdate(context: Context, changeSources: Set<unknown>) { /** do nothing */ }
 
     /**
      * Disposes this entity and all resources associated with it.
@@ -320,7 +320,7 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      * For example: disposing materials, geometries, stopping HTTP requests, etc.
      *
      */
-    dispose() {}
+    dispose() { /** do nothing */ }
 }
 
 export function isEntity(o: unknown): o is Entity {

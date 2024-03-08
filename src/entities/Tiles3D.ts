@@ -63,12 +63,12 @@ const tmpMatrix = new Matrix4();
 // This function is used to cleanup a Object3D hierarchy.
 // (no 3dtiles spectific code here because this is managed by cleanup3dTileset)
 function _cleanupObject3D(n: Object3D): void {
-    // @ts-ignore
-    if (__DEBUG__) {
-        if ((n as any).tileId) {
-            throw new Error(`_cleanupObject3D must not be called on a 3dtiles tile (tileId = ${(n as any).tileId})`);
-        }
-    }
+    // // @ts-ignore
+    // if (__DEBUG__) {
+    //     if ((n as any).tileId) {
+    //         throw new Error(`_cleanupObject3D must not be called on a 3dtiles tile (tileId = ${(n as any).tileId})`);
+    //     }
+    // }
     // all children of 'n' are raw Object3D
     for (const child of n.children) {
         _cleanupObject3D(child);
@@ -102,7 +102,7 @@ export type Tiles3DPickResult = PointsPickResult | PickResult;
  * A [3D Tiles](https://www.ogc.org/standards/3DTiles) dataset.
  *
  */
-class Tiles3D<TMaterial extends Material = Material, UserData = EntityUserData>
+class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUserData = EntityUserData>
     extends Entity3D<Entity3DEventMap, UserData>
     implements Pickable<Tiles3DPickResult>, HasLayers {
     readonly hasLayers = true;
@@ -513,7 +513,7 @@ class Tiles3D<TMaterial extends Material = Material, UserData = EntityUserData>
     //     be cleaned with cleanup3dTileset()
     //   - doesn't have 'content' -> it's a raw Object3D object,
     //     and must be cleaned with _cleanupObject3D()
-    protected cleanup3dTileset(n: Tile, depth: number = 0): void {
+    protected cleanup3dTileset(n: Tile, depth = 0): void {
         this.unmarkTileForDeletion(n);
 
         const tileset = this._tileIndex.get(n);

@@ -22,7 +22,7 @@ export interface DrawingPickResult extends PickResult {
  * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
-export const isDrawingPickResult = (obj: any): obj is DrawingPickResult => obj.isDrawingPickResult;
+export const isDrawingPickResult = (obj: unknown): obj is DrawingPickResult => (obj as DrawingPickResult).isDrawingPickResult;
 
 export interface DrawingCollectionEventMap extends Entity3DEventMap {
     /**
@@ -143,8 +143,8 @@ class DrawingCollection
                         && canvasY >= domRect.top
                         && canvasY <= domRect.bottom
                     ) {
-                        const r = {
-                            isDrawingPickResult: true as true,
+                        const r: DrawingPickResult = {
+                            isDrawingPickResult: true,
                             entity: this,
                             distance: this._instance.camera.camera3D.position.distanceTo(
                                 o.position,
@@ -169,8 +169,8 @@ class DrawingCollection
                         ...picked,
                         drawing,
                         entity: this,
-                        isDrawingPickResult: true as true,
-                    }));
+                        isDrawingPickResult: true,
+                    } as DrawingPickResult));
                 res.push(...p);
             }
         }

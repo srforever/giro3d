@@ -227,7 +227,7 @@ function getWidestDataType(layers: Layer[]): TextureDataType {
 
 export interface MapEventMap extends Entity3DEventMap {
     /** Fires when a the layer ordering changes. */
-    'layer-order-changed': {};
+    'layer-order-changed': { /** empty */ };
     /** Fires when a layer is added to the map. */
     'layer-added': { layer: Layer; };
     /** Fires when a layer is removed from the map. */
@@ -241,9 +241,9 @@ export interface MapEventMap extends Entity3DEventMap {
  * If an elevation layer is added, the surface of the map is deformed to
  * display terrain.
  */
-class Map<UserData = EntityUserData>
+class Map<UserData extends EntityUserData = EntityUserData>
     extends Entity3D<MapEventMap, UserData>
-    implements Pickable<MapPickResult>, PickableFeatures<any, MapPickResult>, HasLayers {
+    implements Pickable<MapPickResult>, PickableFeatures<unknown, MapPickResult>, HasLayers {
     readonly hasLayers = true;
     private _segments: number;
     private readonly _atlasInfo: AtlasInfo;
@@ -275,7 +275,7 @@ class Map<UserData = EntityUserData>
      */
     wireframe: boolean;
 
-    onTileCreated: (map: Map, parent: TileMesh, tile: TileMesh) => void;
+    onTileCreated: (map: this, parent: TileMesh, tile: TileMesh) => void;
 
     /**
      * Constructs a Map object.
@@ -478,7 +478,7 @@ class Map<UserData = EntityUserData>
 
         this._subdivisions = selectBestSubdivisions(this.extent);
 
-        this.onTileCreated = this.onTileCreated || (() => {});
+        this.onTileCreated = this.onTileCreated || (() => { /** do nothing */ });
 
         // If the map is not square, we want to have more than a single
         // root tile to avoid elongated tiles that hurt visual quality and SSE computation.
@@ -597,8 +597,8 @@ class Map<UserData = EntityUserData>
         );
     }
 
-    pickFeaturesFrom(pickedResult: MapPickResult, options?: PickOptions): any[] {
-        const result: any[] = [];
+    pickFeaturesFrom(pickedResult: MapPickResult, options?: PickOptions): unknown[] {
+        const result: unknown[] = [];
         for (const layer of this._layers) {
             if (isPickableFeatures(layer)) {
                 const res = layer.pickFeaturesFrom(pickedResult, options);
