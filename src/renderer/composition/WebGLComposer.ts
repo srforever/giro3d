@@ -92,45 +92,38 @@ class WebGLComposer {
     /**
      * Creates an instance of WebGLComposer.
      *
-     * @param options The options.
-     * @param options.extent Optional extent of the canvas. If undefined, then the canvas
-     * is an infinite plane.
-     * @param options.width The canvas width, in pixels.
-     * Ignored if a canvas is provided.
-     * @param options.height The canvas height, in pixels.
-     * Ignored if a canvas is provided.
-     * @param options.showImageOutlines If true, yellow image outlines
-     * will be drawn on images.
-     * @param options.reuseTexture If true, this composer will try to reuse the
-     * same texture accross renders. Note that this may not be always possible if the texture format
-     * has to change due to incompatible images to draw. For example, if the current target is
-     * has 8-bit pixels, and a 32-bit texture must be drawn onto the canvas, the underlying target
-     * will have to be recreated in 32-bit format.
-     * @param options.minFilter The minification filter of the generated
-     * texture. Default is `LinearFilter`.
-     * @param options.magFilter The magnification filter of the generated
-     * texture. Default is `LinearFilter`.
-     * @param options.webGLRenderer The WebGL renderer to use. This must be the
-     * same renderer as the one used to display the rendered textures, because WebGL contexts are
-     * isolated from each other.
-     * @param options.clearColor The clear (background) color.
-     * @param options.pixelFormat The pixel format of the output textures.
-     * @param options.textureDataType The data type of the output textures.
-     * @param options.expandRGB If `true`, textures are considered grayscale and will be expanded
-     * to RGB by copying the R channel into the G and B channels.
+     * @param options - The options.
      */
     constructor(options: {
+        /** Optional extent of the canvas. If undefined, then the canvas is an infinite plane. */
         extent?: Rect;
+        /** The canvas width, in pixels. Ignored if a canvas is provided. */
         width?: number;
+        /** The canvas height, in pixels. Ignored if a canvas is provided. */
         height?: number;
+        /** If true, yellow image outlines will be drawn on images. */
         showImageOutlines?: boolean;
+        /** If true, this composer will try to reuse the same texture accross renders.
+         * Note that this may not be always possible if the texture format has to change
+         * due to incompatible images to draw. For example, if the current target has 8-bit pixels,
+         * and a 32-bit texture must be drawn onto the canvas, the underlying target will have to
+         * be recreated in 32-bit format. */
         reuseTexture?: boolean;
+        /** The minification filter of the generated texture. Default is `LinearFilter`. */
         minFilter?: MinificationTextureFilter;
+        /** The magnification filter of the generated texture. Default is `LinearFilter`. */
         magFilter?: MagnificationTextureFilter;
+        /** The WebGL renderer to use. This must be the same renderer as the one used
+         * to display the rendered textures, because WebGL contexts are isolated from each other. */
         webGLRenderer: WebGLRenderer;
+        /** The clear (background) color. */
         clearColor?: ColorRepresentation
+        /** The pixel format of the output textures. */
         pixelFormat: PixelFormat;
+        /** The data type of the output textures. */
         textureDataType: TextureDataType;
+        /** If `true`, textures are considered grayscale and will be expanded
+         * to RGB by copying the R channel into the G and B channels. */
         expandRGB?: boolean;
     }) {
         this._showImageOutlines = options.showImageOutlines;
@@ -169,7 +162,7 @@ class WebGLComposer {
     /**
      * Sets the camera frustum to the specified rect.
      *
-     * @param rect The rect.
+     * @param rect - The rect.
      */
     private setCameraRect(rect: Rect) {
         const halfWidth = rect.width / 2;
@@ -221,9 +214,9 @@ class WebGLComposer {
     /**
      * Draws an image to the composer.
      *
-     * @param image The image to add.
-     * @param extent The extent of this texture in the composition space.
-     * @param options The options.
+     * @param image - The image to add.
+     * @param extent - The extent of this texture in the composition space.
+     * @param options - The options.
      */
     draw(image: DrawableImage, extent: Rect, options: DrawOptions = {}) {
         const plane = new Mesh(SHARED_PLANE_GEOMETRY, null);
@@ -242,9 +235,9 @@ class WebGLComposer {
     /**
      * Draws a texture on a custom mesh to the composer.
      *
-     * @param image The image to add.
-     * @param mesh The custom mesh.
-     * @param options Options.
+     * @param image - The image to add.
+     * @param mesh - The custom mesh.
+     * @param options - Options.
      */
     drawMesh(image: DrawableImage, mesh: Mesh, options: DrawOptions = {}): Mesh {
         let texture: Texture;
@@ -332,17 +325,17 @@ class WebGLComposer {
     /**
      * Renders the composer into a texture.
      *
-     * @param opts The options.
-     * @param opts.rect A custom rect for the camera.
-     * @param opts.width The width, in pixels, of the output texture.
-     * @param opts.height The height, in pixels, of the output texture.
-     * @param opts.target The render target.
+     * @param opts - The options.
      * @returns The texture of the render target.
      */
     render(opts: {
+        /** A custom rect for the camera. */
         rect?: Rect;
+        /** The width, in pixels, of the output texture. */
         width?: number;
+        /** The height, in pixels, of the output texture. */
         height?: number;
+        /** The render target. */
         target?: WebGLRenderTarget;
     } = {}): Texture {
         const width = opts.width ?? this.width;

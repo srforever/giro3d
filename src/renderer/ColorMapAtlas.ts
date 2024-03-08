@@ -22,7 +22,7 @@ class ColorMapAtlas {
     private _disposed: boolean;
 
     /**
-     * @param renderer The renderer
+     * @param renderer - The renderer
      */
     constructor(renderer: WebGLRenderer) {
         this._colorMaps = new Map();
@@ -34,7 +34,7 @@ class ColorMapAtlas {
     /**
      * Adds a color map to the atlas.
      *
-     * @param colorMap The color map.
+     * @param colorMap - The color map.
      */
     add(colorMap: ColorMap) {
         this._colorMaps.set(colorMap, { offset: 0, texture: '' });
@@ -44,7 +44,7 @@ class ColorMapAtlas {
     /**
      * Removes a color map from the atlas.
      *
-     * @param colorMap The color map.
+     * @param colorMap - The color map.
      */
     remove(colorMap: ColorMap) {
         this._colorMaps.delete(colorMap);
@@ -126,7 +126,7 @@ class ColorMapAtlas {
     /**
      * Gets the vertical offset for the specified color map.
      *
-     * @param colorMap The color map.
+     * @param colorMap - The color map.
      * @returns The offset.
      */
     getOffset(colorMap: ColorMap): number {

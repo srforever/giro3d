@@ -212,14 +212,6 @@ class LayeredMaterial extends ShaderMaterial {
     private readonly _atlasInfo: AtlasInfo;
     private _options: MaterialOptions;
 
-    /**
-     * @param param0 the params.
-     * @param param0.options the material options.
-     * @param param0.renderer the WebGL renderer.
-     * @param param0.atlasInfo the Atlas info.
-     * @param param0.getIndexFn The function to help sorting color layers.
-     * @param param0.textureDataType The texture data type to be used for the atlas texture.
-     */
     constructor({
         options = {},
         renderer,
@@ -227,10 +219,15 @@ class LayeredMaterial extends ShaderMaterial {
         getIndexFn,
         textureDataType,
     }: {
+        /** the material options. */
         options: MaterialOptions;
+        /** the WebGL renderer. */
         renderer: WebGLRenderer;
+        /**  the Atlas info */
         atlasInfo: AtlasInfo;
+        /** The function to help sorting color layers. */
         getIndexFn: (arg0: Layer) => number;
+        /** The texture data type to be used for the atlas texture. */
         textureDataType: TextureDataType;
     }) {
         super({ clipping: true, glslVersion: GLSL3 });
@@ -337,7 +334,7 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     /**
-     * @param v The number of segments.
+     * @param v - The number of segments.
      */
     set segments(v: number) {
         if (this.uniforms.segments.value !== v) {
@@ -480,7 +477,7 @@ class LayeredMaterial extends ShaderMaterial {
     /**
      * Gets the elevation texture if an elevation layer texture has been loaded in this material.
      *
-     * @returns {object|null} Returns the elevation texture or null
+     * @returns Returns the elevation texture or null
      */
     getElevationTextureInfo() {
         if (this.isElevationLayerTextureLoaded()) {
@@ -602,8 +599,8 @@ class LayeredMaterial extends ShaderMaterial {
     /**
      * Returns or create a uniform by name.
      *
-     * @param name The uniform name.
-     * @param value the value to set
+     * @param name - The uniform name.
+     * @param value - the value to set
      * @returns The resulting uniform
      */
     private getObjectUniform(name: string, value: unknown = {}) {
@@ -622,7 +619,7 @@ class LayeredMaterial extends ShaderMaterial {
     /**
      * Sets the colormap atlas.
      *
-     * @param atlas The atlas.
+     * @param atlas - The atlas.
      */
     setColorMapAtlas(atlas: ColorMapAtlas) {
         this._colorMapAtlas = atlas;
@@ -675,7 +672,7 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     /**
-     * @param  materialOptions The material options.
+     * @param materialOptions - The material options.
      */
     update(materialOptions: MaterialOptions = {}) {
         this._options = materialOptions;
@@ -914,7 +911,7 @@ class LayeredMaterial extends ShaderMaterial {
     /**
      * Gets the number of layers on this material.
      *
-     * @returns {number} The number of layers present on this material.
+     * @returns The number of layers present on this material.
      */
     getLayerCount() {
         return (this._elevationLayer ? 1 : 0) + this._colorLayers.length;

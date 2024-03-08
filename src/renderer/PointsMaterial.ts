@@ -19,24 +19,21 @@ import type { TextureAndPitch } from '../core/layer/Layer';
 
 /**
  * Specifies the way points are colored.
- *
- * @readonly
- * @enum {number}
  */
-export const MODE = {
+export enum MODE {
     /** The points are colored using their own color */
-    COLOR: 0,
+    COLOR = 0,
     /** The points are colored using their intensity */
-    INTENSITY: 1,
+    INTENSITY = 1,
     /** The points are colored using their classification */
-    CLASSIFICATION: 2,
+    CLASSIFICATION = 2,
     /** The points are colored using their normal */
-    NORMAL: 3,
+    NORMAL = 3,
     /** The points are colored using an external texture, such as a color layer */
-    TEXTURE: 4,
+    TEXTURE = 4,
     /** The points are colored using their elevation */
-    ELEVATION: 5,
-};
+    ELEVATION = 5,
+}
 
 export type Mode = typeof MODE[keyof typeof MODE];
 
@@ -46,7 +43,7 @@ export interface PointsMaterialOptions {
     /**
      * The point size.
      *
-     * @default 0
+     * @defaultValue 0
      */
     size?: number;
     /** The point scale. */
@@ -54,13 +51,13 @@ export interface PointsMaterialOptions {
     /**
      * An additional color to use.
      *
-     * @default `new Vector4(0, 0, 0, 0)`
+     * @defaultValue `new Vector4(0, 0, 0, 0)`
      */
     overlayColor?: Vector4;
     /**
      * Specifies the criterion to colorize points.
      *
-     * @default MODE.COLOR
+     * @defaultValue MODE.COLOR
      */
     mode?: Mode;
 }
@@ -86,7 +83,7 @@ class PointsMaterial extends ShaderMaterial {
     /**
      * Creates a PointsMaterial using the specified options.
      *
-     * @param options The options.
+     * @param options - The options.
      */
     constructor(options: PointsMaterialOptions = {}) {
         super({ clipping: true, glslVersion: GLSL3 });

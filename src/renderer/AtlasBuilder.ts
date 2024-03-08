@@ -31,9 +31,9 @@ interface LayerBlock extends Block {
 /**
  * Build a texture atlas from N images.
  *
- * @param maxSize The maximum texture size of the atlas, in pixels.
- * @param images The images to pack.
- * @param oldAtlas The previous atlas.
+ * @param maxSize - The maximum texture size of the atlas, in pixels.
+ * @param images - The images to pack.
+ * @param oldAtlas - The previous atlas.
  */
 function pack(maxSize: number, images: Array<AtlasImage>, oldAtlas: Atlas): AtlasInfo {
     const blocks: LayerBlock[] = [];

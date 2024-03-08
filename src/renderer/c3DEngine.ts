@@ -45,7 +45,7 @@ function createRenderTarget(width: number, height: number, type: TextureDataType
 }
 
 /**
- * @param options The options.
+ * @param options - The options.
  * @returns True if the options requires a custom pipeline.
  */
 function requiresCustomPipeline(options: RenderingOptions) {
@@ -99,7 +99,7 @@ export interface RenderToBufferOptions {
     /**
      * The type of pixels in the buffer.
      *
-     * @default `UnsignedByteType`.
+     * @defaultvalue `UnsignedByteType`.
      */
     datatype?: TextureDataType;
     /** partial zone to render. If undefined, the whole viewport is used. */
@@ -111,7 +111,7 @@ export interface RendererOptions {
      * Enables antialiasing.
      * Not used if renderer is provided.
      *
-     * @default true
+     * @defaultvalue true
      */
     antialias?: boolean;
     /**
@@ -119,14 +119,14 @@ export interface RendererOptions {
      * Necessary for transparent backgrounds.
      * Not used if renderer is provided.
      *
-     * @default true
+     * @defaultvalue true
      */
     alpha?: boolean;
     /**
      * Enables the [logarithmic depth buffer](https://threejs.org/docs/#api/en/renderers/WebGLRenderer.logarithmicDepthBuffer).
      * Not used if renderer is provided.
      *
-     * @default false
+     * @defaultvalue false
      */
     logarithmicDepthBuffer?: boolean;
     /**
@@ -136,7 +136,7 @@ export interface RendererOptions {
      * See the [Three.js documentation](https://threejs.org/docs/index.html?q=webglren#api/en/renderers/WebGLRenderer.debug)
      * for more information.
      *
-     * @default false
+     * @defaultvalue false
      */
     checkShaderErrors?: boolean;
     /**
@@ -161,8 +161,8 @@ class C3DEngine {
     renderingOptions: RenderingOptions;
 
     /**
-     * @param viewerDiv The parent div that will contain the canvas.
-     * @param options The options.
+     * @param viewerDiv - The parent div that will contain the canvas.
+     * @param options - The options.
      */
     constructor(viewerDiv: HTMLDivElement, options: RendererOptions = {}) {
         // pick sensible default options
@@ -296,8 +296,8 @@ class C3DEngine {
     /**
      * Renders the scene.
      *
-     * @param scene The scene to render.
-     * @param camera The camera.
+     * @param scene - The scene to render.
+     * @param camera - The camera.
      */
     render(scene: Scene, camera: Camera) {
         this.renderer.setRenderTarget(null);
@@ -322,8 +322,8 @@ class C3DEngine {
     /**
      * Use a custom pipeline when post-processing is required.
      *
-     * @param scene The scene to render.
-     * @param camera The camera.
+     * @param scene - The scene to render.
+     * @param camera - The camera.
      */
     renderUsingCustomPipeline(scene: Object3D, camera: Camera) {
         if (!this.renderPipeline) {
@@ -336,7 +336,7 @@ class C3DEngine {
     /**
      * Renders the scene into a readable buffer.
      *
-     * @param options Options.
+     * @param options - Options.
      * @returns The buffer. The first pixel in the buffer is the bottom-left pixel.
      */
     renderToBuffer(options: RenderToBufferOptions): Uint8Array | Float32Array {
@@ -386,11 +386,11 @@ class C3DEngine {
     /**
      * Render the scene to a render target.
      *
-     * @param scene The scene root.
-     * @param camera The camera to render.
-     * @param target destination render target. Default value: full size
+     * @param scene - The scene root.
+     * @param camera - The camera to render.
+     * @param target - destination render target. Default value: full size
      * render target owned by C3DEngine.
-     * @param zone partial zone to render (zone x/y uses canvas coordinates)
+     * @param zone - partial zone to render (zone x/y uses canvas coordinates)
      * Note: target must contain complete zone
      * @returns the destination render target
      */
@@ -430,9 +430,9 @@ class C3DEngine {
     /**
      * Converts the pixel buffer into an image element.
      *
-     * @param pixelBuffer The 8-bit RGBA buffer.
-     * @param width The width of the buffer, in pixels.
-     * @param height The height of the buffer, in pixels.
+     * @param pixelBuffer - The 8-bit RGBA buffer.
+     * @param width - The width of the buffer, in pixels.
+     * @param height - The height of the buffer, in pixels.
      * @returns The image.
      */
     static bufferToImage(
