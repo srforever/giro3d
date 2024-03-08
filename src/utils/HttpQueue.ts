@@ -4,9 +4,9 @@ export interface Task {
     /** The request */
     req: Request,
     /** The resolve callback, when this tasks completes successfully. */
-    resolve: Function,
+    resolve: (arg: unknown) => void,
     /** The reject callback, when this tasks completes with an error. */
-    reject: Function
+    reject: (arg: unknown) => void,
 }
 
 /**
