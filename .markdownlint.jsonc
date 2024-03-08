@@ -1,8 +1,6 @@
 {
-    // Disable line-length
-    "MD013": false,
+    "extends": "markdownlint/style/prettier",
     "MD033": {
-        // Enable line breaks in tables
-        "allowed_elements": ["br"]
+        "allowed_elements": ["br", "div", "a", "img"]
     }
 }
