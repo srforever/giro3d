@@ -21,9 +21,9 @@ import GeoJSONUtils from '../utils/GeoJSONUtils';
  */
 export interface DrawToolEventMap {
     /** Fires when the tool becomes active */
-    'start': {},
+    'start': { /** empty */ },
     /** Fires when the shape is being edited (including mouse move) */
-    'drawing': {},
+    'drawing': { /** empty */ },
     /** Fires when a point has been added */
     'add': {
         /** Coordinates */
@@ -49,7 +49,7 @@ export interface DrawToolEventMap {
         geojson: GeoJSON.Geometry,
     },
     /** Fires when the drawing has been aborted */
-    'abort': {},
+    'abort': { /** empty */ },
 }
 
 /**
