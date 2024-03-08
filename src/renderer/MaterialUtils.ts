@@ -14,16 +14,14 @@ import { type Material } from 'three';
  * setDefine(mat, 'ENABLE_FOO', false); // material.needsUpdate === true;
  */
 function setDefine<M extends Material, K extends keyof M['defines']>(material: M, name: K, condition: boolean) {
-    // @ts-expect-error
-    if (material.defines[name] === undefined) {
+    const key = name as string;
+    if (material.defines[key] === undefined) {
         if (condition) {
-            // @ts-expect-error
-            material.defines[name] = 1;
+            material.defines[key] = 1;
             material.needsUpdate = true;
         }
     } else if (!condition) {
-        // @ts-expect-error
-        delete material.defines[name];
+        delete material.defines[key];
         material.needsUpdate = true;
     }
 }

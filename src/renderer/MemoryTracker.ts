@@ -6,7 +6,7 @@ interface AllocatedItem {
 let allocated: AllocatedItem[] = [];
 const FLUSH_EVERY_NTH = 100;
 
-// @ts-ignore
+// @ts-expect-error __DEBUG__ is unknown
 let enabled = __DEBUG__;
 let counter = 0;
 

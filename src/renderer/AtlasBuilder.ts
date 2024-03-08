@@ -53,7 +53,7 @@ function pack(maxSize: number, images: Array<AtlasImage>, oldAtlas: Atlas): Atla
     }
 
     // sort from big > small images (the packing alg works best if big images are treated first)
-    // @ts-ignore (we ignore the typing error of casting booleans to numbers to maintain speed)
+    // @ts-expect-error (we ignore the typing error of casting booleans to numbers to maintain speed)
     blocks.sort((a, b) => Math.max(a.w, a.h) < Math.max(b.w, b.h));
 
     let previousRoot: Node;
