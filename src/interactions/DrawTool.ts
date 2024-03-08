@@ -58,21 +58,21 @@ export interface DrawToolEventMap {
 export enum DrawToolState {
     /**
      * Initialized but inactive. Call
-     * {@link DrawTool#start DrawTool.start()} or {@link DrawTool#edit DrawTool.edit()} to begin.
+     * {@link DrawTool.start} or {@link DrawTool.edit} to begin.
      */
     READY = 'ready',
     /**
      * A drawing is being performed. You can call:
-     * - {@link DrawTool#end DrawTool.end()} to end,
-     * - {@link DrawTool#reset DrawTool.reset()} to abort,
-     * - {@link DrawTool#pause DrawTool.pause()} to pause (during camera move for instance)
+     * - {@link DrawTool.end} to end,
+     * - {@link DrawTool.reset} to abort,
+     * - {@link DrawTool.pause} to pause (during camera move for instance)
      */
     ACTIVE = 'active',
     /**
      * A drawing is being performed but paused (no events handled). You can call:
-     * - {@link DrawTool#end DrawTool.end()} to end,
-     * - {@link DrawTool#reset DrawTool.reset()} to abort,
-     * - {@link DrawTool#continue DrawTool.continue()} to continue.
+     * - {@link DrawTool.end} to end,
+     * - {@link DrawTool.reset} to abort,
+     * - {@link DrawTool.continue} to continue.
      */
     PAUSED = 'paused',
 }
@@ -126,9 +126,9 @@ interface GetPointAtResult {
  *   - `point`: `Vector3`
  * - if no point is found, `null`
  *
- * @param evt Mouse event
+ * @param evt - Mouse event
  * @returns Result object
- * @example
+ * ```ts
  * const mycallback = (evt) => {
  *     const picked = instance.pickObjectsAt(evt, {
  *         radius: 5,
@@ -137,6 +137,7 @@ interface GetPointAtResult {
  *     }).at(0);
  *     return picked ?? null;
  * }
+ * ```
  */
 export type GetPointAtCallback = (evt: MouseEvent) => GetPointAtResult | null;
 
@@ -144,13 +145,13 @@ export interface DrawToolOptions {
     /**
      * The number of points that can be drawn before a polygon or line is finished.
      *
-     * @default Infinity
+     * @defaultValue Infinity
      */
     maxPoints?: number,
     /**
      * The number of points that must be drawn before a polygon or line can be finished.
      *
-     * @default 1 (for points), 2 (for lines) or 3 (for polygons)
+     * @defaultValue 1 (for points), 2 (for lines) or 3 (for polygons)
      */
     minPoints?: number,
     /** Callback to get the point from where the user clicked. */
@@ -162,13 +163,13 @@ export interface DrawToolOptions {
     /**
      * Capture right-click to end the drawing.
      *
-     * @default true
+     * @defaultValue true
      */
     endDrawingOnRightClick?: boolean,
     /**
      * Enables splicing edges
      *
-     * @default true
+     * @defaultValue true
      */
     enableSplicing?: boolean,
     /** Hit tolerance for splicing (`null` for auto) */
@@ -176,13 +177,13 @@ export interface DrawToolOptions {
     /**
      * Enables adding points for line/multipoint geometries when editing
      *
-     * @default true
+     * @defaultValue true
      */
     enableAddPointsOnEdit?: boolean,
     /**
      * Edit points via drag-and-drop (otherwise, moving a point is on click)
      *
-     * @default true
+     * @defaultValue true
      */
     enableDragging?: boolean,
 }
@@ -208,7 +209,7 @@ class Edge extends Mesh {
 /**
  * Enables the user to draw on the map.
  *
- * @example
+ * ```ts
  * // example of Giro3D instantiation
  * const instance = new Instance(viewerDiv, options)
  * const map = new Map('myMap', { extent });
@@ -227,6 +228,7 @@ class Edge extends Mesh {
  *     // Use generated polygon as GeoJSON
  * })
  * drawTool.start();
+ * ```
  */
 class DrawTool extends EventDispatcher<DrawToolEventMap> {
     private _instance: Instance;
@@ -274,8 +276,8 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Constructs a DrawTool
      *
-     * @param instance Giro3D instance
-     * @param options Options
+     * @param instance - Giro3D instance
+     * @param options - Options
      */
     constructor(instance: Instance, options: DrawToolOptions = {}) {
         super();
@@ -291,7 +293,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Utility function to set options.
      *
-     * @param options See constructor
+     * @param options - See constructor
      */
     setOptions(options: DrawToolOptions): this {
         this._maxPoints = options.maxPoints ?? Infinity;
@@ -312,7 +314,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Default picking callback.
      *
-     * @param evt Mouse event
+     * @param evt - Mouse event
      * @returns Object
      */
     private _defaultPickPointAt(evt: MouseEvent): GetPointAtResult {
@@ -334,7 +336,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Default Point2D factory for creating labels for editing edges.
      *
-     * @param text Label to display
+     * @param text - Label to display
      * @returns DOM Element to attach to the CSS2DObject
      */
     // eslint-disable-next-line class-methods-use-this
@@ -362,7 +364,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      *
      * Fires {@link DrawToolEventMap.start} event at start.
      *
-     * @param geometryType Geometry type to draw
+     * @param geometryType - Geometry type to draw
      */
     start(geometryType: DrawingGeometryType = 'Polygon'): void {
         if (this._state !== DrawToolState.READY) {
@@ -380,7 +382,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      *
      * Fires {@link DrawToolEventMap.start} event at start.
      *
-     * @param geometryType Geometry type to draw
+     * @param geometryType - Geometry type to draw
      * @returns Promise resolving to the GeoJSON geometry drawn
      */
     startAsAPromise(
@@ -398,7 +400,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      *
      * Fires {@link DrawToolEventMap.start} event at start.
      *
-     * @param geometry GeoJSON geometry or Drawing instance to edit.
+     * @param geometry - GeoJSON geometry or Drawing instance to edit.
      * If passing a {@link Drawing}, this tool takes full ownership
      * over it, and **will destroy** it when done.
      */
@@ -418,7 +420,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      *
      * Fires {@link DrawToolEventMap.start} event at start.
      *
-     * @param geometry GeoJSON geometry or Drawing instance to edit.
+     * @param geometry - GeoJSON geometry or Drawing instance to edit.
      * If passing a {@link Drawing}, this tool takes full ownership
      * over it, and **will destroy** it when done.
      * @returns Promise resolving to the GeoJSON geometry drawn
@@ -583,7 +585,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * Fires {@link DrawToolEventMap.drawing} event.
      * Fires {@link DrawToolEventMap.end} event if `maxPoints` reached.
      *
-     * @param coords Position of the new point
+     * @param coords - Position of the new point
      */
     addPointAt(coords: Vector3): void {
         let index = this._coordinates.length;
@@ -622,8 +624,8 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * Fires {@link DrawToolEventMap.edit} event.
      * Fires {@link DrawToolEventMap.drawing} event.
      *
-     * @param pointIdx Point index to update
-     * @param coords New position of the point
+     * @param pointIdx - Point index to update
+     * @param coords - New position of the point
      */
     updatePointAt(pointIdx: number, coords: Vector3): void {
         this._coordinates[pointIdx] = [coords.x, coords.y, coords.z];
@@ -681,7 +683,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * Fires {@link DrawToolEventMap.delete} event.
      * Fires {@link DrawToolEventMap.drawing} event.
      *
-     * @param pointIdx Point index to delete
+     * @param pointIdx - Point index to delete
      */
     deletePoint(pointIdx: number): void {
         if (
@@ -717,8 +719,8 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * Fires {@link DrawToolEventMap.add} event.
      * Fires {@link DrawToolEventMap.drawing} event.
      *
-     * @param pointIdx Point index
-     * @param coords Position for the new point
+     * @param pointIdx - Point index
+     * @param coords - Position for the new point
      */
     insertPointAt(pointIdx: number, coords: Vector3): void {
         this._coordinates.splice(pointIdx, 0, [coords.x, coords.y, coords.z]);
@@ -743,10 +745,10 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Initializes common stuff when starting drawing for both editing & creating.
      *
-     * @param mode Mode to start
-     * @param geometryType Geometry type to create
+     * @param mode - Mode to start
+     * @param geometryType - Geometry type to create
      * (if `null`, `geometry` must be provided)
-     * @param geometry Geometry to edit
+     * @param geometry - Geometry to edit
      */
     private _init(
         mode: DrawToolMode,
@@ -948,7 +950,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Pushes a new temporary state
      *
-     * @param state State
+     * @param state - State
      */
     private _pushState(state: DrawToolInternalState): void {
         this._oldState = this._internalState;
@@ -959,7 +961,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * Restores from a temporary state.
      * If the state has changed since `_pushState`, will be ignored.
      *
-     * @param state State
+     * @param state - State
      */
     private _popState(state: DrawToolInternalState): void {
         if (state === this._internalState) {
@@ -970,7 +972,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Updates internal state and handles display of points and their events
      *
-     * @param state New state
+     * @param state - New state
      */
     private _setState(state: DrawToolInternalState): void {
         if (this._internalState === state) return;
@@ -1058,7 +1060,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Generic mousedown handler
      *
-     * @param evt Mouse event
+     * @param evt - Mouse event
      */
     private _onMouseDown(evt: MouseEvent): void {
         let res = false;
@@ -1078,7 +1080,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Generic mouseup handler
      *
-     * @param evt Mouse event
+     * @param evt - Mouse event
      */
     private _onMouseUp(evt: MouseEvent): void {
         let res = false;
@@ -1135,7 +1137,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Generic mousemove handler
      *
-     * @param evt Mouse event
+     * @param evt - Mouse event
      */
     private _onMouseMove(evt: MouseEvent): void {
         let res = false;
@@ -1177,7 +1179,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Tries to add a new point at the cursor, at the end of the geometry
      *
-     * @param evt Mouse event
+     * @param evt - Mouse event
      * @returns `true` if a point is added, or `false` if no point available
      * under the mouse
      */
@@ -1199,7 +1201,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Tries to end the drawing
      *
-     * @param evt Mouse event
+     * @param evt - Mouse event
      * @returns `true` if the drawing was ended, or `false` otherwise (e.g. not enough
      * points for polygon)
      */
@@ -1214,7 +1216,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Tries to show the next point at the cursor
      *
-     * @param evt Mouse event
+     * @param evt - Mouse event
      * @returns `true` if there is a point, or `false` otherwise
      */
     private _tryShowNextPoint(evt: MouseEvent): boolean {
@@ -1237,7 +1239,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Tries to show a point for splicing an edge
      *
-     * @param evt Mouse event
+     * @param evt - Mouse event
      * @returns `true` if there is a point, or `false` otherwise
      */
     private _tryShowSplicePoint(evt: MouseEvent): boolean {
@@ -1270,7 +1272,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Tries to move a selected point
      *
-     * @param evt Mouse event
+     * @param evt - Mouse event
      * @returns `true` if a point is updated, `false` otherwise
      */
     private _tryMovePoint(evt: MouseEvent): boolean {
@@ -1439,7 +1441,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * Sets up stuff required for dragging a point.
      * Could be on mousedown (if `enableDragging`) or click (if `!enableDragging`)!
      *
-     * @param idx Index of the point
+     * @param idx - Index of the point
      */
     private _startDraggingPoint(idx: number): void {
         if (this._enableDragging) {
@@ -1486,7 +1488,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Displays the next point to add
      *
-     * @param coords Position
+     * @param coords - Position
      */
     private _updateNextPoint(coords: Vector3): void {
         if (
@@ -1524,8 +1526,8 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
     /**
      * Display a point for splicing along an edge
      *
-     * @param edgeIndex Edge index
-     * @param coords Position of the point
+     * @param edgeIndex - Edge index
+     * @param coords - Position of the point
      */
     private _updateSplicingPoint(edgeIndex: number, coords: Vector3): void {
         if (
@@ -1584,7 +1586,7 @@ class DrawTool extends EventDispatcher<DrawToolEventMap> {
      * Enables or disables pointer events for all CSS2D points.
      * This is useful to disable for performance while dragging for instance.
      *
-     * @param enable Enable or disable
+     * @param enable - Enable or disable
      */
     private _setPointerEventsEnabled(enable: boolean): void {
         for (const o of this._pointsGroup.children) {
