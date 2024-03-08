@@ -18,21 +18,20 @@ class DebugSource extends ImageSource {
     private readonly _color: Color;
 
     /**
-     * @param options options
-     * @param options.extent The extent.
-     * @param options.delay The delay before loading the images.
-     * @param options.opacity The opacity of the images.
-     * @param options.color The color of the images.
-     * @param options.subdivisions The how many images per tile are served.
-     * @param options.containsFn The custom function to test if a given extent is contained in this
-     * source.
+     * @param options - options
      */
     constructor(options: {
+        /** The extent. */
         extent: Extent;
+        /** The delay before loading the images. */
         delay: number;
+        /** The opacity of the images. */
         opacity: number;
+        /** The color of the images. */
         color: Color;
+        /** How many images per tile are served. */
         subdivisions: number;
+        /** The custom function to test if a given extent is contained in this source. */
         containsFn?: CustomContainsFn;
     }) {
         super(options);

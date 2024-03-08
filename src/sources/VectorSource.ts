@@ -48,11 +48,11 @@ function createCanvas(size: Vector2) {
 /**
  * Renders a single feature into the builder group.
  *
- * @param feature The feature to render.
- * @param squaredTolerance Squared tolerance for geometry simplification.
- * @param styles The style(s) of the feature.
- * @param builderGroup The builder group.
- * @param onStyleChanged A callback when the styles has changed (such as an image being loaded).
+ * @param feature - The feature to render.
+ * @param squaredTolerance - Squared tolerance for geometry simplification.
+ * @param styles - The style(s) of the feature.
+ * @param builderGroup - The builder group.
+ * @param onStyleChanged - A callback when the styles has changed (such as an image being loaded).
  */
 function renderFeature(
     feature: Feature,
@@ -81,10 +81,10 @@ function renderFeature(
 /**
  * Rasterizes the builder group into the canvas.
  *
- * @param canvas The target canvas.
- * @param builderGroup The builder group.
- * @param extent The canvas extent.
- * @param size The canvas size, in pixels.
+ * @param canvas - The target canvas.
+ * @param builderGroup - The builder group.
+ * @param extent - The canvas extent.
+ * @param size - The canvas size, in pixels.
  */
 function rasterizeBuilderGroup(
     canvas: HTMLCanvasElement,
@@ -149,24 +149,24 @@ export interface VectorSourceOptions extends ImageSourceOptions {
  *
  * @example
  * // To load a remote GeoJSON file
- * const source = new VectorSource({
+ * const source = new VectorSource(\{
  *      data: 'http://example.com/data.geojson',
  *      format: new GeoJSON(), // Pass the OpenLayers FeatureFormat here
  *      style: new Style(...), // Pass an OpenLayers style here
- * });
+ * \});
  *
  * // To load a local GeoJSON
- * const source = new VectorSource({
- *      data: { "type": "FeatureCollection" ... },
+ * const source = new VectorSource(\{
+ *      data: \{ "type": "FeatureCollection" ... \},
  *      format: new GeoJSON(), // Pass the OpenLayers FeatureFormat here
  *      style: new Style(...), // Pass an OpenLayers style here
- * });
+ * \});
  *
  * // To load features directly (no need to pass a format as the features are already decoded.)
- * const source = new VectorSource({
+ * const source = new VectorSource(\{
  *      data: [new Feature(...)], // Pass the OpenLayers features here
  *      style: new Style(...), // Pass an OpenLayers style here
- * });
+ * \});
  */
 class VectorSource extends ImageSource {
     readonly isVectorSource: boolean = true;
@@ -184,7 +184,7 @@ class VectorSource extends ImageSource {
     style: Style | StyleFunction;
 
     /**
-     * @param options Options.
+     * @param options - Options.
      */
     constructor(options: VectorSourceOptions) {
         super(options);
@@ -210,7 +210,7 @@ class VectorSource extends ImageSource {
     /**
      * Change the style of this source. This triggers an update of the source.
      *
-     * @param style The style, or style function.
+     * @param style - The style, or style function.
      */
     setStyle(style: Style | StyleFunction) {
         this.style = style;
@@ -251,7 +251,7 @@ class VectorSource extends ImageSource {
     /**
      * Reprojects a feature from the source projection into the target (instance) projection.
      *
-     * @param feature The feature to reproject.
+     * @param feature - The feature to reproject.
      */
     reproject(feature: Feature) {
         feature.getGeometry().transform(
@@ -298,7 +298,7 @@ class VectorSource extends ImageSource {
     /**
      * Returns the feature with the specified id.
      *
-     * @param id The feature id.
+     * @param id - The feature id.
      * @returns The feature.
      */
     getFeatureById(id: string | number): Feature {
@@ -308,7 +308,7 @@ class VectorSource extends ImageSource {
     /**
      * Applies the callback for each feature in this source.
      *
-     * @param callback The callback.
+     * @param callback - The callback.
      */
     forEachFeature(callback: (arg0: Feature<Geometry>) => unknown) {
         this.source.forEachFeature(callback);
@@ -334,8 +334,8 @@ class VectorSource extends ImageSource {
     }
 
     /**
-     * @param extent The target extent.
-     * @param size The target pixel size.
+     * @param extent - The target extent.
+     * @param size - The target pixel size.
      * @returns The builder group, or null if no features have been rendered.
      */
     private createBuilderGroup(extent: Extent, size: Vector2): CanvasBuilderGroup | null {
@@ -379,9 +379,9 @@ class VectorSource extends ImageSource {
     }
 
     /**
-     * @param id The unique id of the request.
-     * @param extent The request extent.
-     * @param size The size in pixels of the request.
+     * @param id - The unique id of the request.
+     * @param extent - The request extent.
+     * @param size - The size in pixels of the request.
      * @returns The image result.
      */
     private createImage(id: string, extent: Extent, size: Vector2): ImageResult {

@@ -48,26 +48,26 @@ export interface TiledImageSourceOptions extends ImageSourceOptions {
  * @example
  *
  * // To create a source based on the Stamen OpenLayers source, with the 'toner' style.
- * const source = new TiledImageSource({
- *      source: new Stamen({ layer: 'toner' })
- * });
+ * const source = new TiledImageSource(\{
+ *      source: new Stamen(\{ layer: 'toner' \})
+ * \});
  *
  * // To create a WMS source that downloads TIFF images, eliminating all pixels that have the
  * // value -9999 and replacing them with transparent pixels.
- * const source = new TiledImageSource({
- *      source: new TileWMS({
+ * const source = new TiledImageSource(\{
+ *      source: new TileWMS(\{
  *          url: 'http://example.com/wms',
- *          params: {
+ *          params: \{
  *              LAYERS: 'theLayer',
  *              FORMAT: 'image/tiff',
- *          },
+ *          \},
  *          projection: 'EPSG:3946',
  *          crossOrigin: 'anonymous',
  *          version: '1.3.0',
- *      }),
+ *      \}),
  *      format: new GeoTIFFFormat(),
  *      noDataValue: -9999,
- * });
+ * \});
  */
 export default class TiledImageSource extends ImageSource {
     readonly isTiledImageSource: boolean = true;
@@ -80,7 +80,7 @@ export default class TiledImageSource extends ImageSource {
     private readonly _sourceExtent: Extent;
 
     /**
-     * @param options The options.
+     * @param options - The options.
      */
     constructor(options: TiledImageSourceOptions) {
         super({
@@ -119,8 +119,8 @@ export default class TiledImageSource extends ImageSource {
     /**
      * Selects the best zoom level given the provided image size and extent.
      *
-     * @param extent The target extent.
-     * @param width The width in pixel of the target extent.
+     * @param extent - The target extent.
+     * @param width - The width in pixel of the target extent.
      * @returns The ideal zoom level for this particular extent.
      */
     private getZoomLevel(extent: Extent, width: number): number {
@@ -218,10 +218,10 @@ export default class TiledImageSource extends ImageSource {
     /**
      * Loads the tile once and returns a reusable promise containing the tile texture.
      *
-     * @param id The id of the tile.
-     * @param url The URL of the tile.
-     * @param extent The extent of the tile.
-     * @param createDataTexture Create readable textures.
+     * @param id - The id of the tile.
+     * @param url - The URL of the tile.
+     * @param extent - The extent of the tile.
+     * @param createDataTexture - Create readable textures.
      * @returns The tile texture, or null if there is no data.
      */
     private async loadTile(id: string, url: string, extent: Extent, createDataTexture: boolean) {
@@ -264,8 +264,8 @@ export default class TiledImageSource extends ImageSource {
     /**
      * Check if the tile actually intersect with the extent.
      *
-     * @param {Extent} extent The extent to test.
-     * @returns {boolean} True if the tile must be processed, false otherwise.
+     * @param extent - The extent to test.
+     * @returns `true` if the tile must be processed, `false` otherwise.
      */
     private shouldLoad(extent: Extent): boolean {
         // Use the custom contain function if applicable
@@ -281,10 +281,10 @@ export default class TiledImageSource extends ImageSource {
     /**
      * Loads all tiles in the specified tile range.
      *
-     * @param tileRange The tile range.
-     * @param crs The CRS of the extent.
-     * @param zoom The zoom level.
-     * @param createDataTexture Creates readable textures.
+     * @param tileRange - The tile range.
+     * @param crs - The CRS of the extent.
+     * @param zoom - The zoom level.
+     * @param createDataTexture - Creates readable textures.
      */
     private loadTiles(tileRange: TileRange, crs: string, zoom: number, createDataTexture: boolean) {
         const source = this.source;

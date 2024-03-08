@@ -41,7 +41,7 @@ export class FetcherResponse extends BaseResponse {
     /**
      * BaseResponse facade for fetch API Response
      *
-     * @param response The response.
+     * @param response - The response.
      */
     constructor(response: Response) {
         super();
@@ -199,7 +199,7 @@ class CogSource extends ImageSource {
     /**
      * Creates a COG source.
      *
-     * @param options options
+     * @param options - options
      */
     constructor(options : CogSourceOptions) {
         super({ flipY: true, ...options });
@@ -226,8 +226,8 @@ class CogSource extends ImageSource {
     /**
      * Attemps to compute the exact extent of the TIFF image.
      *
-     * @param crs The CRS.
-     * @param tiffImage The TIFF image.
+     * @param crs - The CRS.
+     * @param tiffImage - The TIFF image.
      */
     static computeExtent(crs: string, tiffImage: GeoTIFFImage) {
         const [
@@ -242,10 +242,10 @@ class CogSource extends ImageSource {
     }
 
     /**
-     * @param requestExtent The request extent.
-     * @param requestWidth The width, in pixels, of the request extent.
-     * @param requestHeight The height, in pixels, of the request extent.
-     * @param margin The margin, in pixels.
+     * @param requestExtent - The request extent.
+     * @param requestWidth - The width, in pixels, of the request extent.
+     * @param requestHeight - The height, in pixels, of the request extent.
+     * @param margin - The margin, in pixels.
      * @returns The adjusted parameters.
      */
     adjustExtentAndPixelSize(
@@ -355,8 +355,8 @@ class CogSource extends ImageSource {
     /**
      * Returns a window in the image's coordinates that matches the requested extent.
      *
-     * @param extent The window extent.
-     * @param resolution The spatial resolution of the window.
+     * @param extent - The window extent.
+     * @param resolution - The spatial resolution of the window.
      * @returns The window.
      */
     private makeWindowFromExtent(extent: Extent, resolution: number[]) {
@@ -390,7 +390,7 @@ class CogSource extends ImageSource {
     /**
      * Creates a texture from the pixel buffer(s).
      *
-     * @param buffers The buffers (one buffer per band)
+     * @param buffers - The buffers (one buffer per band)
      * @returns The generated texture.
      */
     private createTexture(buffers: SizedArray<NumberArray>) {
@@ -419,9 +419,9 @@ class CogSource extends ImageSource {
      * Select the best overview level (or the final image) to match the
      * requested extent and pixel width and height.
      *
-     * @param requestExtent The window extent.
-     * @param requestWidth The pixel width of the window.
-     * @param requestHeight The pixel height of the window.
+     * @param requestExtent - The window extent.
+     * @param requestWidth - The pixel width of the window.
+     * @param requestHeight - The pixel height of the window.
      * @returns The selected zoom level.
      */
     private selectLevel(requestExtent: Extent, requestWidth: number, requestHeight: number) {
@@ -501,9 +501,9 @@ class CogSource extends ImageSource {
     }
 
     /**
-     * @param image The image to read.
-     * @param window The image region to read.
-     * @param signal The abort signal.
+     * @param image - The image to read.
+     * @param window - The image region to read.
+     * @param signal - The abort signal.
      * @returns The buffers.
      */
     private async fetchBuffer(image: GeoTIFFImage, window: number[], signal?: AbortSignal)
@@ -545,10 +545,10 @@ class CogSource extends ImageSource {
     /**
      * Extract a region from the specified image.
      *
-     * @param extent The request extent.
-     * @param level The level to sample.
-     * @param signal The abort signal.
-     * @param id The request id.
+     * @param extent - The request extent.
+     * @param level - The level to sample.
+     * @param signal - The abort signal.
+     * @param id - The request id.
      * @returns The buffer(s).
      */
     private async getRegionBuffers(extent: Extent, level: Level, signal: AbortSignal, id: string) {
