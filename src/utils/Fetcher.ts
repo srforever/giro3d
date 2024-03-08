@@ -8,27 +8,23 @@ import TextureGenerator from './TextureGenerator';
 import HttpQueue from './HttpQueue';
 
 export interface FetcherEventMap {
+    /**
+     * Fires when a Network or HTTP error occured during fetch
+     * ```js
+    * Fetcher.addEventListener('error', (error) => {
+    *     if (error.response && error.response.status === 401) {
+    *        console.error(
+    *            `Unauthorized to access resource ${error.response.url}: ${error.message}`,
+    *            error,
+    *        );
+    *    } else {
+    *        console.error('Got an error while fetching resource', error);
+    *    }
+    * });
+    * ```
+    */
     error: { error: Error };
 }
-
-/**
- * Fires when a Network or HTTP error occured during fetch
- *
- * @event module:utils/Fetcher#error
- * @property {Error} error Error thrown
- * @property {Response?} error.response HTTP response (if any)
- * @example
- * Fetcher.addEventListener('error', (error) => {
- *     if (error.response && error.response.status === 401) {
- *        console.error(
- *            `Unauthorized to access resource ${error.response.url}: ${error.message}`,
- *            error,
- *        );
- *    } else {
- *        console.error('Got an error while fetching resource', error);
- *    }
- * });
- */
 
 class FetcherEventDispatcher extends EventDispatcher<FetcherEventMap> { }
 
@@ -37,8 +33,8 @@ const eventTarget = new FetcherEventDispatcher();
 /**
  * Adds a listener to an event type on fetch operations.
  *
- * @param type The type of event to listen to - only `error` is supported.
- * @param listener The function that gets called when the event is fired.
+ * @param type - The type of event to listen to - only `error` is supported.
+ * @param listener - The function that gets called when the event is fired.
  */
 function addEventListener<T extends keyof FetcherEventMap>(
     type: T,
@@ -50,8 +46,8 @@ function addEventListener<T extends keyof FetcherEventMap>(
 /**
  * Checks if listener is added to an event type.
  *
- * @param type The type of event to listen to - only `error` is supported.
- * @param listener The function that gets called when the event is fired.
+ * @param type - The type of event to listen to - only `error` is supported.
+ * @param listener - The function that gets called when the event is fired.
  * @returns `true` if the listener is added to this event type.
  */
 function hasEventListener<T extends keyof FetcherEventMap>(
@@ -64,8 +60,8 @@ function hasEventListener<T extends keyof FetcherEventMap>(
 /**
  * Removes a listener from an event type on fetch operations.
  *
- * @param type The type of the listener that gets removed.
- * @param listener The listener function that gets removed.
+ * @param type - The type of the listener that gets removed.
+ * @param listener - The listener function that gets removed.
  */
 function removeEventListener<T extends keyof FetcherEventMap>(
     type: T,
@@ -79,7 +75,7 @@ const hostQueues: Map<string, HttpQueue> = new Map();
 /**
  * Queue an HTTP request.
  *
- * @param req The request to queue.
+ * @param req - The request to queue.
  */
 function enqueue(req: Request) {
     const url = new URL(req.url);
@@ -90,6 +86,9 @@ function enqueue(req: Request) {
     return hostQueues.get(url.hostname).enqueue(req);
 }
 
+/**
+ * @internal
+ */
 function getInfo() {
     let pending = 0;
     let running = 0;
@@ -110,11 +109,10 @@ interface ErrorWithResponse extends Error {
  * Use this function instead of calling directly the [Fetch API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)
  * to benefit from automatic configuration from the {@link HttpConfiguration} module.
  *
- * @function
- * @param url the URL to fetch
- * @param options fetch options (passed directly to `fetch()`)
+ * fires `error` event On Network/HTTP error.
+ * @param url - the URL to fetch
+ * @param options - fetch options (passed directly to `fetch()`)
  * @returns The response object.
- * @fires error On Network/HTTP error
  */
 async function fetchInternal(url: string, options?: RequestInit): Promise<Response> {
     const augmentedOptions = HttpConfiguration.applyConfiguration(url, options);
@@ -135,10 +133,10 @@ async function fetchInternal(url: string, options?: RequestInit): Promise<Respon
 /**
  * Wrapper over `fetch`, then returns the blob of the response.
  *
- * @param url the URL to fetch
- * @param options fetch options (passed directly to `fetch()`)
+ * fires `error` event On Network/HTTP error.
+ * @param url - the URL to fetch
+ * @param options - fetch options (passed directly to `fetch()`)
  * @returns The response blob.
- * @fires error On Network/HTTP error
  */
 async function blob(url: string, options?: RequestInit): Promise<Blob> {
     const response = await fetchInternal(url, options);
@@ -148,10 +146,10 @@ async function blob(url: string, options?: RequestInit): Promise<Blob> {
 /**
  * Wrapper over `fetch` to get some text
  *
- * @param url the URL to fetch
- * @param options fetch options (passed directly to `fetch()`)
+ * fires `error` event On Network/HTTP error.
+ * @param url - the URL to fetch
+ * @param options - fetch options (passed directly to `fetch()`)
  * @returns the promise containing the text
- * @fires error On Network/HTTP error
  */
 async function text(url: string, options?: RequestInit): Promise<string> {
     const response = await fetchInternal(url, options);
@@ -161,10 +159,10 @@ async function text(url: string, options?: RequestInit): Promise<string> {
 /**
  * Wrapper over `fetch` to get some JSON
  *
- * @param url the URL to fetch
- * @param options fetch options (passed directly to `fetch()`)
+ * fires `error` event On Network/HTTP error.
+ * @param url - the URL to fetch
+ * @param options - fetch options (passed directly to `fetch()`)
  * @returns the promise containing the JSON
- * @fires error On Network/HTTP error
  */
 async function json(url: string, options?: RequestInit): Promise<any> {
     const response = await fetchInternal(url, options);
@@ -174,10 +172,10 @@ async function json(url: string, options?: RequestInit): Promise<any> {
 /**
  * Wrapper over `fetch` to get some XML.
  *
- * @param url the URL to fetch
- * @param options fetch options (passed directly to `fetch()`)
+ * fires `error` event On Network/HTTP error.
+ * @param url - the URL to fetch
+ * @param options - fetch options (passed directly to `fetch()`)
  * @returns the promise containing the XML
- * @fires error On Network/HTTP error
  */
 async function xml(url: string, options?: RequestInit): Promise<Document> {
     const response = await fetchInternal(url, options);
@@ -188,10 +186,10 @@ async function xml(url: string, options?: RequestInit): Promise<Document> {
 /**
  * Wrapper over `fetch` to get some `ArrayBuffer`
  *
- * @param url the URL to fetch
- * @param options fetch options (passed directly to `fetch()`)
+ * fires `error` event On Network/HTTP error.
+ * @param url - the URL to fetch
+ * @param options - fetch options (passed directly to `fetch()`)
  * @returns the promise containing the ArrayBuffer
- * @fires error On Network/HTTP error
  */
 async function arrayBuffer(url: string, options?: RequestInit): Promise<ArrayBuffer> {
     const response = await fetchInternal(url, options);
@@ -201,10 +199,10 @@ async function arrayBuffer(url: string, options?: RequestInit): Promise<ArrayBuf
 /**
  * Downloads a remote image and converts it into a texture.
  *
- * @param url the URL to fetch
- * @param options fetch options (passed directly to `fetch()`)
+ * fires `error` event On Network/HTTP error.
+ * @param url - the URL to fetch
+ * @param options - fetch options (passed directly to `fetch()`)
  * @returns the promise containing the texture
- * @fires error On Network/HTTP error
  */
 async function texture(url: string, options?: RequestInit): Promise<Texture> {
     const data = await blob(url, options);
@@ -226,11 +224,11 @@ export default {
     texture,
     arrayBuffer,
     text,
-    /** @ignore */
+    /** @internal */
     getInfo,
     addEventListener,
     hasEventListener,
     removeEventListener,
-    /** @ignore */
+    /** @internal */
     _eventTarget: eventTarget, // Used for testing
 };

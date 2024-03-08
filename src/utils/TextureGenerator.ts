@@ -66,7 +66,7 @@ function isCanvasTexture(texture: Texture): texture is CanvasTexture {
 /**
  * Returns the number of bytes per channel.
  *
- * @param dataType The pixel format.
+ * @param dataType - The pixel format.
  * @returns The number of bytes per channel.
  */
 function getBytesPerChannel(dataType: TextureDataType): number {
@@ -238,7 +238,7 @@ function fillBuffer<T extends NumberArray>(
 /**
  * Returns the number of channels per pixel.
  *
- * @param pixelFormat The pixel format.
+ * @param pixelFormat - The pixel format.
  * @returns The number of channels per pixel.
  */
 function getChannelCount(pixelFormat: AnyPixelFormat): number {
@@ -262,7 +262,7 @@ function getChannelCount(pixelFormat: AnyPixelFormat): number {
 /**
  * Estimate the size of the texture.
  *
- * @param texture The texture.
+ * @param texture - The texture.
  * @returns The size, in bytes.
  */
 function estimateSize(texture: Texture): number {
@@ -281,8 +281,8 @@ function estimateSize(texture: Texture): number {
  *
  * This is useful because normally the pixels of a render target are not readable.
  *
- * @param target The render target to read back.
- * @param renderer The WebGL renderer to perform the operation.
+ * @param target - The render target to read back.
+ * @param renderer - The WebGL renderer to perform the operation.
  */
 function createDataCopy(target: WebGLRenderTarget, renderer: WebGLRenderer) {
     // Render target textures don't have data in CPU memory,
@@ -298,7 +298,7 @@ function createDataCopy(target: WebGLRenderTarget, renderer: WebGLRenderer) {
 /**
  * Gets the underlying pixel buffer of the image.
  *
- * @param image The image.
+ * @param image - The image.
  * @returns The pixel buffer.
  */
 function getPixels(image: ImageBitmap | HTMLImageElement | HTMLCanvasElement): Uint8ClampedArray {
@@ -314,14 +314,14 @@ function getPixels(image: ImageBitmap | HTMLImageElement | HTMLCanvasElement): U
 /**
  * Decodes the blob according to its media type, then returns a texture for this blob.
  *
- * @param blob The buffer to decode.
- * @param options Options
- * @param options.createDataTexture If true, the texture will be a data texture.
+ * @param blob - The buffer to decode.
+ * @param options - Options
  * @returns The generated texture.
  * @throws When the media type is unsupported.
  */
 async function decodeBlob(
     blob: Blob, options: {
+        /** If true, the texture will be a data texture. */
         createDataTexture?: boolean;
     } = {},
 ): Promise<Texture> {
@@ -358,28 +358,28 @@ async function decodeBlob(
 /**
  * Returns a {@link DataTexture} initialized with the specified data.
  *
- * @param options The creation options.
- * @param options.width width The texture width.
- * @param options.height height The texture height.
- * @param options.scaling Indicates that the input data must be scaled
- * into 8-bit values, using the provided min and max values for scaling.
- * @param options.scaling.min The minimum value the input data, used to compute
- * the scaling parameters.
- * @param options.scaling.max The maximum value of the input data, used to compute
- * the scaling parameters.
- * @param options.nodata The no-data value. If specified,
- * if a pixel has this value, then the alpha value will be transparent.
- * Otherwise it will be opaque. If unspecified, the alpha will be opaque. This only applies to
- * 1-channel data. Ignored for 3 and 4-channel data.
- * @param sourceDataType The data type of the input pixel data.
- * @param pixelData The pixel data
+ * @param options - The creation options.
+ * @param sourceDataType - The data type of the input pixel data.
+ * @param pixelData - The pixel data
  * for each input channels. Must be either one, three, or four channels.
  */
 function createDataTexture(
     options: {
+        /** The texture width */
         width?: number;
+        /** The texture height */
         height?: number;
+        /**
+         * Indicates that the input data must be scaled into 8-bit values,
+         * using the provided min and max values for scaling.
+         */
         scaling?: { min: number; max: number; };
+        /**
+         * The no-data value. If specified, if a pixel has this value,
+         * then the alpha value will be transparent. Otherwise it will be opaque.
+         * If unspecified, the alpha will be opaque. This only applies to 1-channel data.
+         * Ignored for 3 and 4-channel data.
+         */
         nodata?: number;
     },
     sourceDataType: TextureDataType,
@@ -442,7 +442,7 @@ function createDataTexture(
 /**
  * Returns a 1D texture containing a pixel on the horizontal axis for each color in the array.
  *
- * @param colors The color gradient.
+ * @param colors - The color gradient.
  * @returns The resulting texture.
  */
 function create1DTexture(colors: Color[]): DataTexture {
@@ -470,10 +470,10 @@ function create1DTexture(colors: Color[]): DataTexture {
  * Computes the minimum and maximum value of the buffer, but only taking into account the first
  * channel (R channel). This is typically used for elevation data.
  *
- * @param buffer The pixel buffer. May be an RGBA or an RG buffer.
- * @param nodata The no-data value. Pixels with this value will be ignored.
- * @param interpretation The image interpretation.
- * @param channelCount The channel count of the buffer
+ * @param buffer - The pixel buffer. May be an RGBA or an RG buffer.
+ * @param nodata - The no-data value. Pixels with this value will be ignored.
+ * @param interpretation - The image interpretation.
+ * @param channelCount - The channel count of the buffer
  * @returns The computed min/max.
  */
 function computeMinMaxFromBuffer(
@@ -565,8 +565,8 @@ function shouldExpandRGB(src: PixelFormat, dst: PixelFormat): boolean {
 /**
  * Computes min/max of the given image.
  *
- * @param image The image to process.
- * @param interpretation The interpretation of the image.
+ * @param image - The image to process.
+ * @param interpretation - The interpretation of the image.
  * @returns The min/max.
  */
 function computeMinMaxFromImage(

@@ -1,8 +1,11 @@
 const DEFAULT_CONCURRENT_REQUESTS = 10;
 
-interface Task {
+export interface Task {
+    /** The request */
     req: Request,
+    /** The resolve callback, when this tasks completes successfully. */
     resolve: Function,
+    /** The reject callback, when this tasks completes with an error. */
     reject: Function
 }
 
@@ -17,10 +20,10 @@ class HttpQueue {
     private _concurrentRequests: number;
 
     /**
-     * @param options Options.
-     * @param options.maxConcurrentRequests Max concurrent requests for this host.
+     * @param options - Options.
      */
     constructor(options : {
+        /** Max concurrent requests for this host. */
         maxConcurrentRequests?: number;
     } = {
         maxConcurrentRequests: DEFAULT_CONCURRENT_REQUESTS,
@@ -59,12 +62,9 @@ class HttpQueue {
     }
 
     /**
-     * Execute the request immediately.
+     * Executes the tasks immediately.
      *
-     * @param task The task.
-     * @param task.req The request.
-     * @param task.resolve The resolve() function when the request is successful.
-     * @param task.reject The reject() functionwhen the request failed.
+     * @param task - The task.
      */
     private async execute(task: Task) {
         const { req, resolve, reject } = task;
@@ -82,7 +82,7 @@ class HttpQueue {
     }
 
     /**
-     * @param req The HTTP request.
+     * @param req - The HTTP request.
      * @returns The response.
      */
     public enqueue(req: Request): Promise<Response> {
