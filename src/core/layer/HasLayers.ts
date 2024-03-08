@@ -1,7 +1,7 @@
 import type Layer from './Layer';
 
 /**
- * Interface for any object that can contain {@link Layer layers}.
+ * Interface for any object that can contain {@link Layer}.
  */
 interface HasLayers {
     /**
@@ -18,12 +18,13 @@ interface HasLayers {
      * Returns a _new_ array containing the layers in this object.
      * Optionally, the predicate can be used to filter out unwanted layers.
      *
-     * @example
+     * ```js
      * // Get all layers from the object.
      * const allLayers = obj.getLayers();
      *
      * // Get all color layers from the object.
      * const colorLayers = obj.getLayers((layer) => layer.isColorLayer);
+     * ```
      */
     getLayers(predicate?: (arg0: Layer) => boolean): Layer[];
 
@@ -36,11 +37,12 @@ interface HasLayers {
 /**
  * Checks if the specified object implements the {@link HasLayers} interface.
  *
- * @example
+ * ```js
  * if (hasLayers(myObject)) {
  *    myObject.forEachLayer((layer) => console.log(layer));
  * }
- * @param obj The object to test.
+ * ```
+ * @param obj - The object to test.
  */
 export function hasLayers(obj: unknown): obj is HasLayers {
     return (obj as HasLayers).hasLayers ?? false;

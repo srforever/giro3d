@@ -22,7 +22,7 @@ export type FeatureElevationCallback = ((feature: Feature) => Array<number> | nu
  * color individual meshes from
  * [ol.Feature](https://openlayers.org/en/latest/apidoc/module-ol_Feature-Feature.html).
  *
- * @param feature the feature to style
+ * @param feature - the feature to style
  * @returns The style of the current feature
  */
 export type FeatureStyleCallback = (feature: Feature) => FeatureStyle;

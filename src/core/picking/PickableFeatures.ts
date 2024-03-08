@@ -16,7 +16,7 @@ import type PickOptions from './PickOptions';
  * In case you are using a different type for `TResult`, you might want to also
  * implement {@link Pickable}.
  *
- * @example
+ * ```js
  * export interface PlyFeature {
  *     color: Color
  * }
@@ -40,7 +40,9 @@ import type PickOptions from './PickOptions';
  *         return [];
  *     }
  * }
- * @example
+ * ```
+ *
+ * ```js
  * export interface IFCFeature {
  *     ifcProperties: IFCProperty[],
  * }
@@ -78,6 +80,7 @@ import type PickOptions from './PickOptions';
  *        return [];
  *     }
  * }
+ * ```
  */
 interface PickableFeatures<
     TFeature extends any = any,
@@ -91,8 +94,8 @@ interface PickableFeatures<
      *
      * Implementations **must** set `pickedResult.features` to the returned result.
      *
-     * @param pickedResult Picked result
-     * @param options Options
+     * @param pickedResult - Picked result
+     * @param options - Options
      * @returns Features
      */
     pickFeaturesFrom: (pickedResult: TResult, options?: TOptions) => TFeature[];
@@ -101,7 +104,7 @@ interface PickableFeatures<
 /**
  * Tests whether an object implements {@link PickableFeatures}.
  *
- * @param obj Object
+ * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
 export const isPickableFeatures = (obj: any): obj is PickableFeatures => obj.isPickableFeatures;

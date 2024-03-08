@@ -23,7 +23,7 @@ export interface MapPickResult<TFeature extends any = any> extends PickResult<TF
 /**
  * Tests whether an object implements {@link MapPickResult}.
  *
- * @param obj Object
+ * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
 export const isMapPickResult = (obj: any): obj is MapPickResult => obj.isMapPickResult;
@@ -81,14 +81,14 @@ function renderTileBuffer(
 /**
  * Pick tiles from a map object. This does not do any sorting
  *
- * @param _instance Instance to pick from
- * @param canvasCoords Coordinates on the rendering canvas
- * @param map Map object to pick from
- * @param options Options
+ * @param instance - Instance to pick from
+ * @param canvasCoords - Coordinates on the rendering canvas
+ * @param map - Map object to pick from
+ * @param options - Options
  * @returns Target
  */
 function pickTilesAt(
-    _instance: Instance,
+    instance: Instance,
     canvasCoords: Vector2,
     map: Map,
     options: PickOptions = {},
@@ -99,7 +99,7 @@ function pickTilesAt(
     const target: MapPickResult[] = [];
 
     const { ids, uvs, zs } = renderTileBuffer(
-        _instance,
+        instance,
         map,
         canvasCoords,
         radius,
@@ -130,7 +130,7 @@ function pickTilesAt(
                 tmpCoords.values[2] = elevation;
                 // convert to instance crs
                 // here (and only here) should be the Coordinates instance creation
-                const coord = tmpCoords.as(_instance.referenceCrs);
+                const coord = tmpCoords.as(instance.referenceCrs);
                 const point = tmpCoords.toVector3(new Vector3());
 
                 const p: MapPickResult = {
@@ -139,7 +139,7 @@ function pickTilesAt(
                     entity: map,
                     point,
                     coord,
-                    distance: _instance.camera.camera3D.position.distanceTo(point),
+                    distance: instance.camera.camera3D.position.distanceTo(point),
                 };
 
                 if (!filter || filter(p)) {

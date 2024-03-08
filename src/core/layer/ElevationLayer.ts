@@ -41,7 +41,7 @@ class ElevationLayer<UserData = LayerUserData> extends Layer<ElevationLayerEvent
      * Creates an elevation layer.
      * See the example for more information on layer creation.
      *
-     * @param options The layer options.
+     * @param options - The layer options.
      */
     constructor(options: ElevationLayerOptions) {
         super({

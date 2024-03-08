@@ -28,7 +28,7 @@ export interface PointsPickResult<TFeature extends any = any> extends PickResult
 /**
  * Tests whether an object implements {@link PointsPickResult}.
  *
- * @param obj Object
+ * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
 export const isPointsPickResult = (obj: any): obj is PointsPickResult => obj.isPointsPickResult;
@@ -61,10 +61,10 @@ export function preparePointGeometryForPicking(pointsGeometry: BufferGeometry) {
 /**
  * Pick points from a PointCloud-like entity.
  *
- * @param instance Instance to pick from
- * @param canvasCoords Coordinates on the rendering canvas
- * @param entity Object to pick from
- * @param options Options
+ * @param instance - Instance to pick from
+ * @param canvasCoords - Coordinates on the rendering canvas
+ * @param entity - Object to pick from
+ * @param options - Options
  * @returns Array of picked objects
  */
 function pickPointsAt(

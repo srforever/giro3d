@@ -37,7 +37,7 @@ class Context {
      * did a full update (in which case the value is `undefined`)
      * or a partial update and to act accordingly.
      *
-     * @ignore
+     * @internal
      */
     fastUpdateHint: unknown;
     private _entity: Entity;
@@ -49,8 +49,8 @@ class Context {
     /**
      * Constructs a context.
      *
-     * @param camera the active camera.
-     * @param instance the Giro3D instance.
+     * @param camera - the active camera.
+     * @param instance - the Giro3D instance.
      */
     constructor(camera: Camera, instance: Instance) {
         this.camera = camera;

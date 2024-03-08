@@ -200,7 +200,7 @@ export interface LayerUserData extends Record<string, any> {}
  *
  * Note that doing so will have a performance cost in both CPU and memory.
  *
- * @example
+ * ```js
  * // Add and create a new Layer to an existing map.
  * const newLayer = new ColorLayer({ ... });
  *
@@ -216,6 +216,9 @@ export interface LayerUserData extends Record<string, any> {}
  *
  * // Listen to properties
  * newLayer.addEventListener('visible-property-changed', (event) => console.log(event));
+ * ```
+ * @typeParam TEvents - The event map of the layer.
+ * @typeParam TUserData - The type of the `userData` property.
  */
 abstract class Layer<
     TEvents extends LayerEvents = LayerEvents,
@@ -283,7 +286,7 @@ abstract class Layer<
     /**
      * Creates a layer.
      *
-     * @param options The layer options.
+     * @param options - The layer options.
      */
     constructor(options: LayerOptions) {
         super();
@@ -386,8 +389,6 @@ abstract class Layer<
 
     /**
      * Gets or sets the visibility of this layer.
-     *
-     * @fires Layer#visible-property-changed
      */
     get visible() {
         return this._visible;
@@ -412,13 +413,16 @@ abstract class Layer<
      * Initializes this layer. Note: this method is automatically called when the layer is added
      * to an entity.
      *
-     * @param options Initialization options.
-     * @param options.instance The instance to associate this layer. Once set, the layer cannot be
-     * used with any other instance.
+     * @param options - Initialization options.
      * @returns A promise that resolves when the initialization is complete.
-     * @ignore
+     * @internal
      */
-    initialize(options: { instance: Instance }): Promise<this> {
+    initialize(options: {
+        /**
+         * The instance to associate this layer.
+         * Once set, the layer cannot be used with any other instance.
+         */
+        instance: Instance }): Promise<this> {
         const { instance } = options;
         if (this._instance != null && instance !== this._instance) {
             throw new Error('This layer has already been initialized for another instance.');
@@ -567,17 +571,17 @@ abstract class Layer<
     }
 
     /**
-     * @param options Options.
-     * @param options.extent The request extent.
-     * @param options.width The request width, in pixels.
-     * @param options.height The request height, in pixels.
-     * @param options.target The target of the images.
+     * @param options - Options.
      * @returns A promise that is settled when all images have been fetched.
      */
     private async fetchImages(options: {
+        /** The request extent. */
         extent: Extent;
+        /** The request width, in pixels. */
         width: number;
+        /** The request height, in pixels. */
         height: number;
+        /** The target of the images. */
         target: Target;
     }): Promise<void> {
         const {
@@ -654,7 +658,7 @@ abstract class Layer<
     /**
      * Removes the node from this layer.
      *
-     * @param node The disposed node.
+     * @param node - The disposed node.
      */
     unregisterNode(node: Node) {
         const id = node.id;
@@ -677,11 +681,10 @@ abstract class Layer<
     /**
      * Adjusts the extent to avoid visual artifacts.
      *
-     * @param originalExtent The original extent.
-     * @param originalWidth The width, in pixels, of the original extent.
-     * @param originalHeight The height, in pixels, of the original extent.
-     * @returns {{extent: Extent, width: number, height: number }} And object containing the
-     * adjusted extent, as well as adjusted pixel size.
+     * @param originalExtent - The original extent.
+     * @param originalWidth - The width, in pixels, of the original extent.
+     * @param originalHeight - The height, in pixels, of the original extent.
+     * @returns And object containing the adjusted extent, as well as adjusted pixel size.
      */
     // eslint-disable-next-line class-methods-use-this
     protected adjustExtentAndPixelSize(
@@ -739,7 +742,7 @@ abstract class Layer<
     }
 
     /**
-     * @param target The target.
+     * @param target - The target.
      * @returns The smallest target that still contains this extent.
      */
     private getParent(target: Target): Target {
@@ -756,7 +759,7 @@ abstract class Layer<
     }
 
     /**
-     * @param target The target.
+     * @param target - The target.
      */
     protected applyDefaultTexture(target: Target) {
         const parent = this.getParent(target);
@@ -788,7 +791,7 @@ abstract class Layer<
     }
 
     /**
-     * @ignore
+     * @internal
      */
     getInfo(node: Node): { state: string, imageCount: number } {
         const target = this._targets.get(node.id);
@@ -803,7 +806,7 @@ abstract class Layer<
      * Processes the target once, fetching all images relevant for this target,
      * then paints those images to the target's texture.
      *
-     * @param target The target to paint.
+     * @param target - The target to paint.
      */
     private processTarget(target: Target) {
         if (target.state !== TargetState.Pending) {
@@ -875,8 +878,8 @@ abstract class Layer<
     /**
      * Updates the provided node with content from this layer.
      *
-     * @param context the context
-     * @param node the node to update
+     * @param context - the context
+     * @param node - the node to update
      */
     public update(context: Context, node: Node): void {
         if (this.disposed) {
@@ -951,7 +954,7 @@ abstract class Layer<
     }
 
     /**
-     * @param extent The extent to test.
+     * @param extent - The extent to test.
      * @returns `true` if this layer contains the specified extent, `false` otherwise.
      */
     public contains(extent: Extent): boolean {
@@ -970,7 +973,7 @@ abstract class Layer<
     abstract getRenderTargetDataType(): TextureDataType;
 
     /**
-     * @param target The render target to release.
+     * @param target - The render target to release.
      */
     private releaseRenderTarget(target: WebGLRenderTarget) {
         if (!target) {
@@ -988,8 +991,8 @@ abstract class Layer<
     }
 
     /**
-     * @param width Width
-     * @param height Height
+     * @param width - Width
+     * @param height - Height
      * @returns The render target.
      */
     private acquireRenderTarget(width: number, height: number): WebGLRenderTarget {

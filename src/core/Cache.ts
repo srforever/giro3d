@@ -48,15 +48,17 @@ class Cache {
     /**
      * Constructs a cache.
      *
-     * @param opts The options.
-     * @param opts.ttl The default TTL (time to live) of entries. Can be overriden for each entry
-     * (see {@link CacheOptions}).
-     * @param opts.byteCapacity The capacity, in bytes, of the cache.
-     * @param opts.maxNumberOfEntries The capacity, in number of entries, of the cache.
+     * @param opts - The options.
      */
     constructor(opts: {
+        /**
+         * The default TTL (time to live) of entries.
+         * Can be overriden for each entry (see {@link CacheOptions}).
+         */
         ttl?: number;
+        /** The capacity, in bytes, of the cache. */
         byteCapacity?: number;
+        /** The capacity, in number of entries, of the cache. */
         maxNumberOfEntries?: number;
     } = {
         ttl: DEFAULT_TTL,
@@ -155,7 +157,7 @@ class Cache {
     /**
      * Returns the entry with the specified key, or `undefined` if no entry matches this key.
      *
-     * @param key The entry key.
+     * @param key - The entry key.
      * @returns The entry, or `undefined`.
      */
     get(key: string): unknown | undefined {
@@ -169,9 +171,9 @@ class Cache {
     /**
      * Stores an entry in the cache, or replaces an existing entry with the same key.
      *
-     * @param key The key.
-     * @param value The value.
-     * @param options The options.
+     * @param key - The key.
+     * @param value - The value.
+     * @param options - The options.
      */
     set(key: string, value: unknown, options: CacheOptions = {}) {
         if (!this.enabled) {
@@ -197,7 +199,7 @@ class Cache {
     /**
      * Deletes an entry.
      *
-     * @param key The key.
+     * @param key - The key.
      * @returns `true` if the entry was deleted, `false` otherwise.
      */
     delete(key: string): boolean {

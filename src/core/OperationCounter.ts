@@ -10,8 +10,6 @@ export interface OperationCounterEvents {
 
 /**
  * Provides a way to track the progress of running operations.
- *
- * @fires complete When all pending operations are completed.
  */
 class OperationCounter extends EventDispatcher<OperationCounterEvents> implements Progress {
     private _operations: number;

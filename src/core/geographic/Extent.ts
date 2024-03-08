@@ -44,6 +44,7 @@ export type Input =
  *
  * For other EPSG codes, you must register them with `Instance.registerCRS()` :
  *
+ * ```js
  *     Instance.registerCRS('EPSG:3946',
  *         '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 + \
  *         ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
@@ -52,6 +53,7 @@ export type Input =
  *                  'EPSG:3946',
  *                  1837816.94334, 1847692.32501,
  *                  5170036.4587, 5178412.82698);
+ * ```
  */
 class Extent {
     private readonly _values: Float64Array;
@@ -60,12 +62,11 @@ class Extent {
     /**
      * Constructs an Extent object.
      *
-     * @param {string} crs The CRS code the coordinates are expressed in. Every EPSG code known by
+     * @param crs - The CRS code the coordinates are expressed in. Every EPSG code known by
      * [proj4js](https://github.com/proj4js/proj4js) can be used directly.
      * For others, you must manually register them.
      * Please refer to [proj4js](https://github.com/proj4js/proj4js) doc for more information.
-     * @param {number|object|Coordinates} values Variable number of arguments. The following
-     * combinations are supported:
+     * @param values - Variable number of arguments. The following combinations are supported:
      * - 2 coordinates for the min and max corners of the extent
      * - an object with `west`, `east`, `south`, `north` properties
      * - 4 numerical values for the `minx`, `maxx`, `miny`, `maxy`
@@ -81,12 +82,10 @@ class Extent {
     /**
      * Returns an extent centered at the specified coordinate, and with the specified size.
      *
-     * @param crs The CRS identifier.
-     * @param center The center.
-     * @param center.x The center X.
-     * @param center.y The center Y.
-     * @param width The width, in CRS units.
-     * @param height The height, in CRS units.
+     * @param crs - The CRS identifier.
+     * @param center - The center.
+     * @param width - The width, in CRS units.
+     * @param height - The height, in CRS units.
      * @returns The produced extent.
      */
     static fromCenterAndSize(
@@ -110,8 +109,8 @@ class Extent {
     /**
      * Returns `true` if the two extents are equal.
      *
-     * @param other The extent to compare.
-     * @param epsilon The optional comparison epsilon.
+     * @param other - The extent to compare.
+     * @param epsilon - The optional comparison epsilon.
      * @returns `true` if the extents are equal, otherwise `false`.
      */
     equals(other: Extent, epsilon = 0.00001) {
@@ -169,7 +168,7 @@ class Extent {
     /**
      * Returns an extent with a relative margin added.
      *
-     * @param marginRatio The margin, in normalized value ([0, 1]).
+     * @param marginRatio - The margin, in normalized value ([0, 1]).
      * A margin of 1 means 100% of the width or height of the extent.
      * @example
      * const extent = new Extent('EPSG:3857', 0, 100, 0, 100);
@@ -187,8 +186,8 @@ class Extent {
     /**
      * Returns an extent with a margin.
      *
-     * @param x The horizontal margin, in CRS units.
-     * @param y The vertical margin, in CRS units.
+     * @param x - The horizontal margin, in CRS units.
+     * @param y - The vertical margin, in CRS units.
      * @example
      * const extent = new Extent('EPSG:3857', 0, 100, 0, 100);
      * const margin = extent.withMargin(10, 15);
@@ -208,7 +207,7 @@ class Extent {
      * Converts this extent into another CRS.
      * If `crs` is the same as the current CRS, the original object is returned.
      *
-     * @param crs the new CRS
+     * @param crs - the new CRS
      * @returns the converted extent.
      */
     as(crs: string) {
@@ -326,7 +325,7 @@ class Extent {
     /**
      * Sets `target` with the center of this extent.
      *
-     * @param target the coordinate to set with the center's coordinates.
+     * @param target - the coordinate to set with the center's coordinates.
      * If none provided, a new one is created.
      * @returns the modified object passed in argument.
      */
@@ -348,7 +347,7 @@ class Extent {
     /**
      * Sets `target` with the center of this extent.
      *
-     * @param target the vector to set with the center's coordinates.
+     * @param target - the vector to set with the center's coordinates.
      * If none provided, a new one is created.
      * @returns the modified object passed in argument.
      */
@@ -374,7 +373,7 @@ class Extent {
      * Sets `target` with the center of this extent.
      * Note: The z coordinate of the resulting vector will be set to zero.
      *
-     * @param target the vector to set with the center's coordinates.
+     * @param target - the vector to set with the center's coordinates.
      * If none provided, a new one is created.
      * @returns the modified object passed in argument.
      */
@@ -398,7 +397,7 @@ class Extent {
      * The `x` property will be set with the width,
      * and the `y` property will be set with the height.
      *
-     * @param target the optional target to set with the result.
+     * @param target - the optional target to set with the result.
      * @returns the modified object passed in argument,
      * or a new object if none was provided.
      */
@@ -411,8 +410,8 @@ class Extent {
     /**
      * Checks whether the specified coordinate is inside this extent.
      *
-     * @param coord the coordinate to test
-     * @param epsilon the precision delta (+/- epsilon)
+     * @param coord - the coordinate to test
+     * @param epsilon - the precision delta (+/- epsilon)
      * @returns `true` if the coordinate is inside the bounding box
      */
     isPointInside(coord: Coordinates, epsilon = 0) {
@@ -433,8 +432,8 @@ class Extent {
     /**
      * Tests whether this extent is contained in another extent.
      *
-     * @param other the other extent to test
-     * @param epsilon the precision delta (+/- epsilon).
+     * @param other - the other extent to test
+     * @param epsilon - the precision delta (+/- epsilon).
      * If this value is not provided, a reasonable epsilon will be computed.
      * @returns `true` if this extent is contained in the other extent.
      */
@@ -452,7 +451,7 @@ class Extent {
     /**
      * Returns `true` if this bounding box intersect with the bouding box parameter
      *
-     * @param bbox the bounding box to test
+     * @param bbox - the bounding box to test
      * @returns `true` if this bounding box intersects with the provided bounding box
      */
     intersectsExtent(bbox: Extent) {
@@ -466,7 +465,7 @@ class Extent {
     /**
      * Set this extent to the intersection of itself and other
      *
-     * @param other the bounding box to intersect
+     * @param other - the bounding box to intersect
      * @returns the modified extent
      */
     intersect(other: Extent) {
@@ -492,11 +491,11 @@ class Extent {
      * of the grid pixels. Optionally, you can specify the minimum pixel size of the
      * resulting extent.
      *
-     * @param gridExtent The grid extent.
-     * @param gridWidth The grid width, in pixels.
-     * @param gridHeight The grid height, in pixels.
-     * @param minPixWidth The minimum width, in pixels, of the resulting extent.
-     * @param minPixHeight The minimum height, in pixels, of the resulting extent.
+     * @param gridExtent - The grid extent.
+     * @param gridWidth - The grid width, in pixels.
+     * @param gridHeight - The grid height, in pixels.
+     * @param minPixWidth - The minimum width, in pixels, of the resulting extent.
+     * @param minPixHeight - The minimum height, in pixels, of the resulting extent.
      * @returns The adjusted extent and pixel
      * size of the adjusted extent.
      */
@@ -552,8 +551,8 @@ class Extent {
      * Set the coordinate reference system and values of this
      * extent.
      *
-     * @param {string} crs the new CRS
-     * @param  values the new values
+     * @param crs - the new CRS
+     * @param values - the new values
      * @returns this object modified
      */
     set(crs: string, ...values: Input): this {
@@ -617,7 +616,7 @@ class Extent {
     /**
      * Expands the extent to contain the specified coordinates.
      *
-     * @param coordinates The coordinates to include
+     * @param coordinates - The coordinates to include
      */
     expandByPoint(coordinates: Coordinates): void {
         const coords = coordinates.as(this.crs());
@@ -640,9 +639,9 @@ class Extent {
     /**
      * Moves the extent by the provided `x` and `y` values.
      *
-     * @param x the horizontal shift
-     * @param y the vertical shift
-     * @returns the modified extents.
+     * @param x - the horizontal shift
+     * @param y - the vertical shift
+     * @returns the modified extent.
      */
     shift(x: number, y: number): this {
         this._values[CARDINAL.WEST] += x;
@@ -655,8 +654,8 @@ class Extent {
     /**
      * Constructs an extent from the specified box.
      *
-     * @param crs the coordinate reference system of the new extent.
-     * @param box the box to read values from
+     * @param crs - the coordinate reference system of the new extent.
+     * @param box - the box to read values from
      * @returns the constructed extent.
      */
     static fromBox3(crs: string, box: Box3): Extent {
@@ -671,8 +670,8 @@ class Extent {
     /**
      * Returns a [Box3](https://threejs.org/docs/?q=box3#api/en/math/Box3) that matches this extent.
      *
-     * @param minHeight The min height of the box.
-     * @param maxHeight The max height of the box.
+     * @param minHeight - The min height of the box.
+     * @param maxHeight - The max height of the box.
      * @returns The box.
      */
     toBox3(minHeight: number, maxHeight: number): Box3 {
@@ -685,9 +684,9 @@ class Extent {
     /**
      * Returns the normalized offset from bottom-left in extent of this Coordinates
      *
-     * @param coordinate the coordinate
-     * @param target optional Vector2 target.
-     * If not present a new one will be created
+     * @param coordinate - the coordinate
+     * @param target - optional `Vector2` target.
+     * If not present a new one will be created.
      * @returns normalized offset in extent
      * @example
      * extent.offsetInExtent(extent.center())
@@ -722,10 +721,10 @@ class Extent {
      * 3 -- 4
      * ```
      *
-     * @param xSubdivs The number of grid subdivisions in the x-axis.
-     * @param ySubdivs The number of grid subdivisions in the y-axis.
-     * @param target The array to fill.
-     * @param stride The number of elements per item (2 for XY, 3 for XYZ).
+     * @param xSubdivs - The number of grid subdivisions in the x-axis.
+     * @param ySubdivs - The number of grid subdivisions in the y-axis.
+     * @param target - The array to fill.
+     * @param stride - The number of elements per item (2 for XY, 3 for XYZ).
      * @returns the target.
      */
     toGrid<T extends TypedArray>(xSubdivs: number, ySubdivs: number, target: T, stride: number): T {
@@ -763,8 +762,8 @@ class Extent {
      * - If both subvisions are `1`, an array of one element is returned,
      *  containing a copy of this extent.
      *
-     * @param xSubdivs The number of subdivisions on the X/longitude axis.
-     * @param ySubdivs The number of subdivisions on the Y/latitude axis.
+     * @param xSubdivs - The number of subdivisions on the X/longitude axis.
+     * @param ySubdivs - The number of subdivisions on the Y/latitude axis.
      * @returns the resulting extents.
      * @example
      * const extent = new Extent('EPSG:3857', 0, 100, 0, 100);

@@ -30,7 +30,7 @@ interface InterpretationOptions {
  * Note: this is unrelated to the file format / encoding (like JPG and PNG). This interpretation
  * occurs after the image was decoded into a pixel buffer.
  *
- * @example
+ * ```js
  * // Use the Mapbox Terrain RGB interpretation
  * const interp = Interpretation.MapboxTerrainRGB;
  *
@@ -48,6 +48,7 @@ interface InterpretationOptions {
  * const custom = new Interpretation(Mode.Raw, {
  *     negateValues: true,
  * })
+ * ```
  */
 class Interpretation {
     private readonly _mode: Mode;
@@ -60,8 +61,8 @@ class Interpretation {
     /**
      * Creates a new interpretation.
      *
-     * @param {Mode} mode The mode.
-     * @param {InterpretationOptions} [opts] The options.
+     * @param mode - The mode.
+     * @param opts - The options.
      */
     constructor(mode: Mode, opts: InterpretationOptions = {}) {
         this._mode = mode;
@@ -164,8 +165,8 @@ class Interpretation {
      * // Pixels with color 0 will map to 130 meters, and the pixels with color
      * // 255 will map to 1500 meters, and so on.
      * const interp = Interpretation.ScaleToMinMax(130, 1500);
-     * @param min The minimum value of the dataset, that maps to 0.
-     * @param max The maximum value of the dataset, that maps to 255.
+     * @param min - The minimum value of the dataset, that maps to 0.
+     * @param max - The maximum value of the dataset, that maps to 255.
      * @returns The scaling values.
      */
     static ScaleToMinMax(min: number, max: number): Interpretation {
@@ -189,8 +190,8 @@ class Interpretation {
      * // We have a 16-bit satellite image with min = 200, and max = 4000. We wish to visualize it
      * // without saturation.
      * const interp = Interpretation.CompressTo8Bit(200, 4000);
-     * @param min The minimum value of the dataset.
-     * @param max The maximum value of the dataset.
+     * @param min - The minimum value of the dataset.
+     * @param max - The maximum value of the dataset.
      * @returns The interpretation.
      */
     static CompressTo8Bit(min: number, max: number): Interpretation {
@@ -220,8 +221,8 @@ class Interpretation {
     /**
      * Updates the provided texture if necessary to make it compatible with this interpretation.
      *
-     * @param texture The texture to update.
-     * @ignore
+     * @param texture - The texture to update.
+     * @internal
      */
     prepareTexture(texture: Texture) {
         if (this.mode === Mode.MapboxTerrainRGB) {
@@ -233,7 +234,7 @@ class Interpretation {
     }
 
     /**
-     * @ignore
+     * @internal
      */
     setUniform(uniform: {
         mode?: number,

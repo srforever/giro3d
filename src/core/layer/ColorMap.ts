@@ -60,10 +60,10 @@ class ColorMap {
     /**
      * Creates an instance of ColorMap.
      *
-     * @param colors The colors of this color map.
-     * @param min The lower bound of the color map range.
-     * @param max The upper bound of the color map range.
-     * @param mode The mode of the color map.
+     * @param colors - The colors of this color map.
+     * @param min - The lower bound of the color map range.
+     * @param max - The upper bound of the color map range.
+     * @param mode - The mode of the color map.
      */
     constructor(
         colors: Color[],

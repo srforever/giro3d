@@ -55,7 +55,7 @@ class MaskLayer<UserData = LayerUserData> extends ColorLayer<UserData> {
      * It should be added in a `Map` to be displayed in the instance.
      * See the example for more information on layer creation.
      *
-     * @param options The layer options.
+     * @param options - The layer options.
      */
     constructor(options: MaskLayerOptions) {
         super(options);

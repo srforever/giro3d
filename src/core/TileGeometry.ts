@@ -21,8 +21,8 @@ interface TileGeometryProperties {
 
 /**
  * The TileGeometry provides a new buffer geometry for each
- * {@link module:Core/TileMesh~TileMesh TileMesh} of a
- * {@link module:entities/Map~Map Map} object.
+ * {@link TileMesh} of a
+ * {@link Map} object.
  *
  * It is implemented for performance using a rolling approach.
  * The rolling approach is a special case of the sliding window algorithm with
@@ -31,11 +31,12 @@ interface TileGeometryProperties {
  * By default it produces square geometries but providing different width and height
  * allows for rectangular tiles creation.
  *
- * @example
+ * ```js
  * // Inspired from Map.requestNewTile
  * const extent = new Extent('EPSG:3857', -1000, -1000, 1000, 1000);
  * const paramsGeometry = { extent, segment: 8 };
  * const geometry = new TileGeometry(paramsGeometry);
+ * ```
  */
 class TileGeometry extends BufferGeometry {
     dimensions: Vector2;
@@ -43,7 +44,7 @@ class TileGeometry extends BufferGeometry {
     props: TileGeometryProperties;
 
     /**
-     * @param params : Parameters to construct the grid. Should contain an extent
+     * @param params - Parameters to construct the grid. Should contain an extent
      *  and a size, either a number of segment or a width and an height in pixels.
      */
     constructor(params: TileGeometryOptions) {
@@ -95,7 +96,7 @@ class TileGeometry extends BufferGeometry {
     /**
      * Construct a simple grid buffer geometry using a fast rolling approach.
      *
-     * @param props : Properties of the TileGeometry grid, as prepared by this.prepare.
+     * @param props - Properties of the TileGeometry grid, as prepared by this.prepare.
      */
     computeBuffers(props: TileGeometryProperties) {
         const width = props.width;

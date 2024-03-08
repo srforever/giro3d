@@ -1,9 +1,3 @@
-/**
- * The core classes of Giro3D.
- *
- * @module
- */
-
 import * as cache from './Cache';
 import * as layer from './layer';
 import * as geographic from './geographic';
@@ -35,6 +29,9 @@ import {
 } from './FeatureTypes';
 import type Disposable from './Disposable';
 
+/**
+ * The core classes of Giro3D.
+ */
 export {
     geographic,
     layer,
