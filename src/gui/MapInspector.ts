@@ -60,9 +60,9 @@ class MapInspector extends EntityInspector {
     /**
      * Creates an instance of MapInspector.
      *
-     * @param parentGui The parent GUI.
-     * @param instance The Giro3D instance.
-     * @param map The inspected Map.
+     * @param parentGui - The parent GUI.
+     * @param instance - The Giro3D instance.
+     * @param map - The inspected Map.
      */
     constructor(parentGui: GUI, instance: Instance, map: Map) {
         super(parentGui, instance, map, {
@@ -348,9 +348,9 @@ class MapInspector extends EntityInspector {
     }
 
     /**
-     * @param tile The tile to decorate.
-     * @param add If true, bounding box is added, otherwise it is removed.
-     * @param color The bounding box color.
+     * @param tile - The tile to decorate.
+     * @param add - If true, bounding box is added, otherwise it is removed.
+     * @param color - The bounding box color.
      */
     // eslint-disable-next-line class-methods-use-this
     addOrRemoveBoundingBox(tile: TileMesh, add: boolean, color: Color) {

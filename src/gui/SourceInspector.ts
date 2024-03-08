@@ -22,9 +22,9 @@ class SourceInspector extends Panel {
     resolutions?: number;
 
     /**
-     * @param gui The GUI.
-     * @param instance The Giro3D instance.
-     * @param source The source.
+     * @param gui - The GUI.
+     * @param instance - The Giro3D instance.
+     * @param source - The source.
      */
     constructor(gui: GUI, instance: Instance, source: object) {
         super(gui, instance, 'Source');

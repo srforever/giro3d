@@ -12,10 +12,10 @@ class DrawingInspector extends Panel {
     geometryType: string;
 
     /**
-     * @param gui The GUI.
-     * @param instance The Giro3D instance.
-     * @param drawingEntity The drawing entity.
-     * @param drawing The drawing to inspect
+     * @param gui - The GUI.
+     * @param instance - The Giro3D instance.
+     * @param drawingEntity - The drawing entity.
+     * @param drawing - The drawing to inspect
      */
     constructor(gui: GUI, instance: Instance, drawingEntity: DrawingCollection, drawing: Drawing) {
         super(gui, instance, `${drawing.type} ('${drawing.name ?? drawing.id}')`);
@@ -41,9 +41,9 @@ class DrawingCollectionInspector extends EntityInspector {
     /**
      * Creates an instance of DrawingEntity.
      *
-     * @param parentGui The parent GUI.
-     * @param instance The Giro3D instance.
-     * @param drawingEntity The inspected Features.
+     * @param parentGui - The parent GUI.
+     * @param instance - The Giro3D instance.
+     * @param drawingEntity - The inspected Features.
      */
     constructor(parentGui: GUI, instance: Instance, drawingEntity: DrawingCollection) {
         super(parentGui, instance, drawingEntity, {

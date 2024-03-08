@@ -20,9 +20,8 @@ class MemoryUsage extends ChartPanel {
     /**
      * Creates an instance of MemoryUsage.
      *
-     * @param parentGui The parent GUI.
-     * @param instance The giro3D instance.
-     * @memberof MemoryUsage
+     * @param parentGui - The parent GUI.
+     * @param instance - The giro3D instance.
      */
     constructor(parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Memory');

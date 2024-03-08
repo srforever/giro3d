@@ -8,8 +8,8 @@ class WebGLRendererInspector extends Panel {
     renderer: WebGLRenderer;
 
     /**
-     * @param gui The GUI.
-     * @param instance The Giro3D instance.
+     * @param gui - The GUI.
+     * @param instance - The Giro3D instance.
      */
     constructor(gui: GUI, instance: Instance) {
         super(gui, instance, 'WebGLRenderer');
@@ -22,8 +22,8 @@ class WebGLRendererInspector extends Panel {
     }
 
     /**
-     * @param renderer The renderer
-     * @param rendererPanel The GUI
+     * @param renderer - The renderer
+     * @param rendererPanel - The GUI
      */
     _addCapabilities(renderer: WebGLRenderer, rendererPanel: GUI) {
         const cap = renderer.capabilities;

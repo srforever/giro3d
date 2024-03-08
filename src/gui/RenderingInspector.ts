@@ -5,8 +5,8 @@ import type Instance from '../core/Instance';
 
 class RenderingInspector extends Panel {
     /**
-     * @param parentGui The parent GUI.
-     * @param instance The instance.
+     * @param parentGui - The parent GUI.
+     * @param instance - The instance.
      */
     constructor(parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Visual parameters');

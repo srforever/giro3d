@@ -20,8 +20,8 @@ class RequestQueueChart extends ChartPanel {
     /**
      * Creates an instance of RequestQueueChart.
      *
-     * @param parentGui The parent GUI.
-     * @param instance The giro3D instance.
+     * @param parentGui - The parent GUI.
+     * @param instance - The giro3D instance.
      */
     constructor(parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Request queue');

@@ -8,9 +8,9 @@ class ColorimetryPanel extends Panel {
     private readonly _options: ColorimetryOptions;
 
     /**
-     * @param options The options.
-     * @param parentGui Parent GUI
-     * @param instance The instance
+     * @param options - The options.
+     * @param parentGui - Parent GUI
+     * @param instance - The instance
      */
     constructor(options: ColorimetryOptions, parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Colorimetry');

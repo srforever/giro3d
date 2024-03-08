@@ -14,10 +14,10 @@ class ColorMapInspector extends Panel {
     colorMap: ColorMap;
 
     /**
-     * @param gui The GUI.
-     * @param instance The Giro3D instance.
-     * @param layer The color map owner.
-     * @param colorMap The color map to inspect.
+     * @param gui - The GUI.
+     * @param instance - The Giro3D instance.
+     * @param layer - The color map owner.
+     * @param colorMap - The color map to inspect.
      */
     constructor(gui: GUI, instance: Instance, layer: Layer, colorMap?: ColorMap) {
         super(gui, instance, 'Color map');

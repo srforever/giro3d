@@ -110,9 +110,9 @@ class FeatureCollectionInspector extends EntityInspector {
     /**
      * Creates an instance of FeatureCollectionInspector.
      *
-     * @param parentGui The parent GUI.
-     * @param instance The Giro3D instance.
-     * @param featureCollection The inspected Features.
+     * @param parentGui - The parent GUI.
+     * @param instance - The Giro3D instance.
+     * @param featureCollection - The inspected Features.
      */
     constructor(parentGui: GUI, instance: Instance, featureCollection: FeatureCollection) {
         super(parentGui, instance, featureCollection, {
@@ -164,9 +164,9 @@ class FeatureCollectionInspector extends EntityInspector {
     }
 
     /**
-     * @param tile The tile to decorate.
-     * @param add If true, bounding box is added, otherwise it is removed.
-     * @param color The bounding box color.
+     * @param tile - The tile to decorate.
+     * @param add - If true, bounding box is added, otherwise it is removed.
+     * @param color - The bounding box color.
      */
     // eslint-disable-next-line class-methods-use-this
     addOrRemoveBoundingBox(tile: Object3D, add: boolean, color: Color) {

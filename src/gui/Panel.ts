@@ -22,9 +22,9 @@ abstract class Panel {
     protected _controllers: Controller[];
 
     /**
-     * @param parentGui The parent GUI.
-     * @param instance The Giro3D instance.
-     * @param name The name of the panel.
+     * @param parentGui - The parent GUI.
+     * @param instance - The Giro3D instance.
+     * @param name - The name of the panel.
      */
     constructor(parentGui: GUI, instance: Instance, name: string) {
         this.gui = parentGui.addFolder(name);
@@ -44,8 +44,8 @@ abstract class Panel {
     /**
      * Adds a color controller to the panel.
      *
-     * @param obj The object.
-     * @param prop The name of the property.
+     * @param obj - The object.
+     * @param prop - The name of the property.
      * @returns The created controller.
      */
     addColorController(obj: any, prop: string) {
@@ -58,12 +58,12 @@ abstract class Panel {
      * Adds a (non-color) controller to the panel.
      * See [the lil-gui API](https://lil-gui.georgealways.com/#GUI#add) for more information.
      *
-     * @param obj The object.
-     * @param prop The name of the property.
-     * @param $1 Minimum value for number controllers,
+     * @param obj - The object.
+     * @param prop - The name of the property.
+     * @param $1 - Minimum value for number controllers,
      * or the set of selectable values for a dropdown.
-     * @param max Maximum value for number controllers.
-     * @param step Step value for number controllers.
+     * @param max - Maximum value for number controllers.
+     * @param step - Step value for number controllers.
      * @returns The created controller.
      */
     addController<T>(
@@ -102,7 +102,7 @@ abstract class Panel {
 
     /**
      * Updates the panel. You may override this function if the panel has additional work to do.
-     * However, {@link updateControllers()} should still be called to ensure they are up to date.
+     * However, {@link updateControllers} should still be called to ensure they are up to date.
      *
      */
     update() {

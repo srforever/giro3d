@@ -16,9 +16,9 @@ class PotreePointCloudInspector extends EntityInspector {
     /**
      * Creates an instance of PotreePointCloudInspector.
      *
-     * @param parentGui The parent GUI.
-     * @param instance The Giro3D instance.
-     * @param entity The inspected 3D tileset.
+     * @param parentGui - The parent GUI.
+     * @param instance - The Giro3D instance.
+     * @param entity - The inspected 3D tileset.
      */
     constructor(parentGui: GUI, instance: Instance, entity: PotreePointCloud) {
         super(parentGui, instance, entity,

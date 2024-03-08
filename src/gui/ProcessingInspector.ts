@@ -13,8 +13,8 @@ class ProcessingInspector extends Panel {
     charts: Panel[];
 
     /**
-     * @param gui The GUI.
-     * @param instance The Giro3D instance.
+     * @param gui - The GUI.
+     * @param instance - The Giro3D instance.
      */
     constructor(gui: GUI, instance: Instance) {
         super(gui, instance, 'Processing');
