@@ -51,8 +51,8 @@ class BilFormat extends ImageFormat {
      * [DataTexture](https://threejs.org/docs/?q=texture#api/en/textures/DataTexture) containing
      * the elevation data. At the moment only one band BIL is supported.
      *
-     * @param blob the data to decode
-     * @param options the decoding options
+     * @param blob - the data to decode
+     * @param options - the decoding options
      */
     // eslint-disable-next-line class-methods-use-this
     async decode(blob: Blob, options: DecodeOptions = {}) {
