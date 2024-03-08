@@ -171,7 +171,6 @@ export default {
                                 mesh.material = new MeshLambertMaterial({ color: 0xffffff });
                             }
                         } else if (Capabilities.isLogDepthBufferSupported()
-                                    // @ts-ignore definition of RawShaderMaterial lacks the property
                                     && (mesh.material as RawShaderMaterial).isRawShaderMaterial
                                     && !options.doNotPatchMaterial) {
                             shaderUtils.patchMaterialForLogDepthSupport(
