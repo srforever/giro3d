@@ -132,7 +132,7 @@ function createLabelElement(text: string, color: string, opacity: number, fontSi
  * Create a 3D axis grid. This is represented as a box volume where each side of the box is itself a
  * grid.
  *
- * @example
+ * ```js
  * // Create a 200x200 meters extent
  * const extent = new Extent('EPSG:3857', -100, +100, -100, +100);
  *
@@ -154,6 +154,7 @@ function createLabelElement(text: string, color: string, opacity: number, fontSi
  *       z: 50,
  *   },
  * });
+ * ```
  */
 class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, UserData> {
     /**
@@ -197,12 +198,12 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
     /**
      * Creates an instance of AxisGrid.
      *
-     * @param id The unique identifier of this entity.
-     * @param options The options.
-     * @param options.volume The grid volume.
-     * @param options.origin The origin of the ticks.
-     * @param options.ticks The distance between grid lines.
-     * @param options.style The styling options.
+     * @param id - The unique identifier of this entity.
+     * @param options - The options.
+     * @param options -.volume The grid volume.
+     * @param options -.origin The origin of the ticks.
+     * @param options -.ticks The distance between grid lines.
+     * @param options -.style The styling options.
      */
     constructor(id: string, options: {
         volume: Volume;
@@ -470,14 +471,14 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
         tmpVec3.set(tmpVec2.x, tmpVec2.y, 0);
 
         /**
-         * @param side1 The first shared side of this edge.
-         * @param side2 The second shared side of this edge.
-         * @param start  The position, in world space, of the start of the edge.
-         * @param end The position, in world space, of the end of the edge.
-         * @param startValue The numerical value of the starting point.
-         * @param prefix The prefix to apply to the label text.
-         * @param suffix The suffix to apply to the label text.
-         * @param tick The distance between each tick.
+         * @param side1 - The first shared side of this edge.
+         * @param side2 - The second shared side of this edge.
+         * @param start -  The position, in world space, of the start of the edge.
+         * @param end - The position, in world space, of the end of the edge.
+         * @param startValue - The numerical value of the starting point.
+         * @param prefix - The prefix to apply to the label text.
+         * @param suffix - The suffix to apply to the label text.
+         * @param tick - The distance between each tick.
          */
         const createLabelsAlongEdge = (
             side1: Side,
@@ -669,13 +670,13 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
     }
 
     /**
-     * @param name The name of the object.
-     * @param width The width of the plane.
-     * @param height The height of the plane.
-     * @param xOffset The starting offset on the X axis.
-     * @param xStep The distance between lines on the X axis.
-     * @param yOffset The starting offset on the Y axis.
-     * @param yStep The distance between lines on the Y axis.
+     * @param name - The name of the object.
+     * @param width - The width of the plane.
+     * @param height - The height of the plane.
+     * @param xOffset - The starting offset on the X axis.
+     * @param xStep - The distance between lines on the X axis.
+     * @param yOffset - The starting offset on the Y axis.
+     * @param yStep - The distance between lines on the Y axis.
      * @returns the mesh object.
      */
     private buildSide(

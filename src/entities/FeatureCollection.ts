@@ -79,7 +79,7 @@ export type OnMeshCreatedCallback = (mesh: Mesh) => void;
 export type OnTileCreatedCallback = (tile: Group) => void;
 
 /**
- * A FeatureCollection is an {@link Entity3D entity} that represent simple features as 3D meshes.
+ * A FeatureCollection is an {@link Entity3D} that represent simple features as 3D meshes.
  *
  * Arbitrary triangulated meshes (TINs) are not supported.
  *
@@ -159,56 +159,66 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
      *
      * Construct a `FeatureCollection`.
      *
-     * @param id The unique identifier of this FeatureCollection
-     * @param [options] Constructor options.
-     * @param options.source The [ol.VectorSource](https://openlayers.org/en/latest/apidoc/module-ol_source_Vector-VectorSource.html) providing features to this
-     * entity
-     * @param options.dataProjection The EPSG code for the projections of the features. If null or
-     * empty, no reprojection will be done. If a valid epsg code is given and if different from
-     * instance.referenceCrs, each feature will be reprojected before mesh conversion occurs. Please
-     * note that reprojection can be somewhat heavy on cpu ressources.
-     * @param options.extent The geographic extent of the map, mandatory.
-     * @param [options.object3d] The optional 3d object to
-     * use as the root
-     * @param [options.minLevel] The min subdivision level to start processing features.
-     * Useful for WFS or other untiled servers, to avoid to download the entire dataset when the
-     * whole extent is visible.
-     * @param [options.maxLevel] The max level to subdivide the extent and
-     * process features.
-     * @param [options.onMeshCreated] called when a mesh is created (just
-     * after conversion of the source data)
-     * @param [options.material] the
-     * [THREE.Material](https://threejs.org/docs/#api/en/materials/Material) to use for meshes
-     * @param [options.elevation] Set the elevation of the
-     * features received from the source. It can be a constant for every feature, or a callback. The
-     * callback version is particularly useful to derive the elevation from the properties of the
-     * feature.
-     * @param [options.style] an object or a callback
-     * returning such object to style the individual feature. If an object is returned, the
-     * informations it contains will be used to style every feature the same way. If a callback is
-     * provided, it
-     * will be called with the feature. This allows to individually style each feature.
-     * @param options.extrusionOffset if set, this will cause 2D features to be extruded of the
-     * corresponding amount. If a single value is given, it will be used for all the vertices of all
-     * the features. if an array is given, each extruded vertex will use the corresponding value. If
-     * a callback is given, it allows to extrude each feature individually.
-     * @param options.onTileCreated callback called just after the subdivision, with the THREE.Group
+     * @param id - The unique identifier of this FeatureCollection
+     * @param options - Constructor options.
      * representing a tile
      */
     constructor(
+        /** The unique identifier of this FeatureCollection */
         id: string,
         options: {
+            /** The OpenLayers [VectorSource](https://openlayers.org/en/latest/apidoc/module-ol_source_Vector-VectorSource.html) providing features to this entity */
             source: VectorSource;
+            /**
+             * The projection code for the projections of the features. If null or empty,
+             * no reprojection will be done. If a valid epsg code is given and if different from
+             * `instance.referenceCrs`, each feature will be reprojected before mesh
+             * conversion occurs. Note that reprojection can be somewhat heavy on CPU resources.
+             */
             dataProjection?: string;
+            /** The geographic extent of the entity. */
             extent: Extent;
+            /** The optional 3D object to use as the root */
             object3d?: Object3D;
+            /**
+             * The min subdivision level to start processing features.
+             * Useful for WFS or other untiled servers, to avoid to download the
+             * entire dataset when the whole extent is visible.
+             */
             minLevel?: number;
+            /**
+             * The max level to subdivide the extent and process features.
+             */
             maxLevel?: number;
+            /**
+             * Set the elevation of the features received from the source.
+             * It can be a constant for every feature, or a callback.
+             * The callback version is particularly useful to derive the elevation
+             * from the properties of the feature.
+             */
             elevation?: number | number[] | FeatureElevationCallback;
+            /**
+             * If set, this will cause 2D features to be extruded of the corresponding amount.
+             * If a single value is given, it will be used for all the vertices of every feature.
+             * If an array is given, each extruded vertex will use the corresponding value.
+             * If a callback is given, it allows to extrude each feature individually.
+             */
             extrusionOffset?: number | number[] | FeatureExtrusionOffsetCallback;
+            /**
+             * An style or a callback returning a style to style the individual features.
+             * If an object is used, the informations it contains will be used to style every
+             * feature the same way. If a function is provided, it will be called with the feature.
+             * This allows to individually style each feature.
+             */
             style?: FeatureStyle | FeatureStyleCallback;
+            /** The [THREE.Material](https://threejs.org/docs/#api/en/materials/Material) to use for meshes */
             material?: Material;
+            /** Called when a mesh is created (just after conversion of the source data) */
             onMeshCreated?: OnMeshCreatedCallback;
+            /**
+             * Callback called just after the subdivision, with the THREE.Group
+             * representing a tile
+             */
             onTileCreated?: OnTileCreatedCallback;
         },
     ) {

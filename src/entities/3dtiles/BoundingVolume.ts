@@ -22,9 +22,9 @@ const tmp = {
 /**
  * Returns the best fit extent from the volume of the tile.
  *
- * @param crs The CRS of the target extent.
- * @param volume The volume of the tile.
- * @param transform The world matrix of the object.
+ * @param crs - The CRS of the target extent.
+ * @param volume - The volume of the tile.
+ * @param transform - The world matrix of the object.
  * @returns The extent.
  */
 export function boundingVolumeToExtent(

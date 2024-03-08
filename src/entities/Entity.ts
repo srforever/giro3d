@@ -47,11 +47,11 @@ export interface EntityUserData extends Record<string, any> {}
  * ### The update methods
  *
  * This class exposes three methods to update the object:
- * - {@link entities.Entity#preUpdate preUpdate()}
+ * - {@link Entity.preUpdate}
  * to determine which _parts_ of the object should actually be updated.
- * - {@link entities.Entity#update update()} called for each part returned
+ * - {@link Entity.update} called for each part returned
  * by `preUpdate()`
- * - {@link entities.Entity#postUpdate postUpdate()} to finalize
+ * - {@link Entity.postUpdate} to finalize
  * the update step.
  *
  * ### A note on "parts"
@@ -61,10 +61,13 @@ export interface EntityUserData extends Record<string, any> {}
  * On the other hand, if the entity is not made of distinct objects, the "part to update" may be the
  * entity itself, or a dummy object.
  *
- * @example
- *     const instance = new Instance(...);
- *     const entity = new Entity('exampleEntity');
- *     instance.add(entity);
+ * ```js
+ * const instance = new Instance(...);
+ * const entity = new Entity('exampleEntity');
+ * instance.add(entity);
+ * ```
+ * @typeParam TEventMap - The event map of the entity.
+ * @typeParam TUserData - The type of the `userData` property.
  */
 class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = EntityUserData>
     extends EventDispatcher<TEventMap & EntityEventMap>
@@ -91,7 +94,7 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
     /**
      * Creates an entity with the specified unique identifier.
      *
-     * @param id the unique identifier of this entity.
+     * @param id - the unique identifier of this entity.
      */
     constructor(id: string) {
         super();
@@ -200,7 +203,7 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      * not ignore this value, it should do a boolean OR, e.g.:
      * `return super.shouldFullUpdate(updateSource) || this.contains(updateSource);`
      *
-     * @param updateSource Source of change
+     * @param updateSource - Source of change
      * @returns `true` if requires a full update of this object
      */
     shouldFullUpdate(updateSource: unknown): boolean {
@@ -216,7 +219,7 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      * not ignore this value, it should do a boolean OR, e.g.:
      * `return super.shouldUpdate(updateSource) || this.contains(updateSource);`
      *
-     * @param updateSource Source of change
+     * @param updateSource - Source of change
      * @returns `true` if requires an update of `updateSource`
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -231,7 +234,7 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      * Inherited classes should override {@link shouldFullUpdate} and {@link shouldUpdate}
      * if they need to change this behavior.
      *
-     * @param updateSources Sources that triggered an update
+     * @param updateSources - Sources that triggered an update
      * @returns Set of objects to update
      */
     filterChangeSources(updateSources: Set<unknown>): Set<unknown> {
@@ -257,8 +260,8 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      *
      * Note: if this functions returns nothing, `update()` will not be called.
      *
-     * @param context the update context.
-     * @param changeSources the objects that triggered an update step.
+     * @param context - the update context.
+     * @param changeSources - the objects that triggered an update step.
      * This is useful to filter out unnecessary updates if no sources are
      * relevant to this entity. For example, if one of the sources is a
      * camera that moved during the previous frame, any entity that depends
@@ -274,7 +277,7 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      * layer must provide a getObjectToUpdateForAttachedLayers function that returns the correct
      * object to update for attached layer from the objects returned by preUpdate.
      *
-     * @param obj the Mesh or the object containing a Mesh. These are the objects returned
+     * @param obj - the Mesh or the object containing a Mesh. These are the objects returned
      * by preUpdate or update.
      * @returns an object passed to the update function of attached layers.
      */
@@ -286,20 +289,20 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      *
      * Note: this method will be called for each element returned by `preUpdate()`.
      *
-     * @param context the update context.
+     * @param context - the update context.
      * This is the same object that the entity whose `update()` is being called.
-     * @param element the element to update.
-     * This is one of the elements returned by {@link preUpdate()}.
+     * @param element - the element to update.
+     * This is one of the elements returned by {@link preUpdate}.
      * @returns New elements to update
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     update(context: Context, element: unknown): unknown[] | undefined { return undefined; }
 
     /**
-     * Method called after {@link entities.Entity#update update()}.
+     * Method called after {@link Entity.update}.
      *
-     * @param context the update context.
-     * @param changeSources the objects that triggered an update step.
+     * @param context - the update context.
+     * @param changeSources - the objects that triggered an update step.
      * This is useful to filter out unnecessary updates if no sources are
      * relevant to this entity. For example, if one of the sources is a
      * camera that moved during the previous frame, any entity that depends
