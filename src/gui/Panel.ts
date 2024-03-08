@@ -1,5 +1,4 @@
 import type { Controller } from 'lil-gui';
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import type { Color } from 'three';
 import type Instance from '../core/Instance';
@@ -98,7 +97,7 @@ abstract class Panel {
      *
      */
     // eslint-disable-next-line class-methods-use-this
-    updateValues() { }
+    updateValues() { /** empty */ }
 
     /**
      * Updates the panel. You may override this function if the panel has additional work to do.

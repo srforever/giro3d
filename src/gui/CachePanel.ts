@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import { GlobalCache } from '../core/Cache';
 import Panel from './Panel';

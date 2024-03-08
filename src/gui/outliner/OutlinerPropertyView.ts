@@ -1,5 +1,4 @@
 import { Object3D } from 'three';
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import Panel from '../Panel';
 import type Instance from '../../core/Instance';

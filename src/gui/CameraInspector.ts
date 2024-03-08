@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import type { PerspectiveCamera, Vector3 } from 'three';
 import Panel from './Panel';
