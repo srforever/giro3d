@@ -33,6 +33,10 @@ export interface WmsSourceOptions extends ImageSourceOptions {
      * The optional extent of the source. If not provided, it will be computed from the source.
      */
     extent?: Extent;
+    /**
+     * Additional params to pass to the WMS service.
+     */
+    params?: Record<string, unknown>;
 }
 
 /**
@@ -61,6 +65,7 @@ export default class WmsSource extends TiledImageSource {
                 params: {
                     LAYERS: Array.isArray(options.layer) ? options.layer : [options.layer],
                     FORMAT: options.imageFormat,
+                    ...options.params,
                 },
             }),
         });
