@@ -12,7 +12,7 @@ import type Extent from './geographic/Extent.js';
 import type Disposable from './Disposable';
 
 export interface PointCloudEventMap extends Object3DEventMap {
-    'dispose': { };
+    'dispose': { /** empty */ };
 }
 
 /** Options for constructing {@link PointCloud} */
@@ -68,7 +68,7 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap>, 
             return;
         }
         this.disposed = true;
-        // @ts-ignore - Points declaration seems broken
+        // @ts-expect-error Points does not transmit proper event map to parent
         this.dispatchEvent({ type: 'dispose' });
         this.geometry.dispose();
         this.material.dispose();

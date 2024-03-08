@@ -9,7 +9,7 @@ export default interface Disposable {
 }
 
 export function isDisposable(object: unknown): object is Disposable {
-    if (typeof (object as any).dispose === 'function') {
+    if (typeof (object as Disposable).dispose === 'function') {
         return true;
     }
 

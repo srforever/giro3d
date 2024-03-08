@@ -43,7 +43,7 @@ export interface MaskLayerOptions extends LayerOptions {
  * a map. The source can be any source supported by the color layers.
  *
  */
-class MaskLayer<UserData = LayerUserData> extends ColorLayer<UserData> {
+class MaskLayer<UserData extends LayerUserData = LayerUserData> extends ColorLayer<UserData> {
     private _maskMode: MaskMode;
     /**
      * Read-only flag to check if a given object is of type MaskLayer.

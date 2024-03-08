@@ -52,14 +52,13 @@ function updateElements(context: Context, entity: Entity, elements?: unknown[]) 
 
         if (sub) {
             if (sub.element) {
-                // @ts-ignore
-                if (__DEBUG__) {
-                    if (!(sub.element.isObject3D)) {
-                        throw new Error(`
-                            Invalid object for attached layer to update.
-                            Must be a THREE.Object and have a THREE.Material`);
-                    }
-                }
+                // if (__DEBUG__) {
+                //     if (!(sub.element.isObject3D)) {
+                //         throw new Error(`
+                //             Invalid object for attached layer to update.
+                //             Must be a THREE.Object and have a THREE.Material`);
+                //     }
+                // }
 
                 // update attached layers
                 if (hasLayers(entity)) {

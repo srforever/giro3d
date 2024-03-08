@@ -12,7 +12,7 @@ class Task {
     readonly id: string;
     private readonly _priority: number;
     private readonly _signal: AbortSignal;
-    private readonly _resolve: Function;
+    private readonly _resolve: (arg: unknown) => void;
     private readonly _request: () => Promise<unknown>;
 
     readonly reject: (reason?: Error | string) => void;
@@ -23,8 +23,8 @@ class Task {
         signal: AbortSignal,
         priority: number,
         request: () => Promise<unknown>,
-        resolve: Function,
-        reject: (reason?: any) => void,
+        resolve: (arg: unknown) => void,
+        reject: (reason?: unknown) => void,
         shouldExecute: () => boolean,
     ) {
         this.id = id;
@@ -75,11 +75,11 @@ export interface RequestQueueEvents {
     /**
      * Raised when a task has been executed.
      */
-    'task-executed': {};
+    'task-executed': { /** empty */ };
     /**
      * Raised when a task has been cancelled.
      */
-    'task-cancelled': {};
+    'task-cancelled': { /** empty */ };
 }
 
 /**

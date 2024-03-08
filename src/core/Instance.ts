@@ -50,11 +50,11 @@ export interface InstanceEvents {
     /**
      * Fires when an entity is added to the instance.
      */
-    'entity-added': {},
+    'entity-added': { /** empty */ },
     /**
      * Fires when an entity is removed from the instance.
      */
-    'entity-removed': {},
+    'entity-removed': { /** empty */ },
     /**
      * Fires at the start of the update
      */
@@ -154,8 +154,8 @@ export interface CustomCameraControls {
 
 export interface ThreeControls extends CustomCameraControls {
     update: () => void,
-    addEventListener: (event: string, callback: any) => void,
-    removeEventListener: (event: string, callback: any) => void,
+    addEventListener: (event: string, callback: unknown) => void,
+    removeEventListener: (event: string, callback: unknown) => void,
 }
 
 interface ControlFunctions {
@@ -199,7 +199,6 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private readonly _entities: Set<Entity>;
     private readonly _resizeObserver?: ResizeObserver;
     private _resizeTimeout?: string | number | NodeJS.Timeout;
-    public readonly isDebugMode: boolean;
     private _controls?: CustomCameraControls;
     private _controlFunctions?: ControlFunctions;
     private _isDisposing: boolean;
@@ -284,13 +283,6 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
                 this._updateRendererSize(this.viewport);
             });
             this._resizeObserver.observe(viewerDiv);
-        }
-
-        // @ts-ignore
-        if (__DEBUG__) {
-            this.isDebugMode = true;
-        } else {
-            this.isDebugMode = false;
         }
 
         this._controls = null;
@@ -456,7 +448,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         if (!(object as Object3D).isObject3D && !(object as Entity).isEntity) {
             throw new Error('object is not an instance of THREE.Object3D or Giro3D.Entity');
         }
-        // @ts-ignore
+        // @ts-expect-error _instance does not exist on objects and entities // FIXME
         object._instance = this;
 
         if ((object as Object3D).isObject3D) {
@@ -765,7 +757,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
                 ? this.objectIdToObject(source)
                 : source;
 
-            if (!(object as any).visible) {
+            if (!(object as Object3D | Entity3D).visible) {
                 continue;
             }
 

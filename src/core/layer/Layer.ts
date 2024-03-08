@@ -11,6 +11,8 @@ import {
     WebGLRenderTarget,
     type PixelFormat,
     type TextureDataType,
+    type Object3D,
+    type Object3DEventMap,
 } from 'three';
 
 import type ColorMap from './ColorMap';
@@ -24,8 +26,6 @@ import ImageSource, { type ImageResult } from '../../sources/ImageSource';
 import type RequestQueue from '../RequestQueue';
 import { DefaultQueue } from '../RequestQueue';
 import OperationCounter from '../OperationCounter';
-import type TileMesh from '../TileMesh';
-import type PointCloud from '../PointCloud.js';
 import type Context from '../Context';
 import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
 import type PointsMaterial from '../../renderer/PointsMaterial';
@@ -40,7 +40,16 @@ export interface TextureAndPitch {
 const POOL_SIZE = 16;
 const tmpDims = new Vector2();
 
-export type Node = TileMesh | PointCloud;
+interface NodeEventMap extends Object3DEventMap {
+    'disposed': { /** empty */ };
+}
+
+export interface Node extends Object3D<NodeEventMap> {
+    disposed: boolean;
+    material: Material | Material[];
+    textureSize: Vector2;
+    getExtent(): Extent;
+}
 
 export type NodeMaterial = LayeredMaterial | PointsMaterial;
 
@@ -160,7 +169,7 @@ export interface LayerOptions {
     resolutionFactor?: number;
 }
 
-export interface LayerUserData extends Record<string, any> {}
+export type LayerUserData = Record<string, unknown>;
 
 /**
  * Base class of layers. Layers are components of maps or any compatible entity.
@@ -252,7 +261,7 @@ abstract class Layer<
     readonly source: ImageSource;
     protected _composer: LayerComposer;
     private readonly _targets: Map<number, Target>;
-    private readonly _filter: Function;
+    private readonly _filter: (id: string) => boolean;
     protected readonly _queue: RequestQueue;
     private _shouldNotify: boolean;
     disposed: boolean;
@@ -277,7 +286,7 @@ abstract class Layer<
     /**
      * Disables automatic updates of this layer. Useful for debugging purposes.
      */
-    frozen: boolean = false;
+    frozen = false;
 
     get ready() {
         return this._ready;
@@ -930,9 +939,6 @@ abstract class Layer<
 
             // Since the node does not own the texture for this layer, we need to be
             // notified whenever it is disposed so we can in turn dispose the texture.
-            // FIXME the Node type is currently still in JS, so does not implement typed events.
-            // When the underlying types are migrated to TS, we can remove the ts-ignore.
-            // @ts-ignore 2349
             node.addEventListener('dispose', () => this.unregisterNode(node));
         } else {
             target = this._targets.get(node.id);
