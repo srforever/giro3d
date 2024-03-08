@@ -61,12 +61,10 @@ function parseFeatureBinary(array: ArrayBuffer, byteOffset: number, FTJSONLength
 }
 
 export default {
-    /** @module PntsParser */
-
     /**
      * Parse pnts buffer and extract Points and batch table
      *
-     * @param buffer the pnts buffer.
+     * @param buffer - the pnts buffer.
      * @returns a promise that resolves with an object containig a Points (point)
      * and a batch table (batchTable).
      */

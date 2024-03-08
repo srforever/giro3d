@@ -56,7 +56,7 @@ export interface B3dmParserOptions {
     /**
      * embedded glTF model up axis.
      *
-     * @default Y
+     * @defaultValue Y
      */
     gltfUpAxis?: string;
     /** the base url of the b3dm file (used to fetch textures for the embedded glTF model). */
@@ -64,33 +64,31 @@ export interface B3dmParserOptions {
     /**
      * disable patching material with logarithmic depth buffer support.
      *
-     * @default false
+     * @defaultValue false
      */
     doNotPatchMaterial?: boolean;
     /**
      * the b3dm opacity.
      *
-     * @default 1.0
+     * @defaultValue 1.0
      */
     opacity?: number;
     /**
      * override b3dm's embedded glTF materials.
      * If overrideMaterials is a three.js material, it will be the material used to override.
      *
-     * @default false
+     * @defaultValue false
      */
     overrideMaterials?: boolean | Material;
 }
 
 export default {
-    /** @module B3dmParser */
-
     /**
      * Parse b3dm buffer and extract Scene and batch table
      *
-     * @param buffer the b3dm buffer.
-     * @param options additional properties.
-     * @returns {Promise} - a promise that resolves with an object containig
+     * @param buffer - the b3dm buffer.
+     * @param options - additional properties.
+     * @returns a promise that resolves with an object containig
      * a Scene (gltf) and a batch table (batchTable).
      */
     parse(buffer: ArrayBuffer, options: B3dmParserOptions) {
