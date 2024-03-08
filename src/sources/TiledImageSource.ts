@@ -9,6 +9,7 @@ import Fetcher from '../utils/Fetcher';
 import TextureGenerator from '../utils/TextureGenerator';
 import ImageSource, { type GetImageOptions, ImageResult, type ImageSourceOptions } from './ImageSource';
 import type ImageFormat from '../formats/ImageFormat';
+import type { TileCoord } from 'ol/tilecoord';
 
 const MIN_LEVEL_THRESHOLD = 2;
 
@@ -76,7 +77,7 @@ export default class TiledImageSource extends ImageSource {
     readonly olprojection: Projection;
     readonly noDataValue: number;
     private readonly _tileGrid: TileGrid;
-    private readonly _getTileUrl: any;
+    private readonly _getTileUrl: (coord: TileCoord, _: number, proj: Projection) => string;
     private readonly _sourceExtent: Extent;
 
     /**

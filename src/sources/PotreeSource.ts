@@ -15,7 +15,7 @@ class PotreeSource {
      * @param filename - The filename of the dataset.
      * @param networkOptions - The network options.
      */
-    constructor(url: string, filename: string = 'cloud.js', networkOptions: object = {}) {
+    constructor(url: string, filename = 'cloud.js', networkOptions: object = {}) {
         if (!url) {
             throw new Error('missing url parameter');
         }
