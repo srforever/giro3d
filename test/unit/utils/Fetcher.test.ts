@@ -4,7 +4,7 @@ import TextureGenerator from '../../../src/utils/TextureGenerator';
 
 describe('Fetcher', () => {
     beforeAll(() => {
-        // @ts-ignore
+        // @ts-expect-error property does not exist
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         window.Request = function Request(input: RequestInfo | URL, init?: RequestInit) {
             this.url = input;
@@ -13,7 +13,7 @@ describe('Fetcher', () => {
     });
     afterEach(() => {
         delete global.fetch;
-        // @ts-ignore
+        // @ts-expect-error property does not exist
         Fetcher._eventTarget._listeners = {};
     });
 

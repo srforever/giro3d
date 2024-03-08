@@ -26,8 +26,7 @@ describe('FeatureCollection', () => {
         });
 
         it('should throw if the source is not present', () => {
-            // ignoring next line because it's a runtime check
-            // @ts-ignore
+            // @ts-expect-error source is undefined
             expect(() => new FeatureCollection('foo', { extent })).toThrow('options.source is mandatory.');
             expect(() => new FeatureCollection('foo', { extent, source: null })).toThrow('options.source is mandatory.');
         });

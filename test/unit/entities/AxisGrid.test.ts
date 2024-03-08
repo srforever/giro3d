@@ -15,7 +15,7 @@ const defaultVolume: Volume = {
 describe('AxisGrid', () => {
     let context: Context;
     let camera : Camera;
-    let threeCamera: THREE.Camera;
+    let threeCamera: THREE.PerspectiveCamera;
 
     beforeEach(() => {
         threeCamera = new THREE.PerspectiveCamera(45);
@@ -75,17 +75,17 @@ describe('AxisGrid', () => {
             grid.preUpdate(context);
 
             const sides = [
-                // @ts-ignore
+                // @ts-expect-error private properties
                 grid._front,
-                // @ts-ignore
+                // @ts-expect-error private properties
                 grid._back,
-                // @ts-ignore
+                // @ts-expect-error private properties
                 grid._left,
-                // @ts-ignore
+                // @ts-expect-error private properties
                 grid._right,
-                // @ts-ignore
+                // @ts-expect-error private properties
                 grid._floor,
-                // @ts-ignore
+                // @ts-expect-error private properties
                 grid._ceiling,
             ];
 

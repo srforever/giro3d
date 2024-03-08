@@ -13,17 +13,13 @@ import { setupGlobalMocks } from '../../mocks.js';
 // @ts-expect-error missing implementations of abstract superclass
 class TestLayer<T, U> extends Layer<T, U> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
-    registerNode(_node: Node, _extent: Extent): void {
-    }
+    registerNode(_node: Node, _extent: Extent): void { /** empty */}
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
-    protected applyTextureToNode(_texture: TextureAndPitch, _node: Node, _isLastRender: boolean)
-        : void {
-    }
+    protected applyTextureToNode(_texture: TextureAndPitch, _node: Node, _isLastRender: boolean): void { /** empty */}
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
-    protected applyEmptyTextureToNode(_node: Node): void {
-    }
+    protected applyEmptyTextureToNode(_node: Node): void { /** empty */ }
 
     getQueue(): RequestQueue {
         return this._queue;

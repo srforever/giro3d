@@ -29,7 +29,7 @@ describe('Entity3D', () => {
         it('should throw on undefined id and object3d', () => {
             assert.throws(() => new Entity3D(undefined, new Object3D()));
             assert.throws(() => new Entity3D('foo', undefined));
-            // @ts-ignore
+            // @ts-expect-error argument is not an Object3D
             assert.throws(() => new Entity3D('foo', { isObject3D: false }));
         });
 
