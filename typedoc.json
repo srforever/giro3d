@@ -9,6 +9,7 @@
     "basePath": "src",
     "customCss": "doc/theme.css",
     "titleLink": "/",
+    "excludeInternal": true,
     "navigationLinks": {
         "Home": "/",
         "Getting started": "/tutorials/getting-started.html",

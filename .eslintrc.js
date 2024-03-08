@@ -1,12 +1,11 @@
 module.exports = {
     root: true,
-    plugins: ['jsdoc', 'jest', 'compat'],
+    plugins: ['jest', 'compat', 'eslint-plugin-tsdoc'],
     extends: [
         'plugin:compat/recommended',
         'eslint-config-airbnb-base',
         'eslint-config-airbnb-base/rules/strict',
         'airbnb-typescript/base',
-        'plugin:jsdoc/recommended',
     ],
     parserOptions: {
         project: './tsconfig.eslint.json',
@@ -20,9 +19,6 @@ module.exports = {
         'import/ignore': [
             '\\.(coffee|scss|css|less|hbs|svg|json)$',
         ],
-        jsdoc: {
-            mode: 'typescript',
-        },
     },
     env: {
         browser: true,
@@ -39,12 +35,7 @@ module.exports = {
         'jest/no-identical-title': 'error',
         'jest/prefer-to-have-length': 'warn',
         'jest/valid-expect': 'error',
-        'jsdoc/tag-lines': ['error', 'any', { 'startLines': 1 }],
-        'jsdoc/require-jsdoc': 'off',
-        'jsdoc/require-returns': 'off',
-        'jsdoc/check-tag-names': [
-            'error', { definedTags: ['api'] },
-        ],
+        'tsdoc/syntax': 'warn',
         'no-console': 'off', // let's log cleverly!
         eqeqeq: ['error', 'smart'],
         'no-plusplus': 'off',
@@ -146,6 +137,7 @@ module.exports = {
             // warnings/errors.
             files: ['**/*.js'],
             rules: {
+                'tsdoc/syntax': 'off',
                 'import/no-named-as-default': 'off',
                 '@typescript-eslint/naming-convention': 'off',
                 '@typescript-eslint/no-use-before-define': 'off',
@@ -158,10 +150,6 @@ module.exports = {
             // sense, or because the Typescript compiler is a better tool to enforce them.
             files: ['**/*.ts'],
             rules: {
-                // We don't need jsdoc param types because we use Typescript type annotations
-                // and Typedoc supports them out of the box.
-                'jsdoc/require-param-type': 'off',
-                'jsdoc/require-returns-type': 'off',
                 '@typescript-eslint/consistent-type-imports': 'error',
             },
         },
