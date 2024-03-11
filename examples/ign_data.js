@@ -39,7 +39,10 @@ const extent = new Extent('EPSG:2154', -111629.52, 1275028.84, 5976033.79, 72301
 const map = new Giro3dMap('planar', {
     extent,
     backgroundColor: 'gray',
-    hillshading: false,
+    hillshading: {
+        enabled: true,
+        elevationLayersOnly: true,
+    },
     segments: 64,
     discardNoData: true,
     doubleSided: false,
@@ -60,6 +63,7 @@ WmtsSource
         map.addLayer(new ElevationLayer({
             name: 'wmts_elevation',
             extent: map.extent,
+            minmax: { min: 0, max: 5000 },
             noDataOptions: {
                 replaceNoData: false,
             },
