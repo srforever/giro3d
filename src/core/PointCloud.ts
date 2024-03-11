@@ -59,6 +59,11 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap>, 
         this._layer = value;
     }
 
+    // eslint-disable-next-line class-methods-use-this
+    canProcessColorLayer(): boolean {
+        return true;
+    }
+
     getExtent() {
         return this.extent;
     }

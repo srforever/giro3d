@@ -48,6 +48,7 @@ export interface Node extends Object3D<NodeEventMap> {
     disposed: boolean;
     material: Material | Material[];
     textureSize: Vector2;
+    canProcessColorLayer(): boolean;
     getExtent(): Extent;
 }
 
@@ -60,7 +61,7 @@ enum TargetState {
     Disposed = 3,
 }
 
-class Target {
+export class Target {
     node: Node;
     pitch: Vector4;
     extent: Extent;
@@ -836,13 +837,17 @@ abstract class Layer<
         // Fetch adequate images from the source...
         const isContained = this.contains(extent);
         if (isContained) {
-            target.state = TargetState.Processing;
-
             if (!target.renderTarget) {
                 target.renderTarget = this.acquireRenderTarget(width, height);
 
                 this.applyDefaultTexture(target);
             }
+
+            if (!this.canFetchImages(target)) {
+                return;
+            }
+
+            target.state = TargetState.Processing;
 
             this.fetchImages({
                 extent, width, height, target,
@@ -958,6 +963,8 @@ abstract class Layer<
         // Repaint the target if necessary.
         this.processTarget(target);
     }
+
+    protected abstract canFetchImages(target: Target): boolean;
 
     /**
      * @param extent - The extent to test.
