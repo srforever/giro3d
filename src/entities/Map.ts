@@ -877,12 +877,17 @@ class Map<UserData extends EntityUserData = EntityUserData>
     postUpdate() {
         this._layers.forEach(l => l.postUpdate());
 
-        this.traverseTiles(tile => {
-            if (tile.material.visible) {
-                const neighbours = this.tileIndex.getNeighbours(tile) as TileMesh[];
-                tile.processNeighbours(neighbours);
-            }
-        });
+        const computeNeighbours = this.materialOptions.terrain.stitching
+            && this.materialOptions.terrain.enabled;
+
+        if (computeNeighbours) {
+            this.traverseTiles(tile => {
+                if (tile.material.visible) {
+                    const neighbours = this.tileIndex.getNeighbours(tile) as TileMesh[];
+                    tile.processNeighbours(neighbours);
+                }
+            });
+        }
     }
 
     private registerColorLayer(layer: ColorLayer) {
