@@ -465,7 +465,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 
     _updateGeometries() {
-        this._forEachTile(tile => { tile.segments = this.segments; });
+        this.traverseTiles(tile => { tile.segments = this.segments; });
     }
 
     get subdivisions(): { x: number, y: number } {
@@ -792,7 +792,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             this._layerIndices.set(element.id, i);
         }
 
-        this._forEachTile(tile => tile.reorderLayers());
+        this.traverseTiles(tile => tile.reorderLayers());
 
         this.dispatchEvent({ type: 'layer-order-changed' });
 
@@ -877,7 +877,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     postUpdate() {
         this._layers.forEach(l => l.postUpdate());
 
-        this._forEachTile(tile => {
+        this.traverseTiles(tile => {
             if (tile.material.visible) {
                 const neighbours = this.tileIndex.getNeighbours(tile) as TileMesh[];
                 tile.processNeighbours(neighbours);
@@ -909,7 +909,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
     private updateGlobalMinMax() {
         const minmax = this.getElevationMinMax();
-        this._forEachTile(tile => {
+        this.traverseTiles(tile => {
             tile.setBBoxZ(minmax.min, minmax.max);
         });
     }
@@ -917,7 +917,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     private registerColorMap(colorMap: ColorMap) {
         if (!this.materialOptions.colorMapAtlas) {
             this.materialOptions.colorMapAtlas = new ColorMapAtlas(this._instance.renderer);
-            this._forEachTile(t => {
+            this.traverseTiles(t => {
                 t.material.setColorMapAtlas(this.materialOptions.colorMapAtlas);
             });
         }
@@ -992,7 +992,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             if (layer.colorMap) {
                 this.materialOptions.colorMapAtlas.remove(layer.colorMap);
             }
-            this._forEachTile(tile => {
+            this.traverseTiles(tile => {
                 layer.unregisterNode(tile);
             });
             layer.postUpdate();
@@ -1070,7 +1070,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         this.clearGeometryPool();
 
         // Dispose all tiles so that every layer will unload data relevant to those tiles.
-        this._forEachTile(t => t.dispose());
+        this.traverseTiles(t => t.dispose());
 
         if (options.disposeLayers) {
             this.getLayers().forEach(layer => layer.dispose());
@@ -1113,15 +1113,19 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 
     /**
-     * Applies the function to all tiles of this map.
+     * Traverses all tiles in the hierarchy of this entity.
      *
-     * @param fn - The function to apply to each tile.
+     * @param callback - The callback.
+     * @param root - The raversal root. If undefined, the traversal starts at the root
+     * object of this entity.
      */
-    _forEachTile(fn: (tile: TileMesh) => void) {
-        for (const r of this.level0Nodes) {
-            r.traverse(obj => {
-                if ((obj as TileMesh).isTileMesh) {
-                    fn(obj as TileMesh);
+    traverseTiles(callback: (arg0: TileMesh) => void, root: Object3D = undefined) {
+        const origin = root ?? this.object3d;
+
+        if (origin) {
+            origin.traverse(o => {
+                if (isTileMesh(o)) {
+                    callback(o);
                 }
             });
         }

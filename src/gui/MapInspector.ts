@@ -370,8 +370,8 @@ class MapInspector extends EntityInspector {
         this.layers.forEach(l => l.updateValues());
 
         this.activeTiles = 0;
-        this.map.traverseMeshes((m: TileMesh) => {
-            if (m.material.visible) {
+        this.map.traverseTiles(t => {
+            if (t.material.visible) {
                 this.activeTiles++;
             }
         });
@@ -420,8 +420,8 @@ class MapInspector extends EntityInspector {
 
     toggleWireframe(value: boolean) {
         this.map.wireframe = value;
-        this.map.traverseMaterials(material => {
-            (material as any).wireframe = value;
+        this.map.traverseTiles(tile => {
+            tile.material.wireframe = value;
         });
         this.notify(this.map);
     }

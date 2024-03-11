@@ -477,6 +477,7 @@ describe('Map', () => {
             tile.reorderLayers = jest.fn();
             tile.layer = map;
 
+            map.object3d.add(tile);
             map.level0Nodes.push(tile);
 
             const a = { id: 'a' };
@@ -552,6 +553,7 @@ describe('Map', () => {
             tile.reorderLayers = jest.fn();
             tile.layer = map;
 
+            map.object3d.add(tile);
             map.level0Nodes.push(tile);
 
             const a = mkColorLayer(2);
@@ -583,6 +585,7 @@ describe('Map', () => {
             tile.reorderLayers = jest.fn();
             tile.layer = map;
 
+            map.object3d.add(tile);
             map.level0Nodes.push(tile);
 
             const a = { id: 'a' };
@@ -642,6 +645,7 @@ describe('Map', () => {
             tile.reorderLayers = jest.fn();
             tile.layer = map;
 
+            map.object3d.add(tile);
             map.level0Nodes.push(tile);
 
             const a = { id: 'a' };
@@ -911,6 +915,8 @@ describe('Map', () => {
             tile1.dispose = jest.fn();
             tile2.dispose = jest.fn();
 
+            map.object3d.add(tile1);
+            map.object3d.add(tile2);
             map.level0Nodes.push(tile1);
             map.level0Nodes.push(tile2);
 
