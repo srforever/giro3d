@@ -13,6 +13,7 @@ class InstanceInspector extends Panel {
     webGlRendererPanel: WebGLRendererInspector;
     enginePanel: RenderingInspector;
     clearColor: Color;
+    clearAlpha: number;
 
     /**
      * @param gui The GUI.
@@ -22,13 +23,24 @@ class InstanceInspector extends Panel {
         super(gui, instance, 'Instance');
 
         this.instanceCrs = this.instance.referenceCrs;
+        this.clearAlpha = this.instance.renderer.getClearAlpha();
         this.addController<string>(this, 'instanceCrs').name('CRS');
 
         this.clearColor = this.instance.renderer.getClearColor(new Color()).convertLinearToSRGB();
         this.addColorController(this, 'clearColor')
             .name('Clear color')
             .onChange(() => {
-                this.instance.renderer.setClearColor(this.clearColor.clone().convertSRGBToLinear());
+                this.instance.renderer.setClearColor(
+                    this.clearColor.clone().convertSRGBToLinear(),
+                    this.clearAlpha,
+                );
+                this.notify();
+            });
+        this.addController<number>(this, 'clearAlpha')
+            .name('Clear alpha')
+            .min(0).max(1)
+            .onChange(() => {
+                this.instance.renderer.setClearAlpha(this.clearAlpha);
                 this.notify();
             });
 
