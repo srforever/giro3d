@@ -33,6 +33,7 @@ import pickPointsAt, { type PointsPickResult } from '../core/picking/PickPointsA
 import type { ColorLayer, Layer, LayerEvents } from '../core/layer';
 import type HasLayers from '../core/layer/HasLayers';
 import { type EntityUserData } from './Entity';
+import { DefaultPersistentCache } from '../core/PersistentCache';
 
 /** Options to create a Tiles3D object. */
 export interface Tiles3DOptions<TMaterial extends Material> {
@@ -230,11 +231,29 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
         super.updateOpacity();
     }
 
+    private async getTileset(url: string): Promise<$3dTilesTileset> {
+        const cached = GlobalCache.get(url);
+        if (cached) {
+            return cached as $3dTilesTileset;
+        }
+        const persistent = await DefaultPersistentCache.get<$3dTilesTileset>(url);
+        if (persistent) {
+            return persistent;
+        }
+
+        const tileset = await Fetcher.json(this._url, this._networkOptions) as $3dTilesTileset;
+        if (tileset) {
+            GlobalCache.set(url, tileset);
+            DefaultPersistentCache.set(url, tileset);
+        }
+        return tileset;
+    }
+
     async preprocess(): Promise<void> {
         this._imageSize = new Vector2(128, 128);
 
         // Download the root tileset to complete the preparation.
-        const tileset = await Fetcher.json(this._url, this._networkOptions) as $3dTilesTileset;
+        const tileset = await this.getTileset(this._url);
         if (!tileset.root.refine) {
             tileset.root.refine = tileset.refine;
         }
@@ -668,6 +687,24 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
         }
     }
 
+    private async getBuffer(url: string): Promise<ArrayBuffer> {
+        const cached = GlobalCache.get(url);
+        if (cached) {
+            return cached as ArrayBuffer;
+        }
+        const persistent = await DefaultPersistentCache.get<ArrayBuffer>(url);
+        if (persistent) {
+            return persistent;
+        }
+
+        const result = await Fetcher.arrayBuffer(url, this._networkOptions);
+
+        GlobalCache.set(url, result);
+        DefaultPersistentCache.set(url, result);
+
+        return result;
+    }
+
     async executeCommand(
         metadata: ProcessedTile,
         requester?: Tile,
@@ -692,9 +729,7 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
         if (path) {
             // Check if we have relative or absolute url (with tileset's lopocs for example)
             const url = path.startsWith('http') ? path : metadata.baseURL + path;
-            const dl = (GlobalCache.get(url)
-                    || GlobalCache.set(url, Fetcher.arrayBuffer(url, this._networkOptions))
-            ) as Promise<ArrayBuffer>;
+            const dl = this.getBuffer(url);
 
             const result = await dl;
             if (result !== undefined) {

@@ -2,6 +2,8 @@ import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import TileWMS from 'ol/source/TileWMS.js';
 
+import { DefaultPersistentCache } from '@giro3d/giro3d/core/PersistentCache.js';
+
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
@@ -79,6 +81,7 @@ function initializeCamera() {
     placeCamera(position, lookAt);
 
     const colorize = new WmsSource({
+        persistentCache: DefaultPersistentCache,
         url: 'https://data.geopf.fr/wms-r',
         projection: 'EPSG:3946',
         layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',

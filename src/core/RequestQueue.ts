@@ -210,7 +210,7 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> implements Progre
 /**
  * A global singleton queue.
  */
-const DefaultQueue: RequestQueue = new RequestQueue();
+const DefaultQueue: RequestQueue = new RequestQueue({ maxConcurrentRequests: 100 });
 
 export { DefaultQueue };
 

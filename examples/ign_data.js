@@ -16,6 +16,7 @@ import GeoJSON from 'ol/format/GeoJSON.js';
 import VectorSource from 'ol/source/Vector.js';
 import { createXYZ } from 'ol/tilegrid.js';
 import { tile } from 'ol/loadingstrategy.js';
+import { DefaultPersistentCache } from '@giro3d/giro3d/core/PersistentCache.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -61,6 +62,7 @@ WmtsSource
     .fromCapabilities(capabilitiesUrl, {
         layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
         format: new BilFormat(),
+        persistentCache: DefaultPersistentCache,
         noDataValue,
     })
     .then(elevationWmts => {
@@ -81,6 +83,7 @@ WmtsSource
 WmtsSource
     .fromCapabilities(capabilitiesUrl, {
         layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
+        persistentCache: DefaultPersistentCache,
     })
     .then(orthophotoWmts => {
         map.addLayer(new ColorLayer({

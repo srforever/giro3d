@@ -9,6 +9,7 @@ import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import { DefaultPersistentCache } from '@giro3d/giro3d/core/PersistentCache.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -39,6 +40,7 @@ function addLayers(key) {
         name: 'xyz_elevation',
         extent,
         source: new TiledImageSource({
+            persistentCache: DefaultPersistentCache,
             source: new XYZ({
                 url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
                 projection: extent.crs(),
@@ -54,6 +56,7 @@ function addLayers(key) {
         name: 'xyz_color',
         extent,
         source: new TiledImageSource({
+            persistentCache: DefaultPersistentCache,
             source: new XYZ({
                 url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${key}`,
                 projection: extent.crs(),

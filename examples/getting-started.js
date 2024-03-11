@@ -14,6 +14,7 @@ import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import TileWMS from 'ol/source/TileWMS.js';
+import { DefaultPersistentCache } from '@giro3d/giro3d/core/PersistentCache.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -96,6 +97,7 @@ instance.add(map);
 // [`TiledImageSource`](../apidoc/classes/sources.TiledImageSource.html) for that.
 // This source will wrap an OpenLayers source, in this case a `TileWMS`.
 const satelliteSource = new TiledImageSource({
+    persistentCache: DefaultPersistentCache,
     source: new TileWMS({
         url: 'https://data.geopf.fr/wms-r',
         projection: 'EPSG:3946',
@@ -137,6 +139,7 @@ map.addLayer(colorLayer);
 
 // Let's create a WMS source for this layer.
 const demSource = new TiledImageSource({
+    persistentCache: DefaultPersistentCache,
     source: new TileWMS({
         url: 'https://data.geopf.fr/wms-r',
         projection: 'EPSG:3946',
