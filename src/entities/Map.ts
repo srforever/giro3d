@@ -235,8 +235,8 @@ export interface MapEventMap extends Entity3DEventMap {
 }
 
 /**
- * A map is an {@link entities.Entity | Entity} that represents a flat
- * surface displaying one or more {@link core.layer.Layer | Layers}.
+ * A map is an {@link Entity3D} that represents a flat
+ * surface displaying one or more {@link Layer}.
  *
  * If an elevation layer is added, the surface of the map is deformed to
  * display terrain.
