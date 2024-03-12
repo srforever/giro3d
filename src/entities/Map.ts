@@ -350,8 +350,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         this.type = 'Map';
 
-        this.showOutline = options.showOutline;
-
         this._segments = options.segments || 8;
 
         this.materialOptions = {
@@ -359,6 +357,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             contourLines: getContourLineOptions(options.contourLines),
             discardNoData: options.discardNoData || false,
             doubleSided: options.doubleSided || false,
+            showTileOutlines: options.showOutline ?? false,
             terrain: getTerrainOptions(options.terrain),
             colorimetry: getColorimetryOptions(options.colorimetry),
             segments: this.segments,
@@ -556,7 +555,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
         tile.setVisibility(false);
         tile.updateMatrix();
 
-        tile.material.showOutline = this.showOutline || false;
         tile.material.wireframe = this.wireframe || false;
 
         if (parent) {
