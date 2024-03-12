@@ -4,6 +4,7 @@
 
 #include <logdepthbuf_pars_fragment>
 #include <clipping_planes_pars_fragment>
+#include <fog_pars_fragment>
 
 /**
  * Map tile fragment shader.
@@ -174,6 +175,7 @@ void main() {
     } else if (renderingState == STATE_FINAL) {
         gl_FragColor.rgb = adjustBrightnessContrastSaturation(gl_FragColor.rgb, brightnessContrastSaturation);
         #include <colorspace_fragment>
+        #include <fog_fragment>
     } else if (renderingState == STATE_PICKING) {
         float id = float(uuid);
         float z = height;

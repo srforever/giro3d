@@ -277,6 +277,11 @@ interface Uniforms {
     colorMapAtlas: IUniform<Texture>;
     layersColorMaps: IUniform<ColorMapUniform[]>;
     elevationColorMap: IUniform<ColorMapUniform>;
+
+    fogDensity: IUniform<number>;
+    fogNear: IUniform<number>;
+    fogFar: IUniform<number>;
+    fogColor: IUniform<Color>;
 }
 
 class LayeredMaterial extends ShaderMaterial {
@@ -343,6 +348,13 @@ class LayeredMaterial extends ShaderMaterial {
             intensity: DEFAULT_HILLSHADING_INTENSITY,
             zFactor: DEFAULT_HILLSHADING_ZFACTOR,
         });
+
+        this.uniforms.fogDensity = new Uniform(0.00025);
+        this.uniforms.fogNear = new Uniform(1);
+        this.uniforms.fogFar = new Uniform(2000);
+        this.uniforms.fogColor = new Uniform(new Color(0xffffff));
+
+        this.fog = true;
 
         this._getIndexFn = getIndexFn;
 

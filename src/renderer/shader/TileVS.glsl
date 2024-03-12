@@ -3,6 +3,7 @@
 
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
+#include <fog_pars_vertex>
 
 uniform sampler2D   elevationTexture;
 uniform LayerInfo   elevationLayer;
@@ -423,6 +424,7 @@ void main() {
 #endif // TERRAIN_DEFORMATION
 
     #include <project_vertex>
+    #include <fog_vertex>
     #include <logdepthbuf_vertex>
     #include <clipping_planes_vertex>
 
