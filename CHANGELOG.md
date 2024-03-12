@@ -1,5 +1,22 @@
 # Changelog
 
+## v0.34.1 (2024-03-12)
+
+Hotfix release for 0.34, that fixes #408.
+
+### Feat
+
+- **InstanceInspector**: expose renderer clear alpha
+
+### Fix
+
+- **Map**: use correct model for hillshading intensity (#406)
+- **RenderPipeline**: honor clear alpha (#408)
+
+### Refactor
+
+- **giro3d_commong.glsl**: rename `computeDerivatives()` -> `computeElevationDerivatives()`
+
 ## v0.34.0 (2024-03-06)
 
 Full color space mangement and performance improvements.
