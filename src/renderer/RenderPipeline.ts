@@ -48,11 +48,14 @@ function clear(renderer: WebGLRenderer) {
     // Since our render target is in linear color space, we need to convert
     // the current clear color (that is expected to be in sRGB).
     const current = renderer.getClearColor(currentClearColor);
+    const alpha = renderer.getClearAlpha();
     const clearColor = tmpColor.setRGB(current.r, current.g, current.b, 'srgb-linear');
 
     renderer.setClearColor(clearColor);
+    renderer.setClearAlpha(alpha);
     renderer.clear();
     renderer.setClearColor(currentClearColor);
+    renderer.setClearAlpha(alpha);
 }
 
 /**
