@@ -1,5 +1,11 @@
 #define M_PI    3.1415926535897932384626433832795
 
+struct Hillshading {
+    float zenith;     // Zenith of sunlight, in degrees (0 - 90)
+    float azimuth;    // Azimuth on sunlight, in degrees (0 - 360)
+    float intensity;  // The global lighting intensity
+};
+
 /**
  * Describe a color layer's attributes.
  */
