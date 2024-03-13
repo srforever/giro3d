@@ -121,10 +121,10 @@ export default class TiledImageSource extends ImageSource {
      * Selects the best zoom level given the provided image size and extent.
      *
      * @param extent - The target extent.
-     * @param width - The width in pixel of the target extent.
+     * @param size - The size in pixels of the target extent.
      * @returns The ideal zoom level for this particular extent.
      */
-    private getZoomLevel(extent: Extent, width: number): number {
+    private getZoomLevel(extent: Extent, size: number): number {
         const minZoom = this._tileGrid.getMinZoom();
         const maxZoom = this._tileGrid.getMaxZoom();
 
@@ -133,7 +133,7 @@ export default class TiledImageSource extends ImageSource {
         }
 
         const dims = extent.dimensions(tmp.dims);
-        const targetResolution = round1000000(dims.x / width);
+        const targetResolution = round1000000(dims.x / size);
         const minResolution = this._tileGrid.getResolution(minZoom);
 
         if (targetResolution / minResolution > MIN_LEVEL_THRESHOLD) {
@@ -152,20 +152,24 @@ export default class TiledImageSource extends ImageSource {
         }
 
         // Let's determine the best zoom level for the target tile.
+        let distance = +Infinity;
+        let result = minZoom;
         for (let z = minZoom; z <= maxZoom; z++) {
             const sourceResolution = round1000000(this._tileGrid.getResolution(z));
 
-            if (targetResolution >= sourceResolution) {
-                return z;
+            const thisDistance = Math.abs(sourceResolution - targetResolution);
+            if (thisDistance < distance) {
+                distance = thisDistance;
+                result = z;
             }
         }
 
-        return maxZoom;
+        return result;
     }
 
     getImages(options: GetImageOptions) {
         const {
-            extent, width, signal,
+            extent, width, height, signal,
         } = options;
 
         signal?.throwIfAborted();
@@ -174,7 +178,7 @@ export default class TiledImageSource extends ImageSource {
             throw new Error('invalid CRS');
         }
 
-        const zoomLevel = this.getZoomLevel(extent, width);
+        const zoomLevel = this.getZoomLevel(extent, Math.min(width, height));
         if (zoomLevel == null) {
             return [];
         }
