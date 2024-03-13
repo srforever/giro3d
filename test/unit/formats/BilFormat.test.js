@@ -27,7 +27,7 @@ describe('BilFormat', () => {
                 width: 4,
                 height: 4,
             };
-            const texture = await format.decode(blob, options);
+            const { texture } = await format.decode(blob, options);
 
             expect(texture.image.data).toEqual(new Float32Array([
                 1.0, 1,
@@ -61,7 +61,7 @@ describe('BilFormat', () => {
                 width: 4,
                 height: 4,
             };
-            const texture = await format.decode(blob, options);
+            const { texture } = await format.decode(blob, options);
 
             expect(texture.image.data).toEqual(new Float32Array([
                 0.00, 0,

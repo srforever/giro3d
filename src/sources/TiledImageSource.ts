@@ -248,7 +248,9 @@ export default class TiledImageSource extends ImageSource {
             });
         }
 
-        let texture;
+        let texture: Texture;
+        let min;
+        let max;
         if (this.format) {
             let width: number;
             let height: number;
@@ -257,11 +259,15 @@ export default class TiledImageSource extends ImageSource {
                 width = tileSize as number;
                 height = tileSize as number;
             }
-            texture = await this.format.decode(blob, {
+            const decoded = await this.format.decode(blob, {
                 noDataValue: this.noDataValue,
                 width,
                 height,
             });
+
+            texture = decoded.texture;
+            min = decoded.min;
+            max = decoded.max;
         } else {
             texture = await TextureGenerator.decodeBlob(blob, {
                 createDataTexture,
@@ -272,7 +278,7 @@ export default class TiledImageSource extends ImageSource {
         texture.needsUpdate = true;
 
         return new ImageResult({
-            texture, extent, id,
+            texture, extent, id, min, max,
         });
     }
 

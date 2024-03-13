@@ -50,12 +50,19 @@ class BilFormat extends ImageFormat {
         const buf = await blob.arrayBuffer();
         const floatArray = new Float32Array(buf);
 
+        let min = +Infinity;
+        let max = -Infinity;
+
         // NOTE for BIL format, we consider everything that is under noDataValue as noDataValue
         // this is consistent with the servers behaviour we tested but if you see services that
         // expects something different, don't hesitate to question the next loop
         for (let i = 0; i < floatArray.length; i++) {
-            if (floatArray[i] <= options.noDataValue) {
+            const value = floatArray[i];
+            if (value <= options.noDataValue) {
                 floatArray[i] = options.noDataValue;
+            } else {
+                min = Math.min(value, min);
+                max = Math.max(value, max);
             }
         }
 
@@ -66,7 +73,7 @@ class BilFormat extends ImageFormat {
         };
         const texture = TextureGenerator.createDataTexture(opts, FloatType, floatArray);
         texture.generateMipmaps = false;
-        return texture;
+        return { texture, min, max };
     }
 }
 
