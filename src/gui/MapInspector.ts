@@ -153,6 +153,12 @@ class MapInspector extends EntityInspector {
         this.addColorController(this, 'extentColor')
             .name('Extent color')
             .onChange(() => this.updateExtentColor());
+        this.addController<number>(this.map, 'sseScale')
+            .name('SSE scale')
+            .min(0.1)
+            .max(3)
+            .step(0.1)
+            .onChange(() => this.notify());
 
         this.hillshadingPanel = new HillshadingPanel(
             this.map.materialOptions.hillshading,
