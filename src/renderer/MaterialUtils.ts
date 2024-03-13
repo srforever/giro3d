@@ -13,13 +13,16 @@ import { type Material } from 'three';
  * setDefine(mat, 'ENABLE_FOO', true); // material.needsUpdate === false;
  * setDefine(mat, 'ENABLE_FOO', false); // material.needsUpdate === true;
  */
-function setDefine(material: Material, name: string, condition: boolean) {
+function setDefine<M extends Material, K extends keyof M['defines']>(material: M, name: K, condition: boolean) {
+    // @ts-expect-error
     if (material.defines[name] === undefined) {
         if (condition) {
+            // @ts-expect-error
             material.defines[name] = 1;
             material.needsUpdate = true;
         }
     } else if (!condition) {
+        // @ts-expect-error
         delete material.defines[name];
         material.needsUpdate = true;
     }

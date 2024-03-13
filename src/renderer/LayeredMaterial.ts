@@ -221,6 +221,20 @@ type ColorMapUniform = {
     offset: number;
 };
 
+type Defines = {
+    ENABLE_CONTOUR_LINES?: 1;
+    STITCHING?: 1;
+    TERRAIN_DEFORMATION?: 1;
+    DISCARD_NODATA_ELEVATION?: 1;
+    ENABLE_ELEVATION_RANGE?: 1;
+    ELEVATION_LAYER?: 1;
+    ENABLE_LAYER_MASKS?: 1;
+    ENABLE_OUTLINES?: 1;
+    ENABLE_HILLSHADING?: 1;
+    APPLY_SHADING_ON_COLORLAYERS?: 1;
+    COLOR_LAYERS: number;
+};
+
 interface Uniforms {
     opacity: IUniform<number>;
     segments: IUniform<number>;
@@ -270,6 +284,8 @@ class LayeredMaterial extends ShaderMaterial {
     // @ts-expect-error
     override readonly uniforms: Uniforms;
 
+    override readonly defines: Defines;
+
     showOutline: boolean;
 
     private _disposed: boolean;
@@ -302,7 +318,6 @@ class LayeredMaterial extends ShaderMaterial {
         this._atlasInfo = atlasInfo;
         MaterialUtils.setDefine(this, 'STITCHING', options.terrain?.stitching);
         MaterialUtils.setDefine(this, 'TERRAIN_DEFORMATION', options.terrain?.enabled);
-        this.defines.ENABLE_CONTOUR_LINES = 1;
         this._renderer = renderer;
 
         this._composerDataType = textureDataType;
