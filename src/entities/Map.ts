@@ -267,7 +267,13 @@ class Map<UserData extends EntityUserData = EntityUserData>
     readonly showOutline: boolean;
     /** @internal */
     readonly tileIndex: TileIndex;
-    /** @internal */
+    /**
+     * The global factor that drives SSE (screen space error) computation. The lower this value, the
+     * sooner a tile is subdivided. Note: changing this scale to a value less than 1 can drastically
+     * increase the number of tiles displayed in the scene, and can even lead to WebGL crashes.
+     *
+     * @defaultValue 1.5
+     */
     sseScale: number;
 
     /**
