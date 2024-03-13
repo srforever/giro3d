@@ -185,7 +185,7 @@ function selectBestSubdivisions(extent: Extent) {
  * @param extent - The map extent.
  */
 function computeImageSize(extent: Extent) {
-    const baseSize = 256;
+    const baseSize = 512;
     const dims = extent.dimensions();
     const ratio = dims.x / dims.y;
     if (Math.abs(ratio - 1) < 0.01) {
