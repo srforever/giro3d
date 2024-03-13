@@ -40,13 +40,13 @@ function createGridTexture() {
     const ctx = canvas.getContext('2d');
 
     ctx.strokeStyle = 'yellow';
-    ctx.lineWidth = 8;
+    ctx.lineWidth = 4;
     ctx.strokeRect(0, 0, w, h);
 
     ctx.strokeStyle = 'yellow';
     ctx.setLineDash([8, 8]);
-    ctx.lineWidth = 4;
-    const subdivs = 4;
+    ctx.lineWidth = 2;
+    const subdivs = 2;
     const xWidth = w / subdivs;
 
     for (let i = 1; i < subdivs; i++) {
@@ -67,7 +67,7 @@ function createGridTexture() {
     // Center of the image
     ctx.beginPath();
     ctx.fillStyle = 'yellow';
-    ctx.arc(w / 2, h / 2, 8, 0, 2 * Math.PI);
+    ctx.arc(w / 2, h / 2, 4, 0, 2 * Math.PI);
     ctx.fill();
 
     return new CanvasTexture(canvas);
