@@ -118,9 +118,7 @@ void main() {
 #if defined(ENABLE_HILLSHADING)
     hillshade = calcHillshade(
         tileDimensions,
-        hillshading.zenith,
-        hillshading.azimuth,
-        hillshading.intensity,
+        hillshading,
         elevationLayer.offsetScale,
         elevationTexture,
         elevUv

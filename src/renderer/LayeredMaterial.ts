@@ -95,6 +95,7 @@ class TextureInfo {
 }
 
 export const DEFAULT_HILLSHADING_INTENSITY = 1;
+export const DEFAULT_HILLSHADING_ZFACTOR = 1;
 export const DEFAULT_AZIMUTH = 135;
 export const DEFAULT_ZENITH = 45;
 
@@ -188,6 +189,7 @@ export interface MaterialOptions {
 
 type HillshadingUniform = {
     intensity: number;
+    zFactor: number;
     zenith: number;
     azimuth: number;
 };
@@ -325,6 +327,7 @@ class LayeredMaterial extends ShaderMaterial {
             zenith: DEFAULT_ZENITH,
             azimuth: DEFAULT_AZIMUTH,
             intensity: DEFAULT_HILLSHADING_INTENSITY,
+            zFactor: DEFAULT_HILLSHADING_ZFACTOR,
         });
 
         this._getIndexFn = getIndexFn;
@@ -814,6 +817,7 @@ class LayeredMaterial extends ShaderMaterial {
             uniform.zenith = hillshadingParams.zenith ?? DEFAULT_ZENITH;
             uniform.azimuth = hillshadingParams.azimuth ?? DEFAULT_AZIMUTH;
             uniform.intensity = hillshadingParams.intensity ?? 1;
+            uniform.zFactor = hillshadingParams.zFactor ?? 1;
             MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', hillshadingParams.enabled);
             MaterialUtils.setDefine(this, 'APPLY_SHADING_ON_COLORLAYERS', !hillshadingParams.elevationLayersOnly);
         } else {
