@@ -55,6 +55,7 @@ class MapInspector extends EntityInspector {
     private _fillLayersCb: () => void;
     grid?: GridHelper;
     axes?: AxesHelper;
+    activeTiles: number;
 
     /**
      * Creates an instance of MapInspector.
@@ -92,6 +93,7 @@ class MapInspector extends EntityInspector {
         this.extentHelper = null;
 
         this.mapSegments = this.map.segments;
+        this.activeTiles = 0;
 
         this.labels = new window.Map();
 
@@ -103,6 +105,8 @@ class MapInspector extends EntityInspector {
             .min(2)
             .max(128)
             .onChange(v => this.updateSegments(v));
+        this.addController<number>(this, 'activeTiles')
+            .name('Active tiles');
         this.addController<number>(this.map.geometryPool, 'size')
             .name('Geometry pool');
         if (this.map.materialOptions.elevationRange) {
@@ -365,6 +369,13 @@ class MapInspector extends EntityInspector {
         this.toggleBoundingBoxes();
         this.layerCount = this.map.layerCount;
         this.layers.forEach(l => l.updateValues());
+
+        this.activeTiles = 0;
+        this.map.traverseMeshes((m: TileMesh) => {
+            if (m.material.visible) {
+                this.activeTiles++;
+            }
+        });
     }
 
     fillLayers() {
