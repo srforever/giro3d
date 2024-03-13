@@ -114,6 +114,8 @@ const terrainStitchingCheckbox = document.getElementById('terrainStitching');
 const azimuthSlider = document.getElementById('azimuthSlider');
 const zenithSlider = document.getElementById('zenithSlider');
 const opacitySlider = document.getElementById('opacitySlider');
+const intensitySlider = document.getElementById('intensitySlider');
+const zFactorSlider = document.getElementById('zFactorSlider');
 
 hillshadingCheckbox.oninput = function oninput() {
     const state = hillshadingCheckbox.checked;
@@ -146,6 +148,16 @@ azimuthSlider.oninput = function oninput() {
 
 zenithSlider.oninput = function oninput() {
     map.materialOptions.hillshading.zenith = zenithSlider.value;
+    instance.notifyChange(map);
+};
+
+intensitySlider.oninput = function oninput() {
+    map.materialOptions.hillshading.intensity = intensitySlider.value;
+    instance.notifyChange(map);
+};
+
+zFactorSlider.oninput = function oninput() {
+    map.materialOptions.hillshading.zFactor = zFactorSlider.value;
     instance.notifyChange(map);
 };
 
