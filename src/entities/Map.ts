@@ -815,28 +815,9 @@ class Map<UserData extends EntityUserData = EntityUserData>
             return undefined;
         }
 
-        if (context.fastUpdateHint) {
-            if (!(context.fastUpdateHint as TileMesh).isAncestorOf(node)) {
-                // if visible, children bbox can only be smaller => stop updates
-                if (node.material.visible) {
-                    this.updateMinMaxDistance(context, node);
-                    return undefined;
-                }
-                if (node.visible) {
-                    return node.children.filter(n => isTileMesh(n));
-                }
-                return undefined;
-            }
-        }
-
         // do proper culling
         if (!this.frozen) {
-            node.update(this.materialOptions);
-
-            const isVisible = context.camera.isBox3Visible(
-                node.OBB.box3D, node.OBB.matrixWorld,
-            );
-            node.visible = isVisible;
+            node.visible = this.testVisibility(node, context);
         }
 
         if (node.visible) {
@@ -883,6 +864,16 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         node.setDisplayed(false);
         return node.detachChildren();
+    }
+
+    private testVisibility(node: TileMesh, context: Context): boolean {
+        node.update(this.materialOptions);
+
+        const isVisible = context.camera.isBox3Visible(
+            node.OBB.box3D, node.OBB.matrixWorld,
+        );
+
+        return isVisible;
     }
 
     postUpdate() {
