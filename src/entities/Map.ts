@@ -63,6 +63,7 @@ export type LayerCompareFn = (a: Layer, b: Layer) => number;
 const MAX_SUPPORTED_ASPECT_RATIO = 10;
 
 const tmpVector = new Vector3();
+const tmpSseSizes: [number, number] = [0, 0];
 
 function getContourLineOptions(input: boolean | undefined | ContourLineOptions)
     : ContourLineOptions {
@@ -274,7 +275,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
      *
      * @defaultValue 1.5
      */
-    sseScale: number;
+    subdivisionThreshold: number;
 
     /**
      * Displays the map tiles in wireframe.
@@ -351,7 +352,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         }
         this.extent = options.extent;
 
-        this.sseScale = 1.5;
+        this.subdivisionThreshold = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel ?? 30;
 
         this.type = 'Map';
@@ -1179,19 +1180,11 @@ class Map<UserData extends EntityUserData = EntityUserData>
             return true;
         }
 
-        const values = [
-            sse.lengths.x * sse.ratio,
-            sse.lengths.y * sse.ratio,
-        ];
+        tmpSseSizes[0] = sse.lengths.x * sse.ratio;
+        tmpSseSizes[1] = sse.lengths.y * sse.ratio;
 
-        // TODO: depends on texture size of course
-        // if (values.filter(v => v < 200).length >= 2) {
-        //     return false;
-        // }
-        if (values.filter(v => v < (100 * this.sseScale)).length >= 1) {
-            return false;
-        }
-        return values.filter(v => v >= (384 * this.sseScale)).length >= 2;
+        const threshold = Math.max(this.imageSize.x, this.imageSize.y);
+        return tmpSseSizes.some(v => v >= (threshold * this.subdivisionThreshold));
     }
 
     private updateMinMaxDistance(context: Context, node: TileMesh) {
