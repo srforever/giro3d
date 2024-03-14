@@ -128,6 +128,9 @@ export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Ref
                     <li class="nav-item">
                         <a class="nav-link nav-link-primary" href="/governance.html">Governance</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link nav-link-primary" href="/sponsors.html">Sponsors</a>
+                    </li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
