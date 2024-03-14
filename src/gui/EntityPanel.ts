@@ -23,7 +23,7 @@ const customInspectors: Record<string, typeof EntityInspector> = {
 /**
  * Provides an inspector for the entities in an instance.
  * To add a custom inspector for a specific entity type,
- * use {@link module:gui/EntityPanel~EntityPanel.registerInspector registerInspector()}.
+ * use {@link registerInspector}.
  *
  */
 class EntityPanel extends Panel {
@@ -32,8 +32,8 @@ class EntityPanel extends Panel {
     inspectors: EntityInspector[];
 
     /**
-     * @param gui The GUI.
-     * @param instance The Giro3D instance.
+     * @param gui - The GUI.
+     * @param instance - The Giro3D instance.
      */
     constructor(gui: GUI, instance: Instance) {
         super(gui, instance, 'Entities');
@@ -65,8 +65,8 @@ class EntityPanel extends Panel {
     /**
      * Registers an inspector for an entity type.
      *
-     * @param type The entity type. This should match the property `type` on the entity.
-     * @param inspector The inspector.
+     * @param type - The entity type. This should match the property `type` on the entity.
+     * @param inspector - The inspector.
      * @example
      * EntityPanel.registerInspector('Map', MyCustomMapInspector);
      */

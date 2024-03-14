@@ -79,13 +79,11 @@ for (const potreeName of Object.keys(POINT_ATTTRIBUTES)) {
 }
 
 export default {
-    /** @module PotreeBinParser */
-
     /**
      * Parse .bin PotreeConverter format and convert to a BufferGeometry
      *
-     * @param buffer the bin buffer.
-     * @param pointAttributes the point attributes information contained in
+     * @param buffer - the bin buffer.
+     * @param pointAttributes - the point attributes information contained in
      * layer.metadata coming from cloud.js
      * @returns a promise that resolves with a BufferGeometry.
      */

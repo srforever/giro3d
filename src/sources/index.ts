@@ -1,9 +1,3 @@
-/**
- * Data sources.
- *
- * @module
- */
-
 import CogSource, {
     type CogSourceOptions,
     type CogCacheOptions,
@@ -28,6 +22,9 @@ import VectorTileSource, {
 } from './VectorTileSource';
 import PotreeSource from './PotreeSource';
 
+/**
+ * Data sources.
+ */
 export {
     ImageSource,
     ImageSourceOptions,

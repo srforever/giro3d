@@ -30,9 +30,9 @@ abstract class ImageFormat {
     /**
      * Decodes the blob into a texture.
      *
-     * @param blob The blob to decode.
-     * @param options The decoder options.
-     * @returns {Promise<Texture>} The decoded texture.
+     * @param blob - The blob to decode.
+     * @param options - The decoder options.
+     * @returns The decoded texture.
      */
     abstract decode(blob: Blob, options: DecodeOptions): Promise<Texture>;
 }

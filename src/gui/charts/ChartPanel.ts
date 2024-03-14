@@ -18,9 +18,9 @@ import type Instance from '../../core/Instance';
 /**
  * Pushes the value in the array, removing old values in array length exceeds MAX_DATA_POINTS.
  *
- * @param array The array
- * @param value The value
- * @param limit The limit of the array size, before trimming.
+ * @param array - The array
+ * @param value - The value
+ * @param limit - The limit of the array size, before trimming.
  */
 export function pushTrim<T extends any>(array: Array<T>, value: T, limit: number) {
     if (array.length > limit) {

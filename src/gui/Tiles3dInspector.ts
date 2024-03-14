@@ -17,9 +17,9 @@ class Tiles3dInspector extends EntityInspector {
     /**
      * Creates an instance of Tiles3dInspector.
      *
-     * @param {GUI} parentGui The parent GUI.
-     * @param {Instance} instance The Giro3D instance.
-     * @param {Tiles3D} entity The inspected 3D tileset.
+     * @param parentGui - The parent GUI.
+     * @param instance - The Giro3D instance.
+     * @param entity - The inspected 3D tileset.
      */
     constructor(parentGui: GUI, instance: Instance, entity: Tiles3D) {
         super(parentGui, instance, entity,

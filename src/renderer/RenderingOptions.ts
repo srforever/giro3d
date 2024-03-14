@@ -6,45 +6,45 @@ class RenderingOptions {
     /**
      * Enables EDL (Eye Dome Lighting) effect for point clouds.
      *
-     * @default false
+     * @defaultValue false
      */
     enableEDL: boolean;
     /**
      * The intensity of the EDL effect.
      *
-     * @default 0.7
+     * @defaultValue 0.7
      */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     EDLStrength: number;
     /**
      * The radius of the EDL effect.
      *
-     * @default 1.5
+     * @defaultValue 1.5
      */
     // eslint-disable-next-line @typescript-eslint/naming-convention
     EDLRadius = 1.5;
     /**
      * Enables inpainting (hole filling) effect for point clouds.
      *
-     * @default false
+     * @defaultValue false
      */
     enableInpainting = false;
     /**
      * The number of inpainting steps.
      *
-     * @default 2
+     * @defaultValue 2
      */
     inpaintingSteps: number;
     /**
      * How much the difference of depth between two pixels contribute to the inpainting weight.
      *
-     * @default 0.5
+     * @defaultValue 0.5
      */
     inpaintingDepthContribution: number;
     /**
      * Enables point cloud occlusion effect.
      *
-     * @default false
+     * @defaultValue false
      */
     enablePointCloudOcclusion: boolean;
 

@@ -229,6 +229,17 @@ class PotreePointCloud<UserData = EntityUserData>
     sseThreshold: number;
     material: PointsMaterial;
     mode: Mode;
+    /**
+     * Optional hook called when a new point tile is loaded.
+     * The parameter is a {@link Points} object.
+     *
+     * ```js
+     * const cloud = new PotreePointCloud('myCloud', source);
+     * cloud.onPointsCreated = function(pnts) {
+     *  // Do something with the points.
+     * }
+     * ```
+     */
     onPointsCreated: OnPointsCreatedCallback | null;
     isFromPotreeConverter?: boolean;
     metadata?: PotreeMetadata;
@@ -248,8 +259,8 @@ class PotreePointCloud<UserData = EntityUserData>
     /**
      * Creates an instance of PotreePointCloud.
      *
-     * @param id The unique identifier of this entity.
-     * @param source The data source.
+     * @param id - The unique identifier of this entity.
+     * @param source - The data source.
      * @example
      * const source = new PotreeSource('http://example.com', 'cloud.js');
      * const cloud = new PotreePointCloud('myCloud', source);
@@ -291,16 +302,6 @@ class PotreePointCloud<UserData = EntityUserData>
         this.material.defines = this.material.defines || {};
         this.mode = MODE.COLOR;
 
-        /**
-         * Optional hook called when a new point tile is loaded.
-         * The parameter is a {@link module:Core/Points~Points Points} object.
-         *
-         *  @example
-         * const cloud = new PotreePointCloud('myCloud', source);
-         * cloud.onPointsCreated = function(pnts) {
-         *  // Do something with the points.
-         * }
-         */
         this.onPointsCreated = null;
     }
 

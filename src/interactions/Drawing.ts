@@ -64,7 +64,7 @@ export type DrawingGeometryType = 'Point' | 'MultiPoint' | 'LineString' | 'Polyg
  * - have `pointerEvents` to `none`,
  * - fill more or less its bounding box
  *
- * @param text Text to display
+ * @param text - Text to display
  * @returns HTML element for the point
  */
 export type Point2DFactory = (text: string) => HTMLElement;
@@ -94,19 +94,19 @@ export interface DrawingOptions extends MaterialsOptions {
     /**
      * Minimum depth for the extrusion
      *
-     * @default 1
+     * @defaultValue 1
      */
     minExtrudeDepth?: number;
     /**
      * Maximum depth for the extrusion
      *
-     * @default 5
+     * @defaultValue 5
      */
     maxExtrudeDepth?: number;
     /**
      * Render points as 3D objects - if false, may provide `point2DFactory` option
      *
-     * @default false
+     * @defaultValue false
      */
     use3Dpoints?: boolean;
     /**
@@ -123,13 +123,13 @@ export interface DrawingOptions extends MaterialsOptions {
      * When drawing the shape, we project the points on a plane for triangulation. This enables
      * seeing the plane used for projecting while debugging.
      *
-     * @default false
+     * @defaultValue false
      */
     planeHelperVisible?: boolean;
     /**
      * Initial number of points to allocate when drawing
      *
-     * @default 100
+     * @defaultValue 100
      */
     pointsBudget?: number;
 }
@@ -137,7 +137,7 @@ export interface DrawingOptions extends MaterialsOptions {
 /**
  * Default Point2D factory for creating labels.
  *
- * @param text Text to display
+ * @param text - Text to display
  * @returns DOM Element to attach to the CSS2DObject
  */
 function defaultPoint2DFactory(text: string): HTMLElement {
@@ -233,8 +233,8 @@ class Drawing extends Group {
     /**
      * Creates a new 3D Object
      *
-     * @param options Options
-     * @param geojson Initial GeoJSON geometry
+     * @param options - Options
+     * @param geojson - Initial GeoJSON geometry
      */
     constructor(
         options: DrawingOptions = {},
@@ -318,7 +318,7 @@ class Drawing extends Group {
     /**
      * Initializes buffers & geometries for drawing points
      *
-     * @param size Number of points to allocate
+     * @param size - Number of points to allocate
      */
     private _initPointsBuffers(size: number): void {
         this._positions = new Float32Array(size * STRIDE3D);
@@ -333,7 +333,7 @@ class Drawing extends Group {
     /**
      * Initializes buffers & geometries for drawing lines
      *
-     * @param size Number of points to allocate
+     * @param size - Number of points to allocate
      */
     private _initLineBuffers(size: number): void {
         this._positionsTop = new Float32Array(size * STRIDE3D);
@@ -367,7 +367,7 @@ class Drawing extends Group {
     /**
      * Initializes buffers & geometries for drawing polygons
      *
-     * @param size Number of points to allocate
+     * @param size - Number of points to allocate
      */
     private _initPolygonBuffers(size: number): void {
         this._initLineBuffers(size);
@@ -456,7 +456,7 @@ class Drawing extends Group {
      * Sets the shape to draw.
      * You'll need to call `instance.notifyChange()` to notify the changes.
      *
-     * @param geojson GeoJSON shape to draw
+     * @param geojson - GeoJSON shape to draw
      */
     setGeojson(geojson: GeoJSON.Geometry): void {
         if (!geojson) return;
@@ -468,8 +468,8 @@ class Drawing extends Group {
      * Sets the shape to draw.
      * You'll need to call `instance.notifyChange()` to notify the changes.
      *
-     * @param coordinates Array of flat coordinates
-     * @param geometryType Type of geometry
+     * @param coordinates - Array of flat coordinates
+     * @param geometryType - Type of geometry
      */
     setCoordinates(coordinates: number[], geometryType: DrawingGeometryType): void {
         // Remove all children
@@ -578,7 +578,7 @@ class Drawing extends Group {
      * Sets materials for this object.
      * You'll need to call `instance.notifyChange()` to notify the changes.
      *
-     * @param options Materials
+     * @param options - Materials
      */
     setMaterials(options: MaterialsOptions): void {
         this._faceMaterial = options.faceMaterial ?? defaultFaceMaterial;

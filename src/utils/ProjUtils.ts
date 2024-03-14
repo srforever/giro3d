@@ -9,18 +9,18 @@ const ZERO = new Vector2(0, 0);
  * Only the 2 first elements of each point (i.e the X and Y coordinate) are transformed. The other
  * elements are left untouched.
  *
- * @param buf The buffer to transform.
- * @param params The transformation parameters.
- * @param params.srcCrs The source CRS code. Must be known to PROJ.
- * @param params.dstCrs The destination CRS code. Must be known to PROJ.
- * @param params.stride The stride of the buffer.
- * @param params.offset The offset to apply after transforming the coordinate.
+ * @param buf - The buffer to transform.
+ * @param params - The transformation parameters.
  */
 function transformBufferInPlace(buf: TypedArray,
     params: {
+        /** The source CRS code. Must be known to PROJ. */
         srcCrs: string;
+        /** The destination CRS code. Must be known to PROJ. */
         dstCrs: string;
+        /** The stride of the buffer. */
         stride: number;
+        /** The offset to apply after transforming the coordinate. */
         offset?: Vector2;
     }) {
     if (params.srcCrs === params.dstCrs) {

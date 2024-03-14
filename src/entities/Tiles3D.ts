@@ -39,13 +39,13 @@ export interface Tiles3DOptions<TMaterial extends Material> {
     /**
      * The delay, in milliseconds, to cleanup unused objects.
      *
-     * @default 1000
+     * @defaultvalue 1000
      */
     cleanupDelay?: number,
     /**
      * The Screen Space Error (SSE) threshold to use for this tileset.
      *
-     * @default 16
+     * @defaultvalue 16
      */
     sseThreshold?: number,
     /**
@@ -114,7 +114,7 @@ class Tiles3D<TMaterial extends Material = Material, UserData = EntityUserData>
     /**
      * Network options of the source.
      *
-     * @deprecated
+     * @deprecated Deprecated.
      */
     get networkOptions(): RequestInit {
         // TODO: remove this
@@ -149,9 +149,9 @@ class Tiles3D<TMaterial extends Material = Material, UserData = EntityUserData>
     /**
      * Constructs a Tiles3D object.
      *
-     * @param id The unique identifier of the entity.
-     * @param source The data source.
-     * @param options Optional properties.
+     * @param id - The unique identifier of the entity.
+     * @param source - The data source.
+     * @param options - Optional properties.
      */
     constructor(id: string, source: Tiles3DSource, options: Tiles3DOptions<TMaterial> = {}) {
         super(id, options.object3d || new Group());
@@ -735,7 +735,7 @@ class Tiles3D<TMaterial extends Material = Material, UserData = EntityUserData>
     }
 
     /**
-     * @param node The tile to evaluate;
+     * @param node - The tile to evaluate;
      * @returns true if the request can continue, false if it must be cancelled.
      */
     shouldExecute(node: Tile): boolean {

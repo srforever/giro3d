@@ -95,7 +95,7 @@ class PointCloudRenderer {
     /**
      * Creates a point cloud renderer.
      *
-     * @param webGLRenderer The WebGL renderer.
+     * @param webGLRenderer - The WebGL renderer.
      */
     constructor(webGLRenderer: WebGLRenderer) {
         this.scene = new Scene();

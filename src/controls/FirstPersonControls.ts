@@ -63,12 +63,12 @@ export interface FirstPersonControlsOptions {
     focusOnClick?: boolean;
     /** whether or not to focus when the mouse is over the domElement */
     focusOnMouseOver?: boolean;
-    /** if > 0, pressing the arrow keys will move the camera */
+    /** if \> 0, pressing the arrow keys will move the camera */
     moveSpeed?: number;
     /**
      * define the max visible vertical angle of the scene in degrees
      *
-     * @default  180
+     * @defaultValue  180
      */
     verticalFOV?: number;
     /**
@@ -102,8 +102,8 @@ class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
     private _stateOnMouseDown?: State;
 
     /**
-     * @param instance the Giro3D instance to control
-     * @param options additional options
+     * @param instance - the Giro3D instance to control
+     * @param options - additional options
      */
     constructor(instance: Instance, options: FirstPersonControlsOptions = {}) {
         super();
@@ -174,7 +174,7 @@ class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
      * Resets the controls internal state to match the camera' state.
      * This must be called when manually modifying the camera's position or rotation.
      *
-     * @param preserveRotationOnX if true, the look up/down rotation will
+     * @param preserveRotationOnX - if true, the look up/down rotation will
      * not be copied from the camera
      */
     reset(preserveRotationOnX: boolean = false) {
@@ -201,8 +201,8 @@ class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
      * Updates the camera position / rotation based on occured input events.
      * This is done automatically when needed but can also be done if needed.
      *
-     * @param event Event
-     * @param force set to true if you want to force the update, even if it
+     * @param event - Event
+     * @param force - set to true if you want to force the update, even if it
      * appears unneeded.
      */
     update(event: InstanceEvents['after-camera-update'], force: boolean = false) {

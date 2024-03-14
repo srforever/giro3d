@@ -1,9 +1,3 @@
-/**
- * The built-in entities of Giro3D.
- *
- * @module
- */
-
 import AxisGrid, {
     type Style as AxisGridStyle,
     type TickOrigin as AxisGridOrigin,
@@ -18,6 +12,9 @@ import DrawingCollection, { type DrawingCollectionEventMap } from './DrawingColl
 import Tiles3D, { type Tiles3DOptions, type Tiles3DPickResult } from './Tiles3D';
 import FeatureCollection, { type OnMeshCreatedCallback, type OnTileCreatedCallback } from './FeatureCollection';
 
+/**
+ * The built-in entities of Giro3D.
+ */
 export {
     Entity,
     EntityEventMap,

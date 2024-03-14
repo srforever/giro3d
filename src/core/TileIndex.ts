@@ -40,7 +40,7 @@ class TileIndex {
     /**
      * Adds a tile to the index.
      *
-     * @param tile the tile to add.
+     * @param tile - the tile to add.
      */
     addTile(tile: Tile) {
         const key = TileIndex.getKey(tile.x, tile.y, tile.z);
@@ -52,7 +52,7 @@ class TileIndex {
     /**
      * Gets a tile by its ID.
      *
-     * @param id The ID.
+     * @param id - The ID.
      * @returns The found tile, otherwise undefined.
      */
     getTile(id: number): Tile | undefined {
@@ -80,7 +80,7 @@ class TileIndex {
      * 5 : south west -- 4 : south -- 3 : south east
      * If there is no neighbor, if it isn't visible or if it is a smaller level one, return null.
      *
-     * @param tile the tile to query
+     * @param tile - the tile to query
      * @returns neighbors : Array of found neighbors
      */
     getNeighbours(tile: Tile): Tile[] {
@@ -132,9 +132,9 @@ class TileIndex {
     /**
      * Search for the specific tile by coordinates if any, or any valid ancestor.
      *
-     * @param x The tile X coordinate.
-     * @param y The tile Y coordinate.
-     * @param z The tile Z coordinate (zoom level).
+     * @param x - The tile X coordinate.
+     * @param y - The tile Y coordinate.
+     * @param z - The tile Z coordinate (zoom level).
      * @returns The matching tile if found, null otherwise.
      */
     searchTileOrAncestor(x: number, y: number, z: number): object | null {

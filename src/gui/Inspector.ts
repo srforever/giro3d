@@ -27,22 +27,22 @@ export interface InspectorOptions {
     /**
      * The panel width, in pixels.
      *
-     * @default 450
+     * @defaultValue 450
      */
     width?: number;
     /**
      * The title of the inspector.
      *
-     * @default Inspector
+     * @defaultValue Inspector
      */
     title?: string;
 }
 
 /**
  * Provides a user interface to inspect and edit the Giro3D scene.
- * The inspector is made of several {@link module:gui/Panel~Panel panels}.
+ * The inspector is made of several {@link Panel}.
  * You can implement custom panels and add them to the inspector with
- * {@link module:gui/Inspector~Inspector#addPanel addPanel()}.
+ * {@link Inspector.addPanel}.
  *
  */
 class Inspector {
@@ -53,9 +53,9 @@ class Inspector {
     /**
      * Creates an instance of the inspector.
      *
-     * @param div The div element to attach the panel to.
-     * @param instance The Giro3D instance.
-     * @param options The options.
+     * @param div - The div element to attach the panel to.
+     * @param instance - The Giro3D instance.
+     * @param options - The options.
      */
     constructor(div: HTMLDivElement, instance: Instance, options: InspectorOptions = {}) {
         this.instance = instance;
@@ -98,7 +98,7 @@ class Inspector {
     /**
      * Adds a panel to the inspector.
      *
-     * @param panel The panel to add.
+     * @param panel - The panel to add.
      */
     addPanel(panel: Panel) {
         this.folders.push(panel);
@@ -107,9 +107,9 @@ class Inspector {
     /**
      * Attaches the inspector to the specified DOM element.
      *
-     * @param div The div element to attach the panel to.
-     * @param instance The Giro3D instance.
-     * @param options The options.
+     * @param div - The div element to attach the panel to.
+     * @param instance - The Giro3D instance.
+     * @param options - The options.
      * @returns The created inspector.
      */
     static attach(div: HTMLDivElement, instance: Instance, options: InspectorOptions = {}) {

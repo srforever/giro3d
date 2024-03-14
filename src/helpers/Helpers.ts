@@ -74,7 +74,7 @@ const invMatrixChangeUpVectorZtoX = new Matrix4().makeRotationZ(-Math.PI / 2).in
 let _axisSize = 500;
 
 /**
- * @param colorDesc A THREE color or hex string.
+ * @param colorDesc - A THREE color or hex string.
  * @returns The THREE color.
  */
 function getColor(colorDesc: Color | string) {
@@ -96,8 +96,8 @@ function create3dTileRegion(region: OBB, color: Color) {
  * This function creates a Box3 by matching the object's bounding box,
  * without including its children.
  *
- * @param object The object to expand.
- * @param precise If true, the computation uses the vertices from the geometry.
+ * @param object - The object to expand.
+ * @param precise - If true, the computation uses the vertices from the geometry.
  * @returns The expanded box.
  */
 function makeLocalBbox(object: Object3D, precise: boolean = false): Box3 {
@@ -165,8 +165,8 @@ const unitBoxMesh = (function _() {
 }());
 
 /**
- * @param box The box.
- * @param color The color.
+ * @param box - The box.
+ * @param color - The color.
  */
 function createBoxVolume(box: Box3, color: Color) {
     const helper = unitBoxMesh(color);
@@ -194,8 +194,8 @@ class Helpers {
      * Adds a bounding box helper to the object.
      * If a bounding box is already present, it is updated instead.
      *
-     * @param obj The object to decorate.
-     * @param color The color.
+     * @param obj - The object to decorate.
+     * @param color - The color.
      * @example
      * // add a bounding box to 'obj'
      * Helpers.addBoundingBox(obj, 'green');
@@ -234,8 +234,8 @@ class Helpers {
     /**
      * Creates a selection bounding box helper around the specified object.
      *
-     * @param obj The object to decorate.
-     * @param color The color.
+     * @param obj - The object to decorate.
+     * @param color - The color.
      * @returns the created box helper.
      * @example
      * // add a bounding box to 'obj'
@@ -253,9 +253,9 @@ class Helpers {
      * Adds an oriented bounding box (OBB) helper to the object.
      * If a bounding box is already present, it is updated instead.
      *
-     * @param obj The object to decorate.
-     * @param obb The OBB.
-     * @param color The color.
+     * @param obj - The object to decorate.
+     * @param obb - The OBB.
+     * @param color - The color.
      * @example
      * // add an OBB to 'obj'
      * Helpers.addOBB(obj, obj.OBB, 'green');
@@ -285,10 +285,10 @@ class Helpers {
      * Creates a bounding volume helper to the 3D Tile object and returns it.
      * The bounding volume can contain a sphere, a region, or a box.
      *
-     * @param entity The entity.
-     * @param obj The object to decorate.
-     * @param metadata The tile metadata
-     * @param color The color.
+     * @param entity - The entity.
+     * @param obj - The object to decorate.
+     * @param metadata - The tile metadata
+     * @param color - The color.
      * @returns The helper object, or null if it could not be created.
      * @example
      * // add a bounding box to 'obj'
@@ -348,9 +348,9 @@ class Helpers {
     /**
      * Create a grid on the XZ plane.
      *
-     * @param origin The grid origin.
-     * @param size The size of the grid.
-     * @param subdivs The number of grid subdivisions.
+     * @param origin - The grid origin.
+     * @param size - The size of the grid.
+     * @param subdivs - The number of grid subdivisions.
      */
     static createGrid(origin: Vector3, size: number, subdivs: number) {
         const grid = new GridHelper(size, subdivs);
@@ -367,7 +367,7 @@ class Helpers {
     /**
      * Create an axis helper.
      *
-     * @param size The size of the helper.
+     * @param size - The size of the helper.
      */
     static createAxes(size: number) {
         const axes = new AxesHelper(size);
@@ -403,8 +403,8 @@ class Helpers {
     /**
      * Creates an arrow between the two points.
      *
-     * @param start The starting point.
-     * @param end The end point.
+     * @param start - The starting point.
+     * @param end - The end point.
      */
     static createArrow(start: Vector3, end: Vector3) {
         const length = start.distanceTo(end);
@@ -416,7 +416,7 @@ class Helpers {
     /**
      * Removes an existing bounding box from the object, if any.
      *
-     * @param obj The object to update.
+     * @param obj - The object to update.
      * @example
      * Helpers.removeBoundingBox(obj);
      */

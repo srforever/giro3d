@@ -86,7 +86,7 @@ class ComposerTileMaterial extends ShaderMaterial {
     /**
      * Creates an instance of ComposerTileMaterial.
      *
-     * @param options The options
+     * @param options - The options
      */
     constructor(options?: Options) {
         super({ glslVersion: GLSL3 });
@@ -150,7 +150,7 @@ class ComposerTileMaterial extends ShaderMaterial {
     /**
      * Acquires a pooled material.
      *
-     * @param opts The options.
+     * @param opts - The options.
      */
     static acquire(opts: Options) {
         if (POOL.length > 0) {
@@ -164,7 +164,7 @@ class ComposerTileMaterial extends ShaderMaterial {
     /**
      * Releases the material back into the pool.
      *
-     * @param material The material.
+     * @param material - The material.
      */
     static release(material: ComposerTileMaterial) {
         material.reset();

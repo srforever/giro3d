@@ -53,8 +53,8 @@ class Rect {
     }
 
     /**
-     * @param other The other rect.
-     * @param [epsilon] The comparison epsilon.
+     * @param other - The other rect.
+     * @param epsilon - The comparison epsilon.
      * @returns True if they are equal.
      */
     equals(other: Rect, epsilon: number = 0.0001) {
@@ -76,8 +76,8 @@ class Rect {
     /**
      * Returns the equivalent rectangle of `source` normalized over the dimensions of `dest`.
      *
-     * @param source The source rect.
-     * @param dest The destination rect.
+     * @param source - The source rect.
+     * @param dest - The destination rect.
      */
     static getNormalizedRect(source: Rect, dest: Rect) {
         const dstDim = { x: dest.width, y: dest.height };

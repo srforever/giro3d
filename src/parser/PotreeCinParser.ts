@@ -6,13 +6,11 @@ import {
 } from 'three';
 
 export default {
-    /** @module PotreeCinParser */
-
     /**
      * Parse .cin PotreeConverter format (see {@link https://github.com/peppsac/PotreeConverter/tree/custom_bin}) and convert to a BufferGeometry
      *
-     * @param buffer the cin buffer.
-     * @param pointAttributes the point attributes information contained in
+     * @param buffer - the cin buffer.
+     * @param pointAttributes - the point attributes information contained in
      * layer.metadata coming from cloud.js
      * @returns a promise that resolves with a BufferGeometry.
      */

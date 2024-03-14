@@ -35,10 +35,15 @@ const Y = 1;
 const Z = 2;
 
 export interface OlFeature2MeshOptions {
+    /** The offset to apply to each vertex */
     offset?: Vector3;
+    /** The elevation (per feature or per vertex, or a custom defined elevation via the callback) */
     elevation?: FeatureElevationCallback | number | Array<number>;
+    /** The extrusion offset(s) applied to extruded polygon. */
     extrusionOffset?: FeatureExtrusionOffsetCallback | number | Array<number>;
+    /** The feature style or style function */
     style?: FeatureStyle | FeatureStyleCallback;
+    /** Custom material to apply to meshes. */
     material?: Material;
 }
 
@@ -78,11 +83,11 @@ function prepareBufferGeometry(
  * - flatten the array while removing the last vertex of each rings
  * - builds the new hole indices taking into account vertex removals
  *
- * @param {number[][][]} coordinates The coordinate of the closed shape that form the roof.
- * @param {number} stride The stride in the coordinate array (2 for XY, 3 for XYZ)
- * @param offset The offset to apply to vertex positions.
+ * @param coordinates - The coordinate of the closed shape that form the roof.
+ * @param stride - The stride in the coordinate array (2 for XY, 3 for XYZ)
+ * @param offset - The offset to apply to vertex positions.
  * the first/last point
- * @param {number[]|number} elevation The elevation.
+ * @param elevation - The elevation.
  */
 function createFloorVertices(
     coordinates: Array<Array<Array<number>>>,
@@ -121,11 +126,11 @@ function createFloorVertices(
 /**
  * This methods creates vertex and faces for the walls
  *
- * @param {number[]} positions The array containing the positions of the vertices.
- * @param {number} start vertex in positions to start with
- * @param {end} end vertex in positions to end with
- * @param {number[]} indices The index array.
- * @param {number[]|number} extrusionOffset The extrusion distance.
+ * @param positions - The array containing the positions of the vertices.
+ * @param start - vertex in positions to start with
+ * @param end - vertex in positions to end with
+ * @param indices - The index array.
+ * @param extrusionOffset - The extrusion distance.
  */
 function createWallForRings(
     positions: Array<number>,
@@ -200,11 +205,10 @@ function createWallForRings(
  * NOTE: at the moment, this method must be executed before `createWallForRings`, because we copy
  * the indices array as it is.
  *
- * @param {number[]} positions a flat array of coordinates
- * @param {number} pointCount the number of points to read from position, starting with the first
- * vertex
- * @param {number[]} indices the indices to duplicate for the roof
- * @param {number | number[]} extrusionOffset how we extrusionOffset
+ * @param positions - a flat array of coordinates
+ * @param pointCount - the number of points to read from position, starting with the first vertex
+ * @param indices - the indices to duplicate for the roof
+ * @param extrusionOffset - the extrusion offset(s) to apply to the roof element.
  */
 function createRoof(
     positions: Array<number>,
@@ -456,20 +460,13 @@ function featureToMesh(feature: Feature, options: OlFeature2MeshOptions | {}): P
     return mesh;
 }
 
-/**
- * @module Feature2Mesh
- */
 export default {
     /**
      * Converts OpenLayers features to Meshes. Feature
      * collection will be converted to a Group.
      *
-     * @param features the ol features to convert
-     * @param options options controlling the conversion
-     * @param options.offset set offset to every vertices
-     * @param options.elevation set elevation for the feature or per vertex
-     * @param options.extrusionOffset set extrusion
-     * @param options.style how the feature should be styled
+     * @param features - the OpenLayers features to convert
+     * @param options - options controlling the conversion
      * @returns the meshes
      */
     convert(features: Feature[], options: OlFeature2MeshOptions | null) {

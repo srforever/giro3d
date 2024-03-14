@@ -14,7 +14,7 @@ import Entity3D from 'src/entities/Entity3D';
 /**
  * Creates a valid {@link Entity3D} for unit testing.
  *
- * @param obj3d an optional object3d to inject
+ * @param obj3d - an optional object3d to inject
  */
 function sut(obj3d: Object3D = undefined) {
     const id = 'foo';

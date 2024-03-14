@@ -157,12 +157,11 @@ export interface VectorTileSourceOptions extends ImageSourceOptions {
  *
  * @example
  * const apiKey = 'my api key';
- * const vectorTileSource = new VectorTileSource({
- *     url: `${'https://{a-d}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/'
- *         + '{z}/{x}/{y}.vector.pbf?access_token='}${apiKey}`,
+ * const vectorTileSource = new VectorTileSource(\{
+ *     url: `${'https://{a-d}.tiles.mapbox.com/v4/mapbox.mapbox-streets-v6/{z}/{x}/{y}.vector.pbf?access_token='}${apiKey}`,
  *     style: new Style(...), // Pass an OpenLayers style here
  *     backgroundColor: 'hsl(47, 26%, 88%)',
- * });
+ * \});
  */
 class VectorTileSource extends ImageSource {
     readonly isVectorTileSource: boolean = true;
@@ -176,7 +175,7 @@ class VectorTileSource extends ImageSource {
     private readonly _olUID = MathUtils.generateUUID();
 
     /**
-     * @param options Options.
+     * @param options - Options.
      */
     constructor(options: VectorTileSourceOptions) {
         super(options);
@@ -233,7 +232,7 @@ class VectorTileSource extends ImageSource {
     }
 
     /**
-     * @param tile The tile to render.
+     * @param tile - The tile to render.
      * @returns The canvas.
      */
     private rasterize(tile: VectorRenderTile) {
@@ -373,7 +372,7 @@ class VectorTileSource extends ImageSource {
     }
 
     /**
-     * @param tile The tile to load.
+     * @param tile - The tile to load.
      * @returns The promise containing the rasterized tile.
      */
     private loadTile(tile: VectorRenderTile): Promise<Texture> {
@@ -405,8 +404,8 @@ class VectorTileSource extends ImageSource {
     /**
      * Loads all tiles in the specified extent and zoom level.
      *
-     * @param extent The tile extent.
-     * @param zoom The zoom level.
+     * @param extent - The tile extent.
+     * @param zoom - The zoom level.
      * @returns The image requests.
      */
     private loadTiles(extent: Extent, zoom: number): Array<ImageResponse> {

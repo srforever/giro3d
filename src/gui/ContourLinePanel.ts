@@ -6,9 +6,9 @@ import type ContourLineOptions from '../core/ContourLineOptions';
 
 class ContourLinePanel extends Panel {
     /**
-     * @param options The options.
-     * @param parentGui Parent GUI
-     * @param instance The instance
+     * @param options - The options.
+     * @param parentGui - Parent GUI
+     * @param instance - The instance
      */
     constructor(options: ContourLineOptions, parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Contour lines');

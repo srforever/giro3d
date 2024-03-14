@@ -35,7 +35,7 @@ class OutlinerPropertyView extends Panel {
     }
 
     /**
-     * @param obj The object to update.
+     * @param obj - The object to update.
      */
     updateObject(obj: Object3D) {
         obj.updateMatrixWorld(true);

@@ -17,18 +17,18 @@ class ImageResult {
     min: number;
     max: number;
     /**
-     * @param options options
-     * @param options.id The unique identifier of this result.
-     * @param options.texture The texture.
-     * @param options.extent The extent.
-     * @param options.min The minimum value of this image (if applicable).
-     * @param options.max The maximum value of this image (if applicable).
+     * @param options - options
      */
     constructor(options: {
+        /** The unique identifier of this result. */
         id: string;
+        /** The texture */
         texture: Texture;
+        /** The extent */
         extent: Extent;
+        /** The minimum value of this image (if applicable). */
         min?: number;
+        /** The maximum value of this image (if applicable). */
         max?: number;
     }) {
         this.id = options.id;
@@ -42,11 +42,17 @@ class ImageResult {
 export type CustomContainsFn = (extent: Extent) => boolean;
 
 export interface GetImageOptions {
-    extent: Extent;
-    width: number;
+    /** The identifier of the node that emitted the request. */
     id: string;
+    /** The extent of the request area. */
+    extent: Extent;
+    /** The pixel width of the request area. */
+    width: number;
+    /** The pixel height of the request area. */
     height: number;
+    /** If `true`, the generated textures must be readable (i.e `DataTextures`). */
     createReadableTextures: boolean;
+    /** The optional abort signal. */
     signal?: AbortSignal;
 }
 
@@ -107,7 +113,7 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
     readonly containsFn: CustomContainsFn;
 
     /**
-     * @param options Options.
+     * @param options - Options.
      */
     constructor(options: ImageSourceOptions = {}) {
         super();
@@ -144,10 +150,10 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
      * Returns an adjusted extent, width and height so that request pixels are aligned with source
      * pixels, and requests do not oversample the source.
      *
-     * @param requestExtent The request extent.
-     * @param requestWidth The width, in pixels, of the request extent.
-     * @param requestHeight The height, in pixels, of the request extent.
-     * @param margin The margin, in pixels, around the initial extent.
+     * @param requestExtent - The request extent.
+     * @param requestWidth - The width, in pixels, of the request extent.
+     * @param requestHeight - The height, in pixels, of the request extent.
+     * @param margin - The margin, in pixels, around the initial extent.
      * @returns The adjusted parameters.
      */
     // eslint-disable-next-line class-methods-use-this
@@ -189,12 +195,12 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
     /**
      * Gets whether this source contains the specified extent. If a custom contains function
      * is provided, it will be used. Otherwise,
-     * {@link intersects intersects()} is used.
+     * {@link intersects} is used.
      *
      * This method is mainly used to discard non-relevant requests (i.e don't process regions
      * that are not relevant to this source).
      *
-     * @param extent The extent to test.
+     * @param extent - The extent to test.
      */
     contains(extent: Extent) {
         const convertedExtent = extent.clone().as(this.getCrs());
@@ -210,7 +216,7 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
      * Test the intersection between the specified extent and this source's extent.
      * This method may be overriden to perform special logic.
      *
-     * @param extent The extent to test.
+     * @param extent - The extent to test.
      * @returns `true` if the extent and this source extent intersects, `false` otherwise.
      */
     intersects(extent: Extent): boolean {
@@ -225,29 +231,23 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
     /**
      * Initializes the source.
      *
-     * @param options Options.
-     * @param options.targetProjection The target projection. Only useful for sources
-     * that are able to reproject their data on the fly (typically vector sources).
+     * @param options - Options.
      * @returns A promise that resolves when the source is initialized.
      */
     // eslint-disable-next-line max-len
     // eslint-disable-next-line class-methods-use-this, no-unused-vars, @typescript-eslint/no-unused-vars
-    initialize(options: { targetProjection: string; }): Promise<void> {
+    initialize(options: {
+        /** The target projection. Only useful for sources that are able
+         * to reproject their data on the fly (typically vector sources). */
+        targetProjection: string;
+    }): Promise<void> {
         return Promise.resolve();
     }
 
-    // eslint-disable-next-line jsdoc/require-returns-check
     /**
      * Gets the images for the specified extent and pixel size.
      *
-     * @param options The options.
-     * @param options.extent The extent of the request area.
-     * @param options.width The pixel width of the request area.
-     * @param options.id The identifier of the node that emitted the request.
-     * @param options.height The pixel height of the request area.
-     * @param options.createReadableTextures If `true`, the generated textures must
-     * be readable (i.e `DataTextures`).
-     * @param options.signal The optional abort signal.
+     * @param options - The options.
      * @returns An array containing the functions to generate the images asynchronously.
      */
     // eslint-disable-next-line class-methods-use-this, no-unused-vars

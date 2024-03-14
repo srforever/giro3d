@@ -1,7 +1,7 @@
 /**
  * Given a simple GeoJSON Geometry object, returns the flat coordinates
  *
- * @param geojson GeoJSON geometry object
+ * @param geojson - GeoJSON geometry object
  * @returns Flat coordinates
  */
 function toFlatCoordinates(geojson: GeoJSON.Geometry): number[] {
@@ -12,8 +12,8 @@ function toFlatCoordinates(geojson: GeoJSON.Geometry): number[] {
 /**
  * Creates a simple GeoJSON Geometry object from a list of 3D coordinates.
  *
- * @param flat3Coords Coordinates
- * @param geometryType Geometry type
+ * @param flat3Coords - Coordinates
+ * @param geometryType - Geometry type
  * @returns GeoJSON geometry object
  */
 function fromFlat3Coordinates(
@@ -55,8 +55,8 @@ function fromFlat3Coordinates(
  *
  * Prefer `fromFlat3Coordinates` if possible (quicker, no object creation).
  *
- * @param flatCoords Coordinates
- * @param geometryType Geometry type
+ * @param flatCoords - Coordinates
+ * @param geometryType - Geometry type
  * @returns GeoJSON geometry object
  */
 function fromFlatCoordinates(

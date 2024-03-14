@@ -16,8 +16,8 @@ class InstanceInspector extends Panel {
     clearAlpha: number;
 
     /**
-     * @param gui The GUI.
-     * @param instance The Giro3D instance.
+     * @param gui - The GUI.
+     * @param instance - The Giro3D instance.
      */
     constructor(gui: GUI, instance: Instance) {
         super(gui, instance, 'Instance');

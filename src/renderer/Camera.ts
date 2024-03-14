@@ -41,10 +41,10 @@ export interface CameraOptions {
 /**
  * Adds geospatial capabilities to three.js cameras.
  *
- * @param crs the CRS of this camera
- * @param width the width in pixels of the camera viewport
- * @param height the height in pixels of the camera viewport
- * @param options optional values
+ * @param crs - the CRS of this camera
+ * @param width - the width in pixels of the camera viewport
+ * @param height - the height in pixels of the camera viewport
+ * @param options - optional values
  */
 class Camera {
     private _crs: string;
@@ -120,7 +120,7 @@ class Camera {
     /**
      * Return the position in the requested CRS, or in camera's CRS if undefined.
      *
-     * @param crs if defined (e.g 'EPSG:4236') the camera position will be
+     * @param crs - if defined (e.g 'EPSG:4236') the camera position will be
      * returned in this CRS
      * @returns Coordinates object holding camera's position
      */

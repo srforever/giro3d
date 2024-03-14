@@ -19,7 +19,7 @@ export interface DrawingPickResult extends PickResult {
 /**
  * Tests whether an object implements {@link DrawingPickResult}.
  *
- * @param obj Object
+ * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
 export const isDrawingPickResult = (obj: any): obj is DrawingPickResult => obj.isDrawingPickResult;
@@ -36,7 +36,7 @@ export interface DrawingCollectionEventMap extends Entity3DEventMap {
 }
 
 /**
- * Entity for holding {@link Drawing shapes} compatible with the {@link interactions.DrawTool}.
+ * Entity for holding {@link Drawing} compatible with the {@link DrawTool}.
  *
  * It simplifies managing such drawings, especially with picking.
  */
@@ -55,8 +55,8 @@ class DrawingCollection
     /**
      * Construct a `DrawingCollection`.
      *
-     * @param id The unique identifier of this DrawingCollection
-     * @param drawings An optional list of objects to add to the collection
+     * @param id - The unique identifier of this DrawingCollection
+     * @param drawings - An optional list of objects to add to the collection
      */
     constructor(id?: string, drawings: Drawing[] = []) {
         super(id ?? MathUtils.generateUUID(), new Group());
@@ -79,7 +79,7 @@ class DrawingCollection
      *
      * A drawing can only be in one collection at a time.
      *
-     * @param drawing Object to add
+     * @param drawing - Object to add
      */
     add(drawing: Drawing) {
         this.object3d.add(drawing);
@@ -91,7 +91,7 @@ class DrawingCollection
     /**
      * Removes a drawing from this collection.
      *
-     * @param drawing Object to remove
+     * @param drawing - Object to remove
      */
     remove(drawing: Drawing) {
         this.object3d.remove(drawing);
@@ -115,8 +115,8 @@ class DrawingCollection
      * - have `pointerEvents` to `none`,
      * - fill more or less their bounding box
      *
-     * @param canvasCoords Coordinates on the rendering canvas
-     * @param options Options
+     * @param canvasCoords - Coordinates on the rendering canvas
+     * @param options - Options
      * @returns Picked drawings (if any)
      */
     pick(canvasCoords: Vector2, options?: PickOptions): DrawingPickResult[] {

@@ -11,7 +11,7 @@ export const UNIT = {
 /**
  * Returns the enum value of the specified unit of measure
  *
- * @param projunit the proj4 UoM string
+ * @param projunit - - the proj4 UoM string
  * @returns the unit of measure (see `UNIT`)
  */
 function unitFromProj4Unit(projunit: string) {
@@ -32,7 +32,7 @@ function unitFromProj4Unit(projunit: string) {
 /**
  * Returns the unit of measure (UoM) of the specified CRS
  *
- * @param crs the CRS to test
+ * @param crs - the CRS to test
  * @returns the unit of measure (see `UNIT`)
  */
 export function crsToUnit(crs: string) {
@@ -66,7 +66,7 @@ export function assertCrsIsValid(crs: string) {
 /**
  * Tests whether the CRS is in geographic coordinates.
  *
- * @param crs the CRS to test
+ * @param crs - the CRS to test
  * @returns `true` if the CRS is in geographic coordinates.
  */
 export function crsIsGeographic(crs: string) {
@@ -76,7 +76,7 @@ export function crsIsGeographic(crs: string) {
 /**
  * Tests whether the CRS is in geocentric coordinates.
  *
- * @param crs the CRS to test
+ * @param crs - the CRS to test
  * @returns `true` if the CRS is in geocentric coordinates.
  */
 export function crsIsGeocentric(crs: string) {
@@ -131,14 +131,15 @@ class Coordinates {
      * - If `crs` is `'EPSG:4326'`, coordinates must be in [geographic system](https://en.wikipedia.org/wiki/Geographic_coordinate_system).
      * - If `crs` is `'EPSG:4978'`, coordinates must be in [geocentric system](https://en.wikipedia.org/wiki/Earth-centered,_Earth-fixed_coordinate_system).
      *
-     * @param       crs Geographic or Geocentric coordinates system.
-     * @param       coordinates The coordinates.
-     * @example
+     * @param crs - Geographic or Geocentric coordinates system.
+     * @param coordinates - The coordinates.
+     * ```js
      * new Coordinates('EPSG:4978', 20885167, 849862, 23385912); //Geocentric coordinates
      * // or
      * new Coordinates('EPSG:4978', new Vector3(20885167, 849862, 23385912)) // Same with a vector.
      * // or
      * new Coordinates('EPSG:4326', 2.33, 48.24, 24999549); //Geographic coordinates
+     * ```
      */
     constructor(crs: string, ...coordinates: Input) {
         this._values = new Float64Array(3);
@@ -202,9 +203,9 @@ class Coordinates {
     /**
      * Returns the longitude in geographic coordinates.
      * Coordinates must be in geographic system (can be
-     * converted by using {@linkcode module:Core/geographic/Coordinates~Coordinates#as as()} ).
+     * converted by using {@link as} ).
      *
-     * @example
+     * ```js
      * const position = { longitude: 2.33, latitude: 48.24, altitude: 24999549 };
      * const coordinates = new Coordinates(
      *   'EPSG:4326', position.longitude, position.latitude, position.altitude); // Geographic
@@ -219,6 +220,7 @@ class Coordinates {
      * const coordinates = coords.as('EPSG:4326');  // Geographic system
      * coordinates.longitude; // Longitude in geographic system
      * // returns 2.330201911389028
+     * ```
      * @returns The longitude of the position.
      */
     get longitude() {
@@ -228,11 +230,9 @@ class Coordinates {
 
     /**
      * Returns the latitude in geographic coordinates.
-     * Coordinates must be in geographic system (can be
-     * converted by using {@linkcode module:Core/geographic/Coordinates~Coordinates#as as()} ).
+     * Coordinates must be in geographic system (can be converted by using {@link as}).
      *
-     * @example
-     *
+     * ```js
      * const position = { longitude: 2.33, latitude: 48.24, altitude: 24999549 };
      * const coordinates = new Coordinates(
      *     'EPSG:4326', position.longitude, position.latitude, position.altitude); // Geographic
@@ -247,6 +247,7 @@ class Coordinates {
      * const coordinates = coords.as('EPSG:4326');  // Geographic system
      * coordinates.latitude; // Latitude in geographic system
      * // returns : 48.24830764643365
+     * ```
      * @returns The latitude of the position.
      */
     get latitude() {
@@ -256,11 +257,9 @@ class Coordinates {
 
     /**
      * Returns the altitude in geographic coordinates.
-     * Coordinates must be in geographic system(can be converted by using
-     * {@linkcode module:Core/geographic/Coordinates~Coordinates#as as()} ).
+     * Coordinates must be in geographic system (can be converted by using {@link as}).
      *
-     * @example
-     *
+     * ```js
      * const position = { longitude: 2.33, latitude: 48.24, altitude: 24999549 };
      * // Geographic system
      * const coordinates =
@@ -276,6 +275,7 @@ class Coordinates {
      * const coordinates = coords.as('EPSG:4326');  // Geographic system
      * coordinates.altitude(); // Altitude in geographic system
      * // returns : 24999548.046711832
+     * ```
      * @returns The altitude of the position.
      */
     altitude() {
@@ -286,9 +286,10 @@ class Coordinates {
     /**
      * Set the altitude.
      *
-     * @param altitude the new altitude.
-     * @example
+     * @param altitude - the new altitude.
+     * ```js
      * coordinates.setAltitude(10000)
+     * ```
      */
     setAltitude(altitude: number) {
         assertIsGeographic(this.crs);
@@ -298,10 +299,9 @@ class Coordinates {
     /**
      * Returns the `x` component of this coordinate in geocentric coordinates.
      * Coordinates must be in geocentric system (can be
-     * converted by using {@linkcode module:Core/geographic/Coordinates~Coordinates#as as()}).
+     * converted by using {@link as}).
      *
-     * @example
-     *
+     * ```js
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
      * coordinates.x;  // Geocentric system
@@ -316,6 +316,7 @@ class Coordinates {
      * const coordinates = coords.as('EPSG:4978'); // Geocentric system
      * coordinates.x; // Geocentric system
      * // returns : 20888561.0301258
+     * ```
      * @returns The `x` component of the position.
      */
     get x() {
@@ -326,13 +327,14 @@ class Coordinates {
     /**
      * Returns the `y` component of this coordinate in geocentric coordinates.
      * Coordinates must be in geocentric system (can be
-     * converted by using {@linkcode module:Core/geographic/Coordinates~Coordinates#as as()}).
+     * converted by using {@link as}).
      *
-     * @example
+     * ```js
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
      * coordinates.y;  // Geocentric system
      * // returns :  849862
+     * ```
      * @returns The `y` component of the position.
      */
     get y() {
@@ -343,13 +345,14 @@ class Coordinates {
     /**
      * Returns the `z` component of this coordinate in geocentric coordinates.
      * Coordinates must be in geocentric system (can be
-     * converted by using {@linkcode module:Core/geographic/Coordinates~Coordinates#as as()}).
+     * converted by using {@link as}).
      *
-     * @example
+     * ```js
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
      * coordinates.z;  // Geocentric system
      * // returns :  23385912
+     * ```
      * @returns The `z` component of the position.
      */
     get z() {
@@ -359,10 +362,9 @@ class Coordinates {
 
     /**
      * Returns the equivalent `Vector3` of this coordinate. Coordinates must be in geocentric system
-     * (can be converted by using {@link as as()}).
+     * (can be converted by using {@link as}).
      *
-     * @example
-     *
+     * ```js
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * // Geocentric system
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
@@ -384,7 +386,8 @@ class Coordinates {
      * // x: 20885167
      * // y: 849862
      * // z: 23385912
-     * @param target the geocentric coordinate
+     * ```
+     * @param target - the geocentric coordinate
      * @returns target position
      */
     toVector3(target?: Vector3): Vector3 {
@@ -396,10 +399,9 @@ class Coordinates {
 
     /**
      * Returns the equivalent `Vector2` of this coordinate. Coordinates must be in geocentric system
-     * (can be converted by using {@link as as()}). Note that the Z component (elevation) is lost.
+     * (can be converted by using {@link as}). Note that the Z component (elevation) is lost.
      *
-     * @example
-     *
+     * ```js     *
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * // Geocentric system
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
@@ -419,7 +421,8 @@ class Coordinates {
      * // returns : Vector2
      * // x: 20885167
      * // y: 849862
-     * @param target the geocentric coordinate
+     * ```
+     * @param target - the geocentric coordinate
      * @returns target position
      */
     toVector2(target?: Vector2): Vector2 {
@@ -435,15 +438,15 @@ class Coordinates {
      * If target is not specified, creates a new instance.
      * The original instance is never modified (except if you passed it as `target`).
      *
-     * @example
-     *
+     * ```js
      * const position = { longitude: 2.33, latitude: 48.24, altitude: 24999549 };
      * // Geographic system
      * const coords =
      *     new Coordinates('EPSG:4326', position.longitude, position.latitude, position.altitude);
      * const coordinates = coords.as('EPSG:4978'); // Geocentric system
-     * @param crs the [CRS](http://inspire.ec.europa.eu/theme/rs) EPSG string
-     * @param target the object that is returned
+     * ```
+     * @param crs - the [CRS](http://inspire.ec.europa.eu/theme/rs) EPSG string
+     * @param target - the object that is returned
      * @returns the converted coordinate
      */
     as(crs: string, target?: Coordinates) {
@@ -484,12 +487,13 @@ class Coordinates {
      * Returns the boolean result of the check if this coordinate is geographic (true)
      * or geocentric (false).
      *
-     * @example
+     * ```js
      * const position = { x: 20885167, y: 849862, z: 23385912 };
      * const coordinates = new Coordinates('EPSG:4978', position.x, position.y, position.z);
      * coordinates.isGeographic();  // Geocentric system
      * // returns :  false
-     * @returns If the coordinate is geographic.
+     * ```
+     * @returns `true` if the coordinate is geographic.
      */
     isGeographic() {
         return crsIsGeographic(this.crs);

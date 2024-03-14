@@ -59,16 +59,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
     /**
      * Creates an instance of TileMesh.
      *
-     * @param options Constructor options.
-     * @param options.geometryPool The geometry pool to use.
-     * @param options.material The tile material.
-     * @param options.extent The tile extent.
-     * @param options.segments The subdivisions.
-     * @param options.coord The tile coordinate.
-     * @param options.coord.level The tile depth level in the hierarchy.
-     * @param options.coord.x The tile X coordinate in the grid.
-     * @param options.coord.y The tile Y coordinate in the grid.
-     * @param options.textureSize The texture size.
+     * @param options - Constructor options.
      */
     constructor({
         geometryPool,
@@ -78,11 +69,17 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
         coord: { level, x = 0, y = 0 },
         textureSize,
     }: {
+        /** The geometry pool to use. */
         geometryPool: GeometryPool;
+        /** The tile material. */
         material: LayeredMaterial;
+        /** The tile extent. */
         extent: Extent;
+        /** The subdivisions. */
         segments: number;
+        /** The tile coordinate. */
         coord: { level: number; x: number; y: number; };
+        /** The texture size. */
         textureSize: Vector2;
     }) {
         super(makeGeometry(geometryPool, extent, segments, level), material);
@@ -137,8 +134,8 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
     }
 
     /**
-     * @param neighbour The neighbour.
-     * @param location Its location in the neighbour array.
+     * @param neighbour - The neighbour.
+     * @param location - Its location in the neighbour array.
      */
     private processNeighbour(neighbour: TileMesh, location: number) {
         const diff = neighbour.level - this.level;
@@ -160,7 +157,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
     }
 
     /**
-     * @param neighbours The neighbours.
+     * @param neighbours - The neighbours.
      */
     processNeighbours(neighbours: TileMesh[]) {
         for (let i = 0; i < neighbours.length; i++) {
@@ -194,7 +191,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
     }
 
     /**
-     * @param v The new opacity.
+     * @param v - The new opacity.
      */
     set opacity(v: number) {
         this.material.opacity = v;
@@ -211,7 +208,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
     /**
      * Updates the rendering state of the tile's material.
      *
-     * @param state The new rendering state.
+     * @param state - The new rendering state.
      */
     changeState(state: RenderingState) {
         this.material.changeState(state);
@@ -343,7 +340,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
      * Search for a common ancestor between this tile and another one. It goes
      * through parents on each side until one is found.
      *
-     * @param tile the tile to evaluate
+     * @param tile - the tile to evaluate
      * @returns the resulting common ancestor
      */
     findCommonAncestor(tile: TileMesh): TileMesh {

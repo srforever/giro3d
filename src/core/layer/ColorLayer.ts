@@ -27,10 +27,15 @@ import type ColorimetryOptions from '../ColorimetryOptions';
 import { defaultColorimetryOptions } from '../ColorimetryOptions';
 
 export interface ColorLayerEvents extends LayerEvents {
+    /** When the layer opacity changes */
     'opacity-property-changed': { opacity: number; };
+    /** When the layer brightness changes */
     'brightness-property-changed': { brightness: number; };
+    /** When the layer contrast changes */
     'contrast-property-changed': { contrast: number; };
+    /** When the layer saturation changes */
     'saturation-property-changed': { saturation: number; };
+    /** When the layer elevationRange property changes */
     'elevationRange-property-changed': { range: ElevationRange; };
 }
 
@@ -65,20 +70,7 @@ class ColorLayer<UserData = LayerUserData>
      * Creates a color layer.
      * See the example for more information on layer creation.
      *
-     * @param options The layer options.
-     * @param options.source The data source of this layer.
-     * @param options.interpretation How to interpret the
-     * values in the dataset.
-     * @param options.extent The geographic extent of the layer. If unspecified,
-     * the extent will be inherited from the source. Note: for performance reasons, it is highly
-     * recommended to specify an extent when the source is much bigger than the map(s) that host
-     * this layer, and when `preloadImages` is `true`. Note: this extent must be in the same CRS as
-     * the instance.
-     * @param options.showTileBorders If `true`, the borders of the source images
-     * will be shown. Useful for debugging rendering issues.
-     * @param options.elevationRange An optional elevation range to limit the
-     * display of this layer. This is only useful if there is an elevation layer on the map.
-     * @param options.preloadImages Enables or disable preloading of low resolution fallback images.
+     * @param options - The layer options.
      */
     constructor(options: ColorLayerOptions) {
         super(options);
@@ -96,8 +88,6 @@ class ColorLayer<UserData = LayerUserData>
 
     /**
      * Sets the elevation range of this layer. Setting it to null removes the elevation range.
-     *
-     *  @fires ColorLayer#elevationRange-property-changed
      */
     set elevationRange(range: ElevationRange | null) {
         this._elevationRange = range;
@@ -106,8 +96,6 @@ class ColorLayer<UserData = LayerUserData>
 
     /**
      * Gets or sets the opacity of this layer.
-     *
-     *  @fires ColorLayer#opacity-property-changed
      */
     get opacity() {
         return this._opacity;
@@ -129,8 +117,6 @@ class ColorLayer<UserData = LayerUserData>
 
     /**
      * Gets or sets the brightness of this layer.
-     *
-     *  @fires ColorLayer#brightness-property-changed
      */
     get brightness() {
         return this._colorimetry.brightness;
@@ -145,8 +131,6 @@ class ColorLayer<UserData = LayerUserData>
 
     /**
      * Gets or sets the contrast of this layer.
-     *
-     *  @fires ColorLayer#contrast-property-changed
      */
     get contrast() {
         return this._colorimetry.contrast;
@@ -161,8 +145,6 @@ class ColorLayer<UserData = LayerUserData>
 
     /**
      * Gets or sets the saturation of this layer.
-     *
-     *  @fires ColorLayer#saturation-property-changed
      */
     get saturation() {
         return this._colorimetry.saturation;
@@ -249,19 +231,21 @@ class ColorLayer<UserData = LayerUserData>
     /**
      * Returns all features at some coordinates, with an optional hit tolerance radius.
      *
-     * @param coordinate Coordinates
-     * @param options Options
-     * @param options.radius Radius in pixels.
-     * Pixels inside the radius around the given coordinates will be checked for features.
-     * @param options.xTileRes Tile resolution (m/px) - only required if radius is greater than 0
-     * @param options.yTileRes Tile resolution (m/px) - only required if radius is greater than 0
+     * @param coordinate - Coordinates
+     * @param options - Options
      * @returns Array of features at coordinates (can be empty)
      */
     getVectorFeaturesAtCoordinate(
         coordinate: Coordinates,
         options?: {
+            /**
+             * Radius in pixels.
+             * Pixels inside the radius around the given coordinates will be checked for features.
+             */
             radius?: number,
+            /** Tile resolution (m/px) - only required if radius is greater than 0 */
             xTileRes?: number,
+            /** Tile resolution (m/px) - only required if radius is greater than 0 */
             yTileRes?: number,
         },
     ): Feature[] {
@@ -326,7 +310,7 @@ class ColorLayer<UserData = LayerUserData>
      * Note that this returns an array of all features intersecting the given extent in random order
      * (so it may include features whose geometries do not intersect the extent).
      *
-     * @param extent Extent
+     * @param extent - Extent
      * @returns Array of features intersecting the extent (can be empty)
      */
     getVectorFeaturesInExtent(extent: Extent): Feature[] {

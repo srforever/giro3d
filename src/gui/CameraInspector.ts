@@ -10,8 +10,8 @@ class CameraInspector extends Panel {
     camera3D: PerspectiveCamera;
 
     /**
-     * @param gui The GUI.
-     * @param instance The Giro3D instance.
+     * @param gui - The GUI.
+     * @param instance - The Giro3D instance.
      */
     constructor(gui: GUI, instance: Instance) {
         super(gui, instance, 'Camera');

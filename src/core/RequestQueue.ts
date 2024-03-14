@@ -94,10 +94,12 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> implements Progre
     private _concurrentRequests: number;
 
     /**
-     * @param options Options.
-     * @param options.maxConcurrentRequests The maximum number of concurrent requests.
+     * @param options - Options.
      */
-    constructor(options: { maxConcurrentRequests?: number; } = {}) {
+    constructor(options: {
+        /** The maximum number of concurrent requests. */
+        maxConcurrentRequests?: number;
+    } = {}) {
         super();
         this._pendingIds = new Map();
         this._queue = new PriorityQueue(priorityFn, keyFn);
@@ -158,20 +160,20 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> implements Progre
      * Enqueues a request. If a request with the same id is currently in the queue, then returns
      * the promise associated with the existing request.
      *
-     * @param options Options.
-     * @param options.id The unique identifier of this request.
-     * @param options.request The request.
-     * @param options.shouldExecute The optional filter function used
-     * to discard a task: if the function returns `false`, the task is not executed.
-     * @param options.signal The abort signal.
-     * @param options.priority The priority of this request.
+     * @param options - Options.
      * @returns A promise that resolves when the requested is completed.
      */
     enqueue<T>(options: {
+        /** The unique identifier of this request. */
         id: string,
+        /** The request. */
         request: () => Promise<T>,
+        /** The abort signal. */
         signal?: AbortSignal,
+        /** The priority of this request. */
         priority?: number,
+        /** The optional predicate used to discard a task: if the function returns `false`,
+         * the task is not executed. */
         shouldExecute?: () => boolean,
     }): Promise<T> {
         const {

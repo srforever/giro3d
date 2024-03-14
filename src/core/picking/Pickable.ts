@@ -25,9 +25,9 @@ interface Pickable<
      *
      * Implementations **must** respect at least `limit` and `filter` options.
      *
-     * @param canvasCoords Coordinates on the rendering canvas
-     * @param options Options
-     * @param target Target to fill
+     * @param canvasCoords -Coordinates on the rendering canvas
+     * @param options - Options
+     * @param target - Target to fill
      * @returns Target
      */
     pick: (canvasCoords: Vector2, options?: TOptions) => TResult[];
@@ -36,7 +36,7 @@ interface Pickable<
 /**
  * Tests whether an object implements {@link Pickable}.
  *
- * @param obj Object
+ * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
 export const isPickable = (obj: any): obj is Pickable => obj.isPickable;

@@ -36,7 +36,7 @@ export interface Entity3DEventMap extends EntityEventMap {
 }
 
 /**
- * Base class for {@link entities.Entity entities} that display 3D objects.
+ * Base class for any {@link Entity} that displays 3D objects.
  *
  * Subclasses *must* call `onObjectCreated` when creating new Object3D, before adding them to the
  * scene
@@ -64,8 +64,8 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
     /**
      * Creates a Entity3D with the specified parameters.
      *
-     * @param id the unique identifier of this entity
-     * @param object3d the root Three.js of this entity
+     * @param id - the unique identifier of this entity
+     * @param object3d - the root Three.js of this entity
      */
     constructor(id: string, object3d: Object3D) {
         super(id);
@@ -105,8 +105,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
     /**
      * Gets or sets the visibility of this entity.
      * A non-visible entity will not be automatically updated.
-     *
-     * @fires Entity3D#visible-property-changed
      */
     get visible() {
         return this._visible;
@@ -122,8 +120,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
 
     /**
      * Gets or sets the render order of this entity.
-     *
-     * @fires Entity3D#renderOrder-property-changed
      */
     get renderOrder() {
         return this._renderOrder;
@@ -139,8 +135,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
 
     /**
      * Gets or sets the opacity of this entity.
-     *
-     * @fires Entity3D#opacity-property-changed
      */
     get opacity() {
         return this._opacity;
@@ -160,8 +154,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
      * Note: custom entities must ensure that the materials and shaders used do support
      * the [clipping plane feature](https://threejs.org/docs/index.html?q=materi#api/en/materials/Material.clippingPlanes) of three.js.
      * Refer to the three.js documentation for more information.
-     *
-     * @fires Entity3D#clippingPlanes-property-changed
      */
     get clippingPlanes() {
         return this._clippingPlanes;
@@ -225,7 +217,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
     /**
      * Returns true if this object belongs to this entity.
      *
-     * @param obj The object to test.
+     * @param obj - The object to test.
      */
     protected isOwned(obj: unknown) {
         if ((obj as Object3D).isObject3D) {
@@ -277,7 +269,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
      *
      * // Notify the parent class
      * this.onObjectCreated(obj);
-     * @param obj The object to prepare.
+     * @param obj - The object to prepare.
      */
     onObjectCreated(obj: Object3D) {
         // note: we use traverse() because the object might have its own sub-hierarchy as well.
@@ -305,7 +297,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
      * layer must provide a getObjectToUpdateForAttachedLayers function that returns the correct
      * object to update for attached layer from the objects returned by preUpdate.
      *
-     * @param obj the Mesh or the object containing a Mesh. These are the objects returned
+     * @param obj - the Mesh or the object containing a Mesh. These are the objects returned
      * by preUpdate or update.
      * @returns an object passed to the update function of attached layers.
      */
@@ -325,7 +317,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
      *
      * The object may be a component of the entity, or a 3D object.
      *
-     * @param obj The object to test.
+     * @param obj - The object to test.
      * @returns true if the entity contains the object.
      */
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
@@ -334,8 +326,8 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
     /**
      * Traverses all materials in the hierarchy of this entity.
      *
-     * @param callback The callback.
-     * @param root The traversal root. If undefined, the traversal starts at the root
+     * @param callback - The callback.
+     * @param root - The traversal root. If undefined, the traversal starts at the root
      * object of this entity.
      */
     traverseMaterials(callback: (arg0: Material) => void, root: Object3D = undefined) {
@@ -351,8 +343,8 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
     /**
      * Traverses all meshes in the hierarchy of this entity.
      *
-     * @param callback The callback.
-     * @param root The raversal root. If undefined, the traversal starts at the root
+     * @param callback - The callback.
+     * @param root - The raversal root. If undefined, the traversal starts at the root
      * object of this entity.
      */
     traverseMeshes(callback: (arg0: Mesh) => void, root: Object3D = undefined) {
@@ -370,8 +362,8 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
     /**
      * Traverses all objects in the hierarchy of this entity.
      *
-     * @param callback The callback.
-     * @param root The traversal root. If undefined, the traversal starts at the root
+     * @param callback - The callback.
+     * @param root - The traversal root. If undefined, the traversal starts at the root
      * object of this entity.
      */
     traverse(callback: (arg0: Object3D) => void, root: Object3D = undefined) {

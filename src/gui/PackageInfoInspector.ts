@@ -10,8 +10,8 @@ class PackageInfoInspector extends Panel {
     giro3dVersion: string;
 
     /**
-     * @param parentGui The parent GUI.
-     * @param instance The Giro3D instance.
+     * @param parentGui - The parent GUI.
+     * @param instance - The Giro3D instance.
      */
     constructor(parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Info');

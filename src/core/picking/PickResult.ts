@@ -42,7 +42,7 @@ export interface VectorPickFeature {
 /**
  * Tests whether an object implements {@link VectorPickFeature}.
  *
- * @param obj Object
+ * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
 export const isVectorPickFeature = (obj: any): obj is VectorPickFeature => obj.isVectorPickFeature;

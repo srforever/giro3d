@@ -6,9 +6,9 @@ import type HillshadingOptions from '../core/HillshadingOptions';
 
 class HillshadingPanel extends Panel {
     /**
-     * @param hillshading The options.
-     * @param parentGui Parent GUI
-     * @param instance The instance
+     * @param hillshading - The options.
+     * @param parentGui - Parent GUI
+     * @param instance - The instance
      */
     constructor(hillshading: HillshadingOptions, parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Hillshading');

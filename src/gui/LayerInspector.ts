@@ -13,7 +13,7 @@ import type { ColorLayer, ElevationLayer } from '../core/layer';
 import ColorimetryPanel from './ColorimetryPanel';
 
 /**
- * Inspector for a {@link module:Core/layer/Layer~Layer Layer}.
+ * Inspector for a {@link Layer}.
  *
  */
 class LayerInspector extends Panel {
@@ -35,10 +35,10 @@ class LayerInspector extends Panel {
     colorimetryPanel: ColorimetryPanel;
 
     /**
-     * @param gui The GUI.
-     * @param instance The Giro3D instance.
-     * @param map The map.
-     * @param layer The layer to inspect
+     * @param gui - The GUI.
+     * @param instance - The Giro3D instance.
+     * @param map - The map.
+     * @param layer - The layer to inspect
      */
     constructor(gui: GUI, instance: Instance, map: Map, layer: Layer) {
         super(gui, instance, `${layer.type} ('${layer.name ?? layer.id}')`);

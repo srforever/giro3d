@@ -23,10 +23,10 @@ function findEntityInParent(obj: Object3D): Entity3D | null {
 /**
  * Default picking object. Uses RayCaster
  *
- * @param instance Instance to pick from
- * @param canvasCoords Coordinates on the rendering canvas
- * @param object Object to pick from
- * @param options Options
+ * @param instance - Instance to pick from
+ * @param canvasCoords - Coordinates on the rendering canvas
+ * @param object - Object to pick from
+ * @param options - Options
  * @returns Array of picked objects
  */
 function pickObjectsAt(

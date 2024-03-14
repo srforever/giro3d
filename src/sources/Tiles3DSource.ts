@@ -8,8 +8,8 @@ class Tiles3DSource {
     readonly networkOptions: RequestInit;
 
     /**
-     * @param url The URL to the root tileset.
-     * @param networkOptions the network options.
+     * @param url - The URL to the root tileset.
+     * @param networkOptions - the network options.
      */
     constructor(url: string, networkOptions?: RequestInit) {
         this.url = url;

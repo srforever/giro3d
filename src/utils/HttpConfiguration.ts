@@ -3,7 +3,7 @@ class PrefixEntry {
     headers: Map<string, string>;
 
     /**
-     * @param urlPrefix The URL prefix for this host entry.
+     * @param urlPrefix - The URL prefix for this host entry.
      */
     constructor(urlPrefix: string) {
         this.urlPrefix = urlPrefix;
@@ -14,8 +14,8 @@ class PrefixEntry {
     /**
      * Sets a custom header applicable for URLs that match the prefix.
      *
-     * @param name The header name.
-     * @param value The header value.
+     * @param name - The header name.
+     * @param value - The header value.
      */
     setHeader(name: string, value: string) {
         this.headers.set(name, value);
@@ -27,33 +27,33 @@ const perHostProperties: Map<string, Array<PrefixEntry>> = new Map();
 /**
  * Update the request options with stored configuration applicable to this URL.
  *
- * @param url The URL.
- * @param options The request options.
+ * @param url - The URL.
+ * @param options - The request options.
  * @returns The updated options, if any. If no options object is passed, and no
  * configuration applies to this URL, then returns `undefined`.
  * @example
  * HttpConfiguration.setHeader('http://example.com', 'Foo', 'bar');
  *
- * const fetchOptions = {
+ * const fetchOptions = \{
  *  method: 'POST',
  *  body: 'whatever',
- *  headers: {
+ *  headers: \{
  *      Width: 200,
- *  }
- * };
+ *  \}
+ * \};
  *
  * // Let's update the options with headers applicable to 'http://example.com'
  * HttpConfiguration.applyConfiguration('http://example.com', fetchOptions);
  *
  * // now fetchOptions should be
- * // {
+ * // \{
  * //     method: 'POST',
  * //     body: 'whatever',
- * //     headers: {
+ * //     headers: \{
  * //         Width: 200,
  * //         Foo: 'bar',
- * //     }
- * // }
+ * //     \}
+ * // \}
  *
  * // We can now send our HTTP request with correct headers
  * fetch('http://example.com/index.html', fetchOptions);
@@ -100,9 +100,9 @@ function applyConfiguration(url: string, options?: RequestInit): RequestInit | u
  *
  * Note: The URL prefix must be a valid URL (e.g must contain a scheme and and host).
  *
- * @param urlPrefix The URL prefix.
- * @param name The header name.
- * @param value The header value.
+ * @param urlPrefix - The URL prefix.
+ * @param name - The header name.
+ * @param value - The header value.
  */
 function setHeader(urlPrefix: string, name: string, value: string) {
     const url = new URL(urlPrefix);
@@ -132,12 +132,12 @@ function setHeader(urlPrefix: string, name: string, value: string) {
  *
  * Note: this is a convenience function that calls {@link setHeader} internally:
  *
- *  ```js
- *  setHeader(urlPrefix, 'Authorization', value)
- *  ```
+ * ```js
+ * setHeader(urlPrefix, 'Authorization', value)
+ * ```
  *
- * @param urlPrefix The URL prefix.
- * @param value The header value
+ * @param urlPrefix - The URL prefix.
+ * @param value - The header value
  * @example
  * // We wish to set the Authorization header for the 'example.com'
  * // domain to 'Bearer TOPLEVEL', except for the resources under
@@ -150,9 +150,9 @@ function setHeader(urlPrefix: string, name: string, value: string) {
  * HttpConfiguration.setAuth('https://example.com/sub/resource', 'Bearer SUBRESOURCE');
  *
  * HttpConfiguration.applyConfiguration('https://example.com/index.html')
- * // -> { 'Authorization', 'Bearer TOPLEVEL' }
+ * // \{ 'Authorization', 'Bearer TOPLEVEL' \}
  * HttpConfiguration.applyConfiguration('https://example.com/sub/resource/index.html')
- * // -> { 'Authorization', 'Bearer SUBRESOURCE' }
+ * // \{ 'Authorization', 'Bearer SUBRESOURCE' \}
  */
 function setAuth(urlPrefix: string, value: string) {
     setHeader(urlPrefix, 'Authorization', value);
@@ -181,9 +181,9 @@ function clear() {
  * you must register the configuration twice, one for each scheme).
  *
  * Important: this module do _not_ automatically process outgoing HTTP requests. It is not a service
- * worker or a middleware. The {@link module:utils/Fetcher Fetcher} module automatically processes
- * the requests by querying configuration from this module, but if you can't or don't want to use
- * `Fetcher`, then you have to patch the request yourself (see the example below).
+ * worker or a middleware. The `Fetcher` module automatically processes the requests by querying
+ * configuration from this module, but if you can't or don't want to use `Fetcher`, then you have to
+ * patch the request yourself (see the example below).
  *
  * @example
  * // Set the `Accept-Language` header to `fr-CH` for all requests under `http://example.com`.

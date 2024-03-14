@@ -61,30 +61,6 @@ export type LayerCompareFn = (a: Layer, b: Layer) => number;
  */
 const MAX_SUPPORTED_ASPECT_RATIO = 10;
 
-/**
- * Fires when the layers are reordered.
- *
- * @event Map#layer-order-changed
- * @example
- * map.addEventListener('layer-order-changed', () => console.log('order changed!'));
- */
-
-/**
- * Fires when a layer is added to the map.
- *
- * @event Map#layer-added
- * @example
- * map.addEventListener('layer-added', () => console.log('layer added!'));
- */
-
-/**
- * Fires when a layer is removed from the map.
- *
- * @event Map#layer-removed
- * @example
- * map.addEventListener('layer-removed', () => console.log('layer removed!'));
- */
-
 const tmpVector = new Vector3();
 
 function getContourLineOptions(input: boolean | undefined | ContourLineOptions)
@@ -202,7 +178,7 @@ function selectBestSubdivisions(extent: Extent) {
  * Compute the best image size for tiles, taking into account the extent ratio.
  * In other words, rectangular tiles will have more pixels in their longest side.
  *
- * @param extent The map extent.
+ * @param extent - The map extent.
  */
 function computeImageSize(extent: Extent) {
     const baseSize = 256;
@@ -246,8 +222,11 @@ function getWidestDataType(layers: Layer[]): TextureDataType {
 }
 
 export interface MapEventMap extends Entity3DEventMap {
+    /** Fires when a the layer ordering changes. */
     'layer-order-changed': {};
+    /** Fires when a layer is added to the map. */
     'layer-added': { layer: Layer; };
+    /** Fires when a layer is removed from the map. */
     'layer-removed': { layer: Layer; };
 }
 
@@ -268,7 +247,7 @@ class Map<UserData = EntityUserData>
     private _colorAtlasDataType: TextureDataType = UnsignedByteType;
     private _imageSize: Vector2;
     private readonly _layers: Layer[] = [];
-    /** @ignore */
+    /** @internal */
     readonly level0Nodes: TileMesh[];
     private readonly _layerIndices: globalThis.Map<string, number>;
     private readonly _layerIds: Set<string> = new Set();
@@ -282,9 +261,9 @@ class Map<UserData = EntityUserData>
     readonly isPickableFeatures = true;
     readonly materialOptions: MaterialOptions;
     readonly showOutline: boolean;
-    /** @ignore */
+    /** @internal */
     readonly tileIndex: TileIndex;
-    /** @ignore */
+    /** @internal */
     sseScale: number;
 
     /**
@@ -297,38 +276,38 @@ class Map<UserData = EntityUserData>
     /**
      * Constructs a Map object.
      *
-     * @param id The unique identifier of the map.
-     * @param options Constructor options.
-     * @param options.extent The geographic extent of the map.
-     * @param options.maxSubdivisionLevel Maximum tile depth of the map.
+     * @param id - The unique identifier of the map.
+     * @param options - Constructor options.
+     * @param options -.extent The geographic extent of the map.
+     * @param options -.maxSubdivisionLevel Maximum tile depth of the map.
      * A value of `-1` does not limit the depth of the tile hierarchy.
-     * @param options.hillshading Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
+     * @param options -.hillshading Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
      * If `undefined` or `false`, hillshading is disabled.
      *
      * Note: hillshading has no effect if the map does not contain an elevation layer.
-     * @param options.contourLines Enables contour lines. If `undefined` or `false`, contour lines
+     * @param options -.contourLines Enables contour lines. If `undefined` or `false`, contour lines
      * are not displayed.
      *
      * Note: this option has no effect if the map does not contain an elevation layer.
-     * @param options.segments The number of geometry segments in each map tile.
+     * @param options -.segments The number of geometry segments in each map tile.
      * The higher the better. It *must* be power of two between `1` included and `256` included.
      * Note: the number of vertices per tile side is `segments` + 1.
-     * @param options.doubleSided If `true`, both sides of the map will be rendered, i.e when
+     * @param options -.doubleSided If `true`, both sides of the map will be rendered, i.e when
      * looking at the map from underneath.
-     * @param options.discardNoData If `true`, parts of the map that relate to no-data elevation
+     * @param options -.discardNoData If `true`, parts of the map that relate to no-data elevation
      * values are not displayed. Note: you should only set this value to `true` if
      * an elevation layer is present, otherwise the map will never be displayed.
-     * @param options.object3d The optional 3d object to use as the root object of this map.
+     * @param options -.object3d The optional 3d object to use as the root object of this map.
      * If none provided, a new one will be created.
-     * @param options.backgroundColor The color of the map when no color layers are present.
-     * @param options.backgroundOpacity The opacity of the map background.
+     * @param options -.backgroundColor The color of the map when no color layers are present.
+     * @param options -.backgroundOpacity The opacity of the map background.
      * Defaults is opaque (1).
-     * @param options.showOutline Show the map tiles' borders.
-     * @param options.elevationRange The optional elevation range of the map. The map will not be
+     * @param options -.showOutline Show the map tiles' borders.
+     * @param options -.elevationRange The optional elevation range of the map. The map will not be
      * rendered for elevations outside of this range.
      * Note: this feature is only useful if an elevation layer is added to this map.
-     * @param options.terrain Options for geometric terrain rendering.
-     * @param options.colorimetry The colorimetry for the whole map.
+     * @param options -.terrain Options for geometric terrain rendering.
+     * @param options -.colorimetry The colorimetry for the whole map.
      * Those are distinct from the individual layers' own colorimetry.
      */
     constructor(id: string, options: {
@@ -594,7 +573,7 @@ class Map<UserData = EntityUserData>
     /**
      * Sets the render state of the map.
      *
-     * @param state The new state.
+     * @param state - The new state.
      * @returns The function to revert to the previous state.
      */
     setRenderState(state: RenderingState) {
@@ -667,7 +646,7 @@ class Map<UserData = EntityUserData>
     /**
      * Sort the color layers according to the comparator function.
      *
-     * @param compareFn The comparator function.
+     * @param compareFn - The comparator function.
      */
     sortColorLayers(compareFn: LayerCompareFn) {
         if (compareFn == null) {
@@ -699,8 +678,8 @@ class Map<UserData = EntityUserData>
      *
      * Note: this only applies to color layers.
      *
-     * @param layer The layer to move.
-     * @throws {Error} If the layer is not present in the map.
+     * @param layer - The layer to move.
+     * @throws If the layer is not present in the map.
      * @example
      * map.addLayer(foo);
      * map.addLayer(bar);
@@ -729,10 +708,10 @@ class Map<UserData = EntityUserData>
     /**
      * Moves the specified layer after the other layer in the list.
      *
-     * @param {ColorLayer} layer The layer to move.
-     * @param {ColorLayer} target The target layer. If `null`, then the layer is put at the
+     * @param layer - The layer to move.
+     * @param target - The target layer. If `null`, then the layer is put at the
      * beginning of the layer list.
-     * @throws {Error} If the layer is not present in the map.
+     * @throws If the layer is not present in the map.
      * @example
      * map.addLayer(foo);
      * map.addLayer(bar);
@@ -766,8 +745,8 @@ class Map<UserData = EntityUserData>
      *
      * Note: this only applies to color layers.
      *
-     * @param layer The layer to move.
-     * @throws {Error} If the layer is not present in the map.
+     * @param layer - The layer to move.
+     * @throws If the layer is not present in the map.
      * @example
      * map.addLayer(foo);
      * map.addLayer(bar);
@@ -796,7 +775,7 @@ class Map<UserData = EntityUserData>
     /**
      * Returns the position of the layer in the layer list.
      *
-     * @param layer The layer to search.
+     * @param layer - The layer to search.
      * @returns The index of the layer.
      */
     getIndex(layer: Layer): number {
@@ -958,7 +937,7 @@ class Map<UserData = EntityUserData>
      * If the extent or the projection of the layer is not provided,
      * those values will be inherited from the map.
      *
-     * @param layer the layer to add
+     * @param layer - the layer to add
      * @returns a promise resolving when the layer is ready
      */
     async addLayer<TLayer extends Layer>(layer: TLayer): Promise<TLayer> {
@@ -1002,12 +981,14 @@ class Map<UserData = EntityUserData>
     /**
      * Removes a layer from the map.
      *
-     * @param {Layer} layer the layer to remove
-     * @param {object} [options] The options.
-     * @param {boolean} options.disposeLayer If `true`, the layer is also disposed.
-     * @returns {boolean} `true` if the layer was present, `false` otherwise.
+     * @param layer - the layer to remove
+     * @param options - The options.
+     * @returns `true` if the layer was present, `false` otherwise.
      */
-    removeLayer(layer: Layer, options: { disposeLayer?: boolean; } = {}): boolean {
+    removeLayer(layer: Layer, options: {
+        /** If `true`, the layer is also disposed. */
+        disposeLayer?: boolean;
+    } = {}): boolean {
         if (!layer) {
             return false;
         }
@@ -1045,7 +1026,7 @@ class Map<UserData = EntityUserData>
     /**
      * Gets all layers that satisfy the filter predicate.
      *
-     * @param predicate the optional predicate.
+     * @param predicate - the optional predicate.
      * @returns the layers that matched the predicate or all layers if no predicate was provided.
      */
     getLayers(predicate?: (arg0: Layer) => boolean) {
@@ -1082,8 +1063,8 @@ class Map<UserData = EntityUserData>
      * Note: By default, layers in this map are not automatically disposed, except when
      * `disposeLayers` is `true`.
      *
-     * @param options Options.
-     * @param options.disposeLayers If true, layers are also disposed.
+     * @param options - Options.
+     * @param options -.disposeLayers If true, layers are also disposed.
      */
     dispose(options: {
         disposeLayers?: boolean;
@@ -1141,7 +1122,7 @@ class Map<UserData = EntityUserData>
     /**
      * Applies the function to all tiles of this map.
      *
-     * @param fn The function to apply to each tile.
+     * @param fn - The function to apply to each tile.
      */
     _forEachTile(fn: (tile: TileMesh) => void) {
         for (const r of this.level0Nodes) {
@@ -1154,7 +1135,7 @@ class Map<UserData = EntityUserData>
     }
 
     /**
-     * @param node The node to subdivide.
+     * @param node - The node to subdivide.
      * @returns True if the node can be subdivided.
      */
     canSubdivide(node: TileMesh): boolean {

@@ -21,9 +21,7 @@ const _tempArray: Object3D[] = [];
  * In other words, objects can be safely added
  * to the hierarchy without causing infinite recursion.
  *
- * @param callback The callback to call for each visited object.
- * @name Object3D#traverseOnce
- * @memberof Object3D
+ * @param callback - The callback to call for each visited object.
  */
 // @ts-ignore
 Object3D.prototype.traverseOnce = function traverseOnce(callback: (obj: Object3D) => void) {
@@ -108,10 +106,6 @@ interface EntityInspectorOptions {
 /**
  * Base class for entity inspectors. To implement a custom inspector
  * for an entity type, you can inherit this class.
- *
- * @class EntityInspector
- * @augments {Panel}
- * @abstract
  */
 class EntityInspector extends Panel {
     /** The inspected entity. */
@@ -127,10 +121,10 @@ class EntityInspector extends Panel {
     clippingPlanePanel: ClippingPlanePanel;
 
     /**
-     * @param parentGui The parent GUI.
-     * @param instance The Giro3D instance.
-     * @param entity The entity to inspect.
-     * @param options The options.
+     * @param parentGui - The parent GUI.
+     * @param instance - The Giro3D instance.
+     * @param entity - The entity to inspect.
+     * @param options - The options.
      */
     constructor(
         parentGui: GUI,
@@ -207,7 +201,7 @@ class EntityInspector extends Panel {
      * You may override this method if the entity's visibility is not directly related
      * to its root object visibility.
      *
-     * @param visible The new visibility.
+     * @param visible - The new visibility.
      */
     toggleVisibility(visible: boolean) {
         this.entity.visible = visible;
@@ -218,7 +212,7 @@ class EntityInspector extends Panel {
      * Toggles the visibility of the bounding boxes.
      * You may override this method to use custom bounding boxes.
      *
-     * @param visible The new state.
+     * @param visible - The new state.
      */
     toggleBoundingBoxes(visible: boolean) {
         const color = new Color(this.boundingBoxColor);
@@ -230,9 +224,9 @@ class EntityInspector extends Panel {
     }
 
     /**
-     * @param obj The object to decorate.
-     * @param add If true, bounding box is added, otherwise it is removed.
-     * @param color The bounding box color.
+     * @param obj - The object to decorate.
+     * @param add - If true, bounding box is added, otherwise it is removed.
+     * @param color - The bounding box color.
      */
     // eslint-disable-next-line class-methods-use-this
     addOrRemoveBoundingBox(obj: Object3D, add: boolean, color: Color) {

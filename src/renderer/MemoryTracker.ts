@@ -26,7 +26,7 @@ let counter = 0;
  *
  * const allocated = MemoryTracker.getTrackedObjects();
  *
- * // allocated should be { Texture: [{ name: 'my tracked texture', value: texture]}
+ * // allocated should be \{ Texture: [\{ name: 'my tracked texture', value: texture]\}
  */
 class MemoryTracker {
     /**
@@ -48,8 +48,8 @@ class MemoryTracker {
     /**
      * Registers an object to the memory tracker.
      *
-     * @param obj The object to track.
-     * @param name The name of the tracked object. Does not have to be unique.
+     * @param obj - The object to track.
+     * @param name - The name of the tracked object. Does not have to be unique.
      */
     static track(obj: object, name: string) {
         if (enabled) {

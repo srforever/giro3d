@@ -21,13 +21,13 @@ interface PickOptions {
      * This is honored by all native Giro3D picking methods, but *may not* be
      * honored by customized picking methods.
      *
-     * @default 0
+     * @defaultValue 0
      */
     radius?: number;
     /**
      * Maximum number of objects to return.
      *
-     * @default Infinity
+     * @defaultValue Infinity
      */
     limit?: number;
     /** Filter on the picked results */

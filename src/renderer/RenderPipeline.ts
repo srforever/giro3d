@@ -35,8 +35,8 @@ const currentClearColor = new Color();
 const tmpColor = new Color();
 
 /**
- * @param meshes The meshes to update.
- * @param visible The new material visibility.
+ * @param meshes - The meshes to update.
+ * @param visible - The new material visibility.
  */
 function setVisibility(meshes: Object3DWithMaterial[], visible: boolean) {
     for (let i = 0; i < meshes.length; i++) {
@@ -69,7 +69,7 @@ export default class RenderPipeline {
     pointCloudRenderer?: PointCloudRenderer;
 
     /**
-     * @param renderer The WebGL renderer.
+     * @param renderer - The WebGL renderer.
      */
     constructor(renderer: WebGLRenderer) {
         this.renderer = renderer;
@@ -112,11 +112,11 @@ export default class RenderPipeline {
     }
 
     /**
-     * @param scene The scene to render.
-     * @param camera The camera to render.
-     * @param width The width in pixels of the render target.
-     * @param height The height in pixels of the render target.
-     * @param options The options.
+     * @param scene - The scene to render.
+     * @param camera - The camera to render.
+     * @param width - The width in pixels of the render target.
+     * @param height - The height in pixels of the render target.
+     * @param options - The options.
      */
     render(
         scene: Object3D,
@@ -155,10 +155,10 @@ export default class RenderPipeline {
     }
 
     /**
-     * @param scene The scene to render.
-     * @param camera The camera.
-     * @param meshes The meshes to render.
-     * @param opts The rendering options.
+     * @param scene - The scene to render.
+     * @param camera - The camera.
+     * @param meshes - The meshes to render.
+     * @param opts - The rendering options.
      */
     renderPointClouds(
         scene: Object3D,
@@ -192,9 +192,9 @@ export default class RenderPipeline {
     }
 
     /**
-     * @param scene The scene to render.
-     * @param camera The camera.
-     * @param meshes The meshes to render.
+     * @param scene - The scene to render.
+     * @param camera - The camera.
+     * @param meshes - The meshes to render.
      */
     renderMeshes(scene: Object3D, camera: Camera, meshes: Object3DWithMaterial[]) {
         if (meshes.length === 0) {
@@ -225,7 +225,7 @@ export default class RenderPipeline {
     }
 
     /**
-     * @param scene The root scene.
+     * @param scene - The root scene.
      */
     collectRenderBuckets(scene: Object3D) {
         const renderBuckets = this.buckets;

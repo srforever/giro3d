@@ -31,7 +31,7 @@ export interface MainLoopOptions {
  *
  * TODO: This is a mess and requires some clean-up.
  *
- * @ignore
+ * @internal
  */
 export interface ObjectToUpdate {
     element?: any,
@@ -100,7 +100,7 @@ class MainLoop {
     private _needsRedraw: boolean;
     private readonly _gfxEngine: C3DEngine;
     /**
-     * @deprecated - Use {@link Instance#engine Instance.engine}
+     * @deprecated Use {@link Instance.engine}
      */
     public get gfxEngine(): C3DEngine {
         return this._gfxEngine;

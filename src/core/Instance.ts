@@ -136,14 +136,14 @@ export interface PickObjectsAtOptions extends PickOptions {
      * This prevents the `limit` option to be fully used as it is applied after sorting,
      * thus it may be slow and is disabled by default.
      *
-     * @default false
+     * @defaultValue false
      */
     sortByDistance?: boolean,
     /**
      * Indicates if features information are also retrieved from the picked object.
      * On complex objects, this may be slow, and therefore is disabled by default.
      *
-     * @default false
+     * @defaultValue false
      */
     pickFeatures?: boolean;
 }
@@ -169,23 +169,24 @@ function isObject3D(o: unknown): o is Object3D {
 
 /**
  * The instance is the core component of Giro3D. It encapsulates the 3D scene,
- * the current camera and one or more {@link entities.Entity | entities},
- * such as a {@link entities.Map | Map}.
+ * the current camera and one or more {@link Entity},
+ * such as a {@link Map}.
  *
- *     // example of Giro3D instantiation
- *     const instance = new Instance(viewerDiv, { crs: extent.crs() });
- *     const map = new Map('myMap', null, extent, { maxSubdivisionLevel: 10 });
- *     instance.add(map);
+ * ```js
+ * // example of Giro3D instantiation
+ * const instance = new Instance(viewerDiv, { crs: extent.crs() });
+ * const map = new Map('myMap', null, extent, { maxSubdivisionLevel: 10 });
+ * instance.add(map);
  *
- *     // Bind an event listener on double click
- *     instance.domElement.addEventListener('dblclick', dblClickHandler);
+ * // Bind an event listener on double click
+ * instance.domElement.addEventListener('dblclick', dblClickHandler);
  *
- *     // Get the camera position
- *     const myvector = instance.camera.camera3D.position;
- *     // Set the camera position
- *     instance.camera.camera3D.position.set(newPosition);
- *     instance.camera.camera3D.lookAt(lookAt);
- *
+ * // Get the camera position
+ * const myvector = instance.camera.camera3D.position;
+ * // Set the camera position
+ * instance.camera.camera3D.position.set(newPosition);
+ * instance.camera.camera3D.lookAt(lookAt);
+ * ```
  */
 class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private readonly _referenceCrs: string;
@@ -206,15 +207,17 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     /**
      * Constructs a Giro3D Instance
      *
-     * @param viewerDiv Where to instanciate the Three.js scene in the DOM
-     * @param options Options
-     * @example
+     * @param viewerDiv - Where to instanciate the Three.js scene in the DOM
+     * @param options - Options
+     *
+     * ```js
      * const opts = {
      *  crs = exent.crs()
      * };
      * const instance = new Instance(viewerDiv, opts);
      * const map = new Map('myMap', null, extent, { maxSubdivisionLevel: 10 });
      * instance.add(map);
+     * ```
      */
     constructor(viewerDiv: HTMLDivElement, options: InstanceOptions) {
         super();
@@ -441,7 +444,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      *
      * // Add Map to instance then wait for the map to be ready.
      * instance.add(new Map('myMap', myMapExtent)).then(...);
-     * @param object the object to add
+     * @param object - the object to add
      * @returns a promise resolved with the new layer object when it is fully initialized
      * or rejected if any error occurred.
      */
@@ -493,7 +496,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     /**
      * Removes the entity or THREE object from the scene.
      *
-     * @param object the object to remove.
+     * @param object - the object to remove.
      */
     remove(object: Object3D | Entity): void {
         if (isEntity(object)) {
@@ -522,8 +525,8 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * scene itself (e.g. camera movement).
      * non-interactive events (e.g: texture loaded)
      *
-     * @param changeSource the source of the change
-     * @param needsRedraw indicates if notified change requires a full scene redraw.
+     * @param changeSource - the source of the change
+     * @param needsRedraw - indicates if notified change requires a full scene redraw.
      */
     notifyChange(changeSource: unknown = undefined, needsRedraw = true): void {
         this._mainLoop.scheduleUpdate(this, needsRedraw, changeSource);
@@ -544,8 +547,8 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      *  const instance = new Instance(div, { crs: 'EPSG:102115' });
      * ```
      *
-     * @param name the short name, or EPSG code to identify this CRS.
-     * @param value the CRS definition, either in proj syntax, or in WKT syntax.
+     * @param name - the short name, or EPSG code to identify this CRS.
+     * @param value - the CRS definition, either in proj syntax, or in WKT syntax.
      */
     static registerCRS(name: string, value: string): void {
         if (!name || name === '') {
@@ -565,12 +568,13 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * Get all top-level objects (entities and regular THREE objects), using an optional filter
      * predicate.
      *
-     * @example
+     * ```js
      * // get all objects
      * const allObjects = instance.getObjects();
      * // get all object whose name includes 'foo'
      * const fooObjects = instance.getObjects(obj => obj.name === 'foo');
-     * @param filter the optional filter predicate.
+     * ```
+     * @param filter - the optional filter predicate.
      * @returns an array containing the queried objects
      */
     getObjects(filter?: (obj: Object3D | Entity) => boolean): (Object3D | Entity)[] {
@@ -591,13 +595,14 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     /**
      * Get all entities, with an optional predicate applied.
      *
-     * @example
+     * ```js
      * // get all entities
      * const allEntities = instance.getEntities();
      *
      * // get all entities whose name contains 'building'
      * const buildings = instance.getEntities(entity => entity.name.includes('building'));
-     * @param filter the optional filter predicate
+     * ```
+     * @param filter - the optional filter predicate
      * @returns an array containing the queried entities
      */
     getEntities(filter?: (obj: Entity) => boolean): Entity[] {
@@ -616,7 +621,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * Executes the camera update.
      * Internal use only.
      *
-     * @ignore
+     * @internal
      */
     execCameraUpdate() {
         const dim = this._engine.getWindowSize();
@@ -627,7 +632,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * Executes the rendering.
      * Internal use only.
      *
-     * @ignore
+     * @internal
      */
     render() {
         this._engine.render(this._scene, this._camera.camera3D);
@@ -636,9 +641,9 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     /**
      * Extract canvas coordinates from a mouse-event / touch-event.
      *
-     * @param event event can be a MouseEvent or a TouchEvent
-     * @param target The target to set with the result.
-     * @param touchIdx finger index when using a TouchEvent (default: 0)
+     * @param event - event can be a MouseEvent or a TouchEvent
+     * @param target - The target to set with the result.
+     * @param touchIdx - Touch index when using a TouchEvent (default: 0)
      * @returns canvas coordinates (in pixels, 0-0 = top-left of the instance)
      */
     eventToCanvasCoords(event: MouseEvent | TouchEvent, target: Vector2, touchIdx = 0): Vector2 {
@@ -667,9 +672,9 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     /**
      * Extract normalized coordinates (NDC) from a mouse-event / touch-event.
      *
-     * @param event event can be a MouseEvent or a TouchEvent
-     * @param target The target to set with the result.
-     * @param touchIdx finger index when using a TouchEvent (default: 0)
+     * @param event - event can be a MouseEvent or a TouchEvent
+     * @param target - The target to set with the result.
+     * @param touchIdx - Touch index when using a TouchEvent (default: 0)
      * @returns NDC coordinates (x and y are [-1, 1])
      */
     eventToNormalizedCoords(
@@ -686,8 +691,8 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     /**
      * Convert canvas coordinates to normalized device coordinates (NDC).
      *
-     * @param canvasCoords (in pixels, 0-0 = top-left of the instance)
-     * @param target The target to set with the result.
+     * @param canvasCoords - (in pixels, 0-0 = top-left of the instance)
+     * @param target - The target to set with the result.
      * @returns NDC coordinates (x and y are [-1, 1])
      */
     canvasToNormalizedCoords(canvasCoords: Vector2, target: Vector2): Vector2 {
@@ -699,8 +704,8 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     /**
      * Convert NDC coordinates to canvas coordinates.
      *
-     * @param ndcCoords the NDC coordinates to convert
-     * @param target The target to set with the result.
+     * @param ndcCoords - The NDC coordinates to convert
+     * @param target - The target to set with the result.
      * @returns canvas coordinates (in pixels, 0-0 = top-left of the instance)
      */
     normalizedToCanvasCoords(ndcCoords: Vector2, target: Vector2): Vector2 {
@@ -712,7 +717,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     /**
      * Gets the object by it's id property.
      *
-     * @param objectId Object id
+     * @param objectId - Object id
      * @returns Object found
      * @throws Error if object cannot be found
      */
@@ -727,18 +732,19 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     /**
      * Return objects from some layers/objects3d under the mouse in this instance.
      *
-     * @param mouseOrEvt mouse position in window coordinates, i.e [0, 0] = top-left,
+     * @param mouseOrEvt - mouse position in window coordinates, i.e [0, 0] = top-left,
      * or `MouseEvent` or `TouchEvent`
-     * @param options Options
+     * @param options - Options
      * @returns An array of objects. Each element contains at least an object
      * property which is the Object3D under the cursor. Then depending on the queried
      * layer/source, there may be additionnal properties (coming from THREE.Raycaster
      * for instance).
      * If `options.pickFeatures` if `true`, `features` property may be set.
-     * @example
+     * ```js
      * instance.pickObjectsAt({ x, y })
      * instance.pickObjectsAt({ x, y }, { radius: 1, where: ['wfsBuilding'] })
      * instance.pickObjectsAt({ x, y }, { radius: 3, where: ['wfsBuilding', myLayer] })
+     * ```
      */
     pickObjectsAt(
         mouseOrEvt: Vector2 | MouseEvent | TouchEvent,
@@ -816,7 +822,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     /**
      * Moves the camera to look at an object.
      *
-     * @param obj Object to look at
+     * @param obj - Object to look at
      */
     focusObject(obj: Object3D | Entity3D) {
         const cam = this._camera.camera3D;
@@ -855,7 +861,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * - they fire 'change' events when something happens
      * - they have an `update` method
      *
-     * @param controls An instance of a THREE controls
+     * @param controls - An instance of a THREE controls
      */
     useTHREEControls(controls: ThreeControls): void {
         if (this.controls) {

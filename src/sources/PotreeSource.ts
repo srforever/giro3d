@@ -11,9 +11,9 @@ class PotreeSource {
     /**
      * Creates an instance of PotreeSource.
      *
-     * @param url The URL to the dataset.
-     * @param filename The filename of the dataset.
-     * @param networkOptions The network options.
+     * @param url - The URL to the dataset.
+     * @param filename - The filename of the dataset.
+     * @param networkOptions - The network options.
      */
     constructor(url: string, filename: string = 'cloud.js', networkOptions: object = {}) {
         if (!url) {

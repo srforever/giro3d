@@ -26,7 +26,7 @@ interface Filter {
 /**
  * Returns the colors associated with the THREE object type.
  *
- * @param obj the THREE object
+ * @param obj - the THREE object
  * @returns the object containing foreground and background colors
  */
 function selectColor(obj: OutlinedObject3D): { back: string, fore: string } {
@@ -85,9 +85,9 @@ function createTreeViewNode(obj: OutlinedObject3D, marginLeft: number, clickHand
 /**
  * Creates a treeview node for the specified object and its children.
  *
- * @param obj the THREE object.
- * @param clickHandler the function to call when a node is clicked.
- * @param level the hierarchy level
+ * @param obj - the THREE object.
+ * @param clickHandler - the function to call when a node is clicked.
+ * @param level - the hierarchy level
  */
 function createTreeViewNodeWithDescendants(
     obj: OutlinedObject3D,
@@ -142,8 +142,8 @@ function shouldBeDisplayedInTree(obj: OutlinedObject3D, filter: Filter) {
 }
 
 /**
- * @param obj the object to process
- * @param filter the search filter
+ * @param obj - the object to process
+ * @param filter - the search filter
  */
 function applySearchFilter(obj: OutlinedObject3D, filter: Filter) {
     if (shouldBeDisplayedInTree(obj, filter)) {
@@ -170,8 +170,8 @@ class Outliner extends Panel {
     selectionHelper?: BoundingBoxHelper;
 
     /**
-     * @param gui The GUI.
-     * @param instance The Giro3D instance.
+     * @param gui - The GUI.
+     * @param instance - The Giro3D instance.
      */
     constructor(gui: GUI, instance: Instance) {
         super(gui, instance, 'Outliner');
@@ -229,7 +229,7 @@ class Outliner extends Panel {
     /**
      * Selects the object by displaying a bright bounding box around it.
      *
-     * @param obj The object to select.
+     * @param obj - The object to select.
      */
     select(obj: OutlinedObject3D) {
         this.clearSelection();
