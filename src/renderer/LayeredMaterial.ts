@@ -9,12 +9,15 @@ import {
     FrontSide,
     NormalBlending,
     NoBlending,
-    type WebGLRenderer,
     Vector3,
     GLSL3,
     RGBAFormat,
-    type TextureDataType,
     UnsignedByteType,
+} from 'three';
+import type {
+    IUniform,
+    WebGLRenderer,
+    TextureDataType,
 } from 'three';
 import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
@@ -37,6 +40,8 @@ import type Extent from '../core/geographic/Extent';
 import type ColorMapAtlas from './ColorMapAtlas';
 import type { AtlasInfo, LayerAtlasInfo } from './AtlasBuilder';
 import TextureGenerator from '../utils/TextureGenerator';
+import type { MaskMode } from '../core/layer/MaskLayer';
+import type { ColorMapMode } from '../core/layer';
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -90,6 +95,7 @@ class TextureInfo {
 }
 
 export const DEFAULT_HILLSHADING_INTENSITY = 1;
+export const DEFAULT_HILLSHADING_ZFACTOR = 1;
 export const DEFAULT_AZIMUTH = 135;
 export const DEFAULT_ZENITH = 45;
 
@@ -181,6 +187,77 @@ export interface MaterialOptions {
     backgroundOpacity?: number;
 }
 
+type HillshadingUniform = {
+    intensity: number;
+    zFactor: number;
+    zenith: number;
+    azimuth: number;
+};
+
+type ContourLineUniform = {
+    thickness: number;
+    primaryInterval: number;
+    secondaryInterval: number;
+    color: Vector4;
+};
+
+type LayerUniform = {
+    offsetScale: Vector4;
+    color: Vector4;
+    textureSize: Vector2;
+    elevationRange: Vector2;
+    mode: 0 | MaskMode;
+    brightnessContrastSaturation: Vector3;
+};
+
+type NeighbourUniform = {
+    offsetScale: Vector4;
+    diffLevel: number;
+    elevationTexture: Texture;
+};
+
+type ColorMapUniform = {
+    mode: ColorMapMode | 0;
+    min: number;
+    max: number;
+    offset: number;
+};
+
+type Defines = {
+    ENABLE_CONTOUR_LINES?: 1;
+    STITCHING?: 1;
+    TERRAIN_DEFORMATION?: 1;
+    DISCARD_NODATA_ELEVATION?: 1;
+    ENABLE_ELEVATION_RANGE?: 1;
+    ELEVATION_LAYER?: 1;
+    ENABLE_LAYER_MASKS?: 1;
+    ENABLE_OUTLINES?: 1;
+    ENABLE_HILLSHADING?: 1;
+    APPLY_SHADING_ON_COLORLAYERS?: 1;
+    COLOR_LAYERS: number;
+};
+
+interface Uniforms {
+    opacity: IUniform<number>;
+    segments: IUniform<number>;
+    contourLines: IUniform<ContourLineUniform>;
+    hillshading: IUniform<HillshadingUniform>;
+    elevationRange: IUniform<Vector2>;
+    tileDimensions: IUniform<Vector2>;
+    elevationTexture: IUniform<Texture>;
+    colorTexture: IUniform<Texture>;
+    uuid: IUniform<number>;
+    backgroundColor: IUniform<Vector4>;
+    layers: IUniform<LayerUniform[]>;
+    elevationLayer: IUniform<LayerUniform>;
+    brightnessContrastSaturation: IUniform<Vector3>;
+    renderingState: IUniform<RenderingState>;
+    neighbours: IUniform<NeighbourUniform[]>;
+    colorMapAtlas: IUniform<Texture>;
+    layersColorMaps: IUniform<ColorMapUniform[]>;
+    elevationColorMap: IUniform<ColorMapUniform>;
+}
+
 class LayeredMaterial extends ShaderMaterial {
     private readonly _getIndexFn: (arg0: Layer) => number;
     private readonly _renderer: WebGLRenderer;
@@ -205,6 +282,11 @@ class LayeredMaterial extends ShaderMaterial {
     private _composer: WebGLComposer;
     private _colorMapAtlas: ColorMapAtlas;
     private _composerDataType: TextureDataType = UnsignedByteType;
+
+    // @ts-expect-error
+    override readonly uniforms: Uniforms;
+
+    override readonly defines: Defines;
 
     showOutline: boolean;
 
@@ -238,13 +320,15 @@ class LayeredMaterial extends ShaderMaterial {
         this._atlasInfo = atlasInfo;
         MaterialUtils.setDefine(this, 'STITCHING', options.terrain?.stitching);
         MaterialUtils.setDefine(this, 'TERRAIN_DEFORMATION', options.terrain?.enabled);
-        this.defines.ENABLE_CONTOUR_LINES = 1;
         this._renderer = renderer;
 
         this._composerDataType = textureDataType;
-        this.uniforms.zenith = new Uniform(DEFAULT_ZENITH);
-        this.uniforms.azimuth = new Uniform(DEFAULT_AZIMUTH);
-        this.uniforms.hillshadingIntensity = new Uniform(0.5);
+        this.uniforms.hillshading = new Uniform<HillshadingUniform>({
+            zenith: DEFAULT_ZENITH,
+            azimuth: DEFAULT_AZIMUTH,
+            intensity: DEFAULT_HILLSHADING_INTENSITY,
+            zFactor: DEFAULT_HILLSHADING_ZFACTOR,
+        });
 
         this._getIndexFn = getIndexFn;
 
@@ -296,13 +380,24 @@ class LayeredMaterial extends ShaderMaterial {
         this.uniforms.brightnessContrastSaturation = new Uniform(new Vector3(0, 1, 1));
         this.uniforms.neighbours = new Uniform(new Array(8));
         for (let i = 0; i < 8; i++) {
-            this.uniforms.neighbours.value[i] = {};
+            this.uniforms.neighbours.value[i] = {
+                diffLevel: 0,
+                offsetScale: null,
+                elevationTexture: null,
+            };
         }
 
         // Elevation texture
         const elevInfo = this.texturesInfo.elevation;
         this.uniforms.elevationTexture = new Uniform(elevInfo.texture);
-        this.uniforms.elevationLayer = new Uniform({});
+        this.uniforms.elevationLayer = new Uniform({
+            brightnessContrastSaturation: null,
+            color: null,
+            elevationRange: null,
+            mode: null,
+            offsetScale: null,
+            textureSize: null,
+        });
 
         // Color textures's layer
         this.uniforms.colorTexture = new Uniform(this.texturesInfo.color.atlasTexture);
@@ -310,7 +405,14 @@ class LayeredMaterial extends ShaderMaterial {
         // Describe the properties of each color layer (offsetScale, color...).
         this.uniforms.layers = new Uniform([]);
         this.uniforms.layersColorMaps = new Uniform([]);
-        this.uniforms.colorMapAtlas = new Uniform([]);
+        this.uniforms.colorMapAtlas = new Uniform(null);
+
+        this.uniforms.elevationColorMap = new Uniform({
+            mode: 0,
+            offset: null,
+            max: null,
+            min: null,
+        });
 
         this._colorMapAtlas = options.colorMapAtlas;
 
@@ -600,26 +702,6 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     /**
-     * Returns or create a uniform by name.
-     *
-     * @param name The uniform name.
-     * @param value the value to set
-     * @returns The resulting uniform
-     */
-    private getObjectUniform(name: string, value: unknown = {}) {
-        let uniform;
-
-        if (!this.uniforms[name]) {
-            uniform = new Uniform(value);
-            this.uniforms[name] = uniform;
-        } else {
-            uniform = this.uniforms[name];
-            uniform.value = value;
-        }
-        return uniform;
-    }
-
-    /**
      * Sets the colormap atlas.
      *
      * @param atlas The atlas.
@@ -635,7 +717,7 @@ class LayeredMaterial extends ShaderMaterial {
 
         const elevationColorMap = this._elevationLayer?.colorMap;
 
-        const elevationUniform = this.getObjectUniform('elevationColorMap');
+        const elevationUniform = this.uniforms.elevationColorMap;
         if (elevationColorMap?.active) {
             elevationUniform.value.mode = elevationColorMap?.mode ?? COLORMAP_DISABLED;
             elevationUniform.value.min = elevationColorMap?.min ?? 0;
@@ -731,9 +813,11 @@ class LayeredMaterial extends ShaderMaterial {
 
         const hillshadingParams = materialOptions.hillshading;
         if (hillshadingParams) {
-            this.uniforms.zenith.value = hillshadingParams.zenith ?? DEFAULT_ZENITH;
-            this.uniforms.azimuth.value = hillshadingParams.azimuth ?? DEFAULT_AZIMUTH;
-            this.uniforms.hillshadingIntensity.value = hillshadingParams.intensity ?? 0.5;
+            const uniform = this.uniforms.hillshading.value;
+            uniform.zenith = hillshadingParams.zenith ?? DEFAULT_ZENITH;
+            uniform.azimuth = hillshadingParams.azimuth ?? DEFAULT_AZIMUTH;
+            uniform.intensity = hillshadingParams.intensity ?? 1;
+            uniform.zFactor = hillshadingParams.zFactor ?? 1;
             MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', hillshadingParams.enabled);
             MaterialUtils.setDefine(this, 'APPLY_SHADING_ON_COLORLAYERS', !hillshadingParams.elevationLayersOnly);
         } else {

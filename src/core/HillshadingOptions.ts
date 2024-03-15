@@ -20,6 +20,10 @@ export default interface HillshadingOptions {
      */
     intensity?: number;
     /**
+     * The z-factor (vertical exaggeration) to apply to slopes before computing shading.
+     */
+    zFactor?: number;
+    /**
      * If `true`, only elevation layers are shaded leaving the color layers unshaded.
      * Default is `false`.
      */
