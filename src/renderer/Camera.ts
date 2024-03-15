@@ -4,6 +4,7 @@ import type {
 import {
     Box3,
     Frustum,
+    MathUtils,
     Matrix4,
     OrthographicCamera,
     PerspectiveCamera,
@@ -38,13 +39,11 @@ export interface CameraOptions {
     camera?: PerspectiveCamera;
 }
 
+export const DEFAULT_MIN_NEAR_PLANE = 2;
+export const DEFAULT_MAX_NEAR_PLANE = 2000000000;
+
 /**
  * Adds geospatial capabilities to three.js cameras.
- *
- * @param crs - the CRS of this camera
- * @param width - the width in pixels of the camera viewport
- * @param height - the height in pixels of the camera viewport
- * @param options - optional values
  */
 class Camera {
     private _crs: string;
@@ -54,14 +53,22 @@ class Camera {
     width: number;
     height: number;
     private _preSSE: number;
+    private _maxFar: number = DEFAULT_MAX_NEAR_PLANE;
+    private _minNear: number = DEFAULT_MIN_NEAR_PLANE;
 
+    /**
+     * @param crs - the CRS of this camera
+     * @param width - the width in pixels of the camera viewport
+     * @param height - the height in pixels of the camera viewport
+     * @param options - optional values
+     */
     constructor(crs: string, width: number, height: number, options: CameraOptions = {}) {
         this._crs = crs;
 
         this.camera3D = options.camera
             ? options.camera : new PerspectiveCamera(30, width / height);
-        this.camera3D.near = 0.1;
-        this.camera3D.far = 2000000000;
+        this.camera3D.near = DEFAULT_MIN_NEAR_PLANE;
+        this.camera3D.far = DEFAULT_MAX_NEAR_PLANE;
         this.camera3D.updateProjectionMatrix();
         this.camera2D = new OrthographicCamera(0, 1, 0, 1, 0, 10);
         this._viewMatrix = new Matrix4();
@@ -84,6 +91,62 @@ class Camera {
 
     get viewMatrix() {
         return this._viewMatrix;
+    }
+
+    get near() {
+        return this.camera3D.near;
+    }
+
+    /**
+     * Gets or sets the distance to the near plane. The distance will be clamped to be within
+     * the bounds defined by {@link minNearPlane} and {@link maxFarPlane}.
+     */
+    set near(distance: number) {
+        this.camera3D.near = MathUtils.clamp(distance, this.minNearPlane, this.maxFarPlane);
+    }
+
+    get far() {
+        return this.camera3D.far;
+    }
+
+    /**
+     * Gets or sets the distance to the far plane. The distance will be clamped to be within
+     * the bounds defined by {@link minNearPlane} and {@link maxFarPlane}.
+     */
+    set far(distance: number) {
+        this.camera3D.far = MathUtils.clamp(distance, this.minNearPlane, this.maxFarPlane);
+    }
+
+    /**
+     * Gets or sets the maximum distance allowed for the camera far plane.
+     */
+    get maxFarPlane() {
+        return this._maxFar;
+    }
+
+    set maxFarPlane(distance: number) {
+        this._maxFar = distance;
+        this.camera3D.far = Math.min(this.camera3D.far, distance);
+    }
+
+    /**
+     * Gets or sets the minimum distance allowed for the camera near plane.
+     */
+    get minNearPlane() {
+        return this._minNear;
+    }
+
+    set minNearPlane(distance: number) {
+        this._minNear = distance;
+        this.camera3D.near = Math.max(this.camera3D.near, distance);
+    }
+
+    /**
+     * Resets the near and far planes to their default value.
+     */
+    resetPlanes() {
+        this.near = this.minNearPlane;
+        this.far = this.maxFarPlane;
     }
 
     update(width?: number, height?: number) {
