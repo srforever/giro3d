@@ -1,4 +1,4 @@
-import { CanvasTexture, Vector2 } from 'three';
+import { CanvasTexture, Texture, Vector2 } from 'three';
 // Even if it's not explicited in the changelog
 // https://github.com/openlayers/openlayers/blob/main/changelog/upgrade-notes.md
 // Around OL6 the replay group mechanism was split into BuilderGroup to create the
@@ -388,7 +388,7 @@ class VectorSource extends ImageSource {
         const builderGroup = this.createBuilderGroup(extent, size);
         let texture;
         if (!builderGroup) {
-            texture = null;
+            texture = new Texture();
         } else {
             const canvas = createCanvas(size);
             rasterizeBuilderGroup(canvas, builderGroup, extent, size);
