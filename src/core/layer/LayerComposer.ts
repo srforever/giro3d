@@ -401,10 +401,8 @@ class LayerComposer {
             return;
         }
 
-        // This is valid : the source returned a null texture (the area is empty for example).
-        // We accept that, but there is nothing to do in the composer.
         if (texture == null) {
-            return;
+            throw new Error('texture cannot be null. Use an empty texture instead. (i.e new Texture())');
         }
 
         let actualTexture = texture;

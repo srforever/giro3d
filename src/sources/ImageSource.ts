@@ -31,6 +31,15 @@ class ImageResult {
         /** The maximum value of this image (if applicable). */
         max?: number;
     }) {
+        if (!options.id) {
+            throw new Error('id cannot be null');
+        }
+        if (!options.texture) {
+            throw new Error('texture cannot be null');
+        }
+        if (!options.extent) {
+            throw new Error('extent cannot be null');
+        }
         this.id = options.id;
         this.texture = options.texture;
         this.extent = options.extent;

@@ -21,6 +21,7 @@ import ScreenSpaceError from '../core/ScreenSpaceError';
 import LayeredMaterial, {
     DEFAULT_AZIMUTH,
     DEFAULT_HILLSHADING_INTENSITY,
+    DEFAULT_HILLSHADING_ZFACTOR,
     DEFAULT_ZENITH,
 } from '../renderer/LayeredMaterial';
 import TileMesh, { isTileMesh } from '../core/TileMesh';
@@ -134,6 +135,7 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions)
             enabled: false,
             elevationLayersOnly: false,
             intensity: DEFAULT_HILLSHADING_INTENSITY,
+            zFactor: DEFAULT_HILLSHADING_ZFACTOR,
             azimuth: DEFAULT_AZIMUTH,
             zenith: DEFAULT_ZENITH,
         };
@@ -145,6 +147,7 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions)
             enabled: true,
             elevationLayersOnly: false,
             intensity: DEFAULT_HILLSHADING_INTENSITY,
+            zFactor: DEFAULT_HILLSHADING_ZFACTOR,
             azimuth: DEFAULT_AZIMUTH,
             zenith: DEFAULT_ZENITH,
         };
@@ -156,6 +159,7 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions)
         azimuth: input.azimuth ?? DEFAULT_AZIMUTH,
         zenith: input.zenith ?? DEFAULT_ZENITH,
         intensity: input.intensity ?? DEFAULT_HILLSHADING_INTENSITY,
+        zFactor: input.zFactor ?? DEFAULT_HILLSHADING_ZFACTOR,
     };
 }
 

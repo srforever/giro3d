@@ -1,5 +1,5 @@
-import type { Texture } from 'three';
 import {
+    Texture,
     CanvasTexture,
     MathUtils,
     Vector2,
@@ -281,7 +281,7 @@ class VectorTileSource extends ImageSource {
         const empty = this.createBuilderGroup(tile);
 
         if (empty) {
-            return null;
+            return new Texture();
         }
 
         const canvas = this.rasterize(tile);
