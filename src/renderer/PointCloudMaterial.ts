@@ -110,6 +110,13 @@ class PointCloudMaterial extends ShaderMaterial {
             }
         }
 
+        this.uniforms.fogDensity = new Uniform(0.00025);
+        this.uniforms.fogNear = new Uniform(1);
+        this.uniforms.fogFar = new Uniform(2000);
+        this.uniforms.fogColor = new Uniform(new Color(0xffffff));
+
+        this.fog = true;
+
         this.uniforms.size = new Uniform(this.size);
         this.uniforms.mode = new Uniform(this.mode);
         this.uniforms.pickingId = new Uniform(this.pickingId);

@@ -2,6 +2,7 @@
 #include <giro3d_common>
 #include <logdepthbuf_pars_vertex>
 #include <clipping_planes_pars_vertex>
+#include <fog_pars_vertex>
 
 #define EPSILON 1e-6
 
@@ -210,6 +211,7 @@ void main() {
         gl_PointSize = clamp(-size / gl_Position.w, 3.0, 10.0);
     }
 
+    #include <fog_vertex>
     #include <logdepthbuf_vertex>
     #include <clipping_planes_vertex>
 }
