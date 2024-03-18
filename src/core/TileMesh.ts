@@ -37,6 +37,7 @@ function makeGeometry(pool: GeometryPool, extent: Extent, segments: number, leve
 }
 
 export interface TileMeshEventMap extends Object3DEventMap {
+    'visibility-changed': { /** empty */ },
     dispose: {
         /** empty */
     };
@@ -189,7 +190,11 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
     }
 
     setDisplayed(show: boolean) {
+        const currentVisibility = this.material.visible;
         this.material.visible = show && this.material.update();
+        if (currentVisibility !== show) {
+            this.dispatchEvent({ type: 'visibility-changed' });
+        }
     }
 
     /**
@@ -200,7 +205,11 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
     }
 
     setVisibility(show: boolean) {
+        const currentVisibility = this.visible;
         this.visible = show;
+        if (currentVisibility !== show) {
+            this.dispatchEvent({ type: 'visibility-changed' });
+        }
     }
 
     isDisplayed() {

@@ -12,6 +12,7 @@ import type Extent from './geographic/Extent.js';
 import type Disposable from './Disposable';
 
 export interface PointCloudEventMap extends Object3DEventMap {
+    'visibility-changed': { /** empty */ };
     'dispose': { /** empty */ };
 }
 
