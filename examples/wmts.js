@@ -7,7 +7,7 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import WmtsSource from '@giro3d/giro3d/sources/WmtsSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -33,22 +33,14 @@ const map = new Map('planar', { extent });
 
 instance.add(map);
 
-// We use OpenLayer's optionsFromCapabilities to parse the capabilities document
-// and create our WMTS source.
-fetch('https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities')
-    .then(async response => {
-        const data = await response.text();
-        const parser = new WMTSCapabilities();
-        const capabilities = parser.read(data);
-        const options = optionsFromCapabilities(capabilities, {
-            layer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2',
-            tileMatrix: 'PM',
-        });
-
-        const source = new TiledImageSource({ source: new WMTS(options), extent });
-        map.addLayer(new ColorLayer({ name: 'wmts', source }));
-    })
-    .catch(e => console.error(e));
+// For convenience, we use the fromCapabilities() async method to construct a WmtsSource from
+// a WMTS capabilities document.
+WmtsSource.fromCapabilities('https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities', {
+    layer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2',
+    tileMatrix: 'PM',
+}).then(source => {
+    map.addLayer(new ColorLayer({ name: 'wmts', source }));
+}).catch(e => console.error(e));
 
 instance.camera.camera3D.position.set(0, 0, 80000000);
 

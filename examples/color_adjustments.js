@@ -10,10 +10,8 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import WmsSource from '@giro3d/giro3d/sources/WmsSource.js';
 import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
@@ -36,15 +34,11 @@ const extent = new Extent('EPSG:3946', xmin, xmax, ymin, ymax);
 const map = new Map('city-of-lyon', { extent });
 instance.add(map);
 
-const satelliteSource = new TiledImageSource({
-    source: new TileWMS({
-        url: 'https://data.geopf.fr/wms-r',
-        projection: 'EPSG:3946',
-        params: {
-            LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
-            FORMAT: 'image/jpeg',
-        },
-    }),
+const satelliteSource = new WmsSource({
+    url: 'https://data.geopf.fr/wms-r',
+    projection: 'EPSG:3946',
+    layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
+    imageFormat: 'image/jpeg',
 });
 
 const colorLayer = new ColorLayer({

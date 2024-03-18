@@ -13,24 +13,15 @@ import TextureGenerator from '../utils/TextureGenerator';
  *
  * ```js
  * // Create an elevation source
- * const elevationSource = new WMSSource({
+ * const source = new WmsSource({
  *     url: 'https://data.geopf.fr/wms-r',
  *     projection: 'EPSG:2154',
- *     crossOrigin: 'anonymous',
- *     params: {
- *         LAYERS: ['ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'],
- *         FORMAT: 'image/x-bil;bits=32',
- *     },
- *     version: '1.3.0',
- *     decoder: new BilFormat(),
+ *     layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
+ *     imageFormat: 'image/x-bil;bits=32',
+ *     format: new BilFormat(),
  * });
  *
- * const elevationLayer = new ElevationLayer(
- *     'wms_elevation',
- *     {
- *         source: elevationSource,
- *     },
- * );
+ * const elevationLayer = new ElevationLayer({ source });
  *
  * map.addLayer(elevationLayer);
  *
