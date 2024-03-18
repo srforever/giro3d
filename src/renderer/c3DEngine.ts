@@ -249,7 +249,6 @@ class C3DEngine {
         this.labelRenderer.domElement.style.zIndex = '0';
 
         // Set default size
-        this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(this.width, this.height);
         this.labelRenderer.setSize(this.width, this.height);
 
