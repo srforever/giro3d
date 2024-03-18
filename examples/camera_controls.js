@@ -18,7 +18,7 @@ import TileWMS from 'ol/source/TileWMS.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
+import PointCloudMaterial, { MODE } from '@giro3d/giro3d/renderer/PointCloudMaterial.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Panel from '@giro3d/giro3d/gui/Panel.js';
@@ -48,7 +48,7 @@ Instance.registerCRS('EPSG:3946',
 const viewerDiv = document.getElementById('viewerDiv');
 const instance = new Instance(viewerDiv, { crs: 'EPSG:3946' });
 
-const material = new PointsMaterial({ size: 4, mode: MODE.TEXTURE });
+const material = new PointCloudMaterial({ size: 4, mode: MODE.TEXTURE });
 const pointcloud = new Tiles3D(
     'pointcloud',
     new Tiles3DSource('https://3d.oslandia.com/3dtiles/lyon.3dtiles/tileset.json'),

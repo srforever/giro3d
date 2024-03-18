@@ -28,7 +28,7 @@ import { DefaultQueue } from '../RequestQueue';
 import OperationCounter from '../OperationCounter';
 import type Context from '../Context';
 import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
-import type PointsMaterial from '../../renderer/PointsMaterial';
+import type PointCloudMaterial from '../../renderer/PointCloudMaterial';
 import type Progress from '../Progress.js';
 import type NoDataOptions from './NoDataOptions';
 
@@ -51,7 +51,7 @@ export interface Node extends Object3D<NodeEventMap> {
     getExtent(): Extent;
 }
 
-export type NodeMaterial = LayeredMaterial | PointsMaterial;
+export type NodeMaterial = LayeredMaterial | PointCloudMaterial;
 
 enum TargetState {
     Pending = 0,

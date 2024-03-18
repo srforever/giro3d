@@ -39,7 +39,7 @@ export type Mode = typeof MODE[keyof typeof MODE];
 
 const NUM_TRANSFO = 16;
 
-export interface PointsMaterialOptions {
+export interface PointCloudMaterialOptions {
     /**
      * The point size.
      *
@@ -62,8 +62,8 @@ export interface PointsMaterialOptions {
     mode?: Mode;
 }
 
-class PointsMaterial extends ShaderMaterial {
-    readonly isPointsMaterial = true;
+class PointCloudMaterial extends ShaderMaterial {
+    readonly isPointCloudMaterial = true;
     size: number;
     scale: number;
     overlayColor: Vector4;
@@ -86,7 +86,7 @@ class PointsMaterial extends ShaderMaterial {
      *
      * @param options - The options.
      */
-    constructor(options: PointsMaterialOptions = {}) {
+    constructor(options: PointCloudMaterialOptions = {}) {
         super({ clipping: true, glslVersion: GLSL3 });
         // if (__DEBUG__) {
         //     this.defines.DEBUG = 1;
@@ -207,7 +207,7 @@ class PointsMaterial extends ShaderMaterial {
         );
     }
 
-    update(source?: PointsMaterial) {
+    update(source?: PointCloudMaterial) {
         if (source) {
             this.visible = source.visible;
             this.opacity = source.opacity;
@@ -356,7 +356,7 @@ class PointsMaterial extends ShaderMaterial {
         this.needsUpdate = true;
     }
 
-    static isPointsMaterial = (obj: unknown): obj is PointsMaterial => (obj as PointsMaterial)?.isPointsMaterial;
+    static isPointCloudMaterial = (obj: unknown): obj is PointCloudMaterial => (obj as PointCloudMaterial)?.isPointCloudMaterial;
 }
 
-export default PointsMaterial;
+export default PointCloudMaterial;

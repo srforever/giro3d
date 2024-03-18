@@ -14,7 +14,7 @@ import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
-import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
+import PointCloudMaterial, { MODE } from '@giro3d/giro3d/renderer/PointCloudMaterial.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -32,7 +32,7 @@ controls.dampingFactor = 0.2;
 
 instance.useTHREEControls(controls);
 
-const material = new PointsMaterial({
+const material = new PointCloudMaterial({
     size: 4,
     mode: MODE.ELEVATION,
 });
