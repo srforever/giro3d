@@ -1,6 +1,5 @@
 import type { ChartData, ScatterDataPoint } from 'chart.js';
 import { Chart } from 'chart.js';
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import type { WebGLInfo } from 'three';
 import ChartPanel, { pushTrim } from './ChartPanel';

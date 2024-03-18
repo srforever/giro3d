@@ -429,9 +429,9 @@ class PointCloudRenderer {
                 }
                 r.setViewport(
                     0, 0,
-                    // @ts-ignore
+                    // @ts-expect-error camera.width is not defined ? // FIXME
                     output ? output.width : camera.width,
-                    // @ts-ignore
+                    // @ts-expect-error camera.height is not defined ? // FIXME
                     output ? output.height : camera.height,
                 );
 

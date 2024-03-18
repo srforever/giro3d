@@ -16,7 +16,7 @@ interface CacheOptions {
     /**
      * A optional callback called when the entry is deleted from the cache.
      */
-    onDelete?: Function;
+    onDelete?: (entry: unknown) => void;
 }
 
 const SECONDS = 1000;
@@ -24,7 +24,7 @@ const SECONDS = 1000;
 /**
  * The default max number of entries.
  */
-const DEFAULT_MAX_ENTRIES: number = 8192;
+const DEFAULT_MAX_ENTRIES = 8192;
 
 /**
  * The default TTL (time to live).
@@ -41,7 +41,7 @@ const DEFAULT_CAPACITY: number = 512 * 1024 * 1024;
  *
  */
 class Cache {
-    private readonly _deleteHandlers: Map<string, Function>;
+    private readonly _deleteHandlers: Map<string, (entry: unknown) => void>;
     private readonly _lru: LRUCache<string, unknown, unknown>;
     private _enabled: boolean;
 
@@ -67,7 +67,6 @@ class Cache {
     }) {
         this._deleteHandlers = new Map();
 
-        const that = this;
         this._enabled = true;
         this._lru = new LRUCache({
             ttl: opts.ttl ?? DEFAULT_TTL,
@@ -77,7 +76,7 @@ class Cache {
             max: opts.maxNumberOfEntries ?? DEFAULT_MAX_ENTRIES,
             allowStale: false,
             dispose: (value, key) => {
-                that.onDisposed(key, value);
+                this.onDisposed(key, value);
             },
         });
     }
@@ -140,7 +139,7 @@ class Cache {
     }
 
     private onDisposed(key: string, value: unknown) {
-        const handler: Function = this._deleteHandlers.get(key);
+        const handler: (entry: unknown) => void = this._deleteHandlers.get(key);
         if (handler) {
             this._deleteHandlers.delete(key);
             handler(value);

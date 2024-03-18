@@ -57,7 +57,7 @@ class Rect {
      * @param epsilon - The comparison epsilon.
      * @returns True if they are equal.
      */
-    equals(other: Rect, epsilon: number = 0.0001) {
+    equals(other: Rect, epsilon = 0.0001) {
         return Math.abs(other.xMin - this.xMin) <= epsilon
             && Math.abs(other.xMax - this.xMax) <= epsilon
             && Math.abs(other.yMin - this.yMin) <= epsilon

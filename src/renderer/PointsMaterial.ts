@@ -63,6 +63,7 @@ export interface PointsMaterialOptions {
 }
 
 class PointsMaterial extends ShaderMaterial {
+    readonly isPointsMaterial = true;
     size: number;
     scale: number;
     overlayColor: Vector4;
@@ -87,10 +88,9 @@ class PointsMaterial extends ShaderMaterial {
      */
     constructor(options: PointsMaterialOptions = {}) {
         super({ clipping: true, glslVersion: GLSL3 });
-        // @ts-ignore
-        if (__DEBUG__) {
-            this.defines.DEBUG = 1;
-        }
+        // if (__DEBUG__) {
+        //     this.defines.DEBUG = 1;
+        // }
         this.vertexShader = PointsVS;
         this.fragmentShader = PointsFS;
 
@@ -105,7 +105,7 @@ class PointsMaterial extends ShaderMaterial {
 
         for (const key of Object.keys(MODE)) {
             if (Object.prototype.hasOwnProperty.call(MODE, key)) {
-                // @ts-ignore
+                // @ts-expect-error a weird pattern indeed
                 this.defines[`MODE_${key}`] = MODE[key];
             }
         }
@@ -356,7 +356,7 @@ class PointsMaterial extends ShaderMaterial {
         this.needsUpdate = true;
     }
 
-    static isPointsMaterial = (obj: any): obj is PointsMaterial => obj?.enablePicking;
+    static isPointsMaterial = (obj: unknown): obj is PointsMaterial => (obj as PointsMaterial)?.isPointsMaterial;
 }
 
 export default PointsMaterial;

@@ -366,7 +366,7 @@ type PointsLinesOrMesh =
     | Line<BufferGeometry, Material | LineBasicMaterial>
     | Mesh<BufferGeometry, Material>;
 
-function featureToMesh(feature: Feature, options: OlFeature2MeshOptions | {}): PointsLinesOrMesh {
+function featureToMesh(feature: Feature, options: OlFeature2MeshOptions = {}): PointsLinesOrMesh {
     let mesh;
 
     // parse options / make default

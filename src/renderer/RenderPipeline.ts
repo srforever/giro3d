@@ -17,6 +17,7 @@ import { TexturePass } from 'three/examples/jsm/postprocessing/TexturePass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import PointCloudRenderer from './PointCloudRenderer';
 import type RenderingOptions from './RenderingOptions';
+import type PointCloud from '../core/PointCloud';
 
 const BUCKETS = {
     OPAQUE: 0,
@@ -237,7 +238,7 @@ export default class RenderPipeline {
             if (mesh.visible && material && material.visible) {
                 material.visible = false;
 
-                if ((mesh as any).isPointCloud) {
+                if ((mesh as PointCloud).isPointCloud) {
                     // The point cloud bucket will receive special effects
                     renderBuckets[BUCKETS.POINT_CLOUD].push(mesh);
                 } else if (mesh.material.transparent) {

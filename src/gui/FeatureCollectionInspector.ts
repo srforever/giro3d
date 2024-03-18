@@ -1,5 +1,4 @@
 import type { Controller } from 'lil-gui';
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import type { Color, Material, Object3D } from 'three';
 import type Instance from '../core/Instance';
@@ -124,9 +123,7 @@ class FeatureCollectionInspector extends EntityInspector {
         });
 
         this.featureCollection = featureCollection;
-        // FIXME: wireframe not defined on featureCollection ?!
-        // @ts-ignore
-        this.wireframe = this.featureCollection.wireframe ?? false;
+        this.wireframe = false;
         this.frozen = this.featureCollection.frozen ?? false;
         this.dataProjection = this.featureCollection.dataProjection || '';
 
@@ -178,7 +175,6 @@ class FeatureCollectionInspector extends EntityInspector {
     }
 
     toggleWireframe(value: boolean) {
-        (this.featureCollection as any).wireframe = value;
         applyToMaterial(this.rootObject, this.featureCollection, material => {
             (material as any).wireframe = value;
         });

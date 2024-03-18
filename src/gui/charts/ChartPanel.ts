@@ -10,7 +10,6 @@ import {
     PointElement,
     Title,
 } from 'chart.js';
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import Panel from '../Panel';
 import type Instance from '../../core/Instance';
@@ -22,7 +21,7 @@ import type Instance from '../../core/Instance';
  * @param value - The value
  * @param limit - The limit of the array size, before trimming.
  */
-export function pushTrim<T extends any>(array: Array<T>, value: T, limit: number) {
+export function pushTrim<T>(array: Array<T>, value: T, limit: number) {
     if (array.length > limit) {
         array.shift();
     }

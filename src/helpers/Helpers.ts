@@ -100,7 +100,7 @@ function create3dTileRegion(region: OBB, color: Color) {
  * @param precise - If true, the computation uses the vertices from the geometry.
  * @returns The expanded box.
  */
-function makeLocalBbox(object: Object3D, precise: boolean = false): Box3 {
+function makeLocalBbox(object: Object3D, precise = false): Box3 {
     // The object provides a specific bounding box
     if ((object as HasOBB).OBB) {
         const obb = (object as HasOBB).OBB;

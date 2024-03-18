@@ -39,6 +39,6 @@ interface Pickable<
  * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
-export const isPickable = (obj: any): obj is Pickable => obj.isPickable;
+export const isPickable = (obj: unknown): obj is Pickable => (obj as Pickable).isPickable;
 
 export default Pickable;

@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import type Instance from '../core/Instance.js';
 import Panel from './Panel.js';

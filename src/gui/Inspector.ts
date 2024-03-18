@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
 import GUI from 'lil-gui';
 import type Instance from '../core/Instance';
 import CameraInspector from './CameraInspector';

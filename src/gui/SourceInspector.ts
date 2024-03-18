@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import UrlTile from 'ol/source/UrlTile.js';
 import type TileSource from 'ol/source/Tile.js';
@@ -37,11 +36,6 @@ class SourceInspector extends Panel {
     }
 
     _addControllers(source: object) {
-        if ((source as any).networkOptions) {
-            this.networkOptions = JSON.stringify((source as any).networkOptions);
-            this.addController<string>(this, 'networkOptions').name('Network options');
-        }
-
         if (source instanceof CogSource) {
             const cogSource = source as CogSource;
             this.url = cogSource.url.toString();

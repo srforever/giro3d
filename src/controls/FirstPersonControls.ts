@@ -1,7 +1,6 @@
 import type { PerspectiveCamera } from 'three';
 import {
     Euler,
-    EventDispatcher,
     MathUtils,
     Quaternion,
     Vector2,
@@ -44,19 +43,18 @@ function applyRotation(instance: Instance, camera3D: PerspectiveCamera, state: S
     instance.notifyChange(instance.camera.camera3D);
 }
 
-const MOVEMENTS = {
+type MoveMethod = 'translateX' | 'translateY' | 'translateZ';
+
+const MOVEMENTS: Record<number, { method: MoveMethod; sign: number }> = {
     38: { method: 'translateZ', sign: -1 }, // FORWARD: up key
     40: { method: 'translateZ', sign: 1 }, // BACKWARD: down key
     37: { method: 'translateX', sign: -1 }, // STRAFE_LEFT: left key
     39: { method: 'translateX', sign: 1 }, // STRAFE_RIGHT: right key
     33: { method: 'translateY', sign: 1 }, // UP: PageUp key
     34: { method: 'translateY', sign: -1 }, // DOWN: PageDown key
-} as const;
+};
 
 type Movement = typeof MOVEMENTS[keyof typeof MOVEMENTS];
-
-export interface FirstPersonControlsEventMap {
-}
 
 export interface FirstPersonControlsOptions {
     /* whether or not to focus the renderer domElement on click */
@@ -89,7 +87,7 @@ export interface FirstPersonControlsOptions {
     maxHeight?: number;
 }
 
-class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
+class FirstPersonControls {
     camera: PerspectiveCamera;
     instance: Instance;
     enabled: boolean;
@@ -106,7 +104,6 @@ class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
      * @param options - additional options
      */
     constructor(instance: Instance, options: FirstPersonControlsOptions = {}) {
-        super();
         this.camera = instance.camera.camera3D;
         this.instance = instance;
         this.enabled = true;
@@ -177,7 +174,7 @@ class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
      * @param preserveRotationOnX - if true, the look up/down rotation will
      * not be copied from the camera
      */
-    reset(preserveRotationOnX: boolean = false) {
+    reset(preserveRotationOnX = false) {
         // Compute the correct init state, given the calculus in applyRotation:
         // cam.quaternion = q * r
         // => r = invert(q) * cam.quaterion
@@ -205,7 +202,7 @@ class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
      * @param force - set to true if you want to force the update, even if it
      * appears unneeded.
      */
-    update(event: InstanceEvents['after-camera-update'], force: boolean = false) {
+    update(event: InstanceEvents['after-camera-update'], force = false) {
         if (!this.enabled) {
             return;
         }
@@ -321,7 +318,7 @@ class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
         if (!this.enabled) {
             return;
         }
-        const move = (MOVEMENTS as any)[e.keyCode];
+        const move = MOVEMENTS[e.keyCode];
         if (move) {
             this.moves.delete(move);
             this.instance.notifyChange(undefined, false);
@@ -333,7 +330,7 @@ class FirstPersonControls extends EventDispatcher<FirstPersonControlsEventMap> {
         if (!this.enabled) {
             return;
         }
-        const move = (MOVEMENTS as any)[e.keyCode];
+        const move = MOVEMENTS[e.keyCode];
         if (move) {
             this.moves.add(move);
             this.instance.notifyChange(undefined, false);

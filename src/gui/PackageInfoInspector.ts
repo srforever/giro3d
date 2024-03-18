@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import { VERSION as olversion } from 'ol/util.js';
 import type Instance from '../core/Instance';

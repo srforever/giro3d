@@ -272,7 +272,6 @@ class LayeredMaterial extends ShaderMaterial {
         elevation: {
             offsetScale: Vector4;
             texture: ElevationTexture;
-            format: any;
         };
     };
     private _elevationLayer: ElevationLayer;
@@ -283,7 +282,7 @@ class LayeredMaterial extends ShaderMaterial {
     private _colorMapAtlas: ColorMapAtlas;
     private _composerDataType: TextureDataType = UnsignedByteType;
 
-    // @ts-expect-error
+    // @ts-expect-error property is not assignable.
     override readonly uniforms: Uniforms;
 
     override readonly defines: Defines;
@@ -369,7 +368,6 @@ class LayeredMaterial extends ShaderMaterial {
             elevation: {
                 offsetScale: new Vector4(0, 0, 0, 0),
                 texture: emptyTexture as ElevationTexture,
-                format: null,
             },
         };
 

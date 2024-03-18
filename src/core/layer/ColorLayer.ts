@@ -54,7 +54,7 @@ export interface ColorLayerOptions extends LayerOptions {
 /**
  * A layer that produces color images, such as vector data, or satellite imagery.
  */
-class ColorLayer<UserData = LayerUserData>
+class ColorLayer<UserData extends LayerUserData = LayerUserData>
     extends Layer<ColorLayerEvents, UserData>
     implements PickableFeatures<VectorPickFeature, MapPickResult<VectorPickFeature>> {
     private _opacity: number;

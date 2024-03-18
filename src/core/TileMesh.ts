@@ -37,7 +37,7 @@ function makeGeometry(pool: GeometryPool, extent: Extent, segments: number, leve
 }
 
 export interface TileMeshEventMap extends Object3DEventMap {
-    'dispose': {};
+    'dispose': { /** empty */ };
 }
 
 class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> implements Disposable {
@@ -222,7 +222,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
 
     pushRenderState(state: RenderingState) {
         if (this.material.uniforms.renderingState.value === state) {
-            return () => { };
+            return () => { /** do nothing */ };
         }
 
         const oldState = this.material.uniforms.renderingState.value;
@@ -233,8 +233,8 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
         };
     }
 
-    canSubdivide() {
-        let current: TileMesh = this;
+    private static canSubdivideTile(tile: TileMesh): boolean {
+        let current = tile;
         let ancestorLevel = 0;
 
         // To be able to subdivide a tile, we need to ensure that we
@@ -250,10 +250,14 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
                 return true;
             }
             ancestorLevel++;
-            current = this.parent as TileMesh;
+            current = current.parent as TileMesh;
         }
 
         return false;
+    }
+
+    canSubdivide() {
+        return TileMesh.canSubdivideTile(this);
     }
 
     removeElevationTexture() {

@@ -11,7 +11,7 @@ import RenderingState from '../../renderer/RenderingState';
 import traversePickingCircle from './PickingCircle';
 
 /** Pick result on tiles (e.g. map) */
-export interface MapPickResult<TFeature extends any = any> extends PickResult<TFeature & any> {
+export interface MapPickResult<TFeature = unknown> extends PickResult<TFeature & unknown> {
     isMapPickResult: true;
     entity: Map;
     /** Tile containing the picked result. */
@@ -26,7 +26,7 @@ export interface MapPickResult<TFeature extends any = any> extends PickResult<TF
  * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
-export const isMapPickResult = (obj: any): obj is MapPickResult => obj.isMapPickResult;
+export const isMapPickResult = (obj: unknown): obj is MapPickResult => (obj as MapPickResult).isMapPickResult;
 
 const BLACK = new Color(0, 0, 0);
 const tmpCoords = new Coordinates('EPSG:3857', 0, 0, 0);

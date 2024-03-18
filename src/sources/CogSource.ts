@@ -48,7 +48,7 @@ export class FetcherResponse extends BaseResponse {
         this.response = response;
     }
 
-    // @ts-ignore (the base class does not type this getter)
+    // @ts-expect-error (the base class does not type this getter)
     get status() {
         return this.response.status;
     }
@@ -57,11 +57,11 @@ export class FetcherResponse extends BaseResponse {
         return this.response.headers.get(name);
     }
 
-    // @ts-ignore (incorrectly typed base method, should be a Promise, but is an ArrayBuffer)
+    // @ts-expect-error (incorrectly typed base method, should be a Promise, but is an ArrayBuffer)
     async getData(): Promise<ArrayBuffer> {
         const data = this.response.arrayBuffer
             ? await this.response.arrayBuffer()
-            // @ts-ignore (no buffer() in response)
+            // @ts-expect-error (no buffer() in response)
             : (await this.response.buffer()).buffer;
         return data;
     }
@@ -72,7 +72,7 @@ export class FetcherResponse extends BaseResponse {
  * to centralize requests and benefit from the HTTP configuration module.
  */
 class FetcherClient extends BaseClient {
-    // @ts-ignore (untyped base method)
+    // @ts-expect-error (untyped base method)
     async request({ headers, credentials, signal } = {}): Promise<FetcherResponse> {
         const response = await Fetcher.fetch(this.url, {
             headers, credentials, signal,
@@ -190,7 +190,7 @@ class CogSource extends ImageSource {
     private _initialized: boolean;
     private _origin: number[];
     private _nodata: number;
-    private _format: any;
+    private _format: number;
     private _bps: number;
     private _initializePromise: Promise<void>;
     private readonly _cacheId: string = MathUtils.generateUUID();
@@ -252,7 +252,7 @@ class CogSource extends ImageSource {
         requestExtent: Extent,
         requestWidth: number,
         requestHeight: number,
-        margin: number = 0,
+        margin = 0,
     ) {
         const level = this.selectLevel(
             requestExtent,
@@ -300,7 +300,7 @@ class CogSource extends ImageSource {
         // We are using a custom client to ensure that outgoing requests are done through
         // the Fetcher so we can benefit from automatic HTTP configuration and control over
         // outgoing requests.
-        // @ts-ignore (typing issue with geotiff.js)
+        // @ts-expect-error (typing issue with geotiff.js)
         this._tiffImage = await fromCustomClient(client, opts);
 
         // Number of images (original + overviews)

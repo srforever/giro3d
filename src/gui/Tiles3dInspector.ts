@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import type { Color } from 'three';
 import type Instance from '../core/Instance';
@@ -82,7 +81,7 @@ class Tiles3dInspector extends EntityInspector {
     }
 
     toggleBoundingBoxes(visible: boolean) {
-        // @ts-ignore
+        // @ts-expect-error traverseOnce is monkey patched
         this.rootObject.traverseOnce(obj => {
             if (visible) {
                 const { metadata } = obj.userData;

@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import type Instance from '../core/Instance';
 import type Entity3D from '../entities/Entity3D';

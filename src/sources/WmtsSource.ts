@@ -36,7 +36,7 @@ export interface WmtsFromCapabilitiesOptions extends WmtsSourceOptions {
     imageFormat?: string;
 }
 
-async function getCapabilities(url: string): Promise<any> {
+async function getCapabilities(url: string): Promise<unknown> {
     const cached = GlobalCache.get(url);
 
     if (cached) {
@@ -101,7 +101,7 @@ export default class WmtsSource extends TiledImageSource {
 
         // Warning: optionsFromCapabilities() is very sensitive to properties being undefined,
         // so we must define an additional config object that does not contain undefined properties.
-        const config: Record<string, any> = {
+        const config: Record<string, unknown> = {
             layer: options.layer,
         };
         delete options.layer;

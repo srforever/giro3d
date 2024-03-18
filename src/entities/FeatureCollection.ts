@@ -144,11 +144,11 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
     public readonly isFeatureCollection = true;
     public readonly level0Nodes: Group[];
 
-    public minLevel: number = 0;
-    public maxLevel: number = 0;
+    public minLevel = 0;
+    public maxLevel = 0;
     public onTileCreated: OnTileCreatedCallback;
     public onMeshCreated: OnMeshCreatedCallback;
-    public sseScale: number = 1;
+    public sseScale = 1;
     public style: FeatureStyle | FeatureStyleCallback;
     public material: Material;
     public extrusionOffset: FeatureExtrusionOffsetCallback | number | Array<number>;
@@ -258,8 +258,8 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         this.type = 'FeatureCollection';
         this.visible = true;
 
-        this.onTileCreated = options.onTileCreated || (() => {});
-        this.onMeshCreated = options.onMeshCreated || (() => {});
+        this.onTileCreated = options.onTileCreated || (() => { /** do nothing */});
+        this.onMeshCreated = options.onMeshCreated || (() => { /** do nothing */});
         this.level0Nodes = [];
 
         this._source = options.source;

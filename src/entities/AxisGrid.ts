@@ -178,7 +178,7 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
     private _showCeilingGrid: boolean;
     private _showSideGrids: boolean;
     private _volume: Volume;
-    private _disposed: boolean = false;
+    private _disposed = false;
     private _lastCamera: Camera;
     private _boundingBox: Box3;
     private _dimensions: Vector2;

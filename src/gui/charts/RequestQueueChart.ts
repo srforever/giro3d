@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import type { ChartData, ChartDataset, ScatterDataPoint } from 'chart.js';
 import { Chart } from 'chart.js';

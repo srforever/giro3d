@@ -35,6 +35,7 @@ import {
     type Color,
     type PixelFormat,
     type CanvasTexture,
+    type TypedArray,
 } from 'three';
 import Interpretation, { Mode } from '../core/layer/Interpretation';
 
@@ -292,7 +293,7 @@ function createDataCopy(target: WebGLRenderTarget, renderer: WebGLRenderer) {
         ? new Uint8Array(bufSize)
         : new Float32Array(bufSize);
     renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, buf);
-    (target.texture as any).data = buf;
+    (target.texture as Texture & { data: TypedArray }).data = buf;
 }
 
 /**

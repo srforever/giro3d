@@ -17,8 +17,6 @@ interface TextureWithMinMax extends Texture {
     max?: number;
 }
 
-interface ElevationLayerEvents extends LayerEvents {}
-
 export interface ElevationLayerOptions extends LayerOptions {
     /**
      * The minimal/maximal elevation values of this layer.
@@ -30,7 +28,7 @@ export interface ElevationLayerOptions extends LayerOptions {
 /**
  * A layer that provides elevation data to display terrains.
  */
-class ElevationLayer<UserData = LayerUserData> extends Layer<ElevationLayerEvents, UserData> {
+class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Layer<LayerEvents, UserData> {
     minmax: ElevationRange;
     /**
      * Read-only flag to check if a given object is of type ElevationLayer.

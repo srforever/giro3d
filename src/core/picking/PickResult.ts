@@ -12,7 +12,7 @@ import type ColorLayer from '../layer/ColorLayer';
  *
  * May be extended, depending on what have been picked.
  */
-interface PickResult<TFeature extends any = any> extends Intersection {
+interface PickResult<TFeature = unknown> extends Intersection {
     /** Entity picked */
     entity: Entity3D | null;
     /** Distance from the camera to the picked result. */
@@ -45,6 +45,6 @@ export interface VectorPickFeature {
  * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
-export const isVectorPickFeature = (obj: any): obj is VectorPickFeature => obj.isVectorPickFeature;
+export const isVectorPickFeature = (obj: unknown): obj is VectorPickFeature => (obj as VectorPickFeature).isVectorPickFeature;
 
 export default PickResult;

@@ -15,7 +15,7 @@ import type PickOptions from './PickOptions';
 import traversePickingCircle from './PickingCircle';
 
 /** Pick result on PointCloud-like objects */
-export interface PointsPickResult<TFeature extends any = any> extends PickResult<TFeature & any> {
+export interface PointsPickResult<TFeature = unknown> extends PickResult<TFeature & unknown> {
     isPointsPickResult: true;
     /** Point cloud picked */
     object: Points;
@@ -31,7 +31,7 @@ export interface PointsPickResult<TFeature extends any = any> extends PickResult
  * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
-export const isPointsPickResult = (obj: any): obj is PointsPickResult => obj.isPointsPickResult;
+export const isPointsPickResult = (obj: unknown): obj is PointsPickResult => (obj as PointsPickResult).isPointsPickResult;
 
 const BLACK = new Color(0, 0, 0);
 

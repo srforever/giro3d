@@ -83,7 +83,7 @@ import type PickOptions from './PickOptions';
  * ```
  */
 interface PickableFeatures<
-    TFeature extends any = any,
+    TFeature = unknown,
     TResult extends PickResult<TFeature> = PickResult<TFeature>,
     TOptions extends PickOptions = PickOptions,
 > {
@@ -107,6 +107,6 @@ interface PickableFeatures<
  * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
-export const isPickableFeatures = (obj: any): obj is PickableFeatures => obj.isPickableFeatures;
+export const isPickableFeatures = (obj: unknown): obj is PickableFeatures => (obj as PickableFeatures).isPickableFeatures;
 
 export default PickableFeatures;

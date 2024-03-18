@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import type { AxesHelper, GridHelper } from 'three';
 import { Color, MathUtils } from 'three';
@@ -251,7 +250,7 @@ class MapInspector extends EntityInspector {
         const noDataColor = new Color('gray');
         // by default, adds axis-oriented bounding boxes to each object in the hierarchy.
         // custom implementations may override this to have a different behaviour.
-        // @ts-ignore
+        // @ts-expect-error monkey patched method
         this.rootObject.traverseOnce(obj => {
             if (obj instanceof TileMesh) {
                 const tile = obj as TileMesh;

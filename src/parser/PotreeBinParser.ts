@@ -72,9 +72,9 @@ for (const potreeName of Object.keys(POINT_ATTTRIBUTES)) {
     // chrome is known to perform badly when we call a method without respecting its arity
     const fnName = `getUint${attr.numByte * 8}`;
     attr.getValue = attr.numByte === 1
-        // @ts-ignore
+        // @ts-expect-error implicy any
         ? (view: DataView, offset: number) => view[fnName](offset)
-        // @ts-ignore
+        // @ts-expect-error implicy any
         : (view: DataView, offset: number) => view[fnName](offset, true);
 }
 

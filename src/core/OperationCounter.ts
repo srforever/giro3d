@@ -5,7 +5,7 @@ export interface OperationCounterEvents {
     /**
      * Raised when all operations are completed.
      */
-    'complete': {};
+    'complete': { /** empty */ };
 }
 
 /**

@@ -99,7 +99,7 @@ export interface ImageSourceEvents {
     /**
      * Raised when the source's content has been updated.
      */
-    'updated': {};
+    'updated': { /** empty */};
 }
 
 /**

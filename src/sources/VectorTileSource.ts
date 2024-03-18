@@ -101,8 +101,7 @@ function createCanvas(width: number, height: number) {
     return canvas;
 }
 
-function handleStyleImageChange() {
-}
+function handleStyleImageChange() { /** empty */ }
 
 function renderFeature(
     feature: Feature,
@@ -242,7 +241,7 @@ class VectorTileSource extends ImageSource {
         const height = 512;
         const canvas = createCanvas(width, height);
         const pixelRatio = 1;
-        // @ts-ignore
+        // @ts-expect-error this is not assignable to getReplayState()
         const replayState = tile.getReplayState(this);
         const revision = 1;
         replayState.renderedTileRevision = revision;
@@ -291,7 +290,7 @@ class VectorTileSource extends ImageSource {
     }
 
     private createBuilderGroup(tile: VectorRenderTile) {
-        // @ts-ignore
+        // @ts-expect-error this is not assignable to getReplayState()
         const replayState = tile.getReplayState(this);
         const source = this.source;
         const sourceTileGrid = source.getTileGrid();

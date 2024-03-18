@@ -214,7 +214,7 @@ class C3DEngine {
         }
 
         // Don't verify shaders if not debug (it is very costly)
-        // @ts-ignore
+        // @ts-expect-error cannot find __DEBUG__
         this.renderer.debug.checkShaderErrors = options.checkShaderErrors ?? __DEBUG__;
         this.labelRenderer = new CSS2DRenderer();
 
@@ -249,9 +249,7 @@ class C3DEngine {
         this.labelRenderer.domElement.style.zIndex = '0';
 
         // Set default size
-        // FIXME: this does not work (undefined), only defined on window
-        // @ts-ignore
-        this.renderer.setPixelRatio(viewerDiv.devicePixelRatio);
+        this.renderer.setPixelRatio(window.devicePixelRatio);
         this.renderer.setSize(this.width, this.height);
         this.labelRenderer.setSize(this.width, this.height);
 

@@ -164,7 +164,7 @@ async function text(url: string, options?: RequestInit): Promise<string> {
  * @param options - fetch options (passed directly to `fetch()`)
  * @returns the promise containing the JSON
  */
-async function json(url: string, options?: RequestInit): Promise<any> {
+async function json<T = unknown>(url: string, options?: RequestInit): Promise<T> {
     const response = await fetchInternal(url, options);
     return response.json();
 }

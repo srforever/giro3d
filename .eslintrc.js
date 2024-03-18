@@ -1,11 +1,10 @@
 module.exports = {
     root: true,
-    plugins: ['jest', 'compat', 'eslint-plugin-tsdoc'],
+    plugins: ['jest', '@typescript-eslint', 'eslint-plugin-tsdoc'],
+    parser: '@typescript-eslint/parser',
     extends: [
-        'plugin:compat/recommended',
-        'eslint-config-airbnb-base',
-        'eslint-config-airbnb-base/rules/strict',
-        'airbnb-typescript/base',
+        'eslint:recommended',
+        'plugin:@typescript-eslint/recommended'
     ],
     parserOptions: {
         project: './tsconfig.eslint.json',
@@ -60,9 +59,6 @@ module.exports = {
         // We want to be able to import .ts files from .js files without mentioning the extension,
         // otherwise the transpiled file would still import a .ts file and this would break.
         'import/extensions': 'off',
-        'import/no-extraneous-dependencies': ['error', {
-            devDependencies: ['test/**', 'examples/**'],
-        }],
         'no-underscore-dangle': 'off',
         // we make heavy use of for loop, and continue is very handy when used correctly
         'no-continue': 'off',

@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/no-named-as-default
 import type GUI from 'lil-gui';
 import {
     Object3D,
@@ -6,6 +5,7 @@ import {
     Plane,
     Vector3,
     PlaneHelper,
+    type ColorRepresentation,
 } from 'three';
 import Panel from './Panel';
 import type Instance from '../core/Instance';
@@ -23,7 +23,7 @@ const _tempArray: Object3D[] = [];
  *
  * @param callback - The callback to call for each visited object.
  */
-// @ts-ignore
+// @ts-expect-error monkey patching // FIXME
 Object3D.prototype.traverseOnce = function traverseOnce(callback: (obj: Object3D) => void) {
     this.traverse((o: Object3D) => _tempArray.push(o));
 
@@ -116,7 +116,7 @@ class EntityInspector extends Panel {
     visible: boolean;
     /** Toggle the visibility of the bounding boxes. */
     boundingBoxes: boolean;
-    boundingBoxColor: Color;
+    boundingBoxColor: Color | string;
     state: string;
     clippingPlanePanel: ClippingPlanePanel;
 
@@ -138,7 +138,6 @@ class EntityInspector extends Panel {
         this.rootObject = entity.object3d;
         this.visible = entity.visible;
         this.boundingBoxes = false;
-        // @ts-ignore
         this.boundingBoxColor = '#FFFF00';
         this.state = 'idle';
 
@@ -218,7 +217,7 @@ class EntityInspector extends Panel {
         const color = new Color(this.boundingBoxColor);
         // by default, adds axis-oriented bounding boxes to each object in the hierarchy.
         // custom implementations may override this to have a different behaviour.
-        // @ts-ignore
+        // @ts-expect-error traverseOnce() is monkey patched
         this.rootObject.traverseOnce(obj => this.addOrRemoveBoundingBox(obj, visible, color));
         this.notify(this.entity);
     }
@@ -239,7 +238,7 @@ class EntityInspector extends Panel {
         }
     }
 
-    updateBoundingBoxColor(colorHex: Color) {
+    updateBoundingBoxColor(colorHex: ColorRepresentation) {
         const color = new Color(colorHex);
         this.rootObject.traverse(obj => {
             if ((obj as any).volumeHelper) {
