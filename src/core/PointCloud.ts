@@ -6,7 +6,7 @@ import {
     type Object3DEventMap,
     type Material,
 } from 'three';
-import PointsMaterial from '../renderer/PointsMaterial';
+import PointCloudMaterial from '../renderer/PointCloudMaterial';
 import type Entity3D from '../entities/Entity3D.js';
 import type Extent from './geographic/Extent.js';
 import type Disposable from './Disposable';
@@ -42,7 +42,7 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap>, 
     constructor({
         layer,
         geometry,
-        material = new PointsMaterial(),
+        material = new PointCloudMaterial(),
         textureSize,
     }: PointCloudOptions) {
         super(geometry, material);

@@ -12,7 +12,7 @@ import {
     type Camera,
 } from 'three';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
-import PointsMaterial, { MODE, type Mode } from '../renderer/PointsMaterial';
+import PointCloudMaterial, { MODE, type Mode } from '../renderer/PointCloudMaterial';
 import type RequestQueue from '../core/RequestQueue';
 import { DefaultQueue } from '../core/RequestQueue';
 import type PotreeSource from '../sources/PotreeSource';
@@ -226,7 +226,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
     pointBudget: number;
     pointSize: number;
     sseThreshold: number;
-    material: PointsMaterial;
+    material: PointCloudMaterial;
     mode: Mode;
     /**
      * Optional hook called when a new point tile is loaded.
@@ -296,7 +296,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
             ? 4
             : this.pointSize;
         this.sseThreshold = this.sseThreshold || 2;
-        this.material = this.material ?? new PointsMaterial();
+        this.material = this.material ?? new PointCloudMaterial();
         this.material.defines = this.material.defines || {};
         this.mode = MODE.COLOR;
 
@@ -594,7 +594,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
             // only load geometry if this elements has points
             if (elt.numPoints > 0) {
                 if (elt.obj) {
-                    if (PointsMaterial.isPointsMaterial(elt.obj.material)) {
+                    if (PointCloudMaterial.isPointCloudMaterial(elt.obj.material)) {
                         elt.obj.material.update(this.material);
                     } else {
                         elt.obj.material.copy(this.material);
@@ -783,7 +783,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
             textureSize: this.imageSize,
         });
         points.name = `r${metadata.name}.${this.extension}`;
-        if (PointsMaterial.isPointsMaterial(points.material)) {
+        if (PointCloudMaterial.isPointCloudMaterial(points.material)) {
             preparePointGeometryForPicking(points.geometry);
         }
         points.frustumCulled = false;

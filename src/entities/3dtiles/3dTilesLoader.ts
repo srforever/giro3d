@@ -2,7 +2,7 @@ import { LoaderUtils } from 'three';
 import type Tiles3D from '../Tiles3D';
 import B3dmParser from '../../parser/B3dmParser';
 import PntsParser from '../../parser/PntsParser';
-import PointsMaterial from '../../renderer/PointsMaterial';
+import PointCloudMaterial from '../../renderer/PointCloudMaterial';
 import PointCloud from '../../core/PointCloud';
 import type { $3dTilesTileset } from './types';
 import utf8Decoder from '../../utils/Utf8Decoder';
@@ -25,8 +25,8 @@ async function pntsParse(data: ArrayBuffer, entity: Tiles3D) {
     const result = await PntsParser.parse(data);
     const material = entity.material
         ? entity.material.clone()
-        : new PointsMaterial();
-    if (PointsMaterial.isPointsMaterial(material)) {
+        : new PointCloudMaterial();
+    if (PointCloudMaterial.isPointCloudMaterial(material)) {
         preparePointGeometryForPicking(result.point.geometry);
     }
     // creation points with geometry and material

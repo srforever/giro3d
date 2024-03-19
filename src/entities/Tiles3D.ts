@@ -24,7 +24,7 @@ import Tile from './3dtiles/Tile';
 import { boundingVolumeToExtent, cullingTest } from './3dtiles/BoundingVolume';
 import type { $3dTilesTileset, $3dTilesTile, $3dTilesAsset } from './3dtiles/types';
 import $3dTilesLoader from './3dtiles/3dTilesLoader';
-import PointsMaterial from '../renderer/PointsMaterial';
+import PointCloudMaterial from '../renderer/PointCloudMaterial';
 import type Pickable from '../core/picking/Pickable';
 import type PickOptions from '../core/picking/PickOptions';
 import type PickResult from '../core/picking/PickResult';
@@ -93,7 +93,7 @@ function isTilesetContentReady(tileset: $3dTilesTile, node: Tile): boolean {
 /**
  * Types of results for picking on {@link Tiles3D}.
  *
- * If Tiles3D uses {@link PointsMaterial}, then results will be of {@link PointsPickResult}.
+ * If Tiles3D uses {@link PointCloudMaterial}, then results will be of {@link PointsPickResult}.
  * Otherwise, they will be of {@link PickResult}.
  */
 export type Tiles3DPickResult = PointsPickResult | PickResult;
@@ -473,8 +473,8 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
                             // TODO: is wireframe still supported?
                             (pointcloud.material as any).wireframe = this.wireframe;
                             if (pointcloud.isPoints) {
-                                if (PointsMaterial.isPointsMaterial(pointcloud.material)
-                                    && PointsMaterial.isPointsMaterial(this.material)) {
+                                if (PointCloudMaterial.isPointCloudMaterial(pointcloud.material)
+                                    && PointCloudMaterial.isPointCloudMaterial(this.material)) {
                                     pointcloud.material.update(this.material);
                                 } else {
                                     pointcloud.material.copy(this.material);
@@ -754,7 +754,7 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
     }
 
     pick(coordinates: Vector2, options?: PickOptions): Tiles3DPickResult[] {
-        if (this.material && PointsMaterial.isPointsMaterial(this.material)) {
+        if (this.material && PointCloudMaterial.isPointCloudMaterial(this.material)) {
             return pickPointsAt(this._instance, coordinates, this, options);
         }
         return pickObjectsAt(this._instance, coordinates, this.object3d, options);

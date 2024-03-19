@@ -5,7 +5,7 @@ import TileWMS from 'ol/source/TileWMS.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import PointsMaterial, { MODE } from '@giro3d/giro3d/renderer/PointsMaterial.js';
+import PointCloudMaterial, { MODE } from '@giro3d/giro3d/renderer/PointCloudMaterial.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import WmsSource from '@giro3d/giro3d/sources/WmsSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
@@ -29,7 +29,7 @@ const instance = new Instance(viewerDiv, {
 });
 
 // Create a custom material for our point cloud.
-const material = new PointsMaterial({
+const material = new PointCloudMaterial({
     size: 4,
     mode: MODE.TEXTURE,
 });
