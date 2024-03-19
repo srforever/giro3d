@@ -13,6 +13,7 @@ import LayerInspector from './LayerInspector';
 import HillshadingPanel from './HillshadingPanel';
 import ContourLinePanel from './ContourLinePanel';
 import ColorimetryPanel from './ColorimetryPanel';
+import GraticulePanel from './GraticulePanel';
 
 function createTileLabel() {
     const text = document.createElement('div');
@@ -49,6 +50,7 @@ class MapInspector extends EntityInspector {
     hillshadingPanel: HillshadingPanel;
     contourLinePanel: ContourLinePanel;
     colorimetryPanel: ColorimetryPanel;
+    graticulePanel: GraticulePanel;
     /** The layer folder. */
     layerFolder: GUI;
     layers: LayerInspector[];
@@ -162,6 +164,12 @@ class MapInspector extends EntityInspector {
 
         this.hillshadingPanel = new HillshadingPanel(
             this.map.materialOptions.hillshading,
+            this.gui,
+            instance,
+        );
+
+        this.graticulePanel = new GraticulePanel(
+            this.map.materialOptions.graticule,
             this.gui,
             instance,
         );

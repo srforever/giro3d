@@ -32,6 +32,7 @@ import type MaskLayer from '../core/layer/MaskLayer';
 import type ContourLineOptions from '../core/ContourLineOptions';
 import type TerrainOptions from '../core/TerrainOptions';
 import type HillshadingOptions from '../core/HillshadingOptions';
+import type GraticuleOptions from '../core/GraticuleOptions';
 import type ColorimetryOptions from '../core/ColorimetryOptions';
 import type ElevationLayer from '../core/layer/ElevationLayer';
 import type ColorLayer from '../core/layer/ColorLayer';
@@ -98,6 +99,9 @@ export const DEFAULT_HILLSHADING_INTENSITY = 1;
 export const DEFAULT_HILLSHADING_ZFACTOR = 1;
 export const DEFAULT_AZIMUTH = 135;
 export const DEFAULT_ZENITH = 45;
+export const DEFAULT_GRATICULE_COLOR = new Color(0, 0, 0);
+export const DEFAULT_GRATICULE_STEP = 500; // meters
+export const DEFAULT_GRATICULE_THICKNESS = 1;
 
 function drawImageOnAtlas(
     width: number,
@@ -166,6 +170,10 @@ export interface MaterialOptions {
      */
     hillshading?: HillshadingOptions;
     /**
+     * Graticule options.
+     */
+    graticule?: GraticuleOptions;
+    /**
      * The number of subdivision segments per tile.
      */
     segments?: number;
@@ -205,6 +213,13 @@ type ContourLineUniform = {
     color: Vector4;
 };
 
+type GraticuleUniform = {
+    thickness: number;
+    /** xOffset, yOffset, xStep, yStep */
+    position: Vector4;
+    color: Vector4;
+};
+
 type LayerUniform = {
     offsetScale: Vector4;
     color: Vector4;
@@ -238,6 +253,7 @@ type Defines = {
     ENABLE_OUTLINES?: 1;
     ENABLE_HILLSHADING?: 1;
     APPLY_SHADING_ON_COLORLAYERS?: 1;
+    ENABLE_GRATICULE?: 1;
     COLOR_LAYERS: number;
 };
 
@@ -245,6 +261,7 @@ interface Uniforms {
     opacity: IUniform<number>;
     segments: IUniform<number>;
     contourLines: IUniform<ContourLineUniform>;
+    graticule: IUniform<GraticuleUniform>;
     hillshading: IUniform<HillshadingUniform>;
     elevationRange: IUniform<Vector2>;
     tileDimensions: IUniform<Vector2>;
@@ -338,6 +355,12 @@ class LayeredMaterial extends ShaderMaterial {
             primaryInterval: 100,
             secondaryInterval: 20,
             color: new Vector4(0, 0, 0, 1),
+        });
+
+        this.uniforms.graticule = new Uniform<GraticuleUniform>({
+            color: new Vector4(0, 0, 0, 1),
+            thickness: DEFAULT_GRATICULE_THICKNESS,
+            position: new Vector4(0, 0, DEFAULT_GRATICULE_STEP, DEFAULT_GRATICULE_STEP),
         });
 
         const elevationRange = options.elevationRange
@@ -766,6 +789,19 @@ class LayeredMaterial extends ShaderMaterial {
             const c = materialOptions.backgroundColor;
             const vec4 = new Vector4(c.r, c.g, c.b, a);
             this.uniforms.backgroundColor.value.copy(vec4);
+        }
+
+        if (materialOptions.graticule) {
+            const options = materialOptions.graticule;
+            const enabled = options.enabled;
+            MaterialUtils.setDefine(this, 'ENABLE_GRATICULE', enabled);
+            if (enabled) {
+                const uniform = this.uniforms.graticule.value;
+                uniform.thickness = options.thickness;
+                uniform.position.set(options.xOffset, options.yOffset, options.xStep, options.yStep);
+                const rgb = options.color;
+                uniform.color.set(rgb.r, rgb.g, rgb.b, options.opacity);
+            }
         }
 
         if (materialOptions.colorimetry) {

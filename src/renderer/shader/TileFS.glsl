@@ -30,6 +30,7 @@ uniform vec3        brightnessContrastSaturation; // Brightness/contrast/saturat
 
 #include <giro3d_colormap_pars_fragment>
 #include <giro3d_outline_pars_fragment>
+#include <giro3d_graticule_pars_fragment>
 #include <giro3d_compose_layers_pars_fragment>
 #include <giro3d_contour_line_pars_fragment>
 
@@ -161,6 +162,8 @@ void main() {
 
     // Step 7 : draw tile outlines
     #include <giro3d_outline_fragment>
+
+    #include <giro3d_graticule_fragment>
 
     #include <logdepthbuf_fragment>
 
