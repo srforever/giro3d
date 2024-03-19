@@ -871,7 +871,7 @@ abstract class Layer<
             }).catch(err => {
                 // Abort errors are perfectly normal, so we don't need to log them.
                 // However any other error implies an abnormal termination of the processing.
-                if (err.message !== 'aborted') {
+                if (err.name !== 'AbortError') {
                     console.error(err);
                     target.state = TargetState.Complete;
                 } else {
