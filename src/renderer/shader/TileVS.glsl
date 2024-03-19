@@ -426,6 +426,6 @@ void main() {
     #include <logdepthbuf_vertex>
     #include <clipping_planes_vertex>
 
-    wPosition = transformed;
+    wPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;
     vViewPosition = -mvPosition.xyz;
 }
