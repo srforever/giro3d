@@ -110,9 +110,9 @@ npm test
 
 Browse the [API Documentation](http://giro3d.org/apidoc/index.html) documentation or check the [examples](http://giro3d.org/examples/index.html).
 
-## Contributors
+## Contributors and sponsors
 
-Giro3D has received contributions from people listed in [CONTRIBUTORS.md](CONTRIBUTORS.md).
+Giro3D has received contributions and sponsoring from people and organizations listed in [CONTRIBUTORS.md](CONTRIBUTORS.md).
 If you are interested in contributing to Giro3D, please read [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Support

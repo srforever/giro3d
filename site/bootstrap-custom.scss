@@ -16,10 +16,18 @@ $bootstrap-icons-font-dir: 'fonts';
     @extend .shadow-sm;
 }
 
+.navbar-nav {
+    @extend .align-items-center;
+}
+
 .navbar-nav-left {
     @extend .me-auto;
     @extend .mb-2;
     @extend .mb-lg-0;
+}
+
+.navbar-nav .nav-item {
+    @extend .text-center;
 }
 
 .navbar-nav .nav-link.nav-link-primary:hover, .navbar-nav .nav-link.nav-link-primary.active:hover {
@@ -143,4 +151,8 @@ $bootstrap-icons-font-dir: 'fonts';
 
 .card-img-bg.card-img-bottom {
     object-position: bottom;
+}
+
+.card-body .img-fluid.logo {
+    max-height: 160px;
 }

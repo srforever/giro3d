@@ -1,48 +1,60 @@
 See [CONTRIBUTING.md](CONTRIBUTING.md) for details on how to contribute to Giro3D.
 
+---
+
 The following people have contributed to Giro3D.
-
-* [IGN](http://www.ign.fr)
-  * [Gérald Choqueux](https://github.com/gchoqueux)
-  * [Alexandre Devaux](https://github.com/nosy-b)
-  * [Victor Coindet](https://github.com/VictorCo)
-  * [Quoc Dinh Nguyen](https://github.com/qdnguyen)
-  * [Grégoire Maillet](https://github.com/gmaillet)
-  * [Guillaume Liégard](https://github.com/gliegard)
-  * [Adrien Berthet](https://github.com/zarov)
-  * [Mirela Konini](https://github.com/Mkonini)
-  * Pierre Munier
-  * Mathieu Bredif
-
-* [Oslandia](http://www.oslandia.com)
-  * [Vincent Picavet](https://github.com/vpicavet)
-  * [Jérémy Gaillard](https://github.com/Jeremy-Gaillard)
-  * [Pierre-Éric Pelloux-Prayer](https://github.com/peppsac)
-  * [Augustin Trancart](https://github.com/autra)
-  * [Sébastien Guimmara](https://github.com/sguimmara)
-  * [Antoine Facchini](https://gitlab.com/antoinefacchini)
-  * [François Thierry](https://github.com/Francois-Thierry)
-  * [Benoît Blanc](https://github.com/benoitblanc)
-  * [Thomas Muguet](https://github.com/tmuguet)
-  * [Sylvain Beorchia](https://github.com/sylvainbeo)
-  * [Éric Lemoine](https://github.com/elemoine)
-  * [Benoît Ducarouge](https://github.com/Ducarouge)
-  * [Frédéric Bonifas](https://github.com/fredericbonifas)
-  * [Vincent Mora](https://github.com/vmora)
-
-* [AtolCD](http://www.atolcd.com)
-  * [Thomas Broyer](https://github.com/tbroyer)
-
-* [LIRIS](https://liris.cnrs.fr/)
-  * [Nicolas Saul](https://github.com/NikoSaul)
-  * [Emmanuel Schmück](https://github.com/EmmanuelSchmuck/)
-  * [Marie Lamure](https://github.com/mlamure)
-  * [Vincent Jaillot](https://github.com/jailln)
 
 * [Argeo](https://argeo.no)
   * Charlie Ives
 
+* [AtolCD](http://www.atolcd.com)
+  * [Thomas Broyer](https://github.com/tbroyer)
+
+* [IGN](http://www.ign.fr)
+  * [Adrien Berthet](https://github.com/zarov)
+  * [Alexandre Devaux](https://github.com/nosy-b)
+  * [Gérald Choqueux](https://github.com/gchoqueux)
+  * [Grégoire Maillet](https://github.com/gmaillet)
+  * [Guillaume Liégard](https://github.com/gliegard)
+  * Mathieu Bredif
+  * [Mirela Konini](https://github.com/Mkonini)
+  * Pierre Munier
+  * [Quoc Dinh Nguyen](https://github.com/qdnguyen)
+  * [Victor Coindet](https://github.com/VictorCo)
+
+* [LIRIS](https://liris.cnrs.fr/)
+  * [Emmanuel Schmück](https://github.com/EmmanuelSchmuck/)
+  * [Marie Lamure](https://github.com/mlamure)
+  * [Nicolas Saul](https://github.com/NikoSaul)
+  * [Vincent Jaillot](https://github.com/jailln)
+
+* [Oslandia](http://www.oslandia.com)
+  * [Antoine Facchini](https://gitlab.com/antoinefacchini)
+  * [Augustin Trancart](https://github.com/autra)
+  * [Benoît Blanc](https://github.com/benoitblanc)
+  * [Benoît Ducarouge](https://github.com/Ducarouge)
+  * [Éric Lemoine](https://github.com/elemoine)
+  * [François Thierry](https://github.com/Francois-Thierry)
+  * [Frédéric Bonifas](https://github.com/fredericbonifas)
+  * [Jérémy Gaillard](https://github.com/Jeremy-Gaillard)
+  * [Pierre-Éric Pelloux-Prayer](https://github.com/peppsac)
+  * [Sébastien Guimmara](https://github.com/sguimmara)
+  * [Sylvain Beorchia](https://github.com/sylvainbeo)
+  * [Thomas Muguet](https://github.com/tmuguet)
+  * [Vincent Mora](https://github.com/vmora)
+  * [Vincent Picavet](https://github.com/vpicavet)
+
+---
+
 The following organizations supported Giro3D:
-* IGN ( http://www.ign.fr )
-* Oslandia ( http://www.oslandia.com )
-* AtolCD ( http://www.atolcd.com )
+
+* AtolCD (<http://www.atolcd.com>)
+* BPI France (<https://www.bpifrance.com/>)
+* IGN (<http://www.ign.fr>)
+* Oslandia (<http://www.oslandia.com>)
+
+---
+
+Funded by the French government as part of France 2030.
+
+Funded by the European Union - Next Generation EU as part of the France Relance plan.
