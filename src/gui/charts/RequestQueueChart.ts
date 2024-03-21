@@ -106,7 +106,6 @@ class RequestQueueChart extends ChartPanel {
 
         const t = performance.now();
         const q = this.queue;
-        console.log(q.pendingRequests);
 
         pushTrim(this.currentRequests.data, { x: t, y: q.concurrentRequests }, MAX_DATA_POINTS);
         pushTrim(this.pendingRequests.data, { x: t, y: q.pendingRequests }, MAX_DATA_POINTS);

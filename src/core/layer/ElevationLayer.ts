@@ -101,12 +101,7 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
     }
 
     registerNode(node: TileMesh) {
-        const material = node.material;
-        if (Array.isArray(material)) {
-            material.forEach(m => (m as LayeredMaterial).pushElevationLayer(this));
-        } else {
-            (material as LayeredMaterial).pushElevationLayer(this);
-        }
+        node.material.pushElevationLayer(this);
     }
 
     unregisterNode(node: TileMesh) {

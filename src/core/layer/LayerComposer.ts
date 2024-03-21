@@ -654,7 +654,7 @@ class LayerComposer {
         for (const image of this.images.values()) {
             const isRequired = imageIds.has(image.id);
 
-            const isInView = extent.intersectsExtent(image.extent) && image.alwaysVisible;
+            const isInView = extent.intersectsExtent(image.extent) || image.alwaysVisible;
 
             image.visible = (isFallbackMode && isInView) || isRequired;
 

@@ -10,6 +10,7 @@ import TextureGenerator from '../utils/TextureGenerator';
 import ImageSource, { type GetImageOptions, ImageResult, type ImageSourceOptions } from './ImageSource';
 import type ImageFormat from '../formats/ImageFormat';
 import type { TileCoord } from 'ol/tilecoord';
+import ConcurrentDownloader from './ConcurrentDownloader';
 
 const MIN_LEVEL_THRESHOLD = 2;
 
@@ -35,6 +36,12 @@ export interface TiledImageSourceOptions extends ImageSourceOptions {
      * The optional extent of the source. If not provided, it will be computed from the source.
      */
     extent?: Extent;
+    /**
+     * The optional HTTP request timeout, in milliseconds.
+     *
+     * @defaultValue 5000
+     */
+    httpTimeout?: number;
 }
 
 /**
@@ -79,6 +86,8 @@ export default class TiledImageSource extends ImageSource {
     private readonly _tileGrid: TileGrid;
     private readonly _getTileUrl: (coord: TileCoord, _: number, proj: Projection) => string;
     private readonly _sourceExtent: Extent;
+    private readonly _httpTimeout: number;
+    private readonly _downloader: ConcurrentDownloader = new ConcurrentDownloader();
 
     /**
      * @param options - The options.
@@ -107,6 +116,7 @@ export default class TiledImageSource extends ImageSource {
             tileGrid.getExtent(),
             projection.getCode(),
         );
+        this._httpTimeout = options.httpTimeout ?? 5000;
     }
 
     getExtent() {
@@ -121,10 +131,10 @@ export default class TiledImageSource extends ImageSource {
      * Selects the best zoom level given the provided image size and extent.
      *
      * @param extent - The target extent.
-     * @param width - The width in pixel of the target extent.
+     * @param size - The size in pixels of the target extent.
      * @returns The ideal zoom level for this particular extent.
      */
-    private getZoomLevel(extent: Extent, width: number): number {
+    private getZoomLevel(extent: Extent, size: number): number {
         const minZoom = this._tileGrid.getMinZoom();
         const maxZoom = this._tileGrid.getMaxZoom();
 
@@ -133,7 +143,7 @@ export default class TiledImageSource extends ImageSource {
         }
 
         const dims = extent.dimensions(tmp.dims);
-        const targetResolution = round1000000(dims.x / width);
+        const targetResolution = round1000000(dims.x / size);
         const minResolution = this._tileGrid.getResolution(minZoom);
 
         if (targetResolution / minResolution > MIN_LEVEL_THRESHOLD) {
@@ -152,20 +162,24 @@ export default class TiledImageSource extends ImageSource {
         }
 
         // Let's determine the best zoom level for the target tile.
+        let distance = +Infinity;
+        let result = minZoom;
         for (let z = minZoom; z <= maxZoom; z++) {
             const sourceResolution = round1000000(this._tileGrid.getResolution(z));
 
-            if (targetResolution >= sourceResolution) {
-                return z;
+            const thisDistance = Math.abs(sourceResolution - targetResolution);
+            if (thisDistance < distance) {
+                distance = thisDistance;
+                result = z;
             }
         }
 
-        return maxZoom;
+        return result;
     }
 
     getImages(options: GetImageOptions) {
         const {
-            extent, width, signal,
+            extent, width, height, signal,
         } = options;
 
         signal?.throwIfAborted();
@@ -174,7 +188,7 @@ export default class TiledImageSource extends ImageSource {
             throw new Error('invalid CRS');
         }
 
-        const zoomLevel = this.getZoomLevel(extent, width);
+        const zoomLevel = this.getZoomLevel(extent, Math.min(width, height));
         if (zoomLevel == null) {
             return [];
         }
@@ -188,15 +202,15 @@ export default class TiledImageSource extends ImageSource {
             this.getCrs(),
             zoomLevel,
             options.createReadableTextures,
+            signal,
         );
 
         return images;
     }
 
-    // eslint-disable-next-line class-methods-use-this
-    private async fetchData(url: string) {
+    private async fetchData(url: string, signal: AbortSignal) {
         try {
-            const response = await Fetcher.fetch(url);
+            const response = await this._downloader.fetch(url, signal);
 
             // If the response is 204 No Content for example, we have nothing to do.
             // This happens when a tile request is valid, but points to a region with no data.
@@ -225,8 +239,8 @@ export default class TiledImageSource extends ImageSource {
      * @param createDataTexture - Create readable textures.
      * @returns The tile texture, or null if there is no data.
      */
-    private async loadTile(id: string, url: string, extent: Extent, createDataTexture: boolean) {
-        const blob = await this.fetchData(url);
+    private async loadTile(id: string, url: string, extent: Extent, createDataTexture: boolean, signal: AbortSignal) {
+        const blob = await this.fetchData(url, signal);
 
         if (!blob) {
             return new ImageResult({
@@ -287,7 +301,7 @@ export default class TiledImageSource extends ImageSource {
      * @param zoom - The zoom level.
      * @param createDataTexture - Creates readable textures.
      */
-    private loadTiles(tileRange: TileRange, crs: string, zoom: number, createDataTexture: boolean) {
+    private loadTiles(tileRange: TileRange, crs: string, zoom: number, createDataTexture: boolean, signal: AbortSignal) {
         const source = this.source;
         const tileGrid = this._tileGrid;
 
@@ -308,7 +322,7 @@ export default class TiledImageSource extends ImageSource {
                 // Don't bother loading tiles that are not in the layer
                 if (this.shouldLoad(tileExtent)) {
                     const url = this._getTileUrl(coord, 1, this.olprojection);
-                    const request = () => this.loadTile(id, url, tileExtent, createDataTexture);
+                    const request = () => this.loadTile(id, url, tileExtent, createDataTexture, signal);
                     promises.push({ id, request });
                 }
             }

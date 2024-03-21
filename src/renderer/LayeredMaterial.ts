@@ -185,6 +185,10 @@ export interface MaterialOptions {
      * The background opacity.
      */
     backgroundOpacity?: number;
+    /**
+     * Show the outlines of tile meshes.
+     */
+    showTileOutlines?: boolean;
 }
 
 type HillshadingUniform = {
@@ -287,9 +291,6 @@ class LayeredMaterial extends ShaderMaterial {
 
     override readonly defines: Defines;
 
-    showOutline: boolean;
-
-    private _disposed: boolean;
     private readonly _atlasInfo: AtlasInfo;
     private _options: MaterialOptions;
 
@@ -483,7 +484,6 @@ class LayeredMaterial extends ShaderMaterial {
         this.dispatchEvent({
             type: 'dispose',
         });
-        this._disposed = true;
 
         for (const layer of this._colorLayers) {
             const index = this.indexOfColorLayer(layer);
@@ -798,7 +798,7 @@ class LayeredMaterial extends ShaderMaterial {
         }
 
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this._elevationLayer?.visible);
-        MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', this.showOutline);
+        MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', materialOptions.showTileOutlines);
         MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', materialOptions.discardNoData);
 
         if (materialOptions.terrain) {

@@ -60,6 +60,11 @@ class LayerInspector extends Panel {
             .onChange(() => {
                 this.notify(map);
             });
+        this.addController<boolean>(this.layer, 'frozen')
+            .name('Frozen')
+            .onChange(() => {
+                this.notify(map);
+            });
 
         this.interpretation = layer.interpretation.toString();
         this.addController<string>(this, 'interpretation').name('Interpretation');

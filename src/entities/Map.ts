@@ -185,7 +185,7 @@ function selectBestSubdivisions(extent: Extent) {
  * @param extent - The map extent.
  */
 function computeImageSize(extent: Extent) {
-    const baseSize = 256;
+    const baseSize = 512;
     const dims = extent.dimensions();
     const ratio = dims.x / dims.y;
     if (Math.abs(ratio - 1) < 0.01) {
@@ -235,8 +235,8 @@ export interface MapEventMap extends Entity3DEventMap {
 }
 
 /**
- * A map is an {@link entities.Entity | Entity} that represents a flat
- * surface displaying one or more {@link core.layer.Layer | Layers}.
+ * A map is an {@link Entity3D} that represents a flat
+ * surface displaying one or more {@link Layer}.
  *
  * If an elevation layer is added, the surface of the map is deformed to
  * display terrain.
@@ -350,8 +350,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         this.type = 'Map';
 
-        this.showOutline = options.showOutline;
-
         this._segments = options.segments || 8;
 
         this.materialOptions = {
@@ -359,6 +357,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             contourLines: getContourLineOptions(options.contourLines),
             discardNoData: options.discardNoData || false,
             doubleSided: options.doubleSided || false,
+            showTileOutlines: options.showOutline ?? false,
             terrain: getTerrainOptions(options.terrain),
             colorimetry: getColorimetryOptions(options.colorimetry),
             segments: this.segments,
@@ -556,7 +555,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
         tile.setVisibility(false);
         tile.updateMatrix();
 
-        tile.material.showOutline = this.showOutline || false;
         tile.material.wireframe = this.wireframe || false;
 
         if (parent) {
@@ -815,28 +813,9 @@ class Map<UserData extends EntityUserData = EntityUserData>
             return undefined;
         }
 
-        if (context.fastUpdateHint) {
-            if (!(context.fastUpdateHint as TileMesh).isAncestorOf(node)) {
-                // if visible, children bbox can only be smaller => stop updates
-                if (node.material.visible) {
-                    this.updateMinMaxDistance(context, node);
-                    return undefined;
-                }
-                if (node.visible) {
-                    return node.children.filter(n => isTileMesh(n));
-                }
-                return undefined;
-            }
-        }
-
         // do proper culling
         if (!this.frozen) {
-            node.update(this.materialOptions);
-
-            const isVisible = context.camera.isBox3Visible(
-                node.OBB.box3D, node.OBB.matrixWorld,
-            );
-            node.visible = isVisible;
+            node.visible = this.testVisibility(node, context);
         }
 
         if (node.visible) {
@@ -883,6 +862,16 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         node.setDisplayed(false);
         return node.detachChildren();
+    }
+
+    private testVisibility(node: TileMesh, context: Context): boolean {
+        node.update(this.materialOptions);
+
+        const isVisible = context.camera.isBox3Visible(
+            node.OBB.box3D, node.OBB.matrixWorld,
+        );
+
+        return isVisible;
     }
 
     postUpdate() {

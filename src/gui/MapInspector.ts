@@ -55,6 +55,7 @@ class MapInspector extends EntityInspector {
     private _fillLayersCb: () => void;
     grid?: GridHelper;
     axes?: AxesHelper;
+    activeTiles: number;
 
     /**
      * Creates an instance of MapInspector.
@@ -75,7 +76,6 @@ class MapInspector extends EntityInspector {
         this.map = map;
         this.wireframe = this.map.wireframe ?? false;
         this.frozen = this.map.frozen ?? false;
-        this.showOutline = this.map.showOutline ?? false;
         this.showGrid = false;
         this.renderState = 'Normal';
 
@@ -92,6 +92,7 @@ class MapInspector extends EntityInspector {
         this.extentHelper = null;
 
         this.mapSegments = this.map.segments;
+        this.activeTiles = 0;
 
         this.labels = new window.Map();
 
@@ -103,6 +104,8 @@ class MapInspector extends EntityInspector {
             .min(2)
             .max(128)
             .onChange(v => this.updateSegments(v));
+        this.addController<number>(this, 'activeTiles')
+            .name('Active tiles');
         this.addController<number>(this.map.geometryPool, 'size')
             .name('Geometry pool');
         if (this.map.materialOptions.elevationRange) {
@@ -138,9 +141,9 @@ class MapInspector extends EntityInspector {
         this.addController<boolean>(this, 'wireframe')
             .name('Wireframe')
             .onChange(v => this.toggleWireframe(v));
-        this.addController<boolean>(this, 'showOutline')
-            .name('Show tiles outline')
-            .onChange(v => this.toggleOutlines(v));
+        this.addController<boolean>(this.map.materialOptions, 'showTileOutlines')
+            .name('Show tiles outlines')
+            .onChange(() => this.notify());
         this.addController<boolean>(this, 'showTileInfo')
             .name('Show tile info')
             .onChange(() => this.toggleBoundingBoxes());
@@ -365,6 +368,13 @@ class MapInspector extends EntityInspector {
         this.toggleBoundingBoxes();
         this.layerCount = this.map.layerCount;
         this.layers.forEach(l => l.updateValues());
+
+        this.activeTiles = 0;
+        this.map.traverseMeshes((m: TileMesh) => {
+            if (m.material.visible) {
+                this.activeTiles++;
+            }
+        });
     }
 
     fillLayers() {
@@ -406,14 +416,6 @@ class MapInspector extends EntityInspector {
             this.instance.scene.add(axes);
         }
         this.notify();
-    }
-
-    toggleOutlines(value: boolean) {
-        this.map.traverseMaterials(material => {
-            (material as any).showOutline = value;
-            material.needsUpdate = true;
-        });
-        this.notify(this.map);
     }
 
     toggleWireframe(value: boolean) {
