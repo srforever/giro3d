@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.34.2 (2024-03-19)
+
+Hotfix release for 0.34.
+
+### Fix
+
+- **VectorSource|VectorTileSource**: use empty textures instead of null (#410)
+- **Map**: distinguish between hillshading Z-factor and intensity
+
+### Refactor
+
+- **LayeredMaterial**: strongly type defines
+- **LayeredMaterial**: strongly type uniforms
+
 ## v0.34.1 (2024-03-12)
 
 Hotfix release for 0.34, that fixes #408.
