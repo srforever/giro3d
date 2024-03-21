@@ -62,11 +62,11 @@ export interface InstanceEvents {
     /**
      * Fires before the camera update
      */
-    'before-camera-update': FrameEventPayload,
+    'before-camera-update': { camera: Camera } & FrameEventPayload,
     /**
      * Fires after the camera update
      */
-    'after-camera-update': FrameEventPayload,
+    'after-camera-update': { camera: Camera } & FrameEventPayload,
     /**
      * Fires before the entity update
      */

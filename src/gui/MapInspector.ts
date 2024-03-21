@@ -153,6 +153,12 @@ class MapInspector extends EntityInspector {
         this.addColorController(this, 'extentColor')
             .name('Extent color')
             .onChange(() => this.updateExtentColor());
+        this.addController<number>(this.map, 'sseScale')
+            .name('SSE scale')
+            .min(0.1)
+            .max(3)
+            .step(0.1)
+            .onChange(() => this.notify());
 
         this.hillshadingPanel = new HillshadingPanel(
             this.map.materialOptions.hillshading,
@@ -370,8 +376,8 @@ class MapInspector extends EntityInspector {
         this.layers.forEach(l => l.updateValues());
 
         this.activeTiles = 0;
-        this.map.traverseMeshes((m: TileMesh) => {
-            if (m.material.visible) {
+        this.map.traverseTiles(t => {
+            if (t.material.visible) {
                 this.activeTiles++;
             }
         });
@@ -420,8 +426,8 @@ class MapInspector extends EntityInspector {
 
     toggleWireframe(value: boolean) {
         this.map.wireframe = value;
-        this.map.traverseMaterials(material => {
-            (material as any).wireframe = value;
+        this.map.traverseTiles(tile => {
+            tile.material.wireframe = value;
         });
         this.notify(this.map);
     }

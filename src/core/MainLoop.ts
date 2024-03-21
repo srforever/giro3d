@@ -244,12 +244,14 @@ class MainLoop {
 
         instance.dispatchEvent({
             type: 'before-camera-update',
+            camera: instance.camera,
             dt,
             updateLoopRestarted: this._updateLoopRestarted,
         });
         instance.execCameraUpdate();
         instance.dispatchEvent({
             type: 'after-camera-update',
+            camera: instance.camera,
             dt,
             updateLoopRestarted: this._updateLoopRestarted,
         });

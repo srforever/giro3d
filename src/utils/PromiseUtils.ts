@@ -13,13 +13,20 @@ export enum PromiseStatus {
     Rejected = 'rejected',
 }
 
+export class AbortError extends Error {
+    constructor() {
+        super('aborted');
+        this.name = 'AbortError';
+    }
+}
+
 /**
  * Returns an Error with the 'aborted' reason.
  *
  * @returns The error.
  */
 function abortError(): Error {
-    return new Error('aborted');
+    return new AbortError();
 }
 
 export default {
