@@ -5,12 +5,12 @@ import type TileGrid from 'ol/tilegrid/TileGrid.js';
 import type Projection from 'ol/proj/Projection';
 import type Extent from '../core/geographic/Extent';
 import OpenLayersUtils from '../utils/OpenLayersUtils';
-import Fetcher from '../utils/Fetcher';
 import TextureGenerator from '../utils/TextureGenerator';
 import ImageSource, { type GetImageOptions, ImageResult, type ImageSourceOptions } from './ImageSource';
 import type ImageFormat from '../formats/ImageFormat';
 import type { TileCoord } from 'ol/tilecoord';
 import ConcurrentDownloader from './ConcurrentDownloader';
+import { MemoryTracker } from '../renderer';
 
 const MIN_LEVEL_THRESHOLD = 2;
 
@@ -276,6 +276,9 @@ export default class TiledImageSource extends ImageSource {
         }
         texture.generateMipmaps = false;
         texture.needsUpdate = true;
+        texture.name = 'TiledImageSource - tile';
+
+        MemoryTracker.track(texture, texture.name);
 
         return new ImageResult({
             texture, extent, id, min, max,
