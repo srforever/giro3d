@@ -109,7 +109,7 @@ class GeoTIFFFormat extends ImageFormat {
         texture.minFilter = LinearFilter;
         texture.needsUpdate = true;
 
-        return texture;
+        return { texture };
     }
 }
 

@@ -44,7 +44,7 @@ describe('GeoTIFFFormat', () => {
                 it('8-bit pixels', async () => {
                     const blob = readFile('tiff/2x2_grayscale.tiff');
 
-                    const texture = await decoder.decode(blob);
+                    const { texture } = await decoder.decode(blob);
 
                     expect(texture.image.width).toEqual(2);
                     expect(texture.image.height).toEqual(2);
@@ -62,7 +62,7 @@ describe('GeoTIFFFormat', () => {
                 ])('non 8-bit pixels', async file => {
                     const blob = readFile(file);
 
-                    const texture = await decoder.decode(blob);
+                    const { texture } = await decoder.decode(blob);
 
                     expect(texture.image.width).toEqual(2);
                     expect(texture.image.height).toEqual(2);
@@ -77,7 +77,7 @@ describe('GeoTIFFFormat', () => {
             it('RGBA', async () => {
                 const blob = readFile('tiff/2x2_rgba.tiff');
 
-                const texture = await decoder.decode(blob);
+                const { texture } = await decoder.decode(blob);
 
                 expect(texture.image.width).toEqual(2);
                 expect(texture.image.height).toEqual(2);
@@ -93,7 +93,7 @@ describe('GeoTIFFFormat', () => {
             it('RGB', async () => {
                 const blob = readFile('tiff/2x2_rgb.tiff');
 
-                const texture = await decoder.decode(blob);
+                const { texture } = await decoder.decode(blob);
 
                 expect(texture.image.width).toEqual(2);
                 expect(texture.image.height).toEqual(2);
