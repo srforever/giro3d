@@ -1,12 +1,12 @@
 import type GUI from 'lil-gui';
-import type { PerspectiveCamera, Vector3 } from 'three';
+import type { OrthographicCamera, PerspectiveCamera, Vector3 } from 'three';
 import Panel from './Panel';
 import type Instance from '../core/Instance';
 import type Camera from '../renderer/Camera';
 
 class CameraInspector extends Panel {
     camera: Camera;
-    camera3D: PerspectiveCamera;
+    camera3D: PerspectiveCamera | OrthographicCamera;
 
     /**
      * @param gui - The GUI.

@@ -1,12 +1,10 @@
-import type {
-    Sphere,
-} from 'three';
 import {
     Box3,
     Frustum,
     MathUtils,
     Matrix4,
-    OrthographicCamera,
+    type Sphere,
+    type OrthographicCamera,
     PerspectiveCamera,
     Vector3,
 } from 'three';
@@ -42,13 +40,20 @@ export interface CameraOptions {
 export const DEFAULT_MIN_NEAR_PLANE = 2;
 export const DEFAULT_MAX_NEAR_PLANE = 2000000000;
 
+export function isPerspectiveCamera(obj: unknown): obj is PerspectiveCamera {
+    return (obj as PerspectiveCamera)?.isPerspectiveCamera;
+}
+
+export function isOrthographicCamera(obj: unknown): obj is OrthographicCamera {
+    return (obj as OrthographicCamera)?.isOrthographicCamera;
+}
+
 /**
  * Adds geospatial capabilities to three.js cameras.
  */
 class Camera {
     private _crs: string;
-    camera3D: PerspectiveCamera;
-    camera2D: OrthographicCamera;
+    camera3D: PerspectiveCamera | OrthographicCamera;
     private _viewMatrix: Matrix4;
     width: number;
     height: number;
@@ -70,7 +75,6 @@ class Camera {
         this.camera3D.near = DEFAULT_MIN_NEAR_PLANE;
         this.camera3D.far = DEFAULT_MAX_NEAR_PLANE;
         this.camera3D.updateProjectionMatrix();
-        this.camera2D = new OrthographicCamera(0, 1, 0, 1, 0, 10);
         this._viewMatrix = new Matrix4();
         this.width = width;
         this.height = height;
@@ -167,17 +171,20 @@ class Camera {
             this.height = height;
             const ratio = width / height;
 
-            if (this.camera3D.aspect !== ratio) {
-                this.camera3D.aspect = ratio;
+            if (isPerspectiveCamera(this.camera3D)) {
+                if (this.camera3D.aspect !== ratio) {
+                    this.camera3D.aspect = ratio;
+                }
+            } else if (isOrthographicCamera(this.camera3D)) {
+                const orthographic = this.camera3D;
+                const width = orthographic.right - orthographic.left;
+                const height = width / ratio;
+                orthographic.top = height / 2;
+                orthographic.bottom = -height / 2;
             }
         }
 
         this.camera3D.updateProjectionMatrix();
-
-        this.camera2D.right = width;
-        this.camera2D.top = height;
-        this.camera2D.bottom = 0;
-        this.camera2D.updateProjectionMatrix();
     }
 
     /**

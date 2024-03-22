@@ -1,7 +1,8 @@
 import assert from 'assert';
+import { PerspectiveCamera } from 'three';
 import PotreePointCloud from '../../../src/entities/PotreePointCloud';
 
-const context = { camera: { height: 1, camera3D: { fov: 1 } } };
+const context = { camera: { height: 1, camera3D: new PerspectiveCamera() } };
 
 describe('PotreePointCloud', () => {
     describe('preUpdate', () => {

@@ -16,7 +16,6 @@ describe('Camera', () => {
             expect(camera.width).toEqual(width);
             expect(camera.height).toEqual(height);
             expect(camera.camera3D).toBeInstanceOf(PerspectiveCamera);
-            expect(camera.camera2D).toBeInstanceOf(OrthographicCamera);
         });
     });
 
