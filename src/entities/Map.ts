@@ -20,6 +20,9 @@ import type { SSE } from '../core/ScreenSpaceError';
 import ScreenSpaceError from '../core/ScreenSpaceError';
 import LayeredMaterial, {
     DEFAULT_AZIMUTH,
+    DEFAULT_GRATICULE_COLOR,
+    DEFAULT_GRATICULE_STEP,
+    DEFAULT_GRATICULE_THICKNESS,
     DEFAULT_HILLSHADING_INTENSITY,
     DEFAULT_HILLSHADING_ZFACTOR,
     DEFAULT_ZENITH,
@@ -35,6 +38,7 @@ import type TileGeometry from '../core/TileGeometry';
 import { type MaterialOptions } from '../renderer/LayeredMaterial';
 import type HillshadingOptions from '../core/HillshadingOptions';
 import type TerrainOptions from '../core/TerrainOptions';
+import type GraticuleOptions from '../core/GraticuleOptions';
 import type ColorimetryOptions from '../core/ColorimetryOptions';
 import type Pickable from '../core/picking/Pickable';
 import type PickOptions from '../core/picking/PickOptions';
@@ -120,6 +124,46 @@ function getTerrainOptions(input?: boolean | TerrainOptions): TerrainOptions {
     return {
         enabled: input.enabled ?? true,
         stitching: input.stitching ?? true,
+    };
+}
+
+function getGraticuleOptions(input?: boolean | GraticuleOptions): GraticuleOptions {
+    if (input == null) {
+        // Default values
+        return {
+            enabled: false,
+            color: DEFAULT_GRATICULE_COLOR,
+            xStep: DEFAULT_GRATICULE_STEP,
+            yStep: DEFAULT_GRATICULE_STEP,
+            xOffset: 0,
+            yOffset: 0,
+            thickness: DEFAULT_GRATICULE_THICKNESS,
+            opacity: 1,
+        };
+    }
+
+    if (typeof input === 'boolean') {
+        return {
+            enabled: input,
+            color: DEFAULT_GRATICULE_COLOR,
+            xStep: DEFAULT_GRATICULE_STEP,
+            yStep: DEFAULT_GRATICULE_STEP,
+            xOffset: 0,
+            yOffset: 0,
+            thickness: DEFAULT_GRATICULE_THICKNESS,
+            opacity: 1,
+        };
+    }
+
+    return {
+        enabled: input.enabled ?? true,
+        color: input.color ?? DEFAULT_GRATICULE_COLOR,
+        thickness: input.thickness ?? DEFAULT_GRATICULE_THICKNESS,
+        xStep: input.xStep ?? DEFAULT_GRATICULE_STEP,
+        yStep: input.yStep ?? DEFAULT_GRATICULE_STEP,
+        xOffset: input.xOffset ?? 0,
+        yOffset: input.yOffset ?? 0,
+        opacity: input.opacity ?? 1,
     };
 }
 
@@ -326,6 +370,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         maxSubdivisionLevel?: number;
         hillshading?: boolean | HillshadingOptions;
         contourLines?: boolean | ContourLineOptions;
+        graticule?: boolean | GraticuleOptions;
         colorimetry?: ColorimetryOptions;
         segments?: number;
         doubleSided?: boolean;
@@ -367,6 +412,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             showTileOutlines: options.showOutline ?? false,
             terrain: getTerrainOptions(options.terrain),
             colorimetry: getColorimetryOptions(options.colorimetry),
+            graticule: getGraticuleOptions(options.graticule),
             segments: this.segments,
             elevationRange: options.elevationRange,
             backgroundOpacity: options.backgroundOpacity == null ? 1 : options.backgroundOpacity,
