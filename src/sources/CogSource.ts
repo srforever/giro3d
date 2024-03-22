@@ -169,6 +169,11 @@ export interface CogSourceOptions extends ImageSourceOptions {
      * Advanced caching options.
      */
     cacheOptions?: CogCacheOptions;
+    /**
+     * Forces the conversion of pixels to RGB. This is useful if the source file is in YCbCR color
+     * space or any other non-RGB color space.
+     */
+    convertToRGB?: boolean;
 }
 
 /**
@@ -182,6 +187,7 @@ class CogSource extends ImageSource {
     private readonly _cache: Cache = GlobalCache;
     private _tiffImage: GeoTIFF;
     private readonly _pool: Pool;
+    private readonly _convertToRGB: boolean;
     private _imageCount: number;
     private _extent: Extent;
     private _dimensions: Vector2;
@@ -214,6 +220,7 @@ class CogSource extends ImageSource {
         this._levels = [];
         this._channels = options.channels;
         this._cacheOptions = options.cacheOptions;
+        this._convertToRGB = options.convertToRGB ?? false;
     }
 
     getExtent() {
@@ -502,6 +509,15 @@ class CogSource extends ImageSource {
     }
 
     private async readWindow(image: GeoTIFFImage, window: number[], signal?: AbortSignal): Promise<ReadRasterResult> {
+        if (this._convertToRGB) {
+            return await image.readRGB({
+                pool: this._pool,
+                window,
+                signal,
+                interleave: false,
+            });
+        }
+
         // TODO possible optimization: instead of letting geotiff.js crop and resample
         // the tiles into the desired region, we could use image.getTileOrStrip() to
         // read individual tiles (aka blocks) and make a texture per block. This way,
