@@ -1048,6 +1048,10 @@ abstract class Layer<
         this._shouldNotify = false;
     }
 
+    get composer(): Readonly<LayerComposer> {
+        return this._composer;
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
     protected updateMaterial(material: Material) {
         // Implemented in derived classes

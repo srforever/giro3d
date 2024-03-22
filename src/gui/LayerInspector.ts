@@ -32,6 +32,7 @@ class LayerInspector extends Panel {
     /** The source inspector. */
     sourceInspector: SourceInspector;
     colorimetryPanel: ColorimetryPanel;
+    composerImages = 0;
 
     /**
      * @param gui - The GUI.
@@ -74,6 +75,8 @@ class LayerInspector extends Panel {
             .onChange(() => {
                 this.notify(map);
             });
+
+        this.addController<number>(this, 'composerImages').name('Loaded images');
 
         if ((this.layer as ElevationLayer).isElevationLayer) {
             const elevationLayer = this.layer as ElevationLayer;
@@ -187,6 +190,7 @@ class LayerInspector extends Panel {
     updateValues() {
         this.state = this.layer.loading ? `loading (${Math.round(this.layer.progress * 100)}%)` : 'idle';
         this.visible = this.layer.visible || true;
+        this.composerImages = this.layer.composer?.images?.size ?? 0;
         if ((this.layer as ElevationLayer).isElevationLayer) {
             const elevationLayer = this.layer as ElevationLayer;
             if (elevationLayer.minmax && this.minmax) {
