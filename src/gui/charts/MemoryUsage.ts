@@ -4,6 +4,7 @@ import { Chart } from 'chart.js';
 import type { WebGLInfo } from 'three';
 import type Instance from '../../core/Instance';
 import ChartPanel, { pushTrim } from './ChartPanel';
+import { GlobalRenderTargetPool } from '../../renderer/RenderTargetPool';
 
 const MAX_DATA_POINTS = 20;
 
@@ -13,7 +14,9 @@ class MemoryUsage extends ChartPanel {
     labels: string[];
     textures: ChartDataset<'line', ScatterDataPoint[]>;
     geometries: ChartDataset<'line', ScatterDataPoint[]>;
+    renderTargets: ChartDataset<'line', ScatterDataPoint[]>;
     data: ChartData<'line', ScatterDataPoint[], string>;
+    private _onRenderTargetPoolCleanup: () => void;
     chart: Chart;
 
     /**
@@ -27,6 +30,8 @@ class MemoryUsage extends ChartPanel {
 
         this.render = instance.renderer.info.render;
         this.memory = instance.renderer.info.memory;
+        this._onRenderTargetPoolCleanup = this.updateValues.bind(this);
+        GlobalRenderTargetPool.addEventListener('cleanup', this._onRenderTargetPoolCleanup);
         this.labels = [];
 
         this.textures = {
@@ -37,6 +42,17 @@ class MemoryUsage extends ChartPanel {
             pointRadius: 0,
             backgroundColor: '#FF000030',
             borderColor: '#FF000080',
+            yAxisID: 'y',
+        };
+
+        this.renderTargets = {
+            label: 'RenderTargetPool',
+            data: [],
+            fill: false,
+            borderWidth: 2,
+            pointRadius: 0,
+            backgroundColor: '#00FF0030',
+            borderColor: '#00FF0080',
             yAxisID: 'y',
         };
 
@@ -53,7 +69,7 @@ class MemoryUsage extends ChartPanel {
 
         this.data = {
             labels: this.labels,
-            datasets: [this.textures, this.geometries],
+            datasets: [this.textures, this.geometries, this.renderTargets],
         };
 
         this.chart = new Chart(this.ctx, {
@@ -100,6 +116,10 @@ class MemoryUsage extends ChartPanel {
         });
     }
 
+    dispose(): void {
+        GlobalRenderTargetPool.removeEventListener('cleanup', this._onRenderTargetPoolCleanup);
+    }
+
     updateValues() {
         if (this.gui._closed) {
             return;
@@ -108,6 +128,7 @@ class MemoryUsage extends ChartPanel {
         const frame = this.render.frame;
         pushTrim(this.textures.data, { x: frame, y: this.memory.textures }, MAX_DATA_POINTS);
         pushTrim(this.geometries.data, { x: frame, y: this.memory.geometries }, MAX_DATA_POINTS);
+        pushTrim(this.renderTargets.data, { x: frame, y: GlobalRenderTargetPool.count }, MAX_DATA_POINTS);
         pushTrim(this.labels, '', MAX_DATA_POINTS);
 
         this.chart.update();
