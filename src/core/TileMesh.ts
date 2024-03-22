@@ -286,6 +286,14 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
         this._minmax = { min, max };
     }
 
+    traverseTiles(callback: (descendant: TileMesh) => void) {
+        this.traverse(obj => {
+            if (isTileMesh(obj)) {
+                callback(obj);
+            }
+        });
+    }
+
     /**
      * Removes the child tiles and returns the detached tiles.
      */
