@@ -45,13 +45,39 @@ instance.add(map);
 
 // Data coming from the same source as
 // https://openlayers.org/en/latest/examples/cog-math-multisource.html
-const source = new CogSource({
+const rgb = new CogSource({
     url: 'https://3d.oslandia.com/giro3d/rasters/TCI.tif',
     crs: extent.crs(),
 });
-const layer = new ColorLayer({ name: 'color-layer', source, extent });
 
-map.addLayer(layer);
+const ycbcr = new CogSource({
+    url: 'https://3d.oslandia.com/giro3d/rasters/TCI-YCbCr.tif',
+    crs: extent.crs(),
+    // This file is not in the RGB color space, so we need to convert the pixels to RGB
+    convertToRGB: true,
+});
+
+function updateSource(source) {
+    map.forEachLayer(layer => map.removeLayer(layer, { disposeLayer: true }));
+
+    let layerSource;
+    switch (source) {
+        case 'rgb':
+            layerSource = rgb;
+            break;
+        case 'ycbcr':
+            layerSource = ycbcr;
+            break;
+    }
+
+    const layer = new ColorLayer({ name: 'color-layer', source: layerSource, extent });
+    map.addLayer(layer);
+}
+
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 StatusBar.bind(instance);
+
+const sourceSelector = document.getElementById('source');
+sourceSelector.onchange = () => updateSource(sourceSelector.value);
+updateSource(sourceSelector.value);
