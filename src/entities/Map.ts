@@ -1142,8 +1142,10 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 
     private disposeTile(tile: TileMesh) {
-        tile.dispose();
-        this.allTiles.delete(tile);
+        tile.traverseTiles(desc => {
+            desc.dispose();
+            this.allTiles.delete(desc);
+        });
     }
 
     /**
