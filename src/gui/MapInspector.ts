@@ -153,8 +153,8 @@ class MapInspector extends EntityInspector {
         this.addColorController(this, 'extentColor')
             .name('Extent color')
             .onChange(() => this.updateExtentColor());
-        this.addController<number>(this.map, 'sseScale')
-            .name('SSE scale')
+        this.addController<number>(this.map, 'subdivisionThreshold')
+            .name('Subdivision threshold')
             .min(0.1)
             .max(3)
             .step(0.1)
