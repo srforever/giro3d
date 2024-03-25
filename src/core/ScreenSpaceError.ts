@@ -7,6 +7,7 @@ import {
 } from 'three';
 
 import type Camera from '../renderer/Camera';
+import { isPerspectiveCamera } from '../renderer/Camera';
 
 const m = new Matrix4();
 const tmpBox3 = new Box3();
@@ -159,9 +160,11 @@ export default {
         geometricError: number,
         mode: Mode,
     ): SSE {
-        const distance = findBox3Distance(camera, box3, matrix, mode === Mode.MODE_3D);
-        if (distance <= geometricError) {
-            return null;
+        if (isPerspectiveCamera(camera.camera3D)) {
+            const distance = findBox3Distance(camera, box3, matrix, mode === Mode.MODE_3D);
+            if (distance <= geometricError) {
+                return null;
+            }
         }
 
         const size = computeSizeFromGeometricError(
