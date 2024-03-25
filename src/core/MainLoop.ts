@@ -15,16 +15,7 @@ export enum RenderingState {
     RENDERING_SCHEDULED = 1,
 }
 
-const MIN_DISTANCE = 2;
-const MAX_DISTANCE = 2000000000;
-
 const tmpSphere = new Sphere();
-
-/** Options for creating the {@link MainLoop} */
-export interface MainLoopOptions {
-    maxFar?: number,
-    minNear?: number;
-}
 
 /**
  * Objects to update from an entity.
@@ -105,18 +96,14 @@ class MainLoop {
         return this._gfxEngine;
     }
     private _updateLoopRestarted: boolean;
-    private _maxFar: number;
-    private _minNear: number;
     private _lastTimestamp: number;
     private readonly _changeSources: Set<unknown>;
 
-    constructor(engine: C3DEngine, options: MainLoopOptions = {}) {
+    constructor(engine: C3DEngine) {
         this._renderingState = RenderingState.RENDERING_PAUSED;
         this._needsRedraw = false;
         this._gfxEngine = engine; // TODO: remove me
         this._updateLoopRestarted = true;
-        this._maxFar = options.maxFar ?? MAX_DISTANCE;
-        this._minNear = options.minNear ?? MIN_DISTANCE;
         this._lastTimestamp = 0;
         this._changeSources = new Set<unknown>();
     }
@@ -144,8 +131,7 @@ class MainLoop {
         // Reset near/far to default value to allow update function to test
         // visibility using camera's frustum; without depending on the near/far
         // values which are only used for rendering.
-        instance.camera.camera3D.near = this._minNear;
-        instance.camera.camera3D.far = this._maxFar;
+        instance.camera.resetPlanes();
         // We can't just use camera3D.updateProjectionMatrix() because part of
         // the update process use camera._viewMatrix, and this matrix depends
         // on near/far values.
@@ -176,7 +162,7 @@ class MainLoop {
                     const entityDistance = entity.distance as { min: number; max: number; };
                     context.distance.min = Math.min(context.distance.min, entityDistance.min);
                     if (entityDistance.max === Infinity) {
-                        context.distance.max = this._maxFar;
+                        context.distance.max = instance.camera.maxFarPlane;
                     } else {
                         context.distance.max = Math.max(
                             context.distance.max, entityDistance.max,
@@ -210,15 +196,8 @@ class MainLoop {
             }
         });
 
-        let minDistance = context.distance.min;
-        // clamp it to minNear / maxFar
-        minDistance = minDistance === Infinity
-            ? this._minNear : ThreeMath.clamp(minDistance, this._minNear, this._maxFar);
-        instance.camera.camera3D.near = minDistance;
-
-        const far = context.distance.max === 0
-            ? this._maxFar : ThreeMath.clamp(context.distance.max, minDistance, this._maxFar);
-        instance.camera.camera3D.far = far;
+        instance.camera.near = context.distance.min;
+        instance.camera.far = context.distance.max;
 
         instance.camera.update();
     }

@@ -1,11 +1,10 @@
-import type {
-    Sphere,
-} from 'three';
 import {
     Box3,
     Frustum,
+    MathUtils,
     Matrix4,
-    OrthographicCamera,
+    type Sphere,
+    type OrthographicCamera,
     PerspectiveCamera,
     Vector3,
 } from 'three';
@@ -38,32 +37,44 @@ export interface CameraOptions {
     camera?: PerspectiveCamera;
 }
 
+export const DEFAULT_MIN_NEAR_PLANE = 2;
+export const DEFAULT_MAX_NEAR_PLANE = 2000000000;
+
+export function isPerspectiveCamera(obj: unknown): obj is PerspectiveCamera {
+    return (obj as PerspectiveCamera)?.isPerspectiveCamera;
+}
+
+export function isOrthographicCamera(obj: unknown): obj is OrthographicCamera {
+    return (obj as OrthographicCamera)?.isOrthographicCamera;
+}
+
 /**
  * Adds geospatial capabilities to three.js cameras.
- *
- * @param crs - the CRS of this camera
- * @param width - the width in pixels of the camera viewport
- * @param height - the height in pixels of the camera viewport
- * @param options - optional values
  */
 class Camera {
     private _crs: string;
-    camera3D: PerspectiveCamera;
-    camera2D: OrthographicCamera;
+    camera3D: PerspectiveCamera | OrthographicCamera;
     private _viewMatrix: Matrix4;
     width: number;
     height: number;
     private _preSSE: number;
+    private _maxFar: number = DEFAULT_MAX_NEAR_PLANE;
+    private _minNear: number = DEFAULT_MIN_NEAR_PLANE;
 
+    /**
+     * @param crs - the CRS of this camera
+     * @param width - the width in pixels of the camera viewport
+     * @param height - the height in pixels of the camera viewport
+     * @param options - optional values
+     */
     constructor(crs: string, width: number, height: number, options: CameraOptions = {}) {
         this._crs = crs;
 
         this.camera3D = options.camera
             ? options.camera : new PerspectiveCamera(30, width / height);
-        this.camera3D.near = 0.1;
-        this.camera3D.far = 2000000000;
+        this.camera3D.near = DEFAULT_MIN_NEAR_PLANE;
+        this.camera3D.far = DEFAULT_MAX_NEAR_PLANE;
         this.camera3D.updateProjectionMatrix();
-        this.camera2D = new OrthographicCamera(0, 1, 0, 1, 0, 10);
         this._viewMatrix = new Matrix4();
         this.width = width;
         this.height = height;
@@ -86,6 +97,62 @@ class Camera {
         return this._viewMatrix;
     }
 
+    get near() {
+        return this.camera3D.near;
+    }
+
+    /**
+     * Gets or sets the distance to the near plane. The distance will be clamped to be within
+     * the bounds defined by {@link minNearPlane} and {@link maxFarPlane}.
+     */
+    set near(distance: number) {
+        this.camera3D.near = MathUtils.clamp(distance, this.minNearPlane, this.maxFarPlane);
+    }
+
+    get far() {
+        return this.camera3D.far;
+    }
+
+    /**
+     * Gets or sets the distance to the far plane. The distance will be clamped to be within
+     * the bounds defined by {@link minNearPlane} and {@link maxFarPlane}.
+     */
+    set far(distance: number) {
+        this.camera3D.far = MathUtils.clamp(distance, this.minNearPlane, this.maxFarPlane);
+    }
+
+    /**
+     * Gets or sets the maximum distance allowed for the camera far plane.
+     */
+    get maxFarPlane() {
+        return this._maxFar;
+    }
+
+    set maxFarPlane(distance: number) {
+        this._maxFar = distance;
+        this.camera3D.far = Math.min(this.camera3D.far, distance);
+    }
+
+    /**
+     * Gets or sets the minimum distance allowed for the camera near plane.
+     */
+    get minNearPlane() {
+        return this._minNear;
+    }
+
+    set minNearPlane(distance: number) {
+        this._minNear = distance;
+        this.camera3D.near = Math.max(this.camera3D.near, distance);
+    }
+
+    /**
+     * Resets the near and far planes to their default value.
+     */
+    resetPlanes() {
+        this.near = this.minNearPlane;
+        this.far = this.maxFarPlane;
+    }
+
     update(width?: number, height?: number) {
         this._resize(width, height);
 
@@ -104,17 +171,20 @@ class Camera {
             this.height = height;
             const ratio = width / height;
 
-            if (this.camera3D.aspect !== ratio) {
-                this.camera3D.aspect = ratio;
+            if (isPerspectiveCamera(this.camera3D)) {
+                if (this.camera3D.aspect !== ratio) {
+                    this.camera3D.aspect = ratio;
+                }
+            } else if (isOrthographicCamera(this.camera3D)) {
+                const orthographic = this.camera3D;
+                const width = orthographic.right - orthographic.left;
+                const height = width / ratio;
+                orthographic.top = height / 2;
+                orthographic.bottom = -height / 2;
             }
         }
 
         this.camera3D.updateProjectionMatrix();
-
-        this.camera2D.right = width;
-        this.camera2D.top = height;
-        this.camera2D.bottom = 0;
-        this.camera2D.updateProjectionMatrix();
     }
 
     /**

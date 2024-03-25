@@ -32,6 +32,7 @@ import type ColorLayer from '../core/layer/ColorLayer';
 import type { LayerEvents } from '../core/layer/Layer';
 import type Layer from '../core/layer/Layer';
 import { type EntityUserData } from './Entity';
+import { isOrthographicCamera, isPerspectiveCamera } from '../renderer/Camera';
 
 // Draw a cube with lines (12 lines).
 function cube(size: Vector3) {
@@ -477,10 +478,16 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
             return [];
         }
 
-        // See https://cesiumjs.org/hosted-apps/massiveworlds/downloads/Ring/WorldScaleTerrainRendering.pptx
-        // slide 17
-        context.camera.preSSE = context.camera.height
-                    / (2 * Math.tan(MathUtils.degToRad(context.camera.camera3D.fov) * 0.5));
+        const camera = context.camera;
+        const camera3D = camera.camera3D;
+
+        if (isPerspectiveCamera(camera3D)) {
+            // See https://cesiumjs.org/hosted-apps/massiveworlds/downloads/Ring/WorldScaleTerrainRendering.pptx
+            // slide 17
+            camera.preSSE = camera.height / (2 * Math.tan(MathUtils.degToRad(camera3D.fov) * 0.5));
+        } else if (isOrthographicCamera(camera3D)) {
+            camera.preSSE = camera.height * camera3D.near / (camera3D.top - camera3D.bottom)
+        }
 
         if (this.material) {
             this.material.visible = this.visible;

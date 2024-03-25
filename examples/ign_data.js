@@ -7,6 +7,9 @@ import {
     Mesh,
     Material,
     DoubleSide,
+    Fog,
+    Color,
+    MathUtils,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
@@ -31,8 +34,9 @@ import StatusBar from './widgets/StatusBar.js';
 Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
 Instance.registerCRS('IGNF:WGS84G', 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]');
 
+const SKY_COLOR = new Color(0xf1e9c6);
 const viewerDiv = document.getElementById('viewerDiv');
-const instance = new Instance(viewerDiv, { crs: 'EPSG:2154' });
+const instance = new Instance(viewerDiv, { crs: 'EPSG:2154', renderer: { clearColor: SKY_COLOR } });
 
 // create a map
 const extent = new Extent('EPSG:2154', -111629.52, 1275028.84, 5976033.79, 7230161.64);
@@ -267,6 +271,32 @@ instance.addEventListener('entity-removed', () => {
         instance.domElement.removeEventListener('mousemove', pick);
     }
 });
+
+const DOWN_VECTOR = new Vector3(0, 0, -1);
+const EARTH_RADIUS = 6_3781_000;
+const tmpVec3 = new Vector3();
+
+const fog = new Fog(SKY_COLOR, 1, 2);
+instance.scene.fog = fog;
+
+function processFogAndClippingPlanes(camera) {
+    // Compute the tilt, in radians, of the camera.
+    const tilt = DOWN_VECTOR.angleTo(camera.camera3D.getWorldDirection(tmpVec3));
+
+    const altitude = camera.camera3D.position.z;
+
+    const maxFarPlane = 9_999_999;
+    const actualTilt = MathUtils.clamp(tilt, 0, Math.PI / 3);
+    const horizon = Math.sqrt(2 * altitude * EARTH_RADIUS) * 0.2;
+
+    camera.maxFarPlane = MathUtils.mapLinear(actualTilt, 0, Math.PI / 3, maxFarPlane, horizon);
+    fog.far = camera.far;
+    fog.near = MathUtils.lerp(camera.near, camera.far, 0.2);
+}
+
+instance.addEventListener('after-camera-update', event => processFogAndClippingPlanes(event.camera));
+
+processFogAndClippingPlanes(instance.camera);
 
 // Bind events
 StatusBar.bind(instance);

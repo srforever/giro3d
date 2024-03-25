@@ -3,7 +3,7 @@ import {
     Box3,
     Sphere,
     Vector3,
-    type PerspectiveCamera,
+    type Camera as ThreeCamera,
 } from 'three';
 import type Tiles3D from '../Tiles3D';
 import ScreenSpaceError from '../../core/ScreenSpaceError';
@@ -109,7 +109,7 @@ class Tile extends Object3D {
         }
     }
 
-    calculateCameraDistance(camera: PerspectiveCamera): void {
+    calculateCameraDistance(camera: ThreeCamera): void {
         this.distance.min = 0;
         this.distance.max = 0;
         if (this.boundingVolume.region) {

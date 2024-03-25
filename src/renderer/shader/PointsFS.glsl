@@ -3,6 +3,7 @@
 #include <giro3d_common>
 #include <logdepthbuf_pars_fragment>
 #include <clipping_planes_pars_fragment>
+#include <fog_pars_fragment>
 
 varying vec4 vColor;
 uniform int mode;
@@ -23,5 +24,6 @@ void main() {
     gl_FragColor = vec4(adjustBrightnessContrastSaturation(vColor.rgb, brightnessContrastSaturation), vColor.a);
 
     #include <colorspace_fragment>
+    #include <fog_fragment>
     #include <logdepthbuf_fragment>
 }

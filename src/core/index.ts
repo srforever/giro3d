@@ -13,7 +13,7 @@ import Instance, {
     type CustomCameraControls,
     type ThreeControls,
 } from './Instance';
-import MainLoop, { type RenderingState, type MainLoopOptions } from './MainLoop';
+import MainLoop, { type RenderingState } from './MainLoop';
 import OperationCounter, { type OperationCounterEvents } from './OperationCounter';
 import type Progress from './Progress';
 import PointCloud, { type PointCloudEventMap, type PointCloudOptions } from './PointCloud';
@@ -47,7 +47,6 @@ export {
     CustomCameraControls,
     ThreeControls,
     RenderingState,
-    MainLoopOptions,
     MainLoop,
     Rect,
     Context,

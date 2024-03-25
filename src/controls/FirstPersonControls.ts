@@ -8,6 +8,7 @@ import {
 } from 'three';
 import type Instance from '../core/Instance';
 import { type InstanceEvents } from '../core/Instance';
+import { isPerspectiveCamera } from '../renderer/Camera';
 
 // Note: we could use existing js controls (like
 // https://github.com/mrdoob/js/blob/dev/examples/js/controls/FirstPersonControls.js) but
@@ -104,6 +105,9 @@ class FirstPersonControls {
      * @param options - additional options
      */
     constructor(instance: Instance, options: FirstPersonControlsOptions = {}) {
+        if (!isPerspectiveCamera(instance.camera.camera3D)) {
+            throw new Error('this control only supports perspective cameras');
+        }
         this.camera = instance.camera.camera3D;
         this.instance = instance;
         this.enabled = true;
