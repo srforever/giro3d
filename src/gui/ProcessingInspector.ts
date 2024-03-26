@@ -28,11 +28,17 @@ class ProcessingInspector extends Panel {
 
         this.addController(MemoryTracker, 'enable').name('Memory tracker');
         this.addController(this, 'dumpTrackedObjects').name('Dump tracked objects to console');
+        this.addController(this, 'dumpTrackedTextures').name('Dump tracked textures to console');
     }
 
     // eslint-disable-next-line class-methods-use-this
     dumpTrackedObjects() {
         console.log(MemoryTracker.getTrackedObjects());
+    }
+
+    dumpTrackedTextures() {
+        const items = MemoryTracker.getTrackedTextures();
+        console.log(items.filter(item => item.inGpuMemory).map(item => `${item.texture.id} - ${item.texture.name}`));
     }
 
     updateValues() {

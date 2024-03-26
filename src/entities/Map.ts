@@ -299,6 +299,8 @@ class Map<UserData extends EntityUserData = EntityUserData>
     private readonly _layers: Layer[] = [];
     /** @internal */
     readonly level0Nodes: TileMesh[];
+    /** @internal */
+    readonly allTiles: Set<TileMesh> = new Set();
     private readonly _layerIndices: globalThis.Map<string, number>;
     private readonly _layerIds: Set<string> = new Set();
     readonly geometryPool: globalThis.Map<string, TileGeometry>;
@@ -591,6 +593,8 @@ class Map<UserData extends EntityUserData = EntityUserData>
             coord: { level, x, y },
         });
 
+        this.allTiles.add(tile);
+
         this.tileIndex.addTile(tile);
 
         tile.material.opacity = this.opacity;
@@ -864,7 +868,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
     update(context: Context, node: TileMesh): unknown[] | undefined {
         if (!node.parent) {
-            node.dispose();
+            this.disposeTile(node);
             return undefined;
         }
 
@@ -1134,13 +1138,20 @@ class Map<UserData extends EntityUserData = EntityUserData>
         this.clearGeometryPool();
 
         // Dispose all tiles so that every layer will unload data relevant to those tiles.
-        this.traverseTiles(t => t.dispose());
+        this.traverseTiles(t => this.disposeTile(t));
 
         if (options.disposeLayers) {
             this.getLayers().forEach(layer => layer.dispose());
         }
 
         this.materialOptions.colorMapAtlas?.dispose();
+    }
+
+    private disposeTile(tile: TileMesh) {
+        tile.traverseTiles(desc => {
+            desc.dispose();
+            this.allTiles.delete(desc);
+        });
     }
 
     /**

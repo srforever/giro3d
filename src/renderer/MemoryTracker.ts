@@ -1,13 +1,41 @@
+import type { Texture } from "three";
+
+function isTexture(o: unknown): o is Texture {
+    return (o as Texture)?.isTexture;
+}
+
+class TextureState {
+    readonly texture: Texture;
+
+    inGpuMemory: boolean;
+
+    constructor(texture: Texture) {
+        this.texture = texture;
+        texture.addEventListener('dispose', () => this.inGpuMemory = false);
+
+        if (texture.isRenderTargetTexture) {
+            this.inGpuMemory = true;
+        } else {
+            const currentOnUpdate = texture.onUpdate;
+            const patchedOnUpdate = () => {
+                this.inGpuMemory = true;
+                currentOnUpdate?.call(texture);
+            };
+            texture.onUpdate = patchedOnUpdate;
+        }
+    }
+}
+
 interface AllocatedItem {
     name: string,
     weakref: WeakRef<object>,
 }
 
 let allocated: AllocatedItem[] = [];
+const textures: Map<number, TextureState> = new Map();
 const FLUSH_EVERY_NTH = 100;
 
-// @ts-expect-error __DEBUG__ is unknown
-let enabled = __DEBUG__;
+let enabled = false;
 let counter = 0;
 
 /**
@@ -56,6 +84,10 @@ class MemoryTracker {
             // eslint-disable-next-line no-undef
             allocated.push({ name, weakref: new WeakRef(obj) });
             counter++;
+
+            if (isTexture(obj) && !textures.has(obj.id)) {
+                textures.set(obj.id, new TextureState(obj));
+            }
 
             if (counter === FLUSH_EVERY_NTH) {
                 this.flush();
@@ -109,6 +141,10 @@ class MemoryTracker {
             }
         }
         return map;
+    }
+
+    static getTrackedTextures() {
+        return [...textures.values()];
     }
 }
 

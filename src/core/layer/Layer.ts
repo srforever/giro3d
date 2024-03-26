@@ -8,11 +8,12 @@ import {
     type Texture,
     Vector2,
     type Vector4,
-    WebGLRenderTarget,
+    type WebGLRenderTarget,
     type PixelFormat,
     type TextureDataType,
     type Object3D,
     type Object3DEventMap,
+    type RenderTargetOptions,
 } from 'three';
 
 import type ColorMap from './ColorMap';
@@ -31,13 +32,13 @@ import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
 import type PointCloudMaterial from '../../renderer/PointCloudMaterial';
 import type Progress from '../Progress.js';
 import type NoDataOptions from './NoDataOptions';
+import { GlobalRenderTargetPool } from '../../renderer/RenderTargetPool';
 
 export interface TextureAndPitch {
     texture: Texture
     pitch: Vector4;
 }
 
-const POOL_SIZE = 16;
 const tmpDims = new Vector2();
 
 interface NodeEventMap extends Object3DEventMap {
@@ -295,7 +296,6 @@ abstract class Layer<
     readonly colorMap: ColorMap;
     /** The extent of this layer */
     readonly extent: Extent;
-    private readonly _renderTargetPool: Map<string, Array<WebGLRenderTarget>>;
     /** The source of this layer */
     readonly source: ImageSource;
     protected _composer: LayerComposer;
@@ -364,7 +364,6 @@ abstract class Layer<
         this.colorMap = options.colorMap;
 
         this.extent = options.extent;
-        this._renderTargetPool = new Map();
         this.resolutionFactor = options.resolutionFactor ?? 1;
 
         if (!options.source || !(options.source instanceof ImageSource)) {
@@ -1017,15 +1016,7 @@ abstract class Layer<
         if (!target) {
             return;
         }
-        const width = target.width;
-        const height = target.height;
-        const key = `${width}${height}`;
-        const pool = this._renderTargetPool.get(key);
-        if (pool && pool.length < POOL_SIZE) {
-            pool.push(target);
-        } else {
-            target.dispose();
-        }
+        GlobalRenderTargetPool.release(target, this._instance.renderer);
     }
 
     /**
@@ -1036,32 +1027,16 @@ abstract class Layer<
     private acquireRenderTarget(width: number, height: number): WebGLRenderTarget {
         const type = this.getRenderTargetDataType();
 
-        const key = `${width}${height}`;
+        const options: RenderTargetOptions = {
+            format: this.getRenderTargetPixelFormat(),
+            magFilter: LinearFilter,
+            minFilter: LinearFilter,
+            type,
+            depthBuffer: true,
+            generateMipmaps: false,
+        };
 
-        let pool: Array<WebGLRenderTarget>;
-
-        if (!this._renderTargetPool.has(key)) {
-            pool = [];
-            this._renderTargetPool.set(key, pool);
-        } else {
-            pool = this._renderTargetPool.get(key);
-        }
-
-        if (pool.length > 0) {
-            return pool.pop();
-        }
-
-        const result = new WebGLRenderTarget(
-            width,
-            height, {
-                format: this.getRenderTargetPixelFormat(),
-                magFilter: LinearFilter,
-                minFilter: LinearFilter,
-                type,
-                depthBuffer: true,
-                generateMipmaps: false,
-            },
-        );
+        const result = GlobalRenderTargetPool.acquire(this._instance.renderer, width, height, options);
 
         result.texture.name = `Layer "${this.id} - WebGLRenderTarget`;
 
@@ -1078,6 +1053,10 @@ abstract class Layer<
             this._instance.notifyChange(this);
         }
         this._shouldNotify = false;
+    }
+
+    get composer(): Readonly<LayerComposer> {
+        return this._composer;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
@@ -1103,8 +1082,6 @@ abstract class Layer<
             return;
         }
         this.disposed = true;
-        this._renderTargetPool.forEach(pool => pool.forEach(t => t.dispose()));
-        this._renderTargetPool.clear();
         this.source.dispose();
         this._composer?.dispose();
         for (const target of this._targets.values()) {

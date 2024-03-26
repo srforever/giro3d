@@ -912,6 +912,8 @@ describe('Map', () => {
             const tile2 = new Object3D();
             tile1.isTileMesh = true;
             tile2.isTileMesh = true;
+            tile1.traverseTiles = callback => callback(tile1);
+            tile2.traverseTiles = callback => callback(tile2);
             tile1.dispose = jest.fn();
             tile2.dispose = jest.fn();
 

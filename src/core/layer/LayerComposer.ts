@@ -314,7 +314,7 @@ class LayerComposer {
         const result = comp.render({
             target: options.target,
         }) as TextureWithMinMax;
-        result.name = 'LayerComposer - temporary';
+        result.name = 'LayerComposer - image (preprocessed)';
 
         result.min = texture.min;
         result.max = texture.max;

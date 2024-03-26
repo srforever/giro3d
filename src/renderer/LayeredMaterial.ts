@@ -588,6 +588,8 @@ class LayeredMaterial extends ShaderMaterial {
         const rendered = this._composer.render();
         rendered.name = 'LayeredMaterial - Atlas';
 
+        MemoryTracker.track(rendered, rendered.name);
+
         // Even though we asked the composer to reuse the same texture, sometimes it has
         // to recreate a new texture when some parameters change, such as pixel format.
         if (rendered.uuid !== this.texturesInfo.color.atlasTexture?.uuid) {

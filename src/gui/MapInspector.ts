@@ -57,7 +57,8 @@ class MapInspector extends EntityInspector {
     private _fillLayersCb: () => void;
     grid?: GridHelper;
     axes?: AxesHelper;
-    activeTiles: number;
+    reachableTiles: number;
+    visibleTiles: number;
 
     /**
      * Creates an instance of MapInspector.
@@ -94,7 +95,8 @@ class MapInspector extends EntityInspector {
         this.extentHelper = null;
 
         this.mapSegments = this.map.segments;
-        this.activeTiles = 0;
+        this.reachableTiles = 0;
+        this.visibleTiles = 0;
 
         this.labels = new window.Map();
 
@@ -106,8 +108,12 @@ class MapInspector extends EntityInspector {
             .min(2)
             .max(128)
             .onChange(v => this.updateSegments(v));
-        this.addController<number>(this, 'activeTiles')
-            .name('Active tiles');
+        this.addController<number>(this, 'visibleTiles')
+            .name('Visible tiles');
+        this.addController<number>(this, 'reachableTiles')
+            .name('Reachable tiles');
+        this.addController<number>(this.map.allTiles, 'size')
+            .name('Loaded tiles');
         this.addController<number>(this.map.geometryPool, 'size')
             .name('Geometry pool');
         if (this.map.materialOptions.elevationRange) {
@@ -272,7 +278,7 @@ class MapInspector extends EntityInspector {
             if (obj instanceof TileMesh) {
                 const tile = obj as TileMesh;
                 let finalColor = new Color();
-                const layerCount = obj.material.getLayerCount();
+                const layerCount = obj.material?.getLayerCount();
                 if (layerCount === 0) {
                     finalColor = noDataColor;
                 } else {
@@ -383,11 +389,13 @@ class MapInspector extends EntityInspector {
         this.layerCount = this.map.layerCount;
         this.layers.forEach(l => l.updateValues());
 
-        this.activeTiles = 0;
+        this.reachableTiles = 0;
+        this.visibleTiles = 0;
         this.map.traverseTiles(t => {
             if (t.material.visible) {
-                this.activeTiles++;
+                this.visibleTiles++;
             }
+            this.reachableTiles++;
         });
     }
 
