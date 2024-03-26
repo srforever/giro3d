@@ -12,6 +12,7 @@ import type Extent from './geographic/Extent.js';
 import type Disposable from './Disposable';
 
 export interface PointCloudEventMap extends Object3DEventMap {
+    'visibility-changed': { /** empty */ };
     'dispose': { /** empty */ };
 }
 
@@ -57,6 +58,11 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap>, 
     }
     set layer(value: Entity3D) {
         this._layer = value;
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    canProcessColorLayer(): boolean {
+        return true;
     }
 
     getExtent() {

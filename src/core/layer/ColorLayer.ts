@@ -12,6 +12,7 @@ import Layer, {
     type NodeMaterial,
     type TextureAndPitch,
     type LayerUserData,
+    type Target,
 } from './Layer';
 import type Coordinates from '../geographic/Coordinates';
 import Extent from '../geographic/Extent';
@@ -185,6 +186,11 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
     // eslint-disable-next-line class-methods-use-this
     getRenderTargetPixelFormat(): PixelFormat {
         return RGBAFormat;
+    }
+
+    // eslint-disable-next-line class-methods-use-this
+    protected canFetchImages(target: Target): boolean {
+        return target.node.canProcessColorLayer();
     }
 
     registerNode(node: Node, extent: Extent) {

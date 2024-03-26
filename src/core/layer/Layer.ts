@@ -42,12 +42,14 @@ const tmpDims = new Vector2();
 
 interface NodeEventMap extends Object3DEventMap {
     'disposed': { /** empty */ };
+    'visibility-changed': { /** empty */ };
 }
 
 export interface Node extends Object3D<NodeEventMap> {
     disposed: boolean;
     material: Material | Material[];
     textureSize: Vector2;
+    canProcessColorLayer(): boolean;
     getExtent(): Extent;
 }
 
@@ -60,7 +62,23 @@ enum TargetState {
     Disposed = 3,
 }
 
-class Target {
+function shouldCancel(node: Node): boolean {
+    if (node.disposed) {
+        return true;
+    }
+
+    if (!node.parent || !node.material) {
+        return true;
+    }
+
+    if (Array.isArray(node.material)) {
+        return node.material.every(m => !m.visible);
+    }
+
+    return !node.material.visible;
+}
+
+export class Target {
     node: Node;
     pitch: Vector4;
     extent: Extent;
@@ -71,6 +89,7 @@ class Target {
     controller: AbortController;
     state: TargetState;
     geometryExtent: Extent;
+    private _onVisibilityChanged: () => void;
 
     constructor(options: {
         node: Node;
@@ -89,6 +108,26 @@ class Target {
         this.imageIds = new Set();
         this.controller = new AbortController();
         this.state = TargetState.Pending;
+
+        this._onVisibilityChanged = this.onVisibilityChanged.bind(this);
+
+        this.node.addEventListener('visibility-changed', this._onVisibilityChanged);
+    }
+
+    dispose() {
+        this.node.removeEventListener('visibility-changed', this._onVisibilityChanged);
+        this.state = TargetState.Disposed;
+        this.abort();
+    }
+
+    private onVisibilityChanged() {
+        if (shouldCancel(this.node)) {
+            // If the node became invisible before we could complete the processing, cancel it.
+            if (this.state !== TargetState.Complete) {
+                this.abort();
+                this.state = TargetState.Pending;
+            }
+        }
     }
 
     reset() {
@@ -356,19 +395,7 @@ abstract class Layer<
             return true;
         }
 
-        if (node.disposed) {
-            return true;
-        }
-
-        if (!node.parent || !node.material) {
-            return true;
-        }
-
-        if (Array.isArray(node.material)) {
-            return node.material.every(m => !m.visible);
-        }
-
-        return !node.material.visible;
+        return shouldCancel(node);
     }
 
     private onSourceUpdated() {
@@ -676,8 +703,7 @@ abstract class Layer<
             this.releaseRenderTarget(target.renderTarget);
             this._targets.delete(id);
             this._composer.unlock(target.imageIds, id);
-            target.state = TargetState.Disposed;
-            target.abort();
+            target.dispose();
             this._sortedTargets = null;
         }
     }
@@ -836,13 +862,17 @@ abstract class Layer<
         // Fetch adequate images from the source...
         const isContained = this.contains(extent);
         if (isContained) {
-            target.state = TargetState.Processing;
-
             if (!target.renderTarget) {
                 target.renderTarget = this.acquireRenderTarget(width, height);
 
                 this.applyDefaultTexture(target);
             }
+
+            if (!this.canFetchImages(target)) {
+                return;
+            }
+
+            target.state = TargetState.Processing;
 
             this.fetchImages({
                 extent, width, height, target,
@@ -958,6 +988,8 @@ abstract class Layer<
         // Repaint the target if necessary.
         this.processTarget(target);
     }
+
+    protected abstract canFetchImages(target: Target): boolean;
 
     /**
      * @param extent - The extent to test.

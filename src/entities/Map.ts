@@ -291,6 +291,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     implements Pickable<MapPickResult>, PickableFeatures<unknown, MapPickResult>, HasLayers {
     readonly hasLayers = true;
     private _segments: number;
+    private _hasElevationLayer = false;
     private readonly _atlasInfo: AtlasInfo;
     private _subdivisions: { x: number; y: number; };
     private _colorAtlasDataType: TextureDataType = UnsignedByteType;
@@ -578,6 +579,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             options: this.materialOptions,
             getIndexFn: this.getIndex.bind(this),
             textureDataType: this._colorAtlasDataType,
+            hasElevationLayer: this._hasElevationLayer,
         });
 
         const tile = new TileMesh({
@@ -1013,6 +1015,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         if (layer instanceof ColorLayer) {
             this.registerColorLayer(layer);
         } else if (layer instanceof ElevationLayer) {
+            this._hasElevationLayer = true;
             this.updateGlobalMinMax();
         }
 
@@ -1049,6 +1052,9 @@ class Map<UserData extends EntityUserData = EntityUserData>
             this._layers.splice(this._layers.indexOf(layer));
             if (layer.colorMap) {
                 this.materialOptions.colorMapAtlas.remove(layer.colorMap);
+            }
+            if (layer instanceof ElevationLayer) {
+                this._hasElevationLayer = false;
             }
             this.traverseTiles(tile => {
                 layer.unregisterNode(tile);

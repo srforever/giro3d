@@ -315,6 +315,7 @@ class LayeredMaterial extends ShaderMaterial {
 
     private readonly _atlasInfo: AtlasInfo;
     private _options: MaterialOptions;
+    private _hasElevationLayer: boolean;
 
     constructor({
         options = {},
@@ -322,6 +323,7 @@ class LayeredMaterial extends ShaderMaterial {
         atlasInfo,
         getIndexFn,
         textureDataType,
+        hasElevationLayer,
     }: {
         /** the material options. */
         options: MaterialOptions;
@@ -333,6 +335,7 @@ class LayeredMaterial extends ShaderMaterial {
         getIndexFn: (arg0: Layer) => number;
         /** The texture data type to be used for the atlas texture. */
         textureDataType: TextureDataType;
+        hasElevationLayer: boolean;
     }) {
         super({ clipping: true, glslVersion: GLSL3 });
 
@@ -341,6 +344,7 @@ class LayeredMaterial extends ShaderMaterial {
         MaterialUtils.setDefine(this, 'TERRAIN_DEFORMATION', options.terrain?.enabled);
         this._renderer = renderer;
 
+        this._hasElevationLayer = hasElevationLayer;
         this._composerDataType = textureDataType;
         this.uniforms.hillshading = new Uniform<HillshadingUniform>({
             zenith: DEFAULT_ZENITH,
@@ -626,12 +630,14 @@ class LayeredMaterial extends ShaderMaterial {
 
     pushElevationLayer(layer: ElevationLayer) {
         this._elevationLayer = layer;
+        this._hasElevationLayer = true;
     }
 
     removeElevationLayer() {
         this._elevationLayer = null;
         this.uniforms.elevationTexture.value = null;
         this.texturesInfo.elevation.texture = null;
+        this._hasElevationLayer = false;
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', false);
     }
 
@@ -1025,7 +1031,14 @@ class LayeredMaterial extends ShaderMaterial {
         this._updateColorLayerUniforms();
     }
 
+    canProcessColorLayer(): boolean {
+        return this.isElevationLayerTextureLoaded();
+    }
+
     isElevationLayerTextureLoaded() {
+        if (!this._hasElevationLayer) {
+            return true;
+        }
         const texture = this.texturesInfo.elevation.texture;
         return texture != null && texture.isFinal === true;
     }
