@@ -41,21 +41,6 @@ module.exports = {
         'no-plusplus': 'off',
         'arrow-parens': ['error', 'as-needed'],
         '@typescript-eslint/lines-between-class-members': 'off',
-        // this option sets a specific tab width for your code
-        // http://eslint.org/docs/rules/indent
-        '@typescript-eslint/indent': ['warn', 4, {
-            SwitchCase: 1,
-            VariableDeclarator: 1,
-            outerIIFEBody: 1,
-            FunctionDeclaration: {
-                parameters: 1,
-                body: 1,
-            },
-            FunctionExpression: {
-                parameters: 1,
-                body: 1,
-            },
-        }],
         'one-var': ['error', 'never'],
         // We want to be able to import .ts files from .js files without mentioning the extension,
         // otherwise the transpiled file would still import a .ts file and this would break.
