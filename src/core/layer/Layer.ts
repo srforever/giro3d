@@ -35,15 +35,19 @@ import type NoDataOptions from './NoDataOptions';
 import { GlobalRenderTargetPool } from '../../renderer/RenderTargetPool';
 
 export interface TextureAndPitch {
-    texture: Texture
+    texture: Texture;
     pitch: Vector4;
 }
 
 const tmpDims = new Vector2();
 
 interface NodeEventMap extends Object3DEventMap {
-    'disposed': { /** empty */ };
-    'visibility-changed': { /** empty */ };
+    disposed: {
+        /** empty */
+    };
+    'visibility-changed': {
+        /** empty */
+    };
 }
 
 export interface Node extends Object3D<NodeEventMap> {
@@ -194,7 +198,7 @@ export interface LayerOptions {
      * Enables or disable preloading of low resolution fallback images. Those fallback images
      * are used when no data is available yet on a particular region of the layer.
      */
-    preloadImages?:boolean;
+    preloadImages?: boolean;
     /**
      * The optional background color of the layer.
      */
@@ -270,10 +274,12 @@ export type LayerUserData = Record<string, unknown>;
  * @typeParam TUserData - The type of the `userData` property.
  */
 abstract class Layer<
-    TEvents extends LayerEvents = LayerEvents,
-    TUserData extends LayerUserData = LayerUserData>
+        TEvents extends LayerEvents = LayerEvents,
+        TUserData extends LayerUserData = LayerUserData,
+    >
     extends EventDispatcher<TEvents & LayerEvents>
-    implements Progress {
+    implements Progress
+{
     /**
      * Optional name of this layer.
      */
@@ -412,14 +418,13 @@ abstract class Layer<
 
         this._fallbackImagesPromise = null;
 
-        this.loadFallbackImages()
-            .then(() => {
-                for (const target of this._targets.values()) {
-                    target.reset();
-                }
+        this.loadFallbackImages().then(() => {
+            for (const target of this._targets.values()) {
+                target.reset();
+            }
 
-                this._instance.notifyChange(this, true);
-            });
+            this._instance.notifyChange(this, true);
+        });
     }
 
     /**
@@ -457,7 +462,8 @@ abstract class Layer<
          * The instance to associate this layer.
          * Once set, the layer cannot be used with any other instance.
          */
-        instance: Instance }): Promise<this> {
+        instance: Instance;
+    }): Promise<this> {
         const { instance } = options;
         if (this._instance != null && instance !== this._instance) {
             throw new Error('This layer has already been initialized for another instance.');
@@ -466,7 +472,9 @@ abstract class Layer<
         this._instance = instance;
 
         if (this.extent && this.extent.crs() !== instance.referenceCrs) {
-            throw new Error(`the extent of the layer was defined in a different CRS (${this.extent.crs()}) than the instance's (${instance.referenceCrs}). Please convert the extent to the instance CRS before creating the layer.`);
+            throw new Error(
+                `the extent of the layer was defined in a different CRS (${this.extent.crs()}) than the instance's (${instance.referenceCrs}). Please convert the extent to the instance CRS before creating the layer.`,
+            );
         }
 
         if (!this._preprocessOnce) {
@@ -619,12 +627,7 @@ abstract class Layer<
         /** The target of the images. */
         target: Target;
     }): Promise<void> {
-        const {
-            extent,
-            width,
-            height,
-            target,
-        } = options;
+        const { extent, width, height, target } = options;
 
         const node = target.node;
 
@@ -671,18 +674,24 @@ abstract class Layer<
 
             const requestId = `${this.id}-${id}`;
 
-            const p = this._queue.enqueue({
-                id: requestId, request, priority, shouldExecute,
-            }).then((image: ImageResult) => {
-                if (!this.disposed) {
-                    this.addToComposer(image, false);
-                    if (!this.shouldCancelRequest(node)) {
-                        this._composer.lock(id, node.id);
+            const p = this._queue
+                .enqueue({
+                    id: requestId,
+                    request,
+                    priority,
+                    shouldExecute,
+                })
+                .then((image: ImageResult) => {
+                    if (!this.disposed) {
+                        this.addToComposer(image, false);
+                        if (!this.shouldCancelRequest(node)) {
+                            this._composer.lock(id, node.id);
+                        }
                     }
-                }
-            }).finally(() => {
-                this._opCounter.decrement();
-            });
+                })
+                .finally(() => {
+                    this._opCounter.decrement();
+                });
 
             allImages.push(p);
         }
@@ -725,7 +734,7 @@ abstract class Layer<
         originalExtent: Extent,
         originalWidth: number,
         originalHeight: number,
-    ): { extent: Extent; width: number; height: number; } {
+    ): { extent: Extent; width: number; height: number } {
         // This feature only makes sense if both the source and instance have the same CRS,
         // meaning that pixels can be aligned
         if (this.source.getCrs() === this._instance.referenceCrs) {
@@ -737,9 +746,11 @@ abstract class Layer<
                 2,
             );
 
-            if (sourceAdjusted
-                && sourceAdjusted.width <= originalWidth
-                && sourceAdjusted.height <= originalHeight) {
+            if (
+                sourceAdjusted &&
+                sourceAdjusted.width <= originalWidth &&
+                sourceAdjusted.height <= originalHeight
+            ) {
                 return sourceAdjusted;
             }
         }
@@ -749,8 +760,7 @@ abstract class Layer<
         // such as color bleeding in atlas textures and hillshading issues with elevation data.
         const margin = 0.05;
         const pixelMargin = 4;
-        const marginExtent = originalExtent
-            .withRelativeMargin(margin);
+        const marginExtent = originalExtent.withRelativeMargin(margin);
 
         // Should we crop the extent ?
         const adjustedExtent = this.adjustExtent(marginExtent);
@@ -827,7 +837,7 @@ abstract class Layer<
     /**
      * @internal
      */
-    getInfo(node: Node): { state: string, imageCount: number } {
+    getInfo(node: Node): { state: string; imageCount: number } {
         const target = this._targets.get(node.id);
         if (target) {
             return { state: TargetState[target.state], imageCount: target.imageIds.size };
@@ -874,39 +884,44 @@ abstract class Layer<
             target.state = TargetState.Processing;
 
             this.fetchImages({
-                extent, width, height, target,
-            }).then(() => {
-                if (target.state === TargetState.Disposed) {
-                    return;
-                }
+                extent,
+                width,
+                height,
+                target,
+            })
+                .then(() => {
+                    if (target.state === TargetState.Disposed) {
+                        return;
+                    }
 
-                const { isLastRender } = this._composer.render({
-                    extent,
-                    width,
-                    height,
-                    target: target.renderTarget,
-                    imageIds: target.imageIds,
+                    const { isLastRender } = this._composer.render({
+                        extent,
+                        width,
+                        height,
+                        target: target.renderTarget,
+                        imageIds: target.imageIds,
+                    });
+
+                    if (isLastRender) {
+                        target.state = TargetState.Complete;
+                    } else {
+                        target.state = TargetState.Pending;
+                    }
+
+                    const texture = target.renderTarget.texture;
+                    this.applyTextureToNode({ texture, pitch }, target.node, isLastRender);
+                    this._instance.notifyChange(this);
+                })
+                .catch(err => {
+                    // Abort errors are perfectly normal, so we don't need to log them.
+                    // However any other error implies an abnormal termination of the processing.
+                    if (err.name !== 'AbortError') {
+                        console.error(err);
+                        target.state = TargetState.Complete;
+                    } else {
+                        target.state = TargetState.Pending;
+                    }
                 });
-
-                if (isLastRender) {
-                    target.state = TargetState.Complete;
-                } else {
-                    target.state = TargetState.Pending;
-                }
-
-                const texture = target.renderTarget.texture;
-                this.applyTextureToNode({ texture, pitch }, target.node, isLastRender);
-                this._instance.notifyChange(this);
-            }).catch(err => {
-                // Abort errors are perfectly normal, so we don't need to log them.
-                // However any other error implies an abnormal termination of the processing.
-                if (err.name !== 'AbortError') {
-                    console.error(err);
-                    target.state = TargetState.Complete;
-                } else {
-                    target.state = TargetState.Pending;
-                }
-            });
         } else {
             target.state = TargetState.Complete;
             this.applyEmptyTextureToNode(target.node);
@@ -959,7 +974,12 @@ abstract class Layer<
             const pitch = originalExtent.offsetToParent(extent);
 
             target = new Target({
-                node, extent, pitch, width, height, geometryExtent: originalExtent,
+                node,
+                extent,
+                pitch,
+                width,
+                height,
+                geometryExtent: originalExtent,
             });
             this._targets.set(node.id, target);
             this._sortedTargets = null;
@@ -1036,7 +1056,12 @@ abstract class Layer<
             generateMipmaps: false,
         };
 
-        const result = GlobalRenderTargetPool.acquire(this._instance.renderer, width, height, options);
+        const result = GlobalRenderTargetPool.acquire(
+            this._instance.renderer,
+            width,
+            height,
+            options,
+        );
 
         result.texture.name = `Layer "${this.id} - WebGLRenderTarget`;
 
@@ -1069,7 +1094,7 @@ abstract class Layer<
     protected abstract applyTextureToNode(
         texture: TextureAndPitch,
         node: Node,
-        isLastRender: boolean
+        isLastRender: boolean,
     ): void;
 
     protected abstract applyEmptyTextureToNode(node: Node): void;

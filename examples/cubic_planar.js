@@ -1,11 +1,4 @@
-import {
-    Mesh,
-    Vector3,
-    Euler,
-    MeshBasicMaterial,
-    BoxGeometry,
-    Object3D,
-} from 'three';
+import { Mesh, Vector3, Euler, MeshBasicMaterial, BoxGeometry, Object3D } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import TileWMS from 'ol/source/TileWMS.js';
 
@@ -59,15 +52,13 @@ const cubeTransformations = [
 ];
 
 // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)
-Instance.registerCRS('EPSG:3946',
-    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+Instance.registerCRS(
+    'EPSG:3946',
+    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+);
 
 // Define geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent(
-    'EPSG:3946',
-    1837900, 1837900 + 8000,
-    5170100, 5170100 + 8000,
-);
+const extent = new Extent('EPSG:3946', 1837900, 1837900 + 8000, 5170100, 5170100 + 8000);
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
@@ -143,7 +134,12 @@ for (let i = 0; i < wmsLayers.length; i++) {
     instance.add(map);
 
     map.addLayer(createColorLayer(wms, 'https://download.data.grandlyon.com/wms/grandlyon'));
-    map.addLayer(createElevationLayer('MNT2012_Altitude_10m_CC46', 'https://download.data.grandlyon.com/wms/grandlyon'));
+    map.addLayer(
+        createElevationLayer(
+            'MNT2012_Altitude_10m_CC46',
+            'https://download.data.grandlyon.com/wms/grandlyon',
+        ),
+    );
 }
 
 instance.camera.camera3D.position.set(3, 2, 3);

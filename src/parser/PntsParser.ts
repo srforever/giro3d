@@ -4,10 +4,10 @@ import utf8Decoder from '../utils/Utf8Decoder';
 
 export interface Pnts {
     point: {
-        geometry?: BufferGeometry,
-        offset?: Vector3,
-    },
-    batchTable: any,
+        geometry?: BufferGeometry;
+        offset?: Vector3;
+    };
+    batchTable: any;
 }
 
 function parseFeatureBinary(array: ArrayBuffer, byteOffset: number, FTJSONLength: number) {
@@ -22,7 +22,7 @@ function parseFeatureBinary(array: ArrayBuffer, byteOffset: number, FTJSONLength
         lengthFeature = parseJSON.POINTS_LENGTH;
     }
     if (parseJSON.POSITION) {
-        const byteOffsetPos = (parseJSON.POSITION.byteOffset + subArrayJson.length + byteOffset);
+        const byteOffsetPos = parseJSON.POSITION.byteOffset + subArrayJson.length + byteOffset;
         const positionArray = new Float32Array(array, byteOffsetPos, lengthFeature * 3);
         geometry.setAttribute('position', new BufferAttribute(positionArray, 3));
     }
@@ -51,8 +51,7 @@ function parseFeatureBinary(array: ArrayBuffer, byteOffset: number, FTJSONLength
     }
 
     // Add RTC feature
-    const offset = parseJSON.RTC_CENTER
-        ? new Vector3().fromArray(parseJSON.RTC_CENTER) : undefined;
+    const offset = parseJSON.RTC_CENTER ? new Vector3().fromArray(parseJSON.RTC_CENTER) : undefined;
 
     return {
         geometry,

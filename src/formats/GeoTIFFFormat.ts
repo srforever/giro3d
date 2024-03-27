@@ -8,7 +8,11 @@ import {
     type PixelFormat,
     RGFormat,
 } from 'three';
-import TextureGenerator, { type NumberArray, OPAQUE_BYTE, OPAQUE_FLOAT } from '../utils/TextureGenerator';
+import TextureGenerator, {
+    type NumberArray,
+    OPAQUE_BYTE,
+    OPAQUE_FLOAT,
+} from '../utils/TextureGenerator';
 import type { DecodeOptions } from './ImageFormat';
 import ImageFormat from './ImageFormat';
 
@@ -69,36 +73,45 @@ class GeoTIFFFormat extends ImageFormat {
 
         let format: PixelFormat;
         switch (spp) {
-            case 1: {
-                // grayscale
-                const [v] = await image.readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
-                format = RGFormat;
-                TextureGenerator.fillBuffer(buffer, { nodata }, opaqueValue, v);
-            }
+            case 1:
+                {
+                    // grayscale
+                    const [v] = (await image.readRasters({
+                        pool: geotiffWorkerPool,
+                    })) as NumberArray[];
+                    format = RGFormat;
+                    TextureGenerator.fillBuffer(buffer, { nodata }, opaqueValue, v);
+                }
                 break;
-            case 2: {
-                // grayscale with alpha
-                const [v, a] = await image
-                    .readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
-                format = RGFormat;
-                TextureGenerator.fillBuffer(buffer, {}, opaqueValue, v, a);
-            }
+            case 2:
+                {
+                    // grayscale with alpha
+                    const [v, a] = (await image.readRasters({
+                        pool: geotiffWorkerPool,
+                    })) as NumberArray[];
+                    format = RGFormat;
+                    TextureGenerator.fillBuffer(buffer, {}, opaqueValue, v, a);
+                }
                 break;
-            case 3: {
-                // RGB
-                const [r, g, b] = await image
-                    .readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
-                format = RGBAFormat;
-                TextureGenerator.fillBuffer(buffer, {}, opaqueValue, r, g, b);
-            }
+            case 3:
+                {
+                    // RGB
+                    const [r, g, b] = (await image.readRasters({
+                        pool: geotiffWorkerPool,
+                    })) as NumberArray[];
+                    format = RGBAFormat;
+                    TextureGenerator.fillBuffer(buffer, {}, opaqueValue, r, g, b);
+                }
                 break;
-            case 4: {
-                // RGBA
-                const [r, g, b, a] = await image
-                    .readRasters({ pool: geotiffWorkerPool }) as NumberArray[];
-                format = RGBAFormat;
-                TextureGenerator.fillBuffer(buffer, {}, opaqueValue, r, g, b, a);
-            }
+            case 4:
+                {
+                    // RGBA
+                    const [r, g, b, a] = (await image.readRasters({
+                        pool: geotiffWorkerPool,
+                    })) as NumberArray[];
+                    format = RGBAFormat;
+                    TextureGenerator.fillBuffer(buffer, {}, opaqueValue, r, g, b, a);
+                }
                 break;
             default:
                 throw new Error(`unsupported channel count: ${spp}`);

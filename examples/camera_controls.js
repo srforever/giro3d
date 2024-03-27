@@ -41,9 +41,11 @@ CameraControls.install({
     },
 });
 
-Instance.registerCRS('EPSG:3946',
-    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 '
-    + '+y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+Instance.registerCRS(
+    'EPSG:3946',
+    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 ' +
+        '+y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+);
 
 const viewerDiv = document.getElementById('viewerDiv');
 const instance = new Instance(viewerDiv, { crs: 'EPSG:3946' });
@@ -124,12 +126,15 @@ const executeInteraction = callback => {
 
 // Add some controls on keyboard
 const keys = {
-    LEFT: 'ArrowLeft', UP: 'ArrowUp', RIGHT: 'ArrowRight', BOTTOM: 'ArrowDown',
+    LEFT: 'ArrowLeft',
+    UP: 'ArrowUp',
+    RIGHT: 'ArrowRight',
+    BOTTOM: 'ArrowDown',
 };
 instance.domElement.addEventListener('keydown', e => {
     let forwardDirection = 0;
     let truckDirectionX = 0;
-    const factor = (e.ctrlKey || e.metaKey || e.shiftKey ? 200 : 20);
+    const factor = e.ctrlKey || e.metaKey || e.shiftKey ? 200 : 20;
     switch (e.code) {
         case keys.UP:
             forwardDirection = 1;
@@ -148,32 +153,33 @@ instance.domElement.addEventListener('keydown', e => {
             break;
 
         default:
-                // do nothing
+        // do nothing
     }
     if (forwardDirection) {
-        executeInteraction(() => controls.forward(
-            forwardDirection * controls.truckSpeed * factor, true,
-        ));
+        executeInteraction(() =>
+            controls.forward(forwardDirection * controls.truckSpeed * factor, true),
+        );
     }
     if (truckDirectionX) {
-        executeInteraction(() => controls.truck(
-            truckDirectionX * controls.truckSpeed * factor, 0, true,
-        ));
+        executeInteraction(() =>
+            controls.truck(truckDirectionX * controls.truckSpeed * factor, 0, true),
+        );
     }
 });
 
 // Make rotation around where the user clicked
 instance.domElement.addEventListener('contextmenu', e => {
-    const picked = instance.pickObjectsAt(e, {
-        limit: 1,
-        radius: 20,
-        filter: p => (
-            // Make sure we pick a valid point
-            Number.isFinite(p.point.x)
-            && Number.isFinite(p.point.y)
-            && Number.isFinite(p.point.z)
-        ),
-    }).at(0);
+    const picked = instance
+        .pickObjectsAt(e, {
+            limit: 1,
+            radius: 20,
+            filter: p =>
+                // Make sure we pick a valid point
+                Number.isFinite(p.point.x) &&
+                Number.isFinite(p.point.y) &&
+                Number.isFinite(p.point.z),
+        })
+        .at(0);
     if (picked) {
         controls.setOrbitPoint(picked.point.x, picked.point.y, picked.point.z);
     }
@@ -183,9 +189,12 @@ instance.domElement.addEventListener('contextmenu', e => {
 const cubeTextureLoader = new CubeTextureLoader();
 cubeTextureLoader.setPath('image/skyboxsun25deg_zup/');
 const cubeTexture = cubeTextureLoader.load([
-    'px.jpg', 'nx.jpg',
-    'py.jpg', 'ny.jpg',
-    'pz.jpg', 'nz.jpg',
+    'px.jpg',
+    'nx.jpg',
+    'py.jpg',
+    'ny.jpg',
+    'pz.jpg',
+    'nz.jpg',
 ]);
 
 instance.scene.background = cubeTexture;

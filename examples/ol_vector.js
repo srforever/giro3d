@@ -14,8 +14,10 @@ import StatusBar from './widgets/StatusBar.js';
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
     'EPSG:3857',
-    -20037508.342789244, 20037508.342789244,
-    -20037508.342789244, 20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
 );
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
@@ -25,7 +27,7 @@ const viewerDiv = document.getElementById('viewerDiv');
 const instance = new Instance(viewerDiv, {
     crs: extent.crs(),
     renderer: {
-        clearColor: 0xFFFFFF,
+        clearColor: 0xffffff,
     },
 });
 

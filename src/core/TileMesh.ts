@@ -5,17 +5,17 @@ import {
     type Vector2,
     type Texture,
     type Object3D,
-} from "three";
+} from 'three';
 
-import MemoryTracker from "../renderer/MemoryTracker";
-import type LayeredMaterial from "../renderer/LayeredMaterial";
-import type { MaterialOptions } from "../renderer/LayeredMaterial";
-import type Extent from "./geographic/Extent";
-import TileGeometry from "./TileGeometry";
-import OBB from "./OBB";
-import type RenderingState from "../renderer/RenderingState";
-import type ElevationLayer from "./layer/ElevationLayer";
-import type Disposable from "./Disposable";
+import MemoryTracker from '../renderer/MemoryTracker';
+import type LayeredMaterial from '../renderer/LayeredMaterial';
+import type { MaterialOptions } from '../renderer/LayeredMaterial';
+import type Extent from './geographic/Extent';
+import TileGeometry from './TileGeometry';
+import OBB from './OBB';
+import type RenderingState from '../renderer/RenderingState';
+import type ElevationLayer from './layer/ElevationLayer';
+import type Disposable from './Disposable';
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
@@ -37,7 +37,9 @@ function makeGeometry(pool: GeometryPool, extent: Extent, segments: number, leve
 }
 
 export interface TileMeshEventMap extends Object3DEventMap {
-    'visibility-changed': { /** empty */ },
+    'visibility-changed': {
+        /** empty */
+    };
     dispose: {
         /** empty */
     };
@@ -46,7 +48,7 @@ export interface TileMeshEventMap extends Object3DEventMap {
 class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> implements Disposable {
     private readonly _pool: GeometryPool;
     private _segments: number;
-    readonly type: string = "TileMesh";
+    readonly type: string = 'TileMesh';
     readonly isTileMesh: boolean = true;
     private _minmax: { min: number; max: number };
     readonly extent: Extent;
@@ -99,7 +101,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
         this._obb = new OBB(this.geometry.boundingBox.min, this.geometry.boundingBox.max);
 
         this.name = `tile @ (z=${level}, x=${x}, y=${y})`;
-        this._obb.name = "obb";
+        this._obb.name = 'obb';
 
         this.frustumCulled = false;
 
@@ -289,7 +291,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
             min: number;
             max: number;
         },
-        isFinal = false
+        isFinal = false,
     ) {
         if (this.material === null) {
             return;
@@ -406,7 +408,7 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
             return;
         }
         this.disposed = true;
-        this.dispatchEvent({ type: "dispose" });
+        this.dispatchEvent({ type: 'dispose' });
         this.material.dispose();
         // We don't dispose the geometry because we don't own it.
         // It is shared between all TileMesh objects of the same depth level.

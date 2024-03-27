@@ -1,10 +1,5 @@
 import type GUI from 'lil-gui';
-import type {
-    BufferGeometry,
-    Material,
-    Mesh,
-    Object3D,
-} from 'three';
+import type { BufferGeometry, Material, Mesh, Object3D } from 'three';
 import { Color } from 'three';
 import type Instance from '../../core/Instance';
 import type { BoundingBoxHelper } from '../../helpers/Helpers';
@@ -28,7 +23,7 @@ interface Filter {
  * @param obj - the THREE object
  * @returns the object containing foreground and background colors
  */
-function selectColor(obj: OutlinedObject3D): { back: string, fore: string } {
+function selectColor(obj: OutlinedObject3D): { back: string; fore: string } {
     switch (obj.type) {
         case 'Mesh':
         case 'TileMesh':
@@ -108,11 +103,7 @@ function createTreeViewNodeWithDescendants(
     // recursively create the DOM elements for the children
     const childLevel = level + 1;
     obj.children.forEach((child: OutlinedObject3D) => {
-        const childNode = createTreeViewNodeWithDescendants(
-            child,
-            clickHandler,
-            childLevel,
-        );
+        const childNode = createTreeViewNodeWithDescendants(child, clickHandler, childLevel);
         if (childNode) {
             div.appendChild(childNode);
         }
@@ -253,9 +244,8 @@ class Outliner extends Panel {
 
     search() {
         this.filters.searchQuery = this.filters.searchQuery.trim().toLowerCase();
-        this.filters.searchRegex = this.filters.searchQuery.length > 0
-            ? new RegExp(this.filters.searchQuery)
-            : null;
+        this.filters.searchRegex =
+            this.filters.searchQuery.length > 0 ? new RegExp(this.filters.searchQuery) : null;
         this.updateTreeView();
     }
 

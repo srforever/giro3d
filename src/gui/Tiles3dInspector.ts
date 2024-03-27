@@ -21,14 +21,13 @@ class Tiles3dInspector extends EntityInspector {
      * @param entity - The inspected 3D tileset.
      */
     constructor(parentGui: GUI, instance: Instance, entity: Tiles3D) {
-        super(parentGui, instance, entity,
-            {
-                title: `Tiles3D ('${entity.id}')`,
-                visibility: true,
-                boundingBoxColor: true,
-                boundingBoxes: true,
-                opacity: true,
-            });
+        super(parentGui, instance, entity, {
+            title: `Tiles3D ('${entity.id}')`,
+            visibility: true,
+            boundingBoxColor: true,
+            boundingBoxes: true,
+            opacity: true,
+        });
 
         this.wireframe = entity.wireframe ?? false;
         this.sse = entity.sseThreshold;

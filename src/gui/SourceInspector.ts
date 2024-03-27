@@ -44,11 +44,13 @@ class SourceInspector extends Panel {
             this.addController<string>(this, 'url').name('URL');
             if (source.channels) {
                 this.cogChannels = JSON.stringify(source.channels);
-                this.addController<string>(this, 'cogChannels').name('Channel mapping').onChange(v => {
-                    const channels = JSON.parse(v);
-                    source.channels = channels;
-                    this.instance.notifyChange();
-                });
+                this.addController<string>(this, 'cogChannels')
+                    .name('Channel mapping')
+                    .onChange(v => {
+                        const channels = JSON.parse(v);
+                        source.channels = channels;
+                        this.instance.notifyChange();
+                    });
             }
         } else if (source instanceof TiledImageSource) {
             this.sourceType = 'TiledImageSource';

@@ -1,15 +1,11 @@
-import {
-    Box3,
-    Object3D,
-    Vector3,
-} from 'three';
+import { Box3, Object3D, Vector3 } from 'three';
 
 class OBB extends Object3D {
     readonly isHelper: boolean = true;
     readonly type: string | 'OBB';
     readonly box3D: Box3;
     readonly natBox: Box3;
-    z: { min: number, max: number };
+    z: { min: number; max: number };
     topPointsWorld: Vector3[];
 
     constructor(min: Vector3, max: Vector3) {
@@ -17,12 +13,7 @@ class OBB extends Object3D {
         this.box3D = new Box3(min.clone(), max.clone());
         this.natBox = this.box3D.clone();
         this.z = { min: 0, max: 0 };
-        this.topPointsWorld = [
-            new Vector3(),
-            new Vector3(),
-            new Vector3(),
-            new Vector3(),
-        ];
+        this.topPointsWorld = [new Vector3(), new Vector3(), new Vector3(), new Vector3()];
         this.update();
     }
 

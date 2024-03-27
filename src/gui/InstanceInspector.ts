@@ -37,7 +37,8 @@ class InstanceInspector extends Panel {
             });
         this.addController<number>(this, 'clearAlpha')
             .name('Clear alpha')
-            .min(0).max(1)
+            .min(0)
+            .max(1)
             .onChange(() => {
                 this.instance.renderer.setClearAlpha(this.clearAlpha);
                 this.notify();

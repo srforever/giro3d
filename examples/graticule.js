@@ -20,11 +20,7 @@ const y = 5812000;
 const halfWidth = 25000;
 
 // Defines geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent(
-    'EPSG:3857',
-    x - halfWidth, x + halfWidth,
-    y - halfWidth, y + halfWidth,
-);
+const extent = new Extent('EPSG:3857', x - halfWidth, x + halfWidth, y - halfWidth, y + halfWidth);
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
@@ -54,7 +50,7 @@ const map = new Map('planar', {
         yOffset: 0,
         opacity: 1,
         thickness: 20,
-    }
+    },
 });
 
 instance.add(map);
@@ -79,12 +75,7 @@ const dem = new ElevationLayer({
     extent,
     interpretation: Interpretation.Raw,
     source,
-    colorMap: new ColorMap(
-        colors,
-        floor,
-        ceiling,
-        ColorMapMode.Elevation,
-    ),
+    colorMap: new ColorMap(colors, floor, ceiling, ColorMapMode.Elevation),
 });
 
 map.addLayer(dem);
@@ -123,16 +114,16 @@ function bindDropdown(id, callback) {
     });
 }
 
-bindToggle('toggle-graticule', v => map.materialOptions.graticule.enabled = v);
+bindToggle('toggle-graticule', v => (map.materialOptions.graticule.enabled = v));
 
-bindSlider('x-step', v => map.materialOptions.graticule.xStep = v);
-bindSlider('y-step', v => map.materialOptions.graticule.yStep = v);
-bindSlider('x-offset', v => map.materialOptions.graticule.xOffset = v);
-bindSlider('y-offset', v => map.materialOptions.graticule.yOffset = v);
-bindSlider('opacity', v => map.materialOptions.graticule.opacity = v);
-bindSlider('thickness', v => map.materialOptions.graticule.thickness = v);
+bindSlider('x-step', v => (map.materialOptions.graticule.xStep = v));
+bindSlider('y-step', v => (map.materialOptions.graticule.yStep = v));
+bindSlider('x-offset', v => (map.materialOptions.graticule.xOffset = v));
+bindSlider('y-offset', v => (map.materialOptions.graticule.yOffset = v));
+bindSlider('opacity', v => (map.materialOptions.graticule.opacity = v));
+bindSlider('thickness', v => (map.materialOptions.graticule.thickness = v));
 
-bindDropdown('color', v => map.materialOptions.graticule.color = new Color(v));
+bindDropdown('color', v => (map.materialOptions.graticule.color = new Color(v)));
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 StatusBar.bind(instance);

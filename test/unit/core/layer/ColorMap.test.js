@@ -1,10 +1,4 @@
-import {
-    ClampToEdgeWrapping,
-    Color,
-    NearestFilter,
-    RGBAFormat,
-    UnsignedByteType,
-} from 'three';
+import { ClampToEdgeWrapping, Color, NearestFilter, RGBAFormat, UnsignedByteType } from 'three';
 import ColorMap from '../../../../src/core/layer/ColorMap';
 import ColorMapMode from '../../../../src/core/layer/ColorMapMode';
 

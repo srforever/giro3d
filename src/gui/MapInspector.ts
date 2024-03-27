@@ -108,14 +108,10 @@ class MapInspector extends EntityInspector {
             .min(2)
             .max(128)
             .onChange(v => this.updateSegments(v));
-        this.addController<number>(this, 'visibleTiles')
-            .name('Visible tiles');
-        this.addController<number>(this, 'reachableTiles')
-            .name('Reachable tiles');
-        this.addController<number>(this.map.allTiles, 'size')
-            .name('Loaded tiles');
-        this.addController<number>(this.map.geometryPool, 'size')
-            .name('Geometry pool');
+        this.addController<number>(this, 'visibleTiles').name('Visible tiles');
+        this.addController<number>(this, 'reachableTiles').name('Reachable tiles');
+        this.addController<number>(this.map.allTiles, 'size').name('Loaded tiles');
+        this.addController<number>(this.map.geometryPool, 'size').name('Geometry pool');
         if (this.map.materialOptions.elevationRange) {
             this.addController<number>(this.map.materialOptions.elevationRange, 'min')
                 .name('Elevation range minimum')
@@ -125,10 +121,8 @@ class MapInspector extends EntityInspector {
                 .name('Elevation range maximum')
                 .onChange(() => this.notify(map));
         }
-        this.addController<number>(this.map.imageSize, 'width')
-            .name('Tile width  (pixels)');
-        this.addController<number>(this.map.imageSize, 'height')
-            .name('Tile height  (pixels)');
+        this.addController<number>(this.map.imageSize, 'width').name('Tile width  (pixels)');
+        this.addController<number>(this.map.imageSize, 'height').name('Tile height  (pixels)');
         this.addController<boolean>(this, 'showGrid')
             .name('Show grid')
             .onChange(v => this.toggleGrid(v));
@@ -405,10 +399,13 @@ class MapInspector extends EntityInspector {
         }
         // We reverse the order so that the layers are displayed in a natural order:
         // top layers in the inspector are also on top in the composition.
-        this.map.getLayers().reverse().forEach(lyr => {
-            const gui = new LayerInspector(this.layerFolder, this.instance, this.map, lyr);
-            this.layers.push(gui);
-        });
+        this.map
+            .getLayers()
+            .reverse()
+            .forEach(lyr => {
+                const gui = new LayerInspector(this.layerFolder, this.instance, this.map, lyr);
+                this.layers.push(gui);
+            });
     }
 
     toggleGrid(value: boolean) {

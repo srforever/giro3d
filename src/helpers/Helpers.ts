@@ -59,9 +59,9 @@ interface HasSelectionHelper extends Object3D {
 
 interface HasBoundingVolumeHelper extends Object3D {
     boundingVolumeHelper: {
-        object3d: Object3D,
-        absolute: boolean,
-    }
+        object3d: Object3D;
+        absolute: boolean;
+    };
 }
 
 interface HasGeometry extends Object3D {
@@ -116,8 +116,11 @@ function makeLocalBbox(object: Object3D, precise = false): Box3 {
     const geometry = (object as HasGeometry).geometry;
 
     if (geometry !== undefined) {
-        if (precise && geometry.attributes !== undefined
-            && geometry.attributes.position !== undefined) {
+        if (
+            precise &&
+            geometry.attributes !== undefined &&
+            geometry.attributes.position !== undefined
+        ) {
             const position = geometry.attributes.position;
             for (let i = 0, l = position.count; i < l; i++) {
                 _vector.fromBufferAttribute(position, i);
@@ -136,9 +139,9 @@ function makeLocalBbox(object: Object3D, precise = false): Box3 {
 }
 
 const unitBoxMesh = (function _() {
-    const indices = new Uint16Array(
-        [0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7],
-    );
+    const indices = new Uint16Array([
+        0, 1, 1, 2, 2, 3, 3, 0, 4, 5, 5, 6, 6, 7, 7, 4, 0, 4, 1, 5, 2, 6, 3, 7,
+    ]);
     const positions = new Float32Array(8 * 3);
     new Vector3(+0.5, +0.5, +0.5).toArray(positions, 0);
     new Vector3(-0.5, +0.5, +0.5).toArray(positions, 3);
@@ -162,7 +165,7 @@ const unitBoxMesh = (function _() {
         box.frustumCulled = false;
         return box;
     };
-}());
+})();
 
 /**
  * @param box - The box.
@@ -176,9 +179,7 @@ function createBoxVolume(box: Box3, color: Color) {
 }
 
 function createSphereVolume(sphere: Sphere, color: Color) {
-    const geometry = new SphereGeometry(
-        sphere.radius, 32, 32,
-    );
+    const geometry = new SphereGeometry(sphere.radius, 32, 32);
     const material = new MeshBasicMaterial({ wireframe: true, color });
     const helper = new SphereHelper(geometry, material);
     helper.position.copy(sphere.center);
@@ -321,9 +322,11 @@ class Helpers {
             object3d = createSphereVolume(boundingVolume.sphere, color);
         }
 
-        if (object3d
-            && (metadata.magic === 'b3dm' || metadata.magic === 'i3dm')
-            && !boundingVolume.region) {
+        if (
+            object3d &&
+            (metadata.magic === 'b3dm' || metadata.magic === 'i3dm') &&
+            !boundingVolume.region
+        ) {
             // compensate B3dm orientation correction
             const { gltfUpAxis } = entity.asset;
             object3d.updateMatrix();
@@ -395,8 +398,8 @@ class Helpers {
             return;
         }
         if (properties.color) {
-            ((obj as HasBoundingVolumeHelper).boundingVolumeHelper
-                .object3d as any).material.color = properties.color;
+            ((obj as HasBoundingVolumeHelper).boundingVolumeHelper.object3d as any).material.color =
+                properties.color;
         }
     }
 

@@ -5,8 +5,8 @@ import type { Color } from 'three';
  * Object to style features in mesh form
  */
 export interface FeatureStyle {
-    color: Color,
-    visible: boolean,
+    color: Color;
+    visible: boolean;
 }
 
 /**
@@ -16,7 +16,7 @@ export interface FeatureStyle {
  * cardinality must match the number of vertices and each value will be used for each vertex in
  * order.
  */
-export type FeatureElevationCallback = ((feature: Feature) => Array<number> | number);
+export type FeatureElevationCallback = (feature: Feature) => Array<number> | number;
 /**
  * This callback is called just after a source data has been converted to a THREE.js Mesh, to
  * color individual meshes from

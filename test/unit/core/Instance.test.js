@@ -1,7 +1,5 @@
 import '../setup.js';
-import {
-    Group, Object3D, Vector2,
-} from 'three';
+import { Group, Object3D, Vector2 } from 'three';
 import proj4 from 'proj4';
 import Extent from '../../../src/core/geographic/Extent';
 import Instance from '../../../src/core/Instance';
@@ -63,10 +61,12 @@ describe('Instance', () => {
             if (window.TouchEvent) {
                 const target = new Vector2();
                 const event = new TouchEvent('foo', {
-                    touches: [{
-                        clientX: 10,
-                        clientY: 10,
-                    }],
+                    touches: [
+                        {
+                            clientX: 10,
+                            clientY: 10,
+                        },
+                    ],
                 });
                 const result = instance.eventToNormalizedCoords(event, target);
                 expect(result).toBe(target);
@@ -98,10 +98,12 @@ describe('Instance', () => {
             if (window.TouchEvent) {
                 const target = new Vector2();
                 const event = new TouchEvent('foo', {
-                    touches: [{
-                        clientX: 10,
-                        clientY: 10,
-                    }],
+                    touches: [
+                        {
+                            clientX: 10,
+                            clientY: 10,
+                        },
+                    ],
                 });
                 const result = instance.eventToCanvasCoords(event, target);
                 expect(result).toBe(target);
@@ -131,7 +133,9 @@ describe('Instance', () => {
     describe('add', () => {
         it('should return a rejected promise if not of correct type', async () => {
             const layer = {};
-            await expect(instance.add(layer)).rejects.toThrowError('object is not an instance of THREE.Object3D or Giro3D.Entity');
+            await expect(instance.add(layer)).rejects.toThrowError(
+                'object is not an instance of THREE.Object3D or Giro3D.Entity',
+            );
         });
 
         it('should add the object to threeObjects if it is a native three.js object', () => {
@@ -143,7 +147,10 @@ describe('Instance', () => {
         it('should add a map', () => {
             const map = new Map('myEntity', {
                 extent: new Extent('EPSG:4326', {
-                    west: 0, east: 10, south: 0, north: 10,
+                    west: 0,
+                    east: 10,
+                    south: 0,
+                    north: 10,
                 }),
                 maxSubdivisionLevel: 15,
             });
@@ -161,7 +168,10 @@ describe('Instance', () => {
                 geometricError: 50,
             };
             Fetcher.json.mockResolvedValue(tileset);
-            const tiles3d = new Tiles3D('myEntity', new Tiles3DSource('https://domain.tld/tileset.json'));
+            const tiles3d = new Tiles3D(
+                'myEntity',
+                new Tiles3DSource('https://domain.tld/tileset.json'),
+            );
             return instance.add(tiles3d).then(() => {
                 expect(instance.getObjects()).toStrictEqual([tiles3d]);
             });
@@ -179,12 +189,17 @@ describe('Instance', () => {
 
             const map = new Map('myEntity', {
                 extent: new Extent('EPSG:4326', {
-                    west: 0, east: 10, south: 0, north: 10,
+                    west: 0,
+                    east: 10,
+                    south: 0,
+                    north: 10,
                 }),
                 maxSubdivisionLevel: 15,
             });
 
-            instance.addEventListener('entity-added', () => { eventFired = true; });
+            instance.addEventListener('entity-added', () => {
+                eventFired = true;
+            });
 
             expect(eventFired).toBeFalsy();
 
@@ -251,12 +266,17 @@ describe('Instance', () => {
 
             const map = new Map('myEntity', {
                 extent: new Extent('EPSG:4326', {
-                    west: 0, east: 10, south: 0, north: 10,
+                    west: 0,
+                    east: 10,
+                    south: 0,
+                    north: 10,
                 }),
                 maxSubdivisionLevel: 15,
             });
 
-            instance.addEventListener('entity-removed', () => { eventFired = true; });
+            instance.addEventListener('entity-removed', () => {
+                eventFired = true;
+            });
 
             expect(eventFired).toBeFalsy();
 
@@ -351,8 +371,9 @@ describe('Instance', () => {
             instance.add(object2);
             instance.add(map2);
 
-            expect(instance.getObjects())
-                .toEqual(expect.arrayContaining([map1, object1, object2, map2]));
+            expect(instance.getObjects()).toEqual(
+                expect.arrayContaining([map1, object1, object2, map2]),
+            );
 
             instance.remove(object1);
             instance.remove(map2);
@@ -393,15 +414,23 @@ describe('Instance', () => {
             expect(() => Instance.registerCRS(undefined, '')).toThrow(/missing CRS name/);
             expect(() => Instance.registerCRS('', '')).toThrow(/missing CRS name/);
             expect(() => Instance.registerCRS('EPSG:foo', '')).toThrow(/missing CRS PROJ string/);
-            expect(() => Instance.registerCRS('EPSG:foo', undefined)).toThrow(/missing CRS PROJ string/);
+            expect(() => Instance.registerCRS('EPSG:foo', undefined)).toThrow(
+                /missing CRS PROJ string/,
+            );
         });
 
         it('should remember previously registered CRSes', () => {
-            Instance.registerCRS('EPSG:3946', '+proj=lcc +lat_0=46 +lon_0=3 +lat_1=45.25 +lat_2=46.75 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
+            Instance.registerCRS(
+                'EPSG:3946',
+                '+proj=lcc +lat_0=46 +lon_0=3 +lat_1=45.25 +lat_2=46.75 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+            );
 
             expect(Object.keys(proj4.defs).includes('EPSG:3946')).toBeTruthy();
 
-            Instance.registerCRS('EPSG:5011', '+proj=geocent +ellps=GRS80 +units=m +no_defs +type=crs');
+            Instance.registerCRS(
+                'EPSG:5011',
+                '+proj=geocent +ellps=GRS80 +units=m +no_defs +type=crs',
+            );
 
             expect(Object.keys(proj4.defs).includes('EPSG:3946')).toBeTruthy();
             expect(Object.keys(proj4.defs).includes('EPSG:5011')).toBeTruthy();

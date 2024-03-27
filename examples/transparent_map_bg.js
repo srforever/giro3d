@@ -13,8 +13,10 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
     'EPSG:3857',
-    -4553934 - 1000000, -4553934 + 1000000,
-    -3910697 - 1000000, -3910697 + 1000000,
+    -4553934 - 1000000,
+    -4553934 + 1000000,
+    -3910697 - 1000000,
+    -3910697 + 1000000,
 );
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
@@ -112,7 +114,15 @@ function bindSlider(id, action) {
     };
 }
 
-bindSlider('map-opacity', v => { map.opacity = v; });
-bindSlider('bg-opacity', v => { map.materialOptions.backgroundOpacity = v; });
-bindSlider('blue-opacity', v => { blueTriangle.opacity = v; });
-bindSlider('red-opacity', v => { redSquare.opacity = v; });
+bindSlider('map-opacity', v => {
+    map.opacity = v;
+});
+bindSlider('bg-opacity', v => {
+    map.materialOptions.backgroundOpacity = v;
+});
+bindSlider('blue-opacity', v => {
+    blueTriangle.opacity = v;
+});
+bindSlider('red-opacity', v => {
+    redSquare.opacity = v;
+});

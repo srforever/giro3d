@@ -41,9 +41,7 @@ describe('Rect', () => {
         it('should return 0 0 1 1 if both rects are the same', () => {
             const src = new Rect(-1, 23, -134, 234);
             const dst = new Rect(-1, 23, -134, 234);
-            const {
-                x, y, w, h,
-            } = Rect.getNormalizedRect(src, dst);
+            const { x, y, w, h } = Rect.getNormalizedRect(src, dst);
 
             expect(x).toBe(0);
             expect(y).toBe(0);
@@ -54,9 +52,7 @@ describe('Rect', () => {
         it('should return 0 0.5 0.5 0.5 if source is the bottom left quadrant', () => {
             const src = new Rect(0, 10, 0, 10);
             const dst = new Rect(0, 20, 0, 20);
-            const {
-                x, y, w, h,
-            } = Rect.getNormalizedRect(src, dst);
+            const { x, y, w, h } = Rect.getNormalizedRect(src, dst);
 
             expect(x).toBe(0);
             expect(y).toBe(0.5);
@@ -67,9 +63,7 @@ describe('Rect', () => {
         it('should return 0 0 0.5 0.5 if source is the top left quadrant', () => {
             const src = new Rect(0, 10, 10, 20);
             const dst = new Rect(0, 20, 0, 20);
-            const {
-                x, y, w, h,
-            } = Rect.getNormalizedRect(src, dst);
+            const { x, y, w, h } = Rect.getNormalizedRect(src, dst);
 
             expect(x).toBe(0);
             expect(y).toBe(0);
@@ -80,9 +74,7 @@ describe('Rect', () => {
         it('should return 0.5 0.5 0.5 0.5 if source is the bottom right quadrant', () => {
             const src = new Rect(10, 20, 0, 10);
             const dst = new Rect(0, 20, 0, 20);
-            const {
-                x, y, w, h,
-            } = Rect.getNormalizedRect(src, dst);
+            const { x, y, w, h } = Rect.getNormalizedRect(src, dst);
 
             expect(x).toBe(0.5);
             expect(y).toBe(0.5);
@@ -93,9 +85,7 @@ describe('Rect', () => {
         it('should return 0.5 0 0.5 0.5 if source is the top right quadrant', () => {
             const src = new Rect(10, 20, 10, 20);
             const dst = new Rect(0, 20, 0, 20);
-            const {
-                x, y, w, h,
-            } = Rect.getNormalizedRect(src, dst);
+            const { x, y, w, h } = Rect.getNormalizedRect(src, dst);
 
             expect(x).toBe(0.5);
             expect(y).toBe(0);
@@ -106,9 +96,7 @@ describe('Rect', () => {
         it('should return -0.5 -0.5 2 2 if source is twice as big as dest, and centered', () => {
             const src = new Rect(-10, 30, -10, 30);
             const dst = new Rect(0, 20, 0, 20);
-            const {
-                x, y, w, h,
-            } = Rect.getNormalizedRect(src, dst);
+            const { x, y, w, h } = Rect.getNormalizedRect(src, dst);
 
             expect(x).toBe(-0.5);
             expect(y).toBe(-0.5);

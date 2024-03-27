@@ -41,11 +41,11 @@ class Rect {
     }
 
     get centerX() {
-        return this.xMin + ((this.xMax - this.xMin) * 0.5);
+        return this.xMin + (this.xMax - this.xMin) * 0.5;
     }
 
     get centerY() {
-        return this.yMin + ((this.yMax - this.yMin) * 0.5);
+        return this.yMin + (this.yMax - this.yMin) * 0.5;
     }
 
     static fromExtent(extent: Extent) {
@@ -58,10 +58,12 @@ class Rect {
      * @returns True if they are equal.
      */
     equals(other: Rect, epsilon = 0.0001) {
-        return Math.abs(other.xMin - this.xMin) <= epsilon
-            && Math.abs(other.xMax - this.xMax) <= epsilon
-            && Math.abs(other.yMin - this.yMin) <= epsilon
-            && Math.abs(other.yMax - this.yMax) <= epsilon;
+        return (
+            Math.abs(other.xMin - this.xMin) <= epsilon &&
+            Math.abs(other.xMax - this.xMax) <= epsilon &&
+            Math.abs(other.yMin - this.yMin) <= epsilon &&
+            Math.abs(other.yMax - this.yMax) <= epsilon
+        );
     }
 
     getIntersection(other: Rect) {
@@ -94,13 +96,16 @@ class Rect {
         // floating point precision when tile size is a multiple of the canvas size.
         const precision = 10 ** 10;
 
-        x = (Math.round((x + Number.EPSILON) * precision) / precision);
-        y = (Math.round((y + Number.EPSILON) * precision) / precision);
-        w = (Math.round((w + Number.EPSILON) * precision) / precision);
-        h = (Math.round((h + Number.EPSILON) * precision) / precision);
+        x = Math.round((x + Number.EPSILON) * precision) / precision;
+        y = Math.round((y + Number.EPSILON) * precision) / precision;
+        w = Math.round((w + Number.EPSILON) * precision) / precision;
+        h = Math.round((h + Number.EPSILON) * precision) / precision;
 
         return {
-            x, y, w, h,
+            x,
+            y,
+            w,
+            h,
         };
     }
 }

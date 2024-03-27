@@ -46,7 +46,8 @@ function makeColorRamp(preset) {
 
 const colorRamp = makeColorRamp('viridis');
 
-const key = 'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
+const key =
+    'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
 // Adds a XYZ elevation layer with MapBox terrain RGB tileset
 const elevationLayer = new ElevationLayer({
     name: 'xyz_elevation',
@@ -128,8 +129,12 @@ bindToggle('colorlayer-range', enabled => {
     document.getElementById('layerMax').disabled = !enabled;
 });
 
-bindSlider('mapMin', v => { map.materialOptions.elevationRange.min = v; });
-bindSlider('mapMax', v => { map.materialOptions.elevationRange.max = v; });
+bindSlider('mapMin', v => {
+    map.materialOptions.elevationRange.min = v;
+});
+bindSlider('mapMax', v => {
+    map.materialOptions.elevationRange.max = v;
+});
 bindSlider('layerMin', v => {
     colorLayer.elevationRange = { min: v, max: colorLayer.elevationRange.max };
     colorLayerRange = colorLayer.elevationRange;

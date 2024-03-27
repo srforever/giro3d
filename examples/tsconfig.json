@@ -3,16 +3,12 @@
 
     "extends": "../tsconfig.json",
     "include": ["./**/*"],
-    "exclude": [
-        "node_modules/**/*",
-    ],
+    "exclude": ["node_modules/**/*"],
     "compilerOptions": {
-      "paths": {
-        "@giro3d/giro3d/*": ["../build/giro3d/*"]
-      },
-      "typeRoots": [
-        "../build/giro3d/*"
-      ],
-      "allowJs": true,
+        "paths": {
+            "@giro3d/giro3d/*": ["../build/giro3d/*"]
+        },
+        "typeRoots": ["../build/giro3d/*"],
+        "allowJs": true
     }
-  }
+}

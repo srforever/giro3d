@@ -1,10 +1,11 @@
 module.exports = {
     root: true,
-    plugins: ['jest', '@typescript-eslint', 'eslint-plugin-tsdoc'],
+    plugins: ['jest', '@typescript-eslint', 'eslint-plugin-tsdoc', 'eslint-plugin-prettier'],
     parser: '@typescript-eslint/parser',
     extends: [
         'eslint:recommended',
-        'plugin:@typescript-eslint/recommended'
+        'plugin:@typescript-eslint/recommended',
+        'plugin:prettier/recommended',
     ],
     parserOptions: {
         project: './tsconfig.eslint.json',
@@ -15,9 +16,7 @@ module.exports = {
         },
     },
     settings: {
-        'import/ignore': [
-            '\\.(coffee|scss|css|less|hbs|svg|json)$',
-        ],
+        'import/ignore': ['\\.(coffee|scss|css|less|hbs|svg|json)$'],
     },
     env: {
         browser: true,
@@ -40,21 +39,6 @@ module.exports = {
         'no-plusplus': 'off',
         'arrow-parens': ['error', 'as-needed'],
         '@typescript-eslint/lines-between-class-members': 'off',
-        // this option sets a specific tab width for your code
-        // http://eslint.org/docs/rules/indent
-        '@typescript-eslint/indent': ['warn', 4, {
-            SwitchCase: 1,
-            VariableDeclarator: 1,
-            outerIIFEBody: 1,
-            FunctionDeclaration: {
-                parameters: 1,
-                body: 1,
-            },
-            FunctionExpression: {
-                parameters: 1,
-                body: 1,
-            },
-        }],
         'one-var': ['error', 'never'],
         // We want to be able to import .ts files from .js files without mentioning the extension,
         // otherwise the transpiled file would still import a .ts file and this would break.
@@ -69,28 +53,34 @@ module.exports = {
             'error',
             {
                 selector: 'ForInStatement',
-                message: 'for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array.',
+                message:
+                    'for..in loops iterate over the entire prototype chain, which is virtually never what you want. Use Object.{keys,values,entries}, and iterate over the resulting array.',
             },
             {
                 selector: 'LabeledStatement',
-                message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.',
+                message:
+                    'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.',
             },
             {
                 selector: 'WithStatement',
-                message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.',
+                message:
+                    '`with` is disallowed in strict mode because it makes code impossible to predict and optimize.',
             },
         ],
         '@typescript-eslint/naming-convention': [
-            "error", {
+            'error',
+            {
                 selector: 'classProperty',
                 format: ['camelCase'],
                 trailingUnderscore: 'forbid',
-            }, {
+            },
+            {
                 selector: 'classProperty',
                 modifiers: ['private'],
                 format: ['camelCase'],
                 leadingUnderscore: 'require',
-            }, {
+            },
+            {
                 selector: 'classProperty',
                 modifiers: ['protected'],
                 format: ['camelCase'],
@@ -131,14 +121,14 @@ module.exports = {
             // transition to Typescript.
             // As soon as one file transitions from .js to .ts, those rule apply and we must fix the
             // warnings/errors.
-            files: ['**/*.js'],
+            files: ['**/*.js', '**/*.mjs'],
             rules: {
                 'tsdoc/syntax': 'off',
                 'import/no-named-as-default': 'off',
                 '@typescript-eslint/naming-convention': 'off',
                 '@typescript-eslint/no-use-before-define': 'off',
                 '@typescript-eslint/no-unused-vars': 'off', // Because it's already present in eslint
-                '@typescript-eslint/default-param-last': 'off'
+                '@typescript-eslint/default-param-last': 'off',
             },
         },
         {

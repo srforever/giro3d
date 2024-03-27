@@ -7,8 +7,10 @@ const reMain = new RegExp('[^\\w]*main[^\\w]*(void)?[^\\w]*{');
 export default {
     patchMaterialForLogDepthSupport(material: ShaderMaterial) {
         // Check if the shader does not already use the log depth buffer
-        if (material.vertexShader.indexOf('USE_LOGDEPTHBUF') !== -1
-            || material.vertexShader.indexOf('logdepthbuf_pars_vertex') !== -1) {
+        if (
+            material.vertexShader.indexOf('USE_LOGDEPTHBUF') !== -1 ||
+            material.vertexShader.indexOf('logdepthbuf_pars_vertex') !== -1
+        ) {
             return;
         }
 

@@ -4,21 +4,26 @@ shortdesc: Illustrates no-data elimination at the edges of a dataset after repro
 longdesc: The shown dataset does not have any no-data pixels. However, reprojecting it to a different CRS leaves empty areas at the edge, which become no-data areas. This example checks that those new no-data areas are correctly handled by the no-data filling algorithm.
 attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological Survey</a>
 ---
-<div class="m-2 position-absolute top-0 end-0">
 
+<div class="m-2 position-absolute top-0 end-0">
     <div class="card m-1">
         <div class="card-header">Options</div>
 
         <fieldset class="container m-1" id="options">
-
             <div class="mb-3">
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" checked="true" role="switch" id="enableFillNoData">
-                    <label class="form-check-label" for="enableFillNoData">Hide no-data pixels</label>
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        checked="true"
+                        role="switch"
+                        id="enableFillNoData"
+                    />
+                    <label class="form-check-label" for="enableFillNoData"
+                        >Hide no-data pixels</label
+                    >
                 </div>
             </div>
-
         </fieldset>
     </div>
-
 </div>

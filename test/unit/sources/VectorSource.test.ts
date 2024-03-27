@@ -18,7 +18,9 @@ describe('VectorSource', () => {
             const listener = jest.fn();
             source.addEventListener('updated', listener);
 
-            source.setStyle(() => { /** empty */ });
+            source.setStyle(() => {
+                /** empty */
+            });
 
             expect(listener).toHaveBeenCalled();
         });

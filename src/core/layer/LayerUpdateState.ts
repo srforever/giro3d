@@ -37,7 +37,7 @@ class LayerUpdateState {
             case UpdateState.ERROR:
             default: {
                 const errorDuration = this.secondsUntilNextTry() * 1000;
-                return errorDuration <= (timestamp - this.lastErrorTimestamp);
+                return errorDuration <= timestamp - this.lastErrorTimestamp;
             }
         }
     }

@@ -10,10 +10,7 @@ import {
 } from 'three';
 import Coordinates from '../core/geographic/Coordinates';
 
-const ndcBox3 = new Box3(
-    new Vector3(-1, -1, -1),
-    new Vector3(1, 1, 1),
-);
+const ndcBox3 = new Box3(new Vector3(-1, -1, -1), new Vector3(1, 1, 1));
 
 const tmp = {
     frustum: new Frustum(),
@@ -70,8 +67,7 @@ class Camera {
     constructor(crs: string, width: number, height: number, options: CameraOptions = {}) {
         this._crs = crs;
 
-        this.camera3D = options.camera
-            ? options.camera : new PerspectiveCamera(30, width / height);
+        this.camera3D = options.camera ? options.camera : new PerspectiveCamera(30, width / height);
         this.camera3D.near = DEFAULT_MIN_NEAR_PLANE;
         this.camera3D.far = DEFAULT_MAX_NEAR_PLANE;
         this.camera3D.updateProjectionMatrix();
@@ -161,7 +157,8 @@ class Camera {
 
         // keep our visibility testing matrix ready
         this._viewMatrix.multiplyMatrices(
-            this.camera3D.projectionMatrix, this.camera3D.matrixWorldInverse,
+            this.camera3D.projectionMatrix,
+            this.camera3D.matrixWorldInverse,
         );
     }
 
@@ -229,7 +226,9 @@ class Camera {
     }
 
     private _projectBox3PointsInCameraSpace(box3: Box3, matrixWorld?: Matrix4) {
-        if (!('near' in this.camera3D)) { return undefined; }
+        if (!('near' in this.camera3D)) {
+            return undefined;
+        }
 
         // Projects points in camera space
         // We don't project directly on screen to avoid artifacts when projecting

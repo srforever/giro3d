@@ -23,9 +23,7 @@ async function b3dmToMesh(data: ArrayBuffer, entity: Tiles3D, url: string) {
 
 async function pntsParse(data: ArrayBuffer, entity: Tiles3D) {
     const result = await PntsParser.parse(data);
-    const material = entity.material
-        ? entity.material.clone()
-        : new PointCloudMaterial();
+    const material = entity.material ? entity.material.clone() : new PointCloudMaterial();
     if (PointCloudMaterial.isPointCloudMaterial(material)) {
         preparePointGeometryForPicking(result.point.geometry);
     }
@@ -43,9 +41,7 @@ async function pntsParse(data: ArrayBuffer, entity: Tiles3D) {
 }
 
 async function jsonParse(data: ArrayBuffer, entity: Tiles3D, url: string) {
-    const newTileset = JSON.parse(
-        utf8Decoder.decode(new Uint8Array(data)),
-    ) as $3dTilesTileset;
+    const newTileset = JSON.parse(utf8Decoder.decode(new Uint8Array(data))) as $3dTilesTileset;
     const newPrefix = url.slice(0, url.lastIndexOf('/') + 1);
     return { newTileset, newPrefix };
 }

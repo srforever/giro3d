@@ -5,8 +5,4 @@ import GeoTIFFFormat from './GeoTIFFFormat';
 /**
  * Data decoders, such as image formats.
  */
-export {
-    ImageFormat,
-    GeoTIFFFormat,
-    BilFormat,
-};
+export { ImageFormat, GeoTIFFFormat, BilFormat };

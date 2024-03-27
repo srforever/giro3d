@@ -13,12 +13,17 @@ import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Define projection that we will use (taken from https://epsg.io/26910, Proj4js section)
-Instance.registerCRS('EPSG:32742', '+proj=utm +zone=42 +south +datum=WGS84 +units=m +no_defs +type=crs');
+Instance.registerCRS(
+    'EPSG:32742',
+    '+proj=utm +zone=42 +south +datum=WGS84 +units=m +no_defs +type=crs',
+);
 
 const datasetExtent = new Extent(
     'EPSG:3857',
-    -13581040.085, -13469591.026,
-    5780261.830, 5942165.048,
+    -13581040.085,
+    -13469591.026,
+    5780261.83,
+    5942165.048,
 );
 
 const extent = datasetExtent.clone().as('EPSG:32742');

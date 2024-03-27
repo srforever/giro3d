@@ -4,55 +4,56 @@ shortdesc: Track progress of data loading at various levels of the instance hier
 longdesc: Use the <code>loading</code> and <code>progress</code> properties of various elements (<a href="../apidoc/classes/core.Instance.html" target="_blank"><code>Instance</code></a>, <a href="../apidoc/classes/entities.Entity.html" target="_blank"><code>Entity</code></a>, <a href="../apidoc/classes/core.layer.Layer.html" target="_blank"><code>Layer</code></a>...) to track the loading of the data. <br> Each level of the hierarchy aggregates the state of its children (e.g the instance aggregates the state of all entities under its control).
 attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
 ---
+
 <div class="m-2 position-absolute top-0 end-0">
     <ul class="list-group">
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span>Instance</span>
-            <div class="progress" style="width:100px;">
+            <div class="progress" style="width: 100px">
                 <div id="progress-instance" class="progress-bar" style="width: 100%"></div>
             </div>
         </li>
 
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span class="mx-3">Map (left)</span>
-            <div class="progress" style="width:100px;">
+            <div class="progress" style="width: 100px">
                 <div id="progress-map1" class="progress-bar" style="width: 100%"></div>
             </div>
         </li>
 
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span class="mx-5">Color layer</span>
-            <div class="progress" style="width:100px;">
+            <div class="progress" style="width: 100px">
                 <div id="progress-color1" class="progress-bar" style="width: 100%"></div>
             </div>
         </li>
 
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span class="mx-5">Elevation layer</span>
-            <div class="progress" style="width:100px;">
+            <div class="progress" style="width: 100px">
                 <div id="progress-elevation1" class="progress-bar" style="width: 100%"></div>
             </div>
         </li>
 
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span class="mx-3">Map (right)</span>
-            <div class="progress" style="width:100px;">
+            <div class="progress" style="width: 100px">
                 <div id="progress-map2" class="progress-bar" style="width: 100%"></div>
             </div>
         </li>
 
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span class="mx-5">Color layer</span>
-            <div class="progress" style="width:100px;">
+            <div class="progress" style="width: 100px">
                 <div id="progress-color2" class="progress-bar" style="width: 100%"></div>
             </div>
         </li>
 
         <li class="list-group-item d-flex justify-content-between align-items-center">
             <span class="mx-5">Elevation layer</span>
-            <div class="progress" style="width:100px;">
+            <div class="progress" style="width: 100px">
                 <div id="progress-elevation2" class="progress-bar" style="width: 100%"></div>
             </div>
         </li>
-      </ul>
+    </ul>
 </div>

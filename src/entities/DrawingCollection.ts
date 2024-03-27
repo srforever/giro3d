@@ -22,17 +22,18 @@ export interface DrawingPickResult extends PickResult {
  * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
-export const isDrawingPickResult = (obj: unknown): obj is DrawingPickResult => (obj as DrawingPickResult).isDrawingPickResult;
+export const isDrawingPickResult = (obj: unknown): obj is DrawingPickResult =>
+    (obj as DrawingPickResult).isDrawingPickResult;
 
 export interface DrawingCollectionEventMap extends Entity3DEventMap {
     /**
      * Fired when a drawing gets added to this entity.
      */
-    'drawing-added': { drawing: Drawing; };
+    'drawing-added': { drawing: Drawing };
     /**
      * Fired when a drawing gets removed from this entity.
      */
-    'drawing-removed': { drawing: Drawing; };
+    'drawing-removed': { drawing: Drawing };
 }
 
 /**
@@ -42,7 +43,8 @@ export interface DrawingCollectionEventMap extends Entity3DEventMap {
  */
 class DrawingCollection
     extends Entity3D<DrawingCollectionEventMap>
-    implements Pickable<DrawingPickResult> {
+    implements Pickable<DrawingPickResult>
+{
     /** Read-only flag to check if a given object is of type DrawingCollection. */
     public readonly isDrawingCollection: boolean = true;
     public name: string;
@@ -50,7 +52,9 @@ class DrawingCollection
     /**
      * Gets all children of this collection
      */
-    get children(): Drawing[] { return this.object3d.children as Drawing[]; }
+    get children(): Drawing[] {
+        return this.object3d.children as Drawing[];
+    }
 
     /**
      * Construct a `DrawingCollection`.
@@ -126,7 +130,10 @@ class DrawingCollection
         let canvasY: number;
 
         for (const drawing of this.children) {
-            if ((drawing.geometryType === 'Point' || drawing.geometryType === 'MultiPoint') && !drawing.use3Dpoints) {
+            if (
+                (drawing.geometryType === 'Point' || drawing.geometryType === 'MultiPoint') &&
+                !drawing.use3Dpoints
+            ) {
                 for (const o of drawing.children as CSS2DObject[]) {
                     if (!canvasRect) {
                         // Canvas might not be at (0,0), we must compensate for it
@@ -138,10 +145,10 @@ class DrawingCollection
 
                     const domRect = o.element.getBoundingClientRect();
                     if (
-                        canvasX >= domRect.left
-                        && canvasX <= domRect.right
-                        && canvasY >= domRect.top
-                        && canvasY <= domRect.bottom
+                        canvasX >= domRect.left &&
+                        canvasX <= domRect.right &&
+                        canvasY >= domRect.top &&
+                        canvasY <= domRect.bottom
                     ) {
                         const r: DrawingPickResult = {
                             isDrawingPickResult: true,
@@ -161,16 +168,18 @@ class DrawingCollection
             } else {
                 const newOptions = {
                     ...options,
-                    limit: (options?.limit != null ? options.limit - res.length : null),
+                    limit: options?.limit != null ? options.limit - res.length : null,
                 };
 
-                const p = pickObjectsAt(this._instance, canvasCoords, drawing, newOptions)
-                    .map(picked => ({
-                        ...picked,
-                        drawing,
-                        entity: this,
-                        isDrawingPickResult: true,
-                    } as DrawingPickResult));
+                const p = pickObjectsAt(this._instance, canvasCoords, drawing, newOptions).map(
+                    picked =>
+                        ({
+                            ...picked,
+                            drawing,
+                            entity: this,
+                            isDrawingPickResult: true,
+                        }) as DrawingPickResult,
+                );
                 res.push(...p);
             }
         }

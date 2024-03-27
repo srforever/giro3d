@@ -32,50 +32,50 @@ const RT = {
 
 interface Stage<TParams extends object> {
     /** The render passes of this stage. */
-    passes: ShaderMaterial[],
+    passes: ShaderMaterial[];
     /** The parameters of this stage. */
-    parameters?: TParams,
+    parameters?: TParams;
     /** Is the stage enabled ? */
-    enabled: boolean,
+    enabled: boolean;
     /** The setup function. */
     setup: (args: {
         // eslint-disable-next-line no-use-before-define
-        renderer: PointCloudRenderer,
-        input: WebGLRenderTarget,
-        passIdx: number,
-        camera: Camera,
+        renderer: PointCloudRenderer;
+        input: WebGLRenderTarget;
+        passIdx: number;
+        camera: Camera;
     }) => {
-        material?: ShaderMaterial,
-        output?: WebGLRenderTarget,
-    },
+        material?: ShaderMaterial;
+        output?: WebGLRenderTarget;
+    };
 }
 
 interface EdlParams {
     /** distance to neighbours pixels */
-    radius: number,
+    radius: number;
     /** edl value coefficient */
-    strength: number,
+    strength: number;
     /** directions count where neighbours are taken */
-    directions: number,
+    directions: number;
     /** how many neighbours per direction */
-    n: number,
+    n: number;
 }
 
 interface OcclusionParams {
     /** pixel suppression threshold */
-    threshold: number,
+    threshold: number;
     /** debug feature to colorize removed pixels */
-    showRemoved: boolean,
+    showRemoved: boolean;
 }
 
 interface InpaintingParams {
     /** how many fill step should be performed */
-    fill_steps: number,
+    fill_steps: number;
     /** depth contribution to the final color (?) */
-    depth_contrib: number,
-    enableZAttenuation: boolean,
-    zAttMin: number,
-    zAttMax: number,
+    depth_contrib: number;
+    enableZAttenuation: boolean;
+    zAttMin: number;
+    zAttMax: number;
 }
 
 /**
@@ -116,7 +116,9 @@ class PointCloudRenderer {
         this.classic = {
             passes: [undefined],
             enabled: true,
-            setup() { return { material: undefined }; },
+            setup() {
+                return { material: undefined };
+            },
         };
 
         // E(ye)D(ome)L(ighting) setup
@@ -180,9 +182,7 @@ class PointCloudRenderer {
                 directions: 8,
                 n: 1,
             },
-            setup({
-                renderer, input, passIdx, camera,
-            }) {
+            setup({ renderer, input, passIdx, camera }) {
                 const m = this.passes[passIdx];
                 const uniforms = m.uniforms;
                 if (passIdx === 0) {
@@ -252,15 +252,12 @@ class PointCloudRenderer {
                 const mU = m.uniforms;
                 mU.colorTexture.value = input.texture;
                 mU.depthTexture.value = input.depthTexture;
-                mU.resolution.value.set(
-                    input.width, input.height,
-                );
+                mU.resolution.value.set(input.width, input.height);
                 mU.m43.value = m43;
                 mU.m33.value = m33;
                 mU.threshold.value = this.parameters.threshold;
                 mU.showRemoved.value = this.parameters.showRemoved;
-                mU.invPersMatrix.value.copy(camera.projectionMatrix)
-                    .invert();
+                mU.invPersMatrix.value.copy(camera.projectionMatrix).invert();
 
                 return { material: m };
             },
@@ -327,9 +324,11 @@ class PointCloudRenderer {
     }
 
     updateRenderTargets(renderTarget: WebGLRenderTarget) {
-        if (!this.renderTargets
-            || renderTarget.width !== this.renderTargets[RT.FULL_RES_0].width
-            || renderTarget.height !== this.renderTargets[RT.FULL_RES_0].height) {
+        if (
+            !this.renderTargets ||
+            renderTarget.width !== this.renderTargets[RT.FULL_RES_0].width ||
+            renderTarget.height !== this.renderTargets[RT.FULL_RES_0].height
+        ) {
             if (this.renderTargets) {
                 // release old render targets
                 this.renderTargets.forEach(rt => rt.dispose());
@@ -349,9 +348,11 @@ class PointCloudRenderer {
             minFilter: NearestFilter,
             magFilter: NearestFilter,
             depthTexture: depthBuffer
-                ? new DepthTexture(width, height, supportsFloatTextures
-                    ? FloatType
-                    : UnsignedByteType)
+                ? new DepthTexture(
+                      width,
+                      height,
+                      supportsFloatTextures ? FloatType : UnsignedByteType,
+                  )
                 : undefined,
         });
     }
@@ -428,7 +429,8 @@ class PointCloudRenderer {
                     r.clear();
                 }
                 r.setViewport(
-                    0, 0,
+                    0,
+                    0,
                     // @ts-expect-error camera.width is not defined ? // FIXME
                     output ? output.width : camera.width,
                     // @ts-expect-error camera.height is not defined ? // FIXME

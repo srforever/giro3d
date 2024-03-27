@@ -1,4 +1,4 @@
-import type { Color } from "three";
+import type { Color } from 'three';
 
 /**
  * Options for map graticules.

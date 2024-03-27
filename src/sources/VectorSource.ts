@@ -12,9 +12,7 @@ import {
     getSquaredTolerance as getSquaredRenderTolerance,
     renderFeature as renderVectorFeature,
 } from 'ol/renderer/vector.js';
-import type {
-    Style,
-} from 'ol/style.js';
+import type { Style } from 'ol/style.js';
 import type { Transform } from 'ol/transform.js';
 import {
     create as createTransform,
@@ -102,7 +100,7 @@ function rasterizeBuilderGroup(
     translateTransform(transform, -extent.west(), -extent.north());
 
     const olExtent = OpenLayersUtils.toOLExtent(extent);
-    const resolution = (extent.dimensions().x / size.width);
+    const resolution = extent.dimensions().x / size.width;
 
     const executor = new ExecutorGroup(
         olExtent,
@@ -254,18 +252,15 @@ class VectorSource extends ImageSource {
      * @param feature - The feature to reproject.
      */
     reproject(feature: Feature) {
-        feature.getGeometry().transform(
-            this.dataProjection,
-            this._targetProjection,
-        );
+        feature.getGeometry().transform(this.dataProjection, this._targetProjection);
     }
 
     async initialize(opts: { targetProjection: string }) {
         await this.loadFeatures();
 
         this._targetProjection = opts.targetProjection;
-        const shouldReproject = this.dataProjection
-            && this.dataProjection !== this._targetProjection;
+        const shouldReproject =
+            this.dataProjection && this.dataProjection !== this._targetProjection;
 
         if (shouldReproject) {
             for (const feature of this.source.getFeatures()) {
@@ -347,7 +342,7 @@ class VectorSource extends ImageSource {
         // outside the target extent, but visually within.
         const testExtent = extent.withRelativeMargin(1);
 
-        const resolution = (extent.dimensions().x / size.width);
+        const resolution = extent.dimensions().x / size.width;
         const olExtent = OpenLayersUtils.toOLExtent(testExtent, 0.001);
         const builderGroup = new CanvasBuilderGroup(0, olExtent, resolution, pixelRatio);
         const squaredTolerance = getSquaredRenderTolerance(resolution, pixelRatio);
@@ -415,9 +410,7 @@ class VectorSource extends ImageSource {
     }
 
     getImages(options: GetImageOptions) {
-        const {
-            extent, width, height, id,
-        } = options;
+        const { extent, width, height, id } = options;
 
         const size = new Vector2(width, height);
         const request = () => Promise.resolve(this.createImage(id, extent, size));

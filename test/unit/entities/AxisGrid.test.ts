@@ -14,7 +14,7 @@ const defaultVolume: Volume = {
 
 describe('AxisGrid', () => {
     let context: Context;
-    let camera : Camera;
+    let camera: Camera;
     let threeCamera: THREE.PerspectiveCamera;
 
     beforeEach(() => {
@@ -60,13 +60,19 @@ describe('AxisGrid', () => {
             const grid = new AxisGrid('foo', { volume: defaultVolume });
             grid.volume = { ceiling: 199, floor: 111, extent: new Extent('EPSG:3857', 1, 2, 3, 4) };
 
-            expect(grid.volume).toEqual({ ceiling: 199, floor: 111, extent: new Extent('EPSG:3857', 1, 2, 3, 4) });
+            expect(grid.volume).toEqual({
+                ceiling: 199,
+                floor: 111,
+                extent: new Extent('EPSG:3857', 1, 2, 3, 4),
+            });
         });
     });
 
     describe('preUpdate', () => {
         it('should set each side visible if its facing toward the camera', () => {
-            const grid = new AxisGrid('foo', { volume: { extent: DEFAULT_EXTENT, floor: 0, ceiling: 100 } });
+            const grid = new AxisGrid('foo', {
+                volume: { extent: DEFAULT_EXTENT, floor: 0, ceiling: 100 },
+            });
             const midHeight = 50;
 
             // Set the camera position in the middle of the volume

@@ -1,5 +1,12 @@
 import {
-    Vector3, Mesh, BoxGeometry, MeshBasicMaterial, Box3, Box3Helper, Group, Plane,
+    Vector3,
+    Mesh,
+    BoxGeometry,
+    MeshBasicMaterial,
+    Box3,
+    Box3Helper,
+    Group,
+    Plane,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import TileWMS from 'ol/source/TileWMS.js';
@@ -19,7 +26,10 @@ import PointCloudMaterial, { MODE } from '@giro3d/giro3d/renderer/PointCloudMate
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
-Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
+Instance.registerCRS(
+    'EPSG:2154',
+    '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+);
 
 const viewerDiv = document.getElementById('viewerDiv');
 
@@ -158,7 +168,11 @@ function setupScene(pointCloud) {
     /** @type {Mesh} */
     let box;
 
-    const helperMaterial = new MeshBasicMaterial({ color: 'yellow', opacity: 0.1, transparent: true });
+    const helperMaterial = new MeshBasicMaterial({
+        color: 'yellow',
+        opacity: 0.1,
+        transparent: true,
+    });
 
     function generateBoxHelper() {
         box?.geometry?.dispose();
@@ -166,10 +180,7 @@ function setupScene(pointCloud) {
         helper?.dispose();
         helper?.removeFromParent();
 
-        box3.setFromCenterAndSize(
-            boxCenter,
-            new Vector3(boxSize, boxSize, boxSize),
-        );
+        box3.setFromCenterAndSize(boxCenter, new Vector3(boxSize, boxSize, boxSize));
         const boxGeometry = new BoxGeometry(boxSize, boxSize, boxSize);
         box = new Mesh(boxGeometry, helperMaterial);
         helper = new Box3Helper(box3, 'yellow');
@@ -200,12 +211,9 @@ function setupScene(pointCloud) {
         volumeHelpers.visible = options.showHelper && options.enableClippingPlanes;
         map.visible = options.showMap;
         pointCloud.visible = options.showPointCloud;
-        map.clippingPlanes = options.enableClippingPlanes && options.applyOnMap
-            ? planes
-            : null;
-        pointCloud.clippingPlanes = options.enableClippingPlanes && options.applyOnPointCloud
-            ? planes
-            : null;
+        map.clippingPlanes = options.enableClippingPlanes && options.applyOnMap ? planes : null;
+        pointCloud.clippingPlanes =
+            options.enableClippingPlanes && options.applyOnPointCloud ? planes : null;
         instance.notifyChange();
     }
 

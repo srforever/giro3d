@@ -97,7 +97,9 @@ abstract class Panel {
      *
      */
     // eslint-disable-next-line class-methods-use-this
-    updateValues() { /** empty */ }
+    updateValues() {
+        /** empty */
+    }
 
     /**
      * Updates the panel. You may override this function if the panel has additional work to do.

@@ -93,10 +93,12 @@ describe('Fetcher', () => {
 
     describe('blob', () => {
         it('should pass the request to the Fetch API', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                blob: () => Promise.resolve(new Blob([])),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    blob: () => Promise.resolve(new Blob([])),
+                }),
+            ) as jest.Mock;
 
             await expect(Fetcher.blob('http://example.com')).resolves.toBeInstanceOf(Blob);
 
@@ -104,10 +106,12 @@ describe('Fetcher', () => {
         });
 
         it('decoding errors should not be captured', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                blob: () => Promise.reject(new Error('error decoding blob')),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    blob: () => Promise.reject(new Error('error decoding blob')),
+                }),
+            ) as jest.Mock;
 
             let events = 0;
             Fetcher.addEventListener('error', () => {
@@ -121,10 +125,12 @@ describe('Fetcher', () => {
 
     describe('text', () => {
         it('should pass the request to the Fetch API', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                text: () => Promise.resolve('Foo'),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    text: () => Promise.resolve('Foo'),
+                }),
+            ) as jest.Mock;
 
             await expect(Fetcher.text('http://example.com')).resolves.toEqual('Foo');
 
@@ -132,10 +138,12 @@ describe('Fetcher', () => {
         });
 
         it('decoding errors should not be captured', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                text: () => Promise.reject(new Error('error decoding text')),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    text: () => Promise.reject(new Error('error decoding text')),
+                }),
+            ) as jest.Mock;
 
             let events = 0;
             Fetcher.addEventListener('error', () => {
@@ -149,10 +157,12 @@ describe('Fetcher', () => {
 
     describe('json', () => {
         it('should pass the request to the Fetch API', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                json: () => Promise.resolve(JSON.parse('{"foo": "bar"}')),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    json: () => Promise.resolve(JSON.parse('{"foo": "bar"}')),
+                }),
+            ) as jest.Mock;
 
             await expect(Fetcher.json('http://example.com')).resolves.toEqual({ foo: 'bar' });
 
@@ -160,10 +170,12 @@ describe('Fetcher', () => {
         });
 
         it('decoding errors should not be captured', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                json: () => Promise.reject(new Error('error decoding json')),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    json: () => Promise.reject(new Error('error decoding json')),
+                }),
+            ) as jest.Mock;
 
             let events = 0;
             Fetcher.addEventListener('error', () => {
@@ -177,10 +189,12 @@ describe('Fetcher', () => {
 
     describe('xml', () => {
         it('should pass the request to the Fetch API', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                text: () => Promise.resolve('<foo>bar</foo>'),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    text: () => Promise.resolve('<foo>bar</foo>'),
+                }),
+            ) as jest.Mock;
 
             await expect(Fetcher.xml('http://example.com')).resolves.toBeInstanceOf(Document);
 
@@ -188,10 +202,12 @@ describe('Fetcher', () => {
         });
 
         it('decoding errors should not be captured', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                text: () => Promise.reject(new Error('error decoding text')),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    text: () => Promise.reject(new Error('error decoding text')),
+                }),
+            ) as jest.Mock;
 
             let events = 0;
             Fetcher.addEventListener('error', () => {
@@ -205,28 +221,36 @@ describe('Fetcher', () => {
 
     describe('arrayBuffer', () => {
         it('should pass the request to the Fetch API', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
+                }),
+            ) as jest.Mock;
 
-            await expect(Fetcher.arrayBuffer('http://example.com')).resolves.toBeInstanceOf(ArrayBuffer);
+            await expect(Fetcher.arrayBuffer('http://example.com')).resolves.toBeInstanceOf(
+                ArrayBuffer,
+            );
 
             expect(global.fetch).toHaveBeenCalled();
         });
 
         it('decoding errors should not be captured', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                arrayBuffer: () => Promise.reject(new Error('error decoding arrayBuffer')),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    arrayBuffer: () => Promise.reject(new Error('error decoding arrayBuffer')),
+                }),
+            ) as jest.Mock;
 
             let events = 0;
             Fetcher.addEventListener('error', () => {
                 events += 1;
             });
 
-            await expect(Fetcher.arrayBuffer('http://example.com')).rejects.toThrow('error decoding arrayBuffer');
+            await expect(Fetcher.arrayBuffer('http://example.com')).rejects.toThrow(
+                'error decoding arrayBuffer',
+            );
             expect(events).toBe(0);
         });
     });
@@ -237,10 +261,12 @@ describe('Fetcher', () => {
         });
 
         it('should pass the request to the Fetch API', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                blob: () => Promise.resolve('Foo'),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    blob: () => Promise.resolve('Foo'),
+                }),
+            ) as jest.Mock;
 
             await expect(Fetcher.texture('http://example.com')).resolves.toBe('Bar');
 
@@ -249,17 +275,21 @@ describe('Fetcher', () => {
         });
 
         it('decoding errors should not be captured', async () => {
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: true,
-                blob: () => Promise.reject(new Error('error decoding blob')),
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: true,
+                    blob: () => Promise.reject(new Error('error decoding blob')),
+                }),
+            ) as jest.Mock;
 
             let events = 0;
             Fetcher.addEventListener('error', () => {
                 events += 1;
             });
 
-            await expect(Fetcher.texture('http://example.com')).rejects.toThrow('error decoding blob');
+            await expect(Fetcher.texture('http://example.com')).rejects.toThrow(
+                'error decoding blob',
+            );
             expect(events).toBe(0);
         });
     });
@@ -276,12 +306,14 @@ describe('Fetcher', () => {
         test('should throw if the response is not HTTP Code 2XX', async () => {
             expect.assertions(3);
 
-            global.fetch = jest.fn(() => Promise.resolve({
-                ok: false,
-                status: 404,
-                statusText: 'Not found',
-                url: 'my url',
-            })) as jest.Mock;
+            global.fetch = jest.fn(() =>
+                Promise.resolve({
+                    ok: false,
+                    status: 404,
+                    statusText: 'Not found',
+                    url: 'my url',
+                }),
+            ) as jest.Mock;
             let events = 0;
             Fetcher.addEventListener('error', e => {
                 expect(e.error.message).toMatch(/404 Not found - my url/);

@@ -44,7 +44,9 @@ class Context {
     /**
      * Current entity being updated.
      */
-    get entity() { return this._entity; }
+    get entity() {
+        return this._entity;
+    }
 
     /**
      * Constructs a context.
@@ -58,11 +60,10 @@ class Context {
         this.instance = instance;
 
         this.distance = {
-            plane: new Plane()
-                .setFromNormalAndCoplanarPoint(
-                    camera.camera3D.getWorldDirection(new Vector3()),
-                    camera.camera3D.position, /* TODO matrixWorld */
-                ),
+            plane: new Plane().setFromNormalAndCoplanarPoint(
+                camera.camera3D.getWorldDirection(new Vector3()),
+                camera.camera3D.position /* TODO matrixWorld */,
+            ),
             min: Infinity,
             max: 0,
         };

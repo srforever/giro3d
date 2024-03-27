@@ -8,8 +8,8 @@ This document describes the Giro3D testing framework and details how to write te
 
 The codebase now favors Typescript over Javascript, but the transition is progressive, to avoid too much noise in diffs and reduce the risk of regression. For this reason, please follow those guidelines when writing tests:
 
-- New test files should be in Typescript (`Foo.test.ts` files).
-- If you must add a test case to an existing `Bar.test.js` test file, please transform it to a Typescript file (`Bar.test.ts`) beforehand, to contribute to the Typescript transition.
+-   New test files should be in Typescript (`Foo.test.ts` files).
+-   If you must add a test case to an existing `Bar.test.js` test file, please transform it to a Typescript file (`Bar.test.ts`) beforehand, to contribute to the Typescript transition.
 
 ## 🧪 Unit tests
 
@@ -19,22 +19,22 @@ Test files are located in `test/unit`, under a folder hierachy that mirrors the 
 
 ### Structure
 
-- The root `describe()` should contain the name of the tested class:
+-   The root `describe()` should contain the name of the tested class:
 
-  ```js
-  describe('Extent', () => {...});
-  ```
+    ```js
+    describe('Extent', () => {...});
+    ```
 
-- each tested method should have its own `describe()`:
+-   each tested method should have its own `describe()`:
 
-  ```js
-  describe('Extent', () => {
-    describe('isValid', () => { ... }),
-    describe('isInside', () => { ... }),
-  });
-  ```
+    ```js
+    describe('Extent', () => {
+      describe('isValid', () => { ... }),
+      describe('isInside', () => { ... }),
+    });
+    ```
 
-- Inside each method block, you can have any number of tests. Each test should have a clear description about the expected outcome, such as:
+-   Inside each method block, you can have any number of tests. Each test should have a clear description about the expected outcome, such as:
 
 ```js
 describe('Extent', () => {

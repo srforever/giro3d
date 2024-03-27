@@ -1,12 +1,5 @@
 import type GUI from 'lil-gui';
-import {
-    Object3D,
-    Color,
-    Plane,
-    Vector3,
-    PlaneHelper,
-    type ColorRepresentation,
-} from 'three';
+import { Object3D, Color, Plane, Vector3, PlaneHelper, type ColorRepresentation } from 'three';
 import Panel from './Panel';
 import type Instance from '../core/Instance';
 import type Entity3D from '../entities/Entity3D';
@@ -56,12 +49,24 @@ class ClippingPlanePanel extends Panel {
             .name('Enable')
             .onChange(() => this.updateClippingPlane());
 
-        this.addController<number>(this.normal, 'x').name('Plane normal X').onChange(() => this.updateClippingPlane());
-        this.addController<number>(this.normal, 'y').name('Plane normal Y').onChange(() => this.updateClippingPlane());
-        this.addController<number>(this.normal, 'z').name('Plane normal Z').onChange(() => this.updateClippingPlane());
-        this.addController<number>(this, 'distance').name('Distance').onChange(() => this.updateClippingPlane());
-        this.addController<number>(this, 'helperSize').name('Helper size').onChange(() => this.updateClippingPlane());
-        this.addController<boolean>(this, 'negate').name('Negate plane').onChange(() => this.updateClippingPlane());
+        this.addController<number>(this.normal, 'x')
+            .name('Plane normal X')
+            .onChange(() => this.updateClippingPlane());
+        this.addController<number>(this.normal, 'y')
+            .name('Plane normal Y')
+            .onChange(() => this.updateClippingPlane());
+        this.addController<number>(this.normal, 'z')
+            .name('Plane normal Z')
+            .onChange(() => this.updateClippingPlane());
+        this.addController<number>(this, 'distance')
+            .name('Distance')
+            .onChange(() => this.updateClippingPlane());
+        this.addController<number>(this, 'helperSize')
+            .name('Helper size')
+            .onChange(() => this.updateClippingPlane());
+        this.addController<boolean>(this, 'negate')
+            .name('Negate plane')
+            .onChange(() => this.updateClippingPlane());
     }
 
     updateClippingPlane() {
@@ -189,7 +194,9 @@ class EntityInspector extends Panel {
     }
 
     updateValues() {
-        this.state = this.entity.loading ? `loading (${Math.round(this.entity.progress * 100)}%)` : 'idle';
+        this.state = this.entity.loading
+            ? `loading (${Math.round(this.entity.progress * 100)}%)`
+            : 'idle';
         if (this.boundingBoxes) {
             this.toggleBoundingBoxes(true);
         }

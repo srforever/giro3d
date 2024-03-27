@@ -4,13 +4,19 @@ shortdesc: Display a graticule on a Map.
 longdesc: The <a href="../apidoc/classes/entities.Map.html" target="_blank"><code>Map</code></a> can display a fully configurable graticule.
 attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological Survey</a>
 ---
+
 <div class="m-2 position-absolute top-0 end-0">
     <div class="card">
-
         <div class="card-body">
             <!-- Show/Hide graticule -->
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-graticule">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    checked="true"
+                    role="switch"
+                    id="toggle-graticule"
+                />
                 <label class="form-check-label" for="toggle-graticule">Show graticule</label>
             </div>
 
@@ -19,7 +25,15 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
             <!-- X step -->
             <label for="x-step" class="form-label">X-axis step</label>
             <div class="input-group">
-                <input type="range" min="100" max="3000" value="1000" step="100" class="slider" id="x-step">
+                <input
+                    type="range"
+                    min="100"
+                    max="3000"
+                    value="1000"
+                    step="100"
+                    class="slider"
+                    id="x-step"
+                />
             </div>
 
             <div class="my-2"></div>
@@ -27,7 +41,15 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
             <!-- Y step -->
             <label for="y-step" class="form-label">Y-axis step</label>
             <div class="input-group">
-                <input type="range" min="100" max="3000" value="1000" step="100" class="slider" id="y-step">
+                <input
+                    type="range"
+                    min="100"
+                    max="3000"
+                    value="1000"
+                    step="100"
+                    class="slider"
+                    id="y-step"
+                />
             </div>
 
             <div class="my-2"></div>
@@ -35,7 +57,15 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
             <!-- X offset -->
             <label for="x-offset" class="form-label">X-axis offset</label>
             <div class="input-group">
-                <input type="range" min="100" max="3000" value="200" step="100" class="slider" id="x-offset">
+                <input
+                    type="range"
+                    min="100"
+                    max="3000"
+                    value="200"
+                    step="100"
+                    class="slider"
+                    id="x-offset"
+                />
             </div>
 
             <div class="my-2"></div>
@@ -43,7 +73,15 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
             <!-- Y offset -->
             <label for="y-offset" class="form-label">Y-axis offset</label>
             <div class="input-group">
-                <input type="range" min="100" max="3000" value="200" step="100" class="slider" id="y-offset">
+                <input
+                    type="range"
+                    min="100"
+                    max="3000"
+                    value="200"
+                    step="100"
+                    class="slider"
+                    id="y-offset"
+                />
             </div>
 
             <div class="my-2"></div>
@@ -51,13 +89,29 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
             <!-- Opacity -->
             <label for="opacity" class="form-label">Opacity</label>
             <div class="input-group">
-                <input type="range" min="0" max="1" value="1" step="0.01" class="slider" id="opacity">
+                <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    value="1"
+                    step="0.01"
+                    class="slider"
+                    id="opacity"
+                />
             </div>
 
             <!-- Thickness -->
             <label for="thickness" class="form-label">Thickness</label>
             <div class="input-group">
-                <input type="range" min="1" max="100" value="20" step="1" class="slider" id="thickness">
+                <input
+                    type="range"
+                    min="1"
+                    max="100"
+                    value="20"
+                    step="1"
+                    class="slider"
+                    id="thickness"
+                />
             </div>
 
             <div class="my-2"></div>
@@ -72,7 +126,6 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
                     <option value="red">Red</option>
                 </select>
             </div>
-
         </div>
     </div>
 </div>

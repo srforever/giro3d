@@ -48,13 +48,15 @@ const source = new CogSource({
 const min = 263;
 const max = 4347;
 
-map.addLayer(new ElevationLayer({
-    name: 'elevation',
-    extent,
-    source,
-    preloadImages: false,
-    minmax: { min, max },
-}));
+map.addLayer(
+    new ElevationLayer({
+        name: 'elevation',
+        extent,
+        source,
+        preloadImages: false,
+        minmax: { min, max },
+    }),
+);
 
 // Attach the inspector
 Inspector.attach(document.getElementById('panelDiv'), instance);

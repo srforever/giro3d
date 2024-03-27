@@ -1,10 +1,4 @@
-import type {
-    Object3D,
-    Camera,
-    Scene,
-    TextureDataType,
-    ColorRepresentation,
-} from 'three';
+import type { Object3D, Camera, Scene, TextureDataType, ColorRepresentation } from 'three';
 import {
     Color,
     DepthTexture,
@@ -28,13 +22,10 @@ const tmpClear = new Color();
 const tmpVec2 = new Vector2();
 
 function createRenderTarget(width: number, height: number, type: TextureDataType) {
-    const result = new WebGLRenderTarget(
-        width,
-        height, {
-            type,
-            format: RGBAFormat,
-        },
-    );
+    const result = new WebGLRenderTarget(width, height, {
+        type,
+        format: RGBAFormat,
+    });
     result.texture.minFilter = LinearFilter;
     result.texture.magFilter = NearestFilter;
     result.texture.generateMipmaps = false;
@@ -65,28 +56,30 @@ function createErrorMessage() {
     element.style.padding = '1.5em';
     element.style.width = '400px';
     element.style.margin = '5em auto 0';
-    element.innerHTML = window.WebGLRenderingContext ? [
-        'Your graphics card does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br />',
-        'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
-        'See also <a href="https://www.khronos.org/webgl/wiki/BlacklistsAndWhitelists">graphics card blacklisting</a>',
-    ].join('\n') : [
-        'Your browser does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br/>',
-        'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
-        'You can also try another browser like Firefox or Chrome.',
-    ].join('\n');
+    element.innerHTML = window.WebGLRenderingContext
+        ? [
+              'Your graphics card does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br />',
+              'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
+              'See also <a href="https://www.khronos.org/webgl/wiki/BlacklistsAndWhitelists">graphics card blacklisting</a>',
+          ].join('\n')
+        : [
+              'Your browser does not seem to support <a href="http://khronos.org/webgl/wiki/Getting_a_WebGL_Implementation" style="color:#000">WebGL</a>.<br/>',
+              'Find out how to get it <a href="http://get.webgl.org/" style="color:#000">here</a>.<br>',
+              'You can also try another browser like Firefox or Chrome.',
+          ].join('\n');
 
     return element;
 }
 
 export interface RenderToBufferZone {
     /** x (in instance coordinate) */
-    x: number,
+    x: number;
     /** y (in instance coordinate) */
-    y: number,
+    y: number;
     /** width of area to render (in pixels) */
-    width: number,
+    width: number;
     /** height of area to render (in pixels) */
-    height: number,
+    height: number;
 }
 
 export interface RenderToBufferOptions {
@@ -193,12 +186,14 @@ class C3DEngine {
 
         // Create renderer
         try {
-            this.renderer = renderer || new WebGLRenderer({
-                canvas: document.createElement('canvas'),
-                antialias: options.antialias,
-                alpha: options.alpha,
-                logarithmicDepthBuffer: options.logarithmicDepthBuffer,
-            });
+            this.renderer =
+                renderer ||
+                new WebGLRenderer({
+                    canvas: document.createElement('canvas'),
+                    antialias: options.antialias,
+                    alpha: options.alpha,
+                    logarithmicDepthBuffer: options.logarithmicDepthBuffer,
+                });
 
             // Necessary to enable clipping planes per-entity or per-object, rather
             // than per-renderer (global) clipping planes.
@@ -369,12 +364,15 @@ class C3DEngine {
         zone.y = Math.max(0, Math.min(zone.y, this.height));
 
         const size = 4 * zone.width * zone.height;
-        const pixelBuffer = datatype === UnsignedByteType
-            ? new Uint8Array(size)
-            : new Float32Array(size);
+        const pixelBuffer =
+            datatype === UnsignedByteType ? new Uint8Array(size) : new Float32Array(size);
         this.renderer.readRenderTargetPixels(
             renderTarget,
-            zone.x, this.height - (zone.y + zone.height), zone.width, zone.height, pixelBuffer,
+            zone.x,
+            this.height - (zone.y + zone.height),
+            zone.width,
+            zone.height,
+            pixelBuffer,
         );
 
         return pixelBuffer;

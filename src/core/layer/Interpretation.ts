@@ -207,8 +207,10 @@ class Interpretation {
      */
     toString(): string {
         switch (this.mode) {
-            case Mode.Raw: return 'Raw';
-            case Mode.MapboxTerrainRGB: return 'Mapbox Terrain RGB';
+            case Mode.Raw:
+                return 'Raw';
+            case Mode.MapboxTerrainRGB:
+                return 'Mapbox Terrain RGB';
             case Mode.ScaleToMinMax:
                 return `Scaled (min: ${this._opts.min}, max: ${this._opts.max})`;
             case Mode.CompressTo8Bit:
@@ -236,12 +238,7 @@ class Interpretation {
     /**
      * @internal
      */
-    setUniform(uniform: {
-        mode?: number,
-        negateValues?: boolean,
-        min?: number,
-        max?: number,
-    }) {
+    setUniform(uniform: { mode?: number; negateValues?: boolean; min?: number; max?: number }) {
         const mode = this.mode;
 
         uniform.mode = mode;
@@ -264,9 +261,6 @@ class Interpretation {
     }
 }
 
-export {
-    Mode,
-    InterpretationOptions,
-};
+export { Mode, InterpretationOptions };
 
 export default Interpretation;

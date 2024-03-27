@@ -13,7 +13,11 @@ import { type Material } from 'three';
  * setDefine(mat, 'ENABLE_FOO', true); // material.needsUpdate === false;
  * setDefine(mat, 'ENABLE_FOO', false); // material.needsUpdate === true;
  */
-function setDefine<M extends Material, K extends keyof M['defines']>(material: M, name: K, condition: boolean) {
+function setDefine<M extends Material, K extends keyof M['defines']>(
+    material: M,
+    name: K,
+    condition: boolean,
+) {
     const key = name as string;
     if (material.defines[key] === undefined) {
         if (condition) {

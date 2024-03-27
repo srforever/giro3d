@@ -1,9 +1,7 @@
 import { Color, MathUtils } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { GeoJSON } from 'ol/format.js';
-import {
-    Circle, Fill, Stroke, Style,
-} from 'ol/style.js';
+import { Circle, Fill, Stroke, Style } from 'ol/style.js';
 
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -24,7 +22,7 @@ const viewerDiv = document.getElementById('viewerDiv');
 const instance = new Instance(viewerDiv, {
     crs: extent.crs(),
     renderer: {
-        clearColor: 0xFFFFFF,
+        clearColor: 0xffffff,
     },
 });
 
@@ -33,10 +31,7 @@ const center = extent.centerAsVector3();
 instance.camera.camera3D.position.set(center.x, center.y - 1, 1000000);
 
 // Creates controls
-const controls = new MapControls(
-    instance.camera.camera3D,
-    viewerDiv,
-);
+const controls = new MapControls(instance.camera.camera3D, viewerDiv);
 
 // Then looks at extent's center
 controls.target = center;

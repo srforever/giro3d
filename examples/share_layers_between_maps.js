@@ -13,8 +13,10 @@ import StatusBar from './widgets/StatusBar.js';
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
     'EPSG:3857',
-    -20037508.342789244, 20037508.342789244,
-    -20037508.342789244, 20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
 );
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
@@ -31,7 +33,9 @@ const instance = new Instance(viewerDiv, {
 // Adds an TMS imagery layer
 const layer = new ColorLayer({
     name: 'osm',
-    source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
+    source: new TiledImageSource({
+        source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }),
+    }),
 });
 
 let index = 0;

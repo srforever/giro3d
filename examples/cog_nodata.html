@@ -4,8 +4,8 @@ shortdesc: Display an elevation COG and discard no-data values.
 longdesc: The <a href="../apidoc/interfaces/core.layer.NoDataOptions.html" target="_blank"><code>NoDataOptions</code></a> of the <a href="../apidoc/classes/core.layer.Layer.html" target="_blank"><code>Layer</code></a> class can be used to replace no-data values with interpolated neighbouring pixels.
 attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological Survey</a>
 ---
-<div class="m-2 position-absolute top-0 end-0">
 
+<div class="m-2 position-absolute top-0 end-0">
     <div class="card m-1">
         <div class="card-header">Options</div>
 
@@ -19,11 +19,18 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
                 </select>
             </div>
 
-
             <div class="mb-3">
                 <div class="form-check form-switch">
-                    <input class="form-check-input" type="checkbox" checked="true" role="switch" id="enableFillNoData">
-                    <label class="form-check-label" for="enableFillNoData">Enable fill no-data</label>
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        checked="true"
+                        role="switch"
+                        id="enableFillNoData"
+                    />
+                    <label class="form-check-label" for="enableFillNoData"
+                        >Enable fill no-data</label
+                    >
                 </div>
             </div>
 
@@ -38,15 +45,23 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
             <div class="mb-3">
                 <label for="maxDistanceSlider" class="form-label">Max distance (meters)</label>
                 <div class="input-group">
-                    <input type="range" min="0" max="10000" value="10000" step="100" class="slider" id="maxDistanceSlider">
+                    <input
+                        type="range"
+                        min="0"
+                        max="10000"
+                        value="10000"
+                        step="100"
+                        class="slider"
+                        id="maxDistanceSlider"
+                    />
                 </div>
             </div>
 
             <div class="mb-3">
-                <button type="button" class="btn btn-primary" id="applyChanges">Apply changes</button>
+                <button type="button" class="btn btn-primary" id="applyChanges">
+                    Apply changes
+                </button>
             </div>
-
         </fieldset>
     </div>
-
 </div>

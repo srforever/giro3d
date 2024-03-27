@@ -1,5 +1,12 @@
 import {
-    Scene, Group, EventDispatcher, Vector2, Vector3, Object3D, type Box3, type WebGLRenderer,
+    Scene,
+    Group,
+    EventDispatcher,
+    Vector2,
+    Vector3,
+    Object3D,
+    type Box3,
+    type WebGLRenderer,
 } from 'three';
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4.js';
@@ -50,43 +57,47 @@ export interface InstanceEvents {
     /**
      * Fires when an entity is added to the instance.
      */
-    'entity-added': { /** empty */ },
+    'entity-added': {
+        /** empty */
+    };
     /**
      * Fires when an entity is removed from the instance.
      */
-    'entity-removed': { /** empty */ },
+    'entity-removed': {
+        /** empty */
+    };
     /**
      * Fires at the start of the update
      */
-    'update-start': FrameEventPayload,
+    'update-start': FrameEventPayload;
     /**
      * Fires before the camera update
      */
-    'before-camera-update': { camera: Camera } & FrameEventPayload,
+    'before-camera-update': { camera: Camera } & FrameEventPayload;
     /**
      * Fires after the camera update
      */
-    'after-camera-update': { camera: Camera } & FrameEventPayload,
+    'after-camera-update': { camera: Camera } & FrameEventPayload;
     /**
      * Fires before the entity update
      */
-    'before-entity-update': EntityEventPayload & FrameEventPayload,
+    'before-entity-update': EntityEventPayload & FrameEventPayload;
     /**
      * Fires after the entity update
      */
-    'after-entity-update': EntityEventPayload & FrameEventPayload,
+    'after-entity-update': EntityEventPayload & FrameEventPayload;
     /**
      * Fires before the render
      */
-    'before-render': FrameEventPayload,
+    'before-render': FrameEventPayload;
     /**
      * Fires after the render
      */
-    'after-render': FrameEventPayload,
+    'after-render': FrameEventPayload;
     /**
      * Fires at the end of the update
      */
-    'update-end': FrameEventPayload,
+    'update-end': FrameEventPayload;
 }
 
 /**
@@ -109,16 +120,16 @@ export interface InstanceOptions extends CameraOptions {
      * Must be a cartesian system.
      * Must first be registered via {@link Instance.registerCRS}
      */
-    crs: string,
+    crs: string;
     /**
      * The [Three.js Scene](https://threejs.org/docs/#api/en/scenes/Scene) instance to use,
      * otherwise a default one will be constructed
      */
-    scene3D?: Scene,
+    scene3D?: Scene;
     /* Rendering options */
-    renderer?: RendererOptions,
+    renderer?: RendererOptions;
     /* Main loop */
-    mainLoop?: MainLoop,
+    mainLoop?: MainLoop;
 }
 
 /**
@@ -130,7 +141,7 @@ export interface PickObjectsAtOptions extends PickOptions {
      * If not provided, will pick from all the objects in the scene.
      * Strings consist in the IDs of the object.
      */
-    where?: (string | Object3D | Entity)[],
+    where?: (string | Object3D | Entity)[];
     /**
      * Indicates if the results should be sorted by distance, as Three.js raycasting does.
      * This prevents the `limit` option to be fully used as it is applied after sorting,
@@ -138,7 +149,7 @@ export interface PickObjectsAtOptions extends PickOptions {
      *
      * @defaultValue false
      */
-    sortByDistance?: boolean,
+    sortByDistance?: boolean;
     /**
      * Indicates if features information are also retrieved from the picked object.
      * On complex objects, this may be slow, and therefore is disabled by default.
@@ -153,9 +164,9 @@ export interface CustomCameraControls {
 }
 
 export interface ThreeControls extends CustomCameraControls {
-    update: () => void,
-    addEventListener: (event: string, callback: unknown) => void,
-    removeEventListener: (event: string, callback: unknown) => void,
+    update: () => void;
+    addEventListener: (event: string, callback: unknown) => void;
+    removeEventListener: (event: string, callback: unknown) => void;
 }
 
 interface ControlFunctions {
@@ -225,7 +236,9 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             throw new Error('Invalid viewerDiv parameter (must be a valid Element)');
         }
         if (viewerDiv.childElementCount > 0) {
-            console.warn('viewerDiv has children; Giro3D expects an empty element - this can lead to unexpected behaviors');
+            console.warn(
+                'viewerDiv has children; Giro3D expects an empty element - this can lead to unexpected behaviors',
+            );
         }
 
         if (!options.crs) {
@@ -472,10 +485,11 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         this._entities.add(entity);
         await entity.whenReady;
 
-        if (entity instanceof Entity3D
-            && entity.object3d
-            && !entity.object3d.parent
-            && entity.object3d !== this._scene
+        if (
+            entity instanceof Entity3D &&
+            entity.object3d &&
+            !entity.object3d.parent &&
+            entity.object3d !== this._scene
         ) {
             this._scene.add(entity.object3d);
         }
@@ -656,9 +670,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
 
         // Event was triggered outside of the canvas, probably a CSS2DElement
         const br = this.domElement.getBoundingClientRect();
-        return target.set(
-            mouseEvent.clientX - br.x, mouseEvent.clientY - br.y,
-        );
+        return target.set(mouseEvent.clientX - br.x, mouseEvent.clientY - br.y);
     }
 
     /**
@@ -743,19 +755,19 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         options: PickObjectsAtOptions = {},
     ): PickResult[] {
         let results: PickResult[] = [];
-        const sources = options.where && options.where.length > 0
-            ? [...options.where] : this.getObjects();
-        const mouse = (mouseOrEvt instanceof Event)
-            ? this.eventToCanvasCoords(mouseOrEvt, vectors.evtToCanvas) : mouseOrEvt;
+        const sources =
+            options.where && options.where.length > 0 ? [...options.where] : this.getObjects();
+        const mouse =
+            mouseOrEvt instanceof Event
+                ? this.eventToCanvasCoords(mouseOrEvt, vectors.evtToCanvas)
+                : mouseOrEvt;
         const radius = options.radius ?? 0;
         const limit = options.limit ?? Infinity;
         const sortByDistance = options.sortByDistance ?? false;
         const pickFeatures = options.pickFeatures ?? false;
 
         for (const source of sources) {
-            const object = (typeof (source) === 'string')
-                ? this.objectIdToObject(source)
-                : source;
+            const object = typeof source === 'string' ? this.objectIdToObject(source) : source;
 
             if (!(object as Object3D | Entity3D).visible) {
                 continue;
@@ -777,20 +789,17 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
                 const res = object.pick(mouse, pickOptions);
                 results.push(...res);
             } else if ((object as Object3D).isObject3D) {
-                const res = pickObjectsAt(
-                    this,
-                    mouse,
-                    object as Object3D,
-                    pickOptions,
-                );
+                const res = pickObjectsAt(this, mouse, object as Object3D, pickOptions);
                 results.push(...res);
             }
 
-            if (results.length >= limit && !sortByDistance) { break; }
+            if (results.length >= limit && !sortByDistance) {
+                break;
+            }
         }
 
         if (sortByDistance) {
-            results.sort((a, b) => (a.distance - b.distance));
+            results.sort((a, b) => a.distance - b.distance);
             if (limit !== Infinity) {
                 results = results.slice(0, limit);
             }
@@ -886,7 +895,10 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         }
 
         if (typeof (this._controls as ThreeControls).removeEventListener === 'function') {
-            (this._controls as ThreeControls).removeEventListener('change', this._controlFunctions.eventListener);
+            (this._controls as ThreeControls).removeEventListener(
+                'change',
+                this._controlFunctions.eventListener,
+            );
             this.removeEventListener('before-camera-update', this._controlFunctions.update);
         }
 

@@ -50,21 +50,23 @@ class Cache {
      *
      * @param opts - The options.
      */
-    constructor(opts: {
-        /**
-         * The default TTL (time to live) of entries.
-         * Can be overriden for each entry (see {@link CacheOptions}).
-         */
-        ttl?: number;
-        /** The capacity, in bytes, of the cache. */
-        byteCapacity?: number;
-        /** The capacity, in number of entries, of the cache. */
-        maxNumberOfEntries?: number;
-    } = {
-        ttl: DEFAULT_TTL,
-        byteCapacity: DEFAULT_CAPACITY,
-        maxNumberOfEntries: DEFAULT_MAX_ENTRIES,
-    }) {
+    constructor(
+        opts: {
+            /**
+             * The default TTL (time to live) of entries.
+             * Can be overriden for each entry (see {@link CacheOptions}).
+             */
+            ttl?: number;
+            /** The capacity, in bytes, of the cache. */
+            byteCapacity?: number;
+            /** The capacity, in number of entries, of the cache. */
+            maxNumberOfEntries?: number;
+        } = {
+            ttl: DEFAULT_TTL,
+            byteCapacity: DEFAULT_CAPACITY,
+            maxNumberOfEntries: DEFAULT_MAX_ENTRIES,
+        },
+    ) {
         this._deleteHandlers = new Map();
 
         this._enabled = true;
@@ -219,11 +221,4 @@ class Cache {
  */
 const GlobalCache: Cache = new Cache();
 
-export {
-    GlobalCache,
-    Cache,
-    CacheOptions,
-    DEFAULT_TTL,
-    DEFAULT_CAPACITY,
-    DEFAULT_MAX_ENTRIES,
-};
+export { GlobalCache, Cache, CacheOptions, DEFAULT_TTL, DEFAULT_CAPACITY, DEFAULT_MAX_ENTRIES };

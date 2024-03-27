@@ -1,9 +1,4 @@
-import type {
-    LayerEvents,
-    LayerUserData,
-    Node,
-    TextureAndPitch,
-} from 'src/core/layer/Layer';
+import type { LayerEvents, LayerUserData, Node, TextureAndPitch } from 'src/core/layer/Layer';
 import Layer from 'src/core/layer/Layer';
 import Extent from 'src/core/geographic/Extent';
 import NullSource from 'src/sources/NullSource';
@@ -13,13 +8,23 @@ import { setupGlobalMocks } from '../../mocks.js';
 // @ts-expect-error missing implementations of abstract superclass
 class TestLayer<T, U> extends Layer<T, U> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
-    registerNode(_node: Node, _extent: Extent): void { /** empty */}
+    registerNode(_node: Node, _extent: Extent): void {
+        /** empty */
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
-    protected applyTextureToNode(_texture: TextureAndPitch, _node: Node, _isLastRender: boolean): void { /** empty */}
+    protected applyTextureToNode(
+        _texture: TextureAndPitch,
+        _node: Node,
+        _isLastRender: boolean,
+    ): void {
+        /** empty */
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars, class-methods-use-this
-    protected applyEmptyTextureToNode(_node: Node): void { /** empty */ }
+    protected applyEmptyTextureToNode(_node: Node): void {
+        /** empty */
+    }
 
     getQueue(): RequestQueue {
         return this._queue;
@@ -27,8 +32,8 @@ class TestLayer<T, U> extends Layer<T, U> {
 }
 
 interface UserData extends LayerUserData {
-    'bar': number;
-    'foo': string;
+    bar: number;
+    foo: string;
 }
 
 describe('Layer', () => {

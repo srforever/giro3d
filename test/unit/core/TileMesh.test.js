@@ -35,7 +35,9 @@ describe('TileMesh', () => {
             const geometry = mesh.geometry;
             geometry.dispose = jest.fn();
             let eventDispatched = false;
-            mesh.addEventListener('dispose', () => { eventDispatched = true; });
+            mesh.addEventListener('dispose', () => {
+                eventDispatched = true;
+            });
 
             mesh.dispose();
             expect(geometry.dispose).not.toHaveBeenCalled();
@@ -56,9 +58,7 @@ describe('TileMesh', () => {
         FakeTileMesh.prototype.constructor = FakeTileMesh;
         FakeTileMesh.prototype.findCommonAncestor = TileMesh.prototype.findCommonAncestor;
 
-        const tree = [
-            [new FakeTileMesh(0)],
-        ];
+        const tree = [[new FakeTileMesh(0)]];
 
         beforeAll(() => {
             // root + three levels

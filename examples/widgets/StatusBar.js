@@ -61,10 +61,12 @@ function pick(mouseEvent) {
     const cameraPosition = currentInstance.camera.camera3D.getWorldPosition(tmpVec3);
     // Don't pick while the camera is moving
     if (!lastCameraPosition || lastCameraPosition.distanceToSquared(cameraPosition) === 0) {
-        const picked = currentInstance.pickObjectsAt(mouseEvent, {
-            limit: 1,
-            radius: pickingRadius,
-        }).at(0);
+        const picked = currentInstance
+            .pickObjectsAt(mouseEvent, {
+                limit: 1,
+                radius: pickingRadius,
+            })
+            .at(0);
 
         if (picked) {
             const crs = currentInstance.referenceCrs;

@@ -33,24 +33,27 @@ describe('TiledImageSource', () => {
             expect(tiled.flipY).toEqual(true);
         });
 
-        describe.each([true, false])('should assign flipY to the flipY of the format, if provided', b => {
-            test(`${b}`, () => {
-                const source = new StadiaMaps({ layer: 'stamen_watercolor' });
+        describe.each([true, false])(
+            'should assign flipY to the flipY of the format, if provided',
+            b => {
+                test(`${b}`, () => {
+                    const source = new StadiaMaps({ layer: 'stamen_watercolor' });
 
-                const flipY = b;
+                    const flipY = b;
 
-                const tiled = new TiledImageSource({
-                    source,
-                    format: {
-                        flipY,
-                        isImageFormat: false,
-                        type: '',
-                        decode: jest.fn(),
-                    },
+                    const tiled = new TiledImageSource({
+                        source,
+                        format: {
+                            flipY,
+                            isImageFormat: false,
+                            type: '',
+                            decode: jest.fn(),
+                        },
+                    });
+
+                    expect(tiled.flipY).toEqual(flipY);
                 });
-
-                expect(tiled.flipY).toEqual(flipY);
-            });
-        });
+            },
+        );
     });
 });

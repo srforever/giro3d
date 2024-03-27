@@ -117,7 +117,7 @@ class WebGLComposer {
          * to display the rendered textures, because WebGL contexts are isolated from each other. */
         webGLRenderer: WebGLRenderer;
         /** The clear (background) color. */
-        clearColor?: ColorRepresentation
+        clearColor?: ColorRepresentation;
         /** The pixel format of the output textures. */
         pixelFormat: PixelFormat;
         /** The data type of the output textures. */
@@ -184,18 +184,15 @@ class WebGLComposer {
         width: number,
         height: number,
     ) {
-        const result = new WebGLRenderTarget(
-            width,
-            height, {
-                format,
-                anisotropy: this._renderer.capabilities.getMaxAnisotropy(),
-                magFilter: this._magFilter,
-                minFilter: this._minFilter,
-                type,
-                depthBuffer: false,
-                generateMipmaps: true,
-            },
-        );
+        const result = new WebGLRenderTarget(width, height, {
+            format,
+            anisotropy: this._renderer.capabilities.getMaxAnisotropy(),
+            magFilter: this._magFilter,
+            minFilter: this._minFilter,
+            type,
+            depthBuffer: false,
+            generateMipmaps: true,
+        });
 
         // Normally, the render target "owns" the texture, and whenever this target
         // is disposed, the texture is disposed with it.
@@ -328,16 +325,18 @@ class WebGLComposer {
      * @param opts - The options.
      * @returns The texture of the render target.
      */
-    render(opts: {
-        /** A custom rect for the camera. */
-        rect?: Rect;
-        /** The width, in pixels, of the output texture. */
-        width?: number;
-        /** The height, in pixels, of the output texture. */
-        height?: number;
-        /** The render target. */
-        target?: WebGLRenderTarget;
-    } = {}): Texture {
+    render(
+        opts: {
+            /** A custom rect for the camera. */
+            rect?: Rect;
+            /** The width, in pixels, of the output texture. */
+            width?: number;
+            /** The height, in pixels, of the output texture. */
+            height?: number;
+            /** The render target. */
+            target?: WebGLRenderTarget;
+        } = {},
+    ): Texture {
         const width = opts.width ?? this.width;
         const height = opts.height ?? this.height;
 

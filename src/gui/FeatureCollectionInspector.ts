@@ -53,10 +53,11 @@ const FILTER_STATE = {
             const { instance, featureCollection } = context;
             if (!this._filteringFn) {
                 this._filteringFn = (e: MouseEvent) => {
-                    const picked = instance.pickObjectsAt(
-                        e,
-                        { limit: 1, radius: 1, where: [featureCollection] },
-                    );
+                    const picked = instance.pickObjectsAt(e, {
+                        limit: 1,
+                        radius: 1,
+                        where: [featureCollection],
+                    });
                     if (picked.length !== 0) {
                         instance.domElement.removeEventListener('click', this._filteringFn);
                         switchState(FILTER_STATE.FILTERING, picked[0]);
@@ -91,7 +92,7 @@ const FILTER_STATE = {
     },
 };
 
-type FilterState = typeof FILTER_STATE[keyof typeof FILTER_STATE];
+type FilterState = (typeof FILTER_STATE)[keyof typeof FILTER_STATE];
 
 class FeatureCollectionInspector extends EntityInspector {
     /** The inspected FeatureCollection. */
@@ -147,10 +148,14 @@ class FeatureCollectionInspector extends EntityInspector {
         this.instance.domElement.style.cursor = state.cursor;
         this.hideAllController.name(state.buttonLabel);
         this.filterState = state;
-        state.enter(this.applyFilterState.bind(this), {
-            featureCollection: this.featureCollection,
-            instance: this.instance,
-        }, [...args]);
+        state.enter(
+            this.applyFilterState.bind(this),
+            {
+                featureCollection: this.featureCollection,
+                instance: this.instance,
+            },
+            [...args],
+        );
     }
 
     hideAllButClicked() {

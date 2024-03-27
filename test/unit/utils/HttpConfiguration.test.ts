@@ -21,9 +21,13 @@ describe('HttpConfiguration', () => {
             const foobarOpts = HttpConfiguration.applyConfiguration(foobar, {});
 
             expect(notOpts).toBeUndefined();
-            expect((rootOpts.headers as Record<string, string>).Authorization).toEqual('Bearer foo');
+            expect((rootOpts.headers as Record<string, string>).Authorization).toEqual(
+                'Bearer foo',
+            );
             expect((fooOpts.headers as Record<string, string>).Authorization).toEqual('Bearer foo');
-            expect((foobarOpts.headers as Record<string, string>).Authorization).toEqual('Bearer foo');
+            expect((foobarOpts.headers as Record<string, string>).Authorization).toEqual(
+                'Bearer foo',
+            );
         });
 
         it('should return undefined if no configuration applies and no object is passed', () => {
@@ -34,13 +38,20 @@ describe('HttpConfiguration', () => {
 
         it('should return the same object that was passed', () => {
             const inputOpts = {};
-            const outputOpts = HttpConfiguration.applyConfiguration('http://nothing.com', inputOpts);
+            const outputOpts = HttpConfiguration.applyConfiguration(
+                'http://nothing.com',
+                inputOpts,
+            );
 
             expect(inputOpts).toBe(outputOpts);
         });
 
         it('should honor precedence of prefixes', () => {
-            HttpConfiguration.setHeader('https://example.com/very/specific/prefix', 'Authorization', 'HIGH');
+            HttpConfiguration.setHeader(
+                'https://example.com/very/specific/prefix',
+                'Authorization',
+                'HIGH',
+            );
 
             HttpConfiguration.setHeader('https://example.com/lower/prefix', 'Authorization', 'LOW');
 

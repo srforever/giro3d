@@ -4,35 +4,53 @@ shortdesc: Illustrates the reprojection of layers to match the coordinate system
 longdesc: A <code>Layer</code> can reproject the images produced by the <code>ImageSource</code> to conform to the CRS of the instance.
 attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
 ---
-<div class="m-3 position-absolute top-0 end-0" style="width: 22rem;">
 
+<div class="m-3 position-absolute top-0 end-0" style="width: 22rem">
     <div class="card" id="currentCrsSection">
         <!-- CRS code -->
         <div class="card-header" id="currentCrsCode">EPSG:2154</div>
 
         <!-- tooltip -->
-        <span class="badge bg-secondary position-absolute top-0 end-0 m-2" data-bs-toggle="popover" data-bs-content="help">?</span>
-        <p class="card-text d-none" id="help">Type a projected CRS in the field below, then "Update" to create a scene with various layers. You can search for projection codes on <a target="_blank" href="https://epsg.io/?q=epsg">epsg.io</a>.
-        <b>Note:</b> not all projections are supported.</p>
+        <span
+            class="badge bg-secondary position-absolute top-0 end-0 m-2"
+            data-bs-toggle="popover"
+            data-bs-content="help"
+            >?</span
+        >
+        <p class="card-text d-none" id="help">
+            Type a projected CRS in the field below, then "Update" to create a scene with various
+            layers. You can search for projection codes on
+            <a target="_blank" href="https://epsg.io/?q=epsg">epsg.io</a>. <b>Note:</b> not all
+            projections are supported.
+        </p>
 
         <!-- CRS name and area -->
         <div class="card-body">
             <h5 class="card-title" id="currentCrsName">RGF93 v1 / Lambert-93 -- France</h5>
-            <p class="card-text" id="currentCrsArea">France - onshore and offshore, mainland and Corsica (France
-                métropolitaine including Corsica).</p>
+            <p class="card-text" id="currentCrsArea">
+                France - onshore and offshore, mainland and Corsica (France métropolitaine including
+                Corsica).
+            </p>
         </div>
     </div>
 
     <!-- CRS selector -->
     <div class="input-group mt-3">
         <span class="input-group-text" id="epsgCodeLabel">CRS</span>
-        <input type="text" class="form-control" id="epsgCode" placeholder="EPSG code (e.g EPSG:3857)"
-            value="EPSG:2154" aria-label="EpsgCode" aria-describedby="epsgCodeLabel">
+        <input
+            type="text"
+            class="form-control"
+            id="epsgCode"
+            placeholder="EPSG code (e.g EPSG:3857)"
+            value="EPSG:2154"
+            aria-label="EpsgCode"
+            aria-describedby="epsgCodeLabel"
+        />
         <button class="input-group-text btn btn-primary" id="createSceneBtn">Update</button>
     </div>
 
     <!-- Error message -->
-    <div class="alert alert-danger mt-3" id="errorMessage" style="display: none;" role="alert">
+    <div class="alert alert-danger mt-3" id="errorMessage" style="display: none" role="alert">
         A simple primary alert—check it out!
     </div>
 </div>

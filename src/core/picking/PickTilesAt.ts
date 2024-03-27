@@ -1,6 +1,4 @@
-import {
-    Color, FloatType, Vector2, Vector3,
-} from 'three';
+import { Color, FloatType, Vector2, Vector3 } from 'three';
 import type Instance from '../Instance';
 import type Map from '../../entities/Map';
 import type TileMesh from '../TileMesh';
@@ -26,7 +24,8 @@ export interface MapPickResult<TFeature = unknown> extends PickResult<TFeature &
  * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
-export const isMapPickResult = (obj: unknown): obj is MapPickResult => (obj as MapPickResult).isMapPickResult;
+export const isMapPickResult = (obj: unknown): obj is MapPickResult =>
+    (obj as MapPickResult).isMapPickResult;
 
 const BLACK = new Color(0, 0, 0);
 const tmpCoords = new Coordinates('EPSG:3857', 0, 0, 0);
@@ -98,12 +97,7 @@ function pickTilesAt(
     const filter = options.filter;
     const target: MapPickResult[] = [];
 
-    const { ids, uvs, zs } = renderTileBuffer(
-        instance,
-        map,
-        canvasCoords,
-        radius,
-    );
+    const { ids, uvs, zs } = renderTileBuffer(instance, map, canvasCoords, radius);
 
     const extent = map.extent;
     const crs = extent.crs();

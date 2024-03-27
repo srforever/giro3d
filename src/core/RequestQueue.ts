@@ -75,11 +75,15 @@ export interface RequestQueueEvents {
     /**
      * Raised when a task has been executed.
      */
-    'task-executed': { /** empty */ };
+    'task-executed': {
+        /** empty */
+    };
     /**
      * Raised when a task has been cancelled.
      */
-    'task-cancelled': { /** empty */ };
+    'task-cancelled': {
+        /** empty */
+    };
 }
 
 /**
@@ -96,10 +100,12 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> implements Progre
     /**
      * @param options - Options.
      */
-    constructor(options: {
-        /** The maximum number of concurrent requests. */
-        maxConcurrentRequests?: number;
-    } = {}) {
+    constructor(
+        options: {
+            /** The maximum number of concurrent requests. */
+            maxConcurrentRequests?: number;
+        } = {},
+    ) {
         super();
         this._pendingIds = new Map();
         this._queue = new PriorityQueue(priorityFn, keyFn);
@@ -165,20 +171,18 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> implements Progre
      */
     enqueue<T>(options: {
         /** The unique identifier of this request. */
-        id: string,
+        id: string;
         /** The request. */
-        request: () => Promise<T>,
+        request: () => Promise<T>;
         /** The abort signal. */
-        signal?: AbortSignal,
+        signal?: AbortSignal;
         /** The priority of this request. */
-        priority?: number,
+        priority?: number;
         /** The optional predicate used to discard a task: if the function returns `false`,
          * the task is not executed. */
-        shouldExecute?: () => boolean,
+        shouldExecute?: () => boolean;
     }): Promise<T> {
-        const {
-            id, request, signal, shouldExecute,
-        } = options;
+        const { id, request, signal, shouldExecute } = options;
 
         const priority = options.priority ?? 0;
 

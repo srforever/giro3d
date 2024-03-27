@@ -107,6 +107,7 @@ interface PickableFeatures<
  * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
-export const isPickableFeatures = (obj: unknown): obj is PickableFeatures => (obj as PickableFeatures).isPickableFeatures;
+export const isPickableFeatures = (obj: unknown): obj is PickableFeatures =>
+    (obj as PickableFeatures).isPickableFeatures;
 
 export default PickableFeatures;

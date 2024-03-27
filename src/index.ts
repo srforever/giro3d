@@ -7,13 +7,4 @@ import * as formats from './formats';
 import * as interactions from './interactions';
 import * as helpers from './helpers';
 
-export {
-    core,
-    sources,
-    formats,
-    entities,
-    utils,
-    renderer,
-    helpers,
-    interactions,
-};
+export { core, sources, formats, entities, utils, renderer, helpers, interactions };

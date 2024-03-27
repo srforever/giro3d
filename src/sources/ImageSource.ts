@@ -67,7 +67,7 @@ export interface GetImageOptions {
 
 export interface ImageResponse {
     id: string;
-    request: () =>Promise<ImageResult>;
+    request: () => Promise<ImageResult>;
 }
 
 export interface ImageSourceOptions {
@@ -99,7 +99,9 @@ export interface ImageSourceEvents {
     /**
      * Raised when the source's content has been updated.
      */
-    'updated': { /** empty */};
+    updated: {
+        /** empty */
+    };
 }
 
 /**
@@ -131,7 +133,7 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
         this.type = 'ImageSource';
 
         this.flipY = options.flipY ?? false;
-        this.datatype = (options.is8bit ?? true) ? UnsignedByteType : FloatType;
+        this.datatype = options.is8bit ?? true ? UnsignedByteType : FloatType;
         this._customColorSpace = options.colorSpace;
 
         this.version = 0;
@@ -150,9 +152,7 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
         // Assume that 8-bit images are in the sRGB color space.
         // Also note that the final decision related to color space is the
         // responsibility of the layer rather than the source.
-        return this.datatype === UnsignedByteType
-            ? SRGBColorSpace
-            : LinearSRGBColorSpace;
+        return this.datatype === UnsignedByteType ? SRGBColorSpace : LinearSRGBColorSpace;
     }
 
     /**
@@ -175,7 +175,7 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
         requestHeight: number,
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         margin = 0,
-    ): { extent: Extent; width: number; height: number; } | null {
+    ): { extent: Extent; width: number; height: number } | null {
         // Default implementation.
         return null;
     }

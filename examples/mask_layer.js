@@ -28,7 +28,8 @@ const instance = new Instance(viewerDiv, {
     },
 });
 
-const apiKey = 'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
+const apiKey =
+    'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
 
 // Adds the map that will contain the layers.
 const map = new Map('Paris', { extent, segments: 128 });
@@ -88,10 +89,7 @@ const center = extent.centerAsVector3();
 instance.camera.camera3D.position.set(center.x, center.y - 1, 40000);
 
 // Creates controls
-const controls = new MapControls(
-    instance.camera.camera3D,
-    viewerDiv,
-);
+const controls = new MapControls(instance.camera.camera3D, viewerDiv);
 
 // Then looks at extent's center
 controls.target = center;

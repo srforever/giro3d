@@ -35,7 +35,7 @@ export enum MODE {
     ELEVATION = 5,
 }
 
-export type Mode = typeof MODE[keyof typeof MODE];
+export type Mode = (typeof MODE)[keyof typeof MODE];
 
 const NUM_TRANSFO = 16;
 
@@ -88,9 +88,6 @@ class PointCloudMaterial extends ShaderMaterial {
      */
     constructor(options: PointCloudMaterialOptions = {}) {
         super({ clipping: true, glslVersion: GLSL3 });
-        // if (__DEBUG__) {
-        //     this.defines.DEBUG = 1;
-        // }
         this.vertexShader = PointsVS;
         this.fragmentShader = PointsFS;
 
@@ -202,7 +199,7 @@ class PointCloudMaterial extends ShaderMaterial {
 
     updateUniforms() {
         // if size is null, switch to autosizing using the canvas height
-        this.uniforms.size.value = (this.size > 0) ? this.size : -this.scale * window.innerHeight;
+        this.uniforms.size.value = this.size > 0 ? this.size : -this.scale * window.innerHeight;
         this.uniforms.mode.value = this.mode;
         this.uniforms.pickingId.value = this.pickingId;
         this.uniforms.opacity.value = this.opacity;
@@ -363,7 +360,8 @@ class PointCloudMaterial extends ShaderMaterial {
         this.needsUpdate = true;
     }
 
-    static isPointCloudMaterial = (obj: unknown): obj is PointCloudMaterial => (obj as PointCloudMaterial)?.isPointCloudMaterial;
+    static isPointCloudMaterial = (obj: unknown): obj is PointCloudMaterial =>
+        (obj as PointCloudMaterial)?.isPointCloudMaterial;
 }
 
 export default PointCloudMaterial;

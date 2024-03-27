@@ -3,14 +3,78 @@ import GeoJSONUtils from 'src/utils/GeoJSONUtils';
 describe('GeoJSONUtils', () => {
     const dataSet = [
         { type: 'Point', flat3Coordinates: [[1, 2, 3]], geojsonCoordinates: [1, 2, 3] },
-        { type: 'MultiPoint', flat3Coordinates: [[1, 2, 3], [4, 5, 6]], geojsonCoordinates: [[1, 2, 3], [4, 5, 6]] },
-        { type: 'LineString', flat3Coordinates: [[1, 2, 3], [4, 5, 6]], geojsonCoordinates: [[1, 2, 3], [4, 5, 6]] },
+        {
+            type: 'MultiPoint',
+            flat3Coordinates: [
+                [1, 2, 3],
+                [4, 5, 6],
+            ],
+            geojsonCoordinates: [
+                [1, 2, 3],
+                [4, 5, 6],
+            ],
+        },
+        {
+            type: 'LineString',
+            flat3Coordinates: [
+                [1, 2, 3],
+                [4, 5, 6],
+            ],
+            geojsonCoordinates: [
+                [1, 2, 3],
+                [4, 5, 6],
+            ],
+        },
         // Polygons: just an outer ring
-        { type: 'Polygon', flat3Coordinates: [[1, 2, 3], [4, 5, 6], [1, 2, 3]], geojsonCoordinates: [[[1, 2, 3], [4, 5, 6], [1, 2, 3]]] },
+        {
+            type: 'Polygon',
+            flat3Coordinates: [
+                [1, 2, 3],
+                [4, 5, 6],
+                [1, 2, 3],
+            ],
+            geojsonCoordinates: [
+                [
+                    [1, 2, 3],
+                    [4, 5, 6],
+                    [1, 2, 3],
+                ],
+            ],
+        },
         // MultiLineString: not very multi, assume just one LineString...
-        { type: 'MultiLineString', flat3Coordinates: [[1, 2, 3], [4, 5, 6], [7, 8, 9]], geojsonCoordinates: [[[1, 2, 3], [4, 5, 6], [7, 8, 9]]] },
+        {
+            type: 'MultiLineString',
+            flat3Coordinates: [
+                [1, 2, 3],
+                [4, 5, 6],
+                [7, 8, 9],
+            ],
+            geojsonCoordinates: [
+                [
+                    [1, 2, 3],
+                    [4, 5, 6],
+                    [7, 8, 9],
+                ],
+            ],
+        },
         // MultiPolygon: not very multi, assume just one Polygon...
-        { type: 'MultiPolygon', flat3Coordinates: [[1, 2, 3], [4, 5, 6], [1, 2, 3]], geojsonCoordinates: [[[[1, 2, 3], [4, 5, 6], [1, 2, 3]]]] },
+        {
+            type: 'MultiPolygon',
+            flat3Coordinates: [
+                [1, 2, 3],
+                [4, 5, 6],
+                [1, 2, 3],
+            ],
+            geojsonCoordinates: [
+                [
+                    [
+                        [1, 2, 3],
+                        [4, 5, 6],
+                        [1, 2, 3],
+                    ],
+                ],
+            ],
+        },
     ];
 
     describe('toFlatCoordinates', () => {
@@ -55,11 +119,15 @@ describe('GeoJSONUtils', () => {
         );
 
         it('should fail on GeometryCollection', () => {
-            expect(() => GeoJSONUtils.fromFlat3Coordinates([], 'GeometryCollection')).toThrowError();
+            expect(() =>
+                GeoJSONUtils.fromFlat3Coordinates([], 'GeometryCollection'),
+            ).toThrowError();
         });
 
         it('should fail on other type of geometry', () => {
-            expect(() => GeoJSONUtils.fromFlat3Coordinates([], 'Circle' as GeoJSON.GeoJsonGeometryTypes)).toThrowError();
+            expect(() =>
+                GeoJSONUtils.fromFlat3Coordinates([], 'Circle' as GeoJSON.GeoJsonGeometryTypes),
+            ).toThrowError();
         });
     });
 
@@ -80,11 +148,15 @@ describe('GeoJSONUtils', () => {
         );
 
         it('should fail on GeometryCollection', () => {
-            expect(() => GeoJSONUtils.fromFlat3Coordinates([], 'GeometryCollection')).toThrowError();
+            expect(() =>
+                GeoJSONUtils.fromFlat3Coordinates([], 'GeometryCollection'),
+            ).toThrowError();
         });
 
         it('should fail on other type of geometry', () => {
-            expect(() => GeoJSONUtils.fromFlat3Coordinates([], 'Circle' as GeoJSON.GeoJsonGeometryTypes)).toThrowError();
+            expect(() =>
+                GeoJSONUtils.fromFlat3Coordinates([], 'Circle' as GeoJSON.GeoJsonGeometryTypes),
+            ).toThrowError();
         });
     });
 });

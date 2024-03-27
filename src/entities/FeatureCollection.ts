@@ -1,9 +1,5 @@
-import type {
-    Line, Material, Mesh, Object3D, Points, Plane,
-} from 'three';
-import {
-    Box3, Group, Vector3,
-} from 'three';
+import type { Line, Material, Mesh, Object3D, Points, Plane } from 'three';
+import { Box3, Group, Vector3 } from 'three';
 import type VectorSource from 'ol/source/Vector';
 import type Feature from 'ol/Feature';
 import type { Geometry, GeometryCollection, SimpleGeometry } from 'ol/geom';
@@ -258,8 +254,16 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         this.type = 'FeatureCollection';
         this.visible = true;
 
-        this.onTileCreated = options.onTileCreated || (() => { /** do nothing */});
-        this.onMeshCreated = options.onMeshCreated || (() => { /** do nothing */});
+        this.onTileCreated =
+            options.onTileCreated ||
+            (() => {
+                /** do nothing */
+            });
+        this.onMeshCreated =
+            options.onMeshCreated ||
+            (() => {
+                /** do nothing */
+            });
         this.level0Nodes = [];
 
         this._source = options.source;
@@ -370,23 +374,24 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         if (cachedFeatures) {
             return Promise.resolve(cachedFeatures as Mesh[]);
         }
-        const request = () => new Promise((resolve, reject) => {
-            let extent = node.userData.extent;
-            if (this.dataProjection) {
-                extent = extent.as(this.dataProjection);
-            }
-            extent = OLUtils.toOLExtent(extent);
+        const request = () =>
+            new Promise((resolve, reject) => {
+                let extent = node.userData.extent;
+                if (this.dataProjection) {
+                    extent = extent.as(this.dataProjection);
+                }
+                extent = OLUtils.toOLExtent(extent);
 
-            (this._source as any).loader_(
-                extent,
-                /* resolution */ undefined,
-                this._instance.referenceCrs,
-                (features: Feature[]) => {
-                    resolve(features);
-                },
-                (err: Error) => reject(err),
-            );
-        }) as Promise<Feature[]>;
+                (this._source as any).loader_(
+                    extent,
+                    /* resolution */ undefined,
+                    this._instance.referenceCrs,
+                    (features: Feature[]) => {
+                        resolve(features);
+                    },
+                    (err: Error) => reject(err),
+                );
+            }) as Promise<Feature[]>;
         return DefaultQueue.enqueue({
             id: node.uuid, // we only make one query per "tile"
             request,
@@ -428,7 +433,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
 
                 // call onMeshCreated callback if needed
                 if (this.onMeshCreated) {
-                    this.onMeshCreated((mesh as Mesh));
+                    this.onMeshCreated(mesh as Mesh);
                 }
             }
             GlobalCache.set(cacheKey, meshes);
@@ -498,54 +503,61 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         const ts = Date.now();
 
         // we are in the z range and we can try an update
-        if (node.userData.z <= this.maxLevel
-                && node.userData.z >= this.minLevel
-                && node.userData.layerUpdateState.canTryUpdate(ts)) {
+        if (
+            node.userData.z <= this.maxLevel &&
+            node.userData.z >= this.minLevel &&
+            node.userData.layerUpdateState.canTryUpdate(ts)
+        ) {
             node.userData.layerUpdateState.newTry();
 
             this._opCounter.increment();
 
-            this.getMeshesWithCache(node).then(meshes => {
-                // if request return empty json, result will be null
-                if (meshes) {
-                    if (
-                        node.children.filter(
-                            n => n.userData.parentEntity === this && !n.userData.isTile,
-                        ).length > 0
-                    ) {
-                        console.warn(
-                            `We received results for this tile: ${node},`
-                                + 'but it already contains children for the current entity.',
-                        );
-                    }
-
-                    for (const mesh of meshes) {
-                        if (!this._tileIdSet.has(mesh.userData.id)
-                            // exclude null or undefined, but keep 0
-                            /* eslint-disable-next-line eqeqeq */
-                            || mesh.userData.id == null) {
-                            this._tileIdSet.add(mesh.userData.id);
-                            node.add(mesh);
-                            node.userData.boundingBox.expandByObject(mesh);
-                            this._instance.notifyChange(node);
+            this.getMeshesWithCache(node)
+                .then(meshes => {
+                    // if request return empty json, result will be null
+                    if (meshes) {
+                        if (
+                            node.children.filter(
+                                n => n.userData.parentEntity === this && !n.userData.isTile,
+                            ).length > 0
+                        ) {
+                            console.warn(
+                                `We received results for this tile: ${node},` +
+                                    'but it already contains children for the current entity.',
+                            );
                         }
+
+                        for (const mesh of meshes) {
+                            if (
+                                !this._tileIdSet.has(mesh.userData.id) ||
+                                // exclude null or undefined, but keep 0
+                                /* eslint-disable-next-line eqeqeq */
+                                mesh.userData.id == null
+                            ) {
+                                this._tileIdSet.add(mesh.userData.id);
+                                node.add(mesh);
+                                node.userData.boundingBox.expandByObject(mesh);
+                                this._instance.notifyChange(node);
+                            }
+                        }
+                        node.userData.layerUpdateState.noMoreUpdatePossible();
+                    } else {
+                        node.userData.layerUpdateState.failure(1, true);
                     }
-                    node.userData.layerUpdateState.noMoreUpdatePossible();
-                } else {
-                    node.userData.layerUpdateState.failure(1, true);
-                }
-            }).catch(err => {
-                // Abort errors are perfectly normal, so we don't need to log them.
-                // However any other error implies an abnormal termination of the processing.
-                if (err?.name === 'AbortError') {
-                    // the query has been aborted because Giro3D thinks it doesn't need this any
-                    // more, so we put back the state to IDLE
-                    node.userData.layerUpdateState.success();
-                } else {
-                    console.error(err);
-                    node.userData.layerUpdateState.failure(Date.now(), true);
-                }
-            }).finally(() => this._opCounter.decrement());
+                })
+                .catch(err => {
+                    // Abort errors are perfectly normal, so we don't need to log them.
+                    // However any other error implies an abnormal termination of the processing.
+                    if (err?.name === 'AbortError') {
+                        // the query has been aborted because Giro3D thinks it doesn't need this any
+                        // more, so we put back the state to IDLE
+                        node.userData.layerUpdateState.success();
+                    } else {
+                        console.error(err);
+                        node.userData.layerUpdateState.failure(Date.now(), true);
+                    }
+                })
+                .finally(() => this._opCounter.decrement());
         }
 
         // Do we need children ?

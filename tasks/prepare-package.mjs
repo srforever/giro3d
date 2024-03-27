@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import esMain from 'es-main';
 import fse from 'fs-extra';
 import path, { dirname } from 'path';
@@ -28,15 +27,9 @@ async function main() {
     await fse.writeJSON(path.join(buildDir, 'package.json'), pkg, { spaces: 2 });
 
     // copy in readme and license files
-    await fse.copyFile(
-        path.resolve(baseDir, '../README.md'),
-        path.join(buildDir, 'README.md'),
-    );
+    await fse.copyFile(path.resolve(baseDir, '../README.md'), path.join(buildDir, 'README.md'));
 
-    await fse.copyFile(
-        path.resolve(baseDir, '../LICENSE'),
-        path.join(buildDir, 'LICENSE'),
-    );
+    await fse.copyFile(path.resolve(baseDir, '../LICENSE'), path.join(buildDir, 'LICENSE'));
 }
 
 /**
@@ -45,6 +38,7 @@ async function main() {
  */
 if (esMain(import.meta)) {
     main().catch(err => {
+        // eslint-disable-next-line no-undef
         process.stderr.write(`${err.message}\n`, () => process.exit(1));
     });
 }

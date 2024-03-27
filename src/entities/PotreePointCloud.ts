@@ -26,7 +26,10 @@ import type { ObjectToUpdate } from '../core/MainLoop';
 import type Context from '../core/Context';
 import type Pickable from '../core/picking/Pickable';
 import type PickOptions from '../core/picking/PickOptions';
-import pickPointsAt, { type PointsPickResult, preparePointGeometryForPicking } from '../core/picking/PickPointsAt';
+import pickPointsAt, {
+    type PointsPickResult,
+    preparePointGeometryForPicking,
+} from '../core/picking/PickPointsAt';
 import type HasLayers from '../core/layer/HasLayers';
 import type ColorLayer from '../core/layer/ColorLayer';
 import type { LayerEvents } from '../core/layer/Layer';
@@ -38,30 +41,78 @@ import { isOrthographicCamera, isPerspectiveCamera } from '../renderer/Camera';
 function cube(size: Vector3) {
     const h = size.clone().multiplyScalar(0.5);
     const vertices = new Float32Array([
-        -h.x, -h.y, -h.z,
-        -h.x, h.y, -h.z,
-        -h.x, h.y, -h.z,
-        h.x, h.y, -h.z,
-        h.x, h.y, -h.z,
-        h.x, -h.y, -h.z,
-        h.x, -h.y, -h.z,
-        -h.x, -h.y, -h.z,
-        -h.x, -h.y, h.z,
-        -h.x, h.y, h.z,
-        -h.x, h.y, h.z,
-        h.x, h.y, h.z,
-        h.x, h.y, h.z,
-        h.x, -h.y, h.z,
-        h.x, -h.y, h.z,
-        -h.x, -h.y, h.z,
-        -h.x, -h.y, -h.z,
-        -h.x, -h.y, h.z,
-        -h.x, h.y, -h.z,
-        -h.x, h.y, h.z,
-        h.x, h.y, -h.z,
-        h.x, h.y, h.z,
-        h.x, -h.y, -h.z,
-        h.x, -h.y, h.z,
+        -h.x,
+        -h.y,
+        -h.z,
+        -h.x,
+        h.y,
+        -h.z,
+        -h.x,
+        h.y,
+        -h.z,
+        h.x,
+        h.y,
+        -h.z,
+        h.x,
+        h.y,
+        -h.z,
+        h.x,
+        -h.y,
+        -h.z,
+        h.x,
+        -h.y,
+        -h.z,
+        -h.x,
+        -h.y,
+        -h.z,
+        -h.x,
+        -h.y,
+        h.z,
+        -h.x,
+        h.y,
+        h.z,
+        -h.x,
+        h.y,
+        h.z,
+        h.x,
+        h.y,
+        h.z,
+        h.x,
+        h.y,
+        h.z,
+        h.x,
+        -h.y,
+        h.z,
+        h.x,
+        -h.y,
+        h.z,
+        -h.x,
+        -h.y,
+        h.z,
+        -h.x,
+        -h.y,
+        -h.z,
+        -h.x,
+        -h.y,
+        h.z,
+        -h.x,
+        h.y,
+        -h.z,
+        -h.x,
+        h.y,
+        h.z,
+        h.x,
+        h.y,
+        -h.z,
+        h.x,
+        h.y,
+        h.z,
+        h.x,
+        -h.y,
+        -h.z,
+        h.x,
+        -h.y,
+        h.z,
     ]);
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new BufferAttribute(vertices, 3));
@@ -69,23 +120,23 @@ function cube(size: Vector3) {
 }
 
 export interface PotreeBoundingBox {
-    lx: number,
-    ly: number,
-    lz: number,
-    ux: number,
-    uy: number,
-    uz: number,
+    lx: number;
+    ly: number;
+    lz: number;
+    ux: number;
+    uy: number;
+    uz: number;
 }
 
 export interface PotreeMetadata {
-    version: string,
-    octreeDir?: string,
-    boundingBox?: PotreeBoundingBox,
-    tightBoundingBox?: PotreeBoundingBox,
-    pointAttributes?: any,
-    spacing?: number,
-    scale?: number,
-    hierarchyStepSize?: number,
+    version: string;
+    octreeDir?: string;
+    boundingBox?: PotreeBoundingBox;
+    tightBoundingBox?: PotreeBoundingBox;
+    pointAttributes?: any;
+    spacing?: number;
+    scale?: number;
+    hierarchyStepSize?: number;
 }
 
 class BoxHelper extends LineSegments<BufferGeometry, LineBasicMaterial> {
@@ -106,15 +157,15 @@ class PotreeTilePointCloud extends PointCloud {
 }
 
 export interface OctreeItem {
-    baseurl: string,
-    name: string,
-    childrenBitField?: number,
-    numPoints?: number,
-    children?: OctreeItem[],
-    bbox: Box3,
+    baseurl: string;
+    name: string;
+    childrenBitField?: number;
+    numPoints?: number;
+    children?: OctreeItem[];
+    bbox: Box3;
     // eslint-disable-next-line no-use-before-define
-    layer?: PotreePointCloud,
-    parent?: OctreeItem,
+    layer?: PotreePointCloud;
+    parent?: OctreeItem;
     findChildrenByName?: (node: OctreeItem, name: string) => OctreeItem;
     obj?: PotreeTilePointCloud;
     tightbbox?: Box3;
@@ -214,7 +265,8 @@ type OnPointsCreatedCallback = (entity: PotreePointCloud, pnts: PointCloud) => v
  */
 class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
     extends Entity3D<Entity3DEventMap, UserData>
-    implements Pickable<PointsPickResult>, HasLayers {
+    implements Pickable<PointsPickResult>, HasLayers
+{
     readonly isPotreePointCloud = true;
     readonly hasLayers = true;
     private _colorLayer: ColorLayer;
@@ -293,9 +345,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
         // default options
         this.octreeDepthLimit = this.octreeDepthLimit || -1;
         this.pointBudget = this.pointBudget || 2000000;
-        this.pointSize = !this.pointSize || Number.isNaN(this.pointSize)
-            ? 4
-            : this.pointSize;
+        this.pointSize = !this.pointSize || Number.isNaN(this.pointSize) ? 4 : this.pointSize;
         this.sseThreshold = this.sseThreshold || 2;
         this.material = this.material ?? new PointCloudMaterial();
         this.material.defines = this.material.defines || {};
@@ -372,8 +422,9 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
         // PotreeConverter format
         customBinFormat = this.metadata.pointAttributes === 'CIN';
         // do we have normal information
-        const normal = Array.isArray(this.metadata.pointAttributes)
-            && this.metadata.pointAttributes.find(elem => elem.startsWith('NORMAL'));
+        const normal =
+            Array.isArray(this.metadata.pointAttributes) &&
+            this.metadata.pointAttributes.find(elem => elem.startsWith('NORMAL'));
         if (normal) {
             this.material.defines[normal] = 1;
         }
@@ -384,7 +435,10 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
     }
 
     async parseOctree(hierarchyStepSize: number, root: OctreeItem) {
-        const blob = await Fetcher.arrayBuffer(`${root.baseurl}/r${root.name}.hrc`, this.source.networkOptions);
+        const blob = await Fetcher.arrayBuffer(
+            `${root.baseurl}/r${root.name}.hrc`,
+            this.source.networkOptions,
+        );
         const dataView = new DataView(blob);
         const stack: OctreeItem[] = [];
         let offset = 0;
@@ -400,9 +454,11 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
             // look up 8 children
             for (let i = 0; i < 8; i++) {
                 // does snode have a #i child ?
-                if (snode.childrenBitField & (1 << i) && (offset + 5) <= blob.byteLength) {
-                    const c = dataView.getUint8(offset); offset += 1;
-                    let n = dataView.getUint32(offset, true); offset += 4;
+                if (snode.childrenBitField & (1 << i) && offset + 5 <= blob.byteLength) {
+                    const c = dataView.getUint8(offset);
+                    offset += 1;
+                    let n = dataView.getUint32(offset, true);
+                    offset += 4;
                     if (n === 0) {
                         n = root.numPoints;
                     }
@@ -410,7 +466,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
                     const bounds = createChildAABB(snode.bbox, i);
 
                     let url_1 = root.baseurl;
-                    if ((childname.length % hierarchyStepSize) === 0) {
+                    if (childname.length % hierarchyStepSize === 0) {
                         const myname = childname.substr(root.name.length);
                         url_1 = `${root.baseurl}/${myname}`;
                     }
@@ -435,17 +491,17 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
     async preprocess() {
         const source = this.source;
         this._imageSize = new Vector2(128, 128);
-        const metadata = await Fetcher.json(`${source.url}/${source.filename}`, source.networkOptions) as PotreeMetadata;
+        const metadata = (await Fetcher.json(
+            `${source.url}/${source.filename}`,
+            source.networkOptions,
+        )) as PotreeMetadata;
         this.parseMetadata(metadata);
         const bbox = this.computeBbox();
-        const root = await this.parseOctree(
-            this.metadata.hierarchyStepSize,
-            {
-                baseurl: `${source.url}/${this.metadata.octreeDir}/r`,
-                name: '',
-                bbox,
-            },
-        );
+        const root = await this.parseOctree(this.metadata.hierarchyStepSize, {
+            baseurl: `${source.url}/${this.metadata.octreeDir}/r`,
+            name: '',
+            bbox,
+        });
         this.root = root;
         root.findChildrenByName = findChildrenByName.bind(root, root);
         this.extent = Extent.fromBox3(this._instance.referenceCrs, root.bbox);
@@ -456,8 +512,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
     }
 
     updateMinMaxDistance(context: Context, bbox: Box3) {
-        const distance = context.distance.plane
-            .distanceToPoint(bbox.getCenter(tmp.v));
+        const distance = context.distance.plane.distanceToPoint(bbox.getCenter(tmp.v));
         const radius = bbox.getSize(tmp.v).length() * 0.5;
         this._distance.min = Math.min(this._distance.min, distance - radius);
         this._distance.max = Math.max(this._distance.max, distance + radius);
@@ -486,7 +541,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
             // slide 17
             camera.preSSE = camera.height / (2 * Math.tan(MathUtils.degToRad(camera3D.fov) * 0.5));
         } else if (isOrthographicCamera(camera3D)) {
-            camera.preSSE = camera.height * camera3D.near / (camera3D.top - camera3D.bottom)
+            camera.preSSE = (camera.height * camera3D.near) / (camera3D.top - camera3D.bottom);
         }
 
         if (this.material) {
@@ -494,7 +549,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
             this.material.opacity = this.opacity;
             const currentTransparent = this.material.transparent;
             this.material.transparent = this.opacity < 1;
-            this.material.needsUpdate = (currentTransparent !== this.material.transparent);
+            this.material.needsUpdate = currentTransparent !== this.material.transparent;
             this.material.size = this.pointSize;
         }
 
@@ -546,7 +601,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
         if (distance <= 0) {
             return Infinity;
         }
-        const pointSpacing = this.metadata.spacing / (2 ** elt.name.length);
+        const pointSpacing = this.metadata.spacing / 2 ** elt.name.length;
         // Estimate the onscreen distance between 2 points
         const onScreenSpacing = (context.camera.preSSE * pointSpacing) / distance;
         // [  P1  ]--------------[   P2   ]
@@ -580,7 +635,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
         }
 
         // pick the best bounding box
-        const bbox = (elt.tightbbox ? elt.tightbbox : elt.bbox);
+        const bbox = elt.tightbbox ? elt.tightbbox : elt.bbox;
 
         if (context.fastUpdateHint && !elt.name.startsWith(context.fastUpdateHint as string)) {
             if (!elt.visible) {
@@ -618,43 +673,49 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
                     // }
                 } else if (!elt.promise) {
                     // Increase priority of nearest node
-                    const priority = this.computeScreenSpaceError(context, elt, distance)
-                            / Math.max(0.001, distance);
+                    const priority =
+                        this.computeScreenSpaceError(context, elt, distance) /
+                        Math.max(0.001, distance);
 
                     this._opCounter.increment();
 
-                    elt.promise = this.queue.enqueue({
-                        id: MathUtils.generateUUID(),
-                        priority,
-                        shouldExecute: () => elt.visible && this.visible,
-                        request: () => this.executeCommand(elt),
-                    }).then((pts: PotreeTilePointCloud) => {
-                        if (this.onPointsCreated) {
-                            this.onPointsCreated(this, pts);
-                        }
+                    elt.promise = this.queue
+                        .enqueue({
+                            id: MathUtils.generateUUID(),
+                            priority,
+                            shouldExecute: () => elt.visible && this.visible,
+                            request: () => this.executeCommand(elt),
+                        })
+                        .then(
+                            (pts: PotreeTilePointCloud) => {
+                                if (this.onPointsCreated) {
+                                    this.onPointsCreated(this, pts);
+                                }
 
-                        elt.obj = pts;
-                        // store tightbbox to avoid ping-pong
-                        // (bbox = larger => visible, tight => invisible)
-                        elt.tightbbox = pts.tightbbox;
+                                elt.obj = pts;
+                                // store tightbbox to avoid ping-pong
+                                // (bbox = larger => visible, tight => invisible)
+                                elt.tightbbox = pts.tightbbox;
 
-                        // make sure to add it here, otherwise it might never
-                        // be added nor cleaned
-                        this.group.add(elt.obj);
-                        elt.obj.updateMatrixWorld(true);
-                        elt.promise = null;
-                        this._instance.notifyChange(this);
-                    }, err => {
-                        if (err instanceof Error && err.message === 'aborted') {
-                            elt.promise = null;
-                        }
-                    }).finally(() => this._opCounter.decrement());
+                                // make sure to add it here, otherwise it might never
+                                // be added nor cleaned
+                                this.group.add(elt.obj);
+                                elt.obj.updateMatrixWorld(true);
+                                elt.promise = null;
+                                this._instance.notifyChange(this);
+                            },
+                            err => {
+                                if (err instanceof Error && err.message === 'aborted') {
+                                    elt.promise = null;
+                                }
+                            },
+                        )
+                        .finally(() => this._opCounter.decrement());
                 }
             }
 
             if (elt.children && elt.children.length) {
-                elt.sse = this.computeScreenSpaceError(context, elt, distance)
-                        / this.sseThreshold;
+                elt.sse = this.computeScreenSpaceError(context, elt, distance) / this.sseThreshold;
             }
         }
 
@@ -722,15 +783,16 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
                 // This format doesn't require points to be evenly distributed, so
                 // we're going to sort the nodes by "importance" (= on screen size)
                 // and display only the first N nodes
-                this.group.children
-                    .sort((p1, p2) => p2.userData.metadata.sse - p1.userData.metadata.sse);
+                this.group.children.sort(
+                    (p1, p2) => p2.userData.metadata.sse - p1.userData.metadata.sse,
+                );
 
                 let limitHit = false;
                 this.displayedCount = 0;
                 for (const obj3d of this.group.children) {
                     const pts = obj3d as PotreeTilePointCloud;
                     const { count } = pts.geometry.attributes.position;
-                    if (limitHit || (this.displayedCount + count) > this.pointBudget) {
+                    if (limitHit || this.displayedCount + count > this.pointBudget) {
                         pts.material.visible = false;
                         limitHit = true;
                     } else {
@@ -747,7 +809,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
                 continue;
             }
             const notVisibleSince = obj.userData.metadata.notVisibleSince;
-            if (!obj.material.visible && (now - notVisibleSince) > 10000) {
+            if (!obj.material.visible && now - notVisibleSince > 10000) {
                 // remove from group
                 this.group.children.splice(i, 1);
 
@@ -775,8 +837,9 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
     async executeCommand(metadata: OctreeItem) {
         // Query HRC if we don't have children metadata yet.
         if (metadata.childrenBitField && metadata.children.length === 0) {
-            this.parseOctree(this.metadata.hierarchyStepSize, metadata)
-                .then(() => this._instance.notifyChange(this, false));
+            this.parseOctree(this.metadata.hierarchyStepSize, metadata).then(() =>
+                this._instance.notifyChange(this, false),
+            );
         }
 
         const url = `${metadata.baseurl}/r${metadata.name}.${this.extension}`;

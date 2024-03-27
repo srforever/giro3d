@@ -1,9 +1,4 @@
-import {
-    Texture,
-    CanvasTexture,
-    MathUtils,
-    Vector2,
-} from 'three';
+import { Texture, CanvasTexture, MathUtils, Vector2 } from 'three';
 import OLVectorTileSourcce from 'ol/source/VectorTile.js';
 import VectorTile from 'ol/VectorTile.js';
 import type { Style } from 'ol/style.js';
@@ -13,7 +8,10 @@ import TileState from 'ol/TileState.js';
 import { listen, unlistenByKey } from 'ol/events.js';
 import {
     createEmpty as createEmptyExtent,
-    getIntersection, equals, buffer, intersects,
+    getIntersection,
+    equals,
+    buffer,
+    intersects,
 } from 'ol/extent.js';
 
 // Even if it's not explicited in the changelog
@@ -48,11 +46,7 @@ import type { StyleFunction } from 'ol/style/Style';
 import type { Projection } from 'ol/proj';
 import type { OrderFunction } from 'ol/render';
 import type { Geometry } from 'ol/geom';
-import type {
-    GetImageOptions,
-    ImageResponse,
-    ImageSourceOptions,
-} from './ImageSource';
+import type { GetImageOptions, ImageResponse, ImageSourceOptions } from './ImageSource';
 import ImageSource, { ImageResult } from './ImageSource';
 import OpenLayersUtils from '../utils/OpenLayersUtils';
 import type Extent from '../core/geographic/Extent';
@@ -75,7 +69,7 @@ function getZoomLevel(tileGrid: TileGrid, width: number, extent: Extent) {
 
     const minResolution = round1000000(1 / tileGrid.getResolution(minZoom));
 
-    if ((minResolution / targetResolution) > MIN_LEVEL_THRESHOLD) {
+    if (minResolution / targetResolution > MIN_LEVEL_THRESHOLD) {
         // The minimum zoom level has more than twice the resolution
         // than requested. We cannot use this zoom level as it would
         // trigger too many tile requests to fill the extent.
@@ -101,7 +95,9 @@ function createCanvas(width: number, height: number) {
     return canvas;
 }
 
-function handleStyleImageChange() { /** empty */ }
+function handleStyleImageChange() {
+    /** empty */
+}
 
 function renderFeature(
     feature: Feature,
@@ -115,15 +111,24 @@ function renderFeature(
     let loading = false;
     if (Array.isArray(styles)) {
         for (let i = 0, ii = styles.length; i < ii; ++i) {
-            loading = renderVectorFeature(
-                builderGroup, feature, styles[i], squaredTolerance,
-                handleStyleImageChange, undefined,
-            ) || loading;
+            loading =
+                renderVectorFeature(
+                    builderGroup,
+                    feature,
+                    styles[i],
+                    squaredTolerance,
+                    handleStyleImageChange,
+                    undefined,
+                ) || loading;
         }
     } else {
         loading = renderVectorFeature(
-            builderGroup, feature, styles, squaredTolerance,
-            handleStyleImageChange, undefined,
+            builderGroup,
+            feature,
+            styles,
+            squaredTolerance,
+            handleStyleImageChange,
+            undefined,
         );
     }
     return loading;
@@ -254,10 +259,7 @@ class VectorTileSource extends ImageSource {
 
         if (this.backgroundColor) {
             ctx.fillStyle = this.backgroundColor;
-            ctx.fillRect(
-                0, 0,
-                width, height,
-            );
+            ctx.fillRect(0, 0, width, height);
         }
 
         const tileExtent = tileGrid.getTileCoordExtent(tileCoord);
@@ -317,11 +319,9 @@ class VectorTileSource extends ImageSource {
             const sharedExtent = getIntersection(tileExtent, sourceTileExtent);
             const renderBuffer = 100;
             const builderExtent = buffer(sharedExtent, renderBuffer * resolution, tmpExtent2);
-            const bufferedExtent = equals(sourceTileExtent, sharedExtent) ? null
-                : builderExtent;
+            const bufferedExtent = equals(sourceTileExtent, sharedExtent) ? null : builderExtent;
 
-            const builderGroup = new CanvasBuilderGroup(0, builderExtent, resolution,
-                pixelRatio);
+            const builderGroup = new CanvasBuilderGroup(0, builderExtent, resolution, pixelRatio);
             const squaredTolerance = getSquaredRenderTolerance(resolution, pixelRatio);
 
             const defaultStyle = this.style;
@@ -347,8 +347,10 @@ class VectorTileSource extends ImageSource {
 
             for (let i = 0, ii = features.length; i < ii; ++i) {
                 const feature = features[i];
-                if (!bufferedExtent
-                    || intersects(bufferedExtent, feature.getGeometry().getExtent())) {
+                if (
+                    !bufferedExtent ||
+                    intersects(bufferedExtent, feature.getGeometry().getExtent())
+                ) {
                     render.call(this, feature);
                 }
                 empty = false;
@@ -421,12 +423,16 @@ class VectorTileSource extends ImageSource {
             const coord = tile.getTileCoord();
             const id = `${z}-${i}-${j}`;
             if (coord) {
-                const tileExtent = OpenLayersUtils
-                    .fromOLExtent(tileGrid.getTileCoordExtent(coord), crs);
+                const tileExtent = OpenLayersUtils.fromOLExtent(
+                    tileGrid.getTileCoordExtent(coord),
+                    crs,
+                );
                 // Don't bother loading tiles that are not in the source
                 if (tileExtent.intersectsExtent(sourceExtent)) {
-                    const request = () => this.loadTile(tile)
-                        .then(texture => new ImageResult({ texture, extent: tileExtent, id }));
+                    const request = () =>
+                        this.loadTile(tile).then(
+                            texture => new ImageResult({ texture, extent: tileExtent, id }),
+                        );
 
                     requests.push({ id, request });
                 }
@@ -437,9 +443,7 @@ class VectorTileSource extends ImageSource {
     }
 
     getImages(options: GetImageOptions): Array<ImageResponse> {
-        const {
-            extent, width,
-        } = options;
+        const { extent, width } = options;
 
         const tileGrid = this.source.getTileGridForProjection(this._sourceProjection);
         const zoomLevel = getZoomLevel(tileGrid, width, extent);

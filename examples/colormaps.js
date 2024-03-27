@@ -79,7 +79,8 @@ const map = new Map('planar', {
 });
 instance.add(map);
 
-const key = 'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
+const key =
+    'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
 const source = new TiledImageSource({
     source: new XYZ({
         url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
@@ -92,12 +93,7 @@ const elevationLayer = new ElevationLayer({
     name: 'elevation',
     extent,
     source,
-    colorMap: new ColorMap(
-        colorRamps.viridis,
-        elevationMin,
-        elevationMax,
-        ColorMapMode.Elevation,
-    ),
+    colorMap: new ColorMap(colorRamps.viridis, elevationMin, elevationMax, ColorMapMode.Elevation),
     interpretation: Interpretation.MapboxTerrainRGB,
 });
 
@@ -105,12 +101,7 @@ const bottomLayer = new ColorLayer({
     name: 'color',
     extent,
     source,
-    colorMap: new ColorMap(
-        colorRamps.jet,
-        elevationMin,
-        elevationMax,
-        ColorMapMode.Elevation,
-    ),
+    colorMap: new ColorMap(colorRamps.jet, elevationMin, elevationMax, ColorMapMode.Elevation),
     interpretation: Interpretation.MapboxTerrainRGB,
 });
 
@@ -118,12 +109,7 @@ const topLayer = new ColorLayer({
     name: 'color2',
     extent,
     source,
-    colorMap: new ColorMap(
-        colorRamps.earth,
-        elevationMin,
-        elevationMax,
-        ColorMapMode.Elevation,
-    ),
+    colorMap: new ColorMap(colorRamps.earth, elevationMin, elevationMax, ColorMapMode.Elevation),
     interpretation: Interpretation.MapboxTerrainRGB,
 });
 

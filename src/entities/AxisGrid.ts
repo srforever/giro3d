@@ -205,12 +205,15 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
      * @param options -.ticks The distance between grid lines.
      * @param options -.style The styling options.
      */
-    constructor(id: string, options: {
-        volume: Volume;
-        origin?: TickOrigin;
-        ticks?: Ticks;
-        style?: Style;
-    }) {
+    constructor(
+        id: string,
+        options: {
+            volume: Volume;
+            origin?: TickOrigin;
+            ticks?: Ticks;
+            style?: Style;
+        },
+    ) {
         super(id, new Group());
 
         this.type = 'AxisGrid';
@@ -263,7 +266,9 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
 
     updateOpacity() {
         const v = this.opacity;
-        this._labelElements.forEach(l => { l.style.opacity = `${v}`; });
+        this._labelElements.forEach(l => {
+            l.style.opacity = `${v}`;
+        });
 
         const mat = this._material;
         mat.opacity = v;
@@ -327,7 +332,9 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
         this._material.color = color;
         this.style.color = color;
         const cssColor = getCssColor(color);
-        this._labelElements.forEach(l => { l.style.color = cssColor; });
+        this._labelElements.forEach(l => {
+            l.style.color = cssColor;
+        });
     }
 
     /**
@@ -617,14 +624,22 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
 
         const relative = this.origin === TickOrigin.Relative;
 
-        const xStart = relative ? 0 : (this._ticks.x - (mod(extent.west(), this._ticks.x)));
-        const yStart = relative ? 0 : (this._ticks.y - (mod(extent.south(), this._ticks.y)));
-        const zStart = this._ticks.z - (mod(this.volume.floor, this._ticks.z));
+        const xStart = relative ? 0 : this._ticks.x - mod(extent.west(), this._ticks.x);
+        const yStart = relative ? 0 : this._ticks.y - mod(extent.south(), this._ticks.y);
+        const zStart = this._ticks.z - mod(this.volume.floor, this._ticks.z);
 
         this.deleteSides();
 
         this._floor = this.buildSide('floor', x, y, xStart, this._ticks.x, yStart, this._ticks.y);
-        this._ceiling = this.buildSide('ceiling', x, y, xStart, this._ticks.x, yStart, this._ticks.y);
+        this._ceiling = this.buildSide(
+            'ceiling',
+            x,
+            y,
+            xStart,
+            this._ticks.x,
+            yStart,
+            this._ticks.y,
+        );
 
         this._front = this.buildSide('front', x, z, xStart, this._ticks.x, zStart, this._ticks.z);
         this._back = this.buildSide('back', x, z, xStart, this._ticks.x, zStart, this._ticks.z);
@@ -688,7 +703,7 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
         yOffset: number,
         yStep: number,
     ): Side {
-        const vertices : number[] = [];
+        const vertices: number[] = [];
         const centerX = width / 2;
         const centerY = height / 2;
         let x = xOffset;
@@ -888,11 +903,7 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
     }
 
     private updateSidesVisibility(camera: Camera) {
-        function updateSideVisibility(
-            side: Side,
-            sideVisibility: boolean,
-            cameraNormal: Vector3,
-        ) {
+        function updateSideVisibility(side: Side, sideVisibility: boolean, cameraNormal: Vector3) {
             tmp.planeNormal.setFromMatrixColumn(side.matrixWorld, 2);
             // The reason why we distinguish between two kinds of visibility is because
             // label visibility rules must take into account the fact that the API

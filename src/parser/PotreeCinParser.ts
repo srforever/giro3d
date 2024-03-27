@@ -1,9 +1,4 @@
-import {
-    Box3,
-    BufferAttribute,
-    BufferGeometry,
-    Vector3,
-} from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Vector3 } from 'three';
 
 export default {
     /**
@@ -24,10 +19,14 @@ export default {
         // MinX,MinY,MinZ,MaxX,MaxY,MaxZ,X1,Y1,Z1,[...],XN,YN,ZN,R1,G1,B1,A1,[...],RN,GN,BN,AN
         const view = new DataView(buffer, 0, 6 * 4);
         const min = new Vector3(
-            view.getFloat32(0, true), view.getFloat32(4, true), view.getFloat32(8, true),
+            view.getFloat32(0, true),
+            view.getFloat32(4, true),
+            view.getFloat32(8, true),
         );
         const max = new Vector3(
-            view.getFloat32(12, true), view.getFloat32(16, true), view.getFloat32(20, true),
+            view.getFloat32(12, true),
+            view.getFloat32(16, true),
+            view.getFloat32(20, true),
         );
         const box = new Box3(min, max);
 

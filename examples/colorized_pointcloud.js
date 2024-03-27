@@ -15,9 +15,11 @@ import StatusBar from './widgets/StatusBar.js';
 
 const tmpVec3 = new Vector3();
 
-Instance.registerCRS('EPSG:3946',
-    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 '
-    + '+y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+Instance.registerCRS(
+    'EPSG:3946',
+    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 ' +
+        '+y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+);
 
 const viewerDiv = document.getElementById('viewerDiv');
 
@@ -68,9 +70,9 @@ function initializeCamera() {
     instance.camera.camera3D.far = 2.0 * bbox.getSize(tmpVec3).length();
 
     const ratio = bbox.getSize(tmpVec3).x / bbox.getSize(tmpVec3).z;
-    const position = bbox.min.clone().add(
-        bbox.getSize(tmpVec3).multiply({ x: 0, y: 0, z: ratio * 0.5 }),
-    );
+    const position = bbox.min
+        .clone()
+        .add(bbox.getSize(tmpVec3).multiply({ x: 0, y: 0, z: ratio * 0.5 }));
     const lookAt = bbox.getCenter(tmpVec3);
     lookAt.z = bbox.min.z;
 
@@ -103,15 +105,19 @@ function initializeCamera() {
 instance.add(pointcloud).then(initializeCamera);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e, {
-    // Specify a radius around where we click so we don't have to precisely be on a point
-    // to select it
-    radius: 5,
-    // Limit the number of results for better performances
-    limit: 10,
-    // Some points are incoherent in the pointcloud, don't pick them
-    filter: p => !Number.isNaN(p.point.z) && p.point.z < 1000,
-})));
+instance.domElement.addEventListener('dblclick', e =>
+    console.log(
+        instance.pickObjectsAt(e, {
+            // Specify a radius around where we click so we don't have to precisely be on a point
+            // to select it
+            radius: 5,
+            // Limit the number of results for better performances
+            limit: 10,
+            // Some points are incoherent in the pointcloud, don't pick them
+            filter: p => !Number.isNaN(p.point.z) && p.point.z < 1000,
+        }),
+    ),
+);
 
 instance.notifyChange();
 
@@ -132,12 +138,24 @@ function bindToggle(name, action) {
     };
 }
 
-bindToggle('edl-enable', v => { instance.renderingOptions.enableEDL = v; });
-bindToggle('occlusion-enable', v => { instance.renderingOptions.enablePointCloudOcclusion = v; });
-bindToggle('inpainting-enable', v => { instance.renderingOptions.enableInpainting = v; });
-bindSlider('edl-radius', v => { instance.renderingOptions.EDLRadius = v; });
-bindSlider('edl-intensity', v => { instance.renderingOptions.EDLStrength = v; });
-bindSlider('inpainting-steps', v => { instance.renderingOptions.inpaintingSteps = v; });
+bindToggle('edl-enable', v => {
+    instance.renderingOptions.enableEDL = v;
+});
+bindToggle('occlusion-enable', v => {
+    instance.renderingOptions.enablePointCloudOcclusion = v;
+});
+bindToggle('inpainting-enable', v => {
+    instance.renderingOptions.enableInpainting = v;
+});
+bindSlider('edl-radius', v => {
+    instance.renderingOptions.EDLRadius = v;
+});
+bindSlider('edl-intensity', v => {
+    instance.renderingOptions.EDLStrength = v;
+});
+bindSlider('inpainting-steps', v => {
+    instance.renderingOptions.inpaintingSteps = v;
+});
 
 document.getElementById('pointcloud_mode').addEventListener('change', e => {
     const newMode = parseInt(e.target.value, 10);

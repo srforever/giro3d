@@ -42,8 +42,10 @@ const viewer = document.getElementById('viewerDiv');
 
 // ####
 // Let's register a definition for this CRS. The definition is taken from https://epsg.io/3946.proj4.
-Instance.registerCRS('EPSG:3946',
-    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+Instance.registerCRS(
+    'EPSG:3946',
+    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+);
 
 // Now we are ready to create our instance. Note that the `crs` parameter is necessary to determine
 // the interpretation of coordinates from the 3D scene.
@@ -174,11 +176,7 @@ const camera = instance.camera.camera3D;
 // altitude of 2000 meters.
 const cameraAltitude = 2000;
 
-const cameraPosition = new Vector3(
-    extent.west(),
-    extent.south(),
-    cameraAltitude,
-);
+const cameraPosition = new Vector3(extent.west(), extent.south(), cameraAltitude);
 
 camera.position.copy(cameraPosition);
 

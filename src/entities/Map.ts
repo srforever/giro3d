@@ -69,8 +69,9 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
 const tmpVector = new Vector3();
 const tmpSseSizes: [number, number] = [0, 0];
 
-function getContourLineOptions(input: boolean | undefined | ContourLineOptions)
-    : ContourLineOptions {
+function getContourLineOptions(
+    input: boolean | undefined | ContourLineOptions,
+): ContourLineOptions {
     if (!input) {
         // Default values
         return {
@@ -167,13 +168,11 @@ function getGraticuleOptions(input?: boolean | GraticuleOptions): GraticuleOptio
     };
 }
 
-function getColorimetryOptions(input?: ColorimetryOptions)
-    : ColorimetryOptions {
+function getColorimetryOptions(input?: ColorimetryOptions): ColorimetryOptions {
     return input ?? defaultColorimetryOptions();
 }
 
-function getHillshadingOptions(input?: boolean | HillshadingOptions)
-    : HillshadingOptions {
+function getHillshadingOptions(input?: boolean | HillshadingOptions): HillshadingOptions {
     if (!input) {
         // Default values
         return {
@@ -211,7 +210,8 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions)
 function selectBestSubdivisions(extent: Extent) {
     const dims = extent.dimensions();
     const ratio = dims.x / dims.y;
-    let x = 1; let y = 1;
+    let x = 1;
+    let y = 1;
     if (ratio > 1) {
         // Our extent is an horizontal rectangle
         x = Math.min(Math.round(ratio), MAX_SUPPORTED_ASPECT_RATIO);
@@ -272,11 +272,13 @@ function getWidestDataType(layers: Layer[]): TextureDataType {
 
 export interface MapEventMap extends Entity3DEventMap {
     /** Fires when a the layer ordering changes. */
-    'layer-order-changed': { /** empty */ };
+    'layer-order-changed': {
+        /** empty */
+    };
     /** Fires when a layer is added to the map. */
-    'layer-added': { layer: Layer; };
+    'layer-added': { layer: Layer };
     /** Fires when a layer is removed from the map. */
-    'layer-removed': { layer: Layer; };
+    'layer-removed': { layer: Layer };
 }
 
 /**
@@ -288,12 +290,13 @@ export interface MapEventMap extends Entity3DEventMap {
  */
 class Map<UserData extends EntityUserData = EntityUserData>
     extends Entity3D<MapEventMap, UserData>
-    implements Pickable<MapPickResult>, PickableFeatures<unknown, MapPickResult>, HasLayers {
+    implements Pickable<MapPickResult>, PickableFeatures<unknown, MapPickResult>, HasLayers
+{
     readonly hasLayers = true;
     private _segments: number;
     private _hasElevationLayer = false;
     private readonly _atlasInfo: AtlasInfo;
-    private _subdivisions: { x: number; y: number; };
+    private _subdivisions: { x: number; y: number };
     private _colorAtlasDataType: TextureDataType = UnsignedByteType;
     private _imageSize: Vector2;
     private readonly _layers: Layer[] = [];
@@ -368,23 +371,26 @@ class Map<UserData extends EntityUserData = EntityUserData>
      * @param options -.colorimetry The colorimetry for the whole map.
      * Those are distinct from the individual layers' own colorimetry.
      */
-    constructor(id: string, options: {
-        extent: Extent;
-        maxSubdivisionLevel?: number;
-        hillshading?: boolean | HillshadingOptions;
-        contourLines?: boolean | ContourLineOptions;
-        graticule?: boolean | GraticuleOptions;
-        colorimetry?: ColorimetryOptions;
-        segments?: number;
-        doubleSided?: boolean;
-        terrain?: boolean | TerrainOptions;
-        discardNoData?: boolean;
-        object3d?: Object3D;
-        backgroundColor?: string;
-        backgroundOpacity?: number;
-        showOutline?: boolean;
-        elevationRange?: ElevationRange;
-    }) {
+    constructor(
+        id: string,
+        options: {
+            extent: Extent;
+            maxSubdivisionLevel?: number;
+            hillshading?: boolean | HillshadingOptions;
+            contourLines?: boolean | ContourLineOptions;
+            graticule?: boolean | GraticuleOptions;
+            colorimetry?: ColorimetryOptions;
+            segments?: number;
+            doubleSided?: boolean;
+            terrain?: boolean | TerrainOptions;
+            discardNoData?: boolean;
+            object3d?: Object3D;
+            backgroundColor?: string;
+            backgroundOpacity?: number;
+            showOutline?: boolean;
+            elevationRange?: ElevationRange;
+        },
+    ) {
         super(id, options.object3d || new Group());
 
         this.level0Nodes = [];
@@ -396,7 +402,9 @@ class Map<UserData extends EntityUserData = EntityUserData>
         this._atlasInfo = { maxX: 0, maxY: 0, atlas: null };
 
         if (!options.extent.isValid()) {
-            throw new Error('Invalid extent: minX must be less than maxX and minY must be less than maxY.');
+            throw new Error(
+                'Invalid extent: minX must be less than maxX and minY must be less than maxY.',
+            );
         }
         this.extent = options.extent;
 
@@ -419,9 +427,10 @@ class Map<UserData extends EntityUserData = EntityUserData>
             segments: this.segments,
             elevationRange: options.elevationRange,
             backgroundOpacity: options.backgroundOpacity == null ? 1 : options.backgroundOpacity,
-            backgroundColor: options.backgroundColor !== undefined
-                ? new Color(options.backgroundColor)
-                : DEFAULT_BACKGROUND_COLOR.clone(),
+            backgroundColor:
+                options.backgroundColor !== undefined
+                    ? new Color(options.backgroundColor)
+                    : DEFAULT_BACKGROUND_COLOR.clone(),
         };
 
         this.tileIndex = new TileIndex();
@@ -461,7 +470,9 @@ class Map<UserData extends EntityUserData = EntityUserData>
                 this._segments = v;
                 this._updateGeometries();
             } else {
-                throw new Error('invalid segments. Must be a power of two between 1 and 128 included');
+                throw new Error(
+                    'invalid segments. Must be a power of two between 1 and 128 included',
+                );
             }
         }
     }
@@ -479,21 +490,13 @@ class Map<UserData extends EntityUserData = EntityUserData>
             for (const extent of extents) {
                 let child;
                 if (i === 0) {
-                    child = this.requestNewTile(
-                        extent, node, z + 1, 2 * x + 0, 2 * y + 0,
-                    );
+                    child = this.requestNewTile(extent, node, z + 1, 2 * x + 0, 2 * y + 0);
                 } else if (i === 1) {
-                    child = this.requestNewTile(
-                        extent, node, z + 1, 2 * x + 0, 2 * y + 1,
-                    );
+                    child = this.requestNewTile(extent, node, z + 1, 2 * x + 0, 2 * y + 1);
                 } else if (i === 2) {
-                    child = this.requestNewTile(
-                        extent, node, z + 1, 2 * x + 1, 2 * y + 0,
-                    );
+                    child = this.requestNewTile(extent, node, z + 1, 2 * x + 1, 2 * y + 0);
                 } else if (i === 3) {
-                    child = this.requestNewTile(
-                        extent, node, z + 1, 2 * x + 1, 2 * y + 1,
-                    );
+                    child = this.requestNewTile(extent, node, z + 1, 2 * x + 1, 2 * y + 1);
                 }
                 node.add(child);
 
@@ -521,10 +524,12 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 
     _updateGeometries() {
-        this.traverseTiles(tile => { tile.segments = this.segments; });
+        this.traverseTiles(tile => {
+            tile.segments = this.segments;
+        });
     }
 
-    get subdivisions(): { x: number, y: number } {
+    get subdivisions(): { x: number; y: number } {
         return this._subdivisions;
     }
 
@@ -533,7 +538,11 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         this._subdivisions = selectBestSubdivisions(this.extent);
 
-        this.onTileCreated = this.onTileCreated || (() => { /** do nothing */ });
+        this.onTileCreated =
+            this.onTileCreated ||
+            (() => {
+                /** do nothing */
+            });
 
         // If the map is not square, we want to have more than a single
         // root tile to avoid elongated tiles that hurt visual quality and SSE computation.
@@ -544,17 +553,11 @@ class Map<UserData extends EntityUserData = EntityUserData>
         let i = 0;
         for (const root of rootExtents) {
             if (this._subdivisions.x > this._subdivisions.y) {
-                this.level0Nodes.push(
-                    this.requestNewTile(root, undefined, 0, i, 0),
-                );
+                this.level0Nodes.push(this.requestNewTile(root, undefined, 0, i, 0));
             } else if (this._subdivisions.y > this._subdivisions.x) {
-                this.level0Nodes.push(
-                    this.requestNewTile(root, undefined, 0, 0, i),
-                );
+                this.level0Nodes.push(this.requestNewTile(root, undefined, 0, 0, i));
             } else {
-                this.level0Nodes.push(
-                    this.requestNewTile(root, undefined, 0, 0, 0),
-                );
+                this.level0Nodes.push(this.requestNewTile(root, undefined, 0, 0, 0));
             }
             i++;
         }
@@ -646,12 +649,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 
     pick(coordinates: Vector2, options?: PickOptions): MapPickResult[] {
-        return pickTilesAt(
-            this._instance,
-            coordinates,
-            this,
-            options,
-        );
+        return pickTilesAt(this._instance, coordinates, this, options);
     }
 
     pickFeaturesFrom(pickedResult: MapPickResult, options?: PickOptions): unknown[] {
@@ -914,9 +912,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
                 }
             }
 
-            return requestChildrenUpdate
-                ? node.children.filter(n => isTileMesh(n))
-                : undefined;
+            return requestChildrenUpdate ? node.children.filter(n => isTileMesh(n)) : undefined;
         }
 
         node.setDisplayed(false);
@@ -926,9 +922,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     private testVisibility(node: TileMesh, context: Context): boolean {
         node.update(this.materialOptions);
 
-        const isVisible = context.camera.isBox3Visible(
-            node.OBB.box3D, node.OBB.matrixWorld,
-        );
+        const isVisible = context.camera.isBox3Visible(node.OBB.box3D, node.OBB.matrixWorld);
 
         return isVisible;
     }
@@ -936,8 +930,8 @@ class Map<UserData extends EntityUserData = EntityUserData>
     postUpdate() {
         this._layers.forEach(l => l.postUpdate());
 
-        const computeNeighbours = this.materialOptions.terrain.stitching
-            && this.materialOptions.terrain.enabled;
+        const computeNeighbours =
+            this.materialOptions.terrain.stitching && this.materialOptions.terrain.enabled;
 
         if (computeNeighbours) {
             this.traverseTiles(tile => {
@@ -1043,10 +1037,13 @@ class Map<UserData extends EntityUserData = EntityUserData>
      * @param options - The options.
      * @returns `true` if the layer was present, `false` otherwise.
      */
-    removeLayer(layer: Layer, options: {
-        /** If `true`, the layer is also disposed. */
-        disposeLayer?: boolean;
-    } = {}): boolean {
+    removeLayer(
+        layer: Layer,
+        options: {
+            /** If `true`, the layer is also disposed. */
+            disposeLayer?: boolean;
+        } = {},
+    ): boolean {
         if (!layer) {
             return false;
         }
@@ -1127,11 +1124,13 @@ class Map<UserData extends EntityUserData = EntityUserData>
      * @param options - Options.
      * @param options -.disposeLayers If true, layers are also disposed.
      */
-    dispose(options: {
-        disposeLayers?: boolean;
-    } = {
-        disposeLayers: false,
-    }) {
+    dispose(
+        options: {
+            disposeLayers?: boolean;
+        } = {
+            disposeLayers: false,
+        },
+    ) {
         // Delete cached TileGeometry objects. This is not possible to do
         // at the TileMesh level because TileMesh objects do not own their geometry,
         // as it is shared among all tiles at the same depth level.
@@ -1220,8 +1219,13 @@ class Map<UserData extends EntityUserData = EntityUserData>
         // Prevent subdivision if node is covered by at least one elevation layer
         // and if node doesn't have a elevation texture yet.
         for (const e of this.getElevationLayers()) {
-            if (e.visible && !e.frozen && e.ready && e.contains(node.getExtent())
-                && !node.canSubdivide()) {
+            if (
+                e.visible &&
+                !e.frozen &&
+                e.ready &&
+                e.contains(node.getExtent()) &&
+                !node.canSubdivide()
+            ) {
                 return false;
             }
         }
@@ -1247,14 +1251,12 @@ class Map<UserData extends EntityUserData = EntityUserData>
         tmpSseSizes[1] = sse.lengths.y * sse.ratio;
 
         const threshold = Math.max(this.imageSize.x, this.imageSize.y);
-        return tmpSseSizes.some(v => v >= (threshold * this.subdivisionThreshold));
+        return tmpSseSizes.some(v => v >= threshold * this.subdivisionThreshold);
     }
 
     private updateMinMaxDistance(context: Context, node: TileMesh) {
-        const bbox = node.OBB.box3D.clone()
-            .applyMatrix4(node.OBB.matrixWorld);
-        const distance = context.distance.plane
-            .distanceToPoint(bbox.getCenter(tmpVector));
+        const bbox = node.OBB.box3D.clone().applyMatrix4(node.OBB.matrixWorld);
+        const distance = context.distance.plane.distanceToPoint(bbox.getCenter(tmpVector));
         const radius = bbox.getSize(tmpVector).length() * 0.5;
         this._distance.min = Math.min(this._distance.min, distance - radius);
         this._distance.max = Math.max(this._distance.max, distance + radius);

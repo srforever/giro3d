@@ -1,6 +1,4 @@
-import {
-    Fill, Stroke, Style, RegularShape,
-} from 'ol/style.js';
+import { Fill, Stroke, Style, RegularShape } from 'ol/style.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import GPX from 'ol/format/GPX.js';
 import KML from 'ol/format/KML.js';
@@ -23,16 +21,14 @@ import StatusBar from './widgets/StatusBar.js';
 // # Planar (EPSG:3946) viewer
 
 // Defines projection that we will use (taken from https://epsg.io/3946, Proj4js section)
-Instance.registerCRS('EPSG:3946',
-    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+Instance.registerCRS(
+    'EPSG:3946',
+    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+);
 Instance.registerCRS('EPSG:4171', '+proj=longlat +ellps=GRS80 +no_defs +type=crs');
 
 // Defines geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent(
-    'EPSG:3946',
-    1837816.94334, 1847692.32501,
-    5170036.4587, 5178412.82698,
-);
+const extent = new Extent('EPSG:3946', 1837816.94334, 1847692.32501, 5170036.4587, 5178412.82698);
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
@@ -97,14 +93,15 @@ const geoJsonLayer = new ColorLayer({
         // here we are using a different one.
         dataProjection: 'EPSG:4171',
         format: new GeoJSON(),
-        style: feature => new Style({
-            fill: new Fill({
-                color: `rgba(0, 128, 0, ${feature.get('indiccanop')})`,
+        style: feature =>
+            new Style({
+                fill: new Fill({
+                    color: `rgba(0, 128, 0, ${feature.get('indiccanop')})`,
+                }),
+                stroke: new Stroke({
+                    color: 'white',
+                }),
             }),
-            stroke: new Stroke({
-                color: 'white',
-            }),
-        }),
     }),
 });
 map.addLayer(geoJsonLayer);
@@ -194,12 +191,14 @@ Inspector.attach(document.getElementById('panelDiv'), instance);
 
 const resultTable = document.getElementById('results');
 instance.domElement.addEventListener('mousemove', e => {
-    const pickedObject = instance.pickObjectsAt(e, {
-        radius: 5,
-        limit: 1,
-        pickFeatures: true,
-        sortByDistance: true,
-    }).at(0);
+    const pickedObject = instance
+        .pickObjectsAt(e, {
+            radius: 5,
+            limit: 1,
+            pickFeatures: true,
+            sortByDistance: true,
+        })
+        .at(0);
     resultTable.innerHTML = '';
     if (pickedObject?.features && pickedObject.features.length > 0) {
         for (const { layer, feature } of pickedObject.features) {

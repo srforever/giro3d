@@ -24,12 +24,21 @@ import StatusBar from './widgets/StatusBar.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
-Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
-Instance.registerCRS('IGNF:WGS84G', 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]');
+Instance.registerCRS(
+    'EPSG:2154',
+    '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+);
+Instance.registerCRS(
+    'IGNF:WGS84G',
+    'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+);
 
 const SKY_COLOR = new Color(0xf1e9c6);
 const viewerDiv = document.getElementById('viewerDiv');
-const mainInstance = new Instance(viewerDiv, { crs: 'EPSG:2154', renderer: { clearColor: SKY_COLOR } });
+const mainInstance = new Instance(viewerDiv, {
+    crs: 'EPSG:2154',
+    renderer: { clearColor: SKY_COLOR },
+});
 
 // create a map
 const extent = new Extent('EPSG:2154', -111629.52, 1275028.84, 5976033.79, 7230161.64);
@@ -48,39 +57,42 @@ mainInstance.add(map);
 
 const noDataValue = -1000;
 
-const capabilitiesUrl = 'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities';
+const capabilitiesUrl =
+    'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities';
 
-WmtsSource
-    .fromCapabilities(capabilitiesUrl, {
-        layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
-        format: new BilFormat(),
-        noDataValue,
-    })
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
+    format: new BilFormat(),
+    noDataValue,
+})
     .then(elevationWmts => {
-        map.addLayer(new ElevationLayer({
-            name: 'wmts_elevation',
-            extent: map.extent,
-            // We don't need the full resolution of terrain because we are not using any shading
-            resolutionFactor: 0.25,
-            minmax: { min: 0, max: 5000 },
-            noDataOptions: {
-                replaceNoData: false,
-            },
-            source: elevationWmts,
-        }));
+        map.addLayer(
+            new ElevationLayer({
+                name: 'wmts_elevation',
+                extent: map.extent,
+                // We don't need the full resolution of terrain because we are not using any shading
+                resolutionFactor: 0.25,
+                minmax: { min: 0, max: 5000 },
+                noDataOptions: {
+                    replaceNoData: false,
+                },
+                source: elevationWmts,
+            }),
+        );
     })
     .catch(console.error);
 
-WmtsSource
-    .fromCapabilities(capabilitiesUrl, {
-        layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
-    })
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
+})
     .then(orthophotoWmts => {
-        map.addLayer(new ColorLayer({
-            name: 'wmts_orthophotos',
-            extent: map.extent,
-            source: orthophotoWmts,
-        }));
+        map.addLayer(
+            new ColorLayer({
+                name: 'wmts_orthophotos',
+                extent: map.extent,
+                source: orthophotoWmts,
+            }),
+        );
     })
     .catch(console.error);
 
@@ -107,9 +119,12 @@ mainInstance.useTHREEControls(controls);
 const cubeTextureLoader = new CubeTextureLoader();
 cubeTextureLoader.setPath('image/skyboxsun25deg_zup/');
 const cubeTexture = cubeTextureLoader.load([
-    'px.jpg', 'nx.jpg',
-    'py.jpg', 'ny.jpg',
-    'pz.jpg', 'nz.jpg',
+    'px.jpg',
+    'nx.jpg',
+    'py.jpg',
+    'ny.jpg',
+    'pz.jpg',
+    'nz.jpg',
 ]);
 
 mainInstance.scene.background = cubeTexture;
@@ -130,7 +145,12 @@ const minimapInstance = new Instance(minimapDiv, {
 // Set the minimap camera view width, in meters. This can be changed later when
 // the user uses the mouse wheel on to zoom in/out.
 const minimapCameraWidth = 2000;
-const minimapCamera = new OrthographicCamera(-minimapCameraWidth/2, minimapCameraWidth/2, 100, -100);
+const minimapCamera = new OrthographicCamera(
+    -minimapCameraWidth / 2,
+    minimapCameraWidth / 2,
+    100,
+    -100,
+);
 
 // We replace the default perspective camera of the minimap view by
 // an orthographic camera, which is much more suitable for this kind of view.

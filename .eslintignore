@@ -1,2 +1,4 @@
 build/**/*.js
-**/.eslintrc.js
+public/
+examples/data
+test/data

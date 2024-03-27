@@ -79,7 +79,10 @@ class DrawingCollectionInspector extends EntityInspector {
         }
         this.drawingEntity.children.forEach(lyr => {
             const gui = new DrawingInspector(
-                this.drawingFolder, this.instance, this.drawingEntity, lyr,
+                this.drawingFolder,
+                this.instance,
+                this.drawingEntity,
+                lyr,
             );
             this.drawings.push(gui);
         });

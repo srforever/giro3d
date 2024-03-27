@@ -3,13 +3,11 @@
 
     "extends": "../tsconfig.json",
     "include": ["./**/*"],
-    "exclude": [
-        "node_modules/**/*",
-    ],
+    "exclude": ["node_modules/**/*"],
     "compilerOptions": {
-      "paths": {
-        "src/*": ["../src/*"]
-      },
-      "allowJs": true,
+        "paths": {
+            "src/*": ["../src/*"]
+        },
+        "allowJs": true
     }
-  }
+}

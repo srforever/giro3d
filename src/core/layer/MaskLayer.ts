@@ -1,18 +1,8 @@
-import {
-    Texture,
-    type TextureDataType,
-    UnsignedByteType,
-    Vector4,
-} from 'three';
+import { Texture, type TextureDataType, UnsignedByteType, Vector4 } from 'three';
 import { type Feature } from 'ol';
 import { type Geometry } from 'ol/geom';
 import ColorLayer from './ColorLayer';
-import type {
-    LayerOptions,
-    LayerUserData,
-    Node,
-    NodeMaterial,
-} from './Layer';
+import type { LayerOptions, LayerUserData, Node, NodeMaterial } from './Layer';
 
 /**
  * Modes of the mask layer.
@@ -103,6 +93,4 @@ class MaskLayer<UserData extends LayerUserData = LayerUserData> extends ColorLay
 
 export default MaskLayer;
 
-export {
-    MaskMode,
-};
+export { MaskMode };

@@ -13,8 +13,10 @@ import StatusBar from './widgets/StatusBar.js';
 
 const extent = new Extent(
     'EPSG:3857',
-    -20037508.342789244, 20037508.342789244,
-    -20037508.342789244, 20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
 );
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
@@ -35,12 +37,17 @@ instance.add(map);
 
 // For convenience, we use the fromCapabilities() async method to construct a WmtsSource from
 // a WMTS capabilities document.
-WmtsSource.fromCapabilities('https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities', {
-    layer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2',
-    tileMatrix: 'PM',
-}).then(source => {
-    map.addLayer(new ColorLayer({ name: 'wmts', source }));
-}).catch(e => console.error(e));
+WmtsSource.fromCapabilities(
+    'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities',
+    {
+        layer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2',
+        tileMatrix: 'PM',
+    },
+)
+    .then(source => {
+        map.addLayer(new ColorLayer({ name: 'wmts', source }));
+    })
+    .catch(e => console.error(e));
 
 instance.camera.camera3D.position.set(0, 0, 80000000);
 

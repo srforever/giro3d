@@ -9,13 +9,15 @@ import {
     PageEvent,
     ProjectReflection,
     Reflection,
-} from "typedoc";
-
+} from 'typedoc';
 
 // taken from default theme
 function getDisplayName(refl: Reflection): string {
-    let version = "";
-    if ((refl instanceof DeclarationReflection || refl instanceof ProjectReflection) && refl.packageVersion) {
+    let version = '';
+    if (
+        (refl instanceof DeclarationReflection || refl instanceof ProjectReflection) &&
+        refl.packageVersion
+    ) {
         version = ` - v${refl.packageVersion}`;
     }
 
@@ -30,56 +32,62 @@ const defaultLayout = (
     template: RenderTemplate<PageEvent<Reflection>>,
     props: PageEvent<Reflection>,
 ) => (
-    <html class="default" lang={context.options.getValue("htmlLang")}>
+    <html class="default" lang={context.options.getValue('htmlLang')}>
         <head>
             <meta charSet="utf-8" />
-            {context.hook("head.begin")}
+            {context.hook('head.begin')}
             <meta http-equiv="x-ua-compatible" content="IE=edge" />
             <title>
                 {props.model.isProject()
                     ? getDisplayName(props.model)
                     : `${getDisplayName(props.model)} | ${getDisplayName(props.project)}`}
             </title>
-            <meta name="description" content={"Documentation for " + props.project.name} />
+            <meta name="description" content={'Documentation for ' + props.project.name} />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
 
             <link rel="icon" href="/images/favicon.svg" />
-            <link rel="stylesheet" href={context.relativeURL("assets/style.css", true)} />
-            <link rel="stylesheet" href={context.relativeURL("assets/highlight.css", true)} />
-            {context.options.getValue("customCss") && (
-                <link rel="stylesheet" href={context.relativeURL("assets/custom.css", true)} />
+            <link rel="stylesheet" href={context.relativeURL('assets/style.css', true)} />
+            <link rel="stylesheet" href={context.relativeURL('assets/highlight.css', true)} />
+            {context.options.getValue('customCss') && (
+                <link rel="stylesheet" href={context.relativeURL('assets/custom.css', true)} />
             )}
-            <script defer src={context.relativeURL("assets/main.js", true)}></script>
-            <script async src={context.relativeURL("assets/search.js", true)} id="tsd-search-script"></script>
-            {context.hook("head.end")}
+            <script defer src={context.relativeURL('assets/main.js', true)}></script>
+            <script
+                async
+                src={context.relativeURL('assets/search.js', true)}
+                id="tsd-search-script"
+            ></script>
+            {context.hook('head.end')}
         </head>
         <body>
-            {context.hook("body.begin")}
+            {context.hook('body.begin')}
             <script defer>
-                <JSX.Raw html={`
+                <JSX.Raw
+                    html={`
                     document.documentElement.dataset.theme = "light";
                     localStorage.setItem("tsd-theme", "light");
-                `}/>
+                `}
+                />
             </script>
             {context.toolbar(props)}
 
             <div class="container-fluid container-main">
                 <div class="col-content">
-                    {context.hook("content.begin")}
+                    {context.hook('content.begin')}
                     {context.header(props)}
                     {template(props)}
-                    {context.hook("content.end")}
+                    {context.hook('content.end')}
                 </div>
                 <div class="col-sidebar">
                     <div class="page-menu">
-                        {context.hook("pageSidebar.begin")}
+                        {context.hook('pageSidebar.begin')}
                         {context.pageSidebar(props)}
-                        {context.hook("pageSidebar.end")}
+                        {context.hook('pageSidebar.end')}
                     </div>
                     <div class="site-menu">
-                        {context.hook("sidebar.begin")}
+                        {context.hook('sidebar.begin')}
                         {context.sidebar(props)}
-                        {context.hook("sidebar.end")}
+                        {context.hook('sidebar.end')}
                     </div>
                 </div>
             </div>
@@ -89,7 +97,7 @@ const defaultLayout = (
             <div class="overlay"></div>
 
             {context.analytics()}
-            {context.hook("body.end")}
+            {context.hook('body.end')}
         </body>
     </html>
 );
@@ -101,52 +109,90 @@ export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Ref
             <a href="#" class="navbar-brand mx-0">
                 <img src="/images/favicon.svg" class="brand" width={32} height={32} />
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <button
+                class="navbar-toggler"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent"
+                aria-expanded="false"
+                aria-label="Toggle navigation"
+            >
                 <span class="navbar-toggler-icon"></span>
             </button>
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav navbar-nav-left">
                     <li class="nav-item">
-                        <a class="nav-link" href="/index.html">Home</a>
+                        <a class="nav-link" href="/index.html">
+                            Home
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-link-primary" href="/giro3d.html">Giro3D framework</a>
+                        <a class="nav-link nav-link-primary" href="/giro3d.html">
+                            Giro3D framework
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-link-success" href="/piero.html">Piero application</a>
+                        <a class="nav-link nav-link-success" href="/piero.html">
+                            Piero application
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-link-primary" href="/tutorials/getting-started.html">Getting started with Giro3D</a>
+                        <a class="nav-link nav-link-primary" href="/tutorials/getting-started.html">
+                            Getting started with Giro3D
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-link-primary" href="/examples/index.html">Giro3D examples</a>
+                        <a class="nav-link nav-link-primary" href="/examples/index.html">
+                            Giro3D examples
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-link-primary active" aria-current="page" href="/apidoc/index.html">API documentation</a>
+                        <a
+                            class="nav-link nav-link-primary active"
+                            aria-current="page"
+                            href="/apidoc/index.html"
+                        >
+                            API documentation
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-link-primary" href="/governance.html">Governance</a>
+                        <a class="nav-link nav-link-primary" href="/governance.html">
+                            Governance
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-link-primary" href="/sponsors.html">Sponsors</a>
+                        <a class="nav-link nav-link-primary" href="/sponsors.html">
+                            Sponsors
+                        </a>
                     </li>
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item">
-                        <a
-                            class="nav-link"
-                            href="https://gitlab.com/giro3d/giro3D"
-                            target="_blank"
-                            >GitLab <i class="bi bi-box-arrow-up-right"></i
-                        ></a>
+                        <a class="nav-link" href="https://gitlab.com/giro3d/giro3D" target="_blank">
+                            GitLab <i class="bi bi-box-arrow-up-right"></i>
+                        </a>
                     </li>
                 </ul>
-                <form class="form-inline" id="tsd-search" role="search" data-base={context.relativeURL("./")}>
-                    <input name="q" type="text" id="tsd-search-field" aria-label="Search" class="form-control search-query" placeholder="Search" autocomplete="off" autofocus={true}/>
+                <form
+                    class="form-inline"
+                    id="tsd-search"
+                    role="search"
+                    data-base={context.relativeURL('./')}
+                >
+                    <input
+                        name="q"
+                        type="text"
+                        id="tsd-search-field"
+                        aria-label="Search"
+                        class="form-control search-query"
+                        placeholder="Search"
+                        autocomplete="off"
+                        autofocus={true}
+                    />
                     <div class="results"></div>
                 </form>
-
             </div>
         </div>
     </header>
@@ -174,16 +220,12 @@ export class CustomThemeContext extends DefaultThemeRenderContext {
  * A near clone of the default theme, it just changes the context
  */
 export class CustomTheme extends DefaultTheme {
-  private _contextCache?: CustomThemeContext;
+    private _contextCache?: CustomThemeContext;
 
-  override getRenderContext(pageEvent: PageEvent<Reflection>): CustomThemeContext {
-    this._contextCache ||= new CustomThemeContext(
-      this,
-      pageEvent,
-      this.application.options
-    );
-    return this._contextCache;
-  }
+    override getRenderContext(pageEvent: PageEvent<Reflection>): CustomThemeContext {
+        this._contextCache ||= new CustomThemeContext(this, pageEvent, this.application.options);
+        return this._contextCache;
+    }
 }
 /**
  * Called by TypeDoc when loading this theme as a plugin. Should be used to define themes which
@@ -191,7 +233,7 @@ export class CustomTheme extends DefaultTheme {
  */
 export function load(app: Application) {
     // we need bootstrap
-    app.renderer.hooks.on("head.end", () => (
+    app.renderer.hooks.on('head.end', () => (
         <link href="/assets/bootstrap-custom.css" rel="stylesheet" />
     ));
     // hack to hide the "Giro3D" title on the root page of the apidoc
@@ -200,16 +242,17 @@ export function load(app: Application) {
     // of the class
     // The alternative is to declare a custom header in CustomThemeContext, but it involves
     // copy-pasting not only the header from the theme, but some libs, utils etc...
-    app.renderer.hooks.on("body.end", () => (
+    app.renderer.hooks.on('body.end', () => (
         <script>
-            <JSX.Raw html={
-                `if (document.location.pathname == "/apidoc/index.html") {
+            <JSX.Raw
+                html={`if (document.location.pathname == "/apidoc/index.html") {
                     document.querySelector(".col-content .tsd-page-title").style.display = "none";
                 }
-            `}/>
+            `}
+            />
         </script>
     ));
 
     // define our theme
-    app.renderer.defineTheme("custom", CustomTheme);
+    app.renderer.defineTheme('custom', CustomTheme);
 }

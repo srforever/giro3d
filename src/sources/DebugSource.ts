@@ -1,8 +1,4 @@
-import {
-    CanvasTexture,
-    Color,
-    MathUtils,
-} from 'three';
+import { CanvasTexture, Color, MathUtils } from 'three';
 import type Extent from '../core/geographic/Extent';
 import PromiseUtils from '../utils/PromiseUtils';
 import type { CustomContainsFn, GetImageOptions } from './ImageSource';
@@ -35,9 +31,7 @@ class DebugSource extends ImageSource {
         containsFn?: CustomContainsFn;
     }) {
         super(options);
-        const {
-            delay, subdivisions, opacity, extent, color,
-        } = options;
+        const { delay, subdivisions, opacity, extent, color } = options;
         if (delay) {
             if (typeof delay === 'function') {
                 this._delay = delay;
@@ -90,9 +84,7 @@ class DebugSource extends ImageSource {
     }
 
     getImages(options: GetImageOptions) {
-        const {
-            extent, width, height, signal, id,
-        } = options;
+        const { extent, width, height, signal, id } = options;
         const subdivs = this._subdivisions;
         const extents = extent.split(subdivs, subdivs);
 
@@ -103,8 +95,8 @@ class DebugSource extends ImageSource {
 
         for (const ex of extents) {
             const imageId = `${id}-${MathUtils.generateUUID()}`;
-            const request = () => PromiseUtils.delay(this._delay())
-                .then(() => {
+            const request = () =>
+                PromiseUtils.delay(this._delay()).then(() => {
                     signal?.throwIfAborted();
                     const texture = this.getImage(w, h, imageId);
                     return new ImageResult({ extent: ex, texture, id: imageId });

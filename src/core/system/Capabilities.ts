@@ -17,7 +17,11 @@ function _WebGLShader(renderer: WebGLRenderer, type: number, source: string) {
 }
 
 function isFirefox() {
-    return navigator && navigator.userAgent && navigator.userAgent.toLowerCase().indexOf('firefox') > -1;
+    return (
+        navigator &&
+        navigator.userAgent &&
+        navigator.userAgent.toLowerCase().indexOf('firefox') > -1
+    );
 }
 
 export default {
@@ -52,7 +56,9 @@ export default {
         if (gl.getProgramParameter(program, gl.LINK_STATUS) === false) {
             if (maxTexturesUnits > 16) {
                 const info = gl.getProgramInfoLog(program);
-                console.warn(`${info}: using a maximum of 16 texture units instead of the reported value (${maxTexturesUnits})`);
+                console.warn(
+                    `${info}: using a maximum of 16 texture units instead of the reported value (${maxTexturesUnits})`,
+                );
                 if (isFirefox()) {
                     console.warn(`It can come from a Mesa/Firefox bug;
                         the shader compiles to an error when using more than 16 sampler uniforms,
@@ -60,8 +66,8 @@ export default {
                 }
                 maxTexturesUnits = 16;
             } else {
-                throw (new Error(`The GPU capabilities could not be determined accurately.
-                    Impossible to link a shader with the Maximum texture units ${maxTexturesUnits}`));
+                throw new Error(`The GPU capabilities could not be determined accurately.
+                    Impossible to link a shader with the Maximum texture units ${maxTexturesUnits}`);
             }
         }
 

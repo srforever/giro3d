@@ -1,13 +1,7 @@
-import {
-    Color,
-    DataTexture,
-    FloatType,
-    MathUtils,
-    RGBAFormat,
-    UnsignedByteType,
-} from 'three';
+import { Color, DataTexture, FloatType, MathUtils, RGBAFormat, UnsignedByteType } from 'three';
 import TextureGenerator, {
-    OPAQUE_BYTE, OPAQUE_FLOAT,
+    OPAQUE_BYTE,
+    OPAQUE_FLOAT,
     TRANSPARENT,
     DEFAULT_NODATA,
 } from 'src/utils/TextureGenerator';
@@ -24,7 +18,9 @@ describe('TextureGenerator', () => {
                     const expectedOutputLength = data.length * 2; // RGBA
 
                     const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h }, UnsignedByteType, data,
+                        { width: w, height: h },
+                        UnsignedByteType,
+                        data,
                     );
 
                     const buf = result.image.data;
@@ -51,7 +47,11 @@ describe('TextureGenerator', () => {
                     const expectedOutputLength = r.length * 4; // RGBA
 
                     const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h }, UnsignedByteType, r, g, b,
+                        { width: w, height: h },
+                        UnsignedByteType,
+                        r,
+                        g,
+                        b,
                     );
 
                     const buf = result.image.data;
@@ -85,7 +85,12 @@ describe('TextureGenerator', () => {
                     const expectedOutputLength = r.length * 4; // RG
 
                     const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h }, UnsignedByteType, r, g, b, a,
+                        { width: w, height: h },
+                        UnsignedByteType,
+                        r,
+                        g,
+                        b,
+                        a,
                     );
 
                     const buf = result.image.data;
@@ -120,7 +125,9 @@ describe('TextureGenerator', () => {
                     const expectedOutputLength = data.length * 2; // RG
 
                     const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h }, FloatType, data,
+                        { width: w, height: h },
+                        FloatType,
+                        data,
                     );
 
                     const buf = result.image.data;
@@ -149,7 +156,9 @@ describe('TextureGenerator', () => {
                     const type = FloatType;
 
                     const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h, scaling: { min, max } }, type, data,
+                        { width: w, height: h, scaling: { min, max } },
+                        type,
+                        data,
                     );
 
                     const buf = result.image.data;
@@ -176,7 +185,9 @@ describe('TextureGenerator', () => {
                     const expectedOutputLength = data.length * 2; // RG
 
                     const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h }, FloatType, data,
+                        { width: w, height: h },
+                        FloatType,
+                        data,
                     );
 
                     const buf = result.image.data;
@@ -193,10 +204,8 @@ describe('TextureGenerator', () => {
                         const r = buf[idx + 0];
                         const g = buf[idx + 1];
 
-                        expect(r).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
-                        expect(g).toEqual(Number.isNaN(v)
-                            ? TRANSPARENT
-                            : OPAQUE_FLOAT);
+                        expect(r).toBeCloseTo(Number.isNaN(v) ? DEFAULT_NODATA : v, 2);
+                        expect(g).toEqual(Number.isNaN(v) ? TRANSPARENT : OPAQUE_FLOAT);
                     }
                 });
 
@@ -207,7 +216,9 @@ describe('TextureGenerator', () => {
                     const expectedOutputLength = data.length * 2; // RG
 
                     const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h }, FloatType, data,
+                        { width: w, height: h },
+                        FloatType,
+                        data,
                     );
 
                     const buf = result.image.data;
@@ -224,10 +235,8 @@ describe('TextureGenerator', () => {
                         const r = buf[idx + 0];
                         const g = buf[idx + 1];
 
-                        expect(r).toBeCloseTo((Number.isNaN(v) ? DEFAULT_NODATA : v), 2);
-                        expect(g).toEqual((Number.isNaN(v))
-                            ? TRANSPARENT
-                            : OPAQUE_FLOAT);
+                        expect(r).toBeCloseTo(Number.isNaN(v) ? DEFAULT_NODATA : v, 2);
+                        expect(g).toEqual(Number.isNaN(v) ? TRANSPARENT : OPAQUE_FLOAT);
                     }
                 });
             });
@@ -242,7 +251,11 @@ describe('TextureGenerator', () => {
                     const expectedOutputLength = r.length * 4; // RGBA
 
                     const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h }, FloatType, r, g, b,
+                        { width: w, height: h },
+                        FloatType,
+                        r,
+                        g,
+                        b,
                     );
 
                     const buf = result.image.data;
@@ -277,7 +290,12 @@ describe('TextureGenerator', () => {
                     const expectedOutputLength = r.length * 4; // RGBA
 
                     const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h }, FloatType, r, g, b, a,
+                        { width: w, height: h },
+                        FloatType,
+                        r,
+                        g,
+                        b,
+                        a,
                     );
 
                     const buf = result.image.data;
@@ -307,9 +325,9 @@ describe('TextureGenerator', () => {
     describe('decodeBlob', () => {
         it('throws on unsupported media type', async () => {
             const blob = new Blob([], { type: 'image/unsupported' });
-            await expect(TextureGenerator.decodeBlob(blob))
-                .rejects
-                .toThrow(/unsupported media type/);
+            await expect(TextureGenerator.decodeBlob(blob)).rejects.toThrow(
+                /unsupported media type/,
+            );
         });
     });
 
@@ -319,8 +337,12 @@ describe('TextureGenerator', () => {
             const ALPHA_ONE = 1;
             const buf = [999, ALPHA_ZERO, -100, ALPHA_ONE, +100, ALPHA_ONE, -999, ALPHA_ZERO];
             const channelCount = 2;
-            const minmax = TextureGenerator
-                .computeMinMaxFromBuffer(buf, 0, Interpretation.Raw, channelCount);
+            const minmax = TextureGenerator.computeMinMaxFromBuffer(
+                buf,
+                0,
+                Interpretation.Raw,
+                channelCount,
+            );
             expect(minmax.min).toEqual(-100);
             expect(minmax.max).toEqual(+100);
         });

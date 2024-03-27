@@ -1,17 +1,14 @@
-import {
-    BufferAttribute,
-    BufferGeometry,
-} from 'three';
+import { BufferAttribute, BufferGeometry } from 'three';
 
 interface Attribute {
-    numElements: number,
-    numByte?: number,
-    ArrayType: any,
-    attributeName: string,
-    normalized?: boolean,
-    potreeName?: string,
-    byteSize?: number,
-    getValue?: (view: DataView, offset: number) => number,
+    numElements: number;
+    numByte?: number;
+    ArrayType: any;
+    attributeName: string;
+    normalized?: boolean;
+    potreeName?: string;
+    byteSize?: number;
+    getValue?: (view: DataView, offset: number) => number;
 }
 
 // See the different constants holding ordinal, name, numElements, byteSize in PointAttributes.cpp
@@ -71,11 +68,12 @@ for (const potreeName of Object.keys(POINT_ATTTRIBUTES)) {
     attr.normalized = attr.normalized || false;
     // chrome is known to perform badly when we call a method without respecting its arity
     const fnName = `getUint${attr.numByte * 8}`;
-    attr.getValue = attr.numByte === 1
-        // @ts-expect-error implicy any
-        ? (view: DataView, offset: number) => view[fnName](offset)
-        // @ts-expect-error implicy any
-        : (view: DataView, offset: number) => view[fnName](offset, true);
+    attr.getValue =
+        attr.numByte === 1
+            ? // @ts-expect-error implicy any
+              (view: DataView, offset: number) => view[fnName](offset)
+            : // @ts-expect-error implicy any
+              (view: DataView, offset: number) => view[fnName](offset, true);
 }
 
 export default {
@@ -110,7 +108,8 @@ export default {
             for (let arrayOffset = 0; arrayOffset < arrayLength; arrayOffset += attr.numElements) {
                 for (let elemIdx = 0; elemIdx < attr.numElements; elemIdx++) {
                     array[arrayOffset + elemIdx] = attr.getValue(
-                        view, attrOffset + elemIdx * attr.numByte,
+                        view,
+                        attrOffset + elemIdx * attr.numByte,
                     );
                 }
                 attrOffset += pointByteSize;

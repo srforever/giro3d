@@ -4,16 +4,23 @@ shortdesc: Pick objects with various methods (GPU picking, raycasting...)
 longdesc: Picking is the action of determining what's underneath the mouse cursor. Various picking technique exist, to handle different use cases.
 attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
 ---
+
 <div class="m-2 position-absolute top-0 end-0">
     <div class="card">
         <h5 class="card-header">Picking</h5>
 
         <!-- tooltip -->
-        <span class="badge bg-secondary position-absolute top-0 end-0 m-2" data-bs-toggle="popover"
-            data-bs-content="pickingHelper">?</span>
-        <p class="card-text d-none" id="pickingHelper">Picking lets you pick Giro3D and native THREE.js objects, and get
-            their coordinates in the CRS of the instance.<br>
-            Provides various filtering options to enhance precision and performance.</p>
+        <span
+            class="badge bg-secondary position-absolute top-0 end-0 m-2"
+            data-bs-toggle="popover"
+            data-bs-content="pickingHelper"
+            >?</span
+        >
+        <p class="card-text d-none" id="pickingHelper">
+            Picking lets you pick Giro3D and native THREE.js objects, and get their coordinates in
+            the CRS of the instance.<br />
+            Provides various filtering options to enhance precision and performance.
+        </p>
 
         <div class="card-body">
             <!-- Parameters -->
@@ -31,15 +38,31 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
                     <label for="radiusSlider" class="col-sm-8 col-form-label">Picking radius</label>
                     <div class="col-sm-4">
                         <div class="input-group">
-                            <input id="radiusSlider" type="number" min="0" max="10" value="0" class="form-control" />
+                            <input
+                                id="radiusSlider"
+                                type="number"
+                                min="0"
+                                max="10"
+                                value="0"
+                                class="form-control"
+                            />
                             <span class="input-group-text">px</span>
                         </div>
                     </div>
                 </div>
                 <div class="row">
-                    <label for="limitSlider" class="col-sm-8 col-form-label">Number of objects (0 for all)</label>
+                    <label for="limitSlider" class="col-sm-8 col-form-label"
+                        >Number of objects (0 for all)</label
+                    >
                     <div class="col-sm-4">
-                        <input id="limitSlider" type="number" min="0" max="100" value="0" class="form-control" />
+                        <input
+                            id="limitSlider"
+                            type="number"
+                            min="0"
+                            max="100"
+                            value="0"
+                            class="form-control"
+                        />
                     </div>
                 </div>
             </form>

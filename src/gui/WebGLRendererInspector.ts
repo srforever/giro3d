@@ -15,7 +15,9 @@ class WebGLRendererInspector extends Panel {
 
         this.renderer = this.instance.renderer;
 
-        this.addController<boolean>(this.renderer, 'localClippingEnabled').onChange(() => this.notify());
+        this.addController<boolean>(this.renderer, 'localClippingEnabled').onChange(() =>
+            this.notify(),
+        );
 
         this._addCapabilities(this.renderer, this.gui.addFolder('Capabilities'));
     }

@@ -1,9 +1,4 @@
-import {
-    type PixelFormat,
-    type TextureDataType,
-    RGBAFormat,
-    FloatType,
-} from 'three';
+import { type PixelFormat, type TextureDataType, RGBAFormat, FloatType } from 'three';
 import { type Feature } from 'ol';
 import Layer, {
     type LayerOptions,
@@ -29,15 +24,15 @@ import { defaultColorimetryOptions } from '../ColorimetryOptions';
 
 export interface ColorLayerEvents extends LayerEvents {
     /** When the layer opacity changes */
-    'opacity-property-changed': { opacity: number; };
+    'opacity-property-changed': { opacity: number };
     /** When the layer brightness changes */
-    'brightness-property-changed': { brightness: number; };
+    'brightness-property-changed': { brightness: number };
     /** When the layer contrast changes */
-    'contrast-property-changed': { contrast: number; };
+    'contrast-property-changed': { contrast: number };
     /** When the layer saturation changes */
-    'saturation-property-changed': { saturation: number; };
+    'saturation-property-changed': { saturation: number };
     /** When the layer elevationRange property changes */
-    'elevationRange-property-changed': { range: ElevationRange; };
+    'elevationRange-property-changed': { range: ElevationRange };
 }
 
 export interface ColorLayerOptions extends LayerOptions {
@@ -57,7 +52,8 @@ export interface ColorLayerOptions extends LayerOptions {
  */
 class ColorLayer<UserData extends LayerUserData = LayerUserData>
     extends Layer<ColorLayerEvents, UserData>
-    implements PickableFeatures<VectorPickFeature, MapPickResult<VectorPickFeature>> {
+    implements PickableFeatures<VectorPickFeature, MapPickResult<VectorPickFeature>>
+{
     private _opacity: number;
     /**
      * Read-only flag to check if a given object is of type ColorLayer.
@@ -226,12 +222,13 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
             vectorOptions.yTileRes = tileExtent.y / pickedResult.entity.imageSize.y;
         }
 
-        return this.getVectorFeaturesAtCoordinate(pickedResult.coord, vectorOptions)
-            .map(feature => ({
+        return this.getVectorFeaturesAtCoordinate(pickedResult.coord, vectorOptions).map(
+            feature => ({
                 isVectorPickFeature: true,
                 layer: this,
                 feature,
-            }));
+            }),
+        );
     }
 
     /**
@@ -248,11 +245,11 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
              * Radius in pixels.
              * Pixels inside the radius around the given coordinates will be checked for features.
              */
-            radius?: number,
+            radius?: number;
             /** Tile resolution (m/px) - only required if radius is greater than 0 */
-            xTileRes?: number,
+            xTileRes?: number;
             /** Tile resolution (m/px) - only required if radius is greater than 0 */
-            yTileRes?: number,
+            yTileRes?: number;
         },
     ): Feature[] {
         const layerProjection = this.getExtent()?.crs();
@@ -262,7 +259,9 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
 
         if (radius > 0) {
             if (!Number.isFinite(options.xTileRes) || !Number.isFinite(options.yTileRes)) {
-                console.warn('Calling getVectorFeaturesAtCoordinate with radius but no tile resolution, this will return nothing');
+                console.warn(
+                    'Calling getVectorFeaturesAtCoordinate with radius but no tile resolution, this will return nothing',
+                );
                 return [];
             }
 

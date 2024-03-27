@@ -22,7 +22,7 @@ export interface PointsPickResult<TFeature = unknown> extends PickResult<TFeatur
     /** Index of the point in the `Points` object */
     index: number;
     /** Coordinates of the point picked. */
-    coord: { x: number; y: number; z: number; };
+    coord: { x: number; y: number; z: number };
 }
 
 /**
@@ -31,21 +31,22 @@ export interface PointsPickResult<TFeature = unknown> extends PickResult<TFeatur
  * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
-export const isPointsPickResult = (obj: unknown): obj is PointsPickResult => (obj as PointsPickResult).isPointsPickResult;
+export const isPointsPickResult = (obj: unknown): obj is PointsPickResult =>
+    (obj as PointsPickResult).isPointsPickResult;
 
 const BLACK = new Color(0, 0, 0);
 
 interface PickPointsCandidate {
-    pickingId: number,
-    index: number,
-    coord: { x: number, y: number, z: number }
+    pickingId: number;
+    index: number;
+    coord: { x: number; y: number; z: number };
 }
 
 export function preparePointGeometryForPicking(pointsGeometry: BufferGeometry) {
     // generate unique id for picking
     const numPoints = pointsGeometry.attributes.position.count;
     // reserve 12 bits for the entity id
-    if (numPoints >= (1 << 20)) {
+    if (numPoints >= 1 << 20) {
         console.warn(`picking issue: only ${1 << 20} points per Points object supported`);
     }
     const ids = new Uint8Array(4 * numPoints);
@@ -121,7 +122,7 @@ function pickPointsAt(
             z: 0,
         };
 
-        if (idx * 4 < 0 || ((idx + 1) * 4) > buffer.length) {
+        if (idx * 4 < 0 || (idx + 1) * 4 > buffer.length) {
             console.error('azadaz');
         }
 
@@ -167,10 +168,7 @@ function pickPointsAt(
         for (let i = 0; i < candidates.length; i++) {
             if (candidates[i].pickingId === mat.pickingId) {
                 const position = new Vector3()
-                    .fromArray(
-                        pts.geometry.attributes.position.array,
-                        3 * candidates[i].index,
-                    )
+                    .fromArray(pts.geometry.attributes.position.array, 3 * candidates[i].index)
                     .applyMatrix4(o.matrixWorld);
                 const p: PointsPickResult = {
                     isPointsPickResult: true,
