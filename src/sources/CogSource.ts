@@ -14,6 +14,7 @@ import {
     type GeoTIFFImage,
     Pool,
     type GeoTIFF,
+    type ReadRasterResult,
 } from 'geotiff';
 
 import Fetcher from '../utils/Fetcher';
@@ -168,6 +169,11 @@ export interface CogSourceOptions extends ImageSourceOptions {
      * Advanced caching options.
      */
     cacheOptions?: CogCacheOptions;
+    /**
+     * Forces the conversion of pixels to RGB. This is useful if the source file is in YCbCR color
+     * space or any other non-RGB color space.
+     */
+    convertToRGB?: boolean;
 }
 
 /**
@@ -181,6 +187,7 @@ class CogSource extends ImageSource {
     private readonly _cache: Cache = GlobalCache;
     private _tiffImage: GeoTIFF;
     private readonly _pool: Pool;
+    private readonly _convertToRGB: boolean;
     private _imageCount: number;
     private _extent: Extent;
     private _dimensions: Vector2;
@@ -213,6 +220,7 @@ class CogSource extends ImageSource {
         this._levels = [];
         this._channels = options.channels;
         this._cacheOptions = options.cacheOptions;
+        this._convertToRGB = options.convertToRGB ?? false;
     }
 
     getExtent() {
@@ -500,6 +508,33 @@ class CogSource extends ImageSource {
         return new ImageResult(result);
     }
 
+    private async readWindow(image: GeoTIFFImage, window: number[], signal?: AbortSignal): Promise<ReadRasterResult> {
+        if (this._convertToRGB) {
+            return await image.readRGB({
+                pool: this._pool,
+                window,
+                signal,
+                interleave: false,
+            });
+        }
+
+        // TODO possible optimization: instead of letting geotiff.js crop and resample
+        // the tiles into the desired region, we could use image.getTileOrStrip() to
+        // read individual tiles (aka blocks) and make a texture per block. This way,
+        // there would not be multiple concurrent reads for the same block, and we would not
+        // waste time resampling the blocks since resampling is already done in the composer.
+        // We would create more textures, but it could be worth it.
+        const buf = await image.readRasters({
+            pool: this._pool,
+            fillValue: this._nodata,
+            samples: this._channels,
+            window,
+            signal,
+        });
+
+        return buf;
+    }
+
     /**
      * @param image - The image to read.
      * @param window - The image region to read.
@@ -511,21 +546,7 @@ class CogSource extends ImageSource {
         try {
             signal?.throwIfAborted();
 
-            // TODO possible optimization: instead of letting geotiff.js crop and resample
-            // the tiles into the desired region, we could use image.getTileOrStrip() to
-            // read individual tiles (aka blocks) and make a texture per block. This way,
-            // there would not be multiple concurrent reads for the same block, and we would not
-            // waste time resampling the blocks since resampling is already done in the composer.
-            // We would create more textures, but it could be worth it.
-            const buf = await image.readRasters({
-                pool: this._pool,
-                fillValue: this._nodata,
-                samples: this._channels,
-                window,
-                signal,
-            });
-
-            return buf;
+            return this.readWindow(image, window, signal);
         } catch (e) {
             if (e.toString() === 'AggregateError: Request failed') {
                 // Problem with the source that is blocked by another fetch
