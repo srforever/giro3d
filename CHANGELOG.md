@@ -1,5 +1,81 @@
 # Changelog
 
+## v0.35.0 (2024-03-27)
+
+This release brings many performance optimizations for displaying maps and layers, as well as a number of new feature, such as map graticules, support for THREE.js fog, and more.
+
+### BREAKING CHANGE
+
+-   The `MainLoop` no longer handles the camera near/far plane limits.
+    This is now the responsibility of the `Camera` class.
+-   the return type of `ImageSource.decode()` has changed.
+    It initially returned a `Texture`, but it now returns an object of the
+    following type: `{ texture: Texture; min?: number; max?: number; }`
+-   `Map.showOutline` is now `Map.materialOptions.showTileOutlines`
+-   `PointsMaterial` is renamed `PointCloudMaterial` to avoid confusion with THREE.js built-in `PointsMaterial`.
+
+### Feat
+
+-   **CogSource**: support other colorspaces than RGB (#416)
+-   **Inspector**: add number of currently active RenderTargets in the Memory panel
+-   **MapInspector**: show number of reachable/visible/loaded tiles
+-   **MemoryTracker**: track texture lifetime
+-   **LayerInspector**: show the number of loaded images in the `LayerComposer`
+-   **Camera**: support perspective and orthographic (#389)
+-   **Camera**: enable limits to near and far planes
+-   **PointCloudMaterial**: support THREE.js fog
+-   **Map**: support THREE.js fog
+-   **Map**: add graticule
+-   **Instance**: provide the camera in events after-camera-update and before-camera-update
+-   **MapInspector**: expose `Map.sseScale` property
+-   **MapInspector**: show number of active (visible) tile meshes
+-   **LayerInspector**: add toggle for `frozen` property
+-   introduce `WmsSource`
+-   introduce `WmtsSource`
+-   **Entity**: provide type parameter for `userData` property
+-   **Layer**: provide type parameter for `userData` property
+
+### Fix
+
+-   **Map**: dispose tiles and their descendents (#414)
+-   **MapInspector**: handle missing material in `toggleBoundingBoxes()`
+-   **ScreenSpaceError**: don't use distance computation in orthographic mode
+-   **Map**: use better subdivision algorithm (#62)
+-   **Map**: don't compute neighbouring tiles if stitching is disabled
+-   **Map**: make `showTileOutlines` dynamic
+-   **LayerComposer**: fix incorrect condition to determine if image is visible
+-   **TileVS**: fix missing world position transformation
+-   **PointsMaterial**: rename to `PointCloudMaterial`
+-   **c3DEngine**: remove `setPixelRatio()` call that produces wrong results
+-   **VectorSource|VectorTileSource**: use empty textures instead of null (#410)
+-   **Map**: distinguish between hillshading Z-factor and intensity
+-   **Map**: use correct model for hillshading intensity (#406)
+-   **Inspector**: allow hillshading intensity to go beyond 1
+
+### Refactor
+
+-   **Layer**: use a global `RenderTarget` pool
+-   **TileMesh**: add `traverseTiles()` method
+-   **Layer**: be more generic with abort error handling
+-   **ComposerTileMaterial**: make tile outlines more readable
+-   **Map**: rename `_forEachTile()` -> `traverseTiles()` and make it public
+-   **ElevationLayer**: remove unnecessary material check in `registerNode()`
+-   **RequestQueueChart**: remove spurious `console.log()` call
+-   **Map**: remove `fastUpdateHint` dead code
+-   **registerChunks**: add typing for Giro3D chunks
+-   **LayeredMaterial**: strongly type defines
+-   **LayeredMaterial**: strongly type uniforms
+-   remove useless JSDoc `@type` tags
+
+### Perf
+
+-   **Layer**: cancel request as soon as a node becomes invisible
+-   **Map**: load color layers after elevation layers
+-   **ImageFormat**: optionally return min/max of texture
+-   **Map**: increase base size of tiles from 256px to 512px
+-   **TiledImageSource**: support cancellation and HTTP timeouts
+-   **TiledImageSource**: select the zoom level the closest to the desired resolution
+
 ## v0.34.1 (2024-03-12)
 
 Hotfix release for 0.34, that fixes #408.
