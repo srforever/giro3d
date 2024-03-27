@@ -68,8 +68,10 @@ instance.scene.add(dirLight.target);
 dirLight.updateMatrixWorld();
 
 // Let's now setup a "ground" to receive the shadows
-const mesh = new Mesh(new PlaneGeometry(200, 200),
-    new MeshPhongMaterial({ color: 0xcbcbcb, depthWrite: false }));
+const mesh = new Mesh(
+    new PlaneGeometry(200, 200),
+    new MeshPhongMaterial({ color: 0xcbcbcb, depthWrite: false }),
+);
 mesh.receiveShadow = true;
 // Contrary to lights, every meshes should be added through `instance.add`, in order for Giro3D to
 // be aware of them. Otherwise the objects will just disappear.
@@ -123,18 +125,17 @@ loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', gltf => {
     controls.saveState();
 
     // you can hook yourself to event of the rendering loop.
-    instance.addEventListener('after-camera-update',
-        () => {
-            const delta = clock.getDelta();
+    instance.addEventListener('after-camera-update', () => {
+        const delta = clock.getDelta();
 
-            for (const mixer of mixers) {
-                mixer.update(delta);
-            }
-            for (const model of models) {
-                model.updateMatrixWorld();
-                instance.notifyChange(model);
-            }
-        });
+        for (const mixer of mixers) {
+            mixer.update(delta);
+        }
+        for (const model of models) {
+            model.updateMatrixWorld();
+            instance.notifyChange(model);
+        }
+    });
 
     instance.notifyChange();
 

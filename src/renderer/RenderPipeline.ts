@@ -1,9 +1,4 @@
-import type {
-    Camera,
-    Material,
-    Object3D,
-    WebGLRenderer,
-} from 'three';
+import type { Camera, Material, Object3D, WebGLRenderer } from 'three';
 import {
     Color,
     DepthTexture,
@@ -29,7 +24,7 @@ const BUCKETS = {
  * Can be a Mesh or a PointCloud for instance
  */
 type Object3DWithMaterial = Object3D & {
-    material: Material,
+    material: Material;
 };
 
 const currentClearColor = new Color();
@@ -81,9 +76,11 @@ export default class RenderPipeline {
     }
 
     prepareRenderTargets(width: number, height: number) {
-        if (!this.sceneRenderTarget
-            || this.sceneRenderTarget.width !== width
-            || this.sceneRenderTarget.height !== height) {
+        if (
+            !this.sceneRenderTarget ||
+            this.sceneRenderTarget.width !== width ||
+            this.sceneRenderTarget.height !== height
+        ) {
             this.sceneRenderTarget?.dispose();
             this.effectComposer?.dispose();
 

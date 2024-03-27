@@ -7,7 +7,10 @@ import ColorMapMode from './ColorMapMode';
 import type NoDataOptions from './NoDataOptions';
 import type HasLayers from './HasLayers';
 import { hasLayers } from './HasLayers';
-import Interpretation, { Mode as InterpretationMode, type InterpretationOptions } from './Interpretation';
+import Interpretation, {
+    Mode as InterpretationMode,
+    type InterpretationOptions,
+} from './Interpretation';
 
 export {
     hasLayers,

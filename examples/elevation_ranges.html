@@ -4,47 +4,59 @@ shortdesc: Limit the display of a color layer or a map within an elevation range
 longdesc: By passing the <code>elevationRange</code> option to the <a href="../apidoc/classes/core.layer.ColorLayer.html" target="_blank"><code>ColorLayer</code></a> and/or <a href="../apidoc/classes/entities.Map.html" target="_blank"><code>Map</code></a> constructor, you can limit the visibility of this layer/map within this range. A possible use case is to limit the display of a satellite layer above the sea level, then limit the display of a bathymetry dataset below the sea level.
 attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
 ---
+
 <div class="m-2 position-absolute top-0 end-0">
     <div class="card m-1">
-        <div class="card-header">
-            Per-map range
-        </div>
+        <div class="card-header">Per-map range</div>
         <fieldset class="container m-1" id="options">
             <label for="mapMin" class="form-label">Lower bound</label>
             <div class="input-group">
-                <input type="range" min="500" max="3000" value="500" class="slider" id="mapMin">
+                <input type="range" min="500" max="3000" value="500" class="slider" id="mapMin" />
             </div>
 
             <div class="my-2"></div>
 
             <label for="mapMax" class="form-label">Upper bound</label>
             <div class="input-group">
-                <input type="range" min="500" max="3000" value="3000" class="slider" id="mapMax">
+                <input type="range" min="500" max="3000" value="3000" class="slider" id="mapMax" />
             </div>
         </fieldset>
     </div>
 
     <div class="card m-1">
-        <div class="card-header">
-            Per-layer range (color layer only)
-        </div>
+        <div class="card-header">Per-layer range (color layer only)</div>
         <fieldset class="container m-1" id="options">
             <!-- Toggle elevation range feature -->
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-colorlayer-range">
-                <label class="form-check-label" for="toggle-colorlayer-range">Enable elevation range</label>
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    checked="true"
+                    role="switch"
+                    id="toggle-colorlayer-range"
+                />
+                <label class="form-check-label" for="toggle-colorlayer-range"
+                    >Enable elevation range</label
+                >
             </div>
 
             <label for="layerMin" class="form-label">Lower bound</label>
             <div class="input-group">
-                <input type="range" min="500" max="3000" value="500" class="slider" id="layerMin">
+                <input type="range" min="500" max="3000" value="500" class="slider" id="layerMin" />
             </div>
 
             <div class="my-2"></div>
 
             <label for="layerMax" class="form-label">Upper bound</label>
             <div class="input-group">
-                <input type="range" min="500" max="3000" value="3000" class="slider" id="layerMax">
+                <input
+                    type="range"
+                    min="500"
+                    max="3000"
+                    value="3000"
+                    class="slider"
+                    id="layerMax"
+                />
             </div>
         </fieldset>
     </div>

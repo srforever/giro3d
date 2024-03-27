@@ -1,6 +1,4 @@
-import {
-    Fill, Stroke, Style, RegularShape,
-} from 'ol/style.js';
+import { Fill, Stroke, Style, RegularShape } from 'ol/style.js';
 import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import TileWMS from 'ol/source/TileWMS.js';
@@ -18,8 +16,10 @@ import StatusBar from './widgets/StatusBar.js';
 
 const viewer = document.getElementById('viewerDiv');
 
-Instance.registerCRS('EPSG:3946',
-    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+Instance.registerCRS(
+    'EPSG:3946',
+    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+);
 Instance.registerCRS('EPSG:4171', '+proj=longlat +ellps=GRS80 +no_defs +type=crs');
 
 const instance = new Instance(viewer, { crs: 'EPSG:3946' });
@@ -59,14 +59,15 @@ const geoJsonLayer = new ColorLayer({
         // here we are using a different one.
         dataProjection: 'EPSG:4171',
         format: new GeoJSON(),
-        style: feature => new Style({
-            fill: new Fill({
-                color: `rgba(0, 128, 0, ${feature.get('indiccanop')})`,
+        style: feature =>
+            new Style({
+                fill: new Fill({
+                    color: `rgba(0, 128, 0, ${feature.get('indiccanop')})`,
+                }),
+                stroke: new Stroke({
+                    color: 'white',
+                }),
             }),
-            stroke: new Stroke({
-                color: 'white',
-            }),
-        }),
     }),
 });
 map.addLayer(geoJsonLayer);
@@ -74,11 +75,7 @@ map.addLayer(geoJsonLayer);
 const camera = instance.camera.camera3D;
 const cameraAltitude = 2000;
 
-const cameraPosition = new Vector3(
-    extent.west(),
-    extent.south(),
-    cameraAltitude,
-);
+const cameraPosition = new Vector3(extent.west(), extent.south(), cameraAltitude);
 camera.position.copy(cameraPosition);
 
 const controls = new MapControls(camera, instance.domElement);
@@ -107,18 +104,30 @@ function bindLayerSliders(id, layer) {
         layer.contrast = 1;
         instance.notifyChange(map);
     };
-    bindSlider(`${id}-brightness`, v => { layer.brightness = v; });
-    bindSlider(`${id}-contrast`, v => { layer.contrast = v; });
-    bindSlider(`${id}-saturation`, v => { layer.saturation = v; });
+    bindSlider(`${id}-brightness`, v => {
+        layer.brightness = v;
+    });
+    bindSlider(`${id}-contrast`, v => {
+        layer.contrast = v;
+    });
+    bindSlider(`${id}-saturation`, v => {
+        layer.saturation = v;
+    });
 }
 
 bindLayerSliders('satellite', colorLayer);
 bindLayerSliders('vector', geoJsonLayer);
 
 const mapParams = map.materialOptions.colorimetry;
-bindSlider('map-brightness', v => { mapParams.brightness = v; });
-bindSlider('map-contrast', v => { mapParams.contrast = v; });
-bindSlider('map-saturation', v => { mapParams.saturation = v; });
+bindSlider('map-brightness', v => {
+    mapParams.brightness = v;
+});
+bindSlider('map-contrast', v => {
+    mapParams.contrast = v;
+});
+bindSlider('map-saturation', v => {
+    mapParams.saturation = v;
+});
 
 document.getElementById('map-reset').onclick = function onclick() {
     mapParams.brightness = 0;

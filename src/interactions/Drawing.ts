@@ -211,15 +211,25 @@ class Drawing extends Group {
     private _surfaceBottom: Mesh | undefined;
 
     /** Computed extrude depth, based on the geometry and min/max parameters */
-    public get extrudeDepth(): number | undefined { return this._extrudeDepth; }
+    public get extrudeDepth(): number | undefined {
+        return this._extrudeDepth;
+    }
     /** Get flat coordinates of the geometry */
-    public get coordinates(): number[] { return this._coordinates; }
+    public get coordinates(): number[] {
+        return this._coordinates;
+    }
     /** Get local flat coordinates (in 3d) */
-    public get localCoordinates(): Float32Array { return this._positionsTop; }
+    public get localCoordinates(): Float32Array {
+        return this._positionsTop;
+    }
     /** Get the geometry type of the object */
-    public get geometryType(): DrawingGeometryType | null { return this._geometryType; }
+    public get geometryType(): DrawingGeometryType | null {
+        return this._geometryType;
+    }
     /** Returns whether we're rendering points as 3D objects or not */
-    public get use3Dpoints() { return this._use3Dpoints; }
+    public get use3Dpoints() {
+        return this._use3Dpoints;
+    }
     /**
      * Updates the rendering of points.
      * You'll need to call `instance.notifyChange()` to notify the changes.
@@ -236,10 +246,7 @@ class Drawing extends Group {
      * @param options - Options
      * @param geojson - Initial GeoJSON geometry
      */
-    constructor(
-        options: DrawingOptions = {},
-        geojson: GeoJSON.Geometry = null,
-    ) {
+    constructor(options: DrawingOptions = {}, geojson: GeoJSON.Geometry = null) {
         super();
         this.name = options.name ?? 'drawobject';
         this._minExtrudeDepth = options.minExtrudeDepth ?? 1;
@@ -307,7 +314,10 @@ class Drawing extends Group {
      * You'll need to call `instance.notifyChange()` to notify the changes.
      */
     clear(): this {
-        if (!this._use3Dpoints && (this.geometryType === 'Point' || this.geometryType === 'MultiPoint')) {
+        if (
+            !this._use3Dpoints &&
+            (this.geometryType === 'Point' || this.geometryType === 'MultiPoint')
+        ) {
             for (const o of this.children as CSS2DObject[]) {
                 o.element.remove();
             }
@@ -502,16 +512,12 @@ class Drawing extends Group {
                     // can happen, when the user just clicked on a point and did not move the
                     // mouse (-> hovered point is the same one as clicked)
                     if (
-                        (
-                            coordinates[(nbPoints - 1) * STRIDE3D + 0]
-                            === coordinates[(nbPoints - 2) * STRIDE3D + 0]
-                        ) && (
-                            coordinates[(nbPoints - -1) * STRIDE3D + 1]
-                            === coordinates[(nbPoints - 2) * STRIDE3D + 1]
-                        ) && (
-                            coordinates[(nbPoints - 1) * STRIDE3D + 2]
-                            === coordinates[(nbPoints - 2) * STRIDE3D + 2]
-                        )
+                        coordinates[(nbPoints - 1) * STRIDE3D + 0] ===
+                            coordinates[(nbPoints - 2) * STRIDE3D + 0] &&
+                        coordinates[(nbPoints - -1) * STRIDE3D + 1] ===
+                            coordinates[(nbPoints - 2) * STRIDE3D + 1] &&
+                        coordinates[(nbPoints - 1) * STRIDE3D + 2] ===
+                            coordinates[(nbPoints - 2) * STRIDE3D + 2]
                     ) {
                         coordinates = coordinates.slice(0, -STRIDE3D);
                     }
@@ -540,9 +546,9 @@ class Drawing extends Group {
                         // the same), typically when the user just clicked on a point and did
                         // not move the mouse (-> hovered point is the same one as clicked)
                         if (
-                            coordinates[1 * STRIDE3D + 0] === coordinates[2 * STRIDE3D + 0]
-                            && coordinates[1 * STRIDE3D + 1] === coordinates[2 * STRIDE3D + 1]
-                            && coordinates[1 * STRIDE3D + 2] === coordinates[2 * STRIDE3D + 2]
+                            coordinates[1 * STRIDE3D + 0] === coordinates[2 * STRIDE3D + 0] &&
+                            coordinates[1 * STRIDE3D + 1] === coordinates[2 * STRIDE3D + 1] &&
+                            coordinates[1 * STRIDE3D + 2] === coordinates[2 * STRIDE3D + 2]
                         ) {
                             this._coordinates = coordinates.slice(0, -2 * STRIDE3D);
                             this._drawLine();
@@ -861,7 +867,11 @@ class Drawing extends Group {
         );
 
         [
-            this._side, this._lineTop, this._lineBottom, this._surfaceTop, this._surfaceBottom,
+            this._side,
+            this._lineTop,
+            this._lineBottom,
+            this._surfaceTop,
+            this._surfaceBottom,
         ].forEach(o => {
             this.add(o);
             o.position.set(0, 0, 0);

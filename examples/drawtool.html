@@ -4,7 +4,8 @@ shortdesc: Enables the user to draw points, lines and polygons.
 longdesc: The <a href="../apidoc/classes/interactions.DrawTool.html" target="_blank"><code>DrawTool</code></a> class allows you to draw geometries, such as points, lines and polygons, on surfaces. A temporary geometry is displayed while you add points, then removed when you're finished. The <code>DrawTool</code> then returns a GeoJSON object of the created geometry.
 attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological Survey</a>
 ---
-<div class="m-3 position-absolute top-0 end-0" style="width: 20vw;">
+
+<div class="m-3 position-absolute top-0 end-0" style="width: 20vw">
     <div class="row">
         <button class="col btn btn-primary" id="addPoint">Points</button>
         <button class="col mx-1 btn btn-primary" id="addLine">Line</button>
@@ -18,23 +19,33 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
             Click on the map to add points to the line. Right-click to end the shape.
         </div>
         <div class="p-2 card d-none helper" id="addPolygonHelper">
-            Click on the map to add points to the polygon. Click on the first point or right-click to end the shape.
+            Click on the map to add points to the polygon. Click on the first point or right-click
+            to end the shape.
         </div>
         <div class="p-2 card d-none helper" id="editHelper">
-            Click on a point and drag it to move it. Click on an edge to create a new point and drag it to move it. Right-click to end.
+            Click on a point and drag it to move it. Click on an edge to create a new point and drag
+            it to move it. Right-click to end.
         </div>
-        <div class="p-2 card d-none helper" id="mainHelper">
-            Click on a drawn shape to edit it.
-        </div>
+        <div class="p-2 card d-none helper" id="mainHelper">Click on a drawn shape to edit it.</div>
     </div>
     <div class="row mt-2 card">
-        <button class="btn btn-secondary dropdown-toggle" type="button" data-bs-toggle="collapse" data-bs-target="#options" aria-expanded="false" aria-controls="options">
+        <button
+            class="btn btn-secondary dropdown-toggle"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#options"
+            aria-expanded="false"
+            aria-controls="options"
+        >
             Options
         </button>
         <fieldset id="options" class="p-2 collapse">
             <div class="container">
                 <div class="row mt-1">
-                    <select class="btn btn-light border border-dark dropdown-toggle w-100" id="dragging">
+                    <select
+                        class="btn btn-light border border-dark dropdown-toggle w-100"
+                        id="dragging"
+                    >
                         <option value="0" selected>Move points via drag-and-drop</option>
                         <option value="1">Move points on click</option>
                     </select>
@@ -43,45 +54,110 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
                     <div class="input-group p-0">
                         <div class="input-group-text">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="splicingtoleranceEnabled">
-                                <label class="form-check-label" for="splicingtoleranceEnabled" title="Unit in 3D world space (when disabled, auto)">Splicing hit tolerance</label>
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    checked="true"
+                                    role="switch"
+                                    id="splicingtoleranceEnabled"
+                                />
+                                <label
+                                    class="form-check-label"
+                                    for="splicingtoleranceEnabled"
+                                    title="Unit in 3D world space (when disabled, auto)"
+                                    >Splicing hit tolerance</label
+                                >
                             </div>
                         </div>
-                        <input type="number" class="form-control" min="0" max="100" value="15" id="splicingtolerance">
+                        <input
+                            type="number"
+                            class="form-control"
+                            min="0"
+                            max="100"
+                            value="15"
+                            id="splicingtolerance"
+                        />
                     </div>
                 </div>
                 <div class="row mt-1">
                     <div class="input-group p-0">
                         <div class="input-group-text">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="minpointsEnabled">
-                                <label class="form-check-label" for="minpointsEnabled" title="Minimum points before the geometry can be finished (when disabled, auto)">Minimum points</label>
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    checked="true"
+                                    role="switch"
+                                    id="minpointsEnabled"
+                                />
+                                <label
+                                    class="form-check-label"
+                                    for="minpointsEnabled"
+                                    title="Minimum points before the geometry can be finished (when disabled, auto)"
+                                    >Minimum points</label
+                                >
                             </div>
                         </div>
-                        <input type="number" class="form-control" min="0" max="10" value="0" id="minpoints">
+                        <input
+                            type="number"
+                            class="form-control"
+                            min="0"
+                            max="10"
+                            value="0"
+                            id="minpoints"
+                        />
                     </div>
                 </div>
                 <div class="row mt-1">
                     <div class="input-group p-0">
                         <div class="input-group-text">
                             <div class="form-check form-switch">
-                                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="maxpointsEnabled">
-                                <label class="form-check-label" for="maxpointsEnabled" title="Number of points at which the geometry is automatically considered as finished">Maximum points</label>
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    checked="true"
+                                    role="switch"
+                                    id="maxpointsEnabled"
+                                />
+                                <label
+                                    class="form-check-label"
+                                    for="maxpointsEnabled"
+                                    title="Number of points at which the geometry is automatically considered as finished"
+                                    >Maximum points</label
+                                >
                             </div>
                         </div>
-                        <input type="number" class="form-control" min="0" max="10" value="10" id="maxpoints">
+                        <input
+                            type="number"
+                            class="form-control"
+                            min="0"
+                            max="10"
+                            value="10"
+                            id="maxpoints"
+                        />
                     </div>
                 </div>
                 <div class="row mt-1">
                     <div>
                         <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" checked="true" role="switch" id="addpointsEnabled">
-                            <label class="form-check-label" for="addpointsEnabled">Add new points when editing</label>
+                            <input
+                                class="form-check-input"
+                                type="checkbox"
+                                checked="true"
+                                role="switch"
+                                id="addpointsEnabled"
+                            />
+                            <label class="form-check-label" for="addpointsEnabled"
+                                >Add new points when editing</label
+                            >
                         </div>
                     </div>
                 </div>
                 <div class="row mt-1">
-                    <select class="btn btn-light border border-dark dropdown-toggle w-100" id="pointsrendering">
+                    <select
+                        class="btn btn-light border border-dark dropdown-toggle w-100"
+                        id="pointsrendering"
+                    >
                         <option value="0">Render points as 3D objects</option>
                         <option value="1" selected>Render points via CSS2DRenderer</option>
                     </select>
@@ -91,6 +167,6 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
     </div>
 </div>
 
-<div class="me-3 mb-5 position-absolute bottom-0 end-0" style="width: 20vw;">
+<div class="me-3 mb-5 position-absolute bottom-0 end-0" style="width: 20vw">
     <div class="p-2 card d-none" id="hoverHelper"></div>
 </div>

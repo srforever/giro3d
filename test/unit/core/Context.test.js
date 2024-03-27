@@ -24,11 +24,10 @@ describe('Context', () => {
             expect(context.distance.min).toBe(Infinity);
             expect(context.distance.max).toBe(0);
             expect(context.distance.plane).toEqual(
-                new Plane()
-                    .setFromNormalAndCoplanarPoint(
-                        threeCamera.getWorldDirection(new Vector3()),
-                        threeCamera.position,
-                    ),
+                new Plane().setFromNormalAndCoplanarPoint(
+                    threeCamera.getWorldDirection(new Vector3()),
+                    threeCamera.position,
+                ),
             );
         });
     });

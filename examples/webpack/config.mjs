@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import CopyPlugin from 'copy-webpack-plugin';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -52,7 +51,9 @@ export default (env, argv) => {
         optimization: {
             minimize: argv.mode === 'production',
             splitChunks: {
-                chunks(chunk) { return chunk.name !== 'index'; },
+                chunks(chunk) {
+                    return chunk.name !== 'index';
+                },
                 name: 'shared',
             },
         },

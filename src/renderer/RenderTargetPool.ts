@@ -1,7 +1,14 @@
-import { EventDispatcher, type WebGLRenderer, WebGLRenderTarget, type RenderTargetOptions } from "three";
+import {
+    EventDispatcher,
+    type WebGLRenderer,
+    WebGLRenderTarget,
+    type RenderTargetOptions,
+} from 'three';
 
 export interface RenderTargetPoolEvents {
-    'cleanup': { /** nothing */ }
+    cleanup: {
+        /** nothing */
+    };
 }
 
 /**
@@ -9,7 +16,10 @@ export interface RenderTargetPoolEvents {
  */
 export default class RenderTargetPool extends EventDispatcher<RenderTargetPoolEvents> {
     // Note that we cannot share render targets between instances are they are tied to a single WebGLRenderer.
-    private readonly _perRendererPools: Map<WebGLRenderer, Map<RenderTargetOptions, WebGLRenderTarget[]>> = new Map();
+    private readonly _perRendererPools: Map<
+        WebGLRenderer,
+        Map<RenderTargetOptions, WebGLRenderTarget[]>
+    > = new Map();
     private readonly _renderTargets: Map<WebGLRenderTarget, RenderTargetOptions> = new Map();
     private readonly _cleanupTimeoutMs: number;
     private _timeout: NodeJS.Timeout;
@@ -73,7 +83,7 @@ export default class RenderTargetPool extends EventDispatcher<RenderTargetPoolEv
                 list.forEach(renderTarget => {
                     renderTarget.dispose();
                     this._renderTargets.delete(renderTarget);
-                })
+                });
             });
         });
         this._perRendererPools.clear();

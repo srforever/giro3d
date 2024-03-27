@@ -3,6 +3,7 @@ title: Multiple instances in different layouts
 shortdesc: Displays multiples instances with different layouts (flex, sticky, fixed, etc.).
 attribution: Map style by <a target="_blank" href="https://stamen.com/">Stamen Design</a>, © OpenStreetMap contributors
 ---
+
 <!--
     In all examples we are using Bootstrap classes for styling.
     Here, we are using:
@@ -10,18 +11,20 @@ attribution: Map style by <a target="_blank" href="https://stamen.com/">Stamen D
     - Bootstrap classes and embedded <style> for pure styling (borders, padding, margin, backgrounds, etc.).
 -->
 
-<div id="legendSticky" style="position: sticky; z-index: 1021; top: 0;" class="ps-2">Sticky position</div>
+<div id="legendSticky" style="position: sticky; z-index: 1021; top: 0" class="ps-2">
+    Sticky position
+</div>
 <!-- A container must have a size (height+width), and can have any style applied-->
 <div
     id="viewerDivSticky"
-    style="position: sticky; z-index: 1020; top: 0; height: 300px; width: 100%;"
-    class="viewer p-2 border-bottom border-5 border-dark">
-</div>
+    style="position: sticky; z-index: 1020; top: 0; height: 300px; width: 100%"
+    class="viewer p-2 border-bottom border-5 border-dark"
+></div>
 
-<div id="containerFlex" style="display: flex; align-items: stretch; height: 50vh;" class="mt-5">
+<div id="containerFlex" style="display: flex; align-items: stretch; height: 50vh" class="mt-5">
     <div id="legendNestedFlex" class="pt-2">Nested flex layouts</div>
     <!-- In flex display, a container can have a flex property instead of a size -->
-    <div id="viewerDivNestedFlex1" style="flex: 1 1 auto;" class="viewer ps-2 pe-2"></div>
+    <div id="viewerDivNestedFlex1" style="flex: 1 1 auto" class="viewer ps-2 pe-2"></div>
 
     <!--
         In case you are using your own renderer, you are responsible for the layout, for instance:
@@ -30,9 +33,16 @@ attribution: Map style by <a target="_blank" href="https://stamen.com/">Stamen D
             - this is to ensure a correct sizing of the renderer when the parent div is resized
         - the div that will hold your renderer, that fills its parent
     -->
-    <div style="min-width: 20vw; height: 100%;" class="p-5 border border-3 border-dark">
-        <div id="customViewDivContainer" style="position: relative; overflow: hidden; width: 100%; height: 100%;">
-            <div id="customViewerDiv" style="width: 100%; height: 100%;" class="viewer-custom-renderer"></div>
+    <div style="min-width: 20vw; height: 100%" class="p-5 border border-3 border-dark">
+        <div
+            id="customViewDivContainer"
+            style="position: relative; overflow: hidden; width: 100%; height: 100%"
+        >
+            <div
+                id="customViewerDiv"
+                style="width: 100%; height: 100%"
+                class="viewer-custom-renderer"
+            ></div>
         </div>
         <span class="position-absolute">Custom WebGL Renderer</span>
     </div>
@@ -40,22 +50,15 @@ attribution: Map style by <a target="_blank" href="https://stamen.com/">Stamen D
 
 <div id="legendOverflow" class="mt-5 ps-2">Overflow</div>
 <!-- You can also have containers that are larger than the viewport -->
-<div
-    id="viewerDivOverflow"
-    style="width: 100%; height: 200vh;"
-    class="viewer p-2">
-</div>
+<div id="viewerDivOverflow" style="width: 100%; height: 200vh" class="viewer p-2"></div>
 
 <!-- You can also have containers that are at fixed positions -->
 <div
     id="viewerDivFixed"
-    style="position: fixed; left:0; bottom: 0; height: 200px; width: 50vw;"
-    class="viewer p-2 border border-3 border-dark">
-</div>
+    style="position: fixed; left: 0; bottom: 0; height: 200px; width: 50vw"
+    class="viewer p-2 border border-3 border-dark"
+></div>
 <!-- Any Giro3D container can have overlays, as long as they are after in the DOM (or using z-index) -->
-<span
-    id="legendFixed"
-    style="position: fixed; left: 0; bottom: 0;"
-    class="ps-2">
+<span id="legendFixed" style="position: fixed; left: 0; bottom: 0" class="ps-2">
     Fixed position
 </span>

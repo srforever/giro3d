@@ -1,9 +1,4 @@
-import {
-    Box3,
-    Matrix4,
-    Sphere,
-    Vector3,
-} from 'three';
+import { Box3, Matrix4, Sphere, Vector3 } from 'three';
 import type Tile from './Tile';
 import { type BoundingVolume } from './BoundingVolume';
 import type { $3dTilesTileset, $3dTilesTile, $3dTilesBoundingVolume } from './types';
@@ -11,17 +6,17 @@ import type { $3dTilesTileset, $3dTilesTile, $3dTilesBoundingVolume } from './ty
 /** Processed tile metadata */
 export interface ProcessedTile extends $3dTilesTile {
     isProcessedTile: boolean;
-    transformMatrix: Matrix4,
+    transformMatrix: Matrix4;
     worldFromLocalTransform: Matrix4;
-    viewerRequestVolumeObject?: BoundingVolume,
-    boundingVolumeObject: BoundingVolume,
-    promise?: Promise<void>,
+    viewerRequestVolumeObject?: BoundingVolume;
+    boundingVolumeObject: BoundingVolume;
+    promise?: Promise<void>;
 
     tileId: number;
-    magic?: string,
+    magic?: string;
 
     obj?: Tile;
-    children?: ProcessedTile[],
+    children?: ProcessedTile[];
 }
 
 const identity = new Matrix4();
@@ -45,10 +40,8 @@ function getBox(
         const halfXVector = new Vector3(bbox[3], bbox[4], bbox[5]);
         const halfYVector = new Vector3(bbox[6], bbox[7], bbox[8]);
         const halfZVector = new Vector3(bbox[9], bbox[10], bbox[11]);
-        const point1 = center.clone()
-            .sub(halfXVector).sub(halfYVector).sub(halfZVector);
-        const point2 = center.clone()
-            .add(halfXVector).add(halfYVector).add(halfZVector);
+        const point1 = center.clone().sub(halfXVector).sub(halfYVector).sub(halfZVector);
+        const point2 = center.clone().add(halfXVector).add(halfYVector).add(halfZVector);
         const w = Math.min(point1.x, point2.x);
         const e = Math.max(point1.x, point2.x);
         const s = Math.min(point1.y, point2.y);
@@ -89,13 +82,16 @@ class $3dTilesIndex {
         this._recurse(tileset.root, baseURL);
     }
 
-    get(tile: Tile): ProcessedTile { return this.index[tile.tileId]; }
+    get(tile: Tile): ProcessedTile {
+        return this.index[tile.tileId];
+    }
 
     private _recurse(node: $3dTilesTile, baseURL: string, parent?: ProcessedTile) {
         const indexedNode = node as ProcessedTile;
         // compute transform (will become Object3D.matrix when the object is downloaded)
         indexedNode.transformMatrix = node.transform
-            ? (new Matrix4()).fromArray(node.transform) : identity;
+            ? new Matrix4().fromArray(node.transform)
+            : identity;
 
         // The only reason to store _worldFromLocalTransform is because of extendTileset where we
         // need the transform chain for one node.
@@ -103,7 +99,8 @@ class $3dTilesIndex {
         if (parent && parent.worldFromLocalTransform) {
             if (indexedNode.transform) {
                 indexedNode.worldFromLocalTransform = new Matrix4().multiplyMatrices(
-                    parent.worldFromLocalTransform, indexedNode.transformMatrix,
+                    parent.worldFromLocalTransform,
+                    indexedNode.transformMatrix,
                 );
             } else {
                 indexedNode.worldFromLocalTransform = parent.worldFromLocalTransform;
@@ -123,7 +120,8 @@ class $3dTilesIndex {
             ? getBox(indexedNode.viewerRequestVolume, this._inverseTileTransform)
             : undefined;
         indexedNode.boundingVolumeObject = getBox(
-            indexedNode.boundingVolume, this._inverseTileTransform,
+            indexedNode.boundingVolume,
+            this._inverseTileTransform,
         );
         indexedNode.refine = indexedNode.refine || (parent ? parent.refine : 'ADD');
 

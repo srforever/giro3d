@@ -28,7 +28,10 @@ describe('Map', () => {
     let map;
 
     const extent = new Extent('EPSG:4326', {
-        west: 0, east: 10, south: 0, north: 10,
+        west: 0,
+        east: 10,
+        south: 0,
+        north: 10,
     });
 
     beforeEach(() => {
@@ -327,9 +330,15 @@ describe('Map', () => {
     describe('addLayers', () => {
         it('should accept only Layer object', async () => {
             await expect(map.addLayer()).rejects.toThrowError('layer is not an instance of Layer');
-            await expect(map.addLayer(null)).rejects.toThrowError('layer is not an instance of Layer');
-            await expect(map.addLayer([])).rejects.toThrowError('layer is not an instance of Layer');
-            await expect(map.addLayer(map)).rejects.toThrowError('layer is not an instance of Layer');
+            await expect(map.addLayer(null)).rejects.toThrowError(
+                'layer is not an instance of Layer',
+            );
+            await expect(map.addLayer([])).rejects.toThrowError(
+                'layer is not an instance of Layer',
+            );
+            await expect(map.addLayer(map)).rejects.toThrowError(
+                'layer is not an instance of Layer',
+            );
 
             expect(map.getLayers()).toStrictEqual([]);
         });
@@ -348,7 +357,9 @@ describe('Map', () => {
             const layer = new ColorLayer({ source: nullSource });
 
             map.addLayer(layer);
-            await expect(map.addLayer(layer)).rejects.toThrowError(/is already present in this map/);
+            await expect(map.addLayer(layer)).rejects.toThrowError(
+                /is already present in this map/,
+            );
         });
 
         it('should fire the layer-added event', async () => {
@@ -962,7 +973,9 @@ describe('Map', () => {
     describe('setRenderState', () => {
         it('should update the render state of the root nodes', () => {
             const fn = jest.fn();
-            map.level0Nodes.forEach(n => { n.pushRenderState = fn; });
+            map.level0Nodes.forEach(n => {
+                n.pushRenderState = fn;
+            });
 
             const state = RenderingState.DEPTH;
             map.setRenderState(state);

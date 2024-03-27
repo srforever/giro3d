@@ -38,7 +38,11 @@ class ProcessingInspector extends Panel {
 
     dumpTrackedTextures() {
         const items = MemoryTracker.getTrackedTextures();
-        console.log(items.filter(item => item.inGpuMemory).map(item => `${item.texture.id} - ${item.texture.name}`));
+        console.log(
+            items
+                .filter(item => item.inGpuMemory)
+                .map(item => `${item.texture.id} - ${item.texture.name}`),
+        );
     }
 
     updateValues() {

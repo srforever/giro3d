@@ -1,20 +1,21 @@
 import { Feature } from 'ol';
-import {
-    Point, MultiPoint, Polygon, MultiPolygon,
-} from 'ol/geom';
+import { Point, MultiPoint, Polygon, MultiPolygon } from 'ol/geom';
 
 import type { Points } from 'three';
 import { Vector3 } from 'three';
 
 import OlFeature2Mesh from 'src/utils/OlFeature2Mesh';
 
-const SIMPLE_SQUARE = [[[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0], [0, 0, 0]]];
-const SIMPLE_SQUARE_VERTICES = new Float32Array([
-    0, 0, 0,
-    0, 1, 0,
-    1, 1, 0,
-    1, 0, 0,
-]);
+const SIMPLE_SQUARE = [
+    [
+        [0, 0, 0],
+        [0, 1, 0],
+        [1, 1, 0],
+        [1, 0, 0],
+        [0, 0, 0],
+    ],
+];
+const SIMPLE_SQUARE_VERTICES = new Float32Array([0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0]);
 const SIMPLE_SQUARE_INDICES = new Uint16Array([1, 0, 3, 3, 2, 1]);
 
 /*
@@ -27,12 +28,23 @@ const SIMPLE_SQUARE_INDICES = new Uint16Array([1, 0, 3, 3, 2, 1]);
  * |          |
  * *----------* */
 const SQUARE_WITH_HOLE = [
-    [[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0], [0, 0, 0]],
-    [[0.2, 0.2, 0], [0.2, 0.3, 0], [0.3, 0.2, 0], [0.2, 0.2, 0]],
+    [
+        [0, 0, 0],
+        [0, 1, 0],
+        [1, 1, 0],
+        [1, 0, 0],
+        [0, 0, 0],
+    ],
+    [
+        [0.2, 0.2, 0],
+        [0.2, 0.3, 0],
+        [0.3, 0.2, 0],
+        [0.2, 0.2, 0],
+    ],
 ];
-const SQUARE_WITH_HOLE_VERTICES = new Float32Array(
-    [0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0.2, 0.2, 0, 0.2, 0.3, 0, 0.3, 0.2, 0],
-);
+const SQUARE_WITH_HOLE_VERTICES = new Float32Array([
+    0, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0.2, 0.2, 0, 0.2, 0.3, 0, 0.3, 0.2, 0,
+]);
 // this is the vertices extruded with 1
 const EXTRUDED_SQUARE_WITH_HOLE_VERTICES = new Float32Array([
     // bottom face, with the hole
@@ -49,9 +61,8 @@ const EXTRUDED_SQUARE_WITH_HOLE_VERTICES = new Float32Array([
     // 4rd
     1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1,
     // walls for the hole
-    0.2, 0.2, 0, 0.2, 0.3, 0, 0.2, 0.2, 1, 0.2, 0.3, 1,
-    0.2, 0.3, 0, 0.3, 0.2, 0, 0.2, 0.3, 1, 0.3, 0.2, 1,
-    0.3, 0.2, 0, 0.2, 0.2, 0, 0.3, 0.2, 1, 0.2, 0.2, 1,
+    0.2, 0.2, 0, 0.2, 0.3, 0, 0.2, 0.2, 1, 0.2, 0.3, 1, 0.2, 0.3, 0, 0.3, 0.2, 0, 0.2, 0.3, 1, 0.3,
+    0.2, 1, 0.3, 0.2, 0, 0.2, 0.2, 0, 0.3, 0.2, 1, 0.2, 0.2, 1,
 ]);
 // extruded with a function returning 1..7
 const EXTRUDED_WITH_FN_SQUARE_WITH_HOLE_VERTICES = new Float32Array([
@@ -69,18 +80,11 @@ const EXTRUDED_WITH_FN_SQUARE_WITH_HOLE_VERTICES = new Float32Array([
     // 4rd
     1, 0, 0, 0, 0, 0, 1, 0, 4, 0, 0, 1,
     // walls for the hole
-    0.2, 0.2, 0, 0.2, 0.3, 0, 0.2, 0.2, 5, 0.2, 0.3, 6,
-    0.2, 0.3, 0, 0.3, 0.2, 0, 0.2, 0.3, 6, 0.3, 0.2, 7,
-    0.3, 0.2, 0, 0.2, 0.2, 0, 0.3, 0.2, 7, 0.2, 0.2, 5,
+    0.2, 0.2, 0, 0.2, 0.3, 0, 0.2, 0.2, 5, 0.2, 0.3, 6, 0.2, 0.3, 0, 0.3, 0.2, 0, 0.2, 0.3, 6, 0.3,
+    0.2, 7, 0.3, 0.2, 0, 0.2, 0.2, 0, 0.3, 0.2, 7, 0.2, 0.2, 5,
 ]);
 const SQUARE_WITH_HOLE_INDICES = new Uint16Array([
-    0, 4, 5,
-    6, 4, 0,
-    3, 2, 1,
-    1, 0, 5,
-    6, 0, 3,
-    3, 1, 5,
-    5, 6, 3,
+    0, 4, 5, 6, 4, 0, 3, 2, 1, 1, 0, 5, 6, 0, 3, 3, 1, 5, 5, 6, 3,
 ]);
 
 describe('OlFeature2Mesh', () => {
@@ -106,7 +110,9 @@ describe('OlFeature2Mesh', () => {
 
         const mesh = meshes[0];
         expect((mesh as Points).isPoints).toBeTruthy();
-        expect(mesh.geometry.getAttribute('position').array).toEqual(new Float32Array([-2, -2, -2]));
+        expect(mesh.geometry.getAttribute('position').array).toEqual(
+            new Float32Array([-2, -2, -2]),
+        );
     });
 
     it('should deal with several point features', () => {
@@ -125,15 +131,24 @@ describe('OlFeature2Mesh', () => {
         const meshes = OlFeature2Mesh.convert(fs, { offset: new Vector3(3, 4, 5) });
         expect(meshes).toHaveLength(3);
 
-        expect(meshes[0].geometry.getAttribute('position').array).toEqual(new Float32Array([-2, -2, -2]));
-        expect(meshes[1].geometry.getAttribute('position').array).toEqual(new Float32Array([8, 8, 8]));
-        expect(meshes[2].geometry.getAttribute('position').array).toEqual(new Float32Array([18, 18, 18]));
+        expect(meshes[0].geometry.getAttribute('position').array).toEqual(
+            new Float32Array([-2, -2, -2]),
+        );
+        expect(meshes[1].geometry.getAttribute('position').array).toEqual(
+            new Float32Array([8, 8, 8]),
+        );
+        expect(meshes[2].geometry.getAttribute('position').array).toEqual(
+            new Float32Array([18, 18, 18]),
+        );
     });
 
     it('should deal with several multipoint', () => {
         const fs = [
             new Feature({
-                geometry: new MultiPoint([[1, 2, 3], [4, 5, 6]]),
+                geometry: new MultiPoint([
+                    [1, 2, 3],
+                    [4, 5, 6],
+                ]),
             }),
             new Feature({
                 geometry: new Point([11, 12, 13]),
@@ -147,11 +162,17 @@ describe('OlFeature2Mesh', () => {
         expect(meshes).toHaveLength(3);
 
         expect((meshes[0] as Points).isPoints).toBeTruthy();
-        expect(meshes[0].geometry.getAttribute('position').array).toEqual(new Float32Array([-2, -2, -2, 1, 1, 1]));
+        expect(meshes[0].geometry.getAttribute('position').array).toEqual(
+            new Float32Array([-2, -2, -2, 1, 1, 1]),
+        );
         expect((meshes[1] as Points).isPoints).toBeTruthy();
-        expect(meshes[1].geometry.getAttribute('position').array).toEqual(new Float32Array([8, 8, 8]));
+        expect(meshes[1].geometry.getAttribute('position').array).toEqual(
+            new Float32Array([8, 8, 8]),
+        );
         expect((meshes[2] as Points).isPoints).toBeTruthy();
-        expect(meshes[2].geometry.getAttribute('position').array).toEqual(new Float32Array([18, 18, 18]));
+        expect(meshes[2].geometry.getAttribute('position').array).toEqual(
+            new Float32Array([18, 18, 18]),
+        );
     });
 
     it('should correctly convert a polygon', () => {
@@ -186,7 +207,9 @@ describe('OlFeature2Mesh', () => {
         expect((mesh as any).isMesh).toBeTruthy();
         expect((mesh as any).isPoints).toBeFalsy();
         // NOTE: last (closing) vertex removed
-        expect(mesh.geometry.getAttribute('position').array).toEqual(SIMPLE_SQUARE_VERTICES.map(v => v - 2));
+        expect(mesh.geometry.getAttribute('position').array).toEqual(
+            SIMPLE_SQUARE_VERTICES.map(v => v - 2),
+        );
         expect(mesh.geometry.index.array).toEqual(SIMPLE_SQUARE_INDICES);
     });
 
@@ -203,18 +226,29 @@ describe('OlFeature2Mesh', () => {
 
         expect((meshes[0] as any).isMesh).toBeTruthy();
         expect((meshes[0] as any).isPoints).toBeFalsy();
-        expect(meshes[0].geometry.getAttribute('position').array).toEqual(SQUARE_WITH_HOLE_VERTICES);
-        expect(meshes[0].geometry.index.array).toEqual(new Uint16Array(
-            SQUARE_WITH_HOLE_INDICES,
-        ));
+        expect(meshes[0].geometry.getAttribute('position').array).toEqual(
+            SQUARE_WITH_HOLE_VERTICES,
+        );
+        expect(meshes[0].geometry.index.array).toEqual(new Uint16Array(SQUARE_WITH_HOLE_INDICES));
     });
 
     it('should deal with a polygon with simple extrusion', () => {
         const fs = [
             new Feature({
                 geometry: new Polygon([
-                    [[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0], [0, 0, 0]],
-                    [[0.2, 0.2, 0], [0.2, 0.3, 0], [0.3, 0.2, 0], [0.2, 0.2, 0]],
+                    [
+                        [0, 0, 0],
+                        [0, 1, 0],
+                        [1, 1, 0],
+                        [1, 0, 0],
+                        [0, 0, 0],
+                    ],
+                    [
+                        [0.2, 0.2, 0],
+                        [0.2, 0.3, 0],
+                        [0.3, 0.2, 0],
+                        [0.2, 0.2, 0],
+                    ],
                 ]),
             }),
         ];
@@ -226,22 +260,31 @@ describe('OlFeature2Mesh', () => {
 
         expect((mesh as any).isMesh).toBeTruthy();
         expect((mesh as any).isPoints).toBeFalsy();
-        expect(mesh.geometry.getAttribute('position').array).toEqual(EXTRUDED_SQUARE_WITH_HOLE_VERTICES);
+        expect(mesh.geometry.getAttribute('position').array).toEqual(
+            EXTRUDED_SQUARE_WITH_HOLE_VERTICES,
+        );
         expect(mesh.geometry.index.array.slice(0, 21)).toEqual(SQUARE_WITH_HOLE_INDICES);
         // triangulation of the roof. Just the same, but shifted by the number of vertices of the
         // floor (7)
-        expect(mesh.geometry.index.array.slice(21, 42))
-            .toEqual(SQUARE_WITH_HOLE_INDICES.map(i => i + 7));
+        expect(mesh.geometry.index.array.slice(21, 42)).toEqual(
+            SQUARE_WITH_HOLE_INDICES.map(i => i + 7),
+        );
         // walls
         // the first wall vertex id is the 14th, because we have 7 + 7 for the floor and roof
         // and there is 7 walls
         for (let i = 0; i < 7; i++) {
             const startIdx = i * 4;
             const wallTriangles = mesh.geometry.index.array.slice(42 + i * 6, 42 + (i + 1) * 6);
-            expect(wallTriangles).toEqual(new Uint16Array([
-                14 + startIdx + 0, 14 + startIdx + 1, 14 + startIdx + 2,
-                14 + startIdx + 2, 14 + startIdx + 1, 14 + startIdx + 3,
-            ]));
+            expect(wallTriangles).toEqual(
+                new Uint16Array([
+                    14 + startIdx + 0,
+                    14 + startIdx + 1,
+                    14 + startIdx + 2,
+                    14 + startIdx + 2,
+                    14 + startIdx + 1,
+                    14 + startIdx + 3,
+                ]),
+            );
         }
     });
 
@@ -249,8 +292,19 @@ describe('OlFeature2Mesh', () => {
         const fs = [
             new Feature({
                 geometry: new Polygon([
-                    [[0, 0, 0], [0, 1, 0], [1, 1, 0], [1, 0, 0], [0, 0, 0]],
-                    [[0.2, 0.2, 0], [0.2, 0.3, 0], [0.3, 0.2, 0], [0.2, 0.2, 0]],
+                    [
+                        [0, 0, 0],
+                        [0, 1, 0],
+                        [1, 1, 0],
+                        [1, 0, 0],
+                        [0, 0, 0],
+                    ],
+                    [
+                        [0.2, 0.2, 0],
+                        [0.2, 0.3, 0],
+                        [0.3, 0.2, 0],
+                        [0.2, 0.2, 0],
+                    ],
                 ]),
             }),
         ];
@@ -263,22 +317,31 @@ describe('OlFeature2Mesh', () => {
 
         expect((mesh as any).isMesh).toBeTruthy();
         expect((mesh as any).isPoints).toBeFalsy();
-        expect(mesh.geometry.getAttribute('position').array).toEqual(EXTRUDED_WITH_FN_SQUARE_WITH_HOLE_VERTICES);
+        expect(mesh.geometry.getAttribute('position').array).toEqual(
+            EXTRUDED_WITH_FN_SQUARE_WITH_HOLE_VERTICES,
+        );
         expect(mesh.geometry.index.array.slice(0, 21)).toEqual(SQUARE_WITH_HOLE_INDICES);
         // triangulation of the roof. Just the same, but shifted by the number of vertices of the
         // floor (7)
-        expect(mesh.geometry.index.array.slice(21, 42))
-            .toEqual(SQUARE_WITH_HOLE_INDICES.map(i => i + 7));
+        expect(mesh.geometry.index.array.slice(21, 42)).toEqual(
+            SQUARE_WITH_HOLE_INDICES.map(i => i + 7),
+        );
         // walls
         // the first wall vertex id is the 14th, because we have 7 + 7 for the floor and roof
         // and there is 7 walls
         for (let i = 0; i < 7; i++) {
             const startIdx = i * 4;
             const wallTriangles = mesh.geometry.index.array.slice(42 + i * 6, 42 + (i + 1) * 6);
-            expect(wallTriangles).toEqual(new Uint16Array([
-                14 + startIdx + 0, 14 + startIdx + 1, 14 + startIdx + 2,
-                14 + startIdx + 2, 14 + startIdx + 1, 14 + startIdx + 3,
-            ]));
+            expect(wallTriangles).toEqual(
+                new Uint16Array([
+                    14 + startIdx + 0,
+                    14 + startIdx + 1,
+                    14 + startIdx + 2,
+                    14 + startIdx + 2,
+                    14 + startIdx + 1,
+                    14 + startIdx + 3,
+                ]),
+            );
         }
     });
 
@@ -312,10 +375,10 @@ describe('OlFeature2Mesh', () => {
 
         expect((meshes[0] as any).isMesh).toBeTruthy();
         expect((meshes[0] as any).isPoints).toBeFalsy();
-        expect(meshes[0].geometry.getAttribute('position').array).toEqual(SQUARE_WITH_HOLE_VERTICES);
-        expect(meshes[0].geometry.index.array).toEqual(new Uint16Array(
-            SQUARE_WITH_HOLE_INDICES,
-        ));
+        expect(meshes[0].geometry.getAttribute('position').array).toEqual(
+            SQUARE_WITH_HOLE_VERTICES,
+        );
+        expect(meshes[0].geometry.index.array).toEqual(new Uint16Array(SQUARE_WITH_HOLE_INDICES));
     });
 
     it('should deal with a multipolygon with holes and extrusion', () => {
@@ -332,22 +395,31 @@ describe('OlFeature2Mesh', () => {
 
         expect((mesh as any).isMesh).toBeTruthy();
         expect((mesh as any).isPoints).toBeFalsy();
-        expect(mesh.geometry.getAttribute('position').array).toEqual(EXTRUDED_SQUARE_WITH_HOLE_VERTICES);
+        expect(mesh.geometry.getAttribute('position').array).toEqual(
+            EXTRUDED_SQUARE_WITH_HOLE_VERTICES,
+        );
         expect(mesh.geometry.index.array.slice(0, 21)).toEqual(SQUARE_WITH_HOLE_INDICES);
         // triangulation of the roof. Just the same, but shifted by the number of vertices of the
         // floor (7)
-        expect(mesh.geometry.index.array.slice(21, 42))
-            .toEqual(SQUARE_WITH_HOLE_INDICES.map(i => i + 7));
+        expect(mesh.geometry.index.array.slice(21, 42)).toEqual(
+            SQUARE_WITH_HOLE_INDICES.map(i => i + 7),
+        );
         // walls
         // the first wall vertex id is the 14th, because we have 7 + 7 for the floor and roof
         // and there is 7 walls
         for (let i = 0; i < 7; i++) {
             const startIdx = i * 4;
             const wallTriangles = mesh.geometry.index.array.slice(42 + i * 6, 42 + (i + 1) * 6);
-            expect(wallTriangles).toEqual(new Uint16Array([
-                14 + startIdx + 0, 14 + startIdx + 1, 14 + startIdx + 2,
-                14 + startIdx + 2, 14 + startIdx + 1, 14 + startIdx + 3,
-            ]));
+            expect(wallTriangles).toEqual(
+                new Uint16Array([
+                    14 + startIdx + 0,
+                    14 + startIdx + 1,
+                    14 + startIdx + 2,
+                    14 + startIdx + 2,
+                    14 + startIdx + 1,
+                    14 + startIdx + 3,
+                ]),
+            );
         }
     });
 });

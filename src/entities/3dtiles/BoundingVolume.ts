@@ -1,6 +1,4 @@
-import {
-    Vector3, Box3, type Matrix4, Sphere,
-} from 'three';
+import { Vector3, Box3, type Matrix4, Sphere } from 'three';
 import type OBB from '../../core/OBB';
 import { type ProcessedTile } from './3dTilesIndex';
 import type Camera from '../../renderer/Camera';
@@ -79,8 +77,10 @@ export function cullingTestBoundingVolume(
     tileMatrixWorld: Matrix4,
 ): boolean {
     if (boundingVolume.region) {
-        return !camera.isBox3Visible(boundingVolume.region.box3D,
-            tileMatrixWorld.clone().multiply(boundingVolume.region.matrix));
+        return !camera.isBox3Visible(
+            boundingVolume.region.box3D,
+            tileMatrixWorld.clone().multiply(boundingVolume.region.matrix),
+        );
     }
     if (boundingVolume.box) {
         return !camera.isBox3Visible(boundingVolume.box, tileMatrixWorld);
@@ -97,12 +97,9 @@ export function cullingTest(
     node: ProcessedTile | Tile,
     tileMatrixWorld: Matrix4,
 ): boolean {
-    const viewerRequestVolume = (node instanceof Tile)
-        ? node.viewerRequestVolume
-        : node.viewerRequestVolumeObject;
-    const boundingVolume = (node instanceof Tile)
-        ? node.boundingVolume
-        : node.boundingVolumeObject;
+    const viewerRequestVolume =
+        node instanceof Tile ? node.viewerRequestVolume : node.viewerRequestVolumeObject;
+    const boundingVolume = node instanceof Tile ? node.boundingVolume : node.boundingVolumeObject;
 
     if (viewerRequestVolume) {
         // For viewer Request Volume https://github.com/AnalyticalGraphicsInc/3d-tiles-samples/tree/master/tilesets/TilesetWithRequestVolume

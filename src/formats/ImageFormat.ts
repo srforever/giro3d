@@ -34,7 +34,10 @@ abstract class ImageFormat {
      * @param options - The decoder options.
      * @returns The decoded texture.
      */
-    abstract decode(blob: Blob, options: DecodeOptions): Promise<{
+    abstract decode(
+        blob: Blob,
+        options: DecodeOptions,
+    ): Promise<{
         texture: Texture;
         min?: number;
         max?: number;

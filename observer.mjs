@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import fs from 'fs';
 import glob from 'glob';
 import path from 'path';
@@ -12,9 +11,9 @@ function usage() {
 /**
  * Search Javascript files that inline the provided GLSL file.
  *
- * @param {string} glslFile The file to search.
- * @param {string} sourceFolder The path to the source folder.
- * @param {Function} callback The callback called for each javascript file.
+ * @param {string} - glslFile The file to search.
+ * @param {string} - sourceFolder The path to the source folder.
+ * @param {Function} - callback The callback called for each javascript file.
  */
 function searchInlinedFiles(glslFile, sourceFolder, callback) {
     const glslFilename = path.basename(glslFile);
@@ -42,9 +41,9 @@ function searchInlinedFiles(glslFile, sourceFolder, callback) {
  * - If it is a javascript file, it will be transpiled.
  * - If it is a GLSL file, all javascript files that inline this file will be transpiled.
  *
- * @param {string} sourceFile The modified file.
- * @param {string} sourceFolder The top-level folder containing the modified file.
- * @param {string} destFolder The top-level folder to put the transpiled results.
+ * @param {string} - sourceFile The modified file.
+ * @param {string} - sourceFolder The top-level folder containing the modified file.
+ * @param {string} - destFolder The top-level folder to put the transpiled results.
  */
 function handleModification(sourceFile, sourceFolder, destFolder) {
     console.log(); // newline
@@ -65,14 +64,12 @@ function handleModification(sourceFile, sourceFolder, destFolder) {
 /**
  * Transpile a single Javascript file using the babel command line.
  *
- * @param {string} sourceFile The file to transpile.
- * @param {string} sourceFolder The top-level folder containing the modified file.
- * @param {string} destFolder The top-level folder to put the transpiled file and source map.
+ * @param {string} - sourceFile The file to transpile.
+ * @param {string} - sourceFolder The top-level folder containing the modified file.
+ * @param {string} - destFolder The top-level folder to put the transpiled file and source map.
  */
 function transpileFile(sourceFile, sourceFolder, destFolder) {
-    const destFile = sourceFile
-        .replace(sourceFolder, destFolder)
-        .replace('.ts', '.js');
+    const destFile = sourceFile.replace(sourceFolder, destFolder).replace('.ts', '.js');
 
     console.log(` - transpiling: ${sourceFile.replace(sourceFolder, '')}`);
 
@@ -100,6 +97,7 @@ function transpileFile(sourceFile, sourceFolder, destFolder) {
 }
 
 function main() {
+    // eslint-disable-next-line no-undef
     const args = process.argv;
 
     if (args.length < 4) {

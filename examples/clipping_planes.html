@@ -4,39 +4,86 @@ shortdesc: Illustrate clipping planes usage with entities such as point clouds a
 longdesc: Giro3D entities support three.js's <a target="_blank" href="https://threejs.org/docs/index.html?q=materia#api/en/materials/Material.clippingPlanes">clipping planes</a>. To add one or more clipping planes to an entity, use the <code>Entity3D.clippingPlanes</code> property. In this examples, we create a cube-shaped clipping volume by combining 6 clipping planes (one for each side of the cube).</a>
 attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
 ---
+
 <div class="m-2 position-absolute top-0 end-0">
     <div class="card m-1">
         <div class="card-header">
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="enable-clipping-planes">
-                <label class="form-check-label" for="enable-clipping-planes">Enable clipping planes</label>
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    checked="true"
+                    role="switch"
+                    id="enable-clipping-planes"
+                />
+                <label class="form-check-label" for="enable-clipping-planes"
+                    >Enable clipping planes</label
+                >
             </div>
         </div>
 
         <fieldset class="container m-1" id="options">
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-show-volume">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    checked="true"
+                    role="switch"
+                    id="toggle-show-volume"
+                />
                 <label class="form-check-label" for="toggle-show-volume">Show volume</label>
             </div>
             <label for="slider-size" class="form-label">Volume size</label>
             <div class="input-group">
-                <input type="range" min="1" max="30000" value="3000" step="10" class="slider" id="slider-size">
+                <input
+                    type="range"
+                    min="1"
+                    max="30000"
+                    value="3000"
+                    step="10"
+                    class="slider"
+                    id="slider-size"
+                />
             </div>
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-show-map">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    checked="true"
+                    role="switch"
+                    id="toggle-show-map"
+                />
                 <label class="form-check-label" for="toggle-show-map">Show Map</label>
             </div>
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-show-pointcloud">
-                <label class="form-check-label" for="toggle-show-pointcloud">Show point cloud</label>
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    checked="true"
+                    role="switch"
+                    id="toggle-show-pointcloud"
+                />
+                <label class="form-check-label" for="toggle-show-pointcloud"
+                    >Show point cloud</label
+                >
             </div>
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" role="switch" id="toggle-map">
-                <label class="form-check-label" for="toggle-map">Apply clipping planes on map</label>
+                <input class="form-check-input" type="checkbox" role="switch" id="toggle-map" />
+                <label class="form-check-label" for="toggle-map"
+                    >Apply clipping planes on map</label
+                >
             </div>
             <div class="form-check form-switch">
-                <input class="form-check-input" type="checkbox" checked="true" role="switch" id="toggle-pointcloud">
-                <label class="form-check-label" for="toggle-pointcloud">Apply clipping planes on point cloud</label>
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    checked="true"
+                    role="switch"
+                    id="toggle-pointcloud"
+                />
+                <label class="form-check-label" for="toggle-pointcloud"
+                    >Apply clipping planes on point cloud</label
+                >
             </div>
         </fieldset>
     </div>

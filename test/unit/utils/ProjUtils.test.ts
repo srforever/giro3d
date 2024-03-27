@@ -18,14 +18,8 @@ describe('transformBufferInPlace', () => {
     it('should honor the stride, leaving unrelated values untouched', () => {
         const Z = 99999;
         const W = 12345;
-        const vec3Buffer = new Float64Array([
-            1.2, 0.2, Z,
-            2.3, 10.2, Z,
-        ]);
-        const vec4Buffer = new Float64Array([
-            1.2, 0.2, Z, W,
-            2.3, 10.2, Z, W,
-        ]);
+        const vec3Buffer = new Float64Array([1.2, 0.2, Z, 2.3, 10.2, Z]);
+        const vec4Buffer = new Float64Array([1.2, 0.2, Z, W, 2.3, 10.2, Z, W]);
 
         ProjUtils.transformBufferInPlace(vec3Buffer, {
             srcCrs: 'EPSG:4326',
@@ -60,10 +54,7 @@ describe('transformBufferInPlace', () => {
 
     it('should honor the offset', () => {
         const Z = 99999;
-        const vec3Buffer = new Float64Array([
-            1.2, 0.2, Z,
-            2.3, 10.2, Z,
-        ]);
+        const vec3Buffer = new Float64Array([1.2, 0.2, Z, 2.3, 10.2, Z]);
 
         ProjUtils.transformBufferInPlace(vec3Buffer, {
             srcCrs: 'EPSG:4326',

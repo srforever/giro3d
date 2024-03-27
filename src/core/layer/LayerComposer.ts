@@ -52,15 +52,18 @@ interface TextureWithMinMax extends Texture {
  * @param texture - The texture to process.
  * @param options - Options.
  */
-function processMinMax(texture: TextureWithMinMax, {
-    interpretation,
-    noDataValue,
-}: {
-    /**  The interpretation. */
-    interpretation: Interpretation;
-    /** The no-data value. */
-    noDataValue: number;
-}) {
+function processMinMax(
+    texture: TextureWithMinMax,
+    {
+        interpretation,
+        noDataValue,
+    }: {
+        /**  The interpretation. */
+        interpretation: Interpretation;
+        /** The no-data value. */
+        noDataValue: number;
+    },
+) {
     if (texture.min != null && texture.max != null) {
         return { min: texture.min, max: texture.max };
     }
@@ -188,9 +191,9 @@ class LayerComposer {
         /** Fill no-data maximum radius. */
         fillNoDataRadius: number;
         /**  The pixel format of the output textures. */
-        pixelFormat: PixelFormat,
+        pixelFormat: PixelFormat;
         /** The type of the output textures. */
-        textureDataType: TextureDataType,
+        textureDataType: TextureDataType;
     }) {
         this.computeMinMax = options.computeMinMax;
         this.extent = options.extent;
@@ -273,16 +276,20 @@ class LayerComposer {
         return 0;
     }
 
-    private preprocessImage(extent: Extent, texture: TextureWithMinMax, options: {
-        fillNoData: boolean;
-        interpretation: Interpretation;
-        flipY: boolean;
-        fillNoDataAlphaReplacement: number;
-        fillNoDataRadius: number;
-        outputType: TextureDataType;
-        target?: WebGLRenderTarget<Texture>
-        expandRGB?: boolean;
-    }) {
+    private preprocessImage(
+        extent: Extent,
+        texture: TextureWithMinMax,
+        options: {
+            fillNoData: boolean;
+            interpretation: Interpretation;
+            flipY: boolean;
+            fillNoDataAlphaReplacement: number;
+            fillNoDataRadius: number;
+            outputType: TextureDataType;
+            target?: WebGLRenderTarget<Texture>;
+            expandRGB?: boolean;
+        },
+    ) {
         const rect = Rect.fromExtent(extent);
         const comp = new WebGLComposer({
             extent: rect,
@@ -392,9 +399,7 @@ class LayerComposer {
         /** Force constant visibility of this image. */
         alwaysVisible?: boolean;
     }) {
-        const {
-            extent, texture, id,
-        } = options;
+        const { extent, texture, id } = options;
 
         if (this.images.has(id)) {
             // We already have this image.
@@ -402,7 +407,9 @@ class LayerComposer {
         }
 
         if (texture == null) {
-            throw new Error('texture cannot be null. Use an empty texture instead. (i.e new Texture())');
+            throw new Error(
+                'texture cannot be null. Use an empty texture instead. (i.e new Texture())',
+            );
         }
 
         let actualTexture = texture;
@@ -513,10 +520,7 @@ class LayerComposer {
         for (const { texture, extent } of options.source) {
             const sourceExtent = extent;
 
-            const mesh = this.composer.draw(
-                texture,
-                Rect.fromExtent(sourceExtent),
-            );
+            const mesh = this.composer.draw(texture, Rect.fromExtent(sourceExtent));
 
             meshes.push(mesh);
 
@@ -563,14 +567,11 @@ class LayerComposer {
         /** The optional render target. */
         target: WebGLRenderTarget;
     }) {
-        const {
-            extent,
-            width,
-            height,
-            target,
-        } = options;
+        const { extent, width, height, target } = options;
 
-        this.images.forEach(img => { img.visible = false; });
+        this.images.forEach(img => {
+            img.visible = false;
+        });
 
         this.composer.render({
             width,
@@ -620,13 +621,7 @@ class LayerComposer {
         /** The optional render target. */
         target: WebGLRenderTarget;
     }) {
-        const {
-            extent,
-            width,
-            height,
-            target,
-            imageIds,
-        } = options;
+        const { extent, width, height, target, imageIds } = options;
 
         // Do we have all the required images for this tile ?
         let allImagesReady = true;
@@ -673,8 +668,11 @@ class LayerComposer {
 
         // We didn't have exact images for this request, so we will need to
         // compute an approximate minmax from existing images.
-        if (this.computeMinMax && isFallbackMode
-            && (!Number.isFinite(min) || !Number.isFinite(max))) {
+        if (
+            this.computeMinMax &&
+            isFallbackMode &&
+            (!Number.isFinite(min) || !Number.isFinite(max))
+        ) {
             for (const image of this.images.values()) {
                 if (extent.intersectsExtent(image.extent)) {
                     min = Math.min(image.min, min);

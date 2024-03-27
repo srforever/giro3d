@@ -26,10 +26,12 @@ class MyCustomPanel extends Panel {
         this.myCheckBox = true;
 
         this.addController(this, 'sayHello').name('Press this button!');
-        this.addController(this, 'myCheckBox').name('Check this box !').onChange(value => {
-            this.map.object3d.visible = value;
-            this.instance.notifyChange(this.map);
-        });
+        this.addController(this, 'myCheckBox')
+            .name('Check this box !')
+            .onChange(value => {
+                this.map.object3d.visible = value;
+                this.instance.notifyChange(this.map);
+            });
     }
 
     // eslint-disable-next-line class-methods-use-this
@@ -41,8 +43,10 @@ class MyCustomPanel extends Panel {
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
     'EPSG:3857',
-    -20037508.342789244, 20037508.342789244,
-    -20037508.342789244, 20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
 );
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
@@ -55,10 +59,14 @@ const map = new Map('planar', { extent });
 instance.add(map);
 
 // Adds an TMS imagery layer
-map.addLayer(new ColorLayer({
-    name: 'color',
-    source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
-}));
+map.addLayer(
+    new ColorLayer({
+        name: 'color',
+        source: new TiledImageSource({
+            source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }),
+        }),
+    }),
+);
 
 // Create camera and controls
 instance.camera.camera3D.position.set(0, 0, 25000000);

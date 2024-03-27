@@ -14,11 +14,7 @@ import {
     RGBAFormat,
     UnsignedByteType,
 } from 'three';
-import type {
-    IUniform,
-    WebGLRenderer,
-    TextureDataType,
-} from 'three';
+import type { IUniform, WebGLRenderer, TextureDataType } from 'three';
 import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
 import TileFS from './shader/TileFS.glsl';
@@ -180,7 +176,7 @@ export interface MaterialOptions {
     /**
      * The elevation range.
      */
-    elevationRange?: { min: number; max: number; };
+    elevationRange?: { min: number; max: number };
     /**
      * The colormap atlas.
      */
@@ -645,7 +641,7 @@ class LayeredMaterial extends ShaderMaterial {
 
     setElevationTexture(
         layer: ElevationLayer,
-        { texture, pitch }: { texture: Texture, pitch: Vector4 },
+        { texture, pitch }: { texture: Texture; pitch: Vector4 },
         isFinal: boolean,
     ) {
         this._elevationLayer = layer;
@@ -818,7 +814,12 @@ class LayeredMaterial extends ShaderMaterial {
             if (enabled) {
                 const uniform = this.uniforms.graticule.value;
                 uniform.thickness = options.thickness;
-                uniform.position.set(options.xOffset, options.yOffset, options.xStep, options.yStep);
+                uniform.position.set(
+                    options.xOffset,
+                    options.yOffset,
+                    options.xStep,
+                    options.yStep,
+                );
                 const rgb = options.color;
                 uniform.color.set(rgb.r, rgb.g, rgb.b, options.opacity);
             }
@@ -826,8 +827,11 @@ class LayeredMaterial extends ShaderMaterial {
 
         if (materialOptions.colorimetry) {
             const opts = materialOptions.colorimetry;
-            this.uniforms.brightnessContrastSaturation.value
-                .set(opts.brightness, opts.contrast, opts.saturation);
+            this.uniforms.brightnessContrastSaturation.value.set(
+                opts.brightness,
+                opts.contrast,
+                opts.saturation,
+            );
         }
 
         if (materialOptions.contourLines) {
@@ -870,7 +874,11 @@ class LayeredMaterial extends ShaderMaterial {
             uniform.intensity = hillshadingParams.intensity ?? 1;
             uniform.zFactor = hillshadingParams.zFactor ?? 1;
             MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', hillshadingParams.enabled);
-            MaterialUtils.setDefine(this, 'APPLY_SHADING_ON_COLORLAYERS', !hillshadingParams.elevationLayersOnly);
+            MaterialUtils.setDefine(
+                this,
+                'APPLY_SHADING_ON_COLORLAYERS',
+                !hillshadingParams.elevationLayersOnly,
+            );
         } else {
             MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', false);
         }
@@ -901,9 +909,11 @@ class LayeredMaterial extends ShaderMaterial {
     }
 
     rebuildAtlasIfNecessary() {
-        if (this._atlasInfo.maxX > this._composer.width
-            || this._atlasInfo.maxY > this._composer.height
-            || this._composer.dataType !== this._composerDataType) {
+        if (
+            this._atlasInfo.maxX > this._composer.width ||
+            this._atlasInfo.maxY > this._composer.height ||
+            this._composer.dataType !== this._composerDataType
+        ) {
             const newComposer = this.createComposer();
 
             let newTexture;
@@ -1018,12 +1028,7 @@ class LayeredMaterial extends ShaderMaterial {
         this._mustUpdateUniforms = true;
     }
 
-    setColorimetry(
-        layer: ColorLayer,
-        brightness: number,
-        contrast: number,
-        saturation: number,
-    ) {
+    setColorimetry(layer: ColorLayer, brightness: number, contrast: number, saturation: number) {
         const index = this.indexOfColorLayer(layer);
         this.texturesInfo.color.infos[index].brightnessContrastSaturation.set(
             brightness,

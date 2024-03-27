@@ -29,24 +29,12 @@ describe('BilFormat', () => {
             };
             const { texture } = await format.decode(blob, options);
 
-            expect(texture.image.data).toEqual(new Float32Array([
-                1.0, 1,
-                2.5, 1,
-                4.0, 1,
-                5.5, 1,
-                7.0, 1,
-                8.5, 1,
-                10.0, 1,
-                11.5, 1,
-                13.0, 1,
-                14.5, 1,
-                16.0, 1,
-                17.5, 1,
-                19.0, 1,
-                20.5, 1,
-                22.0, 1,
-                23.5, 1,
-            ]));
+            expect(texture.image.data).toEqual(
+                new Float32Array([
+                    1.0, 1, 2.5, 1, 4.0, 1, 5.5, 1, 7.0, 1, 8.5, 1, 10.0, 1, 11.5, 1, 13.0, 1, 14.5,
+                    1, 16.0, 1, 17.5, 1, 19.0, 1, 20.5, 1, 22.0, 1, 23.5, 1,
+                ]),
+            );
         });
         it('should interpret noDataValue as less or equal than layer.noDataValue', async () => {
             // NOTE: file generated with
@@ -63,24 +51,12 @@ describe('BilFormat', () => {
             };
             const { texture } = await format.decode(blob, options);
 
-            expect(texture.image.data).toEqual(new Float32Array([
-                0.00, 0,
-                0.00, 0,
-                0.00, 0,
-                0.00, 0,
-                0.00, 0,
-                0.00, 0,
-                0.00, 0,
-                11.5, 1,
-                13.0, 1,
-                14.5, 1,
-                16.0, 1,
-                17.5, 1,
-                19.0, 1,
-                20.5, 1,
-                22.0, 1,
-                23.5, 1,
-            ]));
+            expect(texture.image.data).toEqual(
+                new Float32Array([
+                    0.0, 0, 0.0, 0, 0.0, 0, 0.0, 0, 0.0, 0, 0.0, 0, 0.0, 0, 11.5, 1, 13.0, 1, 14.5,
+                    1, 16.0, 1, 17.5, 1, 19.0, 1, 20.5, 1, 22.0, 1, 23.5, 1,
+                ]),
+            );
         });
     });
 });

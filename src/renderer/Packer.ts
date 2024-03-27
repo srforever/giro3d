@@ -25,7 +25,7 @@ function findNode(root: Node, w: number, h: number): Node {
     if (root.used) {
         return findNode(root.right, w, h) || findNode(root.down, w, h);
     }
-    if ((w <= root.w) && (h <= root.h)) {
+    if (w <= root.w && h <= root.h) {
         return root;
     }
     return null;
@@ -34,21 +34,35 @@ function findNode(root: Node, w: number, h: number): Node {
 function splitNode(node: Node, w: number, h: number) {
     node.used = true;
     node.down = {
-        x: node.x, y: node.y + h, w: node.w, h: node.h - h,
+        x: node.x,
+        y: node.y + h,
+        w: node.w,
+        h: node.h - h,
     };
     node.right = {
-        x: node.x + w, y: node.y, w: node.w - w, h,
+        x: node.x + w,
+        y: node.y,
+        w: node.w - w,
+        h,
     };
     return node;
 }
 
 // 2D Bin Packing algorithm (fit N random dimension blocks in a w * h rectangle) implementation
-function fit(blocks: Block[], w: number, h: number, previousRoot: Node): {
+function fit(
+    blocks: Block[],
+    w: number,
+    h: number,
+    previousRoot: Node,
+): {
     maxX: number;
     maxY: number;
 } {
     const root: Node = previousRoot || {
-        x: 0, y: 0, w, h,
+        x: 0,
+        y: 0,
+        w,
+        h,
     };
     let maxX = 0;
     let maxY = 0;

@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://giro3d.org">
-    <img src="/images/giro3d_logo.svg">
+    <img alt="Giro3D logo" src="/images/giro3d_logo.svg">
   </a>
 </div>
 
@@ -8,7 +8,7 @@
 
 Welcome to the API documentation of Giro3D.
 
-➡️ If you are looking for an interactive tutorial, please look at the  [getting started](https://giro3d.org/tutorials/getting-started.html) page instead.
+➡️ If you are looking for an interactive tutorial, please look at the [getting started](https://giro3d.org/tutorials/getting-started.html) page instead.
 
 Here is a brief overview of the main concepts behind Giro3D.
 
@@ -64,8 +64,8 @@ class MyCustomEntity extends Entity3D {
 
 Various classes in Giro3D provide the `progress` and `loading` API. This API can be used to determine if the object is currently performing asynchronous operations.
 
-- `loading` is a boolean that indicates whether the object is currently performing an asynchronous task.
-- `progress` is a number (between zero and one) that indicates the percentage of progress of the tasks this object is performing.
+-   `loading` is a boolean that indicates whether the object is currently performing an asynchronous task.
+-   `progress` is a number (between zero and one) that indicates the percentage of progress of the tasks this object is performing.
 
 💡 To help implementing this API, you can use the [`OperationCounter`](./classes/core.OperationCounter.html) class.
 
@@ -81,9 +81,9 @@ However, some objects, such as three.js [textures](https://threejs.org/docs/?q=t
 
 Giro3D can combine many different coordinate systems (CRS):
 
-- The `Instance` has its own coordinate system, accessible from the [`referenceCrs`](./classes/core.Instance.html#referenceCrs) property. Once specified in the `Instance` constructor, this cannot be changed.
+-   The `Instance` has its own coordinate system, accessible from the [`referenceCrs`](./classes/core.Instance.html#referenceCrs) property. Once specified in the `Instance` constructor, this cannot be changed.
 
-- Some entities supports various CRS transformations, while others only supports a single CRS (of their data source). In the latter case, this CRS must be compatible with referenceCRS to be displayed correctly.
+-   Some entities supports various CRS transformations, while others only supports a single CRS (of their data source). In the latter case, this CRS must be compatible with referenceCRS to be displayed correctly.
 
 ### Register a custom CRS
 
@@ -92,7 +92,10 @@ To display a Giro3D scene in a specific CRS, you must first register its definit
 For example, to display the scene in the [`TM65 / Irish Grid -- Ireland`](https://epsg.io/29902) CRS (EPSG:29902), we must register it with the following parameters:
 
 ```ts
-Instance.registerCRS('EPSG:29902', '+proj=tmerc +lat_0=53.5 +lon_0=-8 +k=1.000035 +x_0=200000 +y_0=250000 +a=6377340.189 +rf=299.3249646 +towgs84=482.5,-130.6,564.6,-1.042,-0.214,-0.631,8.15 +units=m +no_defs +type=crs');
+Instance.registerCRS(
+    'EPSG:29902',
+    '+proj=tmerc +lat_0=53.5 +lon_0=-8 +k=1.000035 +x_0=200000 +y_0=250000 +a=6377340.189 +rf=299.3249646 +towgs84=482.5,-130.6,564.6,-1.042,-0.214,-0.631,8.15 +units=m +no_defs +type=crs',
+);
 ```
 
 💡 Some CRS definitions are built-in the proj4.js library used by Giro3D, such as `EPSG:4326` (WGS84), `EPSG:3857` (pseudo-mercator) and `EPSG:4269` (NAD83). Please refer to the [PROJ4JS](http://proj4js.org/) documentation for more information.
@@ -102,8 +105,9 @@ Instance.registerCRS('EPSG:29902', '+proj=tmerc +lat_0=53.5 +lon_0=-8 +k=1.00003
 ❗ In some (rare) cases, the CRS in the proj format is incomplete. In this case, you can try using the WKT format instead:
 
 ```ts
-Instance.registerCRS('EPSG:29902',
-`PROJCS["TM65 / Irish Grid",
+Instance.registerCRS(
+    'EPSG:29902',
+    `PROJCS["TM65 / Irish Grid",
     GEOGCS["TM65",
         DATUM["TM65",
             SPHEROID["Airy Modified 1849",6377340.189,299.3249646],
@@ -123,7 +127,7 @@ Instance.registerCRS('EPSG:29902',
         AUTHORITY["EPSG","9001"]],
     AXIS["Easting",EAST],
     AXIS["Northing",NORTH],
-    AUTHORITY["EPSG","29902"]]`
+    AUTHORITY["EPSG","29902"]]`,
 );
 ```
 

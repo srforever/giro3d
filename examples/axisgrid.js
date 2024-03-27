@@ -21,11 +21,7 @@ const y = 5812000;
 const halfWidth = 2500;
 
 // Defines geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent(
-    'EPSG:3857',
-    x - halfWidth, x + halfWidth,
-    y - halfWidth, y + halfWidth,
-);
+const extent = new Extent('EPSG:3857', x - halfWidth, x + halfWidth, y - halfWidth, y + halfWidth);
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
@@ -70,12 +66,7 @@ const dem = new ElevationLayer({
     extent,
     interpretation: Interpretation.Raw,
     source,
-    colorMap: new ColorMap(
-        colors,
-        floor,
-        ceiling,
-        ColorMapMode.Elevation,
-    ),
+    colorMap: new ColorMap(colors, floor, ceiling, ColorMapMode.Elevation),
 });
 
 map.addLayer(dem);
@@ -132,11 +123,21 @@ bindAxisStep('x');
 bindAxisStep('y');
 bindAxisStep('z');
 
-bindToggle('entity', false, v => { axisGrid.visible = v; });
-bindToggle('origin', true, v => { axisGrid.origin = v ? TickOrigin.Relative : TickOrigin.Absolute; });
-bindToggle('ceiling', false, v => { axisGrid.showCeilingGrid = v; });
-bindToggle('floor', false, v => { axisGrid.showFloorGrid = v; });
-bindToggle('sides', false, v => { axisGrid.showSideGrids = v; });
+bindToggle('entity', false, v => {
+    axisGrid.visible = v;
+});
+bindToggle('origin', true, v => {
+    axisGrid.origin = v ? TickOrigin.Relative : TickOrigin.Absolute;
+});
+bindToggle('ceiling', false, v => {
+    axisGrid.showCeilingGrid = v;
+});
+bindToggle('floor', false, v => {
+    axisGrid.showFloorGrid = v;
+});
+bindToggle('sides', false, v => {
+    axisGrid.showSideGrids = v;
+});
 
 document.getElementById('randomize-position').onclick = () => {
     const current = axisGrid.volume.extent;

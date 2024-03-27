@@ -20,11 +20,7 @@ Instance.registerCRS(
     '+proj=utm +zone=10 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
 );
 
-const extent = new Extent(
-    'EPSG:26910',
-    532622, 569790,
-    5114416, 5137240,
-);
+const extent = new Extent('EPSG:26910', 532622, 569790, 5114416, 5137240);
 
 const center = extent.centerAsVector3();
 

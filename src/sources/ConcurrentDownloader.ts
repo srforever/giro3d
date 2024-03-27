@@ -1,4 +1,4 @@
-import { Fetcher, PromiseUtils } from "../utils";
+import { Fetcher, PromiseUtils } from '../utils';
 
 type RequestData = {
     abortController: AbortController;
@@ -17,7 +17,7 @@ export default class ConcurrentDownloader {
     fetch(url: string, signal: AbortSignal): Promise<Response> {
         const existing = this._requests.get(url);
 
-        signal.addEventListener("abort", () => {
+        signal.addEventListener('abort', () => {
             const current = this._requests.get(url);
             if (current && current.signals.every(s => s.aborted)) {
                 current.abortController.abort(PromiseUtils.abortError);
@@ -33,15 +33,15 @@ export default class ConcurrentDownloader {
         const abortController = new AbortController();
 
         if (this._timeout) {
-            setTimeout(() => abortController.abort("timeout"), this._timeout);
+            setTimeout(() => abortController.abort('timeout'), this._timeout);
         }
 
         const data: RequestData = {
             abortController,
             signals: [signal],
-            promise: Fetcher
-                .fetch(url, { signal: abortController.signal })
-                .finally(() => this._requests.delete(url)),
+            promise: Fetcher.fetch(url, { signal: abortController.signal }).finally(() =>
+                this._requests.delete(url),
+            ),
         };
 
         this._requests.set(url, data);

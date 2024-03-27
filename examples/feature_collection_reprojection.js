@@ -14,7 +14,10 @@ import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates';
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
-Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
+Instance.registerCRS(
+    'EPSG:2154',
+    '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+);
 
 const viewerDiv = document.getElementById('viewerDiv');
 const extent = new Extent('EPSG:2154', -111629.52, 1275028.84, 5976033.79, 7230161.64);
@@ -68,17 +71,17 @@ instance.add(perimeterqaa);
 const bdTopoSource = new VectorSource({
     format: new GeoJSON(),
     url: function url(bbox) {
-        return (
-            `${'https://data.geopf.fr/wfs/ows'
-            + '?SERVICE=WFS'
-            + '&VERSION=2.0.0'
-            + '&request=GetFeature'
-            + '&typename=BDTOPO_V3:batiment'
-            + '&outputFormat=application/json'
-            + '&SRSNAME=EPSG:3857'
-            + '&startIndex=0'
-            + '&bbox='}${bbox.join(',')},EPSG:3857`
-        );
+        return `${
+            'https://data.geopf.fr/wfs/ows' +
+            '?SERVICE=WFS' +
+            '&VERSION=2.0.0' +
+            '&request=GetFeature' +
+            '&typename=BDTOPO_V3:batiment' +
+            '&outputFormat=application/json' +
+            '&SRSNAME=EPSG:3857' +
+            '&startIndex=0' +
+            '&bbox='
+        }${bbox.join(',')},EPSG:3857`;
     },
     // this is necessary to avoid z-fighting
     onMeshCreated: mesh => {
@@ -145,10 +148,10 @@ function pick(e) {
     perimeterqaa.object3d.traverse(resetColor);
     instance.notifyChange();
     // pick objects
-    const pickedObjects = instance.pickObjectsAt(
-        e,
-        { radius: 2, where: [arrondissements, perimeterqaa] },
-    );
+    const pickedObjects = instance.pickObjectsAt(e, {
+        radius: 2,
+        where: [arrondissements, perimeterqaa],
+    });
 
     if (pickedObjects.length !== 0) {
         resultTable.innerHTML = '';

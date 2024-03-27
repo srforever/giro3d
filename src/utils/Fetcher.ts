@@ -1,8 +1,4 @@
-import {
-    EventDispatcher,
-    type EventListener,
-    type Texture,
-} from 'three';
+import { EventDispatcher, type EventListener, type Texture } from 'three';
 import HttpConfiguration from './HttpConfiguration';
 import TextureGenerator from './TextureGenerator';
 import HttpQueue from './HttpQueue';
@@ -11,22 +7,22 @@ export interface FetcherEventMap {
     /**
      * Fires when a Network or HTTP error occured during fetch
      * ```js
-    * Fetcher.addEventListener('error', (error) => {
-    *     if (error.response && error.response.status === 401) {
-    *        console.error(
-    *            `Unauthorized to access resource ${error.response.url}: ${error.message}`,
-    *            error,
-    *        );
-    *    } else {
-    *        console.error('Got an error while fetching resource', error);
-    *    }
-    * });
-    * ```
-    */
+     * Fetcher.addEventListener('error', (error) => {
+     *     if (error.response && error.response.status === 401) {
+     *        console.error(
+     *            `Unauthorized to access resource ${error.response.url}: ${error.message}`,
+     *            error,
+     *        );
+     *    } else {
+     *        console.error('Got an error while fetching resource', error);
+     *    }
+     * });
+     * ```
+     */
     error: { error: Error };
 }
 
-class FetcherEventDispatcher extends EventDispatcher<FetcherEventMap> { }
+class FetcherEventDispatcher extends EventDispatcher<FetcherEventMap> {}
 
 const eventTarget = new FetcherEventDispatcher();
 
@@ -122,7 +118,9 @@ async function fetchInternal(url: string, options?: RequestInit): Promise<Respon
         throw error;
     });
     if (!response.ok) {
-        const error = new Error(`${response.status} ${response.statusText} - ${response.url}`) as ErrorWithResponse;
+        const error = new Error(
+            `${response.status} ${response.statusText} - ${response.url}`,
+        ) as ErrorWithResponse;
         error.response = response;
         eventTarget.dispatchEvent({ type: 'error', error });
         throw error;

@@ -1,12 +1,4 @@
-import {
-    Vector2,
-    MathUtils,
-    Group,
-    Matrix4,
-    type Object3D,
-    type Material,
-    Vector3,
-} from 'three';
+import { Vector2, MathUtils, Group, Matrix4, type Object3D, type Material, Vector3 } from 'three';
 import type Extent from '../core/geographic/Extent';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
@@ -41,20 +33,20 @@ export interface Tiles3DOptions<TMaterial extends Material> {
      *
      * @defaultvalue 1000
      */
-    cleanupDelay?: number,
+    cleanupDelay?: number;
     /**
      * The Screen Space Error (SSE) threshold to use for this tileset.
      *
      * @defaultvalue 16
      */
-    sseThreshold?: number,
+    sseThreshold?: number;
     /**
      * The optional 3d object to use as the root object of this entity.
      * If none provided, a new one will be created.
      */
-    object3d?: Object3D,
+    object3d?: Object3D;
     /** The optional material to use. */
-    material?: TMaterial,
+    material?: TMaterial;
 }
 
 const tmpVector = new Vector3();
@@ -85,9 +77,12 @@ function _cleanupObject3D(n: Object3D): void {
 }
 
 function isTilesetContentReady(tileset: $3dTilesTile, node: Tile): boolean {
-    return tileset && node // is tileset loaded ?
-        && node.children.length === 1 // is tileset root loaded ?
-        && node.children[0].children.length > 0;
+    return (
+        tileset &&
+        node && // is tileset loaded ?
+        node.children.length === 1 && // is tileset root loaded ?
+        node.children[0].children.length > 0
+    );
 }
 
 /**
@@ -102,9 +97,13 @@ export type Tiles3DPickResult = PointsPickResult | PickResult;
  * A [3D Tiles](https://www.ogc.org/standards/3DTiles) dataset.
  *
  */
-class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUserData = EntityUserData>
+class Tiles3D<
+        TMaterial extends Material = Material,
+        UserData extends EntityUserData = EntityUserData,
+    >
     extends Entity3D<Entity3DEventMap, UserData>
-    implements Pickable<Tiles3DPickResult>, HasLayers {
+    implements Pickable<Tiles3DPickResult>, HasLayers
+{
     readonly hasLayers = true;
     /** Read-only flag to check if a given object is of type Tiles3D. */
     readonly isTiles3D = true;
@@ -234,7 +233,7 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
         this._imageSize = new Vector2(128, 128);
 
         // Download the root tileset to complete the preparation.
-        const tileset = await Fetcher.json(this._url, this._networkOptions) as $3dTilesTileset;
+        const tileset = (await Fetcher.json(this._url, this._networkOptions)) as $3dTilesTileset;
         if (!tileset.root.refine) {
             tileset.root.refine = tileset.refine;
         }
@@ -261,7 +260,9 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
         this._asset = tileset.asset;
 
         const tile = await this.requestNewTile(
-            this._tileset.root as ProcessedTile, undefined, true,
+            this._tileset.root as ProcessedTile,
+            undefined,
+            true,
         );
         if (tile === null) {
             throw new Error('Could not load root tile');
@@ -287,9 +288,11 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
         }
         const result: any[] = [];
         meta.content.traverse((obj: any) => {
-            if (obj.isObject3D
-                && obj.material
-                && obj.userData.parentEntity === meta.userData.parentEntity) {
+            if (
+                obj.isObject3D &&
+                obj.material &&
+                obj.userData.parentEntity === meta.userData.parentEntity
+            ) {
                 result.push(obj);
             }
         });
@@ -324,7 +327,8 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
         if (!parent || parent.additiveRefinement) {
             // Additive refinement can be done independently for each child,
             // so we can compute a per child priority
-            const size = metadata.boundingVolumeObject.box.clone()
+            const size = metadata.boundingVolumeObject.box
+                .clone()
                 .applyMatrix4(metadata.worldFromLocalTransform)
                 .getSize(tmpVector);
             priority = size.x * size.y;
@@ -335,10 +339,11 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
             // and it will delay the display of its siblings.
             // So we compute a priority based on the size of the parent
             // TODO cache the computation of world bounding volume ?
-            const size = parent.boundingVolume.box.clone()
+            const size = parent.boundingVolume.box
+                .clone()
                 .applyMatrix4(parent.matrixWorld)
                 .getSize(tmpVector);
-            priority = size.x * size.y;// / this.tileIndex.index[parent.tileId].children.length;
+            priority = size.x * size.y; // / this.tileIndex.index[parent.tileId].children.length;
         }
 
         const request = {
@@ -349,7 +354,7 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
         };
 
         try {
-            const node = await this._queue.enqueue(request) as Tile;
+            const node = (await this._queue.enqueue(request)) as Tile;
             metadata.obj = node;
             this._instance.notifyChange(this);
             return node;
@@ -370,11 +375,13 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
         // Since we simply push in this array, the first item is always
         // the oldest one.
         const now = Date.now();
-        if (this._cleanableTiles.length
-            && (now - this._cleanableTiles[0].cleanableSince) > this.cleanupDelay) {
+        if (
+            this._cleanableTiles.length &&
+            now - this._cleanableTiles[0].cleanableSince > this.cleanupDelay
+        ) {
             while (this._cleanableTiles.length) {
                 const elt = this._cleanableTiles[0];
-                if ((now - elt.cleanableSince) > this.cleanupDelay) {
+                if (now - elt.cleanableSince > this.cleanupDelay) {
                     this.cleanup3dTileset(elt);
                 } else {
                     // later entries are younger
@@ -421,9 +428,9 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
                         // If one of our child is a tileset, this node must be displayed until this
                         // child content is ready, to avoid hiding our content too early (= when our
                         // child is loaded but its content is not)
-                        const subtilesets = this._tileIndex.get(node).children.filter(
-                            tile => tile.isProcessedTile,
-                        );
+                        const subtilesets = this._tileIndex
+                            .get(node)
+                            .children.filter(tile => tile.isProcessedTile);
 
                         if (subtilesets.length) {
                             let allReady = true;
@@ -473,8 +480,10 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
                             // TODO: is wireframe still supported?
                             (pointcloud.material as any).wireframe = this.wireframe;
                             if (pointcloud.isPoints) {
-                                if (PointCloudMaterial.isPointCloudMaterial(pointcloud.material)
-                                    && PointCloudMaterial.isPointCloudMaterial(this.material)) {
+                                if (
+                                    PointCloudMaterial.isPointCloudMaterial(pointcloud.material) &&
+                                    PointCloudMaterial.isPointCloudMaterial(this.material)
+                                ) {
                                     pointcloud.material.update(this.material);
                                 } else {
                                     pointcloud.material.copy(this.material);
@@ -573,7 +582,8 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
             let overrideMatrixWorld = node.matrixWorld;
             if (child.transformMatrix) {
                 overrideMatrixWorld = tmpMatrix.multiplyMatrices(
-                    node.matrixWorld, child.transformMatrix,
+                    node.matrixWorld,
+                    child.transformMatrix,
                 );
             }
 
@@ -593,7 +603,9 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
                         tile.updateMatrixWorld();
 
                         const extent = boundingVolumeToExtent(
-                            this._extent.crs(), tile.boundingVolume, tile.matrixWorld,
+                            this._extent.crs(),
+                            tile.boundingVolume,
+                            tile.matrixWorld,
                         );
                         tile.traverse((obj: any) => {
                             obj.extent = extent;
@@ -601,7 +613,8 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
 
                         this._instance.notifyChange(child);
                     }
-                }).finally(() => delete child.promise);
+                })
+                .finally(() => delete child.promise);
         }
     }
 
@@ -633,7 +646,9 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
                     tile.updateMatrixWorld();
 
                     const extent = boundingVolumeToExtent(
-                        this._extent.crs(), tile.boundingVolume, tile.matrixWorld,
+                        this._extent.crs(),
+                        tile.boundingVolume,
+                        tile.matrixWorld,
                     );
                     tile.traverse((obj: any) => {
                         obj.extent = extent;
@@ -643,18 +658,21 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
             promises.push(p);
         }
 
-        Promise.all(promises).then(() => {
-            node.pendingSubdivision = false;
-            this._instance.notifyChange(node);
-        }, () => {
-            node.pendingSubdivision = false;
+        Promise.all(promises).then(
+            () => {
+                node.pendingSubdivision = false;
+                this._instance.notifyChange(node);
+            },
+            () => {
+                node.pendingSubdivision = false;
 
-            // delete other children
-            for (const n of node.getChildTiles()) {
-                n.visible = false;
-                this.markTileForDeletion(n);
-            }
-        });
+                // delete other children
+                for (const n of node.getChildTiles()) {
+                    n.visible = false;
+                    this.markTileForDeletion(n);
+                }
+            },
+        );
     }
 
     protected subdivideNode(context: Context, node: Tile): void {
@@ -668,19 +686,18 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
         }
     }
 
-    async executeCommand(
-        metadata: ProcessedTile,
-        requester?: Tile,
-    ): Promise<Tile> {
+    async executeCommand(metadata: ProcessedTile, requester?: Tile): Promise<Tile> {
         const tile = new Tile(this, metadata, requester);
 
         // Patch for supporting 3D Tiles pre 1.0 (metadata.content.url) and 1.0
         // (metadata.content.uri)
         let path: string;
         if (metadata.content) {
-            if (metadata.content.url) { // 3D Tiles pre 1.0 version
+            if (metadata.content.url) {
+                // 3D Tiles pre 1.0 version
                 path = metadata.content.url;
-            } else { // 3D Tiles 1.0 version
+            } else {
+                // 3D Tiles 1.0 version
                 path = metadata.content.uri;
             }
         }
@@ -692,9 +709,11 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
         if (path) {
             // Check if we have relative or absolute url (with tileset's lopocs for example)
             const url = path.startsWith('http') ? path : metadata.baseURL + path;
-            const dl = (GlobalCache.get(url)
-                    || GlobalCache.set(url, Fetcher.arrayBuffer(url, this._networkOptions))
-            ) as Promise<ArrayBuffer>;
+            const dl = (GlobalCache.get(url) ||
+                GlobalCache.set(
+                    url,
+                    Fetcher.arrayBuffer(url, this._networkOptions),
+                )) as Promise<ArrayBuffer>;
 
             const result = await dl;
             if (result !== undefined) {
@@ -703,7 +722,9 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
                 metadata.magic = magic;
                 if (magic[0] === '{') {
                     const { newTileset, newPrefix } = await $3dTilesLoader.jsonParse(
-                        result, this, url,
+                        result,
+                        this,
+                        url,
                     );
                     this._tileIndex.extendTileset(newTileset, metadata.tileId, newPrefix);
                 } else if (magic === 'b3dm') {
@@ -739,16 +760,24 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
      * @returns true if the request can continue, false if it must be cancelled.
      */
     shouldExecute(node: Tile): boolean {
-        if (!node) { return true; }
+        if (!node) {
+            return true;
+        }
 
         // node was removed from the hierarchy
-        if (!node.parent) { return false; }
+        if (!node.parent) {
+            return false;
+        }
 
         // tile not visible anymore
-        if (!node.visible) { return false; }
+        if (!node.visible) {
+            return false;
+        }
 
         // tile visible but doesn't need subdivision anymore
-        if (node.sse < this.sseThreshold) { return false; }
+        if (node.sse < this.sseThreshold) {
+            return false;
+        }
 
         return true;
     }
@@ -763,6 +792,4 @@ class Tiles3D<TMaterial extends Material = Material, UserData extends EntityUser
 
 export default Tiles3D;
 
-export {
-    boundingVolumeToExtent,
-};
+export { boundingVolumeToExtent };

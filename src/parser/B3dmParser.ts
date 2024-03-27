@@ -1,6 +1,4 @@
-import type {
-    Material, Object3D, Mesh, RawShaderMaterial, Group,
-} from 'three';
+import type { Material, Object3D, Mesh, RawShaderMaterial, Group } from 'three';
 import { Matrix4, MeshLambertMaterial } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
@@ -10,19 +8,15 @@ import Capabilities from '../core/system/Capabilities';
 import shaderUtils from '../renderer/shader/ShaderUtils';
 import utf8Decoder from '../utils/Utf8Decoder';
 
-const matrixChangeUpVectorZtoY = (new Matrix4()).makeRotationX(Math.PI / 2);
+const matrixChangeUpVectorZtoY = new Matrix4().makeRotationX(Math.PI / 2);
 // For gltf rotation
-const matrixChangeUpVectorZtoX = (new Matrix4()).makeRotationZ(-Math.PI / 2);
+const matrixChangeUpVectorZtoX = new Matrix4().makeRotationZ(-Math.PI / 2);
 
 const glTFLoader = new GLTFLoader();
 
 function filterUnsupportedSemantics(obj: Object3D) {
     // see GLTFLoader GLTFShader.prototype.update function
-    const supported = [
-        'MODELVIEW',
-        'MODELVIEWINVERSETRANSPOSE',
-        'PROJECTION',
-        'JOINTMATRIX'];
+    const supported = ['MODELVIEW', 'MODELVIEWINVERSETRANSPOSE', 'PROJECTION', 'JOINTMATRIX'];
 
     const gltfShader = (obj as any).gltfShader;
 
@@ -132,77 +126,98 @@ export default {
                 // sizeBegin in the index where the batch table starts. 28
                 // is the byte length of the b3dm header
                 const sizeBegin = 28 + b3dmHeader.FTJSONLength + b3dmHeader.FTBinaryLength;
-                promises.push(BatchTableParser.parse(
-                    buffer.slice(sizeBegin, b3dmHeader.BTJSONLength + sizeBegin),
-                ));
+                promises.push(
+                    BatchTableParser.parse(
+                        buffer.slice(sizeBegin, b3dmHeader.BTJSONLength + sizeBegin),
+                    ),
+                );
             } else {
                 promises.push(Promise.resolve({}));
             }
             // TODO: missing feature table
-            promises.push(new Promise(resolve => {
-                const onerror = (error: ErrorEvent) => console.error(error);
-                const onload = (gltf: GLTF) => {
-                    for (const scene of gltf.scenes) {
-                        scene.traverse(filterUnsupportedSemantics);
-                    }
-                    // Rotation managed
-                    if (gltfUpAxis === undefined || gltfUpAxis === 'Y') {
-                        gltf.scene.applyMatrix4(matrixChangeUpVectorZtoY);
-                    } else if (gltfUpAxis === 'X') {
-                        gltf.scene.applyMatrix4(matrixChangeUpVectorZtoX);
-                    }
-
-                    // RTC managed
-                    applyOptionalCesiumRTC(buffer.slice(28 + b3dmHeader.FTJSONLength
-                        + b3dmHeader.FTBinaryLength + b3dmHeader.BTJSONLength
-                        + b3dmHeader.BTBinaryLength), gltf.scene);
-
-                    const initMesh = function initFn(mesh: Mesh) {
-                        mesh.frustumCulled = false;
-                        if (!mesh.material || Array.isArray(mesh.material)) {
-                            return;
+            promises.push(
+                new Promise(resolve => {
+                    const onerror = (error: ErrorEvent) => console.error(error);
+                    const onload = (gltf: GLTF) => {
+                        for (const scene of gltf.scenes) {
+                            scene.traverse(filterUnsupportedSemantics);
                         }
-                        if (options.overrideMaterials) {
-                            mesh.material.dispose();
-                            if (typeof (options.overrideMaterials) === 'object'
-                                && options.overrideMaterials.isMaterial) {
-                                mesh.material = options.overrideMaterials.clone();
-                            } else {
-                                mesh.material = new MeshLambertMaterial({ color: 0xffffff });
+                        // Rotation managed
+                        if (gltfUpAxis === undefined || gltfUpAxis === 'Y') {
+                            gltf.scene.applyMatrix4(matrixChangeUpVectorZtoY);
+                        } else if (gltfUpAxis === 'X') {
+                            gltf.scene.applyMatrix4(matrixChangeUpVectorZtoX);
+                        }
+
+                        // RTC managed
+                        applyOptionalCesiumRTC(
+                            buffer.slice(
+                                28 +
+                                    b3dmHeader.FTJSONLength +
+                                    b3dmHeader.FTBinaryLength +
+                                    b3dmHeader.BTJSONLength +
+                                    b3dmHeader.BTBinaryLength,
+                            ),
+                            gltf.scene,
+                        );
+
+                        const initMesh = function initFn(mesh: Mesh) {
+                            mesh.frustumCulled = false;
+                            if (!mesh.material || Array.isArray(mesh.material)) {
+                                return;
                             }
-                        } else if (Capabilities.isLogDepthBufferSupported()
-                                    && (mesh.material as RawShaderMaterial).isRawShaderMaterial
-                                    && !options.doNotPatchMaterial) {
-                            shaderUtils.patchMaterialForLogDepthSupport(
-                                mesh.material as RawShaderMaterial,
-                            );
-                            console.warn(
-                                'b3dm shader has been patched to add log depth buffer support',
-                            );
-                        }
-                        mesh.material.transparent = options.opacity < 1.0;
-                        mesh.material.needsUpdate = true;
-                        mesh.material.opacity = options.opacity;
+                            if (options.overrideMaterials) {
+                                mesh.material.dispose();
+                                if (
+                                    typeof options.overrideMaterials === 'object' &&
+                                    options.overrideMaterials.isMaterial
+                                ) {
+                                    mesh.material = options.overrideMaterials.clone();
+                                } else {
+                                    mesh.material = new MeshLambertMaterial({ color: 0xffffff });
+                                }
+                            } else if (
+                                Capabilities.isLogDepthBufferSupported() &&
+                                (mesh.material as RawShaderMaterial).isRawShaderMaterial &&
+                                !options.doNotPatchMaterial
+                            ) {
+                                shaderUtils.patchMaterialForLogDepthSupport(
+                                    mesh.material as RawShaderMaterial,
+                                );
+                                console.warn(
+                                    'b3dm shader has been patched to add log depth buffer support',
+                                );
+                            }
+                            mesh.material.transparent = options.opacity < 1.0;
+                            mesh.material.needsUpdate = true;
+                            mesh.material.opacity = options.opacity;
+                        };
+                        gltf.scene.traverse(initMesh);
+
+                        resolve(gltf);
                     };
-                    gltf.scene.traverse(initMesh);
 
-                    resolve(gltf);
-                };
+                    const gltfBuffer = buffer.slice(
+                        28 +
+                            b3dmHeader.FTJSONLength +
+                            b3dmHeader.FTBinaryLength +
+                            b3dmHeader.BTJSONLength +
+                            b3dmHeader.BTBinaryLength,
+                    );
 
-                const gltfBuffer = buffer.slice(28 + b3dmHeader.FTJSONLength
-                    + b3dmHeader.FTBinaryLength + b3dmHeader.BTJSONLength
-                    + b3dmHeader.BTBinaryLength);
+                    const version = new DataView(gltfBuffer, 0, 20).getUint32(4, true);
 
-                const version = new DataView(gltfBuffer, 0, 20).getUint32(4, true);
-
-                if (version === 1) {
-                    console.error('GLTF version 1 is no longer supported');
-                } else {
-                    glTFLoader.parse(gltfBuffer, urlBase, onload, onerror);
-                }
+                    if (version === 1) {
+                        console.error('GLTF version 1 is no longer supported');
+                    } else {
+                        glTFLoader.parse(gltfBuffer, urlBase, onload, onerror);
+                    }
+                }),
+            );
+            return Promise.all(promises).then(values => ({
+                gltf: values[1],
+                batchTable: values[0],
             }));
-            return Promise.all(promises)
-                .then(values => ({ gltf: values[1], batchTable: values[0] }));
         }
         throw new Error('Invalid b3dm file.');
     },

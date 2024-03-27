@@ -1,9 +1,4 @@
-import {
-    ClampToEdgeWrapping,
-    type Color,
-    NearestFilter,
-    type Texture,
-} from 'three';
+import { ClampToEdgeWrapping, type Color, NearestFilter, type Texture } from 'three';
 import TextureGenerator from '../../utils/TextureGenerator';
 import ColorMapMode from './ColorMapMode';
 
@@ -181,8 +176,6 @@ class ColorMap {
     }
 }
 
-export {
-    ColorMapMode,
-};
+export { ColorMapMode };
 
 export default ColorMap;

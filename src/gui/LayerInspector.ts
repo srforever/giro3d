@@ -22,7 +22,7 @@ class LayerInspector extends Panel {
     state: string;
     sourceCrs: string;
     interpretation: string;
-    minmax: { min: number, max: number };
+    minmax: { min: number; max: number };
     extentColor: Color;
     showExtent: boolean;
     extentHelper: BoundingBoxHelper | null;
@@ -122,19 +122,10 @@ class LayerInspector extends Panel {
             .name('Extent color')
             .onChange(() => this.updateExtentColor());
 
-        this.colorMapInspector = new ColorMapInspector(
-            this.gui,
-            instance,
-            layer,
-            layer.colorMap,
-        );
+        this.colorMapInspector = new ColorMapInspector(this.gui, instance, layer, layer.colorMap);
 
         if (this.layer.source) {
-            this.sourceInspector = new SourceInspector(
-                this.gui,
-                instance,
-                layer.source,
-            );
+            this.sourceInspector = new SourceInspector(this.gui, instance, layer.source);
         }
 
         this.addController<never>(this, 'disposeLayer').name('Dispose layer');
@@ -188,7 +179,9 @@ class LayerInspector extends Panel {
     }
 
     updateValues() {
-        this.state = this.layer.loading ? `loading (${Math.round(this.layer.progress * 100)}%)` : 'idle';
+        this.state = this.layer.loading
+            ? `loading (${Math.round(this.layer.progress * 100)}%)`
+            : 'idle';
         this.visible = this.layer.visible || true;
         this.composerImages = this.layer.composer?.images?.size ?? 0;
         if ((this.layer as ElevationLayer).isElevationLayer) {

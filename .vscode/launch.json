@@ -27,7 +27,7 @@
                     "url": "webpack://giro3d/src/",
                     "path": "${workspaceFolder}/src/"
                 }
-              ]
+            ]
         }
     ]
 }

@@ -58,7 +58,8 @@ function pack(maxSize: number, images: Array<AtlasImage>, oldAtlas: Atlas): Atla
 
     let previousRoot: Node;
     if (oldAtlas) {
-        for (const k of Object.keys(oldAtlas)) { // eslint-disable-line guard-for-in
+        for (const k of Object.keys(oldAtlas)) {
+            // eslint-disable-line guard-for-in
             const fitResult = oldAtlas[k];
             if (fitResult.x === 0 && fitResult.y === 0) {
                 // Updating

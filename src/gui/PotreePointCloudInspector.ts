@@ -20,14 +20,13 @@ class PotreePointCloudInspector extends EntityInspector {
      * @param entity - The inspected 3D tileset.
      */
     constructor(parentGui: GUI, instance: Instance, entity: PotreePointCloud) {
-        super(parentGui, instance, entity,
-            {
-                title: `PotreePointCloud ('${entity.id}')`,
-                visibility: true,
-                boundingBoxColor: false,
-                boundingBoxes: true,
-                opacity: true,
-            });
+        super(parentGui, instance, entity, {
+            title: `PotreePointCloud ('${entity.id}')`,
+            visibility: true,
+            boundingBoxColor: false,
+            boundingBoxes: true,
+            opacity: true,
+        });
 
         this.sse = entity.sseThreshold;
 
@@ -35,9 +34,7 @@ class PotreePointCloudInspector extends EntityInspector {
         this.bboxRoot.name = 'inspector';
         this.instance.scene.add(this.bboxRoot);
 
-        this.budgetThousands = entity.pointBudget
-            ? entity.pointBudget / 1000
-            : 2000;
+        this.budgetThousands = entity.pointBudget ? entity.pointBudget / 1000 : 2000;
 
         this.addController<number>(this, 'budgetThousands')
             .min(1)

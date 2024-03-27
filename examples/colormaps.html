@@ -4,22 +4,27 @@ shortdesc: Create color maps to interpret elevation, slope and aspect with custo
 longdesc: <a href="../apidoc/classes/core.layer.ColorMap.html" target="_blank">Colormaps</a> are useful to colorize an elevation dataset. You can change the color map's properties dynamically, such as the min and max values, the color gradients, or disable the color map entirely. Color maps can be applied on both elevation layers and color layers.
 attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
 ---
-<div class="m-2 position-absolute top-0 end-0">
 
+<div class="m-2 position-absolute top-0 end-0">
     <!-- General settings -->
     <div class="card m-1">
         <fieldset class="container m-1">
-
             <!-- Discrete color ramps -->
             <div class="row p-1">
                 <div>
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="discrete-ramps">
-                        <label class="form-check-label" for="discrete-ramps">Use discrete color ramps</label>
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            role="switch"
+                            id="discrete-ramps"
+                        />
+                        <label class="form-check-label" for="discrete-ramps"
+                            >Use discrete color ramps</label
+                        >
                     </div>
                 </div>
             </div>
-
         </fieldset>
     </div>
 
@@ -27,18 +32,29 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
     <div class="card m-1">
         <div class="card-header">
             <div class="form-check form-switch">
-                <input class="form-check-input" checked type="checkbox" role="switch" id="top-layer-enable">
+                <input
+                    class="form-check-input"
+                    checked
+                    type="checkbox"
+                    role="switch"
+                    id="top-layer-enable"
+                />
                 <label class="form-check-label" for="top-layer-enable">Top color layer</label>
             </div>
         </div>
 
         <fieldset class="container m-1" id="top-options">
-
             <!-- Activate color map -->
             <div class="row p-1">
                 <div>
                     <div class="form-check form-switch">
-                        <input class="form-check-input" checked type="checkbox" role="switch" id="top-colormap-enable">
+                        <input
+                            class="form-check-input"
+                            checked
+                            type="checkbox"
+                            role="switch"
+                            id="top-colormap-enable"
+                        />
                         <label class="form-check-label" for="top-colormap-enable">Color map</label>
                     </div>
                 </div>
@@ -64,7 +80,6 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                     </select>
                 </div>
             </fieldset>
-
         </fieldset>
     </div>
 
@@ -72,19 +87,32 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
     <div class="card m-1">
         <div class="card-header">
             <div class="form-check form-switch">
-                <input class="form-check-input" checked type="checkbox" role="switch" id="bottom-layer-enable">
+                <input
+                    class="form-check-input"
+                    checked
+                    type="checkbox"
+                    role="switch"
+                    id="bottom-layer-enable"
+                />
                 <label class="form-check-label" for="bottom-layer-enable">Bottom color layer</label>
             </div>
         </div>
 
         <fieldset class="container m-1" id="bottom-options">
-
             <!-- Activate color map -->
             <div class="row p-1">
                 <div>
                     <div class="form-check form-switch">
-                        <input class="form-check-input" checked type="checkbox" role="switch" id="bottom-colormap-enable">
-                        <label class="form-check-label" for="bottom-colormap-enable">Color map</label>
+                        <input
+                            class="form-check-input"
+                            checked
+                            type="checkbox"
+                            role="switch"
+                            id="bottom-colormap-enable"
+                        />
+                        <label class="form-check-label" for="bottom-colormap-enable"
+                            >Color map</label
+                        >
                     </div>
                 </div>
             </div>
@@ -109,7 +137,6 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                     </select>
                 </div>
             </fieldset>
-
         </fieldset>
     </div>
 
@@ -117,19 +144,32 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
     <div class="card m-1">
         <div class="card-header">
             <div class="form-check form-switch">
-                <input class="form-check-input" checked type="checkbox" role="switch" id="elevation-layer-enable">
+                <input
+                    class="form-check-input"
+                    checked
+                    type="checkbox"
+                    role="switch"
+                    id="elevation-layer-enable"
+                />
                 <label class="form-check-label" for="elevation-layer-enable">Elevation layer</label>
             </div>
         </div>
 
         <fieldset class="container m-1" id="elevation-options">
-
             <!-- Activate color map -->
             <div class="row p-1">
                 <div>
                     <div class="form-check form-switch">
-                        <input class="form-check-input" checked type="checkbox" role="switch" id="elevation-colormap-enable">
-                        <label class="form-check-label" for="elevation-colormap-enable">Color map</label>
+                        <input
+                            class="form-check-input"
+                            checked
+                            type="checkbox"
+                            role="switch"
+                            id="elevation-colormap-enable"
+                        />
+                        <label class="form-check-label" for="elevation-colormap-enable"
+                            >Color map</label
+                        >
                     </div>
                 </div>
             </div>
@@ -154,7 +194,6 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                     </select>
                 </div>
             </fieldset>
-
         </fieldset>
     </div>
 </div>

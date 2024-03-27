@@ -1,6 +1,8 @@
 {
     "extends": "markdownlint/style/prettier",
     "MD033": {
-        "allowed_elements": ["br", "div", "a", "img"]
-    }
+        "allowed_elements": ["br", "div", "a", "img", "hr"]
+    },
+    "MD024": false,
+    "MD041": false
 }

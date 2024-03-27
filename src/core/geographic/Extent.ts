@@ -1,12 +1,10 @@
 import type { TypedArray } from 'three';
-import {
-    Box3,
-    Vector2,
-    Vector3,
-    Vector4,
-} from 'three';
+import { Box3, Vector2, Vector3, Vector4 } from 'three';
 import Coordinates, {
-    crsIsGeographic, assertCrsIsValid, is4326, crsIsGeocentric,
+    crsIsGeographic,
+    assertCrsIsValid,
+    is4326,
+    crsIsGeocentric,
 } from './Coordinates';
 
 const tmpXY = new Vector2();
@@ -26,9 +24,9 @@ export function reasonnableEpsilonForCRS(crs: string, width: number, height: num
 }
 
 export type Input =
-    [Coordinates, Coordinates]
+    | [Coordinates, Coordinates]
     | [number, number, number, number]
-    | [{ west: number, east: number, south: number, north: number }];
+    | [{ west: number; east: number; south: number; north: number }];
 
 /**
  * An object representing a spatial extent. It encapsulates a Coordinate Reference System id (CRS)
@@ -71,10 +69,7 @@ class Extent {
      * - an object with `west`, `east`, `south`, `north` properties
      * - 4 numerical values for the `minx`, `maxx`, `miny`, `maxy`
      */
-    constructor(
-        crs: string,
-        ...values: Input
-    ) {
+    constructor(crs: string, ...values: Input) {
         this._values = new Float64Array(4);
         this.set(crs, ...values);
     }
@@ -90,7 +85,7 @@ class Extent {
      */
     static fromCenterAndSize(
         crs: string,
-        center: { x: number, y: number },
+        center: { x: number; y: number },
         width: number,
         height: number,
     ) {
@@ -114,11 +109,13 @@ class Extent {
      * @returns `true` if the extents are equal, otherwise `false`.
      */
     equals(other: Extent, epsilon = 0.00001) {
-        return other._crs === this._crs
-            && Math.abs(other._values[0] - this._values[0]) <= epsilon
-            && Math.abs(other._values[1] - this._values[1]) <= epsilon
-            && Math.abs(other._values[2] - this._values[2]) <= epsilon
-            && Math.abs(other._values[3] - this._values[3]) <= epsilon;
+        return (
+            other._crs === this._crs &&
+            Math.abs(other._values[0] - this._values[0]) <= epsilon &&
+            Math.abs(other._values[1] - this._values[1]) <= epsilon &&
+            Math.abs(other._values[2] - this._values[2]) <= epsilon &&
+            Math.abs(other._values[3] - this._values[3]) <= epsilon
+        );
     }
 
     /**
@@ -127,12 +124,14 @@ class Extent {
      * @returns `true` if the extent is valid, `false` otherwise.
      */
     isValid() {
-        if (!(
-            Number.isFinite(this.west())
-            && Number.isFinite(this.east())
-            && Number.isFinite(this.south())
-            && Number.isFinite(this.north())
-        )) {
+        if (
+            !(
+                Number.isFinite(this.west()) &&
+                Number.isFinite(this.east()) &&
+                Number.isFinite(this.south()) &&
+                Number.isFinite(this.north())
+            )
+        ) {
             return false;
         }
 
@@ -214,8 +213,8 @@ class Extent {
         assertCrsIsValid(crs);
 
         if (this._crs !== crs && !(is4326(this._crs) && is4326(crs))) {
-        // Compute min/max in x/y by projecting 8 cardinal points,
-        // and then taking the min/max of each coordinates.
+            // Compute min/max in x/y by projecting 8 cardinal points,
+            // and then taking the min/max of each coordinates.
             const cardinals: Coordinates[] = [];
             const c = this.center();
             cardinals.push(new Coordinates(this._crs, this.west(), this.north()));
@@ -233,7 +232,7 @@ class Extent {
             let west = Infinity;
             // loop over the coordinates
             for (let i = 0; i < cardinals.length; i++) {
-            // convert the coordinate.
+                // convert the coordinate.
                 cardinals[i] = cardinals[i].as(crs);
                 north = Math.max(north, cardinals[i].values[1]);
                 south = Math.min(south, cardinals[i].values[1]);
@@ -241,7 +240,10 @@ class Extent {
                 west = Math.min(west, cardinals[i].values[0]);
             }
             return new Extent(crs, {
-                north, south, east, west,
+                north,
+                south,
+                east,
+                west,
             });
         }
 
@@ -296,22 +298,30 @@ class Extent {
     /**
      * @returns the coordinates of the top left corner
      */
-    topLeft() { return new Coordinates(this.crs(), this.west(), this.north(), 0); }
+    topLeft() {
+        return new Coordinates(this.crs(), this.west(), this.north(), 0);
+    }
 
     /**
      * @returns the coordinates of the top right corner
      */
-    topRight() { return new Coordinates(this.crs(), this.east(), this.north(), 0); }
+    topRight() {
+        return new Coordinates(this.crs(), this.east(), this.north(), 0);
+    }
 
     /**
      * @returns the coordinates of the bottom right corner
      */
-    bottomRight() { return new Coordinates(this.crs(), this.east(), this.south(), 0); }
+    bottomRight() {
+        return new Coordinates(this.crs(), this.east(), this.south(), 0);
+    }
 
     /**
      * @returns the coordinates of the bottom right corner
      */
-    bottomLeft() { return new Coordinates(this.crs(), this.west(), this.south(), 0); }
+    bottomLeft() {
+        return new Coordinates(this.crs(), this.west(), this.south(), 0);
+    }
 
     /**
      * Gets the coordinate reference system of this extent.
@@ -415,18 +425,22 @@ class Extent {
      * @returns `true` if the coordinate is inside the bounding box
      */
     isPointInside(coord: Coordinates, epsilon = 0) {
-        const c = (this.crs() === coord.crs) ? coord : coord.as(this.crs());
+        const c = this.crs() === coord.crs ? coord : coord.as(this.crs());
         // TODO this ignores altitude
         if (crsIsGeographic(this.crs())) {
-            return c.longitude <= this.east() + epsilon
-               && c.longitude >= this.west() - epsilon
-               && c.latitude <= this.north() + epsilon
-               && c.latitude >= this.south() - epsilon;
+            return (
+                c.longitude <= this.east() + epsilon &&
+                c.longitude >= this.west() - epsilon &&
+                c.latitude <= this.north() + epsilon &&
+                c.latitude >= this.south() - epsilon
+            );
         }
-        return c.x <= this.east() + epsilon
-               && c.x >= this.west() - epsilon
-               && c.y <= this.north() + epsilon
-               && c.y >= this.south() - epsilon;
+        return (
+            c.x <= this.east() + epsilon &&
+            c.x >= this.west() - epsilon &&
+            c.y <= this.north() + epsilon &&
+            c.y >= this.south() - epsilon
+        );
     }
 
     /**
@@ -437,15 +451,17 @@ class Extent {
      * If this value is not provided, a reasonable epsilon will be computed.
      * @returns `true` if this extent is contained in the other extent.
      */
-    isInside(other: Extent, epsilon : number = null) {
+    isInside(other: Extent, epsilon: number = null) {
         const o = other.as(this._crs);
         // 0 is an acceptable value for epsilon:
         const dims = this.dimensions(tmpXY);
         epsilon = epsilon == null ? reasonnableEpsilonForCRS(this._crs, dims.x, dims.y) : epsilon;
-        return this.east() - o.east() <= epsilon
-               && o.west() - this.west() <= epsilon
-               && this.north() - o.north() <= epsilon
-               && o.south() - this.south() <= epsilon;
+        return (
+            this.east() - o.east() <= epsilon &&
+            o.west() - this.west() <= epsilon &&
+            this.north() - o.north() <= epsilon &&
+            o.south() - this.south() <= epsilon
+        );
     }
 
     /**
@@ -456,10 +472,12 @@ class Extent {
      */
     intersectsExtent(bbox: Extent) {
         const other = bbox.as(this.crs());
-        return !(this.west() >= other.east()
-             || this.east() <= other.west()
-             || this.south() >= other.north()
-             || this.north() <= other.south());
+        return !(
+            this.west() >= other.east() ||
+            this.east() <= other.west() ||
+            this.south() >= other.north() ||
+            this.north() <= other.south()
+        );
     }
 
     /**
@@ -477,11 +495,13 @@ class Extent {
         if (other.crs() !== this.crs()) {
             other = other.as(this.crs());
         }
-        this.set(this.crs(),
+        this.set(
+            this.crs(),
             Math.max(this.west(), other.west()),
             Math.min(this.east(), other.east()),
             Math.max(this.south(), other.south()),
-            Math.min(this.north(), other.north()));
+            Math.min(this.north(), other.north()),
+        );
 
         return this;
     }
@@ -505,7 +525,7 @@ class Extent {
         gridHeight: number,
         minPixWidth?: number,
         minPixHeight?: number,
-    ): { extent: Extent, width: number, height: number } {
+    ): { extent: Extent; width: number; height: number } {
         const gridDims = gridExtent.dimensions(tmpXY);
         const pixelWidth = gridDims.x / gridWidth;
         const pixelHeight = gridDims.y / gridHeight;
@@ -558,9 +578,11 @@ class Extent {
     set(crs: string, ...values: Input): this {
         this._crs = crs;
 
-        if (values.length === 2
-            && values[0] instanceof Coordinates
-            && values[1] instanceof Coordinates) {
+        if (
+            values.length === 2 &&
+            values[0] instanceof Coordinates &&
+            values[1] instanceof Coordinates
+        ) {
             [this._values[CARDINAL.WEST], this._values[CARDINAL.SOUTH]] = values[0].values;
             [this._values[CARDINAL.EAST], this._values[CARDINAL.NORTH]] = values[1].values;
         } else if (values.length === 1 && values[0].west !== undefined) {

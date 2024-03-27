@@ -1,6 +1,13 @@
 import { Material } from 'three';
 import TileIndex, {
-    TOP, TOP_RIGHT, RIGHT, BOTTOM_RIGHT, BOTTOM, BOTTOM_LEFT, LEFT, TOP_LEFT,
+    TOP,
+    TOP_RIGHT,
+    RIGHT,
+    BOTTOM_RIGHT,
+    BOTTOM,
+    BOTTOM_LEFT,
+    LEFT,
+    TOP_LEFT,
     type Tile,
 } from '../../../src/core/TileIndex';
 
@@ -37,7 +44,11 @@ function makeMaterial(visible: boolean) {
 
 function makeTile(x: number, y: number, z: number, visible = true, id = 0): Tile {
     return {
-        id, x, y, z, material: makeMaterial(visible),
+        id,
+        x,
+        y,
+        z,
+        material: makeMaterial(visible),
     };
 }
 
@@ -103,7 +114,11 @@ describe('TileIndex', () => {
         it('should return the requested tile if it is present, and with a visible material', () => {
             const tileIndex = new TileIndex();
             const tile = {
-                x: 1, y: 1, z: 1, id: 1, material: makeMaterial(true),
+                x: 1,
+                y: 1,
+                z: 1,
+                id: 1,
+                material: makeMaterial(true),
             };
             tileIndex.addTile(tile);
 
@@ -113,7 +128,11 @@ describe('TileIndex', () => {
         it("should return null if tile's material is not visible", () => {
             const tileIndex = new TileIndex();
             const tile = {
-                x: 1, y: 1, z: 1, id: 1, material: makeMaterial(false),
+                x: 1,
+                y: 1,
+                z: 1,
+                id: 1,
+                material: makeMaterial(false),
             };
             tileIndex.addTile(tile);
 
@@ -123,7 +142,11 @@ describe('TileIndex', () => {
         it('should return a parent tile (if its visible) if no same level tile found', () => {
             const tileIndex = new TileIndex();
             const tile = {
-                x: 0, y: 0, z: 0, id: 1, material: makeMaterial(true),
+                x: 0,
+                y: 0,
+                z: 0,
+                id: 1,
+                material: makeMaterial(true),
             };
             tileIndex.addTile(tile);
 

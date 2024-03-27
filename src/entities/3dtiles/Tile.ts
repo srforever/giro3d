@@ -1,10 +1,4 @@
-import {
-    Object3D,
-    Box3,
-    Sphere,
-    Vector3,
-    type Camera as ThreeCamera,
-} from 'three';
+import { Object3D, Box3, Sphere, Vector3, type Camera as ThreeCamera } from 'three';
 import type Tiles3D from '../Tiles3D';
 import ScreenSpaceError from '../../core/ScreenSpaceError';
 import { type Camera } from '../../renderer';
@@ -24,15 +18,17 @@ class Tile extends Object3D {
     /** Read-only flag to check if a given object is of type Tile. */
     readonly isTile: boolean = true;
     /** Parent tile */
+    // eslint-disable-next-line no-use-before-define
     parent: Tile;
     geometricError: number;
     tileId: number;
     additiveRefinement: boolean;
     viewerRequestVolume?: BoundingVolume;
     boundingVolume: BoundingVolume;
-    distance: { min: number, max: number };
+    distance: { min: number; max: number };
     content?: Object3D;
     batchTable?: any;
+    // eslint-disable-next-line no-use-before-define
     children: Tile[];
     pendingSubdivision?: boolean;
     deleted?: number;
@@ -53,9 +49,9 @@ class Tile extends Object3D {
         this.geometricError = metadata.geometricError;
         this.tileId = metadata.tileId;
         if (metadata.refine) {
-            this.additiveRefinement = (metadata.refine.toUpperCase() === 'ADD');
+            this.additiveRefinement = metadata.refine.toUpperCase() === 'ADD';
         } else {
-            this.additiveRefinement = parent ? (parent.additiveRefinement) : false;
+            this.additiveRefinement = parent ? parent.additiveRefinement : false;
         }
         this.viewerRequestVolume = metadata.viewerRequestVolumeObject;
         this.boundingVolume = metadata.boundingVolumeObject;
@@ -131,8 +127,7 @@ class Tile extends Object3D {
             tmp.s.copy(this.boundingVolume.sphere);
             tmp.s.applyMatrix4(this.matrixWorld);
             // TODO: this probably assumes that the camera has no parent
-            this.distance.min = Math.max(0.0,
-                tmp.s.distanceToPoint(camera.position));
+            this.distance.min = Math.max(0.0, tmp.s.distanceToPoint(camera.position));
             this.distance.max = this.distance.min + 2 * tmp.s.radius;
         }
     }

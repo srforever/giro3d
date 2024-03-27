@@ -33,9 +33,20 @@ function transformTexturedPlane(camera, distance, plane) {
 }
 
 // eslint-disable-next-line no-unused-vars
-function initCamera(instance, image, coord, EnhToOrientationUp, EnhToOrientationLookAt, rotMatrix,
-    orientationToCameraUp, orientationToCameraLookAt, distance, size, focale) {
-    const fov = giro3d.THREE.MathUtils.radToDeg((2 * Math.atan((size[1] / 2) / focale)));
+function initCamera(
+    instance,
+    image,
+    coord,
+    EnhToOrientationUp,
+    EnhToOrientationLookAt,
+    rotMatrix,
+    orientationToCameraUp,
+    orientationToCameraLookAt,
+    distance,
+    size,
+    focale,
+) {
+    const fov = giro3d.THREE.MathUtils.radToDeg(2 * Math.atan(size[1] / 2 / focale));
 
     const coordInstance = coord.as(instance.referenceCrs);
 
@@ -60,10 +71,12 @@ function initCamera(instance, image, coord, EnhToOrientationUp, EnhToOrientation
     orientedImage.updateMatrixWorld();
 
     // create a THREE JS Camera
-    const camera = new giro3d.THREE.PerspectiveCamera(fov,
+    const camera = new giro3d.THREE.PerspectiveCamera(
+        fov,
         size[0] / size[1],
         distance / 2,
-        distance * 2);
+        distance * 2,
+    );
     orientedImage.add(camera);
     camera.up.copy(orientationToCameraUp);
     camera.lookAt(orientationToCameraLookAt);
@@ -116,13 +129,19 @@ function addCameraHelper(instance, camera) {
 // eslint-disable-next-line no-unused-vars
 function setupPictureUI(menu, pictureInfos, plane, updateDistanceCallback, instance, min, max) {
     const orientedImageGUI = menu.gui.addFolder('Oriented Image');
-    orientedImageGUI.add(pictureInfos, 'distance', min, max).name('Distance').onChange(value => {
-        pictureInfos.distance = value;
-        updateDistanceCallback();
-        instance.notifyChange();
-    });
-    orientedImageGUI.add(pictureInfos, 'opacity', 0, 1).name('Opacity').onChange(value => {
-        plane.material.opacity = value;
-        instance.notifyChange();
-    });
+    orientedImageGUI
+        .add(pictureInfos, 'distance', min, max)
+        .name('Distance')
+        .onChange(value => {
+            pictureInfos.distance = value;
+            updateDistanceCallback();
+            instance.notifyChange();
+        });
+    orientedImageGUI
+        .add(pictureInfos, 'opacity', 0, 1)
+        .name('Opacity')
+        .onChange(value => {
+            plane.material.opacity = value;
+            instance.notifyChange();
+        });
 }

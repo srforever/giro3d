@@ -1,10 +1,4 @@
-import {
-    FloatType,
-    LinearFilter,
-    MathUtils,
-    UnsignedByteType,
-    Vector2,
-} from 'three';
+import { FloatType, LinearFilter, MathUtils, UnsignedByteType, Vector2 } from 'three';
 
 import {
     fromCustomClient,
@@ -62,8 +56,8 @@ export class FetcherResponse extends BaseResponse {
     async getData(): Promise<ArrayBuffer> {
         const data = this.response.arrayBuffer
             ? await this.response.arrayBuffer()
-            // @ts-expect-error (no buffer() in response)
-            : (await this.response.buffer()).buffer;
+            : // @ts-expect-error (no buffer() in response)
+              (await this.response.buffer()).buffer;
         return data;
     }
 }
@@ -76,7 +70,9 @@ class FetcherClient extends BaseClient {
     // @ts-expect-error (untyped base method)
     async request({ headers, credentials, signal } = {}): Promise<FetcherResponse> {
         const response = await Fetcher.fetch(this.url, {
-            headers, credentials, signal,
+            headers,
+            credentials,
+            signal,
         });
         return new FetcherResponse(response);
     }
@@ -208,7 +204,7 @@ class CogSource extends ImageSource {
      *
      * @param options - options
      */
-    constructor(options : CogSourceOptions) {
+    constructor(options: CogSourceOptions) {
         super({ flipY: true, ...options });
 
         this.type = 'CogSource';
@@ -238,12 +234,7 @@ class CogSource extends ImageSource {
      * @param tiffImage - The TIFF image.
      */
     static computeExtent(crs: string, tiffImage: GeoTIFFImage) {
-        const [
-            minx,
-            miny,
-            maxx,
-            maxy,
-        ] = tiffImage.getBoundingBox();
+        const [minx, miny, maxx, maxy] = tiffImage.getBoundingBox();
 
         const extent = new Extent(crs, minx, maxx, miny, maxy);
         return extent;
@@ -262,11 +253,7 @@ class CogSource extends ImageSource {
         requestHeight: number,
         margin = 0,
     ) {
-        const level = this.selectLevel(
-            requestExtent,
-            requestWidth,
-            requestHeight,
-        );
+        const level = this.selectLevel(requestExtent, requestWidth, requestHeight);
 
         const pixelWidth = this._dimensions.x / level.width;
         const pixelHeight = this._dimensions.y / level.height;
@@ -475,25 +462,17 @@ class CogSource extends ImageSource {
     }
 
     private async loadImage(opts: {
-        extent: Extent,
-        width: number,
-        height: number,
-        id: string,
-        signal?: AbortSignal,
+        extent: Extent;
+        width: number;
+        height: number;
+        id: string;
+        signal?: AbortSignal;
     }) {
-        const {
-            extent, width, height, id, signal,
-        } = opts;
+        const { extent, width, height, id, signal } = opts;
 
         const level = this.selectLevel(extent, width, height);
 
-        const adjusted = extent.fitToGrid(
-            this._extent,
-            level.width,
-            level.height,
-            8,
-            8,
-        );
+        const adjusted = extent.fitToGrid(this._extent, level.width, level.height, 8, 8);
 
         const actualExtent = adjusted.extent;
 
@@ -508,7 +487,11 @@ class CogSource extends ImageSource {
         return new ImageResult(result);
     }
 
-    private async readWindow(image: GeoTIFFImage, window: number[], signal?: AbortSignal): Promise<ReadRasterResult> {
+    private async readWindow(
+        image: GeoTIFFImage,
+        window: number[],
+        signal?: AbortSignal,
+    ): Promise<ReadRasterResult> {
         if (this._convertToRGB) {
             return await image.readRGB({
                 pool: this._pool,
@@ -541,8 +524,11 @@ class CogSource extends ImageSource {
      * @param signal - The abort signal.
      * @returns The buffers.
      */
-    private async fetchBuffer(image: GeoTIFFImage, window: number[], signal?: AbortSignal)
-        : Promise<TypedArray | TypedArray[]> {
+    private async fetchBuffer(
+        image: GeoTIFFImage,
+        window: number[],
+        signal?: AbortSignal,
+    ): Promise<TypedArray | TypedArray[]> {
         try {
             signal?.throwIfAborted();
 
@@ -595,16 +581,13 @@ class CogSource extends ImageSource {
     }
 
     getImages(options: {
-        id: string,
-        extent: Extent,
-        width: number,
-        height: number,
-        signal?: AbortSignal,
+        id: string;
+        extent: Extent;
+        width: number;
+        height: number;
+        signal?: AbortSignal;
     }) {
-        const {
-            signal,
-            id,
-        } = options;
+        const { signal, id } = options;
 
         signal?.throwIfAborted();
 

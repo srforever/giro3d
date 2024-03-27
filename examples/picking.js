@@ -16,15 +16,13 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
-Instance.registerCRS('EPSG:3946',
-    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 '
-    + '+y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
-
-const extent = new Extent(
+Instance.registerCRS(
     'EPSG:3946',
-    1837816.94334, 1847692.32501,
-    5170036.4587, 5178412.82698,
+    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 ' +
+        '+y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
 );
+
+const extent = new Extent('EPSG:3946', 1837816.94334, 1847692.32501, 5170036.4587, 5178412.82698);
 
 const viewerDiv = document.getElementById('viewerDiv');
 
@@ -191,9 +189,8 @@ instance.domElement.addEventListener('dblclick', e => {
     elem('pickingTiming').innerHTML = `${t1 - t0}`;
     elem('pickingCount').innerHTML = `${picked.length}`;
     elem('pickingCoord').innerHTML = picked.length > 0 ? format(picked[0].point) : '-';
-    elem('pickingFirstResult').innerHTML = picked.length > 0
-        ? `${picked[0].entity.id} (${picked[0].entity.type})`
-        : '-';
+    elem('pickingFirstResult').innerHTML =
+        picked.length > 0 ? `${picked[0].entity.id} (${picked[0].entity.type})` : '-';
 
     t0 = performance.now();
     const raycasted = raycast(e);
@@ -203,9 +200,8 @@ instance.domElement.addEventListener('dblclick', e => {
     elem('raycastingTiming').innerHTML = `${t1 - t0}`;
     elem('raycastingCount').innerHTML = `${raycasted.length}`;
     elem('raycastingCoord').innerHTML = raycasted.length > 0 ? format(raycasted[0].point) : '-';
-    elem('raycastingFirstResult').innerHTML = raycasted.length > 0
-        ? `${raycasted[0].entity.id} (${raycasted[0].entity.type})`
-        : '-';
+    elem('raycastingFirstResult').innerHTML =
+        raycasted.length > 0 ? `${raycasted[0].entity.id} (${raycasted[0].entity.type})` : '-';
 
     t0 = performance.now();
     const projected = project(e, controls.target.z);

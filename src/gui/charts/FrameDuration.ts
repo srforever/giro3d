@@ -88,46 +88,34 @@ class FrameDuration extends ChartPanel {
         this.renderStart = -1;
         this.frame = 0;
 
-        instance.addEventListener(
-            'update-start',
-            () => {
-                this.frame++;
-                this.updateStart = performance.now();
-            },
-        );
+        instance.addEventListener('update-start', () => {
+            this.frame++;
+            this.updateStart = performance.now();
+        });
 
-        instance.addEventListener(
-            'update-end',
-            () => {
-                const now = performance.now();
-                pushTrim(
-                    totalFrameLength.data,
-                    { x: this.frame, y: now - this.updateStart },
-                    MAX_DATA_POINTS,
-                );
+        instance.addEventListener('update-end', () => {
+            const now = performance.now();
+            pushTrim(
+                totalFrameLength.data,
+                { x: this.frame, y: now - this.updateStart },
+                MAX_DATA_POINTS,
+            );
 
-                pushTrim(labels, '', MAX_DATA_POINTS);
-            },
-        );
+            pushTrim(labels, '', MAX_DATA_POINTS);
+        });
 
-        instance.addEventListener(
-            'before-render',
-            () => {
-                this.renderStart = performance.now();
-            },
-        );
+        instance.addEventListener('before-render', () => {
+            this.renderStart = performance.now();
+        });
 
-        instance.addEventListener(
-            'after-render',
-            () => {
-                const now = performance.now();
-                pushTrim(
-                    renderTime.data,
-                    { x: this.frame, y: now - this.renderStart },
-                    MAX_DATA_POINTS,
-                );
-            },
-        );
+        instance.addEventListener('after-render', () => {
+            const now = performance.now();
+            pushTrim(
+                renderTime.data,
+                { x: this.frame, y: now - this.renderStart },
+                MAX_DATA_POINTS,
+            );
+        });
     }
 
     updateValues() {

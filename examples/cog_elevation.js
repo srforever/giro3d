@@ -14,11 +14,7 @@ import ColorMap, { ColorMapMode } from '@giro3d/giro3d/core/layer/ColorMap.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
-const extent = new Extent(
-    'EPSG:3857',
-    -13581040.085, -13469591.026,
-    5780261.830, 5942165.048,
-);
+const extent = new Extent('EPSG:3857', -13581040.085, -13469591.026, 5780261.83, 5942165.048);
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
@@ -75,37 +71,45 @@ function updateMode(value) {
 
     switch (value) {
         case 'elevation-colormap':
-            map.addLayer(new ElevationLayer({
-                name: value,
-                extent,
-                source,
-                colorMap: viridis,
-                minmax: { min, max },
-            }));
+            map.addLayer(
+                new ElevationLayer({
+                    name: value,
+                    extent,
+                    source,
+                    colorMap: viridis,
+                    minmax: { min, max },
+                }),
+            );
             break;
         case 'elevation':
-            map.addLayer(new ElevationLayer({
-                name: value,
-                extent,
-                source,
-                minmax: { min, max },
-            }));
+            map.addLayer(
+                new ElevationLayer({
+                    name: value,
+                    extent,
+                    source,
+                    minmax: { min, max },
+                }),
+            );
             break;
         case '8bit':
-            map.addLayer(new ColorLayer({
-                name: value,
-                extent,
-                source,
-                interpretation: Interpretation.CompressTo8Bit(min, max),
-            }));
+            map.addLayer(
+                new ColorLayer({
+                    name: value,
+                    extent,
+                    source,
+                    interpretation: Interpretation.CompressTo8Bit(min, max),
+                }),
+            );
             break;
         case 'colormap':
-            map.addLayer(new ColorLayer({
-                name: value,
-                extent,
-                source,
-                colorMap: magma,
-            }));
+            map.addLayer(
+                new ColorLayer({
+                    name: value,
+                    extent,
+                    source,
+                    colorMap: magma,
+                }),
+            );
             break;
         default:
             break;

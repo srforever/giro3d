@@ -18,15 +18,13 @@ import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)
-Instance.registerCRS('EPSG:3946',
-    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+Instance.registerCRS(
+    'EPSG:3946',
+    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+);
 
 // Define a geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent(
-    'EPSG:3946',
-    1837816.94334, 1847692.32501,
-    5170036.4587, 5178412.82698,
-);
+const extent = new Extent('EPSG:3946', 1837816.94334, 1847692.32501, 5170036.4587, 5178412.82698);
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
@@ -58,17 +56,17 @@ map.addLayer(colorLayer);
 const busLinesSource = new VectorSource({
     format: new GeoJSON(),
     url: function url(tileExtent) {
-        return (
-            `${'https://download.data.grandlyon.com/wfs/rdata'
-            + '?SERVICE=WFS'
-            + '&VERSION=2.0.0'
-            + '&request=GetFeature'
-            + '&typename=tcl_sytral.tcllignebus_2_0_0'
-            + '&outputFormat=application/json;%20subtype=geojson'
-            + '&SRSNAME=EPSG:3946'
-            + '&startIndex=0'
-            + '&bbox='}${tileExtent.join(',')},EPSG:3946`
-        );
+        return `${
+            'https://download.data.grandlyon.com/wfs/rdata' +
+            '?SERVICE=WFS' +
+            '&VERSION=2.0.0' +
+            '&request=GetFeature' +
+            '&typename=tcl_sytral.tcllignebus_2_0_0' +
+            '&outputFormat=application/json;%20subtype=geojson' +
+            '&SRSNAME=EPSG:3946' +
+            '&startIndex=0' +
+            '&bbox='
+        }${tileExtent.join(',')},EPSG:3946`;
     },
     strategy: tile(createXYZ({ tileSize: 512 })),
 });
@@ -103,16 +101,16 @@ instance.add(busLines);
 const busStopSource = new VectorSource({
     format: new GeoJSON(),
     url: function url(tileExtent) {
-        return (
-            `${'https://download.data.grandlyon.com/wfs/rdata'
-            + '?SERVICE=WFS'
-            + '&VERSION=2.0.0'
-            + '&request=GetFeature'
-            + '&typename=tcl_sytral.tclarret'
-            + '&outputFormat=application/json; subtype=geojson'
-            + '&SRSNAME=EPSG:3946'
-            + '&bbox='}${tileExtent.join(',')},EPSG:3946`
-        );
+        return `${
+            'https://download.data.grandlyon.com/wfs/rdata' +
+            '?SERVICE=WFS' +
+            '&VERSION=2.0.0' +
+            '&request=GetFeature' +
+            '&typename=tcl_sytral.tclarret' +
+            '&outputFormat=application/json; subtype=geojson' +
+            '&SRSNAME=EPSG:3946' +
+            '&bbox='
+        }${tileExtent.join(',')},EPSG:3946`;
     },
     strategy: tile(createXYZ({ tileSize: 512 })),
 });
@@ -137,9 +135,12 @@ instance.add(busStops);
 const cubeTextureLoader = new CubeTextureLoader();
 cubeTextureLoader.setPath('image/skyboxsun25deg_zup/');
 const cubeTexture = cubeTextureLoader.load([
-    'px.jpg', 'nx.jpg',
-    'py.jpg', 'ny.jpg',
-    'pz.jpg', 'nz.jpg',
+    'px.jpg',
+    'nx.jpg',
+    'py.jpg',
+    'ny.jpg',
+    'pz.jpg',
+    'nz.jpg',
 ]);
 instance.scene.background = cubeTexture;
 
@@ -151,10 +152,7 @@ instance.camera.camera3D.lookAt(extent.centerAsVector3());
 instance.notifyChange(instance.camera.camera3D);
 
 // Creates controls
-const controls = new MapControls(
-    instance.camera.camera3D,
-    viewerDiv,
-);
+const controls = new MapControls(instance.camera.camera3D, viewerDiv);
 
 // MapControls needs a target, let's set it at our lookAt position
 controls.target = extent.centerAsVector3();
@@ -185,11 +183,13 @@ const label = new CSS2DObject(wrapper);
 instance.add(label);
 
 instance.domElement.addEventListener('mousemove', e => {
-    const found = instance.pickObjectsAt(e, {
-        radius: 2,
-        limit: 1,
-        where: [busStops, busLines],
-    }).at(0);
+    const found = instance
+        .pickObjectsAt(e, {
+            radius: 2,
+            limit: 1,
+            where: [busStops, busLines],
+        })
+        .at(0);
     if (found) {
         const obj = found.object;
         if (found.entity === busStops) {

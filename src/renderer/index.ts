@@ -4,10 +4,4 @@ import MemoryTracker from './MemoryTracker';
 import PointCloudMaterial from './PointCloudMaterial';
 import type RenderingOptions from './RenderingOptions';
 
-export {
-    Camera,
-    RendererOptions,
-    MemoryTracker,
-    PointCloudMaterial,
-    RenderingOptions,
-};
+export { Camera, RendererOptions, MemoryTracker, PointCloudMaterial, RenderingOptions };

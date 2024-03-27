@@ -1,6 +1,4 @@
-import {
-    MathUtils as ThreeMath, Sphere,
-} from 'three';
+import { MathUtils as ThreeMath, Sphere } from 'three';
 import Context from './Context';
 import type C3DEngine from '../renderer/c3DEngine';
 import type Instance from './Instance';
@@ -25,9 +23,9 @@ const tmpSphere = new Sphere();
  * @internal
  */
 export interface ObjectToUpdate {
-    element?: any,
-    parent?: any,
-    elements?: any[],
+    element?: any;
+    parent?: any;
+    elements?: any[];
 }
 
 // TODO: clean this up
@@ -43,14 +41,6 @@ function updateElements(context: Context, entity: Entity, elements?: unknown[]) 
 
         if (sub) {
             if (sub.element) {
-                // if (__DEBUG__) {
-                //     if (!(sub.element.isObject3D)) {
-                //         throw new Error(`
-                //             Invalid object for attached layer to update.
-                //             Must be a THREE.Object and have a THREE.Material`);
-                //     }
-                // }
-
                 // update attached layers
                 if (hasLayers(entity)) {
                     entity.forEachLayer(attachedLayer => {
@@ -61,7 +51,7 @@ function updateElements(context: Context, entity: Entity, elements?: unknown[]) 
                 }
             } else if (sub.elements) {
                 for (let i = 0; i < sub.elements.length; i++) {
-                    if (!(sub.elements[i].isObject3D)) {
+                    if (!sub.elements[i].isObject3D) {
                         throw new Error(`
                             Invalid object for attached layer to update.
                             Must be a THREE.Object and have a THREE.Material`);
@@ -108,11 +98,7 @@ class MainLoop {
         this._changeSources = new Set<unknown>();
     }
 
-    scheduleUpdate(
-        instance: Instance,
-        forceRedraw: boolean,
-        changeSource: unknown = undefined,
-    ) {
+    scheduleUpdate(instance: Instance, forceRedraw: boolean, changeSource: unknown = undefined) {
         if (changeSource) {
             this._changeSources.add(changeSource);
         }
@@ -121,7 +107,9 @@ class MainLoop {
         if (this._renderingState !== RenderingState.RENDERING_SCHEDULED) {
             this._renderingState = RenderingState.RENDERING_SCHEDULED;
 
-            requestAnimationFrame(timestamp => { this.step(instance, timestamp); });
+            requestAnimationFrame(timestamp => {
+                this.step(instance, timestamp);
+            });
         }
     }
 
@@ -159,14 +147,12 @@ class MainLoop {
                 }
 
                 if ('distance' in entity) {
-                    const entityDistance = entity.distance as { min: number; max: number; };
+                    const entityDistance = entity.distance as { min: number; max: number };
                     context.distance.min = Math.min(context.distance.min, entityDistance.min);
                     if (entityDistance.max === Infinity) {
                         context.distance.max = instance.camera.maxFarPlane;
                     } else {
-                        context.distance.max = Math.max(
-                            context.distance.max, entityDistance.max,
-                        );
+                        context.distance.max = Math.max(context.distance.max, entityDistance.max);
                     }
                 }
 

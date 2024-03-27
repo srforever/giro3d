@@ -128,7 +128,11 @@ class MemoryUsage extends ChartPanel {
         const frame = this.render.frame;
         pushTrim(this.textures.data, { x: frame, y: this.memory.textures }, MAX_DATA_POINTS);
         pushTrim(this.geometries.data, { x: frame, y: this.memory.geometries }, MAX_DATA_POINTS);
-        pushTrim(this.renderTargets.data, { x: frame, y: GlobalRenderTargetPool.count }, MAX_DATA_POINTS);
+        pushTrim(
+            this.renderTargets.data,
+            { x: frame, y: GlobalRenderTargetPool.count },
+            MAX_DATA_POINTS,
+        );
         pushTrim(this.labels, '', MAX_DATA_POINTS);
 
         this.chart.update();

@@ -10,11 +10,15 @@ import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 
 const extent = new Extent(
     'EPSG:3857',
-    -20037508.342789244, 20037508.342789244,
-    -20037508.342789244, 20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
 );
 
-const source = new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) });
+const source = new TiledImageSource({
+    source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }),
+});
 
 function buildViewer(viewerDiv, defaultRenderer = true) {
     const renderer = { clearColor: false };
@@ -28,10 +32,12 @@ function buildViewer(viewerDiv, defaultRenderer = true) {
     instance.add(map);
 
     // Adds an TMS imagery layer
-    map.addLayer(new ColorLayer({
-        name: 'osm',
-        source,
-    })).catch(e => console.error(e));
+    map.addLayer(
+        new ColorLayer({
+            name: 'osm',
+            source,
+        }),
+    ).catch(e => console.error(e));
 
     instance.camera.camera3D.position.set(0, 0, 25000000);
 

@@ -1,6 +1,6 @@
 <div align="center">
   <a href="https://giro3d.org">
-    <img src="https://giro3d.org/images/giro3d_logo.svg" height="120">
+    <img alt="Giro3D logo" src="https://giro3d.org/images/giro3d_logo.svg" height="120">
   </a>
 </div>
 
@@ -11,10 +11,10 @@
 <br>
 
 <div align="center">
-  <a href="https://gitlab.com/giro3d/giro3d/badges/main/pipeline.svg"><img src="https://gitlab.com/giro3d/giro3d/badges/main/pipeline.svg"></a>
-  <a href="https://gitlab.com/giro3d/giro3d/badges/main/coverage.svg"><img src="https://gitlab.com/giro3d/giro3d/badges/main/coverage.svg"></a>
-  <a href="https://www.npmjs.com/package/@giro3d/giro3d"><img src="https://img.shields.io/npm/v/@giro3d/giro3d?color=blue"></a>
-  <a href="https://matrix.to/#/#giro3d:matrix.org"><img src="https://img.shields.io/matrix/giro3d:matrix.org"></a>
+  <a href="https://gitlab.com/giro3d/giro3d/badges/main/pipeline.svg"><img alt="CI/CD Pipeline badge" src="https://gitlab.com/giro3d/giro3d/badges/main/pipeline.svg"></a>
+  <a href="https://gitlab.com/giro3d/giro3d/badges/main/coverage.svg"><img alt="CI/CD code coverage badge" src="https://gitlab.com/giro3d/giro3d/badges/main/coverage.svg"></a>
+  <a href="https://www.npmjs.com/package/@giro3d/giro3d"><img alt="NPMJS latest package badge" src="https://img.shields.io/npm/v/@giro3d/giro3d?color=blue"></a>
+  <a href="https://matrix.to/#/#giro3d:matrix.org"><img alt="Giro3D matrix chatroom badge" src="https://img.shields.io/matrix/giro3d:matrix.org"></a>
 </div>
 
 <hr/>
@@ -26,25 +26,25 @@ and **[Three.js](https://threejs.org)** for 3d assets, and can be easily extende
 
 ### Maps
 
-- [WMTS](https://www.ogc.org/standards/wmts)
-- [WMS](https://www.ogc.org/standards/wms)
-- [TMS](https://www.ogc.org/standards/tms)
+-   [WMTS](https://www.ogc.org/standards/wmts)
+-   [WMS](https://www.ogc.org/standards/wms)
+-   [TMS](https://www.ogc.org/standards/tms)
 
 ### Elevation data
 
-- [DEM/DTM/DSM](https://gisgeography.com/dem-dsm-dtm-differences/) through [WMTS](https://www.ogc.org/standards/wmts)
+-   [DEM/DTM/DSM](https://gisgeography.com/dem-dsm-dtm-differences/) through [WMTS](https://www.ogc.org/standards/wmts)
 
 ### Vector data
 
-- [Mapbox Vector Tiles](https://docs.mapbox.com/data/tilesets/guides/vector-tiles-introduction/)
-- [GeoJSON](https://geojson.org/)
-- [GPS Exchange Format (GPX)](https://en.wikipedia.org/wiki/GPS_Exchange_Format)
+-   [Mapbox Vector Tiles](https://docs.mapbox.com/data/tilesets/guides/vector-tiles-introduction/)
+-   [GeoJSON](https://geojson.org/)
+-   [GPS Exchange Format (GPX)](https://en.wikipedia.org/wiki/GPS_Exchange_Format)
 
 ### 3D assets
 
-- [3D Tiles](https://github.com/CesiumGS/3d-tiles) for optimized massive 3D datasets, including point clouds
-- [glTF](https://github.com/KhronosGroup/glTF) for individual models
-- [Potree point clouds](https://github.com/potree/potree)
+-   [3D Tiles](https://github.com/CesiumGS/3d-tiles) for optimized massive 3D datasets, including point clouds
+-   [glTF](https://github.com/KhronosGroup/glTF) for individual models
+-   [Potree point clouds](https://github.com/potree/potree)
 
 # Getting started
 
@@ -128,7 +128,7 @@ In case you don't want to code your own application, you can also use [Piero](ht
 
 <div align="center">
   <a href="https://app.giro3d.org">
-    <img src="https://app.giro3d.org/piero_logo.svg" height="120">
+    <img alt="Piero logo" src="https://app.giro3d.org/piero_logo.svg" height="120">
   </a>
 </div>
 

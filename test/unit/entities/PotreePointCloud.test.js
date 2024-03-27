@@ -6,7 +6,7 @@ const context = { camera: { height: 1, camera3D: new PerspectiveCamera() } };
 
 describe('PotreePointCloud', () => {
     describe('preUpdate', () => {
-    /** @type {PotreePointCloud} */
+        /** @type {PotreePointCloud} */
         let entity;
 
         beforeEach(() => {
@@ -56,7 +56,7 @@ describe('PotreePointCloud', () => {
     });
 
     describe('getObjectToUpdateForAttachedLayers', () => {
-    /** @type {PotreePointCloud} */
+        /** @type {PotreePointCloud} */
         let entity;
 
         beforeEach(() => {
@@ -100,9 +100,10 @@ describe('PotreePointCloud', () => {
             };
 
             entity.parseMetadata(metadata);
-            const normalDefined = entity.material.defines.NORMAL
-            || entity.material.defines.NORMAL_SPHEREMAPPED
-            || entity.material.defines.NORMAL_OCT16;
+            const normalDefined =
+                entity.material.defines.NORMAL ||
+                entity.material.defines.NORMAL_SPHEREMAPPED ||
+                entity.material.defines.NORMAL_OCT16;
             assert.ok(!normalDefined);
 
             // normals as vector
@@ -122,7 +123,12 @@ describe('PotreePointCloud', () => {
 
             // oct16 normals
             entity.material = { defines: {} };
-            metadata.pointAttributes = ['POSITION', 'COLOR_PACKED', 'CLASSIFICATION', 'NORMAL_OCT16'];
+            metadata.pointAttributes = [
+                'POSITION',
+                'COLOR_PACKED',
+                'CLASSIFICATION',
+                'NORMAL_OCT16',
+            ];
             entity.parseMetadata(metadata, entity);
             assert.ok(!entity.material.defines.NORMAL);
             assert.ok(!entity.material.defines.NORMAL_SPHEREMAPPED);

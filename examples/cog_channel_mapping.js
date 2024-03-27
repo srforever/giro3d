@@ -13,11 +13,7 @@ import StatusBar from './widgets/StatusBar.js';
 Instance.registerCRS('EPSG:32611', '+proj=utm +zone=11 +datum=WGS84 +units=m +no_defs +type=crs');
 
 // Define geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent(
-    'EPSG:32611',
-    666285, 668533.5,
-    3997174, 3998444,
-);
+const extent = new Extent('EPSG:32611', 666285, 668533.5, 3997174, 3998444);
 const center = extent.centerAsVector3();
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
@@ -77,9 +73,15 @@ function bindDropdown(id, action) {
     });
 }
 
-bindDropdown('r-channel', v => { channels[0] = v; });
-bindDropdown('g-channel', v => { channels[1] = v; });
-bindDropdown('b-channel', v => { channels[2] = v; });
+bindDropdown('r-channel', v => {
+    channels[0] = v;
+});
+bindDropdown('g-channel', v => {
+    channels[1] = v;
+});
+bindDropdown('b-channel', v => {
+    channels[2] = v;
+});
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 StatusBar.bind(instance);

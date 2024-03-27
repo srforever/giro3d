@@ -7,7 +7,7 @@ import type Disposable from '../core/Disposable';
 /* eslint class-methods-use-this: 0 */
 
 export interface EntityEventMap {
-    'frozen-property-changed': { frozen: boolean; }
+    'frozen-property-changed': { frozen: boolean };
 }
 
 export type EntityUserData = Record<string, unknown>;
@@ -71,7 +71,8 @@ export type EntityUserData = Record<string, unknown>;
  */
 class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = EntityUserData>
     extends EventDispatcher<TEventMap & EntityEventMap>
-    implements Disposable {
+    implements Disposable
+{
     private readonly _id: string;
     private _frozen: boolean;
     public whenReady?: Promise<this>;
@@ -269,7 +270,9 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      * @returns the _elements_ to update during `update()`.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    preUpdate(context: Context, changeSources: Set<unknown>): unknown[] | null { return null; }
+    preUpdate(context: Context, changeSources: Set<unknown>): unknown[] | null {
+        return null;
+    }
 
     /**
      * Attached layers expect to receive the visual representation of a layer (= THREE object
@@ -282,7 +285,9 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      * @returns an object passed to the update function of attached layers.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    getObjectToUpdateForAttachedLayers(obj: unknown): ObjectToUpdate | null { return null; }
+    getObjectToUpdateForAttachedLayers(obj: unknown): ObjectToUpdate | null {
+        return null;
+    }
 
     /**
      * Performs an update on an _element_ of the entity.
@@ -296,7 +301,9 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      * @returns New elements to update
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    update(context: Context, element: unknown): unknown[] | undefined { return undefined; }
+    update(context: Context, element: unknown): unknown[] | undefined {
+        return undefined;
+    }
 
     /**
      * Method called after {@link Entity.update}.
@@ -309,7 +316,9 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      * on the camera's field of view should be updated.
      */
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    postUpdate(context: Context, changeSources: Set<unknown>) { /** do nothing */ }
+    postUpdate(context: Context, changeSources: Set<unknown>) {
+        /** do nothing */
+    }
 
     /**
      * Disposes this entity and all resources associated with it.
@@ -320,7 +329,9 @@ class Entity<TEventMap extends EntityEventMap = EntityEventMap, TUserData = Enti
      * For example: disposing materials, geometries, stopping HTTP requests, etc.
      *
      */
-    dispose() { /** do nothing */ }
+    dispose() {
+        /** do nothing */
+    }
 }
 
 export function isEntity(o: unknown): o is Entity {

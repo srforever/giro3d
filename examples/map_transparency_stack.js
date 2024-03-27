@@ -21,15 +21,13 @@ import StatusBar from './widgets/StatusBar.js';
 // # Planar (EPSG:3946) viewer
 
 // Defines projection that we will use (taken from https://epsg.io/3946, Proj4js section)
-Instance.registerCRS('EPSG:3946',
-    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+Instance.registerCRS(
+    'EPSG:3946',
+    '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+);
 
 // Defines geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent(
-    'EPSG:3946',
-    1837816.94334, 1847692.32501,
-    5170036.4587, 5178412.82698,
-);
+const extent = new Extent('EPSG:3946', 1837816.94334, 1847692.32501, 5170036.4587, 5178412.82698);
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
@@ -157,13 +155,25 @@ function bindSlider(id, callback) {
     };
 }
 
-bindToggle('show-terrain', v => { terrainMap.visible = v; });
-bindToggle('show-orthophoto', v => { orthophotoMap.visible = v; });
-bindToggle('show-vector', v => { vectorMap.visible = v; });
+bindToggle('show-terrain', v => {
+    terrainMap.visible = v;
+});
+bindToggle('show-orthophoto', v => {
+    orthophotoMap.visible = v;
+});
+bindToggle('show-vector', v => {
+    vectorMap.visible = v;
+});
 
-bindSlider('terrain-opacity', o => { terrainMap.opacity = o; });
-bindSlider('orthophoto-opacity', o => { orthophotoMap.opacity = o; });
-bindSlider('vector-opacity', o => { vectorMap.opacity = o; });
+bindSlider('terrain-opacity', o => {
+    terrainMap.opacity = o;
+});
+bindSlider('orthophoto-opacity', o => {
+    orthophotoMap.opacity = o;
+});
+bindSlider('vector-opacity', o => {
+    vectorMap.opacity = o;
+});
 bindSlider('vector-bg-opacity', o => {
     vectorMap.materialOptions.backgroundOpacity = o;
     instance.notifyChange(vectorMap);

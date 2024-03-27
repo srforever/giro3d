@@ -41,7 +41,12 @@ describe('PotreeBinParser', () => {
             dv.setUint8(i * numbyte + 18, i * 3);
         }
 
-        return PotreeBinParser.parse(buffer, ['POSITION_CARTESIAN', 'INTENSITY', 'COLOR_PACKED', 'CLASSIFICATION']).then(geom => {
+        return PotreeBinParser.parse(buffer, [
+            'POSITION_CARTESIAN',
+            'INTENSITY',
+            'COLOR_PACKED',
+            'CLASSIFICATION',
+        ]).then(geom => {
             const posAttr = geom.getAttribute('position');
             const intensityAttr = geom.getAttribute('intensity');
             const colorAttr = geom.getAttribute('color');
@@ -50,20 +55,39 @@ describe('PotreeBinParser', () => {
             // check position buffer
             assert.equal(posAttr.itemSize, 3);
             assert.deepStrictEqual(
-                posAttr.array, Float32Array.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14),
+                posAttr.array,
+                Float32Array.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14),
             );
             // check intensity
             assert.equal(intensityAttr.itemSize, 1);
             assert.deepStrictEqual(intensityAttr.array, Float32Array.of(100, 101, 102, 103, 104));
             // check colors
             assert.equal(colorAttr.itemSize, 4);
-            assert.deepStrictEqual(colorAttr.array, Uint8Array.of(
-                200, 201, 202, 203,
-                204, 205, 206, 207,
-                208, 209, 210, 211,
-                212, 213, 214, 215,
-                216, 217, 218, 219,
-            ));
+            assert.deepStrictEqual(
+                colorAttr.array,
+                Uint8Array.of(
+                    200,
+                    201,
+                    202,
+                    203,
+                    204,
+                    205,
+                    206,
+                    207,
+                    208,
+                    209,
+                    210,
+                    211,
+                    212,
+                    213,
+                    214,
+                    215,
+                    216,
+                    217,
+                    218,
+                    219,
+                ),
+            );
             // check classif
             assert.equal(classificationAttr.itemSize, 1);
             assert.deepStrictEqual(classificationAttr.array, Uint8Array.of(0, 3, 6, 9, 12));

@@ -31,8 +31,14 @@ import FeatureCollection from '@giro3d/giro3d/entities/FeatureCollection.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
-Instance.registerCRS('EPSG:2154', '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs');
-Instance.registerCRS('IGNF:WGS84G', 'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]');
+Instance.registerCRS(
+    'EPSG:2154',
+    '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+);
+Instance.registerCRS(
+    'IGNF:WGS84G',
+    'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+);
 
 const SKY_COLOR = new Color(0xf1e9c6);
 const viewerDiv = document.getElementById('viewerDiv');
@@ -55,56 +61,59 @@ instance.add(map);
 
 const noDataValue = -1000;
 
-const capabilitiesUrl = 'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities';
+const capabilitiesUrl =
+    'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities';
 
-WmtsSource
-    .fromCapabilities(capabilitiesUrl, {
-        layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
-        format: new BilFormat(),
-        noDataValue,
-    })
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
+    format: new BilFormat(),
+    noDataValue,
+})
     .then(elevationWmts => {
-        map.addLayer(new ElevationLayer({
-            name: 'wmts_elevation',
-            extent: map.extent,
-            // We don't need the full resolution of terrain because we are not using any shading
-            resolutionFactor: 0.25,
-            minmax: { min: 0, max: 5000 },
-            noDataOptions: {
-                replaceNoData: false,
-            },
-            source: elevationWmts,
-        }));
+        map.addLayer(
+            new ElevationLayer({
+                name: 'wmts_elevation',
+                extent: map.extent,
+                // We don't need the full resolution of terrain because we are not using any shading
+                resolutionFactor: 0.25,
+                minmax: { min: 0, max: 5000 },
+                noDataOptions: {
+                    replaceNoData: false,
+                },
+                source: elevationWmts,
+            }),
+        );
     })
     .catch(console.error);
 
-WmtsSource
-    .fromCapabilities(capabilitiesUrl, {
-        layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
-    })
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
+})
     .then(orthophotoWmts => {
-        map.addLayer(new ColorLayer({
-            name: 'wmts_orthophotos',
-            extent: map.extent,
-            source: orthophotoWmts,
-        }));
+        map.addLayer(
+            new ColorLayer({
+                name: 'wmts_orthophotos',
+                extent: map.extent,
+                source: orthophotoWmts,
+            }),
+        );
     })
     .catch(console.error);
 
 const vectorSource = new VectorSource({
     format: new GeoJSON(),
     url: function url(bbox) {
-        return (
-            `${'https://data.geopf.fr/wfs/ows'
-            + '?SERVICE=WFS'
-            + '&VERSION=2.0.0'
-            + '&request=GetFeature'
-            + '&typename=BDTOPO_V3:batiment'
-            + '&outputFormat=application/json'
-            + '&SRSNAME=EPSG:2154'
-            + '&startIndex=0'
-            + '&bbox='}${bbox.join(',')},EPSG:2154`
-        );
+        return `${
+            'https://data.geopf.fr/wfs/ows' +
+            '?SERVICE=WFS' +
+            '&VERSION=2.0.0' +
+            '&request=GetFeature' +
+            '&typename=BDTOPO_V3:batiment' +
+            '&outputFormat=application/json' +
+            '&SRSNAME=EPSG:2154' +
+            '&startIndex=0' +
+            '&bbox='
+        }${bbox.join(',')},EPSG:2154`;
     },
     strategy: tile(createXYZ({ tileSize: 512 })),
 });
@@ -178,9 +187,12 @@ instance.useTHREEControls(controls);
 const cubeTextureLoader = new CubeTextureLoader();
 cubeTextureLoader.setPath('image/skyboxsun25deg_zup/');
 const cubeTexture = cubeTextureLoader.load([
-    'px.jpg', 'nx.jpg',
-    'py.jpg', 'ny.jpg',
-    'pz.jpg', 'nz.jpg',
+    'px.jpg',
+    'nx.jpg',
+    'py.jpg',
+    'ny.jpg',
+    'pz.jpg',
+    'nz.jpg',
 ]);
 
 instance.scene.background = cubeTexture;
@@ -294,7 +306,9 @@ function processFogAndClippingPlanes(camera) {
     fog.near = MathUtils.lerp(camera.near, camera.far, 0.2);
 }
 
-instance.addEventListener('after-camera-update', event => processFogAndClippingPlanes(event.camera));
+instance.addEventListener('after-camera-update', event =>
+    processFogAndClippingPlanes(event.camera),
+);
 
 processFogAndClippingPlanes(instance.camera);
 

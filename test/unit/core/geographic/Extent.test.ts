@@ -3,12 +3,17 @@ import Coordinates from 'src/core/geographic/Coordinates';
 import Extent from 'src/core/geographic/Extent';
 
 const BOUNDS_EPSG4326 = new Extent('EPSG:4326', {
-    south: -90, north: +90, east: +180, west: -180,
+    south: -90,
+    north: +90,
+    east: +180,
+    west: -180,
 });
 
-const BOUNDS_EPSG3857 = new Extent('EPSG:3857',
-    new Coordinates('EPSG:3857', -20026376.39, -20048966.10),
-    new Coordinates('EPSG:3857', +20026376.39, +20048966.10));
+const BOUNDS_EPSG3857 = new Extent(
+    'EPSG:3857',
+    new Coordinates('EPSG:3857', -20026376.39, -20048966.1),
+    new Coordinates('EPSG:3857', +20026376.39, +20048966.1),
+);
 
 describe('Extent', () => {
     describe('constructor', () => {
@@ -18,9 +23,11 @@ describe('Extent', () => {
         const maxY = 3;
 
         it('should build the expected extent using Coordinates', () => {
-            const withCoords = new Extent('EPSG:4326',
+            const withCoords = new Extent(
+                'EPSG:4326',
                 new Coordinates('EPSG:4326', minX, minY),
-                new Coordinates('EPSG:4326', maxX, maxY));
+                new Coordinates('EPSG:4326', maxX, maxY),
+            );
 
             expect(minX).toEqual(withCoords.west());
             expect(maxX).toEqual(withCoords.east());
@@ -42,11 +49,7 @@ describe('Extent', () => {
         });
 
         it('should build the expected extent using values', () => {
-            const withValues = new Extent('EPSG:4326',
-                minX,
-                maxX,
-                minY,
-                maxY);
+            const withValues = new Extent('EPSG:4326', minX, maxX, minY, maxY);
             expect(minX).toEqual(withValues.west());
             expect(maxX).toEqual(withValues.east());
             expect(minY).toEqual(withValues.south());
@@ -142,7 +145,10 @@ describe('Extent', () => {
             const west = -179.99;
 
             const original = new Extent('EPSG:4326', {
-                south, north, east, west,
+                south,
+                north,
+                east,
+                west,
             });
 
             const copy = original.clone();
@@ -178,7 +184,10 @@ describe('Extent', () => {
     describe('as', () => {
         it('should throw if target CRS is invalid', () => {
             const original = new Extent('EPSG:4326', {
-                south: -5, east: 5, north: 5, west: -5,
+                south: -5,
+                east: 5,
+                north: 5,
+                west: -5,
             });
 
             expect(() => original.as('foo')).toThrow();
@@ -186,7 +195,10 @@ describe('Extent', () => {
 
         it('should return the original object if target CRS is same as source CRS', () => {
             const original = new Extent('EPSG:4326', {
-                south: -5, east: 5, north: 5, west: -5,
+                south: -5,
+                east: 5,
+                north: 5,
+                west: -5,
             });
 
             const projected = original.as('EPSG:4326');
@@ -196,7 +208,10 @@ describe('Extent', () => {
 
         it('should return a different object if source and target CRSes are different', () => {
             const original = new Extent('EPSG:4326', {
-                south: -5, east: 5, north: 5, west: -5,
+                south: -5,
+                east: 5,
+                north: 5,
+                west: -5,
             });
 
             const projected = original.as('EPSG:3857'); // Spherical Mercator
@@ -332,20 +347,24 @@ describe('Extent', () => {
     describe('isPointInside', () => {
         it('should return true if point is inside', () => {
             const extent = new Extent('EPSG:4326', {
-                south: 25, north: 30, east: 54, west: 52,
+                south: 25,
+                north: 30,
+                east: 54,
+                west: 52,
             });
-            expect(extent.isPointInside(new Coordinates('EPSG:4326', 53, 28, 0)))
-                .toBe(true);
+            expect(extent.isPointInside(new Coordinates('EPSG:4326', 53, 28, 0))).toBe(true);
         });
 
         it.each([-1, 0, 1, 5555555, Infinity, -Infinity, NaN])(
             'should ignore altitude/Z (z = %d)',
             z => {
                 const extent = new Extent('EPSG:4326', {
-                    south: 25, north: 30, east: 54, west: 52,
+                    south: 25,
+                    north: 30,
+                    east: 54,
+                    west: 52,
                 });
-                expect(extent.isPointInside(new Coordinates('EPSG:4326', 53, 28, z)))
-                    .toBe(true);
+                expect(extent.isPointInside(new Coordinates('EPSG:4326', 53, 28, z))).toBe(true);
             },
         );
     });
@@ -456,7 +475,10 @@ describe('Extent', () => {
             const b = new Extent('foo', minX, maxX, minY, maxY);
 
             const expected = {
-                x: 0, y: 0, z: 1, w: 1,
+                x: 0,
+                y: 0,
+                z: 1,
+                w: 1,
             };
 
             expect(a.offsetToParent(b)).toEqual(expected);
@@ -585,10 +607,10 @@ describe('Extent', () => {
             for (const epsilon of epsilons) {
                 const compared = new Extent(
                     'EPSG:3857',
-                    xMin + (epsilon * 0.9),
-                    xMax + (epsilon * 0.9),
-                    yMin + (epsilon * 0.9),
-                    yMax + (epsilon * 0.9),
+                    xMin + epsilon * 0.9,
+                    xMax + epsilon * 0.9,
+                    yMin + epsilon * 0.9,
+                    yMax + epsilon * 0.9,
                 );
 
                 expect(original.equals(compared, epsilon)).toEqual(true);

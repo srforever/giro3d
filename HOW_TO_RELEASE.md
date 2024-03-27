@@ -27,8 +27,8 @@ If patch release, the branch `release/X.Y` should already exist, start from ther
     ```
 
 2. figure out what type of version we release (major, minor, patch). Normally commitizen should be
-able to auto-detect it, but is confused by the fact release starting with v0.x are MAJOR in
-semver...
+   able to auto-detect it, but is confused by the fact release starting with v0.x are MAJOR in
+   semver...
 3. generate a changelog with commitizen:
 
     ```shell
@@ -38,18 +38,18 @@ semver...
     where version is the version we want to release (don't forget the `v` prefix, for example `v0.5.0`).
 
 4. Edit the generated changelog for readability (fix typos, add some context for unclear changes).  
-    It's also best to sort the items in Feat/Fix/Refactor alphabetically.  
-    For the `BREAKING CHANGE` section, edit the text to add a migration guide.
+   It's also best to sort the items in Feat/Fix/Refactor alphabetically.  
+   For the `BREAKING CHANGE` section, edit the text to add a migration guide.
 
 ## Bump the version number
 
-- bump version in package.json and run `npm i`
+-   bump version in package.json and run `npm i`
 
 ## Open a MR
 
-- open a MR on the repo with these changes
-- once merged, tag the commit on main branch (Don't forget the `v` prefix)
-- once tagged, the pipeline will automatically be triggered to publish the package on NPM.
+-   open a MR on the repo with these changes
+-   once merged, tag the commit on main branch (Don't forget the `v` prefix)
+-   once tagged, the pipeline will automatically be triggered to publish the package on NPM.
 
 **Note:** for pre-releases, you can use a release branch to tag the version, but that branch **MUST** be protected for the pipeline to run and publish the package. Branches following the pattern `release/*` are automatically protected.
 

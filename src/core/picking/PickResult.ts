@@ -45,6 +45,7 @@ export interface VectorPickFeature {
  * @param obj - Object
  * @returns `true` if the object implements the interface.
  */
-export const isVectorPickFeature = (obj: unknown): obj is VectorPickFeature => (obj as VectorPickFeature).isVectorPickFeature;
+export const isVectorPickFeature = (obj: unknown): obj is VectorPickFeature =>
+    (obj as VectorPickFeature).isVectorPickFeature;
 
 export default PickResult;

@@ -15,8 +15,10 @@ import StatusBar from './widgets/StatusBar.js';
 // Defines geographic extent: CRS, min/max X, min/max Y
 const EPSG3857_BOUNDS = new Extent(
     'EPSG:3857',
-    -20037508.342789244, 20037508.342789244,
-    -20037508.342789244, 20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
 );
 
 let currentMap;
@@ -72,11 +74,15 @@ function createMap(extent) {
 
     // Adds an TMS imagery layer
     const layer = layers[mapCount % layers.length];
-    currentMap.addLayer(new ColorLayer({
-        name: 'osm',
-        extent,
-        source: new TiledImageSource({ source: new StadiaMaps({ layer, wrapX: false }) }),
-    })).catch(e => console.error(e));
+    currentMap
+        .addLayer(
+            new ColorLayer({
+                name: 'osm',
+                extent,
+                source: new TiledImageSource({ source: new StadiaMaps({ layer, wrapX: false }) }),
+            }),
+        )
+        .catch(e => console.error(e));
 
     instance.notifyChange();
 }

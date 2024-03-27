@@ -27,11 +27,7 @@ function placeCamera() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.25;
 
-    const pos = new Vector3(
-        6.757520397934977,
-        -10.102934086721376,
-        7.402449241148831,
-    );
+    const pos = new Vector3(6.757520397934977, -10.102934086721376, 7.402449241148831);
 
     const lookAt = new Vector3(0.5, 0.5, 5);
 

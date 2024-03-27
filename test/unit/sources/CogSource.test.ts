@@ -6,7 +6,11 @@ describe('CogSource', () => {
     describe('constructor', () => {
         it('should assign properties', () => {
             const containsFn = jest.fn();
-            const source = new CogSource({ url: 'http://example.com', crs: 'EPSG:1234', containsFn });
+            const source = new CogSource({
+                url: 'http://example.com',
+                crs: 'EPSG:1234',
+                containsFn,
+            });
             expect(source.url).toEqual('http://example.com');
             expect(source.crs).toEqual('EPSG:1234');
             expect(source.containsFn).toBe(containsFn);
@@ -32,7 +36,9 @@ describe('CogSource', () => {
             const image = {
                 getBoundingBox,
             };
-            expect(() => CogSource.computeExtent('EPSG:3857', image as GeoTIFFImage)).toThrow(/unknown/);
+            expect(() => CogSource.computeExtent('EPSG:3857', image as GeoTIFFImage)).toThrow(
+                /unknown/,
+            );
         });
 
         it('should return the computed extent from the image bounding box if found', () => {

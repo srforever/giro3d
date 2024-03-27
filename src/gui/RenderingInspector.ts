@@ -25,7 +25,12 @@ class RenderingInspector extends Panel {
         this.addController<number>(instance.renderingOptions, 'inpaintingSteps', 1, 6)
             .name('Inpainting steps')
             .onChange(() => this.notify());
-        this.addController<number>(instance.renderingOptions, 'inpaintingDepthContribution', 0.01, 1)
+        this.addController<number>(
+            instance.renderingOptions,
+            'inpaintingDepthContribution',
+            0.01,
+            1,
+        )
             .name('Inpainting depth contrib.')
             .onChange(() => this.notify());
         this.addController<boolean>(instance.renderingOptions, 'enablePointCloudOcclusion')

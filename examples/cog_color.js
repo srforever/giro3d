@@ -10,11 +10,7 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import StatusBar from './widgets/StatusBar.js';
 
 // Define geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent(
-    'EPSG:3857',
-    1818329.448, 1987320.770,
-    6062229.082, 6231700.791,
-);
+const extent = new Extent('EPSG:3857', 1818329.448, 1987320.77, 6062229.082, 6231700.791);
 const center = extent.centerAsVector3();
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
@@ -73,7 +69,6 @@ function updateSource(source) {
     const layer = new ColorLayer({ name: 'color-layer', source: layerSource, extent });
     map.addLayer(layer);
 }
-
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 StatusBar.bind(instance);

@@ -27,19 +27,25 @@ const layerSize = 1000000;
 const watercolor = new ColorLayer({
     name: 'watercolor',
     extent: Extent.fromCenterAndSize(crs, { x: -100000, y: 6169226 }, layerSize, layerSize),
-    source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }) }),
+    source: new TiledImageSource({
+        source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }),
+    }),
 });
 
 const toner = new ColorLayer({
     name: 'toner',
     extent: Extent.fromCenterAndSize(crs, { x: 500000, y: 5669226 }, layerSize, layerSize),
-    source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_toner', wrapX: false }) }),
+    source: new TiledImageSource({
+        source: new StadiaMaps({ layer: 'stamen_toner', wrapX: false }),
+    }),
 });
 
 const terrain = new ColorLayer({
     name: 'terrain',
     extent: Extent.fromCenterAndSize(crs, { x: 900000, y: 5169226 }, layerSize, layerSize),
-    source: new TiledImageSource({ source: new StadiaMaps({ layer: 'stamen_terrain', wrapX: false }) }),
+    source: new TiledImageSource({
+        source: new StadiaMaps({ layer: 'stamen_terrain', wrapX: false }),
+    }),
 });
 
 map.addLayer(watercolor);
@@ -69,8 +75,14 @@ function bindUI(layer) {
             .forEach(node => container.appendChild(node));
     }
 
-    btnUp.onclick = () => { map.moveLayerUp(layer); reorder(); };
-    btnDown.onclick = () => { map.moveLayerDown(layer); reorder(); };
+    btnUp.onclick = () => {
+        map.moveLayerUp(layer);
+        reorder();
+    };
+    btnDown.onclick = () => {
+        map.moveLayerDown(layer);
+        reorder();
+    };
 
     reorder();
 }

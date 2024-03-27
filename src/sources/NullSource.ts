@@ -9,7 +9,7 @@ class NullSource extends ImageSource {
     readonly isNullSource: boolean = true;
     private readonly _extent: Extent;
 
-    constructor(options : { extent?: Extent } = {}) {
+    constructor(options: { extent?: Extent } = {}) {
         super();
 
         this.isNullSource = true;

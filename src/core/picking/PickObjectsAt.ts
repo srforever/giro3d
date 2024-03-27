@@ -1,6 +1,4 @@
-import {
-    Color, type Object3D, Raycaster, Vector2,
-} from 'three';
+import { Color, type Object3D, Raycaster, Vector2 } from 'three';
 import type Instance from '../Instance';
 import type Entity3D from '../../entities/Entity3D';
 import type PickResult from './PickResult';
@@ -79,20 +77,16 @@ function pickObjectsAt(
         const b = pixels[offset + 2];
         // Use approx. test to avoid rounding error or to behave
         // differently depending on hardware rounding mode.
-        if (Math.abs(clearR - r) <= 1
-            && Math.abs(clearG - g) <= 1
-            && Math.abs(clearB - b) <= 1) {
+        if (Math.abs(clearR - r) <= 1 && Math.abs(clearG - g) <= 1 && Math.abs(clearB - b) <= 1) {
             // skip because nothing has been rendered here
             return null;
         }
 
         // Perform raycasting
-        tmp.setX(normalized.x + x / instance.camera.width)
-            .setY(normalized.y + y / instance.camera.height);
-        raycaster.setFromCamera(
-            tmp,
-            instance.camera.camera3D,
+        tmp.setX(normalized.x + x / instance.camera.width).setY(
+            normalized.y + y / instance.camera.height,
         );
+        raycaster.setFromCamera(tmp, instance.camera.camera3D);
 
         const intersects = raycaster.intersectObject(object, true) as PickResult[];
         for (const inter of intersects) {

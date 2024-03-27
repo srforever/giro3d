@@ -26,8 +26,7 @@ class OutlinerPropertyView extends Panel {
             const value = obj[prop];
             if (value != null && !(value instanceof Object)) {
                 this._controllers.push(
-                    gui.add(obj, prop)
-                        .onChange(() => this.instance.notifyChange()),
+                    gui.add(obj, prop).onChange(() => this.instance.notifyChange()),
                 );
             }
         });
@@ -54,9 +53,15 @@ class OutlinerPropertyView extends Panel {
         const position = this.gui.addFolder('Position');
         position.close();
         this._folders.push(position);
-        this._controllers.push(position.add(obj.position, 'x').onChange(() => this.updateObject(obj)));
-        this._controllers.push(position.add(obj.position, 'y').onChange(() => this.updateObject(obj)));
-        this._controllers.push(position.add(obj.position, 'z').onChange(() => this.updateObject(obj)));
+        this._controllers.push(
+            position.add(obj.position, 'x').onChange(() => this.updateObject(obj)),
+        );
+        this._controllers.push(
+            position.add(obj.position, 'y').onChange(() => this.updateObject(obj)),
+        );
+        this._controllers.push(
+            position.add(obj.position, 'z').onChange(() => this.updateObject(obj)),
+        );
 
         const scale = this.gui.addFolder('Scale');
         scale.close();

@@ -12,16 +12,15 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
-const extent = new Extent('EPSG:3857',
-    -13611854, -13593262,
-    5806332, 5820603);
+const extent = new Extent('EPSG:3857', -13611854, -13593262, 5806332, 5820603);
 
 const viewerDiv = document.getElementById('viewerDiv');
 
 const instance = new Instance(viewerDiv, { crs: 'EPSG:3857' });
 
 function createMap(mapExtent, tileset) {
-    const key = 'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
+    const key =
+        'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
     const map = new Map(tileset, { extent: mapExtent, segments: 128 });
     instance.add(map);
 

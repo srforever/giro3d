@@ -17,17 +17,29 @@
   animation-delay: 0.3s;
 }
 #giro3d-loader .c5 {
-  animation-delay: 0.40s;
+  animation-delay: 0.4s;
 }
 #giro3d-loader .c6 {
-  animation-delay: 0.50s;
+  animation-delay: 0.5s;
 }
 
 @keyframes colorchange {
-  100% { color: #404e73; transform: translate(0, 0); }
-  50%  { color: #404e73; transform: translate(0, 0); }
-  30%  { color: #7ea8c5; transform: translate(0, -.15em); }
-  0%   { color: #404e73; transform: translate(0, 0em); }
+  100% {
+    color: #404e73;
+    transform: translate(0, 0);
+  }
+  50% {
+    color: #404e73;
+    transform: translate(0, 0);
+  }
+  30% {
+    color: #7ea8c5;
+    transform: translate(0, -0.15em);
+  }
+  0% {
+    color: #404e73;
+    transform: translate(0, 0em);
+  }
 }
 #giro3d-loader {
   z-index: 1000;

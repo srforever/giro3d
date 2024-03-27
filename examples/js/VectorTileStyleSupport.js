@@ -6,7 +6,7 @@
 function mapboxStyle(properties) {
     const styles = [];
     properties.mapboxLayer.forEach(layer => {
-        const r = { };
+        const r = {};
         // a feature could be used in several layers...
         if ('paint' in layer) {
             if (layer.type === 'fill') {
@@ -48,12 +48,12 @@ function mapboxFilter(layers) {
                     }
                     if (filter[0] === '==') {
                         if (filter[1] === '$type') {
-                            filteredOut |= (filter[2] !== geometry.type);
+                            filteredOut |= filter[2] !== geometry.type;
                         } else if (filter[1] in properties) {
-                            filteredOut |= (properties[filter[1]] !== filter[2]);
+                            filteredOut |= properties[filter[1]] !== filter[2];
                         }
                     } else if (filter[0] === 'in') {
-                        filteredOut |= (filter.slice(2).indexOf(properties[filter[1]]) === -1);
+                        filteredOut |= filter.slice(2).indexOf(properties[filter[1]]) === -1;
                     }
                     if (filteredOut) {
                         break;

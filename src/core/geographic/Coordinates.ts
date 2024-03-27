@@ -1,7 +1,7 @@
 import { Vector3, MathUtils, Vector2 } from 'three';
 import proj4 from 'proj4';
 
-const projectionCache : Map<string, Map<string, proj4.Converter>> = new Map();
+const projectionCache: Map<string, Map<string, proj4.Converter>> = new Map();
 
 export const UNIT = {
     DEGREE: 1,
@@ -37,8 +37,10 @@ function unitFromProj4Unit(projunit: string) {
  */
 export function crsToUnit(crs: string) {
     switch (crs) {
-        case 'EPSG:4326': return UNIT.DEGREE;
-        case 'EPSG:4978': return UNIT.METER;
+        case 'EPSG:4326':
+            return UNIT.DEGREE;
+        case 'EPSG:4978':
+            return UNIT.METER;
         default: {
             const p = proj4.defs(crs);
             if (!p) {
@@ -70,7 +72,7 @@ export function assertCrsIsValid(crs: string) {
  * @returns `true` if the CRS is in geographic coordinates.
  */
 export function crsIsGeographic(crs: string) {
-    return (crsToUnitWithError(crs) !== UNIT.METER);
+    return crsToUnitWithError(crs) !== UNIT.METER;
 }
 
 /**
@@ -80,7 +82,7 @@ export function crsIsGeographic(crs: string) {
  * @returns `true` if the CRS is in geocentric coordinates.
  */
 export function crsIsGeocentric(crs: string) {
-    return (crsToUnitWithError(crs) === UNIT.METER);
+    return crsToUnitWithError(crs) === UNIT.METER;
 }
 
 function assertIsGeographic(crs: string) {

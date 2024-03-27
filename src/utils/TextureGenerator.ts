@@ -45,7 +45,7 @@ export const TRANSPARENT = 0;
 export const DEFAULT_NODATA = 0;
 
 export type NumberArray =
-    Array<number>
+    | Array<number>
     | Uint8ClampedArray
     | Uint8Array
     | Int8Array
@@ -94,17 +94,28 @@ function getBytesPerChannel(dataType: TextureDataType): number {
 
 function getDataTypeString(dataType: TextureDataType): string {
     switch (dataType) {
-        case UnsignedByteType: return 'UnsignedByteType';
-        case ByteType: return 'ByteType';
-        case ShortType: return 'ShortType';
-        case UnsignedShortType: return 'UnsignedShortType';
-        case UnsignedShort4444Type: return 'UnsignedShort4444Type';
-        case UnsignedShort5551Type: return 'UnsignedShort5551Type';
-        case IntType: return 'IntType';
-        case UnsignedIntType: return 'UnsignedIntType';
-        case UnsignedInt248Type: return 'UnsignedInt248Type';
-        case FloatType: return 'FloatType';
-        case HalfFloatType: return 'HalfFloatType';
+        case UnsignedByteType:
+            return 'UnsignedByteType';
+        case ByteType:
+            return 'ByteType';
+        case ShortType:
+            return 'ShortType';
+        case UnsignedShortType:
+            return 'UnsignedShortType';
+        case UnsignedShort4444Type:
+            return 'UnsignedShort4444Type';
+        case UnsignedShort5551Type:
+            return 'UnsignedShort5551Type';
+        case IntType:
+            return 'IntType';
+        case UnsignedIntType:
+            return 'UnsignedIntType';
+        case UnsignedInt248Type:
+            return 'UnsignedInt248Type';
+        case FloatType:
+            return 'FloatType';
+        case HalfFloatType:
+            return 'HalfFloatType';
         default:
             throw new Error(`unknown data type: ${dataType}`);
     }
@@ -116,9 +127,10 @@ function getDataTypeString(dataType: TextureDataType): string {
 // Note: we don't use Number.isNan(x) in the loops as it slows down the loop due to function
 // invocation. Instead, we use x !== x, as a NaN is never equal to itself.
 function fillBuffer<T extends NumberArray>(
-    buf: T, options: {
-        scaling?: { min: number, max: number },
-        nodata?: number
+    buf: T,
+    options: {
+        scaling?: { min: number; max: number };
+        nodata?: number;
     },
     opaqueValue: number,
     ...pixelData: NumberArray[]
@@ -181,9 +193,11 @@ function fillBuffer<T extends NumberArray>(
             let g = gChannel[i];
             let b = bChannel[i];
 
-            if ((r !== r || r === options.nodata)
-                && (g !== g || g === options.nodata)
-                && (b !== b || b === options.nodata)) {
+            if (
+                (r !== r || r === options.nodata) &&
+                (g !== g || g === options.nodata) &&
+                (b !== b || b === options.nodata)
+            ) {
                 r = DEFAULT_NODATA;
                 g = DEFAULT_NODATA;
                 b = DEFAULT_NODATA;
@@ -214,9 +228,11 @@ function fillBuffer<T extends NumberArray>(
             let b = bChannel[i];
             let a = aChannel[i];
 
-            if ((r !== r || r === options.nodata)
-                && (g !== g || g === options.nodata)
-                && (b !== b || b === options.nodata)) {
+            if (
+                (r !== r || r === options.nodata) &&
+                (g !== g || g === options.nodata) &&
+                (b !== b || b === options.nodata)
+            ) {
                 r = DEFAULT_NODATA;
                 g = DEFAULT_NODATA;
                 b = DEFAULT_NODATA;
@@ -244,17 +260,28 @@ function fillBuffer<T extends NumberArray>(
  */
 function getChannelCount(pixelFormat: AnyPixelFormat): number {
     switch (pixelFormat) {
-        case AlphaFormat: return 1;
-        case RGBAFormat: return 4;
-        case LuminanceFormat: return 1;
-        case LuminanceAlphaFormat: return 2;
-        case DepthFormat: return 1;
-        case DepthStencilFormat: return 1;
-        case RedFormat: return 1;
-        case RedIntegerFormat: return 1;
-        case RGFormat: return 2;
-        case RGIntegerFormat: return 2;
-        case RGBAIntegerFormat: return 4;
+        case AlphaFormat:
+            return 1;
+        case RGBAFormat:
+            return 4;
+        case LuminanceFormat:
+            return 1;
+        case LuminanceAlphaFormat:
+            return 2;
+        case DepthFormat:
+            return 1;
+        case DepthStencilFormat:
+            return 1;
+        case RedFormat:
+            return 1;
+        case RedIntegerFormat:
+            return 1;
+        case RGFormat:
+            return 2;
+        case RGIntegerFormat:
+            return 2;
+        case RGBAIntegerFormat:
+            return 4;
         default:
             throw new Error(`invalid pixel format: ${pixelFormat}`);
     }
@@ -289,9 +316,10 @@ function createDataCopy(target: WebGLRenderTarget, renderer: WebGLRenderer) {
     // Render target textures don't have data in CPU memory,
     // we need to transfer their data into a buffer.
     const bufSize = target.width * target.height * getChannelCount(target.texture.format);
-    const buf = target.texture.type === UnsignedByteType
-        ? new Uint8Array(bufSize)
-        : new Float32Array(bufSize);
+    const buf =
+        target.texture.type === UnsignedByteType
+            ? new Uint8Array(bufSize)
+            : new Float32Array(bufSize);
     renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, buf);
     (target.texture as Texture & { data: TypedArray }).data = buf;
 }
@@ -321,7 +349,8 @@ function getPixels(image: ImageBitmap | HTMLImageElement | HTMLCanvasElement): U
  * @throws When the media type is unsupported.
  */
 async function decodeBlob(
-    blob: Blob, options: {
+    blob: Blob,
+    options: {
         /** If true, the texture will be a data texture. */
         createDataTexture?: boolean;
     } = {},
@@ -374,7 +403,7 @@ function createDataTexture(
          * Indicates that the input data must be scaled into 8-bit values,
          * using the provided min and max values for scaling.
          */
-        scaling?: { min: number; max: number; };
+        scaling?: { min: number; max: number };
         /**
          * The no-data value. If specified, if a pixel has this value,
          * then the alpha value will be transparent. Otherwise it will be opaque.
@@ -391,9 +420,7 @@ function createDataTexture(
     const pixelCount = width * height;
 
     // If we apply scaling, it means that we force a 8-bit output.
-    const targetDataType = options.scaling === undefined
-        ? sourceDataType
-        : UnsignedByteType;
+    const targetDataType = options.scaling === undefined ? sourceDataType : UnsignedByteType;
 
     let result;
 
@@ -412,8 +439,7 @@ function createDataTexture(
     }
 
     switch (targetDataType) {
-        case UnsignedByteType:
-        {
+        case UnsignedByteType: {
             const buf = new Uint8ClampedArray(pixelCount * channelCount);
             const data = fillBuffer(
                 buf,
@@ -425,8 +451,7 @@ function createDataTexture(
             result = new DataTexture(data, width, height, format, UnsignedByteType);
             break;
         }
-        case FloatType:
-        {
+        case FloatType: {
             const buf = new Float32Array(pixelCount * channelCount);
             const data = fillBuffer(buf, options, OPAQUE_FLOAT, ...pixelData);
             result = new DataTexture(data, width, height, format, FloatType);
@@ -482,7 +507,7 @@ function computeMinMaxFromBuffer(
     nodata?: number,
     interpretation: Interpretation = Interpretation.Raw,
     channelCount = 4,
-): { min: number; max: number; } {
+): { min: number; max: number } {
     let min = Infinity;
     let max = -Infinity;
 
@@ -573,7 +598,7 @@ function shouldExpandRGB(src: PixelFormat, dst: PixelFormat): boolean {
 function computeMinMaxFromImage(
     image: HTMLImageElement | HTMLCanvasElement,
     interpretation: Interpretation = Interpretation.Raw,
-): { min: number; max: number; } {
+): { min: number; max: number } {
     const buf = getPixels(image);
 
     return computeMinMaxFromBuffer(buf, 0, interpretation);

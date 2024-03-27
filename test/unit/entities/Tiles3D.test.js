@@ -1,9 +1,7 @@
 import '../setup.js';
 import assert from 'assert';
 import proj4 from 'proj4';
-import {
-    Group, Matrix4, Mesh,
-} from 'three';
+import { Group, Matrix4, Mesh } from 'three';
 import Tiles3D from '../../../src/entities/Tiles3D';
 import $3dTilesIndex from '../../../src/entities/3dtiles/3dTilesIndex';
 import Tile from '../../../src/entities/3dtiles/Tile';
@@ -40,11 +38,7 @@ describe('Tiles3D', () => {
         const tileset = {
             root: {
                 boundingVolume: {
-                    box: [
-                        0, 0, 0,
-                        1, 0, 0,
-                        0, 1, 0,
-                        0, 0, 1],
+                    box: [0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
                 },
             },
         };
@@ -69,8 +63,10 @@ describe('Tiles3D', () => {
     }
 
     describe('calculateCameraDistance with box volumes', () => {
-        proj4.defs('EPSG:3946',
-            '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+        proj4.defs(
+            'EPSG:3946',
+            '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+        );
 
         const camera = new Camera('EPSG:3946', 100, 100);
         camera.camera3D.position.copy(new Coordinates('EPSG:3946', 0, 0, 100).toVector3());
@@ -88,9 +84,9 @@ describe('Tiles3D', () => {
         });
 
         it('should affected by transform', () => {
-            const m = new Matrix4().makeTranslation(0, 0, 10).multiply(
-                new Matrix4().makeScale(0.01, 0.01, 0.01),
-            );
+            const m = new Matrix4()
+                .makeTranslation(0, 0, 10)
+                .multiply(new Matrix4().makeScale(0.01, 0.01, 0.01));
             const tileset = tilesetWithBox(m);
 
             const tileIndex = new $3dTilesIndex(tileset, '');
@@ -104,8 +100,10 @@ describe('Tiles3D', () => {
     });
 
     describe('calculateCameraDistance sphere volumes', () => {
-        proj4.defs('EPSG:3946',
-            '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs');
+        proj4.defs(
+            'EPSG:3946',
+            '+proj=lcc +lat_1=45.25 +lat_2=46.75 +lat_0=46 +lon_0=3 +x_0=1700000 +y_0=5200000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs',
+        );
 
         const camera = new Camera('EPSG:3946', 100, 100);
         camera.camera3D.position.copy(new Coordinates('EPSG:3946', 0, 0, 100).toVector3());
@@ -123,9 +121,9 @@ describe('Tiles3D', () => {
         });
 
         it('should affected by transform', () => {
-            const m = new Matrix4().makeTranslation(0, 0, 10).multiply(
-                new Matrix4().makeScale(0.01, 0.01, 0.01),
-            );
+            const m = new Matrix4()
+                .makeTranslation(0, 0, 10)
+                .multiply(new Matrix4().makeScale(0.01, 0.01, 0.01));
             const tileset = tilesetWithSphere(m);
 
             const tileIndex = new $3dTilesIndex(tileset, '');
@@ -144,7 +142,7 @@ describe('Tiles3D', () => {
 
     describe('getObjectToUpdateForAttachedLayers', () => {
         it('should correctly return all children', () => {
-            const parentEntity = { };
+            const parentEntity = {};
             const tile = {
                 content: new Group(),
                 userData: { parentEntity },

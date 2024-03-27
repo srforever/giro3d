@@ -13,8 +13,10 @@ import StatusBar from './widgets/StatusBar.js';
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
     'EPSG:3857',
-    -20037508.342789244, 20037508.342789244,
-    -20037508.342789244, 20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
+    -20037508.342789244,
+    20037508.342789244,
 );
 const dimensions = extent.dimensions();
 
@@ -42,12 +44,14 @@ function init() {
     instance.add(map);
 
     // Adds an TMS imagery layer
-    map.addLayer(new ColorLayer({
-        name: 'osm',
-        source: new TiledImageSource({
-            source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }),
+    map.addLayer(
+        new ColorLayer({
+            name: 'osm',
+            source: new TiledImageSource({
+                source: new StadiaMaps({ layer: 'stamen_watercolor', wrapX: false }),
+            }),
         }),
-    })).catch(e => console.error(e));
+    ).catch(e => console.error(e));
 
     // Instanciates camera
     instance.camera.camera3D.position.set(

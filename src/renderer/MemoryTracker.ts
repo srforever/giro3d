@@ -1,4 +1,4 @@
-import type { Texture } from "three";
+import type { Texture } from 'three';
 
 function isTexture(o: unknown): o is Texture {
     return (o as Texture)?.isTexture;
@@ -11,7 +11,7 @@ class TextureState {
 
     constructor(texture: Texture) {
         this.texture = texture;
-        texture.addEventListener('dispose', () => this.inGpuMemory = false);
+        texture.addEventListener('dispose', () => (this.inGpuMemory = false));
 
         if (texture.isRenderTargetTexture) {
             this.inGpuMemory = true;
@@ -27,8 +27,8 @@ class TextureState {
 }
 
 interface AllocatedItem {
-    name: string,
-    weakref: WeakRef<object>,
+    name: string;
+    weakref: WeakRef<object>;
 }
 
 let allocated: AllocatedItem[] = [];
@@ -128,7 +128,7 @@ class MemoryTracker {
      * @returns The tracked objects.
      */
     static getTrackedObjects() {
-        const map: Record<string, { name: string, value: object }[]> = {};
+        const map: Record<string, { name: string; value: object }[]> = {};
         for (const entry of allocated) {
             const { name, weakref } = entry;
             const value = weakref.deref();

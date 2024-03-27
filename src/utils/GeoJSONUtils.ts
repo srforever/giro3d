@@ -5,7 +5,8 @@
  * @returns Flat coordinates
  */
 function toFlatCoordinates(geojson: GeoJSON.Geometry): number[] {
-    if (geojson.type === 'GeometryCollection') throw new Error(`GeoJSON type '${geojson.type}' is not supported`);
+    if (geojson.type === 'GeometryCollection')
+        throw new Error(`GeoJSON type '${geojson.type}' is not supported`);
     return geojson.coordinates.flat(3);
 }
 
@@ -20,7 +21,8 @@ function fromFlat3Coordinates(
     flat3Coords: [number, number, number][],
     geometryType: GeoJSON.GeoJsonGeometryTypes,
 ): GeoJSON.Geometry {
-    if (geometryType === 'GeometryCollection') throw new Error(`GeoJSON type '${geometryType}' is not supported`);
+    if (geometryType === 'GeometryCollection')
+        throw new Error(`GeoJSON type '${geometryType}' is not supported`);
 
     switch (geometryType) {
         case 'Point':
@@ -65,11 +67,7 @@ function fromFlatCoordinates(
 ): GeoJSON.Geometry {
     const coords = new Array(flatCoords.length / 3);
     for (let i = 0; i < flatCoords.length / 3; i += 1) {
-        coords[i] = [
-            flatCoords[i * 3 + 0],
-            flatCoords[i * 3 + 1],
-            flatCoords[i * 3 + 2],
-        ];
+        coords[i] = [flatCoords[i * 3 + 0], flatCoords[i * 3 + 1], flatCoords[i * 3 + 2]];
     }
     return fromFlat3Coordinates(coords, geometryType);
 }

@@ -1,10 +1,5 @@
 import type { Sphere } from 'three';
-import {
-    Matrix4,
-    Vector3,
-    ShapeUtils,
-    Box3,
-} from 'three';
+import { Matrix4, Vector3, ShapeUtils, Box3 } from 'three';
 
 import type Camera from '../renderer/Camera';
 import { isPerspectiveCamera } from '../renderer/Camera';
@@ -34,10 +29,17 @@ export interface SSE {
     area: number;
 }
 
-function easeInOutQuad(t: number) { return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t; }
+function easeInOutQuad(t: number) {
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+}
 
-function computeSSE(offset: Vector3, size: Vector3, matrix: Matrix4, camera: Camera, _3d: boolean)
-    : SSE {
+function computeSSE(
+    offset: Vector3,
+    size: Vector3,
+    matrix: Matrix4,
+    camera: Camera,
+    _3d: boolean,
+): SSE {
     temp[0].copy(offset);
     temp[0].applyMatrix4(matrix);
 
@@ -86,7 +88,6 @@ function computeSSE(offset: Vector3, size: Vector3, matrix: Matrix4, camera: Cam
             x: xLength,
             y: yLength,
             z: zLength,
-
         },
         ratio: easeInOutQuad(area / (xLength * yLength)),
         area,
@@ -102,9 +103,7 @@ function findBox3Distance(camera: Camera, box3: Box3, matrix: Matrix4, isMode3d:
     // Move camera position in box3 basis
     // (we don't transform box3 to camera basis because box3 are AABB,
     // so instead we apply the inverse transformation to the camera)
-    const pt = new Vector3(0, 0, 0)
-        .applyMatrix4(camera.camera3D.matrixWorld)
-        .applyMatrix4(m);
+    const pt = new Vector3(0, 0, 0).applyMatrix4(camera.camera3D.matrixWorld).applyMatrix4(m);
     // Compute distance between the camera / box3
     tmpBox3.copy(box3);
     if (!isMode3d) {
@@ -167,15 +166,10 @@ export default {
             }
         }
 
-        const size = computeSizeFromGeometricError(
-            box3, geometricError, mode === Mode.MODE_3D,
-        );
+        const size = computeSizeFromGeometricError(box3, geometricError, mode === Mode.MODE_3D);
         const offset = box3.min;
 
-        const sse = computeSSE(
-            offset, size, matrix,
-            camera, mode === Mode.MODE_3D,
-        );
+        const sse = computeSSE(offset, size, matrix, camera, mode === Mode.MODE_3D);
 
         return sse;
     },

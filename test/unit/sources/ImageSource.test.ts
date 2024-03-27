@@ -5,7 +5,7 @@ import ImageSource from 'src/sources/ImageSource';
 class TestSource extends ImageSource {
     extent: Extent;
 
-    constructor(opts: { extent: Extent, containsFn?: CustomContainsFn }) {
+    constructor(opts: { extent: Extent; containsFn?: CustomContainsFn }) {
         super({ containsFn: opts.containsFn });
         this.extent = opts.extent;
     }

@@ -19,11 +19,7 @@ const y = 5812000;
 const halfWidth = 2500;
 
 // Defines geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent(
-    'EPSG:3857',
-    x - halfWidth, x + halfWidth,
-    y - halfWidth, y + halfWidth,
-);
+const extent = new Extent('EPSG:3857', x - halfWidth, x + halfWidth, y - halfWidth, y + halfWidth);
 
 const viewerDiv = document.getElementById('viewerDiv');
 
@@ -63,12 +59,7 @@ const dem = new ElevationLayer({
     name: 'dem',
     source,
     extent,
-    colorMap: new ColorMap(
-        colors,
-        floor,
-        ceiling,
-        ColorMapMode.Elevation,
-    ),
+    colorMap: new ColorMap(colors, floor, ceiling, ColorMapMode.Elevation),
 });
 
 map.addLayer(dem);

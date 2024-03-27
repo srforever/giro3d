@@ -1,10 +1,9 @@
-
 $blue: #2978b4;
 $primary: $blue;
 $green: #377c5f; // Piero!
 
 // set changes
-@import "../node_modules/bootstrap/scss/bootstrap";
+@import '../node_modules/bootstrap/scss/bootstrap';
 $bootstrap-icons-font-dir: 'fonts';
 @import '../node_modules/bootstrap-icons/font/bootstrap-icons';
 
@@ -30,7 +29,8 @@ $bootstrap-icons-font-dir: 'fonts';
     @extend .text-center;
 }
 
-.navbar-nav .nav-link.nav-link-primary:hover, .navbar-nav .nav-link.nav-link-primary.active:hover {
+.navbar-nav .nav-link.nav-link-primary:hover,
+.navbar-nav .nav-link.nav-link-primary.active:hover {
     color: $blue;
 }
 
@@ -38,7 +38,8 @@ $bootstrap-icons-font-dir: 'fonts';
     color: $primary-text-emphasis;
 }
 
-.navbar-nav .nav-link.nav-link-success:hover, .navbar-nav .nav-link.nav-link-success.active:hover {
+.navbar-nav .nav-link.nav-link-success:hover,
+.navbar-nav .nav-link.nav-link-success.active:hover {
     color: $green;
 }
 
@@ -119,7 +120,6 @@ $bootstrap-icons-font-dir: 'fonts';
     @extend .btn-outline-primary;
 }
 
-
 .bg-success-subtle .cards-container .card {
     @extend .border-success;
 }
@@ -128,7 +128,8 @@ $bootstrap-icons-font-dir: 'fonts';
     @extend .btn-outline-success;
 }
 
-.card.shadow, .card.shadow-sm {
+.card.shadow,
+.card.shadow-sm {
     transition: box-shadow 0.2s;
 }
 .card.shadow:hover {

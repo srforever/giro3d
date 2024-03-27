@@ -12,7 +12,8 @@ const ZERO = new Vector2(0, 0);
  * @param buf - The buffer to transform.
  * @param params - The transformation parameters.
  */
-function transformBufferInPlace(buf: TypedArray,
+function transformBufferInPlace(
+    buf: TypedArray,
     params: {
         /** The source CRS code. Must be known to PROJ. */
         srcCrs: string;
@@ -22,7 +23,8 @@ function transformBufferInPlace(buf: TypedArray,
         stride: number;
         /** The offset to apply after transforming the coordinate. */
         offset?: Vector2;
-    }) {
+    },
+) {
     if (params.srcCrs === params.dstCrs) {
         return;
     }

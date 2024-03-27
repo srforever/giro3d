@@ -2,11 +2,11 @@ const DEFAULT_CONCURRENT_REQUESTS = 10;
 
 export interface Task {
     /** The request */
-    req: Request,
+    req: Request;
     /** The resolve callback, when this tasks completes successfully. */
-    resolve: (arg: unknown) => void,
+    resolve: (arg: unknown) => void;
     /** The reject callback, when this tasks completes with an error. */
-    reject: (arg: unknown) => void,
+    reject: (arg: unknown) => void;
 }
 
 /**
@@ -22,18 +22,20 @@ class HttpQueue {
     /**
      * @param options - Options.
      */
-    constructor(options : {
-        /** Max concurrent requests for this host. */
-        maxConcurrentRequests?: number;
-    } = {
-        maxConcurrentRequests: DEFAULT_CONCURRENT_REQUESTS,
-    }) {
+    constructor(
+        options: {
+            /** Max concurrent requests for this host. */
+            maxConcurrentRequests?: number;
+        } = {
+            maxConcurrentRequests: DEFAULT_CONCURRENT_REQUESTS,
+        },
+    ) {
         this._maxConcurrentRequests = options.maxConcurrentRequests;
         this._concurrentRequests = 0;
         this._queue = [];
     }
 
-    get concurrentRequests() : number {
+    get concurrentRequests(): number {
         return this._concurrentRequests;
     }
 

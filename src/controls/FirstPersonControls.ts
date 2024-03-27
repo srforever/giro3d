@@ -1,11 +1,5 @@
 import type { PerspectiveCamera } from 'three';
-import {
-    Euler,
-    MathUtils,
-    Quaternion,
-    Vector2,
-    Vector3,
-} from 'three';
+import { Euler, MathUtils, Quaternion, Vector2, Vector3 } from 'three';
 import type Instance from '../core/Instance';
 import { type InstanceEvents } from '../core/Instance';
 import { isPerspectiveCamera } from '../renderer/Camera';
@@ -34,9 +28,7 @@ function limitRotation(camera3D: PerspectiveCamera, rot: number, verticalFOV: nu
 }
 
 function applyRotation(instance: Instance, camera3D: PerspectiveCamera, state: State) {
-    camera3D.quaternion.setFromUnitVectors(
-        new Vector3(0, 1, 0), camera3D.up,
-    );
+    camera3D.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), camera3D.up);
 
     camera3D.rotateY(state.rotateY);
     camera3D.rotateX(state.rotateX);
@@ -55,7 +47,7 @@ const MOVEMENTS: Record<number, { method: MoveMethod; sign: number }> = {
     34: { method: 'translateY', sign: -1 }, // DOWN: PageDown key
 };
 
-type Movement = typeof MOVEMENTS[keyof typeof MOVEMENTS];
+type Movement = (typeof MOVEMENTS)[keyof typeof MOVEMENTS];
 
 export interface FirstPersonControlsOptions {
     /* whether or not to focus the renderer domElement on click */
@@ -114,8 +106,10 @@ class FirstPersonControls {
         this.moves = new Set();
         if (options.panoramaRatio) {
             const radius = (options.panoramaRatio * 200) / (2 * Math.PI);
-            options.verticalFOV = options.panoramaRatio === 2
-                ? 180 : MathUtils.radToDeg(2 * Math.atan(200 / (2 * radius)));
+            options.verticalFOV =
+                options.panoramaRatio === 2
+                    ? 180
+                    : MathUtils.radToDeg(2 * Math.atan(200 / (2 * radius)));
         }
         options.verticalFOV = options.verticalFOV ?? 180;
 
@@ -183,9 +177,7 @@ class FirstPersonControls {
         // cam.quaternion = q * r
         // => r = invert(q) * cam.quaterion
         // q is the quaternion derived from the up vector
-        const q = new Quaternion().setFromUnitVectors(
-            new Vector3(0, 1, 0), this.camera.up,
-        );
+        const q = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), this.camera.up);
         q.invert();
         // compute r
         const r = this.camera.quaternion.clone().premultiply(q);
@@ -222,11 +214,12 @@ class FirstPersonControls {
             }
         }
 
-        if (this.options.minHeight !== null
-                && this.camera.position.z < this.options.minHeight) {
+        if (this.options.minHeight !== null && this.camera.position.z < this.options.minHeight) {
             this.camera.position.z = this.options.minHeight;
-        } else if (this.options.maxHeight !== null
-                && this.camera.position.z > this.options.maxHeight) {
+        } else if (
+            this.options.maxHeight !== null &&
+            this.camera.position.z > this.options.maxHeight
+        ) {
             this.camera.position.z = this.options.maxHeight;
         }
 
@@ -270,18 +263,19 @@ class FirstPersonControls {
             // in rigor we have tan(theta) = tan(cameraFOV) * deltaH / H
             // (where deltaH is the vertical amount we moved, and H the renderer height)
             // we loosely approximate tan(x) by x
-            const pxToAngleRatio = MathUtils.degToRad(this.camera.fov)
-                / this.instance.engine.height;
+            const pxToAngleRatio =
+                MathUtils.degToRad(this.camera.fov) / this.instance.engine.height;
 
             const coords = this.instance.eventToCanvasCoords(event, tmpVec2);
 
             // update state based on pointer movement
-            this._state.rotateY = ((coords.x - this._onMouseDownMouseX) * pxToAngleRatio)
-                + this._stateOnMouseDown.rotateY;
+            this._state.rotateY =
+                (coords.x - this._onMouseDownMouseX) * pxToAngleRatio +
+                this._stateOnMouseDown.rotateY;
             this._state.rotateX = limitRotation(
                 this.camera,
-                ((coords.y - this._onMouseDownMouseY) * pxToAngleRatio)
-                    + this._stateOnMouseDown.rotateX,
+                (coords.y - this._onMouseDownMouseY) * pxToAngleRatio +
+                    this._stateOnMouseDown.rotateX,
                 this.options.verticalFOV,
             );
 
@@ -297,14 +291,16 @@ class FirstPersonControls {
         let delta = 0;
         if ('wheelDelta' in event && event.wheelDelta !== undefined) {
             delta = -event.wheelDelta;
-        // Firefox
+            // Firefox
         } else if (event.detail !== undefined) {
             delta = event.detail;
         }
 
-        this.camera.fov = MathUtils.clamp(this.camera.fov + Math.sign(delta),
+        this.camera.fov = MathUtils.clamp(
+            this.camera.fov + Math.sign(delta),
             10,
-            Math.min(100, this.options.verticalFOV));
+            Math.min(100, this.options.verticalFOV),
+        );
 
         this.camera.updateProjectionMatrix();
 

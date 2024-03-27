@@ -1,7 +1,12 @@
 import * as turf from '@turf/turf';
 import XYZ from 'ol/source/XYZ.js';
 import {
-    LineBasicMaterial, MeshBasicMaterial, PointsMaterial, ShapeUtils, Vector2, Vector3,
+    LineBasicMaterial,
+    MeshBasicMaterial,
+    PointsMaterial,
+    ShapeUtils,
+    Vector2,
+    Vector3,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
@@ -58,10 +63,7 @@ function getArea(drawing) {
     const localFlatCoords = drawing.localCoordinates;
     const localCoords = new Array(localFlatCoords.length / 3);
     for (let i = 0; i < localFlatCoords.length / 3; i += 1) {
-        localCoords[i] = new Vector2(
-            localFlatCoords[i * 3 + 0],
-            localFlatCoords[i * 3 + 1],
-        );
+        localCoords[i] = new Vector2(localFlatCoords[i * 3 + 0], localFlatCoords[i * 3 + 1]);
     }
     return Math.abs(ShapeUtils.area(localCoords));
 }
@@ -70,11 +72,7 @@ function getArea(drawing) {
 const x = -13602618.385789588;
 const y = 5811042.273912458;
 
-const extent = new Extent(
-    'EPSG:3857',
-    x - 12000, x + 13000,
-    y - 4000, y + 26000,
-);
+const extent = new Extent('EPSG:3857', x - 12000, x + 13000, y - 4000, y + 26000);
 
 const instance = new Instance(document.getElementById('viewerDiv'), {
     crs: extent.crs(),
@@ -114,38 +112,38 @@ function customIntersectionTest(tileExtent) {
         [tileExtent.bottomLeft().x, tileExtent.bottomLeft().y],
     ];
 
-    const extentAsPolygon = turf.helpers.polygon([[
-        corners[0],
-        corners[1],
-        corners[2],
-        corners[3],
-        corners[0],
-    ]]);
+    const extentAsPolygon = turf.helpers.polygon([
+        [corners[0], corners[1], corners[2], corners[3], corners[0]],
+    ]);
 
     const intersects = turf.booleanIntersects(turf.toWgs84(extentAsPolygon), footprint);
 
     return intersects;
 }
 
-Fetcher.json('data/MtStHelens-footprint.geojson').then(geojson => {
-    footprint = turf.toWgs84(geojson);
+Fetcher.json('data/MtStHelens-footprint.geojson')
+    .then(geojson => {
+        footprint = turf.toWgs84(geojson);
 
-    const source = new TiledImageSource({
-        containsFn: customIntersectionTest, // Here we specify our custom intersection test
-        source: new XYZ({
-            minZoom: 10,
-            maxZoom: 16,
-            url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
-        }),
-        format: new GeoTIFFFormat(),
-    });
+        const source = new TiledImageSource({
+            containsFn: customIntersectionTest, // Here we specify our custom intersection test
+            source: new XYZ({
+                minZoom: 10,
+                maxZoom: 16,
+                url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
+            }),
+            format: new GeoTIFFFormat(),
+        });
 
-    map.addLayer(new ElevationLayer({
-        name: 'osm',
-        extent,
-        source,
-    })).catch(e => console.error(e));
-}).catch(e => console.error(e));
+        map.addLayer(
+            new ElevationLayer({
+                name: 'osm',
+                extent,
+                source,
+            }),
+        ).catch(e => console.error(e));
+    })
+    .catch(e => console.error(e));
 
 const center = extent.centerAsVector3();
 instance.camera.camera3D.position.set(center.x, center.y - 1, 50000);
@@ -167,21 +165,15 @@ const drawToolOptions = {
         maxExtrudeDepth: 100,
     },
     enableDragging: document.getElementById('dragging').value === '0',
-    splicingHitTolerance: (
-        document.getElementById('splicingtoleranceEnabled').checked
-            ? parseInt(document.getElementById('splicingtolerance').value, 10)
-            : undefined
-    ),
-    minPoints: (
-        document.getElementById('minpointsEnabled').checked
-            ? parseInt(document.getElementById('minpoints').value, 10)
-            : undefined
-    ),
-    maxPoints: (
-        document.getElementById('maxpointsEnabled').checked
-            ? parseInt(document.getElementById('maxpoints').value, 10)
-            : undefined
-    ),
+    splicingHitTolerance: document.getElementById('splicingtoleranceEnabled').checked
+        ? parseInt(document.getElementById('splicingtolerance').value, 10)
+        : undefined,
+    minPoints: document.getElementById('minpointsEnabled').checked
+        ? parseInt(document.getElementById('minpoints').value, 10)
+        : undefined,
+    maxPoints: document.getElementById('maxpointsEnabled').checked
+        ? parseInt(document.getElementById('maxpoints').value, 10)
+        : undefined,
     enableAddPointsOnEdit: document.getElementById('addpointsEnabled').checked,
     use3Dpoints: document.getElementById('pointsrendering').value === '0',
     point2DFactory: point2DFactoryHighlighted,
@@ -198,7 +190,8 @@ const updateDragging = () => {
     drawTool.setOptions(drawToolOptions);
 };
 const updateSplicingTolerance = () => {
-    drawToolOptions.splicingHitTolerance = document.getElementById('splicingtoleranceEnabled').checked
+    drawToolOptions.splicingHitTolerance = document.getElementById('splicingtoleranceEnabled')
+        .checked
         ? parseInt(document.getElementById('splicingtolerance').value, 10)
         : undefined;
     drawTool.setOptions(drawToolOptions);
@@ -221,7 +214,9 @@ const updateAddPoints = () => {
 };
 
 document.getElementById('dragging').addEventListener('change', updateDragging);
-document.getElementById('splicingtoleranceEnabled').addEventListener('change', updateSplicingTolerance);
+document
+    .getElementById('splicingtoleranceEnabled')
+    .addEventListener('change', updateSplicingTolerance);
 document.getElementById('splicingtolerance').addEventListener('change', updateSplicingTolerance);
 document.getElementById('minpointsEnabled').addEventListener('change', updateMinpoints);
 document.getElementById('minpoints').addEventListener('change', updateMinpoints);
@@ -295,18 +290,18 @@ instance.add(drawEntity);
 
 // We'll use different materials for displaying drawn shapes
 const drawnFaceMaterial = new MeshBasicMaterial({
-    color: 0x433C73,
+    color: 0x433c73,
     opacity: 0.2,
 });
 const drawnSideMaterial = new MeshBasicMaterial({
-    color: 0x433C73,
+    color: 0x433c73,
     opacity: 0.8,
 });
 const drawnLineMaterial = new LineBasicMaterial({
     color: 0x252140,
 });
 const drawnPointMaterial = new PointsMaterial({
-    color: 0x433C73,
+    color: 0x433c73,
     size: 100,
 });
 
@@ -358,16 +353,19 @@ document.getElementById('pointsrendering').addEventListener('change', updatePoin
 
 function addShape(geojson) {
     // Create and show a new object with the same geometry but with different materials
-    const o = new Drawing({
-        faceMaterial: drawnFaceMaterial,
-        sideMaterial: drawnSideMaterial,
-        lineMaterial: drawnLineMaterial,
-        pointMaterial: drawnPointMaterial,
-        minExtrudeDepth: 40,
-        maxExtrudeDepth: 100,
-        use3Dpoints: document.getElementById('pointsrendering').value === '0',
-        point2DFactory,
-    }, geojson);
+    const o = new Drawing(
+        {
+            faceMaterial: drawnFaceMaterial,
+            sideMaterial: drawnSideMaterial,
+            lineMaterial: drawnLineMaterial,
+            pointMaterial: drawnPointMaterial,
+            minExtrudeDepth: 40,
+            maxExtrudeDepth: 100,
+            use3Dpoints: document.getElementById('pointsrendering').value === '0',
+            point2DFactory,
+        },
+        geojson,
+    );
 
     // Compute some measurements
     o.userData.measurements = {
@@ -405,12 +403,14 @@ instance.domElement.addEventListener('mousemove', evt => {
     // In case we're using points with CSS2DRenderer, instance.pickObjectsAt will take
     // care of returning the elements corresponding to the points
     // You can therefore use the same API whatever rendering method you're using for points
-    const picked = instance.pickObjectsAt(evt, {
-        where: [drawEntity],
-        limit: 1,
-        radius: 5,
-        pickFeatures: true,
-    }).at(0);
+    const picked = instance
+        .pickObjectsAt(evt, {
+            where: [drawEntity],
+            limit: 1,
+            radius: 5,
+            pickFeatures: true,
+        })
+        .at(0);
     instance.domElement.style.cursor = picked ? 'pointer' : 'default';
 
     if (picked && picked.drawing) {

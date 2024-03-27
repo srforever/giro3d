@@ -17,11 +17,7 @@ const x = -13602618.385789588;
 const y = 5811042.273912458;
 
 // Defines geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent(
-    'EPSG:3857',
-    x - 12000, x + 13000,
-    y - 4000, y + 26000,
-);
+const extent = new Extent('EPSG:3857', x - 12000, x + 13000, y - 4000, y + 26000);
 
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
@@ -67,38 +63,38 @@ function customIntersectionTest(tileExtent) {
         [tileExtent.bottomLeft().x, tileExtent.bottomLeft().y],
     ];
 
-    const extentAsPolygon = turf.helpers.polygon([[
-        corners[0],
-        corners[1],
-        corners[2],
-        corners[3],
-        corners[0],
-    ]]);
+    const extentAsPolygon = turf.helpers.polygon([
+        [corners[0], corners[1], corners[2], corners[3], corners[0]],
+    ]);
 
     const intersects = turf.booleanIntersects(turf.toWgs84(extentAsPolygon), footprint);
 
     return intersects;
 }
 
-Fetcher.json('data/MtStHelens-footprint.geojson').then(geojson => {
-    footprint = turf.toWgs84(geojson);
+Fetcher.json('data/MtStHelens-footprint.geojson')
+    .then(geojson => {
+        footprint = turf.toWgs84(geojson);
 
-    const source = new TiledImageSource({
-        containsFn: customIntersectionTest, // Here we specify our custom intersection test
-        source: new XYZ({
-            minZoom: 10,
-            maxZoom: 16,
-            url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
-        }),
-        format: new GeoTIFFFormat(),
-    });
+        const source = new TiledImageSource({
+            containsFn: customIntersectionTest, // Here we specify our custom intersection test
+            source: new XYZ({
+                minZoom: 10,
+                maxZoom: 16,
+                url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
+            }),
+            format: new GeoTIFFFormat(),
+        });
 
-    map.addLayer(new ElevationLayer({
-        name: 'osm',
-        extent,
-        source,
-    })).catch(e => console.error(e));
-}).catch(e => console.error(e));
+        map.addLayer(
+            new ElevationLayer({
+                name: 'osm',
+                extent,
+                source,
+            }),
+        ).catch(e => console.error(e));
+    })
+    .catch(e => console.error(e));
 
 const center = extent.centerAsVector3();
 instance.camera.camera3D.position.set(center.x, center.y - 1, 50000);

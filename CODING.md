@@ -10,8 +10,8 @@ The codebase now favors Typescript over Javascript. However, to avoid a brutal t
 
 Here are the general guidelines:
 
-- New files should be in Typescript (`.ts`)
-- Existing files may be migrated to Typescript, as long as all linters and tests pass.
+-   New files should be in Typescript (`.ts`)
+-   Existing files may be migrated to Typescript, as long as all linters and tests pass.
 
 ### Importing `.ts` files
 
@@ -21,14 +21,14 @@ For example, if you want to import `Bar.ts` from `Foo.js`, use the following syn
 
 ```js
 // Foo.js
-import Bar from './Bar'
+import Bar from './Bar';
 ```
 
 Do _not_ use this syntax:
 
 ```js
 // Foo.js
-import Bar from './Bar.ts'
+import Bar from './Bar.ts';
 ```
 
 Otherwise the transpiled `Foo.js` will still import a non-existent `Bar.ts` file.

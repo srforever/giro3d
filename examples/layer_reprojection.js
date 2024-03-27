@@ -25,7 +25,8 @@ let controls;
 let map;
 
 function addMapboxLayer(extent) {
-    const apiKey = 'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
+    const apiKey =
+        'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
 
     // Adds a satellite basemap
     const tiledLayer = new ColorLayer({
@@ -107,10 +108,7 @@ function createScene(crs, crsDef, extent) {
     instance.camera.camera3D.position.set(center.x, center.y - 1, extent.dimensions().y * 2);
 
     // Creates controls
-    controls = new MapControls(
-        instance.camera.camera3D,
-        viewerDiv,
-    );
+    controls = new MapControls(instance.camera.camera3D, viewerDiv);
 
     // Then looks at extent's center
     controls.target = center;
@@ -140,7 +138,10 @@ async function fetchCrsBbox(crs) {
     const east = Number.parseFloat(bbox.east_longitude);
 
     const wgs84Extent = new Extent('EPSG:4326', {
-        west, east, north, south,
+        west,
+        east,
+        north,
+        south,
     });
 
     document.getElementById('currentCrsCode').innerText = crs;

@@ -1,11 +1,4 @@
-import {
-    Box3,
-    type Vector2,
-    type Material,
-    type Mesh,
-    type Object3D,
-    type Plane,
-} from 'three';
+import { Box3, type Vector2, type Material, type Mesh, type Object3D, type Plane } from 'three';
 
 import Entity, { type EntityUserData, type EntityEventMap } from './Entity';
 import type Instance from '../core/Instance';
@@ -20,19 +13,19 @@ export interface Entity3DEventMap extends EntityEventMap {
     /**
      * Fired when the entity opacity changed.
      */
-    'opacity-property-changed': { opacity: number; }
+    'opacity-property-changed': { opacity: number };
     /**
      * Fired when the entity visibility changed.
      */
-    'visible-property-changed': { visible: boolean; }
+    'visible-property-changed': { visible: boolean };
     /**
      * Fired when the entity's clipping planes have changed.
      */
-    'clippingPlanes-property-changed': { clippingPlanes: Plane[]; }
+    'clippingPlanes-property-changed': { clippingPlanes: Plane[] };
     /**
      * Fired when the entity render order changed.
      */
-    'renderOrder-property-changed': { renderOrder: number; }
+    'renderOrder-property-changed': { renderOrder: number };
 }
 
 /**
@@ -43,13 +36,14 @@ export interface Entity3DEventMap extends EntityEventMap {
  */
 class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData = EntityUserData>
     extends Entity<TEventMap & Entity3DEventMap, TUserData>
-    implements Pickable {
+    implements Pickable
+{
     protected _instance: Instance;
     private _visible: boolean;
     private _opacity: number;
     private _object3d: Object3D;
-    protected _distance: { min: number; max: number; };
-    public get distance(): { min: number; max: number; } {
+    protected _distance: { min: number; max: number };
+    public get distance(): { min: number; max: number } {
         return { min: this._distance.min, max: this._distance.max };
     }
     private _clippingPlanes: Plane[];
@@ -128,7 +122,9 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
     set renderOrder(v: number) {
         if (v !== this._renderOrder) {
             this._renderOrder = v;
-            this.traverse(o => { o.renderOrder = v; });
+            this.traverse(o => {
+                o.renderOrder = v;
+            });
             this.dispatchEvent({ type: 'renderOrder-property-changed', renderOrder: v });
         }
     }
@@ -189,7 +185,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
                 // != null: we want the test to pass if opacity is 0
                 const currentTransparent = material.transparent;
                 material.transparent = this.opacity < 1.0;
-                material.needsUpdate = (currentTransparent !== material.transparent);
+                material.needsUpdate = currentTransparent !== material.transparent;
                 material.opacity = this.opacity;
             }
         });
@@ -199,7 +195,9 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
      * Updates the clipping planes of all objects under this entity.
      */
     updateClippingPlanes() {
-        this.traverseMaterials(mat => { mat.clippingPlanes = this._clippingPlanes; });
+        this.traverseMaterials(mat => {
+            mat.clippingPlanes = this._clippingPlanes;
+        });
     }
 
     shouldCheckForUpdate(): boolean {
@@ -321,7 +319,9 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
      * @returns true if the entity contains the object.
      */
     // eslint-disable-next-line class-methods-use-this, @typescript-eslint/no-unused-vars
-    contains(obj: unknown): boolean { return false; }
+    contains(obj: unknown): boolean {
+        return false;
+    }
 
     /**
      * Traverses all materials in the hierarchy of this entity.

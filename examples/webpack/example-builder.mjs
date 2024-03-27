@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import fse from 'fs-extra';
 import path from 'path';
 import sources from 'webpack-sources';
@@ -82,14 +81,17 @@ export default class ExampleBuilder {
 
         const js = filename.replace('.html', '.js');
 
-        const rawSourceCode = fse
-            .readFileSync(pathToHtmlFile.replace('.html', '.js'), 'utf-8');
+        const rawSourceCode = fse.readFileSync(pathToHtmlFile.replace('.html', '.js'), 'utf-8');
 
-        const htmlCodeTemplate = fse
-            .readFileSync(path.resolve(this.examplesDir, 'templates/published_html.tmpl'), 'utf-8');
+        const htmlCodeTemplate = fse.readFileSync(
+            path.resolve(this.examplesDir, 'templates/published_html.tmpl'),
+            'utf-8',
+        );
 
-        const packageJsonCode = fse
-            .readFileSync(path.resolve(this.examplesDir, 'templates/published_package_json.tmpl'), 'utf-8');
+        const packageJsonCode = fse.readFileSync(
+            path.resolve(this.examplesDir, 'templates/published_package_json.tmpl'),
+            'utf-8',
+        );
 
         const name = path.parse(pathToHtmlFile).name;
         const { attributes, body } = parseExample(pathToHtmlFile);
@@ -121,7 +123,10 @@ export default class ExampleBuilder {
             .replaceAll('%long_description%', attributes.longdesc ?? '')
             .replaceAll('%attribution%', attributes.attribution ?? '')
             .replaceAll('%name%', name)
-            .replaceAll('%source_url%', `https://gitlab.com/giro3d/giro3d/-/tree/main/examples/${js}`)
+            .replaceAll(
+                '%source_url%',
+                `https://gitlab.com/giro3d/giro3d/-/tree/main/examples/${js}`,
+            )
             .replaceAll('%js%', js)
             .replaceAll('%customcss%', customCss)
             .replaceAll('%code%', highlighter?.codeToHtml(sourceCode, { lang: 'js' }))
@@ -133,8 +138,14 @@ export default class ExampleBuilder {
     }
 
     async addAssets(assets) {
-        const template = await fse.readFile(path.resolve(this.examplesDir, 'templates/thumbnail.tmpl'), 'utf-8');
-        const index = await fse.readFile(path.resolve(this.examplesDir, 'templates/index.tmpl'), 'utf-8');
+        const template = await fse.readFile(
+            path.resolve(this.examplesDir, 'templates/thumbnail.tmpl'),
+            'utf-8',
+        );
+        const index = await fse.readFile(
+            path.resolve(this.examplesDir, 'templates/index.tmpl'),
+            'utf-8',
+        );
 
         const htmlFiles = (await fse.readdir(this.examplesDir))
             .filter(f => f.endsWith('.html'))
@@ -147,7 +158,10 @@ export default class ExampleBuilder {
 
         let highlighter;
         if (!this.debug) {
-            highlighter = await shiki.getHighlighter({ theme: 'github-light', langs: ['js', 'html', 'json'] });
+            highlighter = await shiki.getHighlighter({
+                theme: 'github-light',
+                langs: ['js', 'html', 'json'],
+            });
         }
 
         // Fill the index.html file with the example cards
@@ -155,10 +169,11 @@ export default class ExampleBuilder {
 
         assets['index.html'] = new RawSource(html);
 
-        const templateFile = this.debug
-            ? 'templates/example-dev.tmpl'
-            : 'templates/example.tmpl';
-        const exampleTemplate = await fse.readFile(path.resolve(this.examplesDir, templateFile), 'utf-8');
+        const templateFile = this.debug ? 'templates/example-dev.tmpl' : 'templates/example.tmpl';
+        const exampleTemplate = await fse.readFile(
+            path.resolve(this.examplesDir, templateFile),
+            'utf-8',
+        );
 
         const packageJsonPath = path.resolve(this.rootDir, 'package.json');
         const packageJson = await fse.readFile(packageJsonPath, 'utf-8');

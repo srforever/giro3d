@@ -6,7 +6,11 @@ import type Projection from 'ol/proj/Projection';
 import type Extent from '../core/geographic/Extent';
 import OpenLayersUtils from '../utils/OpenLayersUtils';
 import TextureGenerator from '../utils/TextureGenerator';
-import ImageSource, { type GetImageOptions, ImageResult, type ImageSourceOptions } from './ImageSource';
+import ImageSource, {
+    type GetImageOptions,
+    ImageResult,
+    type ImageSourceOptions,
+} from './ImageSource';
 import type ImageFormat from '../formats/ImageFormat';
 import type { TileCoord } from 'ol/tilecoord';
 import ConcurrentDownloader from './ConcurrentDownloader';
@@ -112,10 +116,9 @@ export default class TiledImageSource extends ImageSource {
         this._tileGrid = tileGrid;
         this._getTileUrl = this.source.getTileUrlFunction();
         this.noDataValue = options.noDataValue;
-        this._sourceExtent = options.extent ?? OpenLayersUtils.fromOLExtent(
-            tileGrid.getExtent(),
-            projection.getCode(),
-        );
+        this._sourceExtent =
+            options.extent ??
+            OpenLayersUtils.fromOLExtent(tileGrid.getExtent(), projection.getCode());
         this._httpTimeout = options.httpTimeout ?? 5000;
     }
 
@@ -178,9 +181,7 @@ export default class TiledImageSource extends ImageSource {
     }
 
     getImages(options: GetImageOptions) {
-        const {
-            extent, width, height, signal,
-        } = options;
+        const { extent, width, height, signal } = options;
 
         signal?.throwIfAborted();
 
@@ -239,12 +240,20 @@ export default class TiledImageSource extends ImageSource {
      * @param createDataTexture - Create readable textures.
      * @returns The tile texture, or null if there is no data.
      */
-    private async loadTile(id: string, url: string, extent: Extent, createDataTexture: boolean, signal: AbortSignal) {
+    private async loadTile(
+        id: string,
+        url: string,
+        extent: Extent,
+        createDataTexture: boolean,
+        signal: AbortSignal,
+    ) {
         const blob = await this.fetchData(url, signal);
 
         if (!blob) {
             return new ImageResult({
-                texture: new Texture(), extent, id,
+                texture: new Texture(),
+                extent,
+                id,
             });
         }
 
@@ -281,7 +290,11 @@ export default class TiledImageSource extends ImageSource {
         MemoryTracker.track(texture, texture.name);
 
         return new ImageResult({
-            texture, extent, id, min, max,
+            texture,
+            extent,
+            id,
+            min,
+            max,
         });
     }
 
@@ -310,7 +323,13 @@ export default class TiledImageSource extends ImageSource {
      * @param zoom - The zoom level.
      * @param createDataTexture - Creates readable textures.
      */
-    private loadTiles(tileRange: TileRange, crs: string, zoom: number, createDataTexture: boolean, signal: AbortSignal) {
+    private loadTiles(
+        tileRange: TileRange,
+        crs: string,
+        zoom: number,
+        createDataTexture: boolean,
+        signal: AbortSignal,
+    ) {
         const source = this.source;
         const tileGrid = this._tileGrid;
 
@@ -331,7 +350,8 @@ export default class TiledImageSource extends ImageSource {
                 // Don't bother loading tiles that are not in the layer
                 if (this.shouldLoad(tileExtent)) {
                     const url = this._getTileUrl(coord, 1, this.olprojection);
-                    const request = () => this.loadTile(id, url, tileExtent, createDataTexture, signal);
+                    const request = () =>
+                        this.loadTile(id, url, tileExtent, createDataTexture, signal);
                     promises.push({ id, request });
                 }
             }

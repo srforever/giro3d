@@ -38,11 +38,13 @@ describe('RequestQueue', () => {
         it('should return a rejected promise if the shouldExecute() function returned false', async () => {
             const queue = new RequestQueue({ maxConcurrentRequests: 1 });
 
-            await expect(queue.enqueue({
-                id: 'foo',
-                request: () => Promise.resolve(),
-                shouldExecute: () => false,
-            })).rejects.toEqual(new Error('aborted'));
+            await expect(
+                queue.enqueue({
+                    id: 'foo',
+                    request: () => Promise.resolve(),
+                    shouldExecute: () => false,
+                }),
+            ).rejects.toEqual(new Error('aborted'));
         });
 
         it('should return a rejected promise if the signal was aborted', async () => {
@@ -51,11 +53,13 @@ describe('RequestQueue', () => {
             const controller = new AbortController();
             controller.abort();
 
-            await expect(queue.enqueue({
-                id: 'foo',
-                signal: controller.signal,
-                request: () => Promise.resolve(),
-            })).rejects.toEqual(new Error('aborted'));
+            await expect(
+                queue.enqueue({
+                    id: 'foo',
+                    signal: controller.signal,
+                    request: () => Promise.resolve(),
+                }),
+            ).rejects.toEqual(new Error('aborted'));
         });
 
         it('should return an existing promise for the same id', async () => {
