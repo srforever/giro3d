@@ -5,7 +5,7 @@
         LayerInfo layer = layers[i];
         if (layer.color.a > 0.) {
             ColorMap colorMap = layersColorMaps[i];
-            vec4 rgba = computeColorLayer(tileDimensions, colorTexture, colorMapAtlas, layer, colorMap, vUv);
+            vec4 rgba = computeColorLayer(tileDimensions, atlasTexture, colorMapAtlas, layer, colorMap, vUv);
             vec4 blended;
 
         // Let's blend the layer color to the composited color.

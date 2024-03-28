@@ -262,7 +262,7 @@ interface Uniforms {
     elevationRange: IUniform<Vector2>;
     tileDimensions: IUniform<Vector2>;
     elevationTexture: IUniform<Texture>;
-    colorTexture: IUniform<Texture>;
+    atlasTexture: IUniform<Texture>;
     uuid: IUniform<number>;
     backgroundColor: IUniform<Vector4>;
     layers: IUniform<LayerUniform[]>;
@@ -427,7 +427,7 @@ class LayeredMaterial extends ShaderMaterial {
         });
 
         // Color textures's layer
-        this.uniforms.colorTexture = new Uniform(this.texturesInfo.color.atlasTexture);
+        this.uniforms.atlasTexture = new Uniform(this.texturesInfo.color.atlasTexture);
 
         // Describe the properties of each color layer (offsetScale, color...).
         this.uniforms.layers = new Uniform([]);
@@ -580,7 +580,7 @@ class LayeredMaterial extends ShaderMaterial {
             this.rebuildAtlasTexture(rendered);
         }
 
-        this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
+        this.uniforms.atlasTexture.value = this.texturesInfo.color.atlasTexture;
     }
 
     setColorTextures(layer: ColorLayer, textureAndPitch: TextureAndPitch) {
@@ -952,7 +952,7 @@ class LayeredMaterial extends ShaderMaterial {
         }
         this.texturesInfo.color.atlasTexture?.dispose();
         this.texturesInfo.color.atlasTexture = newTexture;
-        this.uniforms.colorTexture.value = this.texturesInfo.color.atlasTexture;
+        this.uniforms.atlasTexture.value = this.texturesInfo.color.atlasTexture;
     }
 
     changeState(state: RenderingState) {

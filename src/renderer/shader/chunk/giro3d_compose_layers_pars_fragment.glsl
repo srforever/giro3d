@@ -5,7 +5,7 @@ const int LAYER_MODE_MASK_INVERTED = 2;
 #endif
 
 #if COLOR_LAYERS
-uniform sampler2D   colorTexture;         // Atlas texture shared among color layers
+uniform sampler2D   atlasTexture;         // Atlas texture shared among color layers
 uniform LayerInfo   layers[COLOR_LAYERS]; // The color layers' infos
 uniform ColorMap    layersColorMaps[COLOR_LAYERS]; // The color layers' color maps
 #endif
