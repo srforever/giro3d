@@ -299,7 +299,7 @@ class LayeredMaterial extends ShaderMaterial {
     private _mustUpdateUniforms: boolean;
     private _needsSorting: boolean;
     private _needsAtlasRepaint: boolean;
-    private _composer: WebGLComposer;
+    private _composer: WebGLComposer | null = null;
     private _colorMapAtlas: ColorMapAtlas;
     private _composerDataType: TextureDataType = UnsignedByteType;
 
@@ -391,8 +391,6 @@ class LayeredMaterial extends ShaderMaterial {
 
         this.fragmentShader = TileFS;
         this.vertexShader = TileVS;
-
-        this._composer = this.createComposer();
 
         this.texturesInfo = {
             color: {
@@ -519,7 +517,7 @@ class LayeredMaterial extends ShaderMaterial {
         }
 
         this._colorLayers.length = 0;
-        this._composer.dispose();
+        this._composer?.dispose();
         this.texturesInfo.color.atlasTexture?.dispose();
     }
 
@@ -900,6 +898,7 @@ class LayeredMaterial extends ShaderMaterial {
 
     rebuildAtlasIfNecessary() {
         if (
+            this._composer == null ||
             this._atlasInfo.maxX > this._composer.width ||
             this._atlasInfo.maxY > this._composer.height ||
             this._composer.dataType !== this._composerDataType
@@ -910,7 +909,7 @@ class LayeredMaterial extends ShaderMaterial {
 
             const currentTexture = this.texturesInfo.color.atlasTexture;
 
-            if (currentTexture && this._composer.width > 0) {
+            if (this._composer && currentTexture && this._composer.width > 0) {
                 // repaint the old canvas into the new one.
                 newComposer.draw(
                     currentTexture,
@@ -919,7 +918,7 @@ class LayeredMaterial extends ShaderMaterial {
                 newTexture = newComposer.render();
             }
 
-            this._composer.dispose();
+            this._composer?.dispose();
             currentTexture?.dispose();
             this._composer = newComposer;
 
