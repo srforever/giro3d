@@ -504,10 +504,9 @@ class Map<UserData extends EntityUserData = EntityUserData>
                 for (const e of this.getElevationLayers()) {
                     e.update(context, child);
                 }
-                if (node.material.pixelWidth > 0) {
-                    for (const c of this.getColorLayers()) {
-                        c.update(context, child);
-                    }
+
+                for (const c of this.getColorLayers()) {
+                    c.update(context, child);
                 }
 
                 child.update(this.materialOptions);

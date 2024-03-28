@@ -461,14 +461,6 @@ class LayeredMaterial extends ShaderMaterial {
         MemoryTracker.track(this, 'LayeredMaterial');
     }
 
-    get pixelWidth() {
-        return this._composer.width;
-    }
-
-    get pixelHeight() {
-        return this._composer.height;
-    }
-
     /**
      * @param v - The number of segments.
      */
