@@ -289,7 +289,6 @@ class LayeredMaterial extends ShaderMaterial {
         color: {
             infos: TextureInfo[];
             atlasTexture: Texture;
-            parentAtlasTexture: Texture;
         };
         elevation: {
             offsetScale: Vector4;
@@ -399,7 +398,6 @@ class LayeredMaterial extends ShaderMaterial {
             color: {
                 infos: [],
                 atlasTexture: null,
-                parentAtlasTexture: null,
             },
             elevation: {
                 offsetScale: new Vector4(0, 0, 0, 0),
