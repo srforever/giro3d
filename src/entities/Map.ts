@@ -389,6 +389,10 @@ class Map<UserData extends EntityUserData = EntityUserData>
             backgroundOpacity?: number;
             showOutline?: boolean;
             elevationRange?: ElevationRange;
+            /**
+             * Force using texture atlases even when not required.
+             */
+            forceTextureAtlases?: boolean;
         },
     ) {
         super(id, options.object3d || new Group());
@@ -416,6 +420,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         this._segments = options.segments || 8;
 
         this.materialOptions = {
+            forceTextureAtlases: options.forceTextureAtlases,
             hillshading: getHillshadingOptions(options.hillshading),
             contourLines: getContourLineOptions(options.contourLines),
             discardNoData: options.discardNoData || false,
@@ -584,6 +589,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             getIndexFn: this.getIndex.bind(this),
             textureDataType: this._colorAtlasDataType,
             hasElevationLayer: this._hasElevationLayer,
+            maxTextureImageUnits: Capabilities.getMaxTextureUnitsCount(),
         });
 
         const tile = new TileMesh({

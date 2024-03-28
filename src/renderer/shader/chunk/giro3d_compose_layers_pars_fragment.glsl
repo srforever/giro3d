@@ -4,10 +4,14 @@ const int LAYER_MODE_MASK = 1;
 const int LAYER_MODE_MASK_INVERTED = 2;
 #endif
 
-#if COLOR_LAYERS
+#if VISIBLE_COLOR_LAYER_COUNT
+#if defined(USE_ATLAS_TEXTURE)
 uniform sampler2D   atlasTexture;         // Atlas texture shared among color layers
-uniform LayerInfo   layers[COLOR_LAYERS]; // The color layers' infos
-uniform ColorMap    layersColorMaps[COLOR_LAYERS]; // The color layers' color maps
+#else
+uniform sampler2D   colorTextures[VISIBLE_COLOR_LAYER_COUNT]; // Individual textures for each color layer
+#endif
+uniform LayerInfo   layers[VISIBLE_COLOR_LAYER_COUNT]; // The color layers' infos
+uniform ColorMap    layersColorMaps[VISIBLE_COLOR_LAYER_COUNT]; // The color layers' color maps
 #endif
 
 vec4 computeColor(vec2 rawUv, vec4 offsetScale, sampler2D tex) {

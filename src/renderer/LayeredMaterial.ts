@@ -14,7 +14,12 @@ import {
     RGBAFormat,
     UnsignedByteType,
 } from 'three';
-import type { IUniform, WebGLRenderer, TextureDataType } from 'three';
+import type {
+    IUniform,
+    WebGLRenderer,
+    TextureDataType,
+    WebGLProgramParametersWithUniforms,
+} from 'three';
 import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
 import TileFS from './shader/TileFS.glsl';
@@ -193,6 +198,10 @@ export interface MaterialOptions {
      * Show the outlines of tile meshes.
      */
     showTileOutlines?: boolean;
+    /**
+     * Force using texture atlases even when not required by WebGL limitations.
+     */
+    forceTextureAtlases?: boolean;
 }
 
 type HillshadingUniform = {
@@ -250,7 +259,9 @@ type Defines = {
     ENABLE_HILLSHADING?: 1;
     APPLY_SHADING_ON_COLORLAYERS?: 1;
     ENABLE_GRATICULE?: 1;
-    COLOR_LAYERS: number;
+    USE_ATLAS_TEXTURE?: 1;
+    /** The number of _visible_ color layers */
+    VISIBLE_COLOR_LAYER_COUNT: number;
 };
 
 interface Uniforms {
@@ -263,6 +274,7 @@ interface Uniforms {
     tileDimensions: IUniform<Vector2>;
     elevationTexture: IUniform<Texture>;
     atlasTexture: IUniform<Texture>;
+    colorTextures: IUniform<Texture[]>;
     uuid: IUniform<number>;
     backgroundColor: IUniform<Vector4>;
     layers: IUniform<LayerUniform[]>;
@@ -309,12 +321,15 @@ class LayeredMaterial extends ShaderMaterial {
     override readonly defines: Defines;
 
     private readonly _atlasInfo: AtlasInfo;
+    private readonly _forceTextureAtlas: boolean;
+    private readonly _maxTextureImageUnits: number;
     private _options: MaterialOptions;
     private _hasElevationLayer: boolean;
 
     constructor({
         options = {},
         renderer,
+        maxTextureImageUnits,
         atlasInfo,
         getIndexFn,
         textureDataType,
@@ -324,6 +339,8 @@ class LayeredMaterial extends ShaderMaterial {
         options: MaterialOptions;
         /** the WebGL renderer. */
         renderer: WebGLRenderer;
+        /** The number of maximum texture units in fragment shaders */
+        maxTextureImageUnits: number;
         /**  the Atlas info */
         atlasInfo: AtlasInfo;
         /** The function to help sorting color layers. */
@@ -335,9 +352,11 @@ class LayeredMaterial extends ShaderMaterial {
         super({ clipping: true, glslVersion: GLSL3 });
 
         this._atlasInfo = atlasInfo;
+        MaterialUtils.setDefine(this, 'USE_ATLAS_TEXTURE', false);
         MaterialUtils.setDefine(this, 'STITCHING', options.terrain?.stitching);
         MaterialUtils.setDefine(this, 'TERRAIN_DEFORMATION', options.terrain?.enabled);
         this._renderer = renderer;
+        this._forceTextureAtlas = options.forceTextureAtlases ?? false;
 
         this._hasElevationLayer = hasElevationLayer;
         this._composerDataType = textureDataType;
@@ -354,6 +373,8 @@ class LayeredMaterial extends ShaderMaterial {
         this.uniforms.fogColor = new Uniform(new Color(0xffffff));
 
         this.fog = true;
+
+        this._maxTextureImageUnits = maxTextureImageUnits;
 
         this._getIndexFn = getIndexFn;
 
@@ -387,7 +408,7 @@ class LayeredMaterial extends ShaderMaterial {
 
         this.uniforms.renderingState = new Uniform(RenderingState.FINAL);
 
-        this.defines.COLOR_LAYERS = 0;
+        MaterialUtils.setNumericDefine(this, 'VISIBLE_COLOR_LAYER_COUNT', 0);
 
         this.fragmentShader = TileFS;
         this.vertexShader = TileVS;
@@ -429,6 +450,8 @@ class LayeredMaterial extends ShaderMaterial {
         // Color textures's layer
         this.uniforms.atlasTexture = new Uniform(this.texturesInfo.color.atlasTexture);
 
+        this.uniforms.colorTextures = new Uniform([]);
+
         // Describe the properties of each color layer (offsetScale, color...).
         this.uniforms.layers = new Uniform([]);
         this.uniforms.layersColorMaps = new Uniform([]);
@@ -466,15 +489,39 @@ class LayeredMaterial extends ShaderMaterial {
         }
     }
 
+    onBeforeCompile(parameters: WebGLProgramParametersWithUniforms): void {
+        // This is a workaround due to a limitation in three.js, documented
+        // here: https://github.com/mrdoob/three.js/issues/28020
+        // Normally, we would not have to do this and let the loop unrolling do its job.
+        // However, in our case, the loop end index is not an integer, but a define.
+        // We have to patch the fragment shader ourselves because three.js will not do it
+        // before the loop is unrolled, leading to a compilation error.
+        parameters.fragmentShader = parameters.fragmentShader.replaceAll(
+            'COLOR_LAYERS_LOOP_END',
+            `${this.defines.VISIBLE_COLOR_LAYER_COUNT}`,
+        );
+    }
+
     private _updateColorLayerUniforms() {
+        const useAtlas = this.defines.USE_ATLAS_TEXTURE === 1;
+
         this.sortLayersIfNecessary();
 
         if (this._mustUpdateUniforms) {
             const layersUniform = [];
             const infos = this.texturesInfo.color.infos;
+            const textureUniforms = this.uniforms.colorTextures.value;
+            textureUniforms.length = 0;
 
             for (const info of infos) {
-                const offsetScale = info.offsetScale;
+                const layer = info.layer;
+                // Ignore non-visible layers
+                if (!layer.visible) {
+                    continue;
+                }
+
+                // If we use an atlas, the offset/scale is different.
+                const offsetScale = useAtlas ? info.offsetScale : info.originalOffsetScale;
                 const tex = info.texture;
                 let textureSize = new Vector2(0, 0);
                 const image = tex.image;
@@ -497,6 +544,10 @@ class LayeredMaterial extends ShaderMaterial {
                 };
 
                 layersUniform.push(uniform);
+
+                if (!useAtlas) {
+                    textureUniforms.push(tex);
+                }
             }
 
             this.uniforms.layers.value = layersUniform;
@@ -530,14 +581,36 @@ class LayeredMaterial extends ShaderMaterial {
         return this.texturesInfo.color.infos[index].texture;
     }
 
+    private countIndividualTextures() {
+        let totalTextureUnits = 0;
+        if (this._elevationLayer) {
+            totalTextureUnits++;
+
+            if (this.defines.STITCHING) {
+                // We use 8 neighbour textures for stit-ching
+                totalTextureUnits += 8;
+            }
+        }
+        if (this._colorMapAtlas) {
+            totalTextureUnits++;
+        }
+
+        const visibleColorLayers = this.getVisibleColorLayerCount();
+        // Count only visible color layers
+        totalTextureUnits += visibleColorLayers;
+
+        return { totalTextureUnits, visibleColorLayers };
+    }
+
     onBeforeRender() {
         this._updateOpacityParameters(this.opacity);
-        this._updateColorLayerUniforms();
 
-        if (this._needsAtlasRepaint) {
+        if (this.defines.USE_ATLAS_TEXTURE && this._needsAtlasRepaint) {
             this.repaintAtlas();
             this._needsAtlasRepaint = false;
         }
+
+        this._updateColorLayerUniforms();
     }
 
     repaintAtlas() {
@@ -545,8 +618,12 @@ class LayeredMaterial extends ShaderMaterial {
 
         this._composer.reset();
 
-        // Redraw all color layers on the canvas
+        // Redraw all visible color layers on the canvas
         for (const l of this._colorLayers) {
+            if (!l.visible) {
+                continue;
+            }
+
             const idx = this.indexOfColorLayer(l);
             const atlas = this._atlasInfo.atlas[l.id];
 
@@ -682,13 +759,22 @@ class LayeredMaterial extends ShaderMaterial {
 
         this.texturesInfo.color.infos.push(info);
 
-        this._needsSorting = true;
-        this._mustUpdateUniforms = true;
+        this.updateColorLayerCount();
 
         this._updateColorMaps();
 
-        this.defines.COLOR_LAYERS = this._colorLayers.length;
         this.needsUpdate = true;
+    }
+
+    private getVisibleColorLayerCount() {
+        let result = 0;
+        for (let i = 0; i < this._colorLayers.length; i++) {
+            const layer = this._colorLayers[i];
+            if (layer.visible) {
+                result++;
+            }
+        }
+        return result;
     }
 
     reorderLayers() {
@@ -713,14 +799,9 @@ class LayeredMaterial extends ShaderMaterial {
         this.texturesInfo.color.infos.splice(index, 1);
         this._colorLayers.splice(index, 1);
 
-        this._needsSorting = true;
-        this._mustUpdateUniforms = true;
         this._updateColorMaps();
 
-        this.defines.COLOR_LAYERS = this._colorLayers.length;
-
-        this.needsUpdate = true;
-        this._needsAtlasRepaint = true;
+        this.updateColorLayerCount();
     }
 
     /**
@@ -880,7 +961,29 @@ class LayeredMaterial extends ShaderMaterial {
         if (this._colorLayers.length === 0) {
             return true;
         }
+
         return this.rebuildAtlasIfNecessary();
+    }
+
+    private updateColorLayerCount() {
+        // If we have fewer textures than allowed by WebGL max texture units,
+        // then we can directly use those textures in the shader.
+        // Otherwise we have to reduce the number of color textures by aggregating
+        // them in a texture atlas. Note that doing so will have a performance cost,
+        // both increasing memory consumption and GPU time, since each color texture
+        // must rendered into the atlas.
+        const { totalTextureUnits, visibleColorLayers } = this.countIndividualTextures();
+
+        const shouldUseAtlas =
+            this._forceTextureAtlas || totalTextureUnits > this._maxTextureImageUnits;
+        MaterialUtils.setDefine(this, 'USE_ATLAS_TEXTURE', shouldUseAtlas);
+
+        // If the number of visible layers has changed, we need to repaint the
+        // atlas because it only shows visible layers.
+        if (MaterialUtils.setNumericDefine(this, 'VISIBLE_COLOR_LAYER_COUNT', visibleColorLayers)) {
+            this._mustUpdateUniforms = true;
+            this._needsAtlasRepaint = true;
+        }
     }
 
     createComposer() {
@@ -1005,6 +1108,7 @@ class LayeredMaterial extends ShaderMaterial {
         const index = this.indexOfColorLayer(layer);
         this.texturesInfo.color.infos[index].visible = visible;
         this._mustUpdateUniforms = true;
+        this.updateColorLayerCount();
     }
 
     setLayerElevationRange(layer: ColorLayer, range: ElevationRange) {
@@ -1024,7 +1128,6 @@ class LayeredMaterial extends ShaderMaterial {
             contrast,
             saturation,
         );
-        this._updateColorLayerUniforms();
     }
 
     canProcessColorLayer(): boolean {
