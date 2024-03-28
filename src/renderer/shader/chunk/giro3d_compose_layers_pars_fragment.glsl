@@ -17,7 +17,7 @@ vec4 computeColor(vec2 rawUv, vec4 offsetScale, sampler2D tex) {
 
 vec4 computeColorLayer(
     vec2 tileDimensions,
-    sampler2D atlas,
+    sampler2D texture,
     sampler2D lut,
     LayerInfo layer,
     ColorMap colorMap,
@@ -26,9 +26,9 @@ vec4 computeColorLayer(
     if (layer.offsetScale.zw != vec2(0.0)) {
         vec4 color;
         if (colorMap.mode != COLORMAP_MODE_DISABLED) {
-            color = computeColorMap(tileDimensions, layer, atlas, colorMap, lut, uv);
+            color = computeColorMap(tileDimensions, layer, texture, colorMap, lut, uv);
         } else {
-            color = computeColor(uv, layer.offsetScale, atlas);
+            color = computeColor(uv, layer.offsetScale, texture);
         }
         vec3 rgb = color.rgb * layer.color.rgb;
 
