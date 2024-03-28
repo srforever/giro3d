@@ -1050,7 +1050,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         if (this._layerIds.has(layer.id)) {
             this._layerIds.delete(layer.id);
-            this._layers.splice(this._layers.indexOf(layer));
+            this._layers.splice(this._layers.indexOf(layer), 1);
             if (layer.colorMap) {
                 this.materialOptions.colorMapAtlas.remove(layer.colorMap);
             }
