@@ -20,7 +20,7 @@ export default class ConcurrentDownloader {
         signal.addEventListener('abort', () => {
             const current = this._requests.get(url);
             if (current && current.signals.every(s => s.aborted)) {
-                current.abortController.abort(PromiseUtils.abortError);
+                current.abortController.abort(PromiseUtils.abortError());
             }
         });
 
