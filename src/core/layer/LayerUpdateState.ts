@@ -16,7 +16,7 @@ class LayerUpdateState {
     state: UpdateState;
     lastErrorTimestamp: number;
     errorCount: number;
-    failureParams?: any;
+    failureParams?: unknown;
 
     constructor() {
         this.state = UpdateState.IDLE;
@@ -66,7 +66,7 @@ class LayerUpdateState {
         this.state = UpdateState.FINISHED;
     }
 
-    failure(timestamp: number, definitive: boolean, failureParams: any) {
+    failure(timestamp: number, definitive: boolean, failureParams?: unknown) {
         this.failureParams = failureParams;
         this.lastErrorTimestamp = timestamp;
         this.state = definitive ? UpdateState.DEFINITIVE_ERROR : UpdateState.ERROR;

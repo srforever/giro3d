@@ -9,6 +9,7 @@ import PointCloudMaterial, {
 import ConstantSizeSphere from './ConstantSizeSphere';
 import type RenderingOptions from './RenderingOptions';
 import type RenderingContextHandler from './RenderingContextHandler';
+import * as simpleGeometries from './geometries';
 
 export {
     Camera,
@@ -21,4 +22,5 @@ export {
     ASPRS_CLASSIFICATIONS,
     RenderingOptions,
     RenderingContextHandler,
+    simpleGeometries,
 };
