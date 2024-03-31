@@ -583,11 +583,11 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * scene itself (e.g. camera movement).
      * non-interactive events (e.g: texture loaded)
      *
-     * @param changeSource - the source of the change
+     * @param changeSources - the source(s) of the change. Might be a single object or an array.
      * @param needsRedraw - indicates if notified change requires a full scene redraw.
      */
-    notifyChange(changeSource: unknown = undefined, needsRedraw = true): void {
-        this._mainLoop.scheduleUpdate(this, needsRedraw, changeSource);
+    notifyChange(changeSources: unknown | unknown[] = undefined, needsRedraw = true): void {
+        this._mainLoop.scheduleUpdate(this, needsRedraw, changeSources);
     }
 
     /**
