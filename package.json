@@ -90,7 +90,7 @@
     "peerDependencies": {
         "ol": "6 - 8",
         "proj4": "^2.9.0",
-        "three": "^0.160.0"
+        "three": "^0.164.0"
     },
     "devDependencies": {
         "@babel/cli": "^7.17.10",
@@ -106,7 +106,7 @@
         "@types/geojson": "^7946.0.14",
         "@types/jest": "^29.5.3",
         "@types/proj4": "^2.5.2",
-        "@types/three": "^0.160.0",
+        "@types/three": "^0.164.0",
         "@typescript-eslint/eslint-plugin": "^5.62.0",
         "@typescript-eslint/parser": "^5.62.0",
         "assert": "^2.0.0",
