@@ -2,3 +2,41 @@
 title: Color layer stress test
 shortdesc: Stress test a map with many color layers.
 ---
+
+<div class="m-2 position-absolute top-0 end-0">
+    <div class="card m-1">
+        <div class="card-header">Parameters</div>
+
+        <div class="card-body">
+            <fieldset class="container m-1">
+                <div class="mb-3">
+                    <label for="layerCount" class="form-label">Color layer count</label>
+                    <div class="input-group">
+                        <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            autocomplete="off"
+                            value="8"
+                            class="form-control"
+                            id="layerCount"
+                        />
+                    </div>
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        autocomplete="off"
+                        role="switch"
+                        id="forceAtlases"
+                    />
+                    <label class="form-check-label" for="forceAtlases">Force texture atlases</label>
+                </div>
+
+                <button type="button" class="btn btn-primary" id="build">Generate</button>
+            </fieldset>
+        </div>
+    </div>
+</div>
