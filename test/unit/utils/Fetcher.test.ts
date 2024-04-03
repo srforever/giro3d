@@ -46,6 +46,18 @@ describe('Fetcher', () => {
     });
 
     describe('fetch', () => {
+        it('honors the number of retries in case of HTTP errors', async () => {
+            global.fetch = jest.fn(() => Promise.resolve({ ok: false })) as jest.Mock;
+
+            const retries = 5;
+
+            await expect(
+                Fetcher.fetch('http://example.com', { retries, retryDelay: 0 }),
+            ).rejects.toBeDefined();
+
+            expect(global.fetch).toHaveBeenCalledTimes(retries + 1);
+        });
+
         it('should pass the request to the Fetch API', async () => {
             global.fetch = jest.fn(() => Promise.resolve({ ok: true })) as jest.Mock;
 
