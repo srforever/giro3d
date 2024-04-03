@@ -9,6 +9,7 @@ import {
     Pool,
     type GeoTIFF,
     type ReadRasterResult,
+    globals as geotiffGlobals,
 } from 'geotiff';
 
 import Fetcher from '../utils/Fetcher';
@@ -28,6 +29,43 @@ function getPool(): Pool {
     }
 
     return sharedPool;
+}
+
+/**
+ * Determine if an image type is a mask.
+ * See https://www.awaresystems.be/imaging/tiff/tifftags/newsubfiletype.html
+ * Note: this function is taken from OpenLayers (GeoTIFF.js)
+ * @param image - The image.
+ * @returns `true` if the image is a mask.
+ */
+function isMask(image: GeoTIFFImage) {
+    const FILETYPE_MASK = 4;
+    const fileDirectory = image.fileDirectory;
+    const type = fileDirectory.NewSubfileType || 0;
+
+    return (type & FILETYPE_MASK) === FILETYPE_MASK;
+}
+
+/**
+ * Determines if we can safely use the `readRGB()` method from geotiff.js for this image.
+ */
+function canReadRGB(image: GeoTIFFImage) {
+    if (image.getSamplesPerPixel() !== 3) {
+        return false;
+    }
+
+    if (image.getBitsPerSample() > 8) {
+        return false;
+    }
+
+    const interpretation = image.fileDirectory.PhotometricInterpretation;
+    const interpretations = geotiffGlobals.photometricInterpretations;
+    return (
+        interpretation === interpretations.CMYK ||
+        interpretation === interpretations.YCbCr ||
+        interpretation === interpretations.CIELab ||
+        interpretation === interpretations.ICCLab
+    );
 }
 
 export class FetcherResponse extends BaseResponse {
@@ -165,11 +203,6 @@ export interface CogSourceOptions extends ImageSourceOptions {
      * Advanced caching options.
      */
     cacheOptions?: CogCacheOptions;
-    /**
-     * Forces the conversion of pixels to RGB. This is useful if the source file is in YCbCR color
-     * space or any other non-RGB color space.
-     */
-    convertToRGB?: boolean;
 }
 
 /**
@@ -183,11 +216,11 @@ class CogSource extends ImageSource {
     private readonly _cache: Cache = GlobalCache;
     private _tiffImage: GeoTIFF;
     private readonly _pool: Pool;
-    private readonly _convertToRGB: boolean;
     private _imageCount: number;
     private _extent: Extent;
     private _dimensions: Vector2;
-    private _levels: Level[];
+    private _images: Level[];
+    private _masks: Level[];
     private _sampleCount: number;
     private _channels: number[];
     private _initialized: boolean;
@@ -213,10 +246,10 @@ class CogSource extends ImageSource {
         this.crs = options.crs;
         this._pool = getPool();
         this._imageCount = 0;
-        this._levels = [];
+        this._images = [];
+        this._masks = [];
         this._channels = options.channels;
         this._cacheOptions = options.cacheOptions;
-        this._convertToRGB = options.convertToRGB ?? false;
     }
 
     getExtent() {
@@ -253,10 +286,10 @@ class CogSource extends ImageSource {
         requestHeight: number,
         margin = 0,
     ) {
-        const level = this.selectLevel(requestExtent, requestWidth, requestHeight);
+        const { image } = this.selectLevel(requestExtent, requestWidth, requestHeight);
 
-        const pixelWidth = this._dimensions.x / level.width;
-        const pixelHeight = this._dimensions.y / level.height;
+        const pixelWidth = this._dimensions.x / image.width;
+        const pixelHeight = this._dimensions.y / image.height;
 
         const marginExtent = requestExtent
             .withMargin(pixelWidth * margin, pixelHeight * margin)
@@ -298,8 +331,6 @@ class CogSource extends ImageSource {
         // @ts-expect-error (typing issue with geotiff.js)
         this._tiffImage = await fromCustomClient(client, opts);
 
-        // Number of images (original + overviews)
-        this._imageCount = await this._tiffImage.getImageCount();
         // Get original image header
         const firstImage = await this._tiffImage.getImage();
 
@@ -334,16 +365,28 @@ class CogSource extends ImageSource {
             };
         }
 
-        this._levels.push(makeLevel(firstImage, firstImage.getResolution()));
+        this._images.push(makeLevel(firstImage, firstImage.getResolution()));
+
+        const rawImageCount = await this._tiffImage.getImageCount();
+        let nonMaskImageCount = 0;
 
         // We want to preserve the order of the overviews so we await them inside
         // the loop not to have the smallest overviews coming before the biggest
         /* eslint-disable no-await-in-loop */
-        for (let i = 1; i < this._imageCount; i++) {
+        for (let i = 1; i < rawImageCount; i++) {
             const image = await this._tiffImage.getImage(i);
-            this._levels.push(makeLevel(image, image.getResolution(firstImage)));
+            const level = makeLevel(image, image.getResolution(firstImage));
+
+            if (isMask(image)) {
+                this._masks.push(level);
+            } else {
+                nonMaskImageCount++;
+                this._images.push(level);
+            }
         }
 
+        // Number of images (original + overviews)
+        this._imageCount = nonMaskImageCount;
         this._initialized = true;
     }
 
@@ -431,14 +474,17 @@ class CogSource extends ImageSource {
             extentDimension.y / requestHeight,
         );
 
-        let level;
+        let image: Level;
+        let mask: Level;
 
         // Select the image with the best resolution for our needs
         for (let i = imageCount - 1; i >= 0; i--) {
-            level = this._levels[i];
+            image = this._images[i];
+            mask = this._masks[i];
+
             const sourceResolution = Math.min(
-                this._dimensions.x / level.width,
-                this._dimensions.y / level.height,
+                this._dimensions.x / image.width,
+                this._dimensions.y / image.height,
             );
 
             if (targetResolution >= sourceResolution) {
@@ -446,7 +492,7 @@ class CogSource extends ImageSource {
             }
         }
 
-        return level;
+        return { image, mask };
     }
 
     /**
@@ -470,13 +516,19 @@ class CogSource extends ImageSource {
     }) {
         const { extent, width, height, id, signal } = opts;
 
-        const level = this.selectLevel(extent, width, height);
+        const { image, mask } = this.selectLevel(extent, width, height);
 
-        const adjusted = extent.fitToGrid(this._extent, level.width, level.height, 8, 8);
+        const adjusted = extent.fitToGrid(this._extent, image.width, image.height, 8, 8);
 
         const actualExtent = adjusted.extent;
 
-        const buffers = await this.getRegionBuffers(actualExtent, level, signal, id);
+        const buffers = await this.getRegionBuffers(
+            actualExtent,
+            image,
+            this._channels,
+            signal,
+            id,
+        );
 
         signal?.throwIfAborted();
 
@@ -484,6 +536,13 @@ class CogSource extends ImageSource {
         if (buffers == null) {
             texture = new Texture();
         } else {
+            if (mask && buffers.length === 3) {
+                const alpha = await this.processTransparencyMask(mask, actualExtent, signal, id);
+                if (alpha) {
+                    buffers.push(alpha);
+                }
+            }
+
             texture = this.createTexture(buffers as SizedArray<NumberArray>);
         }
 
@@ -492,12 +551,38 @@ class CogSource extends ImageSource {
         return new ImageResult(result);
     }
 
+    private async processTransparencyMask(
+        mask: Level,
+        extent: Extent,
+        signal: AbortSignal,
+        id: string,
+    ) {
+        const bufs = await this.getRegionBuffers(extent, mask, [0], signal, id);
+        if (!bufs) {
+            return null;
+        }
+
+        const alpha = bufs[0];
+
+        const is1bit = mask.image.getBitsPerSample() === 1;
+
+        // Peform 8-bit expansion
+        if (is1bit) {
+            for (let i = 0; i < alpha.length; i++) {
+                alpha[i] = alpha[i] * 255;
+            }
+        }
+
+        return alpha;
+    }
+
     private async readWindow(
         image: GeoTIFFImage,
         window: number[],
+        channels: number[],
         signal?: AbortSignal,
     ): Promise<ReadRasterResult> {
-        if (this._convertToRGB) {
+        if (canReadRGB(image)) {
             return await image.readRGB({
                 pool: this._pool,
                 window,
@@ -515,7 +600,7 @@ class CogSource extends ImageSource {
         const buf = await image.readRasters({
             pool: this._pool,
             fillValue: this._nodata,
-            samples: this._channels,
+            samples: channels,
             window,
             signal,
         });
@@ -532,12 +617,13 @@ class CogSource extends ImageSource {
     private async fetchBuffer(
         image: GeoTIFFImage,
         window: number[],
+        channels: number[],
         signal?: AbortSignal,
     ): Promise<TypedArray | TypedArray[]> {
         signal?.throwIfAborted();
 
         try {
-            return await this.readWindow(image, window, signal);
+            return await this.readWindow(image, window, channels, signal);
         } catch (e) {
             if (e.toString() === 'AggregateError: Request failed') {
                 // Problem with the source that is blocked by another fetch
@@ -548,7 +634,7 @@ class CogSource extends ImageSource {
                 // Retry until it is not blocked.
                 // TODO retry counter
                 await PromiseUtils.delay(100);
-                return this.fetchBuffer(image, window, signal);
+                return this.fetchBuffer(image, window, channels, signal);
             }
             console.error(e);
             return null;
@@ -559,35 +645,45 @@ class CogSource extends ImageSource {
      * Extract a region from the specified image.
      *
      * @param extent - The request extent.
-     * @param level - The level to sample.
+     * @param imageInfo - The image to sample.
      * @param signal - The abort signal.
      * @param id - The request id.
      * @returns The buffer(s).
      */
-    private async getRegionBuffers(extent: Extent, level: Level, signal: AbortSignal, id: string) {
-        const window = this.makeWindowFromExtent(extent, level.resolution);
+    private async getRegionBuffers(
+        extent: Extent,
+        imageInfo: Level,
+        channels: number[],
+        signal: AbortSignal,
+        id: string,
+    ): Promise<TypedArray[] | null> {
+        const window = this.makeWindowFromExtent(extent, imageInfo.resolution);
 
-        const cacheKey = `${this._cacheId}-${id}`;
+        const cacheKey = `${this._cacheId}-${id}-${channels.join(',')}`;
         const cached = this._cache.get(cacheKey);
         if (cached) {
-            return cached;
+            return cached as TypedArray[];
         }
 
-        const buf = await this.fetchBuffer(level.image, window, signal);
+        const buf = await this.fetchBuffer(imageInfo.image, window, channels, signal);
 
         if (buf == null) {
             return null;
         }
 
+        let result: TypedArray[];
         let size = 0;
+
         if (Array.isArray(buf)) {
             size = buf.map(b => b.byteLength).reduce((a, b) => a + b);
+            result = buf;
         } else {
             size = buf.byteLength;
+            result = [buf];
         }
-        this._cache.set(cacheKey, buf, { size });
+        this._cache.set(cacheKey, result, { size });
 
-        return buf;
+        return result;
     }
 
     getImages(options: {
