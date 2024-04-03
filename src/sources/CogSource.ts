@@ -1,4 +1,4 @@
-import { FloatType, LinearFilter, MathUtils, UnsignedByteType, Vector2 } from 'three';
+import { FloatType, LinearFilter, MathUtils, Texture, UnsignedByteType, Vector2 } from 'three';
 
 import {
     fromCustomClient,
@@ -480,7 +480,12 @@ class CogSource extends ImageSource {
 
         signal?.throwIfAborted();
 
-        const texture = this.createTexture(buffers as SizedArray<NumberArray>);
+        let texture: Texture;
+        if (buffers == null) {
+            texture = new Texture();
+        } else {
+            texture = this.createTexture(buffers as SizedArray<NumberArray>);
+        }
 
         const result = { extent: actualExtent, texture, id };
 
@@ -529,10 +534,10 @@ class CogSource extends ImageSource {
         window: number[],
         signal?: AbortSignal,
     ): Promise<TypedArray | TypedArray[]> {
-        try {
-            signal?.throwIfAborted();
+        signal?.throwIfAborted();
 
-            return this.readWindow(image, window, signal);
+        try {
+            return await this.readWindow(image, window, signal);
         } catch (e) {
             if (e.toString() === 'AggregateError: Request failed') {
                 // Problem with the source that is blocked by another fetch
@@ -545,7 +550,8 @@ class CogSource extends ImageSource {
                 await PromiseUtils.delay(100);
                 return this.fetchBuffer(image, window, signal);
             }
-            throw e;
+            console.error(e);
+            return null;
         }
     }
 
@@ -568,6 +574,10 @@ class CogSource extends ImageSource {
         }
 
         const buf = await this.fetchBuffer(level.image, window, signal);
+
+        if (buf == null) {
+            return null;
+        }
 
         let size = 0;
         if (Array.isArray(buf)) {
