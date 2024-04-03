@@ -19,7 +19,7 @@ export default class ConcurrentDownloader {
     fetch(url: string, signal: AbortSignal): Promise<Response> {
         const existing = this._requests.get(url);
 
-        signal.addEventListener('abort', () => {
+        signal?.addEventListener('abort', () => {
             const current = this._requests.get(url);
             if (current && current.signals.every(s => s.aborted)) {
                 current.abortController.abort(PromiseUtils.abortError());
@@ -27,7 +27,9 @@ export default class ConcurrentDownloader {
         });
 
         if (existing) {
-            existing.signals.push(signal);
+            if (signal) {
+                existing.signals.push(signal);
+            }
 
             return existing.promise;
         }
