@@ -41,32 +41,35 @@ instance.add(map);
 
 // Data coming from the same source as
 // https://openlayers.org/en/latest/examples/cog-math-multisource.html
-const rgb = new CogSource({
-    url: 'https://3d.oslandia.com/giro3d/rasters/TCI.tif',
-    crs: extent.crs(),
-});
+const sources = {
+    // LZW compression, RGB colorspace
+    rgb: new CogSource({
+        url: 'https://3d.oslandia.com/giro3d/rasters/TCI.tif',
+        crs: extent.crs(),
+        channels: [0, 1, 2],
+    }),
+    // LZW compression, RGB colorspace, 8-bit alpha band
+    rgba: new CogSource({
+        url: 'https://3d.oslandia.com/giro3d/rasters/TCI-alpha.tif',
+        crs: extent.crs(),
+        channels: [0, 1, 2, 3],
+    }),
+    // JPEG compression, YCbCr colorspace
+    ycbcr: new CogSource({
+        url: 'https://3d.oslandia.com/giro3d/rasters/TCI-YCbCr.tif',
+        crs: extent.crs(),
+    }),
+    // JPEG compression, YCbCr colorspace, 1-bit mask band
+    'ycbcr-mask': new CogSource({
+        url: 'https://3d.oslandia.com/giro3d/rasters/TCI-YCbCr-mask.tif',
+        crs: extent.crs(),
+    }),
+};
 
-const ycbcr = new CogSource({
-    url: 'https://3d.oslandia.com/giro3d/rasters/TCI-YCbCr.tif',
-    crs: extent.crs(),
-    // This file is not in the RGB color space, so we need to convert the pixels to RGB
-    convertToRGB: true,
-});
-
-function updateSource(source) {
+function updateSource(name) {
     map.forEachLayer(layer => map.removeLayer(layer, { disposeLayer: true }));
 
-    let layerSource;
-    switch (source) {
-        case 'rgb':
-            layerSource = rgb;
-            break;
-        case 'ycbcr':
-            layerSource = ycbcr;
-            break;
-    }
-
-    const layer = new ColorLayer({ name: 'color-layer', source: layerSource, extent });
+    const layer = new ColorLayer({ name: 'color-layer', source: sources[name], extent });
     map.addLayer(layer);
 }
 
