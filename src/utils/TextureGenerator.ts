@@ -353,6 +353,8 @@ async function decodeBlob(
     options: {
         /** If true, the texture will be a data texture. */
         createDataTexture?: boolean;
+        /** Should the image be flipped vertically ? */
+        flipY?: boolean;
     } = {},
 ): Promise<Texture> {
     // media types are in the form 'type;args', for example: 'text/html; charset=UTF-8;
@@ -364,7 +366,9 @@ async function decodeBlob(
         case 'image/jpg': // not a valid media type, but we support it for compatibility
         case 'image/jpeg': {
             // Use the browser capabilities to decode the image
-            const img = await createImageBitmap(blob);
+            const img = await createImageBitmap(blob, {
+                imageOrientation: options.flipY ? 'flipY' : 'none',
+            });
             let tex;
             if (options.createDataTexture) {
                 const buf = getPixels(img);
