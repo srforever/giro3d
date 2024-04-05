@@ -104,7 +104,7 @@ export default class TiledImageSource extends ImageSource {
      */
     constructor(options: TiledImageSourceOptions) {
         super({
-            flipY: options.format?.flipY ?? true,
+            flipY: options.format?.flipY ?? false,
             is8bit: (options.format?.dataType ?? UnsignedByteType) === UnsignedByteType,
             ...options,
         });
@@ -290,6 +290,7 @@ export default class TiledImageSource extends ImageSource {
         } else {
             texture = await TextureGenerator.decodeBlob(blob, {
                 createDataTexture,
+                flipY: true,
             });
             texture.flipY = false;
         }
