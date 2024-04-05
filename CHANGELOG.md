@@ -1,8 +1,6 @@
 # Changelog
 
-## v0.35.0 (2024-03-27)
-
-This release brings many performance optimizations for displaying maps and layers, as well as a number of new feature, such as map graticules, support for THREE.js fog, and more.
+## v0.35.0 (2024-04-05)
 
 ### BREAKING CHANGE
 
@@ -16,6 +14,8 @@ This release brings many performance optimizations for displaying maps and layer
 
 ### Feat
 
+-   **CogSource**: support transparency masks (#420)
+-   **Fetcher**: support retrying failed requests (#419)
 -   **CogSource**: support other colorspaces than RGB (#416)
 -   **Inspector**: add number of currently active RenderTargets in the Memory panel
 -   **MapInspector**: show number of reachable/visible/loaded tiles
@@ -37,7 +37,11 @@ This release brings many performance optimizations for displaying maps and layer
 
 ### Fix
 
--   **Map**: dispose tiles and their descendents (#414)
+-   **CogSource**: in case of errors, log the error and return an empty texture
+-   **Layer**: log uncaught errors
+-   **LayerInspector**: don't crash if layer has no name
+-   **Map**: make removeLayer() not remove all layers (#418)
+-   **Map**: dispose tiles and their descendants (#414)
 -   **MapInspector**: handle missing material in `toggleBoundingBoxes()`
 -   **ScreenSpaceError**: don't use distance computation in orthographic mode
 -   **Map**: use better subdivision algorithm (#62)
@@ -54,11 +58,12 @@ This release brings many performance optimizations for displaying maps and layer
 
 ### Refactor
 
--   **Layer**: use a global `RenderTarget` pool
--   **TileMesh**: add `traverseTiles()` method
+-   **CogSource**: move the readRaster() call in its own method
+-   **Layer**: use a global RenderTarget pool
+-   **TileMesh**: add traverseTiles() method
 -   **Layer**: be more generic with abort error handling
 -   **ComposerTileMaterial**: make tile outlines more readable
--   **Map**: rename `_forEachTile()` -> `traverseTiles()` and make it public
+-   **Map**: rename `_forEachTile()` to `traverseTiles()` and make it public
 -   **ElevationLayer**: remove unnecessary material check in `registerNode()`
 -   **RequestQueueChart**: remove spurious `console.log()` call
 -   **Map**: remove `fastUpdateHint` dead code
@@ -66,9 +71,17 @@ This release brings many performance optimizations for displaying maps and layer
 -   **LayeredMaterial**: strongly type defines
 -   **LayeredMaterial**: strongly type uniforms
 -   remove useless JSDoc `@type` tags
+-   **LayeredMaterial**: rename uniform colorTexture to atlasTexture
+-   **TileFS.glsl**: rename atlas parameter to texture in computeColorLayer()
+-   **LayeredMaterial**: make atlas optional
+-   **LayeredMaterial**: remove unused parentAtlasTexture
+-   **LayeredMaterial**: remove pixelWidth and pixelHeight accessors
+-   **MaterialUtils**: add setNumericDefine()
 
 ### Perf
 
+-   **TiledImageSource**: flip the texture directly when decoding the blob
+-   **LayeredMaterial**: avoid using the atlas if possible (#417)
 -   **Layer**: cancel request as soon as a node becomes invisible
 -   **Map**: load color layers after elevation layers
 -   **ImageFormat**: optionally return min/max of texture
