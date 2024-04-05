@@ -5,89 +5,112 @@
 ### BREAKING CHANGE
 
 -   The `MainLoop` no longer handles the camera near/far plane limits.
-    This is now the responsibility of the `Camera` class.
--   the return type of `ImageSource.decode()` has changed.
+    This is now the responsibility of the `Camera` class. Camera planes are automatically updated
+    by the entities to ensure that the camera's field of view contains all the displayed objects.
+
+    However, in some cases, it might be useful to limit the plane distances, for example to reduce the
+    number of objects to display, and to improve performance. Those values can be changed at runtime and
+    the scene will adjust accordingly:
+
+    ```ts
+    const instance new Instance(...);
+    const camera = instance.camera;
+
+    // Limit near/far planes in the 100-10000 meters range.
+    const minDistance = 100;
+    const maxDistance = 10000;
+
+    camera.minNearPlane = minDistance;
+    camera.maxFarPlane = maxDistance;
+
+    // Combined with fog:
+    instance.scene.fog = new THREE.Fog('blue', minDistance, maxFarPlane);
+    ```
+
+-   `ImageSource`: the return type of `decode()` has changed.
     It initially returned a `Texture`, but it now returns an object of the
-    following type: `{ texture: Texture; min?: number; max?: number; }`
+    following type: `{ texture: Texture; min?: number; max?: number; }`. Subclasses
+    of `ImageSource` can now compute the min/max values of the image to avoid this computation
+    layer in the processing chain.
 -   `Map.showOutline` is now `Map.materialOptions.showTileOutlines`
 -   `PointsMaterial` is renamed `PointCloudMaterial` to avoid confusion with THREE.js built-in `PointsMaterial`.
 
 ### Feat
 
--   **CogSource**: support transparency masks (#420)
--   **Fetcher**: support retrying failed requests (#419)
--   **CogSource**: support other colorspaces than RGB (#416)
--   **Inspector**: add number of currently active RenderTargets in the Memory panel
--   **MapInspector**: show number of reachable/visible/loaded tiles
--   **MemoryTracker**: track texture lifetime
--   **LayerInspector**: show the number of loaded images in the `LayerComposer`
--   **Camera**: support perspective and orthographic (#389)
 -   **Camera**: enable limits to near and far planes
--   **PointCloudMaterial**: support THREE.js fog
--   **Map**: support THREE.js fog
--   **Map**: add graticule
+-   **Camera**: support perspective and orthographic modes (#389)
+-   **CogSource**: support other colorspaces than RGB (#416)
+-   **CogSource**: support transparency masks (#420)
+-   **Entity**: provide type parameter for `userData` property
+-   **Fetcher**: support retrying failed requests (#419)
+-   **Inspector**: add number of currently active RenderTargets in the Memory panel
 -   **Instance**: provide the camera in events after-camera-update and before-camera-update
+-   **Layer**: provide type parameter for `userData` property
+-   **LayerInspector**: add toggle for `frozen` property
+-   **LayerInspector**: show the number of loaded images in the `LayerComposer`
+-   **Map**: add graticule
+-   **Map**: support THREE.js fog
 -   **MapInspector**: expose `Map.sseScale` property
 -   **MapInspector**: show number of active (visible) tile meshes
--   **LayerInspector**: add toggle for `frozen` property
--   introduce `WmsSource`
--   introduce `WmtsSource`
--   **Entity**: provide type parameter for `userData` property
--   **Layer**: provide type parameter for `userData` property
+-   **MapInspector**: show number of reachable/visible/loaded tiles
+-   **MemoryTracker**: track texture lifetime
+-   **PointCloudMaterial**: support THREE.js fog
+-   introduce `WmsSource` to reduce boilerplate when using WMS layers
+-   introduce `WmtsSource` to reduce boilerplate when using WMTS layers
 
 ### Fix
 
+-   **c3DEngine**: remove `setPixelRatio()` call that produces wrong results
 -   **CogSource**: in case of errors, log the error and return an empty texture
+-   **Inspector**: allow hillshading intensity to go beyond 1
 -   **Layer**: log uncaught errors
+-   **LayerComposer**: fix incorrect condition to determine if image is visible
 -   **LayerInspector**: don't crash if layer has no name
--   **Map**: make removeLayer() not remove all layers (#418)
 -   **Map**: dispose tiles and their descendants (#414)
--   **MapInspector**: handle missing material in `toggleBoundingBoxes()`
--   **ScreenSpaceError**: don't use distance computation in orthographic mode
--   **Map**: use better subdivision algorithm (#62)
+-   **Map**: distinguish between hillshading Z-factor and intensity
 -   **Map**: don't compute neighbouring tiles if stitching is disabled
 -   **Map**: make `showTileOutlines` dynamic
--   **LayerComposer**: fix incorrect condition to determine if image is visible
--   **TileVS**: fix missing world position transformation
--   **PointsMaterial**: rename to `PointCloudMaterial`
--   **c3DEngine**: remove `setPixelRatio()` call that produces wrong results
--   **VectorSource|VectorTileSource**: use empty textures instead of null (#410)
--   **Map**: distinguish between hillshading Z-factor and intensity
+-   **Map**: make removeLayer() not remove all layers (#418)
+-   **Map**: use better subdivision algorithm (#62)
 -   **Map**: use correct model for hillshading intensity (#406)
--   **Inspector**: allow hillshading intensity to go beyond 1
+-   **MapInspector**: handle missing material in `toggleBoundingBoxes()`
+-   **PointsMaterial**: rename to `PointCloudMaterial`
+-   **ScreenSpaceError**: don't use distance computation in orthographic mode
+-   **TileVS**: fix missing world position transformation
+-   **VectorSource|VectorTileSource**: use empty textures instead of null (#410)
 
 ### Refactor
 
 -   **CogSource**: move the readRaster() call in its own method
--   **Layer**: use a global RenderTarget pool
--   **TileMesh**: add traverseTiles() method
--   **Layer**: be more generic with abort error handling
 -   **ComposerTileMaterial**: make tile outlines more readable
--   **Map**: rename `_forEachTile()` to `traverseTiles()` and make it public
 -   **ElevationLayer**: remove unnecessary material check in `registerNode()`
--   **RequestQueueChart**: remove spurious `console.log()` call
--   **Map**: remove `fastUpdateHint` dead code
--   **registerChunks**: add typing for Giro3D chunks
+-   **Layer**: be more generic with abort error handling
+-   **Layer**: use a global RenderTarget pool
+-   **LayeredMaterial**: make atlas optional
+-   **LayeredMaterial**: remove pixelWidth and pixelHeight accessors
+-   **LayeredMaterial**: remove unused parentAtlasTexture
+-   **LayeredMaterial**: rename uniform colorTexture to atlasTexture
 -   **LayeredMaterial**: strongly type defines
 -   **LayeredMaterial**: strongly type uniforms
--   remove useless JSDoc `@type` tags
--   **LayeredMaterial**: rename uniform colorTexture to atlasTexture
--   **TileFS.glsl**: rename atlas parameter to texture in computeColorLayer()
--   **LayeredMaterial**: make atlas optional
--   **LayeredMaterial**: remove unused parentAtlasTexture
--   **LayeredMaterial**: remove pixelWidth and pixelHeight accessors
+-   **Map**: remove `fastUpdateHint` dead code
+-   **Map**: rename `_forEachTile()` to `traverseTiles()` and make it public
 -   **MaterialUtils**: add setNumericDefine()
+-   **registerChunks**: add typing for Giro3D chunks
+-   **RequestQueueChart**: remove spurious `console.log()` call
+-   **TileFS.glsl**: rename atlas parameter to texture in computeColorLayer()
+-   **TileMesh**: add traverseTiles() method
+-   remove useless JSDoc `@type` tags
 
 ### Perf
 
--   **TiledImageSource**: flip the texture directly when decoding the blob
--   **LayeredMaterial**: avoid using the atlas if possible (#417)
--   **Layer**: cancel request as soon as a node becomes invisible
--   **Map**: load color layers after elevation layers
 -   **ImageFormat**: optionally return min/max of texture
+-   **Layer**: cancel request as soon as a node becomes invisible
+-   **LayeredMaterial**: avoid using the atlas if possible (#417)
 -   **Map**: increase base size of tiles from 256px to 512px
--   **TiledImageSource**: support cancellation and HTTP timeouts
+-   **Map**: load color layers after elevation layers
+-   **TiledImageSource**: flip the texture directly when decoding the blob
 -   **TiledImageSource**: select the zoom level the closest to the desired resolution
+-   **TiledImageSource**: support cancellation and HTTP timeouts
 
 ## v0.34.1 (2024-03-12)
 
