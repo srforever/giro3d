@@ -389,6 +389,10 @@ class Map<UserData extends EntityUserData = EntityUserData>
             backgroundOpacity?: number;
             showOutline?: boolean;
             elevationRange?: ElevationRange;
+            /**
+             * Force using texture atlases even when not required.
+             */
+            forceTextureAtlases?: boolean;
         },
     ) {
         super(id, options.object3d || new Group());
@@ -416,6 +420,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         this._segments = options.segments || 8;
 
         this.materialOptions = {
+            forceTextureAtlases: options.forceTextureAtlases,
             hillshading: getHillshadingOptions(options.hillshading),
             contourLines: getContourLineOptions(options.contourLines),
             discardNoData: options.discardNoData || false,
@@ -504,10 +509,9 @@ class Map<UserData extends EntityUserData = EntityUserData>
                 for (const e of this.getElevationLayers()) {
                     e.update(context, child);
                 }
-                if (node.material.pixelWidth > 0) {
-                    for (const c of this.getColorLayers()) {
-                        c.update(context, child);
-                    }
+
+                for (const c of this.getColorLayers()) {
+                    c.update(context, child);
                 }
 
                 child.update(this.materialOptions);
@@ -585,6 +589,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             getIndexFn: this.getIndex.bind(this),
             textureDataType: this._colorAtlasDataType,
             hasElevationLayer: this._hasElevationLayer,
+            maxTextureImageUnits: Capabilities.getMaxTextureUnitsCount(),
         });
 
         const tile = new TileMesh({
@@ -1050,7 +1055,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         if (this._layerIds.has(layer.id)) {
             this._layerIds.delete(layer.id);
-            this._layers.splice(this._layers.indexOf(layer));
+            this._layers.splice(this._layers.indexOf(layer), 1);
             if (layer.colorMap) {
                 this.materialOptions.colorMapAtlas.remove(layer.colorMap);
             }

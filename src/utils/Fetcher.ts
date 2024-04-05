@@ -2,6 +2,9 @@ import { EventDispatcher, type EventListener, type Texture } from 'three';
 import HttpConfiguration from './HttpConfiguration';
 import TextureGenerator from './TextureGenerator';
 import HttpQueue from './HttpQueue';
+import PromiseUtils from './PromiseUtils';
+
+const DEFAULT_RETRY_DELAY_MS = 1000;
 
 export interface FetcherEventMap {
     /**
@@ -99,6 +102,19 @@ interface ErrorWithResponse extends Error {
     response: Response;
 }
 
+export type FetchOptions = RequestInit & {
+    /**
+     * The number of retries if the initial requests fails with an HTTP error code.
+     * @defaultValue undefined
+     */
+    retries?: number;
+    /**
+     * The delay to wait (in milliseconds) before a new try is attempted. Only if {@link retries} is defined.
+     * @defaultValue 1000
+     */
+    retryDelay?: number;
+};
+
 /**
  * Wrapper over [`fetch()`](https://developer.mozilla.org/en-US/docs/Web/API/fetch).
  *
@@ -110,7 +126,7 @@ interface ErrorWithResponse extends Error {
  * @param options - fetch options (passed directly to `fetch()`)
  * @returns The response object.
  */
-async function fetchInternal(url: string, options?: RequestInit): Promise<Response> {
+async function fetchInternal(url: string, options?: FetchOptions): Promise<Response> {
     const augmentedOptions = HttpConfiguration.applyConfiguration(url, options);
     const req = new Request(url, augmentedOptions);
     const response = await enqueue(req).catch(error => {
@@ -118,12 +134,26 @@ async function fetchInternal(url: string, options?: RequestInit): Promise<Respon
         throw error;
     });
     if (!response.ok) {
-        const error = new Error(
-            `${response.status} ${response.statusText} - ${response.url}`,
-        ) as ErrorWithResponse;
-        error.response = response;
-        eventTarget.dispatchEvent({ type: 'error', error });
-        throw error;
+        const retries = options?.retries ?? 0;
+
+        if (retries > 0) {
+            const retryDelay = options?.retryDelay ?? DEFAULT_RETRY_DELAY_MS;
+            if (retryDelay > 0) {
+                await PromiseUtils.delay(retryDelay);
+            }
+
+            return fetchInternal(url, {
+                ...options,
+                retries: options.retries - 1,
+            });
+        } else {
+            const error = new Error(
+                `${response.status} ${response.statusText} - ${response.url}`,
+            ) as ErrorWithResponse;
+            error.response = response;
+            eventTarget.dispatchEvent({ type: 'error', error });
+            throw error;
+        }
     }
     return response;
 }

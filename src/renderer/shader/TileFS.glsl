@@ -137,7 +137,66 @@ void main() {
 #endif
 
     // Step 4 : process all color layers (either directly sampling the atlas texture, or use a color map).
-    #include <giro3d_compose_layers_fragment>
+    // Note: this was originally an included chunk (giro3d_compose_layers_pars_fragment), but due to
+    // the limitation described by https://github.com/mrdoob/three.js/issues/28020,
+    // we have to inline the code so that it can be patched from the material.
+#if VISIBLE_COLOR_LAYER_COUNT
+    float maskOpacity = 1.;
+
+    LayerInfo layer;
+    ColorMap colorMap;
+    vec4 rgba;
+    vec4 blended;
+    vec2 range;
+
+    #pragma unroll_loop_start
+    for ( int i = 0; i < COLOR_LAYERS_LOOP_END; i++ ) {
+        layer = layers[UNROLLED_LOOP_INDEX];
+        if (layer.color.a > 0.) {
+            colorMap = layersColorMaps[UNROLLED_LOOP_INDEX];
+
+        // If we are using an atlas texture, then all color layers will get their pixels from this shared texture.
+        #if defined(USE_ATLAS_TEXTURE)
+            rgba = computeColorLayer(tileDimensions, atlasTexture, colorMapAtlas, layer, colorMap, vUv);
+        // Otherwise each color layer will get their pixels from their own texture.
+        #else
+            // We have to unroll the loop because we are accessing an array of samplers without a constant index (i.e UNROLLED_LOOP_INDEX)
+            rgba = computeColorLayer(tileDimensions, colorTextures[UNROLLED_LOOP_INDEX], colorMapAtlas, layer, colorMap, vUv);
+        #endif
+
+        // Let's blend the layer color to the composited color.
+        #if defined(ENABLE_LAYER_MASKS)
+            if (layer.mode == LAYER_MODE_MASK) {
+                // Mask layers do not contribute to the composition color.
+                // instead, they contribute to the overall opacity of the map.
+                maskOpacity *= rgba.a;
+                blended = gl_FragColor;
+            } else if (layer.mode == LAYER_MODE_MASK_INVERTED) {
+                maskOpacity *= (1. - rgba.a);
+                blended = gl_FragColor;
+            } else if (layer.mode == LAYER_MODE_NORMAL) {
+                // Regular alpha blending
+                blended = blend(rgba, gl_FragColor);
+            }
+        #else
+            // Regular alpha blending
+            blended = blend(rgba, gl_FragColor);
+        #endif
+
+#if defined(ENABLE_ELEVATION_RANGE)
+            range = layer.elevationRange;
+            if (clamp(height, range.x, range.y) == height) {
+                gl_FragColor = blended;
+            }
+#else
+            gl_FragColor = blended;
+#endif
+        }
+    }
+    #pragma unroll_loop_end
+
+    gl_FragColor.a *= maskOpacity;
+#endif
 
     if (gl_FragColor.a <= 0.0) {
         discard;

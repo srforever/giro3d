@@ -23,14 +23,14 @@ describe('TiledImageSource', () => {
             expect(tiled.source).toBe(source);
         });
 
-        it('should assign flipY to true by default', () => {
+        it('should assign flipY to false by default, as flipping is handled internally', () => {
             const source = new StadiaMaps({ layer: 'stamen_watercolor' });
 
             const tiled = new TiledImageSource({
                 source,
             });
 
-            expect(tiled.flipY).toEqual(true);
+            expect(tiled.flipY).toEqual(false);
         });
 
         describe.each([true, false])(

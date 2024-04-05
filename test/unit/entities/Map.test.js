@@ -837,6 +837,28 @@ describe('Map', () => {
     });
 
     describe('removeLayer', () => {
+        it('should leave the other layers untouched', async () => {
+            const a = new ColorLayer({ source: nullSource });
+            const b = new ColorLayer({ source: nullSource });
+            const c = new ColorLayer({ source: nullSource });
+
+            await map.addLayer(a);
+            await map.addLayer(b);
+            await map.addLayer(c);
+
+            expect(map.layerCount).toEqual(3);
+            expect(map.getLayers()).toContain(a);
+            expect(map.getLayers()).toContain(b);
+            expect(map.getLayers()).toContain(c);
+
+            map.removeLayer(a);
+
+            expect(map.layerCount).toEqual(2);
+            expect(map.getLayers()).not.toContain(a);
+            expect(map.getLayers()).toContain(b);
+            expect(map.getLayers()).toContain(c);
+        });
+
         it('should not call dispose() on the removed layer', async () => {
             const layer = new ColorLayer({ source: nullSource });
             layer.dispose = jest.fn();

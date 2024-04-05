@@ -5,7 +5,6 @@ import { ShaderChunk } from 'three';
 import giro3d_common from './giro3d_common.glsl';
 import giro3d_outline_pars_fragment from './giro3d_outline_pars_fragment.glsl';
 import giro3d_outline_fragment from './giro3d_outline_fragment.glsl';
-import giro3d_compose_layers_fragment from './giro3d_compose_layers_fragment.glsl';
 import giro3d_compose_layers_pars_fragment from './giro3d_compose_layers_pars_fragment.glsl';
 import giro3d_colormap_pars_fragment from './giro3d_colormap_pars_fragment.glsl';
 import giro3d_precision_qualifiers from './giro3d_precision_qualifiers.glsl';
@@ -20,7 +19,6 @@ type Giro3DShaderChunk = typeof ShaderChunk & {
     giro3d_outline_pars_fragment: string;
     giro3d_outline_fragment: string;
     giro3d_precision_qualifiers: string;
-    giro3d_compose_layers_fragment: string;
     giro3d_compose_layers_pars_fragment: string;
     giro3d_colormap_pars_fragment: string;
     giro3d_contour_line_pars_fragment: string;
@@ -36,7 +34,6 @@ export default function registerChunks() {
     Giro3dShaderChunk.giro3d_common = giro3d_common;
     Giro3dShaderChunk.giro3d_outline_pars_fragment = giro3d_outline_pars_fragment;
     Giro3dShaderChunk.giro3d_outline_fragment = giro3d_outline_fragment;
-    Giro3dShaderChunk.giro3d_compose_layers_fragment = giro3d_compose_layers_fragment;
     Giro3dShaderChunk.giro3d_compose_layers_pars_fragment = giro3d_compose_layers_pars_fragment;
     Giro3dShaderChunk.giro3d_colormap_pars_fragment = giro3d_colormap_pars_fragment;
     Giro3dShaderChunk.giro3d_contour_line_pars_fragment = giro3d_contour_line_pars_fragment;

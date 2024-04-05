@@ -1,4 +1,4 @@
-import StadiaMaps from 'ol/source/StadiaMaps.js';
+import { Color, MathUtils } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -6,7 +6,7 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import DebugSource from '@giro3d/giro3d/sources/DebugSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -30,21 +30,6 @@ const instance = new Instance(viewerDiv, {
     },
 });
 
-// Creates a map that will contain the layer
-const map = new Map('map', { extent });
-
-instance.add(map);
-
-const source = new TiledImageSource({
-    source: new StadiaMaps({ layer: 'stamen_toner', wrapX: false }),
-});
-
-const LAYER_COUNT = 16;
-
-for (let i = 0; i < LAYER_COUNT; i++) {
-    map.addLayer(new ColorLayer({ name: `color layer ${i}`, extent, source }));
-}
-
 // Instanciates camera
 instance.camera.camera3D.position.set(0, 0, 25000000);
 
@@ -55,3 +40,61 @@ instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 StatusBar.bind(instance);
+
+function bindSlider(name, callback) {
+    const slider = document.getElementById(name);
+    slider.oninput = function oninput() {
+        callback(slider.value);
+    };
+}
+
+function bindToggle(name, callback) {
+    const toggle = document.getElementById(name);
+    toggle.oninput = () => {
+        const state = toggle.checked;
+        callback(state);
+    };
+}
+
+function createColorLayer() {
+    const source = new DebugSource({
+        color: new Color().setHSL(Math.random(), 0.5, 0.5),
+        extent,
+        subdivisions: MathUtils.randInt(1, 4),
+    });
+
+    return new ColorLayer({ extent, source, showTileBorders: true });
+}
+
+let layerCount = 8;
+let forceTextureAtlases = false;
+/** @type {Map} */
+let map = null;
+
+function buildMapAndLayers() {
+    if (map) {
+        for (const layer of map.getLayers()) {
+            map.removeLayer(layer, { disposeLayer: true });
+        }
+        instance.remove(map);
+    }
+
+    // Creates a map that will contain the layer
+    map = new Map('map', { extent, forceTextureAtlases });
+
+    instance.add(map);
+
+    for (let i = 0; i < layerCount; i++) {
+        map.addLayer(createColorLayer());
+    }
+}
+
+bindSlider('layerCount', count => {
+    layerCount = count;
+});
+
+bindToggle('forceAtlases', force => {
+    forceTextureAtlases = force;
+});
+
+document.getElementById('build').onclick = () => buildMapAndLayers();

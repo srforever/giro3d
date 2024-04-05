@@ -17,6 +17,8 @@ import ConcurrentDownloader from './ConcurrentDownloader';
 import { MemoryTracker } from '../renderer';
 
 const MIN_LEVEL_THRESHOLD = 2;
+const DEFAULT_RETRIES = 3;
+const DEFAULT_TIMEOUT = 5000;
 
 const tmp = {
     dims: new Vector2(),
@@ -46,6 +48,11 @@ export interface TiledImageSourceOptions extends ImageSourceOptions {
      * @defaultValue 5000
      */
     httpTimeout?: number;
+    /**
+     * How many retries to execute when an HTTP request ends up in error.
+     * @defaultValue 3
+     */
+    retries?: number;
 }
 
 /**
@@ -90,15 +97,14 @@ export default class TiledImageSource extends ImageSource {
     private readonly _tileGrid: TileGrid;
     private readonly _getTileUrl: (coord: TileCoord, _: number, proj: Projection) => string;
     private readonly _sourceExtent: Extent;
-    private readonly _httpTimeout: number;
-    private readonly _downloader: ConcurrentDownloader = new ConcurrentDownloader();
+    private readonly _downloader: ConcurrentDownloader;
 
     /**
      * @param options - The options.
      */
     constructor(options: TiledImageSourceOptions) {
         super({
-            flipY: options.format?.flipY ?? true,
+            flipY: options.format?.flipY ?? false,
             is8bit: (options.format?.dataType ?? UnsignedByteType) === UnsignedByteType,
             ...options,
         });
@@ -108,6 +114,10 @@ export default class TiledImageSource extends ImageSource {
 
         this.source = options.source;
         this.format = options.format;
+        this._downloader = new ConcurrentDownloader({
+            retry: options.retries ?? DEFAULT_RETRIES,
+            timeout: options.httpTimeout ?? DEFAULT_TIMEOUT,
+        });
 
         const projection = this.source.getProjection();
         this.olprojection = projection;
@@ -119,7 +129,6 @@ export default class TiledImageSource extends ImageSource {
         this._sourceExtent =
             options.extent ??
             OpenLayersUtils.fromOLExtent(tileGrid.getExtent(), projection.getCode());
-        this._httpTimeout = options.httpTimeout ?? 5000;
     }
 
     getExtent() {
@@ -211,23 +220,24 @@ export default class TiledImageSource extends ImageSource {
 
     private async fetchData(url: string, signal: AbortSignal) {
         try {
-            const response = await this._downloader.fetch(url, signal);
+            const result = await this._downloader.fetch(url, signal);
 
             // If the response is 204 No Content for example, we have nothing to do.
             // This happens when a tile request is valid, but points to a region with no data.
             // Note: we let the HTTP handler do the logging for us in case of 4XX errors.
-            if (response.status !== 200) {
+            if (result.status !== 200) {
                 return null;
             }
 
-            const blob = await response.blob();
+            const blob = result.cachedBlob;
 
             return blob;
         } catch (e) {
-            if (e.response?.status === 404) {
-                return null;
+            if (e?.name === 'AbortError') {
+                throw e;
             }
-            throw e;
+            console.error(e);
+            return null;
         }
     }
 
@@ -280,6 +290,7 @@ export default class TiledImageSource extends ImageSource {
         } else {
             texture = await TextureGenerator.decodeBlob(blob, {
                 createDataTexture,
+                flipY: true,
             });
             texture.flipY = false;
         }
