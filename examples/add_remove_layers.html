@@ -6,6 +6,52 @@ attribution: Map style by <a target="_blank" href="https://stamen.com/">Stamen D
 ---
 
 <div class="dropdown m-3 position-absolute top-0 end-0">
-    <button class="btn btn-primary" id="addLayer">Add layer</button>
-    <button class="ms-3 btn btn-primary" id="removeLayer">Remove layer</button>
+    <div class="card m-1">
+        <h5 class="card-header">Add / Remove</h5>
+
+        <!-- tooltip -->
+        <span
+            class="badge bg-secondary position-absolute top-0 end-0 m-2"
+            data-bs-toggle="popover"
+            data-bs-content="tooltip"
+            >?</span
+        >
+
+        <p class="card-text d-none" id="tooltip">Toggling a layer removes / adds to the map.</p>
+
+        <div class="card-body">
+            <fieldset class="container m-1">
+                <div class="form-check form-switch">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        checked="true"
+                        role="switch"
+                        id="plan"
+                    />
+                    <label class="form-check-label" for="plan">Plan</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        checked="true"
+                        role="switch"
+                        id="orthophotos"
+                    />
+                    <label class="form-check-label" for="orthophotos">Orthophoto</label>
+                </div>
+                <div class="form-check form-switch">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        checked="true"
+                        role="switch"
+                        id="terrain"
+                    />
+                    <label class="form-check-label" for="terrain">Terrain</label>
+                </div>
+            </fieldset>
+        </div>
+    </div>
 </div>

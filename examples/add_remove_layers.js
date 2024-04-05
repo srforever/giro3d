@@ -1,4 +1,4 @@
-import StadiaMaps from 'ol/source/StadiaMaps.js';
+import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -6,18 +6,22 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import WmtsSource from '@giro3d/giro3d/sources/WmtsSource.js';
+import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
+// NOTE: changing the imported name because we use the native `Map` object in this example.
+import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
-// Defines geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent(
-    'EPSG:3857',
-    -20037508.342789244,
-    20037508.342789244,
-    -20037508.342789244,
-    20037508.342789244,
+Instance.registerCRS(
+    'EPSG:2154',
+    '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
 );
+Instance.registerCRS(
+    'IGNF:WGS84G',
+    'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+);
+const extent = new Extent('EPSG:2154', -111629.52, 1275028.84, 5976033.79, 7230161.64);
 
 // `viewerDiv` will contain giro3d' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
@@ -31,62 +35,102 @@ const instance = new Instance(viewerDiv, {
 });
 
 // Instanciates camera
-instance.camera.camera3D.position.set(0, 0, 25000000);
+const camPos = new Vector3(220295, 6810219, 409065);
+instance.camera.camera3D.position.set(camPos.x, camPos.y, camPos.z);
 
 // Instanciates controls
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 
+controls.target.set(camPos.x, camPos.y + 1, 0);
 instance.useTHREEControls(controls);
 
-const layersAdded = [];
-const layersRemoved = [];
-
-const removeLayerButton = document.getElementById('removeLayer');
-const addLayerButton = document.getElementById('addLayer');
-
-function updateButtonStates() {
-    addLayerButton.disabled = layersRemoved.length === 0;
-    removeLayerButton.disabled = layersAdded.length === 0;
-}
-
-const map = new Map('planar', { extent, maxSubdivisionLevel: 13 });
+const map = new Map('map', {
+    extent,
+    backgroundColor: 'gray',
+    maxSubdivisionLevel: 13,
+    hillshading: {
+        enabled: true,
+        zFactor: 8,
+    },
+    terrain: false,
+});
 instance.add(map);
 
-function createLayer(name) {
-    return new ColorLayer({
-        name,
-        extent,
-        source: new TiledImageSource({ source: new StadiaMaps({ layer: name, wrapX: false }) }),
-    });
-}
-const watercolor = createLayer('stamen_watercolor');
-const toner = createLayer('stamen_toner');
-const terrain = createLayer('stamen_terrain');
+const capabilitiesUrl =
+    'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities';
 
-layersRemoved.push(watercolor);
-layersRemoved.push(toner);
-layersRemoved.push(terrain);
+let layers = {};
 
-removeLayerButton.onclick = () => {
-    if (layersAdded.length > 0) {
-        const layer = layersAdded.pop();
-        map.removeLayer(layer);
-        layersRemoved.push(layer);
-    }
-
-    updateButtonStates();
-};
-
-addLayerButton.onclick = () => {
-    if (layersRemoved.length > 0) {
-        const layer = layersRemoved.pop();
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
+})
+    .then(orthophotoWmts => {
+        const layer = new ColorLayer({
+            name: 'orthophotos',
+            extent: map.extent,
+            source: orthophotoWmts,
+        });
+        layers['orthophotos'] = layer;
+        layer.userData.zOrder = 0;
         map.addLayer(layer);
-        layersAdded.push(layer);
-        updateButtonStates();
-    }
+    })
+    .catch(console.error);
 
-    updateButtonStates();
-};
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'GEOGRAPHICALGRIDSYSTEMS.PLANIGNV2',
+})
+    .then(planIgn => {
+        const layer = new ColorLayer({
+            name: 'plan',
+            extent: map.extent,
+            source: planIgn,
+            opacity: 0.2,
+        });
+        layers['plan'] = layer;
+        layer.userData.zOrder = 1;
+        map.addLayer(layer);
+    })
+    .catch(console.error);
+
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
+    format: new BilFormat(),
+    noDataValue: -1000,
+})
+    .then(elevationWmts => {
+        const layer = new ElevationLayer({
+            name: 'terrain',
+            extent: map.extent,
+            // We don't need the full resolution of terrain because we are not using any shading
+            resolutionFactor: 0.5,
+            minmax: { min: 0, max: 5000 },
+            noDataOptions: {
+                replaceNoData: false,
+            },
+            source: elevationWmts,
+        });
+        layers['terrain'] = layer;
+        map.addLayer(layer);
+    })
+    .catch(console.error);
+
+function bindToggle(layerName) {
+    const toggle = document.getElementById(layerName);
+    toggle.oninput = () => {
+        const state = toggle.checked;
+        if (state) {
+            map.addLayer(layers[layerName]);
+        } else {
+            map.removeLayer(layers[layerName]);
+        }
+        map.sortColorLayers((a, b) => a.userData.zOrder - b.userData.zOrder);
+        instance.notifyChange(map);
+    };
+}
+
+bindToggle('terrain');
+bindToggle('plan');
+bindToggle('orthophotos');
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 StatusBar.bind(instance);

@@ -52,7 +52,9 @@ class LayerInspector extends Panel {
         this.updateValues();
 
         this.addController<string>(this.layer, 'id').name('Identifier');
-        this.addController<string>(this.layer, 'name').name('Name');
+        if (layer.name) {
+            this.addController<string>(this.layer, 'name').name('Name');
+        }
         this.addController<string>(this, 'sourceCrs').name('Source CRS');
 
         this.addController<string>(this, 'state').name('Status');

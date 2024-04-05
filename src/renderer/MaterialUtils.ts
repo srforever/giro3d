@@ -30,6 +30,42 @@ function setDefine<M extends Material, K extends keyof M['defines']>(
     }
 }
 
+/**
+ * Sets or unsets a numerical define directive.
+ * The material is updated only if the value has changed, avoiding unnecessary recompilations.
+ *
+ * @param material - The material to update.
+ * @param name - The name of the directive
+ * @param value - The value of the define.
+ * @returns `true` if the define value has actually changed, `false` otherwise.
+ * @example
+ *
+ * setNumericDefine(mat, 'FOO_COUNT', 5); // material.needsUpdate === true;
+ * setNumericDefine(mat, 'FOO_COUNT', 5); // material.needsUpdate === false;
+ * setNumericDefine(mat, 'FOO_COUNT', 4); // material.needsUpdate === true;
+ */
+function setNumericDefine<M extends Material, K extends keyof M['defines']>(
+    material: M,
+    name: K,
+    value?: number,
+): boolean {
+    const key = name as string;
+    const changed = material.defines[key] !== value;
+
+    if (value != null) {
+        material.defines[key] = value;
+    } else {
+        delete material.defines[key];
+    }
+
+    if (changed) {
+        material.needsUpdate = true;
+    }
+
+    return changed;
+}
+
 export default {
     setDefine,
+    setNumericDefine,
 };
