@@ -4,6 +4,16 @@
 
 ### BREAKING CHANGE
 
+-   (Typescript users only) The picking API now defaults to `unknown` instead of `any` for picked object types. For example, here are the changes for the `PickResult` type:
+
+    ```ts
+    // Before
+    interface PickResult<TFeature extends any = any> extends Intersection { ... }
+
+    // After
+    interface PickResult<TFeature = unknown> extends Intersection { ... }
+    ```
+
 -   The `MainLoop` no longer handles the camera near/far plane limits.
     This is now the responsibility of the `Camera` class. Camera planes are automatically updated
     by the entities to ensure that the camera's field of view contains all the displayed objects.
