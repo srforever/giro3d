@@ -636,7 +636,9 @@ class CogSource extends ImageSource {
                 await PromiseUtils.delay(100);
                 return this.fetchBuffer(image, window, channels, signal);
             }
-            console.error(e);
+            if (e.name !== 'AbortError') {
+                console.error(e);
+            }
             return null;
         }
     }
