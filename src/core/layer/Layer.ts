@@ -689,6 +689,11 @@ abstract class Layer<
                         }
                     }
                 })
+                .catch(e => {
+                    if (e.name !== 'AbortError') {
+                        console.error(e);
+                    }
+                })
                 .finally(() => {
                     this._opCounter.decrement();
                 });
