@@ -18,7 +18,7 @@ const positionsSquare = new Float32Array([
     100, 0, -60, 100, 0, -20, 100, 0, 20, 100, 0, 60, 100, 0, 100, 100, 0,
 ]);
 
-const indicesSquare = new Uint32Array([
+const indicesSquare = new Uint16Array([
     7, 0, 1, 7, 6, 0, 8, 1, 2, 8, 7, 1, 9, 2, 3, 9, 8, 2, 10, 3, 4, 10, 9, 3, 11, 4, 5, 11, 10, 4,
     13, 6, 7, 13, 12, 6, 14, 7, 8, 14, 13, 7, 15, 8, 9, 15, 14, 8, 16, 9, 10, 16, 15, 9, 17, 10, 11,
     17, 16, 10, 19, 12, 13, 19, 18, 12, 20, 13, 14, 20, 19, 13, 21, 14, 15, 21, 20, 14, 22, 15, 16,
@@ -34,5 +34,13 @@ describe('TileGeometry', () => {
         expect(geometry.attributes.position.array).toStrictEqual(positionsSquare);
         expect(geometry.attributes.uv.array).toStrictEqual(uvsSquare);
         expect(geometry.index.array).toStrictEqual(indicesSquare);
+    });
+
+    it('should create an index buffer with 16bit numbers if possible', () => {
+        const small = new TileGeometry({ dimensions, segments: 5 });
+        const big = new TileGeometry({ dimensions, segments: 200 });
+
+        expect(small.getIndex().array.BYTES_PER_ELEMENT).toEqual(2);
+        expect(big.getIndex().array.BYTES_PER_ELEMENT).toEqual(4);
     });
 });

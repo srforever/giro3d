@@ -111,7 +111,9 @@ class TileGeometry extends BufferGeometry {
 
         const uvs = new Float32Array(numVertices * 2);
         const positions = new Float32Array(numVertices * 3);
-        const indices = new Uint32Array(props.triangles * 3);
+        const indexCount = props.triangles * 3;
+        const indices =
+            indexCount <= 65536 ? new Uint16Array(indexCount) : new Uint32Array(indexCount);
 
         let posX;
         let h = 0;
