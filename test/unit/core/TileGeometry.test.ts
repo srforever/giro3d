@@ -1,12 +1,8 @@
-import assert from 'assert';
-
-import Extent from '../../../src/core/geographic/Extent';
-import TileGeometry from '../../../src/core/TileGeometry';
+import Extent from 'src/core/geographic/Extent';
+import TileGeometry from 'src/core/TileGeometry';
 
 const dimensions = new Extent('EPSG:3857', -100, 100, -100, 100).dimensions();
 
-// 6x6 square grid
-const geometry1 = new TileGeometry({ dimensions, segments: 5 });
 // Actual buffer arrays to prevent regression
 const uvsSquare = new Float32Array([
     0, 0, 0.2, 0, 0.4, 0, 0.6, 0, 0.8, 0, 1, 0, 0, 0.2, 0.2, 0.2, 0.4, 0.2, 0.6, 0.2, 0.8, 0.2, 1,
@@ -33,8 +29,10 @@ const indicesSquare = new Uint32Array([
 
 describe('TileGeometry', () => {
     it('should have the proper attributes for a 6x6 squared grid given segment=5 parameter', () => {
-        assert.deepEqual(geometry1.attributes.position.array, positionsSquare);
-        assert.deepEqual(geometry1.attributes.uv.array, uvsSquare);
-        assert.deepEqual(geometry1.index.array, indicesSquare);
+        const geometry = new TileGeometry({ dimensions, segments: 5 });
+
+        expect(geometry.attributes.position.array).toStrictEqual(positionsSquare);
+        expect(geometry.attributes.uv.array).toStrictEqual(uvsSquare);
+        expect(geometry.index.array).toStrictEqual(indicesSquare);
     });
 });
