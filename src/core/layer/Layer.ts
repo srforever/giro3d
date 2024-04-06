@@ -1021,8 +1021,8 @@ abstract class Layer<
                 node,
                 extent,
                 pitch,
-                width,
-                height,
+                width: Math.round(width),
+                height: Math.round(height),
                 geometryExtent: originalExtent,
             });
             this._targets.set(node.id, target);
