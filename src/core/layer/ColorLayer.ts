@@ -203,8 +203,8 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
         }
     }
 
-    protected applyTextureToNode(result: TextureAndPitch, node: Node) {
-        (node.material as NodeMaterial).setColorTextures(this, result);
+    protected applyTextureToNode(result: TextureAndPitch, target: Target) {
+        (target.node.material as NodeMaterial).setColorTextures(this, result);
     }
 
     protected applyEmptyTextureToNode(node: Node) {

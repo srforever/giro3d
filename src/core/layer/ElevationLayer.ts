@@ -1,6 +1,6 @@
 import type { PixelFormat, Texture, TextureDataType } from 'three';
 import { FloatType, NoColorSpace, RGFormat } from 'three';
-import type { LayerEvents, LayerOptions, LayerUserData, TextureAndPitch } from './Layer';
+import type { LayerEvents, LayerOptions, LayerUserData, Target, TextureAndPitch } from './Layer';
 import Layer from './Layer';
 import type Extent from '../geographic/Extent.js';
 import type TileMesh from '../TileMesh';
@@ -130,7 +130,7 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
 
     protected applyTextureToNode(
         textureAndPitch: TextureAndPitch,
-        node: TileMesh,
+        target: Target,
         isLastRender: boolean,
     ) {
         const { texture, pitch } = textureAndPitch;
@@ -142,7 +142,13 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
             min,
             max,
         };
-        node.setElevationTexture(this, value, isLastRender);
+
+        const node = target.node as TileMesh;
+        node.setElevationTexture(
+            this,
+            { ...value, renderTarget: target.renderTarget },
+            isLastRender,
+        );
     }
 
     // eslint-disable-next-line class-methods-use-this
