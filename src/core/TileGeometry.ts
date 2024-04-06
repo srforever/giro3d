@@ -98,7 +98,7 @@ class TileGeometry extends BufferGeometry {
      *
      * @param props - Properties of the TileGeometry grid, as prepared by this.prepare.
      */
-    computeBuffers(props: TileGeometryProperties) {
+    private computeBuffers(props: TileGeometryProperties) {
         const width = props.width;
         const height = props.height;
         const rowStep = props.rowStep;
