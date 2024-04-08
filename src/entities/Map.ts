@@ -493,7 +493,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
                 // Delete cached geometries that just became obsolete
                 this.clearGeometryPool();
                 this._segments = v;
-                this._updateGeometries();
+                this.updateGeometries();
             } else {
                 throw new Error(
                     'invalid segments. Must be a power of two between 1 and 128 included',
@@ -547,7 +547,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         this.geometryPool.clear();
     }
 
-    _updateGeometries() {
+    private updateGeometries() {
         this.traverseTiles(tile => {
             tile.segments = this.segments;
         });
