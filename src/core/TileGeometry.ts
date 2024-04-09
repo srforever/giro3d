@@ -53,13 +53,13 @@ class TileGeometry extends BufferGeometry {
         this.dimensions = params.dimensions;
         // Compute properties of the grid, square or rectangular.
         this._segments = params.segments;
-        this._updateProps();
+        this.updateProps();
         this.computeBuffers(this.props);
         // Compute the Oriented Bounding Box for spatial operations
         this.computeBoundingBox();
     }
 
-    _updateProps() {
+    private updateProps() {
         const width = this._segments + 1;
         const height = this._segments + 1;
         const dimension = this.dimensions;
@@ -88,7 +88,7 @@ class TileGeometry extends BufferGeometry {
     set segments(v) {
         if (this._segments !== v) {
             this._segments = v;
-            this._updateProps();
+            this.updateProps();
             this.computeBuffers(this.props);
         }
     }
@@ -98,7 +98,7 @@ class TileGeometry extends BufferGeometry {
      *
      * @param props - Properties of the TileGeometry grid, as prepared by this.prepare.
      */
-    computeBuffers(props: TileGeometryProperties) {
+    private computeBuffers(props: TileGeometryProperties) {
         const width = props.width;
         const height = props.height;
         const rowStep = props.rowStep;
@@ -111,7 +111,9 @@ class TileGeometry extends BufferGeometry {
 
         const uvs = new Float32Array(numVertices * 2);
         const positions = new Float32Array(numVertices * 3);
-        const indices = new Uint32Array(props.triangles * 3);
+        const indexCount = props.triangles * 3;
+        const indices =
+            indexCount <= 65536 ? new Uint16Array(indexCount) : new Uint32Array(indexCount);
 
         let posX;
         let h = 0;

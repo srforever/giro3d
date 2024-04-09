@@ -32,7 +32,7 @@ const apiKey =
     'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
 
 // Adds the map that will contain the layers.
-const map = new Map('Paris', { extent, segments: 128 });
+const map = new Map('Paris', { extent });
 
 instance.add(map);
 
