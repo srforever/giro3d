@@ -1,11 +1,12 @@
 import type { TypedArray } from 'three';
-import { Box3, Vector2, Vector3, Vector4 } from 'three';
+import { Box3, Vector2, Vector3 } from 'three';
 import Coordinates, {
     crsIsGeographic,
     assertCrsIsValid,
     is4326,
     crsIsGeocentric,
 } from './Coordinates';
+import OffsetScale from '../OffsetScale';
 
 const tmpXY = new Vector2();
 
@@ -250,7 +251,7 @@ class Extent {
         return this;
     }
 
-    offsetToParent(other: Extent, target = new Vector4()) {
+    offsetToParent(other: Extent, target = new OffsetScale()) {
         if (this.crs() !== other.crs()) {
             throw new Error('unsupported mix');
         }

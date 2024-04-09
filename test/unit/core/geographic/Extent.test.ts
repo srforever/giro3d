@@ -1,6 +1,7 @@
 import { Box3, Vector2, Vector3 } from 'three';
 import Coordinates from 'src/core/geographic/Coordinates';
 import Extent from 'src/core/geographic/Extent';
+import OffsetScale from 'src/core/OffsetScale';
 
 const BOUNDS_EPSG4326 = new Extent('EPSG:4326', {
     south: -90,
@@ -474,12 +475,7 @@ describe('Extent', () => {
             const a = new Extent('foo', minX, maxX, minY, maxY);
             const b = new Extent('foo', minX, maxX, minY, maxY);
 
-            const expected = {
-                x: 0,
-                y: 0,
-                z: 1,
-                w: 1,
-            };
+            const expected = OffsetScale.identity();
 
             expect(a.offsetToParent(b)).toEqual(expected);
             expect(b.offsetToParent(a)).toEqual(expected);
