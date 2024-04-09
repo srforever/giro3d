@@ -92,7 +92,7 @@ function createScene(crs, crsDef, extent) {
     instance = new Instance(viewerDiv, { crs, renderer: { clearColor: 'grey' } });
 
     // Adds the map that will contain the layers.
-    map = new Map('map', { extent, segments: 128, hillshading: true });
+    map = new Map('map', { extent, hillshading: true });
 
     instance.add(map);
 
