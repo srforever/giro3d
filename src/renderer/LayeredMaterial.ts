@@ -420,7 +420,7 @@ class LayeredMaterial extends ShaderMaterial {
             },
             elevation: {
                 offsetScale: new Vector4(0, 0, 0, 0),
-                texture: emptyTexture as ElevationTexture,
+                texture: null,
             },
         };
 
@@ -610,7 +610,22 @@ class LayeredMaterial extends ShaderMaterial {
             this._needsAtlasRepaint = false;
         }
 
+        this.updateColorWrite();
+
         this._updateColorLayerUniforms();
+    }
+
+    /**
+     * Determine if this material should write to the color buffer.
+     */
+    private updateColorWrite() {
+        if (this.texturesInfo.elevation.texture == null && this.defines.DISCARD_NODATA_ELEVATION) {
+            // No elevation texture means that every single fragment will be discarded,
+            // which is an illegal operation in WebGL (raising warnings).
+            this.colorWrite = false;
+        } else {
+            this.colorWrite = true;
+        }
     }
 
     repaintAtlas() {
