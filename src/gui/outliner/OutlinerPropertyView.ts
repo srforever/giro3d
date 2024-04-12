@@ -22,7 +22,8 @@ class OutlinerPropertyView extends Panel {
         if (!obj) {
             return;
         }
-        Object.keys(obj).forEach(prop => {
+        const keys = Object.keys(obj).sort();
+        keys.forEach(prop => {
             const value = obj[prop];
             if (value != null && !(value instanceof Object)) {
                 this._controllers.push(
