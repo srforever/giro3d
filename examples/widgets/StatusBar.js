@@ -2,6 +2,11 @@ import { Vector3 } from 'three';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 
 const VIEW_PARAM = 'view';
+// Use default locale
+const NUMBER_FORMAT = new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+});
 
 function processUrl(instance, url) {
     const pov = new URL(url).searchParams.get(VIEW_PARAM);
@@ -71,7 +76,9 @@ function pick(mouseEvent) {
         if (picked) {
             const crs = currentInstance.referenceCrs;
             coordinates.classList.remove('d-none');
-            coordinates.textContent = `${crs} x: ${picked.point.x.toFixed(2)}, y: ${picked.point.y.toFixed(2)}, z: ${picked.point.z.toFixed(2)}`;
+
+            const { x, y, z } = picked.point;
+            coordinates.textContent = `${crs} x: ${NUMBER_FORMAT.format(x)}, y: ${NUMBER_FORMAT.format(y)}, z: ${NUMBER_FORMAT.format(z)}`;
         } else {
             coordinates.classList.add('d-none');
         }
