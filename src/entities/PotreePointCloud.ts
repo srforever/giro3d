@@ -36,6 +36,12 @@ import type { LayerEvents } from '../core/layer/Layer';
 import type Layer from '../core/layer/Layer';
 import { type EntityUserData } from './Entity';
 import { isOrthographicCamera, isPerspectiveCamera } from '../renderer/Camera';
+import {
+    createEmptyReport,
+    getGeometryMemoryUsage,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
 
 // Draw a cube with lines (12 lines).
 function cube(size: Vector3) {
@@ -352,6 +358,24 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
         this.mode = MODE.COLOR;
 
         this.onPointsCreated = null;
+    }
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport) {
+        const result = target ?? createEmptyReport();
+
+        this.traverse(obj => {
+            if ('geometry' in obj) {
+                getGeometryMemoryUsage(obj.geometry as BufferGeometry, result);
+            }
+        });
+
+        if (this.layerCount > 0) {
+            this.forEachLayer(layer => {
+                layer.getMemoryUsage(context, result);
+            });
+        }
+
+        return result;
     }
 
     // eslint-disable-next-line class-methods-use-this

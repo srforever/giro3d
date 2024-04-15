@@ -10,6 +10,7 @@ import type Map from '../entities/Map';
 import SourceInspector from './SourceInspector';
 import type { ColorLayer, ElevationLayer } from '../core/layer';
 import ColorimetryPanel from './ColorimetryPanel';
+import * as MemoryUsage from '../core/MemoryUsage';
 
 /**
  * Inspector for a {@link Layer}.
@@ -33,6 +34,8 @@ class LayerInspector extends Panel {
     sourceInspector: SourceInspector;
     colorimetryPanel: ColorimetryPanel;
     composerImages = 0;
+    cpuMemoryUsage = 'unknown';
+    gpuMemoryUsage = 'unknown';
 
     /**
      * @param gui - The GUI.
@@ -52,6 +55,8 @@ class LayerInspector extends Panel {
         this.updateValues();
 
         this.addController<string>(this.layer, 'id').name('Identifier');
+        this.addController<string>(this, 'cpuMemoryUsage').name('Memory usage (CPU)');
+        this.addController<string>(this, 'gpuMemoryUsage').name('Memory usage (GPU)');
         if (layer.name) {
             this.addController<string>(this.layer, 'name').name('Name');
         }
@@ -193,8 +198,15 @@ class LayerInspector extends Panel {
                 this.minmax.max = elevationLayer.minmax.max;
             }
         }
+        const memUsage = this.layer.getMemoryUsage({ renderer: this.instance.renderer });
+        this.cpuMemoryUsage = MemoryUsage.format(memUsage.cpuMemory);
+        this.gpuMemoryUsage = MemoryUsage.format(memUsage.gpuMemory);
 
         this._controllers.forEach(c => c.updateDisplay());
+
+        if (this.sourceInspector) {
+            this.sourceInspector.updateValues();
+        }
     }
 }
 

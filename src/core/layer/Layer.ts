@@ -33,6 +33,13 @@ import type PointCloudMaterial from '../../renderer/PointCloudMaterial';
 import type Progress from '../Progress.js';
 import type NoDataOptions from './NoDataOptions';
 import { GlobalRenderTargetPool } from '../../renderer/RenderTargetPool';
+import type MemoryUsage from '../MemoryUsage';
+import TextureGenerator from '../../utils/TextureGenerator';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../MemoryUsage';
 
 export interface TextureAndPitch {
     texture: Texture;
@@ -83,7 +90,7 @@ function shouldCancel(node: Node): boolean {
     return !node.material.visible;
 }
 
-export class Target {
+export class Target implements MemoryUsage {
     node: Node;
     pitch: Vector4;
     extent: Extent;
@@ -95,6 +102,13 @@ export class Target {
     state: TargetState;
     geometryExtent: Extent;
     private _onVisibilityChanged: () => void;
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        if (this.renderTarget) {
+            return TextureGenerator.getMemoryUsage(this.renderTarget, context, target);
+        }
+        return target ?? createEmptyReport();
+    }
 
     constructor(options: {
         node: Node;
@@ -278,7 +292,7 @@ abstract class Layer<
         TUserData extends LayerUserData = LayerUserData,
     >
     extends EventDispatcher<TEvents & LayerEvents>
-    implements Progress
+    implements Progress, MemoryUsage
 {
     /**
      * Optional name of this layer.
@@ -335,6 +349,20 @@ abstract class Layer<
 
     get ready() {
         return this._ready;
+    }
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        this._targets.forEach(target => target.getMemoryUsage(context, result));
+
+        if (this.composer) {
+            this.composer.getMemoryUsage(context, result);
+        }
+
+        this.source.getMemoryUsage(context, result);
+
+        return result;
     }
 
     /**

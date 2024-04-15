@@ -25,6 +25,14 @@ import pickObjectsAt from './picking/PickObjectsAt';
 import { isPickable } from './picking/Pickable';
 import { isPickableFeatures } from './picking/PickableFeatures';
 import { isDisposable } from './Disposable';
+import {
+    createEmptyReport,
+    getObject3DMemoryUsage,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from './MemoryUsage';
+import { GlobalRenderTargetPool } from '../renderer/RenderTargetPool';
+import { GlobalCache } from './Cache';
 
 const vectors = {
     pos: new Vector3(),
@@ -851,6 +859,29 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
                 cam.updateMatrixWorld(true);
             }
         }
+    }
+
+    getMemoryUsage(): MemoryUsageReport {
+        const context: GetMemoryUsageContext = {
+            renderer: this.renderer,
+        };
+        const result = createEmptyReport();
+
+        for (const entity of this._entities) {
+            if (isEntity3D(entity)) {
+                entity.getMemoryUsage(context, result);
+            }
+        }
+
+        this.threeObjects.traverse(obj => {
+            getObject3DMemoryUsage(obj, context, result);
+        });
+
+        GlobalRenderTargetPool.getMemoryUsage(context, result);
+
+        GlobalCache.getMemoryUsage(context, result);
+
+        return result;
     }
 
     /**

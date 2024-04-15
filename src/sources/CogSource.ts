@@ -11,6 +11,7 @@ import {
     type ReadRasterResult,
     globals as geotiffGlobals,
 } from 'geotiff';
+import type QuickLRU from 'quick-lru';
 
 import Fetcher from '../utils/Fetcher';
 import Extent from '../core/geographic/Extent';
@@ -18,6 +19,11 @@ import TextureGenerator, { type NumberArray } from '../utils/TextureGenerator';
 import PromiseUtils from '../utils/PromiseUtils';
 import ImageSource, { ImageResult, type ImageSourceOptions } from './ImageSource';
 import { type Cache, GlobalCache } from '../core/Cache';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
 
 const tmpDim = new Vector2();
 
@@ -30,6 +36,11 @@ function getPool(): Pool {
 
     return sharedPool;
 }
+
+type CachedBlock = {
+    data: ArrayBuffer;
+    length: number;
+};
 
 /**
  * Determine if an image type is a mask.
@@ -250,6 +261,26 @@ class CogSource extends ImageSource {
         this._masks = [];
         this._channels = options.channels;
         this._cacheOptions = options.cacheOptions;
+    }
+
+    getMemoryUsage(_: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        if (!this._tiffImage) {
+            return result;
+        }
+        const source = this._tiffImage.source as { blockCache: QuickLRU<number, CachedBlock> };
+        const cache = source.blockCache;
+
+        let bytes = 0;
+
+        cache.forEach((block: CachedBlock) => {
+            bytes += block.data.byteLength;
+        });
+
+        result.cpuMemory += bytes;
+
+        return result;
     }
 
     getExtent() {

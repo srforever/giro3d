@@ -19,6 +19,12 @@ import Rect from '../Rect';
 import MemoryTracker from '../../renderer/MemoryTracker';
 import TextureGenerator from '../../utils/TextureGenerator';
 import ProjUtils from '../../utils/ProjUtils';
+import type MemoryUsage from '../MemoryUsage';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../MemoryUsage';
 
 const tmpVec1 = new Vector2();
 const tmpVec2 = new Vector2();
@@ -36,6 +42,7 @@ function onTextureUploaded(texture: Texture) {
     if (!texture.image) {
         return;
     }
+
     if ((texture as DataTexture).isDataTexture) {
         texture.image.data = null;
     } else if ((texture as CanvasTexture).isCanvasTexture) {
@@ -77,7 +84,7 @@ function processMinMax(
     }
 }
 
-class Image {
+class Image implements MemoryUsage {
     readonly id: string;
     readonly mesh: Mesh;
     readonly extent: Extent;
@@ -88,6 +95,10 @@ class Image {
     readonly max: number;
     disposed: boolean;
     readonly owners: Set<number>;
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport) {
+        return TextureGenerator.getMemoryUsage(this.texture, context, target);
+    }
 
     constructor(options: {
         id: string;
@@ -139,7 +150,7 @@ class Image {
     }
 }
 
-class LayerComposer {
+class LayerComposer implements MemoryUsage {
     readonly computeMinMax: boolean;
     readonly extent: Extent;
     readonly dimensions: Vector2;
@@ -161,6 +172,14 @@ class LayerComposer {
     private _needsCleanup: boolean;
 
     disposed: boolean;
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        this.images.forEach(img => img.getMemoryUsage(context, target));
+
+        return result;
+    }
 
     /**
      * @param options - The options.
@@ -463,8 +482,15 @@ class LayerComposer {
             MemoryTracker.track(actualTexture, `LayerComposer - texture ${id}`);
         }
 
-        // Register a handler to be notified when the texture has been uploaded to the GPU
-        // so that we can reclaim the texture data and free memory.
+        const memoryUsage: MemoryUsageReport = TextureGenerator.getMemoryUsage(texture, {
+            renderer: this.webGLRenderer,
+        });
+        // Since we are deleting the CPU-side data.
+        memoryUsage.cpuMemory = 0;
+        actualTexture.userData.memoryUsage = memoryUsage;
+
+        // Register a handler to be notified when the original texture has
+        // been uploaded to the GPU so that we can reclaim the texture data and free memory.
         texture.onUpdate = () => onTextureUploaded(texture);
 
         const image = new Image({

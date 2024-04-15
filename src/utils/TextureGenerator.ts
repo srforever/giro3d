@@ -36,7 +36,13 @@ import {
     type PixelFormat,
     type CanvasTexture,
     type TypedArray,
+    type RenderTarget,
 } from 'three';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
 import Interpretation, { Mode } from '../core/layer/Interpretation';
 
 export const OPAQUE_BYTE = 255;
@@ -55,6 +61,14 @@ export type NumberArray =
     | Int32Array
     | Float32Array
     | Float64Array;
+
+function isTexture(obj: unknown): obj is Texture {
+    return (obj as Texture)?.isTexture;
+}
+
+function isRenderTarget(obj: unknown): obj is RenderTarget {
+    return (obj as RenderTarget)?.isRenderTarget;
+}
 
 function isDataTexture(texture: Texture): texture is DataTexture {
     return (texture as DataTexture).isDataTexture;
@@ -629,6 +643,97 @@ function computeMinMax(
     return null;
 }
 
+function isEmptyTexture(texture: Texture) {
+    if (isCanvasTexture(texture)) {
+        return texture.source?.data == null;
+    }
+    if (isDataTexture(texture)) {
+        return texture.image?.data == null;
+    }
+    if (texture.isRenderTargetTexture) {
+        return false;
+    }
+
+    return true;
+}
+
+function getTextureMemoryUsage(texture: Texture, target?: MemoryUsageReport): MemoryUsageReport {
+    const result = target ?? createEmptyReport();
+
+    if (!texture) {
+        return result;
+    }
+
+    if (texture.userData.memoryUsage) {
+        const existing: MemoryUsageReport = texture.userData.memoryUsage;
+        result.cpuMemory += existing.cpuMemory;
+        result.gpuMemory += existing.gpuMemory;
+    }
+
+    if (isEmptyTexture(texture)) {
+        return result;
+    }
+
+    if (isCanvasTexture(texture)) {
+        const { width, height } = texture.source.data;
+        result.gpuMemory += width * height * 4;
+    }
+
+    const { width, height } = texture.image;
+
+    const bytes =
+        width * height * getBytesPerChannel(texture.type) * getChannelCount(texture.format);
+
+    if (texture.isRenderTargetTexture) {
+        // RenderTargets do not exist in CPU memory.
+        result.gpuMemory += bytes;
+    } else {
+        result.cpuMemory += bytes;
+        result.gpuMemory += bytes;
+    }
+
+    return result;
+}
+
+function getDepthBufferMemoryUsage(
+    renderTarget: RenderTarget,
+    renderer: WebGLRenderer,
+    target?: MemoryUsageReport,
+): MemoryUsageReport {
+    const gl = renderer.getContext();
+    const bpp = gl.getParameter(gl.DEPTH_BITS);
+    const bytes = renderTarget.width * renderTarget.height * (bpp / 8);
+
+    const result = target ?? createEmptyReport();
+
+    result.gpuMemory += bytes;
+
+    return result;
+}
+
+function getMemoryUsage(
+    texture: Texture | RenderTarget,
+    context: GetMemoryUsageContext,
+    target?: MemoryUsageReport,
+): MemoryUsageReport {
+    const result = target ?? createEmptyReport();
+
+    if (isTexture(texture)) {
+        return getTextureMemoryUsage(texture, result);
+    } else if (isRenderTarget(texture)) {
+        if (texture.depthBuffer) {
+            if (texture.depthTexture) {
+                getTextureMemoryUsage(texture.depthTexture, result);
+            } else {
+                getDepthBufferMemoryUsage(texture, context.renderer, result);
+            }
+        }
+        getTextureMemoryUsage(texture.texture, result);
+    }
+
+    return result;
+}
+
 export default {
     createDataTexture,
     decodeBlob,
@@ -646,4 +751,5 @@ export default {
     computeMinMaxFromImage,
     estimateSize,
     shouldExpandRGB,
+    getMemoryUsage,
 };

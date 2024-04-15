@@ -4,6 +4,7 @@ import Panel from './Panel';
 import type Instance from '../core/Instance';
 import RenderingInspector from './RenderingInspector';
 import WebGLRendererInspector from './WebGLRendererInspector';
+import * as MemoryUsage from '../core/MemoryUsage';
 
 class InstanceInspector extends Panel {
     /** Store the CRS code of the instance */
@@ -13,6 +14,8 @@ class InstanceInspector extends Panel {
     enginePanel: RenderingInspector;
     clearColor: Color;
     clearAlpha: number;
+    cpuMemoryUsage = 'unknown';
+    gpuMemoryUsage = 'unknown';
 
     /**
      * @param gui - The GUI.
@@ -24,6 +27,9 @@ class InstanceInspector extends Panel {
         this.instanceCrs = this.instance.referenceCrs;
         this.clearAlpha = this.instance.renderer.getClearAlpha();
         this.addController<string>(this, 'instanceCrs').name('CRS');
+
+        this.addController<string>(this, 'cpuMemoryUsage').name('Memory usage (CPU)');
+        this.addController<string>(this, 'gpuMemoryUsage').name('Memory usage (GPU)');
 
         this.clearColor = this.instance.renderer.getClearColor(new Color()).convertLinearToSRGB();
         this.addColorController(this, 'clearColor')
@@ -57,6 +63,10 @@ class InstanceInspector extends Panel {
     }
 
     updateValues() {
+        const memUsage = this.instance.getMemoryUsage();
+        this.cpuMemoryUsage = MemoryUsage.format(memUsage.cpuMemory);
+        this.gpuMemoryUsage = MemoryUsage.format(memUsage.gpuMemory);
+
         this.state = this.instance.loading
             ? `loading (${Math.round(this.instance.progress * 100)}%)`
             : 'idle';

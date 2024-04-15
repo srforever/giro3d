@@ -50,6 +50,12 @@ import type HasLayers from '../core/layer/HasLayers';
 import { defaultColorimetryOptions } from '../core/ColorimetryOptions';
 import TextureGenerator from '../utils/TextureGenerator';
 import type { EntityUserData } from './Entity';
+import type MemoryUsage from '../core/MemoryUsage';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
 
 const DEFAULT_BACKGROUND_COLOR = new Color().setRGB(0.04, 0.23, 0.35, 'srgb');
 
@@ -290,7 +296,11 @@ export interface MapEventMap extends Entity3DEventMap {
  */
 class Map<UserData extends EntityUserData = EntityUserData>
     extends Entity3D<MapEventMap, UserData>
-    implements Pickable<MapPickResult>, PickableFeatures<unknown, MapPickResult>, HasLayers
+    implements
+        Pickable<MapPickResult>,
+        PickableFeatures<unknown, MapPickResult>,
+        HasLayers,
+        MemoryUsage
 {
     readonly hasLayers = true;
     private _segments: number;
@@ -333,6 +343,16 @@ class Map<UserData extends EntityUserData = EntityUserData>
     wireframe: boolean;
 
     onTileCreated: (map: this, parent: TileMesh, tile: TileMesh) => void;
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        this._layers.forEach(layer => layer.getMemoryUsage(context, result));
+        this.geometryPool.forEach(geometry => geometry.getMemoryUsage(context, result));
+        this.allTiles.forEach(tile => tile.getMemoryUsage(context, result));
+
+        return result;
+    }
 
     /**
      * Constructs a Map object.

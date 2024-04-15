@@ -219,4 +219,4 @@ minimapInstance.domElement.addEventListener('wheel', handleMouseWheel);
 
 Inspector.attach(document.getElementById('panelDiv'), minimapInstance, { title: 'minimap' });
 
-StatusBar.bind(mainInstance);
+StatusBar.bind(mainInstance, { additionalInstances: minimapInstance });

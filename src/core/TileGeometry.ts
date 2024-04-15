@@ -1,5 +1,11 @@
 import type { Vector2 } from 'three';
 import { BufferAttribute, BufferGeometry } from 'three';
+import type MemoryUsage from './MemoryUsage';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from './MemoryUsage';
 
 export interface TileGeometryOptions {
     dimensions: Vector2;
@@ -38,10 +44,29 @@ interface TileGeometryProperties {
  * const geometry = new TileGeometry(paramsGeometry);
  * ```
  */
-class TileGeometry extends BufferGeometry {
+class TileGeometry extends BufferGeometry implements MemoryUsage {
     dimensions: Vector2;
     private _segments: number;
     props: TileGeometryProperties;
+
+    getMemoryUsage(_: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        for (const attribute of Object.values(this.attributes)) {
+            const bytes = attribute.array.byteLength;
+            result.cpuMemory += bytes;
+            result.gpuMemory += bytes;
+        }
+
+        if (this.index) {
+            const bytes = this.index.array.byteLength;
+
+            result.cpuMemory += bytes;
+            result.gpuMemory += bytes;
+        }
+
+        return result;
+    }
 
     /**
      * @param params - Parameters to construct the grid. Should contain an extent

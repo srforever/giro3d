@@ -1,4 +1,10 @@
 import { LRUCache } from 'lru-cache';
+import type MemoryUsage from './MemoryUsage';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from './MemoryUsage';
 
 /**
  * The options for a cache entry.
@@ -40,7 +46,7 @@ const DEFAULT_CAPACITY: number = 512 * 1024 * 1024;
  * The cache.
  *
  */
-class Cache {
+class Cache implements MemoryUsage {
     private readonly _deleteHandlers: Map<string, (entry: unknown) => void>;
     private readonly _lru: LRUCache<string, unknown, unknown>;
     private _enabled: boolean;
@@ -81,6 +87,14 @@ class Cache {
                 this.onDisposed(key, value);
             },
         });
+    }
+
+    getMemoryUsage(_context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        result.cpuMemory += this.size;
+
+        return result;
     }
 
     /**

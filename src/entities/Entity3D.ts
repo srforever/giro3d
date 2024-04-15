@@ -8,6 +8,12 @@ import type Pickable from '../core/picking/Pickable';
 import pickObjectsAt from '../core/picking/PickObjectsAt';
 import type PickResult from '../core/picking/PickResult';
 import type PickOptions from '../core/picking/PickOptions';
+import type MemoryUsage from '../core/MemoryUsage';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
 
 export interface Entity3DEventMap extends EntityEventMap {
     /**
@@ -36,7 +42,7 @@ export interface Entity3DEventMap extends EntityEventMap {
  */
 class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData = EntityUserData>
     extends Entity<TEventMap & Entity3DEventMap, TUserData>
-    implements Pickable
+    implements Pickable, MemoryUsage
 {
     protected _instance: Instance;
     private _visible: boolean;
@@ -87,6 +93,10 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
         this._renderOrder = 0;
 
         this.onObjectCreated(object3d);
+    }
+
+    getMemoryUsage(_context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        return target ?? createEmptyReport();
     }
 
     /**

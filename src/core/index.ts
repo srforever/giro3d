@@ -16,6 +16,7 @@ import Instance, {
 import MainLoop, { type RenderingState } from './MainLoop';
 import OperationCounter, { type OperationCounterEvents } from './OperationCounter';
 import type Progress from './Progress';
+import type MemoryUsage from './MemoryUsage';
 import PointCloud, { type PointCloudEventMap, type PointCloudOptions } from './PointCloud';
 import type ElevationRange from './ElevationRange';
 import type ContourLineOptions from './ContourLineOptions';
@@ -53,6 +54,7 @@ export {
     OperationCounter,
     OperationCounterEvents,
     Progress,
+    MemoryUsage,
     PointCloud,
     PointCloudEventMap,
     PointCloudOptions,

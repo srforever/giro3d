@@ -4,6 +4,13 @@ import {
     WebGLRenderTarget,
     type RenderTargetOptions,
 } from 'three';
+import type MemoryUsage from '../core/MemoryUsage';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
+import TextureGenerator from '../utils/TextureGenerator';
 
 export interface RenderTargetPoolEvents {
     cleanup: {
@@ -14,7 +21,10 @@ export interface RenderTargetPoolEvents {
 /**
  * A pool that manages {@link RenderTarget}s.
  */
-export default class RenderTargetPool extends EventDispatcher<RenderTargetPoolEvents> {
+export default class RenderTargetPool
+    extends EventDispatcher<RenderTargetPoolEvents>
+    implements MemoryUsage
+{
     // Note that we cannot share render targets between instances are they are tied to a single WebGLRenderer.
     private readonly _perRendererPools: Map<
         WebGLRenderer,
@@ -27,6 +37,24 @@ export default class RenderTargetPool extends EventDispatcher<RenderTargetPoolEv
     constructor(cleanupTimeoutMs: number) {
         super();
         this._cleanupTimeoutMs = cleanupTimeoutMs;
+    }
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        if (this._perRendererPools.size === 0) {
+            return result;
+        }
+
+        const pool = this._perRendererPools.get(context.renderer);
+
+        if (pool) {
+            pool.forEach(targets => {
+                targets.forEach(target => TextureGenerator.getMemoryUsage(target, context, result));
+            });
+        }
+
+        return result;
     }
 
     acquire(renderer: WebGLRenderer, width: number, height: number, options: RenderTargetOptions) {
