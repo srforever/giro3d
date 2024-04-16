@@ -4,7 +4,8 @@
     "exclude": ["node_modules/**/*"],
     "compilerOptions": {
         "target": "ES2021",
-        "lib": ["ES2021"],
+        "module": "ES2020",
+        "lib": ["ES2021", "WebWorker"],
         // Tells TypeScript to read JS files, as
         // normally they are ignored as source files
         "allowJs": true,
