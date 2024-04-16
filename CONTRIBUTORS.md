@@ -38,6 +38,7 @@ The following people have contributed to Giro3D.
     -   [Benoît Blanc](https://github.com/benoitblanc)
     -   [Benoît Ducarouge](https://github.com/Ducarouge)
     -   [Éric Lemoine](https://github.com/elemoine)
+    -   [Florent Fougères](https://github.com/florentfgrs)
     -   [François Thierry](https://github.com/Francois-Thierry)
     -   [Frédéric Bonifas](https://github.com/fredericbonifas)
     -   [Jérémy Gaillard](https://github.com/Jeremy-Gaillard)
