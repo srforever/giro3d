@@ -7,16 +7,17 @@ import {
     type AnyPixelFormat,
     GLSL3,
     ShaderMaterial,
+    type IUniform,
 } from 'three';
 
 import FragmentShader from './ComposerTileFS.glsl';
 import VertexShader from './ComposerTileVS.glsl';
-import Interpretation, { Mode } from '../../core/layer/Interpretation';
+import Interpretation, { Mode, type InterpretationUniform } from '../../core/layer/Interpretation';
 import TextureGenerator from '../../utils/TextureGenerator';
 // Matches the NoDataOptions struct in the shader
 interface NoDataOptions {
-    replacementAlpha: number;
-    radius: number;
+    replacementAlpha?: number;
+    radius?: number;
     enabled: boolean;
 }
 
@@ -26,6 +27,7 @@ export interface Options {
     flipY: boolean;
     noDataOptions: NoDataOptions;
     showImageOutlines: boolean;
+    showEmptyTexture: boolean;
     transparent: boolean;
     expandRGB: boolean;
 }
@@ -73,15 +75,32 @@ function createGridTexture() {
     return new CanvasTexture(canvas);
 }
 
-const POOL: ShaderMaterial[] = [];
+const POOL: unknown[] = [];
 const POOL_SIZE = 2048;
 let GRID_TEXTURE: Texture;
+
+interface Uniforms {
+    tex: IUniform<Texture>;
+    gridTexture: IUniform<Texture>;
+    flipY: IUniform<boolean>;
+    showImageOutlines: IUniform<boolean>;
+    expandRGB: IUniform<boolean>;
+    opacity: IUniform<number>;
+    channelCount: IUniform<number>;
+    showEmptyTexture: IUniform<boolean>;
+    isEmptyTexture: IUniform<boolean>;
+    noDataOptions: IUniform<NoDataOptions>;
+    interpretation: IUniform<InterpretationUniform>;
+}
 
 class ComposerTileMaterial extends ShaderMaterial {
     now: number;
     dataType: TextureDataType;
     pixelFormat: AnyPixelFormat;
     readonly isComposerTileMaterial = true;
+
+    // @ts-expect-error property is not assignable.
+    override readonly uniforms: Uniforms;
 
     /**
      * Creates an instance of ComposerTileMaterial.
@@ -103,6 +122,8 @@ class ComposerTileMaterial extends ShaderMaterial {
         this.uniforms.opacity = new Uniform(this.opacity);
         this.uniforms.channelCount = new Uniform(3);
         this.uniforms.expandRGB = new Uniform(options.expandRGB ?? false);
+        this.uniforms.showEmptyTexture = new Uniform(options.showEmptyTexture ?? false);
+        this.uniforms.isEmptyTexture = new Uniform(false);
         this.now = performance.now();
         this.type = 'ComposerTileMaterial';
 
@@ -132,6 +153,8 @@ class ComposerTileMaterial extends ShaderMaterial {
         this.uniforms.noDataOptions.value = options.noDataOptions ?? { enabled: false };
         this.uniforms.showImageOutlines.value = options.showImageOutlines ?? false;
         this.uniforms.expandRGB.value = options.expandRGB ?? false;
+        this.uniforms.showEmptyTexture.value = options.showEmptyTexture ?? false;
+        this.uniforms.isEmptyTexture.value = TextureGenerator.isEmptyTexture(options.texture);
 
         const channelCount = TextureGenerator.getChannelCount(this.pixelFormat);
         this.uniforms.channelCount.value = channelCount;

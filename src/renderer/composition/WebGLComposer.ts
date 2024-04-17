@@ -70,6 +70,7 @@ export interface DrawOptions {
  */
 class WebGLComposer {
     private readonly _showImageOutlines: boolean;
+    private readonly _showEmptyTextures: boolean;
     private readonly _extent: Rect;
     private readonly _renderer: WebGLRenderer;
     private readonly _reuseTexture: boolean;
@@ -103,6 +104,8 @@ class WebGLComposer {
         height?: number;
         /** If true, yellow image outlines will be drawn on images. */
         showImageOutlines?: boolean;
+        /** Shows empty textures as colored rectangles */
+        showEmptyTextures?: boolean;
         /** If true, this composer will try to reuse the same texture accross renders.
          * Note that this may not be always possible if the texture format has to change
          * due to incompatible images to draw. For example, if the current target has 8-bit pixels,
@@ -127,6 +130,7 @@ class WebGLComposer {
         expandRGB?: boolean;
     }) {
         this._showImageOutlines = options.showImageOutlines;
+        this._showEmptyTextures = options.showEmptyTextures;
         this._extent = options.extent;
         this.width = options.width;
         this.height = options.height;
@@ -257,6 +261,7 @@ class WebGLComposer {
             interpretation,
             flipY: options.flipY,
             transparent: options.transparent,
+            showEmptyTexture: this._showEmptyTextures,
             showImageOutlines: this._showImageOutlines,
             expandRGB: this._expandRGB,
         });

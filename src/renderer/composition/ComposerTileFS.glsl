@@ -11,6 +11,8 @@ uniform float opacity;
 uniform bool flipY;
 uniform NoDataOptions noDataOptions;
 uniform bool showImageOutlines;
+uniform bool isEmptyTexture;
+uniform bool showEmptyTexture;
 uniform int channelCount;
 uniform bool expandRGB;
 
@@ -19,17 +21,23 @@ void main() {
         ? vec2(vUv.x, 1.0 - vUv.y)
         : vUv;
 
-    if (noDataOptions.enabled) {
-        int alphaChannelLocation = channelCount - 1;
-        gl_FragColor = texture2DFillNodata(tex, uv, noDataOptions, alphaChannelLocation);
-    } else {
-        gl_FragColor = texture2D(tex, uv);
+    gl_FragColor = vec4(0, 0, 0, 0);
 
-        gl_FragColor = decodeInterpretation(gl_FragColor, interpretation);
+    if (!isEmptyTexture) {
+        if (noDataOptions.enabled) {
+            int alphaChannelLocation = channelCount - 1;
+            gl_FragColor = texture2DFillNodata(tex, uv, noDataOptions, alphaChannelLocation);
+        } else {
+            gl_FragColor = texture2D(tex, uv);
 
-        if (expandRGB) {
-            gl_FragColor = grayscaleToRGB(gl_FragColor, interpretation);
+            gl_FragColor = decodeInterpretation(gl_FragColor, interpretation);
+
+            if(expandRGB) {
+                gl_FragColor = grayscaleToRGB(gl_FragColor, interpretation);
+            }
         }
+    } else if (showEmptyTexture) {
+        gl_FragColor = vec4(1, 0, 0, 0.5);
     }
 
     if (showImageOutlines) {

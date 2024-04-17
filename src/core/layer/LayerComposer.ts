@@ -213,6 +213,8 @@ class LayerComposer implements MemoryUsage {
         pixelFormat: PixelFormat;
         /** The type of the output textures. */
         textureDataType: TextureDataType;
+        /** Shows empty textures as colored rectangles */
+        showEmptyTextures: boolean;
     }) {
         this.computeMinMax = options.computeMinMax;
         this.extent = options.extent;
@@ -237,6 +239,7 @@ class LayerComposer implements MemoryUsage {
             showImageOutlines: options.showImageOutlines,
             pixelFormat: options.pixelFormat,
             textureDataType: options.textureDataType,
+            showEmptyTextures: options.showEmptyTextures,
         });
 
         this.disposed = false;

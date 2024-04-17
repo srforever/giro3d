@@ -197,6 +197,10 @@ export interface LayerOptions {
      */
     showTileBorders?: boolean;
     /**
+     * Displays empty textures as colored rectangles.
+     */
+    showEmptyTextures?: boolean;
+    /**
      * How to treat no-data values.
      */
     noDataOptions?: NoDataOptions;
@@ -309,6 +313,7 @@ abstract class Layer<
     type: string;
     readonly interpretation: Interpretation;
     readonly showTileBorders: boolean;
+    readonly showEmptyTextures: boolean;
     readonly noDataOptions: NoDataOptions;
     readonly computeMinMax: boolean;
     private _visible: boolean;
@@ -386,6 +391,7 @@ abstract class Layer<
         this.type = 'Layer';
         this.interpretation = options.interpretation ?? Interpretation.Raw;
         this.showTileBorders = options.showTileBorders ?? false;
+        this.showEmptyTextures = options.showEmptyTextures ?? false;
 
         this._preloadImages = options.preloadImages ?? false;
         this._fallbackImagesPromise = null;
@@ -529,6 +535,7 @@ abstract class Layer<
         this._composer = new LayerComposer({
             renderer: this._instance.renderer,
             showImageOutlines: this.showTileBorders,
+            showEmptyTextures: this.showEmptyTextures,
             extent: this.extent,
             computeMinMax: this.computeMinMax,
             sourceCrs: this.source.getCrs(),
