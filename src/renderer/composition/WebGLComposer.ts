@@ -63,6 +63,7 @@ export interface DrawOptions {
     fillNoDataRadius?: number;
     fillNoDataAlphaReplacement?: number;
     transparent?: boolean;
+    expandRGB?: boolean;
 }
 
 /**
@@ -263,7 +264,7 @@ class WebGLComposer {
             transparent: options.transparent,
             showEmptyTexture: this._showEmptyTextures,
             showImageOutlines: this._showImageOutlines,
-            expandRGB: this._expandRGB,
+            expandRGB: options.expandRGB ?? this._expandRGB,
         });
         MemoryTracker.track(material, 'WebGLComposer - material');
 

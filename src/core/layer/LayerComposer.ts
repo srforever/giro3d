@@ -25,6 +25,7 @@ import {
     type GetMemoryUsageContext,
     type MemoryUsageReport,
 } from '../MemoryUsage';
+import { isEmptyTexture } from '../../renderer/EmptyTexture';
 
 const tmpVec1 = new Vector2();
 const tmpVec2 = new Vector2();
@@ -302,11 +303,10 @@ class LayerComposer implements MemoryUsage {
         extent: Extent,
         texture: TextureWithMinMax,
         options: {
-            fillNoData: boolean;
+            fillNoData?: boolean;
             interpretation: Interpretation;
-            flipY: boolean;
-            fillNoDataAlphaReplacement: number;
-            fillNoDataRadius: number;
+            fillNoDataAlphaReplacement?: number;
+            fillNoDataRadius?: number;
             outputType: TextureDataType;
             target?: WebGLRenderTarget<Texture>;
             expandRGB?: boolean;
@@ -336,7 +336,6 @@ class LayerComposer implements MemoryUsage {
             fillNoDataAlphaReplacement: options.fillNoDataAlphaReplacement,
             fillNoDataRadius: noDataRadiusInUVSpace,
             interpretation: options.interpretation,
-            flipY: options.flipY,
             transparent: this.transparent,
         });
 
@@ -436,11 +435,16 @@ class LayerComposer implements MemoryUsage {
 
         let actualTexture = texture;
 
+        const expandRGB = TextureGenerator.shouldExpandRGB(
+            actualTexture.format as PixelFormat,
+            this.pixelFormat,
+        );
+
         // The texture might be an empty texture, appearing completely transparent.
         // Since is has no data, it cannot be preprocessed.
-        if (texture.image) {
+        if (!isEmptyTexture(texture)) {
             if (this.computeMinMax && options.min == null && options.max == null) {
-                const { min, max } = processMinMax(actualTexture, {
+                const { min, max } = processMinMax(texture, {
                     interpretation: this.interpretation,
                     noDataValue: this.noDataValue,
                 });
@@ -448,28 +452,23 @@ class LayerComposer implements MemoryUsage {
                 options.max = max;
             }
 
-            const expandRGB = TextureGenerator.shouldExpandRGB(
-                texture.format as PixelFormat,
-                this.pixelFormat,
-            );
-
-            // If the image needs some preprocessing, let's do it now
-            if (expandRGB || options.flipY || !this.interpretation.isDefault()) {
+            // In the case of the Mapbox Terrain RGB interpretation,
+            // the original texture is in nearest neighour filtering,
+            // but we want to final texture to be in linear filtering, to avoid
+            // pixelated looks. This can only be done using a pre-processing stage.
+            if (expandRGB || !this.interpretation.isDefault()) {
                 actualTexture = this.preprocessImage(extent, texture, {
-                    fillNoData: false,
-                    flipY: options.flipY,
                     interpretation: this.interpretation,
-                    fillNoDataAlphaReplacement: 0,
-                    fillNoDataRadius: 0,
-                    expandRGB,
                     outputType: this.textureDataType,
+                    expandRGB,
                 });
             }
         }
 
-        let mesh;
+        let mesh: Mesh;
         const composerOptions: DrawOptions = {
             transparent: this.transparent,
+            flipY: options.flipY,
             zOrder: this.computeZDistance(extent),
         };
         if (this.needsReprojection) {
@@ -740,7 +739,6 @@ class LayerComposer implements MemoryUsage {
             fillNoData: this.fillNoData,
             fillNoDataAlphaReplacement: this.fillNoDataAlphaReplacement,
             fillNoDataRadius: this.fillNoDataRadius,
-            flipY: false,
             interpretation: Interpretation.Raw,
             target,
             outputType: this.textureDataType,
