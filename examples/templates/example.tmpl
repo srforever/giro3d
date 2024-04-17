@@ -135,19 +135,40 @@
 
             <!-- Source code -->
             <span class="badge text-bg-primary my-1">index.js</span>
-            <div class="border rounded p-3" id="source" style="background-color: #ffffff">%code%</div>
+            <div class="border rounded p-3 position-relative" id="source" style="background-color: #ffffff">
+                <span class="position-absolute top-0 end-0 p-2">
+                    <button type="button" class="btn btn-outline-secondary" onclick="copyContentByID('source')">
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </span>
+                %code%
+            </div>
 
             <div class="my-3"/>
 
             <!-- HTML code -->
             <span class="badge text-bg-primary my-1">index.html</span>
-            <div class="border rounded p-3" id="source-html" style="background-color: #ffffff">%html%</div>
+            <div class="border rounded p-3 position-relative" id="source-html" style="background-color: #ffffff">
+                <span class="position-absolute top-0 end-0 p-2">
+                    <button type="button" class="btn btn-outline-secondary" onclick="copyContentByID('source-html')">
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </span>
+                %html%
+            </div>
 
             <div class="my-3"/>
 
             <!-- package.json code -->
             <span class="badge text-bg-primary my-1">package.json</span>
-            <div class="border rounded p-3" id="source-package-json" style="background-color: #ffffff">%package_json%</div>
+            <div class="border rounded p-3 position-relative" id="source-package-json" style="background-color: #ffffff">
+                <span class="position-absolute top-0 end-0 p-2">
+                    <button type="button" class="btn btn-outline-secondary" onclick="copyContentByID('source-package-json')">
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </span>
+                %package_json%
+            </div>
         </div>
 
         <!-- The code of the example -->
@@ -197,6 +218,12 @@
             }
 
             fullScreenButton.onclick = toggleFullScreen;
+            
+            function copyContentByID(id) {
+                var source = document.getElementById(id);
+                var text = source.textContent;
+                navigator.clipboard.writeText(text);
+            }
         </script>
     </body>
 </html>
