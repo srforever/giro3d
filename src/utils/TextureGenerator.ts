@@ -44,6 +44,7 @@ import {
     type MemoryUsageReport,
 } from '../core/MemoryUsage';
 import Interpretation, { Mode } from '../core/layer/Interpretation';
+import EmptyTexture from '../renderer/EmptyTexture';
 
 export const OPAQUE_BYTE = 255;
 export const OPAQUE_FLOAT = 1.0;
@@ -51,7 +52,6 @@ export const TRANSPARENT = 0;
 export const DEFAULT_NODATA = 0;
 
 export type NumberArray =
-    | Array<number>
     | Uint8ClampedArray
     | Uint8Array
     | Int8Array
@@ -135,21 +135,52 @@ function getDataTypeString(dataType: TextureDataType): string {
     }
 }
 
+export type FillBufferOptions<Buf extends TypedArray | ArrayBuffer = TypedArray> = {
+    input: Buf[];
+    bufferSize: number;
+    dataType: TextureDataType;
+    nodata?: number;
+    opaqueValue: number;
+    scaling?: { min: number; max: number };
+};
+
+export type FillBufferResult<Buf extends TypedArray | ArrayBuffer = TypedArray> = {
+    buffer: Buf;
+    min: number;
+    max: number;
+    isTransparent: boolean;
+};
+
 // Important note : a lot of code is duplicated to avoid putting
 // conditional branches inside loops, as this can severely reduce performance.
 
 // Note: we don't use Number.isNan(x) in the loops as it slows down the loop due to function
 // invocation. Instead, we use x !== x, as a NaN is never equal to itself.
-function fillBuffer<T extends NumberArray>(
-    buf: T,
-    options: {
-        scaling?: { min: number; max: number };
-        nodata?: number;
-    },
-    opaqueValue: number,
-    ...pixelData: NumberArray[]
-): T {
+function fillBuffer<T extends TypedArray>(options: FillBufferOptions<T>): FillBufferResult<T> {
     let getValue: (arg0: number) => number;
+
+    const pixelData = options.input;
+    const opaqueValue = options.opaqueValue;
+    let buf: TypedArray;
+    if (options.bufferSize && options.dataType) {
+        switch (options.dataType) {
+            case FloatType:
+                buf = new Float32Array(options.bufferSize);
+                break;
+            case UnsignedByteType:
+                buf = new Uint8ClampedArray(options.bufferSize);
+                break;
+            default:
+                throw new Error('unrecognized buffer type: ' + options.dataType);
+                break;
+        }
+    } else {
+        console.error('missing values');
+        throw new Error('missing values');
+    }
+
+    let min = +Infinity;
+    let max = -Infinity;
 
     if (options.scaling) {
         const { min, max } = options.scaling;
@@ -157,6 +188,8 @@ function fillBuffer<T extends NumberArray>(
     } else {
         getValue = x => x;
     }
+
+    let isTransparent = true;
 
     if (pixelData.length === 1) {
         const v = pixelData[0];
@@ -172,7 +205,11 @@ function fillBuffer<T extends NumberArray>(
             } else {
                 value = getValue(raw);
                 a = opaqueValue;
+                isTransparent = false;
             }
+            min = Math.min(min, value);
+            max = Math.max(max, value);
+
             buf[idx + 0] = value;
             buf[idx + 1] = a;
         }
@@ -185,11 +222,21 @@ function fillBuffer<T extends NumberArray>(
             const idx = i * 2;
             let value;
             const raw = v[i];
+            const alpha = a[i];
+
             if (raw !== raw || raw === options.nodata) {
                 value = DEFAULT_NODATA;
             } else {
                 value = getValue(raw);
             }
+
+            if (alpha > 0) {
+                isTransparent = false;
+            }
+
+            min = Math.min(min, value);
+            max = Math.max(max, value);
+
             buf[idx + 0] = value;
             buf[idx + 1] = a[i];
         }
@@ -221,6 +268,7 @@ function fillBuffer<T extends NumberArray>(
                 g = getValue(g);
                 b = getValue(b);
                 a = opaqueValue;
+                isTransparent = false;
             }
 
             buf[idx + 0] = r;
@@ -255,6 +303,9 @@ function fillBuffer<T extends NumberArray>(
                 r = getValue(r);
                 g = getValue(g);
                 b = getValue(b);
+                if (a > 0) {
+                    isTransparent = false;
+                }
             }
 
             buf[idx + 0] = r;
@@ -263,7 +314,12 @@ function fillBuffer<T extends NumberArray>(
             buf[idx + 3] = a;
         }
     }
-    return buf;
+    return {
+        buffer: buf as T,
+        min,
+        max,
+        isTransparent,
+    };
 }
 
 /**
@@ -403,6 +459,12 @@ async function decodeBlob(
     }
 }
 
+export type CreateDataTextureResult = {
+    texture: DataTexture | Texture;
+    min: number;
+    max: number;
+};
+
 /**
  * Returns a {@link DataTexture} initialized with the specified data.
  *
@@ -432,15 +494,13 @@ function createDataTexture(
     },
     sourceDataType: TextureDataType,
     ...pixelData: NumberArray[]
-) {
+): CreateDataTextureResult {
     const width = options.width;
     const height = options.height;
     const pixelCount = width * height;
 
     // If we apply scaling, it means that we force a 8-bit output.
     const targetDataType = options.scaling === undefined ? sourceDataType : UnsignedByteType;
-
-    let result;
 
     let format: PixelFormat;
     let channelCount: number;
@@ -456,31 +516,39 @@ function createDataTexture(
             break;
     }
 
-    switch (targetDataType) {
-        case UnsignedByteType: {
-            const buf = new Uint8ClampedArray(pixelCount * channelCount);
-            const data = fillBuffer(
-                buf,
-                { scaling: options.scaling, nodata: options.nodata },
-                OPAQUE_BYTE,
-                ...pixelData,
-            );
+    let opaqueValue: number;
 
-            result = new DataTexture(data, width, height, format, UnsignedByteType);
+    switch (targetDataType) {
+        case UnsignedByteType:
+            opaqueValue = OPAQUE_BYTE;
             break;
-        }
-        case FloatType: {
-            const buf = new Float32Array(pixelCount * channelCount);
-            const data = fillBuffer(buf, options, OPAQUE_FLOAT, ...pixelData);
-            result = new DataTexture(data, width, height, format, FloatType);
+        case FloatType:
+            opaqueValue = OPAQUE_FLOAT;
             break;
-        }
-        default:
-            throw new Error('unsupported data type');
     }
 
-    result.needsUpdate = true;
-    return result;
+    const result = fillBuffer({
+        bufferSize: pixelCount * channelCount,
+        dataType: targetDataType,
+        input: pixelData,
+        opaqueValue,
+        scaling: options.scaling,
+        nodata: options.nodata,
+    });
+
+    const texture = result.isTransparent
+        ? new EmptyTexture()
+        : new DataTexture(result.buffer, width, height, format, targetDataType);
+
+    if (!isEmptyTexture(texture)) {
+        texture.needsUpdate = true;
+    }
+
+    return {
+        texture,
+        min: result.min,
+        max: result.max,
+    };
 }
 
 /**
@@ -644,17 +712,22 @@ function computeMinMax(
 }
 
 function isEmptyTexture(texture: Texture) {
+    if (!texture) {
+        return true;
+    }
+    if ((texture as EmptyTexture).isEmptyTexture) {
+        return true;
+    }
     if (isCanvasTexture(texture)) {
         return texture.source?.data == null;
     }
     if (isDataTexture(texture)) {
         return texture.image?.data == null;
-    }
-    if (texture.isRenderTargetTexture) {
+    } else if (texture.isRenderTargetTexture) {
         return false;
+    } else {
+        return texture.source?.data == null;
     }
-
-    return true;
 }
 
 function getTextureMemoryUsage(texture: Texture, target?: MemoryUsageReport): MemoryUsageReport {
@@ -734,8 +807,24 @@ function getMemoryUsage(
     return result;
 }
 
+function isCanvasEmpty(canvas: HTMLCanvasElement): boolean {
+    const context = canvas.getContext('2d', { willReadFrequently: true, desynchronized: true });
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
+
+    for (let i = 0; i < data.length; i += 4) {
+        // Check if any pixel is not fully transparent or not matching canvas background color
+        if (data[i + 3] !== 0) {
+            return false; // Canvas is not empty
+        }
+    }
+
+    return true; // Canvas is empty
+}
+
 export default {
     createDataTexture,
+    isEmptyTexture,
     decodeBlob,
     fillBuffer,
     getChannelCount,
@@ -751,5 +840,6 @@ export default {
     computeMinMaxFromImage,
     estimateSize,
     shouldExpandRGB,
+    isCanvasEmpty,
     getMemoryUsage,
 };

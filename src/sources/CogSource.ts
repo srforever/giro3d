@@ -469,7 +469,7 @@ class CogSource extends ImageSource {
 
         const dataType = this.datatype;
 
-        const texture = TextureGenerator.createDataTexture(
+        const { texture, min, max } = TextureGenerator.createDataTexture(
             {
                 width,
                 height,
@@ -481,7 +481,7 @@ class CogSource extends ImageSource {
 
         texture.magFilter = LinearFilter;
         texture.minFilter = LinearFilter;
-        return texture;
+        return { texture, min, max };
     }
 
     /**
@@ -564,6 +564,8 @@ class CogSource extends ImageSource {
         signal?.throwIfAborted();
 
         let texture: Texture;
+        let min: number;
+        let max: number;
         if (buffers == null) {
             texture = new Texture();
         } else {
@@ -574,10 +576,13 @@ class CogSource extends ImageSource {
                 }
             }
 
-            texture = this.createTexture(buffers as SizedArray<NumberArray>);
+            const result = this.createTexture(buffers as SizedArray<NumberArray>);
+            texture = result.texture;
+            min = result.min;
+            max = result.max;
         }
 
-        const result = { extent: actualExtent, texture, id };
+        const result = { extent: actualExtent, texture, id, min, max };
 
         return new ImageResult(result);
     }

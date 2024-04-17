@@ -1,7 +1,6 @@
 import {
     Color,
     ShaderMaterial,
-    Texture,
     Uniform,
     Vector2,
     Vector4,
@@ -19,6 +18,7 @@ import type {
     WebGLRenderer,
     TextureDataType,
     WebGLProgramParametersWithUniforms,
+    Texture,
 } from 'three';
 import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
@@ -50,6 +50,7 @@ import {
     type MemoryUsageReport,
 } from '../core/MemoryUsage';
 import type MemoryUsage from '../core/MemoryUsage';
+import EmptyTexture from './EmptyTexture';
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -61,7 +62,7 @@ interface ElevationTexture extends Texture {
     isFinal: boolean;
 }
 
-const emptyTexture = new Texture();
+const emptyTexture = new EmptyTexture();
 
 function makeArray(size: number) {
     const array = new Array(size);

@@ -1,5 +1,6 @@
 import { fromBlob, Pool } from 'geotiff';
 import {
+    type Texture,
     DataTexture,
     UnsignedByteType,
     FloatType,
@@ -15,6 +16,7 @@ import TextureGenerator, {
 } from '../utils/TextureGenerator';
 import type { DecodeOptions } from './ImageFormat';
 import ImageFormat from './ImageFormat';
+import EmptyTexture from '../renderer/EmptyTexture';
 
 let geotiffWorkerPool: Pool;
 
@@ -47,20 +49,15 @@ class GeoTIFFFormat extends ImageFormat {
         const height = image.getHeight();
         const width = image.getWidth();
 
-        const bufSize = 4 * width * height; // RGBA
-
         let dataType;
-        let buffer;
         let opaqueValue;
         const nodata = options.noDataValue || image.getGDALNoData() || undefined;
 
         if (image.getBitsPerSample() === 8) {
             dataType = UnsignedByteType;
-            buffer = new Uint8ClampedArray(bufSize);
             opaqueValue = OPAQUE_BYTE;
         } else {
             dataType = FloatType;
-            buffer = new Float32Array(bufSize);
             opaqueValue = OPAQUE_FLOAT;
         }
 
@@ -72,6 +69,9 @@ class GeoTIFFFormat extends ImageFormat {
         }
 
         let format: PixelFormat;
+        let bufferSize: number;
+        let inputBuffers: NumberArray[];
+
         switch (spp) {
             case 1:
                 {
@@ -80,7 +80,8 @@ class GeoTIFFFormat extends ImageFormat {
                         pool: geotiffWorkerPool,
                     })) as NumberArray[];
                     format = RGFormat;
-                    TextureGenerator.fillBuffer(buffer, { nodata }, opaqueValue, v);
+                    bufferSize = width * height * 2;
+                    inputBuffers = [v];
                 }
                 break;
             case 2:
@@ -90,7 +91,8 @@ class GeoTIFFFormat extends ImageFormat {
                         pool: geotiffWorkerPool,
                     })) as NumberArray[];
                     format = RGFormat;
-                    TextureGenerator.fillBuffer(buffer, {}, opaqueValue, v, a);
+                    bufferSize = width * height * 2;
+                    inputBuffers = [v, a];
                 }
                 break;
             case 3:
@@ -100,7 +102,8 @@ class GeoTIFFFormat extends ImageFormat {
                         pool: geotiffWorkerPool,
                     })) as NumberArray[];
                     format = RGBAFormat;
-                    TextureGenerator.fillBuffer(buffer, {}, opaqueValue, r, g, b);
+                    bufferSize = width * height * 4;
+                    inputBuffers = [r, g, b];
                 }
                 break;
             case 4:
@@ -110,19 +113,34 @@ class GeoTIFFFormat extends ImageFormat {
                         pool: geotiffWorkerPool,
                     })) as NumberArray[];
                     format = RGBAFormat;
-                    TextureGenerator.fillBuffer(buffer, {}, opaqueValue, r, g, b, a);
+                    bufferSize = width * height * 4;
+                    inputBuffers = [r, g, b, a];
                 }
                 break;
             default:
                 throw new Error(`unsupported channel count: ${spp}`);
         }
 
-        const texture = new DataTexture(buffer, width, height, format, dataType);
-        texture.magFilter = LinearFilter;
-        texture.minFilter = LinearFilter;
-        texture.needsUpdate = true;
+        const fillResult = TextureGenerator.fillBuffer({
+            bufferSize,
+            dataType,
+            nodata,
+            opaqueValue,
+            input: inputBuffers,
+        });
 
-        return { texture };
+        let texture: Texture;
+
+        if (fillResult.isTransparent) {
+            texture = new EmptyTexture();
+        } else {
+            texture = new DataTexture(fillResult.buffer, width, height, format, dataType);
+            texture.magFilter = LinearFilter;
+            texture.minFilter = LinearFilter;
+            texture.needsUpdate = true;
+        }
+
+        return { texture, min: fillResult.min, max: fillResult.max };
     }
 }
 
