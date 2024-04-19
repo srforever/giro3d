@@ -1244,13 +1244,13 @@ class Map<UserData extends EntityUserData = EntityUserData>
         // Prevent subdivision if node is covered by at least one elevation layer
         // and if node doesn't have a elevation texture yet.
         for (const e of this.getElevationLayers()) {
-            if (
-                e.visible &&
-                !e.frozen &&
-                e.ready &&
-                e.contains(node.getExtent()) &&
-                !node.canSubdivide()
-            ) {
+            // If the elevation layer is not ready, we are still waiting for
+            // some information related to the terrain (min/max values).
+            if (!e.ready && e.visible && !e.frozen) {
+                return false;
+            }
+
+            if (!node.canSubdivide()) {
                 return false;
             }
         }
