@@ -57,7 +57,7 @@ interface SaveState {
 
 export interface DrawOptions {
     interpretation?: Interpretation;
-    zOrder?: number;
+    renderOrder?: number;
     flipY?: boolean;
     fillNoData?: boolean;
     fillNoDataRadius?: number;
@@ -270,8 +270,8 @@ class WebGLComposer {
 
         mesh.material = material;
 
-        const z = IMAGE_Z + (options.zOrder ?? 0);
-        mesh.position.setZ(z);
+        mesh.renderOrder = options.renderOrder;
+        mesh.position.setZ(IMAGE_Z);
 
         this._scene.add(mesh);
 

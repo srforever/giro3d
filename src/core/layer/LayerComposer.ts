@@ -279,21 +279,23 @@ class LayerComposer implements MemoryUsage {
     }
 
     /**
-     * Computes the distance between the composition camera and the image.
+     * Computes the render order for an image that has the specified extent.
      *
-     * Smaller images will be closer to the camera.
+     * Smaller images will be rendered on top of bigger images.
      *
      * @param extent - The extent.
-     * @returns The distance between the camera and the image.
+     * @returns The render order to use for the specified extent.
      */
-    private computeZDistance(extent: Extent): number {
+    private computeRenderOrder(extent: Extent): number {
         if (this.dimensions) {
             const width = extent.dimensions(tmpVec2).x;
             // Since we don't know the smallest size of image that the source will output,
             // let's make a generous assumptions: the smallest image is 1/2^25 of the extent.
             const MAX_NUMBER_OF_SUBDIVISIONS = 33554432; // 2^25
             const SMALLEST_WIDTH = this.dimensions.x / MAX_NUMBER_OF_SUBDIVISIONS;
-            return MathUtils.mapLinear(width, this.dimensions.x, SMALLEST_WIDTH, 0, 9);
+            return Math.round(
+                MathUtils.mapLinear(width, this.dimensions.x, SMALLEST_WIDTH, 0, 5000),
+            );
         }
 
         return 0;
@@ -469,7 +471,7 @@ class LayerComposer implements MemoryUsage {
         const composerOptions: DrawOptions = {
             transparent: this.transparent,
             flipY: options.flipY,
-            zOrder: this.computeZDistance(extent),
+            renderOrder: this.computeRenderOrder(extent),
         };
         if (this.needsReprojection) {
             // Draw a warped image

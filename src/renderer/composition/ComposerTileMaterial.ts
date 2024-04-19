@@ -113,6 +113,8 @@ class ComposerTileMaterial extends ShaderMaterial {
         this.fragmentShader = FragmentShader;
         this.vertexShader = VertexShader;
 
+        this.depthTest = false;
+
         this.uniforms.tex = new Uniform(null);
         this.uniforms.gridTexture = new Uniform(null);
         this.uniforms.interpretation = new Uniform(null);

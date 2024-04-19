@@ -1092,7 +1092,7 @@ abstract class Layer<
             magFilter: LinearFilter,
             minFilter: LinearFilter,
             type,
-            depthBuffer: true,
+            depthBuffer: false,
             generateMipmaps: false,
         };
 
