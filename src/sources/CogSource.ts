@@ -24,6 +24,7 @@ import {
     type GetMemoryUsageContext,
     type MemoryUsageReport,
 } from '../core/MemoryUsage';
+import ConcurrentDownloader from './ConcurrentDownloader';
 
 const tmpDim = new Vector2();
 
@@ -116,9 +117,15 @@ export class FetcherResponse extends BaseResponse {
  * to centralize requests and benefit from the HTTP configuration module.
  */
 class FetcherClient extends BaseClient {
+    private readonly _downloader = new ConcurrentDownloader({
+        fetch: Fetcher.fetch,
+        retry: 3,
+        timeout: 10000,
+    });
+
     // @ts-expect-error (untyped base method)
     async request({ headers, credentials, signal } = {}): Promise<FetcherResponse> {
-        const response = await Fetcher.fetch(this.url, {
+        const response = await this._downloader.fetch(this.url, {
             headers,
             credentials,
             signal,
