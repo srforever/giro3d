@@ -542,6 +542,9 @@ function createDataTexture(
 
     if (!isEmptyTexture(texture)) {
         texture.needsUpdate = true;
+        texture.generateMipmaps = false;
+        texture.magFilter = LinearFilter;
+        texture.minFilter = LinearFilter;
     }
 
     return {

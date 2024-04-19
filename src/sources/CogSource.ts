@@ -1,4 +1,4 @@
-import { FloatType, LinearFilter, MathUtils, Texture, UnsignedByteType, Vector2 } from 'three';
+import { FloatType, MathUtils, Texture, UnsignedByteType, Vector2 } from 'three';
 
 import {
     fromCustomClient,
@@ -479,8 +479,6 @@ class CogSource extends ImageSource {
             ...buffers,
         );
 
-        texture.magFilter = LinearFilter;
-        texture.minFilter = LinearFilter;
         return { texture, min, max };
     }
 
