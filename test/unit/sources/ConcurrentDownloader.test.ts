@@ -4,22 +4,33 @@ import { PromiseUtils } from 'src/utils';
 
 const URL = 'http://example.com/foo';
 
+function failClone(): Response {
+    throw new Error('fail');
+}
+
+const clonedResponse = {
+    status: 200,
+    statusText: 'ok',
+    clone: failClone,
+} as Response;
+
 const response = {
     status: 200,
     statusText: 'ok',
-    blob: () => Promise.resolve(new Blob([])),
+    clone: () => clonedResponse,
 } as Response;
 
 const defaultFetch: FetchCallback = () => Promise.resolve(response);
 
 describe('fetch', () => {
-    it('should return the same reusable response for the same url', async () => {
+    it('should return a cloned response', async () => {
         const dl = new ConcurrentDownloader({ fetch: defaultFetch });
 
         const res1 = dl.fetch(URL);
         const res2 = dl.fetch(URL);
 
-        expect(await res1).toBe(await res2);
+        expect(await res1).not.toBe(await res2);
+        expect(await res2).toBe(clonedResponse);
     });
 
     it('should handle timeouts', async () => {
@@ -28,7 +39,7 @@ describe('fetch', () => {
         const response = {
             status: 200,
             statusText: 'ok',
-            blob: () => Promise.resolve(new Blob([])),
+            clone: () => response,
         } as Response;
 
         const fetch: FetchCallback = (url, options) => {
@@ -57,7 +68,7 @@ describe('fetch', () => {
         const response = {
             status: 200,
             statusText: 'ok',
-            blob: () => Promise.resolve(new Blob([])),
+            clone: () => response,
         } as Response;
 
         const fetch: FetchCallback = (url, options) => {
@@ -71,9 +82,9 @@ describe('fetch', () => {
         const abort2 = new AbortController();
         const abort3 = new AbortController();
 
-        dl.fetch(URL, abort1.signal);
-        dl.fetch(URL, abort2.signal);
-        dl.fetch(URL, abort3.signal);
+        dl.fetch(URL, { signal: abort1.signal });
+        dl.fetch(URL, { signal: abort2.signal });
+        dl.fetch(URL, { signal: abort3.signal });
 
         expect(aggregateSignal).not.toBe(abort1.signal);
         expect(aggregateSignal).not.toBe(abort2.signal);
