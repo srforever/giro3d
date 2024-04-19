@@ -404,7 +404,7 @@ function getPixels(image: ImageBitmap | HTMLImageElement | HTMLCanvasElement): U
     const canvas = document.createElement('canvas');
     canvas.width = image.width;
     canvas.height = image.height;
-    const context = canvas.getContext('2d', { willReadFrequently: true });
+    const context = canvas.getContext('2d', { willReadFrequently: true, desynchronized: true });
     context.drawImage(image, 0, 0);
 
     return context.getImageData(0, 0, image.width, image.height).data;
