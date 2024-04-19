@@ -10,6 +10,8 @@ import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 import StatusBar from './widgets/StatusBar.js';
+import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
+import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(
@@ -43,15 +45,25 @@ instance.useTHREEControls(controls);
 
 // Adds layers in a map
 
-const map = new Map('planar', { extent, maxSubdivisionLevel: 15 });
+const map = new Map('planar', { extent, backgroundColor: '#135D66' });
 instance.add(map);
 
 const ecoRegionLayerStyle = feature => {
     const color = feature.get('COLOR') || '#eeeeee';
+    const highlight = feature.get('highlight');
+    const stroke = highlight
+        ? new Stroke({
+              color: 'white',
+              width: 2,
+          })
+        : undefined;
+
     return new Style({
+        zIndex: highlight ? 1 : 0,
         fill: new Fill({
             color,
         }),
+        stroke,
     });
 };
 
@@ -166,6 +178,60 @@ map.addLayer(customVectorLayer);
 
 StatusBar.bind(instance);
 
+const labelElement = document.createElement('span');
+labelElement.classList = 'badge rounded-pill text-bg-light';
+labelElement.style.marginTop = '2rem';
+const label = new CSS2DObject(labelElement);
+
+label.visible = false;
+instance.add(label);
+
+let previousFeature;
+
+function pickFeatures(mouseEvent) {
+    const pickResult = instance.pickObjectsAt(mouseEvent, {
+        radius: 0,
+    });
+
+    const picked = pickResult.at(0);
+
+    previousFeature?.set('highlight', false);
+
+    function resetPickedFeatures() {
+        previousFeature = null;
+        if (label.visible) {
+            instance.notifyChange(map);
+            label.visible = false;
+        }
+    }
+
+    if (picked) {
+        const { x, y } = picked.point;
+        const features = ecoRegionLayer.getVectorFeaturesAtCoordinate(
+            new Coordinates(instance.referenceCrs, x, y),
+        );
+
+        if (features.length > 0) {
+            const firstFeature = features[0];
+
+            firstFeature.set('highlight', true);
+
+            previousFeature = firstFeature;
+
+            instance.notifyChange(map);
+            label.position.set(x, y, 100);
+            label.visible = true;
+            label.element.innerText = firstFeature.get('ECO_NAME');
+            label.updateMatrixWorld(true);
+        } else {
+            resetPickedFeatures();
+        }
+    } else {
+        resetPickedFeatures();
+    }
+}
+
+instance.domElement.addEventListener('mousemove', pickFeatures);
 Inspector.attach(document.getElementById('panelDiv'), instance);
 instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
 
