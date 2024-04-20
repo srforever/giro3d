@@ -137,6 +137,14 @@ module.exports = {
             files: ['**/*.ts'],
             rules: {
                 '@typescript-eslint/consistent-type-imports': 'error',
+                '@typescript-eslint/no-unused-vars': [
+                    'error', // or "error"
+                    {
+                        argsIgnorePattern: '^_',
+                        varsIgnorePattern: '^_',
+                        caughtErrorsIgnorePattern: '^_',
+                    },
+                ],
             },
         },
     ],
