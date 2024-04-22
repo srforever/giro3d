@@ -33,10 +33,12 @@ export default class RenderTargetPool
     private readonly _renderTargets: Map<WebGLRenderTarget, RenderTargetOptions> = new Map();
     private readonly _cleanupTimeoutMs: number;
     private _timeout: NodeJS.Timeout;
+    private _maxPoolSize: number;
 
-    constructor(cleanupTimeoutMs: number) {
+    constructor(cleanupTimeoutMs: number, maxPoolSize: number) {
         super();
         this._cleanupTimeoutMs = cleanupTimeoutMs;
+        this._maxPoolSize = maxPoolSize;
     }
 
     getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
@@ -93,7 +95,13 @@ export default class RenderTargetPool
                     instancePool.set(options, []);
                 }
                 const pool = instancePool.get(options);
-                pool.push(obj);
+
+                if (pool.length < this._maxPoolSize) {
+                    pool.push(obj);
+                } else {
+                    obj.dispose();
+                    this._renderTargets.delete(obj);
+                }
             }
         }
 
@@ -120,4 +128,4 @@ export default class RenderTargetPool
     }
 }
 
-export const GlobalRenderTargetPool = new RenderTargetPool(5000);
+export const GlobalRenderTargetPool = new RenderTargetPool(50, 16);
