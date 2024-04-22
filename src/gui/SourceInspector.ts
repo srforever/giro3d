@@ -5,13 +5,15 @@ import type Instance from '../core/Instance';
 import Panel from './Panel';
 import CogSource from '../sources/CogSource';
 import TiledImageSource from '../sources/TiledImageSource';
+import * as MemoryUsage from '../core/MemoryUsage';
+import type { ImageSource } from '../sources';
 
 /**
  * Inspector for a source.
  *
  */
 class SourceInspector extends Panel {
-    source: object;
+    source: ImageSource;
     sourceType: string;
     networkOptions: string;
     url?: string;
@@ -19,13 +21,15 @@ class SourceInspector extends Panel {
     subtype?: string;
     crs?: string;
     resolutions?: number;
+    cpuMemoryUsage = 'unknown';
+    gpuMemoryUsage = 'unknown';
 
     /**
      * @param gui - The GUI.
      * @param instance - The Giro3D instance.
      * @param source - The source.
      */
-    constructor(gui: GUI, instance: Instance, source: object) {
+    constructor(gui: GUI, instance: Instance, source: ImageSource) {
         super(gui, instance, 'Source');
 
         this.source = source;
@@ -36,6 +40,9 @@ class SourceInspector extends Panel {
     }
 
     _addControllers(source: object) {
+        this.addController<string>(this, 'cpuMemoryUsage').name('Memory usage (CPU)');
+        this.addController<string>(this, 'gpuMemoryUsage').name('Memory usage (GPU)');
+
         if (source instanceof CogSource) {
             const cogSource = source as CogSource;
             this.url = cogSource.url.toString();
@@ -57,6 +64,14 @@ class SourceInspector extends Panel {
             this.addController<string>(this, 'sourceType').name('Type');
             this.processOpenLayersSource(source.source);
         }
+    }
+
+    updateValues(): void {
+        const memUsage = this.source.getMemoryUsage({ renderer: this.instance.renderer });
+        this.cpuMemoryUsage = MemoryUsage.format(memUsage.cpuMemory);
+        this.gpuMemoryUsage = MemoryUsage.format(memUsage.gpuMemory);
+
+        this._controllers.forEach(c => c.updateDisplay());
     }
 
     processOpenLayersSource(source: TileSource) {

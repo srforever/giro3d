@@ -1,4 +1,4 @@
-import { Texture, CanvasTexture, MathUtils, Vector2 } from 'three';
+import { type Texture, CanvasTexture, MathUtils, Vector2 } from 'three';
 import OLVectorTileSourcce from 'ol/source/VectorTile.js';
 import VectorTile from 'ol/VectorTile.js';
 import type { Style } from 'ol/style.js';
@@ -51,6 +51,7 @@ import ImageSource, { ImageResult } from './ImageSource';
 import OpenLayersUtils from '../utils/OpenLayersUtils';
 import type Extent from '../core/geographic/Extent';
 import Fetcher from '../utils/Fetcher.js';
+import EmptyTexture from '../renderer/EmptyTexture';
 
 const tmpTransform: Transform = createTransform();
 const MIN_LEVEL_THRESHOLD = 2;
@@ -282,7 +283,7 @@ class VectorTileSource extends ImageSource {
         const empty = this.createBuilderGroup(tile);
 
         if (empty) {
-            return new Texture();
+            return new EmptyTexture();
         }
 
         const canvas = this.rasterize(tile);

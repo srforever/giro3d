@@ -4,6 +4,7 @@ import Panel from './Panel';
 import type Instance from '../core/Instance';
 import type Entity3D from '../entities/Entity3D';
 import Helpers from '../helpers/Helpers';
+import * as MemoryUsage from '../core/MemoryUsage';
 
 const _tempArray: Object3D[] = [];
 
@@ -124,6 +125,8 @@ class EntityInspector extends Panel {
     boundingBoxColor: Color | string;
     state: string;
     clippingPlanePanel: ClippingPlanePanel;
+    cpuMemoryUsage = 'unknown';
+    gpuMemoryUsage = 'unknown';
 
     /**
      * @param parentGui - The parent GUI.
@@ -147,6 +150,9 @@ class EntityInspector extends Panel {
         this.state = 'idle';
 
         this.addController<string>(this.entity, 'id').name('Identifier');
+
+        this.addController<string>(this, 'cpuMemoryUsage').name('Memory usage (CPU)');
+        this.addController<string>(this, 'gpuMemoryUsage').name('Memory usage (GPU)');
 
         this.addController<string>(this, 'state').name('Status');
         this.addController<number>(this.entity, 'renderOrder', 0, 10, 1)
@@ -194,6 +200,9 @@ class EntityInspector extends Panel {
     }
 
     updateValues() {
+        const memUsage = this.entity.getMemoryUsage({ renderer: this.instance.renderer });
+        this.cpuMemoryUsage = MemoryUsage.format(memUsage.cpuMemory);
+        this.gpuMemoryUsage = MemoryUsage.format(memUsage.gpuMemory);
         this.state = this.entity.loading
             ? `loading (${Math.round(this.entity.progress * 100)}%)`
             : 'idle';

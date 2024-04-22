@@ -12,7 +12,7 @@ describe('TextureGenerator', () => {
         describe('given unsigned 8-bit data', () => {
             describe('given 1 input channel', () => {
                 it('should return a buffer with N * 4 values, where N is the number of pixels', () => {
-                    const data = [5, 4, 3, 2];
+                    const data = new Uint8ClampedArray([5, 4, 3, 2]);
                     const w = 2;
                     const h = 2;
                     const expectedOutputLength = data.length * 2; // RGBA
@@ -23,9 +23,9 @@ describe('TextureGenerator', () => {
                         data,
                     );
 
-                    const buf = result.image.data;
+                    const buf = result.texture.image.data;
 
-                    expect(result).toBeInstanceOf(DataTexture);
+                    expect(result.texture).toBeInstanceOf(DataTexture);
                     expect(buf).toHaveLength(expectedOutputLength);
 
                     for (let i = 0; i < data.length; i++) {
@@ -39,9 +39,9 @@ describe('TextureGenerator', () => {
 
             describe('given 3 input channels', () => {
                 it('should return a buffer with N * 4 values, where N is the number of pixels', () => {
-                    const r = [1, 2, 3, 4];
-                    const g = [4, 3, 2, 1];
-                    const b = [98, 97, 227, 131];
+                    const r = new Uint8ClampedArray([1, 2, 3, 4]);
+                    const g = new Uint8ClampedArray([4, 3, 2, 1]);
+                    const b = new Uint8ClampedArray([98, 97, 227, 131]);
                     const w = 2;
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
@@ -54,9 +54,9 @@ describe('TextureGenerator', () => {
                         b,
                     );
 
-                    const buf = result.image.data;
+                    const buf = result.texture.image.data;
 
-                    expect(result).toBeInstanceOf(DataTexture);
+                    expect(result.texture).toBeInstanceOf(DataTexture);
                     expect(buf).toHaveLength(expectedOutputLength);
 
                     for (let i = 0; i < r.length; i++) {
@@ -76,10 +76,10 @@ describe('TextureGenerator', () => {
 
             describe('given 4 input channels', () => {
                 it('should return a buffer with N * 4 values, where N is the number of pixels', () => {
-                    const r = [1, 2, 3, 4];
-                    const g = [4, 3, 2, 1];
-                    const b = [98, 97, 227, 131];
-                    const a = [0, 255, 127, 60];
+                    const r = new Uint8ClampedArray([1, 2, 3, 4]);
+                    const g = new Uint8ClampedArray([4, 3, 2, 1]);
+                    const b = new Uint8ClampedArray([98, 97, 227, 131]);
+                    const a = new Uint8ClampedArray([0, 255, 127, 60]);
                     const w = 2;
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RG
@@ -93,9 +93,9 @@ describe('TextureGenerator', () => {
                         a,
                     );
 
-                    const buf = result.image.data;
+                    const buf = result.texture.image.data;
 
-                    expect(result).toBeInstanceOf(DataTexture);
+                    expect(result.texture).toBeInstanceOf(DataTexture);
                     expect(buf).toBeInstanceOf(Uint8ClampedArray);
                     expect(buf).toHaveLength(expectedOutputLength);
 
@@ -119,7 +119,7 @@ describe('TextureGenerator', () => {
         describe('given float32 data', () => {
             describe('given 1 input channel', () => {
                 it('should return a buffer with N * 4 values, where N is the number of pixels', () => {
-                    const data = [5.2, 4.1, 3.34, 13.2];
+                    const data = new Float32Array([5.2, 4.1, 3.34, 13.2]);
                     const w = 2;
                     const h = 2;
                     const expectedOutputLength = data.length * 2; // RG
@@ -130,9 +130,9 @@ describe('TextureGenerator', () => {
                         data,
                     );
 
-                    const buf = result.image.data;
+                    const buf = result.texture.image.data;
 
-                    expect(result).toBeInstanceOf(DataTexture);
+                    expect(result.texture).toBeInstanceOf(DataTexture);
                     expect(buf).toBeInstanceOf(Float32Array);
                     expect(buf).toHaveLength(expectedOutputLength);
 
@@ -147,7 +147,7 @@ describe('TextureGenerator', () => {
                 });
 
                 it('should honor the scaling values and return a 8-bit texture', () => {
-                    const data = [15000, 4050, 0, 7500];
+                    const data = new Float32Array([15000, 4050, 0, 7500]);
                     const w = 2;
                     const h = 2;
                     const min = 0;
@@ -161,9 +161,9 @@ describe('TextureGenerator', () => {
                         data,
                     );
 
-                    const buf = result.image.data;
+                    const buf = result.texture.image.data;
 
-                    expect(result).toBeInstanceOf(DataTexture);
+                    expect(result.texture).toBeInstanceOf(DataTexture);
                     expect(buf).toBeInstanceOf(Uint8ClampedArray);
                     expect(buf).toHaveLength(expectedOutputLength);
 
@@ -179,7 +179,7 @@ describe('TextureGenerator', () => {
                 });
 
                 it('should set apha at transparent if pixel is NaN, and data to default nodata', () => {
-                    const data = [5.2, NaN, 5.2, NaN];
+                    const data = new Float32Array([5.2, NaN, 5.2, NaN]);
                     const w = 2;
                     const h = 2;
                     const expectedOutputLength = data.length * 2; // RG
@@ -190,9 +190,9 @@ describe('TextureGenerator', () => {
                         data,
                     );
 
-                    const buf = result.image.data;
+                    const buf = result.texture.image.data;
 
-                    expect(result).toBeInstanceOf(DataTexture);
+                    expect(result.texture).toBeInstanceOf(DataTexture);
                     expect(buf).toBeInstanceOf(Float32Array);
                     expect(buf).toHaveLength(expectedOutputLength);
 
@@ -210,7 +210,7 @@ describe('TextureGenerator', () => {
                 });
 
                 it('should set apha at transparent if pixel is NaN, and default no-data as value is no-data not provided', () => {
-                    const data = [5.2, NaN, 5.2, NaN];
+                    const data = new Float32Array([5.2, NaN, 5.2, NaN]);
                     const w = 2;
                     const h = 2;
                     const expectedOutputLength = data.length * 2; // RG
@@ -221,9 +221,9 @@ describe('TextureGenerator', () => {
                         data,
                     );
 
-                    const buf = result.image.data;
+                    const buf = result.texture.image.data;
 
-                    expect(result).toBeInstanceOf(DataTexture);
+                    expect(result.texture).toBeInstanceOf(DataTexture);
                     expect(buf).toBeInstanceOf(Float32Array);
                     expect(buf).toHaveLength(expectedOutputLength);
 
@@ -243,9 +243,9 @@ describe('TextureGenerator', () => {
 
             describe('given 3 input channels', () => {
                 it('should return a buffer with N * 4 values, where N is the number of pixels', () => {
-                    const r = [1.2, 2.44, 3.23, 4.14];
-                    const g = [4.14, 3, 2, 1];
-                    const b = [98.05, 97, 227, 131];
+                    const r = new Float32Array([1.2, 2.44, 3.23, 4.14]);
+                    const g = new Float32Array([4.14, 3, 2, 1]);
+                    const b = new Float32Array([98.05, 97, 227, 131]);
                     const w = 2;
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
@@ -258,9 +258,9 @@ describe('TextureGenerator', () => {
                         b,
                     );
 
-                    const buf = result.image.data;
+                    const buf = result.texture.image.data;
 
-                    expect(result).toBeInstanceOf(DataTexture);
+                    expect(result.texture).toBeInstanceOf(DataTexture);
                     expect(buf).toBeInstanceOf(Float32Array);
                     expect(buf).toHaveLength(expectedOutputLength);
 
@@ -281,10 +281,10 @@ describe('TextureGenerator', () => {
 
             describe('given 4 input channels', () => {
                 it('should return a buffer with N * 4 values, where N is the number of pixels', () => {
-                    const r = [1.2, 2.44, 3.23, 4.14];
-                    const g = [4.14, 3, 2, 1];
-                    const b = [98.05, 97, 227, 131];
-                    const a = [0, 1, 0.4, 0.2];
+                    const r = new Float32Array([1.2, 2.44, 3.23, 4.14]);
+                    const g = new Float32Array([4.14, 3, 2, 1]);
+                    const b = new Float32Array([98.05, 97, 227, 131]);
+                    const a = new Float32Array([0, 1, 0.4, 0.2]);
                     const w = 2;
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
@@ -298,9 +298,9 @@ describe('TextureGenerator', () => {
                         a,
                     );
 
-                    const buf = result.image.data;
+                    const buf = result.texture.image.data;
 
-                    expect(result).toBeInstanceOf(DataTexture);
+                    expect(result.texture).toBeInstanceOf(DataTexture);
                     expect(buf).toBeInstanceOf(Float32Array);
                     expect(buf).toHaveLength(expectedOutputLength);
 
@@ -335,7 +335,16 @@ describe('TextureGenerator', () => {
         it('should honor 2-channel textures', () => {
             const ALPHA_ZERO = 0;
             const ALPHA_ONE = 1;
-            const buf = [999, ALPHA_ZERO, -100, ALPHA_ONE, +100, ALPHA_ONE, -999, ALPHA_ZERO];
+            const buf = new Float32Array([
+                999,
+                ALPHA_ZERO,
+                -100,
+                ALPHA_ONE,
+                +100,
+                ALPHA_ONE,
+                -999,
+                ALPHA_ZERO,
+            ]);
             const channelCount = 2;
             const minmax = TextureGenerator.computeMinMaxFromBuffer(
                 buf,
@@ -348,22 +357,22 @@ describe('TextureGenerator', () => {
         });
 
         it('should only use the first channel of each pixel', () => {
-            const buf = [1, 999, 999, 999, 2, 999, 999, 999];
+            const buf = new Float32Array([1, 999, 999, 999, 2, 999, 999, 999]);
             const minmax = TextureGenerator.computeMinMaxFromBuffer(buf);
             expect(minmax.min).toEqual(1);
             expect(minmax.max).toEqual(2);
         });
 
         it('should ignore NaN', () => {
-            const buf = [1, 0, 0, 1, 3, 0, 0, 1, NaN, 0, 0, 1];
+            const buf = new Float32Array([1, 0, 0, 1, 3, 0, 0, 1, NaN, 0, 0, 1]);
             const minmax = TextureGenerator.computeMinMaxFromBuffer(buf);
             expect(minmax.min).toEqual(1);
             expect(minmax.max).toEqual(3);
         });
 
         it('should ignore no-data', () => {
-            const nodata = 32032.2323;
-            const buf = [1, 0, 0, 1, 3, 0, 0, 1, nodata, 0, 0, 1];
+            const nodata = -99999;
+            const buf = new Float32Array([1, 0, 0, 1, 3, 0, 0, 1, nodata, 0, 0, 1]);
             const minmax = TextureGenerator.computeMinMaxFromBuffer(buf, nodata);
             expect(minmax.min).toEqual(1);
             expect(minmax.max).toEqual(3);

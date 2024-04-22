@@ -1,4 +1,13 @@
-import { Vector2, MathUtils, Group, Matrix4, type Object3D, type Material, Vector3 } from 'three';
+import {
+    Vector2,
+    MathUtils,
+    Group,
+    Matrix4,
+    type Object3D,
+    type Material,
+    Vector3,
+    type BufferGeometry,
+} from 'three';
 import type Extent from '../core/geographic/Extent';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
 import OperationCounter from '../core/OperationCounter';
@@ -25,6 +34,12 @@ import pickPointsAt, { type PointsPickResult } from '../core/picking/PickPointsA
 import type { ColorLayer, Layer, LayerEvents } from '../core/layer';
 import type HasLayers from '../core/layer/HasLayers';
 import { type EntityUserData } from './Entity';
+import {
+    createEmptyReport,
+    getGeometryMemoryUsage,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
 
 /** Options to create a Tiles3D object. */
 export interface Tiles3DOptions<TMaterial extends Material> {
@@ -175,6 +190,24 @@ class Tiles3D<
         this._opCounter = new OperationCounter();
 
         this._queue = DefaultQueue;
+    }
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport) {
+        const result = target ?? createEmptyReport();
+
+        this.traverse(obj => {
+            if ('geometry' in obj) {
+                getGeometryMemoryUsage(obj.geometry as BufferGeometry, result);
+            }
+        });
+
+        if (this.layerCount > 0) {
+            this.forEachLayer(layer => {
+                layer.getMemoryUsage(context, result);
+            });
+        }
+
+        return result;
     }
 
     async attach(colorLayer: ColorLayer) {

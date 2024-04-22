@@ -1,4 +1,4 @@
-import type { Line, Material, Mesh, Object3D, Points, Plane } from 'three';
+import type { Line, Material, Mesh, Object3D, Points, Plane, BufferGeometry } from 'three';
 import { Box3, Group, Vector3 } from 'three';
 import type VectorSource from 'ol/source/Vector';
 import type Feature from 'ol/Feature';
@@ -22,6 +22,12 @@ import {
 } from '../core/FeatureTypes';
 import OLUtils from '../utils/OpenLayersUtils';
 import type { EntityUserData } from './Entity';
+import {
+    createEmptyReport,
+    getGeometryMemoryUsage,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
 
 const vector = new Vector3();
 
@@ -273,6 +279,18 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         // some protocol like WFS have no real tiling system, so we need to make sure we don't get
         // duplicated elements
         this._tileIdSet = new Set();
+    }
+
+    getMemoryUsage(_context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        this.traverse(obj => {
+            if ('geometry' in obj) {
+                getGeometryMemoryUsage(obj.geometry as BufferGeometry, result);
+            }
+        });
+
+        return result;
     }
 
     preprocess() {

@@ -2,8 +2,10 @@ import { getUid } from 'ol';
 import { Stroke, Style } from 'ol/style.js';
 import { GeoJSON } from 'ol/format.js';
 import TileWMS from 'ol/source/TileWMS.js';
-import { MathUtils, Vector3 } from 'three';
+
+import { MathUtils, Vector3, ColorRepresentation } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
@@ -12,6 +14,7 @@ import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
+import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -63,8 +66,8 @@ function getColor(id) {
     if (featureColors.has(id)) {
         return featureColors.get(id);
     }
-    const hue = MathUtils.randFloat(0, 360);
-    const color = `hsl(${hue}, 90%, 50%)`;
+    const hue = MathUtils.randFloat(30, 340);
+    const color = `hsl(${hue}, 70%, 50%)`;
 
     featureColors.set(id, color);
     return color;
@@ -72,12 +75,25 @@ function getColor(id) {
 
 const style = feature => {
     const id = getUid(feature);
-    return new Style({
-        stroke: new Stroke({
-            color: getColor(id),
-            width: 1,
+    const highlight = feature.get('highlight');
+    const width = highlight ? 10 : 6;
+    const color = getColor(id);
+    return [
+        new Style({
+            zIndex: highlight ? 10 : 0,
+            stroke: new Stroke({
+                color: 'white',
+                width,
+            }),
         }),
-    });
+        new Style({
+            zIndex: highlight ? 10 : 0,
+            stroke: new Stroke({
+                color,
+                width: width - 2,
+            }),
+        }),
+    ];
 };
 
 // Adds a WFS imagery layer
@@ -117,5 +133,77 @@ controls.maxPolarAngle = Math.PI / 2.3;
 
 instance.useTHREEControls(controls);
 
+const labelElement = document.createElement('div');
+labelElement.classList = 'badge rounded-pill text-bg-light';
+labelElement.style.marginTop = '2rem';
+
+const lineName = document.createElement('span');
+lineName.style.marginLeft = '0.5rem';
+
+const lineNumber = document.createElement('span');
+lineNumber.classList = 'badge rounded-pill';
+lineNumber.style.color = 'white';
+lineNumber.style.background = 'red';
+lineNumber.innerText = '32';
+
+labelElement.appendChild(lineNumber);
+labelElement.appendChild(lineName);
+
+const label = new CSS2DObject(labelElement);
+
+label.visible = false;
+instance.add(label);
+
+let previousFeature;
+
+function pickFeatures(mouseEvent) {
+    const pickResult = instance.pickObjectsAt(mouseEvent, {
+        radius: 0,
+    });
+
+    const picked = pickResult.at(0);
+
+    previousFeature?.set('highlight', false);
+
+    function resetPickedFeatures() {
+        previousFeature = null;
+        if (label.visible) {
+            instance.notifyChange(map);
+            label.visible = false;
+        }
+    }
+
+    if (picked) {
+        const { x, y } = picked.point;
+        const coordinates = new Coordinates(instance.referenceCrs, x, y);
+        const features = wfsLayer.getVectorFeaturesAtCoordinate(coordinates, {
+            radius: 3,
+            xTileRes: 2,
+            yTileRes: 2,
+        });
+
+        if (features.length > 0) {
+            const firstFeature = features[features.length - 1];
+
+            firstFeature.set('highlight', true);
+
+            previousFeature = firstFeature;
+
+            instance.notifyChange(map);
+            label.position.set(x, y, 0);
+            label.visible = true;
+            lineNumber.style.background = getColor(getUid(firstFeature));
+            lineNumber.innerText = firstFeature.get('ligne');
+            lineName.innerText = firstFeature.get('nom_trace');
+            label.updateMatrixWorld(true);
+        } else {
+            resetPickedFeatures();
+        }
+    } else {
+        resetPickedFeatures();
+    }
+}
+
+instance.domElement.addEventListener('mousemove', pickFeatures);
 Inspector.attach(document.getElementById('panelDiv'), instance);
 StatusBar.bind(instance);

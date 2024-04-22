@@ -1,5 +1,6 @@
 import { Vector3 } from 'three';
 import Instance from '@giro3d/giro3d/core/Instance.js';
+import * as MemoryUsage from '@giro3d/giro3d/core/MemoryUsage.js';
 
 const VIEW_PARAM = 'view';
 // Use default locale
@@ -43,8 +44,10 @@ function updateUrl(instance) {
 
 let progressBar;
 let percent;
+let memoryUsage;
 let urlTimeout;
 let currentInstance;
+let additionalInstances = [];
 let pickingRadius;
 const tmpVec3 = new Vector3();
 const lastCameraPosition = new Vector3(0, 0, 0);
@@ -53,6 +56,19 @@ let coordinates;
 function updateProgressFrameRequester() {
     progressBar.style.width = `${currentInstance.progress * 100}%`;
     percent.innerText = `${Math.round(currentInstance.progress * 100)}%`;
+
+    const mem = currentInstance.getMemoryUsage();
+
+    if (additionalInstances.length > 0) {
+        for (const instance of additionalInstances) {
+            const otherMem = instance.getMemoryUsage();
+            mem.cpuMemory += otherMem.cpuMemory;
+            mem.gpuMemory += otherMem.gpuMemory;
+        }
+    }
+
+    const memoryUsageString = `Mem ${MemoryUsage.format(mem.cpuMemory)} (CPU), ${MemoryUsage.format(mem.gpuMemory)} (GPU)`;
+    memoryUsage.innerText = memoryUsageString;
 }
 
 function updateUrlFrameRequester() {
@@ -92,6 +108,7 @@ function pick(mouseEvent) {
  * @param {object} options The options.
  * @param {number} options.radius The radius of the picking.
  * @param {boolean} options.disableUrlUpdate Disable automatic URL update.
+ * @param {[Instance] | Instance} options.additionalInstances Additional instances to track.
  */
 function bind(instance, options = {}) {
     pickingRadius = options.radius ?? 1;
@@ -102,6 +119,15 @@ function bind(instance, options = {}) {
 
     progressBar = document.getElementById('progress-bar');
     percent = document.getElementById('loading-percent');
+    memoryUsage = document.getElementById('memory-usage');
+
+    if (options.additionalInstances) {
+        if (Array.isArray(options.additionalInstances)) {
+            additionalInstances.push(...options.additionalInstances);
+        } else {
+            additionalInstances.push(options.additionalInstances);
+        }
+    }
 
     instance.addEventListener('update-end', updateProgressFrameRequester);
 

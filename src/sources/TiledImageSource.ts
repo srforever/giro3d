@@ -1,4 +1,4 @@
-import { Texture, UnsignedByteType, Vector2 } from 'three';
+import { type Texture, UnsignedByteType, Vector2 } from 'three';
 import { TileRange } from 'ol';
 import type UrlTile from 'ol/source/UrlTile';
 import type TileGrid from 'ol/tilegrid/TileGrid.js';
@@ -15,6 +15,7 @@ import type ImageFormat from '../formats/ImageFormat';
 import type { TileCoord } from 'ol/tilecoord';
 import ConcurrentDownloader from './ConcurrentDownloader';
 import { MemoryTracker } from '../renderer';
+import EmptyTexture from '../renderer/EmptyTexture';
 
 const MIN_LEVEL_THRESHOLD = 2;
 const DEFAULT_RETRIES = 3;
@@ -261,7 +262,7 @@ export default class TiledImageSource extends ImageSource {
 
         if (!blob) {
             return new ImageResult({
-                texture: new Texture(),
+                texture: new EmptyTexture(),
                 extent,
                 id,
             });

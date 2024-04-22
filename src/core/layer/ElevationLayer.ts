@@ -42,9 +42,7 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
     constructor(options: ElevationLayerOptions) {
         super({
             noDataOptions: options.noDataOptions ?? {
-                replaceNoData: true,
-                maxSearchDistance: +Infinity,
-                alpha: 0,
+                replaceNoData: false,
             },
             computeMinMax: true,
             // If min/max is not provided, we *have* to preload images

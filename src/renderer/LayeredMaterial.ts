@@ -1,7 +1,6 @@
 import {
     Color,
     ShaderMaterial,
-    Texture,
     Uniform,
     Vector2,
     Vector4,
@@ -19,6 +18,7 @@ import type {
     WebGLRenderer,
     TextureDataType,
     WebGLProgramParametersWithUniforms,
+    Texture,
 } from 'three';
 import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
@@ -44,6 +44,13 @@ import type { AtlasInfo, LayerAtlasInfo } from './AtlasBuilder';
 import TextureGenerator from '../utils/TextureGenerator';
 import type { MaskMode } from '../core/layer/MaskLayer';
 import type { ColorMapMode } from '../core/layer';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
+import type MemoryUsage from '../core/MemoryUsage';
+import EmptyTexture from './EmptyTexture';
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -55,7 +62,7 @@ interface ElevationTexture extends Texture {
     isFinal: boolean;
 }
 
-const emptyTexture = new Texture();
+const emptyTexture = new EmptyTexture();
 
 function makeArray(size: number) {
     const array = new Array(size);
@@ -292,7 +299,7 @@ interface Uniforms {
     fogColor: IUniform<Color>;
 }
 
-class LayeredMaterial extends ShaderMaterial {
+class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
     private readonly _getIndexFn: (arg0: Layer) => number;
     private readonly _renderer: WebGLRenderer;
     private readonly _colorLayers: ColorLayer[] = [];
@@ -325,6 +332,17 @@ class LayeredMaterial extends ShaderMaterial {
     private readonly _maxTextureImageUnits: number;
     private _options: MaterialOptions;
     private _hasElevationLayer: boolean;
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        // We only consider textures that this material owns. That excludes layer textures.
+        const atlas = this.texturesInfo.color.atlasTexture;
+        if (atlas) {
+            TextureGenerator.getMemoryUsage(atlas, context, result);
+        }
+        return result;
+    }
 
     constructor({
         options = {},

@@ -71,8 +71,7 @@ class BilFormat extends ImageFormat {
             height: options.height,
             nodata: options.noDataValue,
         };
-        const texture = TextureGenerator.createDataTexture(opts, FloatType, floatArray);
-        texture.generateMipmaps = false;
+        const { texture } = TextureGenerator.createDataTexture(opts, FloatType, floatArray);
         return { texture, min, max };
     }
 }

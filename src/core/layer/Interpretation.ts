@@ -23,6 +23,13 @@ interface InterpretationOptions {
     max?: number;
 }
 
+export type InterpretationUniform = {
+    mode?: number;
+    negateValues?: boolean;
+    min?: number;
+    max?: number;
+};
+
 /**
  * Describes how an image pixel should be interpreted. Any interpretation other than `Raw` will
  * apply a specific processing to every pixel of an image.
@@ -238,7 +245,7 @@ class Interpretation {
     /**
      * @internal
      */
-    setUniform(uniform: { mode?: number; negateValues?: boolean; min?: number; max?: number }) {
+    setUniform(uniform: InterpretationUniform) {
         const mode = this.mode;
 
         uniform.mode = mode;

@@ -9,6 +9,12 @@ import {
     LinearSRGBColorSpace,
 } from 'three';
 import type Extent from '../core/geographic/Extent';
+import type MemoryUsage from '../core/MemoryUsage';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
 
 class ImageResult {
     id: string;
@@ -108,7 +114,7 @@ export interface ImageSourceEvents {
  * Base class for all image sources. The `ImageSource` produces images to be consumed by clients,
  * such as map layers.
  */
-abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
+abstract class ImageSource extends EventDispatcher<ImageSourceEvents> implements MemoryUsage {
     readonly isImageSource: boolean = true;
     private readonly _customColorSpace: ColorSpace;
     type: string;
@@ -139,6 +145,10 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> {
         this.version = 0;
 
         this.containsFn = options.containsFn;
+    }
+
+    getMemoryUsage(_context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        return target ?? createEmptyReport();
     }
 
     /**

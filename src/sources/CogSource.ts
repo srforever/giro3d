@@ -1,4 +1,4 @@
-import { FloatType, LinearFilter, MathUtils, Texture, UnsignedByteType, Vector2 } from 'three';
+import { FloatType, MathUtils, Texture, UnsignedByteType, Vector2 } from 'three';
 
 import {
     fromCustomClient,
@@ -11,6 +11,7 @@ import {
     type ReadRasterResult,
     globals as geotiffGlobals,
 } from 'geotiff';
+import type QuickLRU from 'quick-lru';
 
 import Fetcher from '../utils/Fetcher';
 import Extent from '../core/geographic/Extent';
@@ -18,6 +19,11 @@ import TextureGenerator, { type NumberArray } from '../utils/TextureGenerator';
 import PromiseUtils from '../utils/PromiseUtils';
 import ImageSource, { ImageResult, type ImageSourceOptions } from './ImageSource';
 import { type Cache, GlobalCache } from '../core/Cache';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
 
 const tmpDim = new Vector2();
 
@@ -30,6 +36,11 @@ function getPool(): Pool {
 
     return sharedPool;
 }
+
+type CachedBlock = {
+    data: ArrayBuffer;
+    length: number;
+};
 
 /**
  * Determine if an image type is a mask.
@@ -252,6 +263,26 @@ class CogSource extends ImageSource {
         this._cacheOptions = options.cacheOptions;
     }
 
+    getMemoryUsage(_: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        if (!this._tiffImage) {
+            return result;
+        }
+        const source = this._tiffImage.source as { blockCache: QuickLRU<number, CachedBlock> };
+        const cache = source.blockCache;
+
+        let bytes = 0;
+
+        cache.forEach((block: CachedBlock) => {
+            bytes += block.data.byteLength;
+        });
+
+        result.cpuMemory += bytes;
+
+        return result;
+    }
+
     getExtent() {
         return this._extent;
     }
@@ -438,7 +469,7 @@ class CogSource extends ImageSource {
 
         const dataType = this.datatype;
 
-        const texture = TextureGenerator.createDataTexture(
+        const { texture, min, max } = TextureGenerator.createDataTexture(
             {
                 width,
                 height,
@@ -448,9 +479,7 @@ class CogSource extends ImageSource {
             ...buffers,
         );
 
-        texture.magFilter = LinearFilter;
-        texture.minFilter = LinearFilter;
-        return texture;
+        return { texture, min, max };
     }
 
     /**
@@ -533,6 +562,8 @@ class CogSource extends ImageSource {
         signal?.throwIfAborted();
 
         let texture: Texture;
+        let min: number;
+        let max: number;
         if (buffers == null) {
             texture = new Texture();
         } else {
@@ -543,10 +574,13 @@ class CogSource extends ImageSource {
                 }
             }
 
-            texture = this.createTexture(buffers as SizedArray<NumberArray>);
+            const result = this.createTexture(buffers as SizedArray<NumberArray>);
+            texture = result.texture;
+            min = result.min;
+            max = result.max;
         }
 
-        const result = { extent: actualExtent, texture, id };
+        const result = { extent: actualExtent, texture, id, min, max };
 
         return new ImageResult(result);
     }

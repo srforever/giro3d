@@ -1,4 +1,4 @@
-import { CanvasTexture, Texture, Vector2 } from 'three';
+import { CanvasTexture, Vector2 } from 'three';
 // Even if it's not explicited in the changelog
 // https://github.com/openlayers/openlayers/blob/main/changelog/upgrade-notes.md
 // Around OL6 the replay group mechanism was split into BuilderGroup to create the
@@ -31,6 +31,7 @@ import ImageSource, { ImageResult } from './ImageSource';
 import OpenLayersUtils from '../utils/OpenLayersUtils';
 import type Extent from '../core/geographic/Extent';
 import Fetcher from '../utils/Fetcher';
+import EmptyTexture from '../renderer/EmptyTexture';
 
 const tmpExtent = new Array(4);
 
@@ -93,7 +94,7 @@ function rasterizeBuilderGroup(
     const pixelRatio = 1;
     const resX = extent.dimensions().x / size.width;
     const resY = extent.dimensions().y / size.height;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true, desynchronized: true });
 
     const transform = resetTransform(tmpTransform);
     scaleTransform(transform, pixelRatio / resX, -pixelRatio / resY);
@@ -383,7 +384,7 @@ class VectorSource extends ImageSource {
         const builderGroup = this.createBuilderGroup(extent, size);
         let texture;
         if (!builderGroup) {
-            texture = new Texture();
+            texture = new EmptyTexture();
         } else {
             const canvas = createCanvas(size);
             rasterizeBuilderGroup(canvas, builderGroup, extent, size);

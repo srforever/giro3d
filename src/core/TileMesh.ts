@@ -16,6 +16,8 @@ import OBB from './OBB';
 import type RenderingState from '../renderer/RenderingState';
 import type ElevationLayer from './layer/ElevationLayer';
 import type Disposable from './Disposable';
+import type MemoryUsage from './MemoryUsage';
+import type { GetMemoryUsageContext, MemoryUsageReport } from './MemoryUsage';
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
@@ -45,7 +47,10 @@ export interface TileMeshEventMap extends Object3DEventMap {
     };
 }
 
-class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> implements Disposable {
+class TileMesh
+    extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap>
+    implements Disposable, MemoryUsage
+{
     private readonly _pool: GeometryPool;
     private _segments: number;
     readonly type: string = 'TileMesh';
@@ -60,6 +65,10 @@ class TileMesh extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap> imp
     readonly z: number;
     disposed: boolean;
     private _enableTerrainDeformation: boolean;
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        return this.material?.getMemoryUsage(context, target) ?? { cpuMemory: 0, gpuMemory: 0 };
+    }
 
     /**
      * Creates an instance of TileMesh.

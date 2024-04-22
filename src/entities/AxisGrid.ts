@@ -22,6 +22,12 @@ import type Context from '../core/Context';
 import { UNIT, crsToUnit } from '../core/geographic/Coordinates';
 import Helpers from '../helpers/Helpers';
 import type { EntityUserData } from './Entity';
+import {
+    createEmptyReport,
+    getGeometryMemoryUsage,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../core/MemoryUsage';
 
 const mod = MathUtils.euclideanModulo;
 
@@ -262,6 +268,18 @@ class AxisGrid<UserData = EntityUserData> extends Entity3D<Entity3DEventMap, Use
         this.showHelpers = false;
 
         this.refresh();
+    }
+
+    getMemoryUsage(_context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        this.traverse(obj => {
+            if ('geometry' in obj) {
+                getGeometryMemoryUsage(obj.geometry as BufferGeometry, result);
+            }
+        });
+
+        return result;
     }
 
     updateOpacity() {

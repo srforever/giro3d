@@ -100,6 +100,10 @@ pre {
   width: 2rem;
 }
 
+.memory-usage {
+  width: 15rem;
+}
+
 .status-attribution {
   margin-left: 1rem;
 }

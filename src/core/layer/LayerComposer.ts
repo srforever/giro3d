@@ -19,6 +19,13 @@ import Rect from '../Rect';
 import MemoryTracker from '../../renderer/MemoryTracker';
 import TextureGenerator from '../../utils/TextureGenerator';
 import ProjUtils from '../../utils/ProjUtils';
+import type MemoryUsage from '../MemoryUsage';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from '../MemoryUsage';
+import { isEmptyTexture } from '../../renderer/EmptyTexture';
 
 const tmpVec1 = new Vector2();
 const tmpVec2 = new Vector2();
@@ -36,6 +43,7 @@ function onTextureUploaded(texture: Texture) {
     if (!texture.image) {
         return;
     }
+
     if ((texture as DataTexture).isDataTexture) {
         texture.image.data = null;
     } else if ((texture as CanvasTexture).isCanvasTexture) {
@@ -77,7 +85,7 @@ function processMinMax(
     }
 }
 
-class Image {
+class Image implements MemoryUsage {
     readonly id: string;
     readonly mesh: Mesh;
     readonly extent: Extent;
@@ -88,6 +96,10 @@ class Image {
     readonly max: number;
     disposed: boolean;
     readonly owners: Set<number>;
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport) {
+        return TextureGenerator.getMemoryUsage(this.texture, context, target);
+    }
 
     constructor(options: {
         id: string;
@@ -139,7 +151,7 @@ class Image {
     }
 }
 
-class LayerComposer {
+class LayerComposer implements MemoryUsage {
     readonly computeMinMax: boolean;
     readonly extent: Extent;
     readonly dimensions: Vector2;
@@ -161,6 +173,14 @@ class LayerComposer {
     private _needsCleanup: boolean;
 
     disposed: boolean;
+
+    getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
+        const result = target ?? createEmptyReport();
+
+        this.images.forEach(img => img.getMemoryUsage(context, target));
+
+        return result;
+    }
 
     /**
      * @param options - The options.
@@ -194,6 +214,8 @@ class LayerComposer {
         pixelFormat: PixelFormat;
         /** The type of the output textures. */
         textureDataType: TextureDataType;
+        /** Shows empty textures as colored rectangles */
+        showEmptyTextures: boolean;
     }) {
         this.computeMinMax = options.computeMinMax;
         this.extent = options.extent;
@@ -218,6 +240,7 @@ class LayerComposer {
             showImageOutlines: options.showImageOutlines,
             pixelFormat: options.pixelFormat,
             textureDataType: options.textureDataType,
+            showEmptyTextures: options.showEmptyTextures,
         });
 
         this.disposed = false;
@@ -256,21 +279,23 @@ class LayerComposer {
     }
 
     /**
-     * Computes the distance between the composition camera and the image.
+     * Computes the render order for an image that has the specified extent.
      *
-     * Smaller images will be closer to the camera.
+     * Smaller images will be rendered on top of bigger images.
      *
      * @param extent - The extent.
-     * @returns The distance between the camera and the image.
+     * @returns The render order to use for the specified extent.
      */
-    private computeZDistance(extent: Extent): number {
+    private computeRenderOrder(extent: Extent): number {
         if (this.dimensions) {
             const width = extent.dimensions(tmpVec2).x;
             // Since we don't know the smallest size of image that the source will output,
             // let's make a generous assumptions: the smallest image is 1/2^25 of the extent.
             const MAX_NUMBER_OF_SUBDIVISIONS = 33554432; // 2^25
             const SMALLEST_WIDTH = this.dimensions.x / MAX_NUMBER_OF_SUBDIVISIONS;
-            return MathUtils.mapLinear(width, this.dimensions.x, SMALLEST_WIDTH, 0, 9);
+            return Math.round(
+                MathUtils.mapLinear(width, this.dimensions.x, SMALLEST_WIDTH, 0, 5000),
+            );
         }
 
         return 0;
@@ -280,11 +305,10 @@ class LayerComposer {
         extent: Extent,
         texture: TextureWithMinMax,
         options: {
-            fillNoData: boolean;
+            fillNoData?: boolean;
             interpretation: Interpretation;
-            flipY: boolean;
-            fillNoDataAlphaReplacement: number;
-            fillNoDataRadius: number;
+            fillNoDataAlphaReplacement?: number;
+            fillNoDataRadius?: number;
             outputType: TextureDataType;
             target?: WebGLRenderTarget<Texture>;
             expandRGB?: boolean;
@@ -314,7 +338,6 @@ class LayerComposer {
             fillNoDataAlphaReplacement: options.fillNoDataAlphaReplacement,
             fillNoDataRadius: noDataRadiusInUVSpace,
             interpretation: options.interpretation,
-            flipY: options.flipY,
             transparent: this.transparent,
         });
 
@@ -414,11 +437,16 @@ class LayerComposer {
 
         let actualTexture = texture;
 
+        const expandRGB = TextureGenerator.shouldExpandRGB(
+            actualTexture.format as PixelFormat,
+            this.pixelFormat,
+        );
+
         // The texture might be an empty texture, appearing completely transparent.
         // Since is has no data, it cannot be preprocessed.
-        if (texture.image) {
+        if (!isEmptyTexture(texture)) {
             if (this.computeMinMax && options.min == null && options.max == null) {
-                const { min, max } = processMinMax(actualTexture, {
+                const { min, max } = processMinMax(texture, {
                     interpretation: this.interpretation,
                     noDataValue: this.noDataValue,
                 });
@@ -426,29 +454,24 @@ class LayerComposer {
                 options.max = max;
             }
 
-            const expandRGB = TextureGenerator.shouldExpandRGB(
-                texture.format as PixelFormat,
-                this.pixelFormat,
-            );
-
-            // If the image needs some preprocessing, let's do it now
-            if (expandRGB || options.flipY || !this.interpretation.isDefault()) {
+            // In the case of the Mapbox Terrain RGB interpretation,
+            // the original texture is in nearest neighour filtering,
+            // but we want to final texture to be in linear filtering, to avoid
+            // pixelated looks. This can only be done using a pre-processing stage.
+            if (expandRGB || !this.interpretation.isDefault()) {
                 actualTexture = this.preprocessImage(extent, texture, {
-                    fillNoData: false,
-                    flipY: options.flipY,
                     interpretation: this.interpretation,
-                    fillNoDataAlphaReplacement: 0,
-                    fillNoDataRadius: 0,
-                    expandRGB,
                     outputType: this.textureDataType,
+                    expandRGB,
                 });
             }
         }
 
-        let mesh;
+        let mesh: Mesh;
         const composerOptions: DrawOptions = {
             transparent: this.transparent,
-            zOrder: this.computeZDistance(extent),
+            flipY: options.flipY,
+            renderOrder: this.computeRenderOrder(extent),
         };
         if (this.needsReprojection) {
             // Draw a warped image
@@ -463,8 +486,15 @@ class LayerComposer {
             MemoryTracker.track(actualTexture, `LayerComposer - texture ${id}`);
         }
 
-        // Register a handler to be notified when the texture has been uploaded to the GPU
-        // so that we can reclaim the texture data and free memory.
+        const memoryUsage: MemoryUsageReport = TextureGenerator.getMemoryUsage(texture, {
+            renderer: this.webGLRenderer,
+        });
+        // Since we are deleting the CPU-side data.
+        memoryUsage.cpuMemory = 0;
+        actualTexture.userData.memoryUsage = memoryUsage;
+
+        // Register a handler to be notified when the original texture has
+        // been uploaded to the GPU so that we can reclaim the texture data and free memory.
         texture.onUpdate = () => onTextureUploaded(texture);
 
         const image = new Image({
@@ -711,7 +741,6 @@ class LayerComposer {
             fillNoData: this.fillNoData,
             fillNoDataAlphaReplacement: this.fillNoDataAlphaReplacement,
             fillNoDataRadius: this.fillNoDataRadius,
-            flipY: false,
             interpretation: Interpretation.Raw,
             target,
             outputType: this.textureDataType,
