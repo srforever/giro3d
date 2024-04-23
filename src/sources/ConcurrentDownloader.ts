@@ -1,23 +1,53 @@
 import { Fetcher, PromiseUtils } from '../utils';
 import type { FetchOptions } from '../utils/Fetcher';
 
-/**
- * The cached result of a shared fetch request.
- */
-export type FetchResult = {
-    cachedBlob: Blob;
-    ok: boolean;
-    status: number;
-    statusText: string;
-};
-
 type RequestData = {
     abortController: AbortController;
     signals: AbortSignal[];
-    promise: Promise<FetchResult>;
+    promise: Promise<Response>;
 };
 
 export type FetchCallback = (url: string, options?: FetchOptions) => Promise<Response>;
+
+const keyParts: string[] = [];
+
+function getUniqueKey(url: string, options?: FetchOptions): string {
+    keyParts.length = 0;
+
+    if (options?.method) {
+        keyParts.push(options.method);
+    }
+
+    keyParts.push(url);
+
+    if (options) {
+        const headers = options.headers;
+        if (headers) {
+            if (Array.isArray(headers)) {
+                headers.forEach(([key, value]) => {
+                    keyParts.push(key);
+                    keyParts.push(value);
+                });
+            } else if (typeof (headers as Headers).forEach === 'function') {
+                (headers as Headers).forEach((value, key) => {
+                    keyParts.push(key);
+                    keyParts.push(value);
+                });
+            } else {
+                for (const [key, value] of Object.entries(headers as Record<string, string>)) {
+                    keyParts.push(key);
+                    keyParts.push(value);
+                }
+            }
+        }
+
+        if (options.cache) {
+            keyParts.push(options.cache);
+        }
+    }
+
+    return keyParts.join(',');
+}
 
 /**
  * Helper class to deduplicate concurrent HTTP requests on the same URLs.
@@ -65,21 +95,6 @@ export default class ConcurrentDownloader {
         this._fetch = options.fetch ?? Fetcher.fetch;
     }
 
-    private async fetchOnce(url: string, options?: FetchOptions): Promise<FetchResult> {
-        const response = await this._fetch(url, options);
-
-        // Response.blob() cannot be called more than once,
-        // so we have to cache it for all requests.
-        const cachedBlob = response.ok ? await response.blob() : null;
-
-        return {
-            ok: response.ok,
-            status: response.status,
-            statusText: response.statusText,
-            cachedBlob,
-        };
-    }
-
     /**
      * Fetches the resource. If a request to the same URL is already started, returns the promise
      * to the first request instead.
@@ -88,8 +103,12 @@ export default class ConcurrentDownloader {
      * Only when _all_ signals attached to this request are aborted, is the request aborted.
      * @returns A response that can be safely reused across multiple calls.
      */
-    fetch(url: string, signal?: AbortSignal): Promise<FetchResult> {
-        const existing = this._requests.get(url);
+    async fetch(url: string, options?: FetchOptions): Promise<Response> {
+        const key = getUniqueKey(url, options);
+
+        const existing = this._requests.get(key);
+
+        const signal = options?.signal;
 
         signal?.addEventListener('abort', () => {
             const current = this._requests.get(url);
@@ -103,7 +122,8 @@ export default class ConcurrentDownloader {
                 existing.signals.push(signal);
             }
 
-            return existing.promise;
+            const originalResponse = await existing.promise;
+            return originalResponse.clone();
         }
 
         const abortController = new AbortController();
@@ -112,16 +132,21 @@ export default class ConcurrentDownloader {
             setTimeout(() => abortController.abort('timeout'), this._timeout);
         }
 
+        if (options) {
+            delete options.signal;
+        }
+
         const data: RequestData = {
             abortController,
             signals: [signal],
-            promise: this.fetchOnce(url, {
+            promise: this._fetch(url, {
+                ...options,
                 signal: abortController.signal,
                 retries: this._retry,
-            }).finally(() => this._requests.delete(url)),
+            }).finally(() => this._requests.delete(key)),
         };
 
-        this._requests.set(url, data);
+        this._requests.set(key, data);
 
         return data.promise;
     }
