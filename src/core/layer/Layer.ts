@@ -27,8 +27,6 @@ import type RequestQueue from '../RequestQueue';
 import { DefaultQueue } from '../RequestQueue';
 import OperationCounter from '../OperationCounter';
 import type Context from '../Context';
-import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
-import type PointCloudMaterial from '../../renderer/PointCloudMaterial';
 import type Progress from '../Progress.js';
 import type NoDataOptions from './NoDataOptions';
 import { GlobalRenderTargetPool } from '../../renderer/RenderTargetPool';
@@ -40,6 +38,8 @@ import {
     type MemoryUsageReport,
 } from '../MemoryUsage';
 import type OffsetScale from '../OffsetScale';
+import type ColorLayer from './ColorLayer';
+import type ElevationRange from '../ElevationRange';
 
 export interface TextureAndPitch {
     texture: Texture;
@@ -57,7 +57,22 @@ interface NodeEventMap extends Object3DEventMap {
     };
 }
 
-export type NodeMaterial = LayeredMaterial | PointCloudMaterial;
+export interface NodeMaterial extends Material {
+    setColorTextures(layer: ColorLayer, textureAndPitch: TextureAndPitch): void;
+    setLayerVisibility(layer: ColorLayer, visible: boolean): void;
+    setLayerOpacity(layer: ColorLayer, opacity: number): void;
+    setLayerElevationRange(layer: ColorLayer, range: ElevationRange): void;
+    setColorimetry(
+        layer: ColorLayer,
+        brightness: number,
+        contrast: number,
+        saturation: number,
+    ): void;
+    hasColorLayer(layer: ColorLayer): boolean;
+    indexOfColorLayer(layer: ColorLayer): number;
+    removeColorLayer(layer: ColorLayer): void;
+    pushColorLayer(layer: ColorLayer, extent: Extent): void;
+}
 
 export interface Node extends Object3D<NodeEventMap> {
     disposed: boolean;
@@ -65,6 +80,7 @@ export interface Node extends Object3D<NodeEventMap> {
     textureSize: Vector2;
     canProcessColorLayer(): boolean;
     getExtent(): Extent;
+    level: number;
 }
 
 enum TargetState {
