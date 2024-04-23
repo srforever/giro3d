@@ -247,6 +247,8 @@ export interface LayerOptions {
 
 export type LayerUserData = Record<string, unknown>;
 
+const nodesToDelete: Node[] = [];
+
 /**
  * Base class of layers. Layers are components of maps or any compatible entity.
  *
@@ -1124,10 +1126,40 @@ abstract class Layer<
         return result;
     }
 
+    protected deleteUnusedTargets() {
+        nodesToDelete.length = 0;
+
+        const sorted = this.getSortedTargets();
+
+        // Let's start from the smallest tiles (i.e with the highest resolution) first.
+        for (const target of sorted) {
+            // Is this target invisible ? We can only unload invisible targets.
+            // Note that we never delete root nodes so that we can always have some fallback data
+            if (!target.node.material.visible) {
+                const level = target.node.level;
+
+                // Can we unload it ?
+                // - We don't unload root nodes (level = 0)
+                // - We also don't unload nodes every 3 levels
+                // - We also don't unload nodes that do not have any loaded ancestor,
+                //   to avoid sudden blank tiles.
+                if (level > 0 && level % 3 !== 0 && this.getLoadedAncestor(target)) {
+                    nodesToDelete.push(target.node);
+                }
+            }
+        }
+
+        for (const node of nodesToDelete) {
+            this.unregisterNode(node);
+        }
+    }
+
     postUpdate() {
         if (this.disposed) {
             throw new Error('the layer is disposed');
         }
+
+        this.deleteUnusedTargets();
 
         if (this._composer?.postUpdate() || this._shouldNotify) {
             this._instance.notifyChange(this);
