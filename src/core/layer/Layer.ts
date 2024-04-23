@@ -840,10 +840,11 @@ abstract class Layer<
     }
 
     /**
+     * Returns the first ancestor that is completely loaded, or null if not found.
      * @param target - The target.
      * @returns The smallest target that still contains this extent.
      */
-    private getParent(target: Target): Target {
+    private getLoadedAncestor(target: Target): Target {
         const extent = target.geometryExtent;
         const targets = this.getSortedTargets();
         for (const t of targets) {
@@ -864,7 +865,7 @@ abstract class Layer<
             return;
         }
 
-        const parent = this.getParent(target);
+        const parent = this.getLoadedAncestor(target);
 
         if (parent) {
             const img = { texture: parent.renderTarget.texture, extent: parent.extent };
