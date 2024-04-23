@@ -11,14 +11,30 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
         <fieldset class="container m-1" id="options">
             <label for="mapMin" class="form-label">Lower bound</label>
             <div class="input-group">
-                <input type="range" min="500" max="3000" value="500" class="slider" id="mapMin" />
+                <input
+                    type="range"
+                    min="500"
+                    max="3000"
+                    value="500"
+                    class="slider"
+                    id="mapMin"
+                    autocomplete="off"
+                />
             </div>
 
             <div class="my-2"></div>
 
             <label for="mapMax" class="form-label">Upper bound</label>
             <div class="input-group">
-                <input type="range" min="500" max="3000" value="3000" class="slider" id="mapMax" />
+                <input
+                    type="range"
+                    min="500"
+                    max="3000"
+                    value="3000"
+                    class="slider"
+                    id="mapMax"
+                    autocomplete="off"
+                />
             </div>
         </fieldset>
     </div>
@@ -34,6 +50,7 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                     checked="true"
                     role="switch"
                     id="toggle-colorlayer-range"
+                    autocomplete="off"
                 />
                 <label class="form-check-label" for="toggle-colorlayer-range"
                     >Enable elevation range</label
@@ -42,7 +59,15 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
 
             <label for="layerMin" class="form-label">Lower bound</label>
             <div class="input-group">
-                <input type="range" min="500" max="3000" value="500" class="slider" id="layerMin" />
+                <input
+                    type="range"
+                    min="500"
+                    max="3000"
+                    value="500"
+                    class="slider"
+                    id="layerMin"
+                    autocomplete="off"
+                />
             </div>
 
             <div class="my-2"></div>
@@ -56,6 +81,7 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                     value="3000"
                     class="slider"
                     id="layerMax"
+                    autocomplete="off"
                 />
             </div>
         </fieldset>
