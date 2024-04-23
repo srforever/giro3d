@@ -827,7 +827,7 @@ abstract class Layer<
     /**
      * @returns Targets sorted by extent dimension.
      */
-    private _getSortedTargets(): Target[] {
+    private getSortedTargets(): Target[] {
         if (this._sortedTargets == null) {
             this._sortedTargets = Array.from(this._targets.values()).sort((a, b) => {
                 const ax = a.extent.dimensions(tmpDims).x;
@@ -845,7 +845,7 @@ abstract class Layer<
      */
     private getParent(target: Target): Target {
         const extent = target.geometryExtent;
-        const targets = this._getSortedTargets();
+        const targets = this.getSortedTargets();
         for (const t of targets) {
             const otherExtent = t.geometryExtent;
             if (t !== target && extent.isInside(otherExtent) && t.state === TargetState.Complete) {
