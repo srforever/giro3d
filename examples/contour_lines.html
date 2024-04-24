@@ -16,6 +16,7 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
                     checked="true"
                     role="switch"
                     id="contourLineCheckbox"
+                    autocomplete="off"
                 />
                 <label class="form-check-label" for="contourLineCheckbox">Contour lines</label>
             </div>
@@ -24,7 +25,7 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
         <fieldset class="container m-1 p-2">
             <div class="input-group">
                 <span class="input-group-text flex-grow-1">Main interval (m)</span>
-                <select class="btn btn-outline-primary btn-sm" id="mainInterval">
+                <select class="btn btn-outline-primary btn-sm" id="mainInterval" autocomplete="off">
                     <option value="0">Disabled</option>
                     <option selected value="100">100 m</option>
                     <option value="200">200 m</option>
@@ -36,7 +37,11 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
 
             <div class="input-group">
                 <span class="input-group-text flex-grow-1">Secondary interval (m)</span>
-                <select class="btn btn-outline-primary btn-sm" id="secondaryInterval">
+                <select
+                    class="btn btn-outline-primary btn-sm"
+                    id="secondaryInterval"
+                    autocomplete="off"
+                >
                     <option value="0">Disabled</option>
                     <option selected value="10">10 m</option>
                     <option selected value="20">20 m</option>
@@ -56,6 +61,7 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
                     step="0.05"
                     class="slider"
                     id="opacitySlider"
+                    autocomplete="off"
                 />
             </div>
 
@@ -69,6 +75,7 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
                     step="0.05"
                     class="slider"
                     id="thicknessSlider"
+                    autocomplete="off"
                 />
             </div>
         </fieldset>

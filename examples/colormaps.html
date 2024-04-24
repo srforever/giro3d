@@ -18,6 +18,7 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                             type="checkbox"
                             role="switch"
                             id="discrete-ramps"
+                            autocomplete="off"
                         />
                         <label class="form-check-label" for="discrete-ramps"
                             >Use discrete color ramps</label
@@ -38,6 +39,7 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                     type="checkbox"
                     role="switch"
                     id="top-layer-enable"
+                    autocomplete="off"
                 />
                 <label class="form-check-label" for="top-layer-enable">Top color layer</label>
             </div>
@@ -54,6 +56,7 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                             type="checkbox"
                             role="switch"
                             id="top-colormap-enable"
+                            autocomplete="off"
                         />
                         <label class="form-check-label" for="top-colormap-enable">Color map</label>
                     </div>
@@ -64,12 +67,16 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
             <fieldset class="row p-1" id="top-colormap-options">
                 <div class="input-group mb-3">
                     <span class="input-group-text flex-grow-1">Mode</span>
-                    <select class="btn btn-outline-primary btn-sm" id="top-mode">
+                    <select class="btn btn-outline-primary btn-sm" id="top-mode" autocomplete="off">
                         <option>elevation</option>
                         <option>slope</option>
                         <option>aspect</option>
                     </select>
-                    <select class="btn btn-outline-primary btn-sm" id="top-gradient">
+                    <select
+                        class="btn btn-outline-primary btn-sm"
+                        id="top-gradient"
+                        autocomplete="off"
+                    >
                         <option selected="selected">viridis</option>
                         <option>jet</option>
                         <option>blackbody</option>
@@ -93,6 +100,7 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                     type="checkbox"
                     role="switch"
                     id="bottom-layer-enable"
+                    autocomplete="off"
                 />
                 <label class="form-check-label" for="bottom-layer-enable">Bottom color layer</label>
             </div>
@@ -109,6 +117,7 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                             type="checkbox"
                             role="switch"
                             id="bottom-colormap-enable"
+                            autocomplete="off"
                         />
                         <label class="form-check-label" for="bottom-colormap-enable"
                             >Color map</label
@@ -121,12 +130,20 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
             <fieldset class="row p-1" id="bottom-colormap-options">
                 <div class="input-group mb-3">
                     <span class="input-group-text flex-grow-1">Mode</span>
-                    <select class="btn btn-outline-primary btn-sm" id="bottom-mode">
+                    <select
+                        class="btn btn-outline-primary btn-sm"
+                        id="bottom-mode"
+                        autocomplete="off"
+                    >
                         <option>elevation</option>
                         <option>slope</option>
                         <option>aspect</option>
                     </select>
-                    <select class="btn btn-outline-primary btn-sm" id="bottom-gradient">
+                    <select
+                        class="btn btn-outline-primary btn-sm"
+                        id="bottom-gradient"
+                        autocomplete="off"
+                    >
                         <option>viridis</option>
                         <option selected="selected">jet</option>
                         <option>blackbody</option>
@@ -150,6 +167,7 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                     type="checkbox"
                     role="switch"
                     id="elevation-layer-enable"
+                    autocomplete="off"
                 />
                 <label class="form-check-label" for="elevation-layer-enable">Elevation layer</label>
             </div>
@@ -166,6 +184,7 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
                             type="checkbox"
                             role="switch"
                             id="elevation-colormap-enable"
+                            autocomplete="off"
                         />
                         <label class="form-check-label" for="elevation-colormap-enable"
                             >Color map</label
@@ -178,12 +197,20 @@ attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
             <fieldset class="row p-1" id="elevation-colormap-options">
                 <div class="input-group mb-3">
                     <span class="input-group-text flex-grow-1">Mode</span>
-                    <select class="btn btn-outline-primary btn-sm" id="elevation-mode">
+                    <select
+                        class="btn btn-outline-primary btn-sm"
+                        id="elevation-mode"
+                        autocomplete="off"
+                    >
                         <option>elevation</option>
                         <option>slope</option>
                         <option>aspect</option>
                     </select>
-                    <select class="btn btn-outline-primary btn-sm" id="elevation-gradient">
+                    <select
+                        class="btn btn-outline-primary btn-sm"
+                        id="elevation-gradient"
+                        autocomplete="off"
+                    >
                         <option>viridis</option>
                         <option>jet</option>
                         <option>blackbody</option>

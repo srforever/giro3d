@@ -14,7 +14,11 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
             <!-- Coloring mode -->
             <div class="input-group p-2">
                 <span class="input-group-text flex-grow-1">Mode</span>
-                <select class="btn btn-outline-primary btn-sm" id="pointcloud_mode">
+                <select
+                    class="btn btn-outline-primary btn-sm"
+                    id="pointcloud_mode"
+                    autocomplete="off"
+                >
                     <option value="0">point cloud colors</option>
                     <option value="5">elevation gradient</option>
                     <option value="4" selected>color layer</option>
@@ -31,6 +35,7 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
                             type="checkbox"
                             role="switch"
                             id="edl-enable"
+                            autocomplete="off"
                         />
                         <label class="form-check-label" for="edl-enable"
                             >Eye dome lighting (EDL)</label
@@ -51,6 +56,7 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
                         value="0.7"
                         class="slider"
                         id="edl-intensity"
+                        autocomplete="off"
                     />
                 </div>
             </div>
@@ -67,6 +73,7 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
                         value="1.5"
                         class="slider"
                         id="edl-radius"
+                        autocomplete="off"
                     />
                 </div>
             </div>
@@ -81,6 +88,7 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
                             type="checkbox"
                             role="switch"
                             id="occlusion-enable"
+                            autocomplete="off"
                         />
                         <label class="form-check-label" for="occlusion-enable"
                             >Point occlusion effect</label
@@ -99,6 +107,7 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
                             type="checkbox"
                             role="switch"
                             id="inpainting-enable"
+                            autocomplete="off"
                         />
                         <label class="form-check-label" for="inpainting-enable">Inpainting</label>
                     </div>
@@ -117,6 +126,7 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
                         value="2"
                         class="slider"
                         id="inpainting-steps"
+                        autocomplete="off"
                     />
                 </div>
             </div>
