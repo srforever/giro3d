@@ -14,6 +14,22 @@ import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
+document.getElementById('layer-select').addEventListener('change', function () {
+    var selectedValue = this.value;
+
+    document.getElementById('map-settings').style.display = 'none';
+    document.getElementById('satellite-settings').style.display = 'none';
+    document.getElementById('geojson-settings').style.display = 'none';
+
+    if (selectedValue === 'map') {
+        document.getElementById('map-settings').style.display = 'block';
+    } else if (selectedValue === 'satellite') {
+        document.getElementById('satellite-settings').style.display = 'block';
+    } else if (selectedValue === 'geojson') {
+        document.getElementById('geojson-settings').style.display = 'block';
+    }
+});
+
 const viewer = document.getElementById('viewerDiv');
 
 Instance.registerCRS(
