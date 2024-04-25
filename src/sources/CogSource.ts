@@ -338,8 +338,8 @@ class CogSource extends ImageSource {
 
         return {
             extent: marginExtent,
-            width,
-            height,
+            width: Math.floor(width),
+            height: Math.floor(height),
         };
     }
 
