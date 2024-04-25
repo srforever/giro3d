@@ -159,4 +159,11 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
     }
 }
 
+/**
+ * Returns `true` if the given object is a {@link ElevationLayer}.
+ */
+export function isElevationLayer(obj: unknown): obj is ElevationLayer {
+    return typeof obj === 'object' && (obj as ElevationLayer)?.isElevationLayer;
+}
+
 export default ElevationLayer;

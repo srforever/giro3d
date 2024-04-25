@@ -1157,4 +1157,11 @@ abstract class Layer<
     }
 }
 
+/**
+ * Returns `true` if the given object is a {@link Layer}.
+ */
+export function isLayer(obj: unknown): obj is Layer {
+    return typeof obj === 'object' && (obj as Layer)?.isLayer;
+}
+
 export default Layer;
