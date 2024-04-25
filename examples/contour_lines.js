@@ -31,7 +31,6 @@ const map = new Map('planar', {
         enabled: true,
         intensity: 0.5,
     },
-    segments: 128,
     doubleSided: true,
     backgroundColor: 'white',
     contourLines: true,

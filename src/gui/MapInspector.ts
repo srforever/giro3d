@@ -129,6 +129,9 @@ class MapInspector extends EntityInspector {
         this.addController<boolean>(this.map.materialOptions.terrain, 'enabled')
             .name('Terrain deformation')
             .onChange(() => this.notify(map));
+        this.addController<boolean>(this.map.materialOptions.terrain, 'enableCPUTerrain').name(
+            'CPU terrain',
+        );
         this.addController<boolean>(this.map.materialOptions.terrain, 'stitching')
             .name('Terrain stitching')
             .onChange(() => this.notify(map));
@@ -145,6 +148,9 @@ class MapInspector extends EntityInspector {
             .onChange(v => this.toggleWireframe(v));
         this.addController<boolean>(this.map.materialOptions, 'showTileOutlines')
             .name('Show tiles outlines')
+            .onChange(() => this.notify());
+        this.addController<boolean>(this.map.materialOptions, 'showColliderMeshes')
+            .name('Show collider meshes')
             .onChange(() => this.notify());
         this.addController<boolean>(this, 'showTileInfo')
             .name('Show tile info')

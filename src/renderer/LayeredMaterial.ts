@@ -210,6 +210,10 @@ export interface MaterialOptions {
      * Force using texture atlases even when not required by WebGL limitations.
      */
     forceTextureAtlases?: boolean;
+    /**
+     * Displays the collider meshes used for raycast.
+     */
+    showColliderMeshes?: boolean;
 }
 
 type HillshadingUniform = {
@@ -503,9 +507,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
      * @param v - The number of segments.
      */
     set segments(v: number) {
-        if (this.uniforms.segments.value !== v) {
-            this.uniforms.segments.value = v;
-        }
+        this.uniforms.segments.value = v;
     }
 
     onBeforeCompile(parameters: WebGLProgramParametersWithUniforms): void {

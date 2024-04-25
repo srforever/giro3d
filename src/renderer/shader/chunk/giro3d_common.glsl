@@ -1,5 +1,32 @@
 #define M_PI    3.1415926535897932384626433832795
 
+// Pixel formats
+const int PIXEL_FORMAT_RGBA = 1023;
+const int PIXEL_FORMAT_RG = 1030;
+
+// Texture types
+const int TEXTURE_TYPE_FLOAT = 1015;
+const int TEXTURE_TYPE_UINT8 = 1009;
+
+const float RGBA_OFFSET = 20000.0;
+
+// Converts a RG / Float color into a RGBA / Unsigned byte color
+vec4 convert_RG_Float_RGBA_UnsignedByte(const in vec4 color) {
+    float f = color.r + RGBA_OFFSET;
+
+    vec4 result;
+
+    // https://stackoverflow.com/a/12553149/2704779
+    result.b = floor(f / 256.0 / 256.0);
+    result.g = floor((f - result.b * 256.0 * 256.0) / 256.0);
+    result.r = floor(f - result.b * 256.0 * 256.0 - result.g * 256.0);
+    // now we have a vec3 with the 3 components in range [0..255]. Let's normalize it!
+    result /= 255.0;
+    result.a = color.g;
+
+    return result;
+}
+
 struct Hillshading {
     float zenith;     // Zenith of sunlight, in degrees (0 - 90)
     float azimuth;    // Azimuth on sunlight, in degrees (0 - 360)

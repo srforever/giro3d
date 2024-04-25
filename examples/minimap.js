@@ -49,7 +49,6 @@ const map = new Giro3dMap('planar', {
         enabled: true,
         elevationLayersOnly: true,
     },
-    segments: 64,
     discardNoData: true,
     doubleSided: false,
 });
@@ -159,6 +158,8 @@ minimapInstance.camera.camera3D = minimapCamera;
 // Let's create our minimap map with the same extent than the main map.
 const minimap = new Giro3dMap('minimap', {
     extent: map.extent,
+    // Since the map is flat (no terrain applied), we can use 1 segment per tile.
+    segments: 1,
     backgroundColor: 'black',
     terrain: false, // We can disable terrain because our map will be flat.
 });

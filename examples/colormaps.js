@@ -74,7 +74,6 @@ makeColorRamps(false);
 // Adds the map that will contain the layers.
 const map = new Map('planar', {
     extent,
-    segments: 128,
     hillshading: true,
 });
 instance.add(map);

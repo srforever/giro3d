@@ -53,7 +53,6 @@ const map = new Giro3dMap('planar', {
         enabled: true,
         elevationLayersOnly: true,
     },
-    segments: 64,
     discardNoData: true,
     doubleSided: false,
 });

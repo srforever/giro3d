@@ -9,6 +9,9 @@ import {
     type Object3D,
     type TextureDataType,
     UnsignedByteType,
+    Raycaster,
+    type Intersection,
+    type ColorRepresentation,
 } from 'three';
 
 import type Extent from '../core/geographic/Extent';
@@ -33,7 +36,6 @@ import type RenderingState from '../renderer/RenderingState';
 import ColorMapAtlas from '../renderer/ColorMapAtlas';
 import AtlasBuilder, { type AtlasInfo } from '../renderer/AtlasBuilder';
 import Capabilities from '../core/system/Capabilities';
-import type { Context, ContourLineOptions, ElevationRange } from '../core';
 import type TileGeometry from '../core/TileGeometry';
 import { type MaterialOptions } from '../renderer/LayeredMaterial';
 import type HillshadingOptions from '../core/HillshadingOptions';
@@ -56,8 +58,28 @@ import {
     type GetMemoryUsageContext,
     type MemoryUsageReport,
 } from '../core/MemoryUsage';
+import {
+    DEFAULT_ENABLE_CPU_TERRAIN,
+    DEFAULT_ENABLE_STITCHING,
+    DEFAULT_ENABLE_TERRAIN,
+} from '../core/TerrainOptions';
+import Coordinates from '../core/geographic/Coordinates';
+import traversePickingCircle from '../core/picking/PickingCircle';
+import type ContourLineOptions from '../core/ContourLineOptions';
+import type ElevationRange from '../core/ElevationRange';
+import type Context from '../core/Context';
+import type GetElevationOptions from './GetElevationOptions';
+import type GetElevationResult from './GetElevationResult';
 
-const DEFAULT_BACKGROUND_COLOR = new Color().setRGB(0.04, 0.23, 0.35, 'srgb');
+/**
+ * The default background color of maps.
+ */
+export const DEFAULT_MAP_BACKGROUND_COLOR: ColorRepresentation = '#0a3b59';
+
+/**
+ * The default number of segments in a map's tile.
+ */
+export const DEFAULT_MAP_SEGMENTS = 32;
 
 /**
  * Comparison function to order layers.
@@ -73,7 +95,10 @@ export type LayerCompareFn = (a: Layer, b: Layer) => number;
 const MAX_SUPPORTED_ASPECT_RATIO = 10;
 
 const tmpVector = new Vector3();
+const tempNDC = new Vector2();
+const tempCanvasCoords = new Vector2();
 const tmpSseSizes: [number, number] = [0, 0];
+const tmpIntersectList: Intersection<TileMesh>[] = [];
 
 function getContourLineOptions(
     input: boolean | undefined | ContourLineOptions,
@@ -116,21 +141,24 @@ function getTerrainOptions(input?: boolean | TerrainOptions): TerrainOptions {
     if (input == null) {
         // Default values
         return {
-            enabled: true,
-            stitching: true,
+            enabled: DEFAULT_ENABLE_TERRAIN,
+            stitching: DEFAULT_ENABLE_STITCHING,
+            enableCPUTerrain: DEFAULT_ENABLE_CPU_TERRAIN,
         };
     }
 
     if (typeof input === 'boolean') {
         return {
             enabled: input,
-            stitching: true,
+            stitching: DEFAULT_ENABLE_STITCHING,
+            enableCPUTerrain: DEFAULT_ENABLE_CPU_TERRAIN,
         };
     }
 
     return {
-        enabled: input.enabled ?? true,
-        stitching: input.stitching ?? true,
+        enabled: input.enabled ?? DEFAULT_ENABLE_TERRAIN,
+        stitching: input.stitching ?? DEFAULT_ENABLE_STITCHING,
+        enableCPUTerrain: input.enableCPUTerrain ?? DEFAULT_ENABLE_CPU_TERRAIN,
     };
 }
 
@@ -285,14 +313,159 @@ export interface MapEventMap extends Entity3DEventMap {
     'layer-added': { layer: Layer };
     /** Fires when a layer is removed from the map. */
     'layer-removed': { layer: Layer };
+    /** Fires when elevation data has changed on a specific extent of the map. */
+    'elevation-changed': { extent: Extent };
 }
 
+export type MapConstructorOptions = {
+    /**
+     * The geographic extent of the map.
+     */
+    extent: Extent;
+    /**
+     * Maximum tile depth of the map. If `undefined`, there is no limit to the subdivision
+     * of the map.
+     * @defaultValue undefined
+     */
+    maxSubdivisionLevel?: number;
+    /**
+     * Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
+     * If `undefined` or `false`, hillshading is disabled.
+     *
+     * Note: hillshading has no effect if the map does not contain an elevation layer.
+     * @defaultValue `undefined` (hillshading is disabled)
+     */
+    hillshading?: boolean | HillshadingOptions;
+    /**
+     * Enables contour lines. If `undefined` or `false`, contour lines
+     * are not displayed.
+     *
+     * Note: this option has no effect if the map does not contain an elevation layer.
+     * @defaultValue `undefined` (contour lines are disabled)
+     */
+    contourLines?: boolean | ContourLineOptions;
+    /**
+     * The graticule options.
+     * @defaultValue undefined (graticule is disabled).
+     */
+    graticule?: boolean | GraticuleOptions;
+    /**
+     * The colorimetry for the whole map.
+     * Those are distinct from the individual layers' own colorimetry.
+     * @defaultValue undefined
+     */
+    colorimetry?: ColorimetryOptions;
+    /**
+     * The number of geometry segments in each map tile.
+     * The higher the better. It *must* be power of two between `1` included and `256` included.
+     * Note: the number of vertices per tile side is `segments` + 1.
+     * @defaultValue {@link DEFAULT_MAP_SEGMENTS}
+     */
+    segments?: number;
+    /**
+     * If `true`, both sides of the map will be rendered, i.e when
+     * looking at the map from underneath.
+     * @defaultValue false
+     */
+    doubleSided?: boolean;
+    /**
+     * Options for geometric terrain rendering.
+     */
+    terrain?: boolean | TerrainOptions;
+    /**
+     * If `true`, parts of the map that relate to no-data elevation
+     * values are not displayed. Note: you should only set this value to `true` if
+     * an elevation layer is present, otherwise the map will never be displayed.
+     * @defaultValue false
+     */
+    discardNoData?: boolean;
+    /**
+     * The optional `Object3D` to use as the root object of this map.
+     * If none provided, a new one will be created.
+     */
+    object3d?: Object3D;
+    /**
+     * The color of the map when no color layers are present.
+     * @defaultValue {@link DEFAULT_MAP_BACKGROUND_COLOR}
+     */
+    backgroundColor?: ColorRepresentation;
+    /**
+     * The opacity of the map background.
+     * @defaultValue 1 (opaque)
+     */
+    backgroundOpacity?: number;
+    /**
+     * Show the map tiles' borders.
+     * @defaultValue false
+     */
+    showOutline?: boolean;
+    /**
+     * The optional elevation range of the map. The map will not be
+     * rendered for elevations outside of this range.
+     * Note: this feature is only useful if an elevation layer is added to this map.
+     * @defaultValue undefined (elevation range is disabled)
+     */
+    elevationRange?: ElevationRange;
+    /**
+     * Force using texture atlases even when not required.
+     * @defaultValue false
+     */
+    forceTextureAtlases?: boolean;
+};
+
 /**
- * A map is an {@link Entity3D} that represents a flat
- * surface displaying one or more {@link Layer}.
+ * A map is an {@link Entity3D} that represents a flat surface displaying one or more {@link core.layer.Layer | layer(s)}.
  *
- * If an elevation layer is added, the surface of the map is deformed to
- * display terrain.
+ * ## Supported layers
+ *
+ * Maps support various types of layers.
+ *
+ * ### Color layers
+ *
+ * Maps can contain any number of {@link core.layer.ColorLayer | color layers}, as well as any number of {@link core.layer.MaskLayer | mask layers}.
+ *
+ * Color layers are used to display satellite imagery, vector features or any other dataset.
+ * Mask layers are used to mask parts of a map (like an alpha channel).
+ *
+ * ### Elevation layers
+ *
+ * Up to one elevation layer can be added to a map, to provide features related to elevation, such
+ * as terrain deformation, hillshading, contour lines, etc. Without an elevation layer, the map
+ * will appear like a flat rectangle on the specified extent.
+ *
+ * Note: to benefit from the features given by elevation layers (shading for instance) while keeping
+ * a flat map, disable terrain in the {@link TerrainOptions}.
+ *
+ * 💡 If the {@link TerrainOptions.enableCPUTerrain} is enabled, the elevation data can be sampled
+ * by the {@link getElevation} method.
+ *
+ * ## Picking on maps
+ *
+ * Maps can be picked like any other 3D entity, using the {@link entities.Entity3D#pick} method.
+ *
+ * However, if {@link TerrainOptions.enableCPUTerrain} is enabled, then the map provides an alternate
+ * methods for: raycasting-based picking, in addition to GPU-based picking.
+ *
+ * ### GPU-based picking
+ *
+ * This is the default method for picking maps. When the user calls {@link entities.Entity3D#pick},
+ * the camera's field of view is rendered into a temporary texture, then the pixel(s) around the picked
+ * point are analyzed to determine the location of the picked point.
+ *
+ * The main advantage of this method is that it ignores transparent pixels of the map (such as
+ * no-data elevation pixels, or transparent color layers).
+ *
+ * ### Raycasting-based picking
+ *
+ * 💡 This method requires that {@link Terrain.enableCPUTerrain} is enabled, and that
+ * {@link core.picking.PickOptions.preferRaycasting} is enabled.
+ *
+ * This method casts a ray that is then intersected with the map's meshes. The first intersection is
+ * returned.
+ *
+ * The main advantage of this method is that it's much faster and puts less pressure on the GPU.
+ *
+ * @typeParam UserData - The type of the {@link entities.Entity#userData} property.
  */
 class Map<UserData extends EntityUserData = EntityUserData>
     extends Entity3D<MapEventMap, UserData>
@@ -310,6 +483,8 @@ class Map<UserData extends EntityUserData = EntityUserData>
     private _colorAtlasDataType: TextureDataType = UnsignedByteType;
     private _imageSize: Vector2;
     private readonly _layers: Layer[] = [];
+    private readonly _onLayerVisibilityChanged: (event: { target: Layer }) => void;
+    private readonly _onTileElevationChanged: (tile: TileMesh) => void;
     /** @internal */
     readonly level0Nodes: TileMesh[];
     /** @internal */
@@ -359,62 +534,8 @@ class Map<UserData extends EntityUserData = EntityUserData>
      *
      * @param id - The unique identifier of the map.
      * @param options - Constructor options.
-     * @param options -.extent The geographic extent of the map.
-     * @param options -.maxSubdivisionLevel Maximum tile depth of the map.
-     * A value of `-1` does not limit the depth of the tile hierarchy.
-     * @param options -.hillshading Enables [hillshading](https://earthquake.usgs.gov/education/geologicmaps/hillshades.php).
-     * If `undefined` or `false`, hillshading is disabled.
-     *
-     * Note: hillshading has no effect if the map does not contain an elevation layer.
-     * @param options -.contourLines Enables contour lines. If `undefined` or `false`, contour lines
-     * are not displayed.
-     *
-     * Note: this option has no effect if the map does not contain an elevation layer.
-     * @param options -.segments The number of geometry segments in each map tile.
-     * The higher the better. It *must* be power of two between `1` included and `256` included.
-     * Note: the number of vertices per tile side is `segments` + 1.
-     * @param options -.doubleSided If `true`, both sides of the map will be rendered, i.e when
-     * looking at the map from underneath.
-     * @param options -.discardNoData If `true`, parts of the map that relate to no-data elevation
-     * values are not displayed. Note: you should only set this value to `true` if
-     * an elevation layer is present, otherwise the map will never be displayed.
-     * @param options -.object3d The optional 3d object to use as the root object of this map.
-     * If none provided, a new one will be created.
-     * @param options -.backgroundColor The color of the map when no color layers are present.
-     * @param options -.backgroundOpacity The opacity of the map background.
-     * Defaults is opaque (1).
-     * @param options -.showOutline Show the map tiles' borders.
-     * @param options -.elevationRange The optional elevation range of the map. The map will not be
-     * rendered for elevations outside of this range.
-     * Note: this feature is only useful if an elevation layer is added to this map.
-     * @param options -.terrain Options for geometric terrain rendering.
-     * @param options -.colorimetry The colorimetry for the whole map.
-     * Those are distinct from the individual layers' own colorimetry.
      */
-    constructor(
-        id: string,
-        options: {
-            extent: Extent;
-            maxSubdivisionLevel?: number;
-            hillshading?: boolean | HillshadingOptions;
-            contourLines?: boolean | ContourLineOptions;
-            graticule?: boolean | GraticuleOptions;
-            colorimetry?: ColorimetryOptions;
-            segments?: number;
-            doubleSided?: boolean;
-            terrain?: boolean | TerrainOptions;
-            discardNoData?: boolean;
-            object3d?: Object3D;
-            backgroundColor?: string;
-            backgroundOpacity?: number;
-            showOutline?: boolean;
-            elevationRange?: ElevationRange;
-            /**
-             * Force using texture atlases even when not required.
-             */
-            forceTextureAtlases?: boolean;
-        },
-    ) {
+    constructor(id: string, options: MapConstructorOptions) {
         super(id, options.object3d || new Group());
 
         this.level0Nodes = [];
@@ -434,28 +555,31 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         this.subdivisionThreshold = 1.5;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel ?? 30;
+        this._onTileElevationChanged = this.onTileElevationChanged.bind(this);
+        this._onLayerVisibilityChanged = this.onLayerVisibilityChanged.bind(this);
 
         this.type = 'Map';
 
-        this._segments = options.segments || 8;
+        this._segments = options.segments || DEFAULT_MAP_SEGMENTS;
 
         this.materialOptions = {
+            showColliderMeshes: false,
             forceTextureAtlases: options.forceTextureAtlases,
             hillshading: getHillshadingOptions(options.hillshading),
             contourLines: getContourLineOptions(options.contourLines),
-            discardNoData: options.discardNoData || false,
-            doubleSided: options.doubleSided || false,
+            discardNoData: options.discardNoData ?? false,
+            doubleSided: options.doubleSided ?? false,
             showTileOutlines: options.showOutline ?? false,
             terrain: getTerrainOptions(options.terrain),
             colorimetry: getColorimetryOptions(options.colorimetry),
             graticule: getGraticuleOptions(options.graticule),
             segments: this.segments,
             elevationRange: options.elevationRange,
-            backgroundOpacity: options.backgroundOpacity == null ? 1 : options.backgroundOpacity,
+            backgroundOpacity: options.backgroundOpacity ?? 1,
             backgroundColor:
                 options.backgroundColor !== undefined
                     ? new Color(options.backgroundColor)
-                    : DEFAULT_BACKGROUND_COLOR.clone(),
+                    : new Color(DEFAULT_MAP_BACKGROUND_COLOR),
         };
 
         this.tileIndex = new TileIndex();
@@ -523,7 +647,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
                 } else if (i === 3) {
                     child = this.requestNewTile(extent, node, z + 1, 2 * x + 1, 2 * y + 1);
                 }
-                node.add(child);
 
                 // inherit our parent's textures
                 for (const e of this.getElevationLayers()) {
@@ -614,11 +737,15 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         const tile = new TileMesh({
             geometryPool: this.geometryPool,
+            instance: this._instance,
             material,
             extent,
             textureSize: this._imageSize,
             segments: this.segments,
             coord: { level, x, y },
+            enableCPUTerrain: this.materialOptions.terrain.enableCPUTerrain,
+            enableTerrainDeformation: this.materialOptions.terrain.enabled,
+            onElevationChanged: this._onTileElevationChanged,
         });
 
         this.allTiles.add(tile);
@@ -656,7 +783,15 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         this.onObjectCreated(tile);
 
+        if (parent) {
+            parent.addChildTile(tile);
+        }
+
         return tile;
+    }
+
+    private onTileElevationChanged(tile: TileMesh) {
+        this.dispatchEvent({ type: 'elevation-changed', extent: tile.extent });
     }
 
     /**
@@ -674,7 +809,81 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 
     pick(coordinates: Vector2, options?: PickOptions): MapPickResult[] {
-        return pickTilesAt(this._instance, coordinates, this, options);
+        if (options.gpuPicking) {
+            return pickTilesAt(this._instance, coordinates, this, options);
+        } else {
+            return this.pickUsingRaycast(coordinates, options);
+        }
+    }
+
+    private raycastAtCoordinate(
+        coordinates: Vector2,
+        options: PickOptions,
+        results: MapPickResult[],
+    ) {
+        const normalized = this._instance.canvasToNormalizedCoords(coordinates, tempNDC);
+
+        const raycaster = new Raycaster();
+        raycaster.setFromCamera(normalized, this._instance.camera.camera3D);
+
+        tmpIntersectList.length = 0;
+
+        this.raycast(raycaster, tmpIntersectList);
+
+        const filter = options?.filter ?? (() => true);
+
+        if (tmpIntersectList.length > 0) {
+            tmpIntersectList.sort((a, b) => a.distance - b.distance);
+
+            const intersect = tmpIntersectList[0];
+
+            const { x, y, z } = intersect.point;
+
+            const pickResult: MapPickResult = {
+                isMapPickResult: true,
+                coord: new Coordinates(this._instance.referenceCrs, x, y, z),
+                entity: this,
+                ...intersect,
+            };
+
+            if (filter(pickResult)) {
+                results.push(pickResult);
+            }
+        }
+    }
+
+    private pickUsingRaycast(coordinates: Vector2, options?: PickOptions): MapPickResult[] {
+        const results: MapPickResult[] = [];
+
+        if (!options.radius) {
+            this.raycastAtCoordinate(coordinates, options, results);
+        } else {
+            const originX = coordinates.x;
+            const originY = coordinates.y;
+
+            traversePickingCircle(options.radius, (x, y) => {
+                tempCanvasCoords.set(originX + x, originY + y);
+                this.raycastAtCoordinate(tempCanvasCoords, options, results);
+                return null;
+            });
+        }
+
+        return results;
+    }
+
+    /**
+     * Perform raycasting on visible tiles.
+     * @param raycaster - The THREE raycaster.
+     * @param intersects  - The intersections array to populate with intersections.
+     */
+    raycast(raycaster: Raycaster, intersects: Intersection<TileMesh>[]): void {
+        this.traverseTiles(tile => {
+            if (!tile.disposed && tile.visible && tile.material.visible) {
+                tile.raycast(raycaster, intersects);
+            }
+        });
+
+        intersects.sort((a, b) => a.distance - b.distance);
     }
 
     pickFeaturesFrom(pickedResult: MapPickResult, options?: PickOptions): unknown[] {
@@ -1035,6 +1244,8 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         await layer.initialize({ instance: this._instance });
 
+        layer.addEventListener('visible-property-changed', this._onLayerVisibilityChanged);
+
         if (layer instanceof ColorLayer) {
             this.registerColorLayer(layer);
         } else if (layer instanceof ElevationLayer) {
@@ -1053,6 +1264,16 @@ class Map<UserData extends EntityUserData = EntityUserData>
         this.dispatchEvent({ type: 'layer-added', layer });
 
         return layer;
+    }
+
+    private onLayerVisibilityChanged(event: { target: Layer }) {
+        if (event.target instanceof ElevationLayer) {
+            this.dispatchEvent({ type: 'elevation-changed', extent: this.extent });
+        }
+
+        this.traverseTiles(tile => {
+            tile.onLayerVisibilityChanged(event.target);
+        });
     }
 
     /**
@@ -1085,6 +1306,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             this.traverseTiles(tile => {
                 layer.unregisterNode(tile);
             });
+            layer.removeEventListener('visible-property-changed', this._onLayerVisibilityChanged);
             layer.postUpdate();
             this.reorderLayers();
             this.dispatchEvent({ type: 'layer-removed', layer });
@@ -1209,6 +1431,64 @@ class Map<UserData extends EntityUserData = EntityUserData>
             }
         }
         return { min: 0, max: 0 };
+    }
+
+    /**
+     * Sample the elevation at the specified coordinate.
+     *
+     * Note: this method does nothing if {@link TerrainOptions.enableCPUTerrain} is not enabled,
+     * or if no elevation layer is present on the map, or if the sampling coordinate is not inside
+     * the map's extent.
+     *
+     * Note: sampling might return more than one sample for any given coordinate. You can sort them
+     * by {@link ElevationSample.resolution} to select the best sample for your needs.
+     * @param options - The options.
+     * @param result - The result object to populate with the samples. If none is provided, a new
+     * empty result is created. The existing samples in the array are not removed. Useful to
+     * cumulate samples across different maps.
+     * @returns The {@link GetElevationResult} containing the updated sample array.
+     * If the map has no elevation layer or if {@link TerrainOptions.enableCPUTerrain} is not enabled,
+     * this array is left untouched.
+     */
+    getElevation(
+        options: GetElevationOptions,
+        result: GetElevationResult = { samples: [], coordinates: options.coordinates },
+    ): GetElevationResult {
+        result.coordinates = options.coordinates;
+
+        const { coordinates } = options;
+
+        if (!this.extent.isPointInside(coordinates)) {
+            return result;
+        }
+
+        if (!this._hasElevationLayer) {
+            return result;
+        }
+
+        const elevationLayer = this.getElevationLayers()[0];
+
+        if (!elevationLayer.visible) {
+            return result;
+        }
+
+        if (!this.materialOptions.terrain.enableCPUTerrain) {
+            console.warn(
+                'Map.getElevation() is only supported when TerrainOptions.enableCPUTerrain is enabled',
+            );
+            return result;
+        }
+
+        this.traverseTiles(tile => {
+            if (tile.extent.isPointInside(coordinates)) {
+                const sample = tile.getElevation(options);
+                if (sample) {
+                    result.samples.push({ ...sample, map: this });
+                }
+            }
+        });
+
+        return result;
     }
 
     /**

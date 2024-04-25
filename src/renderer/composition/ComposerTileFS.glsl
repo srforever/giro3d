@@ -13,6 +13,7 @@ uniform NoDataOptions noDataOptions;
 uniform bool showImageOutlines;
 uniform bool isEmptyTexture;
 uniform bool showEmptyTexture;
+uniform bool convertRGFloatToRGBAUnsignedByte;
 uniform int channelCount;
 uniform bool expandRGB;
 
@@ -30,7 +31,11 @@ void main() {
         } else {
             gl_FragColor = texture2D(tex, uv);
 
-            gl_FragColor = decodeInterpretation(gl_FragColor, interpretation);
+            if (convertRGFloatToRGBAUnsignedByte) {
+                gl_FragColor = convert_RG_Float_RGBA_UnsignedByte(gl_FragColor);
+            } else {
+                gl_FragColor = decodeInterpretation(gl_FragColor, interpretation);
+            }
 
             if(expandRGB) {
                 gl_FragColor = grayscaleToRGB(gl_FragColor, interpretation);

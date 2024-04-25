@@ -72,7 +72,6 @@ const map = new Map('map', {
     backgroundOpacity: 0,
     hillshading: true,
     discardNoData: true,
-    segments: 128,
 });
 
 instance.add(map);

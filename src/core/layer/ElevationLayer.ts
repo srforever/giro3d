@@ -4,7 +4,6 @@ import type { LayerEvents, LayerOptions, LayerUserData, Target, TextureAndPitch 
 import Layer from './Layer';
 import type Extent from '../geographic/Extent.js';
 import type TileMesh from '../TileMesh';
-import type LayeredMaterial from '../../renderer/LayeredMaterial';
 import type ElevationRange from '../ElevationRange.js';
 
 interface TextureWithMinMax extends Texture {
@@ -107,12 +106,12 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
 
     unregisterNode(node: TileMesh) {
         super.unregisterNode(node);
+
+        node.removeElevationTexture();
+
         const material = node.material;
-        if (Array.isArray(material)) {
-            material.forEach(m => (m as LayeredMaterial).removeElevationLayer());
-        } else {
-            (material as LayeredMaterial).removeElevationLayer();
-        }
+
+        material.removeElevationLayer();
     }
 
     protected getMinMax(texture: TextureWithMinMax) {

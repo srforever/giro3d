@@ -17,7 +17,7 @@ import type VectorSource from '../../sources/VectorSource';
 import type PickOptions from '../picking/PickOptions';
 import { type MapPickResult } from '../picking/PickTilesAt';
 import { type VectorPickFeature } from '../picking/PickResult';
-import { OpenLayersUtils } from '../../utils';
+import OpenLayersUtils from '../../utils/OpenLayersUtils';
 import type PickableFeatures from '../picking/PickableFeatures';
 import type ColorimetryOptions from '../ColorimetryOptions';
 import { defaultColorimetryOptions } from '../ColorimetryOptions';

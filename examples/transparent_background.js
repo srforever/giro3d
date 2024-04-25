@@ -33,7 +33,6 @@ const instance = new Instance(viewerDiv, {
 const map = new Map('planar', {
     extent,
     hillshading: true,
-    segments: 128,
     doubleSided: true,
     backgroundColor: 'white',
 });

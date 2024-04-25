@@ -1,10 +1,14 @@
 import {
     Mesh,
+    Vector2,
     Vector4,
+    type WebGLRenderTarget,
     type Object3DEventMap,
-    type Vector2,
     type Texture,
     type Object3D,
+    UnsignedByteType,
+    RGBAFormat,
+    MeshBasicMaterial,
 } from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker';
@@ -14,18 +18,38 @@ import type Extent from './geographic/Extent';
 import TileGeometry from './TileGeometry';
 import OBB from './OBB';
 import type RenderingState from '../renderer/RenderingState';
-import type ElevationLayer from './layer/ElevationLayer';
+import ElevationLayer from './layer/ElevationLayer';
 import type Disposable from './Disposable';
 import type MemoryUsage from './MemoryUsage';
-import type { GetMemoryUsageContext, MemoryUsageReport } from './MemoryUsage';
+import {
+    createEmptyReport,
+    type GetMemoryUsageContext,
+    type MemoryUsageReport,
+} from './MemoryUsage';
 import type OffsetScale from './OffsetScale';
+import type Instance from './Instance';
+import HeightMap from './HeightMap';
+import type Layer from './layer/Layer';
+import type UniqueOwner from './UniqueOwner';
+import { intoUniqueOwner } from './UniqueOwner';
+import TextureGenerator from '../utils/TextureGenerator';
+import type GetElevationOptions from '../entities/GetElevationOptions';
+
+const helperMaterial = new MeshBasicMaterial({
+    color: '#75eba8',
+    depthTest: false,
+    depthWrite: false,
+    wireframe: true,
+    transparent: true,
+});
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
+const tempVec2 = new Vector2();
 
 type GeometryPool = Map<string, TileGeometry>;
 
-function makeGeometry(pool: GeometryPool, extent: Extent, segments: number, level: number) {
+function makePooledGeometry(pool: GeometryPool, extent: Extent, segments: number, level: number) {
     const key = `${segments}-${level}`;
 
     const cached = pool.get(key);
@@ -36,6 +60,12 @@ function makeGeometry(pool: GeometryPool, extent: Extent, segments: number, leve
     const dimensions = extent.dimensions();
     const geometry = new TileGeometry({ dimensions, segments });
     pool.set(key, geometry);
+    return geometry;
+}
+
+function makeRaycastableGeometry(extent: Extent, segments: number) {
+    const dimensions = extent.dimensions();
+    const geometry = new TileGeometry({ dimensions, segments });
     return geometry;
 }
 
@@ -64,11 +94,37 @@ class TileMesh
     readonly x: number;
     readonly y: number;
     readonly z: number;
+    private _heightMap: UniqueOwner<HeightMap, this>;
     disposed: boolean;
     private _enableTerrainDeformation: boolean;
+    private readonly _enableCPUTerrain: boolean;
+    private readonly _instance: Instance;
+    private readonly _onElevationChanged: (tile: this) => void;
+    private _shouldUpdateHeightMap = false;
+    isLeaf = false;
+    private _elevationLayerInfo: {
+        layer: ElevationLayer;
+        offsetScale: OffsetScale;
+        renderTarget: WebGLRenderTarget<Texture>;
+    };
+    private _helperMesh: Mesh<TileGeometry, MeshBasicMaterial, Object3DEventMap>;
 
     getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
-        return this.material?.getMemoryUsage(context, target) ?? { cpuMemory: 0, gpuMemory: 0 };
+        const result = target ?? createEmptyReport();
+
+        this.material?.getMemoryUsage(context, result);
+
+        // We only count what we own, otherwise the same heightmap will be counted more than once.
+        if (this._heightMap && this._heightMap.owner === this) {
+            result.cpuMemory += this._heightMap.payload.buffer.byteLength;
+        }
+        // If CPU terrain is enabled, then the geometry is owned by this mesh, rather than
+        // shared with other meshes in the same map, so we have to count it.
+        if (this._enableCPUTerrain) {
+            this.geometry.getMemoryUsage(context, result);
+        }
+
+        return result;
     }
 
     /**
@@ -83,9 +139,13 @@ class TileMesh
         segments,
         coord: { level, x = 0, y = 0 },
         textureSize,
+        instance,
+        enableCPUTerrain,
+        enableTerrainDeformation,
+        onElevationChanged,
     }: {
         /** The geometry pool to use. */
-        geometryPool: GeometryPool;
+        geometryPool?: GeometryPool;
         /** The tile material. */
         material: LayeredMaterial;
         /** The tile extent. */
@@ -96,17 +156,31 @@ class TileMesh
         coord: { level: number; x: number; y: number };
         /** The texture size. */
         textureSize: Vector2;
+        instance: Instance;
+        enableCPUTerrain: boolean;
+        enableTerrainDeformation: boolean;
+        onElevationChanged: (tile: TileMesh) => void;
     }) {
-        super(makeGeometry(geometryPool, extent, segments, level), material);
+        super(
+            // CPU terrain forces geometries to be unique, so cannot be pooled
+            enableCPUTerrain
+                ? makeRaycastableGeometry(extent, segments)
+                : makePooledGeometry(geometryPool, extent, segments, level),
+            material,
+        );
 
         this._pool = geometryPool;
         this._segments = segments;
+        this._instance = instance;
+        this._onElevationChanged = onElevationChanged;
 
         this.matrixAutoUpdate = false;
 
         this.level = level;
         this.extent = extent;
         this.textureSize = textureSize;
+        this._enableCPUTerrain = enableCPUTerrain;
+        this._enableTerrainDeformation = enableTerrainDeformation;
 
         this._obb = new OBB(this.geometry.boundingBox.min, this.geometry.boundingBox.max);
 
@@ -132,6 +206,30 @@ class TileMesh
         MemoryTracker.track(this, this.name);
     }
 
+    get showHelpers() {
+        return this._helperMesh.material.visible;
+    }
+
+    set showHelpers(visible: boolean) {
+        if (visible && !this._helperMesh) {
+            this._helperMesh = new Mesh(this.geometry, helperMaterial);
+            this._helperMesh.matrixAutoUpdate = false;
+            this._helperMesh.name = 'collider helper';
+            this.add(this._helperMesh);
+            this._helperMesh.updateMatrix();
+            this._helperMesh.updateMatrixWorld(true);
+        }
+
+        if (!visible && this._helperMesh) {
+            this._helperMesh.removeFromParent();
+            this._helperMesh = null;
+        }
+
+        if (this._helperMesh) {
+            this._helperMesh.material.visible = visible;
+        }
+    }
+
     get segments() {
         return this._segments;
     }
@@ -139,13 +237,66 @@ class TileMesh
     set segments(v) {
         if (this._segments !== v) {
             this._segments = v;
-            this.geometry = makeGeometry(this._pool, this.extent, this._segments, this.level);
+            this.createGeometry();
             this.material.segments = v;
+            if (this._enableCPUTerrain) {
+                this._shouldUpdateHeightMap = true;
+            }
+        }
+    }
+
+    private createGeometry() {
+        this.geometry = this._enableCPUTerrain
+            ? makeRaycastableGeometry(this.extent, this._segments)
+            : makePooledGeometry(this._pool, this.extent, this._segments, this.level);
+        if (this._helperMesh) {
+            this._helperMesh.geometry = this.geometry;
+        }
+    }
+
+    onLayerVisibilityChanged(layer: Layer) {
+        if (layer instanceof ElevationLayer && this._enableCPUTerrain) {
+            this._shouldUpdateHeightMap = true;
+        }
+    }
+
+    addChildTile(tile: TileMesh) {
+        this.add(tile);
+        if (this._heightMap) {
+            const heightMap = this._heightMap.payload;
+            const inheritedHeightMap = heightMap.clone();
+            const offsetScale = tile.extent.offsetToParent(this.extent);
+            heightMap.offsetScale.combine(offsetScale, inheritedHeightMap.offsetScale);
+            tile.inheritHeightMap(intoUniqueOwner(inheritedHeightMap, this));
         }
     }
 
     reorderLayers() {
         this.material.reorderLayers();
+    }
+
+    private updateHeightMapIfNecessary(): void {
+        if (this._shouldUpdateHeightMap && this._enableCPUTerrain) {
+            this._shouldUpdateHeightMap = false;
+
+            if (this._elevationLayerInfo) {
+                this.createHeightMap(
+                    this._elevationLayerInfo.renderTarget,
+                    this._elevationLayerInfo.offsetScale,
+                );
+
+                const shouldHeightmapBeActive =
+                    this._elevationLayerInfo.layer.visible && this._enableTerrainDeformation;
+
+                if (shouldHeightmapBeActive) {
+                    this.applyHeightMap();
+                } else {
+                    this.resetHeights();
+                }
+            } else {
+                this.resetHeights();
+            }
+        }
     }
 
     /**
@@ -184,7 +335,14 @@ class TileMesh
     }
 
     update(materialOptions: MaterialOptions) {
-        this._enableTerrainDeformation = materialOptions.terrain.enabled;
+        if (this._enableCPUTerrain && this._heightMap && this._elevationLayerInfo) {
+            if (this._enableTerrainDeformation !== materialOptions.terrain.enabled) {
+                this._enableTerrainDeformation = materialOptions.terrain.enabled;
+                this._shouldUpdateHeightMap = true;
+            }
+        }
+
+        this.showHelpers = materialOptions.showColliderMeshes ?? false;
     }
 
     updateMatrixWorld(force: boolean) {
@@ -199,6 +357,9 @@ class TileMesh
     setDisplayed(show: boolean) {
         const currentVisibility = this.material.visible;
         this.material.visible = show && this.material.update();
+        if (this._helperMesh) {
+            this._helperMesh.visible = this.material.visible;
+        }
         if (currentVisibility !== show) {
             this.dispatchEvent({ type: 'visibility-changed' });
         }
@@ -285,6 +446,8 @@ class TileMesh
     }
 
     removeElevationTexture() {
+        this._elevationLayerInfo = null;
+        this._shouldUpdateHeightMap = true;
         this.material.removeElevationLayer();
     }
 
@@ -295,15 +458,77 @@ class TileMesh
             pitch: OffsetScale;
             min: number;
             max: number;
+            renderTarget?: WebGLRenderTarget;
         },
         isFinal = false,
     ) {
-        if (this.material === null) {
+        // The material is undefined when the tile is disposed
+        if (this.material == null) {
             return;
         }
-        this.setBBoxZ(elevation.min, elevation.max);
-        this._minmax = { min: elevation.min, max: elevation.max };
+
+        this._elevationLayerInfo = {
+            layer,
+            offsetScale: elevation.pitch,
+            renderTarget: elevation.renderTarget,
+        };
+
         this.material.setElevationTexture(layer, elevation, isFinal);
+
+        this.setBBoxZ(elevation.min, elevation.max);
+
+        if (this._enableCPUTerrain) {
+            this._shouldUpdateHeightMap = true;
+        }
+
+        this.updateHeightMapIfNecessary();
+        this._onElevationChanged(this);
+    }
+
+    private createHeightMap(renderTarget: WebGLRenderTarget, offsetScale: OffsetScale) {
+        const outputHeight = Math.floor(renderTarget.height);
+        const outputWidth = Math.floor(renderTarget.width);
+
+        const buffer = TextureGenerator.readRGRenderTargetIntoRGBAU8Buffer({
+            renderTarget,
+            renderer: this._instance.renderer,
+            outputWidth,
+            outputHeight,
+        });
+
+        const heightMap = new HeightMap(
+            buffer,
+            outputWidth,
+            outputHeight,
+            offsetScale,
+            RGBAFormat,
+            UnsignedByteType,
+        );
+        this._heightMap = intoUniqueOwner(heightMap, this);
+    }
+
+    private inheritHeightMap(heightMap: UniqueOwner<HeightMap, this>) {
+        this._heightMap = heightMap;
+        this._shouldUpdateHeightMap = true;
+    }
+
+    private resetHeights() {
+        this.geometry.resetHeights();
+        this.setBBoxZ(0, 0);
+
+        this._onElevationChanged(this);
+    }
+
+    private applyHeightMap() {
+        if (!this._heightMap) {
+            return;
+        }
+
+        const { min, max } = this.geometry.applyHeightMap(this._heightMap.payload);
+
+        this.setBBoxZ(min, max);
+
+        this._onElevationChanged(this);
     }
 
     setBBoxZ(min: number, max: number) {
@@ -322,11 +547,14 @@ class TileMesh
         });
     }
 
+    onBeforeRender(): void {
+        this.updateHeightMapIfNecessary();
+    }
+
     /**
      * Removes the child tiles and returns the detached tiles.
      */
     detachChildren(): TileMesh[] {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         const childTiles = this.children.filter(c => isTileMesh(c)) as TileMesh[];
         childTiles.forEach(c => c.dispose());
         this.remove(...childTiles);
@@ -358,6 +586,28 @@ class TileMesh
 
     getExtent() {
         return this.extent;
+    }
+
+    getElevation(params: GetElevationOptions): { elevation: number; resolution: number } | null {
+        this.updateHeightMapIfNecessary();
+
+        if (this._heightMap) {
+            const uv = this.extent.offsetInExtent(params.coordinates, tempVec2);
+
+            const heightMap = this._heightMap.payload;
+            const elevation = heightMap.getValue(uv.x, uv.y);
+
+            if (elevation) {
+                const dims = this.extent.dimensions(tempVec2);
+                const xRes = dims.x / heightMap.width;
+                const yRes = dims.y / heightMap.height;
+                const resolution = Math.min(xRes, yRes);
+
+                return { elevation, resolution };
+            }
+        }
+
+        return null;
     }
 
     /**
@@ -415,10 +665,12 @@ class TileMesh
         this.disposed = true;
         this.dispatchEvent({ type: 'dispose' });
         this.material.dispose();
-        // We don't dispose the geometry because we don't own it.
-        // It is shared between all TileMesh objects of the same depth level.
-        this.material = null;
-        this.geometry = null;
+        this.material = undefined;
+        if (this._enableCPUTerrain) {
+            // When colliders are enabled, geometries are created for each tile,
+            // and thus must be disposed when the mesh is disposed.
+            this.geometry.dispose();
+        }
     }
 }
 

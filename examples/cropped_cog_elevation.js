@@ -32,7 +32,6 @@ instance.useTHREEControls(controls);
 // Construct a map and add it to the instance
 const map = new Map('planar', {
     extent,
-    segments: 128,
     backgroundColor: 'gray',
     hillshading: true,
 });
