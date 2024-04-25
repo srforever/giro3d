@@ -18,6 +18,7 @@ import type ElevationLayer from './layer/ElevationLayer';
 import type Disposable from './Disposable';
 import type MemoryUsage from './MemoryUsage';
 import type { GetMemoryUsageContext, MemoryUsageReport } from './MemoryUsage';
+import type OffsetScale from './OffsetScale';
 
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
@@ -158,12 +159,7 @@ class TileMesh
         const neighbourElevation = neighbour.material.texturesInfo.elevation;
 
         const offsetScale = this.extent.offsetToParent(neighbour.extent);
-        const nOffsetScale = neighbourElevation.offsetScale.clone();
-
-        nOffsetScale.x += offsetScale.x * nOffsetScale.z;
-        nOffsetScale.y += offsetScale.y * nOffsetScale.w;
-        nOffsetScale.z *= offsetScale.z;
-        nOffsetScale.w *= offsetScale.w;
+        const nOffsetScale = neighbourElevation.offsetScale.combine(offsetScale);
 
         uniform.offsetScale = nOffsetScale;
         uniform.diffLevel = diff;
@@ -296,7 +292,7 @@ class TileMesh
         layer: ElevationLayer,
         elevation: {
             texture: Texture;
-            pitch: Vector4;
+            pitch: OffsetScale;
             min: number;
             max: number;
         },

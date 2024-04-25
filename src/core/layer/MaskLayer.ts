@@ -1,8 +1,9 @@
-import { Texture, type TextureDataType, UnsignedByteType, Vector4 } from 'three';
+import { Texture, type TextureDataType, UnsignedByteType } from 'three';
 import { type Feature } from 'ol';
 import { type Geometry } from 'ol/geom';
 import ColorLayer from './ColorLayer';
 import type { LayerOptions, LayerUserData, Node, NodeMaterial } from './Layer';
+import OffsetScale from '../OffsetScale';
 
 /**
  * Modes of the mask layer.
@@ -19,7 +20,7 @@ enum MaskMode {
 }
 
 const EMPTY_TEXTURE = new Texture();
-const DEFAULT_PITCH = new Vector4(0, 0, 1, 1);
+const DEFAULT_PITCH = OffsetScale.identity();
 
 export interface MaskLayerOptions extends LayerOptions {
     /**

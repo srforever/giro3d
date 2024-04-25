@@ -7,7 +7,6 @@ import {
     MathUtils,
     type Texture,
     Vector2,
-    type Vector4,
     type WebGLRenderTarget,
     type PixelFormat,
     type TextureDataType,
@@ -40,10 +39,11 @@ import {
     type GetMemoryUsageContext,
     type MemoryUsageReport,
 } from '../MemoryUsage';
+import type OffsetScale from '../OffsetScale';
 
 export interface TextureAndPitch {
     texture: Texture;
-    pitch: Vector4;
+    pitch: OffsetScale;
 }
 
 const tmpDims = new Vector2();
@@ -92,7 +92,7 @@ function shouldCancel(node: Node): boolean {
 
 export class Target implements MemoryUsage {
     node: Node;
-    pitch: Vector4;
+    pitch: OffsetScale;
     extent: Extent;
     width: number;
     height: number;
@@ -114,7 +114,7 @@ export class Target implements MemoryUsage {
         node: Node;
         extent: Extent;
         geometryExtent: Extent;
-        pitch: Vector4;
+        pitch: OffsetScale;
         width: number;
         height: number;
     }) {

@@ -51,6 +51,7 @@ import {
 } from '../core/MemoryUsage';
 import type MemoryUsage from '../core/MemoryUsage';
 import EmptyTexture from './EmptyTexture';
+import OffsetScale from '../core/OffsetScale';
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -77,8 +78,8 @@ const COLORMAP_DISABLED = 0;
 const DISABLED_ELEVATION_RANGE = new Vector2(-999999, 999999);
 
 class TextureInfo {
-    originalOffsetScale: Vector4;
-    offsetScale: Vector4;
+    originalOffsetScale: OffsetScale;
+    offsetScale: OffsetScale;
     readonly layer: Layer;
     texture: Texture;
     opacity: number;
@@ -131,10 +132,10 @@ function drawImageOnAtlas(
 function updateOffsetScale(
     imageSize: Vector2,
     atlas: LayerAtlasInfo,
-    originalOffsetScale: Vector4,
+    originalOffsetScale: OffsetScale,
     width: number,
     height: number,
-    target: Vector4,
+    target: OffsetScale,
 ) {
     if (originalOffsetScale.z === 0 || originalOffsetScale.w === 0) {
         target.set(0, 0, 0, 0);
@@ -310,7 +311,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
             atlasTexture: Texture;
         };
         elevation: {
-            offsetScale: Vector4;
+            offsetScale: OffsetScale;
             texture: ElevationTexture;
         };
     };
@@ -437,7 +438,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
                 atlasTexture: null,
             },
             elevation: {
-                offsetScale: new Vector4(0, 0, 0, 0),
+                offsetScale: new OffsetScale(0, 0, 0, 0),
                 texture: null,
             },
         };
@@ -739,7 +740,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
 
     setElevationTexture(
         layer: ElevationLayer,
-        { texture, pitch }: { texture: Texture; pitch: Vector4 },
+        { texture, pitch }: { texture: Texture; pitch: OffsetScale },
         isFinal: boolean,
     ) {
         this._elevationLayer = layer;
@@ -777,8 +778,8 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         }
         info.opacity = newLayer.opacity;
         info.visible = newLayer.visible;
-        info.offsetScale = new Vector4(0, 0, 0, 0);
-        info.originalOffsetScale = new Vector4(0, 0, 0, 0);
+        info.offsetScale = new OffsetScale(0, 0, 0, 0);
+        info.originalOffsetScale = new OffsetScale(0, 0, 0, 0);
         info.texture = emptyTexture;
         info.color = new Color(1, 1, 1);
 
@@ -1069,7 +1070,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
                 const h = texture?.image?.height || EMPTY_IMAGE_SIZE;
                 const xRatio = w / this._composer.width;
                 const yRatio = h / this._composer.height;
-                this.texturesInfo.color.infos[i].offsetScale = new Vector4(
+                this.texturesInfo.color.infos[i].offsetScale = new OffsetScale(
                     atlas.x / this._composer.width + pitch.x * xRatio,
                     (atlas.y + atlas.offset) / this._composer.height + pitch.y * yRatio,
                     pitch.z * xRatio,
