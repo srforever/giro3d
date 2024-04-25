@@ -7,6 +7,7 @@ import MemoryTracker from '../renderer/MemoryTracker';
 import CachePanel from './CachePanel';
 import FetcherPanel from './FetcherPanel';
 import RequestQueueChart from './charts/RequestQueueChart';
+import PickingDuration from './charts/PickingDuration';
 
 class ProcessingInspector extends Panel {
     charts: Panel[];
@@ -21,6 +22,7 @@ class ProcessingInspector extends Panel {
         this.charts = [];
 
         this.charts.push(new FrameDuration(this.gui, instance));
+        this.charts.push(new PickingDuration(this.gui, instance));
         this.charts.push(new RequestQueueChart(this.gui, instance));
         this.charts.push(new MemoryUsage(this.gui, instance));
         this.charts.push(new CachePanel(this.gui, instance));

@@ -7,6 +7,7 @@ import {
     Object3D,
     type Box3,
     type WebGLRenderer,
+    Clock,
 } from 'three';
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4.js';
@@ -106,6 +107,19 @@ export interface InstanceEvents {
      * Fires at the end of the update
      */
     'update-end': FrameEventPayload;
+    'picking-start': {
+        /** empty */
+    };
+    'picking-end': {
+        /**
+         * The duration of the picking, in seconds.
+         */
+        elapsed: number;
+        /**
+         * The picking results.
+         */
+        results?: PickResult<unknown>[];
+    };
 }
 
 /**
@@ -217,6 +231,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private readonly _camera: Camera;
     private readonly _entities: Set<Entity>;
     private readonly _resizeObserver?: ResizeObserver;
+    private readonly _pickingClock: Clock;
     private _resizeTimeout?: string | number | NodeJS.Timeout;
     private _controls?: CustomCameraControls;
     private _controlFunctions?: ControlFunctions;
@@ -307,6 +322,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         }
 
         this._controls = null;
+        this._pickingClock = new Clock(false);
     }
 
     /** Gets the canvas that this instance renders into. */
@@ -762,6 +778,9 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
         mouseOrEvt: Vector2 | MouseEvent | TouchEvent,
         options: PickObjectsAtOptions = {},
     ): PickResult[] {
+        this.dispatchEvent({ type: 'picking-start' });
+        this._pickingClock.start();
+
         let results: PickResult[] = [];
         const sources =
             options.where && options.where.length > 0 ? [...options.where] : this.getObjects();
@@ -824,6 +843,10 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
                 }
             });
         }
+
+        const elapsed = this._pickingClock.getElapsedTime();
+        this._pickingClock.stop();
+        this.dispatchEvent({ type: 'picking-end', elapsed, results });
 
         return results;
     }
