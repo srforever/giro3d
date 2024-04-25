@@ -1165,6 +1165,12 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
     }
 
     canProcessColorLayer(): boolean {
+        if (!this._elevationLayer) {
+            return true;
+        }
+        if (!this._elevationLayer.visible) {
+            return true;
+        }
         return this.isElevationLayerTextureLoaded();
     }
 
