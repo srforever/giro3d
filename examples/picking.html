@@ -1,12 +1,12 @@
 ---
 title: Picking
 shortdesc: Pick objects with various methods (GPU picking, raycasting...)
-longdesc: Picking is the action of determining what's underneath the mouse cursor. Various picking technique exist, to handle different use cases.
+longdesc: Picking is the action of determining what's underneath the mouse cursor.
 attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
 ---
 
-<div class="m-2 position-absolute top-0 end-0">
-    <div class="card">
+<div class="p-2 h-100 position-absolute top-0 end-0" style="width: 30rem">
+    <div class="card" style="height: calc(100% - 1.3rem)">
         <h5 class="card-header">Picking</h5>
 
         <!-- tooltip -->
@@ -22,41 +22,40 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
             Provides various filtering options to enhance precision and performance.
         </p>
 
-        <div class="card-body">
-            <!-- Parameters -->
-            <form>
-                <div class="row">
-                    <div class="dropdown">
-                        <select class="btn btn-primary dropdown-toggle" id="pickSource">
-                            <option value="0">Pick from whole scene</option>
-                            <option value="1">Pick from pointcloud</option>
-                            <option value="2" selected>Pick from map</option>
+        <ul class="list-group list-group-flush overflow-y-scroll">
+            <li class="list-group-item">
+                <!-- Parameters -->
+                <form>
+                    <!-- Pick events -->
+                    <div class="mb-2">
+                        <label for="pickEvent" class="form-label">Pick on event</label>
+                        <select id="pickEvent" class="form-select">
+                            <option value="click">Click</option>
+                            <option value="mousemove" selected>Mouse move</option>
                         </select>
                     </div>
-                </div>
-                <div class="row">
-                    <label for="radiusSlider" class="col-sm-8 col-form-label">Picking radius</label>
-                    <div class="col-sm-4">
+                    <!-- Picking radius -->
+                    <div class="mb-3">
+                        <label for="radius" class="col-form-label">Picking radius</label>
                         <div class="input-group">
                             <input
-                                id="radiusSlider"
+                                id="radius"
                                 type="number"
                                 min="0"
                                 max="10"
                                 value="0"
                                 class="form-control"
                             />
-                            <span class="input-group-text">px</span>
+                            <span class="input-group-text">pixels</span>
                         </div>
                     </div>
-                </div>
-                <div class="row">
-                    <label for="limitSlider" class="col-sm-8 col-form-label"
-                        >Number of objects (0 for all)</label
-                    >
-                    <div class="col-sm-4">
+                    <!-- Limit -->
+                    <div class="mb-3">
+                        <label for="limit" class="col-form-label"
+                            >Number of objects (0 for all)</label
+                        >
                         <input
-                            id="limitSlider"
+                            id="limit"
                             type="number"
                             min="0"
                             max="100"
@@ -64,44 +63,97 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
                             class="form-control"
                         />
                     </div>
-                </div>
-            </form>
 
-            <!-- Result table -->
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Mode</th>
-                        <th scope="col">Time (ms)</th>
-                        <th scope="col"># Objects</th>
-                        <th scope="col">First object</th>
-                        <th scope="col">Coordinate</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th scope="row">Picking</th>
-                        <td><span id="pickingTiming"></span></td>
-                        <td><span id="pickingCount"></span></td>
-                        <td><span id="pickingFirstResult"></span></td>
-                        <td><span id="pickingCoord"></span></td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Raycasting</th>
-                        <td><span id="raycastingTiming"></span></td>
-                        <td><span id="raycastingCount"></span></td>
-                        <td><span id="raycastingFirstResult"></span></td>
-                        <td><span id="raycastingCoord"></span></td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Projection</th>
-                        <td><span id="projectingTiming"></span></td>
-                        <td><span id="projectingCount">1</span></td>
-                        <td><span id="projectingFirstResult">-</span></td>
-                        <td><span id="projectingCoord"></span></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+                    <div class="row">
+                        <!-- Prefer raycasting -->
+                        <div class="col">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="gpuPicking" />
+                                <label class="form-check-label" for="gpuPicking">
+                                    GPU picking
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Picking markers -->
+                        <div class="col">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    checked
+                                    id="showMarkers"
+                                    autocomplete="off"
+                                />
+                                <label class="form-check-label" for="showMarkers">
+                                    Show markers
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <!-- Pick map -->
+                        <div class="col">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="pickMap"
+                                    autocomplete="off"
+                                />
+                                <label class="form-check-label" for="pickMap">
+                                    Pick only map
+                                </label>
+                            </div>
+                        </div>
+                        <!-- Pick point cloud -->
+                        <div class="col">
+                            <div class="form-check">
+                                <input
+                                    class="form-check-input"
+                                    type="checkbox"
+                                    id="pickPointCloud"
+                                    autocomplete="off"
+                                />
+                                <label class="form-check-label" for="pickPointCloud">
+                                    Pick only point cloud
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </li>
+            <li class="list-group-item">
+                <span id="latency">Pick latency: 12.1 ms</span>
+            </li>
+            <li class="list-group-item">
+                <div id="emptyWarning" class="p-4">
+                    <span class="fs-4 text-secondary">No result to display</span>
+                </div>
+                <!-- Result table -->
+                <table id="table" class="table" style="display: none">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Entity</th>
+                            <th scope="col">Object</th>
+                            <th scope="col">X</th>
+                            <th scope="col">Y</th>
+                            <th scope="col">Z</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results">
+                        <tr>
+                            <td>?</td>
+                            <td>?</td>
+                            <td>?</td>
+                            <td>?</td>
+                            <td>?</td>
+                            <td>?</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </li>
+        </ul>
     </div>
 </div>
