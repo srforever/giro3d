@@ -790,11 +790,7 @@ abstract class Layer<
                 2,
             );
 
-            if (
-                sourceAdjusted &&
-                sourceAdjusted.width <= originalWidth &&
-                sourceAdjusted.height <= originalHeight
-            ) {
+            if (sourceAdjusted) {
                 return sourceAdjusted;
             }
         }

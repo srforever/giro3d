@@ -140,6 +140,35 @@ export default class TiledImageSource extends ImageSource {
         return this.olprojection.getCode();
     }
 
+    adjustExtentAndPixelSize(
+        requestExtent: Extent,
+        requestWidth: number,
+        requestHeight: number,
+        margin = 0,
+    ): { extent: Extent; width: number; height: number } {
+        const size = Math.min(requestWidth, requestHeight);
+        const zoom = this.getZoomLevel(requestExtent, size);
+
+        const resolution = this._tileGrid.getResolution(zoom);
+
+        const pixelWidth = resolution;
+        const pixelHeight = resolution;
+
+        const marginExtent = requestExtent
+            .withMargin(pixelWidth * margin, pixelHeight * margin)
+            .intersect(this._sourceExtent);
+
+        const dimensions = marginExtent.dimensions(tmp.dims);
+        const width = Math.round(dimensions.x / pixelWidth);
+        const height = Math.round(dimensions.y / pixelHeight);
+
+        return {
+            extent: marginExtent,
+            width,
+            height,
+        };
+    }
+
     /**
      * Selects the best zoom level given the provided image size and extent.
      *
