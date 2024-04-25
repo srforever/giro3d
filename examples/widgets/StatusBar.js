@@ -3,11 +3,23 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import * as MemoryUsage from '@giro3d/giro3d/core/MemoryUsage.js';
 
 const VIEW_PARAM = 'view';
+let currentURL = '';
 // Use default locale
 const NUMBER_FORMAT = new Intl.NumberFormat(undefined, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
 });
+
+let progressBar;
+let isCameraMoving = false;
+let percent;
+let memoryUsage;
+let currentInstance;
+let additionalInstances = [];
+let pickingRadius;
+const tmpVec3 = new Vector3();
+const lastCameraPosition = new Vector3(0, 0, 0);
+let coordinates;
 
 function processUrl(instance, url) {
     const pov = new URL(url).searchParams.get(VIEW_PARAM);
@@ -23,7 +35,7 @@ function processUrl(instance, url) {
     }
 }
 
-function updateUrl(instance) {
+function updateUrl() {
     const url = new URL(document.URL);
     url.searchParams.delete(VIEW_PARAM);
 
@@ -31,27 +43,32 @@ function updateUrl(instance) {
         return Math.round(n * 10) / 10;
     }
 
-    const cam = instance.camera.camera3D.position;
-    const target = instance?.controls?.target;
+    const cam = currentInstance.camera.camera3D.position;
+    const target = currentInstance?.controls?.target;
     if (target) {
         const pov = `${round10(cam.x)},${round10(cam.y)},${round10(cam.z)},${round10(target.x)},${round10(target.y)},${round10(target.z)}`;
 
+        if (pov === currentURL) {
+            return;
+        }
+
+        currentURL = pov;
         url.searchParams.append(VIEW_PARAM, pov);
 
         window.history.replaceState({}, null, url.toString());
     }
 }
 
-let progressBar;
-let percent;
-let memoryUsage;
-let urlTimeout;
-let currentInstance;
-let additionalInstances = [];
-let pickingRadius;
-const tmpVec3 = new Vector3();
-const lastCameraPosition = new Vector3(0, 0, 0);
-let coordinates;
+function updateCameraMoving() {
+    const cameraPosition = currentInstance.camera.camera3D.getWorldPosition(tmpVec3);
+    // Don't pick while the camera is moving
+    if (!lastCameraPosition || lastCameraPosition.distanceToSquared(cameraPosition) < 3) {
+        isCameraMoving = false;
+    } else {
+        lastCameraPosition.copy(cameraPosition);
+        isCameraMoving = true;
+    }
+}
 
 function updateProgressFrameRequester() {
     progressBar.style.width = `${currentInstance.progress * 100}%`;
@@ -71,21 +88,16 @@ function updateProgressFrameRequester() {
     memoryUsage.innerText = memoryUsageString;
 }
 
-function updateUrlFrameRequester() {
-    if (urlTimeout) {
-        clearTimeout(urlTimeout);
-    }
-    urlTimeout = setTimeout(() => updateUrl(currentInstance), 50);
-}
-
 function pick(mouseEvent) {
-    const cameraPosition = currentInstance.camera.camera3D.getWorldPosition(tmpVec3);
+    updateCameraMoving();
+
     // Don't pick while the camera is moving
-    if (!lastCameraPosition || lastCameraPosition.distanceToSquared(cameraPosition) === 0) {
+    if (!isCameraMoving) {
         const picked = currentInstance
             .pickObjectsAt(mouseEvent, {
                 limit: 1,
                 radius: pickingRadius,
+                sortByDistance: true,
             })
             .at(0);
 
@@ -99,8 +111,6 @@ function pick(mouseEvent) {
             coordinates.classList.add('d-none');
         }
     }
-
-    lastCameraPosition.copy(cameraPosition);
 }
 
 /**
@@ -111,7 +121,7 @@ function pick(mouseEvent) {
  * @param {[Instance] | Instance} options.additionalInstances Additional instances to track.
  */
 function bind(instance, options = {}) {
-    pickingRadius = options.radius ?? 1;
+    pickingRadius = options.radius;
     currentInstance = instance;
     // Bind events
     coordinates = document.getElementById('coordinates');
@@ -129,11 +139,12 @@ function bind(instance, options = {}) {
         }
     }
 
+    setInterval(updateUrl, 200);
+
     instance.addEventListener('update-end', updateProgressFrameRequester);
 
     if (!options.disableUrlUpdate) {
         processUrl(instance, document.URL);
-        instance.addEventListener('update-end', updateUrlFrameRequester);
     }
 }
 
