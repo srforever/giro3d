@@ -189,9 +189,7 @@ instance.add(label);
 let previousFeature;
 
 function pickFeatures(mouseEvent) {
-    const pickResult = instance.pickObjectsAt(mouseEvent, {
-        radius: 0,
-    });
+    const pickResult = instance.pickObjectsAt(mouseEvent);
 
     const picked = pickResult.at(0);
 
