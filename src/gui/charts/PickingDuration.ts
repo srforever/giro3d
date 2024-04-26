@@ -7,7 +7,7 @@ import type Instance from '../../core/Instance';
 
 const MAX_DATA_POINTS = 30;
 
-class FrameDuration extends ChartPanel {
+class PickingDuration extends ChartPanel {
     render: typeof WebGLInfo.prototype.render;
     data: ChartData<'bar', ScatterDataPoint[], string>;
     chart: Chart;
@@ -16,22 +16,11 @@ class FrameDuration extends ChartPanel {
     frame: number;
 
     constructor(parentGui: GUI, instance: Instance) {
-        super(parentGui, instance, 'Frame duration (ms)');
+        super(parentGui, instance, 'Picking duration (µs)');
 
         this.render = instance.renderer.info.render;
 
-        const totalFrameLength = {
-            label: 'Total',
-            tension: 0.2,
-            data: [] as ScatterDataPoint[],
-            fill: false,
-            borderWidth: 2,
-            pointRadius: 0,
-            backgroundColor: '#FF000030',
-            borderColor: '#FF000080',
-        };
-
-        const renderTime = {
+        const pickingDuration = {
             label: 'Render',
             tension: 0.2,
             data: [] as ScatterDataPoint[],
@@ -46,7 +35,7 @@ class FrameDuration extends ChartPanel {
 
         this.data = {
             labels,
-            datasets: [renderTime, totalFrameLength],
+            datasets: [pickingDuration],
         };
 
         this.chart = new Chart(this.ctx, {
@@ -61,7 +50,7 @@ class FrameDuration extends ChartPanel {
                     },
                     title: {
                         display: true,
-                        text: 'Frame duration (ms)',
+                        text: 'Picking duration (µs)',
                     },
                 },
                 scales: {
@@ -88,33 +77,14 @@ class FrameDuration extends ChartPanel {
         this.renderStart = -1;
         this.frame = 0;
 
-        instance.addEventListener('update-start', () => {
-            this.frame++;
-            this.updateStart = performance.now();
-        });
-
-        instance.addEventListener('update-end', () => {
-            const now = performance.now();
+        instance.addEventListener('picking-end', ({ elapsed }) => {
             pushTrim(
-                totalFrameLength.data,
-                { x: this.frame, y: now - this.updateStart },
+                pickingDuration.data,
+                { x: this.frame++, y: Math.round(elapsed * 1_000_000) },
                 MAX_DATA_POINTS,
             );
 
-            pushTrim(labels, '', MAX_DATA_POINTS);
-        });
-
-        instance.addEventListener('before-render', () => {
-            this.renderStart = performance.now();
-        });
-
-        instance.addEventListener('after-render', () => {
-            const now = performance.now();
-            pushTrim(
-                renderTime.data,
-                { x: this.frame, y: now - this.renderStart },
-                MAX_DATA_POINTS,
-            );
+            this.updateValues();
         });
     }
 
@@ -127,4 +97,4 @@ class FrameDuration extends ChartPanel {
     }
 }
 
-export default FrameDuration;
+export default PickingDuration;

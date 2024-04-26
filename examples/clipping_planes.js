@@ -107,7 +107,6 @@ function setupScene(pointCloud) {
     const map = new Map('terrain', {
         extent,
         hillshading: false,
-        segments: 64,
         discardNoData: true,
         doubleSided: true,
     });

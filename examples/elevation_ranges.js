@@ -31,7 +31,6 @@ const instance = new Instance(viewerDiv, {
 
 const map = new Map('map', {
     extent,
-    segments: 128,
     elevationRange: { min: 500, max: 3000 },
 });
 

@@ -30,6 +30,7 @@ export interface Options {
     showEmptyTexture: boolean;
     transparent: boolean;
     expandRGB: boolean;
+    convertRGFloatToRGBAUnsignedByte: boolean;
 }
 
 function createGridTexture() {
@@ -91,6 +92,7 @@ interface Uniforms {
     isEmptyTexture: IUniform<boolean>;
     noDataOptions: IUniform<NoDataOptions>;
     interpretation: IUniform<InterpretationUniform>;
+    convertRGFloatToRGBAUnsignedByte: IUniform<boolean>;
 }
 
 class ComposerTileMaterial extends ShaderMaterial {
@@ -126,6 +128,9 @@ class ComposerTileMaterial extends ShaderMaterial {
         this.uniforms.expandRGB = new Uniform(options.expandRGB ?? false);
         this.uniforms.showEmptyTexture = new Uniform(options.showEmptyTexture ?? false);
         this.uniforms.isEmptyTexture = new Uniform(false);
+        this.uniforms.convertRGFloatToRGBAUnsignedByte = new Uniform(
+            options.convertRGFloatToRGBAUnsignedByte ?? false,
+        );
         this.now = performance.now();
         this.type = 'ComposerTileMaterial';
 
@@ -157,6 +162,8 @@ class ComposerTileMaterial extends ShaderMaterial {
         this.uniforms.expandRGB.value = options.expandRGB ?? false;
         this.uniforms.showEmptyTexture.value = options.showEmptyTexture ?? false;
         this.uniforms.isEmptyTexture.value = TextureGenerator.isEmptyTexture(options.texture);
+        this.uniforms.convertRGFloatToRGBAUnsignedByte.value =
+            options.convertRGFloatToRGBAUnsignedByte ?? false;
 
         const channelCount = TextureGenerator.getChannelCount(this.pixelFormat);
         this.uniforms.channelCount.value = channelCount;

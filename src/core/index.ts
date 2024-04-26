@@ -21,6 +21,11 @@ import PointCloud, { type PointCloudEventMap, type PointCloudOptions } from './P
 import type ElevationRange from './ElevationRange';
 import type ContourLineOptions from './ContourLineOptions';
 import type TerrainOptions from './TerrainOptions';
+import {
+    DEFAULT_ENABLE_CPU_TERRAIN,
+    DEFAULT_ENABLE_STITCHING,
+    DEFAULT_ENABLE_TERRAIN,
+} from './TerrainOptions';
 import type ColorimetryOptions from './ColorimetryOptions';
 import {
     type FeatureStyle,
@@ -62,6 +67,9 @@ export {
     ColorimetryOptions,
     ContourLineOptions,
     TerrainOptions,
+    DEFAULT_ENABLE_TERRAIN,
+    DEFAULT_ENABLE_STITCHING,
+    DEFAULT_ENABLE_CPU_TERRAIN,
     FeatureStyle,
     FeatureElevationCallback,
     FeatureStyleCallback,

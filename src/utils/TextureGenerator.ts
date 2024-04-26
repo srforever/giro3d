@@ -28,7 +28,7 @@ import {
     ClampToEdgeWrapping,
     LinearFilter,
     MathUtils,
-    type WebGLRenderTarget,
+    WebGLRenderTarget,
     type AnyPixelFormat,
     type TextureDataType,
     type WebGLRenderer,
@@ -45,6 +45,8 @@ import {
 } from '../core/MemoryUsage';
 import Interpretation, { Mode } from '../core/layer/Interpretation';
 import EmptyTexture from '../renderer/EmptyTexture';
+import WebGLComposer from '../renderer/composition/WebGLComposer';
+import Rect from '../core/Rect';
 
 export const OPAQUE_BYTE = 255;
 export const OPAQUE_FLOAT = 1.0;
@@ -787,6 +789,67 @@ function getDepthBufferMemoryUsage(
     return result;
 }
 
+/**
+ * Transfers the pixels of a RenderTarget in the RG format and float32 data type into a RGBA / 8bit.
+ */
+function readRGRenderTargetIntoRGBAU8Buffer(options: {
+    renderTarget: WebGLRenderTarget;
+    renderer: WebGLRenderer;
+    outputWidth: number;
+    outputHeight: number;
+}): Uint8ClampedArray {
+    const { renderTarget: originalRenderTarget, outputWidth, outputHeight, renderer } = options;
+
+    let type = originalRenderTarget.texture.type;
+    let format = originalRenderTarget.texture.format as PixelFormat;
+
+    // WebGL mandates that only Unsigned 8-bit RGBA textures be readable,
+    // all other combinations are optional and implementation defined.
+    // https://registry.khronos.org/webgl/specs/latest/1.0/#5.14.12
+    const shouldConvert = type !== UnsignedByteType && format !== RGBAFormat;
+
+    const buffer = new Uint8ClampedArray(outputWidth * outputHeight * 4);
+    let target: WebGLRenderTarget = originalRenderTarget;
+
+    if (shouldConvert) {
+        format = RGBAFormat;
+        type = UnsignedByteType;
+
+        const rect = new Rect(0, 1, 0, 1);
+
+        // Use the WebGLComposer to convert the render target into the proper format.
+        // Note that the output render target is different than the input one.
+        const composer = new WebGLComposer({
+            textureDataType: type,
+            pixelFormat: format,
+            webGLRenderer: renderer,
+            reuseTexture: false,
+        });
+
+        composer.draw(originalRenderTarget.texture, rect, {
+            convertRGFloatToRGBAUnsignedByte: true,
+        });
+
+        target = new WebGLRenderTarget(outputWidth, outputHeight, {
+            format,
+            type,
+        });
+
+        composer.render({ rect, target });
+
+        composer.dispose();
+    }
+
+    // Transfer the elevation raster to CPU memory so that it can be sampled.
+    renderer.readRenderTargetPixels(target, 0, 0, outputWidth, outputHeight, buffer);
+
+    if (originalRenderTarget !== target) {
+        target.dispose();
+    }
+
+    return buffer;
+}
+
 function getMemoryUsage(
     texture: Texture | RenderTarget,
     context: GetMemoryUsageContext,
@@ -845,4 +908,5 @@ export default {
     shouldExpandRGB,
     isCanvasEmpty,
     getMemoryUsage,
+    readRGRenderTargetIntoRGBAU8Buffer,
 };

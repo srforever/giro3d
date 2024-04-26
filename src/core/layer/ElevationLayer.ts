@@ -1,10 +1,9 @@
 import type { PixelFormat, Texture, TextureDataType } from 'three';
 import { FloatType, NoColorSpace, RGFormat } from 'three';
-import type { LayerEvents, LayerOptions, LayerUserData, TextureAndPitch } from './Layer';
+import type { LayerEvents, LayerOptions, LayerUserData, Target, TextureAndPitch } from './Layer';
 import Layer from './Layer';
 import type Extent from '../geographic/Extent.js';
 import type TileMesh from '../TileMesh';
-import type LayeredMaterial from '../../renderer/LayeredMaterial';
 import type ElevationRange from '../ElevationRange.js';
 
 interface TextureWithMinMax extends Texture {
@@ -107,12 +106,12 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
 
     unregisterNode(node: TileMesh) {
         super.unregisterNode(node);
+
+        node.removeElevationTexture();
+
         const material = node.material;
-        if (Array.isArray(material)) {
-            material.forEach(m => (m as LayeredMaterial).removeElevationLayer());
-        } else {
-            (material as LayeredMaterial).removeElevationLayer();
-        }
+
+        material.removeElevationLayer();
     }
 
     protected getMinMax(texture: TextureWithMinMax) {
@@ -130,7 +129,7 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
 
     protected applyTextureToNode(
         textureAndPitch: TextureAndPitch,
-        node: TileMesh,
+        target: Target,
         isLastRender: boolean,
     ) {
         const { texture, pitch } = textureAndPitch;
@@ -142,7 +141,13 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
             min,
             max,
         };
-        node.setElevationTexture(this, value, isLastRender);
+
+        const node = target.node as TileMesh;
+        node.setElevationTexture(
+            this,
+            { ...value, renderTarget: target.renderTarget },
+            isLastRender,
+        );
     }
 
     // eslint-disable-next-line class-methods-use-this

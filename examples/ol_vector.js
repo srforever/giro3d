@@ -189,9 +189,7 @@ instance.add(label);
 let previousFeature;
 
 function pickFeatures(mouseEvent) {
-    const pickResult = instance.pickObjectsAt(mouseEvent, {
-        radius: 0,
-    });
+    const pickResult = instance.pickObjectsAt(mouseEvent);
 
     const picked = pickResult.at(0);
 
@@ -233,6 +231,5 @@ function pickFeatures(mouseEvent) {
 
 instance.domElement.addEventListener('mousemove', pickFeatures);
 Inspector.attach(document.getElementById('panelDiv'), instance);
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
 
 instance.notifyChange(map);

@@ -1,6 +1,6 @@
 import WMTSCapabilities from 'ol/format/WMTSCapabilities';
 import WMTS, { optionsFromCapabilities } from 'ol/source/WMTS.js';
-import { Fetcher } from '../utils';
+import Fetcher from '../utils/Fetcher';
 import type { TiledImageSourceOptions } from './TiledImageSource';
 import TiledImageSource from './TiledImageSource';
 import type { ImageSourceOptions } from './ImageSource';

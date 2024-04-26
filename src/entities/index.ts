@@ -4,7 +4,13 @@ import AxisGrid, {
     type Ticks as AxisGridTicks,
     type Volume as AxisGridVolume,
 } from './AxisGrid';
-import Map, { type LayerCompareFn, type MapEventMap } from './Map';
+import Map, {
+    type MapConstructorOptions,
+    type LayerCompareFn,
+    type MapEventMap,
+    DEFAULT_MAP_BACKGROUND_COLOR,
+    DEFAULT_MAP_SEGMENTS,
+} from './Map';
 import PotreePointCloud from './PotreePointCloud';
 import Entity, { type EntityEventMap, type EntityUserData } from './Entity';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
@@ -14,6 +20,9 @@ import FeatureCollection, {
     type OnMeshCreatedCallback,
     type OnTileCreatedCallback,
 } from './FeatureCollection';
+import type GetElevationOptions from './GetElevationOptions';
+import type GetElevationResult from './GetElevationResult';
+import type ElevationSample from './ElevationSample';
 
 /**
  * The built-in entities of Giro3D.
@@ -25,6 +34,12 @@ export {
     Entity3D,
     Entity3DEventMap,
     Map,
+    MapConstructorOptions,
+    GetElevationOptions,
+    GetElevationResult,
+    ElevationSample,
+    DEFAULT_MAP_BACKGROUND_COLOR,
+    DEFAULT_MAP_SEGMENTS,
     LayerCompareFn,
     MapEventMap,
     AxisGrid,

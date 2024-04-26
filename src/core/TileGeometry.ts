@@ -6,6 +6,7 @@ import {
     type GetMemoryUsageContext,
     type MemoryUsageReport,
 } from './MemoryUsage';
+import type HeightMap from './HeightMap';
 
 export interface TileGeometryOptions {
     dimensions: Vector2;
@@ -116,6 +117,73 @@ class TileGeometry extends BufferGeometry implements MemoryUsage {
             this.updateProps();
             this.computeBuffers(this.props);
         }
+    }
+
+    /**
+     * Resets all elevations to zero.
+     */
+    resetHeights() {
+        const positions = this.getAttribute('position');
+        for (let i = 0; i < positions.count; i++) {
+            positions.setZ(i, 0);
+        }
+        positions.needsUpdate = true;
+        this.computeBoundingBox();
+    }
+
+    /**
+     * Applies the provided heightmap to vertices' z-coordinate.
+     * @param heightMap - The heightmap buffer.
+     * @param width - The width of the heightmap, in pixels.
+     * @param height - The height of the heightmap, in pixels.
+     * @param stride - The stride to use when sampling the heightmap buffer.
+     * @param offsetScale - The offset/scale to apply to UV coordinate before sampling the heightmap.
+     * @returns The min/max elevation values encountered while updating the mesh.
+     */
+    applyHeightMap(heightMap: HeightMap): { min: number; max: number } {
+        /**
+         * Returns the elevation by sampling the heightmap at the (u, v) coordinate.
+         * Note: the sampling does not perform any interpolation.
+         */
+        function getElevation(u: number, v: number): number {
+            if (!heightMap) {
+                return 0;
+            }
+
+            return heightMap.getValue(u, v, true);
+        }
+
+        const segments = this._segments;
+
+        const step = 1 / segments;
+
+        const positions = this.getAttribute('position');
+
+        let min = +Infinity;
+        let max = -Infinity;
+
+        const verticesPerRow = segments + 1;
+
+        for (let i = 0; i < verticesPerRow; i++) {
+            for (let j = 0; j < verticesPerRow; j++) {
+                const u = i * step;
+                const v = j * step;
+
+                const z = getElevation(u, v);
+
+                min = Math.min(z, min);
+                max = Math.max(z, max);
+
+                const idx = i + j * verticesPerRow;
+                positions.setZ(idx, z);
+            }
+        }
+
+        positions.needsUpdate = true;
+        this.computeBoundingBox();
+        this.computeBoundingSphere();
+
+        return { min, max };
     }
 
     /**

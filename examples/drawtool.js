@@ -84,7 +84,6 @@ const instance = new Instance(document.getElementById('viewerDiv'), {
 const map = new Map('planar', {
     extent,
     hillshading: true,
-    segments: 128,
     discardNoData: true,
     backgroundColor: 'white',
 });
@@ -156,7 +155,6 @@ controls.target.copy(center);
 instance.useTHREEControls(controls);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
-instance.domElement.addEventListener('dblclick', e => console.log(instance.pickObjectsAt(e)));
 
 // Instanciate drawtool
 const drawToolOptions = {

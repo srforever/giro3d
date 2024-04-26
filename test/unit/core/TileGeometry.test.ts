@@ -1,7 +1,11 @@
 import Extent from 'src/core/geographic/Extent';
+import HeightMap from 'src/core/HeightMap';
+import OffsetScale from 'src/core/OffsetScale';
 import TileGeometry from 'src/core/TileGeometry';
+import { FloatType, RGFormat } from 'three';
 
 const dimensions = new Extent('EPSG:3857', -100, 100, -100, 100).dimensions();
+const DEFAULT_OFFSET_SCALE = new OffsetScale(0, 0, 1, 1);
 
 // Actual buffer arrays to prevent regression
 const uvsSquare = new Float32Array([
@@ -42,5 +46,109 @@ describe('TileGeometry', () => {
 
         expect(small.getIndex().array.BYTES_PER_ELEMENT).toEqual(2);
         expect(big.getIndex().array.BYTES_PER_ELEMENT).toEqual(4);
+    });
+
+    describe('resetHeights', () => {
+        it('should set all Z coordinates to zero', () => {
+            const geometry = new TileGeometry({ dimensions, segments: 3 });
+            const positions = geometry.getAttribute('position');
+            for (let i = 0; i < positions.count; i++) {
+                positions.setZ(i, 999);
+            }
+            geometry.resetHeights();
+
+            for (let i = 0; i < positions.count; i++) {
+                expect(positions.getZ(i)).toEqual(0);
+            }
+        });
+    });
+
+    describe('applyHeightMap', () => {
+        it('should return the min/max height of computed vertices', () => {
+            const width = 2;
+            const height = 2;
+            const buffer = new Float32Array(width * height * 2);
+
+            const ALPHA = 1;
+            buffer[0] = -102;
+            buffer[1] = ALPHA;
+            buffer[2] = 989;
+            buffer[3] = ALPHA;
+            buffer[4] = 600;
+            buffer[5] = ALPHA;
+            buffer[6] = 800;
+            buffer[7] = ALPHA;
+
+            const grid_2x2 = new TileGeometry({ dimensions, segments: 2 });
+
+            const { min, max } = grid_2x2.applyHeightMap(
+                new HeightMap(buffer, width, height, DEFAULT_OFFSET_SCALE, RGFormat, FloatType),
+            );
+
+            expect(min).toEqual(-102);
+            expect(max).toEqual(989);
+        });
+
+        it('should correctly sample the buffer', () => {
+            const small = new TileGeometry({ dimensions, segments: 2 });
+
+            // Create 2x2 heightmap, with a stride of 2 (the elevation is in the even indices)
+            const width = 2;
+            const height = 2;
+            const buffer = new Float32Array(width * height * 2);
+
+            const ALPHA = 1;
+            buffer[0] = 200;
+            buffer[1] = ALPHA;
+            buffer[2] = 400;
+            buffer[3] = ALPHA;
+            buffer[4] = 600;
+            buffer[5] = ALPHA;
+            buffer[6] = 800;
+            buffer[7] = ALPHA;
+
+            // The heightmap looks like this:
+            //
+            // +-----+-----+
+            // | 200 | 400 |
+            // +-----+-----+
+            // | 600 | 800 |
+            // +-----+-----+
+
+            // The grid looks like this:
+            //
+            // 0 --- 1 --- 2
+            // |     |     |
+            // 3 --- 4 --- 5
+            // |     |     |
+            // 6 --- 7 --- 8
+
+            const heightMap = new HeightMap(
+                buffer,
+                width,
+                height,
+                DEFAULT_OFFSET_SCALE,
+                RGFormat,
+                FloatType,
+            );
+            small.applyHeightMap(heightMap);
+
+            const positions = small.getAttribute('position');
+
+            // Top row
+            expect(positions.getZ(0)).toEqual(200);
+            expect(positions.getZ(1)).toEqual(200);
+            expect(positions.getZ(2)).toEqual(400);
+
+            // Middle row
+            expect(positions.getZ(3)).toEqual(200);
+            expect(positions.getZ(4)).toEqual(200);
+            expect(positions.getZ(5)).toEqual(400);
+
+            // Bottom row
+            expect(positions.getZ(6)).toEqual(600);
+            expect(positions.getZ(7)).toEqual(600);
+            expect(positions.getZ(8)).toEqual(800);
+        });
     });
 });

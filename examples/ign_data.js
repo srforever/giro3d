@@ -53,7 +53,6 @@ const map = new Giro3dMap('planar', {
         enabled: true,
         elevationLayersOnly: true,
     },
-    segments: 64,
     discardNoData: true,
     doubleSided: false,
 });
@@ -208,7 +207,7 @@ const previouslyPickedObjects = new Map();
 const pickedMaterial = new MeshLambertMaterial({ color: '#3581b8', side: DoubleSide });
 
 function pick(e) {
-    const pickedObjects = instance.pickObjectsAt(e, { radius: 2, where: [feat] });
+    const pickedObjects = instance.pickObjectsAt(e, { where: [feat] });
     for (const [key, value] of previouslyPickedObjects) {
         // Reset material of previous objects
         key.material = value;

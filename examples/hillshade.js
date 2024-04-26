@@ -36,7 +36,6 @@ const map = new Map('planar', {
         enabled: true,
         elevationLayersOnly: false,
     },
-    segments: 64,
     backgroundColor: 'white',
 });
 instance.add(map);

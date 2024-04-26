@@ -1,5 +1,6 @@
-import { Fetcher, PromiseUtils } from '../utils';
+import PromiseUtils from '../utils/PromiseUtils';
 import type { FetchOptions } from '../utils/Fetcher';
+import Fetcher from '../utils/Fetcher';
 
 type RequestData = {
     abortController: AbortController;

@@ -870,7 +870,7 @@ abstract class Layer<
         }
 
         const texture = target.renderTarget.texture;
-        this.applyTextureToNode({ texture, pitch: target.pitch }, target.node, false);
+        this.applyTextureToNode({ texture, pitch: target.pitch }, target, false);
         this._instance.notifyChange(this);
     }
 
@@ -949,7 +949,7 @@ abstract class Layer<
                     }
 
                     const texture = target.renderTarget.texture;
-                    this.applyTextureToNode({ texture, pitch }, target.node, isLastRender);
+                    this.applyTextureToNode({ texture, pitch }, target, isLastRender);
                     this._instance.notifyChange(this);
                 })
                 .catch(err => {
@@ -1133,7 +1133,7 @@ abstract class Layer<
 
     protected abstract applyTextureToNode(
         texture: TextureAndPitch,
-        node: Node,
+        target: Target,
         isLastRender: boolean,
     ): void;
 

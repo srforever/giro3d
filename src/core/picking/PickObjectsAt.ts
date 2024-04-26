@@ -1,4 +1,4 @@
-import { Color, type Object3D, Raycaster, Vector2 } from 'three';
+import { Color, type Object3D, Raycaster, type TypedArray, Vector2 } from 'three';
 import type Instance from '../Instance';
 import type Entity3D from '../../entities/Entity3D';
 import type PickResult from './PickResult';
@@ -38,28 +38,30 @@ function pickObjectsAt(
     const filter = options.filter;
     const target: PickResult[] = [];
 
-    // Instead of doing N raycast (1 per x,y returned by traversePickingCircle),
-    // we force render the zone of interest.
-    // Then we'll only do raycasting for the pixels where something was drawn.
-    const zone = {
-        x: canvasCoords.x - radius,
-        y: canvasCoords.y - radius,
-        width: 1 + radius * 2,
-        height: 1 + radius * 2,
-    };
-
+    let pixels: TypedArray;
     const clearColor = BLACK;
-
-    const pixels = instance.engine.renderToBuffer({
-        scene: object,
-        camera: instance.camera.camera3D,
-        zone,
-        clearColor,
-    });
-
     const clearR = Math.round(255 * clearColor.r);
     const clearG = Math.round(255 * clearColor.g);
     const clearB = Math.round(255 * clearColor.b);
+
+    if (options.gpuPicking) {
+        // Instead of doing N raycast (1 per x,y returned by traversePickingCircle),
+        // we force render the zone of interest.
+        // Then we'll only do raycasting for the pixels where something was drawn.
+        const zone = {
+            x: canvasCoords.x - radius,
+            y: canvasCoords.y - radius,
+            width: 1 + radius * 2,
+            height: 1 + radius * 2,
+        };
+
+        pixels = instance.engine.renderToBuffer({
+            scene: object,
+            camera: instance.camera.camera3D,
+            zone,
+            clearColor,
+        });
+    }
 
     // Raycaster use NDC coordinate
     const vec2 = new Vector2();
@@ -72,14 +74,20 @@ function pickObjectsAt(
         const xi = x + radius;
         const yi = y + radius;
         const offset = (yi * (radius * 2 + 1) + xi) * 4;
-        const r = pixels[offset];
-        const g = pixels[offset + 1];
-        const b = pixels[offset + 2];
-        // Use approx. test to avoid rounding error or to behave
-        // differently depending on hardware rounding mode.
-        if (Math.abs(clearR - r) <= 1 && Math.abs(clearG - g) <= 1 && Math.abs(clearB - b) <= 1) {
-            // skip because nothing has been rendered here
-            return null;
+        if (options.gpuPicking) {
+            const r = pixels[offset];
+            const g = pixels[offset + 1];
+            const b = pixels[offset + 2];
+            // Use approx. test to avoid rounding error or to behave
+            // differently depending on hardware rounding mode.
+            if (
+                Math.abs(clearR - r) <= 1 &&
+                Math.abs(clearG - g) <= 1 &&
+                Math.abs(clearB - b) <= 1
+            ) {
+                // skip because nothing has been rendered here
+                return null;
+            }
         }
 
         // Perform raycasting
