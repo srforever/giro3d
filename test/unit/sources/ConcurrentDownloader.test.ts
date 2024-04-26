@@ -1,6 +1,6 @@
 import type { FetchCallback } from 'src/sources/ConcurrentDownloader';
 import ConcurrentDownloader from 'src/sources/ConcurrentDownloader';
-import { PromiseUtils } from 'src/utils';
+import PromiseUtils from 'src/utils/PromiseUtils';
 
 const URL = 'http://example.com/foo';
 

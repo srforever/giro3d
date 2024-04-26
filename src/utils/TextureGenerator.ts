@@ -46,7 +46,7 @@ import {
 import Interpretation, { Mode } from '../core/layer/Interpretation';
 import EmptyTexture from '../renderer/EmptyTexture';
 import WebGLComposer from '../renderer/composition/WebGLComposer';
-import { Rect } from '../core';
+import Rect from '../core/Rect';
 
 export const OPAQUE_BYTE = 255;
 export const OPAQUE_FLOAT = 1.0;

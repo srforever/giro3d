@@ -3,7 +3,7 @@ import { Chart } from 'chart.js';
 import type GUI from 'lil-gui';
 import type { WebGLInfo } from 'three';
 import ChartPanel, { pushTrim } from './ChartPanel';
-import type { Instance } from '../../core';
+import type Instance from '../../core/Instance';
 
 const MAX_DATA_POINTS = 30;
 
