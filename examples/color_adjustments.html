@@ -7,9 +7,16 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>, <a target="_b
 <div class="m-2 position-absolute top-0 end-0">
     <div class="card m-1">
         <div class="card-header">Colorimetry</div>
-
         <ul class="list-group list-group-flush">
-            <li class="list-group-item">
+            <div class="p-2">
+                <select class="form-select" id="layer-select">
+                    <option value="map">Map</option>
+                    <option value="satellite">Satellite layer</option>
+                    <option value="geojson">GeoJSON layer</option>
+                </select>
+            </div>
+
+            <li class="list-group-item" id="map-settings">
                 <!-- Map parameters -->
                 <h6 class="card-subtitle mb-2 text-body-secondary">Map</h6>
                 <form class="container m-1">
@@ -60,9 +67,8 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>, <a target="_b
                     </div>
                 </form>
             </li>
-            <li class="list-group-item">
+            <li class="list-group-item" id="satellite-settings" style="display: none">
                 <!-- Satellite layer parameters -->
-                <h6 class="card-subtitle mb-2 text-body-secondary">Satellite layer</h6>
                 <form class="container m-1">
                     <label for="satellite-brightness" class="form-label">Brightness</label>
                     <div class="input-group">
@@ -116,9 +122,8 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>, <a target="_b
                     </div>
                 </form>
             </li>
-            <li class="list-group-item">
+            <li class="list-group-item" id="geojson-settings" style="display: none">
                 <!-- Vector layer parameters -->
-                <h6 class="card-subtitle mb-2 text-body-secondary">GeoJSON layer</h6>
                 <form class="container m-1">
                     <label for="vector-brightness" class="form-label">Brightness</label>
                     <div class="input-group">
