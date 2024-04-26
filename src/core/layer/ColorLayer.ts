@@ -332,4 +332,11 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
     }
 }
 
+/**
+ * Returns `true` if the given object is a {@link ColorLayer}.
+ */
+export function isColorLayer(obj: unknown): obj is ColorLayer {
+    return typeof obj === 'object' && (obj as ColorLayer)?.isColorLayer;
+}
+
 export default ColorLayer;

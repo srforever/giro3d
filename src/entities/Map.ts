@@ -13,8 +13,8 @@ import {
 
 import type Extent from '../core/geographic/Extent';
 import Layer from '../core/layer/Layer';
-import ColorLayer from '../core/layer/ColorLayer';
-import ElevationLayer from '../core/layer/ElevationLayer';
+import ColorLayer, { isColorLayer } from '../core/layer/ColorLayer';
+import ElevationLayer, { isElevationLayer } from '../core/layer/ElevationLayer';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
 import type { SSE } from '../core/ScreenSpaceError';
 import ScreenSpaceError from '../core/ScreenSpaceError';
@@ -738,17 +738,17 @@ class Map<UserData extends EntityUserData = EntityUserData>
         }
 
         this._layers.sort((a, b) => {
-            if ((a as ColorLayer).isColorLayer && (b as ColorLayer).isColorLayer) {
+            if (isColorLayer(a) && isColorLayer(b)) {
                 return compareFn(a, b);
             }
 
             // Sorting elevation layers has no effect currently, so by convention
             // we push them to the start of the list.
-            if ((a as ElevationLayer).isElevationLayer && (b as ElevationLayer).isElevationLayer) {
+            if (isElevationLayer(a) && isElevationLayer(b)) {
                 return 0;
             }
 
-            if ((a as ElevationLayer).isElevationLayer) {
+            if (isElevationLayer(a)) {
                 return -1;
             }
 
