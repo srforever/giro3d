@@ -1,6 +1,6 @@
 import type GUI from 'lil-gui';
 import type { AxesHelper, GridHelper } from 'three';
-import { Color, MathUtils } from 'three';
+import { Color } from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import type Instance from '../core/Instance';
 import TileMesh from '../core/TileMesh';
@@ -14,6 +14,7 @@ import HillshadingPanel from './HillshadingPanel';
 import ContourLinePanel from './ContourLinePanel';
 import ColorimetryPanel from './ColorimetryPanel';
 import GraticulePanel from './GraticulePanel';
+import MapTerrainPanel from './MapTerrainPanel';
 
 function createTileLabel() {
     const text = document.createElement('div');
@@ -31,8 +32,6 @@ function createTileLabel() {
 class MapInspector extends EntityInspector {
     /** The inspected map. */
     map: Map;
-    /** Toggle the wireframe rendering of the map. */
-    wireframe: boolean;
     /** Toggle the frozen property of the map. */
     frozen: boolean;
     showOutline: boolean;
@@ -45,7 +44,6 @@ class MapInspector extends EntityInspector {
     showExtent: boolean;
     showTileInfo: boolean;
     extentHelper: BoundingBoxHelper | null;
-    mapSegments: number;
     labels: globalThis.Map<number, CSS2DObject>;
     hillshadingPanel: HillshadingPanel;
     contourLinePanel: ContourLinePanel;
@@ -59,6 +57,7 @@ class MapInspector extends EntityInspector {
     axes?: AxesHelper;
     reachableTiles: number;
     visibleTiles: number;
+    terrainPanel: MapTerrainPanel;
 
     /**
      * Creates an instance of MapInspector.
@@ -77,7 +76,6 @@ class MapInspector extends EntityInspector {
         });
 
         this.map = map;
-        this.wireframe = this.map.wireframe ?? false;
         this.frozen = this.map.frozen ?? false;
         this.showGrid = false;
         this.renderState = 'Normal';
@@ -94,7 +92,6 @@ class MapInspector extends EntityInspector {
         this.showTileInfo = false;
         this.extentHelper = null;
 
-        this.mapSegments = this.map.segments;
         this.reachableTiles = 0;
         this.visibleTiles = 0;
 
@@ -103,15 +100,9 @@ class MapInspector extends EntityInspector {
         this.addController<number>(this.map, 'renderOrder')
             .name('Render order')
             .onChange(() => this.notify(map));
-        this.addController<number>(this, 'mapSegments')
-            .name('Tile subdivisions')
-            .min(2)
-            .max(128)
-            .onChange(v => this.updateSegments(v));
         this.addController<number>(this, 'visibleTiles').name('Visible tiles');
         this.addController<number>(this, 'reachableTiles').name('Reachable tiles');
         this.addController<number>(this.map.allTiles, 'size').name('Loaded tiles');
-        this.addController<number>(this.map.geometryPool, 'size').name('Geometry pool');
         if (this.map.materialOptions.elevationRange) {
             this.addController<number>(this.map.materialOptions.elevationRange, 'min')
                 .name('Elevation range minimum')
@@ -126,15 +117,6 @@ class MapInspector extends EntityInspector {
         this.addController<boolean>(this, 'showGrid')
             .name('Show grid')
             .onChange(v => this.toggleGrid(v));
-        this.addController<boolean>(this.map.materialOptions.terrain, 'enabled')
-            .name('Terrain deformation')
-            .onChange(() => this.notify(map));
-        this.addController<boolean>(this.map.materialOptions.terrain, 'enableCPUTerrain').name(
-            'CPU terrain',
-        );
-        this.addController<boolean>(this.map.materialOptions.terrain, 'stitching')
-            .name('Terrain stitching')
-            .onChange(() => this.notify(map));
         this.addColorController(this, 'background')
             .name('Background')
             .onChange(v => this.updateBackgroundColor(v));
@@ -143,14 +125,8 @@ class MapInspector extends EntityInspector {
             .min(0)
             .max(1)
             .onChange(v => this.updateBackgroundOpacity(v));
-        this.addController<boolean>(this, 'wireframe')
-            .name('Wireframe')
-            .onChange(v => this.toggleWireframe(v));
         this.addController<boolean>(this.map.materialOptions, 'showTileOutlines')
             .name('Show tiles outlines')
-            .onChange(() => this.notify());
-        this.addController<boolean>(this.map.materialOptions, 'showColliderMeshes')
-            .name('Show collider meshes')
             .onChange(() => this.notify());
         this.addController<boolean>(this, 'showTileInfo')
             .name('Show tile info')
@@ -167,6 +143,8 @@ class MapInspector extends EntityInspector {
             .max(3)
             .step(0.1)
             .onChange(() => this.notify());
+
+        this.terrainPanel = new MapTerrainPanel(this.map, this.gui, instance);
 
         this.hillshadingPanel = new HillshadingPanel(
             this.map.materialOptions.hillshading,
@@ -330,15 +308,6 @@ class MapInspector extends EntityInspector {
         this.notify(this.map);
     }
 
-    updateSegments(v: number) {
-        const val = MathUtils.floorPowerOfTwo(v);
-        this.mapSegments = val;
-        if (this.map.segments !== val) {
-            this.map.segments = val;
-            this.notify(this.map);
-        }
-    }
-
     setRenderState(state: string) {
         switch (state) {
             case 'Normal':
@@ -441,14 +410,6 @@ class MapInspector extends EntityInspector {
             this.instance.scene.add(axes);
         }
         this.notify();
-    }
-
-    toggleWireframe(value: boolean) {
-        this.map.wireframe = value;
-        this.map.traverseTiles(tile => {
-            tile.material.wireframe = value;
-        });
-        this.notify(this.map);
     }
 }
 

@@ -540,6 +540,8 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         this.level0Nodes = [];
 
+        this.wireframe = false;
+
         this.geometryPool = new window.Map();
 
         this._layerIndices = new window.Map();
