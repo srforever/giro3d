@@ -22,7 +22,7 @@ import LayerComposer from './LayerComposer';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils';
 import MemoryTracker from '../../renderer/MemoryTracker';
 import type Instance from '../Instance';
-import ImageSource, { type ImageResult } from '../../sources/ImageSource';
+import ImageSource, { ImageSourceMode, type ImageResult } from '../../sources/ImageSource';
 import type RequestQueue from '../RequestQueue';
 import { DefaultQueue } from '../RequestQueue';
 import OperationCounter from '../OperationCounter';
@@ -542,6 +542,30 @@ abstract class Layer<
         return this._preprocessOnce;
     }
 
+    protected isLayerComposerNecessary(): boolean {
+        // We need the composer to store preloaded images
+        if (this._preloadImages) {
+            return true;
+        }
+
+        // We need the composer to decode the interpretation of source images
+        if (!this.interpretation.isDefault()) {
+            return true;
+        }
+
+        // We need the compsoer to reproject source images
+        if (this.source.getCrs() !== this._instance.referenceCrs) {
+            return true;
+        }
+
+        // We need the composer to compose multiple source images per node
+        if (this.source.mode === ImageSourceMode.MultipleImages) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Perform the initialization. This should be called exactly once in the lifetime of the layer.
      */
@@ -553,24 +577,26 @@ abstract class Layer<
             targetProjection,
         });
 
-        this._composer = new LayerComposer({
-            renderer: this._instance.renderer,
-            showImageOutlines: this.showTileBorders,
-            showEmptyTextures: this.showEmptyTextures,
-            extent: this.extent,
-            computeMinMax: this.computeMinMax,
-            sourceCrs: this.source.getCrs(),
-            targetCrs: targetProjection,
-            interpretation: this.interpretation,
-            fillNoData: this.noDataOptions.replaceNoData,
-            fillNoDataAlphaReplacement: this.noDataOptions.alpha,
-            fillNoDataRadius: this.noDataOptions.maxSearchDistance,
-            textureDataType: this.getRenderTargetDataType(),
-            pixelFormat: this.getRenderTargetPixelFormat(),
-        });
+        if (this.isLayerComposerNecessary()) {
+            this._composer = new LayerComposer({
+                renderer: this._instance.renderer,
+                showImageOutlines: this.showTileBorders,
+                showEmptyTextures: this.showEmptyTextures,
+                extent: this.extent,
+                computeMinMax: this.computeMinMax,
+                sourceCrs: this.source.getCrs(),
+                targetCrs: targetProjection,
+                interpretation: this.interpretation,
+                fillNoData: this.noDataOptions.replaceNoData,
+                fillNoDataAlphaReplacement: this.noDataOptions.alpha,
+                fillNoDataRadius: this.noDataOptions.maxSearchDistance,
+                textureDataType: this.getRenderTargetDataType(),
+                pixelFormat: this.getRenderTargetPixelFormat(),
+            });
 
-        if (this._preloadImages) {
-            await this.loadFallbackImages();
+            if (this._preloadImages) {
+                await this.loadFallbackImages();
+            }
         }
 
         this._instance.notifyChange(this);
@@ -934,7 +960,7 @@ abstract class Layer<
         // Fetch adequate images from the source...
         const isContained = this.contains(extent);
         if (isContained) {
-            if (!target.renderTarget) {
+            if (this._composer && !target.renderTarget) {
                 target.renderTarget = this.acquireRenderTarget(width, height);
 
                 this.applyDefaultTexture(target);

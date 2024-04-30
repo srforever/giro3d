@@ -71,6 +71,17 @@ export interface GetImageOptions {
     signal?: AbortSignal;
 }
 
+export enum ImageSourceMode {
+    /**
+     * The source can produce a single image per request. Typical for non-tiled sources.
+     */
+    SingleImage,
+    /**
+     * The source might produce multiple images per request. Typical for tiled sources (XYZ, WMTS, etc).
+     */
+    MultipleImages,
+}
+
 export interface ImageResponse {
     id: string;
     request: () => Promise<ImageResult>;
@@ -99,6 +110,7 @@ export interface ImageSourceOptions {
      * color space, otherwise `NoColorSpace`.
      */
     colorSpace?: ColorSpace;
+    mode?: ImageSourceMode;
 }
 
 export interface ImageSourceEvents {
@@ -129,6 +141,8 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> implements
     version: number;
     readonly containsFn: CustomContainsFn;
 
+    readonly mode: ImageSourceMode;
+
     /**
      * @param options - Options.
      */
@@ -136,6 +150,7 @@ abstract class ImageSource extends EventDispatcher<ImageSourceEvents> implements
         super();
 
         this.isImageSource = true;
+        this.mode = options.mode ?? ImageSourceMode.SingleImage;
         this.type = 'ImageSource';
 
         this.flipY = options.flipY ?? false;
