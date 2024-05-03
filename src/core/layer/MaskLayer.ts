@@ -2,7 +2,7 @@ import { Texture, type TextureDataType, UnsignedByteType } from 'three';
 import { type Feature } from 'ol';
 import { type Geometry } from 'ol/geom';
 import ColorLayer from './ColorLayer';
-import type { LayerOptions, LayerUserData, Node, NodeMaterial } from './Layer';
+import type { LayerOptions, LayerUserData, Node } from './Layer';
 import OffsetScale from '../OffsetScale';
 
 /**
@@ -75,7 +75,7 @@ class MaskLayer<UserData extends LayerUserData = LayerUserData> extends ColorLay
         // We cannot remove the layer from the material, contrary to what is done for
         // other layer types, because since this layer acts as a mask, it must be defined
         // for the entire map.
-        (node.material as NodeMaterial).setColorTextures(this, {
+        node.material.setColorTextures(this, {
             texture: EMPTY_TEXTURE,
             pitch: DEFAULT_PITCH,
         });

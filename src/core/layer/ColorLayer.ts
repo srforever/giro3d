@@ -190,12 +190,12 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
     }
 
     registerNode(node: Node, extent: Extent) {
-        (node.material as NodeMaterial).pushColorLayer(this, extent);
+        node.material.pushColorLayer(this, extent);
     }
 
     unregisterNode(node: Node) {
         super.unregisterNode(node);
-        const material = node.material as NodeMaterial;
+        const material = node.material;
         if (material) {
             if (material.indexOfColorLayer(this) !== -1) {
                 material.removeColorLayer(this);
@@ -204,11 +204,11 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
     }
 
     protected applyTextureToNode(result: TextureAndPitch, target: Target) {
-        (target.node.material as NodeMaterial).setColorTextures(this, result);
+        target.node.material.setColorTextures(this, result);
     }
 
     protected applyEmptyTextureToNode(node: Node) {
-        (node.material as NodeMaterial).removeColorLayer(this);
+        node.material.removeColorLayer(this);
     }
 
     pickFeaturesFrom(pickedResult: MapPickResult, options?: PickOptions): VectorPickFeature[] {
