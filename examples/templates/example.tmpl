@@ -1,78 +1,102 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
     <head>
         <title>%title% - Giro3D</title>
 
         <!-- OpenGraph -->
-        <meta property="og:description" content="%description%">
-        <meta property="og:image" content="https://giro3d.org/examples/screenshots/%name%.jpg">
+        <meta property="og:description" content="%description%" />
+        <meta property="og:image" content="https://giro3d.org/examples/screenshots/%name%.jpg" />
         <meta property="og:locale" content="en_US" />
-        <meta property="og:title" content="Giro3D - %title%">
-        <meta property="og:site_name" content="Giro3D">
-        <meta property="og:type" content="object">
-        <meta property="og:url" content="https://giro3d.org/examples/%name%.html">
+        <meta property="og:title" content="Giro3D - %title%" />
+        <meta property="og:site_name" content="Giro3D" />
+        <meta property="og:type" content="object" />
+        <meta property="og:url" content="https://giro3d.org/examples/%name%.html" />
 
         <!-- Twitter -->
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:description" content="%description%">
-        <meta name="twitter:dnt" content="on">
-        <meta name="twitter:image" content="https://giro3d.org/examples/screenshots/%name%.jpg">
-        <meta name="twitter:title" content="Giro3D - %title%">
-        <meta name="twitter:widgets:align" content="center">
+        <meta name="twitter:description" content="%description%" />
+        <meta name="twitter:dnt" content="on" />
+        <meta name="twitter:image" content="https://giro3d.org/examples/screenshots/%name%.jpg" />
+        <meta name="twitter:title" content="Giro3D - %title%" />
+        <meta name="twitter:widgets:align" content="center" />
 
-        <meta charset="UTF-8">
-        <meta name="name" content="%name%">
-        <meta name="description" content="%description%">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta charset="UTF-8" />
+        <meta name="name" content="%name%" />
+        <meta name="description" content="%description%" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        <link rel="icon" href="/images/favicon.svg">
+        <link rel="icon" href="/images/favicon.svg" />
         <link href="/assets/bootstrap-custom.css" rel="stylesheet" />
         <script src="/assets/bootstrap.bundle.min.js"></script>
-        <link rel="stylesheet" type="text/css" href="css/example.css">
+        <link rel="stylesheet" type="text/css" href="css/example.css" />
         <style>
-        %customcss%
+            %customcss%
         </style>
     </head>
     <body class="p-0 m-0 border-0 d-flex flex-column bg-light">
-
         <!-- navbar -->
         <header class="header">
             <div class="container-fluid">
                 <a href="#" class="navbar-brand mx-0">
-                    <img src="/images/favicon.svg" class="brand" width="32" height="32">
+                    <img src="/images/favicon.svg" class="brand" width="32" height="32" />
                 </a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
-                    aria-label="Toggle navigation">
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
                     <span class="navbar-toggler-icon"></span>
                 </button>
 
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav  navbar-nav-left">
+                    <ul class="navbar-nav navbar-nav-left">
                         <li class="nav-item">
                             <a class="nav-link" href="../index.html">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="../giro3d.html">Giro3D framework</a>
+                            <a class="nav-link nav-link-primary" href="../giro3d.html"
+                                >Giro3D framework</a
+                            >
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link nav-link-success" href="../piero.html">Piero application</a>
+                            <a class="nav-link nav-link-success" href="../piero.html"
+                                >Piero application</a
+                            >
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="../tutorials/getting-started.html">Getting started with Giro3D</a>
+                            <a
+                                class="nav-link nav-link-primary"
+                                href="../tutorials/getting-started.html"
+                                >Getting started with Giro3D</a
+                            >
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link nav-link-primary active" aria-current="page" href="index.html">Giro3D examples</a>
+                            <a
+                                class="nav-link nav-link-primary active"
+                                aria-current="page"
+                                href="index.html"
+                                >Giro3D examples</a
+                            >
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="../apidoc/index.html">API documentation</a>
+                            <a class="nav-link nav-link-primary" href="../apidoc/index.html"
+                                >API documentation</a
+                            >
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="../governance.html">Governance</a>
+                            <a class="nav-link nav-link-primary" href="../governance.html"
+                                >Governance</a
+                            >
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="../sponsors.html">Sponsors</a>
+                            <a class="nav-link nav-link-primary" href="../sponsors.html"
+                                >Sponsors</a
+                            >
                         </li>
                     </ul>
                     <ul class="navbar-nav">
@@ -90,7 +114,6 @@
         </header>
 
         <div class="m-3">
-
             <!-- Short description (same as in the example card) -->
             <div>
                 <p class="text-muted">%description%</p>
@@ -101,28 +124,47 @@
                 <!-- Viewer -->
                 <div id="viewerDiv"></div>
                 <!-- Inspector (hidden by default) -->
-                <div id="panelDiv" class="position-absolute my-2 mx-2 bottom-0 start-0 overflow-auto" style="display:none"></div>
+                <div
+                    id="panelDiv"
+                    class="position-absolute my-2 mx-2 bottom-0 start-0 overflow-auto"
+                    style="display: none"
+                ></div>
                 <!-- Optional additional content from the example (custom buttons, etc.) -->
                 %content%
                 <!-- Status bar -->
-                <div id="status-bar"
-                     class="bg-light d-flex w-100 position-absolute bottom-0 start-0 status-bar">
-
-                    <div class="progress m-2 status-progress-bar" role="progressbar" style="height: 5px" aria-label="Basic example" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">
+                <div
+                    id="status-bar"
+                    class="bg-light d-flex w-100 position-absolute bottom-0 start-0 status-bar"
+                >
+                    <div
+                        class="progress m-2 status-progress-bar"
+                        role="progressbar"
+                        style="height: 5px"
+                        aria-label="Basic example"
+                        aria-valuenow="100"
+                        aria-valuemin="0"
+                        aria-valuemax="100"
+                    >
                         <div id="progress-bar" class="progress-bar" style="width: 100%"></div>
                     </div>
                     <span id="loading-percent" class="status-progress-value">100%</span>
                     <span id="memory-usage" class="mx-2 memory-usage">0 MB</span>
                     <span class="text-center status-attribution">%attribution%</span>
                     <!-- Coordinates -->
-                    <div id="coordinates"
-                         class="px-1 position-absolute end-0 text-secondary">
-                    </div>
+                    <div id="coordinates" class="px-1 position-absolute end-0 text-secondary"></div>
                 </div>
                 <!-- Full-screen button -->
-                <div id="btnFullscreen" class="position-absolute top-0 start-0 mx-2 my-2 overflow-auto">
-                    <button id="btnFullscreen" type="button"class="btn btn-light btn-sm" title="toggle full screen"
-                        style="display: flex; align-items: center; justify-content: center;">
+                <div
+                    id="btnFullscreen"
+                    class="position-absolute top-0 start-0 mx-2 my-2 overflow-auto"
+                >
+                    <button
+                        id="btnFullscreen"
+                        type="button"
+                        class="btn btn-light btn-sm"
+                        title="toggle full screen"
+                        style="display: flex; align-items: center; justify-content: center"
+                    >
                         <!-- Origin: https://icons.getbootstrap.com/icons/arrows-fullscreen/ -->
                         <i id="icon-fullscreen" class="bi bi-arrows-fullscreen"></i>
                     </button>
@@ -136,35 +178,59 @@
 
             <!-- Source code -->
             <span class="badge text-bg-primary my-1">index.js</span>
-            <div class="border rounded p-3 position-relative" id="source" style="background-color: #ffffff">
+            <div
+                class="border rounded p-3 position-relative"
+                id="source"
+                style="background-color: #ffffff"
+            >
                 <span class="position-absolute top-0 end-0 p-2">
-                    <button type="button" class="btn btn-outline-secondary" onclick="copyContentByID('source')">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        onclick="copyContentByID('source')"
+                    >
                         <i class="bi bi-copy"></i>
                     </button>
                 </span>
                 %code%
             </div>
 
-            <div class="my-3"/>
+            <div class="my-3" />
 
             <!-- HTML code -->
             <span class="badge text-bg-primary my-1">index.html</span>
-            <div class="border rounded p-3 position-relative" id="source-html" style="background-color: #ffffff">
+            <div
+                class="border rounded p-3 position-relative"
+                id="source-html"
+                style="background-color: #ffffff"
+            >
                 <span class="position-absolute top-0 end-0 p-2">
-                    <button type="button" class="btn btn-outline-secondary" onclick="copyContentByID('source-html')">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        onclick="copyContentByID('source-html')"
+                    >
                         <i class="bi bi-copy"></i>
                     </button>
                 </span>
                 %html%
             </div>
 
-            <div class="my-3"/>
+            <div class="my-3" />
 
             <!-- package.json code -->
             <span class="badge text-bg-primary my-1">package.json</span>
-            <div class="border rounded p-3 position-relative" id="source-package-json" style="background-color: #ffffff">
+            <div
+                class="border rounded p-3 position-relative"
+                id="source-package-json"
+                style="background-color: #ffffff"
+            >
                 <span class="position-absolute top-0 end-0 p-2">
-                    <button type="button" class="btn btn-outline-secondary" onclick="copyContentByID('source-package-json')">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        onclick="copyContentByID('source-package-json')"
+                    >
                         <i class="bi bi-copy"></i>
                     </button>
                 </span>
@@ -177,16 +243,21 @@
         <script type="module" src="%js%"></script>
         <script>
             /* activate popovers */
-            const popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'));
+            const popoverTriggerList = [].slice.call(
+                document.querySelectorAll('[data-bs-toggle="popover"]'),
+            );
             popoverTriggerList.map(
                 // bootstrap is used as script in the template, disable warning about undef
                 // eslint-disable-next-line no-undef
-                popoverTriggerEl => new bootstrap.Popover(popoverTriggerEl, {
-                    trigger: 'hover',
-                    placement: 'left',
-                    content: document.getElementById(popoverTriggerEl.getAttribute('data-bs-content')).innerHTML,
-                    html: true,
-                }),
+                popoverTriggerEl =>
+                    new bootstrap.Popover(popoverTriggerEl, {
+                        trigger: 'hover',
+                        placement: 'left',
+                        content: document.getElementById(
+                            popoverTriggerEl.getAttribute('data-bs-content'),
+                        ).innerHTML,
+                        html: true,
+                    }),
             );
 
             var fullScreen = false;
@@ -196,9 +267,9 @@
             function updateFullScreenIcon() {
                 const target = document.getElementById('icon-fullscreen');
                 if (document.fullscreen) {
-                    target.className = "bi bi-fullscreen-exit";
+                    target.className = 'bi bi-fullscreen-exit';
                 } else {
-                    target.className = "bi bi-arrows-fullscreen";
+                    target.className = 'bi bi-arrows-fullscreen';
                 }
             }
 
@@ -208,9 +279,12 @@
 
             function toggleFullScreen() {
                 if (!fullScreen) {
-                    document.getElementById('main-view').requestFullscreen().then(() => {
-                        fullScreen = true;
-                    });
+                    document
+                        .getElementById('main-view')
+                        .requestFullscreen()
+                        .then(() => {
+                            fullScreen = true;
+                        });
                 } else {
                     document.exitFullscreen().then(() => {
                         fullScreen = false;
