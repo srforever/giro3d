@@ -71,7 +71,6 @@ enum TargetState {
     Pending = 0,
     Processing = 1,
     Complete = 2,
-    Disposed = 3,
 }
 
 function shouldCancel(node: Node): boolean {
@@ -98,6 +97,10 @@ export class Target implements MemoryUsage {
     state: TargetState;
     geometryExtent: Extent;
     private _onVisibilityChanged: () => void;
+
+    isDisposed() {
+        return this.node.disposed;
+    }
 
     getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
         if (this.renderTarget) {
@@ -131,7 +134,6 @@ export class Target implements MemoryUsage {
 
     dispose() {
         this.node.removeEventListener('visibility-changed', this._onVisibilityChanged);
-        this.state = TargetState.Disposed;
         this.abort();
     }
 
@@ -842,6 +844,10 @@ abstract class Layer<
      * @param target - The target.
      */
     protected applyDefaultTexture(target: Target) {
+        if (target.isDisposed()) {
+            return;
+        }
+
         const parent = this.getParent(target);
 
         if (parent) {
@@ -926,7 +932,7 @@ abstract class Layer<
                 target,
             })
                 .then(() => {
-                    if (target.state === TargetState.Disposed) {
+                    if (target.isDisposed()) {
                         return;
                     }
 
@@ -1023,6 +1029,10 @@ abstract class Layer<
             node.addEventListener('dispose', this._onNodeDisposed);
         } else {
             target = this._targets.get(node.id);
+        }
+
+        if (target.isDisposed()) {
+            return;
         }
 
         this.updateMaterial(material);
