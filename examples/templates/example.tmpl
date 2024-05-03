@@ -151,7 +151,16 @@
                     <span id="memory-usage" class="mx-2 memory-usage">0 MB</span>
                     <span class="text-center status-attribution">%attribution%</span>
                     <!-- Coordinates -->
-                    <div id="coordinates" class="px-1 position-absolute end-0 text-secondary"></div>
+                    <div class="px-1 position-absolute end-0 d-inline-flex">
+                        <div
+                            id="coordinates"
+                            class="mx-2 text-secondary"
+                            style="width: 18rem"
+                        ></div>
+                        <button type="button" id="crs" class="badge rounded-pill text-bg-secondary">
+                            WGS84
+                        </button>
+                    </div>
                 </div>
                 <!-- Full-screen button -->
                 <div
