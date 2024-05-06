@@ -1,6 +1,7 @@
 import { Vector3 } from 'three';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import * as MemoryUsage from '@giro3d/giro3d/core/MemoryUsage.js';
+import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 
 const VIEW_PARAM = 'view';
 let currentURL = '';
@@ -8,6 +9,11 @@ let currentURL = '';
 const NUMBER_FORMAT = new Intl.NumberFormat(undefined, {
     minimumFractionDigits: 1,
     maximumFractionDigits: 1,
+});
+
+const LATLON_FORMAT = new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: 5,
+    maximumFractionDigits: 5,
 });
 
 let progressBar;
@@ -20,6 +26,9 @@ let pickingRadius;
 const tmpVec3 = new Vector3();
 const lastCameraPosition = new Vector3(0, 0, 0);
 let coordinates;
+let pickedPoint;
+let crsButton;
+let coordsAsLatLon = false;
 
 function processUrl(instance, url) {
     const pov = new URL(url).searchParams.get(VIEW_PARAM);
@@ -88,6 +97,28 @@ function updateProgressFrameRequester() {
     memoryUsage.innerText = memoryUsageString;
 }
 
+function updateCoordinates() {
+    const coords = pickedPoint;
+
+    const crs = currentInstance.referenceCrs;
+    crsButton.innerText = coordsAsLatLon ? 'lat/lon' : crs;
+
+    if (coords) {
+        coordinates.classList.remove('d-none');
+
+        const { x, y, z } = coords;
+
+        if (coordsAsLatLon) {
+            const latlon = new Coordinates(crs, x, y).as('EPSG:4326');
+            coordinates.textContent = `lat: ${LATLON_FORMAT.format(latlon.latitude)}, lon: ${LATLON_FORMAT.format(latlon.longitude)}, altitude: ${NUMBER_FORMAT.format(z)}`;
+        } else {
+            coordinates.textContent = `x: ${NUMBER_FORMAT.format(x)}, y: ${NUMBER_FORMAT.format(y)}, z: ${NUMBER_FORMAT.format(z)}`;
+        }
+    } else {
+        coordinates.classList.add('d-none');
+    }
+}
+
 function pick(mouseEvent) {
     updateCameraMoving();
 
@@ -101,15 +132,8 @@ function pick(mouseEvent) {
             })
             .at(0);
 
-        if (picked) {
-            const crs = currentInstance.referenceCrs;
-            coordinates.classList.remove('d-none');
-
-            const { x, y, z } = picked.point;
-            coordinates.textContent = `${crs} x: ${NUMBER_FORMAT.format(x)}, y: ${NUMBER_FORMAT.format(y)}, z: ${NUMBER_FORMAT.format(z)}`;
-        } else {
-            coordinates.classList.add('d-none');
-        }
+        pickedPoint = picked?.point;
+        updateCoordinates();
     }
 }
 
@@ -130,6 +154,12 @@ function bind(instance, options = {}) {
     progressBar = document.getElementById('progress-bar');
     percent = document.getElementById('loading-percent');
     memoryUsage = document.getElementById('memory-usage');
+    crsButton = document.getElementById('crs');
+
+    crsButton.onclick = function onclick() {
+        coordsAsLatLon = !coordsAsLatLon;
+        updateCoordinates();
+    };
 
     if (options.additionalInstances) {
         if (Array.isArray(options.additionalInstances)) {
