@@ -206,7 +206,7 @@ class TileGeometry extends BufferGeometry implements MemoryUsage {
         const positions = new Float32Array(numVertices * 3);
         const indexCount = props.triangles * 3;
         const indices =
-            indexCount <= 65536 ? new Uint16Array(indexCount) : new Uint32Array(indexCount);
+            positions.length <= 65536 ? new Uint16Array(indexCount) : new Uint32Array(indexCount);
 
         let posX;
         let h = 0;
