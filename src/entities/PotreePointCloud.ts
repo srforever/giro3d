@@ -354,7 +354,6 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
         this.pointSize = !this.pointSize || Number.isNaN(this.pointSize) ? 4 : this.pointSize;
         this.sseThreshold = this.sseThreshold || 2;
         this.material = this.material ?? new PointCloudMaterial();
-        this.material.defines = this.material.defines || {};
         this.mode = MODE.COLOR;
 
         this.onPointsCreated = null;
@@ -450,6 +449,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
             Array.isArray(this.metadata.pointAttributes) &&
             this.metadata.pointAttributes.find(elem => elem.startsWith('NORMAL'));
         if (normal) {
+            // @ts-expect-error the define is dynamically set
             this.material.defines[normal] = 1;
         }
 

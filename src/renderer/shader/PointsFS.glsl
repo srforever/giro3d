@@ -6,13 +6,12 @@
 #include <fog_pars_fragment>
 
 varying vec4 vColor;
-uniform int mode;
 uniform vec3 brightnessContrastSaturation;
 
 void main() {
     #include <clipping_planes_fragment>
 
-    if (mode == MODE_TEXTURE && vColor.a < 0.001) {
+    if (vColor.a < 0.001) {
         discard;
     }
 

@@ -58,6 +58,30 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap>, 
         this.extent = undefined;
         this.textureSize = textureSize;
         this.disposed = false;
+
+        if (PointCloudMaterial.isPointCloudMaterial(this.material)) {
+            this.material.enableClassification = this.geometry.hasAttribute('classification');
+        }
+    }
+
+    private getPointValue(pointIndex: number, attribute: string): number | undefined {
+        if (this.geometry.hasAttribute(attribute)) {
+            const buffer = this.geometry.getAttribute(attribute).array;
+
+            return buffer[pointIndex];
+        }
+
+        return undefined;
+    }
+
+    /**
+     * Returns the classification number of the specified point.
+     *
+     * @param pointIndex - The index of the point.
+     * @returns The classification number for the specified point, or `undefined` if this point cloud does not support classifications.
+     */
+    getClassification(pointIndex: number): number | undefined {
+        return this.getPointValue(pointIndex, 'classification');
     }
 
     // eslint-disable-next-line class-methods-use-this
