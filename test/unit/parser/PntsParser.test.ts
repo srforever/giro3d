@@ -1,4 +1,7 @@
 import '../setup.js';
+import fs from 'fs';
+import path from 'path';
+import { cwd } from 'process';
 import assert from 'assert';
 import PntsParser from 'src/parser/PntsParser';
 
@@ -40,5 +43,24 @@ describe('PntsParser', () => {
                 done();
             });
         });
+    });
+
+    it('should correctly identify the classification attribute', async () => {
+        const buf = fs.readFileSync(path.join(cwd(), 'test/data/pnts/r44220.pnts'));
+
+        const result = await PntsParser.parse(buf.buffer);
+
+        expect(result).not.toBeUndefined();
+
+        const { geometry } = result.point;
+
+        expect(geometry.hasAttribute('position')).toEqual(true);
+        expect(geometry.hasAttribute('classification')).toEqual(true);
+
+        const position = geometry.getAttribute('position');
+        const classification = geometry.getAttribute('classification');
+
+        expect(position.count).toEqual(classification.count);
+        expect(classification.itemSize).toEqual(1);
     });
 });
