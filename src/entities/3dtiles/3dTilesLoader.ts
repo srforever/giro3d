@@ -29,7 +29,6 @@ async function pntsParse(data: ArrayBuffer, entity: Tiles3D) {
     }
     // creation points with geometry and material
     const points = new PointCloud({
-        layer: entity,
         geometry: result.point.geometry,
         material,
         textureSize: entity.imageSize,

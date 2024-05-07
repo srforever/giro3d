@@ -7,7 +7,6 @@ import {
     type Material,
 } from 'three';
 import PointCloudMaterial from '../renderer/PointCloudMaterial';
-import type Entity3D from '../entities/Entity3D.js';
 import type Extent from './geographic/Extent.js';
 import type Disposable from './Disposable';
 
@@ -22,8 +21,6 @@ export interface PointCloudEventMap extends Object3DEventMap {
 
 /** Options for constructing {@link PointCloud} */
 export interface PointCloudOptions {
-    /** Parent entity */
-    layer?: Entity3D;
     /** Geometry */
     geometry?: BufferGeometry;
     /** Material */
@@ -38,7 +35,7 @@ export interface PointCloudOptions {
  */
 class PointCloud extends Points implements EventDispatcher<PointCloudEventMap>, Disposable {
     readonly isPointCloud: boolean = true;
-    private _layer: Entity3D;
+    readonly type = 'PointCloud';
     extent?: Extent;
     textureSize?: Vector2;
     disposed: boolean;
@@ -56,24 +53,11 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap>, 
         }
     }
 
-    constructor({
-        layer,
-        geometry,
-        material = new PointCloudMaterial(),
-        textureSize,
-    }: PointCloudOptions) {
+    constructor({ geometry, material = new PointCloudMaterial(), textureSize }: PointCloudOptions) {
         super(geometry, material);
-        this._layer = layer;
         this.extent = undefined;
         this.textureSize = textureSize;
         this.disposed = false;
-    }
-
-    get layer() {
-        return this._layer;
-    }
-    set layer(value: Entity3D) {
-        this._layer = value;
     }
 
     // eslint-disable-next-line class-methods-use-this

@@ -871,7 +871,6 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
         const buffer = await Fetcher.arrayBuffer(url, this.source.networkOptions);
         const geometry = await this.parse(buffer, this.metadata.pointAttributes);
         const points = new PotreeTilePointCloud({
-            layer: this,
             geometry,
             material: this.material.clone(),
             textureSize: this.imageSize,
