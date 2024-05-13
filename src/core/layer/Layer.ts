@@ -57,21 +57,20 @@ interface NodeEventMap extends Object3DEventMap {
     };
 }
 
+export type NodeMaterial = LayeredMaterial | PointCloudMaterial;
+
 export interface Node extends Object3D<NodeEventMap> {
     disposed: boolean;
-    material: Material | Material[];
+    material: NodeMaterial;
     textureSize: Vector2;
     canProcessColorLayer(): boolean;
     getExtent(): Extent;
 }
 
-export type NodeMaterial = LayeredMaterial | PointCloudMaterial;
-
 enum TargetState {
     Pending = 0,
     Processing = 1,
     Complete = 2,
-    Disposed = 3,
 }
 
 function shouldCancel(node: Node): boolean {
@@ -81,10 +80,6 @@ function shouldCancel(node: Node): boolean {
 
     if (!node.parent || !node.material) {
         return true;
-    }
-
-    if (Array.isArray(node.material)) {
-        return node.material.every(m => !m.visible);
     }
 
     return !node.material.visible;
@@ -102,6 +97,10 @@ export class Target implements MemoryUsage {
     state: TargetState;
     geometryExtent: Extent;
     private _onVisibilityChanged: () => void;
+
+    isDisposed() {
+        return this.node.disposed;
+    }
 
     getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
         if (this.renderTarget) {
@@ -135,7 +134,6 @@ export class Target implements MemoryUsage {
 
     dispose() {
         this.node.removeEventListener('visibility-changed', this._onVisibilityChanged);
-        this.state = TargetState.Disposed;
         this.abort();
     }
 
@@ -846,6 +844,10 @@ abstract class Layer<
      * @param target - The target.
      */
     protected applyDefaultTexture(target: Target) {
+        if (target.isDisposed()) {
+            return;
+        }
+
         const parent = this.getParent(target);
 
         if (parent) {
@@ -930,7 +932,7 @@ abstract class Layer<
                 target,
             })
                 .then(() => {
-                    if (target.state === TargetState.Disposed) {
+                    if (target.isDisposed()) {
                         return;
                     }
 
@@ -990,11 +992,7 @@ abstract class Layer<
         }
 
         // Node is hidden, no need to update it
-        if (Array.isArray(node.material)) {
-            if (node.material.every(m => !m.visible)) {
-                return;
-            }
-        } else if (!node.material.visible) {
+        if (!node.material.visible) {
             return;
         }
 
@@ -1033,11 +1031,11 @@ abstract class Layer<
             target = this._targets.get(node.id);
         }
 
-        if (Array.isArray(material)) {
-            material.forEach(m => this.updateMaterial(m));
-        } else {
-            this.updateMaterial(material);
+        if (target.isDisposed()) {
+            return;
         }
+
+        this.updateMaterial(material);
 
         // An update is pending / or impossible -> abort
         if (this.frozen || !this.visible) {
