@@ -329,9 +329,7 @@ class CogSource extends ImageSource {
         const pixelWidth = this._dimensions.x / image.width;
         const pixelHeight = this._dimensions.y / image.height;
 
-        const marginExtent = requestExtent
-            .withMargin(pixelWidth * margin, pixelHeight * margin)
-            .intersect(this._extent);
+        const marginExtent = requestExtent.withMargin(pixelWidth * margin, pixelHeight * margin);
 
         const width = marginExtent.dimensions(tmpDim).x / pixelWidth;
         const height = marginExtent.dimensions(tmpDim).y / pixelHeight;
