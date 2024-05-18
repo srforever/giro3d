@@ -211,6 +211,10 @@ class PointCloudMaterial extends ShaderMaterial {
         );
     }
 
+    onBeforeRender() {
+        this.updateUniforms();
+    }
+
     update(source?: PointCloudMaterial) {
         if (source) {
             this.visible = source.visible;
