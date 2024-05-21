@@ -22,6 +22,7 @@ import Interpretation from '../../core/layer/Interpretation';
 import Rect from '../../core/Rect';
 import MemoryTracker from '../MemoryTracker';
 import ComposerTileMaterial from './ComposerTileMaterial';
+import TextureGenerator from '../../utils/TextureGenerator';
 
 let SHARED_PLANE_GEOMETRY: PlaneGeometry = null;
 
@@ -139,8 +140,14 @@ class WebGLComposer {
         this._renderer = options.webGLRenderer;
         this._reuseTexture = options.reuseTexture;
         this._clearColor = options.clearColor;
-        this._minFilter = options.minFilter || LinearFilter;
-        this._magFilter = options.magFilter || LinearFilter;
+
+        const defaultFilter = TextureGenerator.getCompatibleTextureFilter(
+            LinearFilter,
+            options.textureDataType,
+            options.webGLRenderer,
+        );
+        this._minFilter = options.minFilter || defaultFilter;
+        this._magFilter = options.magFilter || defaultFilter;
         this.dataType = options.textureDataType;
         this.pixelFormat = options.pixelFormat;
         this._expandRGB = options.expandRGB ?? false;
@@ -252,6 +259,9 @@ class WebGLComposer {
         } else {
             texture = image as Texture;
         }
+
+        TextureGenerator.ensureCompatibility(texture, this._renderer);
+
         const interpretation = options.interpretation ?? Interpretation.Raw;
         const material = ComposerTileMaterial.acquire({
             texture,

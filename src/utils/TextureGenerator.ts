@@ -26,6 +26,7 @@ import {
     UnsignedIntType,
     UnsignedShort5551Type,
     ClampToEdgeWrapping,
+    NearestFilter,
     LinearFilter,
     MathUtils,
     WebGLRenderTarget,
@@ -37,6 +38,8 @@ import {
     type CanvasTexture,
     type TypedArray,
     type RenderTarget,
+    type MinificationTextureFilter,
+    type MagnificationTextureFilter,
 } from 'three';
 import {
     createEmptyReport,
@@ -888,6 +891,45 @@ function isCanvasEmpty(canvas: HTMLCanvasElement): boolean {
     return true; // Canvas is empty
 }
 
+/**
+ * Returns a texture filter that is compatible with the texture.
+ * @param filter - The requested filter.
+ * @param dataType - The texture data type.
+ * @param renderer - The WebGLRenderer
+ * @returns The requested filter, if compatible, or {@link NearestFilter} if not compatible.
+ */
+function getCompatibleTextureFilter<
+    F extends MagnificationTextureFilter | MinificationTextureFilter,
+>(filter: F, dataType: TextureDataType, renderer: WebGLRenderer): F {
+    const gl = renderer?.getContext();
+
+    // This would happen when running unit test in a case where WebGL is not supported.
+    if (!gl) {
+        return filter;
+    }
+
+    const fallback = NearestFilter as F;
+
+    if (filter === LinearFilter) {
+        if (dataType === FloatType && !gl.getExtension('OES_texture_float_linear')) {
+            return fallback;
+        }
+        if (dataType === HalfFloatType && !gl.getExtension('OES_texture_half_float_linear')) {
+            return fallback;
+        }
+    }
+
+    return filter;
+}
+
+/**
+ * Updates the texture to improve compatibility with various platforms.
+ */
+function ensureCompatibility(texture: Texture, renderer: WebGLRenderer) {
+    texture.minFilter = getCompatibleTextureFilter(texture.minFilter, texture.type, renderer);
+    texture.magFilter = getCompatibleTextureFilter(texture.magFilter, texture.type, renderer);
+}
+
 export default {
     createDataTexture,
     isEmptyTexture,
@@ -909,4 +951,6 @@ export default {
     isCanvasEmpty,
     getMemoryUsage,
     readRGRenderTargetIntoRGBAU8Buffer,
+    getCompatibleTextureFilter,
+    ensureCompatibility,
 };

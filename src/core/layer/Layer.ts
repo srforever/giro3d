@@ -1085,10 +1085,16 @@ abstract class Layer<
     private acquireRenderTarget(width: number, height: number): WebGLRenderTarget {
         const type = this.getRenderTargetDataType();
 
+        const filter = TextureGenerator.getCompatibleTextureFilter(
+            LinearFilter,
+            type,
+            this._instance.renderer,
+        );
+
         const options: RenderTargetOptions = {
             format: this.getRenderTargetPixelFormat(),
-            magFilter: LinearFilter,
-            minFilter: LinearFilter,
+            magFilter: filter,
+            minFilter: filter,
             type,
             depthBuffer: false,
             generateMipmaps: false,

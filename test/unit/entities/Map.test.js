@@ -42,6 +42,7 @@ describe('Map', () => {
                 getWindowSize: jest.fn,
                 renderer: {
                     domElement: viewerDiv,
+                    getContext: jest.fn(),
                     getClearAlpha: jest.fn(),
                     setClearAlpha: jest.fn(),
                     getRenderTarget: jest.fn(),
