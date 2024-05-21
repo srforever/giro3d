@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <title>Giro3D - Frequently Asked Questions</title>
+
+        <meta charset="utf-8" />
+        <!-- OpenGraph -->
+        <meta
+            property="og:description"
+            content="A versatile framework to visualize geospatial data in the browser."
+        />
+        <meta property="og:image" content="https://giro3d.org/images/giro3d_logo_big.jpg" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:title" content="Giro3D" />
+        <meta property="og:site_name" content="Giro3D" />
+        <meta property="og:type" content="object" />
+        <meta property="og:url" content="https://giro3d.org/faq.html" />
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+            name="twitter:description"
+            content="A versatile framework to visualize geospatial data in the browser."
+        />
+        <meta name="twitter:dnt" content="on" />
+        <meta name="twitter:image" content="https://giro3d.org/images/giro3d_logo_big.jpg" />
+        <meta name="twitter:title" content="Giro3D - Frequently Asked Questions" />
+        <meta name="twitter:widgets:align" content="center" />
+
+        <link rel="icon" href="/images/favicon.svg" />
+        <link href="/assets/bootstrap-custom.css" rel="stylesheet" />
+        <script src="/assets/bootstrap.bundle.min.js"></script>
+    </head>
+
+    <body>
+        <header class="header">
+            <div class="container-fluid">
+                <a href="#" class="navbar-brand mx-0">
+                    <img src="/images/favicon.svg" class="brand" width="32" height="32" />
+                </a>
+
+                <button
+                    class="navbar-toggler"
+                    type="button"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#navbarSupportedContent"
+                    aria-controls="navbarSupportedContent"
+                    aria-expanded="false"
+                    aria-label="Toggle navigation"
+                >
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="navbar-nav navbar-nav-left">
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.html">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-primary" href="giro3d.html"
+                                >Giro3D framework</a
+                            >
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-success" href="piero.html"
+                                >Piero application</a
+                            >
+                        </li>
+                        <li class="nav-item">
+                            <a
+                                class="nav-link nav-link-primary"
+                                href="tutorials/getting-started.html"
+                                >Getting started with Giro3D</a
+                            >
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-primary" href="examples/index.html"
+                                >Giro3D examples</a
+                            >
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-primary" href="apidoc/index.html"
+                                >API documentation</a
+                            >
+                        </li>
+                        <!-- <li class="nav-item">
+                            <a class="nav-link nav-link-primary" href="roadmap.html">Roadmap</a>
+                        </li> -->
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-primary active" aria-current="page" href="#"
+                                >FAQ</a
+                            >
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-primary" href="governance.html"
+                                >Governance</a
+                            >
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link nav-link-primary" href="sponsors.html">Sponsors</a>
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a
+                                class="nav-link"
+                                href="https://gitlab.com/giro3d/giro3D"
+                                target="_blank"
+                                >GitLab <i class="bi bi-box-arrow-up-right"></i
+                            ></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+
+        <main class="p-4 container">
+            <section class="p-2">
+                <h5>Frequently Asked Questions</h5>
+
+                <ul>
+                    <li>
+                        <a href="#difference-giro3d-piero"
+                            >What is the difference between Giro3D and Piero?</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#compatible-hardware"
+                            >On what kind of hardware can Giro3D / Piero run on?</a
+                        >
+                    </li>
+                    <li><a href="#globe-mode">Does Giro3D supports a globe mode?</a></li>
+                    <li><a href="#projected-data">Can Giro3D work with projected data?</a></li>
+                    <li><a href="#open-giro3d-piero">Are Giro3D / Piero open projects?</a></li>
+                    <li>
+                        <a href="#supported-data"
+                            >What kind of data are supported by Giro3D / Piero?</a
+                        >
+                    </li>
+                    <li><a href="#provided-data">Is the data provided by Giro3D?</a></li>
+                    <li><a href="#free-giro3d-piero">Are Giro3D and Piero free?</a></li>
+                    <li>
+                        <a href="#threejs-openlayers"
+                            >How are Giro3D and Piero related to Three.js and OpenLayers?</a
+                        >
+                    </li>
+                    <li>
+                        <a href="#how-to-generate-data"
+                            >How can I generate data suitable for Giro3D and Piero?</a
+                        >
+                    </li>
+                </ul>
+
+                <hr />
+
+                <div class="row row-cols-1 g-2">
+                    <div class="col">
+                        <div class="card text-bg-light" id="difference-giro3d-piero">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    What is the difference between Giro3D and Piero?
+                                </h5>
+                                <p class="card-text">
+                                    <span class="text-primary fw-bold">Giro3D</span> is a web
+                                    development <strong>framework</strong>, which you can integrate
+                                    into your own web application. It provides the core
+                                    functionalities for creating applications for visualizing and
+                                    interacting with heterogenous 2D, 2.5D and 3D data.<br />
+                                    <span class="text-success fw-bold">Piero</span> is a
+                                    fully-fledged web <strong>application</strong> integrating
+                                    Giro3D. It lets you seamlessly start visualizing and interacting
+                                    with your own data, with minimal development efforts.
+                                </p>
+                                <a href="giro3d.html" class="btn btn-outline-primary btn-sm"
+                                    >Learn more on Giro3D</a
+                                >
+                                <a href="piero.html" class="btn btn-outline-success btn-sm"
+                                    >Learn more on Piero</a
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-bg-light" id="compatible-hardware">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    On what kind of hardware can Giro3D / Piero run on?
+                                </h5>
+                                <p class="card-text">
+                                    Giro3D and Piero can run on any recent browser, on computers,
+                                    tablets or even smartphones.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-bg-light" id="globe-mode">
+                            <div class="card-body">
+                                <h5 class="card-title">Does Giro3D supports a globe mode?</h5>
+                                <p class="card-text">
+                                    At the moment, Giro3D does not support globe mode. It is planned
+                                    in
+                                    <a href="https://gitlab.com/giro3d/giro3d/-/issues/424"
+                                        >our roadmap</a
+                                    >.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-bg-light" id="projected-data">
+                            <div class="card-body">
+                                <h5 class="card-title">Can Giro3D work with projected data?</h5>
+                                <p class="card-text">
+                                    Giro3D can work with any projected data, and supports on-the-fly
+                                    reprojection for maps and layers.
+                                </p>
+                                <a
+                                    href="examples/layer_reprojection.html"
+                                    class="btn btn-outline-primary btn-sm"
+                                    >See raster reprojection example</a
+                                >
+                                <a
+                                    href="examples/feature_collection_reprojection.html"
+                                    class="btn btn-outline-primary btn-sm"
+                                    >See vector reprojection example</a
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-bg-light" id="open-giro3d-piero">
+                            <div class="card-body">
+                                <h5 class="card-title">Are Giro3D / Piero open projects?</h5>
+                                <p class="card-text">
+                                    Both Giro3D and Piero are open-source and community-based
+                                    projects. Anyone can join the community, contribute to the
+                                    project design and participate in the decision-making process.
+                                </p>
+                                <a href="governance.html" class="btn btn-outline-primary btn-sm"
+                                    >Checkout Giro3D's governance</a
+                                >
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-bg-light" id="supported-data">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    What kind of data are supported by Giro3D / Piero?
+                                </h5>
+                                <p class="card-text">
+                                    <span class="text-primary fw-bold">Giro3D</span> supports a wide
+                                    variety of formats, from 2D raster and vector data, to 3D point
+                                    clouds and tilesets. Giro3D being built on top of OpenLayers and
+                                    Three.js, any format supported by these libraries are supported
+                                    by Giro3D. It includes standard OGC WMS/WMTS/WFS formats, as
+                                    well as Vector Tiles, Cloud-Optimized GeoTIFF (COG), GeoJSON,
+                                    3D-Tiles, glTF models, etc.<br />
+                                    <span class="text-success fw-bold">Piero</span> includes
+                                    additional formats: GeoPackage, Shapefile, CityJSON, IFC, LAS
+                                    pointclouds, PLY 3D objects, etc.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-bg-light" id="provided-data">
+                            <div class="card-body">
+                                <h5 class="card-title">Is the data provided by Giro3D?</h5>
+                                <p class="card-text">
+                                    Giro3D and Piero both come with some sample data for running the
+                                    examples. However, you will need to bring your own data for
+                                    production use.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-bg-light" id="free-giro3d-piero">
+                            <div class="card-body">
+                                <h5 class="card-title">Are Giro3D and Piero free?</h5>
+                                <p class="card-text">
+                                    Both Giro3D and Piero are free to use, either for personal or
+                                    commercial usage. They are both licensed under the
+                                    <a href="https://opensource.org/license/MIT" target="_blank"
+                                        >MIT license</a
+                                    >.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-bg-light" id="threejs-openlayers">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    How are Giro3D and Piero related to Three.js and OpenLayers?
+                                </h5>
+                                <p class="card-text">
+                                    Both Giro3D and Piero are built on top of Three.js and
+                                    OpenLayers. We leverage their capabilities and high-performance
+                                    to enable visualizing massive data. Additionnaly, both libraries
+                                    are available from the API, making them fully usable from you
+                                    code.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="card text-bg-light" id="how-to-generate-data">
+                            <div class="card-body">
+                                <h5 class="card-title">
+                                    How can I generate data suitable for Giro3D and Piero?
+                                </h5>
+                                <p class="card-text">
+                                    We encourage using open standards, like OGC WMTS, COG, 3D Tiles.
+                                    Such data can be generated via
+                                    <a href="https://qgis.org" target="_blank">QGIS</a>,
+                                    <a href="https://gdal.org/" target="_blank">GDAL</a>,
+                                    <a href="https://py3dtiles.org/" target="_blank">py3dtiles</a>
+                                    for instance.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="mt-4">
+                    Do you have an unanswered question? Feel free to reach out at
+                    <a href="mailto:infos+3d@oslandia.com">infos+3d@oslandia.com</a>.
+                </p>
+            </section>
+        </main>
+    </body>
+</html>
