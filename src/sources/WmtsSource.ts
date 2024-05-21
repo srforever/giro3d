@@ -59,8 +59,16 @@ async function getCapabilities(url: string): Promise<unknown> {
  * A {@link TiledImageSource} backed by a single [WMTS](https://en.wikipedia.org/wiki/Web_Map_Tile_Service) layer.
  * Note: this is a convenient class that simplifies the usage of {@link TiledImageSource}.
  *
- * Currently, it is not possible to directly create a `WmtsSource` from its constructor. Use the
+ * Currently, it is not possible to directly create a {@link WmtsSource} from its constructor. Use the
  * {@link fromCapabilities} static method to build a source from a WMTS capabilities document.
+ * ```js
+ * WmtsSource.fromCapabilities('http://example.com/wmts?SERVICE=WMTS&REQUEST=GetCapabilities', {
+ *     layer: 'MyLayerName',
+ * })
+ * .then(wmtsSource => {
+ *   // Do something with the source.
+ * });
+ * ```
  */
 export default class WmtsSource extends TiledImageSource {
     readonly type: string = 'WmtsSource';
