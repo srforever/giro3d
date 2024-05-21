@@ -156,6 +156,9 @@ bindSlider('edl-intensity', v => {
 bindSlider('inpainting-steps', v => {
     instance.renderingOptions.inpaintingSteps = v;
 });
+bindSlider('opacity', v => {
+    pointcloud.opacity = v;
+});
 
 document.getElementById('pointcloud_mode').addEventListener('change', e => {
     const newMode = parseInt(e.target.value, 10);
