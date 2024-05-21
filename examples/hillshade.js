@@ -143,8 +143,8 @@ azimuthSlider.oninput = function oninput() {
     instance.notifyChange(map);
 };
 
-azimuthSlider.oninput = function oninput() {
-    map.materialOptions.hillshading.azimuth = azimuthSlider.value;
+zenithSlider.oninput = function oninput() {
+    map.materialOptions.hillshading.zenith = zenithSlider.value;
     instance.notifyChange(map);
 };
 
