@@ -93,8 +93,10 @@ function updateProgressFrameRequester() {
         }
     }
 
-    const memoryUsageString = `Mem ${MemoryUsage.format(mem.cpuMemory)} (CPU), ${MemoryUsage.format(mem.gpuMemory)} (GPU)`;
-    memoryUsage.innerText = memoryUsageString;
+    if (memoryUsage) {
+        const memoryUsageString = `Mem ${MemoryUsage.format(mem.cpuMemory)} (CPU), ${MemoryUsage.format(mem.gpuMemory)} (GPU)`;
+        memoryUsage.innerText = memoryUsageString;
+    }
 }
 
 function updateCoordinates() {
