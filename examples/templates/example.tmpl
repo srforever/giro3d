@@ -311,7 +311,7 @@
             function copyContentByID(id) {
                 var source = document.getElementById(id);
                 var text = source.textContent;
-                navigator.clipboard.writeText(text);
+                navigator.clipboard.writeText(text.trim());
             }
         </script>
     </body>
