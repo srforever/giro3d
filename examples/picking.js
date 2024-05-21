@@ -299,8 +299,21 @@ function performPicking(mouseEvent) {
             const removed = markerGroup.children.splice(0, markerGroup.children.length - 30);
             removed.forEach(item => item.removeFromParent());
         }
-        markerGroup.add(marker);
+
+        // - In the case of CPU picking, the Z value is simply the Z-coordinate of
+        // the picked point, which itself is affected by the scale of the scene.
+        //
+        // - In the case of GPU picking, the Z value is sampled from the texture, unaffected
+        // by the scale of the scene. That is why we have to apply the scene scale to obtain the
+        // correct world space coordinate.
+        if (options.gpuPicking) {
+            position.multiply(instance.scene.scale);
+        }
+
         marker.position.copy(position);
+        // Notice we use attach instead of add so that world position is
+        // preserved in case of non-default scale.
+        markerGroup.attach(marker);
         marker.updateMatrixWorld(true);
         instance.notifyChange();
     }
@@ -320,5 +333,23 @@ function onMouseClick(mouseEvent) {
     }
 }
 
+function bindSlider(name, callback) {
+    const slider = document.getElementById(name);
+    slider.oninput = function oninput() {
+        callback(slider.valueAsNumber);
+        instance.notifyChange(map);
+    };
+}
+
+bindSlider('zScaleSlider', v => {
+    instance.scene.scale.setZ(v);
+    instance.scene.updateMatrixWorld(true);
+    document.getElementById('zScaleLabel').innerText = `Z-scale = ${v.toFixed(1)}`;
+});
+
 instance.domElement.addEventListener('mousemove', onMouseMove);
 instance.domElement.addEventListener('click', onMouseClick);
+
+instance.scene.updateMatrixWorld(true);
+
+instance.notifyChange();
