@@ -111,8 +111,12 @@ function updateCoordinates() {
         const { x, y, z } = coords;
 
         if (coordsAsLatLon) {
-            const latlon = new Coordinates(crs, x, y).as('EPSG:4326');
-            coordinates.textContent = `lat: ${LATLON_FORMAT.format(latlon.latitude)}, lon: ${LATLON_FORMAT.format(latlon.longitude)}, altitude: ${NUMBER_FORMAT.format(z)}`;
+            if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+                const latlon = new Coordinates(crs, x, y).as('EPSG:4326');
+                coordinates.textContent = `lat: ${LATLON_FORMAT.format(latlon.latitude)}, lon: ${LATLON_FORMAT.format(latlon.longitude)}, altitude: ${NUMBER_FORMAT.format(z)}`;
+            } else {
+                coordinates.textContent = `lat: NaN, lon: NaN, altitude: NaN`;
+            }
         } else {
             coordinates.textContent = `x: ${NUMBER_FORMAT.format(x)}, y: ${NUMBER_FORMAT.format(y)}, z: ${NUMBER_FORMAT.format(z)}`;
         }
