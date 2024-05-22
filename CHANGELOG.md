@@ -1,5 +1,121 @@
 # Changelog
 
+## v0.36.0 (2024-05-21)
+
+## Raycasting on maps
+
+This release brings raycasting for the `Map` entity.
+
+Previously, picking the map used GPU picking, which suffers from significant drawbacks, such
+as blocking the main thread until the GPU has finished rendering the intermediate textures used for picking. If the GPU was already busy performing
+other tasks, the main thread had to wait until those tasks were finished, which could cause long stalls. Raycasting happens 100% in the CPU, and is in general faster than GPU picking.
+
+Note that it is still possible to perform GPU picking on map, by using the `gpuPicking` option on the picking parameters:
+
+```js
+// Force compatible entities to use GPU picking instead of CPU raycasting.
+instance.pickObjectsAt(coordinates, { gpuPicking: true });
+```
+
+See the [picking example](https://giro3d.org/examples/picking.html) for more information.
+
+## Elevation queries on maps
+
+It is now possible to query the elevation at any point on a `Map` with `Map.getElevation()`. Possible use cases include elevation profile computations, positioning objects on top of the terrain, etc.
+
+Note that this methods returns a series of _samples_, one for each map tile that contains the requested coordinate. You can sort the sample by resolution to get the best sample:
+
+```js
+const map = new Map(...);
+
+// Create the coordinate of the elevation query
+const coordinates = new Coordinates(instance.referenceCrs, x, y);
+// Then request the elevation at this point
+const result = map.getElevation({ coordinates });
+
+// Are there are any values at this point ?
+if (result.samples.length > 0) {
+    // Let's take the sample with the best resolution
+    result.samples.sort((a, b) => a.resolution - b.resolution);
+
+    const sample = result.samples[0];
+
+    console.log(`Elevation at this point is: ${sample.elevation} meters`);
+}
+```
+
+## Memory usage improvements
+
+This release also brings multiple reduction in memory usage for the `Map` entity. To measure the memory usage of the Giro3D `Instance`, use the `MemoryUsage` interface. This interface is implemented for many components of the Giro3D library, such as `Instance`, entities, layers, geometries...
+
+```js
+const instance = new Instance(...);
+
+const memUsage = instance.getMemoryUsage();
+
+console.log(`CPU memory usage (approx): ${memUsage.cpuMemory} bytes`);
+console.log(`GPU memory usage (approx): ${memUsage.gpuMemory} bytes`);
+```
+
+`getMemoryUsage()` provides both GPU (WebGL objects) as well as CPU memory usage.
+
+### BREAKING CHANGE
+
+-   no-data replacement is disabled by default on `ElevationLayer`s, as it is quite expensive to compute. To enable it, use the `noDataOptions` constructor parameter:
+
+```js
+const layer = new ElevationLayer({
+    ...
+    noDataOptions: {
+        replaceNoData: true,
+    },
+});
+```
+
+### Feat
+
+-   **Map**: support raycasting (#421) and elevation queries (#171)
+-   **examples**: add buttons to copy source code
+-   **Layer**: add the `showEmptyTextures` option to display empty textures as colored rectangles
+-   **StatusBar**: add button to switch between local CRS coordinates and lat/long.
+
+### Fix
+
+-   **PointCloudMaterial**: restore missing opacity updates (#446)
+-   **TileGeometry**: fix incorrect condition to select between Uint16/Uint32Array for index buffer
+-   **CogSource**: fix regression in `adjustExtentAndPixelSize()`
+-   **Layer**: ensure that we don't update a disposed node (#442)
+-   **StatusBar**: fix incorrect URL update
+-   **LayeredMaterial**: don't prevent loading color layers if elevation layer is not visible
+-   **TiledImageSource**: implement `adjustExtentAndPixelSize()` (#436)
+-   **Map**: prevent subdivision if elevation layer is not ready (#438)
+-   **PickObjectsAt**: set default radius to zero (#439)
+-   **CogSource**: ensure that `adjustExtentAndPixelSize()` returns integer width/height
+-   **Layer**: use bound callback to avoid leaking the listener
+-   **published_package_json.tmpl**: add dependencies
+-   **GeoTIFFFormat.ts**: use `window` instead of `global` (#425)
+-   **StatusBar**: use number formatting for coordinates
+-   **LayeredMaterial**: fix WebGL warnings (#409)
+-   **core**: introduce `MemoryUsage` interface (#432) to provide approximated memory usage of various components (entities, layers, etc.).
+
+### Refactor
+
+-   **OutlinerPropertyView**: order properties alphabetically
+-   **MapInspector**: move terrain related properties to sub-panel
+-   **Instance**: measure picking duration
+
+### Perf
+
+-   **examples**: use default picking radius
+-   **CogSource**: deduplicate outgoing requests (#433)
+-   **RenderTargetPool**: limit the size of the pool to 16 textures by default
+-   **TextureGenerator**: use a desynchronized canvas in `getPixels()`
+-   **Layer**: don't use depth buffers for render targets. This reduces the memory usage of layers.
+-   **ElevationLayer**: set `noDataOptions.replaceNoData` to `false` by default (#431)
+-   **LayerComposer**: reduce the use of the pre-processing stage
+-   **Layer**: don't allocate textures when all pixels are transparent (#430)
+-   **TileGeometry**: use a 16-bit index buffer if the number of points is small enough
+
 ## v0.35.0 (2024-04-05)
 
 ### BREAKING CHANGE

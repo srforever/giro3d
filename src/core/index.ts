@@ -35,9 +35,6 @@ import {
 } from './FeatureTypes';
 import type Disposable from './Disposable';
 
-/**
- * The core classes of Giro3D.
- */
 export {
     geographic,
     layer,
