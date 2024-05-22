@@ -24,9 +24,6 @@ import type GetElevationOptions from './GetElevationOptions';
 import type GetElevationResult from './GetElevationResult';
 import type ElevationSample from './ElevationSample';
 
-/**
- * The built-in entities of Giro3D.
- */
 export {
     Entity,
     EntityEventMap,

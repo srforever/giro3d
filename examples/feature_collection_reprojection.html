@@ -4,10 +4,7 @@ shortdesc: Display a map in EPGS:2154 with geojson as mesh in various CRS, showi
 attribution: © <a target="_blank" href="https://opendata.paris.fr/">Paris Data</a>
 ---
 
-<div
-    class="p-2 position-absolute top-0 end-0 side-pane-with-status-bar col-2 pe-none"
-    style="height: 9rem"
->
+<div class="p-2 position-absolute top-0 end-0 side-pane-with-status-bar col-2" style="height: 9rem">
     <div class="card h-100">
         <h5 class="card-header">Information</h5>
 
@@ -15,12 +12,13 @@ attribution: © <a target="_blank" href="https://opendata.paris.fr/">Paris Data<
         <span
             class="badge bg-secondary position-absolute top-0 end-0 m-2"
             data-bs-toggle="popover"
-            data-bs-content="pickingHelper"
+            data-bs-content="tooltip"
             >?</span
         >
-        <p class="card-text d-none" id="pickingHelper">Some informations embedded in the GeoJSON</p>
 
-        <div class="card-body overflow-auto">
+        <p class="card-text d-none" id="tooltip">Some informations embedded in the GeoJSON</p>
+
+        <div class="card-body overflow-auto pe-none">
             <!-- Result table -->
             <div id="results"></div>
         </div>

@@ -207,6 +207,9 @@ class TileMesh
     }
 
     get showHelpers() {
+        if (!this._helperMesh) {
+            return false;
+        }
         return this._helperMesh.material.visible;
     }
 

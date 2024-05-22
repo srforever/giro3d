@@ -4,15 +4,13 @@ import ImageFormat from './ImageFormat';
 import TextureGenerator from '../utils/TextureGenerator';
 
 /**
- * A format class representing the [Bil format](https://desktop.arcgis.com/en/arcmap/10.3/manage-data/raster-and-images/bil-bip-and-bsq-raster-files.htm).
+ * Decoder for [BIL](https://desktop.arcgis.com/en/arcmap/10.3/manage-data/raster-and-images/bil-bip-and-bsq-raster-files.htm) images.
  *
- * At the moment, only single band BIL format are supported and it is tested only on IGN elevation
- * WMS layers.
- *
- * Example usage:
+ * At the moment, only single band BIL files are supported and it is tested only on IGN elevation
+ * WMS and WMTS layers.
  *
  * ```js
- * // Create an elevation source
+ *  // Create an elevation source
  * const source = new WmsSource({
  *     url: 'https://data.geopf.fr/wms-r',
  *     projection: 'EPSG:2154',
