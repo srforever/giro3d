@@ -27,8 +27,6 @@ import type RequestQueue from '../RequestQueue';
 import { DefaultQueue } from '../RequestQueue';
 import OperationCounter from '../OperationCounter';
 import type Context from '../Context';
-import type LayeredMaterial from '../../renderer/LayeredMaterial.js';
-import type PointCloudMaterial from '../../renderer/PointCloudMaterial';
 import type Progress from '../Progress.js';
 import type NoDataOptions from './NoDataOptions';
 import { GlobalRenderTargetPool } from '../../renderer/RenderTargetPool';
@@ -40,6 +38,8 @@ import {
     type MemoryUsageReport,
 } from '../MemoryUsage';
 import type OffsetScale from '../OffsetScale';
+import type ColorLayer from './ColorLayer';
+import type ElevationRange from '../ElevationRange';
 
 export interface TextureAndPitch {
     texture: Texture;
@@ -57,7 +57,22 @@ interface NodeEventMap extends Object3DEventMap {
     };
 }
 
-export type NodeMaterial = LayeredMaterial | PointCloudMaterial;
+export interface NodeMaterial extends Material {
+    setColorTextures(layer: ColorLayer, textureAndPitch: TextureAndPitch): void;
+    setLayerVisibility(layer: ColorLayer, visible: boolean): void;
+    setLayerOpacity(layer: ColorLayer, opacity: number): void;
+    setLayerElevationRange(layer: ColorLayer, range: ElevationRange): void;
+    setColorimetry(
+        layer: ColorLayer,
+        brightness: number,
+        contrast: number,
+        saturation: number,
+    ): void;
+    hasColorLayer(layer: ColorLayer): boolean;
+    indexOfColorLayer(layer: ColorLayer): number;
+    removeColorLayer(layer: ColorLayer): void;
+    pushColorLayer(layer: ColorLayer, extent: Extent): void;
+}
 
 export interface Node extends Object3D<NodeEventMap> {
     disposed: boolean;
@@ -65,6 +80,7 @@ export interface Node extends Object3D<NodeEventMap> {
     textureSize: Vector2;
     canProcessColorLayer(): boolean;
     getExtent(): Extent;
+    level: number;
 }
 
 enum TargetState {
@@ -230,6 +246,8 @@ export interface LayerOptions {
 }
 
 export type LayerUserData = Record<string, unknown>;
+
+const nodesToDelete: Node[] = [];
 
 /**
  * Base class of layers. Layers are components of maps or any compatible entity.
@@ -811,7 +829,7 @@ abstract class Layer<
     /**
      * @returns Targets sorted by extent dimension.
      */
-    private _getSortedTargets(): Target[] {
+    private getSortedTargets(): Target[] {
         if (this._sortedTargets == null) {
             this._sortedTargets = Array.from(this._targets.values()).sort((a, b) => {
                 const ax = a.extent.dimensions(tmpDims).x;
@@ -824,12 +842,13 @@ abstract class Layer<
     }
 
     /**
+     * Returns the first ancestor that is completely loaded, or null if not found.
      * @param target - The target.
      * @returns The smallest target that still contains this extent.
      */
-    private getParent(target: Target): Target {
+    private getLoadedAncestor(target: Target): Target {
         const extent = target.geometryExtent;
-        const targets = this._getSortedTargets();
+        const targets = this.getSortedTargets();
         for (const t of targets) {
             const otherExtent = t.geometryExtent;
             if (t !== target && extent.isInside(otherExtent) && t.state === TargetState.Complete) {
@@ -848,7 +867,7 @@ abstract class Layer<
             return;
         }
 
-        const parent = this.getParent(target);
+        const parent = this.getLoadedAncestor(target);
 
         if (parent) {
             const img = { texture: parent.renderTarget.texture, extent: parent.extent };
@@ -1113,10 +1132,40 @@ abstract class Layer<
         return result;
     }
 
+    protected deleteUnusedTargets() {
+        nodesToDelete.length = 0;
+
+        const sorted = this.getSortedTargets();
+
+        // Let's start from the smallest tiles (i.e with the highest resolution) first.
+        for (const target of sorted) {
+            // Is this target invisible ? We can only unload invisible targets.
+            // Note that we never delete root nodes so that we can always have some fallback data
+            if (!target.node.material.visible) {
+                const level = target.node.level;
+
+                // Can we unload it ?
+                // - We don't unload root nodes (level = 0)
+                // - We also don't unload nodes every 3 levels
+                // - We also don't unload nodes that do not have any loaded ancestor,
+                //   to avoid sudden blank tiles.
+                if (level > 0 && level % 3 !== 0 && this.getLoadedAncestor(target)) {
+                    nodesToDelete.push(target.node);
+                }
+            }
+        }
+
+        for (const node of nodesToDelete) {
+            this.unregisterNode(node);
+        }
+    }
+
     postUpdate() {
         if (this.disposed) {
             throw new Error('the layer is disposed');
         }
+
+        this.deleteUnusedTargets();
 
         if (this._composer?.postUpdate() || this._shouldNotify) {
             this._instance.notifyChange(this);

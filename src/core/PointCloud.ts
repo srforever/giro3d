@@ -44,6 +44,18 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap>, 
     disposed: boolean;
     material: Material;
 
+    static isPointCloud(obj: unknown): obj is PointCloud {
+        return (obj as PointCloud)?.isPointCloud;
+    }
+
+    get level(): number {
+        if (PointCloud.isPointCloud(this.parent)) {
+            return this.parent.level + 1;
+        } else {
+            return 0;
+        }
+    }
+
     constructor({
         layer,
         geometry,
