@@ -17,16 +17,26 @@ import RenderPipeline from './RenderPipeline';
 import RenderingOptions from './RenderingOptions';
 
 import registerChunks from './shader/chunk/registerChunks';
+import TextureGenerator from '../utils/TextureGenerator';
 
 const tmpClear = new Color();
 const tmpVec2 = new Vector2();
 
-function createRenderTarget(width: number, height: number, type: TextureDataType) {
+function createRenderTarget(
+    width: number,
+    height: number,
+    type: TextureDataType,
+    renderer: WebGLRenderer,
+) {
     const result = new WebGLRenderTarget(width, height, {
         type,
         format: RGBAFormat,
     });
-    result.texture.minFilter = LinearFilter;
+    result.texture.minFilter = TextureGenerator.getCompatibleTextureFilter(
+        LinearFilter,
+        type,
+        renderer,
+    );
     result.texture.magFilter = NearestFilter;
     result.texture.generateMipmaps = false;
     result.depthBuffer = true;
@@ -351,7 +361,12 @@ class C3DEngine {
         const datatype = options.datatype ?? UnsignedByteType;
 
         if (!this.renderTargets.has(datatype)) {
-            const newRenderTarget = createRenderTarget(this.width, this.height, datatype);
+            const newRenderTarget = createRenderTarget(
+                this.width,
+                this.height,
+                datatype,
+                this.renderer,
+            );
             this.renderTargets.set(datatype, newRenderTarget);
         }
         const renderTarget = this.renderTargets.get(datatype);
