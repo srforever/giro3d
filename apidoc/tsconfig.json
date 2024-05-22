@@ -1,0 +1,10 @@
+{
+    // Change this to match your project
+    "include": ["*.tsx"],
+    "extends": "../tsconfig.json",
+    "compilerOptions": {
+        "jsx": "react",
+        "jsxFactory": "JSX.createElement",
+        "jsxFragmentFactory": "JSX.Fragment",
+    }
+}

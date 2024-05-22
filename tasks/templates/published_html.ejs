@@ -1,0 +1,35 @@
+<% function indent(text, depth) { return text.split('\n').map(line => (line.length ? ' '.repeat(depth) : '') + line).join('\n'); } %>
+<!doctype html>
+<html lang="en">
+    <head>
+<%- indent(include('partial-head'), 8) %> <%- indent(customcss, 8) %>
+    </head>
+
+    <body>
+        <div id="viewerDiv" class="m-0 p-0 w-100 h-100"></div>
+        <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto"></div>
+
+<%- indent(content, 8) %>
+
+        <script type="module" src="index.js"></script>
+        <script>
+            /* activate popovers */
+            const popoverTriggerList = [].slice.call(
+                document.querySelectorAll('[data-bs-toggle="popover"]'),
+            );
+            popoverTriggerList.map(
+                // bootstrap is used as script in the template, disable warning about undef
+                // eslint-disable-next-line no-undef
+                popoverTriggerEl =>
+                    new bootstrap.Popover(popoverTriggerEl, {
+                        trigger: 'hover',
+                        placement: 'left',
+                        content: document.getElementById(
+                            popoverTriggerEl.getAttribute('data-bs-content'),
+                        ).innerHTML,
+                        html: true,
+                    }),
+            );
+        </script>
+    </body>
+</html>

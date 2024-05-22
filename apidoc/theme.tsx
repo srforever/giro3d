@@ -1,108 +1,77 @@
 import type { RenderTemplate } from 'typedoc';
 import {
     Application,
-    DeclarationReflection,
     DefaultTheme,
     DefaultThemeRenderContext,
     JSX,
     Options,
     PageEvent,
-    ProjectReflection,
     Reflection,
 } from 'typedoc';
 
-// taken from default theme
-function getDisplayName(refl: Reflection): string {
-    let version = '';
-    if (
-        (refl instanceof DeclarationReflection || refl instanceof ProjectReflection) &&
-        refl.packageVersion
-    ) {
-        version = ` - v${refl.packageVersion}`;
-    }
-
-    return `${refl.name}${version}`;
-}
+type JSXHtmlElement = JSX.Element & {
+    props?: {
+        html?: string;
+        class?: string;
+    };
+};
 
 // light customization of the layout to make it compatible with bootstrap.
 // unfortunately, no easier way than copying the whole content of
 // typedoc/src/lib/output/themes/default/layouts/default.tsx to modify it
 const defaultLayout = (
-    context: DefaultThemeRenderContext,
+    // eslint-disable-next-line no-use-before-define
+    context: CustomThemeContext,
     template: RenderTemplate<PageEvent<Reflection>>,
     props: PageEvent<Reflection>,
-) => (
-    <html class="default" lang={context.options.getValue('htmlLang')}>
-        <head>
-            <meta charSet="utf-8" />
-            {context.hook('head.begin')}
-            <meta http-equiv="x-ua-compatible" content="IE=edge" />
-            <title>
-                {props.model.isProject()
-                    ? getDisplayName(props.model)
-                    : `${getDisplayName(props.model)} | ${getDisplayName(props.project)}`}
-            </title>
-            <meta name="description" content={'Documentation for ' + props.project.name} />
-            <meta name="viewport" content="width=device-width, initial-scale=1" />
+) => {
+    const defaultOutput = context.nativeDefaultLayout(template, props);
 
-            <link rel="icon" href="/images/favicon.svg" />
-            <link rel="stylesheet" href={context.relativeURL('assets/style.css', true)} />
-            <link rel="stylesheet" href={context.relativeURL('assets/highlight.css', true)} />
-            {context.options.getValue('customCss') && (
-                <link rel="stylesheet" href={context.relativeURL('assets/custom.css', true)} />
-            )}
-            <script defer src={context.relativeURL('assets/main.js', true)}></script>
-            <script
-                async
-                src={context.relativeURL('assets/search.js', true)}
-                id="tsd-search-script"
-            ></script>
-            {context.hook('head.end')}
-        </head>
-        <body>
-            {context.hook('body.begin')}
-            <script defer>
-                <JSX.Raw
-                    html={`
-                    document.documentElement.dataset.theme = "light";
-                    localStorage.setItem("tsd-theme", "light");
-                `}
-                />
-            </script>
-            {context.toolbar(props)}
+    const bodyElement = defaultOutput.children.find((e: JSX.Element) => e?.tag === 'body') as
+        | JSX.Element
+        | undefined;
+    if (bodyElement) {
+        // Force light theme
+        const scriptContainer = bodyElement.children.find(
+            (e: JSX.Element) => e?.tag === 'script',
+        ) as JSX.Element | undefined;
+        if (scriptContainer) {
+            const themeSelectorIdx = scriptContainer.children.findIndex((e: JSXHtmlElement) =>
+                e?.props?.html?.startsWith('document.documentElement.dataset.theme'),
+            );
+            if (themeSelectorIdx > -1) {
+                const themeSelector = scriptContainer.children[themeSelectorIdx] as JSXHtmlElement;
+                themeSelector.props.html = 'document.documentElement.dataset.theme = "light";';
+            }
+        }
 
-            <div class="container-fluid container-main">
-                <div class="col-content">
-                    {context.hook('content.begin')}
-                    {context.header(props)}
-                    {template(props)}
-                    {context.hook('content.end')}
-                </div>
-                <div class="col-sidebar">
-                    <div class="page-menu">
-                        {context.hook('pageSidebar.begin')}
-                        {context.pageSidebar(props)}
-                        {context.hook('pageSidebar.end')}
-                    </div>
-                    <div class="site-menu">
-                        {context.hook('sidebar.begin')}
-                        {context.sidebar(props)}
-                        {context.hook('sidebar.end')}
-                    </div>
-                </div>
-            </div>
+        // Make container fluid
+        const mainContainer = bodyElement.children.find((e: JSXHtmlElement) => {
+            return e?.tag === 'div' && e?.props?.class === 'container container-main';
+        }) as JSXHtmlElement | undefined;
+        if (mainContainer) {
+            mainContainer.props.class = 'container-fluid container-main';
+        }
+    }
+    return defaultOutput;
+};
 
-            {context.footer()}
-
-            <div class="overlay"></div>
-
-            {context.analytics()}
-            {context.hook('body.end')}
-        </body>
-    </html>
-);
+// eslint-disable-next-line no-use-before-define
+const settings = (context: CustomThemeContext) => {
+    const defaultOutput = context.nativeSettings();
+    const details = defaultOutput.children.at(0) as JSX.Element | undefined;
+    const detailsContent = details?.children?.at(1) as JSX.Element | undefined;
+    const themeSelector = detailsContent?.children?.findIndex(
+        (e: JSXHtmlElement) => e.props.class === 'tsd-theme-toggle',
+    );
+    if (themeSelector) {
+        detailsContent.children.splice(themeSelector, 1);
+    }
+    return defaultOutput;
+};
 
 // bootstrap toolbars, instead of the default theme toolbar
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Reflection>) => (
     <header class="header">
         <div class="container-fluid">
@@ -139,12 +108,18 @@ export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Ref
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-link-primary" href="/tutorials/getting-started.html">
+                        <a
+                            class="nav-link nav-link-primary"
+                            href={context.relativeURL('../tutorials/getting-started.html', true)}
+                        >
                             Getting started with Giro3D
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link nav-link-primary" href="/examples/index.html">
+                        <a
+                            class="nav-link nav-link-primary"
+                            href={context.relativeURL('../examples/index.html', true)}
+                        >
                             Giro3D examples
                         </a>
                     </li>
@@ -152,7 +127,7 @@ export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Ref
                         <a
                             class="nav-link nav-link-primary active"
                             aria-current="page"
-                            href="/apidoc/index.html"
+                            href={context.relativeURL('../apidoc/index.html', true)}
                         >
                             API documentation
                         </a>
@@ -216,13 +191,23 @@ export const toolbar = (context: DefaultThemeRenderContext, props: PageEvent<Ref
  * the header partials, which contains the *title* displayed in the content)
  */
 export class CustomThemeContext extends DefaultThemeRenderContext {
+    nativeDefaultLayout: (
+        template: RenderTemplate<PageEvent<Reflection>>,
+        props: PageEvent<Reflection>,
+    ) => JSX.Element;
+    nativeSettings: () => JSX.Element;
+
     constructor(theme: DefaultTheme, page: PageEvent<Reflection>, options: Options) {
         super(theme, page, options);
+
+        this.nativeDefaultLayout = this.defaultLayout;
+        this.nativeSettings = this.settings;
 
         // Overridden methods must have `this` bound if they intend to use it.
         // <JSX.Raw /> may be used to inject HTML directly.
         this.toolbar = page => toolbar(this, page);
         this.defaultLayout = (template, page) => defaultLayout(this, template, page);
+        this.settings = () => settings(this);
     }
 }
 
@@ -230,11 +215,8 @@ export class CustomThemeContext extends DefaultThemeRenderContext {
  * A near clone of the default theme, it just changes the context
  */
 export class CustomTheme extends DefaultTheme {
-    private _contextCache?: CustomThemeContext;
-
-    override getRenderContext(pageEvent: PageEvent<Reflection>): CustomThemeContext {
-        this._contextCache ||= new CustomThemeContext(this, pageEvent, this.application.options);
-        return this._contextCache;
+    getRenderContext(pageEvent: PageEvent<Reflection>): CustomThemeContext {
+        return new CustomThemeContext(this, pageEvent, this.application.options);
     }
 }
 /**
@@ -242,10 +224,6 @@ export class CustomTheme extends DefaultTheme {
  * can be selected by the user.
  */
 export function load(app: Application) {
-    // we need bootstrap
-    app.renderer.hooks.on('head.end', () => (
-        <link href="/assets/bootstrap-custom.css" rel="stylesheet" />
-    ));
     // hack to hide the "Giro3D" title on the root page of the apidoc
     // (we display the logo instead)
     // we still display the title on other pages because it contains the breadcrumb, and the title
@@ -255,12 +233,19 @@ export function load(app: Application) {
     app.renderer.hooks.on('body.end', () => (
         <script>
             <JSX.Raw
-                html={`if (document.location.pathname == "/apidoc/index.html") {
+                html={`if (document.location.pathname.endsWith("/apidoc/index.html") || document.location.pathname.endsWith("/apidoc/")) {
                     document.querySelector(".col-content .tsd-page-title").style.display = "none";
                 }
             `}
             />
         </script>
+    ));
+
+    app.renderer.hooks.on('head.end', () => (
+        <>
+            <link rel="icon" href="/images/favicon.svg" />
+            <link rel="stylesheet" href="/assets/bootstrap-custom.css" />
+        </>
     ));
 
     // define our theme
