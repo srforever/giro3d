@@ -6,6 +6,7 @@ import { execSync } from 'child_process';
 import chokidar from 'chokidar';
 import { program } from 'commander';
 import glob from 'glob';
+import ejs from 'ejs';
 
 import { createStaticServer } from './serve.mjs';
 
@@ -13,10 +14,20 @@ const baseDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
 const siteDir = path.join(rootDir, 'site');
 const graphicsDir = path.join(rootDir, 'graphics');
+const templatesDir = path.join(baseDir, 'templates');
 
 export const defaultParameters = {
     output: path.join(rootDir, 'build', 'site'),
 };
+
+function readTemplate(template) {
+    const templateFilename = path.basename(template);
+    return ejs.compile(fse.readFileSync(template, 'utf-8'), {
+        templateFilename,
+        root: rootDir,
+        views: [templatesDir],
+    });
+}
 
 export async function copyAssets(parameters) {
     const assetsDir = path.join(parameters.output, 'assets');
@@ -47,10 +58,15 @@ export async function copyAssets(parameters) {
 }
 
 export async function copySite(parameters) {
-    const htmlFiles = glob.sync(path.join(rootDir, 'site', '*.html'));
-    htmlFiles.forEach(htmlFile => {
-        const filename = path.basename(htmlFile);
-        fse.copySync(htmlFile, path.join(parameters.output, filename));
+    const ejsFiles = glob.sync(path.join(rootDir, 'site', '*.ejs'));
+    ejsFiles.forEach(ejsFile => {
+        const filename = path.basename(ejsFile);
+        const htmlFilename = filename.replace('.ejs', '.html');
+
+        const htmlTemplate = readTemplate(ejsFile);
+        const htmlContent = htmlTemplate().trim();
+
+        fse.outputFileSync(path.join(parameters.output, htmlFilename), htmlContent);
     });
 }
 
