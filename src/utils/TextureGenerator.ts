@@ -741,36 +741,30 @@ function isEmptyTexture(texture: Texture) {
 function getTextureMemoryUsage(texture: Texture, target?: MemoryUsageReport): MemoryUsageReport {
     const result = target ?? createEmptyReport();
 
-    if (!texture) {
+    if (!texture || isEmptyTexture(texture)) {
         return result;
     }
 
-    if (texture.userData.memoryUsage) {
+    if (texture.userData?.memoryUsage) {
         const existing: MemoryUsageReport = texture.userData.memoryUsage;
         result.cpuMemory += existing.cpuMemory;
         result.gpuMemory += existing.gpuMemory;
-    }
-
-    if (isEmptyTexture(texture)) {
-        return result;
-    }
-
-    if (isCanvasTexture(texture)) {
+    } else if (isCanvasTexture(texture)) {
         const { width, height } = texture.source.data;
         result.gpuMemory += width * height * 4;
-    }
-
-    const { width, height } = texture.image;
-
-    const bytes =
-        width * height * getBytesPerChannel(texture.type) * getChannelCount(texture.format);
-
-    if (texture.isRenderTargetTexture) {
-        // RenderTargets do not exist in CPU memory.
-        result.gpuMemory += bytes;
     } else {
-        result.cpuMemory += bytes;
-        result.gpuMemory += bytes;
+        const { width, height } = texture.image;
+
+        const bytes =
+            width * height * getBytesPerChannel(texture.type) * getChannelCount(texture.format);
+
+        if (texture.isRenderTargetTexture) {
+            // RenderTargets do not exist in CPU memory.
+            result.gpuMemory += bytes;
+        } else {
+            result.cpuMemory += bytes;
+            result.gpuMemory += bytes;
+        }
     }
 
     return result;
