@@ -19,6 +19,7 @@ import type Extent from '../core/geographic/Extent';
 import type { TextureAndPitch } from '../core/layer/Layer';
 import OffsetScale from '../core/OffsetScale';
 import MaterialUtils from './MaterialUtils';
+import { ColorMap } from '../core/layer';
 
 /**
  * Specifies the way points are colored.
@@ -132,6 +133,12 @@ type Deformation = {
     vec: Vector3;
 };
 
+type ColorMapUniform = {
+    min: number;
+    max: number;
+    lut: Texture;
+};
+
 interface Uniforms {
     opacity: IUniform<number>;
     brightnessContrastSaturation: IUniform<Vector3>;
@@ -144,6 +151,8 @@ interface Uniforms {
     offsetScale: IUniform<OffsetScale>;
     extentBottomLeft: IUniform<Vector2>;
     extentSize: IUniform<Vector2>;
+
+    colorMap: IUniform<ColorMapUniform>;
 
     classifications: IUniform<Classification[]>;
 
@@ -166,6 +175,11 @@ export type Defines = {
     NORMAL_SPHEREMAPPED?: 1;
 };
 
+function createDefaultColorMap(): ColorMap {
+    const colors = [new Color('black'), new Color('white')];
+    return new ColorMap(colors, 0, 1000);
+}
+
 /**
  * Material used for point clouds.
  */
@@ -174,6 +188,8 @@ class PointCloudMaterial extends ShaderMaterial {
 
     colorLayer: ColorLayer | null;
     disposed: boolean;
+
+    private _colorMap: ColorMap = createDefaultColorMap();
 
     /**
      * @internal
@@ -318,6 +334,15 @@ class PointCloudMaterial extends ShaderMaterial {
         }
     }
 
+    get colorMap(): ColorMap {
+        return this._colorMap;
+    }
+
+    set colorMap(colorMap: ColorMap) {
+        this._colorMap?.dispose();
+        this._colorMap = colorMap;
+    }
+
     /**
      * Creates a PointsMaterial using the specified options.
      *
@@ -344,6 +369,11 @@ class PointCloudMaterial extends ShaderMaterial {
 
         this.disposed = false;
 
+        this.uniforms.colorMap = new Uniform({
+            lut: this.colorMap.getTexture(),
+            min: this.colorMap.min,
+            max: this.colorMap.max,
+        });
         this.uniforms.size = new Uniform(options.size ?? 0);
         this.uniforms.mode = new Uniform(options.mode ?? MODE.COLOR);
         this.uniforms.pickingId = new Uniform(0);
@@ -408,6 +438,11 @@ class PointCloudMaterial extends ShaderMaterial {
 
     updateUniforms() {
         this.uniforms.opacity.value = this.opacity;
+
+        const colorMapUniform = this.uniforms.colorMap.value;
+        colorMapUniform.min = this.colorMap.min;
+        colorMapUniform.max = this.colorMap.max;
+        colorMapUniform.lut = this.colorMap.getTexture();
     }
 
     onBeforeRender() {
@@ -428,6 +463,7 @@ class PointCloudMaterial extends ShaderMaterial {
             this.brightness = source.brightness;
             this.contrast = source.contrast;
             this.saturation = source.saturation;
+            this.colorMap = source.colorMap;
         }
         this.updateUniforms();
         if (source) {

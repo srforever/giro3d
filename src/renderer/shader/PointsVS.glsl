@@ -16,6 +16,14 @@ attribute vec3 color;
 attribute vec4 unique_id;
 attribute float intensity;
 
+struct PointCloudColorMap {
+    float min;
+    float max;
+    sampler2D lut;
+};
+
+uniform PointCloudColorMap colorMap;
+
 #if defined(CLASSIFICATION)
 struct Classification {
     vec3 color;
@@ -127,37 +135,7 @@ void main() {
         vColor = vec4(mix(textureColor, overlayColor.rgb, overlayColor.a), opacity * hasOverlayTexture);
     } else if (mode == MODE_ELEVATION) {
         float z = (modelMatrix * vec4(position, 1.0)).z;
-        vec4 gradient;
-        // colors from OGC EL.GridCoverage.Default style
-        if (z < -100.0) {
-            gradient = vec4(float(0x00) / 255.0, float(0x5C) / 255.0, float(0xE6) / 255.0, 1.0);
-        } else if (z <= 0.0) {
-            gradient = mix(
-                vec4(float(0x00) / 255.0, float(0x5C) / 255.0, float(0xE6) / 255.0, 1.0),
-                vec4(float(0x28) / 255.0, float(0xED) / 255.0, float(0xD6) / 255.0, 1.0),
-                -z / 100.0);
-        } else if (z <= 50.0) {
-            gradient = mix(
-                vec4(float(0x00) / 255.0, float(0x5C) / 255.0, float(0xE6) / 255.0, 1.0),
-                vec4(float(0x28) / 255.0, float(0xED) / 255.0, float(0xD6) / 255.0, 1.0),
-                -z / 100.0);
-        } else if (z <= 50.0) {
-            gradient = mix(
-                vec4(float(0x28) / 255.0, float(0xED) / 255.0, float(0xD6) / 255.0, 1.0),
-                vec4(float(0x54) / 255.0, float(0xF7) / 255.0, float(0x6D) / 255.0, 1.0),
-                z / 50.0);
-        } else if (z <= 100.0) {
-            gradient = mix(
-                vec4(float(0x54) / 255.0, float(0xF7) / 255.0, float(0x6D) / 255.0, 1.0),
-                vec4(float(0x9A) / 255.0, float(0xFA) / 255.0, float(0x66) / 255.0, 1.0),
-                (z - 50.0)/ 50.0);
-        } else {
-            gradient = mix(
-                vec4(float(0x9A) / 255.0, float(0xFA) / 255.0, float(0x66) / 255.0, 1.0),
-                vec4(float(0x7B) / 255.0, float(0xF2) / 255.0, float(0x3A) / 255.0, 1.0),
-                (z - 100.0)/ 50.0);
-        }
-        vColor = sRGBToLinear(vec4(gradient.rgb, 1.0));
+        vColor.rgb = sampleColorMap(z, colorMap.min, colorMap.max, colorMap.lut, 0.0);
         vColor.a = opacity;
 #if defined(CLASSIFICATION)
     } else if (mode == MODE_CLASSIFICATION) {
