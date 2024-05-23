@@ -348,6 +348,14 @@ const int COLORMAP_MODE_ELEVATION = 1;
 const int COLORMAP_MODE_SLOPE = 2;
 const int COLORMAP_MODE_ASPECT = 3;
 
+vec3 sampleColorMap(in float t, in float min, in float max, in sampler2D lut, in float v) {
+    t = clamp(t, min, max);
+    t = map(t, min, max, 0., 1.);
+    vec3 rgb = texture2D(lut, vec2(t, v)).rgb;
+
+    return rgb;
+}
+
 vec4 computeColorMap(
     vec2 tileDimensions,
     LayerInfo layer,
@@ -372,9 +380,7 @@ vec4 computeColorMap(
         value *= 180.0 / M_PI; // Convert radians to degrees
     }
 
-    value = clamp(value, colorMap.min, colorMap.max);
-    float t = map(value, colorMap.min, colorMap.max, 0., 1.);
-    vec3 rgb = texture2D(lut, vec2(t, colorMap.offset)).rgb;
+    vec3 rgb = sampleColorMap(value, colorMap.min, colorMap.max, lut, colorMap.offset);
     float a = texture2D(sampledTexture, uv).a;
     return vec4(rgb, a);
 }
