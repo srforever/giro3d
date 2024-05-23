@@ -1,6 +1,6 @@
 ---
 title: Colorized 3D Tiles Point Cloud
-shortdesc: Colorize a point cloud with an image layer.
+shortdesc: Colorize a point cloud with various modes (native colors, color layer, elevation gradient...).
 longdesc: Point clouds can be colorized from different methods &#58; using the original color in the point cloud, coloring using an elevation gradient, or coloring using an external image source, such as a WMS layer.
 attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
 ---
@@ -25,9 +25,57 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
                 </select>
             </div>
 
+            <!-- Color ramp -->
+            <div class="d-none" id="colormapGroup">
+                <div class="input-group p-2">
+                    <span class="input-group-text flex-grow-1">Color ramp</span>
+                    <select class="btn btn-outline-primary btn-sm" id="colormap" autocomplete="off">
+                        <option value="viridis" selected>Viridis</option>
+                        <option value="jet">Jet</option>
+                        <option value="blackbody">Blackbody</option>
+                        <option value="earth">Earth</option>
+                        <option value="bathymetry">Bathymetry</option>
+                        <option value="magma">Magma</option>
+                        <option value="par">Par</option>
+                    </select>
+                </div>
+
+                <div class="input-group p-2">
+                    <label for="min" class="form-label" id="minLabel">Lower bound: 100m</label>
+                    <div class="input-group">
+                        <input
+                            type="range"
+                            min="0"
+                            max="1000"
+                            value="100"
+                            class="form-range"
+                            id="min"
+                            autocomplete="off"
+                        />
+                    </div>
+                </div>
+
+                <div class="input-group p-2">
+                    <label for="max" class="form-label" id="maxLabel">Upper bound: 600m</label>
+                    <div class="input-group">
+                        <input
+                            type="range"
+                            min="0"
+                            max="1000"
+                            value="600"
+                            class="form-range"
+                            id="max"
+                            autocomplete="off"
+                        />
+                    </div>
+                </div>
+            </div>
+
             <!-- Opacity -->
             <div class="input-group p-2">
-                <label for="opacity" class="form-label">Point cloud opacity</label>
+                <label for="opacity" class="form-label" id="opacityLabel"
+                    >Point cloud opacity: 100%</label
+                >
                 <div class="input-group">
                     <input
                         type="range"
