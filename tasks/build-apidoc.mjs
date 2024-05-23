@@ -5,7 +5,6 @@ import { fileURLToPath } from 'url';
 import chokidar from 'chokidar';
 import { program } from 'commander';
 import TypeDoc, { TypeDocReader, PackageJsonReader, TSConfigReader } from 'typedoc';
-import ts from 'typescript';
 
 import { createStaticServer } from './serve.mjs';
 import { copyAssets } from './build-static-site.mjs';
@@ -14,7 +13,6 @@ const baseDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
 const apidocDir = path.join(rootDir, 'apidoc');
 const sourceDir = path.join(rootDir, 'src');
-const tmpDir = path.join(rootDir, 'build', '.apidoc');
 
 export const defaultParameters = {
     output: path.join(rootDir, 'build', 'site', 'apidoc'),
@@ -27,32 +25,13 @@ export async function cleanApidoc(parameters) {
     fse.removeSync(parameters.output);
 }
 
-export async function compileApidocTheme(parameters) {
-    console.log('Compiling theme...');
-    fse.mkdirpSync(tmpDir);
-    const themeContent = fse.readFileSync(path.join(apidocDir, 'theme.tsx'), 'utf-8');
-    const result = ts.transpileModule(themeContent, {
-        compilerOptions: {
-            target: 'ES2020',
-            skipLibCheck: true,
-            module: ts.ModuleKind.CommonJS,
-            moduleResolution: 'node',
-            noImplicitAny: true,
-            jsx: 'react',
-            jsxFactory: 'JSX.createElement',
-            jsxFragmentFactory: 'JSX.Fragment',
-        },
-    });
-    fse.writeFileSync(path.join(tmpDir, 'theme.js'), result.outputText);
-}
-
 export async function buildApidoc(parameters) {
     console.log('Building documentation...');
     const app = await TypeDoc.Application.bootstrapWithPlugins(
         {
             entryPoints: [path.join(sourceDir, 'index.ts')],
             theme: 'custom',
-            plugin: [path.join(tmpDir, 'theme.js')],
+            plugin: [path.join(apidocDir, 'theme.js')],
             name: parameters.name,
             readme: path.join(apidocDir, 'README.md'),
             basePath: sourceDir,
@@ -124,8 +103,6 @@ if (esMain(import.meta)) {
     if (clean) {
         await cleanApidoc(options);
     }
-
-    await compileApidocTheme(options);
 
     await copyAssets({
         output: path.join(options.output, '..'),
