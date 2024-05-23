@@ -25,7 +25,8 @@ export const TUTORIALS = {
 };
 
 export const defaultParameters = {
-    output: path.join(rootDir, 'build', 'site', 'tutorials'),
+    output: path.join(rootDir, 'build', 'site', 'next', 'tutorials'),
+    publishedVersion: 'next',
     clean: true,
 };
 
@@ -86,6 +87,7 @@ export async function buildTutorials(parameters) {
                 long_description: attributes.longdesc ?? '',
                 attribution: attributes.attribution ?? '',
                 js: jsFilename,
+                publishedVersion: parameters.publishedVersion,
                 ...metadata,
             };
 
@@ -149,6 +151,11 @@ if (esMain(import.meta)) {
         .option('-o, --output <directory>', 'Output directory', defaultParameters.output)
         .option('-c, --clean', 'Clean output directory', defaultParameters.clean)
         .option('--no-clean', "Don't clean")
+        .option(
+            '--published-version <version>',
+            'Published version (latest, next, ...)',
+            defaultParameters.publishedVersion,
+        )
         .option('-w, --watch', 'Serve and watch for modifications', false);
 
     program.parse();

@@ -18,13 +18,34 @@ html {
 .header {
     @extend .navbar;
     @extend .navbar-expand-lg;
-    @extend .bg-light;
     @extend .sticky-top;
     @extend .shadow-sm;
 }
 
 .navbar-nav {
     @extend .align-items-center;
+
+    .nav-item {
+        @extend .text-center;
+    }
+
+    .nav-link.nav-link-primary:hover,
+    .nav-link.nav-link-primary.active:hover {
+        color: $blue;
+    }
+
+    .nav-link.nav-link-primary.active {
+        color: $primary-text-emphasis;
+    }
+
+    .nav-link.nav-link-success:hover,
+    .nav-link.nav-link-success.active:hover {
+        color: $green;
+    }
+
+    .nav-link.nav-link-success.active {
+        color: $success-text-emphasis;
+    }
 }
 
 .navbar-nav-left {
@@ -33,26 +54,22 @@ html {
     @extend .mb-lg-0;
 }
 
-.navbar-nav .nav-item {
-    @extend .text-center;
-}
+[data-bs-theme='dark'].header .navbar-nav {
+    .nav-link.nav-link-primary.active:hover {
+        color: $blue;
+    }
 
-.navbar-nav .nav-link.nav-link-primary:hover,
-.navbar-nav .nav-link.nav-link-primary.active:hover {
-    color: $blue;
-}
+    .nav-link.nav-link-primary.active {
+        color: $primary-text-emphasis-dark;
+    }
 
-.navbar-nav .nav-link.nav-link-primary.active {
-    color: $primary-text-emphasis;
-}
+    .nav-link.nav-link-success.active:hover {
+        color: $green;
+    }
 
-.navbar-nav .nav-link.nav-link-success:hover,
-.navbar-nav .nav-link.nav-link-success.active:hover {
-    color: $green;
-}
-
-.navbar-nav .nav-link.nav-link-success.active {
-    color: $success-text-emphasis;
+    .nav-link.nav-link-success.active {
+        color: $success-text-emphasis-dark;
+    }
 }
 
 /* Giro3D / Piero main pages */

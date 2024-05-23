@@ -1,6 +1,6 @@
-<header class="header">
+<header class="header bg-light">
     <div class="container-fluid">
-        <a href="#" class="navbar-brand mx-0">
+        <a href="/" class="navbar-brand mx-0">
             <img
                 src="<%= locals.favicon ?? '/images/favicon.svg' %>"
                 class="brand"
@@ -24,32 +24,45 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav navbar-nav-left">
                 <%# > Comment to kinda disable prettier %>
-                <%- include('navbar-link', { id: 'index', href: '/index.html', title: 'Home', class: '' } ) %>
+                <%- include('navbar-link', { id: 'index', href: '/', title: 'Home', class: '' } ) %>
                 <%- include('navbar-link', { id: 'giro3d', href: '/giro3d.html', title: 'Giro3D framework' }) %>
                 <%- include('navbar-link', { id: 'piero', href: '/piero.html', title: 'Piero application', class: 'nav-link-success'}) %>
-                <%- include('navbar-link', { id: 'tutorials', href: '/tutorials/getting-started.html', title: 'Getting started with Giro3D'}) %>
-                <%- include('navbar-link', { id: 'examples', href: '/examples/index.html', title: 'Giro3D examples'}) %>
-                <%- include('navbar-link', { id: 'apidoc', href: '/apidoc/index.html', title: 'API documentation'}) %>
+                <%- include('navbar-link', { id: 'tutorials', href: '/' + (locals.publishedVersion ?? 'next') + '/tutorials/getting-started.html', title: 'Getting started with Giro3D'}) %>
+                <%- include('navbar-link', { id: 'examples', href: '/' + (locals.publishedVersion ?? 'next') + '/examples/index.html', title: 'Giro3D examples'}) %>
+                <%- include('navbar-link', { id: 'apidoc', href: '/' + (locals.publishedVersion ?? 'next') + '/apidoc/index.html', title: 'API documentation'}) %>
                 <%- include('navbar-link', { id: 'faq', href: '/faq.html', title: 'FAQ'}) %>
                 <%- include('navbar-link', { id: 'governance', href: '/governance.html', title: 'Governance'}) %>
                 <%- include('navbar-link', { id: 'sponsors', href: '/sponsors.html', title: 'Sponsors'}) %>
             </ul>
 
             <ul class="navbar-nav">
+                <li class="nav-item dropdown">
+                    <a
+                        class="nav-link dropdown-toggle"
+                        href="#"
+                        role="button"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false"
+                    >
+                        Version
+                    </a>
+                    <ul class="dropdown-menu">
+                        <% availableVersions.forEach(function (version) { %>
+                        <li>
+                            <a class="dropdown-item" href="<%= version.href %>"
+                                ><%= version.title %></a
+                            >
+                        </li>
+                        <% }); %>
+                    </ul>
+                </li>
+
                 <li class="nav-item">
                     <a class="nav-link" href="https://gitlab.com/giro3d/giro3D" target="_blank"
                         >GitLab <i class="bi bi-box-arrow-up-right"></i
                     ></a>
                 </li>
             </ul>
-
-            <% if (locals.searchExamples) { %>
-            <%- include('navbar-examples-search') %>
-            <% } %>
-
-            <% if (locals.searchApidoc) { %>
-            <%- include('navbar-apidoc-search') %>
-            <% } %>
         </div>
     </div>
 </header>

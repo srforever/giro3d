@@ -18,7 +18,18 @@ const templatesDir = path.join(siteDir, 'templates');
 
 export const defaultParameters = {
     output: path.join(rootDir, 'build', 'site'),
+    publishedVersion: 'next',
 };
+
+export async function getVersions() {
+    const pkg = await fse.readJSON(path.join(rootDir, 'package.json'));
+    const latest = pkg.version;
+
+    return [
+        { title: `Latest (v${latest})`, href: '/latest/examples/index.html' },
+        { title: `Next`, href: '/next/examples/index.html' },
+    ];
+}
 
 function readTemplate(template) {
     const templateFilename = path.basename(template);
@@ -59,32 +70,37 @@ export async function copyAssets(parameters) {
 
 export async function copySite(parameters) {
     const ejsFiles = glob.sync(path.join(rootDir, 'site', '*.ejs'));
+    const availableVersions = await getVersions();
+
     ejsFiles.forEach(ejsFile => {
         const filename = path.basename(ejsFile);
         const htmlFilename = filename.replace('.ejs', '.html');
 
         const htmlTemplate = readTemplate(ejsFile);
-        const htmlContent = htmlTemplate().trim();
+        const htmlContent = htmlTemplate({
+            publishedVersion: parameters.publishedVersion,
+            availableVersions,
+        }).trim();
 
         fse.outputFileSync(path.join(parameters.output, htmlFilename), htmlContent);
     });
 }
 
-export async function build(parameters) {
+export async function buildStaticSite(parameters) {
     await copyAssets(parameters);
     await copySite(parameters);
 }
 
 async function handleModification(parameters, sourceFile) {
     console.log(`\nModified: ${path.basename(sourceFile)}, rebuilding...`);
-    await build({
+    await buildStaticSite({
         ...parameters,
         clean: false,
     });
     console.log('Rebuilt!');
 }
 
-async function serve(parameters) {
+async function serveStaticSite(parameters) {
     chokidar.watch([siteDir, graphicsDir]).on('change', p => handleModification(parameters, p));
 
     return createStaticServer(parameters.output, parameters.output);
@@ -98,6 +114,11 @@ if (esMain(import.meta)) {
     program
         .option('-o, --output <directory>', 'Output directory', defaultParameters.output)
         .option('-c, --clean', 'Clean directory', defaultParameters.clean)
+        .option(
+            '--published-version <version>',
+            'Published version (latest, next, ...)',
+            defaultParameters.publishedVersion,
+        )
         .option('-w, --watch', 'Serve and watch for modifications', false);
 
     program.parse();
@@ -107,8 +128,8 @@ if (esMain(import.meta)) {
     const pwd = process.cwd();
     options.output = path.resolve(pwd, options.output);
 
-    await build(options);
+    await buildStaticSite(options);
     if (watch) {
-        await serve(options);
+        await serveStaticSite(options);
     }
 }

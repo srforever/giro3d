@@ -8,7 +8,7 @@
 
 Welcome to the API documentation of Giro3D.
 
-➡️ If you are looking for an interactive tutorial, please look at the [getting started](/tutorials/getting-started.html) page instead.
+➡️ If you are looking for an interactive tutorial, please look at the [getting started](../tutorials/getting-started.html) page instead.
 
 Here is a brief overview of the main concepts behind Giro3D.
 

@@ -1,0 +1,60 @@
+<% function cls() { return ((locals.publishedVersion ?? 'next') === 'next') ? 'bg-dark' : 'bg-light'; } %>
+<% function theme() { return ((locals.publishedVersion ?? 'next') === 'next') ? 'dark' : ''; } %>
+<header class="header <%- cls() %>" data-bs-theme="<%- theme() %>">
+    <div class="container-fluid">
+        <a href="/" class="navbar-brand mx-0">
+            <img
+                src="<%= locals.favicon ?? '/images/favicon.svg' %>"
+                class="brand"
+                width="32"
+                height="32"
+            />
+        </a>
+
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent"
+            aria-expanded="false"
+            aria-label="Toggle navigation"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav navbar-nav-left">
+                <%# > Comment to kinda disable prettier %>
+                <%- include('navbar-link', { id: 'index', href: '/', title: 'Giro3D', class: '' } ) %>
+                <%- include('navbar-link', { id: 'tutorials', href: '/' + (locals.publishedVersion ?? 'next') + '/tutorials/getting-started.html', title: 'Getting started'}) %>
+                <%- include('navbar-link', { id: 'examples', href: '/' + (locals.publishedVersion ?? 'next') + '/examples/index.html', title: 'Examples'}) %>
+                <%- include('navbar-link', { id: 'apidoc', href: '/' + (locals.publishedVersion ?? 'next') + '/apidoc/index.html', title: 'API documentation'}) %>
+
+                <li class="nav-item">
+                    <span
+                        class="navbar-text badge <%= (locals.publishedVersion ?? 'next') === 'next' ? 'text-bg-warning' : 'text-bg-info' %>"
+                        >Version
+                        <%= locals.publishedVersion ?? 'next' %></span
+                    >
+                </li>
+            </ul>
+
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="https://gitlab.com/giro3d/giro3D" target="_blank"
+                        >GitLab <i class="bi bi-box-arrow-up-right"></i
+                    ></a>
+                </li>
+            </ul>
+
+            <% if (locals.searchExamples) { %>
+            <%- include('navbar-examples-search') %>
+            <% } %>
+
+            <% if (locals.searchApidoc) { %>
+            <%- include('navbar-apidoc-search') %>
+            <% } %>
+        </div>
+    </div>
+</header>

@@ -21,8 +21,9 @@ const templatesDir = path.join(rootDir, 'site', 'templates');
 const giro3dPackageDir = path.join(rootDir, 'build', 'giro3d');
 
 export const defaultParameters = {
-    output: path.join(rootDir, 'build', 'site', 'examples'),
+    output: path.join(rootDir, 'build', 'site', 'next', 'examples'),
     version: undefined,
+    publishedVersion: 'next',
     mode: 'production',
     clean: true,
 };
@@ -129,11 +130,12 @@ export async function generateIndex(htmlFiles, parameters) {
         name: `Giro3D - Examples (${parameters.version})`,
         description: parameters.name,
         examples: thumbnails,
+        publishedVersion: parameters.publishedVersion,
     });
     return indexHtmlContent;
 }
 
-export async function generateExample(htmlFile, highlighter, giro3d_version, parameters) {
+export async function generateExample(htmlFile, highlighter, parameters) {
     const htmlFilename = path.basename(htmlFile);
     const jsFilename = htmlFilename.replace('.html', '.js');
 
@@ -150,7 +152,7 @@ export async function generateExample(htmlFile, highlighter, giro3d_version, par
         customcss: cssContent,
         example_name: attributes.title,
         name: name,
-        giro3d_version,
+        giro3d_version: parameters.version,
         title: attributes.title,
         description: attributes.shortdesc,
         long_description: attributes.longdesc ?? '',
@@ -159,6 +161,7 @@ export async function generateExample(htmlFile, highlighter, giro3d_version, par
         highlightedJsCode: undefined,
         highlightedHtmlCode: undefined,
         highlightedPackageCode: undefined,
+        publishedVersion: parameters.publishedVersion,
     };
 
     if (highlighter) {
@@ -243,11 +246,11 @@ export async function getWebpackConfig(parameters) {
             },
             static: [
                 {
-                    directory: path.join(parameters.output, '..', 'assets'),
+                    directory: path.join(parameters.output, '..', '..', 'assets'),
                     publicPath: '/assets/',
                 },
                 {
-                    directory: path.join(parameters.output, '..', 'images'),
+                    directory: path.join(parameters.output, '..', '..', 'images'),
                     publicPath: '/images/',
                 },
             ],
@@ -267,7 +270,7 @@ export async function getWebpackConfig(parameters) {
                         from: '*.html',
                         to: '.',
                         transform: (content, from) =>
-                            generateExample(from, highlighter, parameters.version, parameters),
+                            generateExample(from, highlighter, parameters),
                     },
                     { from: 'css', to: 'css' },
                     { from: 'js', to: 'js' },
@@ -338,6 +341,11 @@ if (esMain(import.meta)) {
         .option('--no-clean', "Don't clean")
         .option('--mode <environment>', 'Environment', defaultParameters.mode)
         .option('-v, --version <version>', 'Version', defaultParameters.version)
+        .option(
+            '--published-version <version>',
+            'Published version (latest, next, ...)',
+            defaultParameters.publishedVersion,
+        )
         .option('-w, --watch', 'Serve and watch for modifications', false);
 
     program.parse();

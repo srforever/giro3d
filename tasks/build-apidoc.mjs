@@ -15,9 +15,10 @@ const apidocDir = path.join(rootDir, 'apidoc');
 const sourceDir = path.join(rootDir, 'src');
 
 export const defaultParameters = {
-    output: path.join(rootDir, 'build', 'site', 'apidoc'),
+    output: path.join(rootDir, 'build', 'site', 'next', 'apidoc'),
     clean: true,
     version: undefined,
+    publishedVersion: 'next',
 };
 
 export async function cleanApidoc(parameters) {
@@ -46,6 +47,7 @@ export async function buildApidoc(parameters) {
             navigationLinks: {},
             tsconfig: path.join(rootDir, 'tsconfig.json'),
             customCss: path.join(apidocDir, 'theme.css'),
+            publishedVersion: parameters.publishedVersion,
         },
         [new TypeDocReader(), new PackageJsonReader(), new TSConfigReader()],
     );
@@ -96,6 +98,11 @@ if (esMain(import.meta)) {
         .option('-c, --clean', 'Clean output directory', defaultParameters.clean)
         .option('--no-clean', "Don't clean")
         .option('-v, --version <version>', 'Version', defaultParameters.version)
+        .option(
+            '--published-version <version>',
+            'Published version (latest, next, ...)',
+            defaultParameters.publishedVersion,
+        )
         .option('-w, --watch', 'Serve and watch for modifications', false);
 
     program.parse();

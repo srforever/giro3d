@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-const { DefaultTheme, DefaultThemeRenderContext, JSX } = require('typedoc');
+const { DefaultTheme, DefaultThemeRenderContext, JSX, ParameterType } = require('typedoc');
 const path = require('path');
 const fse = require('fs-extra');
 const ejs = require('ejs');
@@ -57,8 +57,9 @@ const settings = context => {
 // Use toolbars from our template
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const toolbar = (context, props) => {
+    const publishedVersion = context.options.getValue('publishedVersion');
     const navbarTemplate = ejs.compile(
-        fse.readFileSync(path.join(templatesDir, 'navbar.ejs'), 'utf-8'),
+        fse.readFileSync(path.join(templatesDir, 'navbar-version.ejs'), 'utf-8'),
         {
             templateFilename: 'navbar',
             root: templatesDir,
@@ -69,6 +70,7 @@ const toolbar = (context, props) => {
         activeId: 'apidoc',
         searchApidoc: true,
         dataBase: context.relativeURL('./'),
+        publishedVersion,
     });
     return JSX.createElement(JSX.Raw, { html });
 };
@@ -112,6 +114,13 @@ exports.CustomTheme = CustomTheme;
  * can be selected by the user.
  */
 function load(app) {
+    app.options.addDeclaration({
+        name: 'publishedVersion',
+        defaultValue: 'next',
+        help: '[giro3d]: published version',
+        type: ParameterType.String,
+    });
+
     // hack to hide the "Giro3D" title on the root page of the apidoc
     // (we display the logo instead)
     // we still display the title on other pages because it contains the breadcrumb, and the title
@@ -138,7 +147,7 @@ if (document.location.pathname === "/apidoc/" || document.location.pathname === 
             html: `
 <link rel="icon" href="/images/favicon.svg" />
 <link rel="stylesheet" href="/assets/bootstrap-custom.css" />
-        `,
+`,
         }),
     );
 
