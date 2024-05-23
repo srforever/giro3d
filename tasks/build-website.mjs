@@ -15,7 +15,6 @@ const baseDir = dirname(fileURLToPath(import.meta.url));
 export const defaultParameters = {
     output: path.join(baseDir, '..', 'build', 'site'),
 };
-const root = '/home/tmuguet/projects/giro3d-org/dist';
 
 async function buildRelease(parameters, releaseName) {
     await buildApidoc({
@@ -31,15 +30,6 @@ async function buildRelease(parameters, releaseName) {
         output: path.join(parameters.output, releaseName, 'tutorials'),
         publishedVersion: releaseName,
     });
-
-    if (parameters.push) {
-        if (fse.existsSync(path.join(root, releaseName))) {
-            fse.removeSync(path.join(root, releaseName));
-        }
-
-        fse.mkdirpSync(path.join(root, releaseName));
-        fse.copySync(path.join(parameters.output, releaseName), path.join(root, releaseName));
-    }
 }
 
 async function buildWebsite(parameters) {
@@ -47,11 +37,6 @@ async function buildWebsite(parameters) {
         output: parameters.output,
         publishedVersion: parameters.release ? 'latest' : 'next',
     });
-
-    if (parameters.push) {
-        fse.mkdirpSync(root);
-        fse.copySync(path.join(parameters.output), root);
-    }
 
     if (parameters.release) {
         await buildRelease(parameters, 'latest');
@@ -64,7 +49,6 @@ if (esMain(import.meta)) {
     program
         .option('-o, --output <directory>', 'Output directory', defaultParameters.output)
         .option('--release', 'Released version', false)
-        .option('--push', 'Push site', false)
         .option('-w, --watch', 'Serve and watch for modifications', false);
 
     program.parse();
