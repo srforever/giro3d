@@ -165,8 +165,8 @@ export async function generateExample(htmlFile, highlighter, giro3d_version, par
         const htmlCodeTemplate = readTemplate('published_html.ejs');
         const packageJsonTemplate = readTemplate('published_package_json.ejs');
 
-        const htmlCode = htmlCodeTemplate(variables);
-        const packageJson = packageJsonTemplate(variables);
+        const htmlCode = htmlCodeTemplate(variables).trim();
+        const packageJson = packageJsonTemplate(variables).trim();
         const sourceCode = jsContent
             .replaceAll(/import StatusBar from.*/gi, '')
             .replaceAll(/StatusBar\.bind[^;]*;/gim, '')

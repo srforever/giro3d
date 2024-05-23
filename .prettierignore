@@ -1,2 +1,6 @@
 examples/data
 test/data
+
+# prettier-plugin-ejs correctly works only for html
+tasks/templates/published_package_json.ejs
+tasks/templates/tutorial.ejs
