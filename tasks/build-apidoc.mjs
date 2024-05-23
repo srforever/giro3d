@@ -17,7 +17,7 @@ const sourceDir = path.join(rootDir, 'src');
 export const defaultParameters = {
     output: path.join(rootDir, 'build', 'site', 'apidoc'),
     clean: true,
-    name: 'Giro3D API dev',
+    version: undefined,
 };
 
 export async function cleanApidoc(parameters) {
@@ -26,13 +26,18 @@ export async function cleanApidoc(parameters) {
 }
 
 export async function buildApidoc(parameters) {
+    if (!parameters.version) {
+        const pkg = await fse.readJSON(path.join(rootDir, 'package.json'));
+        parameters.version = pkg.version;
+    }
+
     console.log('Building documentation...');
     const app = await TypeDoc.Application.bootstrapWithPlugins(
         {
             entryPoints: [path.join(sourceDir, 'index.ts')],
             theme: 'custom',
             plugin: [path.join(apidocDir, 'theme.js')],
-            name: parameters.name,
+            name: `Giro3D API (${parameters.version})`,
             readme: path.join(apidocDir, 'README.md'),
             basePath: sourceDir,
             titleLink: '/',
@@ -90,7 +95,7 @@ if (esMain(import.meta)) {
         .option('-o, --output <directory>', 'Output directory', defaultParameters.output)
         .option('-c, --clean', 'Clean output directory', defaultParameters.clean)
         .option('--no-clean', "Don't clean")
-        .option('-n, --name <name>', 'Title of the documentation', defaultParameters.name)
+        .option('-v, --version <version>', 'Version', defaultParameters.version)
         .option('-w, --watch', 'Serve and watch for modifications', false);
 
     program.parse();

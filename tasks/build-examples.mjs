@@ -22,7 +22,7 @@ const giro3dPackageDir = path.join(rootDir, 'build', 'giro3d');
 
 export const defaultParameters = {
     output: path.join(rootDir, 'build', 'site', 'examples'),
-    name: 'Giro3D - Examples',
+    version: undefined,
     mode: 'production',
     clean: true,
 };
@@ -125,8 +125,8 @@ export async function generateIndex(htmlFiles, parameters) {
 
     const indexHtmlTemplate = readTemplate('index.ejs');
     const indexHtmlContent = indexHtmlTemplate({
-        title: parameters.name,
-        name: parameters.name,
+        title: `Giro3D - Examples (${parameters.version})`,
+        name: `Giro3D - Examples (${parameters.version})`,
         description: parameters.name,
         examples: thumbnails,
     });
@@ -190,11 +190,9 @@ export async function generateExample(htmlFile, highlighter, giro3d_version, par
 export async function getWebpackConfig(parameters) {
     const entry = findExamplesEntries();
 
-    let giro3d_version = 'next';
-    const pkgPath = path.join(rootDir, 'package.json');
-    if (fse.existsSync(pkgPath)) {
-        const pkg = await fse.readJSON(pkgPath);
-        giro3d_version = pkg.version;
+    if (!parameters.version) {
+        const pkg = await fse.readJSON(path.join(rootDir, 'package.json'));
+        parameters.version = pkg.version;
     }
 
     let highlighter;
@@ -269,7 +267,7 @@ export async function getWebpackConfig(parameters) {
                         from: '*.html',
                         to: '.',
                         transform: (content, from) =>
-                            generateExample(from, highlighter, giro3d_version, parameters),
+                            generateExample(from, highlighter, parameters.version, parameters),
                     },
                     { from: 'css', to: 'css' },
                     { from: 'js', to: 'js' },
@@ -339,7 +337,7 @@ if (esMain(import.meta)) {
         .option('-c, --clean', 'Clean output directory', defaultParameters.clean)
         .option('--no-clean', "Don't clean")
         .option('--mode <environment>', 'Environment', defaultParameters.mode)
-        .option('-n, --name <name>', 'Title of the index', defaultParameters.name)
+        .option('-v, --version <version>', 'Version', defaultParameters.version)
         .option('-w, --watch', 'Serve and watch for modifications', false);
 
     program.parse();
