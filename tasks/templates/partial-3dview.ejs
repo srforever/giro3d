@@ -18,7 +18,9 @@
         <div id="progress-bar" class="progress-bar" style="width: 100%"></div>
     </div>
     <span id="loading-percent" class="status-progress-value">100%</span>
+    <% if (locals.showMemoryUsage) { %>
     <span id="memory-usage" class="mx-2 memory-usage">0 MB</span>
+    <% } %>
     <span class="text-center status-attribution"><%- attribution %></span>
     <!-- Coordinates -->
     <div class="px-1 position-absolute end-0 d-inline-flex">
@@ -40,8 +42,8 @@
     </button>
 </div>
 
-<script type="module" src="<%= path %>shared.js"></script>
-<script type="module" src="<%= path %><%= js %>"></script>
+<script type="module" src="<%= locals.path ?? '' %>shared.js"></script>
+<script type="module" src="<%= locals.path ?? '' %><%= js %>"></script>
 <script>
     /* activate popovers */
     const popoverTriggerList = [].slice.call(
