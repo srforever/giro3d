@@ -17,7 +17,7 @@ import { copyAssets } from './build-static-site.mjs';
 const baseDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
 const examplesDir = path.join(rootDir, 'examples');
-const templatesDir = path.join(baseDir, 'templates');
+const templatesDir = path.join(rootDir, 'site', 'templates');
 const giro3dPackageDir = path.join(rootDir, 'build', 'giro3d');
 
 export const defaultParameters = {

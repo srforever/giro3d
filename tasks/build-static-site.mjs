@@ -14,7 +14,7 @@ const baseDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
 const siteDir = path.join(rootDir, 'site');
 const graphicsDir = path.join(rootDir, 'graphics');
-const templatesDir = path.join(baseDir, 'templates');
+const templatesDir = path.join(siteDir, 'templates');
 
 export const defaultParameters = {
     output: path.join(rootDir, 'build', 'site'),

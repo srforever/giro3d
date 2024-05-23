@@ -14,7 +14,7 @@ const baseDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
 const examplesDir = path.join(rootDir, 'examples');
 const siteDir = path.join(rootDir, 'site');
-const templatesDir = path.join(baseDir, 'templates');
+const templatesDir = path.join(siteDir, 'templates');
 
 // List of tutorials to build (i.e. files in the examples folder)
 export const TUTORIALS = {

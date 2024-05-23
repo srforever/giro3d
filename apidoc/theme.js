@@ -9,7 +9,7 @@ exports.load = exports.CustomTheme = exports.CustomThemeContext = exports.toolba
 // eslint-disable-next-line no-undef
 const baseDir = __dirname;
 const rootDir = path.join(baseDir, '..');
-const templatesDir = path.join(rootDir, 'tasks', 'templates');
+const templatesDir = path.join(rootDir, 'site', 'templates');
 
 // light customization of the layout to make it compatible with bootstrap.
 const defaultLayout = (context, template, props) => {
