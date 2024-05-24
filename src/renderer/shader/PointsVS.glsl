@@ -16,6 +16,16 @@ attribute vec3 color;
 attribute vec4 unique_id;
 attribute float intensity;
 
+#if defined(CLASSIFICATION)
+struct Classification {
+    vec3 color;
+    bool visible;
+};
+
+uniform Classification[256] classifications;
+attribute uint classification;
+#endif
+
 #if defined(NORMAL_OCT16)
 attribute vec2 oct16Normal;
 #elif defined(NORMAL_SPHEREMAPPED)
@@ -61,12 +71,16 @@ vec3 decodeSphereMappedNormal(vec2 encodedNormal) {
 #endif
 
 #ifdef DEFORMATION_SUPPORT
-uniform int enableTransfo;
-uniform mat4 transformations[NUM_TRANSFO];
-uniform vec3 vec[NUM_TRANSFO];
-uniform vec2 origin[NUM_TRANSFO];
-uniform vec2 influence[NUM_TRANSFO];
-uniform vec4 tColors[NUM_TRANSFO];
+uniform int enableDeformations;
+struct Deformation {
+    mat4 transformation;
+    vec3 vec;
+    vec2 origin;
+    vec2 influence;
+    vec4 colors;
+};
+
+uniform Deformation deformations[NUM_TRANSFO];
 #endif
 
 void main() {
@@ -145,6 +159,12 @@ void main() {
         }
         vColor = sRGBToLinear(vec4(gradient.rgb, 1.0));
         vColor.a = opacity;
+#if defined(CLASSIFICATION)
+    } else if (mode == MODE_CLASSIFICATION) {
+        Classification classif = classifications[classification];
+        vColor.rgb = classif.color;
+        vColor.a = classif.visible ? opacity : 0.0;
+#endif
     } else {
         // default to color mode
 
@@ -160,22 +180,22 @@ void main() {
 
     #ifdef DEFORMATION_SUPPORT
     if (!pickingMode) {
-        vColor = enableTransfo > 0 ?
+        vColor = enableDeformations > 0 ?
             vec4(0.0, 1.0, 1.0, 1.0):
             vec4(1.0, 0.0, 1.0, 1.0);
     }
-    if (enableTransfo > 0) {
+    if (enableDeformations > 0) {
         vec4 mPosition = modelMatrix * vec4(position, 1.0);
         float minDistance = 1000.0;
         int bestChoice = -1;
         for (int i = 0; i < NUM_TRANSFO; i++) {
-            if (i >= enableTransfo) {
+            if (i >= enableDeformations) {
                 break;
             }
-            vec2 v = vec[i].xy;
-            float length = vec[i].z;
+            vec2 v = deformations[i].vec.xy;
+            float length = deformations[i].vec.z;
             float depassement_x =
-                length * (influence[i].x - 1.0);
+                length * (deformations[i].influence.x - 1.0);
 
             vec2 diff = mPosition.xy - origin[i];
             float distance_x = dot(diff, v);
@@ -184,7 +204,7 @@ void main() {
                     distance_x <= (length + depassement_x)) {
                 vec2 normal = vec2(-v.y, v.x);
                 float d = abs(dot(diff, normal));
-                if (d < minDistance && d <= influence[i].y) {
+                if (d < minDistance && d <= deformations[i].influence.y) {
                     minDistance = d;
                     bestChoice = i;
                 }
@@ -193,9 +213,9 @@ void main() {
 
         if (bestChoice >= 0) {
             // override modelViewMatrix
-            mvMatrix = transformations[bestChoice];
+            mvMatrix = deformations[bestChoice].transformation;
             vColor = mix(
-                tColors[bestChoice],
+                deformations[bestChoice].color,
                 vec4(color, 1.0),
                 0.5);
         }

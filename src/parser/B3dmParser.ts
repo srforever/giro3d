@@ -3,7 +3,7 @@ import { Matrix4, MeshLambertMaterial } from 'three';
 import type { GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-import BatchTableParser from './BatchTableParser';
+import BatchTableParser, { type BatchTable } from './BatchTableParser';
 import Capabilities from '../core/system/Capabilities';
 import shaderUtils from '../renderer/shader/ShaderUtils';
 import utf8Decoder from '../utils/Utf8Decoder';
@@ -215,8 +215,8 @@ export default {
                 }),
             );
             return Promise.all(promises).then(values => ({
-                gltf: values[1],
-                batchTable: values[0],
+                gltf: values[1] as any,
+                batchTable: values[0] as BatchTable,
             }));
         }
         throw new Error('Invalid b3dm file.');

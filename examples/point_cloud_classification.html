@@ -1,0 +1,55 @@
+---
+title: Point cloud classification
+shortdesc: Display a classified point cloud.
+longdesc: To make use of classification data available in a point cloud (in this example, a 3D Tiles point cloud), we have to use a custom <a target="_blank" href="../apidoc/classes/renderer.PointCloudMaterial.html"><code>PointCloudMaterial</code></a>. Updating a classification (color and visibility) is done directly on this material with the <code>.classifications</code> property.
+attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
+---
+
+<div class="m-2 position-absolute top-0 end-0" style="width: 21rem">
+    <div class="card m-1">
+        <div class="card-header">Options</div>
+
+        <div class="card-body">
+            <fieldset>
+                <!-- Point size -->
+                <div class="input-group mb-2">
+                    <label for="pointSize" class="form-label">Point size</label>
+                    <input
+                        type="range"
+                        min="0"
+                        max="10"
+                        value="0"
+                        class="form-range"
+                        id="pointSize"
+                        autocomplete="off"
+                    />
+                </div>
+
+                <!-- Enable point cloud effects -->
+                <div class="form-check form-switch">
+                    <input
+                        class="form-check-input"
+                        type="checkbox"
+                        checked="true"
+                        role="switch"
+                        id="postProcessingEffects"
+                        autocomplete="off"
+                    />
+                    <label class="form-check-label" for="postProcessingEffects"
+                        >Post-processing effects</label
+                    >
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="card m-1">
+        <div class="card-header">Classifications</div>
+
+        <div class="card-body">
+            <fieldset id="classifications">
+                <!-- Classifications are added dynamically from the JS example -->
+            </fieldset>
+        </div>
+    </div>
+</div>
