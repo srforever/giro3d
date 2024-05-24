@@ -296,8 +296,6 @@ class TileMesh
                 } else {
                     this.resetHeights();
                 }
-            } else {
-                this.resetHeights();
             }
         }
     }
