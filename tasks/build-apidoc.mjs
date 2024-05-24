@@ -8,6 +8,7 @@ import TypeDoc, { TypeDocReader, PackageJsonReader, TSConfigReader } from 'typed
 
 import { createStaticServer } from './serve.mjs';
 import { copyAssets } from './build-static-site.mjs';
+import { getGitVersion, getPackageVersion } from './prepare-package.mjs';
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
@@ -18,7 +19,7 @@ export const defaultParameters = {
     output: path.join(rootDir, 'build', 'site', 'next', 'apidoc'),
     clean: true,
     version: undefined,
-    publishedVersion: 'next',
+    releaseName: 'next',
 };
 
 export async function cleanApidoc(parameters) {
@@ -28,8 +29,11 @@ export async function cleanApidoc(parameters) {
 
 export async function buildApidoc(parameters) {
     if (!parameters.version) {
-        const pkg = await fse.readJSON(path.join(rootDir, 'package.json'));
-        parameters.version = pkg.version;
+        if (parameters.releaseName === 'next') {
+            parameters.version = await getGitVersion();
+        } else {
+            parameters.version = await getPackageVersion();
+        }
     }
 
     console.log('Building documentation...');
@@ -47,7 +51,8 @@ export async function buildApidoc(parameters) {
             navigationLinks: {},
             tsconfig: path.join(rootDir, 'tsconfig.json'),
             customCss: path.join(apidocDir, 'theme.css'),
-            publishedVersion: parameters.publishedVersion,
+            releaseName: parameters.releaseName,
+            releaseVersion: parameters.version,
         },
         [new TypeDocReader(), new PackageJsonReader(), new TSConfigReader()],
     );
@@ -99,9 +104,9 @@ if (esMain(import.meta)) {
         .option('--no-clean', "Don't clean")
         .option('-v, --version <version>', 'Version', defaultParameters.version)
         .option(
-            '--published-version <version>',
-            'Published version (latest, next, ...)',
-            defaultParameters.publishedVersion,
+            '-r, --release-name <name>',
+            'Release name (latest, next, ...)',
+            defaultParameters.releaseName,
         )
         .option('-w, --watch', 'Serve and watch for modifications', false);
 

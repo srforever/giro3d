@@ -19,23 +19,23 @@ export const defaultParameters = {
 async function buildRelease(parameters, releaseName) {
     await buildApidoc({
         output: path.join(parameters.output, releaseName, 'apidoc'),
-        publishedVersion: releaseName,
+        releaseName,
     });
     await buildExamples({
         output: path.join(parameters.output, releaseName, 'examples'),
         mode: 'production',
-        publishedVersion: releaseName,
+        releaseName,
     });
     await buildTutorials({
         output: path.join(parameters.output, releaseName, 'tutorials'),
-        publishedVersion: releaseName,
+        releaseName,
     });
 }
 
 async function buildWebsite(parameters) {
     await buildStaticSite({
         output: parameters.output,
-        publishedVersion: parameters.release ? 'latest' : 'next',
+        releaseName: parameters.release ? 'latest' : 'next',
     });
 
     if (parameters.release) {
@@ -60,6 +60,6 @@ if (esMain(import.meta)) {
 
     await buildWebsite(options);
     if (watch) {
-        await createStaticServer(options.output, options.output);
+        await createStaticServer(options.output);
     }
 }

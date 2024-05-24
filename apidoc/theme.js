@@ -57,7 +57,9 @@ const settings = context => {
 // Use toolbars from our template
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const toolbar = (context, props) => {
-    const publishedVersion = context.options.getValue('publishedVersion');
+    const releaseName = context.options.getValue('releaseName');
+    const releaseVersion = context.options.getValue('releaseVersion');
+
     const navbarTemplate = ejs.compile(
         fse.readFileSync(path.join(templatesDir, 'navbar-version.ejs'), 'utf-8'),
         {
@@ -70,7 +72,8 @@ const toolbar = (context, props) => {
         activeId: 'apidoc',
         searchApidoc: true,
         dataBase: context.relativeURL('./'),
-        publishedVersion,
+        releaseName,
+        releaseVersion,
     });
     return JSX.createElement(JSX.Raw, { html });
 };
@@ -115,9 +118,16 @@ exports.CustomTheme = CustomTheme;
  */
 function load(app) {
     app.options.addDeclaration({
-        name: 'publishedVersion',
+        name: 'releaseName',
         defaultValue: 'next',
         help: '[giro3d]: published version',
+        type: ParameterType.String,
+    });
+
+    app.options.addDeclaration({
+        name: 'releaseVersion',
+        defaultValue: '',
+        help: '[giro3d]: package version',
         type: ParameterType.String,
     });
 

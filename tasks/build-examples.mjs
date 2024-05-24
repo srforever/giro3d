@@ -13,6 +13,7 @@ import shiki from 'shiki';
 
 import { handleModification } from '../observer.mjs';
 import { copyAssets } from './build-static-site.mjs';
+import { getGitVersion, getPackageVersion } from './prepare-package.mjs';
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
@@ -23,7 +24,7 @@ const giro3dPackageDir = path.join(rootDir, 'build', 'giro3d');
 export const defaultParameters = {
     output: path.join(rootDir, 'build', 'site', 'next', 'examples'),
     version: undefined,
-    publishedVersion: 'next',
+    releaseName: 'next',
     mode: 'production',
     clean: true,
 };
@@ -130,7 +131,8 @@ export async function generateIndex(htmlFiles, parameters) {
         name: `Giro3D - Examples (${parameters.version})`,
         description: parameters.name,
         examples: thumbnails,
-        publishedVersion: parameters.publishedVersion,
+        releaseName: parameters.releaseName,
+        releaseVersion: parameters.version,
     });
     return indexHtmlContent;
 }
@@ -147,12 +149,17 @@ export async function generateExample(htmlFile, highlighter, parameters) {
     const { attributes, body: htmlCustomContent } = parseExample(htmlFile);
     const cssContent = parseCss(htmlFile);
 
+    const giro3dVersion =
+        parameters.releaseName === 'next'
+            ? 'git+https://gitlab.com/giro3d/giro3d.git' // Not packaged yet, set git repo
+            : parameters.version.substring(1); // Remove "v"
+
     const variables = {
         content: htmlCustomContent.trim(),
         customcss: cssContent,
         example_name: attributes.title,
         name: name,
-        giro3d_version: parameters.version,
+        giro3d_version: giro3dVersion,
         title: attributes.title,
         description: attributes.shortdesc,
         long_description: attributes.longdesc ?? '',
@@ -161,7 +168,8 @@ export async function generateExample(htmlFile, highlighter, parameters) {
         highlightedJsCode: undefined,
         highlightedHtmlCode: undefined,
         highlightedPackageCode: undefined,
-        publishedVersion: parameters.publishedVersion,
+        releaseName: parameters.releaseName,
+        releaseVersion: parameters.version,
     };
 
     if (highlighter) {
@@ -194,8 +202,17 @@ export async function getWebpackConfig(parameters) {
     const entry = findExamplesEntries();
 
     if (!parameters.version) {
-        const pkg = await fse.readJSON(path.join(rootDir, 'package.json'));
-        parameters.version = pkg.version;
+        if (parameters.releaseName === 'next') {
+            parameters.version = await getGitVersion();
+        } else {
+            parameters.version = await getPackageVersion();
+        }
+    }
+
+    if (!fse.existsSync(path.join(parameters.output, '..', '..', 'assets'))) {
+        await copyAssets({
+            output: path.join(parameters.output, '..', '..'),
+        });
     }
 
     let highlighter;
@@ -342,9 +359,9 @@ if (esMain(import.meta)) {
         .option('--mode <environment>', 'Environment', defaultParameters.mode)
         .option('-v, --version <version>', 'Version', defaultParameters.version)
         .option(
-            '--published-version <version>',
+            '-r, --release-name <version>',
             'Published version (latest, next, ...)',
-            defaultParameters.publishedVersion,
+            defaultParameters.releaseName,
         )
         .option('-w, --watch', 'Serve and watch for modifications', false);
 

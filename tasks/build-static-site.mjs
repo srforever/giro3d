@@ -9,6 +9,7 @@ import glob from 'glob';
 import ejs from 'ejs';
 
 import { createStaticServer } from './serve.mjs';
+import { getGitVersion, getPackageVersion } from './prepare-package.mjs';
 
 const baseDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
@@ -18,16 +19,16 @@ const templatesDir = path.join(siteDir, 'templates');
 
 export const defaultParameters = {
     output: path.join(rootDir, 'build', 'site'),
-    publishedVersion: 'next',
+    releaseName: 'next',
 };
 
 export async function getVersions() {
-    const pkg = await fse.readJSON(path.join(rootDir, 'package.json'));
-    const latest = pkg.version;
+    const latest = await getPackageVersion();
+    const next = await getGitVersion();
 
     return [
-        { title: `Latest (v${latest})`, href: '/latest/examples/index.html' },
-        { title: `Next`, href: '/next/examples/index.html' },
+        { title: `Latest (${latest})`, href: '/latest/examples/index.html' },
+        { title: `Next (${next})`, href: '/next/examples/index.html' },
     ];
 }
 
@@ -78,7 +79,7 @@ export async function copySite(parameters) {
 
         const htmlTemplate = readTemplate(ejsFile);
         const htmlContent = htmlTemplate({
-            publishedVersion: parameters.publishedVersion,
+            releaseName: parameters.releaseName,
             availableVersions,
         }).trim();
 
@@ -103,7 +104,7 @@ async function handleModification(parameters, sourceFile) {
 async function serveStaticSite(parameters) {
     chokidar.watch([siteDir, graphicsDir]).on('change', p => handleModification(parameters, p));
 
-    return createStaticServer(parameters.output, parameters.output);
+    return createStaticServer(parameters.output);
 }
 
 /**
@@ -115,9 +116,9 @@ if (esMain(import.meta)) {
         .option('-o, --output <directory>', 'Output directory', defaultParameters.output)
         .option('-c, --clean', 'Clean directory', defaultParameters.clean)
         .option(
-            '--published-version <version>',
+            '-r, --release-name <version>',
             'Published version (latest, next, ...)',
-            defaultParameters.publishedVersion,
+            defaultParameters.releaseName,
         )
         .option('-w, --watch', 'Serve and watch for modifications', false);
 

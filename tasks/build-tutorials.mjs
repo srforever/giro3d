@@ -9,6 +9,7 @@ import { program } from 'commander';
 
 import { parseExample, parseCss } from './build-examples.mjs';
 import { createStaticServer } from './serve.mjs';
+import { getGitVersion, getPackageVersion } from './prepare-package.mjs';
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
@@ -26,7 +27,8 @@ export const TUTORIALS = {
 
 export const defaultParameters = {
     output: path.join(rootDir, 'build', 'site', 'next', 'tutorials'),
-    publishedVersion: 'next',
+    version: undefined,
+    releaseName: 'next',
     clean: true,
 };
 
@@ -51,6 +53,14 @@ export async function buildTutorials(parameters) {
         throw new Error(
             'examples directory is not a subdirectory of the current working directory; this is not supported',
         );
+    }
+
+    if (!parameters.version) {
+        if (parameters.releaseName === 'next') {
+            parameters.version = await getGitVersion();
+        } else {
+            parameters.version = await getPackageVersion();
+        }
     }
 
     try {
@@ -87,7 +97,8 @@ export async function buildTutorials(parameters) {
                 long_description: attributes.longdesc ?? '',
                 attribution: attributes.attribution ?? '',
                 js: jsFilename,
-                publishedVersion: parameters.publishedVersion,
+                releaseName: parameters.releaseName,
+                releaseVersion: parameters.version,
                 ...metadata,
             };
 
@@ -140,10 +151,14 @@ async function watchTutorials(parameters) {
 
 async function serveTutorials(parameters) {
     await watchTutorials(parameters);
-    return createStaticServer(
-        path.join(parameters.output, '..'),
-        path.join(parameters.output, '..'),
-    );
+    return createStaticServer(path.join(parameters.output), path.join(parameters.output, '..'), [
+        {
+            // Here we hack a bit HTTP: we expect the tutorial to fetch 'http://localhost:8080/../examples'
+            // which redirects to 'http://localhost:8080/examples'
+            directory: path.join(parameters.output, '..', 'examples'),
+            publicPath: '/examples/',
+        },
+    ]);
 }
 
 if (esMain(import.meta)) {
@@ -151,10 +166,11 @@ if (esMain(import.meta)) {
         .option('-o, --output <directory>', 'Output directory', defaultParameters.output)
         .option('-c, --clean', 'Clean output directory', defaultParameters.clean)
         .option('--no-clean', "Don't clean")
+        .option('-v, --version <version>', 'Version', defaultParameters.version)
         .option(
-            '--published-version <version>',
+            '-r, --release-name <version>',
             'Published version (latest, next, ...)',
-            defaultParameters.publishedVersion,
+            defaultParameters.releaseName,
         )
         .option('-w, --watch', 'Serve and watch for modifications', false);
 

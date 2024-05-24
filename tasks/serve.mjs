@@ -12,7 +12,28 @@ export const defaultParameters = {
     siteDirectory: path.join(baseDir, '..', 'build', 'site'),
 };
 
-export function createStaticServer(rootDir, siteDir) {
+export function createStaticServer(rootDir, siteDir = undefined, otherStaticPaths = []) {
+    const staticPaths = [
+        {
+            directory: rootDir,
+            publicPath: '/',
+        },
+    ];
+
+    if (siteDir) {
+        staticPaths.push({
+            directory: path.join(siteDir, 'assets'),
+            publicPath: '/assets/',
+        });
+        staticPaths.push({
+            directory: path.join(siteDir, 'images'),
+            publicPath: '/images/',
+        });
+    }
+    if (otherStaticPaths) {
+        otherStaticPaths.forEach(p => staticPaths.push(p));
+    }
+
     const webpackConfig = {
         mode: 'development',
         watchOptions: {
@@ -27,20 +48,7 @@ export function createStaticServer(rootDir, siteDir) {
                 progress: true,
                 overlay: true,
             },
-            static: [
-                {
-                    directory: rootDir,
-                    publicPath: '/',
-                },
-                {
-                    directory: path.join(siteDir, 'assets'),
-                    publicPath: '/assets/',
-                },
-                {
-                    directory: path.join(siteDir, 'images'),
-                    publicPath: '/images/',
-                },
-            ],
+            static: staticPaths,
         },
     };
 

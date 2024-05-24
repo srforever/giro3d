@@ -2,9 +2,25 @@ import esMain from 'es-main';
 import fse from 'fs-extra';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { execSync } from 'child_process';
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 const buildDir = path.resolve(baseDir, '../build/giro3d');
+
+export async function getPackageVersion() {
+    const pkg = await fse.readJSON(path.resolve(baseDir, '../package.json'));
+    return `v${pkg.version}`;
+}
+
+export async function getGitVersion() {
+    let nextCommitVersion = 'next';
+    try {
+        nextCommitVersion = execSync('git describe --tags --always').toString();
+    } catch {
+        // Ignore
+    }
+    return nextCommitVersion.trim();
+}
 
 async function main() {
     const pkg = await fse.readJSON(path.resolve(baseDir, '../package.json'));
