@@ -337,12 +337,14 @@ void main() {
     vUv = uv;
     #include <begin_vertex>
 
+    float elevation = 0.0;
+
 #if defined(TERRAIN_DEFORMATION)
 #if defined(ELEVATION_LAYER)
     if(elevationLayer.offsetScale.z > 0.) {
         vec2 vVv = computeUv(vUv, elevationLayer.offsetScale.xy, elevationLayer.offsetScale.zw);
 
-        float elevation = getElevation(elevationTexture, vVv);
+        elevation = getElevation(elevationTexture, vVv);
 
 #if defined(STITCHING)
         /*
@@ -417,11 +419,11 @@ void main() {
             elevation = computeZStitchedElevation(vUv, location, currentElevation);
         }
 #endif // STITCHING
-
-        transformed.z = elevation;
     }
 #endif // ELEVATION_LAYER
 #endif // TERRAIN_DEFORMATION
+
+    transformed.z = elevation;
 
     #include <project_vertex>
     #include <fog_vertex>
