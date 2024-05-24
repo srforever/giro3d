@@ -870,10 +870,23 @@ function getMemoryUsage(
     return result;
 }
 
+function getImageData(
+    source: ImageBitmap | HTMLCanvasElement | OffscreenCanvas,
+): Uint8ClampedArray {
+    if (source instanceof HTMLCanvasElement || source instanceof OffscreenCanvas) {
+        const context = source.getContext('2d', {
+            willReadFrequently: true,
+            desynchronized: true,
+        }) as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+        const imageData = context.getImageData(0, 0, source.width, source.height);
+        return imageData.data;
+    } else {
+        return getPixels(source);
+    }
+}
+
 function isCanvasEmpty(canvas: HTMLCanvasElement): boolean {
-    const context = canvas.getContext('2d', { willReadFrequently: true, desynchronized: true });
-    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
+    const data = getImageData(canvas);
 
     for (let i = 0; i < data.length; i += 4) {
         // Check if any pixel is not fully transparent or not matching canvas background color
