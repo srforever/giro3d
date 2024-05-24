@@ -27,11 +27,12 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = data.length * 2; // RGBA
 
-                    const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h },
-                        UnsignedByteType,
-                        data,
-                    );
+                    const result = TextureGenerator.createDataTexture({
+                        width: w,
+                        height: h,
+                        outputType: UnsignedByteType,
+                        pixelData: [data],
+                    });
 
                     const buf = result.texture.image.data;
 
@@ -56,13 +57,12 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
 
-                    const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h },
-                        UnsignedByteType,
-                        r,
-                        g,
-                        b,
-                    );
+                    const result = TextureGenerator.createDataTexture({
+                        width: w,
+                        height: h,
+                        outputType: UnsignedByteType,
+                        pixelData: [r, g, b],
+                    });
 
                     const buf = result.texture.image.data;
 
@@ -94,14 +94,12 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RG
 
-                    const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h },
-                        UnsignedByteType,
-                        r,
-                        g,
-                        b,
-                        a,
-                    );
+                    const result = TextureGenerator.createDataTexture({
+                        width: w,
+                        height: h,
+                        outputType: UnsignedByteType,
+                        pixelData: [r, g, b, a],
+                    });
 
                     const buf = result.texture.image.data;
 
@@ -134,11 +132,12 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = data.length * 2; // RG
 
-                    const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h },
-                        FloatType,
-                        data,
-                    );
+                    const result = TextureGenerator.createDataTexture({
+                        width: w,
+                        height: h,
+                        outputType: FloatType,
+                        pixelData: [data],
+                    });
 
                     const buf = result.texture.image.data;
 
@@ -165,11 +164,13 @@ describe('TextureGenerator', () => {
                     const expectedOutputLength = data.length * 2; // RG
                     const type = FloatType;
 
-                    const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h, scaling: { min, max } },
-                        type,
-                        data,
-                    );
+                    const result = TextureGenerator.createDataTexture({
+                        width: w,
+                        height: h,
+                        scaling: { min, max },
+                        outputType: type,
+                        pixelData: [data],
+                    });
 
                     const buf = result.texture.image.data;
 
@@ -194,11 +195,12 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = data.length * 2; // RG
 
-                    const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h },
-                        FloatType,
-                        data,
-                    );
+                    const result = TextureGenerator.createDataTexture({
+                        width: w,
+                        height: h,
+                        outputType: FloatType,
+                        pixelData: [data],
+                    });
 
                     const buf = result.texture.image.data;
 
@@ -225,11 +227,12 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = data.length * 2; // RG
 
-                    const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h },
-                        FloatType,
-                        data,
-                    );
+                    const result = TextureGenerator.createDataTexture({
+                        width: w,
+                        height: h,
+                        outputType: FloatType,
+                        pixelData: [data],
+                    });
 
                     const buf = result.texture.image.data;
 
@@ -260,13 +263,12 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
 
-                    const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h },
-                        FloatType,
-                        r,
-                        g,
-                        b,
-                    );
+                    const result = TextureGenerator.createDataTexture({
+                        width: w,
+                        height: h,
+                        outputType: FloatType,
+                        pixelData: [r, g, b],
+                    });
 
                     const buf = result.texture.image.data;
 
@@ -299,14 +301,12 @@ describe('TextureGenerator', () => {
                     const h = 2;
                     const expectedOutputLength = r.length * 4; // RGBA
 
-                    const result = TextureGenerator.createDataTexture(
-                        { width: w, height: h },
-                        FloatType,
-                        r,
-                        g,
-                        b,
-                        a,
-                    );
+                    const result = TextureGenerator.createDataTexture({
+                        width: w,
+                        height: h,
+                        outputType: FloatType,
+                        pixelData: [r, g, b, a],
+                    });
 
                     const buf = result.texture.image.data;
 

@@ -482,22 +482,21 @@ class CogSource extends ImageSource {
      * @param buffers - The buffers (one buffer per band)
      * @returns The generated texture.
      */
-    private createTexture(buffers: SizedArray<NumberArray>) {
+    private async createTexture(buffers: SizedArray<NumberArray>) {
         // Width and height in pixels of the returned data.
         // The geotiff.js patches the arrays with the width and height properties.
         const { width, height }: SizedArray<NumberArray> = buffers;
 
-        const dataType = this.datatype;
+        const bufferType = TextureGenerator.getTypedArrayType(buffers[0]);
+        const outputType = TextureGenerator.getTextureDataTypeFromTypedArrayType(bufferType);
 
-        const { texture, min, max } = TextureGenerator.createDataTexture(
-            {
-                width,
-                height,
-                nodata: this._nodata,
-            },
-            dataType,
-            ...buffers,
-        );
+        const { texture, min, max } = await TextureGenerator.createDataTextureAsync({
+            outputType,
+            width,
+            height,
+            nodata: this._nodata,
+            pixelData: buffers,
+        });
 
         return { texture, min, max };
     }
@@ -594,7 +593,7 @@ class CogSource extends ImageSource {
                 }
             }
 
-            const result = this.createTexture(buffers as SizedArray<NumberArray>);
+            const result = await this.createTexture(buffers as SizedArray<NumberArray>);
             texture = result.texture;
             min = result.min;
             max = result.max;
