@@ -6,9 +6,9 @@ import XYZ from 'ol/source/XYZ.js';
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
-import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import MapboxTerrainFormat from '@giro3d/giro3d/formats/MapboxTerrainFormat.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 
@@ -58,13 +58,13 @@ const elevationLayer = new ElevationLayer({
     name: 'xyz_elevation',
     extent,
     source: new TiledImageSource({
+        format: new MapboxTerrainFormat(),
         source: new XYZ({
             url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
             projection: 'EPSG:3857',
             crossOrigin: 'anonymous',
         }),
     }),
-    interpretation: Interpretation.MapboxTerrainRGB,
 });
 map.addLayer(elevationLayer);
 

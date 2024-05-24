@@ -454,10 +454,6 @@ class LayerComposer implements MemoryUsage {
                 options.max = max;
             }
 
-            // In the case of the Mapbox Terrain RGB interpretation,
-            // the original texture is in nearest neighour filtering,
-            // but we want to final texture to be in linear filtering, to avoid
-            // pixelated looks. This can only be done using a pre-processing stage.
             if (expandRGB || !this.interpretation.isDefault()) {
                 actualTexture = this.preprocessImage(extent, texture, {
                     interpretation: this.interpretation,

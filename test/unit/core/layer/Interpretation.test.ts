@@ -1,4 +1,3 @@
-import { NearestFilter, Texture } from 'three';
 import Interpretation, { Mode } from 'src/core/layer/Interpretation';
 
 describe('Interpretation', () => {
@@ -19,12 +18,10 @@ describe('Interpretation', () => {
     describe('presets', () => {
         it('should return correct values', () => {
             const raw = Interpretation.Raw;
-            const mapbox = Interpretation.MapboxTerrainRGB;
             const scale = Interpretation.ScaleToMinMax(1, 100);
             const compress = Interpretation.CompressTo8Bit(5, 899);
 
             expect(raw.mode).toEqual(Mode.Raw);
-            expect(mapbox.mode).toEqual(Mode.MapboxTerrainRGB);
             expect(compress.mode).toEqual(Mode.CompressTo8Bit);
             expect(scale.mode).toEqual(Mode.ScaleToMinMax);
             expect(scale.options).toEqual({ min: 1, max: 100 });
@@ -66,12 +63,6 @@ describe('Interpretation', () => {
             expect(scale.min).toEqual(23);
             expect(scale.max).toEqual(111);
 
-            const mapbox = Interpretation.MapboxTerrainRGB.setUniform({});
-            expect(mapbox.mode).toEqual(1);
-            expect(mapbox.negateValues).toBeUndefined();
-            expect(mapbox.min).toBeUndefined();
-            expect(mapbox.max).toBeUndefined();
-
             const custom = new Interpretation(Mode.ScaleToMinMax, {
                 min: -45,
                 max: 111,
@@ -82,29 +73,6 @@ describe('Interpretation', () => {
             expect(custom.negateValues).toEqual(true);
             expect(custom.min).toEqual(-45);
             expect(custom.max).toEqual(111);
-        });
-    });
-
-    describe('prepareTexture', () => {
-        it('should set nearest filter for mapbox terrain RGB', () => {
-            const raw = Interpretation.Raw;
-            const mapbox = Interpretation.MapboxTerrainRGB;
-            const scale = Interpretation.ScaleToMinMax(1, 100);
-
-            const texture1 = new Texture();
-            const texture2 = new Texture();
-            texture2.minFilter = undefined;
-            texture2.magFilter = undefined;
-
-            mapbox.prepareTexture(texture1);
-            raw.prepareTexture(texture2);
-            scale.prepareTexture(texture2);
-
-            expect(texture1.minFilter).toBe(NearestFilter);
-            expect(texture1.magFilter).toBe(NearestFilter);
-
-            expect(texture2.minFilter).toBeUndefined();
-            expect(texture2.magFilter).toBeUndefined();
         });
     });
 });

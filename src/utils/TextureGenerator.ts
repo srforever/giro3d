@@ -606,8 +606,6 @@ function computeMinMaxFromBuffer(
     let max = -Infinity;
 
     const RED_CHANNEL = 0;
-    const GREEN_CHANNEL = 1;
-    const BLUE_CHANNEL = 2;
     const alphaChannel = channelCount - 1;
 
     switch (interpretation.mode) {
@@ -636,21 +634,6 @@ function computeMinMaxFromBuffer(
                         min = Math.min(min, r);
                         max = Math.max(max, r);
                     }
-                }
-            }
-            break;
-        case Mode.MapboxTerrainRGB:
-            for (let i = 0; i < buffer.length; i += 4) {
-                const r = buffer[i + RED_CHANNEL];
-                const g = buffer[i + GREEN_CHANNEL];
-                const b = buffer[i + BLUE_CHANNEL];
-                const alpha = buffer[i + alphaChannel];
-
-                const value = -10000.0 + (r * 256.0 * 256.0 + g * 256.0 + b) * 0.1;
-
-                if (!(value !== value) && value !== nodata && alpha !== 0) {
-                    min = Math.min(min, value);
-                    max = Math.max(max, value);
                 }
             }
             break;
@@ -898,6 +881,42 @@ function isCanvasEmpty(canvas: HTMLCanvasElement): boolean {
     return true; // Canvas is empty
 }
 
+export type DecodeMapboxTerrainResult = {
+    width: number;
+    height: number;
+    data: Float32Array;
+};
+
+function decodeMapboxTerrainImage(
+    source: ImageBitmap | OffscreenCanvas | HTMLCanvasElement,
+): DecodeMapboxTerrainResult {
+    const pixelData = getImageData(source);
+
+    const stride = pixelData.length % 3 === 0 ? 3 : 4;
+
+    const length = pixelData.length / stride;
+    const data = new Float32Array(length);
+
+    let k = 0;
+
+    for (let i = 0; i < pixelData.length; i += stride) {
+        const r = pixelData[i + 0];
+        const g = pixelData[i + 1];
+        const b = pixelData[i + 2];
+
+        const elevation = -10000 + (r * 256 * 256 + g * 256 + b) * 0.1;
+
+        data[k] = elevation;
+
+        k += 1;
+    }
+
+    const width = source.width;
+    const height = source.height;
+
+    return { width, height, data };
+}
+
 /**
  * Returns a texture filter that is compatible with the texture.
  * @param filter - The requested filter.
@@ -954,6 +973,7 @@ export default {
     computeMinMaxFromBuffer,
     computeMinMaxFromImage,
     estimateSize,
+    decodeMapboxTerrainImage,
     shouldExpandRGB,
     isCanvasEmpty,
     getMemoryUsage,
