@@ -51,6 +51,7 @@ class MapTerrainPanel extends Panel {
     updateSegments(v: number) {
         const val = MathUtils.floorPowerOfTwo(v);
         this.map.segments = val;
+        this.segments = val;
         if (this.map.segments !== val) {
             this.map.segments = val;
             this.notify(this.map);
