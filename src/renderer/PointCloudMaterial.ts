@@ -18,7 +18,7 @@ import type ColorLayer from '../core/layer/ColorLayer';
 import type Extent from '../core/geographic/Extent';
 import type { TextureAndPitch } from '../core/layer/Layer';
 import OffsetScale from '../core/OffsetScale';
-import MaterialUtils from './MaterialUtils';
+import MaterialUtils, { type VertexAttributeType } from './MaterialUtils';
 import { ColorMap } from '../core/layer';
 
 /**
@@ -173,6 +173,9 @@ export type Defines = {
     USE_LOGDEPTHBUF_EXT?: 1;
     NORMAL_OCT16?: 1;
     NORMAL_SPHEREMAPPED?: 1;
+
+    INTENSITY?: 1;
+    INTENSITY_TYPE: VertexAttributeType;
 };
 
 function createDefaultColorMap(): ColorMap {
@@ -359,6 +362,9 @@ class PointCloudMaterial extends ShaderMaterial {
                 this.defines[`MODE_${key}`] = MODE[key];
             }
         }
+
+        // Default
+        this.defines.INTENSITY_TYPE = 'uint';
 
         this.uniforms.fogDensity = new Uniform(0.00025);
         this.uniforms.fogNear = new Uniform(1);

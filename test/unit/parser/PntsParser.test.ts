@@ -3,7 +3,8 @@ import fs from 'fs';
 import path from 'path';
 import { cwd } from 'process';
 import assert from 'assert';
-import PntsParser from 'src/parser/PntsParser';
+import PntsParser, { type Pnts } from 'src/parser/PntsParser';
+import { Uint8BufferAttribute } from 'three';
 
 function bufferFromString(pnts: string, size: number) {
     const buffer = new ArrayBuffer(size);
@@ -16,6 +17,12 @@ function bufferFromString(pnts: string, size: number) {
     }
     assert.equal(next, size);
     return buffer;
+}
+
+async function processPntsTile(relativePath: string): Promise<Pnts> {
+    const buf = fs.readFileSync(path.join(cwd(), relativePath));
+
+    return await PntsParser.parse(buf.buffer);
 }
 
 describe('PntsParser', () => {
@@ -46,9 +53,7 @@ describe('PntsParser', () => {
     });
 
     it('should correctly identify the classification attribute', async () => {
-        const buf = fs.readFileSync(path.join(cwd(), 'test/data/pnts/r44220.pnts'));
-
-        const result = await PntsParser.parse(buf.buffer);
+        const result = await processPntsTile('test/data/pnts/classification.pnts');
 
         expect(result).not.toBeUndefined();
 
@@ -62,5 +67,23 @@ describe('PntsParser', () => {
 
         expect(position.count).toEqual(classification.count);
         expect(classification.itemSize).toEqual(1);
+    });
+
+    it('should correctly handle an unsigned 8-bit intensity attribute', async () => {
+        const result = await processPntsTile('test/data/pnts/intensity_u8.pnts');
+
+        expect(result).not.toBeUndefined();
+
+        const { geometry } = result.point;
+
+        expect(geometry.hasAttribute('position')).toEqual(true);
+        expect(geometry.hasAttribute('intensity')).toEqual(true);
+
+        const position = geometry.getAttribute('position');
+        const intensity = geometry.getAttribute('intensity');
+
+        expect(position.count).toEqual(intensity.count);
+        expect(intensity.itemSize).toEqual(1);
+        expect(intensity).toBeInstanceOf(Uint8BufferAttribute);
     });
 });

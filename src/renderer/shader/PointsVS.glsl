@@ -14,7 +14,7 @@ uniform float opacity;
 uniform vec4 overlayColor;
 attribute vec3 color;
 attribute vec4 unique_id;
-attribute float intensity;
+
 
 struct PointCloudColorMap {
     float min;
@@ -23,6 +23,11 @@ struct PointCloudColorMap {
 };
 
 uniform PointCloudColorMap colorMap;
+
+#if defined(INTENSITY)
+// INTENSITY_TYPE is a define macro
+attribute INTENSITY_TYPE intensity;
+#endif
 
 #if defined(CLASSIFICATION)
 struct Classification {
@@ -120,8 +125,11 @@ void main() {
         vColor.r = float(lowerPart) / 255.0;
         vColor.g += float(upperPart * 8) / 255.0; // << 4
         // vColor.g += float(upperPart * left4bitsShift) / 255.0;
+#if defined(INTENSITY)
     } else if (mode == MODE_INTENSITY) {
-        vColor = vec4(intensity, intensity, intensity, opacity);
+        vColor.rgb = sampleColorMap(float(intensity), colorMap.min, colorMap.max, colorMap.lut, 0.0);
+        vColor.a = opacity;
+#endif
     } else if (mode == MODE_NORMAL) {
         vColor = vec4(abs(normal), opacity);
     } else if (mode == MODE_TEXTURE) {

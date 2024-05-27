@@ -5,10 +5,12 @@ import {
     type Vector2,
     type Object3DEventMap,
     type Material,
+    type BufferAttribute,
 } from 'three';
 import PointCloudMaterial from '../renderer/PointCloudMaterial';
 import type Extent from './geographic/Extent.js';
 import type Disposable from './Disposable';
+import MaterialUtils from '../renderer/MaterialUtils';
 
 export interface PointCloudEventMap extends Object3DEventMap {
     'visibility-changed': {
@@ -27,6 +29,19 @@ export interface PointCloudOptions {
     material?: Material;
     /** Texture size */
     textureSize?: Vector2;
+}
+
+function setupMaterial(material: PointCloudMaterial, geometry: BufferGeometry) {
+    material.enableClassification = geometry.hasAttribute('classification');
+
+    if (geometry.hasAttribute('intensity')) {
+        const intensityType = MaterialUtils.getVertexAttributeType(
+            geometry.getAttribute('intensity') as BufferAttribute,
+        );
+
+        MaterialUtils.setDefine(material, 'INTENSITY', true);
+        MaterialUtils.setDefineValue(material, 'INTENSITY_TYPE', intensityType);
+    }
 }
 
 /**
@@ -60,7 +75,7 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap>, 
         this.disposed = false;
 
         if (PointCloudMaterial.isPointCloudMaterial(this.material)) {
-            this.material.enableClassification = this.geometry.hasAttribute('classification');
+            setupMaterial(this.material, this.geometry);
         }
     }
 
@@ -72,6 +87,16 @@ class PointCloud extends Points implements EventDispatcher<PointCloudEventMap>, 
         }
 
         return undefined;
+    }
+
+    /**
+     * Returns the intensity of the specified point.
+     *
+     * @param pointIndex - The index of the point.
+     * @returns The intensity value for the specified point, or `undefined` if this point cloud does not support intensities.
+     */
+    getIntensity(pointIndex: number): number | undefined {
+        return this.getPointValue(pointIndex, 'intensity');
     }
 
     /**

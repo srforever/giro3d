@@ -1,4 +1,16 @@
-import { type Material } from 'three';
+import type { BufferAttribute, Material } from 'three';
+
+import {
+    Float16BufferAttribute,
+    Float32BufferAttribute,
+    Int16BufferAttribute,
+    Int32BufferAttribute,
+    Int8BufferAttribute,
+    Uint16BufferAttribute,
+    Uint32BufferAttribute,
+    Uint8BufferAttribute,
+    Uint8ClampedBufferAttribute,
+} from 'three';
 
 /**
  * Sets or unsets a define directive according to the condition.
@@ -65,7 +77,37 @@ function setDefineValue<M extends Material, K extends keyof M['defines']>(
     return changed;
 }
 
+export type VertexAttributeType = 'int' | 'uint' | 'float';
+
+/**
+ * Returns the GLSL attribute type that most closely matches the type of the {@link BufferAttribute}.
+ */
+function getVertexAttributeType(attribute: BufferAttribute): VertexAttributeType {
+    if (
+        attribute instanceof Float32BufferAttribute ||
+        attribute instanceof Float16BufferAttribute
+    ) {
+        return 'float';
+    }
+    if (
+        attribute instanceof Int32BufferAttribute ||
+        attribute instanceof Int16BufferAttribute ||
+        attribute instanceof Int8BufferAttribute
+    ) {
+        return 'int';
+    }
+    if (
+        attribute instanceof Uint32BufferAttribute ||
+        attribute instanceof Uint16BufferAttribute ||
+        attribute instanceof Uint8BufferAttribute ||
+        attribute instanceof Uint8ClampedBufferAttribute
+    ) {
+        return 'uint';
+    }
+}
+
 export default {
     setDefine,
     setDefineValue,
+    getVertexAttributeType,
 };
