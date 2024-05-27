@@ -296,8 +296,6 @@ class TileMesh
                 } else {
                     this.resetHeights();
                 }
-            } else {
-                this.resetHeights();
             }
         }
     }
@@ -529,7 +527,9 @@ class TileMesh
 
         const { min, max } = this.geometry.applyHeightMap(this._heightMap.payload);
 
-        this.setBBoxZ(min, max);
+        if (min > this._minmax.min && max < this._minmax.max) {
+            this.setBBoxZ(min, max);
+        }
 
         this._onElevationChanged(this);
     }
@@ -540,6 +540,8 @@ class TileMesh
             return;
         }
         this._minmax = { min, max };
+
+        this.updateOBB(min, max);
     }
 
     traverseTiles(callback: (descendant: TileMesh) => void) {

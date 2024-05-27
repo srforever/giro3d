@@ -26,7 +26,7 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
     LayerEvents,
     UserData
 > {
-    minmax: ElevationRange;
+    minmax: { min: number; max: number; isDefault?: boolean };
     /**
      * Read-only flag to check if a given object is of type ElevationLayer.
      */
@@ -53,7 +53,7 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
         if (options.minmax) {
             this.minmax = options.minmax;
         } else {
-            this.minmax = { min: 0, max: 0 };
+            this.minmax = { min: 0, max: 0, isDefault: true };
         }
         this.type = 'ElevationLayer';
     }
@@ -89,7 +89,7 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
     protected async onInitialized() {
         // Compute a min/max approximation using the background images that
         // are already present on the composer.
-        if (!this.minmax) {
+        if (!this.minmax || this.minmax.isDefault) {
             const { min, max } = this._composer.getMinMax(this.getExtent());
             this.minmax = { min, max };
         }
