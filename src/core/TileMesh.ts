@@ -9,6 +9,10 @@ import {
     UnsignedByteType,
     RGBAFormat,
     MeshBasicMaterial,
+    type Intersection,
+    type Raycaster,
+    Ray,
+    Matrix4,
 } from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker';
@@ -34,6 +38,9 @@ import type UniqueOwner from './UniqueOwner';
 import { intoUniqueOwner } from './UniqueOwner';
 import TextureGenerator from '../utils/TextureGenerator';
 import type GetElevationOptions from '../entities/GetElevationOptions';
+
+const ray = new Ray();
+const inverseMatrix = new Matrix4();
 
 const helperMaterial = new MeshBasicMaterial({
     color: '#75eba8',
@@ -278,6 +285,37 @@ class TileMesh
         this.material.reorderLayers();
     }
 
+    /**
+     * Checks that the given raycaster intersects with this tile's OBB.
+     */
+    private checkOBBIntersection(raycaster: Raycaster): boolean {
+        const matrixWorld = this.matrixWorld;
+
+        // convert ray to local space of mesh
+
+        inverseMatrix.copy(matrixWorld).invert();
+        ray.copy(raycaster.ray).applyMatrix4(inverseMatrix);
+
+        // test with bounding box in local space
+
+        // Note that we are not using the bounding box of the geometry, because at this moment,
+        // the mesh might still be completely flat, as the heightmap might not be computed yet.
+        // This is the whole point of this method: to avoid computing the heightmap if not necessary.
+        // So we are using the logical bounding box provided by the OBB.
+        const boundingBox = this._obb.box3D;
+
+        return ray.intersectsBox(boundingBox);
+    }
+
+    override raycast(raycaster: Raycaster, intersects: Intersection[]): void {
+        // Updating the heightmap is quite costly operation that requires a texture readback.
+        // Let's do it only if the ray intersects the OBB of this tile.
+        if (this.checkOBBIntersection(raycaster)) {
+            this.updateHeightMapIfNecessary();
+        }
+        super.raycast(raycaster, intersects);
+    }
+
     private updateHeightMapIfNecessary(): void {
         if (this._shouldUpdateHeightMap && this._enableCPUTerrain) {
             this._shouldUpdateHeightMap = false;
@@ -482,7 +520,6 @@ class TileMesh
             this._shouldUpdateHeightMap = true;
         }
 
-        this.updateHeightMapIfNecessary();
         this._onElevationChanged(this);
     }
 
@@ -550,10 +587,6 @@ class TileMesh
                 callback(obj);
             }
         });
-    }
-
-    onBeforeRender(): void {
-        this.updateHeightMapIfNecessary();
     }
 
     /**
