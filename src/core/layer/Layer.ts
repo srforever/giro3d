@@ -112,10 +112,11 @@ export class Target implements MemoryUsage {
     controller: AbortController;
     state: TargetState;
     geometryExtent: Extent;
+    private _disposed = false;
     private _onVisibilityChanged: () => void;
 
     isDisposed() {
-        return this.node.disposed;
+        return this.node.disposed || this._disposed;
     }
 
     getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
@@ -149,6 +150,7 @@ export class Target implements MemoryUsage {
     }
 
     dispose() {
+        this._disposed = true;
         this.node.removeEventListener('visibility-changed', this._onVisibilityChanged);
         this.abort();
     }
