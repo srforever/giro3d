@@ -147,7 +147,6 @@ class ComposerTileMaterial extends ShaderMaterial {
 
         const interpValue = {};
         interp.setUniform(interpValue);
-        interp.prepareTexture(options.texture);
 
         // The no-data filling algorithm does not like transparent images
         this.needsUpdate = this.transparent !== options.transparent;

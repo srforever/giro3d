@@ -7,7 +7,7 @@ import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
+import MapboxTerrainFormat from '@giro3d/giro3d/formats/MapboxTerrainFormat.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap from '@giro3d/giro3d/core/layer/ColorMap.js';
@@ -81,6 +81,7 @@ instance.add(map);
 const key =
     'pk.eyJ1IjoidG11Z3VldCIsImEiOiJjbGJ4dTNkOW0wYWx4M25ybWZ5YnpicHV6In0.KhDJ7W5N3d1z3ArrsDjX_A';
 const source = new TiledImageSource({
+    format: new MapboxTerrainFormat(),
     source: new XYZ({
         url: `https://api.mapbox.com/v4/mapbox.terrain-rgb/{z}/{x}/{y}.pngraw?access_token=${key}`,
         projection: extent.crs(),
@@ -93,7 +94,6 @@ const elevationLayer = new ElevationLayer({
     extent,
     source,
     colorMap: new ColorMap(colorRamps.viridis, elevationMin, elevationMax, ColorMapMode.Elevation),
-    interpretation: Interpretation.MapboxTerrainRGB,
 });
 
 const bottomLayer = new ColorLayer({
@@ -101,7 +101,6 @@ const bottomLayer = new ColorLayer({
     extent,
     source,
     colorMap: new ColorMap(colorRamps.jet, elevationMin, elevationMax, ColorMapMode.Elevation),
-    interpretation: Interpretation.MapboxTerrainRGB,
 });
 
 const topLayer = new ColorLayer({
@@ -109,7 +108,6 @@ const topLayer = new ColorLayer({
     extent,
     source,
     colorMap: new ColorMap(colorRamps.earth, elevationMin, elevationMax, ColorMapMode.Elevation),
-    interpretation: Interpretation.MapboxTerrainRGB,
 });
 
 map.addLayer(elevationLayer);

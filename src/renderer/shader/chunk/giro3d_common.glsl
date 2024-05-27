@@ -273,7 +273,6 @@ vec4 texture2DFillNodata(sampler2D tex, vec2 uv, NoDataOptions options, int alph
 }
 
 const int INTERPRETATION_RAW = 0;
-const int INTERPRETATION_MAPBOX_TERRAIN_RGB = 1;
 const int INTERPRETATION_SCALED = 2;
 const int INTERPRETATION_COMPRESS_TO_8BIT = 3;
 
@@ -300,11 +299,7 @@ const int OUTPUT_MODE_ELEVATION = 1;
  */
 vec4 decodeInterpretation(vec4 raw, Interpretation interpretation) {
     vec4 result = raw;
-    if (interpretation.mode == INTERPRETATION_MAPBOX_TERRAIN_RGB) {
-        vec4 color = raw * (255.0 * 0.1);
-        float value = -10000.0 + color.r * 256.0 * 256.0 + color.g * 256.0 + color.b;
-        result = vec4(value, 1.0, 1.0, 1.0);
-    } else if (interpretation.mode == INTERPRETATION_SCALED) {
+    if (interpretation.mode == INTERPRETATION_SCALED) {
         float min = interpretation.min;
         float max = interpretation.max;
         float scale = max - min;

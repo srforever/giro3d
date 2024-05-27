@@ -1,5 +1,4 @@
-import type { ColorSpace, Texture } from 'three';
-import { NearestFilter, NoColorSpace } from 'three';
+import { NoColorSpace, type ColorSpace } from 'three';
 
 /**
  * Describes how an image pixel should be interpreted.
@@ -9,7 +8,6 @@ import { NearestFilter, NoColorSpace } from 'three';
  */
 enum Mode {
     Raw = 0,
-    MapboxTerrainRGB = 1,
     ScaleToMinMax = 2,
     CompressTo8Bit = 3,
 }
@@ -38,9 +36,6 @@ export type InterpretationUniform = {
  * occurs after the image was decoded into a pixel buffer.
  *
  * ```js
- * // Use the Mapbox Terrain RGB interpretation
- * const interp = Interpretation.MapboxTerrainRGB;
- *
  * // Use the raw interpretation
  * const raw = Interpretation.Raw;
  *
@@ -140,20 +135,11 @@ class Interpretation {
      */
     get colorSpace(): ColorSpace | undefined {
         switch (this._mode) {
-            case Mode.MapboxTerrainRGB:
             case Mode.ScaleToMinMax:
                 return NoColorSpace;
             default:
                 return undefined;
         }
-    }
-
-    /**
-     * Preset for Mapbox Terrain RGB. The image represent an elevation encoded with the [Mapbox Terrain RGB scheme](https://docs.mapbox.com/data/tilesets/reference/mapbox-terrain-rgb-v1/).
-     * The input is an sRGB image, and the output will be a grayscale image.
-     */
-    static get MapboxTerrainRGB(): Interpretation {
-        return new Interpretation(Mode.MapboxTerrainRGB);
     }
 
     /**
@@ -216,29 +202,12 @@ class Interpretation {
         switch (this.mode) {
             case Mode.Raw:
                 return 'Raw';
-            case Mode.MapboxTerrainRGB:
-                return 'Mapbox Terrain RGB';
             case Mode.ScaleToMinMax:
                 return `Scaled (min: ${this._opts.min}, max: ${this._opts.max})`;
             case Mode.CompressTo8Bit:
                 return `Compressed to 8-bit (min: ${this._opts.min}, max: ${this._opts.max})`;
             default:
                 return 'unknown';
-        }
-    }
-
-    /**
-     * Updates the provided texture if necessary to make it compatible with this interpretation.
-     *
-     * @param texture - The texture to update.
-     * @internal
-     */
-    prepareTexture(texture: Texture) {
-        if (this.mode === Mode.MapboxTerrainRGB) {
-            // Mapbox interpretation is extremely sensitive to color values,
-            // which is why we cannot use any filter to alter the colors.
-            texture.minFilter = NearestFilter;
-            texture.magFilter = NearestFilter;
         }
     }
 
@@ -258,7 +227,6 @@ class Interpretation {
                 uniform.max = this._opts.max;
                 break;
             case Mode.Raw:
-            case Mode.MapboxTerrainRGB:
                 break;
             default:
                 throw new Error(`unknown interpretation mode: ${this.mode}`);

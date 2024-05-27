@@ -171,7 +171,6 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
 
     getRenderTargetDataType(): TextureDataType {
         switch (this.interpretation.mode) {
-            case InterpretationMode.MapboxTerrainRGB:
             case InterpretationMode.ScaleToMinMax:
                 return FloatType;
             default:
