@@ -104,7 +104,7 @@ class LayerInspector extends Panel {
             }
 
             this.colorimetryPanel = new ColorimetryPanel(
-                this.map.materialOptions.colorimetry,
+                colorLayer.colorimetry,
                 this.gui,
                 instance,
             );

@@ -34,7 +34,7 @@ class ColorimetryPanel extends Panel {
         this.addController<number>(options, 'saturation')
             .name('Saturation')
             .min(0)
-            .max(10)
+            .max(1)
             .onChange(() => this.notify());
     }
 
