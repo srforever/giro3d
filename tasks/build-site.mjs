@@ -51,7 +51,7 @@ async function buildWebsite(parameters) {
 if (esMain(import.meta)) {
     program
         .option('-o, --output <directory>', 'Output directory', defaultParameters.output)
-        .option('--build-latest', 'Build as latest version', false)
+        .option('--build-latest', 'Also build as latest version', false)
         .option('--use-next', 'Use next version for static site', false)
         .option('-w, --watch', 'Serve and watch for modifications', false);
 

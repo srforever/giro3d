@@ -73,7 +73,7 @@ export async function copyAssets(parameters) {
 
 export async function copySite(parameters) {
     log('static-site', 'Building site...');
-    const ejsFiles = glob.sync(path.join(rootDir, 'site', '*.ejs'));
+    const ejsFiles = glob.sync(path.join(siteDir, '*.ejs'));
     const availableVersions = await getVersions();
 
     ejsFiles.forEach(ejsFile => {
@@ -88,6 +88,8 @@ export async function copySite(parameters) {
 
         fse.outputFileSync(path.join(parameters.output, htmlFilename), htmlContent);
     });
+
+    fse.copyFileSync(path.join(siteDir, '_redirects'), path.join(parameters.output, '_redirects'));
 }
 
 export async function buildStaticSite(parameters) {

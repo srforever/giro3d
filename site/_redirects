@@ -1,0 +1,3 @@
+/tutorials/* /latest/tutorials/:splat 301
+/examples/* /latest/examples/:splat 301
+/apidoc/* /latest/apidoc/:splat 301
