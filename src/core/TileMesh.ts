@@ -102,7 +102,7 @@ class TileMesh
     readonly y: number;
     readonly z: number;
     private _heightMap: UniqueOwner<HeightMap, this>;
-    disposed: boolean;
+    disposed = false;
     private _enableTerrainDeformation: boolean;
     private readonly _enableCPUTerrain: boolean;
     private readonly _instance: Instance;
