@@ -121,7 +121,7 @@ if (esMain(import.meta)) {
         .option('-c, --clean', 'Clean directory', defaultParameters.clean)
         .option(
             '-r, --release-name <version>',
-            'Published version (latest, next, ...)',
+            'Release name to use in navbar (latest, next, ...)',
             defaultParameters.releaseName,
         )
         .option('-w, --watch', 'Serve and watch for modifications', false);

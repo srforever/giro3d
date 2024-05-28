@@ -4,24 +4,25 @@ set -e
 
 HERE=$(dirname "$0")
 
-[[ ! -d "${HERE}/giro3d-org" ]] && git clone "https://tmuguet:${GIRO3D_ORG_KEY}@gitlab.com/tmuguet/giro3d-org.git" "${HERE}/giro3d-org"
+thisCommit=$(git describe --tags --always)
+thisUsername=$(git --no-pager log --format=format:'%an' -n 1)
+thisUseremail=$(git --no-pager log --format=format:'%ae' -n 1)
 
-# Build website
-node ${HERE}/../tasks/build-site.mjs --release
+[[ ! -d "${HERE}/giro3d-website" ]] && git clone "https://giro3d:${GIRO3D_ORG_KEY}@gitlab.com/giro3d/giro3d-website.git" "${HERE}/giro3d-website"
 
 # Clean previous version-specific content
-rm -rf ${HERE}/giro3d-org/dist/next
-[[ -d "${HERE}/../build/site/latest" ]] && rm -rf ${HERE}/giro3d-org/dist/latest
+rm -rf ${HERE}/giro3d-website/dist/next
+[[ -d "${HERE}/../build/site/latest" ]] && rm -rf ${HERE}/giro3d-website/dist/latest
 
 # Copy new website
-cp -r ${HERE}/../build/site/* ${HERE}/giro3d-org/dist/
+cp -r ${HERE}/../build/site/* ${HERE}/giro3d-website/dist/
 
 # Commit & push changes
-cd "${HERE}/giro3d-org"
+cd "${HERE}/giro3d-website"
 if [ -n "$(git status --porcelain)" ]; then
-    git config user.name "$(git --no-pager log --format=format:'%an' -n 1)"
-    git config user.email "$(git --no-pager log --format=format:'%ae' -n 1)"
+    git config user.name "${thisUsername}"
+    git config user.email "${thisUseremail}"
     git add .
-    git commit -m "Website updates"
+    git commit -m "Website updates ${thisCommit}"
     git push origin main
 fi

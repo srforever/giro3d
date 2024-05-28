@@ -38,10 +38,10 @@ async function buildRelease(parameters, releaseName) {
 async function buildWebsite(parameters) {
     await buildStaticSite({
         output: parameters.output,
-        releaseName: parameters.release ? 'latest' : 'next',
+        releaseName: parameters.useNext ? 'next' : 'latest',
     });
 
-    if (parameters.release) {
+    if (parameters.buildLatest) {
         await buildRelease(parameters, 'latest');
     }
 
@@ -51,7 +51,8 @@ async function buildWebsite(parameters) {
 if (esMain(import.meta)) {
     program
         .option('-o, --output <directory>', 'Output directory', defaultParameters.output)
-        .option('--release', 'Released version', false)
+        .option('--build-latest', 'Build as latest version', false)
+        .option('--use-next', 'Use next version for static site', false)
         .option('-w, --watch', 'Serve and watch for modifications', false);
 
     program.parse();
