@@ -2,13 +2,14 @@ import esMain from 'es-main';
 import path, { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { program } from 'commander';
-import fse from 'fs-extra';
+import chalk from 'chalk';
 
 import { buildStaticSite } from './build-static-site.mjs';
 import { buildApidoc } from './build-apidoc.mjs';
 import { buildExamples } from './build-examples.mjs';
 import { buildTutorials } from './build-tutorials.mjs';
 import { createStaticServer } from './serve.mjs';
+import { log, logOk } from './utils.mjs';
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 
@@ -17,6 +18,7 @@ export const defaultParameters = {
 };
 
 async function buildRelease(parameters, releaseName) {
+    log('site', chalk.bold(`Building release ${releaseName}...`));
     await buildApidoc({
         output: path.join(parameters.output, releaseName, 'apidoc'),
         releaseName,
@@ -30,6 +32,7 @@ async function buildRelease(parameters, releaseName) {
         output: path.join(parameters.output, releaseName, 'tutorials'),
         releaseName,
     });
+    logOk('site', chalk.bold(`Built release ${releaseName}`));
 }
 
 async function buildWebsite(parameters) {

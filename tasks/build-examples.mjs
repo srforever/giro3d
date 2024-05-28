@@ -14,6 +14,7 @@ import shiki from 'shiki';
 import { handleModification } from '../observer.mjs';
 import { copyAssets } from './build-static-site.mjs';
 import { getGitVersion, getPackageVersion } from './prepare-package.mjs';
+import { log, logOk } from './utils.mjs';
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
@@ -199,6 +200,7 @@ export async function generateExample(htmlFile, highlighter, parameters) {
 }
 
 export async function getWebpackConfig(parameters) {
+    log('examples', 'Generating webpack configuration...');
     const entry = findExamplesEntries();
 
     if (!parameters.version) {
@@ -299,11 +301,12 @@ export async function getWebpackConfig(parameters) {
         ],
     };
 
+    logOk('examples', `Found ${Object.keys(entry).length - 1} examples`);
     return webpackConfig;
 }
 
 export async function cleanExamples(parameters) {
-    console.log('Cleaning output directory...');
+    log('examples', 'Cleaning output directory...');
     fse.removeSync(parameters.output);
 }
 
@@ -312,6 +315,7 @@ export async function buildExamples(parameters) {
     const compiler = webpack(webpackConfig);
 
     return new Promise((resolve, reject) => {
+        log('examples', 'Generating examples...');
         compiler.run((err, stats) => {
             if (err) {
                 reject(err);
@@ -322,7 +326,10 @@ export async function buildExamples(parameters) {
             compiler.close(closeErr => {
                 if (closeErr) reject(closeErr);
                 else if (stats.hasErrors()) reject(new Error('Webpack failed'));
-                else resolve();
+                else {
+                    logOk('examples', `Examples built at ${webpackConfig.output.path}`);
+                    resolve();
+                }
             });
         });
     });
@@ -343,7 +350,7 @@ export async function serveExamples(parameters) {
     const compiler = webpack(webpackConfig);
     const server = new webpackDevServer(webpackConfig.devServer, compiler);
 
-    console.log('Starting server...');
+    log('examples', 'Starting server...');
     return server.start();
 }
 

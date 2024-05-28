@@ -10,6 +10,7 @@ import ejs from 'ejs';
 
 import { createStaticServer } from './serve.mjs';
 import { getGitVersion, getPackageVersion } from './prepare-package.mjs';
+import { log, logWatched, logOk } from './utils.mjs';
 
 const baseDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
@@ -42,6 +43,7 @@ function readTemplate(template) {
 }
 
 export async function copyAssets(parameters) {
+    log('static-site', 'Generating assets...');
     const assetsDir = path.join(parameters.output, 'assets');
     const fontsDir = path.join(assetsDir, 'fonts');
     const imagesDir = path.join(parameters.output, 'images');
@@ -52,7 +54,7 @@ export async function copyAssets(parameters) {
 
     scss.forEach(scss => {
         execSync(
-            `npx sass ${path.join(siteDir, `${scss}.scss`)}:${path.join(assetsDir, `${scss}.css`)}`,
+            `npx sass ${path.join(siteDir, `${scss}.scss`)}:${path.join(assetsDir, `${scss}.css`)} --style=compressed`,
         );
     });
 
@@ -70,6 +72,7 @@ export async function copyAssets(parameters) {
 }
 
 export async function copySite(parameters) {
+    log('static-site', 'Building site...');
     const ejsFiles = glob.sync(path.join(rootDir, 'site', '*.ejs'));
     const availableVersions = await getVersions();
 
@@ -93,17 +96,18 @@ export async function buildStaticSite(parameters) {
 }
 
 async function handleModification(parameters, sourceFile) {
-    console.log(`\nModified: ${path.basename(sourceFile)}, rebuilding...`);
+    logWatched('static-site', path.basename(sourceFile));
     await buildStaticSite({
         ...parameters,
         clean: false,
     });
-    console.log('Rebuilt!');
+    logOk('static-site', 'Rebuilt!');
 }
 
 async function serveStaticSite(parameters) {
     chokidar.watch([siteDir, graphicsDir]).on('change', p => handleModification(parameters, p));
 
+    log('static-site', 'Starting server...');
     return createStaticServer(parameters.output);
 }
 

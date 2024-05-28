@@ -10,12 +10,14 @@ import { program } from 'commander';
 import { parseExample, parseCss } from './build-examples.mjs';
 import { createStaticServer } from './serve.mjs';
 import { getGitVersion, getPackageVersion } from './prepare-package.mjs';
+import { log, logWatched, logOk } from './utils.mjs';
 
 const baseDir = dirname(fileURLToPath(import.meta.url));
 const rootDir = path.join(baseDir, '..');
 const examplesDir = path.join(rootDir, 'examples');
 const siteDir = path.join(rootDir, 'site');
 const templatesDir = path.join(siteDir, 'templates');
+const tmpDir = path.join(rootDir, 'build', '.cache', 'docco');
 
 // List of tutorials to build (i.e. files in the examples folder)
 export const TUTORIALS = {
@@ -33,16 +35,15 @@ export const defaultParameters = {
 };
 
 export async function cleanTutorials(parameters) {
-    console.log('Cleaning output directory...');
+    log('tutorials', 'Cleaning output directory...');
     fse.removeSync(parameters.output);
 }
 
 export async function buildTutorials(parameters) {
     // eslint-disable-next-line no-undef
     const pwd = process.cwd();
-    const tmpDir = path.join(parameters.output, '.docco');
 
-    fse.ensureDirSync(tmpDir);
+    fse.mkdirpSync(tmpDir);
     const relativeOutput = path.relative(pwd, examplesDir);
     if (
         relativeOutput.startsWith('.') ||
@@ -63,74 +64,69 @@ export async function buildTutorials(parameters) {
         }
     }
 
-    try {
-        // We actually generate new EJS templates 🤯
-        await docco.run([
-            '-css',
-            path.join(siteDir, 'docco.css'),
-            '-s',
-            'github-light',
-            '-l',
-            'parallel',
-            '-t',
-            path.join(templatesDir, 'tutorial.ejs'),
-            '--output',
-            tmpDir,
-            ...Object.keys(TUTORIALS).map(t => `${relativeOutput}/${t}`),
-        ]);
+    log('tutorials', `Building ${Object.keys(TUTORIALS).length} tutorials...`);
+    // We actually generate new EJS templates 🤯
+    await docco.run([
+        '-css',
+        path.join(siteDir, 'docco.css'),
+        '-s',
+        'github-light',
+        '-l',
+        'parallel',
+        '-t',
+        path.join(templatesDir, 'tutorial.ejs'),
+        '--output',
+        tmpDir,
+        ...Object.keys(TUTORIALS).map(t => `${relativeOutput}/${t}`),
+    ]);
 
-        for (const [jsFilename, metadata] of Object.entries(TUTORIALS)) {
-            const htmlFilename = jsFilename.replace('.js', '.html');
-            const pathToHtmlFile = path.join(examplesDir, htmlFilename);
+    for (const [jsFilename, metadata] of Object.entries(TUTORIALS)) {
+        log('tutorials', `Building ${jsFilename}...`);
+        const htmlFilename = jsFilename.replace('.js', '.html');
+        const pathToHtmlFile = path.join(examplesDir, htmlFilename);
 
-            const name = path.parse(pathToHtmlFile).name;
-            const { attributes, body } = parseExample(pathToHtmlFile);
-            const customCss = parseCss(pathToHtmlFile);
+        const name = path.parse(pathToHtmlFile).name;
+        const { attributes, body } = parseExample(pathToHtmlFile);
+        const customCss = parseCss(pathToHtmlFile);
 
-            const variables = {
-                content: body.trim(),
-                customcss: customCss,
-                example_name: attributes.title,
-                name: name,
-                title: attributes.title,
-                description: attributes.shortdesc,
-                long_description: attributes.longdesc ?? '',
-                attribution: attributes.attribution ?? '',
-                js: jsFilename,
-                releaseName: parameters.releaseName,
-                releaseVersion: parameters.version,
-                ...metadata,
-            };
+        const variables = {
+            content: body.trim(),
+            customcss: customCss,
+            example_name: attributes.title,
+            name: name,
+            title: attributes.title,
+            description: attributes.shortdesc,
+            long_description: attributes.longdesc ?? '',
+            attribution: attributes.attribution ?? '',
+            js: jsFilename,
+            releaseName: parameters.releaseName,
+            releaseVersion: parameters.version,
+            ...metadata,
+        };
 
-            const template = ejs.compile(
-                fse.readFileSync(path.join(tmpDir, relativeOutput, htmlFilename), 'utf-8'),
-                {
-                    htmlFilename,
-                    root: rootDir,
-                    views: [templatesDir],
-                },
-            );
-
-            const content = template(variables);
-            fse.outputFileSync(path.join(parameters.output, htmlFilename), content);
-        }
-
-        fse.copyFileSync(
-            path.join(siteDir, 'docco.css'),
-            path.join(parameters.output, 'docco.css'),
+        const template = ejs.compile(
+            fse.readFileSync(path.join(tmpDir, relativeOutput, htmlFilename), 'utf-8'),
+            {
+                htmlFilename,
+                root: rootDir,
+                views: [templatesDir],
+            },
         );
-        if (!fse.pathExistsSync(path.join(parameters.output, 'public'))) {
-            fse.moveSync(path.join(tmpDir, 'public'), path.join(parameters.output, 'public'));
-        }
-    } finally {
-        fse.removeSync(tmpDir);
+
+        const content = template(variables);
+        fse.outputFileSync(path.join(parameters.output, htmlFilename), content);
     }
+
+    fse.copyFileSync(path.join(siteDir, 'docco.css'), path.join(parameters.output, 'docco.css'));
+    if (!fse.pathExistsSync(path.join(parameters.output, 'public'))) {
+        fse.moveSync(path.join(tmpDir, 'public'), path.join(parameters.output, 'public'));
+    }
+    logOk('tutorials', `Built tutorials at ${parameters.output}`);
 }
 
 async function handleModification(parameters, sourceFile) {
-    console.log(`\nModified: ${path.basename(sourceFile)}, rebuilding...`);
+    logWatched('tutorials', path.basename(sourceFile));
     await buildTutorials(parameters);
-    console.log('Rebuilt!');
 }
 
 async function watchTutorials(parameters) {
@@ -151,6 +147,7 @@ async function watchTutorials(parameters) {
 
 async function serveTutorials(parameters) {
     await watchTutorials(parameters);
+    log('tutorials', 'Starting server...');
     return createStaticServer(path.join(parameters.output), path.join(parameters.output, '..'), [
         {
             // Here we hack a bit HTTP: we expect the tutorial to fetch 'http://localhost:8080/../examples'
