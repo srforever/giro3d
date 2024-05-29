@@ -9,6 +9,7 @@ describe('ColorMap', () => {
 
             expect(cm.mode).toEqual(ColorMapMode.Elevation);
             expect(cm.active).toEqual(true);
+            // @ts-expect-error property is private
             expect(cm._cachedTexture).toBeNull();
         });
 
@@ -96,11 +97,13 @@ describe('ColorMap', () => {
             const tex = { dispose: jest.fn() };
             const cm = new ColorMap([], 0, 1);
 
+            // @ts-expect-error property is private
             cm._cachedTexture = tex;
             const newValue = [new Color('red')];
             cm.colors = newValue;
 
             expect(tex.dispose).toHaveBeenCalled();
+            // @ts-expect-error property is private
             expect(cm._cachedTexture).toBeNull();
         });
     });
@@ -110,6 +113,7 @@ describe('ColorMap', () => {
             const tex = { id: 1 };
             const cm = new ColorMap([], 0, 1);
 
+            // @ts-expect-error property is private
             cm._cachedTexture = tex;
 
             expect(cm.getTexture()).toBe(tex);
