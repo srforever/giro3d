@@ -106,6 +106,18 @@ describe('ColorMap', () => {
             // @ts-expect-error property is private
             expect(cm._cachedTexture).toBeNull();
         });
+
+        it('should remove the transparency array if it no longer has the same length', () => {
+            const red = new Color('red');
+            const green = new Color('green');
+            const blue = new Color('blue');
+
+            const colorMap = new ColorMap([red, green, blue], 0, 100);
+            colorMap.opacity = [0, 0.5, 1];
+
+            colorMap.colors = [red, green];
+            expect(colorMap.opacity).toBeNull();
+        });
     });
 
     describe('sample', () => {
@@ -126,6 +138,25 @@ describe('ColorMap', () => {
         });
     });
 
+    describe('sampleOpacity', () => {
+        it('should return the correct opacity', () => {
+            const red = new Color('red');
+            const green = new Color('green');
+            const blue = new Color('blue');
+
+            const colorMap = new ColorMap([red, green, blue], 0, 100);
+            colorMap.opacity = [1, 0, 0.5];
+
+            expect(colorMap.sampleOpacity(0)).toEqual(1);
+            expect(colorMap.sampleOpacity(50)).toEqual(0);
+            expect(colorMap.sampleOpacity(100)).toEqual(0.5);
+
+            // Out of bounds, expect clamping
+            expect(colorMap.sampleOpacity(-10)).toEqual(1);
+            expect(colorMap.sampleOpacity(1000)).toEqual(0.5);
+        });
+    });
+
     describe('getTexture', () => {
         it('should return the cached texture, if any', () => {
             const tex = { id: 1 };
@@ -135,6 +166,20 @@ describe('ColorMap', () => {
             cm._cachedTexture = tex;
 
             expect(cm.getTexture()).toBe(tex);
+        });
+
+        it('should handle the opacity array', () => {
+            const colors = [new Color('red'), new Color('white'), new Color('cyan')];
+            const cm = new ColorMap(colors, 0, 1);
+
+            cm.opacity = [0.2, 1, 0.5];
+
+            const texture = cm.getTexture();
+            const data = texture.image.data;
+
+            expect(data[0 * 4 + 3]).toEqual(Math.round(255 * 0.2));
+            expect(data[1 * 4 + 3]).toEqual(Math.round(255 * 1));
+            expect(data[2 * 4 + 3]).toEqual(Math.round(255 * 0.5));
         });
 
         it('should return a new texture if cached texture does not exist', () => {

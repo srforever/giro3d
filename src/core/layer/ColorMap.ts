@@ -1,4 +1,4 @@
-import { ClampToEdgeWrapping, type Color, MathUtils, NearestFilter, type Texture } from 'three';
+import { ClampToEdgeWrapping, type Color, type DataTexture, MathUtils, NearestFilter } from 'three';
 import TextureGenerator from '../../utils/TextureGenerator';
 import ColorMapMode from './ColorMapMode';
 
@@ -50,7 +50,8 @@ class ColorMap {
     private _max: number;
     private _mode: ColorMapMode;
     private _colors: Color[];
-    private _cachedTexture: Texture;
+    private _opacity: number[] | null;
+    private _cachedTexture: DataTexture;
     private _active: boolean;
     /**
      * Creates an instance of ColorMap.
@@ -73,6 +74,7 @@ class ColorMap {
         this._max = max;
         this._mode = mode;
         this._colors = colors;
+        this._opacity = null;
         this._cachedTexture = null;
         this._active = true;
     }
@@ -138,6 +140,9 @@ class ColorMap {
 
     /**
      * Gets or sets the colors of the color map.
+     *
+     * Note: if there is already an array defined in the {@link opacity} property, and this array
+     * does not have the same length as the new color array, then it will be removed.
      */
     get colors() {
         return this._colors;
@@ -146,6 +151,33 @@ class ColorMap {
     set colors(v) {
         if (this._colors !== v) {
             this._colors = v;
+            // Reset the opacity array if it no longer has the same length.
+            if (this._opacity && this._opacity.length !== v.length) {
+                this._opacity = null;
+            }
+            this._cachedTexture?.dispose();
+            this._cachedTexture = null;
+        }
+    }
+
+    /**
+     * Gets or sets the opacity values of the color map.
+     *
+     * Note: if the provided array does not have the same length as the {@link colors} array,
+     * an exception is raised.
+     *
+     * @defaultValue null
+     */
+    get opacity() {
+        return this._opacity;
+    }
+
+    set opacity(v) {
+        if (v && v.length !== this.colors.length) {
+            throw new Error('the opacity array must have the same length as the color array');
+        }
+        if (this._opacity !== v) {
+            this._opacity = v;
             this._cachedTexture?.dispose();
             this._cachedTexture = null;
         }
@@ -167,13 +199,32 @@ class ColorMap {
     }
 
     /**
+     * Samples the transparency for the given value.
+     * @param value - The value to sample.
+     * @returns The color at the specified value.
+     */
+    sampleOpacity(value: number): number {
+        const { min, max, opacity } = this;
+
+        if (!opacity) {
+            return 1;
+        }
+
+        const clamped = MathUtils.clamp(value, min, max);
+
+        const index = MathUtils.mapLinear(clamped, min, max, 0, opacity.length - 1);
+
+        return opacity[MathUtils.clamp(Math.round(index), 0, opacity.length - 1)];
+    }
+
+    /**
      * Returns a 1D texture containing the colors of this color map.
      *
      * @returns The resulting texture.
      */
-    getTexture(): Texture {
+    getTexture(): DataTexture {
         if (this._cachedTexture === null) {
-            this._cachedTexture = TextureGenerator.create1DTexture(this._colors);
+            this._cachedTexture = TextureGenerator.create1DTexture(this._colors, this._opacity);
             this._cachedTexture.minFilter = NearestFilter;
             this._cachedTexture.magFilter = NearestFilter;
             this._cachedTexture.wrapS = ClampToEdgeWrapping;
