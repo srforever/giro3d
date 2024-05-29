@@ -9,6 +9,7 @@ import TextureGenerator from '../utils/TextureGenerator';
 import ImageSource, {
     type GetImageOptions,
     ImageResult,
+    ImageSourceMode,
     type ImageSourceOptions,
 } from './ImageSource';
 import type ImageFormat from '../formats/ImageFormat';
@@ -107,6 +108,7 @@ export default class TiledImageSource extends ImageSource {
         super({
             flipY: options.format?.flipY ?? false,
             is8bit: (options.format?.dataType ?? UnsignedByteType) === UnsignedByteType,
+            mode: ImageSourceMode.MultipleImages,
             ...options,
         });
 
