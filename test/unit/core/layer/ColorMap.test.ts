@@ -108,6 +108,24 @@ describe('ColorMap', () => {
         });
     });
 
+    describe('sample', () => {
+        it('should return the correct color', () => {
+            const red = new Color('red');
+            const green = new Color('green');
+            const blue = new Color('blue');
+
+            const colorMap = new ColorMap([red, green, blue], 0, 100);
+
+            expect(colorMap.sample(0)).toEqual(red);
+            expect(colorMap.sample(50)).toEqual(green);
+            expect(colorMap.sample(100)).toEqual(blue);
+
+            // Out of bounds, expect clamping
+            expect(colorMap.sample(-10)).toEqual(red);
+            expect(colorMap.sample(1000)).toEqual(blue);
+        });
+    });
+
     describe('getTexture', () => {
         it('should return the cached texture, if any', () => {
             const tex = { id: 1 };
