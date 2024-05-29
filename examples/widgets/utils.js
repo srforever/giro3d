@@ -100,12 +100,19 @@ export function bindButton(id, onClick) {
  * @param {boolean} [invert=false] If `true`, the color array will be reversed.
  * @returns {Color[]} The color array.
  */
-export function makeColorRamp(preset, discrete = false, invert = false) {
-    const values = colormap({ colormap: preset, nshades: discrete ? 10 : 256 });
+export function makeColorRamp(preset, discrete = false, invert = false, mirror = false) {
+    let nshades = discrete ? 10 : 256;
+
+    const values = colormap({ colormap: preset, nshades });
     const colors = values.map(v => new Color(v));
 
     if (invert) {
         colors.reverse();
+    }
+
+    if (mirror) {
+        const mirrored = [...colors, ...colors.reverse()];
+        return mirrored;
     }
 
     return colors;

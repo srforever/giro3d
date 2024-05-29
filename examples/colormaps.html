@@ -3,225 +3,188 @@ title: Color maps
 shortdesc: Create color maps to interpret elevation, slope and aspect with custom color ramps.
 longdesc: <a href="../apidoc/classes/core.layer.ColorMap.html" target="_blank">Colormaps</a> are useful to colorize an elevation dataset. You can change the color map's properties dynamically, such as the min and max values, the color gradients, or disable the color map entirely. Color maps can be applied on both elevation layers and color layers.
 attribution: © <a target="_blank" href="https://www.mapbox.com/">Mapbox</a>
-dependencies: ['colormap']
+dependencies: ['colormap', 'function-curve-editor']
 ---
 
-<div class="m-2 position-absolute top-0 end-0">
-    <!-- General settings -->
-    <div class="card m-1">
-        <fieldset class="container m-1">
-            <!-- Discrete color ramps -->
-            <div class="row p-1">
-                <div>
-                    <div class="form-check form-switch">
-                        <input
-                            class="form-check-input"
-                            type="checkbox"
-                            role="switch"
-                            id="discrete-ramps"
-                            autocomplete="off"
-                        />
-                        <label class="form-check-label" for="discrete-ramps"
-                            >Use discrete color ramps</label
-                        >
-                    </div>
-                </div>
-            </div>
-        </fieldset>
-    </div>
-
-    <!-- Top color layer -->
-    <div class="card m-1">
+<div class="m-2 position-absolute top-0 end-0" style="width: 20rem; bottom: 1.5rem">
+    <!--Parameters -->
+    <div class="card m-1 mh-100">
         <div class="card-header">
-            <div class="form-check form-switch">
+            Parameters
+            <button type="button" id="reset" class="btn btn-sm btn-primary rounded float-end">
+                reset
+            </button>
+        </div>
+
+        <div class="card-body overflow-y-auto" id="top-options">
+            <!-- Preset -->
+            <div class="input-group mb-3">
+                <label class="input-group-text" for="preset">Preset</label>
+                <select class="form-select" id="preset" autocomplete="off">
+                    <option value="elevation" selected>
+                        Simple elevation layer with color map
+                    </option>
+                    <option value="elevation+transparency">
+                        Elevation layer with color map visible only on the 780-2000m range.
+                    </option>
+                    <option value="southern-slope">
+                        Show the southern slopes of the mountains with a semi-transparent colormap.
+                    </option>
+                    <option value="flat-terrain">Shows flat areas of the terrain.</option>
+                </select>
+            </div>
+
+            <!-- Layer type -->
+            <div class="input-group mb-3">
+                <label class="input-group-text" for="layerType">Layers</label>
+                <select class="form-select" id="layerType" autocomplete="off">
+                    <option value="elevation" selected>Elevation</option>
+                    <option value="color">Color</option>
+                    <option value="color+background">Color + Background</option>
+                    <option value="color+background+elevation">
+                        Color + Background + Elevation
+                    </option>
+                </select>
+            </div>
+
+            <!-- Activate color map -->
+            <div class="form-check form-switch mb-1">
                 <input
                     class="form-check-input"
                     checked
                     type="checkbox"
                     role="switch"
-                    id="top-layer-enable"
+                    id="enable"
                     autocomplete="off"
                 />
-                <label class="form-check-label" for="top-layer-enable">Top color layer</label>
-            </div>
-        </div>
-
-        <fieldset class="container m-1" id="top-options">
-            <!-- Activate color map -->
-            <div class="row p-1">
-                <div>
-                    <div class="form-check form-switch">
-                        <input
-                            class="form-check-input"
-                            checked
-                            type="checkbox"
-                            role="switch"
-                            id="top-colormap-enable"
-                            autocomplete="off"
-                        />
-                        <label class="form-check-label" for="top-colormap-enable">Color map</label>
-                    </div>
-                </div>
+                <label class="form-check-label" for="enable">Enable color map</label>
             </div>
 
-            <!-- Select color map mode -->
-            <fieldset class="row p-1" id="top-colormap-options">
-                <div class="input-group mb-3">
-                    <span class="input-group-text flex-grow-1">Mode</span>
-                    <select class="btn btn-outline-primary btn-sm" id="top-mode" autocomplete="off">
-                        <option>elevation</option>
-                        <option>slope</option>
-                        <option>aspect</option>
-                    </select>
-                    <select
-                        class="btn btn-outline-primary btn-sm"
-                        id="top-gradient"
-                        autocomplete="off"
-                    >
-                        <option selected="selected">viridis</option>
-                        <option>jet</option>
-                        <option>blackbody</option>
-                        <option>earth</option>
-                        <option>bathymetry</option>
-                        <option>magma</option>
-                        <option>par</option>
-                    </select>
-                </div>
-            </fieldset>
-        </fieldset>
-    </div>
-
-    <!-- Bottom color layer -->
-    <div class="card m-1">
-        <div class="card-header">
-            <div class="form-check form-switch">
+            <!-- Reverse color map -->
+            <div class="form-check form-switch mb-1">
                 <input
                     class="form-check-input"
-                    checked
                     type="checkbox"
                     role="switch"
-                    id="bottom-layer-enable"
+                    id="invert"
                     autocomplete="off"
                 />
-                <label class="form-check-label" for="bottom-layer-enable">Bottom color layer</label>
-            </div>
-        </div>
-
-        <fieldset class="container m-1" id="bottom-options">
-            <!-- Activate color map -->
-            <div class="row p-1">
-                <div>
-                    <div class="form-check form-switch">
-                        <input
-                            class="form-check-input"
-                            checked
-                            type="checkbox"
-                            role="switch"
-                            id="bottom-colormap-enable"
-                            autocomplete="off"
-                        />
-                        <label class="form-check-label" for="bottom-colormap-enable"
-                            >Color map</label
-                        >
-                    </div>
-                </div>
+                <label class="form-check-label" for="invert">Invert color map</label>
             </div>
 
-            <!-- Select color map mode -->
-            <fieldset class="row p-1" id="bottom-colormap-options">
-                <div class="input-group mb-3">
-                    <span class="input-group-text flex-grow-1">Mode</span>
-                    <select
-                        class="btn btn-outline-primary btn-sm"
-                        id="bottom-mode"
-                        autocomplete="off"
-                    >
-                        <option>elevation</option>
-                        <option>slope</option>
-                        <option>aspect</option>
-                    </select>
-                    <select
-                        class="btn btn-outline-primary btn-sm"
-                        id="bottom-gradient"
-                        autocomplete="off"
-                    >
-                        <option>viridis</option>
-                        <option selected="selected">jet</option>
-                        <option>blackbody</option>
-                        <option>earth</option>
-                        <option>bathymetry</option>
-                        <option>magma</option>
-                        <option>par</option>
-                    </select>
-                </div>
-            </fieldset>
-        </fieldset>
-    </div>
-
-    <!-- Elevation layer -->
-    <div class="card m-1">
-        <div class="card-header">
-            <div class="form-check form-switch">
+            <!-- Mirror color map -->
+            <div class="form-check form-switch mb-1">
                 <input
                     class="form-check-input"
-                    checked
                     type="checkbox"
                     role="switch"
-                    id="elevation-layer-enable"
+                    id="mirror"
                     autocomplete="off"
                 />
-                <label class="form-check-label" for="elevation-layer-enable">Elevation layer</label>
+                <label class="form-check-label" for="mirror">Mirror color map</label>
+            </div>
+
+            <!-- Discrete color map -->
+            <div class="form-check form-switch mb-3">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="discrete"
+                    autocomplete="off"
+                />
+                <label class="form-check-label" for="discrete">Discrete color map</label>
+            </div>
+
+            <!-- Color ramp selector -->
+            <div class="input-group mb-3">
+                <label class="input-group-text" for="ramp">Colors</label>
+                <select class="form-select" id="ramp" autocomplete="off">
+                    <option value="viridis" selected>Viridis</option>
+                    <option value="jet">Jet</option>
+                    <option value="greys">Greys</option>
+                    <option value="blackbody">Blackbody</option>
+                    <option value="earth">Earth</option>
+                    <option value="bathymetry">Bathymetry</option>
+                    <option value="magma">Magma</option>
+                    <option value="par">Par</option>
+                    <option value="rdbu">RdBu</option>
+                </select>
+            </div>
+
+            <!-- Gradient preview -->
+            <div class="mb-3 w-100">
+                <canvas
+                    id="gradient"
+                    height="32"
+                    class="w-100 border rounded"
+                    style="height: 32px; image-rendering: pixelated"
+                ></canvas>
+            </div>
+
+            <!-- Opacity curve -->
+            <div class="mb-3 w-100">
+                <label for="curve" class="mb-2">Opacity curve</label>
+                <canvas id="curve" height="128" class="w-100" style="height: 128px"></canvas>
+            </div>
+
+            <!-- Mode selector -->
+            <div class="input-group mb-3">
+                <label class="input-group-text" for="mode">Mode</label>
+                <select class="form-select" id="mode" autocomplete="off">
+                    <option value="1" selected>Elevation</option>
+                    <option value="2">Slope</option>
+                    <option value="3">Aspect</option>
+                </select>
+            </div>
+
+            <!-- Background opacity slider -->
+            <div class="input-group border rounded p-2 mb-3">
+                <label for="backgroundOpacity" id="backgroundOpacityLabel" class="form-label"
+                    >Map background opacity</label
+                >
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value="1"
+                        class="form-range"
+                        id="backgroundOpacity"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+
+            <!-- Bound sliders -->
+            <div class="input-group border rounded p-2" id="bounds">
+                <label for="lower" id="minLabel" class="form-label">Lower bound: 780m</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="780"
+                        max="3574"
+                        value="0"
+                        class="form-range"
+                        id="lower"
+                        autocomplete="off"
+                    />
+                </div>
+
+                <label for="upper" id="maxLabel" class="form-label">Upper bound: 3574m</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="780"
+                        max="3574"
+                        value="3574"
+                        class="form-range"
+                        id="upper"
+                        autocomplete="off"
+                    />
+                </div>
             </div>
         </div>
-
-        <fieldset class="container m-1" id="elevation-options">
-            <!-- Activate color map -->
-            <div class="row p-1">
-                <div>
-                    <div class="form-check form-switch">
-                        <input
-                            class="form-check-input"
-                            checked
-                            type="checkbox"
-                            role="switch"
-                            id="elevation-colormap-enable"
-                            autocomplete="off"
-                        />
-                        <label class="form-check-label" for="elevation-colormap-enable"
-                            >Color map</label
-                        >
-                    </div>
-                </div>
-            </div>
-
-            <!-- Select color map mode -->
-            <fieldset class="row p-1" id="elevation-colormap-options">
-                <div class="input-group mb-3">
-                    <span class="input-group-text flex-grow-1">Mode</span>
-                    <select
-                        class="btn btn-outline-primary btn-sm"
-                        id="elevation-mode"
-                        autocomplete="off"
-                    >
-                        <option>elevation</option>
-                        <option>slope</option>
-                        <option>aspect</option>
-                    </select>
-                    <select
-                        class="btn btn-outline-primary btn-sm"
-                        id="elevation-gradient"
-                        autocomplete="off"
-                    >
-                        <option>viridis</option>
-                        <option>jet</option>
-                        <option>blackbody</option>
-                        <option selected="selected">earth</option>
-                        <option>bathymetry</option>
-                        <option>magma</option>
-                        <option>par</option>
-                    </select>
-                </div>
-            </fieldset>
-        </fieldset>
     </div>
 </div>
