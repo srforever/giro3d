@@ -13,7 +13,9 @@ function executeSearchQuery(elem) {
     const re = new RegExp(query);
 
     examples.forEach(o => {
-        const visible = re.test(o.name) || re.test(o.description);
+        /** @type {HTMLElement} */
+        const element = o.element;
+        const visible = re.test(element.innerHTML);
 
         o.element.style.display = visible ? o.display : 'none';
     });
@@ -23,8 +25,6 @@ function collectExamples() {
     document.querySelectorAll("[id^='example-card']").forEach(e => {
         const obj = {};
         obj.element = e;
-        obj.name = e.querySelector("[id^='example-title'").innerHTML.toLowerCase();
-        obj.description = e.querySelector("[id^='example-desc'").innerHTML.toLowerCase();
         obj.display = e.style.display;
         examples.push(obj);
     });
