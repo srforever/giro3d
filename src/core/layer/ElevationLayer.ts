@@ -40,14 +40,14 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
      */
     constructor(options: ElevationLayerOptions) {
         super({
+            ...options,
             noDataOptions: options.noDataOptions ?? {
                 replaceNoData: false,
             },
-            computeMinMax: true,
+            computeMinMax: options.computeMinMax ?? true,
             // If min/max is not provided, we *have* to preload images
             // to compute the min/max during preprocessing.
             preloadImages: options.preloadImages ?? options.minmax == null,
-            ...options,
         });
 
         if (options.minmax) {
