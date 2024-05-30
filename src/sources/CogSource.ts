@@ -256,7 +256,7 @@ class CogSource extends ImageSource {
      * @param options - options
      */
     constructor(options: CogSourceOptions) {
-        super({ flipY: true, ...options });
+        super({ ...options, flipY: options.flipY ?? true });
 
         this.type = 'CogSource';
 
@@ -753,7 +753,7 @@ class CogSource extends ImageSource {
 
         signal?.throwIfAborted();
 
-        const opts = { id, ...options };
+        const opts = { ...options, id };
 
         const request = () => this.loadImage(opts);
 

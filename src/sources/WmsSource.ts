@@ -63,9 +63,9 @@ export default class WmsSource extends TiledImageSource {
                 url: options.url,
                 projection: options.projection,
                 params: {
+                    ...options.params,
                     LAYERS: Array.isArray(options.layer) ? options.layer : [options.layer],
                     FORMAT: options.imageFormat,
-                    ...options.params,
                 },
             }),
         });

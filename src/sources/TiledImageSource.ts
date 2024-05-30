@@ -105,9 +105,11 @@ export default class TiledImageSource extends ImageSource {
      */
     constructor(options: TiledImageSourceOptions) {
         super({
-            flipY: options.format?.flipY ?? false,
-            is8bit: (options.format?.dataType ?? UnsignedByteType) === UnsignedByteType,
             ...options,
+            flipY: options.flipY ?? options.format?.flipY ?? false,
+            is8bit:
+                options.is8bit ??
+                (options.format?.dataType ?? UnsignedByteType) === UnsignedByteType,
         });
 
         this.isTiledImageSource = true;
