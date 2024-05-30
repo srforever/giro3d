@@ -7,9 +7,7 @@ import {
     Line,
     LineBasicMaterial,
     LineCurve,
-    Mesh,
     MeshBasicMaterial,
-    SphereGeometry,
     Vector2,
     Vector3,
 } from 'three';
@@ -19,6 +17,7 @@ import * as ChartJS from 'chart.js';
 
 import XYZ from 'ol/source/XYZ.js';
 
+import ConstantSizeSphere from '@giro3d/giro3d/renderer/ConstantSizeSphere.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
@@ -113,8 +112,7 @@ const drawTool = new DrawTool(instance, {
 
 // The markers that will show each sample along the elevation profile
 const markers = [];
-const markerGeometry = new SphereGeometry(30);
-const markerMaterial = new MeshBasicMaterial({ color: 'red', depthTest: false });
+const markerMaterial = new MeshBasicMaterial({ color: 'red' });
 
 // The 3D line that will follow the elevation profile
 const line = new Line(
@@ -124,10 +122,11 @@ const line = new Line(
 line.visible = false;
 instance.add(line);
 
-function createMarker(x, y, z) {
-    const marker = new Mesh(markerGeometry, markerMaterial);
+function createMarker(name, x, y, z) {
+    const marker = new ConstantSizeSphere({ radius: 3, material: markerMaterial });
     marker.position.set(x, y, z);
     marker.renderOrder = 100;
+    marker.name = name;
     instance.add(marker);
     markers.push(marker);
     marker.updateMatrixWorld(true);
@@ -138,9 +137,10 @@ function updateMarkers(points) {
     markers.forEach(m => m.removeFromParent());
     markers.length = 0;
 
-    for (const point of points) {
+    for (let i = 0; i < points.length; i++) {
+        const point = points[i];
         // Let's create a marker at this position to visualize the sample on the map.
-        createMarker(point.x, point.y, point.z);
+        createMarker(`sample ${i}`, point.x, point.y, point.z);
     }
 
     line.visible = true;
