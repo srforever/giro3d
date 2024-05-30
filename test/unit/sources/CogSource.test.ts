@@ -27,6 +27,33 @@ describe('CogSource', () => {
         });
     });
 
+    describe('adjustExtentAndPixelSize', () => {
+        it('should not return huge texture sizes', () => {
+            const source = new CogSource({
+                url: 'foo',
+                crs: 'EPSG:3857',
+            });
+
+            const sourceExtent = new Extent('EPSG:3857', 0, 1, 0, 1);
+
+            // @ts-expect-error property is private
+            source._extent = sourceExtent;
+            // @ts-expect-error property is private
+            source._imageCount = 1;
+            // @ts-expect-error property is private
+            source._dimensions = sourceExtent.dimensions();
+            // @ts-expect-error property is private
+            source._images = [{ width: 1024, height: 1024 }];
+
+            const requestExtent = sourceExtent.withRelativeMargin(1000);
+
+            const result = source.adjustExtentAndPixelSize(requestExtent, 512, 512);
+
+            expect(result.width).not.toBeGreaterThan(1000);
+            expect(result.height).not.toBeGreaterThan(1000);
+        });
+    });
+
     describe('computeExtent', () => {
         it('should rethrow unknown exceptions', () => {
             function getBoundingBox(): number[] {

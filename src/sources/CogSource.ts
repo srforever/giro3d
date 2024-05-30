@@ -331,13 +331,28 @@ class CogSource extends ImageSource {
 
         const marginExtent = requestExtent.withMargin(pixelWidth * margin, pixelHeight * margin);
 
-        const width = marginExtent.dimensions(tmpDim).x / pixelWidth;
-        const height = marginExtent.dimensions(tmpDim).y / pixelHeight;
+        const adjustedWidth = Math.floor(marginExtent.dimensions(tmpDim).x / pixelWidth);
+        const adjustedHeight = Math.floor(marginExtent.dimensions(tmpDim).y / pixelHeight);
+
+        let width = requestWidth;
+        let height = requestHeight;
+
+        // Ensure that we are not returning texture sizes that are too big, which can
+        // happen when the source is much smaller than the map that hosts it.
+        const threshold = 100; // pixels
+
+        if (
+            adjustedWidth < requestWidth + threshold &&
+            adjustedHeight < requestHeight + threshold
+        ) {
+            width = adjustedWidth;
+            height = adjustedHeight;
+        }
 
         return {
             extent: marginExtent,
-            width: Math.floor(width),
-            height: Math.floor(height),
+            width,
+            height,
         };
     }
 

@@ -95,6 +95,14 @@ function updateProgressFrameRequester() {
 
     if (memoryUsage) {
         const memoryUsageString = `Mem ${MemoryUsage.format(mem.cpuMemory)} (CPU), ${MemoryUsage.format(mem.gpuMemory)} (GPU)`;
+        const threshold = 512 * 1024 * 1024; // 512 MB
+        if (mem.cpuMemory > threshold || mem.gpuMemory > threshold) {
+            memoryUsage.classList.add('text-danger');
+            memoryUsage.classList.add('fw-bold');
+        } else {
+            memoryUsage.classList.remove('text-danger');
+            memoryUsage.classList.remove('fw-bold');
+        }
         memoryUsage.innerText = memoryUsageString;
     }
 }
