@@ -24,6 +24,7 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import PointCloudMaterial, { MODE } from '@giro3d/giro3d/renderer/PointCloudMaterial.js';
 
 import StatusBar from './widgets/StatusBar.js';
+import { makeColorRamp } from './widgets/utils.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
 Instance.registerCRS(
@@ -46,6 +47,10 @@ const material = new PointCloudMaterial({
     size: 4,
     mode: MODE.ELEVATION,
 });
+
+material.colorMap.colors = makeColorRamp('rdbu').reverse();
+material.colorMap.min = 200;
+material.colorMap.max = 1800;
 
 const pointcloud = new Tiles3D(
     'pointcloud',
@@ -149,6 +154,7 @@ function setupScene(pointCloud) {
     const elevationLayer = new ElevationLayer({
         name: 'wms_elevation',
         extent: map.extent,
+        resolutionFactor: 0.25,
         source: elevationSource,
     });
 
