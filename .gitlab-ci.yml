@@ -86,6 +86,7 @@ build_site:
     needs:
         - build_lts
     script:
+        - apk add --no-cache git
         - npm i
         - npm run build-site
         - mv build/site public
@@ -173,6 +174,7 @@ pages:
     needs:
         - publish_package
     script:
+        - apk add --no-cache git
         - npm i
         - npm run build-site
         - mv build/site public
