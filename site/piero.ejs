@@ -1,9 +1,12 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <title>Piero - About</title>
+        <%- include('partial-head', {
+            title: 'Piero - About',
+            name: 'Piero - About',
+            description: 'A versatile framework to visualize geospatial data in the browser.'
+        }) %>
 
-        <meta charset="utf-8" />
         <!-- OpenGraph -->
         <meta
             property="og:description"
@@ -26,91 +29,10 @@
         <meta name="twitter:image" content="https://giro3d.org/images/piero_logo.jpg" />
         <meta name="twitter:title" content="Piero - About" />
         <meta name="twitter:widgets:align" content="center" />
-
-        <link rel="icon" href="/images/favicon.svg" />
-        <link href="/assets/bootstrap-custom.css" rel="stylesheet" />
-        <script src="/assets/bootstrap.bundle.min.js"></script>
     </head>
 
     <body class="bg-light">
-        <header class="header">
-            <div class="container-fluid">
-                <a href="index.html" class="navbar-brand mx-0">
-                    <img src="/images/piero_logo_square.png" class="brand" width="32" height="32" />
-                </a>
-
-                <button
-                    class="navbar-toggler"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#navbarSupportedContent"
-                    aria-controls="navbarSupportedContent"
-                    aria-expanded="false"
-                    aria-label="Toggle navigation"
-                >
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                    <ul class="navbar-nav navbar-nav-left">
-                        <li class="nav-item">
-                            <a class="nav-link" href="index.html">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="giro3d.html"
-                                >Giro3D framework</a
-                            >
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link nav-link-success active" aria-current="page" href="#"
-                                >Piero application</a
-                            >
-                        </li>
-                        <li class="nav-item">
-                            <a
-                                class="nav-link nav-link-primary"
-                                href="tutorials/getting-started.html"
-                                >Getting started with Giro3D</a
-                            >
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="examples/index.html"
-                                >Giro3D examples</a
-                            >
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="apidoc/index.html"
-                                >API documentation</a
-                            >
-                        </li>
-                        <!-- <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="roadmap.html">Roadmap</a>
-                        </li> -->
-                        <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="faq.html">FAQ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="governance.html"
-                                >Governance</a
-                            >
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link nav-link-primary" href="sponsors.html">Sponsors</a>
-                        </li>
-                    </ul>
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a
-                                class="nav-link"
-                                href="https://gitlab.com/giro3d/piero"
-                                target="_blank"
-                                >GitLab <i class="bi bi-box-arrow-up-right"></i
-                            ></a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </header>
+        <%- include('navbar', { activeId: 'piero', favicon: '/images/piero_logo_square.png' }) %>
 
         <main>
             <section

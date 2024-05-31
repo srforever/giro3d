@@ -1,0 +1,23 @@
+<!doctype html>
+<html>
+    <head>
+        <%- include('partial-head') %>
+
+        <link rel="stylesheet" type="text/css" href="css/example.css" />
+        <style>
+            #panelDiv {
+                display: block !important;
+            }
+            #fullscreenDiv {
+                display: none !important;
+            }
+        </style>
+        <%- customcss %>
+    </head>
+    <body class="bg-light">
+        <!-- 3D view -->
+        <div class="m-0 p-0 position-relative vh-100 vw-100">
+            <%- include('partial-3dview', { showMemoryUsage: true }) %>
+        </div>
+    </body>
+</html>

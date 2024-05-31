@@ -1,6 +1,7 @@
 import fs from 'fs';
 import glob from 'glob';
 import path from 'path';
+import esMain from 'es-main';
 import chokidar from 'chokidar';
 import * as babel from '@babel/core';
 
@@ -45,7 +46,7 @@ function searchInlinedFiles(glslFile, sourceFolder, callback) {
  * @param {string} - sourceFolder The top-level folder containing the modified file.
  * @param {string} - destFolder The top-level folder to put the transpiled results.
  */
-function handleModification(sourceFile, sourceFolder, destFolder) {
+export function handleModification(sourceFile, sourceFolder, destFolder) {
     console.log(); // newline
     console.log(`modified: ${path.basename(sourceFile)}`);
 
@@ -117,4 +118,6 @@ function main() {
     return 0;
 }
 
-main();
+if (esMain(import.meta)) {
+    main();
+}

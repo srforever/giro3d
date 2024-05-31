@@ -163,3 +163,30 @@ pages:
     rules:
         # Only publish website on releases (and exclude pre-releases)
         - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ $version_stable_release'
+
+publish_next_site:
+    stage: publish
+    needs:
+        - build_site
+    before_script:
+        - apk update
+        - apk add git
+    script:
+        - npm i
+        - npm run build-site
+        - ./tasks/publish-website.sh
+    rules:
+        # Publish next website commits on main
+        - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+
+publish_latest_site:
+    stage: publish
+    needs:
+        - build_site
+    script:
+        - npm i
+        - npm run build-site -- --build-latest
+        - ./tasks/publish-website.sh
+    rules:
+        # Publish latest website on stable releases
+        - if: '$CI_COMMIT_TAG && $CI_COMMIT_TAG =~ $version_stable_release'

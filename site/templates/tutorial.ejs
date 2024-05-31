@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" media="all" href="docco.css" />
+    <%%- include('partial-head') %>
+
+    <!-- OpenGraph -->
+    <meta property="og:description" content="A versatile framework to visualize geospatial data in the browser.">
+    <meta property="og:image" content="https://giro3d.org/images/giro3d_logo_big.jpg">
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:title" content="<%= title %>">
+    <meta property="og:site_name" content="Giro3D">
+    <meta property="og:type" content="object">
+    <meta property="og:url" content="https://giro3d.org/tutorials/getting-started.html">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:description" content="A versatile framework to visualize geospatial data in the browser.">
+    <meta name="twitter:dnt" content="on">
+    <meta name="twitter:image" content="https://giro3d.org/images/giro3d_logo_big.jpg">
+    <meta name="twitter:title" content="<%= title %>">
+    <meta name="twitter:widgets:align" content="center">
+
+    <link rel="stylesheet" media="all" href="../examples/css/example.css" />
+    <%%- customcss %>
+</head>
+<body class="bg-light">
+  <%%- include('navbar-version', { activeId: 'tutorials' }) %>
+
+  <div id="container">
+    <div id="background"></div>
+    <% if (sources.length > 1) { %>
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              <% for (var i=0, l=sources.length; i<l; i++) { %>
+                <% var source = sources[i]; %>
+                <a class="source" href="<%- relative(destination(source)) %>">
+                  <%- source %>
+                </a>
+              <% } %>
+            </div>
+          </div>
+        </li>
+      </ul>
+    <% } %>
+    <ul class="sections">
+        <% if (!hasTitle) { %>
+          <li id="title">
+              <div class="annotation">
+                  <h1><%- title %></h1>
+              </div>
+          </li>
+        <% } %>
+        <% for (var i=0, l=sections.length; i<l; i++) { %>
+        <% var section = sections[i]; %>
+        <li id="section-<%- i + 1 %>">
+            <div class="annotation">
+              <% heading = section.docsHtml.match(/^\s*<(h\d)>/) %>
+              <div class="sswrap <%- heading ? 'for-' + heading[1] : '' %>">
+                <a class="ss" href="#section-<%- i + 1 %>">&#x00a7;</a>
+              </div>
+              <%- section.docsHtml %>
+            </div>
+            <% if (section.codeText.replace(/\s/gm, '') != '') { %>
+            <div class="content"><%- section.codeHtml %></div>
+            <% } %>
+        </li>
+        <% } %>
+    </ul>
+
+    <!-- 3D view -->
+    <div class="border m-4 position-relative" style="height: 65vh;">
+        <%%- include('partial-3dview', { path: '../examples/' }) %>
+    </div>
+  </div>
+</body>
+</html>

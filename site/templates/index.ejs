@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+    <head>
+        <%- include('partial-head') %>
+        <script src="index.js"></script>
+
+        <!-- OpenGraph -->
+        <meta
+            property="og:description"
+            content="A versatile framework to visualize geospatial data in the browser."
+        />
+        <meta property="og:image" content="https://giro3d.org/images/giro3d_logo_big.jpg" />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:title" content="<%= title %>" />
+        <meta property="og:site_name" content="Giro3D" />
+        <meta property="og:type" content="object" />
+        <meta property="og:url" content="https://giro3d.org/examples" />
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta
+            name="twitter:description"
+            content="A versatile framework to visualize geospatial data in the browser."
+        />
+        <meta name="twitter:dnt" content="on" />
+        <meta name="twitter:image" content="https://giro3d.org/images/giro3d_logo_big.jpg" />
+        <meta name="twitter:title" content="<%= title %>" />
+        <meta name="twitter:widgets:align" content="center" />
+    </head>
+
+    <body class="bg-light">
+        <%- include('navbar-version', { activeId: 'examples', searchExamples: true }) %>
+
+        <main>
+            <section class="container p-3">
+                <div class="row mt-3">
+                    <% examples.forEach(function(example) { %> <%- include('partial-thumbnail', {
+                    example: example }) %> <% }); %>
+                </div>
+            </section>
+        </main>
+    </body>
+</html>

@@ -1,0 +1,117 @@
+<!doctype html>
+<html>
+    <head>
+        <%- include('partial-head') %>
+
+        <link rel="stylesheet" type="text/css" href="css/example.css" />
+        <%- customcss %>
+
+        <!-- OpenGraph -->
+        <meta property="og:description" content="<%= description %>" />
+        <meta
+            property="og:image"
+            content="https://giro3d.org/examples/screenshots/<%= name %>.jpg"
+        />
+        <meta property="og:locale" content="en_US" />
+        <meta property="og:title" content="Giro3D - <%= title %>" />
+        <meta property="og:site_name" content="Giro3D" />
+        <meta property="og:type" content="object" />
+        <meta property="og:url" content="https://giro3d.org/examples/<%= name %>.html" />
+
+        <!-- Twitter -->
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:description" content="<%= description %>" />
+        <meta name="twitter:dnt" content="on" />
+        <meta
+            name="twitter:image"
+            content="https://giro3d.org/examples/screenshots/<%= name %>.jpg"
+        />
+        <meta name="twitter:title" content="Giro3D - <%= title %>" />
+        <meta name="twitter:widgets:align" content="center" />
+    </head>
+    <body class="bg-light">
+        <%- include('navbar-version', { activeId: 'examples' }) %>
+
+        <div class="m-3">
+            <!-- Short description (same as in the example card) -->
+            <div>
+                <p class="text-muted"><%- description %></p>
+            </div>
+
+            <!-- 3D view -->
+            <div id="main-view" class="border position-relative" style="height: 65vh">
+                <%- include('partial-3dview') %>
+            </div>
+
+            <!-- Long description (optional) -->
+            <% if (long_description) { %>
+            <div class="my-3">
+                <p><%- long_description %></p>
+            </div>
+            <% } %>
+
+            <!-- Source code -->
+            <% if (highlightedJsCode) { %>
+            <span class="badge text-bg-primary mt-3 mb-1">index.js</span>
+            <div
+                class="border rounded p-3 position-relative mb-3"
+                id="source"
+                style="background-color: #ffffff"
+            >
+                <span class="position-absolute top-0 end-0 p-2">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        onclick="copyContentByID('source')"
+                    >
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </span>
+                <%- highlightedJsCode %>
+            </div>
+            <% } %>
+
+            <!-- HTML code -->
+            <% if (highlightedHtmlCode) { %>
+            <span class="badge text-bg-primary mt-3 mb-1">index.html</span>
+            <div
+                class="border rounded p-3 position-relative mb-3"
+                id="source-html"
+                style="background-color: #ffffff"
+            >
+                <span class="position-absolute top-0 end-0 p-2">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        onclick="copyContentByID('source-html')"
+                    >
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </span>
+                <%- highlightedHtmlCode %>
+            </div>
+            <% } %>
+
+            <!-- package.json code -->
+            <% if (highlightedPackageCode) { %>
+            <span class="badge text-bg-primary mt-3 mb-1">package.json</span>
+            <div
+                class="border rounded p-3 position-relative mb-3"
+                id="source-package-json"
+                style="background-color: #ffffff"
+            >
+                <span class="position-absolute top-0 end-0 p-2">
+                    <button
+                        type="button"
+                        class="btn btn-outline-secondary"
+                        onclick="copyContentByID('source-package-json')"
+                    >
+                        <i class="bi bi-copy"></i>
+                    </button>
+                </span>
+                <%- highlightedPackageCode %>
+            </div>
+            <% } %>
+        </div>
+    </body>
+</html>
