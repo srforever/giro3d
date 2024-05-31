@@ -26,9 +26,11 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav navbar-nav-left">
                 <%# > Comment to kinda disable prettier %>
-                <%- include('navbar-link', { id: 'index', href: '/', title: 'Giro3D', class: '' } ) %>
-                <%- include('navbar-link', { id: 'tutorials', href: '/' + (locals.releaseName ?? 'next') + '/tutorials/getting-started.html', title: 'Getting started'}) %>
-                <%- include('navbar-link', { id: 'examples', href: '/' + (locals.releaseName ?? 'next') + '/examples/index.html', title: 'Examples'}) %>
+                <%- include('navbar-link', { id: 'index', href: '/', title: 'Home', class: '' } ) %>
+                <%- include('navbar-link', { id: 'giro3d', href: '/giro3d.html', title: 'Giro3D framework' }) %>
+                <%- include('navbar-link', { id: 'piero', href: '/piero.html', title: 'Piero application', class: 'nav-link-success'}) %>
+                <%- include('navbar-link', { id: 'tutorials', href: '/' + (locals.releaseName ?? 'next') + '/tutorials/getting-started.html', title: 'Getting started with Giro3D'}) %>
+                <%- include('navbar-link', { id: 'examples', href: '/' + (locals.releaseName ?? 'next') + '/examples/index.html', title: 'Giro3D examples'}) %>
                 <%- include('navbar-link', { id: 'apidoc', href: '/' + (locals.releaseName ?? 'next') + '/apidoc/index.html', title: 'API documentation'}) %>
 
                 <li class="nav-item">
@@ -40,14 +42,6 @@
                 </li>
             </ul>
 
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" href="https://gitlab.com/giro3d/giro3D" target="_blank"
-                        >GitLab <i class="bi bi-box-arrow-up-right"></i
-                    ></a>
-                </li>
-            </ul>
-
             <% if (locals.searchExamples) { %>
             <%- include('navbar-examples-search') %>
             <% } %>
@@ -55,6 +49,14 @@
             <% if (locals.searchApidoc) { %>
             <%- include('navbar-apidoc-search') %>
             <% } %>
+
+            <ul class="navbar-nav ms-2">
+                <li class="nav-item">
+                    <a class="nav-link" href="https://gitlab.com/giro3d/giro3D" target="_blank"
+                        >GitLab <i class="bi bi-box-arrow-up-right"></i
+                    ></a>
+                </li>
+            </ul>
         </div>
     </div>
 </header>
