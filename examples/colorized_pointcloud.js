@@ -1,6 +1,6 @@
-import { Vector3 } from 'three';
+import colormap from 'colormap';
+import { Color, MathUtils, Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import TileWMS from 'ol/source/TileWMS.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
@@ -12,6 +12,31 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 
 import StatusBar from './widgets/StatusBar.js';
+
+function makeColorRamp(preset, nshades) {
+    const values = colormap({ colormap: preset, nshades });
+    const colors = values.map(v => new Color(v));
+
+    return colors;
+}
+
+const colorRamps = {};
+
+function makeColorRamps() {
+    const nshades = 256;
+
+    colorRamps.viridis = makeColorRamp('viridis', nshades);
+    colorRamps.jet = makeColorRamp('jet', nshades);
+    colorRamps.blackbody = makeColorRamp('blackbody', nshades);
+    colorRamps.earth = makeColorRamp('earth', nshades);
+    colorRamps.bathymetry = makeColorRamp('bathymetry', nshades);
+    colorRamps.magma = makeColorRamp('magma', nshades);
+    colorRamps.par = makeColorRamp('par', nshades);
+
+    colorRamps.slope = makeColorRamp('RdBu', nshades);
+}
+
+makeColorRamps();
 
 const tmpVec3 = new Vector3();
 
@@ -35,6 +60,10 @@ const material = new PointCloudMaterial({
     size: 4,
     mode: MODE.TEXTURE,
 });
+
+material.colorMap.min = 100;
+material.colorMap.max = 600;
+material.colorMap.colors = colorRamps['viridis'];
 
 // Create the 3D tiles entity
 const pointcloud = new Tiles3D(
@@ -158,14 +187,71 @@ bindSlider('inpainting-steps', v => {
 });
 bindSlider('opacity', v => {
     pointcloud.opacity = v;
+    document.getElementById('opacityLabel').innerText =
+        `Point cloud opacity: ${Math.round(v * 100)}%`;
 });
+
+function bindColorMapBounds(callback) {
+    /** @type {HTMLInputElement} */
+    const lower = document.getElementById('min');
+
+    /** @type {HTMLInputElement} */
+    const upper = document.getElementById('max');
+
+    callback(lower.valueAsNumber, upper.valueAsNumber);
+
+    function updateLabels() {
+        document.getElementById('minLabel').innerText =
+            `Lower bound: ${Math.round(lower.valueAsNumber)}m`;
+        document.getElementById('maxLabel').innerText =
+            `Upper bound: ${Math.round(upper.valueAsNumber)}m`;
+    }
+
+    lower.oninput = function oninput() {
+        const rawValue = lower.valueAsNumber;
+        const clampedValue = MathUtils.clamp(rawValue, lower.min, upper.valueAsNumber - 1);
+        lower.valueAsNumber = clampedValue;
+        callback(lower.valueAsNumber, upper.valueAsNumber);
+        instance.notifyChange();
+        updateLabels();
+    };
+
+    upper.oninput = function oninput() {
+        const rawValue = upper.valueAsNumber;
+        const clampedValue = MathUtils.clamp(rawValue, lower.valueAsNumber + 1, upper.max);
+        upper.valueAsNumber = clampedValue;
+        callback(lower.valueAsNumber, upper.valueAsNumber);
+        instance.notifyChange();
+        updateLabels();
+    };
+}
+
+bindColorMapBounds((min, max) => {
+    material.colorMap.min = min;
+    material.colorMap.max = max;
+});
+
+const colorMapGroup = document.getElementById('colormapGroup');
 
 document.getElementById('pointcloud_mode').addEventListener('change', e => {
     const newMode = parseInt(e.target.value, 10);
     material.mode = newMode;
+
+    if (newMode === MODE.ELEVATION) {
+        colorMapGroup.classList.remove('d-none');
+    } else {
+        colorMapGroup.classList.add('d-none');
+    }
+
     instance.notifyChange(pointcloud, true);
     if (colorLayer) {
         colorLayer.visible = newMode === MODE.TEXTURE;
         instance.notifyChange(colorLayer, true);
     }
+});
+
+document.getElementById('colormap').addEventListener('change', e => {
+    const newRamp = e.target.value;
+    material.colorMap.colors = colorRamps[newRamp];
+    instance.notifyChange(pointcloud, true);
 });

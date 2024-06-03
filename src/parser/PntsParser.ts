@@ -1,11 +1,18 @@
 import {
     Vector3,
-    BufferAttribute,
+    type BufferAttribute,
     BufferGeometry,
-    FloatType,
-    IntType,
     type TypedArray,
-    type AttributeGPUType,
+    Float32BufferAttribute,
+    Uint8ClampedBufferAttribute,
+    Int8BufferAttribute,
+    Uint16BufferAttribute,
+    Int16BufferAttribute,
+    Int32BufferAttribute,
+    Uint32BufferAttribute,
+    Uint8BufferAttribute,
+    IntType,
+    FloatType,
 } from 'three';
 import type { Accessor, BatchTable } from './BatchTableParser';
 import BatchTableParser from './BatchTableParser';
@@ -46,23 +53,6 @@ type PerPointSemantics = {
 
 type FeatureTable = GlobalSemantics & PerPointSemantics;
 
-function getGpuType(accessor: Accessor): AttributeGPUType {
-    switch (accessor.componentType) {
-        case 'BYTE':
-        case 'UNSIGNED_BYTE':
-        case 'SHORT':
-        case 'UNSIGNED_SHORT':
-        case 'INT':
-        case 'UNSIGNED_INT':
-            return IntType;
-        case 'FLOAT':
-        case 'DOUBLE':
-            return FloatType;
-        default:
-            throw new Error(`unsupported component type: ${accessor.componentType}`);
-    }
-}
-
 function createTypedArray(buffer: ArrayBuffer, length: number, accessor: Accessor): TypedArray {
     switch (accessor.componentType) {
         case 'BYTE':
@@ -87,16 +77,59 @@ function createTypedArray(buffer: ArrayBuffer, length: number, accessor: Accesso
 }
 
 function getBufferAttribute(
+    name: string,
     length: number,
     accessor: Accessor,
     buffer: ArrayBuffer,
 ): BufferAttribute {
     const typedArray = createTypedArray(buffer, length, accessor);
-    const result = new BufferAttribute(typedArray, getComponentCount(accessor));
+    const componentCount = getComponentCount(accessor);
 
-    // This is very important because putting a float type instead
-    // of an int type will prevent the shader from compiling.
-    result.gpuType = getGpuType(accessor);
+    let result: BufferAttribute;
+
+    switch (accessor.componentType) {
+        case 'BYTE':
+            result = new Int8BufferAttribute(typedArray, componentCount);
+            result.gpuType = IntType;
+            break;
+        case 'UNSIGNED_BYTE':
+            result = new Uint8BufferAttribute(typedArray, componentCount);
+            result.gpuType = IntType;
+            break;
+        case 'SHORT':
+            result = new Int16BufferAttribute(typedArray, componentCount);
+            result.gpuType = IntType;
+            break;
+        case 'UNSIGNED_SHORT':
+            result = new Uint16BufferAttribute(typedArray, componentCount);
+            result.gpuType = IntType;
+            break;
+        case 'INT':
+            result = new Int32BufferAttribute(typedArray, componentCount);
+            result.gpuType = IntType;
+            break;
+        case 'UNSIGNED_INT':
+            result = new Uint32BufferAttribute(typedArray, componentCount);
+            result.gpuType = IntType;
+            break;
+        case 'FLOAT':
+            result = new Float32BufferAttribute(typedArray, componentCount);
+            result.gpuType = FloatType;
+            break;
+        case 'DOUBLE':
+            // WebGL shaders do not support 64-bit floats, let's cast it to 32-bit floats.
+            result = new Float32BufferAttribute(new Float32Array(typedArray), componentCount);
+            result.gpuType = FloatType;
+            console.warn(
+                `Encountered a double-precision attribute ('${name}'). This is unsupported in WebGL, so it has been cast to single-precision attribute.`,
+            );
+            break;
+        default: {
+            // Exhaustiveness checking
+            const _exhaustiveCheck: never = accessor.componentType;
+            return _exhaustiveCheck;
+        }
+    }
 
     return result;
 }
@@ -114,12 +147,12 @@ function parseFeatureBinary(array: ArrayBuffer, byteOffset: number, FTJSONLength
     if (featureTable.POSITION) {
         const byteOffsetPos = featureTable.POSITION.byteOffset + subArrayJson.length + byteOffset;
         const positionArray = new Float32Array(array, byteOffsetPos, pointCount * 3);
-        geometry.setAttribute('position', new BufferAttribute(positionArray, 3));
+        geometry.setAttribute('position', new Float32BufferAttribute(positionArray, 3));
     }
     if (featureTable.RGB) {
         const byteOffsetCol = featureTable.RGB.byteOffset + subArrayJson.length + byteOffset;
         const colorArray = new Uint8Array(array, byteOffsetCol, pointCount * 3);
-        geometry.setAttribute('color', new BufferAttribute(colorArray, 3, true));
+        geometry.setAttribute('color', new Uint8ClampedBufferAttribute(colorArray, 3, true));
     }
     if (featureTable.POSITION_QUANTIZED) {
         throw new Error('For pnts loader, POSITION_QUANTIZED: not yet managed');
@@ -244,7 +277,12 @@ export default {
                 for (const [name, accessor] of Object.entries(batchTable)) {
                     const attributeName = name.toLowerCase();
 
-                    const attribute = getBufferAttribute(point.count, accessor, binaryBatchTable);
+                    const attribute = getBufferAttribute(
+                        name,
+                        point.count,
+                        accessor,
+                        binaryBatchTable,
+                    );
 
                     // Helpful mainly for debugging purposes
                     attribute.name = attributeName;

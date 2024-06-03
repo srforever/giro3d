@@ -431,7 +431,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
 
         this.uniforms.renderingState = new Uniform(RenderingState.FINAL);
 
-        MaterialUtils.setNumericDefine(this, 'VISIBLE_COLOR_LAYER_COUNT', 0);
+        MaterialUtils.setDefineValue(this, 'VISIBLE_COLOR_LAYER_COUNT', 0);
 
         this.fragmentShader = TileFS;
         this.vertexShader = TileVS;
@@ -1016,7 +1016,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
 
         // If the number of visible layers has changed, we need to repaint the
         // atlas because it only shows visible layers.
-        if (MaterialUtils.setNumericDefine(this, 'VISIBLE_COLOR_LAYER_COUNT', visibleColorLayers)) {
+        if (MaterialUtils.setDefineValue(this, 'VISIBLE_COLOR_LAYER_COUNT', visibleColorLayers)) {
             this._mustUpdateUniforms = true;
             this._needsAtlasRepaint = true;
         }

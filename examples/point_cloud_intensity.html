@@ -1,0 +1,58 @@
+---
+title: Point cloud intensity
+shortdesc: Visualize point cloud intensity with a colormap.
+attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
+---
+
+<div class="m-2 position-absolute top-0 end-0">
+    <!-- Top color layer -->
+    <div class="card m-1">
+        <div class="card-header">Options</div>
+
+        <fieldset class="container m-1" id="top-options">
+            <!-- Color ramp -->
+            <div class="input-group p-2">
+                <span class="input-group-text flex-grow-1">Color ramp</span>
+                <select class="btn btn-outline-primary btn-sm" id="colormap" autocomplete="off">
+                    <option value="greys" selected>Greys</option>
+                    <option value="viridis">Viridis</option>
+                    <option value="jet">Jet</option>
+                    <option value="blackbody">Blackbody</option>
+                    <option value="bathymetry">Bathymetry</option>
+                    <option value="magma">Magma</option>
+                    <option value="par">Par</option>
+                </select>
+            </div>
+
+            <div class="input-group p-2">
+                <label for="min" class="form-label" id="minLabel">Lower bound: 0</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="0"
+                        max="255"
+                        value="0"
+                        class="form-range"
+                        id="min"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+
+            <div class="input-group p-2">
+                <label for="max" class="form-label" id="maxLabel">Upper bound: 30</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="0"
+                        max="255"
+                        value="30"
+                        class="form-range"
+                        id="max"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+        </fieldset>
+    </div>
+</div>

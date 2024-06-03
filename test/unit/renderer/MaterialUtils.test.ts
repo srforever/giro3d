@@ -32,7 +32,7 @@ describe('setDefine', () => {
     });
 });
 
-describe('setNumericDefine', () => {
+describe('setDefineValue', () => {
     let material: Material;
 
     beforeEach(() => {
@@ -40,7 +40,7 @@ describe('setNumericDefine', () => {
     });
 
     it('should set the define value to 1 if condition is true', () => {
-        MaterialUtils.setNumericDefine(material, 'FOO', 5);
+        MaterialUtils.setDefineValue(material, 'FOO', 5);
 
         expect(material.defines.FOO).toEqual(5);
     });
@@ -48,17 +48,17 @@ describe('setNumericDefine', () => {
     it('should remove the define value if condition is false', () => {
         material.defines.FOO = 1;
 
-        MaterialUtils.setNumericDefine(material, 'FOO', undefined);
+        MaterialUtils.setDefineValue(material, 'FOO', undefined);
         expect(material.defines.FOO).toBeUndefined();
     });
 
     it('should set needsUpdate to true if the value has changed', () => {
-        MaterialUtils.setNumericDefine(material, 'FOO', 3);
+        MaterialUtils.setDefineValue(material, 'FOO', 3);
         expect(material.needsUpdate).toEqual(true);
 
         material.needsUpdate = false;
 
-        MaterialUtils.setNumericDefine(material, 'FOO', 3);
+        MaterialUtils.setDefineValue(material, 'FOO', 3);
         expect(material.needsUpdate).toEqual(false);
     });
 });

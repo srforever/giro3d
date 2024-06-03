@@ -1,4 +1,16 @@
-import { type Material } from 'three';
+import type { BufferAttribute, Material } from 'three';
+
+import {
+    Float16BufferAttribute,
+    Float32BufferAttribute,
+    Int16BufferAttribute,
+    Int32BufferAttribute,
+    Int8BufferAttribute,
+    Uint16BufferAttribute,
+    Uint32BufferAttribute,
+    Uint8BufferAttribute,
+    Uint8ClampedBufferAttribute,
+} from 'three';
 
 /**
  * Sets or unsets a define directive according to the condition.
@@ -31,7 +43,7 @@ function setDefine<M extends Material, K extends keyof M['defines']>(
 }
 
 /**
- * Sets or unsets a numerical define directive.
+ * Sets or unsets a valued define directive.
  * The material is updated only if the value has changed, avoiding unnecessary recompilations.
  *
  * @param material - The material to update.
@@ -40,14 +52,14 @@ function setDefine<M extends Material, K extends keyof M['defines']>(
  * @returns `true` if the define value has actually changed, `false` otherwise.
  * @example
  *
- * setNumericDefine(mat, 'FOO_COUNT', 5); // material.needsUpdate === true;
- * setNumericDefine(mat, 'FOO_COUNT', 5); // material.needsUpdate === false;
- * setNumericDefine(mat, 'FOO_COUNT', 4); // material.needsUpdate === true;
+ * setValueDefine(mat, 'FOO_COUNT', 5); // material.needsUpdate === true;
+ * setValueDefine(mat, 'FOO_COUNT', 5); // material.needsUpdate === false;
+ * setValueDefine(mat, 'FOO_COUNT', 4); // material.needsUpdate === true;
  */
-function setNumericDefine<M extends Material, K extends keyof M['defines']>(
+function setDefineValue<M extends Material, K extends keyof M['defines']>(
     material: M,
     name: K,
-    value?: number,
+    value?: number | string,
 ): boolean {
     const key = name as string;
     const changed = material.defines[key] !== value;
@@ -65,7 +77,37 @@ function setNumericDefine<M extends Material, K extends keyof M['defines']>(
     return changed;
 }
 
+export type VertexAttributeType = 'int' | 'uint' | 'float';
+
+/**
+ * Returns the GLSL attribute type that most closely matches the type of the {@link BufferAttribute}.
+ */
+function getVertexAttributeType(attribute: BufferAttribute): VertexAttributeType {
+    if (
+        attribute instanceof Float32BufferAttribute ||
+        attribute instanceof Float16BufferAttribute
+    ) {
+        return 'float';
+    }
+    if (
+        attribute instanceof Int32BufferAttribute ||
+        attribute instanceof Int16BufferAttribute ||
+        attribute instanceof Int8BufferAttribute
+    ) {
+        return 'int';
+    }
+    if (
+        attribute instanceof Uint32BufferAttribute ||
+        attribute instanceof Uint16BufferAttribute ||
+        attribute instanceof Uint8BufferAttribute ||
+        attribute instanceof Uint8ClampedBufferAttribute
+    ) {
+        return 'uint';
+    }
+}
+
 export default {
     setDefine,
-    setNumericDefine,
+    setDefineValue,
+    getVertexAttributeType,
 };

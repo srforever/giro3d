@@ -1,4 +1,4 @@
-import { ClampToEdgeWrapping, type Color, NearestFilter, type Texture } from 'three';
+import { ClampToEdgeWrapping, type Color, MathUtils, NearestFilter, type Texture } from 'three';
 import TextureGenerator from '../../utils/TextureGenerator';
 import ColorMapMode from './ColorMapMode';
 
@@ -149,6 +149,21 @@ class ColorMap {
             this._cachedTexture?.dispose();
             this._cachedTexture = null;
         }
+    }
+
+    /**
+     * Samples the colormap for the given value.
+     * @param value - The value to sample.
+     * @returns The color at the specified value.
+     */
+    sample(value: number): Color {
+        const { min, max, colors } = this;
+
+        const clamped = MathUtils.clamp(value, min, max);
+
+        const index = MathUtils.mapLinear(clamped, min, max, 0, colors.length - 1);
+
+        return colors[MathUtils.clamp(Math.round(index), 0, colors.length - 1)];
     }
 
     /**
