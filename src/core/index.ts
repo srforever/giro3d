@@ -33,6 +33,8 @@ import {
     type FeatureStyleCallback,
     type FeatureExtrusionOffsetCallback,
 } from './FeatureTypes';
+import type GraticuleOptions from './GraticuleOptions';
+import type HillshadingOptions from './HillshadingOptions';
 import type Disposable from './Disposable';
 
 export {
@@ -71,4 +73,6 @@ export {
     FeatureElevationCallback,
     FeatureStyleCallback,
     FeatureExtrusionOffsetCallback,
+    GraticuleOptions,
+    HillshadingOptions,
 };
