@@ -1,6 +1,8 @@
 import colormap from 'colormap';
+
 import { Color } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import { Fill, Stroke, Style } from 'ol/style.js';
 import TileWMS from 'ol/source/TileWMS.js';
 import GeoJSON from 'ol/format/GeoJSON.js';

@@ -1,6 +1,8 @@
 import GeoJSON from 'ol/format/GeoJSON.js';
 import { Fill, Stroke, Style } from 'ol/style.js';
+
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -8,10 +10,9 @@ import Instance from '@giro3d/giro3d/core/Instance.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import VectorSource from '@giro3d/giro3d/sources/VectorSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
+import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 
 import StatusBar from './widgets/StatusBar.js';
-import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
-import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = new Extent(

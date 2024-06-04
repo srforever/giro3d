@@ -1,6 +1,8 @@
-import StadiaMaps from 'ol/source/StadiaMaps.js';
-import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import * as GUI from 'lil-gui';
+
+import StadiaMaps from 'ol/source/StadiaMaps.js';
+
+import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';

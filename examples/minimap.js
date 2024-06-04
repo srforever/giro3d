@@ -1,12 +1,6 @@
-import {
-    Vector3,
-    CubeTextureLoader,
-    DirectionalLight,
-    AmbientLight,
-    Color,
-    OrthographicCamera,
-} from 'three';
+import { Vector3, CubeTextureLoader, Color, OrthographicCamera } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import OSM from 'ol/source/OSM.js';
 
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';

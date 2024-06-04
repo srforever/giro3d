@@ -1,4 +1,5 @@
 import colormap from 'colormap';
+
 import {
     BufferGeometry,
     Color,
@@ -12,8 +13,10 @@ import {
     Vector2,
     Vector3,
 } from 'three';
-import * as ChartJS from 'chart.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
+import * as ChartJS from 'chart.js';
+
 import XYZ from 'ol/source/XYZ.js';
 
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';

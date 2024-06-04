@@ -1,6 +1,7 @@
 import { Color, Fog } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
+
 import XYZ from 'ol/source/XYZ.js';
 
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
@@ -11,7 +12,6 @@ import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import MapboxTerrainFormat from '@giro3d/giro3d/formats/MapboxTerrainFormat.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 import StatusBar from './widgets/StatusBar.js';

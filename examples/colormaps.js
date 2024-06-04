@@ -1,5 +1,5 @@
-/* eslint-disable no-lone-blocks */
 import colormap from 'colormap';
+
 import { Color, Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
