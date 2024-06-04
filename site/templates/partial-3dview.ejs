@@ -95,4 +95,10 @@
     }
 
     if (fullScreenButton) fullScreenButton.onclick = toggleFullScreen;
+
+    function copyContentByID(id) {
+        var source = document.getElementById(id);
+        var text = source.textContent;
+        navigator.clipboard.writeText(text.trim());
+    }
 </script>
