@@ -77,7 +77,7 @@ StatusBar.bind(instance);
 
 // Attach the inspector to the DOM
 const inspectorDiv = document.getElementById('panelDiv');
-inspectorDiv.style.display = 'block';
+inspectorDiv.classList.remove('d-none');
 const inspector = Inspector.attach(inspectorDiv, instance, { title: 'Custom title' });
 
 const myCustomPanel = new MyCustomPanel(inspector.gui, map, instance);
