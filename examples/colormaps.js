@@ -1,4 +1,6 @@
-import { MathUtils, Vector3 } from 'three';
+import colormap from 'colormap';
+
+import { MathUtils, Vector3, Color } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import XYZ from 'ol/source/XYZ.js';
@@ -18,13 +20,11 @@ import { ColorLayer } from '@giro3d/giro3d/core/layer/index.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
-import {
-    bindButton,
-    bindDropDown,
-    bindSlider,
-    bindToggle,
-    makeColorRamp,
-} from './widgets/utils.js';
+import { bindToggle } from './widgets/bindToggle.js';
+import { bindSlider } from './widgets/bindSlider.js';
+import { bindDropDown } from './widgets/bindDropDown.js';
+import { bindButton } from './widgets/bindButton.js';
+import { makeColorRamp } from './widgets/makeColorRamp.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = Extent.fromCenterAndSize('EPSG:3857', { x: 697313, y: 5591324 }, 30000, 30000);

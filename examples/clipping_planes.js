@@ -1,4 +1,7 @@
+import colormap from 'colormap';
+
 import {
+    Color,
     Vector3,
     Mesh,
     BoxGeometry,
@@ -24,7 +27,8 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import PointCloudMaterial, { MODE } from '@giro3d/giro3d/renderer/PointCloudMaterial.js';
 
 import StatusBar from './widgets/StatusBar.js';
-import { makeColorRamp } from './widgets/utils.js';
+
+import { makeColorRamp } from './widgets/makeColorRamp.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
 Instance.registerCRS(

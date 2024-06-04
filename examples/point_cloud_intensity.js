@@ -1,4 +1,8 @@
-import { MathUtils, Vector3 } from 'three';
+import colormap from 'colormap';
+
+import * as FunctionCurveEditor from 'function-curve-editor';
+
+import { MathUtils, Vector3, Color } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
@@ -10,9 +14,10 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
-import { bindButton, bindDropDown, bindToggle, makeColorRamp } from './widgets/utils.js';
-
-import * as FunctionCurveEditor from 'function-curve-editor';
+import { bindToggle } from './widgets/bindToggle.js';
+import { bindDropDown } from './widgets/bindDropDown.js';
+import { bindButton } from './widgets/bindButton.js';
+import { makeColorRamp } from './widgets/makeColorRamp.js';
 
 Instance.registerCRS(
     'EPSG:3946',
@@ -221,6 +226,7 @@ function setupCurveEditor() {
         relevantXMax: 1,
         gridEnabled: true,
     });
+
     widget.addEventListener('change', () => {
         updateColorRamp();
     });
