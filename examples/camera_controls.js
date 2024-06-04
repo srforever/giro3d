@@ -11,9 +11,8 @@ import {
     Sphere,
     Raycaster,
 } from 'three';
-import TileWMS from 'ol/source/TileWMS.js';
-// We import from unpkg.com
-// import CameraControls from 'camera-controls';
+
+import CameraControls from 'camera-controls';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
@@ -26,7 +25,6 @@ import WmsSource from '@giro3d/giro3d/sources/WmsSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
-// eslint-disable-next-line no-undef
 CameraControls.install({
     THREE: {
         Vector2,

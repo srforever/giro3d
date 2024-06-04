@@ -1,5 +1,3 @@
-import { WMTSCapabilities } from 'ol/format.js';
-import WMTS, { optionsFromCapabilities } from 'ol/source/WMTS.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';

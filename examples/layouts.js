@@ -1,5 +1,6 @@
 import { WebGLRenderer } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
 import StadiaMaps from 'ol/source/StadiaMaps.js';
 
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';

@@ -1,10 +1,8 @@
 import {
     Vector3,
     Group,
-    CanvasTexture,
     Mesh,
     BoxGeometry,
-    MeshBasicMaterial,
     SphereGeometry,
     MeshLambertMaterial,
     DirectionalLight,
@@ -21,7 +19,6 @@ import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-
 import WmtsSource from '@giro3d/giro3d/sources/WmtsSource.js';
 import PointCloudMaterial from '@giro3d/giro3d/renderer/PointCloudMaterial.js';
 

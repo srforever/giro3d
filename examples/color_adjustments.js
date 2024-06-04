@@ -1,7 +1,7 @@
-import { Fill, Stroke, Style, RegularShape } from 'ol/style.js';
 import { Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import TileWMS from 'ol/source/TileWMS.js';
+
+import { Fill, Stroke, Style } from 'ol/style.js';
 import GeoJSON from 'ol/format/GeoJSON.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';

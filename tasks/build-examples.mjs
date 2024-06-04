@@ -171,14 +171,14 @@ export async function generateExample(htmlFile, highlighter, parameters) {
         highlightedPackageCode: undefined,
         releaseName: parameters.releaseName,
         releaseVersion: parameters.version,
+        dependencies: attributes.dependencies,
     };
 
     if (highlighter) {
         const htmlCodeTemplate = readTemplate('published_html.ejs');
-        const packageJsonTemplate = readTemplate('published_package_json.ejs');
 
         const htmlCode = htmlCodeTemplate(variables).trim();
-        const packageJson = packageJsonTemplate(variables).trim();
+        const packageJson = generatePackageJsonContent(variables).trim();
         const sourceCode = jsContent
             .replaceAll(/import StatusBar from.*/gi, '')
             .replaceAll(/StatusBar\.bind[^;]*;/gim, '')
@@ -197,6 +197,59 @@ export async function generateExample(htmlFile, highlighter, parameters) {
     const htmlContent = htmlTemplate(variables);
 
     return htmlContent;
+}
+
+/**
+ * @param {string} list
+ * @return {Record<string, string>} For each dependency name, the version found in the root package.json
+ */
+function parseDependencyList(list) {
+    const result = {};
+
+    const filename = path.join(rootDir, 'package.json');
+    const projectPackageJson = JSON.parse(fse.readFileSync(filename, 'utf-8'));
+
+    function findVersion(packageName) {
+        return (
+            projectPackageJson['dependencies'][packageName] ??
+            projectPackageJson['peerDependencies'][packageName] ??
+            projectPackageJson['devDependencies'][packageName]
+        );
+    }
+
+    if (list) {
+        // Dependency names might have [double] quotes to make them compatible with YAML
+        // headers (the @ sign must be quoted for example), let's clean them.
+        const names = list.map(chunk => chunk.trim().replace(/'/g, '').replace(/"/g, ''));
+
+        for (const name of names) {
+            result[name] = findVersion(name);
+        }
+    }
+
+    return result;
+}
+
+function generatePackageJsonContent(parameters) {
+    const dependencies = parseDependencyList(parameters.dependencies);
+
+    const content = {
+        name: parameters.name,
+        dependencies: {
+            ...dependencies,
+            '@giro3d/giro3d': parameters.giro3d_version,
+        },
+        devDependencies: {
+            vite: '^3.2.3',
+        },
+        scripts: {
+            start: 'vite',
+            build: 'vite build',
+        },
+    };
+
+    const INDENT = 4;
+    return JSON.stringify(content, null, INDENT);
 }
 
 export async function getWebpackConfig(parameters) {

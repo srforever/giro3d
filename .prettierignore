@@ -2,5 +2,4 @@ examples/data
 test/data
 
 # prettier-plugin-ejs correctly works only for html
-site/templates/published_package_json.ejs
 site/templates/tutorial.ejs
