@@ -350,7 +350,6 @@ export async function getWebpackConfig(parameters) {
                             generateExample(from, highlighter, parameters),
                     },
                     { from: 'css', to: 'css' },
-                    { from: 'js', to: 'js' },
                     { from: 'image', to: 'image' },
                     { from: 'screenshots', to: 'screenshots' },
                     { from: 'data', to: 'data' },
