@@ -107,3 +107,18 @@ pre {
 .status-attribution {
   margin-left: 1rem;
 }
+
+.pulse-once {
+  animation: pulseanim 0.3s ease 1;
+}
+@keyframes pulseanim {
+  0% {
+    transform: scale(1);
+  }
+  80% {
+    transform: scale(1.5);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

@@ -97,8 +97,17 @@
     if (fullScreenButton) fullScreenButton.onclick = toggleFullScreen;
 
     function copyContentByID(id) {
-        var source = document.getElementById(id);
-        var text = source.textContent;
-        navigator.clipboard.writeText(text.trim());
+        const source = document.getElementById(id);
+        const text = source.textContent;
+        const btn = source.querySelector('.btn');
+        navigator.clipboard
+            .writeText(text.trim())
+            .then(() => {
+                btn.classList.add('pulse-once');
+                setTimeout(() => btn.classList.remove('pulse-once'), 1000);
+            })
+            .catch(e => {
+                console.log('failed', e);
+            });
     }
 </script>
