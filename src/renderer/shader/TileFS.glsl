@@ -102,14 +102,14 @@ void main() {
 #if defined(ELEVATION_LAYER)
     // Step 3 : if the elevation layer has a color map, use it as the background color.
     if (elevationColorMap.mode != COLORMAP_MODE_DISABLED) {
-        vec3 rgb = computeColorMap(
+        vec4 rgba = computeColorMap(
             tileDimensions,
             elevationLayer,
             elevationTexture,
             elevationColorMap,
             colorMapAtlas,
-            vUv).rgb;
-        gl_FragColor = blend(vec4(rgb, 1.0), gl_FragColor);
+            vUv);
+        gl_FragColor = blend(rgba, gl_FragColor);
     }
 #endif
 

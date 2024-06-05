@@ -127,8 +127,8 @@ void main() {
         // vColor.g += float(upperPart * left4bitsShift) / 255.0;
 #if defined(INTENSITY)
     } else if (mode == MODE_INTENSITY) {
-        vColor.rgb = sampleColorMap(float(intensity), colorMap.min, colorMap.max, colorMap.lut, 0.0);
-        vColor.a = opacity;
+        vColor = sampleColorMap(float(intensity), colorMap.min, colorMap.max, colorMap.lut, 0.0);
+        vColor.a *= opacity;
 #endif
     } else if (mode == MODE_NORMAL) {
         vColor = vec4(abs(normal), opacity);
@@ -143,8 +143,8 @@ void main() {
         vColor = vec4(mix(textureColor, overlayColor.rgb, overlayColor.a), opacity * hasOverlayTexture);
     } else if (mode == MODE_ELEVATION) {
         float z = (modelMatrix * vec4(position, 1.0)).z;
-        vColor.rgb = sampleColorMap(z, colorMap.min, colorMap.max, colorMap.lut, 0.0);
-        vColor.a = opacity;
+        vColor = sampleColorMap(z, colorMap.min, colorMap.max, colorMap.lut, 0.0);
+        vColor.a *= opacity;
 #if defined(CLASSIFICATION)
     } else if (mode == MODE_CLASSIFICATION) {
         Classification classif = classifications[classification];

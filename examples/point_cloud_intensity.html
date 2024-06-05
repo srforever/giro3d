@@ -2,57 +2,104 @@
 title: Point cloud intensity
 shortdesc: Visualize point cloud intensity with a colormap.
 attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
+dependencies: ['colormap', 'function-curve-editor']
 ---
 
-<div class="m-2 position-absolute top-0 end-0">
-    <!-- Top color layer -->
+<div class="m-2 position-absolute top-0 end-0" style="width: 20rem">
+    <!--Parameters -->
     <div class="card m-1">
-        <div class="card-header">Options</div>
+        <div class="card-header">
+            Parameters
+            <button type="button" id="reset" class="btn btn-sm btn-primary rounded float-end">
+                reset
+            </button>
+        </div>
 
-        <fieldset class="container m-1" id="top-options">
-            <!-- Color ramp -->
-            <div class="input-group p-2">
-                <span class="input-group-text flex-grow-1">Color ramp</span>
-                <select class="btn btn-outline-primary btn-sm" id="colormap" autocomplete="off">
+        <div class="card-body" id="top-options">
+            <!-- Reverse color map -->
+            <div class="form-check form-switch mb-1">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="invert"
+                    autocomplete="off"
+                />
+                <label class="form-check-label" for="invert">Invert color map</label>
+            </div>
+
+            <!-- Discrete color map -->
+            <div class="form-check form-switch mb-3">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="discrete"
+                    autocomplete="off"
+                />
+                <label class="form-check-label" for="discrete">Discrete color map</label>
+            </div>
+
+            <!-- Color ramp selector -->
+            <div class="input-group mb-3">
+                <label class="input-group-text" for="ramp">Colors</label>
+                <select class="form-select" id="ramp" autocomplete="off">
                     <option value="greys" selected>Greys</option>
                     <option value="viridis">Viridis</option>
                     <option value="jet">Jet</option>
                     <option value="blackbody">Blackbody</option>
+                    <option value="earth">Earth</option>
                     <option value="bathymetry">Bathymetry</option>
                     <option value="magma">Magma</option>
                     <option value="par">Par</option>
+                    <option value="rdbu">RdBu</option>
                 </select>
             </div>
 
-            <div class="input-group p-2">
-                <label for="min" class="form-label" id="minLabel">Lower bound: 0</label>
-                <div class="input-group">
-                    <input
-                        type="range"
-                        min="0"
-                        max="255"
-                        value="0"
-                        class="form-range"
-                        id="min"
-                        autocomplete="off"
-                    />
-                </div>
+            <!-- Gradient preview -->
+            <div class="mb-3 w-100">
+                <canvas
+                    id="gradient"
+                    height="32"
+                    class="w-100 border rounded"
+                    style="height: 32px; image-rendering: pixelated"
+                ></canvas>
             </div>
 
-            <div class="input-group p-2">
-                <label for="max" class="form-label" id="maxLabel">Upper bound: 30</label>
+            <!-- Opacity curve -->
+            <div class="mb-3 w-100">
+                <label for="curve" class="mb-2">Opacity curve</label>
+                <canvas id="curve" height="128" class="w-100" style="height: 128px"></canvas>
+            </div>
+
+            <!-- Bound sliders -->
+            <div class="input-group border rounded p-2">
+                <label for="lower" id="minLabel" class="form-label">Lower bound</label>
                 <div class="input-group">
                     <input
                         type="range"
                         min="0"
-                        max="255"
+                        max="30"
+                        value="0"
+                        class="form-range"
+                        id="lower"
+                        autocomplete="off"
+                    />
+                </div>
+
+                <label for="upper" id="maxLabel" class="form-label">Upper bound</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="0"
+                        max="30"
                         value="30"
                         class="form-range"
-                        id="max"
+                        id="upper"
                         autocomplete="off"
                     />
                 </div>
             </div>
-        </fieldset>
+        </div>
     </div>
 </div>

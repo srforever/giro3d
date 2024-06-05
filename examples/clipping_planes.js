@@ -1,4 +1,7 @@
+import colormap from 'colormap';
+
 import {
+    Color,
     Vector3,
     Mesh,
     BoxGeometry,
@@ -25,6 +28,8 @@ import PointCloudMaterial, { MODE } from '@giro3d/giro3d/renderer/PointCloudMate
 
 import StatusBar from './widgets/StatusBar.js';
 
+import { makeColorRamp } from './widgets/makeColorRamp.js';
+
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
 Instance.registerCRS(
     'EPSG:2154',
@@ -46,6 +51,10 @@ const material = new PointCloudMaterial({
     size: 4,
     mode: MODE.ELEVATION,
 });
+
+material.colorMap.colors = makeColorRamp('rdbu').reverse();
+material.colorMap.min = 200;
+material.colorMap.max = 1800;
 
 const pointcloud = new Tiles3D(
     'pointcloud',
@@ -149,6 +158,7 @@ function setupScene(pointCloud) {
     const elevationLayer = new ElevationLayer({
         name: 'wms_elevation',
         extent: map.extent,
+        resolutionFactor: 0.25,
         source: elevationSource,
     });
 

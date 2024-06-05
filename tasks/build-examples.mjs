@@ -179,10 +179,15 @@ export async function generateExample(htmlFile, highlighter, parameters) {
 
         const htmlCode = htmlCodeTemplate(variables).trim();
         const packageJson = generatePackageJsonContent(variables).trim();
-        const sourceCode = jsContent
-            .replaceAll(/import StatusBar from.*/gi, '')
+        let sourceCode = jsContent
+            .replaceAll(/import StatusBar from.*\n/gi, '')
             .replaceAll(/StatusBar\.bind[^;]*;/gim, '')
             .trim();
+
+        sourceCode = inlineImports(sourceCode);
+
+        // Cleanup superfluous line breaks caused by text removal
+        sourceCode = sourceCode.replace(/\n\s*\n\s*\n/gs, '\n\n');
 
         variables['highlightedJsCode'] = highlighter.codeToHtml(sourceCode, { lang: 'js' });
         variables['highlightedHtmlCode'] = highlighter.codeToHtml(htmlCode, { lang: 'html' });
@@ -197,6 +202,33 @@ export async function generateExample(htmlFile, highlighter, parameters) {
     const htmlContent = htmlTemplate(variables);
 
     return htmlContent;
+}
+
+/**
+ * @param {string} sourceCode
+ * @returns {string}
+ */
+function inlineImports(sourceCode) {
+    function inline(filename) {
+        let content = fse.readFileSync(path.join(examplesDir, 'widgets', filename), 'utf-8');
+
+        // Since it is inlined, we need to get rid of the export keyword
+        content = content.replace('export function', 'function');
+
+        // Let's remove imports, otherwise they would appear multiple
+        // times or right in the middle of the source code.
+        // The drawback is that the source code must provide those imports,
+        // even if they appear unused.
+        content = content.replace(/import .*?;/gs, '');
+
+        content = content.trim() + '\n';
+
+        return content;
+    }
+
+    return sourceCode.replace(/import .*? from '.\/widgets\/(\w+.js)';/g, (_, filename) =>
+        inline(filename),
+    );
 }
 
 /**
@@ -350,7 +382,6 @@ export async function getWebpackConfig(parameters) {
                             generateExample(from, highlighter, parameters),
                     },
                     { from: 'css', to: 'css' },
-                    { from: 'js', to: 'js' },
                     { from: 'image', to: 'image' },
                     { from: 'screenshots', to: 'screenshots' },
                     { from: 'data', to: 'data' },

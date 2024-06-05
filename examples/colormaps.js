@@ -1,21 +1,30 @@
 import colormap from 'colormap';
 
-import { Color, Vector3 } from 'three';
+import { MathUtils, Vector3, Color } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+
+import XYZ from 'ol/source/XYZ.js';
+
+import * as FunctionCurveEditor from 'function-curve-editor';
 
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import MapboxTerrainFormat from '@giro3d/giro3d/formats/MapboxTerrainFormat.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import ColorMap from '@giro3d/giro3d/core/layer/ColorMap.js';
 import ColorMapMode from '@giro3d/giro3d/core/layer/ColorMapMode.js';
 import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
-import XYZ from 'ol/source/XYZ.js';
+import { ColorLayer } from '@giro3d/giro3d/core/layer/index.js';
 
 import StatusBar from './widgets/StatusBar.js';
+
+import { bindToggle } from './widgets/bindToggle.js';
+import { bindSlider } from './widgets/bindSlider.js';
+import { bindDropDown } from './widgets/bindDropDown.js';
+import { bindButton } from './widgets/bindButton.js';
+import { makeColorRamp } from './widgets/makeColorRamp.js';
 
 // Defines geographic extent: CRS, min/max X, min/max Y
 const extent = Extent.fromCenterAndSize('EPSG:3857', { x: 697313, y: 5591324 }, 30000, 30000);
@@ -24,10 +33,16 @@ const extent = Extent.fromCenterAndSize('EPSG:3857', { x: 697313, y: 5591324 }, 
 const viewerDiv = document.getElementById('viewerDiv');
 
 // Creates the Giro3D instance
-const instance = new Instance(viewerDiv, { crs: extent.crs() });
+const instance = new Instance(viewerDiv, {
+    crs: extent.crs(),
+    renderer: {
+        // To display the background style
+        clearColor: false,
+    },
+});
 
 // Sets the camera position
-const cameraPosition = new Vector3(659567, 5553543, 25175);
+const cameraPosition = new Vector3(697119, 5543639, 53043);
 instance.camera.camera3D.position.copy(cameraPosition);
 
 // Creates controls
@@ -39,42 +54,55 @@ controls.saveState();
 
 controls.enableDamping = true;
 controls.dampingFactor = 0.2;
-controls.maxPolarAngle = Math.PI / 2.3;
 
 instance.useTHREEControls(controls);
 
 const elevationMin = 780;
 const elevationMax = 3574;
 
-function makeColorRamp(preset, nshades) {
-    const values = colormap({ colormap: preset, nshades });
-    const colors = values.map(v => new Color(v));
+let parameters = {
+    ramp: 'viridis',
+    discrete: false,
+    invert: false,
+    mirror: false,
+    backgroundOpacity: 1,
+    transparencyCurveKnots: [
+        { x: 0, y: 1 },
+        { x: 1, y: 1 },
+    ],
+    enableColorMap: true,
+    layerType: 'elevation',
+    colors: makeColorRamp('viridis', false, false, false),
+    min: elevationMin,
+    max: elevationMax,
+    mode: ColorMapMode.Elevation,
+};
 
-    return colors;
+function updatePreview(colors) {
+    const canvas = document.getElementById('gradient');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = colors.length;
+    canvas.height = 32;
+
+    for (let i = 0; i < colors.length; i++) {
+        const color = colors[i];
+        ctx.fillStyle = `#${color.getHexString()}`;
+        ctx.fillRect(i, 0, 1, canvas.height);
+    }
 }
 
-const colorRamps = {};
-
-function makeColorRamps(discrete) {
-    const nshades = discrete ? 10 : 256;
-
-    colorRamps.viridis = makeColorRamp('viridis', nshades);
-    colorRamps.jet = makeColorRamp('jet', nshades);
-    colorRamps.blackbody = makeColorRamp('blackbody', nshades);
-    colorRamps.earth = makeColorRamp('earth', nshades);
-    colorRamps.bathymetry = makeColorRamp('bathymetry', nshades);
-    colorRamps.magma = makeColorRamp('magma', nshades);
-    colorRamps.par = makeColorRamp('par', nshades);
-
-    colorRamps.slope = makeColorRamp('RdBu', nshades);
-}
-
-makeColorRamps(false);
+updatePreview(parameters.colors);
 
 // Adds the map that will contain the layers.
 const map = new Map('planar', {
     extent,
-    hillshading: true,
+    backgroundColor: 'cyan',
+    doubleSided: true,
+    hillshading: {
+        enabled: true,
+        elevationLayersOnly: true,
+    },
 });
 instance.add(map);
 
@@ -89,114 +117,352 @@ const source = new TiledImageSource({
     }),
 });
 
+const backgroundLayer = new ColorLayer({
+    name: 'background',
+    extent,
+    source: new TiledImageSource({
+        source: new XYZ({
+            url: `https://api.mapbox.com/v4/mapbox.satellite/{z}/{x}/{y}.webp?access_token=${key}`,
+            projection: extent.crs(),
+            crossOrigin: 'anonymous',
+        }),
+    }),
+});
+
 const elevationLayer = new ElevationLayer({
     name: 'elevation',
     extent,
     source,
-    colorMap: new ColorMap(colorRamps.viridis, elevationMin, elevationMax, ColorMapMode.Elevation),
+    colorMap: new ColorMap(parameters.colors, elevationMin, elevationMax, ColorMapMode.Elevation),
 });
 
-const bottomLayer = new ColorLayer({
+const colorLayer = new ColorLayer({
     name: 'color',
     extent,
     source,
-    colorMap: new ColorMap(colorRamps.jet, elevationMin, elevationMax, ColorMapMode.Elevation),
-});
-
-const topLayer = new ColorLayer({
-    name: 'color2',
-    extent,
-    source,
-    colorMap: new ColorMap(colorRamps.earth, elevationMin, elevationMax, ColorMapMode.Elevation),
+    colorMap: new ColorMap(parameters.colors, elevationMin, elevationMax, ColorMapMode.Elevation),
 });
 
 map.addLayer(elevationLayer);
-map.addLayer(bottomLayer);
-map.addLayer(topLayer);
 
-function updateLayer(prefix, layer) {
-    const enableLayer = document.getElementById(`${prefix}-layer-enable`);
-    const enableColorMap = document.getElementById(`${prefix}-colormap-enable`);
-    const gradient = document.getElementById(`${prefix}-gradient`);
+let activeLayer = elevationLayer;
 
-    const colorMap = layer.colorMap;
+function updateColorRamp() {
+    parameters.colors = makeColorRamp(
+        parameters.ramp,
+        parameters.discrete,
+        parameters.invert,
+        parameters.mirror,
+    );
+    activeLayer.colorMap.colors = parameters.colors;
+    activeLayer.colorMap.min = parameters.min;
+    activeLayer.colorMap.max = parameters.max;
+    activeLayer.colorMap.mode = parameters.mode;
 
-    layer.visible = enableLayer.checked;
-    colorMap.active = enableColorMap.checked;
-    colorMap.colors = colorRamps[gradient.value];
+    updateTransparency();
 
-    function updateMode(value) {
-        switch (value) {
-            case 'slope':
-                gradient.disabled = true;
-                colorMap.colors = colorRamps.slope;
-                colorMap.mode = ColorMapMode.Slope;
-                colorMap.min = 0;
-                colorMap.max = 50;
-                break;
-            case 'aspect':
-                gradient.disabled = true;
-                colorMap.colors = colorRamps.slope;
-                colorMap.mode = ColorMapMode.Aspect;
-                colorMap.min = 0;
-                colorMap.max = 360;
-                break;
-            default:
-                gradient.disabled = false;
-                colorMap.colors = colorRamps[gradient.value];
-                colorMap.mode = ColorMapMode.Elevation;
-                colorMap.min = elevationMin;
-                colorMap.max = elevationMax;
-                break;
-        }
-    }
-
-    const mode = document.getElementById(`${prefix}-mode`);
-    updateMode(mode.value);
+    updatePreview(parameters.colors);
 
     instance.notifyChange(map);
 }
 
-function bindControls(prefix, layer) {
-    const notify = () => updateLayer(prefix, layer);
+const setEnableColorMap = bindToggle('enable', v => {
+    elevationLayer.visible = true;
+    colorLayer.visible = true;
+    backgroundLayer.visible = true;
 
-    const enableLayer = document.getElementById(`${prefix}-layer-enable`);
-    const layerOptions = document.getElementById(`${prefix}-options`);
-    enableLayer.onchange = () => {
-        notify();
-        layerOptions.disabled = !enableLayer.checked;
+    if (activeLayer.type === 'ColorLayer') {
+        activeLayer.visible = v;
+    } else {
+        activeLayer.colorMap.active = v;
+    }
+    instance.notifyChange(map);
+});
+const setDiscrete = bindToggle('discrete', v => {
+    parameters.discrete = v;
+    updateColorRamp();
+});
+const setInvert = bindToggle('invert', v => {
+    parameters.invert = v;
+    updateColorRamp();
+});
+const setMirror = bindToggle('mirror', v => {
+    parameters.mirror = v;
+    updateColorRamp();
+});
+const setRamp = bindDropDown('ramp', v => {
+    parameters.ramp = v;
+    updateColorRamp();
+});
+function setActiveLayers(...layers) {
+    map.removeLayer(colorLayer);
+    map.removeLayer(elevationLayer);
+    map.removeLayer(backgroundLayer);
+
+    for (const layer of layers) {
+        map.addLayer(layer);
+    }
+    activeLayer = layers[layers.length - 1];
+}
+const setLayerType = bindDropDown('layerType', v => {
+    switch (v) {
+        case 'elevation':
+            setActiveLayers(elevationLayer);
+            break;
+        case 'color':
+            setActiveLayers(colorLayer);
+            break;
+        case 'color+background':
+            setActiveLayers(backgroundLayer, colorLayer);
+            break;
+        case 'color+background+elevation':
+            setActiveLayers(elevationLayer, backgroundLayer, colorLayer);
+            break;
+    }
+    updateColorRamp();
+    instance.notifyChange(map);
+});
+const setBackgroundOpacity = bindSlider('backgroundOpacity', v => {
+    map.materialOptions.backgroundOpacity = v;
+    instance.notifyChange(map);
+});
+const updateBounds = bindColorMapBounds((min, max) => {
+    parameters.min = min;
+    parameters.max = max;
+    activeLayer.colorMap.min = min;
+    activeLayer.colorMap.max = max;
+    instance.notifyChange(map);
+});
+
+let suffix = 'm';
+
+const setMode = bindDropDown('mode', v => {
+    const numerical = Number.parseInt(v);
+    switch (numerical) {
+        case ColorMapMode.Elevation:
+            parameters.mode = ColorMapMode.Elevation;
+            updateBounds(elevationMin, elevationMax);
+            suffix = 'm';
+            break;
+        case ColorMapMode.Slope:
+            parameters.mode = ColorMapMode.Slope;
+            updateBounds(0, 90);
+            suffix = '°';
+            break;
+        case ColorMapMode.Aspect:
+            parameters.mode = ColorMapMode.Aspect;
+            updateBounds(0, 360);
+            suffix = '°';
+            break;
+    }
+
+    updateColorRamp();
+    instance.notifyChange(map);
+});
+
+function bindColorMapBounds(callback) {
+    /** @type {HTMLInputElement} */
+    const lower = document.getElementById('lower');
+
+    /** @type {HTMLInputElement} */
+    const upper = document.getElementById('upper');
+
+    callback(lower.valueAsNumber, upper.valueAsNumber);
+
+    function updateLabels() {
+        document.getElementById('minLabel').innerText =
+            `Lower bound: ${lower.valueAsNumber}${suffix}`;
+        document.getElementById('maxLabel').innerText =
+            `Upper bound: ${upper.valueAsNumber}${suffix}`;
+    }
+
+    lower.oninput = function oninput() {
+        const rawValue = lower.valueAsNumber;
+        const clampedValue = MathUtils.clamp(rawValue, lower.min, upper.valueAsNumber - 1);
+        lower.valueAsNumber = clampedValue;
+        callback(lower.valueAsNumber, upper.valueAsNumber);
+        instance.notifyChange(map);
+        updateLabels();
     };
 
-    const enableColorMap = document.getElementById(`${prefix}-colormap-enable`);
-    const colormapOptions = document.getElementById(`${prefix}-colormap-options`);
-    enableColorMap.onchange = () => {
-        notify();
-        colormapOptions.disabled = !enableColorMap.checked;
+    upper.oninput = function oninput() {
+        const rawValue = upper.valueAsNumber;
+        const clampedValue = MathUtils.clamp(rawValue, lower.valueAsNumber + 1, upper.max);
+        upper.valueAsNumber = clampedValue;
+        callback(lower.valueAsNumber, upper.valueAsNumber);
+        instance.notifyChange(map);
+        updateLabels();
     };
 
-    const gradient = document.getElementById(`${prefix}-gradient`);
-    gradient.onchange = () => {
-        notify();
+    return (min, max) => {
+        lower.min = min;
+        lower.max = max;
+        upper.min = min;
+        upper.max = max;
+        lower.valueAsNumber = min;
+        upper.valueAsNumber = max;
+        callback(lower.valueAsNumber, upper.valueAsNumber);
+        updateLabels();
     };
-
-    const mode = document.getElementById(`${prefix}-mode`);
-    mode.onchange = () => notify();
-
-    notify();
 }
 
-bindControls('elevation', elevationLayer);
-bindControls('bottom', bottomLayer);
-bindControls('top', topLayer);
+const canvas = document.getElementById('curve');
+const widget = new FunctionCurveEditor.Widget(canvas);
 
-const discreteToggle = document.getElementById('discrete-ramps');
+function updateTransparency() {
+    const length = parameters.colors.length;
+    const f = widget.getFunction();
+    const opacities = new Array(length);
+    for (let i = 0; i < length; i++) {
+        const t = i / length;
+        opacities[i] = f(t);
+    }
+    activeLayer.colorMap.opacity = opacities;
+}
 
-discreteToggle.onchange = () => {
-    makeColorRamps(discreteToggle.checked);
-    updateLayer('elevation', elevationLayer);
-    updateLayer('bottom', bottomLayer);
-    updateLayer('top', topLayer);
-};
+function setupTransparencyCurve(knots = undefined) {
+    // Curve editor
+    const initialKnots = knots ?? [
+        { x: 0, y: 1 },
+        { x: 1, y: 1 },
+    ];
+
+    widget.setEditorState({
+        knots: initialKnots,
+        xMin: -0.2,
+        xMax: 1.2,
+        yMin: -0.2,
+        yMax: 1.2,
+        interpolationMethod: 'linear',
+        extendedDomain: true,
+        relevantXMin: 0,
+        relevantXMax: 1,
+        gridEnabled: true,
+    });
+
+    widget.addEventListener('change', () => {
+        updateColorRamp();
+    });
+}
+
+setupTransparencyCurve();
+
+function applyPreset(preset) {
+    parameters = { ...preset };
+
+    setupTransparencyCurve(preset.transparencyCurveKnots);
+    setBackgroundOpacity(preset.backgroundOpacity);
+    setRamp(preset.ramp);
+    setEnableColorMap(preset.enableColorMap);
+    setDiscrete(preset.discrete);
+    setInvert(preset.invert);
+    setMirror(preset.mirror);
+    setMode(preset.mode);
+    setLayerType(preset.layerType);
+    updateBounds(preset.min, preset.max);
+    updateColorRamp();
+
+    instance.notifyChange(map);
+}
+
+const setPreset = bindDropDown('preset', preset => {
+    switch (preset) {
+        case 'elevation':
+            applyPreset({
+                ramp: 'viridis',
+                transparencyCurveKnots: [
+                    { x: 0, y: 1 },
+                    { x: 1, y: 1 },
+                ],
+                backgroundOpacity: 1,
+                enableColorMap: true,
+                discrete: false,
+                mirror: false,
+                invert: false,
+                layerType: 'elevation',
+                colors: makeColorRamp('viridis', false, false, false),
+                opacity: new Array(256).fill(1),
+                min: elevationMin,
+                max: elevationMax,
+                mode: ColorMapMode.Elevation,
+            });
+            break;
+
+        case 'elevation+transparency':
+            applyPreset({
+                ramp: 'jet',
+                transparencyCurveKnots: [
+                    { x: 0, y: 0.5 },
+                    { x: 0.4, y: 0.5 },
+                    { x: 0.401, y: 0 },
+                    { x: 1, y: 0 },
+                ],
+                backgroundOpacity: 1,
+                enableColorMap: true,
+                discrete: false,
+                mirror: false,
+                invert: false,
+                layerType: 'color+background+elevation',
+                colors: makeColorRamp('jet', false, false, false),
+                min: elevationMin,
+                max: elevationMax,
+                mode: ColorMapMode.Elevation,
+            });
+            break;
+
+        case 'southern-slope':
+            applyPreset({
+                ramp: 'rdbu',
+                transparencyCurveKnots: [
+                    { x: 0, y: 0 },
+                    { x: 0.4, y: 0 },
+                    { x: 0.401, y: 1 },
+                    { x: 0.6, y: 1 },
+                    { x: 0.601, y: 0 },
+                    { x: 1, y: 0 },
+                ],
+                backgroundOpacity: 1,
+                enableColorMap: true,
+                discrete: false,
+                mirror: true,
+                invert: false,
+                layerType: 'color+background+elevation',
+                colors: makeColorRamp('rdbu', false, false, false),
+                min: 0,
+                max: 360,
+                mode: ColorMapMode.Aspect,
+            });
+            break;
+
+        case 'flat-terrain':
+            applyPreset({
+                ramp: 'jet',
+                transparencyCurveKnots: [
+                    { x: 0, y: 1 },
+                    { x: 0.3, y: 1 },
+                    { x: 0.6, y: 0 },
+                    { x: 1, y: 0 },
+                ],
+                backgroundOpacity: 1,
+                enableColorMap: true,
+                discrete: false,
+                mirror: false,
+                invert: true,
+                layerType: 'color+background+elevation',
+                colors: makeColorRamp('jet', false, false, false),
+                min: 0,
+                max: 35,
+                mode: ColorMapMode.Slope,
+            });
+            break;
+    }
+});
+
+function resetToDefaults() {
+    setPreset('elevation');
+}
+
+bindButton('reset', resetToDefaults);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 StatusBar.bind(instance);

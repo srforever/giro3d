@@ -1,6 +1,8 @@
 import colormap from 'colormap';
 
-import { Color, MathUtils, Vector3 } from 'three';
+import * as FunctionCurveEditor from 'function-curve-editor';
+
+import { MathUtils, Vector3, Color } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
@@ -12,28 +14,10 @@ import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
-function makeColorRamp(preset, nshades) {
-    const values = colormap({ colormap: preset, nshades });
-    const colors = values.map(v => new Color(v));
-
-    return colors;
-}
-
-const colorRamps = {};
-
-function makeColorRamps() {
-    const nshades = 256;
-
-    colorRamps.greys = makeColorRamp('greys', nshades);
-    colorRamps.viridis = makeColorRamp('viridis', nshades);
-    colorRamps.jet = makeColorRamp('jet', nshades);
-    colorRamps.blackbody = makeColorRamp('blackbody', nshades);
-    colorRamps.bathymetry = makeColorRamp('bathymetry', nshades);
-    colorRamps.magma = makeColorRamp('magma', nshades);
-    colorRamps.par = makeColorRamp('par', nshades);
-}
-
-makeColorRamps();
+import { bindToggle } from './widgets/bindToggle.js';
+import { bindDropDown } from './widgets/bindDropDown.js';
+import { bindButton } from './widgets/bindButton.js';
+import { makeColorRamp } from './widgets/makeColorRamp.js';
 
 Instance.registerCRS(
     'EPSG:3946',
@@ -52,15 +36,26 @@ const instance = new Instance(viewerDiv, {
 
 // Enable point cloud post processing effects
 instance.renderingOptions.enableEDL = true;
-instance.renderingOptions.enableInpainting = true;
-instance.renderingOptions.enablePointCloudOcclusion = true;
+// But not inpainting and occlusion because it would hinder the opacity filtering
+instance.renderingOptions.enableInpainting = false;
+instance.renderingOptions.enablePointCloudOcclusion = false;
 
 // Create a custom material for our point cloud.
 const material = new PointCloudMaterial({ mode: MODE.INTENSITY });
 
 material.colorMap.min = 0;
 material.colorMap.max = 30;
-material.colorMap.colors = colorRamps['greys'];
+material.colorMap.colors = makeColorRamp('greys');
+
+let parameters = {
+    ramp: 'greys',
+    discrete: false,
+    invert: false,
+    colors: makeColorRamp('greys', false, false),
+    opacity: new Array(256).fill(1),
+    min: 0,
+    max: 30,
+};
 
 const url = 'https://3d.oslandia.com/giro3d/3d-tiles/lidarhd_intensity/tileset.json';
 
@@ -93,7 +88,6 @@ function initializeCamera() {
 
     instance.camera.camera3D.far = 2.0 * bbox.getSize(tmpVec3).length();
 
-    const ratio = bbox.getSize(tmpVec3).x / bbox.getSize(tmpVec3).z;
     const lookAt = bbox.getCenter(tmpVec3);
     lookAt.z = bbox.min.z;
 
@@ -106,12 +100,61 @@ instance.add(pointcloud).then(initializeCamera);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 
+function updatePreview(colors) {
+    const canvas = document.getElementById('gradient');
+    const ctx = canvas.getContext('2d');
+
+    canvas.width = colors.length;
+    canvas.height = 32;
+
+    for (let i = 0; i < colors.length; i++) {
+        const color = colors[i];
+        ctx.fillStyle = `#${color.getHexString()}`;
+        ctx.fillRect(i, 0, 1, canvas.height);
+    }
+}
+
+updatePreview(parameters.colors);
+
+function updateColorRamp() {
+    parameters.colors = makeColorRamp(parameters.ramp, parameters.discrete, parameters.invert);
+    material.colorMap.colors = parameters.colors;
+    material.colorMap.min = parameters.min;
+    material.colorMap.max = parameters.max;
+    material.colorMap.mode = parameters.mode;
+
+    updateTransparency();
+
+    updatePreview(parameters.colors);
+
+    instance.notifyChange(pointcloud);
+}
+
+const setDiscrete = bindToggle('discrete', v => {
+    parameters.discrete = v;
+    updateColorRamp();
+});
+const setInvert = bindToggle('invert', v => {
+    parameters.invert = v;
+    updateColorRamp();
+});
+const setRamp = bindDropDown('ramp', v => {
+    parameters.ramp = v;
+    updateColorRamp();
+    instance.notifyChange(pointcloud);
+});
+const updateBounds = bindColorMapBounds((min, max) => {
+    material.colorMap.min = min;
+    material.colorMap.max = max;
+    instance.notifyChange(pointcloud);
+});
+
 function bindColorMapBounds(callback) {
     /** @type {HTMLInputElement} */
-    const lower = document.getElementById('min');
+    const lower = document.getElementById('lower');
 
     /** @type {HTMLInputElement} */
-    const upper = document.getElementById('max');
+    const upper = document.getElementById('upper');
 
     callback(lower.valueAsNumber, upper.valueAsNumber);
 
@@ -125,7 +168,7 @@ function bindColorMapBounds(callback) {
         const clampedValue = MathUtils.clamp(rawValue, lower.min, upper.valueAsNumber - 1);
         lower.valueAsNumber = clampedValue;
         callback(lower.valueAsNumber, upper.valueAsNumber);
-        instance.notifyChange();
+        instance.notifyChange(pointcloud);
         updateLabels();
     };
 
@@ -134,21 +177,89 @@ function bindColorMapBounds(callback) {
         const clampedValue = MathUtils.clamp(rawValue, lower.valueAsNumber + 1, upper.max);
         upper.valueAsNumber = clampedValue;
         callback(lower.valueAsNumber, upper.valueAsNumber);
-        instance.notifyChange();
+        instance.notifyChange(pointcloud);
+        updateLabels();
+    };
+
+    return (min, max) => {
+        lower.min = min;
+        lower.max = max;
+        upper.min = min;
+        upper.max = max;
+        lower.valueAsNumber = min;
+        upper.valueAsNumber = max;
         updateLabels();
     };
 }
 
-bindColorMapBounds((min, max) => {
-    material.colorMap.min = min;
-    material.colorMap.max = max;
-});
+const canvas = document.getElementById('curve');
+const widget = new FunctionCurveEditor.Widget(canvas);
 
-document.getElementById('colormap').addEventListener('change', e => {
-    const newRamp = e.target.value;
-    material.colorMap.colors = colorRamps[newRamp];
-    instance.notifyChange(pointcloud, true);
-});
+function updateTransparency() {
+    const length = parameters.colors.length;
+    const f = widget.getFunction();
+    const opacities = new Array(length);
+    for (let i = 0; i < length; i++) {
+        const t = i / length;
+        opacities[i] = f(t);
+    }
+    parameters.opacity = opacities;
+    material.colorMap.opacity = opacities;
+}
+
+function setupCurveEditor() {
+    // Curve editor
+    const initialKnots = [
+        { x: 0, y: 1 },
+        { x: 1, y: 1 },
+    ];
+
+    widget.setEditorState({
+        knots: initialKnots,
+        xMin: -0.2,
+        xMax: 1.2,
+        yMin: -0.2,
+        yMax: 1.2,
+        interpolationMethod: 'linear',
+        extendedDomain: true,
+        relevantXMin: 0,
+        relevantXMax: 1,
+        gridEnabled: true,
+    });
+
+    widget.addEventListener('change', () => {
+        updateColorRamp();
+    });
+}
+
+setupCurveEditor();
+
+function resetToDefaults() {
+    setupCurveEditor();
+
+    setRamp('greys');
+    setDiscrete(false);
+    setInvert(false);
+    updateBounds(0, 30);
+
+    parameters = {
+        ramp: 'greys',
+        discrete: false,
+        invert: false,
+        colors: makeColorRamp('greys', false, false),
+        opacity: new Array(256).fill(1),
+        min: 0,
+        max: 30,
+    };
+
+    material.colorMap.active = true;
+
+    updateColorRamp();
+
+    instance.notifyChange(pointcloud);
+}
+
+bindButton('reset', resetToDefaults);
 
 const labelElement = document.createElement('div');
 labelElement.classList = 'badge rounded-pill text-bg-light';
@@ -182,21 +293,26 @@ function updateLabel(mouseEvent) {
         for (const result of results) {
             const { object, point, index } = result;
 
-            const intensity = object.getIntensity(index);
+            if (object.isPointCloud) {
+                const intensity = object.getIntensity(index);
 
-            if (intensity) {
-                const color = material.colorMap.sample(intensity);
+                if (intensity) {
+                    const color = material.colorMap.sample(intensity);
+                    const opacity = material.colorMap.sampleOpacity(intensity);
 
-                const hex = color.getHexString();
-                intensityColor.style.background = `#${hex}`;
+                    if (opacity > 0.5) {
+                        const hex = color.getHexString();
+                        intensityColor.style.background = `#${hex}`;
 
-                intensityValue.innerText = `${intensity.toFixed(2)}`;
+                        intensityValue.innerText = `${intensity.toFixed(2)}`;
 
-                label.visible = true;
-                label.position.copy(point);
-                label.updateMatrixWorld(true);
+                        label.visible = true;
+                        label.position.copy(point);
+                        label.updateMatrixWorld(true);
 
-                break;
+                        break;
+                    }
+                }
             }
         }
     }

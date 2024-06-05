@@ -563,9 +563,10 @@ function createDataTexture(
  * Returns a 1D texture containing a pixel on the horizontal axis for each color in the array.
  *
  * @param colors - The color gradient.
+ * @param alpha - The optional alpha gradient. Must be of the same length as the color gradient.
  * @returns The resulting texture.
  */
-function create1DTexture(colors: Color[]): DataTexture {
+function create1DTexture(colors: Color[], alpha?: number[]): DataTexture {
     const size = colors.length;
     const buf = new Uint8ClampedArray(size * 4);
 
@@ -576,7 +577,7 @@ function create1DTexture(colors: Color[]): DataTexture {
         buf[index + 0] = color.r * 255;
         buf[index + 1] = color.g * 255;
         buf[index + 2] = color.b * 255;
-        buf[index + 3] = 255;
+        buf[index + 3] = alpha ? MathUtils.clamp(alpha[i], 0, 1) * 255 : 255;
     }
 
     const HEIGHT = 1;
