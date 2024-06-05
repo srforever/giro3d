@@ -132,6 +132,12 @@ module.exports = {
             },
         },
         {
+            files: ['tasks/*.mjs'],
+            env: {
+                node: true,
+            },
+        },
+        {
             // Below are Typescript specific rules that are disabled either because they don't make
             // sense, or because the Typescript compiler is a better tool to enforce them.
             files: ['**/*.ts'],
