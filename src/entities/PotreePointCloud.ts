@@ -839,8 +839,6 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
 
                 obj.material.dispose();
                 obj.geometry.dispose();
-                obj.material = null;
-                obj.geometry = null;
                 obj.userData.metadata.obj = null;
 
                 // if (__DEBUG__) {

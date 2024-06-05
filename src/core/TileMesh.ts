@@ -501,8 +501,7 @@ class TileMesh
         },
         isFinal = false,
     ) {
-        // The material is undefined when the tile is disposed
-        if (this.material == null) {
+        if (this.disposed) {
             return;
         }
 
@@ -703,7 +702,6 @@ class TileMesh
         this.disposed = true;
         this.dispatchEvent({ type: 'dispose' });
         this.material.dispose();
-        this.material = undefined;
         if (this._enableCPUTerrain) {
             // When colliders are enabled, geometries are created for each tile,
             // and thus must be disposed when the mesh is disposed.
