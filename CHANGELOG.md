@@ -1,5 +1,65 @@
 # Changelog
 
+## v0.37.0 (2024-06-05)
+
+This release brings many improvements to point clouds: support for classification, intensity, and transparent colormaps.
+
+### BREAKING CHANGE
+
+-   The `MapboxTerrainRGB` Interpretation is removed. To decode Mapbox Terrain RGB files, use the `MapboxTerrainFormat` image decoder instead. See this [example](https://giro3d.org/examples/planar_mapbox.html).
+
+    ```js
+    // Before
+    const oldVersion = new ElevationLayer({
+        // Using the interpretation in the layer
+        interpretation: Interpretation.MapboxTerrainRGB,
+        source: new TiledImageSource({
+            source: new XYZ({ ... }),
+        }),
+    });
+
+    // After
+    const newVersion = new ElevationLayer({
+        source: new TiledImageSource({
+            // Using the decoder in the source
+            format: new MapboxTerrainFormat(),
+            source: new XYZ({ ...}),
+        }),
+    });
+    ```
+
+### Feat
+
+-   **ColorMap**: support an optional opacity array (#454)
+-   **ColorMap**: add the `sample()` and `sampleOpacity()` methods.
+-   **PointCloudMaterial**: support intensity (#451)
+-   **PointCloudMaterial**: add support for colormaps (#449)
+-   add `MapboxTerrainFormat` to decode Mapbox Terrain images
+-   **PointCloud**: support classifications (#222)
+-   **PntsParser**: support batch table attributes
+
+### Fix
+
+-   **WmsSource**: fix options precedence in constructor
+-   **TiledImageSource**: fix options precedence in constructor
+-   **CogSource**: fix options precedence in constructor
+-   **ElevationLayer**: fix options precedence in constructor
+-   **CogSource**: avoid huge texture sizes (#453)
+-   **Layer**: prevent assigning textures to a disposed node (#452)
+-   **TileVS.glsl**: set elevation to zero when no elevation layer is present
+-   **TextureGenerator**: fix incorrect memory usage computation for textures
+-   **MapTerrainPanel**: ensure that the displayed segment value is a power of two
+-   **ElevationLayer**: fix missing update of min/max when the layer is initialized
+-   **TileMesh**: ensure that min/max coming from heightmap is consistent
+-   **TileMesh**: fix incorrect reset of heightmap when no elevation texture has been loaded yet
+-   **LayerInspector**: use correct colorimetry object (layer instead of map)
+-   **Map**: enable display of elevation textures on iOS (#445)
+
+### Perf
+
+-   **TileMesh**: update heightmap only when actually necessary
+-   **Layer**: unload data for invisible ancestor nodes (#435)
+
 ## v0.36.0 (2024-05-21)
 
 ## Raycasting on maps
