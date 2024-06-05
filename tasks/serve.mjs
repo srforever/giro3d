@@ -71,7 +71,6 @@ if (esMain(import.meta)) {
     program.parse();
 
     const options = program.opts();
-    // eslint-disable-next-line no-undef
     const pwd = process.cwd();
     options.directory = path.resolve(pwd, options.directory);
     options.siteDirectory = path.resolve(pwd, options.siteDirectory);
