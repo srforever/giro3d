@@ -1,4 +1,3 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import esMain from 'es-main';
 import glob from 'glob';
 import { exit } from 'process';

@@ -54,7 +54,6 @@ async function main() {
  */
 if (esMain(import.meta)) {
     main().catch(err => {
-        // eslint-disable-next-line no-undef
         process.stderr.write(`${err.message}\n`, () => process.exit(1));
     });
 }
