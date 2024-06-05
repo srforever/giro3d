@@ -1,7 +1,11 @@
 import Camera from './Camera';
 import { type RendererOptions } from './c3DEngine';
 import MemoryTracker from './MemoryTracker';
-import PointCloudMaterial, { Classification, ASPRS_CLASSIFICATIONS } from './PointCloudMaterial';
+import PointCloudMaterial, {
+    Classification,
+    ASPRS_CLASSIFICATIONS,
+    type PointCloudMaterialOptions,
+} from './PointCloudMaterial';
 import type RenderingOptions from './RenderingOptions';
 
 export {
@@ -9,6 +13,7 @@ export {
     RendererOptions,
     MemoryTracker,
     PointCloudMaterial,
+    PointCloudMaterialOptions,
     Classification,
     ASPRS_CLASSIFICATIONS,
     RenderingOptions,

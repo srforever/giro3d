@@ -24,7 +24,14 @@ export function reasonnableEpsilonForCRS(crs: string, width: number, height: num
     return 0.01 * Math.min(width, height);
 }
 
-export type Input =
+/**
+ * Possible values to define an extent.
+ *  The following combinations are supported:
+ * - 2 coordinates for the min and max corners of the extent
+ * - 4 numerical values for the `minx`, `maxx`, `miny`, `maxy`
+ * - an object with `west`, `east`, `south`, `north` properties
+ */
+export type ExtentParameters =
     | [Coordinates, Coordinates]
     | [number, number, number, number]
     | [{ west: number; east: number; south: number; north: number }];
@@ -65,12 +72,9 @@ class Extent {
      * [proj4js](https://github.com/proj4js/proj4js) can be used directly.
      * For others, you must manually register them.
      * Please refer to [proj4js](https://github.com/proj4js/proj4js) doc for more information.
-     * @param values - Variable number of arguments. The following combinations are supported:
-     * - 2 coordinates for the min and max corners of the extent
-     * - an object with `west`, `east`, `south`, `north` properties
-     * - 4 numerical values for the `minx`, `maxx`, `miny`, `maxy`
+     * @param values - The extent values.
      */
-    constructor(crs: string, ...values: Input) {
+    constructor(crs: string, ...values: ExtentParameters) {
         this._values = new Float64Array(4);
         this.set(crs, ...values);
     }
@@ -576,7 +580,7 @@ class Extent {
      * @param values - the new values
      * @returns this object modified
      */
-    set(crs: string, ...values: Input): this {
+    set(crs: string, ...values: ExtentParameters): this {
         this._crs = crs;
 
         if (

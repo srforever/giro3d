@@ -1,7 +1,21 @@
-import Fetcher from './Fetcher';
+import Fetcher, {
+    type FetchOptions,
+    type FetcherEventDispatcher,
+    type FetcherEventMap,
+} from './Fetcher';
 import GeoJSONUtils from './GeoJSONUtils';
 import HttpConfiguration from './HttpConfiguration';
-import PromiseUtils from './PromiseUtils';
+import PromiseUtils, { type PromiseStatus } from './PromiseUtils';
 import OpenLayersUtils from './OpenLayersUtils';
 
-export { Fetcher, GeoJSONUtils, HttpConfiguration, PromiseUtils, OpenLayersUtils };
+export {
+    Fetcher,
+    FetchOptions,
+    FetcherEventDispatcher,
+    FetcherEventMap,
+    GeoJSONUtils,
+    HttpConfiguration,
+    PromiseUtils,
+    PromiseStatus,
+    OpenLayersUtils,
+};

@@ -1,4 +1,4 @@
-import ImageFormat from './ImageFormat';
+import ImageFormat, { type DecodeOptions } from './ImageFormat';
 import BilFormat from './BilFormat';
 import GeoTIFFFormat from './GeoTIFFFormat';
 import MapboxTerrainFormat from './MapboxTerrainFormat';
@@ -6,4 +6,4 @@ import MapboxTerrainFormat from './MapboxTerrainFormat';
 /**
  * Data decoders, such as image formats.
  */
-export { ImageFormat, GeoTIFFFormat, BilFormat, MapboxTerrainFormat };
+export { ImageFormat, DecodeOptions, GeoTIFFFormat, BilFormat, MapboxTerrainFormat };

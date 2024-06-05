@@ -341,9 +341,11 @@ abstract class Layer<
     readonly extent: Extent;
     /** The source of this layer */
     readonly source: ImageSource;
+    /** @internal */
     protected _composer: LayerComposer;
     private readonly _targets: Map<number, Target>;
     private readonly _filter: (id: string) => boolean;
+    /** @internal */
     protected readonly _queue: RequestQueue;
     private _shouldNotify: boolean;
     disposed: boolean;

@@ -277,7 +277,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
     readonly hasLayers = true;
     private _colorLayer: ColorLayer;
     source: PotreeSource;
-    queue: RequestQueue;
+    private readonly _queue: RequestQueue;
     private _opCounter: OperationCounter;
     group: Group;
     bboxes: Group;
@@ -330,7 +330,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
          */
         this.type = 'PotreePointCloud';
 
-        this.queue = DefaultQueue;
+        this._queue = DefaultQueue;
         this._opCounter = new OperationCounter();
 
         if (!this.group) {
@@ -703,7 +703,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
 
                     this._opCounter.increment();
 
-                    elt.promise = this.queue
+                    elt.promise = this._queue
                         .enqueue({
                             id: MathUtils.generateUUID(),
                             priority,

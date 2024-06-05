@@ -37,7 +37,7 @@ export interface DrawingCollectionEventMap extends Entity3DEventMap {
 }
 
 /**
- * Entity for holding {@link Drawing} compatible with the {@link DrawTool}.
+ * Entity for holding {@link Drawing} compatible with the {@link interactions.DrawTool | DrawTool}.
  *
  * It simplifies managing such drawings, especially with picking.
  */
