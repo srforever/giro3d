@@ -10,6 +10,8 @@ This release brings many improvements to point clouds: support for classificatio
 
     ```js
     // Before
+    import Interpretation from '@giro3d/giro3d/core/layer/Interpretation.js';
+
     const oldVersion = new ElevationLayer({
         // Using the interpretation in the layer
         interpretation: Interpretation.MapboxTerrainRGB,
@@ -17,8 +19,12 @@ This release brings many improvements to point clouds: support for classificatio
             source: new XYZ({ ... }),
         }),
     });
+    ```
 
+    ```js
     // After
+    import MapboxTerrainFormat from '@giro3d/giro3d/formats/MapboxTerrainFormat.js';
+
     const newVersion = new ElevationLayer({
         source: new TiledImageSource({
             // Using the decoder in the source
