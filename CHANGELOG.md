@@ -6,7 +6,7 @@ This release brings many improvements to point clouds: support for classificatio
 
 ### BREAKING CHANGE
 
--   The `MapboxTerrainRGB` Interpretation is removed. To decode Mapbox Terrain RGB files, use the `MapboxTerrainFormat` image decoder instead. See this [example](https://giro3d.org/examples/planar_mapbox.html).
+-   The `MapboxTerrainRGB` Interpretation is removed. To decode Mapbox Terrain RGB files, use the `MapboxTerrainFormat` image decoder instead. See this [example](https://giro3d.org/latest/examples/planar_mapbox.html).
 
     ```js
     // Before
