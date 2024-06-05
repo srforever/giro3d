@@ -112,7 +112,7 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
         node.material.removeElevationLayer();
     }
 
-    protected getMinMax(texture: TextureWithMinMax) {
+    private getMinMax(texture: TextureWithMinMax) {
         if (this.minmax == null) {
             this.minmax = { min: texture.min, max: texture.max };
         }

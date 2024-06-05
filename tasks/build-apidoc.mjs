@@ -56,6 +56,7 @@ export async function buildApidoc(parameters) {
         titleLink: '/',
         excludeInternal: true,
         excludeExternals: true,
+        excludePrivate: true,
         navigationLinks: {},
         releaseName: parameters.releaseName,
         releaseVersion: parameters.version,
