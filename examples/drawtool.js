@@ -352,6 +352,13 @@ const updatePointsRendering = () => {
 document.getElementById('pointsrendering').addEventListener('change', updatePointsRendering);
 
 function addShape(geojson) {
+    if (geojson.type === 'LineString' && geojson.coordinates.length < 2) {
+        return;
+    }
+    if (geojson.type === 'Polygon' && geojson.coordinates[0].length < 3) {
+        return;
+    }
+
     // Create and show a new object with the same geometry but with different materials
     const o = new Drawing(
         {
