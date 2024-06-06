@@ -259,7 +259,7 @@ Hotfix release for 0.34, that fixes #408.
 
 Full color space mangement and performance improvements.
 
-Plus a new website featuring our sister project [Piero](https://app.giro3d.org), the official web application based on Giro3D!
+Plus a new website featuring our sister project [Piero](https://piero.giro3d.org), the official web application based on Giro3D!
 
 ### BREAKING CHANGE
 
