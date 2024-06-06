@@ -124,11 +124,11 @@ Giro3D is currently maintained by [Oslandia](http://www.oslandia.com).
 
 ## No code with Piero
 
-In case you don't want to code your own application, you can also use [Piero](https://app.giro3d.org), our sister project - also available on [GitLab](https://gitlab.com/giro3d/piero).
+In case you don't want to code your own application, you can also use [Piero](https://piero.giro3d.org), our sister project - also available on [GitLab](https://gitlab.com/giro3d/piero).
 
 <div align="center">
-  <a href="https://app.giro3d.org">
-    <img alt="Piero logo" src="https://app.giro3d.org/piero_logo.svg" height="120">
+  <a href="https://piero.giro3d.org">
+    <img alt="Piero logo" src="https://piero.giro3d.org/piero_logo.svg" height="120">
   </a>
 </div>
 
