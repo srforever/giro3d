@@ -53,7 +53,8 @@ export function parseCss(pathToHtmlFile) {
     let customCss = '';
     const pathToCssFile = pathToHtmlFile.replace('.html', '.css');
     if (fse.existsSync(pathToCssFile)) {
-        customCss = '<style>' + fse.readFileSync(pathToCssFile) + '</style>';
+        const cssStyle = fse.readFileSync(pathToCssFile, 'utf-8');
+        customCss = '<style>\n' + cssStyle.trim() + '\n</style>';
     }
     return customCss;
 }
@@ -125,6 +126,8 @@ export function findExamplesEntries() {
 
 export async function generateIndex(htmlFiles, parameters) {
     const thumbnails = htmlFiles.map(f => getExampleCard(f));
+
+    log('examples', `Generating ${thumbnails.length} examples...`);
 
     const indexHtmlTemplate = readTemplate('index.ejs');
     const indexHtmlContent = indexHtmlTemplate({
