@@ -6,14 +6,14 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
 dependencies: ['colormap']
 ---
 
-<div class="m-2 position-absolute top-0 end-0">
+<div class="side-pane-with-status-bar">
     <!-- Top color layer -->
-    <div class="card m-1">
+    <div class="card">
         <div class="card-header">Options</div>
 
-        <fieldset class="container m-1" id="top-options">
+        <div class="card-body" id="top-options">
             <!-- Coloring mode -->
-            <div class="input-group p-2">
+            <div class="input-group">
                 <span class="input-group-text flex-grow-1">Mode</span>
                 <select
                     class="btn btn-outline-primary btn-sm"
@@ -27,8 +27,8 @@ dependencies: ['colormap']
             </div>
 
             <!-- Color ramp -->
-            <div class="d-none" id="colormapGroup">
-                <div class="input-group p-2">
+            <div class="d-none my-2" id="colormapGroup">
+                <div class="input-group">
                     <span class="input-group-text flex-grow-1">Color ramp</span>
                     <select class="btn btn-outline-primary btn-sm" id="colormap" autocomplete="off">
                         <option value="viridis" selected>Viridis</option>
@@ -41,7 +41,7 @@ dependencies: ['colormap']
                     </select>
                 </div>
 
-                <div class="input-group p-2">
+                <div class="input-group my-2">
                     <label for="min" class="form-label" id="minLabel">Lower bound: 100m</label>
                     <div class="input-group">
                         <input
@@ -56,7 +56,7 @@ dependencies: ['colormap']
                     </div>
                 </div>
 
-                <div class="input-group p-2">
+                <div class="input-group my-2">
                     <label for="max" class="form-label" id="maxLabel">Upper bound: 600m</label>
                     <div class="input-group">
                         <input
@@ -73,7 +73,7 @@ dependencies: ['colormap']
             </div>
 
             <!-- Opacity -->
-            <div class="input-group p-2">
+            <div class="input-group my-2">
                 <label for="opacity" class="form-label" id="opacityLabel"
                     >Point cloud opacity: 100%</label
                 >
@@ -92,7 +92,7 @@ dependencies: ['colormap']
             </div>
 
             <!-- Activate EDL -->
-            <div class="input-group p-2">
+            <div class="input-group my-2">
                 <div>
                     <div class="form-check form-switch">
                         <input
@@ -111,7 +111,7 @@ dependencies: ['colormap']
             </div>
 
             <!-- EDL intensity -->
-            <div class="input-group p-2">
+            <div class="input-group my-2">
                 <label for="edl-intensity" class="form-label">EDL intensity</label>
                 <div class="input-group">
                     <input
@@ -128,7 +128,7 @@ dependencies: ['colormap']
             </div>
 
             <!-- EDL radius -->
-            <div class="input-group p-2">
+            <div class="input-group my-2">
                 <label for="edl-radius" class="form-label">EDL radius</label>
                 <div class="input-group">
                     <input
@@ -145,7 +145,7 @@ dependencies: ['colormap']
             </div>
 
             <!-- Activate occlusion -->
-            <div class="input-group p-2">
+            <div class="input-group my-2">
                 <div>
                     <div class="form-check form-switch">
                         <input
@@ -164,7 +164,7 @@ dependencies: ['colormap']
             </div>
 
             <!-- Activate inpainting -->
-            <div class="input-group p-2">
+            <div class="input-group my-2">
                 <div>
                     <div class="form-check form-switch">
                         <input
@@ -181,7 +181,7 @@ dependencies: ['colormap']
             </div>
 
             <!-- Inpainting steps -->
-            <div class="input-group p-2">
+            <div class="input-group my-2">
                 <label for="inpainting-steps" class="form-label">Inpainting steps</label>
                 <div class="input-group">
                     <input
@@ -196,6 +196,6 @@ dependencies: ['colormap']
                     />
                 </div>
             </div>
-        </fieldset>
+        </div>
     </div>
 </div>

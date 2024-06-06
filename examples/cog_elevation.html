@@ -6,21 +6,19 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
 dependencies: ['colormap']
 ---
 
-<div class="m-2 position-absolute top-0 end-0">
+<div class="side-pane-with-status-bar">
     <!-- Top color layer -->
-    <div class="card m-1">
-        <div class="container m-1">
-            <fieldset class="row p-1">
-                <div class="input-group">
-                    <span class="input-group-text flex-grow-1">Read COG as</span>
-                    <select class="btn btn-outline-primary btn-sm" id="mode" autocomplete="off">
-                        <option selected value="elevation">Elevation layer</option>
-                        <option value="elevation-colormap">Elevation layer (with colormap)</option>
-                        <option value="8bit">Color layer (compressed to 8-bit)</option>
-                        <option value="colormap">Color layer (with colormap)</option>
-                    </select>
-                </div>
-            </fieldset>
+    <div class="card">
+        <div class="card-body">
+            <div class="input-group">
+                <span class="input-group-text flex-grow-1">Read COG as</span>
+                <select class="btn btn-outline-primary btn-sm" id="mode" autocomplete="off">
+                    <option selected value="elevation">Elevation layer</option>
+                    <option value="elevation-colormap">Elevation layer (with colormap)</option>
+                    <option value="8bit">Color layer (compressed to 8-bit)</option>
+                    <option value="colormap">Color layer (with colormap)</option>
+                </select>
+            </div>
         </div>
     </div>
 </div>

@@ -6,26 +6,22 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
 dependencies: ['colormap']
 ---
 
-<div class="m-2 position-absolute top-0 end-0">
-    <div class="card m-1">
+<div class="side-pane-with-status-bar">
+    <div class="card">
         <div class="card-header">Options</div>
 
-        <fieldset class="container m-1" id="options">
-            <div class="mb-3">
-                <div class="form-check form-switch">
-                    <input
-                        class="form-check-input"
-                        type="checkbox"
-                        checked="true"
-                        role="switch"
-                        id="enableFillNoData"
-                        autocomplete="off"
-                    />
-                    <label class="form-check-label" for="enableFillNoData"
-                        >Hide no-data pixels</label
-                    >
-                </div>
+        <div class="card-body" id="options">
+            <div class="form-check form-switch">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    checked="true"
+                    role="switch"
+                    id="enableFillNoData"
+                    autocomplete="off"
+                />
+                <label class="form-check-label" for="enableFillNoData">Hide no-data pixels</label>
             </div>
-        </fieldset>
+        </div>
     </div>
 </div>
