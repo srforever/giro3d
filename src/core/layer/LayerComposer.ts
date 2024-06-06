@@ -618,8 +618,10 @@ class LayerComposer implements MemoryUsage {
 
         this.images.forEach(image => {
             if (extent.intersectsExtent(image.extent)) {
-                min = Math.min(image.min, min);
-                max = Math.max(image.max, max);
+                if (Number.isFinite(image.min) && Number.isFinite(image.max)) {
+                    min = Math.min(image.min, min);
+                    max = Math.max(image.max, max);
+                }
             }
         });
 
