@@ -6,7 +6,7 @@ attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological 
 dependencies: ['colormap']
 ---
 
-<div class="p-2 h-100 position-absolute top-0 end-0 pe-none" style="width: 30rem">
+<div class="side-pane-with-status-bar pe-none" style="width: 30rem">
     <div class="card pe-auto">
         <h5 class="card-header">Options</h5>
 
@@ -22,36 +22,40 @@ dependencies: ['colormap']
             complete the drawing.
         </p>
 
-        <ul class="list-group list-group-flush">
-            <li class="list-group-item">
-                <!-- Parameters -->
-                <form>
-                    <!-- Sample count -->
-                    <div class="mb-3">
-                        <label for="sampleCount" class="col-form-label">Sample count</label>
-                        <div class="input-group">
-                            <input
-                                id="sampleCount"
-                                type="number"
-                                min="2"
-                                max="200"
-                                value="50"
-                                class="form-control"
-                            />
-                            <span class="input-group-text">samples</span>
+        <div class="card-body p-0">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <!-- Parameters -->
+                    <form>
+                        <!-- Sample count -->
+                        <div class="mb-3">
+                            <label for="sampleCount" class="col-form-label">Sample count</label>
+                            <div class="input-group">
+                                <input
+                                    id="sampleCount"
+                                    type="number"
+                                    min="2"
+                                    max="200"
+                                    value="50"
+                                    class="form-control"
+                                />
+                                <span class="input-group-text">samples</span>
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Start elevation profile -->
-                    <div class="mb-3">
-                        <button type="button" class="btn btn-primary" id="start">Draw line</button>
-                    </div>
-                </form>
-            </li>
-            <li class="list-group-item">
-                <!-- The canvas that will host the chart -->
-                <canvas id="profileChart" class="w-100 h-100"></canvas>
-            </li>
-        </ul>
+                        <!-- Start elevation profile -->
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-primary" id="start">
+                                Draw line
+                            </button>
+                        </div>
+                    </form>
+                </li>
+                <li class="list-group-item">
+                    <!-- The canvas that will host the chart -->
+                    <canvas id="profileChart" class="w-100 h-100"></canvas>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>

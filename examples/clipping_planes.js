@@ -233,6 +233,11 @@ function setupScene(pointCloud) {
 
     bindToggle('enable-clipping-planes', v => {
         options.enableClippingPlanes = v;
+        if (v) {
+            document.getElementById('options').removeAttribute('disabled');
+        } else {
+            document.getElementById('options').setAttribute('disabled', 'disabled');
+        }
         update();
     });
 

@@ -80,6 +80,11 @@ Inspector.attach(document.getElementById('panelDiv'), instance);
 const checkbox = document.getElementById('contourLineCheckbox');
 checkbox.oninput = function oninput() {
     const state = checkbox.checked;
+    if (state) {
+        document.getElementById('options').removeAttribute('disabled');
+    } else {
+        document.getElementById('options').setAttribute('disabled', 'disabled');
+    }
     map.materialOptions.contourLines.enabled = state;
     instance.notifyChange(map);
 };
