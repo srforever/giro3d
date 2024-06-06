@@ -152,6 +152,83 @@ Before merging, the assignee must first:
 -   ensure labels are properly set on the corresponding issue (or on the MR if there's no issue)
 -   ensure milestone is properly set to the next version on the corresponding issue (or on the MR if there's no issue)
 
+### Git workflow
+
+During regular development, we follow a simple [feature branch workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow), with feature or bugfix branches starting from the (latest) `main` branch. No commits should be done directly on `main`, only merges from Merge Requests via GitLab.
+
+When forking Giro3D, we encourage using the same branch workflow, instead of working directly on `main`. This will simplify pulling upstream changes from our repo to your fork, and will let you open multiple MRs if you have multiple unrelated contributions to make.
+
+```mermaid
+gitGraph
+    commit
+    commit
+    branch feature
+    checkout feature
+    commit
+    commit
+    checkout main
+    merge feature
+    branch bugfix
+    checkout bugfix
+    commit
+    commit
+    checkout main
+    merge bugfix
+    commit
+```
+
+For releases, we have a simplified [Gitflow workflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) (there's no `develop` branch). Once a release branch is started, fixes for that release are done in branches, starting from the release branch, and merged via Merge Requests into the release branch. Once the release is ready:
+
+-   if no additional feature got merged into `main` in the meantime, it is merged back into `main` and tagged from there;
+-   otherwise, it is merged back into `main`, but the tag is generated from the release branch.
+
+```mermaid
+gitGraph
+    commit
+    commit
+    branch release_vX
+    checkout release_vX
+    commit
+    commit
+    branch hotfix_for_vX
+    checkout hotfix_for_vX
+    commit
+    commit
+    checkout release_vX
+    merge hotfix_for_vX
+    commit
+    checkout main
+    merge release_vX tag: "vX.Y.0"
+```
+
+```mermaid
+gitGraph
+    commit
+    commit
+    branch release_vX
+    checkout release_vX
+    commit
+    commit
+    checkout main
+    branch feature
+    checkout feature
+    commit
+    commit
+    checkout main
+    merge feature
+    checkout release_vX
+    commit tag: "vX.Y.0"
+    checkout main
+    merge release_vX
+```
+
+Hotfixes on releases (e.g. `vX.Y.1`) are done following the same principle:
+
+1. branch from the release branch,
+2. merge it back into the release branch,
+3. merge the release branch into `main`
+4. tag from the release branch.
+
 ### Releasing Giro3D
 
 Any committer can perform a release, following the [How to release](HOW_TO_RELEASE.md) procedure.
