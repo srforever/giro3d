@@ -378,9 +378,9 @@ class VectorTileSource extends ImageSource {
      * @returns The promise containing the rasterized tile.
      */
     private loadTile(tile: VectorRenderTile): Promise<Texture> {
-        let promise;
+        let promise: Promise<Texture>;
         if (tile.getState() === TileState.EMPTY) {
-            promise = Promise.resolve(null);
+            promise = Promise.resolve(new EmptyTexture());
         } else if (tile.getState() === TileState.LOADED) {
             promise = Promise.resolve(this.rasterizeTile(tile));
         } else {
