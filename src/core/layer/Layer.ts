@@ -989,7 +989,7 @@ abstract class Layer<
                 });
         } else {
             target.state = TargetState.Complete;
-            this.applyEmptyTextureToNode(target.node);
+            this.applyEmptyTextureToNode(target);
         }
     }
 
@@ -1190,7 +1190,7 @@ abstract class Layer<
         isLastRender: boolean,
     ): void;
 
-    protected abstract applyEmptyTextureToNode(node: Node): void;
+    protected abstract applyEmptyTextureToNode(target: Target): void;
 
     /**
      * Disposes the layer. This releases all resources held by this layer.

@@ -150,8 +150,8 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
     }
 
     // eslint-disable-next-line class-methods-use-this
-    protected applyEmptyTextureToNode(node: TileMesh) {
-        node.removeElevationTexture();
+    protected applyEmptyTextureToNode(target: Target) {
+        (target.node as TileMesh).removeElevationTexture();
     }
 
     // eslint-disable-next-line class-methods-use-this
