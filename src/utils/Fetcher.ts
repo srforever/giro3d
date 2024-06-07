@@ -25,7 +25,7 @@ export interface FetcherEventMap {
     error: { error: Error };
 }
 
-class FetcherEventDispatcher extends EventDispatcher<FetcherEventMap> {}
+export class FetcherEventDispatcher extends EventDispatcher<FetcherEventMap> {}
 
 const eventTarget = new FetcherEventDispatcher();
 

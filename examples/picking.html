@@ -5,8 +5,8 @@ longdesc: Picking is the action of determining what's underneath the mouse curso
 attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
 ---
 
-<div class="p-2 h-100 position-absolute top-0 end-0" style="width: 30rem">
-    <div class="card" style="height: calc(100% - 1.3rem)">
+<div class="side-pane-with-status-bar" style="width: 30rem">
+    <div class="card">
         <h5 class="card-header">Picking</h5>
 
         <!-- tooltip -->
@@ -22,157 +22,163 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
             Provides various filtering options to enhance precision and performance.
         </p>
 
-        <ul class="list-group list-group-flush overflow-y-scroll">
-            <li class="list-group-item">
-                <!-- Parameters -->
-                <form>
-                    <!-- Z-scale -->
-                    <div class="mb-2">
-                        <label for="zScaleSlider" class="col-form-label" id="zScaleLabel"
-                            >Z-scale = 1</label
-                        >
-                        <div class="input-group">
-                            <input
-                                type="range"
-                                min="0.1"
-                                max="4"
-                                step="0.1"
-                                value="1"
-                                class="form-range"
-                                id="zScaleSlider"
-                                autocomplete="off"
-                            />
+        <div class="card-body p-0">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">
+                    <!-- Parameters -->
+                    <form>
+                        <!-- Z-scale -->
+                        <div class="mb-2">
+                            <label for="zScaleSlider" class="col-form-label" id="zScaleLabel"
+                                >Z-scale = 1</label
+                            >
+                            <div class="input-group">
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="4"
+                                    step="0.1"
+                                    value="1"
+                                    class="form-range"
+                                    id="zScaleSlider"
+                                    autocomplete="off"
+                                />
+                            </div>
                         </div>
-                    </div>
 
-                    <!-- Pick events -->
-                    <div class="mb-3">
-                        <label for="pickEvent" class="form-label">Pick on event</label>
-                        <select id="pickEvent" class="form-select">
-                            <option value="click">Click</option>
-                            <option value="mousemove" selected>Mouse move</option>
-                        </select>
-                    </div>
-                    <!-- Picking radius -->
-                    <div class="mb-3">
-                        <label for="radius" class="col-form-label">Picking radius</label>
-                        <div class="input-group">
+                        <!-- Pick events -->
+                        <div class="mb-3">
+                            <label for="pickEvent" class="form-label">Pick on event</label>
+                            <select id="pickEvent" class="form-select">
+                                <option value="click">Click</option>
+                                <option value="mousemove" selected>Mouse move</option>
+                            </select>
+                        </div>
+                        <!-- Picking radius -->
+                        <div class="mb-3">
+                            <label for="radius" class="col-form-label">Picking radius</label>
+                            <div class="input-group">
+                                <input
+                                    id="radius"
+                                    type="number"
+                                    min="0"
+                                    max="10"
+                                    value="0"
+                                    class="form-control"
+                                />
+                                <span class="input-group-text">pixels</span>
+                            </div>
+                        </div>
+                        <!-- Limit -->
+                        <div class="mb-3">
+                            <label for="limit" class="col-form-label"
+                                >Number of objects (0 for all)</label
+                            >
                             <input
-                                id="radius"
+                                id="limit"
                                 type="number"
                                 min="0"
-                                max="10"
+                                max="100"
                                 value="0"
                                 class="form-control"
                             />
-                            <span class="input-group-text">pixels</span>
-                        </div>
-                    </div>
-                    <!-- Limit -->
-                    <div class="mb-3">
-                        <label for="limit" class="col-form-label"
-                            >Number of objects (0 for all)</label
-                        >
-                        <input
-                            id="limit"
-                            type="number"
-                            min="0"
-                            max="100"
-                            value="0"
-                            class="form-control"
-                        />
-                    </div>
-
-                    <div class="row">
-                        <!-- Prefer raycasting -->
-                        <div class="col">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="gpuPicking" />
-                                <label class="form-check-label" for="gpuPicking">
-                                    GPU picking
-                                </label>
-                            </div>
                         </div>
 
-                        <!-- Picking markers -->
-                        <div class="col">
-                            <div class="form-check">
-                                <input
-                                    class="form-check-input"
-                                    type="checkbox"
-                                    checked
-                                    id="showMarkers"
-                                    autocomplete="off"
-                                />
-                                <label class="form-check-label" for="showMarkers">
-                                    Show markers
-                                </label>
+                        <div class="row">
+                            <!-- Prefer raycasting -->
+                            <div class="col">
+                                <div class="form-check">
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        id="gpuPicking"
+                                    />
+                                    <label class="form-check-label" for="gpuPicking">
+                                        GPU picking
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Picking markers -->
+                            <div class="col">
+                                <div class="form-check">
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        checked
+                                        id="showMarkers"
+                                        autocomplete="off"
+                                    />
+                                    <label class="form-check-label" for="showMarkers">
+                                        Show markers
+                                    </label>
+                                </div>
                             </div>
                         </div>
+                        <div class="row">
+                            <!-- Pick map -->
+                            <div class="col">
+                                <div class="form-check">
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        id="pickMap"
+                                        autocomplete="off"
+                                    />
+                                    <label class="form-check-label" for="pickMap">
+                                        Pick only map
+                                    </label>
+                                </div>
+                            </div>
+                            <!-- Pick point cloud -->
+                            <div class="col">
+                                <div class="form-check">
+                                    <input
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        id="pickPointCloud"
+                                        autocomplete="off"
+                                    />
+                                    <label class="form-check-label" for="pickPointCloud">
+                                        Pick only point cloud
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </li>
+                <li class="list-group-item">
+                    <span id="latency">Pick latency: 12.1 ms</span>
+                </li>
+                <li class="list-group-item">
+                    <div id="emptyWarning" class="p-4">
+                        <span class="fs-4 text-secondary">No result to display</span>
                     </div>
-                    <div class="row">
-                        <!-- Pick map -->
-                        <div class="col">
-                            <div class="form-check">
-                                <input
-                                    class="form-check-input"
-                                    type="checkbox"
-                                    id="pickMap"
-                                    autocomplete="off"
-                                />
-                                <label class="form-check-label" for="pickMap">
-                                    Pick only map
-                                </label>
-                            </div>
-                        </div>
-                        <!-- Pick point cloud -->
-                        <div class="col">
-                            <div class="form-check">
-                                <input
-                                    class="form-check-input"
-                                    type="checkbox"
-                                    id="pickPointCloud"
-                                    autocomplete="off"
-                                />
-                                <label class="form-check-label" for="pickPointCloud">
-                                    Pick only point cloud
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-            </li>
-            <li class="list-group-item">
-                <span id="latency">Pick latency: 12.1 ms</span>
-            </li>
-            <li class="list-group-item">
-                <div id="emptyWarning" class="p-4">
-                    <span class="fs-4 text-secondary">No result to display</span>
-                </div>
-                <!-- Result table -->
-                <table id="table" class="table" style="display: none">
-                    <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Entity</th>
-                            <th scope="col">Object</th>
-                            <th scope="col">X</th>
-                            <th scope="col">Y</th>
-                            <th scope="col">Z</th>
-                        </tr>
-                    </thead>
-                    <tbody id="results">
-                        <tr>
-                            <td>?</td>
-                            <td>?</td>
-                            <td>?</td>
-                            <td>?</td>
-                            <td>?</td>
-                            <td>?</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </li>
-        </ul>
+                    <!-- Result table -->
+                    <table id="table" class="table" style="display: none">
+                        <thead>
+                            <tr>
+                                <th scope="col">#</th>
+                                <th scope="col">Entity</th>
+                                <th scope="col">Object</th>
+                                <th scope="col">X</th>
+                                <th scope="col">Y</th>
+                                <th scope="col">Z</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results">
+                            <tr>
+                                <td>?</td>
+                                <td>?</td>
+                                <td>?</td>
+                                <td>?</td>
+                                <td>?</td>
+                                <td>?</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>

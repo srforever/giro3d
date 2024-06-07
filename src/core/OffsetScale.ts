@@ -1,7 +1,8 @@
 import { Vector2, Vector4 } from 'three';
 
 /**
- * Describes a transformation of a point in 2D space. Typically used for UV coordinates.
+ * Describes a transformation of a point in 2D space without rotation.
+ * Typically used for to transform texture coordinates.
  */
 export default class OffsetScale extends Vector4 {
     readonly isOffsetScale = true;

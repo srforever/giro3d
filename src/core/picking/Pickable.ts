@@ -3,7 +3,7 @@ import type PickResult from './PickResult';
 import type PickOptions from './PickOptions';
 
 /**
- * Interface for {@link Entity3D}s implementing picking.
+ * Interface for an {@link entities.Entity3D | Entity3D} that implements picking.
  *
  * By default, Entity3D objects implement picking via Three.js raycasting.
  * Custom entities can implement this interface to provide an alternative picking

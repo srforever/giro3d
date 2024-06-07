@@ -3,58 +3,120 @@ title: Dynamic layer updates
 shortdesc: The layer is updated when the style changes.
 ---
 
-<div class="m-2 position-absolute top-0 end-0">
-    <div class="card m-1">
-        <fieldset class="container m-1" id="styleOptions">
-            <label for="thicknessSlider" class="form-label">Line thickness</label>
-            <div class="input-group">
-                <input
-                    type="range"
-                    min="0"
-                    max="10"
-                    value="1"
-                    class="form-range"
-                    id="thicknessSlider"
-                    autocomplete="off"
-                />
+<div class="side-pane-with-status-bar">
+    <!-- Top color layer -->
+    <div class="card">
+        <div class="card-header">Options</div>
+
+        <div class="card-body" id="top-options">
+            <!-- Show point -->
+            <div class="input-group my-2">
+                <div>
+                    <div class="form-check form-switch">
+                        <input
+                            class="form-check-input"
+                            checked
+                            type="checkbox"
+                            role="switch"
+                            id="show-point"
+                            autocomplete="off"
+                        />
+                        <label class="form-check-label" for="show-point">Show point</label>
+                    </div>
+                </div>
             </div>
 
-            <div class="my-2"></div>
-
-            <label for="iconScaleSlider" class="form-label">Icon radius</label>
-            <div class="input-group">
-                <input
-                    type="range"
-                    min="1"
-                    max="100"
-                    value="1"
-                    step="1"
-                    class="form-range"
-                    id="iconScaleSlider"
-                    autocomplete="off"
-                />
+            <!-- Show polygon -->
+            <div class="input-group my-2">
+                <div>
+                    <div class="form-check form-switch">
+                        <input
+                            class="form-check-input"
+                            checked
+                            type="checkbox"
+                            role="switch"
+                            id="show-polygon"
+                            autocomplete="off"
+                        />
+                        <label class="form-check-label" for="show-polygon">Show polygon</label>
+                    </div>
+                </div>
             </div>
 
-            <label for="iconOpacitySlider" class="form-label">Icon opacity</label>
-            <div class="input-group">
-                <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    value="1"
-                    step="0.05"
-                    class="form-range"
-                    id="iconOpacitySlider"
-                    autocomplete="off"
-                />
+            <!-- Show line -->
+            <div class="input-group my-2">
+                <div>
+                    <div class="form-check form-switch">
+                        <input
+                            class="form-check-input"
+                            checked
+                            type="checkbox"
+                            role="switch"
+                            id="show-line"
+                            autocomplete="off"
+                        />
+                        <label class="form-check-label" for="show-line">Show line</label>
+                    </div>
+                </div>
             </div>
 
-            <div class="my-4"></div>
+            <!-- Stroke width -->
+            <div class="input-group my-2">
+                <label for="stroke-width" class="form-label">Stroke width</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="1"
+                        step="1"
+                        max="20"
+                        value="10"
+                        class="form-range"
+                        id="stroke-width"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
 
-            <!-- Assign new style -->
-            <button type="button" class="btn btn-primary" id="changeStyleBtn">
-                Assign random style
+            <!-- Point radius -->
+            <div class="input-group my-2">
+                <label for="point-radius" class="form-label">Point radius</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="0.1"
+                        step="0.05"
+                        max="20"
+                        value="1.5"
+                        class="form-range"
+                        id="point-radius"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+
+            <!-- Style opacity -->
+            <div class="input-group my-2">
+                <label for="style-opacity" class="form-label">Style opacity</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="0"
+                        step="0.05"
+                        max="1"
+                        value="1"
+                        class="form-range"
+                        id="style-opacity"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+
+            <hr />
+
+            <!-- Randomize style -->
+            <button type="button" class="btn btn-primary w-100" id="randomize">
+                Randomize style
             </button>
-        </fieldset>
+        </div>
     </div>
 </div>

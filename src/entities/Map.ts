@@ -441,14 +441,14 @@ export type MapConstructorOptions = {
  *
  * ## Picking on maps
  *
- * Maps can be picked like any other 3D entity, using the {@link entities.Entity3D#pick} method.
+ * Maps can be picked like any other 3D entity, using the {@link entities.Entity3D#pick | pick()} method.
  *
  * However, if {@link TerrainOptions.enableCPUTerrain} is enabled, then the map provides an alternate
  * methods for: raycasting-based picking, in addition to GPU-based picking.
  *
  * ### GPU-based picking
  *
- * This is the default method for picking maps. When the user calls {@link entities.Entity3D#pick},
+ * This is the default method for picking maps. When the user calls {@link entities.Entity3D#pick | pick()},
  * the camera's field of view is rendered into a temporary texture, then the pixel(s) around the picked
  * point are analyzed to determine the location of the picked point.
  *
@@ -457,8 +457,8 @@ export type MapConstructorOptions = {
  *
  * ### Raycasting-based picking
  *
- * 💡 This method requires that {@link Terrain.enableCPUTerrain} is enabled, and that
- * {@link core.picking.PickOptions.preferRaycasting} is enabled.
+ * 💡 This method requires that {@link TerrainOptions.enableCPUTerrain} is enabled, and that
+ * {@link core.picking.PickOptions.gpuPicking} is disabled.
  *
  * This method casts a ray that is then intersected with the map's meshes. The first intersection is
  * returned.
@@ -491,6 +491,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     readonly allTiles: Set<TileMesh> = new Set();
     private readonly _layerIndices: globalThis.Map<string, number>;
     private readonly _layerIds: Set<string> = new Set();
+    /** @internal */
     readonly geometryPool: globalThis.Map<string, TileGeometry>;
     extent: Extent;
     readonly maxSubdivisionLevel: number;
@@ -1300,7 +1301,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             this._layerIds.delete(layer.id);
             this._layers.splice(this._layers.indexOf(layer), 1);
             if (layer.colorMap) {
-                this.materialOptions.colorMapAtlas.remove(layer.colorMap);
+                this.materialOptions.colorMapAtlas?.remove(layer.colorMap);
             }
             if (layer instanceof ElevationLayer) {
                 this._hasElevationLayer = false;
@@ -1443,7 +1444,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
      * the map's extent.
      *
      * Note: sampling might return more than one sample for any given coordinate. You can sort them
-     * by {@link ElevationSample.resolution} to select the best sample for your needs.
+     * by {@link entities.ElevationSample.resolution | resolution} to select the best sample for your needs.
      * @param options - The options.
      * @param result - The result object to populate with the samples. If none is provided, a new
      * empty result is created. The existing samples in the array are not removed. Useful to

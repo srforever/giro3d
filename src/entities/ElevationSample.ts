@@ -3,7 +3,7 @@ import type Map from './Map';
 /**
  * Contains information about an elevation sample taken on a map.
  */
-type ElevationSample = {
+interface ElevationSample {
     /**
      * The map on which the sample was done.
      */
@@ -17,6 +17,6 @@ type ElevationSample = {
      * The resolution of the elevation raster this sample was taken from.
      */
     resolution: number;
-};
+}
 
 export default ElevationSample;

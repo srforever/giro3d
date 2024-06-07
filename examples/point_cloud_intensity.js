@@ -321,3 +321,6 @@ function updateLabel(mouseEvent) {
 }
 
 instance.domElement.addEventListener('mousemove', updateLabel);
+
+// For some reason we have to wait a bit in order to the curve editor to display properly on Firefox.
+setTimeout(resetToDefaults, 100);

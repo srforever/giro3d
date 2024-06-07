@@ -698,6 +698,10 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
 
     setColorTextures(layer: ColorLayer, textureAndPitch: TextureAndPitch) {
         const index = this.indexOfColorLayer(layer);
+        if (index < 0) {
+            this.pushColorLayer(layer, null);
+        }
+
         const { pitch, texture } = textureAndPitch;
         this.texturesInfo.color.infos[index].originalOffsetScale.copy(pitch);
         this.texturesInfo.color.infos[index].texture = texture;
@@ -1123,6 +1127,10 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
 
     hasColorLayer(layer: ColorLayer) {
         return this.indexOfColorLayer(layer) !== -1;
+    }
+
+    hasElevationLayer(layer: ElevationLayer) {
+        return this._elevationLayer !== layer;
     }
 
     indexOfColorLayer(layer: ColorLayer) {

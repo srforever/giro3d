@@ -6,121 +6,123 @@ attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>, © <a href="h
 dependencies: ['colormap']
 ---
 
-<div class="m-2 position-absolute top-0 end-0">
-    <!-- Vector map -->
-    <div class="card m-2">
-        <div class="card-header">
-            <div class="form-check form-switch">
-                <input
-                    class="form-check-input"
-                    checked
-                    type="checkbox"
-                    role="switch"
-                    id="show-vector"
-                    autocomplete="off"
-                />
-                <label class="form-check-label" for="show-vector">Vector map</label>
+<div class="side-pane-with-status-bar">
+    <div class="mh-100 overflow-y-auto">
+        <!-- Vector map -->
+        <div class="card mb-1">
+            <div class="card-header">
+                <div class="form-check form-switch">
+                    <input
+                        class="form-check-input"
+                        checked
+                        type="checkbox"
+                        role="switch"
+                        id="show-vector"
+                        autocomplete="off"
+                    />
+                    <label class="form-check-label" for="show-vector">Vector map</label>
+                </div>
+            </div>
+
+            <div class="card-body" id="vector-options">
+                <!-- Opacity -->
+                <label for="vector-opacity" class="form-label">Map opacity</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="0"
+                        step="0.01"
+                        max="1"
+                        value="1"
+                        class="form-range"
+                        id="vector-opacity"
+                        autocomplete="off"
+                    />
+                </div>
+
+                <!-- Opacity -->
+                <label for="vector-bg-opacity" class="form-label">Background opacity</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="0"
+                        step="0.01"
+                        max="1"
+                        value="0"
+                        class="form-range"
+                        id="vector-bg-opacity"
+                        autocomplete="off"
+                    />
+                </div>
             </div>
         </div>
 
-        <fieldset class="container m-1" id="vector-options">
-            <!-- Opacity -->
-            <label for="vector-opacity" class="form-label">Map opacity</label>
-            <div class="input-group">
-                <input
-                    type="range"
-                    min="0"
-                    step="0.01"
-                    max="1"
-                    value="1"
-                    class="form-range"
-                    id="vector-opacity"
-                    autocomplete="off"
-                />
+        <!-- Orthophoto map -->
+        <div class="card mb-1">
+            <div class="card-header">
+                <div class="form-check form-switch">
+                    <input
+                        class="form-check-input"
+                        checked
+                        type="checkbox"
+                        role="switch"
+                        id="show-orthophoto"
+                        autocomplete="off"
+                    />
+                    <label class="form-check-label" for="show-orthophoto">Orthophoto map</label>
+                </div>
             </div>
 
-            <!-- Opacity -->
-            <label for="vector-bg-opacity" class="form-label">Background opacity</label>
-            <div class="input-group">
-                <input
-                    type="range"
-                    min="0"
-                    step="0.01"
-                    max="1"
-                    value="0"
-                    class="form-range"
-                    id="vector-bg-opacity"
-                    autocomplete="off"
-                />
-            </div>
-        </fieldset>
-    </div>
-
-    <!-- Orthophoto map -->
-    <div class="card m-2">
-        <div class="card-header">
-            <div class="form-check form-switch">
-                <input
-                    class="form-check-input"
-                    checked
-                    type="checkbox"
-                    role="switch"
-                    id="show-orthophoto"
-                    autocomplete="off"
-                />
-                <label class="form-check-label" for="show-orthophoto">Orthophoto map</label>
+            <div class="card-body" id="orthophoto-options">
+                <!-- Opacity -->
+                <label for="orthophoto-opacity" class="form-label">Map opacity</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="0"
+                        step="0.01"
+                        max="1"
+                        value="1"
+                        class="form-range"
+                        id="orthophoto-opacity"
+                        autocomplete="off"
+                    />
+                </div>
             </div>
         </div>
 
-        <fieldset class="container m-1" id="orthophoto-options">
-            <!-- Opacity -->
-            <label for="orthophoto-opacity" class="form-label">Map opacity</label>
-            <div class="input-group">
-                <input
-                    type="range"
-                    min="0"
-                    step="0.01"
-                    max="1"
-                    value="1"
-                    class="form-range"
-                    id="orthophoto-opacity"
-                    autocomplete="off"
-                />
+        <!-- Terrain map -->
+        <div class="card mb-1">
+            <div class="card-header">
+                <div class="form-check form-switch">
+                    <input
+                        class="form-check-input"
+                        checked
+                        type="checkbox"
+                        role="switch"
+                        id="show-terrain"
+                        autocomplete="off"
+                    />
+                    <label class="form-check-label" for="show-terrain">Terrain map</label>
+                </div>
             </div>
-        </fieldset>
-    </div>
 
-    <!-- Terrain map -->
-    <div class="card m-2">
-        <div class="card-header">
-            <div class="form-check form-switch">
-                <input
-                    class="form-check-input"
-                    checked
-                    type="checkbox"
-                    role="switch"
-                    id="show-terrain"
-                    autocomplete="off"
-                />
-                <label class="form-check-label" for="show-terrain">Terrain map</label>
+            <div class="card-body" id="terrain-options">
+                <!-- Opacity -->
+                <label for="terrain-opacity" class="form-label">Map opacity</label>
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="0"
+                        step="0.01"
+                        max="1"
+                        value="1"
+                        class="form-range"
+                        id="terrain-opacity"
+                        autocomplete="off"
+                    />
+                </div>
             </div>
         </div>
-
-        <fieldset class="container m-1" id="terrain-options">
-            <!-- Opacity -->
-            <label for="terrain-opacity" class="form-label">Map opacity</label>
-            <div class="input-group">
-                <input
-                    type="range"
-                    min="0"
-                    step="0.01"
-                    max="1"
-                    value="1"
-                    class="form-range"
-                    id="terrain-opacity"
-                    autocomplete="off"
-                />
-            </div>
-        </fieldset>
     </div>
 </div>

@@ -17,6 +17,7 @@ import MainLoop, { type RenderingState } from './MainLoop';
 import OperationCounter, { type OperationCounterEvents } from './OperationCounter';
 import type Progress from './Progress';
 import type MemoryUsage from './MemoryUsage';
+import type { MemoryUsageReport, GetMemoryUsageContext } from './MemoryUsage';
 import PointCloud, { type PointCloudEventMap, type PointCloudOptions } from './PointCloud';
 import type ElevationRange from './ElevationRange';
 import type ContourLineOptions from './ContourLineOptions';
@@ -36,12 +37,14 @@ import {
 import type GraticuleOptions from './GraticuleOptions';
 import type HillshadingOptions from './HillshadingOptions';
 import type Disposable from './Disposable';
+import type OffsetScale from './OffsetScale';
 
 export {
     geographic,
     layer,
     cache,
     picking,
+    OffsetScale,
     Disposable,
     Instance,
     InstanceOptions,
@@ -59,6 +62,8 @@ export {
     OperationCounterEvents,
     Progress,
     MemoryUsage,
+    MemoryUsageReport,
+    GetMemoryUsageContext,
     PointCloud,
     PointCloudEventMap,
     PointCloudOptions,

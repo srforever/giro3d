@@ -1,6 +1,6 @@
 import Layer, { type LayerEvents, type LayerOptions, type LayerUserData } from './Layer';
 import ColorLayer, { type ColorLayerEvents, type ColorLayerOptions } from './ColorLayer';
-import MaskLayer, { type MaskLayerOptions } from './MaskLayer';
+import MaskLayer, { type MaskLayerOptions, type MaskMode } from './MaskLayer';
 import ElevationLayer, { type ElevationLayerOptions } from './ElevationLayer';
 import ColorMap from './ColorMap';
 import ColorMapMode from './ColorMapMode';
@@ -31,5 +31,6 @@ export {
     LayerUserData,
     MaskLayer,
     MaskLayerOptions,
+    MaskMode,
     NoDataOptions,
 };

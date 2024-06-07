@@ -341,9 +341,11 @@ abstract class Layer<
     readonly extent: Extent;
     /** The source of this layer */
     readonly source: ImageSource;
+    /** @internal */
     protected _composer: LayerComposer;
     private readonly _targets: Map<number, Target>;
     private readonly _filter: (id: string) => boolean;
+    /** @internal */
     protected readonly _queue: RequestQueue;
     private _shouldNotify: boolean;
     disposed: boolean;
@@ -1043,8 +1045,6 @@ abstract class Layer<
             this._targets.set(node.id, target);
             this._sortedTargets = null;
 
-            this.registerNode(node, extent);
-
             // Since the node does not own the texture for this layer, we need to be
             // notified whenever it is disposed so we can in turn dispose the texture.
             node.addEventListener('dispose', this._onNodeDisposed);
@@ -1183,8 +1183,6 @@ abstract class Layer<
     protected updateMaterial(material: Material) {
         // Implemented in derived classes
     }
-
-    abstract registerNode(node: Node, extent: Extent): void;
 
     protected abstract applyTextureToNode(
         texture: TextureAndPitch,

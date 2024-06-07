@@ -100,10 +100,6 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
         return true;
     }
 
-    registerNode(node: TileMesh) {
-        node.material.pushElevationLayer(this);
-    }
-
     unregisterNode(node: TileMesh) {
         super.unregisterNode(node);
 
@@ -112,7 +108,7 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
         node.material.removeElevationLayer();
     }
 
-    protected getMinMax(texture: TextureWithMinMax) {
+    private getMinMax(texture: TextureWithMinMax) {
         if (this.minmax == null) {
             this.minmax = { min: texture.min, max: texture.max };
         }
@@ -141,6 +137,11 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
         };
 
         const node = target.node as TileMesh;
+
+        if (!node.material.hasElevationLayer(this)) {
+            node.material.pushElevationLayer(this);
+        }
+
         node.setElevationTexture(
             this,
             { ...value, renderTarget: target.renderTarget },

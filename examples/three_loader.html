@@ -4,16 +4,19 @@ shortdesc: Load models directly from a Three.js loader (skinned mesh in this ins
 attribution: © <a href="http://threejs.org" target="_blank">threejs.org</a>
 ---
 
-<div class="m-3 position-absolute top-0 end-0 card">
-    <div class="card-body">
-        <div class="dropdown">
-            <select class="btn btn-primary dropdown-toggle d-block" id="pick_source">
-                <option value="0" selected>Pick from all models</option>
-                <option value="1">Pick from Vanguard idle</option>
-                <option value="3">Pick from Vanguard walking</option>
-                <option value="2">Pick from Vanguard running</option>
-            </select>
+<div class="side-pane-with-status-bar">
+    <div class="card">
+        <div class="card-body">
+            <div class="input-group">
+                <label class="input-group-text" for="pick_source">Pick from</label>
+                <select class="form-select" id="pick_source">
+                    <option value="0" selected>All models</option>
+                    <option value="1">Vanguard idle</option>
+                    <option value="3">Vanguard walking</option>
+                    <option value="2">Vanguard running</option>
+                </select>
+            </div>
+            <div id="selectedDiv"></div>
         </div>
-        <div id="selectedDiv"></div>
     </div>
 </div>

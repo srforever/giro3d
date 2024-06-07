@@ -8,7 +8,6 @@ import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import WmtsSource from '@giro3d/giro3d/sources/WmtsSource.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-// NOTE: changing the imported name because we use the native `Map` object in this example.
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 
 import StatusBar from './widgets/StatusBar.js';

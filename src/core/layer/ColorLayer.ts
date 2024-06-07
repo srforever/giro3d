@@ -188,10 +188,6 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
         return target.node.canProcessColorLayer();
     }
 
-    registerNode(node: Node, extent: Extent) {
-        node.material.pushColorLayer(this, extent);
-    }
-
     unregisterNode(node: Node) {
         super.unregisterNode(node);
         const material = node.material;
@@ -203,6 +199,12 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
     }
 
     protected applyTextureToNode(result: TextureAndPitch, target: Target) {
+        const material = target.node.material;
+
+        if (!material.hasColorLayer(this)) {
+            material.pushColorLayer(this, target.extent);
+        }
+
         target.node.material.setColorTextures(this, result);
     }
 

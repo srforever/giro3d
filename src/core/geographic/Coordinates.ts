@@ -117,7 +117,22 @@ export function is4326(crs: string) {
 
 const planarNormal = new Vector3(0, 0, 1);
 
-type Input = [number, number] | [number, number, number] | [Vector3];
+/**
+ * Possible values to set a `Coordinates` object.
+ *
+ * It can be:
+ * - A pair of numbers for 2D coordinates [X, Y]
+ * - A triplet of numbers for 3D coordinates [X, Y, Z]
+ * - A THREE `Vector3`
+ *
+ * @example
+ * new Coordinates('EPSG:4978', 20885167, 849862, 23385912); //Geocentric coordinates
+ * // or
+ * new Coordinates('EPSG:4978', new Vector3(20885167, 849862, 23385912)) // Same with a vector.
+ * // or
+ * new Coordinates('EPSG:4326', 2.33, 48.24, 24999549); //Geographic coordinates
+ */
+export type CoordinateParameters = [number, number] | [number, number, number] | [Vector3];
 
 /**
  * Represents coordinates associated with a coordinate reference system (CRS).
@@ -135,15 +150,8 @@ class Coordinates {
      *
      * @param crs - Geographic or Geocentric coordinates system.
      * @param coordinates - The coordinates.
-     * ```js
-     * new Coordinates('EPSG:4978', 20885167, 849862, 23385912); //Geocentric coordinates
-     * // or
-     * new Coordinates('EPSG:4978', new Vector3(20885167, 849862, 23385912)) // Same with a vector.
-     * // or
-     * new Coordinates('EPSG:4326', 2.33, 48.24, 24999549); //Geographic coordinates
-     * ```
      */
-    constructor(crs: string, ...coordinates: Input) {
+    constructor(crs: string, ...coordinates: CoordinateParameters) {
         this._values = new Float64Array(3);
         this.set(crs, ...coordinates);
     }
@@ -162,7 +170,7 @@ class Coordinates {
         return planarNormal;
     }
 
-    set(crs: string, ...coordinates: Input) {
+    set(crs: string, ...coordinates: CoordinateParameters) {
         crsToUnitWithError(crs);
         this.crs = crs;
 

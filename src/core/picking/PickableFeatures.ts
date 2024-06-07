@@ -2,10 +2,10 @@ import type PickResult from './PickResult';
 import type PickOptions from './PickOptions';
 
 /**
- * Interface for {@link Entity3D}s or Object3Ds implementing feature picking.
+ * Interface for {@link entities.Entity3D | Entity3D}s or Object3Ds implementing feature picking.
  *
  * Implementing this enables the object to provide additional data on its picked
- * results via {@link Instance.pickObjectsAt} with `pickFeatures` option.
+ * results via {@link core.Instance.pickObjectsAt | Instance.pickObjectsAt()} with `pickFeatures` option.
  *
  * This interface uses several generic types:
  * - `TFeature` represents the type of additional data on picked results,

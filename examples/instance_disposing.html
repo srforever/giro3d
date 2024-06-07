@@ -4,20 +4,24 @@ shortdesc: Help to test if Giro3D correctly deallocates memory.
 attribution: Map style by <a target="_blank" href="https://stamen.com/">Stamen Design</a>, © OpenStreetMap contributors
 ---
 
-<div class="p-2 m-2 position-absolute top-0 end-0">
-    <div class="container card p-2 m-2" id="buttons-container">
-        <div class="form-check form-switch">
-            <input
-                class="form-check-input"
-                type="checkbox"
-                checked="true"
-                role="switch"
-                id="autoreload"
-                autocomplete="off"
-            />
-            <label class="form-check-label" for="autoreload">Reload Giro3D every 2 seconds</label>
-        </div>
+<div class="side-pane-with-status-bar">
+    <div class="card" id="buttons-container">
+        <div class="card-body">
+            <div class="form-check form-switch">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    checked="true"
+                    role="switch"
+                    id="autoreload"
+                    autocomplete="off"
+                />
+                <label class="form-check-label" for="autoreload"
+                    >Reload Giro3D every 2 seconds</label
+                >
+            </div>
 
-        <button id="load_once" class="btn btn-primary">Dispose and reload Giro3D once</button>
+            <button id="load_once" class="btn btn-primary">Dispose and reload Giro3D once</button>
+        </div>
     </div>
 </div>
