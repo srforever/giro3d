@@ -60,6 +60,8 @@ This release brings many improvements to point clouds: support for classificatio
 -   **TileMesh**: fix incorrect reset of heightmap when no elevation texture has been loaded yet
 -   **LayerInspector**: use correct colorimetry object (layer instead of map)
 -   **Map**: enable display of elevation textures on iOS (#445)
+-   **Layer**: ensure that layers are always registered in the material (#462)
+-   **LayerComposer**: make `getMinMax()` ignore images that do not have a valid min/max (!638)
 
 ### Perf
 
