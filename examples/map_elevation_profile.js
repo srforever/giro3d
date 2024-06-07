@@ -68,6 +68,7 @@ const map = new Map('planar', {
 instance.add(map);
 
 const source = new TiledImageSource({
+    retries: 0,
     source: new XYZ({
         minZoom: 10,
         maxZoom: 16,
@@ -86,6 +87,9 @@ const dem = new ElevationLayer({
     name: 'dem',
     extent,
     source,
+    noDataOptions: {
+        replaceNoData: true,
+    },
     colorMap: new ColorMap(colors, floor, ceiling, ColorMapMode.Elevation),
 });
 
