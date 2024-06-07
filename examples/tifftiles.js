@@ -92,6 +92,9 @@ Fetcher.json('data/MtStHelens-footprint.geojson')
                 name: 'osm',
                 extent,
                 source,
+                noDataOptions: {
+                    replaceNoData: true,
+                },
             }),
         ).catch(e => console.error(e));
     })
