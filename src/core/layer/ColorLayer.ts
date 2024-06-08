@@ -208,8 +208,8 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
         target.node.material.setColorTextures(this, result);
     }
 
-    protected applyEmptyTextureToNode(node: Node) {
-        node.material.removeColorLayer(this);
+    protected applyEmptyTextureToNode(target: Target) {
+        target.node.material.removeColorLayer(this);
     }
 
     pickFeaturesFrom(pickedResult: MapPickResult, options?: PickOptions): VectorPickFeature[] {

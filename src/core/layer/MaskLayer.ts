@@ -2,7 +2,7 @@ import { Texture, type TextureDataType, UnsignedByteType } from 'three';
 import { type Feature } from 'ol';
 import { type Geometry } from 'ol/geom';
 import ColorLayer from './ColorLayer';
-import type { LayerOptions, LayerUserData, Node } from './Layer';
+import type { LayerOptions, LayerUserData, Target } from './Layer';
 import OffsetScale from '../OffsetScale';
 
 /**
@@ -71,11 +71,17 @@ class MaskLayer<UserData extends LayerUserData = LayerUserData> extends ColorLay
         return UnsignedByteType;
     }
 
-    applyEmptyTextureToNode(node: Node) {
+    applyEmptyTextureToNode(target: Target) {
+        const material = target.node.material;
+
+        if (!material.hasColorLayer(this)) {
+            material.pushColorLayer(this, target.extent);
+        }
+
         // We cannot remove the layer from the material, contrary to what is done for
         // other layer types, because since this layer acts as a mask, it must be defined
         // for the entire map.
-        node.material.setColorTextures(this, {
+        material.setColorTextures(this, {
             texture: EMPTY_TEXTURE,
             pitch: DEFAULT_PITCH,
         });
