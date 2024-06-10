@@ -409,7 +409,7 @@ function getPixels(image: ImageBitmap | HTMLImageElement | HTMLCanvasElement): U
     const canvas = document.createElement('canvas');
     canvas.width = image.width;
     canvas.height = image.height;
-    const context = canvas.getContext('2d', { willReadFrequently: true, desynchronized: true });
+    const context = canvas.getContext('2d', { willReadFrequently: true });
     context.drawImage(image, 0, 0);
 
     return context.getImageData(0, 0, image.width, image.height).data;
@@ -860,7 +860,6 @@ function getImageData(
     if (source instanceof HTMLCanvasElement || source instanceof OffscreenCanvas) {
         const context = source.getContext('2d', {
             willReadFrequently: true,
-            desynchronized: true,
         }) as CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
         const imageData = context.getImageData(0, 0, source.width, source.height);
         return imageData.data;
