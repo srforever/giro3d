@@ -94,7 +94,7 @@ function rasterizeBuilderGroup(
     const pixelRatio = 1;
     const resX = extent.dimensions().x / size.width;
     const resY = extent.dimensions().y / size.height;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true, desynchronized: true });
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
     const transform = resetTransform(tmpTransform);
     scaleTransform(transform, pixelRatio / resX, -pixelRatio / resY);
