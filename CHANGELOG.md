@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.37.2 (2024-06-10)
+
+Hotfix for the 0.37 release.
+
+### Fix
+
+-   **VectorSource**: don't use a desynchronized canvas (#464)
+
 ## v0.37.1 (2024-06-10)
 
 Hotfix for the 0.37 release.
