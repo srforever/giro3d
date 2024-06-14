@@ -12,6 +12,7 @@ import {
     Raycaster,
     type Intersection,
     type ColorRepresentation,
+    Box3,
 } from 'three';
 
 import type Extent from '../core/geographic/Extent';
@@ -95,6 +96,7 @@ export type LayerCompareFn = (a: Layer, b: Layer) => number;
 const MAX_SUPPORTED_ASPECT_RATIO = 10;
 
 const tmpVector = new Vector3();
+const tmpBox3 = new Box3();
 const tempNDC = new Vector2();
 const tempCanvasCoords = new Vector2();
 const tmpSseSizes: [number, number] = [0, 0];
@@ -777,13 +779,12 @@ class Map<UserData extends EntityUserData = EntityUserData>
         tile.material.wireframe = this.wireframe || false;
 
         if (parent) {
-            tile.setBBoxZ(parent.OBB.z.min, parent.OBB.z.max);
+            tile.setBBoxZ(parent.minmax.min, parent.minmax.max);
         } else {
             const { min, max } = this.getElevationMinMax();
             tile.setBBoxZ(min, max);
         }
 
-        tile.add(tile.OBB);
         this.onTileCreated(this, parent, tile);
 
         this.onObjectCreated(tile);
@@ -1118,13 +1119,13 @@ class Map<UserData extends EntityUserData = EntityUserData>
             let requestChildrenUpdate = false;
 
             if (!this.frozen) {
-                const s = node.OBB.box3D.getSize(tmpVector);
-                const obb = node.OBB;
+                const size = node.boundingBox.getSize(tmpVector);
+                const box = node.boundingBox;
                 const sse = ScreenSpaceError.computeFromBox3(
                     context.camera,
-                    obb.box3D,
-                    obb.matrixWorld,
-                    Math.max(s.x, s.y),
+                    box,
+                    node.matrixWorld,
+                    Math.max(size.x, size.y),
                     ScreenSpaceError.Mode.MODE_2D,
                 );
 
@@ -1161,7 +1162,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     private testVisibility(node: TileMesh, context: Context): boolean {
         node.update(this.materialOptions);
 
-        const isVisible = context.camera.isBox3Visible(node.OBB.box3D, node.OBB.matrixWorld);
+        const isVisible = context.camera.isBox3Visible(node.boundingBox, node.matrixWorld);
 
         return isVisible;
     }
@@ -1565,7 +1566,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 
     private updateMinMaxDistance(context: Context, node: TileMesh) {
-        const bbox = node.OBB.box3D.clone().applyMatrix4(node.OBB.matrixWorld);
+        const bbox = node.getWorldSpaceBoundingBox(tmpBox3);
         const distance = context.distance.plane.distanceToPoint(bbox.getCenter(tmpVector));
         const radius = bbox.getSize(tmpVector).length() * 0.5;
         this._distance.min = Math.min(this._distance.min, distance - radius);

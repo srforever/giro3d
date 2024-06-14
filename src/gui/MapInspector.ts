@@ -241,7 +241,7 @@ class MapInspector extends EntityInspector {
             element.innerText = innerText;
             element.style.color = `#${color.getHexString()}`;
             element.style.opacity = isVisible ? '100%' : '0%';
-            tile.OBB.box3D.getCenter(label.position);
+            tile.boundingBox.getCenter(label.position);
             label.updateMatrixWorld();
         }
     }
@@ -336,20 +336,6 @@ class MapInspector extends EntityInspector {
 
     dumpTiles() {
         console.log(this.map.level0Nodes);
-    }
-
-    /**
-     * @param tile - The tile to decorate.
-     * @param add - If true, bounding box is added, otherwise it is removed.
-     * @param color - The bounding box color.
-     */
-    // eslint-disable-next-line class-methods-use-this
-    addOrRemoveBoundingBox(tile: TileMesh, add: boolean, color: Color) {
-        if (add && tile.OBB && tile.visible && tile.material && tile.material.visible) {
-            Helpers.addOBB(tile, tile.OBB, color);
-        } else {
-            Helpers.removeOBB(tile);
-        }
     }
 
     updateValues() {

@@ -37,10 +37,6 @@ export class BoundingBoxHelper extends Box3Helper {
     material: Material;
 }
 
-interface HasOBB extends Object3D {
-    get OBB(): OBB;
-}
-
 interface HasBoundingBox extends Object3D {
     boundingBox: Box3;
 }
@@ -102,11 +98,6 @@ function create3dTileRegion(region: OBB, color: Color) {
  */
 function makeLocalBbox(object: Object3D, precise = false): Box3 {
     // The object provides a specific bounding box
-    if ((object as HasOBB).OBB) {
-        const obb = (object as HasOBB).OBB;
-        return obb.box3D;
-    }
-
     if ((object as HasBoundingBox).boundingBox) {
         return (object as HasBoundingBox).boundingBox;
     }
