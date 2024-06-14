@@ -1,0 +1,113 @@
+---
+title: Vertical exaggeration
+shortdesc: Apply a vertical exaggeration on a scene.
+longdesc: Vertical exaggeration, also known as Z-scale, is helpful to emphasize the features of terrain. However, properly handling this scale can be tricky, as the equivalence relationship between scene units and actual geospatial coordinates no longer applies. For example, with a z-scale of 200%, a scene coordinate with a Z value of 2 actually means 1 meter of elevation.
+attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological Survey</a>
+dependencies: ['colormap']
+---
+
+<div class="side-pane-with-status-bar pe-none">
+    <div class="card pe-auto">
+        <div class="card-header">
+            Parameters
+            <button type="button" id="reset" class="btn btn-sm btn-primary rounded float-end">
+                reset
+            </button>
+        </div>
+
+        <div class="card-body">
+            <label for="vertical-exaggeration" id="label-vertical-exaggeration" class="form-label"
+                >Z-scale: <span class="fw-bold text-success">100%</span></label
+            >
+            <div class="input-group">
+                <input
+                    type="range"
+                    min="0.01"
+                    max="10"
+                    step="0.01"
+                    value="1"
+                    class="form-range"
+                    id="vertical-exaggeration"
+                    autocomplete="off"
+                />
+            </div>
+
+            <hr />
+
+            <div class="form-check form-switch">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    checked
+                    id="show-grid"
+                    autocomplete="off"
+                />
+                <label class="form-check-label" for="show-grid">Show grid</label>
+            </div>
+
+            <div class="form-check form-switch">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="show-colliders"
+                    autocomplete="off"
+                />
+                <label class="form-check-label" for="show-colliders">Show collider meshes</label>
+            </div>
+
+            <div class="form-check form-switch">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="wireframe"
+                    autocomplete="off"
+                />
+                <label class="form-check-label" for="wireframe">Wireframe</label>
+            </div>
+
+            <label for="geometric-resolution" id="label-geometric-resolution" class="form-label"
+                >Terrain mesh resolution: 32</label
+            >
+            <div class="input-group">
+                <input
+                    type="range"
+                    min="0"
+                    max="7"
+                    step="1"
+                    value="5"
+                    class="form-range"
+                    id="geometric-resolution"
+                    autocomplete="off"
+                />
+            </div>
+
+            <hr />
+
+            <table class="table" style="width: 25rem">
+                <thead>
+                    <tr>
+                        <th scope="col">Measurement</th>
+                        <th scope="col">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row">Z (in scene units)</th>
+                        <td id="raw-height">-</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Z after Z-scale compensation</th>
+                        <td id="adjusted-height">-</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">Actual elevation from layer</th>
+                        <td style="width: 8rem" id="raster-height">-</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
