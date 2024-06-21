@@ -619,11 +619,19 @@ class TileMesh
         const outputHeight = Math.floor(renderTarget.height);
         const outputWidth = Math.floor(renderTarget.width);
 
+        // On millimeter
+        const precision = 0.001;
+
+        // To ensure that all values are positive before encoding
+        const offset = -this._minmax.min;
+
         const buffer = TextureGenerator.readRGRenderTargetIntoRGBAU8Buffer({
             renderTarget,
             renderer: this._instance.renderer,
             outputWidth,
             outputHeight,
+            precision,
+            offset,
         });
 
         const heightMap = new HeightMap(
@@ -633,6 +641,8 @@ class TileMesh
             offsetScale,
             RGBAFormat,
             UnsignedByteType,
+            precision,
+            offset,
         );
         this._heightMap = intoUniqueOwner(heightMap, this);
     }

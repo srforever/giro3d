@@ -30,7 +30,7 @@ export interface Options {
     showEmptyTexture: boolean;
     transparent: boolean;
     expandRGB: boolean;
-    convertRGFloatToRGBAUnsignedByte: boolean;
+    convertRGFloatToRGBAUnsignedByte: { precision: number; offset: number } | null;
 }
 
 function createGridTexture() {
@@ -93,6 +93,8 @@ interface Uniforms {
     noDataOptions: IUniform<NoDataOptions>;
     interpretation: IUniform<InterpretationUniform>;
     convertRGFloatToRGBAUnsignedByte: IUniform<boolean>;
+    heightPrecision: IUniform<number>;
+    heightOffset: IUniform<number>;
 }
 
 class ComposerTileMaterial extends ShaderMaterial {
@@ -129,7 +131,13 @@ class ComposerTileMaterial extends ShaderMaterial {
         this.uniforms.showEmptyTexture = new Uniform(options.showEmptyTexture ?? false);
         this.uniforms.isEmptyTexture = new Uniform(false);
         this.uniforms.convertRGFloatToRGBAUnsignedByte = new Uniform(
-            options.convertRGFloatToRGBAUnsignedByte ?? false,
+            options.convertRGFloatToRGBAUnsignedByte != null,
+        );
+        this.uniforms.heightPrecision = new Uniform(
+            options.convertRGFloatToRGBAUnsignedByte?.precision ?? 0.1,
+        );
+        this.uniforms.heightOffset = new Uniform(
+            options.convertRGFloatToRGBAUnsignedByte?.offset ?? 20000,
         );
         this.now = performance.now();
         this.type = 'ComposerTileMaterial';
@@ -162,7 +170,10 @@ class ComposerTileMaterial extends ShaderMaterial {
         this.uniforms.showEmptyTexture.value = options.showEmptyTexture ?? false;
         this.uniforms.isEmptyTexture.value = TextureGenerator.isEmptyTexture(options.texture);
         this.uniforms.convertRGFloatToRGBAUnsignedByte.value =
-            options.convertRGFloatToRGBAUnsignedByte ?? false;
+            options.convertRGFloatToRGBAUnsignedByte != null;
+        this.uniforms.heightPrecision.value =
+            options.convertRGFloatToRGBAUnsignedByte?.precision ?? 0.1;
+        this.uniforms.heightOffset.value = options.convertRGFloatToRGBAUnsignedByte?.offset ?? 0.1;
 
         const channelCount = TextureGenerator.getChannelCount(this.pixelFormat);
         this.uniforms.channelCount.value = channelCount;

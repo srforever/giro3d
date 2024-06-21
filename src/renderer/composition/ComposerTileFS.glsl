@@ -16,6 +16,8 @@ uniform bool showEmptyTexture;
 uniform bool convertRGFloatToRGBAUnsignedByte;
 uniform int channelCount;
 uniform bool expandRGB;
+uniform float heightPrecision;
+uniform float heightOffset;
 
 void main() {
     vec2 uv = flipY
@@ -32,7 +34,7 @@ void main() {
             gl_FragColor = texture2D(tex, uv);
 
             if (convertRGFloatToRGBAUnsignedByte) {
-                gl_FragColor = convert_RG_Float_RGBA_UnsignedByte(gl_FragColor);
+                gl_FragColor = convert_RG_Float_RGBA_UnsignedByte(gl_FragColor, heightPrecision, heightOffset);
             } else {
                 gl_FragColor = decodeInterpretation(gl_FragColor, interpretation);
             }

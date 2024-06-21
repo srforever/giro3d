@@ -65,7 +65,7 @@ export interface DrawOptions {
     fillNoDataAlphaReplacement?: number;
     transparent?: boolean;
     expandRGB?: boolean;
-    convertRGFloatToRGBAUnsignedByte?: boolean;
+    convertRGFloatToRGBAUnsignedByte?: { precision: number; offset: number };
 }
 
 /**
@@ -276,7 +276,7 @@ class WebGLComposer {
             showEmptyTexture: this._showEmptyTextures,
             showImageOutlines: this._showImageOutlines,
             expandRGB: options.expandRGB ?? this._expandRGB,
-            convertRGFloatToRGBAUnsignedByte: options.convertRGFloatToRGBAUnsignedByte ?? false,
+            convertRGFloatToRGBAUnsignedByte: options.convertRGFloatToRGBAUnsignedByte ?? null,
         });
         MemoryTracker.track(material, 'WebGLComposer - material');
 

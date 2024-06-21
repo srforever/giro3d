@@ -8,11 +8,9 @@ const int PIXEL_FORMAT_RG = 1030;
 const int TEXTURE_TYPE_FLOAT = 1015;
 const int TEXTURE_TYPE_UINT8 = 1009;
 
-const float RGBA_OFFSET = 20000.0;
-
 // Converts a RG / Float color into a RGBA / Unsigned byte color
-vec4 convert_RG_Float_RGBA_UnsignedByte(const in vec4 color) {
-    float f = color.r + RGBA_OFFSET;
+vec4 convert_RG_Float_RGBA_UnsignedByte(const in vec4 color, const in float _precision, const in float offset) {
+    float f = (color.r + offset) / _precision;
 
     vec4 result;
 
