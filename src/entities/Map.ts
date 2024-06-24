@@ -621,6 +621,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
                 // Delete cached geometries that just became obsolete
                 this.clearGeometryPool();
                 this._segments = v;
+                this.materialOptions.segments = v;
                 this.updateGeometries();
             } else {
                 throw new Error(
