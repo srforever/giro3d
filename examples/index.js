@@ -10,7 +10,7 @@ function executeSearchQuery(elem) {
         });
     }
 
-    const re = new RegExp(query);
+    const re = new RegExp(query, 'gmi');
 
     examples.forEach(o => {
         /** @type {HTMLElement} */
