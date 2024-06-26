@@ -9,6 +9,7 @@ import TileIndex, {
     LEFT,
     TOP_LEFT,
     type Tile,
+    type NeighbourList,
 } from '../../../src/core/TileIndex';
 
 class MockWeakRef<T extends WeakKey> implements WeakRef<T> {
@@ -191,10 +192,11 @@ describe('TileIndex', () => {
     });
 
     describe('getNeighbours', () => {
-        it('should return an array of 8 elements', () => {
+        it('should return the passed tuple', () => {
             const tileIndex = new TileIndex();
             const tile = makeTile(0, 0, 1, true);
-            expect(tileIndex.getNeighbours(tile)).toHaveLength(8);
+            const target: NeighbourList<Tile> = [null, null, null, null, null, null, null, null];
+            expect(tileIndex.getNeighbours(tile, target)).toHaveLength(8);
         });
 
         describe('should return elements in the correct windind order', () => {
@@ -233,7 +235,18 @@ describe('TileIndex', () => {
                 tileIndex.addTile(T4);
                 tileIndex.addTile(T5);
 
-                const t0Neighbours = tileIndex.getNeighbours(T0);
+                const target: NeighbourList<Tile> = [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                ];
+
+                const t0Neighbours = tileIndex.getNeighbours(T0, target);
 
                 expect(t0Neighbours[RIGHT]).toBe(T2);
                 expect(t0Neighbours[TOP_RIGHT]).toBe(T2);
@@ -244,7 +257,7 @@ describe('TileIndex', () => {
                 expect(t0Neighbours[LEFT]).toBeNull();
                 expect(t0Neighbours[TOP_LEFT]).toBeNull();
 
-                const t1Neighbours = tileIndex.getNeighbours(T1);
+                const t1Neighbours = tileIndex.getNeighbours(T1, target);
 
                 expect(t1Neighbours[RIGHT]).toBe(T2);
                 expect(t1Neighbours[BOTTOM_RIGHT]).toBe(T2);
@@ -255,7 +268,7 @@ describe('TileIndex', () => {
                 expect(t1Neighbours[LEFT]).toBeNull();
                 expect(t1Neighbours[TOP_LEFT]).toBeNull();
 
-                const t3Neighbours = tileIndex.getNeighbours(T3);
+                const t3Neighbours = tileIndex.getNeighbours(T3, target);
 
                 expect(t3Neighbours[LEFT]).toBe(T5);
                 expect(t3Neighbours[RIGHT]).toBeNull();
@@ -266,7 +279,7 @@ describe('TileIndex', () => {
                 expect(t3Neighbours[BOTTOM_LEFT]).toBeNull();
                 expect(t3Neighbours[TOP_LEFT]).toBeNull();
 
-                const t5Neighbours = tileIndex.getNeighbours(T5);
+                const t5Neighbours = tileIndex.getNeighbours(T5, target);
 
                 expect(t5Neighbours[RIGHT]).toBe(T3);
                 expect(t5Neighbours[LEFT]).toBeNull();
@@ -306,7 +319,18 @@ describe('TileIndex', () => {
                 tileIndex.addTile(topRight);
                 tileIndex.addTile(topLeft);
 
-                const neighbours = tileIndex.getNeighbours(tile);
+                const target: NeighbourList<Tile> = [
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                ];
+
+                const neighbours = tileIndex.getNeighbours(tile, target);
 
                 expect(neighbours[TOP]).toBe(top);
                 expect(neighbours[RIGHT]).toBe(right);
