@@ -12,6 +12,11 @@
             <p class="card-text text-muted fs-6" id="example-desc-<%= example.id %>">
                 <%- example.description %>
             </p>
+            <div class="position-absolute bottom-0 mb-3">
+                <% example.tags?.forEach(function(tag) { %>
+                <span class="badge rounded-pill text-bg-secondary"><%= tag %></span
+                ><% }); %>
+            </div>
         </div>
     </div>
 </div>
