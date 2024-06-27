@@ -778,6 +778,8 @@ function readRGRenderTargetIntoRGBAU8Buffer(options: {
     renderer: WebGLRenderer;
     outputWidth: number;
     outputHeight: number;
+    precision: number;
+    offset: number;
 }): Uint8ClampedArray {
     const { renderTarget: originalRenderTarget, outputWidth, outputHeight, renderer } = options;
 
@@ -808,7 +810,10 @@ function readRGRenderTargetIntoRGBAU8Buffer(options: {
         });
 
         composer.draw(originalRenderTarget.texture, rect, {
-            convertRGFloatToRGBAUnsignedByte: true,
+            convertRGFloatToRGBAUnsignedByte: {
+                precision: options.precision,
+                offset: options.offset,
+            },
         });
 
         target = new WebGLRenderTarget(outputWidth, outputHeight, {

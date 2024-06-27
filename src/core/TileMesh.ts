@@ -13,6 +13,8 @@ import {
     type Raycaster,
     Ray,
     Matrix4,
+    Box3,
+    Vector3,
 } from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker';
@@ -20,7 +22,6 @@ import type LayeredMaterial from '../renderer/LayeredMaterial';
 import type { MaterialOptions } from '../renderer/LayeredMaterial';
 import type Extent from './geographic/Extent';
 import TileGeometry from './TileGeometry';
-import OBB from './OBB';
 import type RenderingState from '../renderer/RenderingState';
 import ElevationLayer from './layer/ElevationLayer';
 import type Disposable from './Disposable';
@@ -54,6 +55,7 @@ const helperMaterial = new MeshBasicMaterial({
 const NO_NEIGHBOUR = -99;
 const VECTOR4_ZERO = new Vector4(0, 0, 0, 0);
 const tempVec2 = new Vector2();
+const tempVec3 = new Vector3();
 
 type GeometryPool = Map<string, TileGeometry>;
 
@@ -86,6 +88,84 @@ export interface TileMeshEventMap extends Object3DEventMap {
     };
 }
 
+class TileVolume {
+    private readonly _localBox: Box3;
+    private readonly _owner: Object3D<Object3DEventMap>;
+
+    constructor(options: { extent: Extent; min: number; max: number; owner: Object3D }) {
+        const dims = options.extent.dimensions(tempVec2);
+        const width = dims.x;
+        const height = dims.y;
+        const min = new Vector3(-width / 2, -height / 2, options.min);
+        const max = new Vector3(+width / 2, +height / 2, options.max);
+        this._localBox = new Box3(min, max);
+        this._owner = options.owner;
+    }
+
+    get centerZ() {
+        return this.localBox.getCenter(tempVec3).z;
+    }
+
+    get localBox(): Readonly<Box3> {
+        return this._localBox;
+    }
+
+    /**
+     * Gets or set the min altitude, in local coordinates.
+     */
+    get zMin() {
+        return this._localBox.min.z;
+    }
+
+    set zMin(v: number) {
+        this._localBox.min.setZ(v);
+    }
+
+    /**
+     * Gets or set the max altitude, in local coordinates.
+     */
+    get zMax() {
+        return this._localBox.max.z;
+    }
+
+    set zMax(v: number) {
+        this._localBox.max.setZ(v);
+    }
+
+    /**
+     * Returns the local size of this volume.
+     */
+    getLocalSize(target: Vector3): Vector3 {
+        return this._localBox.getSize(target);
+    }
+
+    /**
+     * Returns the local bounding box.
+     */
+    getLocalBoundingBox(target?: Box3): Box3 {
+        const result = target ?? new Box3();
+
+        result.copy(this._localBox);
+
+        return result;
+    }
+
+    /**
+     * Gets the world bounding box, taking into account world transformation.
+     */
+    getWorldSpaceBoundingBox(target?: Box3): Box3 {
+        const result = target ?? new Box3();
+
+        result.copy(this._localBox);
+
+        this._owner.updateWorldMatrix(true, false);
+
+        result.applyMatrix4(this._owner.matrixWorld);
+
+        return result;
+    }
+}
+
 class TileMesh
     extends Mesh<TileGeometry, LayeredMaterial, TileMeshEventMap>
     implements Disposable, MemoryUsage
@@ -97,7 +177,7 @@ class TileMesh
     private _minmax: { min: number; max: number };
     readonly extent: Extent;
     readonly textureSize: Vector2;
-    private readonly _obb: OBB;
+    private readonly _volume: TileVolume;
     readonly level: number;
     readonly x: number;
     readonly y: number;
@@ -133,6 +213,21 @@ class TileMesh
         }
 
         return result;
+    }
+
+    get boundingBox(): Box3 {
+        if (!this._enableTerrainDeformation) {
+            this._volume.zMin = 0;
+            this._volume.zMax = 0;
+        } else {
+            this._volume.zMin = this.minmax.min;
+            this._volume.zMax = this.minmax.max;
+        }
+        return this._volume.localBox;
+    }
+
+    getWorldSpaceBoundingBox(target: Box3): Box3 {
+        return this._volume.getWorldSpaceBoundingBox(target);
     }
 
     /**
@@ -190,10 +285,14 @@ class TileMesh
         this._enableCPUTerrain = enableCPUTerrain;
         this._enableTerrainDeformation = enableTerrainDeformation;
 
-        this._obb = new OBB(this.geometry.boundingBox.min, this.geometry.boundingBox.max);
+        this._volume = new TileVolume({
+            extent,
+            owner: this,
+            min: this.geometry.boundingBox.min.z,
+            max: this.geometry.boundingBox.max.z,
+        });
 
         this.name = `tile @ (z=${level}, x=${x}, y=${y})`;
-        this._obb.name = 'obb';
 
         this.frustumCulled = false;
 
@@ -287,9 +386,9 @@ class TileMesh
     }
 
     /**
-     * Checks that the given raycaster intersects with this tile's OBB.
+     * Checks that the given raycaster intersects with this tile's volume.
      */
-    private checkOBBIntersection(raycaster: Raycaster): boolean {
+    private checkRayVolumeIntersection(raycaster: Raycaster): boolean {
         const matrixWorld = this.matrixWorld;
 
         // convert ray to local space of mesh
@@ -302,16 +401,14 @@ class TileMesh
         // Note that we are not using the bounding box of the geometry, because at this moment,
         // the mesh might still be completely flat, as the heightmap might not be computed yet.
         // This is the whole point of this method: to avoid computing the heightmap if not necessary.
-        // So we are using the logical bounding box provided by the OBB.
-        const boundingBox = this._obb.box3D;
-
-        return ray.intersectsBox(boundingBox);
+        // So we are using the logical bounding box provided by the volume.
+        return ray.intersectsBox(this.boundingBox);
     }
 
     override raycast(raycaster: Raycaster, intersects: Intersection[]): void {
         // Updating the heightmap is quite costly operation that requires a texture readback.
-        // Let's do it only if the ray intersects the OBB of this tile.
-        if (this.checkOBBIntersection(raycaster)) {
+        // Let's do it only if the ray intersects the volume of this tile.
+        if (this.checkRayVolumeIntersection(raycaster)) {
             this.updateHeightMapIfNecessary();
         }
         super.raycast(raycaster, intersects);
@@ -383,11 +480,6 @@ class TileMesh
         }
 
         this.showHelpers = materialOptions.showColliderMeshes ?? false;
-    }
-
-    updateMatrixWorld(force: boolean) {
-        super.updateMatrixWorld.call(this, force);
-        this._obb.update();
     }
 
     isVisible() {
@@ -527,11 +619,19 @@ class TileMesh
         const outputHeight = Math.floor(renderTarget.height);
         const outputWidth = Math.floor(renderTarget.width);
 
+        // On millimeter
+        const precision = 0.001;
+
+        // To ensure that all values are positive before encoding
+        const offset = -this._minmax.min;
+
         const buffer = TextureGenerator.readRGRenderTargetIntoRGBAU8Buffer({
             renderTarget,
             renderer: this._instance.renderer,
             outputWidth,
             outputHeight,
+            precision,
+            offset,
         });
 
         const heightMap = new HeightMap(
@@ -541,6 +641,8 @@ class TileMesh
             offsetScale,
             RGBAFormat,
             UnsignedByteType,
+            precision,
+            offset,
         );
         this._heightMap = intoUniqueOwner(heightMap, this);
     }
@@ -578,7 +680,7 @@ class TileMesh
         }
         this._minmax = { min, max };
 
-        this.updateOBB(min, max);
+        this.updateVolume(min, max);
     }
 
     traverseTiles(callback: (descendant: TileMesh) => void) {
@@ -599,27 +701,16 @@ class TileMesh
         return childTiles;
     }
 
-    private updateOBB(min: number, max: number) {
-        const obb = this._obb;
-        if (
-            Math.floor(min) !== Math.floor(obb.z.min) ||
-            Math.floor(max) !== Math.floor(obb.z.max)
-        ) {
-            this._obb.updateZ(min, max);
+    private updateVolume(min: number, max: number) {
+        const v = this._volume;
+        if (Math.floor(min) !== Math.floor(v.zMin) || Math.floor(max) !== Math.floor(v.zMax)) {
+            this._volume.zMin = min;
+            this._volume.zMax = max;
         }
     }
 
-    /**
-     * @returns The Oriented Bounding Box.
-     */
-    get OBB() {
-        if (!this._enableTerrainDeformation) {
-            this.updateOBB(0, 0);
-        } else {
-            const { min, max } = this._minmax;
-            this.updateOBB(min, max);
-        }
-        return this._obb;
+    get minmax() {
+        return this._minmax;
     }
 
     getExtent() {

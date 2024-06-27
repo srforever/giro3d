@@ -109,10 +109,14 @@ describe('HeightMap', () => {
             expect(heightmap.getValue(0.5, 0.5)).toEqual(56);
         });
 
-        it('[2x1 grid] should correctly read RGBA encoded elevation', () => {
-            const elevation = -4562;
+        it('[1x1 grid] should correctly read RGBA encoded elevation', () => {
+            const elevation = -4562.6;
 
-            const value = elevation + 20000;
+            const precision = 0.01;
+            const offset = 5000;
+
+            // color.r * 1.0 / _precision + offset
+            const value = (elevation + offset) / precision;
             const b = Math.floor(value / 256 / 256);
             const g = Math.floor((value - b * 256 * 256) / 256);
             const r = Math.floor(value - b * 256 * 256 - g * 256);
@@ -126,9 +130,11 @@ describe('HeightMap', () => {
                 NO_OFFSET_SCALE,
                 RGBAFormat,
                 UnsignedByteType,
+                precision,
+                offset,
             );
 
-            expect(heightmap.getValue(0, 0)).toEqual(elevation);
+            expect(heightmap.getValue(0, 0)).toBeCloseTo(elevation, 1);
         });
 
         it('[1x1 grid] should honor ignoreTransparentPixels argument', () => {

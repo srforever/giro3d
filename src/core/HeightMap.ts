@@ -44,6 +44,16 @@ export default class HeightMap {
      */
     readonly type: TextureDataType;
 
+    /**
+     * The vertical precision of the height values to apply during decoding.
+     */
+    readonly precision: number;
+
+    /**
+     * The offset to apply to height values during decoding.
+     */
+    readonly offset: number;
+
     constructor(
         buffer: TypedArray,
         width: number,
@@ -51,6 +61,8 @@ export default class HeightMap {
         offsetScale: OffsetScale,
         format: PixelFormat,
         type: TextureDataType,
+        precision?: number,
+        offset?: number,
     ) {
         const stride = TextureGenerator.getChannelCount(format);
         if (buffer.length < width * height * stride) {
@@ -64,6 +76,8 @@ export default class HeightMap {
         this.stride = stride;
         this.format = format;
         this.type = type;
+        this.precision = precision ?? 0.1;
+        this.offset = offset ?? RGBA_OFFSET;
     }
 
     private readRGBA(index: number, ignoreNoData: boolean): number | null {
@@ -78,7 +92,7 @@ export default class HeightMap {
             return null;
         }
 
-        return r + g * 256.0 + b * 256.0 * 256.0 - RGBA_OFFSET;
+        return (r + g * 256.0 + b * 256.0 * 256.0) * this.precision - this.offset;
     }
 
     private readRG(index: number, ignoreNoData: boolean): number | null {
@@ -101,6 +115,8 @@ export default class HeightMap {
             this.offsetScale.clone(),
             this.format,
             this.type,
+            this.precision,
+            this.offset,
         );
     }
 
