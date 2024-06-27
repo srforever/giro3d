@@ -1,5 +1,5 @@
 <div id="example-card-<%= example.id %>" class="col-md-4 col-sm-6">
-    <div class="card text-bg-light mb-3 shadow-sm" style="height: 400px">
+    <div class="card text-bg-light mb-3 shadow-sm">
         <a href="<%= example.name %>.html" class="stretched-link">
             <img
                 src="screenshots/<%= example.name %>.jpg"
@@ -7,11 +7,16 @@
                 alt="<%= example.name %> example thumbnail"
             />
         </a>
-        <div class="card-body">
+        <div class="card-body" style="height: 9rem">
             <h6 class="card-title" id="example-title-<%= example.id %>"><%- example.title %></h6>
             <p class="card-text text-muted fs-6" id="example-desc-<%= example.id %>">
                 <%- example.description %>
             </p>
+            <div class="position-absolute bottom-0 mb-3">
+                <% example.tags?.forEach(function(tag) { %>
+                <span class="badge rounded-pill text-bg-secondary"><%= tag %></span
+                ><% }); %>
+            </div>
         </div>
     </div>
 </div>

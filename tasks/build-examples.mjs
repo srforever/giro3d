@@ -66,6 +66,7 @@ function getExampleCard(pathToHtmlFile) {
     return {
         title: attributes.title,
         description: attributes.shortdesc,
+        tags: attributes.tags,
         id: exampleId,
         name,
     };
