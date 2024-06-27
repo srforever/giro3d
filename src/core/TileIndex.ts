@@ -29,9 +29,11 @@ export interface Tile {
     material: Material;
 }
 
-class TileIndex {
-    tiles: Map<string, WeakRef<Tile>>;
-    tilesById: Map<number, WeakRef<Tile>>;
+export type NeighbourList<T> = [T, T, T, T, T, T, T, T];
+
+class TileIndex<T extends Tile> {
+    tiles: Map<string, WeakRef<T>>;
+    tilesById: Map<number, WeakRef<T>>;
     constructor() {
         this.tiles = new Map();
         this.tilesById = new Map();
@@ -42,7 +44,7 @@ class TileIndex {
      *
      * @param tile - the tile to add.
      */
-    addTile(tile: Tile) {
+    addTile(tile: T) {
         const key = TileIndex.getKey(tile.x, tile.y, tile.z);
         const wr = new WeakRef(tile); // eslint-disable-line no-undef
         this.tiles.set(key, wr);
@@ -55,7 +57,7 @@ class TileIndex {
      * @param id - The ID.
      * @returns The found tile, otherwise undefined.
      */
-    getTile(id: number): Tile | undefined {
+    getTile(id: number): T | undefined {
         const entry = this.tilesById.get(id);
         if (entry) {
             const value = entry.deref();
@@ -75,18 +77,20 @@ class TileIndex {
      * Returns an array containing the 8 possible neighbours of a tile.
      * A neighbor is a tile at the same level or higher level located according to the clock order
      * from north:
+     *
+     * ```
      * 7 : north west -- 0 : north -- 1 : north east
      * 6 : west       -- THE  TILE -- 2 : east
      * 5 : south west -- 4 : south -- 3 : south east
+     * ```
+     *
      * If there is no neighbor, if it isn't visible or if it is a smaller level one, return null.
      *
      * @param tile - the tile to query
      * @returns neighbors : Array of found neighbors
      */
-    getNeighbours(tile: Tile): Tile[] {
+    getNeighbours(tile: T, result: NeighbourList<T>): NeighbourList<T> {
         const { x, y, z } = tile;
-
-        const result = Array(8);
 
         result[TOP] = this.searchTileOrAncestor(x, y + 1, z);
         result[TOP_RIGHT] = this.searchTileOrAncestor(x + 1, y + 1, z);
@@ -137,7 +141,7 @@ class TileIndex {
      * @param z - The tile Z coordinate (zoom level).
      * @returns The matching tile if found, null otherwise.
      */
-    searchTileOrAncestor(x: number, y: number, z: number): object | null {
+    searchTileOrAncestor(x: number, y: number, z: number): T | null {
         const key = TileIndex.getKey(x, y, z);
         const entry = this.tiles.get(key);
 

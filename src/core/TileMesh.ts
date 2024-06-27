@@ -38,6 +38,7 @@ import type UniqueOwner from './UniqueOwner';
 import { intoUniqueOwner } from './UniqueOwner';
 import TextureGenerator from '../utils/TextureGenerator';
 import type GetElevationOptions from '../entities/GetElevationOptions';
+import { type NeighbourList } from './TileIndex';
 
 const ray = new Ray();
 const inverseMatrix = new Matrix4();
@@ -359,7 +360,7 @@ class TileMesh
     /**
      * @param neighbours - The neighbours.
      */
-    processNeighbours(neighbours: TileMesh[]) {
+    processNeighbours(neighbours: NeighbourList<TileMesh>) {
         for (let i = 0; i < neighbours.length; i++) {
             const neighbour = neighbours[i];
             if (neighbour && neighbour.material && neighbour.material.visible) {

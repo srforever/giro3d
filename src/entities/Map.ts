@@ -31,7 +31,7 @@ import LayeredMaterial, {
     DEFAULT_ZENITH,
 } from '../renderer/LayeredMaterial';
 import TileMesh, { isTileMesh } from '../core/TileMesh';
-import TileIndex from '../core/TileIndex';
+import TileIndex, { type NeighbourList } from '../core/TileIndex';
 import type RenderingState from '../renderer/RenderingState';
 import ColorMapAtlas from '../renderer/ColorMapAtlas';
 import AtlasBuilder, { type AtlasInfo } from '../renderer/AtlasBuilder';
@@ -99,6 +99,7 @@ const tempNDC = new Vector2();
 const tempCanvasCoords = new Vector2();
 const tmpSseSizes: [number, number] = [0, 0];
 const tmpIntersectList: Intersection<TileMesh>[] = [];
+const tmpNeighbours: NeighbourList<TileMesh> = [null, null, null, null, null, null, null, null];
 
 function getContourLineOptions(
     input: boolean | undefined | ContourLineOptions,
@@ -503,7 +504,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     readonly materialOptions: MaterialOptions;
     readonly showOutline: boolean;
     /** @internal */
-    readonly tileIndex: TileIndex;
+    readonly tileIndex: TileIndex<TileMesh>;
     /**
      * The global factor that drives SSE (screen space error) computation. The lower this value, the
      * sooner a tile is subdivided. Note: changing this scale to a value less than 1 can drastically
@@ -620,6 +621,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
                 // Delete cached geometries that just became obsolete
                 this.clearGeometryPool();
                 this._segments = v;
+                this.materialOptions.segments = v;
                 this.updateGeometries();
             } else {
                 throw new Error(
@@ -1173,7 +1175,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         if (computeNeighbours) {
             this.traverseTiles(tile => {
                 if (tile.material.visible) {
-                    const neighbours = this.tileIndex.getNeighbours(tile) as TileMesh[];
+                    const neighbours = this.tileIndex.getNeighbours(tile, tmpNeighbours);
                     tile.processNeighbours(neighbours);
                 }
             });
