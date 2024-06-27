@@ -1,27 +1,15 @@
-import {
-    AmbientLight,
-    BoxGeometry,
-    DirectionalLight,
-    MathUtils,
-    Mesh,
-    MeshBasicMaterial,
-    MeshStandardMaterial,
-    SphereGeometry,
-    Vector3,
-} from 'three';
+import { MathUtils, Mesh, MeshBasicMaterial, SphereGeometry, Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
-import WmtsSource from '@giro3d/giro3d/sources/WmtsSource.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import ColorMap from '@giro3d/giro3d/core/layer/ColorMap.js';
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import AxisGrid from '@giro3d/giro3d/entities/AxisGrid.js';
+import CogSource from '@giro3d/giro3d/sources/CogSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
@@ -29,17 +17,6 @@ import { makeColorRamp } from './widgets/makeColorRamp.js';
 import { bindSlider } from './widgets/bindSlider.js';
 import { bindToggle } from './widgets/bindToggle.js';
 import { bindButton } from './widgets/bindButton.js';
-import CogSource from '@giro3d/giro3d/sources/CogSource.js';
-
-// Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
-Instance.registerCRS(
-    'EPSG:2154',
-    '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
-);
-Instance.registerCRS(
-    'IGNF:WGS84G',
-    'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
-);
 
 const viewerDiv = document.getElementById('viewerDiv');
 
@@ -108,12 +85,10 @@ instance.add(axisGrid);
 
 const center = extent.centerAsVector2();
 
-// place camera above grenoble
 instance.camera.camera3D.position.set(-13609580, 5858793, 32757);
-// and look at the Bastille
 const lookAt = new Vector3(center.x, center.y, 0);
 instance.camera.camera3D.lookAt(lookAt);
-// Notify Giro3D we've changed the three.js camera position directly
+
 instance.notifyChange(instance.camera.camera3D);
 
 // Creates controls
