@@ -52,6 +52,7 @@ import OpenLayersUtils from '../utils/OpenLayersUtils';
 import type Extent from '../core/geographic/Extent';
 import Fetcher from '../utils/Fetcher.js';
 import EmptyTexture from '../renderer/EmptyTexture';
+import type RenderFeature from 'ol/render/Feature';
 
 const tmpTransform: Transform = createTransform();
 const MIN_LEVEL_THRESHOLD = 2;
@@ -149,7 +150,7 @@ export interface VectorTileSourceOptions extends ImageSourceOptions {
     /**
      * The format of the vector tile. Default is {@link MVT}.
      */
-    format?: FeatureFormat;
+    format?: FeatureFormat<typeof RenderFeature>;
 
     /**
      * The style or style function.
@@ -271,7 +272,7 @@ class VectorTileSource extends ImageSource {
         const executorGroups = tile.executorGroups[this._olUID];
         for (let i = 0, ii = executorGroups.length; i < ii; ++i) {
             const executorGroup = executorGroups[i];
-            executorGroup.execute(ctx, 1, transform, 0, true);
+            executorGroup.execute(ctx, [width, height], transform, 0, true);
         }
 
         ctx.restore();

@@ -87,7 +87,7 @@
         "lru-cache": "^10.0.1"
     },
     "peerDependencies": {
-        "ol": "6 - 8",
+        "ol": "9",
         "proj4": "^2.9.0",
         "three": "^0.160.0"
     },
