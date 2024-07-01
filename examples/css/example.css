@@ -74,6 +74,17 @@ pre {
   }
 }
 
+#btnFullscreen {
+  display: flex;
+}
+
+/* Hide the full-screen button on mobile. This is due to this feature not being 100% supported on all mobile platforms (i.e iOS). */
+@media (max-width: 600px) {
+  #btnFullscreen {
+    display: none;
+  }
+}
+
 .divScaleWidget {
   border: 2px solid black;
   border-top: none;
