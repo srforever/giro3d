@@ -63,6 +63,17 @@ pre {
   }
 }
 
+.gui-init {
+  display: block;
+}
+
+/* Hide the GUI by default on mobile. It can be toggled on by the button. */
+@media (max-width: 600px) {
+  .gui-init {
+    display: none;
+  }
+}
+
 .divScaleWidget {
   border: 2px solid black;
   border-top: none;
@@ -84,6 +95,14 @@ pre {
 .status-bar {
   font-size: 0.8rem;
   height: 1.3rem;
+  display: flex;
+}
+
+/* Hide the status bar on mobile. */
+@media (max-width: 600px) {
+  .status-bar {
+    display: none !important;
+  }
 }
 
 /* this right pane takes the whole height except the status bar. */
@@ -93,6 +112,7 @@ pre {
   top: 0px;
   right: 0px;
   bottom: 1.5rem; /* 1.3rem for status bar + 0.5 for bottom margin */
+  max-width: calc(100% - 4rem); /* To avoid masking the button area */
 }
 
 .side-pane-with-status-bar > .card {

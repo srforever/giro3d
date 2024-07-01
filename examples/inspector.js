@@ -83,8 +83,8 @@ inspectorDiv.classList.remove('d-none');
 const inspector = Inspector.attach(inspectorDiv, instance, { title: 'Custom title' });
 
 // Hide the fullscreen button that is at the same place as the Inspector
-const fullscreenDiv = document.getElementById('fullscreenDiv');
-fullscreenDiv.classList.add('d-none');
+const btnFullscreen = document.getElementById('btnFullscreen');
+btnFullscreen.classList.add('d-none');
 
 const myCustomPanel = new MyCustomPanel(inspector.gui, map, instance);
 
