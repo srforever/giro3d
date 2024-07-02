@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.37.3 (2024-07-01)
+
+### Fix
+
+-   **TileMesh**: use sub-metric precision for heightmap sampling (#469)
+-   **Map**: fix ray/volume intersection test when scene transform is not default (#466)
+-   **Map**: ensure that newly created materials have the correct segments count (#470)
+
 ## v0.37.2 (2024-06-10)
 
 Hotfix for the 0.37 release.

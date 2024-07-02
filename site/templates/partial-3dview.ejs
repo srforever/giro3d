@@ -3,9 +3,9 @@
 <!-- Inspector -->
 <div id="panelDiv" class="position-absolute top-0 start-0 mh-100 overflow-auto d-none"></div>
 <!-- Optional additional content from the example (custom buttons, etc.) -->
-<%- content %>
+<div id="gui" class="gui-init"><%- content %></div>
 <!-- Status bar -->
-<div id="status-bar" class="bg-light d-flex w-100 position-absolute bottom-0 start-0 status-bar">
+<div id="status-bar" class="bg-light w-100 position-absolute bottom-0 start-0 status-bar">
     <div
         class="progress m-2 status-progress-bar"
         role="progressbar"
@@ -28,17 +28,30 @@
         <button type="button" id="crs" class="badge rounded-pill text-bg-secondary">WGS84</button>
     </div>
 </div>
-<!-- Full-screen button -->
-<div id="fullscreenDiv" class="position-absolute top-0 start-0 mx-2 my-2 overflow-auto">
+<!-- Button area -->
+<div id="buttons" class="position-absolute top-0 start-0 mx-2 my-2 overflow-auto">
+    <!-- Full-screen button -->
     <button
         id="btnFullscreen"
         type="button"
-        class="btn btn-light btn-sm"
+        class="btn btn-light btn-sm mb-2"
         title="toggle full screen"
-        style="display: flex; align-items: center; justify-content: center"
+        style="align-items: center; justify-content: center"
     >
         <!-- Origin: https://icons.getbootstrap.com/icons/arrows-fullscreen/ -->
         <i id="icon-fullscreen" class="bi bi-arrows-fullscreen"></i>
+    </button>
+
+    <!-- Toggle GUI button -->
+    <button
+        id="btnToggleGUI"
+        type="button"
+        class="btn btn-light btn-sm"
+        title="toggle GUI"
+        style="display: flex; align-items: center; justify-content: center"
+    >
+        <!-- Origin: https://icons.getbootstrap.com/icons/sliders/ -->
+        <i class="bi bi-sliders"></i>
     </button>
 </div>
 
@@ -61,6 +74,37 @@
                 html: true,
             }),
     );
+
+    const toggleGUIButton = document.getElementById('btnToggleGUI');
+    const guiRoot = document.getElementById('gui');
+
+    if (guiRoot.childElementCount === 0) {
+        toggleGUIButton.remove();
+    } else {
+        var showGUI = window.getComputedStyle(guiRoot, null).display !== 'none';
+
+        function updateGUI(show) {
+            guiRoot.classList.remove('gui-init');
+            if (show) {
+                guiRoot.classList.remove('d-none');
+                toggleGUIButton.classList.remove('btn-light');
+                toggleGUIButton.classList.add('btn-primary');
+            } else {
+                guiRoot.classList.add('d-none');
+                toggleGUIButton.classList.remove('btn-primary');
+                toggleGUIButton.classList.add('btn-light');
+            }
+        }
+
+        if (toggleGUIButton) {
+            toggleGUIButton.onclick = function onclick() {
+                showGUI = !showGUI;
+                updateGUI(showGUI);
+            };
+        }
+
+        updateGUI(showGUI);
+    }
 
     var fullScreen = false;
 
