@@ -8,47 +8,54 @@ tags: [map, 'point cloud', clipping]
 
 <div class="side-pane-with-status-bar">
     <div class="card">
-        <div class="card-header">
-            <div class="form-check form-switch">
-                <input
-                    class="form-check-input"
-                    type="checkbox"
-                    checked="true"
-                    role="switch"
-                    id="enable-clipping-planes"
-                    autocomplete="off"
-                />
-                <label class="form-check-label" for="enable-clipping-planes"
-                    >Enable clipping planes</label
-                >
-            </div>
-        </div>
+        <div class="card-header">Parameters</div>
         <div class="card-body">
-            <fieldset class="container" id="options">
-                <div class="form-check form-switch">
-                    <input
-                        class="form-check-input"
-                        type="checkbox"
-                        checked="true"
-                        role="switch"
-                        id="toggle-show-volume"
-                        autocomplete="off"
-                    />
-                    <label class="form-check-label" for="toggle-show-volume">Show volume</label>
+            <fieldset id="options">
+                <!-- Mode -->
+                <div class="input-group mb-2">
+                    <label class="input-group-text" for="mode">Mode</label>
+                    <select class="form-select" id="mode" autocomplete="off">
+                        <option value="slice" selected>Slice</option>
+                        <option value="volume">Volume</option>
+                    </select>
                 </div>
-                <label for="slider-size" class="form-label">Volume size</label>
-                <div class="input-group">
-                    <input
-                        type="range"
-                        min="1"
-                        max="30000"
-                        value="3000"
-                        step="10"
-                        class="form-range"
-                        id="slider-size"
-                        autocomplete="off"
-                    />
+
+                <div id="volume-options" class="my-3" style="display: none">
+                    <div class="form-check form-switch">
+                        <input
+                            class="form-check-input"
+                            type="checkbox"
+                            checked="true"
+                            role="switch"
+                            id="toggle-show-volume"
+                            autocomplete="off"
+                        />
+                        <label class="form-check-label" for="toggle-show-volume">Show volume</label>
+                    </div>
+
+                    <label for="slider-size" class="form-label">Volume size</label>
+                    <div class="input-group">
+                        <input
+                            type="range"
+                            min="1"
+                            max="30000"
+                            value="3000"
+                            step="10"
+                            class="form-range"
+                            id="slider-size"
+                            autocomplete="off"
+                        />
+                    </div>
                 </div>
+
+                <div id="slice-options" class="my-3">
+                    <button class="btn btn-primary w-100" id="draw">
+                        <i class="bi bi-pencil-fill"></i> Draw cross-section
+                    </button>
+                </div>
+
+                <hr />
+
                 <div class="form-check form-switch">
                     <input
                         class="form-check-input"
