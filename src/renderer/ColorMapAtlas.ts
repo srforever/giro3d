@@ -51,6 +51,10 @@ class ColorMapAtlas {
         this._dirty = true;
     }
 
+    forceUpdate() {
+        this._dirty = true;
+    }
+
     update() {
         // The atlas should be re-rendered if any colormap texture has changed.
         for (const [colorMap, info] of this._colorMaps.entries()) {

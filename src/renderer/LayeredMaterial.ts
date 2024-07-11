@@ -750,7 +750,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         uniform.brightnessContrastSaturation = new Vector3(1, 1, 1);
         uniform.elevationRange = new Vector2();
 
-        this._updateColorMaps();
+        this.updateColorMaps();
 
         return Promise.resolve(true);
     }
@@ -786,7 +786,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
 
         this.updateColorLayerCount();
 
-        this._updateColorMaps();
+        this.updateColorMaps();
 
         this.needsUpdate = true;
     }
@@ -824,7 +824,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         this.texturesInfo.color.infos.splice(index, 1);
         this._colorLayers.splice(index, 1);
 
-        this._updateColorMaps();
+        this.updateColorMaps();
 
         this.updateColorLayerCount();
     }
@@ -838,7 +838,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         this._colorMapAtlas = atlas;
     }
 
-    _updateColorMaps() {
+    private updateColorMaps() {
         this.sortLayersIfNecessary();
 
         const atlas = this._colorMapAtlas;
@@ -891,7 +891,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         this._options = materialOptions;
 
         if (this._colorMapAtlas) {
-            this._updateColorMaps();
+            this.updateColorMaps();
         }
 
         if (materialOptions.backgroundColor) {

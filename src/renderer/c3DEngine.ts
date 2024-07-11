@@ -1,6 +1,5 @@
 import type { Object3D, Camera, Scene, TextureDataType, ColorRepresentation } from 'three';
 import {
-    Color,
     DepthTexture,
     LinearFilter,
     NearestFilter,
@@ -19,7 +18,6 @@ import RenderingOptions from './RenderingOptions';
 import registerChunks from './shader/chunk/registerChunks';
 import TextureGenerator from '../utils/TextureGenerator';
 
-const tmpClear = new Color();
 const tmpVec2 = new Vector2();
 
 function createRenderTarget(
@@ -163,6 +161,9 @@ class C3DEngine {
     renderPipeline: RenderPipeline | null;
     renderingOptions: RenderingOptions;
 
+    clearAlpha = 1;
+    clearColor: ColorRepresentation = 0x030508;
+
     /**
      * @param viewerDiv - The parent div that will contain the canvas.
      * @param options - The options.
@@ -192,8 +193,6 @@ class C3DEngine {
 
         this.renderTargets = new Map();
 
-        this.renderer = null;
-
         // Create renderer
         try {
             this.renderer =
@@ -209,13 +208,10 @@ class C3DEngine {
             // than per-renderer (global) clipping planes.
             this.renderer.localClippingEnabled = true;
         } catch (ex) {
-            console.error('Failed to create WebGLRenderer', ex);
-            this.renderer = null;
-        }
-
-        if (!this.renderer) {
+            const msg = 'Failed to create WebGLRenderer';
+            console.error(msg, ex);
             viewerDiv.appendChild(createErrorMessage());
-            throw new Error('WebGL unsupported');
+            throw new Error(msg);
         }
 
         // Don't verify shaders if not debug (it is very costly)
@@ -235,7 +231,11 @@ class C3DEngine {
         Capabilities.updateCapabilities(this.renderer);
 
         if (options.clearColor !== false) {
-            this.renderer.setClearColor(options.clearColor as ColorRepresentation);
+            const color = options.clearColor as ColorRepresentation;
+            this.clearColor = color;
+            this.renderer.setClearColor(color);
+        } else {
+            this.clearAlpha = 0;
         }
         this.renderer.clear();
         this.renderer.autoClear = false;
@@ -310,6 +310,8 @@ class C3DEngine {
             return;
         }
 
+        this.renderer.setClearColor(this.clearColor, this.clearAlpha);
+
         this.renderer.clear();
 
         if (requiresCustomPipeline(this.renderingOptions)) {
@@ -335,6 +337,23 @@ class C3DEngine {
         this.renderPipeline.render(scene, camera, this.width, this.height, this.renderingOptions);
     }
 
+    private acquireRenderTarget(datatype: TextureDataType) {
+        let renderTarget = this.renderTargets.get(datatype);
+
+        if (!renderTarget) {
+            const newRenderTarget = createRenderTarget(
+                this.width,
+                this.height,
+                datatype,
+                this.renderer,
+            );
+            this.renderTargets.set(datatype, newRenderTarget);
+            renderTarget = newRenderTarget;
+        }
+
+        return renderTarget;
+    }
+
     /**
      * Renders the scene into a readable buffer.
      *
@@ -351,29 +370,17 @@ class C3DEngine {
 
         const { scene, camera } = options;
 
-        const clear = this.renderer.getClearColor(tmpClear);
-        const alpha = this.renderer.getClearAlpha();
-
         if (options.clearColor) {
             this.renderer.setClearColor(options.clearColor, 1);
         }
 
         const datatype = options.datatype ?? UnsignedByteType;
 
-        if (!this.renderTargets.has(datatype)) {
-            const newRenderTarget = createRenderTarget(
-                this.width,
-                this.height,
-                datatype,
-                this.renderer,
-            );
-            this.renderTargets.set(datatype, newRenderTarget);
-        }
-        const renderTarget = this.renderTargets.get(datatype);
+        const renderTarget = this.acquireRenderTarget(datatype);
+        this.renderToRenderTarget(scene, camera, renderTarget, zone);
 
-        this._renderToRenderTarget(scene, camera, renderTarget, zone);
-
-        this.renderer.setClearColor(clear, alpha);
+        // Restore previous value
+        this.renderer.setClearColor(this.clearColor, this.clearAlpha);
 
         zone.x = Math.max(0, Math.min(zone.x, this.width));
         zone.y = Math.max(0, Math.min(zone.y, this.height));
@@ -404,15 +411,16 @@ class C3DEngine {
      * Note: target must contain complete zone
      * @returns the destination render target
      */
-    private _renderToRenderTarget(
+    private renderToRenderTarget(
         scene: Object3D,
         camera: Camera,
         target: WebGLRenderTarget,
         zone: RenderToBufferZone,
     ): WebGLRenderTarget {
         if (!target) {
-            target = this.renderTargets.get(UnsignedByteType);
+            target = this.acquireRenderTarget(UnsignedByteType);
         }
+
         const current = this.renderer.getRenderTarget();
 
         // Don't use setViewport / setScissor on renderer because they would affect
@@ -452,6 +460,11 @@ class C3DEngine {
     ): HTMLImageElement {
         const canvas = document.createElement('canvas');
         const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+            console.error('could not acquire 2D rendering context on canvas');
+            return new Image();
+        }
 
         // size the canvas to your desired image
         canvas.width = width;
