@@ -18,15 +18,20 @@ class CameraInspector extends Panel {
         this.camera = this.instance.camera;
         this.camera3D = this.camera.camera3D;
 
+        const notify = this.notify.bind(this);
+
         this.addController<string>(this.camera3D, 'type').name('Type');
-        this.addController<number>(this.camera3D, 'far').name('Far plane');
-        this.addController<number>(this.camera3D, 'near').name('Near plane');
+        this.addController<number>(instance.mainLoop, 'automaticCameraPlaneComputation')
+            .name('Automatic plane computation')
+            .onChange(notify);
+        this.addController<number>(this.camera3D, 'far').name('Far plane').onChange(notify);
+        this.addController<number>(this.camera3D, 'near').name('Near plane').onChange(notify);
         this.addController<number>(this.camera, 'maxFarPlane')
             .name('Max far plane')
-            .onChange(() => this.notify());
+            .onChange(notify);
         this.addController<number>(this.camera, 'minNearPlane')
             .name('Min near plane')
-            .onChange(() => this.notify());
+            .onChange(notify);
         this.addController<number>(this.camera, 'width').name('Width (pixels)');
         this.addController<number>(this.camera, 'height').name('Height (pixels)');
 

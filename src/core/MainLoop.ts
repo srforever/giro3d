@@ -78,6 +78,7 @@ class MainLoop {
         return this._renderingState;
     }
     private _needsRedraw: boolean;
+    private _automaticCameraPlaneComputation = true;
     private readonly _gfxEngine: C3DEngine;
     /**
      * @deprecated Use {@link Instance.engine}
@@ -88,6 +89,18 @@ class MainLoop {
     private _updateLoopRestarted: boolean;
     private _lastTimestamp: number;
     private readonly _changeSources: Set<unknown>;
+
+    /**
+     * Toggles automatic camera clipping plane computation.
+     * @defaultValue true
+     */
+    get automaticCameraPlaneComputation() {
+        return this._automaticCameraPlaneComputation;
+    }
+
+    set automaticCameraPlaneComputation(v: boolean) {
+        this._automaticCameraPlaneComputation = v;
+    }
 
     constructor(engine: C3DEngine) {
         this._renderingState = RenderingState.RENDERING_PAUSED;
@@ -116,10 +129,13 @@ class MainLoop {
     private update(instance: Instance, updateSources: Set<unknown>, dt: number) {
         const context = new Context(instance.camera, instance);
 
-        // Reset near/far to default value to allow update function to test
-        // visibility using camera's frustum; without depending on the near/far
-        // values which are only used for rendering.
-        instance.camera.resetPlanes();
+        if (this.automaticCameraPlaneComputation) {
+            // Reset near/far to default value to allow update function to test
+            // visibility using camera's frustum; without depending on the near/far
+            // values which are only used for rendering.
+            instance.camera.resetPlanes();
+        }
+
         // We can't just use camera3D.updateProjectionMatrix() because part of
         // the update process use camera._viewMatrix, and this matrix depends
         // on near/far values.
@@ -182,8 +198,10 @@ class MainLoop {
             }
         });
 
-        instance.camera.near = context.distance.min;
-        instance.camera.far = context.distance.max;
+        if (this.automaticCameraPlaneComputation) {
+            instance.camera.near = context.distance.min;
+            instance.camera.far = context.distance.max;
+        }
 
         instance.camera.update();
     }
