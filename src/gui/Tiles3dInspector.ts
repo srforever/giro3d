@@ -4,6 +4,7 @@ import type Instance from '../core/Instance';
 import type Tiles3D from '../entities/Tiles3D';
 import Helpers from '../helpers/Helpers';
 import EntityInspector from './EntityInspector';
+import LayerInspector from './LayerInspector';
 
 class Tiles3dInspector extends EntityInspector {
     /** The inspected tileset. */
@@ -12,6 +13,8 @@ class Tiles3dInspector extends EntityInspector {
     wireframe: boolean;
     /** The SSE of the entity. */
     sse: number;
+    layers: LayerInspector[] = [];
+    layerFolder: GUI;
 
     /**
      * Creates an instance of Tiles3dInspector.
@@ -63,6 +66,32 @@ class Tiles3dInspector extends EntityInspector {
                 .max(10)
                 .onChange(() => this.instance.notifyChange(this.entity));
         }
+
+        this.layerFolder = this.gui.addFolder('Layers');
+        if (this.entity.layerCount > 0) {
+            this.fillLayers();
+        }
+    }
+
+    updateControllers(): void {
+        if (this.layers.length !== this.entity.layerCount) {
+            this.fillLayers();
+        }
+    }
+
+    fillLayers() {
+        while (this.layers.length > 0) {
+            this.layers.pop().dispose();
+        }
+        // We reverse the order so that the layers are displayed in a natural order:
+        // top layers in the inspector are also on top in the composition.
+        this.entity
+            .getLayers()
+            .reverse()
+            .forEach(lyr => {
+                const gui = new LayerInspector(this.layerFolder, this.instance, this.entity, lyr);
+                this.layers.push(gui);
+            });
     }
 
     toggleWireframe(value: boolean) {

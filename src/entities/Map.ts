@@ -1574,4 +1574,8 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 }
 
+export function isMap(o: unknown): o is Map {
+    return (o as Map)?.isMap;
+}
+
 export default Map;
