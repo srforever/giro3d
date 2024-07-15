@@ -21,7 +21,9 @@ import MemoryTracker from '../renderer/MemoryTracker';
 import type LayeredMaterial from '../renderer/LayeredMaterial';
 import type { MaterialOptions } from '../renderer/LayeredMaterial';
 import type Extent from './geographic/Extent';
-import TileGeometry from './TileGeometry';
+import type TileGeometry from './TileGeometry';
+import GlobeTileGeometry from './GlobeTileGeometry';
+import ProjectedTileGeometry from './ProjectedTileGeometry';
 import type RenderingState from '../renderer/RenderingState';
 import ElevationLayer from './layer/ElevationLayer';
 import type Disposable from './Disposable';
@@ -67,15 +69,16 @@ function makePooledGeometry(pool: GeometryPool, extent: Extent, segments: number
         return cached;
     }
 
-    const dimensions = extent.dimensions();
-    const geometry = new TileGeometry({ dimensions, segments });
+    const geometry = new ProjectedTileGeometry({ extent, segments });
     pool.set(key, geometry);
     return geometry;
 }
 
 function makeRaycastableGeometry(extent: Extent, segments: number) {
-    const dimensions = extent.dimensions();
-    const geometry = new TileGeometry({ dimensions, segments });
+    const geometry =
+        extent.crs() === 'EPSG:4326'
+            ? new GlobeTileGeometry({ extent, segments })
+            : new ProjectedTileGeometry({ extent, segments });
     return geometry;
 }
 
@@ -311,6 +314,10 @@ class TileMesh
         this.z = level;
 
         MemoryTracker.track(this, this.name);
+    }
+
+    get absolutePosition() {
+        return this.geometry.origin;
     }
 
     get showHelpers() {
