@@ -1,4 +1,4 @@
-import { Vector3, CubeTextureLoader, Color, OrthographicCamera } from 'three';
+import { Vector3, CubeTextureLoader, Color, OrthographicCamera, MathUtils } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import OSM from 'ol/source/OSM.js';
@@ -194,7 +194,8 @@ mainInstance.addEventListener('after-camera-update', synchronizeCameras);
 function handleMouseWheel(event) {
     const delta = event.wheelDelta;
 
-    const ZOOM_SPEED = 1.5;
+    const absDelta = Math.abs(delta);
+    const ZOOM_SPEED = MathUtils.mapLinear(absDelta, 0, 120, 1.01, 1.2);
 
     if (delta > 0) {
         minimapCamera.zoom *= ZOOM_SPEED;
