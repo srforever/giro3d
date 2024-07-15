@@ -274,6 +274,7 @@ type Defines = {
     USE_ATLAS_TEXTURE?: 1;
     /** The number of _visible_ color layers */
     VISIBLE_COLOR_LAYER_COUNT: number;
+    HAS_NORMALS?: 1;
 };
 
 interface Uniforms {
@@ -357,6 +358,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         getIndexFn,
         textureDataType,
         hasElevationLayer,
+        isGlobe,
     }: {
         /** the material options. */
         options: MaterialOptions;
@@ -371,10 +373,12 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         /** The texture data type to be used for the atlas texture. */
         textureDataType: TextureDataType;
         hasElevationLayer: boolean;
+        isGlobe: boolean;
     }) {
         super({ clipping: true, glslVersion: GLSL3 });
 
         this._atlasInfo = atlasInfo;
+        MaterialUtils.setDefine(this, 'HAS_NORMALS', isGlobe);
         MaterialUtils.setDefine(this, 'USE_ATLAS_TEXTURE', false);
         MaterialUtils.setDefine(this, 'STITCHING', options.terrain?.stitching);
         MaterialUtils.setDefine(this, 'TERRAIN_DEFORMATION', options.terrain?.enabled);

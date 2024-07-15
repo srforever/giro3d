@@ -744,6 +744,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             textureDataType: this._colorAtlasDataType,
             hasElevationLayer: this._hasElevationLayer,
             maxTextureImageUnits: Capabilities.getMaxTextureUnitsCount(),
+            isGlobe: this._instance.referenceCrs === 'EPSG:4978', // TODO
         });
 
         const tile = new TileMesh({
