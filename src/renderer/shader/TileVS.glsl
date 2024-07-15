@@ -423,7 +423,12 @@ void main() {
 #endif // ELEVATION_LAYER
 #endif // TERRAIN_DEFORMATION
 
+#if defined(HAS_NORMALS)
+    // Use case for globe mode: the UP vector is not constant.
+    transformed.xyz += normal * elevation;
+#else
     transformed.z = elevation;
+#endif
 
     #include <project_vertex>
     #include <fog_vertex>
