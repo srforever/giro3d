@@ -698,7 +698,10 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 
     preprocess() {
-        this.extent = this.extent.as(this._instance.referenceCrs);
+        // TODO clarify
+        if (this.extent.crs() !== 'EPSG:4326') {
+            this.extent = this.extent.as(this._instance.referenceCrs);
+        }
 
         this._subdivisions = selectBestSubdivisions(this.extent);
 
