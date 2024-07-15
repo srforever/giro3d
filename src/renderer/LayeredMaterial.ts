@@ -716,21 +716,6 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         this._needsAtlasRepaint = true;
     }
 
-    /**
-     * Gets the elevation texture if an elevation layer texture has been loaded in this material.
-     *
-     * @returns Returns the elevation texture or null
-     */
-    getElevationTextureInfo() {
-        if (this.isElevationLayerTextureLoaded()) {
-            return {
-                texture: this.texturesInfo.elevation.texture,
-                offsetScale: this.texturesInfo.elevation.offsetScale,
-            };
-        }
-        return null;
-    }
-
     pushElevationLayer(layer: ElevationLayer) {
         this._elevationLayer = layer;
         this._hasElevationLayer = true;
@@ -1190,6 +1175,10 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         }
         const texture = this.texturesInfo.elevation.texture;
         return texture != null && texture.isFinal === true;
+    }
+
+    getElevationTexture(): Texture {
+        return this.texturesInfo.elevation.texture;
     }
 
     isColorLayerTextureLoaded(layer: ColorLayer) {
