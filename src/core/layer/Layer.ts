@@ -553,12 +553,20 @@ abstract class Layer<
         return this._preprocessOnce;
     }
 
+    private getTargetProjection() {
+        if (this._instance.referenceCrs === 'EPSG:4978') {
+            return 'EPSG:4326';
+        }
+
+        return this._instance.referenceCrs;
+    }
+
     /**
      * Perform the initialization. This should be called exactly once in the lifetime of the layer.
      */
     private async initializeOnce() {
         this._opCounter.increment();
-        const targetProjection = this._instance.referenceCrs;
+        const targetProjection = this.getTargetProjection();
 
         await this.source.initialize({
             targetProjection,
