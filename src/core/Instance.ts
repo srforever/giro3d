@@ -870,8 +870,8 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             cam.position.copy(positionCamera);
             cam.lookAt(lookat);
             cam.updateMatrixWorld(true);
-        } else if ((obj as any).getBoundingBox) {
-            const box = (obj as any).getBoundingBox() as Box3;
+        } else if ('getBoundingBox' in obj && typeof obj.getBoundingBox === 'function') {
+            const box = obj.getBoundingBox() as Box3;
             if (box && !box.isEmpty()) {
                 const center = box.getCenter(vectors.pos);
                 const size = box.getSize(vectors.size);
