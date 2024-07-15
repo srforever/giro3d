@@ -733,7 +733,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
         }
 
         const quaternion = new Quaternion();
-        const position = extent.centerAsVector3();
 
         // build tile
         const material = new LayeredMaterial({
@@ -766,9 +765,11 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         tile.material.opacity = this.opacity;
 
+        const position = tile.absolutePosition;
+
         if (parent && parent instanceof TileMesh) {
             // get parent position from extent
-            const positionParent = parent.extent.centerAsVector3();
+            const positionParent = parent.absolutePosition;
             // place relative to his parent
             position.sub(positionParent).applyQuaternion(parent.quaternion.invert());
             quaternion.premultiply(parent.quaternion);
