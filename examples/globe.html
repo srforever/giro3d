@@ -1,0 +1,178 @@
+---
+title: Globe
+shortdesc: Display a globe-shaped Map.
+attribution: © <a target="_blank" href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, © <a target="_blank" href="https://visibleearth.nasa.gov/collection/1484/blue-marble">NASA</a>, © <a target="_blank" href="http://open-notify.org/">Mapbox</a>, © <a target="_blank" href="https://www.mapbox.com/">Open Notify</a>
+dependencies: [colormap]
+tags: [ecef, globe, map, layers]
+---
+
+<div class="side-pane-with-status-bar" style="width: 20rem">
+    <!--Parameters -->
+    <div class="card">
+        <div class="card-header">
+            Parameters
+            <button type="button" id="reset" class="btn btn-sm btn-primary rounded float-end">
+                reset
+            </button>
+        </div>
+
+        <div class="card-body" id="top-options">
+            <!-- Color layer selector -->
+            <div class="input-group mb-3">
+                <label class="input-group-text" for="colorLayer">Layer</label>
+                <select class="form-select" id="colorLayer" autocomplete="off">
+                    <option value="blueMarble" selected>Blue Marble</option>
+                    <option value="osm">OSM</option>
+                    <option value="satellite">Satellite + clouds</option>
+                    <option value="none">Terrain</option>
+                </select>
+            </div>
+
+            <!-- Atmosphere -->
+            <div class="input-group mb-3">
+                <label class="input-group-text" for="atmosphere">Atmosphere</label>
+                <select class="form-select" id="atmosphere" autocomplete="off">
+                    <option value="simple">Simple</option>
+                    <option value="realistic" selected>Realistic</option>
+                    <option value="none">No atmosphere</option>
+                </select>
+            </div>
+
+            <!-- Toggle graticule -->
+            <div class="form-check form-switch mb-1">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="graticule"
+                    autocomplete="off"
+                />
+                <label class="form-check-label" for="graticule">Graticule</label>
+            </div>
+
+            <!-- Toggle ECEF helpers -->
+            <div class="form-check form-switch mb-1">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="helpers"
+                    autocomplete="off"
+                />
+                <label class="form-check-label" for="helpers">Show ECEF helpers</label>
+            </div>
+
+            <!-- Toggle lighting -->
+            <div class="form-check form-switch mb-3">
+                <input
+                    class="form-check-input"
+                    type="checkbox"
+                    role="switch"
+                    id="lighting"
+                    autocomplete="off"
+                />
+                <label class="form-check-label" for="lighting">Lighting</label>
+            </div>
+
+            <!-- Sun position mode -->
+            <div class="input-group">
+                <label class="input-group-text" for="sun-position-mode">Sun position</label>
+                <select class="form-select" id="sun-position-mode" autocomplete="off">
+                    <option value="current-date" selected>Current time</option>
+                    <option value="custom-date">Custom time</option>
+                    <option value="custom-location">Custom location</option>
+                </select>
+            </div>
+
+            <!-- Date -->
+            <div id="date-picker">
+                <div class="input-group mt-3">
+                    <label class="input-group-text" for="date">Date</label>
+                    <input class="form-control" type="date" id="date" autocomplete="off" />
+                    <div class="input-group-text" id="now">
+                        <button class="btn btn-sm btn-primary">Now</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sun-location" class="mt-3">
+                <!-- Sun latitude -->
+                <label for="sunLatitude" id="sunLatitudeLabel" class="form-label"
+                    >Sun latitude</label
+                >
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="-90"
+                        max="90"
+                        step="1"
+                        value="35"
+                        class="form-range"
+                        id="sunLatitude"
+                        autocomplete="off"
+                    />
+                </div>
+
+                <!-- Sun longitude -->
+                <label for="sunLongitude" id="sunLongitudeLabel" class="form-label"
+                    >Sun longitude</label
+                >
+                <div class="input-group">
+                    <input
+                        type="range"
+                        min="-180"
+                        max="180"
+                        step="1"
+                        value="-45"
+                        class="form-range"
+                        id="sunLongitude"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div
+    class="bg-body border"
+    id="timeContainer"
+    style="
+        display: none;
+        position: absolute;
+        left: 0;
+        bottom: 1.3rem;
+        width: 100%;
+        height: 7rem;
+        padding: 1rem;
+    "
+>
+    <!-- Background opacity slider -->
+    <label for="time" class="form-label"
+        ><span id="timeLabel" class="badge rounded-pill text-bg-primary">12:00 UTC</span>
+    </label>
+    <div class="input-group">
+        <input
+            type="range"
+            min="0"
+            max="86400"
+            step="60"
+            value="43200"
+            class="form-range"
+            id="time"
+            autocomplete="off"
+        />
+    </div>
+
+    <div class="row">
+        <div class="col text-start">
+            <span id="timeLabel" class="badge rounded-pill text-bg-secondary">00:00</span>
+        </div>
+        <div class="col text-center">
+            <span id="timeLabel" class="badge rounded-pill text-bg-secondary">12:00</span>
+        </div>
+        <div class="col text-end">
+            <span id="timeLabel" class="badge rounded-pill text-bg-secondary">24:00</span>
+        </div>
+    </div>
+</div>
