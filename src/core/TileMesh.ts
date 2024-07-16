@@ -445,7 +445,7 @@ class TileMesh
     }
 
     addChildTile(tile: TileMesh) {
-        this.add(tile);
+        this.attach(tile);
         if (this._heightMap) {
             const heightMap = this._heightMap.payload;
             const inheritedHeightMap = heightMap.clone();

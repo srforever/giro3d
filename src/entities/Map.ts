@@ -1,7 +1,6 @@
 import {
     Vector2,
     Vector3,
-    Quaternion,
     Group,
     Color,
     MathUtils,
@@ -735,8 +734,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
             return null;
         }
 
-        const quaternion = new Quaternion();
-
         // build tile
         const material = new LayeredMaterial({
             renderer: this._instance.renderer,
@@ -770,16 +767,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         const position = tile.absolutePosition;
 
-        if (parent && parent instanceof TileMesh) {
-            // get parent position from extent
-            const positionParent = parent.absolutePosition;
-            // place relative to his parent
-            position.sub(positionParent).applyQuaternion(parent.quaternion.invert());
-            quaternion.premultiply(parent.quaternion);
-        }
-
         tile.position.copy(position);
-        tile.quaternion.copy(quaternion);
 
         tile.opacity = this.opacity;
         tile.setVisibility(false);
