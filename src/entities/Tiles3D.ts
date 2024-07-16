@@ -20,7 +20,6 @@ import { DefaultQueue } from '../core/RequestQueue';
 import type Tiles3DSource from '../sources/Tiles3DSource';
 import { type ObjectToUpdate } from '../core/MainLoop';
 import type Context from '../core/Context';
-import type PointCloud from '../core/PointCloud';
 import Tile from './3dtiles/Tile';
 import { boundingVolumeToExtent, cullingTest } from './3dtiles/BoundingVolume';
 import type { $3dTilesTileset, $3dTilesTile, $3dTilesAsset } from './3dtiles/types';
@@ -511,25 +510,18 @@ class Tiles3D<
                     this._distance.min = Math.min(this._distance.min, node.distance.min);
                     this._distance.max = Math.max(this._distance.max, node.distance.max);
                 }
-                if (this.material) {
-                    node.content.traverse(o => {
-                        const pointcloud = o as PointCloud;
-                        if (this.isOwned(pointcloud) && pointcloud.material) {
-                            // TODO: is wireframe still supported?
-                            (pointcloud.material as any).wireframe = this.wireframe;
-                            if (pointcloud.isPoints) {
-                                if (
-                                    PointCloudMaterial.isPointCloudMaterial(pointcloud.material) &&
-                                    PointCloudMaterial.isPointCloudMaterial(this.material)
-                                ) {
-                                    pointcloud.material.update(this.material);
-                                } else {
-                                    pointcloud.material.copy(this.material);
-                                }
-                            }
+                node.content.traverse(o => {
+                    const mesh = o as Object3D;
+                    if (this.isOwned(mesh) && 'material' in mesh) {
+                        const m = mesh.material as Material;
+                        if ('wireframe' in m) {
+                            m.wireframe = this.wireframe;
                         }
-                    });
-                }
+                        if (this.material) {
+                            m.copy(this.material);
+                        }
+                    }
+                });
             }
         } else if (node !== this._root) {
             if (node.parent && node.parent.additiveRefinement) {
