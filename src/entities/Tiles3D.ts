@@ -231,7 +231,7 @@ class Tiles3D<
 
     getLayers(predicate?: (arg0: Layer) => boolean): Layer<LayerEvents>[] {
         if (this._colorLayer) {
-            if (predicate && predicate(this._colorLayer)) {
+            if (typeof predicate != 'function' || predicate(this._colorLayer)) {
                 return [this._colorLayer];
             }
         }

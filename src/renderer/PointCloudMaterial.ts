@@ -21,6 +21,8 @@ import OffsetScale from '../core/OffsetScale';
 import MaterialUtils, { type VertexAttributeType } from './MaterialUtils';
 import { ColorMap } from '../core/layer';
 
+const tmpDims = new Vector2();
+
 /**
  * Specifies the way points are colored.
  */
@@ -371,6 +373,13 @@ class PointCloudMaterial extends ShaderMaterial {
         this.uniforms.fogFar = new Uniform(2000);
         this.uniforms.fogColor = new Uniform(new Color(0xffffff));
 
+        // Texture-related uniforms
+        this.uniforms.extentBottomLeft = new Uniform(new Vector2(0, 0));
+        this.uniforms.extentSize = new Uniform(new Vector2(0, 0));
+        this.uniforms.overlayTexture = new Uniform(undefined);
+        this.uniforms.hasOverlayTexture = new Uniform(0);
+        this.uniforms.offsetScale = new Uniform(new OffsetScale(0, 0, 1, 1));
+
         this.fog = true;
 
         this.disposed = false;
@@ -491,12 +500,9 @@ class PointCloudMaterial extends ShaderMaterial {
         this.mode = MODE.TEXTURE;
 
         this.colorLayer = layer;
-        this.uniforms.overlayTexture = new Uniform(undefined);
-        this.uniforms.hasOverlayTexture = new Uniform(0);
-        this.uniforms.offsetScale = new Uniform(new OffsetScale(0, 0, 1, 1));
-        this.uniforms.extentBottomLeft = new Uniform(new Vector2(extent.west(), extent.south()));
-        const dim = extent.dimensions();
-        this.uniforms.extentSize = new Uniform(new Vector2(dim.x, dim.y));
+        this.uniforms.extentBottomLeft.value.set(extent.west(), extent.south());
+        const dim = extent.dimensions(tmpDims);
+        this.uniforms.extentSize.value.copy(dim);
         this.needsUpdate = true;
     }
 

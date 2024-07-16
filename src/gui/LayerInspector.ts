@@ -6,11 +6,12 @@ import Panel from './Panel';
 import ColorMapInspector from './ColorMapInspector';
 import type { BoundingBoxHelper } from '../helpers/Helpers';
 import Helpers from '../helpers/Helpers';
-import type Map from '../entities/Map';
 import SourceInspector from './SourceInspector';
 import type { ColorLayer, ElevationLayer } from '../core/layer';
 import ColorimetryPanel from './ColorimetryPanel';
 import * as MemoryUsage from '../core/MemoryUsage';
+import type { Entity3D } from '../entities';
+import { isMap } from '../entities/Map';
 
 /**
  * Inspector for a {@link Layer}.
@@ -19,7 +20,7 @@ import * as MemoryUsage from '../core/MemoryUsage';
 class LayerInspector extends Panel {
     /** The inspected layer. */
     layer: Layer;
-    map: Map;
+    entity: Entity3D;
     state: string;
     sourceCrs: string;
     interpretation: string;
@@ -40,15 +41,15 @@ class LayerInspector extends Panel {
     /**
      * @param gui - The GUI.
      * @param instance - The Giro3D instance.
-     * @param map - The map.
+     * @param entity - The map.
      * @param layer - The layer to inspect
      */
-    constructor(gui: GUI, instance: Instance, map: Map, layer: Layer) {
+    constructor(gui: GUI, instance: Instance, entity: Entity3D, layer: Layer) {
         super(gui, instance, `${layer.type} ('${layer.name ?? layer.id}')`);
 
         this.layer = layer;
 
-        this.map = map;
+        this.entity = entity;
         this.state = 'idle';
         this.sourceCrs = layer.source.getCrs() ?? instance.referenceCrs;
 
@@ -66,12 +67,12 @@ class LayerInspector extends Panel {
         this.addController<boolean>(this.layer, 'visible')
             .name('Visible')
             .onChange(() => {
-                this.notify(map);
+                this.notify(entity);
             });
         this.addController<boolean>(this.layer, 'frozen')
             .name('Frozen')
             .onChange(() => {
-                this.notify(map);
+                this.notify(entity);
             });
 
         this.interpretation = layer.interpretation.toString();
@@ -80,7 +81,7 @@ class LayerInspector extends Panel {
         this.addController<never>(this, 'repaint')
             .name('Repaint layer')
             .onChange(() => {
-                this.notify(map);
+                this.notify(entity);
             });
 
         this.addController<number>(this, 'composerImages').name('Loaded images');
@@ -96,11 +97,11 @@ class LayerInspector extends Panel {
             if (colorLayer.elevationRange) {
                 this.addController<number>(colorLayer.elevationRange, 'min')
                     .name('Elevation range minimum')
-                    .onChange(() => this.notify(map));
+                    .onChange(() => this.notify(entity));
 
                 this.addController<number>(colorLayer.elevationRange, 'max')
                     .name('Elevation range maximum')
-                    .onChange(() => this.notify(map));
+                    .onChange(() => this.notify(entity));
             }
 
             this.colorimetryPanel = new ColorimetryPanel(
@@ -115,7 +116,7 @@ class LayerInspector extends Panel {
                 .name('Opacity')
                 .min(0)
                 .max(1)
-                .onChange(() => this.notify(map));
+                .onChange(() => this.notify(entity));
         }
 
         this.extentColor = new Color('#52ff00');
@@ -136,7 +137,10 @@ class LayerInspector extends Panel {
         }
 
         this.addController<never>(this, 'disposeLayer').name('Dispose layer');
-        this.addController<never>(this, 'removeLayer').name('Remove layer from map');
+
+        if (isMap(this.entity)) {
+            this.addController<never>(this, 'removeLayer').name('Remove layer from map');
+        }
     }
 
     repaint() {
@@ -152,7 +156,9 @@ class LayerInspector extends Panel {
     }
 
     removeLayer() {
-        this.map.removeLayer(this.layer);
+        if (isMap(this.entity)) {
+            this.entity.removeLayer(this.layer);
+        }
     }
 
     disposeLayer() {
@@ -170,8 +176,8 @@ class LayerInspector extends Panel {
     }
 
     toggleExtent() {
-        if (!this.extentHelper && this.showExtent) {
-            const { min, max } = this.map.getElevationMinMax();
+        if (!this.extentHelper && this.showExtent && isMap(this.entity)) {
+            const { min, max } = this.entity.getElevationMinMax();
             const box = this.layer.getExtent().toBox3(min, max);
             this.extentHelper = Helpers.createBoxHelper(box, this.extentColor);
             this.instance.threeObjects.add(this.extentHelper);
