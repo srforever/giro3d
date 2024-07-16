@@ -464,7 +464,7 @@ class PointCloudMaterial extends ShaderMaterial {
         this.updateUniforms();
     }
 
-    update(source?: PointCloudMaterial) {
+    copy(source?: PointCloudMaterial) {
         if (source) {
             this.visible = source.visible;
             this.opacity = source.opacity;
@@ -486,6 +486,10 @@ class PointCloudMaterial extends ShaderMaterial {
         }
 
         return this;
+    }
+
+    update(source?: PointCloudMaterial) {
+        this.copy(source);
     }
 
     removeColorLayer() {
