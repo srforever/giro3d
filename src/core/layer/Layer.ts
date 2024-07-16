@@ -607,9 +607,13 @@ abstract class Layer<
      * @returns The layer final extent.
      */
     public getExtent(): Extent | undefined {
+        // We are interested in the projected CRS, not the cartesian one, if any.
+        const crs =
+            this._instance.referenceCrs === 'EPSG:4978' ? 'EPSG:4326' : this._instance.referenceCrs;
+
         // The layer extent takes precedence over the source extent,
         // since it maye be used for some cropping effect.
-        return this.extent ?? this.source.getExtent()?.clone()?.as(this._instance.referenceCrs);
+        return this.extent ?? this.source.getExtent()?.clone()?.as(crs);
     }
 
     async loadFallbackImagesInternal() {
