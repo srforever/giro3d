@@ -277,7 +277,7 @@ type Defines = {
     USE_ATLAS_TEXTURE?: 1;
     /** The number of _visible_ color layers */
     VISIBLE_COLOR_LAYER_COUNT: number;
-    HAS_NORMALS?: 1;
+    IS_GLOBE?: 1;
 };
 
 interface Uniforms {
@@ -385,7 +385,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
 
         this._extent = extent;
         this._atlasInfo = { maxX: 0, maxY: 0, atlas: null };
-        MaterialUtils.setDefine(this, 'HAS_NORMALS', isGlobe);
+        MaterialUtils.setDefine(this, 'IS_GLOBE', isGlobe);
         MaterialUtils.setDefine(this, 'USE_ATLAS_TEXTURE', false);
         MaterialUtils.setDefine(this, 'STITCHING', options.terrain?.stitching);
         MaterialUtils.setDefine(this, 'TERRAIN_DEFORMATION', options.terrain?.enabled);
