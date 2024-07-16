@@ -88,6 +88,18 @@ export const DEFAULT_MAP_SEGMENTS = 32;
 export type LayerCompareFn = (a: Layer, b: Layer) => number;
 
 /**
+ * A predicate to determine if the given tile can be used as a neighbour for stitching purposes.
+ */
+function isStitchableNeighbour(neighbour: TileMesh): boolean {
+    return (
+        !neighbour.disposed &&
+        neighbour.visible &&
+        neighbour.material.visible &&
+        neighbour.material.getElevationTexture() != null
+    );
+}
+
+/**
  * The maximum supported aspect ratio for the map tiles, before we stop trying to create square
  * tiles. This is a safety measure to avoid huge number of root tiles when the extent is a very
  * elongated rectangle. If the map extent has a greater ratio than this value, the generated tiles
@@ -1176,7 +1188,11 @@ class Map<UserData extends EntityUserData = EntityUserData>
         if (computeNeighbours) {
             this.traverseTiles(tile => {
                 if (tile.material.visible) {
-                    const neighbours = this.tileIndex.getNeighbours(tile, tmpNeighbours);
+                    const neighbours = this.tileIndex.getNeighbours(
+                        tile,
+                        tmpNeighbours,
+                        isStitchableNeighbour,
+                    );
                     tile.processNeighbours(neighbours);
                 }
             });

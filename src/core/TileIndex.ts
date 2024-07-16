@@ -1,5 +1,3 @@
-import { type Material } from 'three';
-
 const TOP = 0;
 const TOP_RIGHT = 1;
 const RIGHT = 2;
@@ -26,10 +24,10 @@ export interface Tile {
      * The tile's Z coordinate (LOD) in the grid.
      */
     z: number;
-    material: Material;
 }
 
-export type NeighbourList<T> = [T, T, T, T, T, T, T, T];
+export type NeighbourList<T extends Tile> = [T, T, T, T, T, T, T, T];
+export type Predicate<T extends Tile> = (tile: T) => boolean;
 
 class TileIndex<T extends Tile> {
     tiles: Map<string, WeakRef<T>>;
@@ -89,17 +87,17 @@ class TileIndex<T extends Tile> {
      * @param tile - the tile to query
      * @returns neighbors : Array of found neighbors
      */
-    getNeighbours(tile: T, result: NeighbourList<T>): NeighbourList<T> {
+    getNeighbours(tile: T, result: NeighbourList<T>, predicate?: Predicate<T>): NeighbourList<T> {
         const { x, y, z } = tile;
 
-        result[TOP] = this.searchTileOrAncestor(x, y + 1, z);
-        result[TOP_RIGHT] = this.searchTileOrAncestor(x + 1, y + 1, z);
-        result[RIGHT] = this.searchTileOrAncestor(x + 1, y, z);
-        result[BOTTOM_RIGHT] = this.searchTileOrAncestor(x + 1, y - 1, z);
-        result[BOTTOM] = this.searchTileOrAncestor(x, y - 1, z);
-        result[BOTTOM_LEFT] = this.searchTileOrAncestor(x - 1, y - 1, z);
-        result[LEFT] = this.searchTileOrAncestor(x - 1, y, z);
-        result[TOP_LEFT] = this.searchTileOrAncestor(x - 1, y + 1, z);
+        result[TOP] = this.searchTileOrAncestor(x, y + 1, z, predicate);
+        result[TOP_RIGHT] = this.searchTileOrAncestor(x + 1, y + 1, z, predicate);
+        result[RIGHT] = this.searchTileOrAncestor(x + 1, y, z, predicate);
+        result[BOTTOM_RIGHT] = this.searchTileOrAncestor(x + 1, y - 1, z, predicate);
+        result[BOTTOM] = this.searchTileOrAncestor(x, y - 1, z, predicate);
+        result[BOTTOM_LEFT] = this.searchTileOrAncestor(x - 1, y - 1, z, predicate);
+        result[LEFT] = this.searchTileOrAncestor(x - 1, y, z, predicate);
+        result[TOP_LEFT] = this.searchTileOrAncestor(x - 1, y + 1, z, predicate);
 
         return result;
     }
@@ -141,14 +139,14 @@ class TileIndex<T extends Tile> {
      * @param z - The tile Z coordinate (zoom level).
      * @returns The matching tile if found, null otherwise.
      */
-    searchTileOrAncestor(x: number, y: number, z: number): T | null {
+    searchTileOrAncestor(x: number, y: number, z: number, predicate?: Predicate<T>): T | null {
         const key = TileIndex.getKey(x, y, z);
         const entry = this.tiles.get(key);
 
         if (entry) {
             const n = entry.deref();
 
-            if (n && n.material && n.material.visible) {
+            if (n && (typeof predicate !== 'function' || predicate(n))) {
                 return n;
             }
         }
@@ -158,7 +156,7 @@ class TileIndex<T extends Tile> {
             return null;
         }
 
-        return this.searchTileOrAncestor(parent.x, parent.y, parent.z);
+        return this.searchTileOrAncestor(parent.x, parent.y, parent.z, predicate);
     }
 }
 

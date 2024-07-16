@@ -64,6 +64,7 @@ class LayerInspector extends Panel {
         this.addController<string>(this, 'sourceCrs').name('Source CRS');
 
         this.addController<string>(this, 'state').name('Status');
+        this.addController<number>(this.layer, 'resolutionFactor').name('Resolution factor');
         this.addController<boolean>(this.layer, 'visible')
             .name('Visible')
             .onChange(() => {
