@@ -5,8 +5,9 @@ import Coordinates from './Coordinates';
 const tmpCoord = new Coordinates('EPSG:4326', 0, 0);
 const tmpDims = new Vector2();
 
-const WGS84_A = 6_378_137.0;
-const WGS84_IF = 298.257223563;
+const WGS84_A = 6_378_137.0; // Semi-major axis
+const WGS84_B = 6_356_752.314245; // Semi-minor axis
+const WGS84_IF = 298.257223563; // Inverse flattening
 const WGS84_F = 1 / WGS84_IF;
 const WGS84_E = Math.sqrt(2 * WGS84_F - WGS84_F * WGS84_F);
 
@@ -70,4 +71,39 @@ export function getExtentDimensions(extent: Extent, target?: Vector2): Vector2 {
     target = target ?? new Vector2(width, height);
 
     return target;
+}
+
+// https://cesium.com/blog/2013/04/25/horizon-culling/
+export function isHorizonVisible(cameraPosition: Vector3, position: Vector3): boolean {
+    // Ellipsoid radii - WGS84 shown here
+    const rX = WGS84_A;
+    const rY = WGS84_A;
+    const rZ = WGS84_B;
+
+    // Vector CV
+    const cvX = cameraPosition.x / rX;
+    const cvY = cameraPosition.y / rY;
+    const cvZ = cameraPosition.z / rZ;
+
+    const vhMagnitudeSquared = cvX * cvX + cvY * cvY + cvZ * cvZ - 1.0;
+
+    // Target position, transformed to scaled space
+    const tX = position.x / rX;
+    const tY = position.y / rY;
+    const tZ = position.z / rZ;
+
+    // Vector VT
+    const vtX = tX - cvX;
+    const vtY = tY - cvY;
+    const vtZ = tZ - cvZ;
+    const vtMagnitudeSquared = vtX * vtX + vtY * vtY + vtZ * vtZ;
+
+    // VT dot VC is the inverse of VT dot CV
+    const vtDotVc = -(vtX * cvX + vtY * cvY + vtZ * cvZ);
+
+    const isOccluded =
+        vtDotVc > vhMagnitudeSquared &&
+        (vtDotVc * vtDotVc) / vtMagnitudeSquared > vhMagnitudeSquared;
+
+    return !isOccluded;
 }

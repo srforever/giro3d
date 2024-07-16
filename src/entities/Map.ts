@@ -69,7 +69,11 @@ import type ElevationRange from '../core/ElevationRange';
 import type Context from '../core/Context';
 import type GetElevationOptions from './GetElevationOptions';
 import type GetElevationResult from './GetElevationResult';
-import { getMeridianArcLength, getParallelArcLength } from '../core/geographic/WGS84';
+import {
+    getMeridianArcLength,
+    getParallelArcLength,
+    isHorizonVisible,
+} from '../core/geographic/WGS84';
 
 /**
  * The default background color of maps.
@@ -1189,9 +1193,28 @@ class Map<UserData extends EntityUserData = EntityUserData>
     private testVisibility(node: TileMesh, context: Context): boolean {
         node.update(this.materialOptions);
 
-        const isVisible = context.camera.isBox3Visible(node.boundingBox, node.matrixWorld);
+        // Frustum culling
+        const frustumVisible = context.camera.isBox3Visible(node.boundingBox, node.matrixWorld);
+        let horizonVisible = true;
 
-        return isVisible;
+        if (frustumVisible && this._instance.referenceCrs === 'EPSG:4978') {
+            horizonVisible = this.testHorizonVisibility(node, context);
+        }
+
+        return frustumVisible && horizonVisible;
+    }
+
+    private testHorizonVisibility(node: TileMesh, context: Context): boolean {
+        const cameraPosition = context.camera.camera3D.position;
+        const corners = node.getBoundingBoxCorners();
+
+        for (const corner of corners) {
+            if (isHorizonVisible(cameraPosition, corner)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     postUpdate() {
