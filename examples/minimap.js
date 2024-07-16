@@ -1,4 +1,4 @@
-import { Vector3, CubeTextureLoader, Color, OrthographicCamera } from 'three';
+import { Vector3, CubeTextureLoader, Color, OrthographicCamera, MathUtils } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import OSM from 'ol/source/OSM.js';
@@ -9,13 +9,12 @@ import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import WmtsSource from '@giro3d/giro3d/sources/WmtsSource.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
-// NOTE: changing the imported name because we use the native `Map` object in this example.
-import Giro3dMap from '@giro3d/giro3d/entities/Map.js';
+import Map from '@giro3d/giro3d/entities/Map.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
+import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
 Instance.registerCRS(
@@ -36,7 +35,7 @@ const mainInstance = new Instance(viewerDiv, {
 
 // create a map
 const extent = new Extent('EPSG:2154', -111629.52, 1275028.84, 5976033.79, 7230161.64);
-const map = new Giro3dMap('planar', {
+const map = new Map('planar', {
     extent,
     backgroundColor: 'gray',
     hillshading: {
@@ -150,7 +149,7 @@ const minimapCamera = new OrthographicCamera(
 minimapInstance.camera.camera3D = minimapCamera;
 
 // Let's create our minimap map with the same extent than the main map.
-const minimap = new Giro3dMap('minimap', {
+const minimap = new Map('minimap', {
     extent: map.extent,
     // Since the map is flat (no terrain applied), we can use 1 segment per tile.
     segments: 1,
@@ -163,6 +162,7 @@ minimapInstance.add(minimap);
 // We use an OpenStreetMap color layer for the minimap, because it's readable and fast to display.
 const osmLayer = new ColorLayer({
     name: 'osm',
+    preloadImages: true,
     source: new TiledImageSource({ source: new OSM() }),
 });
 
@@ -194,7 +194,8 @@ mainInstance.addEventListener('after-camera-update', synchronizeCameras);
 function handleMouseWheel(event) {
     const delta = event.wheelDelta;
 
-    const ZOOM_SPEED = 1.5;
+    const absDelta = Math.abs(delta);
+    const ZOOM_SPEED = MathUtils.mapLinear(absDelta, 0, 120, 1.01, 1.2);
 
     if (delta > 0) {
         minimapCamera.zoom *= ZOOM_SPEED;
@@ -212,6 +213,7 @@ function handleMouseWheel(event) {
 // We use the 'wheel' event (careful not to use the non-standard 'mousewheel' event).
 minimapInstance.domElement.addEventListener('wheel', handleMouseWheel);
 
+Inspector.attach(document.getElementById('panelDiv'), mainInstance, { title: 'main' });
 Inspector.attach(document.getElementById('panelDiv'), minimapInstance, { title: 'minimap' });
 
 StatusBar.bind(mainInstance, { additionalInstances: minimapInstance });
