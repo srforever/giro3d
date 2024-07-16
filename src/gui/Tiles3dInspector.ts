@@ -50,21 +50,27 @@ class Tiles3dInspector extends EntityInspector {
             .onChange(() => this.notify());
 
         if (this.entity.material) {
-            this.addController<number>(this.entity.material, 'brightness')
-                .min(-1)
-                .max(1)
-                .name('Brightness')
-                .onChange(() => this.instance.notifyChange(this.entity));
-            this.addController<number>(this.entity.material, 'contrast')
-                .name('Contrast')
-                .min(0)
-                .max(10)
-                .onChange(() => this.instance.notifyChange(this.entity));
-            this.addController<number>(this.entity.material, 'saturation')
-                .name('Saturation')
-                .min(0)
-                .max(10)
-                .onChange(() => this.instance.notifyChange(this.entity));
+            if ('brightness' in this.entity.material) {
+                this.addController<number>(this.entity.material, 'brightness')
+                    .min(-1)
+                    .max(1)
+                    .name('Brightness')
+                    .onChange(() => this.instance.notifyChange(this.entity));
+            }
+            if ('contrast' in this.entity.material) {
+                this.addController<number>(this.entity.material, 'contrast')
+                    .name('Contrast')
+                    .min(0)
+                    .max(10)
+                    .onChange(() => this.instance.notifyChange(this.entity));
+            }
+            if ('saturation' in this.entity.material) {
+                this.addController<number>(this.entity.material, 'saturation')
+                    .name('Saturation')
+                    .min(0)
+                    .max(10)
+                    .onChange(() => this.instance.notifyChange(this.entity));
+            }
         }
 
         this.layerFolder = this.gui.addFolder('Layers');
