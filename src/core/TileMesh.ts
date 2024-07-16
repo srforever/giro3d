@@ -42,9 +42,12 @@ import { intoUniqueOwner } from './UniqueOwner';
 import TextureGenerator from '../utils/TextureGenerator';
 import type GetElevationOptions from '../entities/GetElevationOptions';
 import { type NeighbourList } from './TileIndex';
+import { latLonToEcef } from './geographic/WGS84';
+import { Coordinates } from './geographic';
 
 const ray = new Ray();
 const inverseMatrix = new Matrix4();
+const tmpCoordWGS84 = new Coordinates('EPSG:4326', 0, 0);
 
 const helperMaterial = new MeshBasicMaterial({
     color: '#75eba8',
@@ -92,17 +95,21 @@ export interface TileMeshEventMap extends Object3DEventMap {
 }
 
 class TileVolume {
-    private readonly _localBox: Box3;
+    protected readonly _localBox: Box3;
     private readonly _owner: Object3D<Object3DEventMap>;
 
     constructor(options: { extent: Extent; min: number; max: number; owner: Object3D }) {
-        const dims = options.extent.dimensions(tempVec2);
+        this._owner = options.owner;
+        this._localBox = this.computeLocalBox(options.extent, options.min, options.max);
+    }
+
+    protected computeLocalBox(extent: Extent, minAltitude: number, maxAltitude: number): Box3 {
+        const dims = extent.dimensions(tempVec2);
         const width = dims.x;
         const height = dims.y;
-        const min = new Vector3(-width / 2, -height / 2, options.min);
-        const max = new Vector3(+width / 2, +height / 2, options.max);
-        this._localBox = new Box3(min, max);
-        this._owner = options.owner;
+        const min = new Vector3(-width / 2, -height / 2, minAltitude);
+        const max = new Vector3(+width / 2, +height / 2, maxAltitude);
+        return new Box3(min, max);
     }
 
     get centerZ() {
@@ -113,26 +120,9 @@ class TileVolume {
         return this._localBox;
     }
 
-    /**
-     * Gets or set the min altitude, in local coordinates.
-     */
-    get zMin() {
-        return this._localBox.min.z;
-    }
-
-    set zMin(v: number) {
-        this._localBox.min.setZ(v);
-    }
-
-    /**
-     * Gets or set the max altitude, in local coordinates.
-     */
-    get zMax() {
-        return this._localBox.max.z;
-    }
-
-    set zMax(v: number) {
-        this._localBox.max.setZ(v);
+    setMinMax(min: number, max: number) {
+        this._localBox.min.setZ(min);
+        this._localBox.max.setZ(max);
     }
 
     /**
@@ -166,6 +156,77 @@ class TileVolume {
         result.applyMatrix4(this._owner.matrixWorld);
 
         return result;
+    }
+}
+
+class GlobeTileVolume extends TileVolume {
+    private readonly _extent: Extent;
+
+    constructor(options: { extent: Extent; min: number; max: number; owner: Object3D }) {
+        super(options);
+
+        this._extent = options.extent;
+    }
+
+    protected override computeLocalBox(
+        extent: Extent,
+        minAltitude: number,
+        maxAltitude: number,
+    ): Box3 {
+        const p0 = latLonToEcef(extent.north(), extent.west(), minAltitude);
+        const p1 = latLonToEcef(extent.north(), extent.west(), maxAltitude);
+
+        const p2 = latLonToEcef(extent.south(), extent.west(), minAltitude);
+        const p3 = latLonToEcef(extent.south(), extent.west(), maxAltitude);
+
+        const p4 = latLonToEcef(extent.south(), extent.east(), minAltitude);
+        const p5 = latLonToEcef(extent.south(), extent.east(), maxAltitude);
+
+        const p6 = latLonToEcef(extent.north(), extent.east(), minAltitude);
+        const p7 = latLonToEcef(extent.north(), extent.east(), maxAltitude);
+
+        const center = extent.center(tmpCoordWGS84);
+
+        const p8 = latLonToEcef(center.latitude, center.longitude, minAltitude);
+        const p9 = latLonToEcef(center.latitude, center.longitude, maxAltitude);
+
+        const p10 = latLonToEcef(extent.north(), center.longitude, minAltitude);
+        const p11 = latLonToEcef(extent.south(), center.longitude, maxAltitude);
+
+        const p12 = latLonToEcef(center.latitude, extent.west(), minAltitude);
+        const p13 = latLonToEcef(center.latitude, extent.east(), maxAltitude);
+
+        const worldBox = new Box3().setFromPoints([
+            p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+        ]);
+
+        return worldBox.setFromCenterAndSize(
+            worldBox.getCenter(tempVec3).sub(p0),
+            worldBox.getSize(new Vector3()),
+        );
+    }
+
+    override setMinMax(min: number, max: number) {
+        if (!Number.isFinite(min) || !Number.isFinite(max)) {
+            min = 0;
+            max = 0;
+        }
+        const box = this.computeLocalBox(this._extent, min, max);
+        this._localBox.copy(box);
+        this._corners = null;
     }
 }
 
@@ -220,11 +281,9 @@ class TileMesh
 
     get boundingBox(): Box3 {
         if (!this._enableTerrainDeformation) {
-            this._volume.zMin = 0;
-            this._volume.zMax = 0;
+            this._volume.setMinMax(0, 0);
         } else {
-            this._volume.zMin = this.minmax.min;
-            this._volume.zMax = this.minmax.max;
+            this._volume.setMinMax(this.minmax.min, this.minmax.max);
         }
         return this._volume.localBox;
     }
@@ -288,12 +347,20 @@ class TileMesh
         this._enableCPUTerrain = enableCPUTerrain;
         this._enableTerrainDeformation = enableTerrainDeformation;
 
-        this._volume = new TileVolume({
-            extent,
-            owner: this,
-            min: this.geometry.boundingBox.min.z,
-            max: this.geometry.boundingBox.max.z,
-        });
+        this._volume =
+            extent.crs() === 'EPSG:4326'
+                ? new GlobeTileVolume({
+                      extent,
+                      owner: this,
+                      min: -100,
+                      max: +100,
+                  })
+                : new TileVolume({
+                      extent,
+                      owner: this,
+                      min: this.geometry.boundingBox.min.z,
+                      max: this.geometry.boundingBox.max.z,
+                  });
 
         this.name = `tile @ (z=${level}, x=${x}, y=${y})`;
 
@@ -709,11 +776,7 @@ class TileMesh
     }
 
     private updateVolume(min: number, max: number) {
-        const v = this._volume;
-        if (Math.floor(min) !== Math.floor(v.zMin) || Math.floor(max) !== Math.floor(v.zMax)) {
-            this._volume.zMin = min;
-            this._volume.zMax = max;
-        }
+        this._volume.setMinMax(min, max);
     }
 
     get minmax() {
