@@ -15,6 +15,7 @@ import {
     Matrix4,
     Box3,
     Vector3,
+    MathUtils,
 } from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker';
@@ -47,6 +48,7 @@ import { Coordinates } from './geographic';
 
 const ray = new Ray();
 const inverseMatrix = new Matrix4();
+const tmpBox = new Box3();
 const tmpCoordWGS84 = new Coordinates('EPSG:4326', 0, 0);
 
 const helperMaterial = new MeshBasicMaterial({
@@ -120,6 +122,23 @@ class TileVolume {
         return this._localBox;
     }
 
+    getCorners(): Vector3[] {
+        const bbox = this.getWorldSpaceBoundingBox(tmpBox);
+        const c0 = new Vector3(bbox.min.x, bbox.min.y, bbox.min.z);
+        const c1 = new Vector3(bbox.min.x, bbox.min.y, bbox.max.z);
+
+        const c2 = new Vector3(bbox.max.x, bbox.min.y, bbox.min.z);
+        const c3 = new Vector3(bbox.max.x, bbox.min.y, bbox.max.z);
+
+        const c4 = new Vector3(bbox.max.x, bbox.max.y, bbox.min.z);
+        const c5 = new Vector3(bbox.max.x, bbox.max.y, bbox.max.z);
+
+        const c6 = new Vector3(bbox.min.x, bbox.max.y, bbox.min.z);
+        const c7 = new Vector3(bbox.min.x, bbox.max.y, bbox.max.z);
+
+        return [c0, c1, c2, c3, c4, c5, c6, c7];
+    }
+
     setMinMax(min: number, max: number) {
         this._localBox.min.setZ(min);
         this._localBox.max.setZ(max);
@@ -161,11 +180,45 @@ class TileVolume {
 
 class GlobeTileVolume extends TileVolume {
     private readonly _extent: Extent;
+    private _corners: Vector3[];
+    private _max = 0;
+    private _min = 0;
 
     constructor(options: { extent: Extent; min: number; max: number; owner: Object3D }) {
         super(options);
 
         this._extent = options.extent;
+    }
+
+    getCorners(): Vector3[] {
+        if (this._corners == null) {
+            const dims = this._extent.dimensions(tempVec2);
+
+            const xCount = MathUtils.clamp(Math.round(dims.width / 5) + 1, 2, 6);
+            const yCount = MathUtils.clamp(Math.round(dims.height / 5) + 1, 2, 6);
+
+            this._corners = new Array(xCount * yCount);
+            const uStep = 1 / (xCount - 1);
+            const jStep = 1 / (yCount - 1);
+
+            let index = 0;
+            for (let i = 0; i < xCount; i++) {
+                for (let j = 0; j < yCount; j++) {
+                    const u = i * uStep;
+                    const v = j * jStep;
+
+                    const lonlat = this._extent.sample(u, v, tempVec2);
+
+                    const p0 = latLonToEcef(lonlat.y, lonlat.x, this._min);
+                    const p1 = latLonToEcef(lonlat.y, lonlat.x, this._max);
+
+                    this._corners[index++] = p0;
+                    this._corners[index++] = p1;
+                }
+            }
+        }
+
+        return this._corners;
     }
 
     protected override computeLocalBox(
@@ -213,6 +266,8 @@ class GlobeTileVolume extends TileVolume {
             p13,
         ]);
 
+        this._corners = null;
+
         return worldBox.setFromCenterAndSize(
             worldBox.getCenter(tempVec3).sub(p0),
             worldBox.getSize(new Vector3()),
@@ -224,6 +279,8 @@ class GlobeTileVolume extends TileVolume {
             min = 0;
             max = 0;
         }
+        this._min = min;
+        this._max = max;
         const box = this.computeLocalBox(this._extent, min, max);
         this._localBox.copy(box);
         this._corners = null;
@@ -290,6 +347,10 @@ class TileMesh
 
     getWorldSpaceBoundingBox(target: Box3): Box3 {
         return this._volume.getWorldSpaceBoundingBox(target);
+    }
+
+    getBoundingBoxCorners(): Vector3[] {
+        return this._volume.getCorners();
     }
 
     /**

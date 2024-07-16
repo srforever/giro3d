@@ -107,6 +107,27 @@ class Extent {
     }
 
     /**
+     * Returns the coordinate of the location on the extent that matches U and V, where U and V
+     * are normalized (in the range [0, 1]), and U = 0  and V = 0 are the bottom/left corner of
+     * the extent, and U = 1 and V = 1 are to top right corner.
+     * @param u - The normalized coordinate over the X-axis.
+     * @param v - The normalized coordinate over the Y-axis.
+     * @param target - The target to store the result. If unspecified, one will be created.
+     * @returns The sampled coordinate.
+     */
+    sample(u: number, v: number, target?: Vector2): Vector2 {
+        const { width, height } = this.dimensions(tmpXY);
+        const bottom = this.south();
+        const left = this.west();
+
+        target = target ?? new Vector2();
+
+        target.set(left + width * u, bottom + height * v);
+
+        return target;
+    }
+
+    /**
      * Returns `true` if the two extents are equal.
      *
      * @param other - The extent to compare.
