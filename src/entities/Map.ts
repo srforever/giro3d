@@ -34,7 +34,6 @@ import TileMesh, { isTileMesh } from '../core/TileMesh';
 import TileIndex, { type NeighbourList } from '../core/TileIndex';
 import type RenderingState from '../renderer/RenderingState';
 import ColorMapAtlas from '../renderer/ColorMapAtlas';
-import AtlasBuilder, { type AtlasInfo } from '../renderer/AtlasBuilder';
 import Capabilities from '../core/system/Capabilities';
 import type TileGeometry from '../core/TileGeometry';
 import { type MaterialOptions } from '../renderer/LayeredMaterial';
@@ -70,6 +69,7 @@ import type ElevationRange from '../core/ElevationRange';
 import type Context from '../core/Context';
 import type GetElevationOptions from './GetElevationOptions';
 import type GetElevationResult from './GetElevationResult';
+import { getMeridianArcLength, getParallelArcLength } from '../core/geographic/WGS84';
 
 /**
  * The default background color of maps.
@@ -109,6 +109,8 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
 const tmpVector = new Vector3();
 const tmpBox3 = new Box3();
 const tempNDC = new Vector2();
+const tmpWGS84Coordinates = new Coordinates('EPSG:4326', 0, 0);
+const tempDims = new Vector2();
 const tempCanvasCoords = new Vector2();
 const tmpSseSizes: [number, number] = [0, 0];
 const tmpIntersectList: Intersection<TileMesh>[] = [];
@@ -255,7 +257,12 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions): Hillshadin
     };
 }
 
-function selectBestSubdivisions(extent: Extent) {
+export function selectBestSubdivisions(extent: Extent) {
+    // TODO this only makes sense if it is the entire WGS84 bounds !
+    if (extent.crs() === 'EPSG:4326') {
+        return { x: 4, y: 2 };
+    }
+
     const dims = extent.dimensions();
     const ratio = dims.x / dims.y;
     let x = 1;
@@ -271,15 +278,33 @@ function selectBestSubdivisions(extent: Extent) {
     return { x, y };
 }
 
-/**
- * Compute the best image size for tiles, taking into account the extent ratio.
- * In other words, rectangular tiles will have more pixels in their longest side.
- *
- * @param extent - The map extent.
- */
-function computeImageSize(extent: Extent) {
+function computeWGS84ImageSize(extent: Extent): Vector2 {
+    const dims = extent.dimensions(tempDims);
+
+    const meridianLength = getMeridianArcLength(dims.height);
+
+    const centerLatitude = extent.center(tmpWGS84Coordinates).latitude;
+
+    // Since the northern edge of the extent has a different size
+    // than the southern edge (due to polar distortion), let's select the biggest edge.
+    // For south hemisphere extent, the biggest edge is the northern one, and vice-versa.
+    const biggestEdgeLatitude = centerLatitude < 0 ? extent.north() : extent.south();
+
+    // Let's compute the radius of the parallel at this latitude
+    const parallelLength = getParallelArcLength(biggestEdgeLatitude, dims.width);
+
+    // Contrary to the version in computeImageSize(), we don't need to swap width and height
+    // because the meridian length will always be greater or equal to the parallel length.
+    const ratio = parallelLength / meridianLength;
+
     const baseSize = 512;
-    const dims = extent.dimensions();
+
+    return new Vector2(Math.round(baseSize * ratio), baseSize);
+}
+
+function computeProjectedImageSize(extent: Extent): Vector2 {
+    const baseSize = 512;
+    const dims = extent.dimensions(tempDims);
     const ratio = dims.x / dims.y;
     if (Math.abs(ratio - 1) < 0.01) {
         // We have a square tile
@@ -296,6 +321,19 @@ function computeImageSize(extent: Extent) {
 
     // We have a vertical tile
     return new Vector2(baseSize, Math.round(baseSize * actualRatio));
+}
+
+/**
+ * Compute the best image size for tiles, taking into account the extent ratio.
+ * In other words, rectangular tiles will have more pixels in their longest side.
+ *
+ * @param extent - The map extent.
+ */
+function computeImageSize(extent: Extent): Vector2 {
+    if (extent.crs() === 'EPSG:4326') {
+        return computeWGS84ImageSize(extent);
+    }
+    return computeProjectedImageSize(extent);
 }
 
 function getWidestDataType(layers: Layer[]): TextureDataType {
@@ -492,10 +530,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     readonly hasLayers = true;
     private _segments: number;
     private _hasElevationLayer = false;
-    private readonly _atlasInfo: AtlasInfo;
-    private _subdivisions: { x: number; y: number };
     private _colorAtlasDataType: TextureDataType = UnsignedByteType;
-    private _imageSize: Vector2;
     private readonly _layers: Layer[] = [];
     private readonly _onLayerVisibilityChanged: (event: { target: Layer }) => void;
     private readonly _onTileElevationChanged: (tile: TileMesh) => void;
@@ -558,8 +593,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
         this.geometryPool = new window.Map();
 
         this._layerIndices = new window.Map();
-
-        this._atlasInfo = { maxX: 0, maxY: 0, atlas: null };
 
         if (!options.extent.isValid()) {
             throw new Error(
@@ -642,10 +675,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
         }
     }
 
-    get imageSize(): Vector2 {
-        return this._imageSize;
-    }
-
     private subdivideNode(context: Context, node: TileMesh) {
         if (!node.children.some(n => isTileMesh(n))) {
             const extents = node.extent.split(2, 2);
@@ -692,29 +721,23 @@ class Map<UserData extends EntityUserData = EntityUserData>
         });
     }
 
-    get subdivisions(): { x: number; y: number } {
-        return this._subdivisions;
-    }
-
     preprocess() {
         // TODO clarify
         if (this.extent.crs() !== 'EPSG:4326') {
             this.extent = this.extent.as(this._instance.referenceCrs);
         }
 
-        this._subdivisions = selectBestSubdivisions(this.extent);
+        const subdivisions = selectBestSubdivisions(this.extent);
 
         // If the map is not square, we want to have more than a single
         // root tile to avoid elongated tiles that hurt visual quality and SSE computation.
-        const rootExtents = this.extent.split(this._subdivisions.x, this._subdivisions.y);
-
-        this._imageSize = computeImageSize(rootExtents[0]);
+        const rootExtents = this.extent.split(subdivisions.x, subdivisions.y);
 
         let i = 0;
         for (const root of rootExtents) {
-            if (this._subdivisions.x > this._subdivisions.y) {
+            if (subdivisions.x > subdivisions.y) {
                 this.level0Nodes.push(this.requestNewTile(root, undefined, 0, i, 0));
-            } else if (this._subdivisions.y > this._subdivisions.x) {
+            } else if (subdivisions.y > subdivisions.x) {
                 this.level0Nodes.push(this.requestNewTile(root, undefined, 0, 0, i));
             } else {
                 this.level0Nodes.push(this.requestNewTile(root, undefined, 0, 0, 0));
@@ -734,11 +757,13 @@ class Map<UserData extends EntityUserData = EntityUserData>
             return null;
         }
 
+        const textureSize = computeImageSize(extent);
+
         // build tile
         const material = new LayeredMaterial({
             renderer: this._instance.renderer,
-            atlasInfo: this._atlasInfo,
             options: this.materialOptions,
+            textureSize,
             getIndexFn: this.getIndex.bind(this),
             textureDataType: this._colorAtlasDataType,
             hasElevationLayer: this._hasElevationLayer,
@@ -751,7 +776,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             instance: this._instance,
             material,
             extent,
-            textureSize: this._imageSize,
+            textureSize,
             segments: this.segments,
             coord: { level, x, y },
             enableCPUTerrain: this.materialOptions.terrain.enableCPUTerrain,
@@ -1188,25 +1213,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         }
     }
 
-    private registerColorLayer(layer: ColorLayer) {
-        const colorLayers = this._layers.filter(l => l instanceof ColorLayer);
-
-        // rebuild color textures atlas
-        // We use a margin to prevent atlas bleeding.
-        const margin = 1.1;
-        const factor = layer.resolutionFactor * margin;
-        const { x, y } = this._imageSize;
-        const size = new Vector2(Math.round(x * factor), Math.round(y * factor));
-
-        const { atlas, maxX, maxY } = AtlasBuilder.pack(
-            Capabilities.getMaxTextureSize(),
-            colorLayers.map(l => ({ id: l.id, size })),
-            this._atlasInfo.atlas,
-        );
-        this._atlasInfo.atlas = atlas;
-        this._atlasInfo.maxX = Math.max(this._atlasInfo.maxX, maxX);
-        this._atlasInfo.maxY = Math.max(this._atlasInfo.maxY, maxY);
-
+    private registerColorLayer() {
         this._colorAtlasDataType = getWidestDataType(this.getColorLayers());
     }
 
@@ -1258,7 +1265,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         layer.addEventListener('visible-property-changed', this._onLayerVisibilityChanged);
 
         if (layer instanceof ColorLayer) {
-            this.registerColorLayer(layer);
+            this.registerColorLayer();
         } else if (layer instanceof ElevationLayer) {
             this._hasElevationLayer = true;
             this.updateGlobalMinMax();
@@ -1566,7 +1573,9 @@ class Map<UserData extends EntityUserData = EntityUserData>
         tmpSseSizes[0] = sse.lengths.x * sse.ratio;
         tmpSseSizes[1] = sse.lengths.y * sse.ratio;
 
-        const threshold = Math.max(this.imageSize.x, this.imageSize.y);
+        const { width, height } = tile.textureSize;
+
+        const threshold = Math.max(width, height);
         return tmpSseSizes.some(v => v >= threshold * this.subdivisionThreshold);
     }
 

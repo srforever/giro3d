@@ -52,6 +52,8 @@ import {
 import type MemoryUsage from '../core/MemoryUsage';
 import EmptyTexture from './EmptyTexture';
 import OffsetScale from '../core/OffsetScale';
+import AtlasBuilder from './AtlasBuilder';
+import Capabilities from '../core/system/Capabilities';
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -336,6 +338,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
     private readonly _atlasInfo: AtlasInfo;
     private readonly _forceTextureAtlas: boolean;
     private readonly _maxTextureImageUnits: number;
+    private readonly _textureSize: Vector2;
     private _options: MaterialOptions;
     private _hasElevationLayer: boolean;
 
@@ -354,11 +357,11 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         options = {},
         renderer,
         maxTextureImageUnits,
-        atlasInfo,
         getIndexFn,
         textureDataType,
         hasElevationLayer,
         isGlobe,
+        textureSize,
     }: {
         /** the material options. */
         options: MaterialOptions;
@@ -366,18 +369,17 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         renderer: WebGLRenderer;
         /** The number of maximum texture units in fragment shaders */
         maxTextureImageUnits: number;
-        /**  the Atlas info */
-        atlasInfo: AtlasInfo;
         /** The function to help sorting color layers. */
         getIndexFn: (arg0: Layer) => number;
         /** The texture data type to be used for the atlas texture. */
         textureDataType: TextureDataType;
         hasElevationLayer: boolean;
         isGlobe: boolean;
+        textureSize: Vector2;
     }) {
         super({ clipping: true, glslVersion: GLSL3 });
 
-        this._atlasInfo = atlasInfo;
+        this._atlasInfo = { maxX: 0, maxY: 0, atlas: null };
         MaterialUtils.setDefine(this, 'HAS_NORMALS', isGlobe);
         MaterialUtils.setDefine(this, 'USE_ATLAS_TEXTURE', false);
         MaterialUtils.setDefine(this, 'STITCHING', options.terrain?.stitching);
@@ -385,6 +387,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         this._renderer = renderer;
         this._forceTextureAtlas = options.forceTextureAtlases ?? false;
 
+        this._textureSize = textureSize;
         this._hasElevationLayer = hasElevationLayer;
         this._composerDataType = textureDataType;
         this.uniforms.hillshading = new Uniform<HillshadingUniform>({
@@ -759,6 +762,30 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         return Promise.resolve(true);
     }
 
+    private rebuildAtlasInfo() {
+        const colorLayers = this._colorLayers;
+
+        // rebuild color textures atlas
+        // We use a margin to prevent atlas bleeding.
+        const margin = 1.1;
+        const { width, height } = this._textureSize;
+
+        const { atlas, maxX, maxY } = AtlasBuilder.pack(
+            Capabilities.getMaxTextureSize(),
+            colorLayers.map(l => ({
+                id: l.id,
+                size: new Vector2(
+                    Math.round(width * l.resolutionFactor * margin),
+                    Math.round(height * l.resolutionFactor * margin),
+                ),
+            })),
+            this._atlasInfo.atlas,
+        );
+        this._atlasInfo.atlas = atlas;
+        this._atlasInfo.maxX = Math.max(this._atlasInfo.maxX, maxX);
+        this._atlasInfo.maxY = Math.max(this._atlasInfo.maxY, maxY);
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     pushColorLayer(newLayer: ColorLayer, _extent: Extent) {
         if (this._colorLayers.includes(newLayer)) {
@@ -777,6 +804,8 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         info.originalOffsetScale = new OffsetScale(0, 0, 0, 0);
         info.texture = emptyTexture;
         info.color = new Color(1, 1, 1);
+
+        this.rebuildAtlasInfo();
 
         // Optional feature: limit color layer display within an elevation range
         const hasElevationRange = newLayer.elevationRange != null;
@@ -829,6 +858,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         this._colorLayers.splice(index, 1);
 
         this.updateColorMaps();
+        this.rebuildAtlasInfo();
 
         this.updateColorLayerCount();
     }
