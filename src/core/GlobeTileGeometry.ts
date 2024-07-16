@@ -1,36 +1,15 @@
-import { BufferAttribute, BufferGeometry, MathUtils, PlaneGeometry, Vector2, Vector3 } from 'three';
+import { BufferAttribute, BufferGeometry, PlaneGeometry, Vector2, Vector3 } from 'three';
 import type Extent from './geographic/Extent';
 import { DEFAULT_MAP_SEGMENTS } from '../entities/Map';
 import type { GetMemoryUsageContext, MemoryUsage, MemoryUsageReport } from '.';
 import { createEmptyReport } from './MemoryUsage';
 import type TileGeometry from './TileGeometry';
 import type HeightMap from './HeightMap';
+import { latLonToEcef } from './geographic/WGS84';
 
 const tmpVec2 = new Vector2();
 const tmpVec3 = new Vector3();
 const tmpNormal = new Vector3();
-
-const WGS84_A = 6_378_137.0;
-const WGS84_IF = 298.257223563;
-const WGS84_F = 1 / WGS84_IF;
-const WGS84_E = Math.sqrt(2 * WGS84_F - WGS84_F * WGS84_F);
-
-function latLonToEcef(lat: number, lon: number, alt: number, target: Vector3): Vector3 {
-    const clat = Math.cos(lat * MathUtils.DEG2RAD);
-    const slat = Math.sin(lat * MathUtils.DEG2RAD);
-    const clon = Math.cos(lon * MathUtils.DEG2RAD);
-    const slon = Math.sin(lon * MathUtils.DEG2RAD);
-
-    const N = WGS84_A / Math.sqrt(1.0 - WGS84_E * WGS84_E * slat * slat);
-
-    const x = (N + alt) * clat * clon;
-    const y = (N + alt) * clat * slon;
-    const z = (N * (1.0 - WGS84_E * WGS84_E) + alt) * slat;
-
-    target.set(x, y, z);
-
-    return target;
-}
 
 export default class GlobeTileGeometry extends BufferGeometry implements MemoryUsage, TileGeometry {
     private readonly _extent: Extent;
