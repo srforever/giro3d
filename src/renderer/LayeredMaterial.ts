@@ -58,6 +58,8 @@ import { getExtentDimensions } from '../core/geographic/WGS84';
 
 const EMPTY_IMAGE_SIZE = 16;
 
+const tmpDims = new Vector2();
+
 interface ElevationTexture extends Texture {
     /**
      * Flag to determine if the texture is borrowed from
@@ -301,6 +303,7 @@ interface Uniforms {
     colorMapAtlas: IUniform<Texture>;
     layersColorMaps: IUniform<ColorMapUniform[]>;
     elevationColorMap: IUniform<ColorMapUniform>;
+    wgs84Dimensions: IUniform<Vector4>;
 
     fogDensity: IUniform<number>;
     fogNear: IUniform<number>;
@@ -462,6 +465,14 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         const dim =
             extent.crs() === 'EPSG:4326' ? getExtentDimensions(extent) : extent.dimensions();
         this.uniforms.tileDimensions = new Uniform(dim);
+
+        if (isGlobe) {
+            const { width, height } = extent.dimensions(tmpDims);
+            this.uniforms.wgs84Dimensions = new Uniform(
+                new Vector4(extent.west(), extent.south(), width, height),
+            );
+        }
+
         this.uniforms.brightnessContrastSaturation = new Uniform(new Vector3(0, 1, 1));
         this.uniforms.neighbours = new Uniform(new Array(8));
         for (let i = 0; i < 8; i++) {

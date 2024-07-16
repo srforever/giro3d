@@ -23,6 +23,10 @@ varying vec3        wPosition; // The input world position
 varying vec3        wNormal;
 varying vec3        vViewPosition;
 
+#if defined(IS_GLOBE)
+uniform vec4        wgs84Dimensions; // [corner longitude, corner latitude, tile width, tile height] (in degrees)
+#endif
+
 uniform int         renderingState; // Current rendering state (default is STATE_FINAL)
 uniform int         uuid;           // The ID of the tile mesh (used for the STATE_PICKING rendering state)
 
@@ -224,6 +228,11 @@ void main() {
     // Step 7 : draw tile outlines
     #include <giro3d_outline_fragment>
 
+#if defined(IS_GLOBE)
+    vec2 graticuleCoordinates = vec2(wgs84Dimensions.x + vUv.x * wgs84Dimensions[2], wgs84Dimensions.y + vUv.y * wgs84Dimensions[3]);
+#else
+    vec2 graticuleCoordinates = wPosition.xy;
+#endif
     #include <giro3d_graticule_fragment>
 
     #include <logdepthbuf_fragment>
