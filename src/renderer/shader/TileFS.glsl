@@ -20,6 +20,7 @@ const int STATE_PICKING = 1;
 
 varying vec2        vUv; // The input UV
 varying vec3        wPosition; // The input world position
+varying vec3        wNormal;
 varying vec3        vViewPosition;
 
 uniform int         renderingState; // Current rendering state (default is STATE_FINAL)

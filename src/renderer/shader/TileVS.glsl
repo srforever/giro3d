@@ -23,6 +23,7 @@ uniform vec2        tileDimensions;
 // Outputs
 varying vec2        vUv;
 varying vec3        wPosition; // World space position
+varying vec3        wNormal; // World space normal
 varying vec3        vViewPosition;
 
 const int   NULL = -1;
@@ -426,8 +427,10 @@ void main() {
 #if defined(HAS_NORMALS)
     // Use case for globe mode: the UP vector is not constant.
     transformed.xyz += normal * elevation;
+    wNormal = normal;
 #else
     transformed.z = elevation;
+    wNormal = vec3(0, 0, 1);
 #endif
 
     #include <project_vertex>
