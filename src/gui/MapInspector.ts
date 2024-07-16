@@ -118,8 +118,6 @@ class MapInspector extends EntityInspector {
                 .name('Elevation range maximum')
                 .onChange(() => this.notify(map));
         }
-        this.addController<number>(this.map.imageSize, 'width').name('Tile width  (pixels)');
-        this.addController<number>(this.map.imageSize, 'height').name('Tile height  (pixels)');
         this.addController<boolean>(this, 'showGrid')
             .name('Show grid')
             .onChange(v => this.toggleGrid(v));
@@ -243,7 +241,7 @@ class MapInspector extends EntityInspector {
             const element = label.element;
             let innerText = `
             Map=${this.map.id}
-            {x=${tile.x},y=${tile.y}} LOD=${tile.z}
+            {x=${tile.x},y=${tile.y}} LOD=${tile.z} (${tile.textureSize.width} * ${tile.textureSize.height} px)
             (node #${tile.id})
             progress=${Math.ceil(tile.progress * 100)}%
             layers=${tile.material.getLayerCount()}
