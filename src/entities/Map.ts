@@ -764,6 +764,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             renderer: this._instance.renderer,
             options: this.materialOptions,
             textureSize,
+            extent,
             getIndexFn: this.getIndex.bind(this),
             textureDataType: this._colorAtlasDataType,
             hasElevationLayer: this._hasElevationLayer,

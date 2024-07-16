@@ -1,4 +1,9 @@
-import { MathUtils, Vector3 } from 'three';
+import { MathUtils, Vector2, Vector3 } from 'three';
+import type Extent from './Extent';
+import Coordinates from './Coordinates';
+
+const tmpCoord = new Coordinates('EPSG:4326', 0, 0);
+const tmpDims = new Vector2();
 
 const WGS84_A = 6_378_137.0;
 const WGS84_IF = 298.257223563;
@@ -53,4 +58,16 @@ export function getMeridianArcLength(angle: number): number {
     const MERIDIONAL_CIRCUMFERENCE = 40_008_000;
 
     return (angle / 360) * MERIDIONAL_CIRCUMFERENCE;
+}
+
+export function getExtentDimensions(extent: Extent, target?: Vector2): Vector2 {
+    const center = extent.center(tmpCoord);
+    const dims = extent.dimensions(tmpDims);
+
+    const width = getParallelArcLength(center.latitude, dims.width);
+    const height = getMeridianArcLength(dims.height);
+
+    target = target ?? new Vector2(width, height);
+
+    return target;
 }

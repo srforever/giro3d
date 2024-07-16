@@ -370,8 +370,6 @@ class TileMesh
         this.setDisplayed(false);
 
         this.material.setUuid(this.id);
-        const dim = extent.dimensions();
-        this.material.uniforms.tileDimensions.value.set(dim.x, dim.y);
 
         // Sets the default bbox volume
         this.setBBoxZ(-0.5, +0.5);

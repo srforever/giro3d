@@ -54,6 +54,7 @@ import EmptyTexture from './EmptyTexture';
 import OffsetScale from '../core/OffsetScale';
 import AtlasBuilder from './AtlasBuilder';
 import Capabilities from '../core/system/Capabilities';
+import { getExtentDimensions } from '../core/geographic/WGS84';
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -339,6 +340,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
     private readonly _forceTextureAtlas: boolean;
     private readonly _maxTextureImageUnits: number;
     private readonly _textureSize: Vector2;
+    private readonly _extent: Extent;
     private _options: MaterialOptions;
     private _hasElevationLayer: boolean;
 
@@ -356,6 +358,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
     constructor({
         options = {},
         renderer,
+        extent,
         maxTextureImageUnits,
         getIndexFn,
         textureDataType,
@@ -365,6 +368,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
     }: {
         /** the material options. */
         options: MaterialOptions;
+        extent: Extent;
         /** the WebGL renderer. */
         renderer: WebGLRenderer;
         /** The number of maximum texture units in fragment shaders */
@@ -379,6 +383,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
     }) {
         super({ clipping: true, glslVersion: GLSL3 });
 
+        this._extent = extent;
         this._atlasInfo = { maxX: 0, maxY: 0, atlas: null };
         MaterialUtils.setDefine(this, 'HAS_NORMALS', isGlobe);
         MaterialUtils.setDefine(this, 'USE_ATLAS_TEXTURE', false);
@@ -454,7 +459,9 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
             },
         };
 
-        this.uniforms.tileDimensions = new Uniform(new Vector2());
+        const dim =
+            extent.crs() === 'EPSG:4326' ? getExtentDimensions(extent) : extent.dimensions();
+        this.uniforms.tileDimensions = new Uniform(dim);
         this.uniforms.brightnessContrastSaturation = new Uniform(new Vector3(0, 1, 1));
         this.uniforms.neighbours = new Uniform(new Array(8));
         for (let i = 0; i < 8; i++) {
