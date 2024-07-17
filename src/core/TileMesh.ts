@@ -309,6 +309,7 @@ class TileMesh
     private readonly _enableCPUTerrain: boolean;
     private readonly _instance: Instance;
     private readonly _onElevationChanged: (tile: this) => void;
+    private readonly _tileGeometry: TileGeometry;
     private _shouldUpdateHeightMap = false;
     isLeaf = false;
     private _elevationLayerInfo: {
@@ -395,6 +396,7 @@ class TileMesh
             material,
         );
 
+        this._tileGeometry = this.geometry;
         this._pool = geometryPool;
         this._segments = segments;
         this._instance = instance;
@@ -543,7 +545,16 @@ class TileMesh
         // Let's do it only if the ray intersects the volume of this tile.
         if (this.checkRayVolumeIntersection(raycaster)) {
             this.updateHeightMapIfNecessary();
+
+            // We have to distinguish between the rendered geometry and the raycasting geometry.
+            // However, three.js does not let use choose which will be used for raycasting,
+            // so we temporarily swap the geometry with the raycast geometry to perform raycasting.
+            // @ts-expect-error type mismatch is expected and transient
+            this.geometry = this._tileGeometry.raycastGeometry;
+
             super.raycast(raycaster, intersects);
+
+            this.geometry = this._tileGeometry;
         }
     }
 
