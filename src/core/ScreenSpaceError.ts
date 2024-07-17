@@ -174,9 +174,8 @@ export default {
         return sse;
     },
 
-    computeFromSphere(camera: Camera, sphere: Sphere, matrix: Matrix4, geometricError: number) {
-        const s = sphere.clone().applyMatrix4(matrix);
-        const distance = Math.max(0.0, s.distanceToPoint(camera.camera3D.position));
+    computeFromSphere(camera: Camera, sphere: Sphere, geometricError: number) {
+        const distance = Math.max(0.0, sphere.distanceToPoint(camera.camera3D.position));
         temp[0].set(geometricError, 0, -distance);
         temp[0].applyMatrix4(camera.camera3D.projectionMatrix);
         temp[0].x = temp[0].x * camera.width * 0.5;
