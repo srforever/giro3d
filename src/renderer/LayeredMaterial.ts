@@ -19,6 +19,7 @@ import type {
     TextureDataType,
     WebGLProgramParametersWithUniforms,
     Texture,
+    ColorRepresentation,
 } from 'three';
 import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
@@ -108,7 +109,7 @@ class TextureInfo {
         return (this.layer as MaskLayer).maskMode || 0;
     }
 }
-
+export const DEFAULT_OUTLINE_COLOR = 'red';
 export const DEFAULT_HILLSHADING_INTENSITY = 1;
 export const DEFAULT_HILLSHADING_ZFACTOR = 1;
 export const DEFAULT_AZIMUTH = 135;
@@ -212,6 +213,11 @@ export interface MaterialOptions {
      */
     showTileOutlines?: boolean;
     /**
+     * The tile outline color.
+     * @defaultValue {@link DEFAULT_OUTLINE_COLOR}
+     */
+    tileOutlineColor?: ColorRepresentation;
+    /**
      * Force using texture atlases even when not required by WebGL limitations.
      */
     forceTextureAtlases?: boolean;
@@ -285,6 +291,7 @@ type Defines = {
 interface Uniforms {
     opacity: IUniform<number>;
     segments: IUniform<number>;
+    tileOutlineColor: IUniform<Color>;
     contourLines: IUniform<ContourLineUniform>;
     graticule: IUniform<GraticuleUniform>;
     hillshading: IUniform<HillshadingUniform>;
@@ -1005,6 +1012,14 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
 
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this._elevationLayer?.visible);
         MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', materialOptions.showTileOutlines);
+        if (materialOptions.showTileOutlines) {
+            if (this.uniforms.tileOutlineColor == null) {
+                this.uniforms.tileOutlineColor = new Uniform(new Color(DEFAULT_OUTLINE_COLOR));
+            }
+            if (materialOptions.tileOutlineColor) {
+                this.uniforms.tileOutlineColor.value = new Color(materialOptions.tileOutlineColor);
+            }
+        }
         MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', materialOptions.discardNoData);
 
         if (materialOptions.terrain) {
