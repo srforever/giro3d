@@ -462,8 +462,7 @@ class C3DEngine {
         const ctx = canvas.getContext('2d');
 
         if (!ctx) {
-            console.error('could not acquire 2D rendering context on canvas');
-            return new Image();
+            throw new Error('could not acquire 2D rendering context on canvas');
         }
 
         // size the canvas to your desired image
