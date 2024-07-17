@@ -1194,7 +1194,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         node.update(this.materialOptions);
 
         // Frustum culling
-        const frustumVisible = context.camera.isBox3Visible(node.boundingBox, node.matrixWorld);
+        const frustumVisible = context.camera.isBox3Visible(node.getWorldSpaceBoundingBox(tmpBox3));
         let horizonVisible = true;
 
         if (frustumVisible && this._instance.referenceCrs === 'EPSG:4978') {
