@@ -35,10 +35,8 @@ class InstanceInspector extends Panel {
         this.addColorController(this, 'clearColor')
             .name('Clear color')
             .onChange(() => {
-                this.instance.renderer.setClearColor(
-                    this.clearColor.clone().convertSRGBToLinear(),
-                    this.clearAlpha,
-                );
+                this.instance.engine.clearColor = this.clearColor.clone().convertSRGBToLinear();
+                this.instance.engine.clearAlpha = this.clearAlpha;
                 this.notify();
             });
         this.addController<number>(this, 'clearAlpha')
@@ -46,7 +44,8 @@ class InstanceInspector extends Panel {
             .min(0)
             .max(1)
             .onChange(() => {
-                this.instance.renderer.setClearAlpha(this.clearAlpha);
+                this.instance.engine.clearColor = this.clearColor.clone().convertSRGBToLinear();
+                this.instance.engine.clearAlpha = this.clearAlpha;
                 this.notify();
             });
 

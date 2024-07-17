@@ -7,6 +7,7 @@ import PointCloudMaterial, {
     type PointCloudMaterialOptions,
 } from './PointCloudMaterial';
 import type RenderingOptions from './RenderingOptions';
+import type RenderingContextHandler from './RenderingContextHandler';
 
 export {
     Camera,
@@ -17,4 +18,5 @@ export {
     Classification,
     ASPRS_CLASSIFICATIONS,
     RenderingOptions,
+    RenderingContextHandler,
 };

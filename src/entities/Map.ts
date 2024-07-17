@@ -1016,6 +1016,12 @@ class Map<UserData extends EntityUserData = EntityUserData>
         }
     }
 
+    onRenderingContextRestored(): void {
+        this.materialOptions.colorMapAtlas?.forceUpdate();
+        this.forEachLayer(layer => layer.onRenderingContextRestored());
+        this._instance.notifyChange(this);
+    }
+
     /**
      * Moves the specified layer after the other layer in the list.
      *

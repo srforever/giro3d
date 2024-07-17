@@ -192,6 +192,11 @@ class Tiles3D<
         this._queue = DefaultQueue;
     }
 
+    onRenderingContextRestored(): void {
+        this.forEachLayer(layer => layer.onRenderingContextRestored());
+        this._instance.notifyChange(this);
+    }
+
     getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport) {
         const result = target ?? createEmptyReport();
 

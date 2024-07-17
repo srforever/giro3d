@@ -14,6 +14,7 @@ import {
     type GetMemoryUsageContext,
     type MemoryUsageReport,
 } from '../core/MemoryUsage';
+import type RenderingContextHandler from '../renderer/RenderingContextHandler';
 
 export interface Entity3DEventMap extends EntityEventMap {
     /**
@@ -42,7 +43,7 @@ export interface Entity3DEventMap extends EntityEventMap {
  */
 class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData = EntityUserData>
     extends Entity<TEventMap & Entity3DEventMap, TUserData>
-    implements Pickable, MemoryUsage
+    implements Pickable, MemoryUsage, RenderingContextHandler
 {
     protected _instance: Instance;
     private _visible: boolean;
@@ -97,6 +98,16 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
 
     getMemoryUsage(_context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
         return target ?? createEmptyReport();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onRenderingContextLost(options: { canvas: HTMLCanvasElement }): void {
+        /* Do nothing */
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    onRenderingContextRestored(options: { canvas: HTMLCanvasElement }) {
+        /* Do nothing */
     }
 
     /**

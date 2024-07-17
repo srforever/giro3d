@@ -20,6 +20,12 @@ class WebGLRendererInspector extends Panel {
         );
 
         this._addCapabilities(this.renderer, this.gui.addFolder('Capabilities'));
+
+        const loseContextExt = this.renderer.getContext().getExtension('WEBGL_lose_context');
+        if (loseContextExt) {
+            this.addController<never>(loseContextExt, 'loseContext').name('Lose context');
+            this.addController<never>(loseContextExt, 'restoreContext').name('Restore context');
+        }
     }
 
     /**
@@ -49,11 +55,14 @@ class WebGLRendererInspector extends Panel {
         extensionPanel.close();
 
         const supported = renderer.getContext().getSupportedExtensions();
-        const suppObj: Record<string, boolean> = {};
 
-        for (const supp of supported) {
-            suppObj[supp] = true;
-            ctrls.push(extensionPanel.add(suppObj, supp).name(supp));
+        if (supported) {
+            const suppObj: Record<string, boolean> = {};
+
+            for (const supp of supported) {
+                suppObj[supp] = true;
+                ctrls.push(extensionPanel.add(suppObj, supp).name(supp));
+            }
         }
     }
 }

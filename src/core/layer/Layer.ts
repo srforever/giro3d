@@ -21,6 +21,7 @@ import type Extent from '../geographic/Extent';
 import LayerComposer from './LayerComposer';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils';
 import MemoryTracker from '../../renderer/MemoryTracker';
+import type RenderingContextHandler from '../../renderer/RenderingContextHandler';
 import type Instance from '../Instance';
 import ImageSource, { type ImageResult } from '../../sources/ImageSource';
 import type RequestQueue from '../RequestQueue';
@@ -314,7 +315,7 @@ abstract class Layer<
         TUserData extends LayerUserData = LayerUserData,
     >
     extends EventDispatcher<TEvents & LayerEvents>
-    implements Progress, MemoryUsage
+    implements Progress, MemoryUsage, RenderingContextHandler
 {
     /**
      * Optional name of this layer.
@@ -461,6 +462,14 @@ abstract class Layer<
     }
 
     private onSourceUpdated() {
+        this.clear();
+    }
+
+    onRenderingContextLost(): void {
+        /* Nothing to do */
+    }
+
+    onRenderingContextRestored(): void {
         this.clear();
     }
 

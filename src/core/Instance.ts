@@ -232,6 +232,8 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private readonly _entities: Set<Entity>;
     private readonly _resizeObserver?: ResizeObserver;
     private readonly _pickingClock: Clock;
+    private readonly _onContextRestored: () => void;
+    private readonly _onContextLost: () => void;
     private _resizeTimeout?: string | number | NodeJS.Timeout;
     private _controls?: CustomCameraControls;
     private _controlFunctions?: ControlFunctions;
@@ -323,6 +325,28 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
 
         this._controls = null;
         this._pickingClock = new Clock(false);
+
+        this._onContextRestored = this.onContextRestored.bind(this);
+        this._onContextLost = this.onContextLost.bind(this);
+        this.domElement.addEventListener('webglcontextlost', this._onContextLost);
+        this.domElement.addEventListener('webglcontextrestored', this._onContextRestored);
+    }
+
+    private onContextLost() {
+        this.getEntities().forEach(entity => {
+            if (isEntity3D(entity)) {
+                entity.onRenderingContextLost({ canvas: this.domElement });
+            }
+        });
+    }
+
+    private onContextRestored() {
+        this.getEntities().forEach(entity => {
+            if (isEntity3D(entity)) {
+                entity.onRenderingContextRestored({ canvas: this.domElement });
+            }
+        });
+        this.notifyChange();
     }
 
     /** Gets the canvas that this instance renders into. */
@@ -452,6 +476,10 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             return;
         }
         this._isDisposing = true;
+
+        this.domElement.removeEventListener('webglcontextlost', this._onContextLost);
+        this.domElement.removeEventListener('webglcontextrestored', this._onContextRestored);
+
         this._resizeObserver?.disconnect();
         this.removeTHREEControls();
         for (const obj of this.getObjects()) {
