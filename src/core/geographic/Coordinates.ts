@@ -294,7 +294,7 @@ class Coordinates {
      * ```
      * @returns The altitude of the position.
      */
-    altitude() {
+    get altitude() {
         assertIsGeographic(this.crs);
         return this._values[2];
     }
