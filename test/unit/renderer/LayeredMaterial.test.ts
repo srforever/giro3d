@@ -1,22 +1,38 @@
 import '../setup.js';
-import { DoubleSide, FrontSide, UnsignedByteType } from 'three';
-import LayeredMaterial from '../../../src/renderer/LayeredMaterial';
+import { DoubleSide, FrontSide, UnsignedByteType, Vector2, type WebGLRenderer } from 'three';
+import LayeredMaterial from 'src/renderer/LayeredMaterial';
+import Extent from 'src/core/geographic/Extent';
+import type ColorLayer from 'src/core/layer/ColorLayer';
 
-const defaultAtlasInfo = { minX: 0, maxX: 1 };
-const defaultRenderer = {};
+// @ts-expect-error incomplete type
+const defaultRenderer: WebGLRenderer = {};
+const textureSize = new Vector2(256, 256);
+const extent = new Extent('EPSG:3857', 0, 10, 0, 10);
 
 describe('LayeredMaterial', () => {
     describe('constructor', () => {
         it('should assign the correct side', () => {
             const normal = new LayeredMaterial({
                 options: {},
+                extent,
                 renderer: defaultRenderer,
-                atlasInfo: defaultAtlasInfo,
+                maxTextureImageUnits: 8,
+                isGlobe: false,
+                getIndexFn: () => 0,
+                hasElevationLayer: false,
+                textureSize,
+                textureDataType: UnsignedByteType,
             });
             const ds = new LayeredMaterial({
                 options: { doubleSided: true },
+                extent,
                 renderer: defaultRenderer,
-                atlasInfo: defaultAtlasInfo,
+                maxTextureImageUnits: 8,
+                isGlobe: false,
+                getIndexFn: () => 0,
+                hasElevationLayer: false,
+                textureSize,
+                textureDataType: UnsignedByteType,
             });
 
             expect(ds.side).toBe(DoubleSide);
@@ -26,16 +42,28 @@ describe('LayeredMaterial', () => {
         it('should enable the ENABLE_ELEVATION_RANGE define if options has an elevation range', () => {
             const enabled = new LayeredMaterial({
                 options: { elevationRange: { min: 0, max: 100 } },
+                extent,
                 renderer: defaultRenderer,
-                atlasInfo: defaultAtlasInfo,
+                maxTextureImageUnits: 8,
+                isGlobe: false,
+                getIndexFn: () => 0,
+                hasElevationLayer: false,
+                textureSize,
+                textureDataType: UnsignedByteType,
             });
 
             expect(enabled.defines.ENABLE_ELEVATION_RANGE).toBeDefined();
 
             const disabled = new LayeredMaterial({
                 options: {},
+                extent,
                 renderer: defaultRenderer,
-                atlasInfo: defaultAtlasInfo,
+                maxTextureImageUnits: 8,
+                isGlobe: false,
+                getIndexFn: () => 0,
+                hasElevationLayer: false,
+                textureSize,
+                textureDataType: UnsignedByteType,
             });
 
             expect(disabled.defines.ENABLE_ELEVATION_RANGE).not.toBeDefined();
@@ -49,8 +77,14 @@ describe('LayeredMaterial', () => {
                         stitching: true,
                     },
                 },
+                extent,
                 renderer: defaultRenderer,
-                atlasInfo: defaultAtlasInfo,
+                maxTextureImageUnits: 8,
+                isGlobe: false,
+                getIndexFn: () => 0,
+                hasElevationLayer: false,
+                textureSize,
+                textureDataType: UnsignedByteType,
             });
 
             expect(enabled.defines.STITCHING).toBeDefined();
@@ -62,8 +96,14 @@ describe('LayeredMaterial', () => {
                         stitching: false,
                     },
                 },
+                extent,
                 renderer: defaultRenderer,
-                atlasInfo: defaultAtlasInfo,
+                maxTextureImageUnits: 8,
+                isGlobe: false,
+                getIndexFn: () => 0,
+                hasElevationLayer: false,
+                textureSize,
+                textureDataType: UnsignedByteType,
             });
 
             expect(disabled.defines.STITCHING).not.toBeDefined();
@@ -76,8 +116,14 @@ describe('LayeredMaterial', () => {
                         enabled: true,
                     },
                 },
+                extent,
                 renderer: defaultRenderer,
-                atlasInfo: defaultAtlasInfo,
+                maxTextureImageUnits: 8,
+                isGlobe: false,
+                getIndexFn: () => 0,
+                hasElevationLayer: false,
+                textureSize,
+                textureDataType: UnsignedByteType,
             });
 
             expect(enabled.defines.TERRAIN_DEFORMATION).toBeDefined();
@@ -88,8 +134,14 @@ describe('LayeredMaterial', () => {
                         enabled: false,
                     },
                 },
+                extent,
                 renderer: defaultRenderer,
-                atlasInfo: defaultAtlasInfo,
+                maxTextureImageUnits: 8,
+                isGlobe: false,
+                getIndexFn: () => 0,
+                hasElevationLayer: false,
+                textureSize,
+                textureDataType: UnsignedByteType,
             });
 
             expect(disabled.defines.TERRAIN_DEFORMATION).not.toBeDefined();
@@ -100,15 +152,23 @@ describe('LayeredMaterial', () => {
         it('should enable the ENABLE_ELEVATION_RANGE define', () => {
             const mat = new LayeredMaterial({
                 renderer: defaultRenderer,
-                atlasInfo: defaultAtlasInfo,
                 textureDataType: UnsignedByteType,
+                extent,
+                maxTextureImageUnits: 8,
+                isGlobe: false,
+                getIndexFn: () => 0,
+                hasElevationLayer: false,
+                options: {},
+                textureSize,
             });
             expect(mat.defines.ENABLE_ELEVATION_RANGE).not.toBeDefined();
 
-            const layer = {
+            // @ts-expect-error incomplete type
+            const layer: ColorLayer = {
                 getRenderTargetDataType: () => UnsignedByteType,
+                resolutionFactor: 1,
             };
-            mat.pushColorLayer(layer);
+            mat.pushColorLayer(layer, null);
 
             mat.setLayerElevationRange(layer, { min: 0, max: 100 });
             expect(mat.defines.ENABLE_ELEVATION_RANGE).toBeDefined();
