@@ -12,6 +12,7 @@ import {
     type Intersection,
     type ColorRepresentation,
     Box3,
+    Sphere,
 } from 'three';
 
 import type Extent from '../core/geographic/Extent';
@@ -112,6 +113,7 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
 
 const tmpVector = new Vector3();
 const tmpBox3 = new Box3();
+const tmpSphere = new Sphere();
 const tempNDC = new Vector2();
 const tmpWGS84Coordinates = new Coordinates('EPSG:4326', 0, 0);
 const tempDims = new Vector2();
@@ -1156,17 +1158,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             let requestChildrenUpdate = false;
 
             if (!this.frozen) {
-                const size = node.boundingBox.getSize(tmpVector);
-                const box = node.boundingBox;
-                const sse = ScreenSpaceError.computeFromBox3(
-                    context.camera,
-                    box,
-                    node.matrixWorld,
-                    Math.max(size.x, size.y),
-                    ScreenSpaceError.Mode.MODE_2D,
-                );
-
-                if (this.testTileSSE(node, sse) && this.canSubdivide(node)) {
+                if (this.shouldSubdivide(context, node) && this.canSubdivide(node)) {
                     this.subdivideNode(context, node);
                     // display iff children aren't ready
                     node.setDisplayed(false);
@@ -1607,6 +1599,51 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         const threshold = Math.max(width, height);
         return tmpSseSizes.some(v => v >= threshold * this.subdivisionThreshold);
+    }
+
+    private shouldSubdivide(context: Context, node: TileMesh): boolean {
+        if (this._instance.referenceCrs === 'EPSG:4978') {
+            const boundingSphere = node
+                .getWorldSpaceBoundingBox(tmpBox3)
+                .getBoundingSphere(tmpSphere);
+            const geometricError = boundingSphere.radius;
+
+            const sse = ScreenSpaceError.computeFromSphere(
+                context.camera,
+                boundingSphere,
+                geometricError,
+            );
+
+            return this.testEllipsoidalTileSSE(node, sse);
+        } else {
+            const size = node.boundingBox.getSize(tmpVector);
+            const box = node.boundingBox;
+            const sse = ScreenSpaceError.computeFromBox3(
+                context.camera,
+                box,
+                node.matrixWorld,
+                Math.max(size.x, size.y),
+                ScreenSpaceError.Mode.MODE_2D,
+            );
+
+            return this.testTileSSE(node, sse);
+        }
+    }
+
+    private testEllipsoidalTileSSE(tile: TileMesh, sse: number) {
+        if (this.maxSubdivisionLevel <= tile.level) {
+            return false;
+        }
+
+        if (!Number.isFinite(sse)) {
+            return true;
+        }
+
+        const { width, height } = tile.textureSize;
+
+        const threshold = Math.max(width, height);
+
+        return sse >= threshold * this.subdivisionThreshold;
     }
 
     private updateMinMaxDistance(context: Context, node: TileMesh) {
