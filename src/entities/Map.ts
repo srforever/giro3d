@@ -82,6 +82,11 @@ import {
 export const DEFAULT_MAP_BACKGROUND_COLOR: ColorRepresentation = '#0a3b59';
 
 /**
+ * The default tile subdivision threshold.
+ */
+export const DEFAULT_SUBDIVISION_THRESHOLD = 1.5;
+
+/**
  * The default number of segments in a map's tile.
  */
 export const DEFAULT_MAP_SEGMENTS = 32;
@@ -474,6 +479,11 @@ export type MapConstructorOptions = {
      * @defaultValue false
      */
     forceTextureAtlases?: boolean;
+    /**
+     * The threshold before which a map tile is subdivided.
+     * @defaultValue {@link DEFAULT_SUBDIVISION_THRESHOLD}
+     */
+    subdivisionThreshold?: number;
 };
 
 /**
@@ -569,7 +579,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
      * sooner a tile is subdivided. Note: changing this scale to a value less than 1 can drastically
      * increase the number of tiles displayed in the scene, and can even lead to WebGL crashes.
      *
-     * @defaultValue 1.5
+     * @defaultValue {@link DEFAULT_SUBDIVISION_THRESHOLD}
      */
     subdivisionThreshold: number;
 
@@ -612,7 +622,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         }
         this.extent = options.extent;
 
-        this.subdivisionThreshold = 1.5;
+        this.subdivisionThreshold = options.subdivisionThreshold ?? DEFAULT_SUBDIVISION_THRESHOLD;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel ?? 30;
         this._onTileElevationChanged = this.onTileElevationChanged.bind(this);
         this._onLayerVisibilityChanged = this.onLayerVisibilityChanged.bind(this);
