@@ -156,6 +156,11 @@ class ProjectedTileGeometry extends BufferGeometry implements MemoryUsage, TileG
         return this._extent.centerAsVector3(new Vector3());
     }
 
+    get raycastGeometry() {
+        // No distinction between the raycast geometry and the rendered geometry.
+        return this;
+    }
+
     /**
      * @param params - Parameters to construct the grid. Should contain an extent
      *  and a size, either a number of segment or a width and an height in pixels.

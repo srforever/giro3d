@@ -19,4 +19,9 @@ export default interface TileGeometry extends BufferGeometry, MemoryUsage {
      * @returns The min and max elevation of vertices after applying the heightmap.
      */
     applyHeightMap(heightMap: HeightMap): { min: number; max: number };
+
+    /**
+     * The geometry to use for raycast purposes.
+     */
+    get raycastGeometry(): BufferGeometry;
 }
