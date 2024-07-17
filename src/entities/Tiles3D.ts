@@ -733,7 +733,6 @@ class Tiles3D<
         }
 
         const setupObject = (obj: any) => {
-            obj.userData.metadata = metadata;
             this.onObjectCreated(obj);
         };
         if (path) {
