@@ -207,11 +207,11 @@ class C3DEngine {
             // Necessary to enable clipping planes per-entity or per-object, rather
             // than per-renderer (global) clipping planes.
             this.renderer.localClippingEnabled = true;
-        } catch (ex) {
+        } catch (error) {
             const msg = 'Failed to create WebGLRenderer';
-            console.error(msg, ex);
+            console.error(msg, error);
             viewerDiv.appendChild(createErrorMessage());
-            throw new Error(msg);
+            throw new Error(`${msg}: ${error.message}`);
         }
 
         // Don't verify shaders if not debug (it is very costly)
