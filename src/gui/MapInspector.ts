@@ -1,6 +1,15 @@
 import type GUI from 'lil-gui';
 import type { AxesHelper, GridHelper } from 'three';
-import { Color, Sphere, Mesh, MeshBasicMaterial, SphereGeometry, MathUtils } from 'three';
+import {
+    Color,
+    Sphere,
+    Mesh,
+    MeshBasicMaterial,
+    SphereGeometry,
+    Vector2,
+    MathUtils,
+    Box3,
+} from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import type Instance from '../core/Instance';
 import TileMesh from '../core/TileMesh';
@@ -15,8 +24,11 @@ import ContourLinePanel from './ContourLinePanel';
 import ColorimetryPanel from './ColorimetryPanel';
 import GraticulePanel from './GraticulePanel';
 import MapTerrainPanel from './MapTerrainPanel';
+import Ellipsoid from '../core/geographic/Ellipsoid';
 
 const tmpSphere = new Sphere();
+const tmpVec2 = new Vector2();
+const tmpBox = new Box3();
 
 function createTileLabel() {
     const text = document.createElement('div');
@@ -221,10 +233,11 @@ class MapInspector extends EntityInspector {
             label.name = 'MapInspector label';
             obj.addEventListener('dispose', () => {
                 label.element.remove();
-                label.remove();
+                label.removeFromParent();
+                this.labels.delete(obj.id);
             });
-            obj.add(label);
-            obj.updateMatrixWorld(true);
+            this.instance.add(label);
+            label.updateMatrixWorld(true);
             this.labels.set(obj.id, label);
         }
         return label;
@@ -235,28 +248,40 @@ class MapInspector extends EntityInspector {
             const label = this.labels.get(tile.id);
             if (label) {
                 label.element.remove();
-                label.parent?.remove(label);
+                label.removeFromParent();
                 this.labels.delete(tile.id);
             }
         } else {
             const isVisible = tile.visible && tile.material.visible;
+            const apparentSize = tile.getScreenPixelSize(this.instance.camera, tmpVec2);
             const label = this.getOrCreateLabel(tile);
             const element = label.element;
-            let innerText = `
-            Map=${this.map.id}
-            {x=${tile.x},y=${tile.y}} LOD=${tile.z} (${tile.textureSize.width} * ${tile.textureSize.height} px)
-            (node #${tile.id})
-            progress=${Math.ceil(tile.progress * 100)}%
-            layers=${tile.material.getLayerCount()}
-            `;
+
+            const lines = [
+                `Map ID=${this.map.id}, Tile ID=${tile.id}`,
+                `{x=${tile.x},y=${tile.y}} LOD=${tile.z}`,
+                ` ${tile.textureSize.width} * ${tile.textureSize.height} (real), ${apparentSize.width} * ${apparentSize.height} (apparent)`,
+                ` ${tile.material.getLayerCount()} layer(s), progress=${Math.ceil(tile.progress * 100)}%`,
+            ];
+
             for (const layer of this.map.getLayers()) {
                 const info = layer.getInfo(tile);
-                innerText += `Layer '${layer.id}' - (images=${info.imageCount}, state=${info.state})\n`;
+                lines.push(
+                    `'${layer.name ?? layer.id}' - (images=${info.imageCount}, state=${info.state})`,
+                );
             }
-            element.innerText = innerText;
+
+            element.innerText = lines.join('\n');
             element.style.color = `#${color.getHexString()}`;
             element.style.opacity = isVisible ? '100%' : '0%';
-            tile.boundingBox.getCenter(label.position);
+            if (this.instance.referenceCrs === 'EPSG:4978') {
+                const { x, y } = tile.extent.centerAsVector2(tmpVec2);
+                const z = tile.minmax.max;
+                const p = Ellipsoid.WGS84.toCartesian(y, x, z);
+                label.position.copy(p);
+            } else {
+                tile.getWorldSpaceBoundingBox(tmpBox).getCenter(label.position);
+            }
             label.updateMatrixWorld();
         }
     }
