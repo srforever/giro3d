@@ -12,7 +12,6 @@ import {
     type Intersection,
     type ColorRepresentation,
     Box3,
-    Sphere,
 } from 'three';
 
 import type Extent from '../core/geographic/Extent';
@@ -118,7 +117,6 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
 
 const tmpVector = new Vector3();
 const tmpBox3 = new Box3();
-const tmpSphere = new Sphere();
 const tempNDC = new Vector2();
 const tmpWGS84Coordinates = new Coordinates('EPSG:4326', 0, 0);
 const tempDims = new Vector2();
@@ -1613,18 +1611,20 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
     private shouldSubdivide(context: Context, node: TileMesh): boolean {
         if (this._instance.referenceCrs === 'EPSG:4978') {
-            const boundingSphere = node
-                .getWorldSpaceBoundingBox(tmpBox3)
-                .getBoundingSphere(tmpSphere);
-            const geometricError = boundingSphere.radius;
+            if (node.level >= this.maxSubdivisionLevel) {
+                return false;
+            }
 
-            const sse = ScreenSpaceError.computeFromSphere(
-                context.camera,
-                boundingSphere,
-                geometricError,
-            );
+            const { width, height } = node.getScreenPixelSize(context.camera);
 
-            return this.testEllipsoidalTileSSE(node, sse);
+            const screenSize = Math.max(width, height);
+            const textureSize = Math.max(node.textureSize.width, node.textureSize.height);
+
+            if (screenSize / textureSize > this.subdivisionThreshold) {
+                return true;
+            }
+
+            return false;
         } else {
             const size = node.boundingBox.getSize(tmpVector);
             const box = node.boundingBox;
@@ -1638,22 +1638,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
             return this.testTileSSE(node, sse);
         }
-    }
-
-    private testEllipsoidalTileSSE(tile: TileMesh, sse: number) {
-        if (this.maxSubdivisionLevel <= tile.level) {
-            return false;
-        }
-
-        if (!Number.isFinite(sse)) {
-            return true;
-        }
-
-        const { width, height } = tile.textureSize;
-
-        const threshold = Math.max(width, height);
-
-        return sse >= threshold * this.subdivisionThreshold;
     }
 
     private updateMinMaxDistance(context: Context, node: TileMesh) {

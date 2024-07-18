@@ -46,10 +46,13 @@ import type GetElevationOptions from '../entities/GetElevationOptions';
 import { type NeighbourList } from './TileIndex';
 import { latLonToEcef } from './geographic/WGS84';
 import { Coordinates } from './geographic';
+import type Camera from '../renderer/Camera';
+import { isOrthographicCamera, isPerspectiveCamera } from '../renderer/Camera';
 
 const ray = new Ray();
 const inverseMatrix = new Matrix4();
 const tmpBox = new Box3();
+const tmpSphere = new Sphere();
 const tmpCoordWGS84 = new Coordinates('EPSG:4326', 0, 0);
 
 const helperMaterial = new MeshBasicMaterial({
@@ -771,6 +774,36 @@ class TileMesh
         }
 
         this._onElevationChanged(this);
+    }
+
+    getScreenPixelSize(view: Camera, target?: Vector2): Vector2 {
+        target = target ?? new Vector2();
+
+        const sphere = this.getWorldSpaceBoundingSphere(tmpSphere);
+
+        const distance = sphere.center.distanceTo(view.camera3D.getWorldPosition(tempVec3));
+
+        let height: number;
+        let width: number;
+
+        if (isPerspectiveCamera(view.camera3D)) {
+            const fovRads = MathUtils.degToRad(view.camera3D.fov);
+            height = 2 * Math.tan(fovRads / 2) * distance;
+            width = height * view.camera3D.aspect;
+        } else if (isOrthographicCamera(view.camera3D)) {
+            height = Math.abs(view.camera3D.top - view.camera3D.bottom);
+            width = Math.abs(view.camera3D.right - view.camera3D.left);
+        }
+
+        const diameter = sphere.radius * 2;
+
+        const wRatio = diameter / width;
+        const hRatio = diameter / height;
+
+        target.setX(Math.ceil(wRatio * view.width));
+        target.setY(Math.ceil(hRatio * view.height));
+
+        return target;
     }
 
     private createHeightMap(renderTarget: WebGLRenderTarget, offsetScale: OffsetScale) {
