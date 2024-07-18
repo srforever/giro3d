@@ -1,6 +1,6 @@
 import type GUI from 'lil-gui';
 import type { AxesHelper, GridHelper } from 'three';
-import { Color } from 'three';
+import { Color, Sphere, Mesh, MeshBasicMaterial, SphereGeometry, MathUtils } from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import type Instance from '../core/Instance';
 import TileMesh from '../core/TileMesh';
@@ -15,6 +15,8 @@ import ContourLinePanel from './ContourLinePanel';
 import ColorimetryPanel from './ColorimetryPanel';
 import GraticulePanel from './GraticulePanel';
 import MapTerrainPanel from './MapTerrainPanel';
+
+const tmpSphere = new Sphere();
 
 function createTileLabel() {
     const text = document.createElement('div');
@@ -58,6 +60,10 @@ class MapInspector extends EntityInspector {
     reachableTiles: number;
     visibleTiles: number;
     terrainPanel: MapTerrainPanel;
+    showSphereVolumes = false;
+    boundingSpheres: Set<Mesh<SphereGeometry, MeshBasicMaterial>> = new Set();
+    sphereMaterial: MeshBasicMaterial;
+    sphereGeometry: SphereGeometry;
 
     /**
      * Creates an instance of MapInspector.
@@ -137,6 +143,9 @@ class MapInspector extends EntityInspector {
         this.addColorController(this, 'extentColor')
             .name('Extent color')
             .onChange(() => this.updateExtentColor());
+        this.addController<boolean>(this, 'showSphereVolumes')
+            .name('Show sphere volumes')
+            .onChange(() => this.notify());
         this.addController<number>(this.map, 'subdivisionThreshold')
             .name('Subdivision threshold')
             .min(0.1)
@@ -186,6 +195,11 @@ class MapInspector extends EntityInspector {
         this.map.addEventListener('layer-added', this._fillLayersCb);
         this.map.addEventListener('layer-removed', this._fillLayersCb);
         this.map.addEventListener('layer-order-changed', this._fillLayersCb);
+
+        this.instance.addEventListener(
+            'after-camera-update',
+            this.updateBoundingSpheres.bind(this),
+        );
 
         this.fillLayers();
     }
@@ -244,6 +258,65 @@ class MapInspector extends EntityInspector {
             tile.boundingBox.getCenter(label.position);
             label.updateMatrixWorld();
         }
+    }
+
+    private updateBoundingSpheres() {
+        if (!this.showSphereVolumes) {
+            if (this.boundingSpheres.size > 0) {
+                this.boundingSpheres.forEach(mesh => {
+                    mesh.removeFromParent();
+                    mesh.userData.owner.userData.boundingSphere = null;
+                });
+                this.boundingSpheres.clear();
+            }
+            return;
+        }
+
+        if (!this.sphereMaterial) {
+            this.sphereMaterial = new MeshBasicMaterial({
+                color: this.boundingBoxColor,
+                wireframe: true,
+            });
+        }
+
+        if (!this.sphereGeometry) {
+            this.sphereGeometry = new SphereGeometry(1, 32, 16);
+        }
+
+        this.sphereMaterial.color = new Color(this.boundingBoxColor);
+
+        [...this.boundingSpheres].forEach(mesh => {
+            const tile: TileMesh = mesh.userData.owner;
+            if (tile.disposed) {
+                mesh.removeFromParent();
+                this.boundingSpheres.delete(mesh);
+            } else {
+                mesh.visible = tile.visible && tile.material.visible;
+            }
+        });
+
+        this.map.traverseTiles(tile => {
+            if (!tile.userData.boundingSphere) {
+                const mesh = new Mesh(this.sphereGeometry, this.sphereMaterial);
+                tile.userData.boundingSphere = mesh;
+
+                this.instance.add(mesh);
+                this.boundingSpheres.add(mesh);
+
+                mesh.userData.owner = tile;
+                mesh.rotateX(MathUtils.degToRad(90));
+            } else {
+                const mesh: Mesh = tile.userData.boundingSphere;
+                const sphere = tile.getWorldSpaceBoundingSphere(tmpSphere);
+
+                const r = sphere.radius;
+
+                mesh.scale.set(r, r, r);
+                mesh.position.copy(sphere.center);
+
+                mesh.updateMatrixWorld(true);
+            }
+        });
     }
 
     toggleBoundingBoxes() {
