@@ -11,6 +11,8 @@ const WGS84_IF = 298.257223563; // Inverse flattening
 const WGS84_F = 1 / WGS84_IF;
 const WGS84_E = Math.sqrt(2 * WGS84_F - WGS84_F * WGS84_F);
 
+export { WGS84_A as semiMajorAxis, WGS84_B as semiMinorAxis };
+
 /**
  * Converts the geographic coordinate to ECEF cartesian coordinates.
  * @param lat - The latitude, in degrees.
