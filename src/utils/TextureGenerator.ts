@@ -50,6 +50,7 @@ import Interpretation, { Mode } from '../core/layer/Interpretation';
 import EmptyTexture from '../renderer/EmptyTexture';
 import WebGLComposer from '../renderer/composition/WebGLComposer';
 import Rect from '../core/Rect';
+import Capabilities from '../core/system/Capabilities';
 
 export const OPAQUE_BYTE = 255;
 export const OPAQUE_FLOAT = 1.0;
@@ -421,7 +422,8 @@ function getPixels(image: ImageBitmap | HTMLImageElement | HTMLCanvasElement): U
  * @param blob - The buffer to decode.
  * @param options - Options
  * @returns The generated texture.
- * @throws When the media type is unsupported.
+ * @throws When the media type is unsupported or when the image dimensions are greater than the
+ * maximum texture size.
  */
 async function decodeBlob(
     blob: Blob,
@@ -445,6 +447,15 @@ async function decodeBlob(
                 imageOrientation: options.flipY ? 'flipY' : 'none',
             });
             let tex;
+
+            const max = Capabilities.getMaxTextureSize();
+
+            if (img.width > max || img.height > max) {
+                throw new Error(
+                    `image dimensions (${img.width} * ${img.height} pixels) exceed max texture size (${max} pixels)`,
+                );
+            }
+
             if (options.createDataTexture) {
                 const buf = getPixels(img);
                 tex = new DataTexture(buf, img.width, img.height, RGBAFormat, UnsignedByteType);

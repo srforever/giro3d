@@ -14,6 +14,10 @@ import VectorTileSource, { type VectorTileSourceOptions } from './VectorTileSour
 import PotreeSource from './PotreeSource';
 import WmtsSource, { type WmtsSourceOptions, type WmtsFromCapabilitiesOptions } from './WmtsSource';
 import WmsSource, { type WmsSourceOptions } from './WmsSource';
+import StaticImageSource, {
+    type StaticImageSourceOptions,
+    type StaticImageSourceEvents,
+} from './StaticImageSource';
 
 /**
  * Data sources.
@@ -42,4 +46,7 @@ export {
     WmtsFromCapabilitiesOptions,
     WmsSource,
     WmsSourceOptions,
+    StaticImageSource,
+    StaticImageSourceOptions,
+    StaticImageSourceEvents,
 };

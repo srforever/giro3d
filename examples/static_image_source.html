@@ -1,0 +1,40 @@
+---
+title: Static image
+shortdesc: Display a single image on a Map with a <code>StaticImageSource</code>.
+longdesc: The <a target="_blank" href="../apidoc/classes/sources.StaticImageSource.html"><code>StaticImageSource</code></a> can display an image at an arbitrary extent. You can either pass a URL to the remote image, or provide a texture or an image to display.
+attribution: © <a target="_blank" href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors.
+tags: [map, layer, source]
+---
+
+<div class="side-pane-with-status-bar" style="width: 20rem">
+    <!--Parameters -->
+    <div class="card">
+        <div class="card-header">Parameters</div>
+
+        <div class="card-body" id="top-options">
+            <!-- Image URL -->
+            <div class="input-group mb-3">
+                <span class="input-group-text">URL</span>
+                <input
+                    type="url"
+                    class="form-control"
+                    id="url"
+                    required
+                    value="https://giro3d.org/images/giro3d_logo_big.jpg"
+                    placeholder="Image URL..."
+                />
+            </div>
+
+            <!-- Draw extent -->
+            <button type="button" class="btn btn-primary w-100" disabled id="draw">
+                <i class="bi bi-pencil-square"></i>
+                Draw extent and load image
+            </button>
+
+            <!-- Error message -->
+            <div class="alert alert-danger m-0 mt-3" id="error" style="display: none" role="alert">
+                A simple primary alert—check it out!
+            </div>
+        </div>
+    </div>
+</div>
