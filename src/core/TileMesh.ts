@@ -16,6 +16,7 @@ import {
     Box3,
     Vector3,
     MathUtils,
+    Sphere,
 } from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker';
@@ -176,6 +177,10 @@ class TileVolume {
 
         return result;
     }
+
+    getWorldSpaceBoundingSphere(target?: Sphere): Sphere {
+        return this.getWorldSpaceBoundingBox(tmpBox).getBoundingSphere(target ?? new Sphere());
+    }
 }
 
 class GlobeTileVolume extends TileVolume {
@@ -285,6 +290,11 @@ class GlobeTileVolume extends TileVolume {
         this._localBox.copy(box);
         this._corners = null;
     }
+
+    override getWorldSpaceBoundingSphere(target?: Sphere): Sphere {
+        target = target ?? new Sphere();
+        return target.setFromPoints(this.getCorners());
+    }
 }
 
 class TileMesh
@@ -348,6 +358,10 @@ class TileMesh
 
     getWorldSpaceBoundingBox(target: Box3): Box3 {
         return this._volume.getWorldSpaceBoundingBox(target);
+    }
+
+    getWorldSpaceBoundingSphere(target: Sphere): Sphere {
+        return this._volume.getWorldSpaceBoundingSphere(target);
     }
 
     getBoundingBoxCorners(): Vector3[] {
