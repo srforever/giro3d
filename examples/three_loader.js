@@ -115,11 +115,13 @@ loader.load('https://threejs.org/examples/models/gltf/Soldier.glb', gltf => {
     model3.rotation.y = Math.PI;
 
     // except for this part, we add directly to instance to make Giro3D aware of these models
-    instance.add(model1);
-    instance.add(model2);
-    instance.add(model3);
+    const group = new Group();
+    group.add(model1);
+    group.add(model2);
+    group.add(model3);
 
     // let's move our camera and control target
+    // TODO
     instance.focusObject(group);
 
     // you can hook yourself to event of the rendering loop.

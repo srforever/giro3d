@@ -139,6 +139,22 @@ class Tile extends Object3D {
     unmarkForDeletion() {
         this.cleanableSince = undefined;
     }
+
+    getBoundingBox(target: Box3 = new Box3()): Box3 | null {
+        if (this.boundingVolume.box) {
+            target.copy(this.boundingVolume.box);
+        } else if (this.boundingVolume.sphere) {
+            tmp.v.setScalar(this.boundingVolume.sphere.radius);
+            target.setFromCenterAndSize(this.boundingVolume.sphere.center, tmp.v);
+        } else if (this.boundingVolume.region) {
+            throw new Error('boundingVolume.region is unsupported');
+        } else {
+            throw new Error(
+                'this.boundingVolume is invalid: it has neither box, nor sphere, nor region.',
+            );
+        }
+        return target.applyMatrix4(this.matrixWorld);
+    }
 }
 
 export default Tile;

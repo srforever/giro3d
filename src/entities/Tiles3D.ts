@@ -1,4 +1,5 @@
 import {
+    Box3,
     Vector2,
     MathUtils,
     Group,
@@ -829,6 +830,10 @@ class Tiles3D<
 
     getBoundingVolume() {
         return this.root.boundingVolume.box.clone().applyMatrix4(this.root.matrixWorld);
+    }
+
+    getBoundingBox(target: Box3 = new Box3()): Box3 | null {
+        return this.root.getBoundingBox(target);
     }
 }
 

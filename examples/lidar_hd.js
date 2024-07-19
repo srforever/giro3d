@@ -31,7 +31,7 @@ controls.dampingFactor = 0.2;
 instance.useTHREEControls(controls);
 
 // Adds a WMS imagery layer
-const wmsOthophotoSource = new TiledImageSource({
+const wmsOrthophotoSource = new TiledImageSource({
     source: new TileWMS({
         url: 'https://data.geopf.fr/wms-r',
         projection: 'EPSG:2154',
@@ -48,26 +48,27 @@ const pointcloud = new Tiles3D(
     new Tiles3DSource('https://3d.oslandia.com/lidar_hd/tileset.json'),
 );
 // add pointcloud to scene
-instance.add(pointcloud)
+instance
+    .add(pointcloud)
     .then(() => instance.focusObject(pointcloud))
     .then(() => {
-        const colorLayer = new ColorLayer(
-            'orthophoto-ign',
-            {
-                // The extent is useful to restrict the processing of the image layer
-                // (which is much bigger than our point cloud).
-                extent: Extent.fromBox3('EPSG:2154', pointcloud.getBoundingBox()),
-                source: wmsOthophotoSource,
-            },
-        );
-        pointcloud.attach(colorLayer);
-
+        const colorLayer = new ColorLayer({
+            name: 'orthophoto-ign',
+            // The extent is useful to restrict the processing of the image layer
+            // (which is much bigger than our point cloud).
+            extent: Extent.fromBox3('EPSG:2154', pointcloud.getBoundingBox()),
+            source: wmsOrthophotoSource,
+        });
+        return pointcloud.attach(colorLayer);
+    })
+    .then(() => {
         instance.renderingOptions.enableEDL = true;
         instance.renderingOptions.enableInpainting = true;
         instance.renderingOptions.enablePointCloudOcclusion = true;
 
         // refresh scene
         instance.notifyChange(instance.camera.camera3D);
+        Inspector.attach(document.getElementById('panelDiv'), instance);
     });
 
 // add a skybox background
@@ -83,8 +84,6 @@ const cubeTexture = cubeTextureLoader.load([
 ]);
 
 instance.scene.background = cubeTexture;
-
-Inspector.attach(document.getElementById('panelDiv'), instance);
 
 // Bind events
 StatusBar.bind(instance);

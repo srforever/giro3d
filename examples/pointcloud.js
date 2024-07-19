@@ -27,7 +27,7 @@ const pointcloud = new Tiles3D(
 );
 
 instance.add(pointcloud).then(() => {
-    instance.focusObject(pointcloud)
+    instance.focusObject(pointcloud);
     StatusBar.bind(instance);
 });
 

@@ -92,7 +92,6 @@ instance.useTHREEControls(controls);
 
 instance.focusObject(axisGrid);
 
-
 // Manage GUI
 
 function bindAxisStep(axis) {

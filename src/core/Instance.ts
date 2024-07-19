@@ -930,7 +930,6 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     }
     */
 
-
     /**
      * Moves the camera to look at an object.
      *
@@ -950,30 +949,32 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             lookAt = position.clone();
             lookAt.z = 0; // TODO this supposes there is no terrain, nor z-displacement
         } else {
-
             let box: Box3;
-            if (obj.isObject3D) {
+            if ((obj as Object3D).isObject3D) {
+                obj = obj as Object3D;
                 box = tmp.box.setFromObject(obj);
             } else if ('getBoundingBox' in obj && typeof obj.getBoundingBox === 'function') {
                 // assume entities
                 box = obj.getBoundingBox(tmp.box);
             } else {
-                console.warn(`obj ${obj} is neither a Map, nor an Object3D, nor another Entity. It is not supported by focusObject`)
+                console.warn(
+                    `obj ${obj} is neither a Map, nor an Object3D, nor another Entity. It is not supported by focusObject`,
+                );
                 return;
             }
 
             const size = box.getSize(tmp.size);
             const maxDim = Math.max(size.x, size.y, size.z);
             if ((this.camera.camera3D as PerspectiveCamera).isPerspectiveCamera) {
-                let camera = this.camera.camera3D as PerspectiveCamera;
+                const camera = this.camera.camera3D as PerspectiveCamera;
                 // What dimension gives the most constraint to be fitted?
                 // NOTE: this mainly assumes that camera.UP is aligned with the screen vertical
                 // this is globally the case because we don't have globes
-                const shouldFitZ = (maxDim / camera.aspect) < size.z;
+                const shouldFitZ = maxDim / camera.aspect < size.z;
                 // we want the distance that encompasses the object. The correct formula is:
                 // tan(fov) = (half of maxDim) / fov
                 // here we approximate tan^-1 by x/y, which is correct enough and much faster
-                let distanceToUse = maxDim / (MathUtils.degToRad(camera.fov));
+                let distanceToUse = maxDim / MathUtils.degToRad(camera.fov * 2);
                 // the fov is a *vertical* fov, we need to correct by aspect if we don't try to fit the z
                 // dimension
                 if (!shouldFitZ) {
@@ -998,7 +999,6 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
                 controls.target.copy(lookAt);
                 controls.saveState();
             }
-
         }
     }
 
