@@ -21,6 +21,7 @@ import type GetElevationResult from './GetElevationResult';
 import type ElevationSample from './ElevationSample';
 import Shape from './Shape';
 import * as shape from './Shape';
+import type Atmosphere from './Atmosphere';
 
 export {
     Entity,
@@ -50,4 +51,5 @@ export {
     MeshUserData,
     Shape,
     shape,
+    Atmosphere,
 };
