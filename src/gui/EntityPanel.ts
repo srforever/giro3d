@@ -10,7 +10,7 @@ import Tiles3dInspector from './Tiles3dInspector';
 import PotreePointCloudInspector from './PotreePointCloudInspector';
 import ShapeInspector from './ShapeInspector';
 
-const customInspectors: Record<string, typeof EntityInspector> = {
+const customInspectors: Record<string, typeof EntityInspector<Entity3D>> = {
     Map: MapInspector,
     Tiles3D: Tiles3dInspector,
     PotreePointCloud: PotreePointCloudInspector,
