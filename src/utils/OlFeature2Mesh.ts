@@ -384,7 +384,7 @@ function featureToMesh(feature: Feature, options: OlFeature2MeshOptions = {}): P
         case 'Point':
             mesh = featureToPoint(
                 feature.getGeometry() as Point,
-                style.material,
+                material,
                 offset,
                 elevation,
             );
@@ -393,7 +393,7 @@ function featureToMesh(feature: Feature, options: OlFeature2MeshOptions = {}): P
         case 'MultiPoint': {
             mesh = featureToPoint(
                 feature.getGeometry() as MultiPoint,
-                style.material,
+                material,
                 offset,
                 elevation,
             );
