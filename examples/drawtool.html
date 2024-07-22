@@ -1,182 +1,220 @@
 ---
 title: Draw shapes
 shortdesc: Enables the user to draw points, lines and polygons.
-longdesc: The <a href="../apidoc/classes/interactions.DrawTool.html" target="_blank"><code>DrawTool</code></a> class allows you to draw geometries, such as points, lines and polygons, on surfaces. A temporary geometry is displayed while you add points, then removed when you're finished. The <code>DrawTool</code> then returns a GeoJSON object of the created geometry.
-attribution: © <a target="_blank" href="https://www.usgs.gov/">U.S. Geological Survey</a>
-dependencies: ['@turf/turf']
+longdesc: The <a href="../apidoc/classes/interactions.DrawTool.html" target="_blank"><code>DrawTool</code></a> class allows you to draw shapes, such as points, lines and polygons, on surfaces. Each generated <a target="_blank" href="./apidoc/classes/entities.Shape-1.html"><code>Shape</code></a> can then be exported in GeoJSON.
+attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
 tags: [drawing, picking, map]
 ---
 
-<div class="side-pane-with-status-bar" style="width: 20rem">
+<div class="side-pane-with-status-bar" class="pe-none">
+    <!--Parameters -->
     <div class="card">
+        <div class="card-header">Parameters</div>
+
         <div class="card-body">
-            <div class="row">
-                <button class="col btn btn-primary" id="addPoint">Points</button>
-                <button class="col mx-1 btn btn-primary" id="addLine">Line</button>
-                <button class="col btn btn-primary" id="addPolygon">Polygon</button>
-            </div>
-            <div class="row mt-2">
-                <div class="p-2 d-none helper" id="addPointHelper">
-                    Click on the map to add points. Right-click to end the shape.
-                </div>
-                <div class="p-2 d-none helper" id="addLineHelper">
-                    Click on the map to add points to the line. Right-click to end the shape.
-                </div>
-                <div class="p-2 d-none helper" id="addPolygonHelper">
-                    Click on the map to add points to the polygon. Click on the first point or
-                    right-click to end the shape.
-                </div>
-                <div class="p-2 d-none helper" id="editHelper">
-                    Click on a point and drag it to move it. Click on an edge to create a new point
-                    and drag it to move it. Right-click to end.
-                </div>
-                <div class="p-2 d-none helper" id="mainHelper">
-                    Click on a drawn shape to edit it.
-                </div>
-            </div>
-            <div class="row mt-2">
-                <button
-                    class="btn btn-secondary dropdown-toggle"
-                    type="button"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#options"
-                    aria-expanded="false"
-                    aria-controls="options"
-                >
-                    Options
-                </button>
-                <fieldset id="options" class="p-2 collapse">
-                    <div class="container">
-                        <div class="row mt-1">
-                            <div class="input-group p-0">
-                                <label class="input-group-text" for="dragging">Move points</label>
-                                <select class="form-select" id="dragging">
-                                    <option value="0" selected>via drag-and-drop</option>
-                                    <option value="1">on click</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mt-1">
-                            <div class="input-group p-0">
-                                <div class="input-group-text">
-                                    <div class="form-check form-switch">
-                                        <input
-                                            class="form-check-input"
-                                            type="checkbox"
-                                            checked="true"
-                                            role="switch"
-                                            id="splicingtoleranceEnabled"
-                                        />
-                                        <label
-                                            class="form-check-label"
-                                            for="splicingtoleranceEnabled"
-                                            title="Unit in 3D world space (when disabled, auto)"
-                                            >Splicing hit tolerance</label
-                                        >
-                                    </div>
-                                </div>
-                                <input
-                                    type="number"
-                                    class="form-control"
-                                    min="0"
-                                    max="100"
-                                    value="15"
-                                    id="splicingtolerance"
-                                />
-                            </div>
-                        </div>
-                        <div class="row mt-1">
-                            <div class="input-group p-0">
-                                <div class="input-group-text">
-                                    <div class="form-check form-switch">
-                                        <input
-                                            class="form-check-input"
-                                            type="checkbox"
-                                            checked="true"
-                                            role="switch"
-                                            id="minpointsEnabled"
-                                        />
-                                        <label
-                                            class="form-check-label"
-                                            for="minpointsEnabled"
-                                            title="Minimum points before the geometry can be finished (when disabled, auto)"
-                                            >Minimum points</label
-                                        >
-                                    </div>
-                                </div>
-                                <input
-                                    type="number"
-                                    class="form-control"
-                                    min="0"
-                                    max="10"
-                                    value="0"
-                                    id="minpoints"
-                                />
-                            </div>
-                        </div>
-                        <div class="row mt-1">
-                            <div class="input-group p-0">
-                                <div class="input-group-text">
-                                    <div class="form-check form-switch">
-                                        <input
-                                            class="form-check-input"
-                                            type="checkbox"
-                                            checked="true"
-                                            role="switch"
-                                            id="maxpointsEnabled"
-                                        />
-                                        <label
-                                            class="form-check-label"
-                                            for="maxpointsEnabled"
-                                            title="Number of points at which the geometry is automatically considered as finished"
-                                            >Maximum points</label
-                                        >
-                                    </div>
-                                </div>
-                                <input
-                                    type="number"
-                                    class="form-control"
-                                    min="0"
-                                    max="10"
-                                    value="10"
-                                    id="maxpoints"
-                                />
-                            </div>
-                        </div>
-                        <div class="row mt-1">
-                            <div>
-                                <div class="form-check form-switch">
-                                    <input
-                                        class="form-check-input"
-                                        type="checkbox"
-                                        checked="true"
-                                        role="switch"
-                                        id="addpointsEnabled"
-                                    />
-                                    <label class="form-check-label" for="addpointsEnabled"
-                                        >Add new points when editing</label
-                                    >
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mt-1">
-                            <div class="input-group p-0">
-                                <label class="input-group-text" for="pointsrendering"
-                                    >Render points</label
-                                >
-                                <select class="form-select" id="pointsrendering">
-                                    <option value="0">as 3D objects</option>
-                                    <option value="1" selected>via CSS2DRenderer</option>
-                                </select>
-                            </div>
-                        </div>
+            <!-- Geometry types -->
+            <div class="d-grid gap-2 mx-auto" id="draw-group">
+                <h5>Create new shape</h5>
+                <div class="row">
+                    <div class="col" style="padding-right: 0 !important">
+                        <button type="button" class="btn btn-primary w-100" id="point">
+                            Point
+                        </button>
                     </div>
-                </fieldset>
+                    <div class="col">
+                        <button type="button" class="btn btn-primary w-100" id="multipoint">
+                            MultiPoint
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col" style="padding-right: 0 !important">
+                        <button type="button" class="btn btn-primary w-100" id="segment">
+                            Segment
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button type="button" class="btn btn-primary w-100" id="linestring">
+                            LineString
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col" style="padding-right: 0 !important">
+                        <button type="button" class="btn btn-primary w-100" id="ring">Ring</button>
+                    </div>
+                    <div class="col">
+                        <button type="button" class="btn btn-primary w-100" id="polygon">
+                            Polygon
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col" style="padding-right: 0 !important">
+                        <button
+                            type="button"
+                            class="btn btn-primary w-100"
+                            id="vertical-measurement"
+                        >
+                            Height
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button type="button" class="btn btn-primary w-100" id="angle-measurement">
+                            Angle
+                        </button>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="row">
+                    <div class="col" style="padding-right: 0 !important">
+                        <button type="button" disabled class="btn btn-secondary w-100" id="export">
+                            <i class="bi bi-upload"></i>
+                            Export
+                        </button>
+                    </div>
+                    <div class="col">
+                        <button type="button" class="btn btn-secondary w-100" id="import">
+                            <i class="bi bi-download"></i>
+                            Import
+                        </button>
+                    </div>
+                </div>
+
+                <button type="button" disabled class="btn btn-danger" id="remove-shapes">
+                    <i class="bi bi-trash-fill"></i>
+                    Remove shapes
+                </button>
+            </div>
+
+            <hr />
+
+            <!-- Area unit -->
+            <div class="input-group mb-2">
+                <label class="input-group-text" for="area-unit">Areas</label>
+                <select class="form-select" id="area-unit" autocomplete="off">
+                    <option value="m" selected>Metric</option>
+                    <option value="ha">Hectares</option>
+                    <option value="acre">Acres</option>
+                </select>
+            </div>
+
+            <!-- Length unit -->
+            <div class="input-group mb-2">
+                <label class="input-group-text" for="length-unit">Lengths</label>
+                <select class="form-select" id="length-unit" autocomplete="off">
+                    <option value="m" selected>Metric</option>
+                    <option value="ft">Feet</option>
+                </select>
+            </div>
+
+            <!-- Slope unit -->
+            <div class="input-group">
+                <label class="input-group-text" for="slope-unit">Slopes</label>
+                <select class="form-select" id="slope-unit" autocomplete="off">
+                    <option value="deg" selected>Degrees</option>
+                    <option value="pct">Percent</option>
+                </select>
+            </div>
+
+            <hr />
+
+            <!-- Color -->
+            <label class="form-check-label w-100 mb-2" for="color">
+                <div class="row">
+                    <div class="col">Color</div>
+                    <div class="col">
+                        <input
+                            type="color"
+                            class="form-control form-control-color float-end h-100 w-100"
+                            id="color"
+                            value="#2978b4"
+                            title="color"
+                        />
+                    </div>
+                </div>
+            </label>
+
+            <!-- Point radius -->
+            <div class="row mb-2">
+                <div class="col">
+                    <label for="point-radius" class="form-label">Point radius (px)</label>
+                </div>
+                <div class="col">
+                    <input
+                        type="range"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value="4"
+                        class="form-range"
+                        id="point-radius"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+
+            <!-- Line width slider -->
+            <div class="row mb-2">
+                <div class="col">
+                    <label for="line-width" class="form-label">Line width (px)</label>
+                </div>
+                <div class="col">
+                    <input
+                        type="range"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value="2"
+                        class="form-range"
+                        id="line-width"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+
+            <!-- Border width slider -->
+            <div class="row">
+                <div class="col">
+                    <label for="border-width" class="form-label">Border width (px)</label>
+                </div>
+                <div class="col">
+                    <input
+                        type="range"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value="1"
+                        class="form-range"
+                        id="border-width"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+
+            <!-- Border width slider -->
+            <div class="row">
+                <div class="col">
+                    <label for="surface-opacity" class="form-label">Surface opacity</label>
+                </div>
+                <div class="col">
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value="0.35"
+                        class="form-range"
+                        id="surface-opacity"
+                        autocomplete="off"
+                    />
+                </div>
             </div>
         </div>
     </div>
-</div>
-
-<div class="me-3 mb-5 position-absolute bottom-0 end-0" style="width: 20vw">
-    <div class="p-2 card d-none" id="hoverHelper"></div>
 </div>

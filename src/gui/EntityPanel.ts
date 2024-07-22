@@ -8,15 +8,15 @@ import AxisGridInspector from './AxisGridInspector';
 import Panel from './Panel';
 import Tiles3dInspector from './Tiles3dInspector';
 import PotreePointCloudInspector from './PotreePointCloudInspector';
-import DrawingCollectionInspector from './DrawingCollectionInspector';
+import ShapeInspector from './ShapeInspector';
 
 const customInspectors: Record<string, typeof EntityInspector> = {
     Map: MapInspector,
     Tiles3D: Tiles3dInspector,
     PotreePointCloud: PotreePointCloudInspector,
     AxisGrid: AxisGridInspector,
+    Shape: ShapeInspector,
     FeatureCollection: FeatureCollectionInspector,
-    DrawingCollection: DrawingCollectionInspector,
 };
 
 /**

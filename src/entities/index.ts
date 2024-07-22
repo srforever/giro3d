@@ -14,10 +14,6 @@ import Map, {
 import PotreePointCloud from './PotreePointCloud';
 import Entity, { type EntityEventMap, type EntityUserData } from './Entity';
 import Entity3D, { type Entity3DEventMap } from './Entity3D';
-import DrawingCollection, {
-    type DrawingCollectionEventMap,
-    type DrawingPickResult,
-} from './DrawingCollection';
 import Tiles3D, { type Tiles3DOptions, type Tiles3DPickResult } from './Tiles3D';
 import FeatureCollection, {
     type OnMeshCreatedCallback,
@@ -26,6 +22,8 @@ import FeatureCollection, {
 import type GetElevationOptions from './GetElevationOptions';
 import type GetElevationResult from './GetElevationResult';
 import type ElevationSample from './ElevationSample';
+import Shape from './Shape';
+import * as shape from './Shape';
 
 export {
     Entity,
@@ -47,9 +45,6 @@ export {
     AxisGridOrigin,
     AxisGridTicks,
     AxisGridVolume,
-    DrawingCollection,
-    DrawingCollectionEventMap,
-    DrawingPickResult,
     PotreePointCloud,
     Tiles3D,
     Tiles3DOptions,
@@ -57,4 +52,6 @@ export {
     FeatureCollection,
     OnMeshCreatedCallback,
     OnTileCreatedCallback,
+    Shape,
+    shape,
 };

@@ -1,7 +1,6 @@
 import colormap from 'colormap';
 
 import {
-    Color,
     Vector3,
     Mesh,
     BoxGeometry,
@@ -12,33 +11,42 @@ import {
     Plane,
 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
-import TileWMS from 'ol/source/TileWMS.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
-import Tiles3D, { boundingVolumeToExtent } from '@giro3d/giro3d/entities/Tiles3D.js';
+import Tiles3D from '@giro3d/giro3d/entities/Tiles3D.js';
 import Tiles3DSource from '@giro3d/giro3d/sources/Tiles3DSource.js';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
 import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
 import PointCloudMaterial, { MODE } from '@giro3d/giro3d/renderer/PointCloudMaterial.js';
+import DrawTool from '@giro3d/giro3d/interactions/DrawTool.js';
+import WmtsSource from '@giro3d/giro3d/sources/WmtsSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
 import { makeColorRamp } from './widgets/makeColorRamp.js';
+import { bindToggle } from './widgets/bindToggle.js';
+import { bindDropDown } from './widgets/bindDropDown.js';
+import { bindButton } from './widgets/bindButton.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
 Instance.registerCRS(
     'EPSG:2154',
     '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
 );
+Instance.registerCRS(
+    'IGNF:WGS84G',
+    'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+);
 
 const viewerDiv = document.getElementById('viewerDiv');
 
 const instance = new Instance(viewerDiv, { crs: 'EPSG:2154' });
+
+instance.renderingOptions.enableEDL = true;
 
 // Creates controls
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
@@ -56,13 +64,15 @@ material.colorMap.colors = makeColorRamp('rdbu').reverse();
 material.colorMap.min = 200;
 material.colorMap.max = 1800;
 
-const pointcloud = new Tiles3D(
+const pointCloud = new Tiles3D(
     'pointcloud',
     new Tiles3DSource('https://3d.oslandia.com/lidar_hd/tileset.json'),
     {
         material,
     },
 );
+
+instance.add(pointCloud);
 
 /**
  * @type {Plane[]}
@@ -88,6 +98,13 @@ function getPlanesFromBoxSides(box) {
     return result;
 }
 
+const extent = new Extent(
+    'EPSG:2154',
+    902000.3307342547,
+    927999.9889373797,
+    6444999.999618538,
+    6466999.990463264,
+);
 const options = {
     showHelper: true,
     enableClippingPlanes: true,
@@ -95,181 +112,216 @@ const options = {
     showMap: true,
     applyOnPointCloud: true,
     showPointCloud: true,
+    mode: 'slice',
 };
 
-/**
- * @param {Tiles3D} pointCloud The point cloud entity.
- */
-function setupScene(pointCloud) {
-    const root = pointCloud.root;
+// create a map
+const map = new Map('terrain', {
+    extent,
+    hillshading: false,
+    discardNoData: true,
+    doubleSided: true,
+});
+instance.add(map);
 
-    /** @type {Extent} */
-    const extent = root.bbox
-        ? Extent.fromBox3('EPSG:2154', root.bbox)
-        : boundingVolumeToExtent('EPSG:2154', root.boundingVolume, root.matrixWorld);
+const noDataValue = -1000;
 
-    instance.renderingOptions.enableEDL = true;
-    instance.renderingOptions.enableInpainting = true;
-    instance.renderingOptions.enablePointCloudOcclusion = true;
+const capabilitiesUrl =
+    'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities';
 
-    // create a map
-    const map = new Map('terrain', {
-        extent,
-        hillshading: false,
-        discardNoData: true,
-        doubleSided: true,
-    });
-    instance.add(map);
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
+    format: new BilFormat(),
+    noDataValue,
+})
+    .then(elevationWmts => {
+        map.addLayer(
+            new ElevationLayer({
+                name: 'wmts_elevation',
+                extent: map.extent,
+                // We don't need the full resolution of terrain because we are not using any shading
+                resolutionFactor: 0.25,
+                minmax: { min: 0, max: 5000 },
+                noDataOptions: {
+                    replaceNoData: false,
+                },
+                source: elevationWmts,
+            }),
+        );
+    })
+    .catch(console.error);
 
-    // Create a WMS imagery layer
-    const wmsOthophotoSource = new TiledImageSource({
-        source: new TileWMS({
-            url: 'https://data.geopf.fr/wms-r',
-            projection: 'EPSG:2154',
-            params: {
-                LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
-                FORMAT: 'image/jpeg',
-            },
-        }),
-    });
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
+})
+    .then(orthophotoWmts => {
+        map.addLayer(
+            new ColorLayer({
+                name: 'wmts_orthophotos',
+                extent: map.extent,
+                source: orthophotoWmts,
+            }),
+        );
+    })
+    .catch(console.error);
 
-    const colorLayer = new ColorLayer({
-        name: 'orthophoto-ign',
-        extent: map.extent,
-        source: wmsOthophotoSource,
-    });
-    const noDataValue = -1000;
+const box3 = new Box3();
+const center = map.extent.centerAsVector2();
+const boxCenter = new Vector3(center.x, center.y, 800);
 
-    // Adds a WMS elevation layer
-    const elevationSource = new TiledImageSource({
-        source: new TileWMS({
-            url: 'https://data.geopf.fr/wms-r',
-            projection: 'EPSG:2154',
-            crossOrigin: 'anonymous',
-            params: {
-                LAYERS: ['ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES'],
-                FORMAT: 'image/x-bil;bits=32',
-            },
-        }),
-        format: new BilFormat(),
-        noDataValue,
-    });
+const volumeHelpers = new Group();
+instance.scene.add(volumeHelpers);
 
-    const elevationLayer = new ElevationLayer({
-        name: 'wms_elevation',
-        extent: map.extent,
-        resolutionFactor: 0.25,
-        source: elevationSource,
-    });
+/** @type {Box3Helper} */
+let helper;
+/** @type {Mesh} */
+let box;
 
-    map.addLayer(colorLayer);
-    map.addLayer(elevationLayer);
+const helperMaterial = new MeshBasicMaterial({
+    color: 'yellow',
+    opacity: 0.1,
+    transparent: true,
+});
 
-    const box3 = new Box3();
-    const center = map.extent.centerAsVector2();
-    const boxCenter = new Vector3(center.x, center.y, 800);
+function deleteBox() {
+    box?.geometry?.dispose();
+    box?.removeFromParent();
+    helper?.dispose();
+    helper?.removeFromParent();
+}
 
-    const volumeHelpers = new Group();
-    instance.scene.add(volumeHelpers);
+function generateBoxHelper() {
+    deleteBox();
 
-    /** @type {Box3Helper} */
-    let helper;
-    /** @type {Mesh} */
-    let box;
+    box3.setFromCenterAndSize(boxCenter, new Vector3(boxSize, boxSize, boxSize));
+    const boxGeometry = new BoxGeometry(boxSize, boxSize, boxSize);
+    box = new Mesh(boxGeometry, helperMaterial);
+    helper = new Box3Helper(box3, 'yellow');
+    box.renderOrder = 2;
+    volumeHelpers.add(helper);
+    volumeHelpers.add(box);
+    box.position.copy(boxCenter);
+    box.updateMatrixWorld();
+    helper.updateMatrixWorld();
+    volumeHelpers.updateMatrixWorld();
+}
 
-    const helperMaterial = new MeshBasicMaterial({
-        color: 'yellow',
-        opacity: 0.1,
-        transparent: true,
-    });
+// refresh scene
+instance.notifyChange(instance.camera.camera3D);
 
-    function generateBoxHelper() {
-        box?.geometry?.dispose();
-        box?.removeFromParent();
-        helper?.dispose();
-        helper?.removeFromParent();
+function update() {
+    volumeHelpers.visible = options.showHelper && options.enableClippingPlanes;
+    map.visible = options.showMap;
+    pointCloud.visible = options.showPointCloud;
+    map.clippingPlanes = options.enableClippingPlanes && options.applyOnMap ? planes : null;
+    pointCloud.clippingPlanes =
+        options.enableClippingPlanes && options.applyOnPointCloud ? planes : null;
+    instance.notifyChange();
+}
 
-        box3.setFromCenterAndSize(boxCenter, new Vector3(boxSize, boxSize, boxSize));
-        const boxGeometry = new BoxGeometry(boxSize, boxSize, boxSize);
-        box = new Mesh(boxGeometry, helperMaterial);
-        helper = new Box3Helper(box3, 'yellow');
-        box.renderOrder = 2;
-        volumeHelpers.add(helper);
-        volumeHelpers.add(box);
-        box.position.copy(boxCenter);
-        box.updateMatrixWorld();
-        helper.updateMatrixWorld();
-        volumeHelpers.updateMatrixWorld();
-    }
-
-    // refresh scene
-    instance.notifyChange(instance.camera.camera3D);
-
-    function bindToggle(id, action) {
-        const toggle = document.getElementById(id);
-
-        toggle.oninput = function oninput() {
-            action(toggle.checked);
-            instance.notifyChange();
-        };
-    }
-
-    function update() {
-        generateBoxHelper();
-        planes = getPlanesFromBoxSides(box3);
-        volumeHelpers.visible = options.showHelper && options.enableClippingPlanes;
-        map.visible = options.showMap;
-        pointCloud.visible = options.showPointCloud;
-        map.clippingPlanes = options.enableClippingPlanes && options.applyOnMap ? planes : null;
-        pointCloud.clippingPlanes =
-            options.enableClippingPlanes && options.applyOnPointCloud ? planes : null;
-        instance.notifyChange();
-    }
-
-    bindToggle('toggle-show-volume', v => {
-        options.showHelper = v;
-        update();
-    });
-
-    bindToggle('enable-clipping-planes', v => {
-        options.enableClippingPlanes = v;
-        if (v) {
-            document.getElementById('options').removeAttribute('disabled');
-        } else {
-            document.getElementById('options').setAttribute('disabled', 'disabled');
-        }
-        update();
-    });
-
-    bindToggle('toggle-pointcloud', v => {
-        options.applyOnPointCloud = v;
-        update();
-    });
-
-    bindToggle('toggle-show-pointcloud', v => {
-        options.showPointCloud = v;
-        update();
-    });
-
-    bindToggle('toggle-show-map', v => {
-        options.showMap = v;
-        update();
-    });
-
-    bindToggle('toggle-map', v => {
-        options.applyOnMap = v;
-        update();
-    });
-
-    const slider = document.getElementById('slider-size');
-    slider.oninput = function oninput() {
-        boxSize = slider.value;
-        update();
-    };
+const updateFromBox = () => {
+    generateBoxHelper();
+    planes = getPlanesFromBoxSides(box3);
 
     update();
-}
-instance.add(pointcloud).then(setupScene);
+};
+
+let currentSegment;
+
+bindDropDown('mode', mode => {
+    options.mode = mode;
+    const volumeOptions = document.getElementById('volume-options');
+    const sliceOptions = document.getElementById('slice-options');
+
+    volumeOptions.style.display = 'block';
+    sliceOptions.style.display = 'block';
+
+    switch (mode) {
+        case 'slice':
+            volumeOptions.style.display = 'none';
+            planes = [];
+            deleteBox();
+            update();
+            break;
+        case 'volume':
+            sliceOptions.style.display = 'none';
+            if (currentSegment) {
+                instance.remove(currentSegment);
+                currentSegment = null;
+            }
+            updateFromBox();
+            break;
+    }
+});
+
+const drawTool = new DrawTool({ instance });
+drawTool.addEventListener('start-drag', () => (controls.enabled = false));
+drawTool.addEventListener('end-drag', () => (controls.enabled = true));
+drawTool.enterEditMode();
+
+bindButton('draw', () => {
+    const plane = new Plane();
+
+    if (currentSegment) {
+        instance.remove(currentSegment);
+        currentSegment = null;
+    }
+
+    const updatePlanes = shape => {
+        if (shape && shape.points.length === 2) {
+            const a = shape.points[0];
+            const b = shape.points[1];
+            const c = shape.points[1].clone().setZ(b.z + 100);
+
+            plane.setFromCoplanarPoints(a, b, c);
+
+            planes = [plane];
+
+            update();
+        }
+    };
+
+    drawTool
+        .createSegment({
+            onTemporaryPointMoved: updatePlanes,
+            afterUpdatePoint: ({ shape }) => updatePlanes(shape),
+        })
+        .then(shape => {
+            currentSegment = shape;
+            updatePlanes(shape);
+        });
+});
+
+bindToggle('toggle-show-volume', v => {
+    options.showHelper = v;
+    updateFromBox();
+});
+
+bindToggle('toggle-pointcloud', v => {
+    options.applyOnPointCloud = v;
+    update();
+});
+
+bindToggle('toggle-show-pointcloud', v => {
+    options.showPointCloud = v;
+    update();
+});
+
+bindToggle('toggle-show-map', v => {
+    options.showMap = v;
+    update();
+});
+
+bindToggle('toggle-map', v => {
+    options.applyOnMap = v;
+    update();
+});
+
+const slider = document.getElementById('slider-size');
+slider.oninput = function oninput() {
+    boxSize = slider.value;
+    updateFromBox();
+};
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 

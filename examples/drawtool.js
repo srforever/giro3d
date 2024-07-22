@@ -1,496 +1,514 @@
-import * as turf from '@turf/turf';
-
-import XYZ from 'ol/source/XYZ.js';
-
-import {
-    LineBasicMaterial,
-    MeshBasicMaterial,
-    PointsMaterial,
-    ShapeUtils,
-    Vector2,
-    Vector3,
-} from 'three';
+import { Color, MathUtils, Vector3 } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
+import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates.js';
 import Instance from '@giro3d/giro3d/core/Instance.js';
 import ElevationLayer from '@giro3d/giro3d/core/layer/ElevationLayer.js';
+import { ColorLayer } from '@giro3d/giro3d/core/layer/index.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
+import WmtsSource from '@giro3d/giro3d/sources/WmtsSource.js';
+import BilFormat from '@giro3d/giro3d/formats/BilFormat.js';
+import DrawTool, {
+    afterRemovePointOfPolygon,
+    afterUpdatePointOfPolygon,
+    inhibitHook,
+    limitRemovePointHook,
+} from '@giro3d/giro3d/interactions/DrawTool.js';
+import Shape, {
+    DEFAULT_SURFACE_OPACITY,
+    angleSegmentFormatter,
+    slopeSegmentFormatter,
+} from '@giro3d/giro3d/entities/Shape.js';
+import Fetcher from '@giro3d/giro3d/utils/Fetcher.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
-import GeoTIFFFormat from '@giro3d/giro3d/formats/GeoTIFFFormat.js';
-import DrawTool, { DrawToolMode, DrawToolState } from '@giro3d/giro3d/interactions/DrawTool.js';
-import Drawing from '@giro3d/giro3d/interactions/Drawing.js';
-import DrawingCollection from '@giro3d/giro3d/entities/DrawingCollection.js';
-import Fetcher from '@giro3d/giro3d/utils/Fetcher';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
 
-// Create some functions for measurement
+import { bindButton } from './widgets/bindButton.js';
+import { bindSlider } from './widgets/bindSlider.js';
+import { bindColorPicker } from './widgets/bindColorPicker.js';
+import { bindDropDown } from './widgets/bindDropDown.js';
 
-function getPerimeter(drawing) {
-    if (drawing.coordinates.length < 6) return null;
+// Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
+Instance.registerCRS(
+    'EPSG:2154',
+    '+proj=lcc +lat_0=46.5 +lon_0=3 +lat_1=49 +lat_2=44 +x_0=700000 +y_0=6600000 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs +type=crs',
+);
+Instance.registerCRS(
+    'IGNF:WGS84G',
+    'GEOGCS["GCS_WGS_1984",DATUM["D_WGS_1984",SPHEROID["WGS_1984",6378137.0,298.257223563]],PRIMEM["Greenwich",0.0],UNIT["Degree",0.0174532925199433]]',
+);
 
-    let length = 0;
-    for (let i = 0; i < drawing.coordinates.length / 3 - 1; i += 1) {
-        length += new Vector3(
-            drawing.coordinates[i * 3 + 0],
-            drawing.coordinates[i * 3 + 1],
-            drawing.coordinates[i * 3 + 2],
-        ).distanceTo(
-            new Vector3(
-                drawing.coordinates[(i + 1) * 3 + 0],
-                drawing.coordinates[(i + 1) * 3 + 1],
-                drawing.coordinates[(i + 1) * 3 + 2],
-            ),
-        );
-    }
-    return length;
-}
-
-function getMinMaxAltitudes(drawing) {
-    let min = +Infinity;
-    let max = -Infinity;
-
-    for (let i = 0; i < drawing.coordinates.length / 3; i += 1) {
-        min = Math.min(min, drawing.coordinates[i * 3 + 2]);
-        max = Math.max(max, drawing.coordinates[i * 3 + 2]);
-    }
-    return [min, max];
-}
-
-function getArea(drawing) {
-    if (drawing.coordinates.length < 6) return null;
-
-    const localFlatCoords = drawing.localCoordinates;
-    const localCoords = new Array(localFlatCoords.length / 3);
-    for (let i = 0; i < localFlatCoords.length / 3; i += 1) {
-        localCoords[i] = new Vector2(localFlatCoords[i * 3 + 0], localFlatCoords[i * 3 + 1]);
-    }
-    return Math.abs(ShapeUtils.area(localCoords));
-}
-
-// Initialize Giro3D (see tifftiles for more details)
-const x = -13602618.385789588;
-const y = 5811042.273912458;
-
-const extent = new Extent('EPSG:3857', x - 12000, x + 13000, y - 4000, y + 26000);
-
-const instance = new Instance(document.getElementById('viewerDiv'), {
-    crs: extent.crs(),
+const viewerDiv = document.getElementById('viewerDiv');
+const instance = new Instance(viewerDiv, {
+    crs: 'EPSG:2154',
     renderer: {
-        clearColor: 0x0a3b59,
+        clearColor: false,
     },
 });
+
+// create a map
+const extent = Extent.fromCenterAndSize('EPSG:2154', { x: 972_027, y: 6_299_491 }, 10_000, 10_000);
 
 const map = new Map('planar', {
     extent,
-    hillshading: true,
-    discardNoData: true,
-    backgroundColor: 'white',
+    backgroundColor: 'gray',
+    hillshading: {
+        enabled: true,
+        intensity: 0.6,
+        elevationLayersOnly: true,
+    },
+    doubleSided: true,
 });
-
 instance.add(map);
 
-let footprint;
+const noDataValue = -1000;
 
-/**
- * A function that will override the default intersection test for image sources (by default
- * performing intersection on extents, i.e rectangles). Here we want to exclude tiles that do not
- * intersect with the GeoJSON footprint of the dataset.
- *
- * @param {Extent} tileExtent The extent to test.
- */
-function customIntersectionTest(tileExtent) {
-    if (!footprint) {
-        return true;
-    }
+const capabilitiesUrl =
+    'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities';
 
-    const corners = [
-        [tileExtent.topLeft().x, tileExtent.topLeft().y],
-        [tileExtent.topRight().x, tileExtent.topRight().y],
-        [tileExtent.bottomRight().x, tileExtent.bottomRight().y],
-        [tileExtent.bottomLeft().x, tileExtent.bottomLeft().y],
-    ];
-
-    const extentAsPolygon = turf.helpers.polygon([
-        [corners[0], corners[1], corners[2], corners[3], corners[0]],
-    ]);
-
-    const intersects = turf.booleanIntersects(turf.toWgs84(extentAsPolygon), footprint);
-
-    return intersects;
-}
-
-Fetcher.json('data/MtStHelens-footprint.geojson')
-    .then(geojson => {
-        footprint = turf.toWgs84(geojson);
-
-        const source = new TiledImageSource({
-            containsFn: customIntersectionTest, // Here we specify our custom intersection test
-            source: new XYZ({
-                minZoom: 10,
-                maxZoom: 16,
-                url: 'https://3d.oslandia.com/dem/MtStHelens-tiles/{z}/{x}/{y}.tif',
-            }),
-            format: new GeoTIFFFormat(),
-        });
-
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
+    format: new BilFormat(),
+    noDataValue,
+})
+    .then(elevationWmts => {
         map.addLayer(
             new ElevationLayer({
-                name: 'osm',
-                extent,
-                source,
+                name: 'wmts_elevation',
+                extent: map.extent,
+                resolutionFactor: 1,
+                minmax: { min: 500, max: 1500 },
+                noDataOptions: {
+                    replaceNoData: false,
+                },
+                source: elevationWmts,
             }),
-        ).catch(e => console.error(e));
+        );
     })
-    .catch(e => console.error(e));
+    .catch(console.error);
 
-const center = extent.centerAsVector3();
-instance.camera.camera3D.position.set(center.x, center.y - 1, 50000);
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
+})
+    .then(orthophotoWmts => {
+        map.addLayer(
+            new ColorLayer({
+                extent: map.extent,
+                source: orthophotoWmts,
+            }),
+        );
+    })
+    .catch(console.error);
 
-// Instanciates controls
-// Beware: we need to bind them to *instance.domElement* so we can interact over 2D labels!
+const center = extent.centerAsVector2();
+instance.camera.camera3D.position.set(center.x - 1000, center.y - 1000, 3000);
+const lookAt = new Vector3(center.x, center.y, 200);
+instance.camera.camera3D.lookAt(lookAt);
+instance.notifyChange(instance.camera.camera3D);
+
+// Creates controls
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.2;
+controls.target.copy(lookAt);
+controls.saveState();
 
-controls.target.copy(center);
 instance.useTHREEControls(controls);
 
-Inspector.attach(document.getElementById('panelDiv'), instance);
+const shapes = [];
 
-// Instanciate drawtool
-const drawToolOptions = {
-    drawObject3DOptions: {
-        minExtrudeDepth: 40,
-        maxExtrudeDepth: 100,
-    },
-    enableDragging: document.getElementById('dragging').value === '0',
-    splicingHitTolerance: document.getElementById('splicingtoleranceEnabled').checked
-        ? parseInt(document.getElementById('splicingtolerance').value, 10)
-        : undefined,
-    minPoints: document.getElementById('minpointsEnabled').checked
-        ? parseInt(document.getElementById('minpoints').value, 10)
-        : undefined,
-    maxPoints: document.getElementById('maxpointsEnabled').checked
-        ? parseInt(document.getElementById('maxpoints').value, 10)
-        : undefined,
-    enableAddPointsOnEdit: document.getElementById('addpointsEnabled').checked,
-    use3Dpoints: document.getElementById('pointsrendering').value === '0',
-    point2DFactory: point2DFactoryHighlighted,
-};
-const drawTool = new DrawTool(instance, drawToolOptions);
-
-// Prevent drawing when the user is interacting (panning, etc.)
-controls.addEventListener('change', () => drawTool.pause());
-controls.addEventListener('end', () => setTimeout(() => drawTool.continue(), 0));
-
-// Let's plug our buttons to the drawTool API
-const updateDragging = () => {
-    drawToolOptions.enableDragging = document.getElementById('dragging').value === '0';
-    drawTool.setOptions(drawToolOptions);
-};
-const updateSplicingTolerance = () => {
-    drawToolOptions.splicingHitTolerance = document.getElementById('splicingtoleranceEnabled')
-        .checked
-        ? parseInt(document.getElementById('splicingtolerance').value, 10)
-        : undefined;
-    drawTool.setOptions(drawToolOptions);
-};
-const updateMinpoints = () => {
-    drawToolOptions.minPoints = document.getElementById('minpointsEnabled').checked
-        ? parseInt(document.getElementById('minpoints').value, 10)
-        : undefined;
-    drawTool.setOptions(drawToolOptions);
-};
-const updateMaxpoints = () => {
-    drawToolOptions.maxPoints = document.getElementById('maxpointsEnabled').checked
-        ? parseInt(document.getElementById('maxpoints').value, 10)
-        : undefined;
-    drawTool.setOptions(drawToolOptions);
-};
-const updateAddPoints = () => {
-    drawToolOptions.enableAddPointsOnEdit = document.getElementById('addpointsEnabled').checked;
-    drawTool.setOptions(drawToolOptions);
+const options = {
+    lineWidth: 2,
+    borderWidth: 1,
+    vertexRadius: 4,
+    color: '#2978b4',
+    areaUnit: 'm',
+    lengthUnit: 'm',
+    slopeUnit: 'deg',
+    surfaceOpacity: DEFAULT_SURFACE_OPACITY,
 };
 
-document.getElementById('dragging').addEventListener('change', updateDragging);
-document
-    .getElementById('splicingtoleranceEnabled')
-    .addEventListener('change', updateSplicingTolerance);
-document.getElementById('splicingtolerance').addEventListener('change', updateSplicingTolerance);
-document.getElementById('minpointsEnabled').addEventListener('change', updateMinpoints);
-document.getElementById('minpoints').addEventListener('change', updateMinpoints);
-document.getElementById('maxpointsEnabled').addEventListener('change', updateMaxpoints);
-document.getElementById('maxpoints').addEventListener('change', updateMaxpoints);
-document.getElementById('addpointsEnabled').addEventListener('change', updateAddPoints);
-
-document.getElementById('addPoint').onclick = () => {
-    if (drawTool.state !== DrawToolState.READY) {
-        // We're already drawing, do something with the current drawing
-        if (drawTool.mode === DrawToolMode.EDIT) drawTool.end();
-        else drawTool.reset();
-    }
-
-    // Display help
-    for (const o of document.getElementsByClassName('helper')) {
-        o.classList.add('d-none');
-    }
-    document.getElementById('addPointHelper').classList.remove('d-none');
-    document.getElementById('options').setAttribute('disabled', true);
-
-    // Start drawing!
-    drawTool.start('MultiPoint');
-};
-
-document.getElementById('addLine').onclick = () => {
-    if (drawTool.state !== DrawToolState.READY) {
-        if (drawTool.mode === DrawToolMode.EDIT) drawTool.end();
-        else drawTool.reset();
-    }
-
-    for (const o of document.getElementsByClassName('helper')) {
-        o.classList.add('d-none');
-    }
-    document.getElementById('addLineHelper').classList.remove('d-none');
-    document.getElementById('options').setAttribute('disabled', true);
-
-    drawTool.start('LineString');
-};
-
-document.getElementById('addPolygon').onclick = () => {
-    if (drawTool.state !== DrawToolState.READY) {
-        if (drawTool.mode === DrawToolMode.EDIT) drawTool.end();
-        else drawTool.reset();
-    }
-
-    for (const o of document.getElementsByClassName('helper')) {
-        o.classList.add('d-none');
-    }
-    document.getElementById('addPolygonHelper').classList.remove('d-none');
-    document.getElementById('options').setAttribute('disabled', true);
-
-    drawTool.start('Polygon');
-};
-
-// Hide the help when we're done drawing
-drawTool.addEventListener('end', () => {
-    for (const o of document.getElementsByClassName('helper')) {
-        o.classList.add('d-none');
-    }
-    document.getElementById('mainHelper').classList.remove('d-none');
-    document.getElementById('options').removeAttribute('disabled');
+const tool = new DrawTool({
+    instance,
+    hoverColor: options.highlightColor,
+    dragColor: options.dragColor,
 });
 
-// When we're done drawing, the drawTool removes the shape.
-// We want to keep it displayed so we can edit it.
-// We'll keep track of our shapes, so we can edit their rendering parameters
-// and optimize the picking on hover&click.
-const drawEntity = new DrawingCollection();
-instance.add(drawEntity);
+let abortController;
 
-// We'll use different materials for displaying drawn shapes
-const drawnFaceMaterial = new MeshBasicMaterial({
-    color: 0x433c73,
-    opacity: 0.2,
-});
-const drawnSideMaterial = new MeshBasicMaterial({
-    color: 0x433c73,
-    opacity: 0.8,
-});
-const drawnLineMaterial = new LineBasicMaterial({
-    color: 0x252140,
-});
-const drawnPointMaterial = new PointsMaterial({
-    color: 0x433c73,
-    size: 100,
+document.addEventListener('keydown', e => {
+    switch (e.key) {
+        case 'Escape':
+            try {
+                abortController.abort();
+            } catch {
+                console.log('aborted');
+            }
+            break;
+    }
 });
 
-// If using CSS2DRenderer for points, we define our own (optional) factory
-function point2DFactory(text) {
-    const pt = document.createElement('div');
-    pt.style.position = 'absolute';
-    pt.style.borderRadius = '50%';
-    pt.style.width = '28px';
-    pt.style.height = '28px';
-    pt.style.backgroundColor = '#433C73';
-    pt.style.color = '#ffffff';
-    pt.style.border = '2px solid #070607';
-    pt.style.fontSize = '14px';
-    pt.style.textAlign = 'center';
-    pt.style.pointerEvents = 'none';
-    pt.style.cursor = 'pointer';
-    pt.innerText = text;
-    return pt;
+function vertexLabelFormatter({ position }) {
+    const latlon = new Coordinates(instance.referenceCrs, position.x, position.y).as('EPSG:4326');
+
+    return `lat: ${latlon.latitude.toFixed(5)}°, lon: ${latlon.longitude.toFixed(5)}°`;
 }
 
-function point2DFactoryHighlighted(text) {
-    const pt = document.createElement('div');
-    pt.style.position = 'absolute';
-    pt.style.borderRadius = '50%';
-    pt.style.width = '28px';
-    pt.style.height = '28px';
-    pt.style.backgroundColor = '#347330';
-    pt.style.color = '#ffffff';
-    pt.style.border = '2px solid #070607';
-    pt.style.fontSize = '14px';
-    pt.style.textAlign = 'center';
-    pt.style.pointerEvents = 'none';
-    pt.style.cursor = 'pointer';
-    pt.innerText = text;
-    return pt;
-}
-
-const updatePointsRendering = () => {
-    // Update existing drawings
-    for (const o of drawEntity.children) {
-        if (o.geometryType === 'MultiPoint') {
-            o.use3Dpoints = document.getElementById('pointsrendering').value === '0';
-            instance.notifyChange(o);
-        }
-    }
-};
-document.getElementById('pointsrendering').addEventListener('change', updatePointsRendering);
-
-function addShape(geojson) {
-    if (geojson.type === 'LineString' && geojson.coordinates.length < 2) {
-        return;
-    }
-    if (geojson.type === 'Polygon' && geojson.coordinates[0].length < 3) {
-        return;
-    }
-
-    // Create and show a new object with the same geometry but with different materials
-    const o = new Drawing(
-        {
-            faceMaterial: drawnFaceMaterial,
-            sideMaterial: drawnSideMaterial,
-            lineMaterial: drawnLineMaterial,
-            pointMaterial: drawnPointMaterial,
-            minExtrudeDepth: 40,
-            maxExtrudeDepth: 100,
-            use3Dpoints: document.getElementById('pointsrendering').value === '0',
-            point2DFactory,
-        },
-        geojson,
-    );
-
-    // Compute some measurements
-    o.userData.measurements = {
-        minmax: getMinMaxAltitudes(o),
-        nbPoints: o.coordinates.length / 3,
+const exportButton = bindButton('export', () => {
+    const featureCollection = {
+        type: 'FeatureCollection',
+        features: shapes.map(m => m.toGeoJSON()),
     };
 
-    if (o.geometryType === 'Polygon' || o.geometryType === 'LineString') {
-        o.userData.measurements.perimeter = getPerimeter(o);
+    const text = JSON.stringify(featureCollection, null, 2);
+
+    const blob = new Blob([text], { type: 'application/geo+json' });
+
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+
+    link.download = `shapes.geojson`;
+    link.href = url;
+    link.click();
+});
+
+const numberFormat = new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: 2,
+});
+
+const slopeFormatter = opts => {
+    switch (options.slopeUnit) {
+        case 'deg':
+            return angleSegmentFormatter(opts);
+        case 'pct':
+            return slopeSegmentFormatter(opts);
     }
-    if (o.geometryType === 'Polygon') {
-        o.userData.measurements.area = getArea(o);
+};
+
+const surfaceLabelFormatter = ({ area }) => {
+    switch (options.areaUnit) {
+        case 'm': {
+            if (area > 1_000_000) {
+                return `${numberFormat.format(area / 1_000_000)} km²`;
+            }
+            return `${numberFormat.format(Math.round(area))} m²`;
+        }
+        case 'ha':
+            return `${numberFormat.format(area / 10000)} ha`;
+        case 'acre':
+            return `${numberFormat.format(area / 4_046.8564224)} acres`;
+    }
+};
+
+const lengthFormatter = ({ length }) => {
+    switch (options.lengthUnit) {
+        case 'm':
+            return `${numberFormat.format(Math.round(length))} m`;
+        case 'ft':
+            return `${numberFormat.format(Math.round(length * 3.28084))} ft`;
+    }
+};
+
+// Overrides the default formatter for vertical lines
+const verticalLineLabelFormatter = ({ vertexIndex, length }) => {
+    if (vertexIndex === 0) {
+        return null;
     }
 
-    // Add it to our scene
-    drawEntity.add(o);
-    instance.notifyChange(drawEntity);
+    switch (options.lengthUnit) {
+        case 'm':
+            return `${numberFormat.format(Math.round(length))} m`;
+        case 'ft':
+            return `${numberFormat.format(Math.round(length * 3.28084))} ft`;
+    }
+};
+
+function fromGeoJSON(feature) {
+    if (feature.type !== 'Feature') {
+        throw new Error('not a valid GeoJSON feature');
+    }
+
+    const crs = 'EPSG:4326';
+
+    const getPoint = c => {
+        const coord = new Coordinates(crs, c[0], c[1], c[2] ?? 0);
+        return coord.as(instance.referenceCrs, coord).toVector3();
+    };
+
+    const uuid = MathUtils.generateUUID();
+    let result;
+
+    switch (feature.geometry.type) {
+        case 'Point':
+            result = new Shape(uuid, {
+                showVertexLabels: true,
+                showLine: false,
+                showVertices: true,
+                beforeRemovePoint: inhibitHook,
+                vertexLabelFormatter,
+            });
+            result.setPoints([getPoint(feature.geometry.coordinates)]);
+            break;
+        case 'MultiPoint':
+            result = new Shape(uuid, {
+                showVertexLabels: true,
+                showLine: false,
+                showVertices: true,
+                beforeRemovePoint: limitRemovePointHook(1),
+                vertexLabelFormatter,
+            });
+            result.setPoints(feature.geometry.coordinates.map(getPoint));
+            break;
+        case 'LineString':
+            result = new Shape(uuid, {
+                showVertexLabels: false,
+                showLine: true,
+                showVertices: true,
+                showSegmentLabels: true,
+                segmentLabelFormatter: lengthFormatter,
+                beforeRemovePoint: limitRemovePointHook(2),
+            });
+            result.setPoints(feature.geometry.coordinates.map(getPoint));
+            break;
+        case 'Polygon':
+            result = new Shape(uuid, {
+                showVertexLabels: false,
+                showLine: true,
+                showVertices: true,
+                showSurface: true,
+                showSurfaceLabel: true,
+                surfaceLabelFormatter,
+                beforeRemovePoint: limitRemovePointHook(4), // We take into account the doubled first/last point
+                afterRemovePoint: afterRemovePointOfPolygon,
+                afterUpdatePoint: afterUpdatePointOfPolygon,
+            });
+            result.setPoints(feature.geometry.coordinates[0].map(getPoint));
+            break;
+    }
+
+    return result;
 }
 
-// Listen to when we are done drawing
-drawTool.addEventListener('end', evt => addShape(evt.geojson));
+const removeShapesButton = bindButton('remove-shapes', () => {
+    shapes.forEach(m => instance.remove(m));
+    shapes.length = 0;
+    removeShapesButton.disabled = true;
+    exportButton.disabled = true;
+    instance.notifyChange();
+});
 
-// At this point we:
-// - can add new shapes,
-// - have them displayed when done.
+function importGeoJSONFile(json) {
+    for (const feature of json.features) {
+        const shape = fromGeoJSON(feature);
+        instance.add(shape);
+        shapes.push(shape);
+    }
 
-// Let's add selection & edition!
+    if (shapes.length > 0) {
+        removeShapesButton.disabled = false;
+        exportButton.disabled = false;
+    }
+    instance.notifyChange();
+}
 
-// Display a nice pointer when the user is over a drawn shape
-// and show measurement info
-instance.domElement.addEventListener('mousemove', evt => {
-    // Do nothing if we're editing a shape
-    if (drawTool.state !== DrawToolState.READY) return;
+Fetcher.json('data/default-shapes.geojson').then(json => {
+    importGeoJSONFile(json);
+});
 
-    // In case we're using points with CSS2DRenderer, instance.pickObjectsAt will take
-    // care of returning the elements corresponding to the points
-    // You can therefore use the same API whatever rendering method you're using for points
-    const picked = instance
-        .pickObjectsAt(evt, {
-            where: [drawEntity],
-            limit: 1,
-            radius: 5,
-            pickFeatures: true,
+bindButton('import', () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+
+    input.onchange = e => {
+        const file = e.target.files[0];
+
+        const reader = new FileReader();
+        reader.readAsText(file);
+
+        reader.onload = readerEvent => {
+            const text = readerEvent.target.result;
+            const json = JSON.parse(text);
+            importGeoJSONFile(json);
+        };
+    };
+
+    input.click();
+});
+
+let isCurrentlyDrawing = false;
+
+function disableDrawButtons(disabled) {
+    const group = document.getElementById('draw-group');
+    const buttons = group.getElementsByTagName('button');
+    for (const button of buttons) {
+        button.disabled = disabled;
+    }
+}
+
+/**
+ * @param {HTMLButtonElement} button - TTh
+ * @param {*} callback
+ * @param {*} specificOptions
+ */
+function createShape(button, callback, specificOptions) {
+    disableDrawButtons(true);
+
+    button.classList.remove('btn-primary');
+    button.classList.add('btn-secondary');
+
+    abortController = new AbortController();
+
+    isCurrentlyDrawing = true;
+
+    callback
+        .bind(tool)({
+            signal: abortController.signal,
+            ...options,
+            ...specificOptions,
         })
-        .at(0);
-    instance.domElement.style.cursor = picked ? 'pointer' : 'default';
+        .then(shape => {
+            if (shape) {
+                shapes.push(shape);
+                removeShapesButton.disabled = false;
+                exportButton.disabled = false;
+            }
+        })
+        .catch(e => {
+            if (e.message !== 'aborted') {
+                console.log(e);
+            }
+        })
+        .finally(() => {
+            disableDrawButtons(false);
+            button.classList.add('btn-primary');
+            button.classList.remove('btn-secondary');
+            isCurrentlyDrawing = false;
+        });
+}
 
-    if (picked && picked.drawing) {
-        const mesurements = picked.drawing.userData.measurements;
-        const hoverHelper = document.getElementById('hoverHelper');
-        hoverHelper.innerText = `
-            Number of points: ${mesurements.nbPoints}
-            Min altitude: ${mesurements.minmax[0].toFixed()}m
-            Max altitude: ${mesurements.minmax[1].toFixed()}m
-            ${mesurements.perimeter ? `Perimeter: ${mesurements.perimeter.toFixed()}m` : ''}
-            ${mesurements.area ? `Area: ${mesurements.area.toFixed()}m²` : ''}
-        `;
-        hoverHelper.classList.remove('d-none');
-    } else {
-        document.getElementById('hoverHelper').classList.add('d-none');
-    }
+bindButton('point', button => {
+    createShape(button, tool.createPoint, {
+        showVertexLabels: true,
+        vertexLabelFormatter,
+    });
 });
-
-// Edit a shape when clicking on it
-instance.domElement.addEventListener('click', evt => {
-    if (drawTool.state !== DrawToolState.READY) return;
-    const picked = instance.pickObjectsAt(evt, { where: [drawEntity], limit: 1, radius: 5 }).at(0);
-    if (picked) {
-        const drawing = picked.drawing;
-
-        for (const o of document.getElementsByClassName('helper')) {
-            o.classList.add('d-none');
-        }
-        document.getElementById('editHelper').classList.remove('d-none');
-        document.getElementById('options').setAttribute('disabled', true);
-
-        instance.domElement.style.cursor = 'default';
-
-        // When editing a Drawing object directly, materials and options are not reset from drawTool
-        drawing.setMaterials({}); // Reset the materials
-        instance.notifyChange(drawEntity); // And notify Giro3D for the changes
-
-        drawEntity.remove(drawing);
-        drawTool.edit(drawing); // Start the edit
-    }
+bindButton('multipoint', button => {
+    createShape(button, tool.createMultiPoint, {
+        showVertexLabels: true,
+        vertexLabelFormatter,
+    });
 });
-
-// Load some shapes
-Fetcher.json('https://3d.oslandia.com/dem/features.json').then(features => {
-    features.forEach(feature => {
-        // Mess around with the API
-        drawTool.edit(feature);
-        drawTool.insertPointAt(0, new Vector3(0, 0, 0));
-        drawTool.updatePointAt(0, new Vector2(1, 2, 3));
-        drawTool.deletePoint(0);
-        drawTool.end();
-        // In real use case, we'd call addShape directly
+bindButton('segment', button => {
+    createShape(button, tool.createSegment, {
+        segmentLabelFormatter: lengthFormatter,
+        showSegmentLabels: true,
+    });
+});
+bindButton('linestring', button => {
+    createShape(button, tool.createLineString, {
+        segmentLabelFormatter: lengthFormatter,
+        showSegmentLabels: true,
+    });
+});
+bindButton('ring', button => {
+    createShape(button, tool.createRing, {
+        showLineLabel: true,
+        lineLabelFormatter: lengthFormatter,
+    });
+});
+bindButton('polygon', button => {
+    createShape(button, tool.createPolygon, {
+        surfaceLabelFormatter,
+        showSurfaceLabel: true,
+    });
+});
+bindDropDown('area-unit', v => {
+    options.areaUnit = v;
+    shapes.forEach(shape => shape.rebuildLabels());
+});
+bindDropDown('length-unit', v => {
+    options.lengthUnit = v;
+    shapes.forEach(shape => shape.rebuildLabels());
+});
+bindDropDown('slope-unit', v => {
+    options.slopeUnit = v;
+    shapes.forEach(shape => shape.rebuildLabels());
+});
+bindButton('vertical-measurement', button => {
+    createShape(button, tool.createVerticalMeasure, {
+        verticalLineLabelFormatter: verticalLineLabelFormatter,
+        segmentLabelFormatter: slopeFormatter,
+    });
+});
+bindButton('angle-measurement', button => {
+    createShape(button, tool.createSector);
+});
+bindSlider('point-radius', v => {
+    options.vertexRadius = v;
+    shapes.forEach(m => {
+        m.vertexRadius = v;
+    });
+});
+bindSlider('line-width', v => {
+    options.lineWidth = v;
+    shapes.forEach(m => {
+        m.lineWidth = v;
+    });
+});
+bindSlider('border-width', v => {
+    options.borderWidth = v;
+    shapes.forEach(m => {
+        m.borderWidth = v;
+    });
+});
+bindSlider('surface-opacity', v => {
+    options.surfaceOpacity = v;
+    shapes.forEach(m => {
+        m.surfaceOpacity = v;
+    });
+});
+bindColorPicker('color', v => {
+    options.color = v;
+    shapes.forEach(m => {
+        m.color = v;
     });
 });
 
-// Add some shapes via API
-drawTool.start('Polygon');
-drawTool.addPointAt(new Vector3(0, 0, 0));
-drawTool.addPointAt(new Vector3(1, 2, 3));
-drawTool.addPointAt(new Vector3(-13601375.735757545, 5811313.553932933, 2263.4501953125));
-drawTool.addPointAt(new Vector3(-13601183.080786511, 5811718.900814531, 2169.449462890625));
-drawTool.addPointAt(new Vector3(-13601435.612581342, 5811988.171339845, 2113.301025390625));
-drawTool.addPointAt(new Vector3(-13601692.241683275, 5812247.386654718, 2098.3310546875));
-drawTool.addPointAt(new Vector3(-13601229.646728978, 5812162.072989969, 2098.95068359375));
-drawTool.addPointAt(new Vector3(-13601285.151505515, 5812670.5826594215, 2013.54736328125));
-drawTool.addPointAt(new Vector3(-13601435.248480782, 5813288.373160986, 1857.339111328125));
-drawTool.addPointAt(new Vector3(-13601878.109128818, 5813344.696319774, 1802.1083984375));
-drawTool.addPointAt(new Vector3(-13602217.049078688, 5813161.852430431, 1857.4925537109375));
-drawTool.addPointAt(new Vector3(-13602524.077633068, 5812790.909256665, 1967.9317626953125));
-drawTool.addPointAt(new Vector3(-13602730.889452294, 5812173.281410588, 2093.4921875));
-drawTool.addPointAt(new Vector3(-13602525.81417714, 5811603.776026396, 2215.937744140625));
-drawTool.updatePointAt(0, new Vector3(-13601908.711527146, 5811403.3703095, 2241.1591796875));
-drawTool.deletePoint(1);
-drawTool.end();
+function dimLabels(mouseEvent) {
+    if (shapes.length === 0) {
+        return;
+    }
+
+    const pickResults = instance.pickObjectsAt(mouseEvent, { where: shapes });
+
+    for (const shape of shapes) {
+        shape.labelOpacity = 1;
+    }
+
+    if (pickResults.length > 0) {
+        const picked = pickResults[0];
+        const shape = picked.entity;
+
+        // Dim labels so the user can properly insert vertices on segments.
+        shape.labelOpacity = 0.5;
+    }
+}
+
+instance.domElement.addEventListener('mousemove', dimLabels);
+
+// We allow editing existing shapes
+tool.enterEditMode();
+
+// We want to prevent moving the camera while dragging a point
+tool.addEventListener('start-drag', () => {
+    controls.enabled = false;
+});
+tool.addEventListener('end-drag', () => {
+    controls.enabled = true;
+});
+
+Inspector.attach(document.getElementById('panelDiv'), instance);
 
 StatusBar.bind(instance);
