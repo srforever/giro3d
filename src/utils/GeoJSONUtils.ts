@@ -1,3 +1,15 @@
+import { Feature } from 'ol';
+import type { Geometry } from 'ol/geom';
+import {
+    GeometryCollection,
+    LineString,
+    MultiLineString,
+    MultiPoint,
+    MultiPolygon,
+    Point,
+    Polygon,
+} from 'ol/geom';
+
 /**
  * Given a simple GeoJSON Geometry object, returns the flat coordinates
  *
@@ -72,8 +84,34 @@ function fromFlatCoordinates(
     return fromFlat3Coordinates(coords, geometryType);
 }
 
+function getOpenLayersGeometry(geometry: GeoJSON.Geometry): Geometry {
+    switch (geometry.type) {
+        case 'Point':
+            return new Point(geometry.coordinates);
+        case 'MultiPoint':
+            return new MultiPoint(geometry.coordinates);
+        case 'LineString':
+            return new LineString(geometry.coordinates);
+        case 'MultiLineString':
+            return new MultiLineString(geometry.coordinates);
+        case 'Polygon':
+            return new Polygon(geometry.coordinates);
+        case 'MultiPolygon':
+            return new MultiPolygon(geometry.coordinates);
+        case 'GeometryCollection':
+            return new GeometryCollection(geometry.geometries.map(getOpenLayersGeometry));
+    }
+}
+
+function getOpenLayersFeature(feature: GeoJSON.Feature): Feature {
+    return new Feature({
+        geometry: getOpenLayersGeometry(feature.geometry),
+    });
+}
+
 export default {
     toFlatCoordinates,
     fromFlat3Coordinates,
     fromFlatCoordinates,
+    getOpenLayersFeature,
 };

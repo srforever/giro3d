@@ -1,1620 +1,858 @@
 import {
-    BoxGeometry,
+    AdditiveBlending,
+    BackSide,
     EventDispatcher,
-    Group,
-    Line3,
-    Mesh,
+    MathUtils,
     MeshBasicMaterial,
-    Quaternion,
-    Raycaster,
-    Vector2,
     Vector3,
 } from 'three';
-import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import type Instance from '../core/Instance';
-import Drawing, {
-    type DrawingOptions,
-    type DrawingGeometryType,
-    type Point2DFactory,
-} from './Drawing';
-import PromiseUtils from '../utils/PromiseUtils';
-import GeoJSONUtils from '../utils/GeoJSONUtils';
+import type PickResult from '../core/picking/PickResult';
+import type { ShapePickResult, VerticalLineLabelFormatter } from '../entities/Shape';
+import Shape, {
+    angleFormatter,
+    isShape,
+    type ShapeConstructorOptions,
+    slopeSegmentFormatter,
+} from '../entities/Shape';
+import { ConstantSizeSphere } from '../renderer';
+import { AbortError } from '../utils/PromiseUtils';
+import type { Disposable } from '../core';
+
+const DEFAULT_MARKER_RADIUS = 5;
+const OPACITY_OVER_VERTEX = 0.4;
+const OPACITY_OVER_EDGE = 0.4;
 
 /**
- * Events fired by {@link DrawTool}.
+ * Various constraints that can be applied to shapes created by this tool.
  */
-export interface DrawToolEventMap {
-    /** Fires when the tool becomes active */
-    start: {
-        /** empty */
-    };
-    /** Fires when the shape is being edited (including mouse move) */
-    drawing: {
-        /** empty */
-    };
-    /** Fires when a point has been added */
-    add: {
-        /** Coordinates */
-        at: Vector3;
-        /** Index of the point added in the geometry */
-        index: number;
-    };
-    /** Fires when a point has been edited */
-    edit: {
-        /** Coordinates */
-        at: Vector3;
-        /** Index of the point edited in the geometry */
-        index: number;
-    };
-    /** Fires when a point has been deleted */
-    delete: {
-        /** Index of the point deleted */
-        index: number;
-    };
-    /** Fires when the drawing has ended */
-    end: {
-        /** GeoJSON geometry of the geometry drawn */
-        geojson: GeoJSON.Geometry;
-    };
-    /** Fires when the drawing has been aborted */
-    abort: {
-        /** empty */
-    };
+interface Permissions {
+    insertPoint: boolean;
+    movePoint?: boolean;
+    removePoint?: boolean;
 }
 
-/**
- * State of the {@link DrawTool} object.
- */
-export enum DrawToolState {
+type ShapeUserData = {
+    permissions?: Permissions;
+};
+
+export type PickCallback = (event: MouseEvent) => PickResult[];
+
+export type CreationOptions = Partial<ShapeConstructorOptions> & {
     /**
-     * Initialized but inactive. Call
-     * {@link DrawTool.start} or {@link DrawTool.edit} to begin.
+     * The optional signal to listen to cancel the creation of a shape.
      */
-    READY = 'ready',
+    signal?: AbortSignal;
     /**
-     * A drawing is being performed. You can call:
-     * - {@link DrawTool.end} to end,
-     * - {@link DrawTool.reset} to abort,
-     * - {@link DrawTool.pause} to pause (during camera move for instance)
+     * The optional custom picking function.
      */
-    ACTIVE = 'active',
-    /**
-     * A drawing is being performed but paused (no events handled). You can call:
-     * - {@link DrawTool.end} to end,
-     * - {@link DrawTool.reset} to abort,
-     * - {@link DrawTool.continue} to continue.
-     */
-    PAUSED = 'paused',
-}
+    pick?: PickCallback;
+};
 
 /**
- * Internal state for the tool.
- */
-enum DrawToolInternalState {
-    /** Nothing to do */
-    NOOP = 'noop',
-    /** Started dragging, but not moved yet */
-    DRAGGING_STARTED = 'dragging_started',
-    /** Dragging and moved */
-    DRAGGING = 'dragging',
-    /** Ready to add a new point */
-    NEW_POINT = 'new_point',
-    /** Hovering a point (for dragging) */
-    OVER_POINT = 'over_point',
-    /** Hovering an edge (for splicing) */
-    OVER_EDGE = 'over_edge',
-}
-
-/**
- * Edition mode of the {@link DrawTool} object.
- */
-export enum DrawToolMode {
-    /** Creating a new shape */
-    CREATE = 'create',
-    /** Editing a shape */
-    EDIT = 'edit',
-}
-
-const raycaster = new Raycaster();
-const tmpVec2 = new Vector2();
-
-const emptyMaterial = new MeshBasicMaterial();
-const tmpQuat = new Quaternion();
-const unitVector = new Vector3(1, 0, 0);
-const tmpVec3 = new Vector3();
-const EDGE_LAYER = 30;
-
-interface GetPointAtResult {
-    point: Vector3;
-}
-
-/**
- * Method to get the X,Y,Z coordinates corresponding to where the user clicked.
+ * Verify that the given operation is possible on the shape.
  *
- * Must return:
- * - if a point is found, an object with at least the following properties:
- *   - `point`: `Vector3`
- * - if no point is found, `null`
- *
- * @param evt - Mouse event
- * @returns Result object
- * ```ts
- * const mycallback = (evt) => {
- *     const picked = instance.pickObjectsAt(evt, {
- *         radius: 5,
- *         limit: 1,
- *         filter: myfilter,
- *     }).at(0);
- *     return picked ?? null;
- * }
- * ```
+ * Note: if the shape was created outside of this tool,
+ * the operations list is absent. In that case we allow every operation.
  */
-export type GetPointAtCallback = (evt: MouseEvent) => GetPointAtResult | null;
+function isOperationAllowed<K extends keyof Permissions>(
+    shape: Shape<ShapeUserData>,
+    constraint: K,
+): boolean {
+    if (!shape.userData.permissions) {
+        return true;
+    }
 
-export interface DrawToolOptions {
+    return shape.userData.permissions[constraint] ?? true;
+}
+
+/**
+ * Options for the {@link DrawTool.createShape} method.
+ */
+export type CreateShapeOptions = Partial<ShapeConstructorOptions> & {
     /**
-     * The number of points that can be drawn before a polygon or line is finished.
-     *
-     * @defaultValue Infinity
+     * The minimum number of points to create before the shape can be completed.
+     */
+    minPoints?: number;
+    /**
+     * The maximum number of points to create before the shape is automatically completed.
      */
     maxPoints?: number;
     /**
-     * The number of points that must be drawn before a polygon or line can be finished.
-     *
-     * @defaultValue 1 (for points), 2 (for lines) or 3 (for polygons)
+     * An optional signal to cancel the creation.
      */
-    minPoints?: number;
-    /** Callback to get the point from where the user clicked. */
-    getPointAt?: GetPointAtCallback;
-    /** Callback to create DOM elements at points. */
-    point2DFactory?: Point2DFactory;
-    /** Options for creating the {@link Drawing} */
-    drawObjectOptions?: DrawingOptions;
+    signal?: AbortSignal;
     /**
-     * Capture right-click to end the drawing.
-     *
-     * @defaultValue true
+     * If `true`, the shape's line will be closed just before being returned to the caller.
      */
-    endDrawingOnRightClick?: boolean;
+    closeRing?: boolean;
     /**
-     * Enables splicing edges
-     *
-     * @defaultValue true
+     * An optional callback to be called when a point has been added to the shape.
+     * @param shape - The shape being created.
+     * @param index - The index of the point.
+     * @param position - The position of the point.
      */
-    enableSplicing?: boolean;
-    /** Hit tolerance for splicing (`null` for auto) */
-    splicingHitTolerance?: number | null;
+    onPointCreated?: (shape: Shape, index: number, position: Vector3) => void;
     /**
-     * Enables adding points for line/multipoint geometries when editing
-     *
-     * @defaultValue true
+     * An optional callback to be called when a point has been moved.
+     * @param shape - The shape being created.
+     * @param position - The position of the point.
      */
-    enableAddPointsOnEdit?: boolean;
+    onTemporaryPointMoved?: (shape: Shape, position: Vector3) => void;
     /**
-     * Edit points via drag-and-drop (otherwise, moving a point is on click)
-     *
-     * @defaultValue true
+     * An optional custom picking function to be used instead of the default one.
      */
-    enableDragging?: boolean;
-}
-
-type EventListener<K extends keyof HTMLElementEventMap> = (ev: HTMLElementEventMap[K]) => any;
-type EventListenersMap = {
-    mousedown: EventListener<'mousedown'>;
-    mouseup: EventListener<'mouseup'>;
-    mousemove: EventListener<'mousemove'>;
-    contextmenu: EventListener<'contextmenu'>;
+    pick?: PickCallback;
+    /**
+     * The optional uuid to assign to the shape entity.
+     */
+    uuid?: string;
+    /**
+     * An optional list of permitted operations.
+     */
+    constraints?: Permissions;
 };
 
-class Edge extends Mesh {
-    edgeIndex: number;
-    line: Line3;
-
-    constructor(geometry: BoxGeometry, material: MeshBasicMaterial) {
-        super(geometry, material);
-        this.layers.set(EDGE_LAYER);
-    }
+function inhibit(e: Event) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    e.stopPropagation();
 }
 
-/**
- * Enables the user to draw on the map.
- *
- * ```ts
- * // example of Giro3D instantiation
- * const instance = new Instance(viewerDiv, options)
- * const map = new Map('myMap', { extent });
- * instance.add(map);
- *
- * // Add our tool
- * const drawTool = new DrawTool(instance);
- *
- * // Start and wait for result
- * drawTool.startAsAPromise()
- *    .then((polygon) => {
- *        // Use generated polygon as GeoJSON
- *    })
- * // Or use events
- * drawTool.addEventListener('end', (polygon) => {
- *     // Use generated polygon as GeoJSON
- * })
- * drawTool.start();
- * ```
- */
-class DrawTool extends EventDispatcher<DrawToolEventMap> {
-    private _instance: Instance;
-    private _drawObject: Drawing | null;
-    private _pointsGroup: Group | null;
-    private _state: DrawToolState;
-    private _mode: DrawToolMode | null;
-    private _maxPoints: number | null;
-    private _minPoints: number | null;
-    private _getPointAt: GetPointAtCallback;
-    private _point2DFactory: Point2DFactory;
-    private _drawObjectOptions: DrawingOptions;
-    private _endDrawingOnRightClick: boolean;
-    private _enableSplicing: boolean;
-    private _splicingHitTolerance: number | null;
-    private _enableDragging: boolean;
-    private _enableAddPointsOnEdit: boolean;
-
-    private _oldState: DrawToolInternalState | null;
-    private _internalState: DrawToolInternalState | null;
-    private _realMinPoints: number | null;
-    private _realMaxPoints: number | null;
-    private _coordinates: [number, number, number][];
-    private _canAddNewPoint: boolean | null;
-    private _nextPoint3D: CSS2DObject | null;
-    private _nextPointCoordinates: [number, number, number] | null;
-    private _canSplice: boolean | null;
-    private _splicingPoint3D: CSS2DObject | null;
-    private _splicingPointEdge: number | null;
-    private _splicingPointCoordinates: Vector3 | null;
-    private _draggedPointIndex: number | null;
-    private _edges: Group | null;
-    private _geometryType: DrawingGeometryType;
-    private _eventHandlers: EventListenersMap | null;
-    private _resolve: ((value: GeoJSON.Geometry) => void) | undefined;
-    private _reject: ((reason?: any) => void) | undefined;
-
-    /** Object currently being drawn */
-    public get drawObject(): Drawing | null {
-        return this._drawObject;
-    }
-    /** State of the tool */
-    public get state(): DrawToolState {
-        return this._state;
-    }
-    /** Mode of the tool (null if inactive) */
-    public get mode(): DrawToolMode | null {
-        return this._mode;
-    }
-
-    /**
-     * Constructs a DrawTool
-     *
-     * @param instance - Giro3D instance
-     * @param options - Options
-     */
-    constructor(instance: Instance, options: DrawToolOptions = {}) {
-        super();
-        this._instance = instance;
-        this.setOptions(options);
-
-        this._drawObject = null;
-        this._pointsGroup = null;
-        this._state = DrawToolState.READY;
-        this._mode = null;
-    }
-
-    /**
-     * Utility function to set options.
-     *
-     * @param options - See constructor
-     */
-    setOptions(options: DrawToolOptions): this {
-        this._maxPoints = options.maxPoints ?? Infinity;
-        this._minPoints = options.minPoints ?? null;
-        this._getPointAt = options.getPointAt ?? this._defaultPickPointAt.bind(this);
-        this._point2DFactory = options.point2DFactory ?? this._defaultPoint2DFactory.bind(this);
-        this._drawObjectOptions = options.drawObjectOptions ?? {};
-        this._endDrawingOnRightClick = options.endDrawingOnRightClick ?? true;
-        this._enableSplicing = options.enableSplicing ?? true;
-        this._splicingHitTolerance = options.splicingHitTolerance ?? null;
-        this._enableDragging = options.enableDragging ?? true;
-        this._enableAddPointsOnEdit = options.enableAddPointsOnEdit ?? true;
-        return this;
-    }
-
-    /// DEFAULT CALLBACKS
-
-    /**
-     * Default picking callback.
-     *
-     * @param evt - Mouse event
-     * @returns Object
-     */
-    private _defaultPickPointAt(evt: MouseEvent): GetPointAtResult {
-        const picked = this._instance
-            .pickObjectsAt(evt, {
-                radius: 5,
-                limit: 1,
-            })
-            .at(0);
-        if (picked) {
-            // We found an object on click, return its position
-            return {
-                ...picked,
-                point: picked.point.clone(),
-            };
-        }
-
+const verticalLengthFormatter: VerticalLineLabelFormatter = (params: {
+    shape: Shape;
+    defaultFormatter: VerticalLineLabelFormatter;
+    vertexIndex: number;
+    length: number;
+}) => {
+    if (params.vertexIndex === 0) {
+        // We don't want to display the first label because it will have a length of zero.
         return null;
     }
 
-    /**
-     * Default Point2D factory for creating labels for editing edges.
-     *
-     * @param text - Label to display
-     * @returns DOM Element to attach to the CSS2DObject
-     */
-    // eslint-disable-next-line class-methods-use-this
-    private _defaultPoint2DFactory(text: string): HTMLElement {
-        const pt = document.createElement('div');
-        pt.style.position = 'absolute';
-        pt.style.borderRadius = '50%';
-        pt.style.width = '28px';
-        pt.style.height = '28px';
-        pt.style.backgroundColor = '#070607';
-        pt.style.color = '#ffffff';
-        pt.style.border = '2px solid #ebebec';
-        pt.style.fontSize = '14px';
-        pt.style.fontWeight = 'bold';
-        pt.style.textAlign = 'center';
-        pt.style.pointerEvents = 'none';
-        pt.innerText = text;
-        return pt;
+    return params.defaultFormatter(params);
+};
+
+export interface DrawToolEventMap {
+    'start-drag': Record<string, unknown>;
+    'end-drag': Record<string, unknown>;
+}
+
+export const inhibitHook = () => false;
+
+export const limitRemovePointHook = (limit: number) => (options: { shape: Shape }) => {
+    return options.shape.points.length > limit;
+};
+
+export const afterRemovePointOfPolygon = (options: { shape: Shape; index: number }) => {
+    const { shape, index } = options;
+
+    if (index === 0) {
+        // Also remove last point
+        shape.removePoint(shape.points.length - 1);
+    } else if (index === shape.points.length - 1) {
+        // Also remove first point
+        shape.removePoint(0);
     }
 
-    /// PUBLIC FUNCTIONS
+    shape.makeClosed();
+};
 
-    /**
-     * Starts a new drawing.
-     *
-     * Fires {@link DrawToolEventMap.start} event at start.
-     *
-     * @param geometryType - Geometry type to draw
-     */
-    start(geometryType: DrawingGeometryType = 'Polygon'): void {
-        if (this._state !== DrawToolState.READY) {
-            throw new Error('Cannot start drawing: already drawing');
-        }
+export const afterUpdatePointOfPolygon = (options: {
+    shape: Shape;
+    index: number;
+    newPosition: Vector3;
+}) => {
+    const { index, shape, newPosition } = options;
 
-        this._init(DrawToolMode.CREATE, geometryType, null);
+    if (index === 0) {
+        // Also remove last point
+        shape.updatePoint(shape.points.length - 1, newPosition);
+    } else if (index === shape.points.length - 1) {
+        // Also remove first point
+        shape.updatePoint(0, newPosition);
+    }
+};
 
-        this._state = DrawToolState.ACTIVE;
-        this.dispatchEvent({ type: 'start' });
+const LEFT_BUTTON = 0;
+const MIDDLE_BUTTON = 1;
+const RIGHT_BUTTON = 2;
+
+function middleButtonOrLeftButtonAndAlt(e: MouseEvent): boolean {
+    if (e.button === MIDDLE_BUTTON) {
+        return true;
     }
 
-    /**
-     * Starts a new drawing and returns a promise.
-     *
-     * Fires {@link DrawToolEventMap.start} event at start.
-     *
-     * @param geometryType - Geometry type to draw
-     * @returns Promise resolving to the GeoJSON geometry drawn
-     */
-    startAsAPromise(geometryType: DrawingGeometryType = 'Polygon'): Promise<GeoJSON.Geometry> {
-        return new Promise((resolveFn, rejectFn) => {
-            this._resolve = resolveFn;
-            this._reject = rejectFn;
-            this.start(geometryType);
+    // OpenLayers style
+    if (e.button === LEFT_BUTTON && e.altKey) {
+        return true;
+    }
+
+    return false;
+}
+
+function leftButton(e: MouseEvent): boolean {
+    if (e.button === LEFT_BUTTON) {
+        return true;
+    }
+
+    return false;
+}
+
+/**
+ * A callback that can be used to test for a mouse button or key combination.
+ * If the function returns `true`, the associated action is executed.
+ */
+export type MouseCallback = (e: MouseEvent) => boolean;
+
+/**
+ * A tool that allows interactive creation and edition of {@link Shape}s.
+ *
+ * ## Creation
+ *
+ * To create shapes, you can either use one of the preset methods ({@link createSegment},
+ * {@link createPolygon}...), or start creating a free shape with {@link createShape}.
+ *
+ * This method allows fine control overthe constraints to apply to the shape (how many vertices,
+ * styling options, what component to display...).
+ *
+ * ## Edition
+ *
+ * The {@link enterEditMode} method allows the user to edit any shape that the mouse interacts with.
+ * Depending on the constraints put on the shape during the creation (assuming of course that the
+ * shape was created with this tool), some operations might not be permitted.
+ *
+ * To exit edition mode, call {@link exitEditMode}.
+ *
+ * ### Examples of constraints
+ *
+ * - If a shape was created with the {@link createSegment} method, it is not possible to insert
+ * or remove points, because the constraint forces the shape to have exactly 2 points.
+ *
+ * - If a shape was created with the {@link createPolygon} method, then any time the user moves the first or
+ * last vertex, the other one is automatically moved at the same position, to ensure the shape
+ * remains closed.
+ */
+export default class DrawTool extends EventDispatcher<DrawToolEventMap> implements Disposable {
+    private readonly _domElement: HTMLElement;
+    private readonly _instance: Instance;
+    private readonly _markerMaterial: MeshBasicMaterial;
+
+    private _selectedVertexMarker?: ConstantSizeSphere;
+    private _editionModeController?: AbortController;
+    private _inhibitEdition = false;
+
+    constructor(options: {
+        /**
+         * The Giro3D instance.
+         */
+        instance: Instance;
+        /**
+         * The DOM element to listen to. If unspecified, this will use {@link Instance.domElement}.
+         */
+        domElement?: HTMLElement;
+    }) {
+        super();
+
+        this._instance = options.instance;
+        this._domElement = options.domElement ?? this._instance.domElement;
+
+        this._markerMaterial = new MeshBasicMaterial({
+            color: 'white',
+            depthTest: false,
+            side: BackSide,
+            transparent: true,
+            blending: AdditiveBlending,
         });
     }
 
-    /**
-     * Edits a GeoJSON geometry.
-     *
-     * Fires {@link DrawToolEventMap.start} event at start.
-     *
-     * @param geometry - GeoJSON geometry or Drawing instance to edit.
-     * If passing a {@link Drawing}, this tool takes full ownership
-     * over it, and **will destroy** it when done.
-     */
-    edit(geometry: GeoJSON.Geometry | Drawing) {
-        if (this._state !== DrawToolState.READY) {
-            throw new Error('Cannot edit drawing: already drawing');
+    private defaultPick(e: MouseEvent): PickResult[] {
+        return this._instance.pickObjectsAt(e);
+    }
+
+    private hideVertexMarker() {
+        if (this._selectedVertexMarker) {
+            this._selectedVertexMarker.visible = false;
         }
 
-        this._init(DrawToolMode.EDIT, null, geometry);
-
-        this._state = DrawToolState.ACTIVE;
-        this.dispatchEvent({ type: 'start' });
+        this._instance.notifyChange();
     }
 
-    /**
-     * Edits a GeoJSON geometry and returns a promise.
-     *
-     * Fires {@link DrawToolEventMap.start} event at start.
-     *
-     * @param geometry - GeoJSON geometry or Drawing instance to edit.
-     * If passing a {@link Drawing}, this tool takes full ownership
-     * over it, and **will destroy** it when done.
-     * @returns Promise resolving to the GeoJSON geometry drawn
-     */
-    editAsAPromise(geometry: GeoJSON.Geometry | Drawing): Promise<GeoJSON.Geometry> {
-        return new Promise((resolveFn, rejectFn) => {
-            this._resolve = resolveFn;
-            this._reject = rejectFn;
-            this.edit(geometry);
-        });
-    }
-
-    /**
-     * Pauses current drawing so click events are not captured.
-     * This is useful when the user is currently interacting with the camera.
-     */
-    pause(): void {
-        if (this._state !== DrawToolState.ACTIVE) return;
-
-        this._cleanEventHandlers();
-
-        this._state = DrawToolState.PAUSED;
-        this._setState(DrawToolInternalState.NOOP);
-    }
-
-    /**
-     * Continues a paused drawing.
-     */
-    continue(): void {
-        if (this._state !== DrawToolState.PAUSED) return;
-
-        this._createEventHandlers();
-        this._state = DrawToolState.ACTIVE;
-        this._restoreDefaultState();
-    }
-
-    /**
-     * Ends the current drawing (active or paused).
-     *
-     * Fires {@link DrawToolEventMap.end} event.
-     *
-     * @returns GeoJSON geometry drawn
-     */
-    end(): GeoJSON.Geometry {
-        if (this._state === DrawToolState.READY) return null;
-
-        this._setState(DrawToolInternalState.NOOP);
-
-        const geojson = this.toGeoJSON();
-        this.dispatchEvent({ type: 'end', geojson });
-
-        if (this._resolve) {
-            this._resolve(geojson);
-        }
-        this._resolve = null;
-        this._reject = null;
-        this.reset();
-        return geojson;
-    }
-
-    /**
-     * Triggers end after the event loop has been processed.
-     * When deferring ending, any click events on the canvas will be handled *before* ending.
-     *
-     * Let's take an example where the app:
-     * - listens to the `end` event and creates a GeometryObject based on the geometry,
-     * - listens to `click` events on the canvas to check for `GeometryObject` and edit them.
-     *
-     * Without deferring, the following would happen:
-     * 1. `this.end()`, triggering `end` event
-     * 2. `end` event is processed by app, creating the shape
-     * 3. `click` event on canvas is processed by the app (because we're still processing
-     * that event!)
-     * 4. the app edits the newly created geometry 💩
-     *
-     * With deferring:
-     * 1. `this.end()` is queued in event loop
-     * 2. `click` event on canvas is processed by the app
-     * 3. `this.end()` is called, triggering `end` event
-     * 4. `end` event is processed by app, creating the shape
-     */
-    private _endAfterEventloop(): void {
-        setTimeout(() => this.end(), 0);
-    }
-
-    /**
-     * Aborts current drawing (active or paused).
-     *
-     * Fires {@link DrawToolEventMap.abort} event.
-     */
-    reset(): void {
-        if (this._state === DrawToolState.READY) return;
-
-        this._setState(DrawToolInternalState.NOOP);
-
-        if (this._reject) {
-            this._reject(PromiseUtils.abortError());
-            this._resolve = null;
-            this._reject = null;
-        }
-        this.dispatchEvent({ type: 'abort' });
-        this._clean();
-    }
-
-    /**
-     * Disposes of the object
-     *
-     */
-    dispose(): void {
-        this.reset();
-    }
-
-    /**
-     * Gets the current coordinates of the shape being drawn.
-     * In case of polygons, ensures the shape is closed.
-     *
-     * Returns `null` if the state is {@link DrawToolState.READY} or
-     * if the shape is empty.
-     *
-     * @returns Array of 3D coordinates
-     */
-    toCoordinates(): [number, number, number][] {
-        if (this._state === DrawToolState.READY) return [];
-        if (this._coordinates.length === 0) return [];
-
-        // Deep clone
-        const coords: [number, number, number][] = this._coordinates.map(c => [c[0], c[1], c[2]]);
-        if (this._nextPointCoordinates !== null) {
-            // Add next point into geometry
-            if (this._geometryType === 'Polygon') {
-                coords.splice(-1, 0, this._nextPointCoordinates);
-            } else {
-                coords.push(this._nextPointCoordinates);
-            }
-        }
-        return coords;
-    }
-
-    /**
-     * Gets the current GeoJSON geometry corresponding to the shape being drawn.
-     * In case of polygons, ensures the shape is closed.
-     *
-     * Returns `null` if the state is {@link DrawToolState.READY} or
-     * if the shape is empty.
-     *
-     * @returns GeoJSON geometry object
-     */
-    toGeoJSON(): GeoJSON.Geometry | null {
-        if (this._state === DrawToolState.READY) return null;
-        if (this._coordinates.length === 0) return null;
-
-        return GeoJSONUtils.fromFlat3Coordinates(this.toCoordinates(), this._geometryType);
-    }
-
-    /// PUBLIC MODIFIERS FUNCTIONS
-
-    /**
-     * Adds a new point at the end of the geometry.
-     * If max point is reached, ends the drawing.
-     *
-     * Fires {@link DrawToolEventMap.add} event.
-     * Fires {@link DrawToolEventMap.drawing} event.
-     * Fires {@link DrawToolEventMap.end} event if `maxPoints` reached.
-     *
-     * @param coords - Position of the new point
-     */
-    addPointAt(coords: Vector3): void {
-        let index = this._coordinates.length;
-        if (this._geometryType === 'Polygon') {
-            if (this._coordinates.length === 0) {
-                // Push initial coords twice to close the polygon
-                this._coordinates.push([coords.x, coords.y, coords.z]);
-                this._coordinates.push([coords.x, coords.y, coords.z]);
-            } else {
-                this._coordinates.splice(-1, 0, [coords.x, coords.y, coords.z]);
-                index--;
-            }
-        } else {
-            this._coordinates.push([coords.x, coords.y, coords.z]);
-        }
-
-        this._updateInteractionsCapabilities();
-        this._updatePoints3D();
-        this.update();
-
-        this.dispatchEvent({
-            type: 'add',
-            at: coords,
-            index,
-        });
-        this.dispatchEvent({ type: 'drawing' });
-
-        if (this._coordinates.length >= this._realMaxPoints) {
-            this._endAfterEventloop();
-        }
-    }
-
-    /**
-     * Updates position of a point.
-     *
-     * Fires {@link DrawToolEventMap.edit} event.
-     * Fires {@link DrawToolEventMap.drawing} event.
-     *
-     * @param pointIdx - Point index to update
-     * @param coords - New position of the point
-     */
-    updatePointAt(pointIdx: number, coords: Vector3): void {
-        this._coordinates[pointIdx] = [coords.x, coords.y, coords.z];
-
-        // Update rendering
-        this._pointsGroup.children[pointIdx].visible = true;
-        this._pointsGroup.children[pointIdx].position.copy(coords);
-        this._pointsGroup.children[pointIdx].updateMatrixWorld();
-        this._instance.notifyChange(this._pointsGroup.children[pointIdx]);
-
-        if (this._geometryType === 'Polygon') {
-            // We have a closed polygon, also update last one if we update the first and vice-versa
-            if (pointIdx === 0) {
-                // We have a closed polygon, also update last one
-                const lastIndex = this._pointsGroup.children.length - 1;
-                this._pointsGroup.children[lastIndex].visible = true;
-                this._pointsGroup.children[lastIndex].position.copy(coords);
-                this._pointsGroup.children[lastIndex].updateMatrixWorld();
-                this._instance.notifyChange(this._pointsGroup.children[lastIndex]);
-
-                this._coordinates[this._coordinates.length - 1] = [coords.x, coords.y, coords.z];
-            } else if (pointIdx === this._coordinates.length - 1) {
-                this._pointsGroup.children[0].visible = true;
-                this._pointsGroup.children[0].position.copy(coords);
-                this._pointsGroup.children[0].updateMatrixWorld();
-                this._instance.notifyChange(this._pointsGroup.children[0]);
-
-                this._coordinates[0] = [coords.x, coords.y, coords.z];
-            }
-        }
-
-        this.update();
-
-        // If dragging, don't dispatch EDIT event from here, wait until drag is stopped
-        if (
-            this._internalState !== DrawToolInternalState.DRAGGING &&
-            this._internalState !== DrawToolInternalState.DRAGGING_STARTED
-        ) {
-            // Calling this from API, dispatch EDIT event
-            this._updateEdges();
-
-            // Dispatch event
-            this.dispatchEvent({
-                type: 'edit',
-                index: pointIdx,
-                at: this._pointsGroup.children[pointIdx].position,
+    private displayVertexMarker(shape: Shape, position: Vector3, radius: number, opacity: number) {
+        if (!this._selectedVertexMarker) {
+            this._selectedVertexMarker = new ConstantSizeSphere({
+                radius: radius,
+                material: this._markerMaterial,
             });
+
+            this._selectedVertexMarker.enableRaycast = false;
+            this._selectedVertexMarker.visible = false;
+
+            this._instance.add(this._selectedVertexMarker);
         }
-        this.dispatchEvent({ type: 'drawing' });
+
+        this._selectedVertexMarker.renderOrder = shape.renderOrder + 1000;
+        this._selectedVertexMarker.visible = true;
+        this._selectedVertexMarker.radius = radius;
+        this._markerMaterial.opacity = opacity;
+
+        this._selectedVertexMarker.position.copy(position);
+        this._selectedVertexMarker.updateMatrixWorld(true);
+
+        this._instance.notifyChange();
     }
 
     /**
-     * Deletes a point.
-     *
-     * Fires {@link DrawToolEventMap.delete} event.
-     * Fires {@link DrawToolEventMap.drawing} event.
-     *
-     * @param pointIdx - Point index to delete
+     * Enter edition mode. In this mode, existing {@link Shape}s can be modified (add/remove points, move points).
+     * @param options - The options.
      */
-    deletePoint(pointIdx: number): void {
-        if (
-            this._geometryType === 'Polygon' &&
-            (pointIdx === 0 || pointIdx === this._coordinates.length - 1)
-        ) {
-            // We have a closed polygon, delete first one and set last one to the "new" first
-            this._coordinates.splice(0, 1);
-            this._coordinates[this._coordinates.length - 1] = [
-                this._coordinates[0][0],
-                this._coordinates[0][1],
-                this._coordinates[0][2],
-            ];
-        } else {
-            this._coordinates.splice(pointIdx, 1);
-        }
+    enterEditMode(options?: {
+        /**
+         * The custom picking function. If unspecified, the default one will be used.
+         */
+        pick?: PickCallback;
+        /**
+         * The optional callback called just before a point is clicked, to determine if it can be deleted.
+         * By default, points are removed with a **click on the middle mouse button** or **Alt + Left click**.
+         */
+        onBeforePointRemoved?: MouseCallback;
+        /**
+         * The optional callback called just before a point is clicked, to determine if it can be moved.
+         * By default, points are moved with a **left click**.
+         */
+        onBeforePointMoved?: MouseCallback;
+        /**
+         * The optional callback to test for mouse or key combination when a segment is clicked.
+         * By default, points are inserted with a **left click**.
+         */
+        onSegmentClicked?: MouseCallback;
+    }) {
+        this._editionModeController?.abort();
+        this._editionModeController = new AbortController();
 
-        this._updateInteractionsCapabilities();
-        this._updatePoints3D();
-        this.update();
+        const onBeforePointRemoved =
+            options?.onBeforePointRemoved ?? middleButtonOrLeftButtonAndAlt;
+        const onBeforePointMoved = options?.onBeforePointMoved ?? leftButton;
+        const onBeforePointInserted = options?.onSegmentClicked ?? leftButton;
 
-        this.dispatchEvent({
-            type: 'delete',
-            index: pointIdx,
-        });
-        this.dispatchEvent({ type: 'drawing' });
-    }
+        const pick: PickCallback = options?.pick ?? this.defaultPick.bind(this);
+        const pickFirstShape = (e: MouseEvent) => {
+            const picked = pick(e);
 
-    /**
-     * Inserts a new point at an index.
-     * Note: it does *not* end the drawing if max point is reached.
-     *
-     * Fires {@link DrawToolEventMap.add} event.
-     * Fires {@link DrawToolEventMap.drawing} event.
-     *
-     * @param pointIdx - Point index
-     * @param coords - Position for the new point
-     */
-    insertPointAt(pointIdx: number, coords: Vector3): void {
-        this._coordinates.splice(pointIdx, 0, [coords.x, coords.y, coords.z]);
-        if (this._geometryType === 'Polygon' && pointIdx === 0) {
-            this._coordinates[this._coordinates.length - 1] = [
-                this._coordinates[0][0],
-                this._coordinates[0][1],
-                this._coordinates[0][2],
-            ];
-        }
-
-        this._updateInteractionsCapabilities();
-        this._updatePoints3D();
-        this.update();
-
-        this.dispatchEvent({ type: 'add', at: coords, index: pointIdx });
-        this.dispatchEvent({ type: 'drawing' });
-    }
-
-    /// INTERNAL GENERIC METHODS
-
-    /**
-     * Initializes common stuff when starting drawing for both editing & creating.
-     *
-     * @param mode - Mode to start
-     * @param geometryType - Geometry type to create
-     * (if `null`, `geometry` must be provided)
-     * @param geometry - Geometry to edit
-     */
-    private _init(
-        mode: DrawToolMode,
-        geometryType?: DrawingGeometryType,
-        geometry?: GeoJSON.Geometry | Drawing,
-    ): void {
-        this._mode = mode;
-
-        this._coordinates = [];
-        this._nextPoint3D = null;
-        this._nextPointCoordinates = null;
-        this._splicingPoint3D = null;
-        this._splicingPointEdge = null;
-        this._splicingPointCoordinates = null;
-        this._draggedPointIndex = null;
-
-        if (geometry) {
-            if ('isDrawing' in geometry) {
-                this._geometryType = geometry.geometryType;
-                this._drawObject = geometry;
-            } else {
-                // GeoJSON
-                this._geometryType = geometry.type as DrawingGeometryType;
-                this._drawObject = new Drawing(this._drawObjectOptions, geometry);
-            }
-
-            // Get initial coordinates from drawObject
-            const nbPoints = this._drawObject.coordinates.length / 3;
-            for (let i = 0; i < nbPoints; i += 1) {
-                this._coordinates.push([
-                    this._drawObject.coordinates[i * 3 + 0],
-                    this._drawObject.coordinates[i * 3 + 1],
-                    this._drawObject.coordinates[i * 3 + 2],
-                ]);
-            }
-        } else {
-            this._geometryType = geometryType;
-            this._drawObject = new Drawing(this._drawObjectOptions);
-        }
-
-        if (this._geometryType === 'Point' || this._geometryType === 'MultiPoint') {
-            // Actually by-pass completely the drawobject, as we do
-            // all rendering in this tool
-            this._drawObject.clear();
-            this._instance.remove(this._drawObject);
-        } else if (this._instance.getObjects(l => l.id === this._drawObject.id).length === 0) {
-            // Add it to the scene only if not already added (e.g. editing it)
-            this._instance.add(this._drawObject);
-        }
-
-        switch (this._geometryType) {
-            case 'Point':
-            case 'MultiPoint':
-                this._realMinPoints = this._minPoints ?? 1;
-                this._realMaxPoints = this._maxPoints ?? Infinity;
-                break;
-            case 'LineString':
-                this._realMinPoints = this._minPoints ?? 2;
-                this._realMaxPoints = this._maxPoints ?? Infinity;
-                break;
-            case 'Polygon':
-                this._realMinPoints =
-                    this._minPoints !== null && this._minPoints !== undefined
-                        ? Math.max(this._minPoints + 1, 4)
-                        : 4;
-                this._realMaxPoints =
-                    this._maxPoints !== null && this._maxPoints !== undefined
-                        ? this._maxPoints + 1
-                        : Infinity;
-                break;
-            default:
-            // do nothing
-        }
-
-        this._updateInteractionsCapabilities();
-        this._restoreDefaultState();
-
-        this._pointsGroup = new Group();
-        this._pointsGroup.name = 'drawtool-points';
-        this._instance.threeObjects.add(this._pointsGroup);
-
-        // Used for raycasting against the edges
-        // (raycasting against the lines don't always work depending on the camera angle)
-        this._edges = new Group();
-        this._edges.layers.set(EDGE_LAYER);
-        this._edges.name = 'drawtool-edges';
-        this._instance.threeObjects.add(this._edges);
-
-        this._updatePoints3D();
-        this._createEventHandlers();
-    }
-
-    /**
-     * Updates rendering
-     */
-    update(): void {
-        if (this._state === DrawToolState.READY) return;
-        this._drawObject.setCoordinates(this.toCoordinates().flat(), this._geometryType);
-        this._instance.notifyChange(this._drawObject);
-    }
-
-    /**
-     * Cleans state so we can safely call start/edit again on this object.
-     */
-    private _clean(): void {
-        this._removeDrawings();
-        this._cleanEventHandlers();
-        this._state = DrawToolState.READY;
-        this._internalState = DrawToolInternalState.NOOP;
-        this._mode = null;
-        this._coordinates = null;
-    }
-
-    /**
-     * Removes drawings: drawn shape & labels
-     */
-    private _removeDrawings(): void {
-        if (this._drawObject) {
-            this._instance.remove(this._drawObject);
-            this._drawObject.dispose();
-            this._drawObject = null;
-            this._instance.notifyChange();
-        }
-
-        if (this._pointsGroup) {
-            for (const o of this._pointsGroup.children) {
-                (o as CSS2DObject).element.remove();
-            }
-            this._pointsGroup.clear();
-            this._pointsGroup.removeFromParent();
-            this._pointsGroup = null;
-            this._instance.notifyChange(this._instance.threeObjects);
-        }
-
-        if (this._nextPoint3D) {
-            this._nextPoint3D.element.remove();
-            this._nextPoint3D.removeFromParent();
-            this._nextPoint3D = null;
-            this._instance.notifyChange(this._instance.threeObjects);
-        }
-
-        if (this._splicingPoint3D) {
-            this._splicingPoint3D.element.remove();
-            this._splicingPoint3D.removeFromParent();
-            this._splicingPoint3D = null;
-            this._instance.notifyChange(this._instance.threeObjects);
-        }
-
-        if (this._edges) {
-            this._edges.clear();
-            this._edges.removeFromParent();
-            this._edges = null;
-            this._instance.notifyChange(this._instance.threeObjects);
-        }
-    }
-
-    /// STATE
-
-    /**
-     * Updates canSplice & canAddNewPoint based on mode, geometry and number of points.
-     */
-    private _updateInteractionsCapabilities(): void {
-        this._canSplice =
-            this._enableSplicing &&
-            this._coordinates.length < this._realMaxPoints &&
-            (this._geometryType === 'LineString' || this._geometryType === 'Polygon');
-
-        switch (this._mode) {
-            case DrawToolMode.CREATE:
-                this._canAddNewPoint = this._coordinates.length < this._realMaxPoints;
-                break;
-            case DrawToolMode.EDIT:
-                this._canAddNewPoint =
-                    this._enableAddPointsOnEdit &&
-                    this._coordinates.length < this._realMaxPoints &&
-                    (this._geometryType === 'LineString' || this._geometryType === 'MultiPoint');
-                break;
-            default:
-            // do nothing
-        }
-    }
-
-    /**
-     * Restores default state depending on mode & geometry
-     */
-    private _restoreDefaultState(): void {
-        this._setState(
-            this._canAddNewPoint ? DrawToolInternalState.NEW_POINT : DrawToolInternalState.NOOP,
-        );
-    }
-
-    /**
-     * Pushes a new temporary state
-     *
-     * @param state - State
-     */
-    private _pushState(state: DrawToolInternalState): void {
-        this._oldState = this._internalState;
-        this._setState(state);
-    }
-
-    /**
-     * Restores from a temporary state.
-     * If the state has changed since `_pushState`, will be ignored.
-     *
-     * @param state - State
-     */
-    private _popState(state: DrawToolInternalState): void {
-        if (state === this._internalState) {
-            this._setState(this._oldState);
-        }
-    }
-
-    /**
-     * Updates internal state and handles display of points and their events
-     *
-     * @param state - New state
-     */
-    private _setState(state: DrawToolInternalState): void {
-        if (this._internalState === state) return;
-
-        // Do stuff based on previous state
-        // (we know the new one is different from the old one)
-        switch (this._internalState) {
-            case DrawToolInternalState.OVER_EDGE:
-                this._hideSplicingPoint();
-                this._instance.viewport.style.cursor = 'auto';
-                break;
-            case DrawToolInternalState.NEW_POINT:
-                this._hideNextPoint();
-                break;
-            case DrawToolInternalState.DRAGGING_STARTED:
-            case DrawToolInternalState.DRAGGING:
-                if (
-                    state === DrawToolInternalState.NOOP ||
-                    state === DrawToolInternalState.NEW_POINT
-                ) {
-                    this._setPointerEventsEnabled(true);
+            for (const item of picked) {
+                if (isShape(item.entity)) {
+                    return item as ShapePickResult;
                 }
-                break;
-            default:
-            // do nothing
-        }
+            }
 
-        // Do stuff based on new state
-        switch (state) {
-            case DrawToolInternalState.DRAGGING_STARTED:
-                // Disable pointerEvents on all points
-                // to make moving smooth
-                this._setPointerEventsEnabled(false);
-                break;
-            case DrawToolInternalState.OVER_EDGE:
-                this._instance.viewport.style.cursor = 'pointer';
-                break;
-            default:
-            // do nothing
-        }
+            return null;
+        };
+        const pickNonShapes = (e: MouseEvent) => {
+            const picked = pick(e);
 
-        this._internalState = state;
-    }
+            for (const item of picked) {
+                if (!isShape(item.entity)) {
+                    return item;
+                }
+            }
 
-    /// EVENTS
-
-    /**
-     * Creates event handlers for the interactions.
-     * This is used when starting or resuming drawing.
-     */
-    private _createEventHandlers(): void {
-        if (this._state === DrawToolState.ACTIVE) return;
-
-        this._eventHandlers = {
-            mousedown: this._onMouseDown.bind(this),
-            mouseup: this._onMouseUp.bind(this),
-            mousemove: this._onMouseMove.bind(this),
-            contextmenu: evt => evt.preventDefault(), // In case controls do not already do this
+            return null;
         };
 
-        // Use mouseup event to correctly trigger when right-click is *released* (and not pressed)
-        // (so we can use controls with right-click)
-        this._instance.viewport.addEventListener('mousedown', this._eventHandlers.mousedown);
-        this._instance.viewport.addEventListener('mouseup', this._eventHandlers.mouseup);
-        this._instance.viewport.addEventListener('mousemove', this._eventHandlers.mousemove);
-        this._instance.viewport.addEventListener('contextmenu', this._eventHandlers.contextmenu);
-    }
+        let pickedVertexIndex: number | null = null;
+        let isDragging = false;
+        let pickedShape: Shape | null = null;
 
-    /**
-     * Removes event handlers
-     * This is used when pausing or ending drawing.
-     */
-    private _cleanEventHandlers(): void {
-        if (this._state !== DrawToolState.ACTIVE) return;
-
-        if (this._instance && this._eventHandlers) {
-            this._instance.viewport.removeEventListener('mousedown', this._eventHandlers.mousedown);
-            this._instance.viewport.removeEventListener('mouseup', this._eventHandlers.mouseup);
-            this._instance.viewport.removeEventListener('mousemove', this._eventHandlers.mousemove);
-            this._instance.viewport.removeEventListener(
-                'contextmenu',
-                this._eventHandlers.contextmenu,
-            );
-            this._eventHandlers = null;
-        }
-    }
-
-    /**
-     * Generic mousedown handler
-     *
-     * @param evt - Mouse event
-     */
-    private _onMouseDown(evt: MouseEvent): void {
-        let res = false;
-        if (evt.button === 0) {
-            if (this._enableDragging && this._internalState === DrawToolInternalState.OVER_EDGE) {
-                // Point displayed is on edge, but because of hit tolerance the cursor
-                // might not be over the displayed point, so also handle event here
-                this._spliceAndStartDrag();
-                res = true;
-            }
-        }
-
-        // If we have done something with that event, capture it
-        if (res) evt.stopPropagation();
-    }
-
-    /**
-     * Generic mouseup handler
-     *
-     * @param evt - Mouse event
-     */
-    private _onMouseUp(evt: MouseEvent): void {
-        let res = false;
-        if (evt.button === 0) {
-            // First, check if we are clicking on the first point of a polygon
-            // to close the shape
-            if (this._internalState === DrawToolInternalState.DRAGGING_STARTED) {
-                if (
-                    this._enableDragging &&
-                    this._mode === DrawToolMode.CREATE &&
-                    this._geometryType === 'Polygon' &&
-                    this._draggedPointIndex === 0
-                ) {
-                    // Abort dragging - bypass states to avoid creating a new point
-                    this._draggedPointIndex = null;
-                    // FIXME: this is a hard assumption on the controls API!
-                    (this._instance.controls as any).enabled = true;
-
-                    this._endAfterEventloop();
-                    res = true;
-                }
+        // Clicking will either start dragging the picked vertex,
+        // or insert/remove a vertex depending on the mouse button.
+        const onMouseDown = (e: MouseEvent) => {
+            if (this._inhibitEdition) {
+                return;
             }
 
-            if (
-                !res &&
-                !this._enableDragging &&
-                this._internalState === DrawToolInternalState.OVER_EDGE
-            ) {
-                // Point displayed is on edge, but because of hit tolerance the cursor
-                // might not be over the displayed point, so also handle event here
-                this._spliceAndStartDrag();
-                res = true;
-            }
+            const picked = pickFirstShape(e);
 
-            // Then, check other interactions:
-            if (
-                !res &&
-                (this._internalState === DrawToolInternalState.DRAGGING ||
-                    this._internalState === DrawToolInternalState.DRAGGING_STARTED)
-            ) {
-                // Were we dragging a point?
-                res = this._endDraggingPoint();
-            } else if (this._internalState === DrawToolInternalState.NEW_POINT) {
-                // Were we clicking for a new point?
-                res = this._tryAddNewPoint(evt);
-            }
-            // Do nothing with that event
-        } else if (evt.button === 2 && this._endDrawingOnRightClick) {
-            res = this._tryEndDraw(evt);
-        }
+            if (picked) {
+                if (isShape(picked.entity)) {
+                    // TODO configure buttons
+                    let index = picked.pickedVertexIndex;
+                    const segment = picked.pickedSegment;
 
-        // If we have done something with that event, capture it
-        if (res) evt.stopPropagation();
-    }
+                    const shape = picked.entity;
 
-    /**
-     * Generic mousemove handler
-     *
-     * @param evt - Mouse event
-     */
-    private _onMouseMove(evt: MouseEvent): void {
-        let res = false;
-
-        if (
-            this._internalState === DrawToolInternalState.DRAGGING_STARTED ||
-            this._internalState === DrawToolInternalState.DRAGGING
-        ) {
-            // A point is being dragged, move it
-            res = this._tryMovePoint(evt);
-        } else if (this._internalState === DrawToolInternalState.OVER_POINT) {
-            // we're hovering a point, do nothing
-        } else {
-            if (this._canSplice) {
-                // Are we close to an edge for splicing?
-                res = this._tryShowSplicePoint(evt);
-                if (res) {
-                    // We found a point
-                    this._setState(DrawToolInternalState.OVER_EDGE);
-                } else if (this._internalState === DrawToolInternalState.OVER_EDGE) {
-                    // No point anymore, restore
-                    this._restoreDefaultState();
-                }
-            }
-
-            if (
-                !res &&
-                this._canAddNewPoint &&
-                this._internalState === DrawToolInternalState.NEW_POINT
-            ) {
-                // Display next point
-                res = this._tryShowNextPoint(evt);
-            }
-        }
-
-        // If we have done something with that event, capture it
-        if (res) evt.stopPropagation();
-    }
-
-    /**
-     * Tries to add a new point at the cursor, at the end of the geometry
-     *
-     * @param evt - Mouse event
-     * @returns `true` if a point is added, or `false` if no point available
-     * under the mouse
-     */
-    private _tryAddNewPoint(evt: MouseEvent): boolean {
-        if (this._internalState !== DrawToolInternalState.NEW_POINT) {
-            console.warn('_tryAddNewPoint with unexpected state', this._internalState);
-            return false;
-        }
-
-        const picked = this._getPointAt(evt);
-        // did we *really* click on something
-        if (!picked) {
-            return false;
-        }
-        this.addPointAt(picked.point);
-        return true;
-    }
-
-    /**
-     * Tries to end the drawing
-     *
-     * @param evt - Mouse event
-     * @returns `true` if the drawing was ended, or `false` otherwise (e.g. not enough
-     * points for polygon)
-     */
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    private _tryEndDraw(evt: MouseEvent): boolean {
-        // have we picked up enough point?
-        if (this._coordinates.length < this._realMinPoints) return false;
-        this._endAfterEventloop();
-        return true;
-    }
-
-    /**
-     * Tries to show the next point at the cursor
-     *
-     * @param evt - Mouse event
-     * @returns `true` if there is a point, or `false` otherwise
-     */
-    private _tryShowNextPoint(evt: MouseEvent): boolean {
-        if (this._internalState !== DrawToolInternalState.NEW_POINT) {
-            console.warn('_tryShowNextPoint with unexpected state', this._internalState);
-            return false;
-        }
-
-        const picked = this._getPointAt(evt);
-        if (!picked) {
-            // If we don't have a "real" point picked, hide the label following the cursor
-            this._hideNextPoint();
-            return false;
-        }
-
-        this._updateNextPoint(picked.point);
-        return true;
-    }
-
-    /**
-     * Tries to show a point for splicing an edge
-     *
-     * @param evt - Mouse event
-     * @returns `true` if there is a point, or `false` otherwise
-     */
-    private _tryShowSplicePoint(evt: MouseEvent): boolean {
-        if (
-            this._internalState !== DrawToolInternalState.NOOP &&
-            this._internalState !== DrawToolInternalState.NEW_POINT &&
-            this._internalState !== DrawToolInternalState.OVER_EDGE
-        ) {
-            console.warn('_tryShowSplicePoint with unexpected state', this._internalState);
-            return false;
-        }
-
-        const mouse = this._instance.eventToCanvasCoords(evt, tmpVec2);
-        const pointer = this._instance.canvasToNormalizedCoords(mouse, tmpVec2);
-        raycaster.setFromCamera(pointer, this._instance.camera.camera3D);
-        raycaster.layers.set(EDGE_LAYER);
-        const picked = raycaster.intersectObject(this._edges, true);
-
-        if (picked.length === 0) {
-            return false;
-        }
-
-        const pickedEdge = picked[0].object as Edge;
-
-        pickedEdge.line.closestPointToPoint(picked[0].point, true, tmpVec3);
-        this._updateSplicingPoint(pickedEdge.edgeIndex, tmpVec3);
-        return true;
-    }
-
-    /**
-     * Tries to move a selected point
-     *
-     * @param evt - Mouse event
-     * @returns `true` if a point is updated, `false` otherwise
-     */
-    private _tryMovePoint(evt: MouseEvent): boolean {
-        if (
-            this._internalState !== DrawToolInternalState.DRAGGING_STARTED &&
-            this._internalState !== DrawToolInternalState.DRAGGING
-        ) {
-            console.warn('_tryMovePoint with unexpected state', this._internalState);
-            return false;
-        }
-
-        const picked = this._getPointAt(evt);
-        if (!picked) {
-            // If we don't have a "real" point picked, just ignore the new position
-            // so it doesn't go in the limbo
-            return false;
-        }
-
-        this._setState(DrawToolInternalState.DRAGGING);
-        this.updatePointAt(this._draggedPointIndex, picked.point);
-        return true;
-    }
-
-    /// RENDERING
-
-    /**
-     * Updates rendering of 3D points.
-     * This is useful if we change the number of points, so we keep a simple logic for managing
-     * ordering & event handlers.
-     *
-     * Instead of having to deal with reordering all the other points & deal with
-     * event handlers, let's clean & recreate everything. As long as we don't have
-     * 10000 points in our geometry, we should be OK.
-     */
-    private _updatePoints3D(): void {
-        // First clean the existing 2D & 3D points
-        for (const o of this._pointsGroup.children) {
-            (o as CSS2DObject).element.remove();
-        }
-        this._pointsGroup.clear();
-
-        // Create new ones
-        const nbPoints = this._coordinates.length;
-
-        for (let i = 0; i < nbPoints; i += 1) {
-            const pt = this._point2DFactory(`${i + 1}`);
-            pt.style.pointerEvents = 'auto';
-            pt.style.cursor = 'pointer';
-            const pt3d = new CSS2DObject(pt);
-            pt3d.renderOrder = 1;
-            pt3d.position.set(
-                this._coordinates[i][0],
-                this._coordinates[i][1],
-                this._coordinates[i][2],
-            );
-            pt3d.updateMatrixWorld();
-            this._pointsGroup.add(pt3d);
-
-            // if drag-and-drop: mouseup event is handled in generic _onMouseUp
-            // if on click: we bind to click to not interfer with general mouseup
-            pt.addEventListener(this._enableDragging ? 'mousedown' : 'click', evt => {
-                if (evt.button === 0) {
-                    this._startDraggingPoint(i);
-                    evt.stopPropagation();
-                }
-            });
-
-            // Hide the next point & splicing point if we're close to a point
-            pt.addEventListener('mouseover', () =>
-                this._pushState(DrawToolInternalState.OVER_POINT),
-            );
-            pt.addEventListener('mouseout', () => this._popState(DrawToolInternalState.OVER_POINT));
-
-            if (this._canAddNewPoint) {
-                // We *should* always bind click event on pt if polygon and pt is the first point
-                // to close the shape, but it does not work with drag and drop (event is swallowed
-                // by drag and drop, so it's (also) handled in _onMouseUp
-                if (!this._enableDragging && this._geometryType === 'Polygon' && i === 0) {
-                    pt.addEventListener('click', evt => {
-                        this._endAfterEventloop();
-                        evt.stopPropagation();
-                    });
-                }
-            }
-        }
-
-        if (this._canAddNewPoint) {
-            const nextPointNumber =
-                this._geometryType === 'Polygon' && nbPoints > 0 ? nbPoints : nbPoints + 1;
-            if (this._nextPoint3D) {
-                this._nextPoint3D.element.innerText = `${nextPointNumber}`;
-            } else {
-                const nextPoint2D = this._point2DFactory(`${nextPointNumber}`);
-                this._nextPoint3D = new CSS2DObject(nextPoint2D);
-                this._nextPoint3D.name = 'next-point';
-                this._instance.threeObjects.add(this._nextPoint3D);
-            }
-        }
-
-        this._updateEdges();
-    }
-
-    /**
-     * Updates edges for splicing.
-     */
-    private _updateEdges(): void {
-        const nbPoints = this._coordinates.length;
-        const edgeSize =
-            // this.splicingHitTolerance can be null for auto
-            // this.drawObject.extrudeDepth can be undefined if we just started drawing a line
-            this._splicingHitTolerance ?? Math.max((this._drawObject.extrudeDepth ?? 10) * 1.5, 15);
-
-        this._edges.clear();
-
-        for (let i = 1; i < nbPoints; i += 1) {
-            // We need to use new Vector3s to pass them to Line object
-            const start = new Vector3(
-                this._coordinates[i - 1][0],
-                this._coordinates[i - 1][1],
-                this._coordinates[i - 1][2],
-            );
-            const end = new Vector3(
-                this._coordinates[i][0],
-                this._coordinates[i][1],
-                this._coordinates[i][2],
-            );
-
-            // Find orientation of the edge
-            tmpVec3.subVectors(end, start).normalize();
-            tmpQuat.setFromUnitVectors(unitVector, tmpVec3);
-
-            // Find length of the edge
-            const width = start.distanceTo(end);
-
-            // Middle of edge
-            tmpVec3.addVectors(start, end).divideScalar(2);
-
-            // Create our object and position it
-            const boxGeom = new BoxGeometry(width, edgeSize, edgeSize);
-            const edge = new Edge(boxGeom, emptyMaterial);
-            edge.setRotationFromQuaternion(tmpQuat);
-            edge.position.copy(tmpVec3);
-            edge.visible = false;
-            edge.updateMatrix();
-            edge.updateMatrixWorld(true);
-
-            // Add metadata for picking
-            edge.edgeIndex = i - 1;
-            edge.line = new Line3(start, end);
-            this._edges.add(edge);
-        }
-        this._instance.notifyChange(this._edges);
-    }
-
-    /// INTERACTIONS
-
-    /**
-     * Splices at the current position and starts dragging the new point
-     */
-    private _spliceAndStartDrag(): void {
-        const idx = this._splicingPointEdge + 1;
-        this.insertPointAt(idx, this._splicingPointCoordinates);
-        this._hideSplicingPoint();
-        this._startDraggingPoint(idx);
-    }
-
-    /**
-     * Sets up stuff required for dragging a point.
-     * Could be on mousedown (if `enableDragging`) or click (if `!enableDragging`)!
-     *
-     * @param idx - Index of the point
-     */
-    private _startDraggingPoint(idx: number): void {
-        if (this._enableDragging) {
-            // Make sure controls are disabled while we are dragging
-            // FIXME: this is a hard assumption on the controls API!
-            (this._instance.controls as any).enabled = false;
-        }
-
-        this._setState(DrawToolInternalState.DRAGGING_STARTED);
-        this._draggedPointIndex = idx;
-    }
-
-    /**
-     * Sends `edit` event and cleans up stuff required after dragging a point.
-     *
-     * @returns `true` if point was really dragged or `false` if it was a noop.
-     */
-    private _endDraggingPoint(): boolean {
-        this._updateEdges();
-        const hasChanged = this._internalState === DrawToolInternalState.DRAGGING;
-
-        if (hasChanged) {
-            // Dispatch event
-            this.dispatchEvent({
-                type: 'edit',
-                index: this._draggedPointIndex,
-                at: this._pointsGroup.children[this._draggedPointIndex].position,
-            });
-            this.dispatchEvent({ type: 'drawing' });
-        }
-
-        // Clean-up
-        this._draggedPointIndex = null;
-        if (this._enableDragging) {
-            // FIXME: this is a hard assumption on the controls API!
-            (this._instance.controls as any).enabled = true;
-        }
-
-        this._restoreDefaultState();
-
-        return hasChanged;
-    }
-
-    /**
-     * Displays the next point to add
-     *
-     * @param coords - Position
-     */
-    private _updateNextPoint(coords: Vector3): void {
-        if (
-            this._internalState !== DrawToolInternalState.NEW_POINT &&
-            this._internalState !== DrawToolInternalState.OVER_EDGE
-        ) {
-            console.warn('_updateNextPoint with unexpected state', this._internalState);
-            return;
-        }
-
-        this._nextPoint3D.visible = true;
-        this._nextPoint3D.position.copy(coords);
-        this._nextPoint3D.updateMatrixWorld();
-        this._instance.notifyChange(this._nextPoint3D);
-
-        // update the last position
-        this._nextPointCoordinates = [coords.x, coords.y, coords.z];
-        this.update();
-        this.dispatchEvent({ type: 'drawing' });
-    }
-
-    /**
-     * Hides the next point, so it's simply not visible
-     */
-    private _hideNextPoint(): void {
-        if (this._nextPoint3D) {
-            this._nextPoint3D.visible = false;
-            this._nextPointCoordinates = null;
-            this._instance.notifyChange(this._nextPoint3D);
-            this.update();
-            this.dispatchEvent({ type: 'drawing' });
-        }
-    }
-
-    /**
-     * Display a point for splicing along an edge
-     *
-     * @param edgeIndex - Edge index
-     * @param coords - Position of the point
-     */
-    private _updateSplicingPoint(edgeIndex: number, coords: Vector3): void {
-        if (
-            this._internalState !== DrawToolInternalState.NOOP &&
-            this._internalState !== DrawToolInternalState.NEW_POINT &&
-            this._internalState !== DrawToolInternalState.OVER_EDGE
-        ) {
-            console.warn('_updateSplicingPoint with unexpected state', this._internalState);
-            return;
-        }
-
-        this._splicingPointCoordinates = coords.clone();
-        this._splicingPointEdge = edgeIndex;
-
-        if (this._splicingPoint3D === null) {
-            const pt = this._point2DFactory(' ');
-            pt.style.pointerEvents = 'auto';
-            pt.style.cursor = 'pointer';
-            this._splicingPoint3D = new CSS2DObject(pt);
-            this._instance.threeObjects.add(this._splicingPoint3D);
-            this._instance.notifyChange(this._instance.threeObjects);
-
-            // if drag-and-drop: mouseup event is handled in generic _onMouseUp
-            // if on click: we bind to click to not interfer with general mouseup
-            this._splicingPoint3D.element.addEventListener(
-                this._enableDragging ? 'mousedown' : 'click',
-                evt => {
-                    if (evt.button === 0) {
-                        this._spliceAndStartDrag();
-                        evt.stopPropagation();
+                    // We didn't pick a vertex, we are then inserting a vertex on a segment
+                    if (
+                        index == null &&
+                        segment != null &&
+                        isOperationAllowed(shape, 'insertPoint')
+                    ) {
+                        if (onBeforePointInserted(e)) {
+                            index = segment + 1;
+                            shape.insertPoint(index, picked.point);
+                        }
                     }
-                },
-            );
-        }
 
-        this._splicingPoint3D.visible = true;
+                    if (index != null) {
+                        // Start dragging the picked vertex
+                        if (isOperationAllowed(shape, 'movePoint') && onBeforePointMoved(e)) {
+                            pickedVertexIndex = index;
+                            isDragging = true;
+                            pickedShape = shape;
 
-        // Make sure splicing point is always *behind* any node point
-        this._splicingPoint3D.renderOrder = -1;
-        this._splicingPoint3D.position.copy(coords);
-        this._splicingPoint3D.updateMatrixWorld();
+                            this.displayVertexMarker(
+                                shape,
+                                picked.point,
+                                shape.vertexRadius + shape.borderWidth,
+                                OPACITY_OVER_VERTEX,
+                            );
 
-        this._instance.notifyChange(this._splicingPoint3D);
+                            this.dispatchEvent({ type: 'start-drag' });
+                        }
+
+                        if (isOperationAllowed(shape, 'removePoint') && onBeforePointRemoved(e)) {
+                            shape.removePoint(index);
+                        }
+                    }
+                }
+            }
+        };
+
+        const onMouseUp = () => {
+            if (this._inhibitEdition) {
+                return;
+            }
+
+            this._instance.notifyChange();
+            this.dispatchEvent({ type: 'end-drag' });
+
+            isDragging = false;
+            pickedVertexIndex = null;
+            pickedShape = null;
+        };
+
+        const onMouseMove = (e: MouseEvent) => {
+            if (this._inhibitEdition) {
+                return;
+            }
+
+            if (isDragging) {
+                if (pickedShape && pickedVertexIndex) {
+                    const position = pickNonShapes(e)?.point;
+                    if (position) {
+                        pickedShape.updatePoint(pickedVertexIndex, position);
+
+                        if (this._selectedVertexMarker) {
+                            this._selectedVertexMarker.visible = true;
+                            this._selectedVertexMarker.position.copy(position);
+                            this._selectedVertexMarker.updateMatrixWorld(true);
+                        }
+                    }
+                }
+            } else {
+                const picked = pickFirstShape(e);
+
+                if (picked) {
+                    const isVertex = picked.pickedVertexIndex != null;
+                    const isSegment = picked.pickedSegment != null;
+
+                    const shape = picked.entity;
+
+                    const radius = shape.showVertices
+                        ? shape.vertexRadius + shape.borderWidth
+                        : DEFAULT_MARKER_RADIUS;
+
+                    const opacity = isVertex ? OPACITY_OVER_VERTEX : OPACITY_OVER_EDGE;
+
+                    if (isVertex || (isSegment && isOperationAllowed(shape, 'insertPoint'))) {
+                        this.displayVertexMarker(shape, picked.point, radius, opacity);
+                    } else {
+                        this.hideVertexMarker();
+                    }
+                } else {
+                    this.hideVertexMarker();
+                }
+            }
+        };
+
+        this._editionModeController.signal.addEventListener('abort', () => {
+            this._domElement.removeEventListener('mousemove', onMouseMove);
+            this._domElement.removeEventListener('mousedown', onMouseDown);
+            this._domElement.removeEventListener('mouseup', onMouseUp);
+            this._domElement.removeEventListener('contextmenu', inhibit);
+        });
+
+        this._domElement.addEventListener('mousemove', onMouseMove);
+        this._domElement.addEventListener('mousedown', onMouseDown);
+        this._domElement.addEventListener('mouseup', onMouseUp);
+        this._domElement.addEventListener('contextmenu', inhibit);
     }
 
     /**
-     * Removes the point for splicing (if exists)
+     * Exits edition mode.
      */
-    private _hideSplicingPoint(): void {
-        if (this._splicingPoint3D) {
-            this._splicingPoint3D.visible = false;
-            this._splicingPointCoordinates = null;
-            this._splicingPointEdge = null;
-            this._instance.notifyChange(this._splicingPoint3D);
-        }
+    exitEditMode() {
+        this._editionModeController?.abort();
+    }
+
+    private exitCreateMode() {
+        this._inhibitEdition = false;
     }
 
     /**
-     * Enables or disables pointer events for all CSS2D points.
-     * This is useful to disable for performance while dragging for instance.
-     *
-     * @param enable - Enable or disable
+     * Starts creating a {@link Shape} with the given parameters.
+     * @param options - The shape creation options.
+     * @returns A promise that eventually resolves with the created shape, or `null` if the creation
+     * was cancelled.
      */
-    private _setPointerEventsEnabled(enable: boolean): void {
-        for (const o of this._pointsGroup.children) {
-            const style = (o as CSS2DObject).element.style;
-            style.pointerEvents = enable ? 'auto' : 'none';
-            style.cursor = enable ? 'pointer' : 'auto';
+    createShape(options: CreateShapeOptions): Promise<Shape | null> {
+        const shape = new Shape<ShapeUserData>(options.uuid ?? MathUtils.generateUUID(), {
+            ...options,
+        });
+
+        shape.userData.permissions = options.constraints;
+
+        const pickableLabels = shape.pickableLabels;
+
+        // We don't want labels to prevent us from drawing points.
+        shape.pickableLabels = false;
+
+        this._inhibitEdition = true;
+
+        const domElement = this._domElement;
+
+        const { minPoints, maxPoints } = options;
+
+        const pick: PickCallback = options?.pick ?? this.defaultPick.bind(this);
+
+        this._instance.add(shape);
+
+        const firstPoint = new Vector3();
+        const points = [firstPoint];
+
+        function updatePoints() {
+            shape.setPoints([...points]);
+        }
+
+        const promise = new Promise<Shape | null>((resolve, reject) => {
+            let clickCount = 0;
+
+            const finalize = (shape: Shape | null) => {
+                if (shape) {
+                    shape.pickableLabels = pickableLabels;
+                }
+                this.exitCreateMode();
+                resolve(shape);
+            };
+
+            if (options?.signal) {
+                const signal = options.signal;
+
+                const onAbort = () => {
+                    this._instance.remove(shape);
+                    this.exitCreateMode();
+                    reject(new AbortError());
+                };
+
+                signal.addEventListener('abort', onAbort);
+            }
+
+            const onMouseMove = (e: MouseEvent) => {
+                const point = pick(e)[0]?.point;
+                if (point) {
+                    points[points.length - 1].copy(point);
+                    updatePoints();
+                    if (options?.onTemporaryPointMoved) {
+                        options.onTemporaryPointMoved(shape, point);
+                    }
+                    shape.visible = true;
+                } else {
+                    shape.visible = clickCount > 0;
+                }
+            };
+
+            const onMouseDown = (e: MouseEvent) => {
+                e.stopPropagation();
+
+                const removeListeners = () => {
+                    domElement.removeEventListener('mousedown', onMouseDown);
+                    domElement.removeEventListener('mousemove', onMouseMove);
+                    domElement.removeEventListener('mouseup', inhibit);
+                    domElement.removeEventListener('contextmenu', inhibit);
+                };
+
+                if (e.button === LEFT_BUTTON) {
+                    const point = pick(e)[0]?.point;
+                    if (point) {
+                        clickCount++;
+
+                        if (maxPoints != null && points.length < maxPoints) {
+                            if (options?.onPointCreated) {
+                                const pointIndex = clickCount - 1;
+                                options.onPointCreated(shape, pointIndex, point);
+                            }
+                            points.push(point);
+                        }
+
+                        updatePoints();
+
+                        if (clickCount === maxPoints) {
+                            removeListeners();
+                            finalize(shape);
+                        }
+                    }
+                } else if (e.button === RIGHT_BUTTON) {
+                    // Finalize the shape
+                    removeListeners();
+
+                    if (minPoints != null && clickCount >= minPoints) {
+                        shape.setPoints(points.slice(0, -1));
+                        if (options?.closeRing) {
+                            shape.makeClosed();
+                        }
+
+                        finalize(shape);
+                    } else {
+                        this._instance.remove(shape);
+
+                        finalize(null);
+                    }
+                }
+            };
+
+            this._domElement.addEventListener('mousemove', onMouseMove);
+            this._domElement.addEventListener('mousedown', onMouseDown);
+            this._domElement.addEventListener('mouseup', inhibit);
+            this._domElement.addEventListener('contextmenu', inhibit);
+        });
+
+        return promise;
+    }
+
+    /**
+     * Create a segment (straight line between two points).
+     * @param options - The options.
+     * @returns A promise that eventually returns the {@link Shape} or `null` if creation was cancelled.
+     */
+    createSegment(
+        options: Partial<ShapeConstructorOptions> & {
+            signal: AbortSignal;
+            pick: PickCallback;
+        },
+    ): Promise<Shape | null> {
+        return this.createShape({
+            uuid: `segment-${MathUtils.generateUUID()}`,
+            ...options,
+            minPoints: 2,
+            maxPoints: 2,
+            constraints: {
+                insertPoint: false,
+                movePoint: true,
+                removePoint: false,
+            },
+            beforeRemovePoint: inhibitHook,
+            beforeInsertPoint: inhibitHook,
+        });
+    }
+
+    /**
+     * Creates a LineString {@link Shape}.
+     * @param options - The options.
+     * @returns A promise that eventually returns the {@link Shape} or `null` if creation was cancelled.
+     */
+    createLineString(
+        options: Partial<ShapeConstructorOptions> & {
+            signal: AbortSignal;
+            pick: PickCallback;
+        },
+    ): Promise<Shape | null> {
+        return this.createShape({
+            uuid: `lineString-${MathUtils.generateUUID()}`,
+            ...options,
+            beforeRemovePoint: limitRemovePointHook(2),
+            minPoints: 2,
+            maxPoints: +Infinity,
+        });
+    }
+
+    /**
+     * Creates a vertical measure {@link Shape} that displays the vertical distance between
+     * the start and end point, as well as the angle between the segment formed by those points
+     * and the horizontal plane. The shape looks like a right triangle.
+     * @param options - The options.
+     * @returns A promise that eventually returns the {@link Shape} or `null` if creation was cancelled.
+     */
+    createVerticalMeasure(options?: CreationOptions): Promise<Shape | null> {
+        let canUpdateFloor = true;
+
+        const updateDashSize = (shape: Shape) => {
+            if (shape.points.length > 1) {
+                const p0 = shape.points[0];
+                const p1 = shape.points[1];
+                const height = Math.max(p0.z, p1.z) - Math.min(p0.z, p1.z);
+                shape.dashSize = height / 20;
+            }
+        };
+
+        const onPointCreated = (shape: Shape, index: number, position: Vector3) => {
+            if (index === 0) {
+                canUpdateFloor = false;
+                const height = position.z;
+                shape.floorElevation = height;
+            }
+
+            updateDashSize(shape);
+        };
+
+        // Whenever the first point is updated, we need to set the floor height to
+        // this point's height, so that we always display a nice right triangle.
+        const updateFloor = (shape: Shape, position: Vector3) => {
+            const height = position.z;
+            shape.floorElevation = height;
+        };
+
+        const onTemporaryPointMoved = (shape: Shape, position: Vector3) => {
+            if (canUpdateFloor) {
+                updateFloor(shape, position);
+            }
+
+            updateDashSize(shape);
+        };
+
+        const afterUpdatePoint = (options: {
+            shape: Shape;
+            index: number;
+            newPosition: Vector3;
+        }) => {
+            const { index, shape, newPosition } = options;
+
+            if (index === 0) {
+                updateFloor(shape, newPosition);
+            }
+
+            updateDashSize(shape);
+        };
+
+        return this.createShape({
+            uuid: `verticalMeasure-${MathUtils.generateUUID()}`,
+            showFloorLine: true,
+            showVerticalLines: true,
+            showFloorVertices: true,
+            showVerticalLineLabels: true,
+            showSegmentLabels: true,
+            constraints: {
+                insertPoint: false,
+                removePoint: false,
+                movePoint: true,
+            },
+            verticalLineLabelFormatter: verticalLengthFormatter,
+            segmentLabelFormatter: slopeSegmentFormatter,
+            beforeRemovePoint: inhibitHook,
+            beforeInsertPoint: inhibitHook,
+            onPointCreated,
+            onTemporaryPointMoved,
+            afterUpdatePoint,
+            ...options,
+            minPoints: 2,
+            maxPoints: 2,
+        });
+    }
+
+    /**
+     * Creates a single point {@link Shape}.
+     * @param options - The options.
+     * @returns A promise that eventually returns the {@link Shape} or `null` if creation was cancelled.
+     */
+    createPoint(options?: CreationOptions): Promise<Shape | null> {
+        return this.createShape({
+            uuid: `point-${MathUtils.generateUUID()}`,
+            ...options,
+            minPoints: 1,
+            maxPoints: 1,
+            beforeRemovePoint: inhibitHook,
+        });
+    }
+
+    /**
+     * Creates multiple point {@link Shape}s.
+     * @param options - The options.
+     * @returns A promise that eventually returns the {@link Shape} or `null` if creation was cancelled.
+     */
+    createMultiPoint(options?: CreationOptions): Promise<Shape | null> {
+        return this.createShape({
+            uuid: `multipoint-${MathUtils.generateUUID()}`,
+            showLine: false,
+            ...options,
+            beforeRemovePoint: limitRemovePointHook(1),
+            minPoints: 1,
+            maxPoints: +Infinity,
+        });
+    }
+
+    /**
+     * Creates a polygon {@link Shape}.
+     * @param options - The options.
+     * @returns A promise that eventually returns the {@link Shape} or `null` if creation was cancelled.
+     */
+    createPolygon(options?: CreationOptions): Promise<Shape | null> {
+        return this.createShape({
+            uuid: `polygon-${MathUtils.generateUUID()}`,
+            showSurface: true,
+            closeRing: true,
+            ...options,
+            minPoints: 3,
+            maxPoints: +Infinity,
+            beforeRemovePoint: limitRemovePointHook(4), // We take into account the doubled first/last point
+            afterRemovePoint: afterRemovePointOfPolygon,
+            afterUpdatePoint: afterUpdatePointOfPolygon,
+        });
+    }
+
+    /**
+     * Create a closed ring {@link Shape}.
+     * @param options - The options.
+     * @returns A promise that eventually returns the {@link Shape} or `null` if creation was cancelled.
+     */
+    createRing(options?: CreationOptions): Promise<Shape | null> {
+        return this.createShape({
+            uuid: `ring-${MathUtils.generateUUID()}`,
+            closeRing: true,
+            ...options,
+            minPoints: 3,
+            maxPoints: +Infinity,
+            beforeRemovePoint: limitRemovePointHook(3),
+        });
+    }
+
+    /**
+     * Create a sector {@link Shape}.
+     * @param options - The options.
+     * @returns A promise that eventually returns the {@link Shape} or `null` if creation was cancelled.
+     */
+    createSector(options?: CreationOptions): Promise<Shape | null> {
+        return this.createShape({
+            uuid: `sector-${MathUtils.generateUUID()}`,
+            vertexLabelFormatter: angleFormatter,
+            showVertexLabels: true,
+            showSurface: true,
+            ...options,
+            constraints: {
+                insertPoint: false,
+                removePoint: false,
+                movePoint: true,
+            },
+            minPoints: 3,
+            maxPoints: 3,
+        });
+    }
+
+    /**
+     * Disposes unmanaged resources created by this instance.
+     */
+    dispose() {
+        this._markerMaterial.dispose();
+        if (this._selectedVertexMarker) {
+            this._instance.remove(this._selectedVertexMarker);
+            this._selectedVertexMarker = undefined;
         }
     }
 }
-
-export default DrawTool;

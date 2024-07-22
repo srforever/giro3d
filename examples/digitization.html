@@ -1,0 +1,40 @@
+---
+title: Digitizing vector features
+shortdesc: Draw vectors and add them to a map layer
+longdesc: Create 3D shapes using the <a target="_blank" href="../apidoc/classes/interactions.DrawTool.html"></a><code>DrawTool</code></a>, then convert them to <a target="_blank" href="https://openlayers.org/en/latest/apidoc/module-ol_Feature-Feature.html">OpenLayers features</a>, and add those features to the map <a target="_blank" href="../apidoc/classes/core.layer.ColorLayer.html"></a><code>layer</code></a>.
+attribution: © <a target="_blank" href="https://ign.fr/">IGN</a>
+tags: [wmts, ign, map, drawing]
+---
+
+<div class="side-pane-with-status-bar" class="pe-none">
+    <!--Parameters -->
+    <div class="card">
+        <h5 class="card-header">Parameters</h5>
+
+        <!-- tooltip -->
+        <span
+            class="badge bg-secondary position-absolute top-0 end-0 m-2"
+            data-bs-toggle="popover"
+            data-bs-content="tooltip"
+            >?</span
+        >
+        <p class="card-text d-none" id="tooltip">
+            Use right-click to complete the drawing of shapes.
+        </p>
+
+        <div class="card-body">
+            <!-- Geometry types -->
+            <div class="d-grid gap-2 mx-auto" id="group">
+                <button type="button" class="btn btn-primary" id="point">Point</button>
+                <button type="button" class="btn btn-primary" id="multipoint">MultiPoint</button>
+                <button type="button" class="btn btn-primary" id="linestring">LineString</button>
+                <button type="button" class="btn btn-primary" id="polygon">Polygon</button>
+
+                <button type="button" class="btn btn-danger" disabled id="remove-features">
+                    <i class="bi bi-trash-fill"></i>
+                    Remove features
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

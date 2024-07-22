@@ -143,9 +143,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
     set renderOrder(v: number) {
         if (v !== this._renderOrder) {
             this._renderOrder = v;
-            this.traverse(o => {
-                o.renderOrder = v;
-            });
+            this.updateRenderOrder();
             this.dispatchEvent({ type: 'renderOrder-property-changed', renderOrder: v });
         }
     }
@@ -197,7 +195,6 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
     /**
      * Updates the opacity of the entity.
      * Note: this method can be overriden for custom implementations.
-     *
      */
     updateOpacity() {
         // Default implementation
@@ -209,6 +206,17 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
                 material.needsUpdate = currentTransparent !== material.transparent;
                 material.opacity = this.opacity;
             }
+        });
+    }
+
+    /**
+     * Updates the render order of the entity.
+     * Note: this method can be overriden for custom implementations.
+     */
+    updateRenderOrder() {
+        // Default implementation
+        this.traverse(o => {
+            o.renderOrder = this.renderOrder;
         });
     }
 
