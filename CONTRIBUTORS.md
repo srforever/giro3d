@@ -33,6 +33,7 @@ The following people have contributed to Giro3D.
     -   [Vincent Jaillot](https://github.com/jailln)
 
 -   [Oslandia](http://www.oslandia.com)
+
     -   [Antoine Facchini](https://gitlab.com/antoinefacchini)
     -   [Augustin Trancart](https://github.com/autra)
     -   [Benoît Blanc](https://github.com/benoitblanc)
@@ -48,6 +49,9 @@ The following people have contributed to Giro3D.
     -   [Thomas Muguet](https://github.com/tmuguet)
     -   [Vincent Mora](https://github.com/vmora)
     -   [Vincent Picavet](https://github.com/vpicavet)
+
+-   [OSM Data](https://demo.openstreetmap.fr/map)
+    -   [Karl TAYOU](https://gitlab.com/nelsontayou1)
 
 ---
 
