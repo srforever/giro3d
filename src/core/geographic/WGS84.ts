@@ -9,6 +9,7 @@ const WGS84_A = 6_378_137.0; // Semi-major axis
 const WGS84_B = 6_356_752.314245; // Semi-minor axis
 const WGS84_IF = 298.257223563; // Inverse flattening
 const WGS84_F = 1 / WGS84_IF;
+const WGS84_EX = Math.sqrt(1 - WGS84_B ** 2 / WGS84_A ** 2);
 const WGS84_E = Math.sqrt(2 * WGS84_F - WGS84_F * WGS84_F);
 
 export { WGS84_A as semiMajorAxis, WGS84_B as semiMinorAxis };
@@ -38,6 +39,26 @@ export function latLonToEcef(lat: number, lon: number, alt: number, target?: Vec
     target.set(x, y, z);
 
     return target;
+}
+
+export function ecefToLatLon(
+    x: number,
+    y: number,
+    z: number,
+): { latitude: number; longitude: number; height: number } {
+    const lon = Math.atan2(y, x);
+    const p = Math.sqrt(x ** 2 + y ** 2);
+    const theta = Math.atan2(z * WGS84_A, p * WGS84_B);
+    const lat = Math.atan2(
+        z + WGS84_E ** 2 * WGS84_B * Math.sin(theta) ** 3,
+        p - WGS84_EX ** 2 * WGS84_A * Math.cos(theta) ** 3,
+    );
+
+    // # Radius of curvature in the prime vertical
+    const N = WGS84_A / Math.sqrt(1 - WGS84_EX ** 2 * Math.sin(lat) ** 2);
+    const height = p / Math.cos(lat) - N;
+
+    return { latitude: MathUtils.radToDeg(lat), longitude: MathUtils.radToDeg(lon), height };
 }
 
 /**
