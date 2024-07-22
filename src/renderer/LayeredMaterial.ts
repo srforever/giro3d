@@ -117,6 +117,7 @@ export const DEFAULT_ZENITH = 45;
 export const DEFAULT_GRATICULE_COLOR = new Color(0, 0, 0);
 export const DEFAULT_GRATICULE_STEP = 500; // meters
 export const DEFAULT_GRATICULE_THICKNESS = 1;
+export const DEFAULT_SUN_DIRECTION = new Vector3(1, 0, 0);
 
 function drawImageOnAtlas(
     width: number,
@@ -232,6 +233,7 @@ type HillshadingUniform = {
     zFactor: number;
     zenith: number;
     azimuth: number;
+    sunDirection: Vector3;
 };
 
 type ContourLineUniform = {
@@ -311,6 +313,7 @@ interface Uniforms {
     layersColorMaps: IUniform<ColorMapUniform[]>;
     elevationColorMap: IUniform<ColorMapUniform>;
     wgs84Dimensions: IUniform<Vector4>;
+    sunDirection: IUniform<Vector3>;
 
     fogDensity: IUniform<number>;
     fogNear: IUniform<number>;
@@ -410,6 +413,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
             azimuth: DEFAULT_AZIMUTH,
             intensity: DEFAULT_HILLSHADING_INTENSITY,
             zFactor: DEFAULT_HILLSHADING_ZFACTOR,
+            sunDirection: DEFAULT_SUN_DIRECTION.clone(),
         });
 
         this.uniforms.fogDensity = new Uniform(0.00025);
@@ -1034,6 +1038,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
             uniform.azimuth = hillshadingParams.azimuth ?? DEFAULT_AZIMUTH;
             uniform.intensity = hillshadingParams.intensity ?? 1;
             uniform.zFactor = hillshadingParams.zFactor ?? 1;
+            uniform.sunDirection = hillshadingParams.sunDirection ?? DEFAULT_SUN_DIRECTION;
             MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', hillshadingParams.enabled);
             MaterialUtils.setDefine(
                 this,

@@ -30,6 +30,9 @@ struct Hillshading {
     float azimuth;    // Azimuth on sunlight, in degrees (0 - 360)
     float intensity;  // The global lighting intensity
     float zFactor;    // The factor to apply to slopes.
+#if defined(IS_GLOBE)
+    vec3  sunDirection;
+#endif
 };
 
 /**
@@ -180,6 +183,12 @@ float calcAspect ( vec2 derivatives ) {
  */
 float map(float value, float min1, float max1, float min2, float max2) {
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
+}
+
+float calcGlobeShading(vec3 worldNormal, vec3 sunDirection) {
+    // A very simplified model
+    float angle = dot(worldNormal, sunDirection);
+    return clamp(angle * 2.0, 0.0, 1.0);
 }
 
 float calcHillshade(vec2 tileDimensions, Hillshading hillshading, vec4 offsetScale, sampler2D tex, vec2 uv){

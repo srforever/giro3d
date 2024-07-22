@@ -1,3 +1,5 @@
+import { type Vector3 } from 'three';
+
 /**
  * Options for map hillshading.
  */
@@ -28,4 +30,6 @@ export default interface HillshadingOptions {
      * Default is `false`.
      */
     elevationLayersOnly?: boolean;
+    /** @internal */
+    sunDirection?: Vector3;
 }
