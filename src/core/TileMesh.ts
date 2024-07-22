@@ -44,16 +44,18 @@ import { intoUniqueOwner } from './UniqueOwner';
 import TextureGenerator from '../utils/TextureGenerator';
 import type GetElevationOptions from '../entities/GetElevationOptions';
 import { type NeighbourList } from './TileIndex';
-import { latLonToEcef } from './geographic/WGS84';
 import { Coordinates } from './geographic';
 import type Camera from '../renderer/Camera';
 import { isOrthographicCamera, isPerspectiveCamera } from '../renderer/Camera';
+import Ellipsoid from './geographic/Ellipsoid';
 
 const ray = new Ray();
 const inverseMatrix = new Matrix4();
 const tmpBox = new Box3();
 const tmpSphere = new Sphere();
 const tmpCoordWGS84 = new Coordinates('EPSG:4326', 0, 0);
+
+const wgs84 = Ellipsoid.WGS84;
 
 const helperMaterial = new MeshBasicMaterial({
     color: '#75eba8',
@@ -217,8 +219,8 @@ class GlobeTileVolume extends TileVolume {
 
                     const lonlat = this._extent.sample(u, v, tempVec2);
 
-                    const p0 = latLonToEcef(lonlat.y, lonlat.x, this._min);
-                    const p1 = latLonToEcef(lonlat.y, lonlat.x, this._max);
+                    const p0 = wgs84.toCartesian(lonlat.y, lonlat.x, this._min);
+                    const p1 = wgs84.toCartesian(lonlat.y, lonlat.x, this._max);
 
                     this._corners[index++] = p0;
                     this._corners[index++] = p1;
@@ -234,28 +236,28 @@ class GlobeTileVolume extends TileVolume {
         minAltitude: number,
         maxAltitude: number,
     ): Box3 {
-        const p0 = latLonToEcef(extent.north(), extent.west(), minAltitude);
-        const p1 = latLonToEcef(extent.north(), extent.west(), maxAltitude);
+        const p0 = wgs84.toCartesian(extent.north(), extent.west(), minAltitude);
+        const p1 = wgs84.toCartesian(extent.north(), extent.west(), maxAltitude);
 
-        const p2 = latLonToEcef(extent.south(), extent.west(), minAltitude);
-        const p3 = latLonToEcef(extent.south(), extent.west(), maxAltitude);
+        const p2 = wgs84.toCartesian(extent.south(), extent.west(), minAltitude);
+        const p3 = wgs84.toCartesian(extent.south(), extent.west(), maxAltitude);
 
-        const p4 = latLonToEcef(extent.south(), extent.east(), minAltitude);
-        const p5 = latLonToEcef(extent.south(), extent.east(), maxAltitude);
+        const p4 = wgs84.toCartesian(extent.south(), extent.east(), minAltitude);
+        const p5 = wgs84.toCartesian(extent.south(), extent.east(), maxAltitude);
 
-        const p6 = latLonToEcef(extent.north(), extent.east(), minAltitude);
-        const p7 = latLonToEcef(extent.north(), extent.east(), maxAltitude);
+        const p6 = wgs84.toCartesian(extent.north(), extent.east(), minAltitude);
+        const p7 = wgs84.toCartesian(extent.north(), extent.east(), maxAltitude);
 
         const center = extent.center(tmpCoordWGS84);
 
-        const p8 = latLonToEcef(center.latitude, center.longitude, minAltitude);
-        const p9 = latLonToEcef(center.latitude, center.longitude, maxAltitude);
+        const p8 = wgs84.toCartesian(center.latitude, center.longitude, minAltitude);
+        const p9 = wgs84.toCartesian(center.latitude, center.longitude, maxAltitude);
 
-        const p10 = latLonToEcef(extent.north(), center.longitude, minAltitude);
-        const p11 = latLonToEcef(extent.south(), center.longitude, maxAltitude);
+        const p10 = wgs84.toCartesian(extent.north(), center.longitude, minAltitude);
+        const p11 = wgs84.toCartesian(extent.south(), center.longitude, maxAltitude);
 
-        const p12 = latLonToEcef(center.latitude, extent.west(), minAltitude);
-        const p13 = latLonToEcef(center.latitude, extent.east(), maxAltitude);
+        const p12 = wgs84.toCartesian(center.latitude, extent.west(), minAltitude);
+        const p13 = wgs84.toCartesian(center.latitude, extent.east(), maxAltitude);
 
         const worldBox = new Box3().setFromPoints([
             p0,
