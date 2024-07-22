@@ -382,21 +382,11 @@ function featureToMesh(feature: Feature, options: OlFeature2MeshOptions = {}): P
 
     switch (feature.getGeometry().getType()) {
         case 'Point':
-            mesh = featureToPoint(
-                feature.getGeometry() as Point,
-                style.material,
-                offset,
-                elevation,
-            );
+            mesh = featureToPoint(feature.getGeometry() as Point, material, offset, elevation);
 
             break;
         case 'MultiPoint': {
-            mesh = featureToPoint(
-                feature.getGeometry() as MultiPoint,
-                style.material,
-                offset,
-                elevation,
-            );
+            mesh = featureToPoint(feature.getGeometry() as MultiPoint, material, offset, elevation);
             break;
         }
         case 'LineString':
