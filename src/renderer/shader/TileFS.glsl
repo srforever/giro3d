@@ -133,6 +133,12 @@ void main() {
 #endif
 #endif
 
+#if defined(ENABLE_HILLSHADING)
+#if defined(IS_GLOBE)
+    hillshade = hillshade * calcGlobeShading(wNormal, hillshading.sunDirection);
+#endif
+#endif
+
 // Shading can be applied either:
 // - before the color layers (i.e only the background pixels will be shaded)
 // - or after the color layers (i.e all pixels will be shaded).

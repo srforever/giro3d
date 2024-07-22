@@ -28,6 +28,7 @@ import LayeredMaterial, {
     DEFAULT_GRATICULE_THICKNESS,
     DEFAULT_HILLSHADING_INTENSITY,
     DEFAULT_HILLSHADING_ZFACTOR,
+    DEFAULT_SUN_DIRECTION,
     DEFAULT_ZENITH,
 } from '../renderer/LayeredMaterial';
 import TileMesh, { isTileMesh } from '../core/TileMesh';
@@ -73,6 +74,7 @@ import {
     getMeridianArcLength,
     getParallelArcLength,
     isHorizonVisible,
+    latLonToEcef,
 } from '../core/geographic/WGS84';
 
 /**
@@ -241,6 +243,7 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions): Hillshadin
             zFactor: DEFAULT_HILLSHADING_ZFACTOR,
             azimuth: DEFAULT_AZIMUTH,
             zenith: DEFAULT_ZENITH,
+            sunDirection: DEFAULT_SUN_DIRECTION.clone(),
         };
     }
 
@@ -253,6 +256,7 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions): Hillshadin
             zFactor: DEFAULT_HILLSHADING_ZFACTOR,
             azimuth: DEFAULT_AZIMUTH,
             zenith: DEFAULT_ZENITH,
+            sunDirection: DEFAULT_SUN_DIRECTION,
         };
     }
 
@@ -263,6 +267,7 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions): Hillshadin
         zenith: input.zenith ?? DEFAULT_ZENITH,
         intensity: input.intensity ?? DEFAULT_HILLSHADING_INTENSITY,
         zFactor: input.zFactor ?? DEFAULT_HILLSHADING_ZFACTOR,
+        sunDirection: input.sunDirection ?? DEFAULT_SUN_DIRECTION,
     };
 }
 
@@ -551,6 +556,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     private _hasElevationLayer = false;
     private _colorAtlasDataType: TextureDataType = UnsignedByteType;
     private readonly _layers: Layer[] = [];
+    private readonly _sunDirection = new Vector3(1, 0, 0);
     private readonly _onLayerVisibilityChanged: (event: { target: Layer }) => void;
     private readonly _onTileElevationChanged: (tile: TileMesh) => void;
     /** @internal */
@@ -1637,6 +1643,18 @@ class Map<UserData extends EntityUserData = EntityUserData>
             );
 
             return this.testTileSSE(node, sse);
+        }
+    }
+
+    /**
+     * Sets the direction of the sun rays.
+     */
+    setSunDirection(direction: Vector3) {
+        // No effect outside of globe mode
+        if (this._instance.referenceCrs === 'EPSG:4978') {
+            this._sunDirection.copy(direction);
+            this.materialOptions.hillshading.sunDirection = this._sunDirection;
+            this._instance.notifyChange(this);
         }
     }
 
