@@ -3,11 +3,28 @@ import { CameraHelper, type OrthographicCamera, type PerspectiveCamera, type Vec
 import Panel from './Panel';
 import type Instance from '../core/Instance';
 import type Camera from '../renderer/Camera';
+import { ecefToLatLon } from '../core/geographic/WGS84';
+
+const degreesFormatter = new Intl.NumberFormat(undefined, {
+    style: 'unit',
+    unit: 'degree',
+    unitDisplay: 'narrow',
+    maximumFractionDigits: 4,
+});
+
+const altitudeFormatter = new Intl.NumberFormat(undefined, {
+    style: 'unit',
+    unit: 'meter',
+    maximumFractionDigits: 0,
+});
 
 class CameraInspector extends Panel {
     camera: Camera;
     camera3D: PerspectiveCamera | OrthographicCamera;
     snapshots: CameraHelper[] = [];
+    latitude = '';
+    longitude = '';
+    altitude = '';
 
     /**
      * @param gui - The GUI.
@@ -40,6 +57,14 @@ class CameraInspector extends Panel {
 
         const position = this.gui.addFolder('Position');
         position.close();
+        if (instance.referenceCrs === 'EPSG:4978') {
+            const c0 = this.addController<number>(this, 'latitude').name('Latitude');
+            const c1 = this.addController<number>(this, 'longitude').name('Longitude');
+            const c2 = this.addController<number>(this, 'altitude').name('Altitude');
+            c0.disable(true);
+            c1.disable(true);
+            c2.disable(true);
+        }
         this._controllers.push(position.add(this.camera3D.position, 'x'));
         this._controllers.push(position.add(this.camera3D.position, 'y'));
         this._controllers.push(position.add(this.camera3D.position, 'z'));
@@ -51,6 +76,14 @@ class CameraInspector extends Panel {
             this._controllers.push(target.add(this.instance.controls.target as Vector3, 'y'));
             this._controllers.push(target.add(this.instance.controls.target as Vector3, 'z'));
         }
+    }
+
+    updateValues(): void {
+        const { x, y, z } = this.camera3D.position;
+        const ecef = ecefToLatLon(x, y, z);
+        this.latitude = degreesFormatter.format(ecef.latitude);
+        this.longitude = degreesFormatter.format(ecef.longitude);
+        this.altitude = altitudeFormatter.format(ecef.height);
     }
 
     private deleteSnapshots() {
