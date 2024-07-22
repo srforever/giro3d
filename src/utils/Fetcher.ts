@@ -229,12 +229,15 @@ async function arrayBuffer(url: string, options?: RequestInit): Promise<ArrayBuf
  *
  * fires `error` event On Network/HTTP error.
  * @param url - the URL to fetch
- * @param options - fetch options (passed directly to `fetch()`)
+ * @param options - Texture creation options and fetch options (passed directly to `fetch()`)
  * @returns the promise containing the texture
  */
-async function texture(url: string, options?: RequestInit): Promise<Texture> {
+async function texture(
+    url: string,
+    options?: RequestInit & { createDataTexture?: boolean; flipY?: boolean },
+): Promise<Texture> {
     const data = await blob(url, options);
-    return TextureGenerator.decodeBlob(data);
+    return TextureGenerator.decodeBlob(data, options);
 }
 
 /**

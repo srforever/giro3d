@@ -114,7 +114,10 @@ export interface ImageSourceEvents {
  * Base class for all image sources. The `ImageSource` produces images to be consumed by clients,
  * such as map layers.
  */
-abstract class ImageSource extends EventDispatcher<ImageSourceEvents> implements MemoryUsage {
+abstract class ImageSource<Events extends ImageSourceEvents = ImageSourceEvents>
+    extends EventDispatcher<Events & ImageSourceEvents>
+    implements MemoryUsage
+{
     readonly isImageSource: boolean = true;
     private readonly _customColorSpace: ColorSpace;
     type: string;

@@ -283,7 +283,7 @@ describe('Fetcher', () => {
             await expect(Fetcher.texture('http://example.com')).resolves.toBe('Bar');
 
             expect(global.fetch).toHaveBeenCalled();
-            expect(TextureGenerator.decodeBlob).toBeCalledWith('Foo');
+            expect(TextureGenerator.decodeBlob).toBeCalledWith('Foo', undefined);
         });
 
         it('decoding errors should not be captured', async () => {
