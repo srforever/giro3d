@@ -5,7 +5,7 @@ import type { GetMemoryUsageContext, MemoryUsage, MemoryUsageReport } from '.';
 import { createEmptyReport, getGeometryMemoryUsage } from './MemoryUsage';
 import type TileGeometry from './TileGeometry';
 import type HeightMap from './HeightMap';
-import { latLonToEcef } from './geographic/WGS84';
+import Ellipsoid from './geographic/Ellipsoid';
 
 const tmpVec2 = new Vector2();
 const tmpVec3 = new Vector3();
@@ -15,6 +15,8 @@ enum Usage {
     Rendering,
     Raycasting,
 }
+
+const wgs84 = Ellipsoid.WGS84;
 
 export default class GlobeTileGeometry extends BufferGeometry implements MemoryUsage, TileGeometry {
     private readonly _extent: Extent;
@@ -49,7 +51,7 @@ export default class GlobeTileGeometry extends BufferGeometry implements MemoryU
         this._segments = params.segments;
         this._extent = params.extent;
 
-        this._origin = latLonToEcef(this._extent.north(), this._extent.west(), 0, new Vector3());
+        this._origin = wgs84.toCartesian(this._extent.north(), this._extent.west(), 0);
 
         if (this._extent.crs() !== 'EPSG:4326') {
             throw new Error(`invalid CRS. Expected EPSG:4326, got: ${this._extent.crs()}`);
@@ -130,7 +132,7 @@ export default class GlobeTileGeometry extends BufferGeometry implements MemoryU
                 min = Math.min(min, altitude);
                 max = Math.max(max, altitude);
 
-                const ecef = latLonToEcef(lat, lon, altitude, tmpVec3);
+                const ecef = wgs84.toCartesian(lat, lon, altitude, tmpVec3);
                 // In ECEF, the normal vector is just the normalized position,
                 // Since the center of the earth is at (0, 0, 0).
                 const normal = tmpNormal.copy(ecef).normalize();

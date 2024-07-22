@@ -3,7 +3,7 @@ import { CameraHelper, type OrthographicCamera, type PerspectiveCamera, type Vec
 import Panel from './Panel';
 import type Instance from '../core/Instance';
 import type Camera from '../renderer/Camera';
-import { ecefToLatLon } from '../core/geographic/WGS84';
+import Ellipsoid from '../core/geographic/Ellipsoid';
 
 const degreesFormatter = new Intl.NumberFormat(undefined, {
     style: 'unit',
@@ -80,10 +80,10 @@ class CameraInspector extends Panel {
 
     updateValues(): void {
         const { x, y, z } = this.camera3D.position;
-        const ecef = ecefToLatLon(x, y, z);
-        this.latitude = degreesFormatter.format(ecef.latitude);
-        this.longitude = degreesFormatter.format(ecef.longitude);
-        this.altitude = altitudeFormatter.format(ecef.height);
+        const geodetic = Ellipsoid.WGS84.toGeodetic(x, y, z);
+        this.latitude = degreesFormatter.format(geodetic.latitude);
+        this.longitude = degreesFormatter.format(geodetic.longitude);
+        this.altitude = altitudeFormatter.format(geodetic.height);
     }
 
     private deleteSnapshots() {

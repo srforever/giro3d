@@ -70,12 +70,7 @@ import type ElevationRange from '../core/ElevationRange';
 import type Context from '../core/Context';
 import type GetElevationOptions from './GetElevationOptions';
 import type GetElevationResult from './GetElevationResult';
-import {
-    getMeridianArcLength,
-    getParallelArcLength,
-    isHorizonVisible,
-    latLonToEcef,
-} from '../core/geographic/WGS84';
+import Ellipsoid from '../core/geographic/Ellipsoid';
 
 /**
  * The default background color of maps.
@@ -295,7 +290,7 @@ export function selectBestSubdivisions(extent: Extent) {
 function computeWGS84ImageSize(extent: Extent): Vector2 {
     const dims = extent.dimensions(tempDims);
 
-    const meridianLength = getMeridianArcLength(dims.height);
+    const meridianLength = Ellipsoid.WGS84.getMeridianArcLength(dims.height);
 
     const centerLatitude = extent.center(tmpWGS84Coordinates).latitude;
 
@@ -305,7 +300,7 @@ function computeWGS84ImageSize(extent: Extent): Vector2 {
     const biggestEdgeLatitude = centerLatitude < 0 ? extent.north() : extent.south();
 
     // Let's compute the radius of the parallel at this latitude
-    const parallelLength = getParallelArcLength(biggestEdgeLatitude, dims.width);
+    const parallelLength = Ellipsoid.WGS84.getParallelArcLength(biggestEdgeLatitude, dims.width);
 
     // Contrary to the version in computeImageSize(), we don't need to swap width and height
     // because the meridian length will always be greater or equal to the parallel length.
@@ -1221,7 +1216,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         const corners = node.getBoundingBoxCorners();
 
         for (const corner of corners) {
-            if (isHorizonVisible(cameraPosition, corner)) {
+            if (Ellipsoid.WGS84.isHorizonVisible(cameraPosition, corner)) {
                 return true;
             }
         }

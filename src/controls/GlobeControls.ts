@@ -13,8 +13,8 @@ import {
 } from 'three';
 import type Instance from '../core/Instance';
 import { isPerspectiveCamera } from '../renderer/Camera';
-import { semiMajorAxis } from '../core/geographic/WGS84';
 import { ConstantSizeSphere } from '../renderer';
+import Ellipsoid from '../core/geographic/Ellipsoid';
 
 const EPSILON = 0.000001;
 const ORIGIN = new Vector3(0, 0, 0);
@@ -128,7 +128,7 @@ export default class GlobeControls extends EventDispatcher<GlobeControlsEvents> 
     maxZoom = Infinity;
 
     minDistance = 300;
-    maxDistance = semiMajorAxis * 8;
+    maxDistance = Ellipsoid.WGS84.semiMajorAxis * 8;
     autoRotateSpeed = 2;
 
     minAzimuthAngle = -Infinity; // radians
@@ -269,7 +269,7 @@ export default class GlobeControls extends EventDispatcher<GlobeControlsEvents> 
     }
 
     getAltitude(): number {
-        return this._camera.position.distanceTo(ORIGIN) - semiMajorAxis;
+        return this._camera.position.distanceTo(ORIGIN) - Ellipsoid.WGS84.semiMajorAxis;
     }
 
     //#region motions

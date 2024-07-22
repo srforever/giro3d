@@ -55,7 +55,7 @@ import EmptyTexture from './EmptyTexture';
 import OffsetScale from '../core/OffsetScale';
 import AtlasBuilder from './AtlasBuilder';
 import Capabilities from '../core/system/Capabilities';
-import { getExtentDimensions } from '../core/geographic/WGS84';
+import Ellipsoid from '../core/geographic/Ellipsoid';
 
 const EMPTY_IMAGE_SIZE = 16;
 
@@ -474,7 +474,9 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         };
 
         const dim =
-            extent.crs() === 'EPSG:4326' ? getExtentDimensions(extent) : extent.dimensions();
+            extent.crs() === 'EPSG:4326'
+                ? Ellipsoid.WGS84.getExtentDimensions(extent)
+                : extent.dimensions();
         this.uniforms.tileDimensions = new Uniform(dim);
 
         if (isGlobe) {
