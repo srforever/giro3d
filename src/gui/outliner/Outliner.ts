@@ -1,5 +1,5 @@
 import type GUI from 'lil-gui';
-import type { BufferGeometry, Material, Mesh, Object3D } from 'three';
+import type { BufferGeometry, Material, Mesh, Object3D, Scene } from 'three';
 import { Color } from 'three';
 import type Instance from '../../core/Instance';
 import type { BoundingBoxHelper } from '../../helpers/Helpers';
@@ -15,6 +15,16 @@ interface Filter {
     showHelpers?: boolean;
     searchRegex?: RegExp | null;
     searchQuery: string;
+}
+
+function getHash(scene: Scene): number {
+    let hash = 27 | 0;
+
+    scene.traverse(obj => {
+        hash = (13 * hash + obj.id) | 0;
+    });
+
+    return hash;
 }
 
 /**
@@ -119,8 +129,12 @@ function setAncestorsVisible(obj: OutlinedObject3D) {
     }
 }
 
+function isHelper(obj: Object3D): boolean {
+    return 'isHelper' in obj && obj.isHelper === true;
+}
+
 function shouldBeDisplayedInTree(obj: OutlinedObject3D, filter: Filter) {
-    if ((obj as any).isHelper && !filter.showHelpers) {
+    if (isHelper(obj) && !filter.showHelpers) {
         return false;
     }
 
@@ -158,6 +172,7 @@ class Outliner extends Panel {
     rootNode: HTMLDivElement;
     propView: OutlinerPropertyView;
     selectionHelper?: BoundingBoxHelper;
+    sceneHash: number = null;
 
     /**
      * @param gui - The GUI.
@@ -224,7 +239,7 @@ class Outliner extends Panel {
     select(obj: OutlinedObject3D) {
         this.clearSelection();
 
-        if ((obj as any) === this.selectionHelper) {
+        if ((obj as unknown) === this.selectionHelper) {
             return;
         }
 
@@ -246,6 +261,7 @@ class Outliner extends Panel {
         this.filters.searchQuery = this.filters.searchQuery.trim().toLowerCase();
         this.filters.searchRegex =
             this.filters.searchQuery.length > 0 ? new RegExp(this.filters.searchQuery) : null;
+        this.sceneHash = null;
         this.updateTreeView();
     }
 
@@ -259,6 +275,13 @@ class Outliner extends Panel {
             // we don't want to refresh the treeview if the GUI is collapsed.
             return;
         }
+
+        const hash = getHash(this.instance.scene);
+        if (hash === this.sceneHash) {
+            return;
+        }
+
+        this.sceneHash = hash;
 
         if (this.rootNode) {
             this.treeview.removeChild(this.rootNode);
