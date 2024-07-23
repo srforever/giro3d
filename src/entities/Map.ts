@@ -14,7 +14,7 @@ import {
     Box3,
 } from 'three';
 
-import type Extent from '../core/geographic/Extent';
+import Extent from '../core/geographic/Extent';
 import Layer from '../core/layer/Layer';
 import ColorLayer, { isColorLayer } from '../core/layer/ColorLayer';
 import ElevationLayer, { isElevationLayer } from '../core/layer/ElevationLayer';
@@ -267,8 +267,7 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions): Hillshadin
 }
 
 export function selectBestSubdivisions(extent: Extent) {
-    // TODO this only makes sense if it is the entire WGS84 bounds !
-    if (extent.crs() === 'EPSG:4326') {
+    if (extent.equals(Extent.WGS84)) {
         return { x: 4, y: 2 };
     }
 
@@ -547,6 +546,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         MemoryUsage
 {
     readonly hasLayers = true;
+    private _isGeocentric = false;
     private _segments: number;
     private _hasElevationLayer = false;
     private _colorAtlasDataType: TextureDataType = UnsignedByteType;
@@ -743,8 +743,12 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 
     preprocess() {
-        // TODO clarify
-        if (this.extent.crs() !== 'EPSG:4326') {
+        if (this._instance.referenceCrs === 'EPSG:4978') {
+            this._isGeocentric = true;
+        } else {
+            this._isGeocentric = false;
+            // In a projected coordinate system, we must ensure
+            // that the extent is in the correct projection
             this.extent = this.extent.as(this._instance.referenceCrs);
         }
 
@@ -790,7 +794,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             textureDataType: this._colorAtlasDataType,
             hasElevationLayer: this._hasElevationLayer,
             maxTextureImageUnits: Capabilities.getMaxTextureUnitsCount(),
-            isGlobe: this._instance.referenceCrs === 'EPSG:4978', // TODO
+            isGlobe: this._isGeocentric,
         });
 
         const tile = new TileMesh({
@@ -1204,7 +1208,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         const frustumVisible = context.camera.isBox3Visible(node.getWorldSpaceBoundingBox(tmpBox3));
         let horizonVisible = true;
 
-        if (frustumVisible && this._instance.referenceCrs === 'EPSG:4978') {
+        if (frustumVisible && this._isGeocentric) {
             horizonVisible = this.testHorizonVisibility(node, context);
         }
 
@@ -1611,7 +1615,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 
     private shouldSubdivide(context: Context, node: TileMesh): boolean {
-        if (this._instance.referenceCrs === 'EPSG:4978') {
+        if (this._isGeocentric) {
             if (node.level >= this.maxSubdivisionLevel) {
                 return false;
             }
@@ -1646,7 +1650,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
      */
     setSunDirection(direction: Vector3) {
         // No effect outside of globe mode
-        if (this._instance.referenceCrs === 'EPSG:4978') {
+        if (this._isGeocentric) {
             this._sunDirection.copy(direction);
             this.materialOptions.hillshading.sunDirection = this._sunDirection;
             this._instance.notifyChange(this);
