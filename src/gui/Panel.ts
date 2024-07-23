@@ -20,6 +20,24 @@ abstract class Panel {
     /** The controllers. */
     protected _controllers: Controller[];
 
+    isClosed() {
+        const isGuiClosed = (gui: GUI) => {
+            return gui._closed;
+        };
+
+        let current = this.gui;
+
+        while (current != null) {
+            if (isGuiClosed(current)) {
+                return true;
+            } else {
+                current = current.parent;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * @param parentGui - The parent GUI.
      * @param instance - The Giro3D instance.
@@ -107,7 +125,7 @@ abstract class Panel {
      *
      */
     update() {
-        if (!this.gui._closed) {
+        if (!this.isClosed()) {
             this.updateControllers();
         }
     }

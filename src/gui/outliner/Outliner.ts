@@ -271,7 +271,7 @@ class Outliner extends Panel {
     }
 
     updateTreeView() {
-        if (this.gui._closed) {
+        if (this.isClosed()) {
             // we don't want to refresh the treeview if the GUI is collapsed.
             return;
         }

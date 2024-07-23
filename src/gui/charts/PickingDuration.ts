@@ -89,7 +89,7 @@ class PickingDuration extends ChartPanel {
     }
 
     updateValues() {
-        if (this.gui._closed) {
+        if (this.isClosed()) {
             return;
         }
 
