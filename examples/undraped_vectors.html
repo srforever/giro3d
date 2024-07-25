@@ -1,0 +1,211 @@
+---
+title: Undraped vectors
+shortdesc: Display GeoJSON files as meshes and symbols.
+longdesc: The <a target="_blank" href="/apidoc/classes/entities.FeatureCollection.html"><code>FeatureCollection</code></a> entity can display simple features as meshes, that do not require a map to display. The benefits are a reduced memory usage and lower latency when updating the styles. The entity supports fully dynamic fill, stroke and point <a target="_blank" href="/apidoc/types/core.features.FeatureStyle.html"><code>styles</code></a>. Whenever the style of a feature changes, call <a target="_blank" href="/apidoc/classes/entities.FeatureCollection.html#updateStyles"><code>updateStyles()</code></a> with the updated object(s).
+dependencies: ['colormap']
+tags: [mesh, style, vectors]
+---
+
+<div class="side-pane-with-status-bar pe-none" style="width: 20rem">
+    <!--Parameters -->
+    <div class="card">
+        <div class="card-header">Style</div>
+
+        <div class="card-body">
+            <div class="input-group mb-3">
+                <label class="input-group-text" for="color-mode">Color</label>
+                <select class="form-select" id="color-mode" autocomplete="off">
+                    <option value="continent" selected>Per continent</option>
+                    <option value="population">Population</option>
+                    <option value="gdp">GDP</option>
+                </select>
+            </div>
+
+            <div class="card mb-3" id="colors">
+                <div class="card-header">Colors</div>
+                <div class="card-body">
+                    <!-- North America -->
+                    <label class="form-check-label w-100 mb-2" for="North America">
+                        <div class="row">
+                            <div class="col">North America</div>
+                            <div class="col">
+                                <input
+                                    type="color"
+                                    class="form-control form-control-color float-end h-100 w-100"
+                                    id="North America"
+                                    value="#2978b4"
+                                    title="color"
+                                />
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- South America -->
+                    <label class="form-check-label w-100 mb-2" for="South America">
+                        <div class="row">
+                            <div class="col">South America</div>
+                            <div class="col">
+                                <input
+                                    type="color"
+                                    class="form-control form-control-color float-end h-100 w-100"
+                                    id="South America"
+                                    value="#2978b4"
+                                    title="color"
+                                />
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Asia -->
+                    <label class="form-check-label w-100 mb-2" for="Asia">
+                        <div class="row">
+                            <div class="col">Asia</div>
+                            <div class="col">
+                                <input
+                                    type="color"
+                                    class="form-control form-control-color float-end h-100 w-100"
+                                    id="Asia"
+                                    value="#2978b4"
+                                    title="color"
+                                />
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Europe -->
+                    <label class="form-check-label w-100 mb-2" for="Europe">
+                        <div class="row">
+                            <div class="col">Europe</div>
+                            <div class="col">
+                                <input
+                                    type="color"
+                                    class="form-control form-control-color float-end h-100 w-100"
+                                    id="Europe"
+                                    value="#2978b4"
+                                    title="color"
+                                />
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Africa -->
+                    <label class="form-check-label w-100 mb-2" for="Africa">
+                        <div class="row">
+                            <div class="col">Africa</div>
+                            <div class="col">
+                                <input
+                                    type="color"
+                                    class="form-control form-control-color float-end h-100 w-100"
+                                    id="Africa"
+                                    value="#2978b4"
+                                    title="color"
+                                />
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Oceania -->
+                    <label class="form-check-label w-100 mb-2" for="Oceania">
+                        <div class="row">
+                            <div class="col">Oceania</div>
+                            <div class="col">
+                                <input
+                                    type="color"
+                                    class="form-control form-control-color float-end h-100 w-100"
+                                    id="Oceania"
+                                    value="#2978b4"
+                                    title="color"
+                                />
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Line width slider -->
+            <div class="row">
+                <div class="col">
+                    <label for="line-width" class="form-label">Line width</label>
+                </div>
+                <div class="col">
+                    <input
+                        type="range"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value="2"
+                        class="form-range"
+                        id="line-width"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+
+            <!-- Image size -->
+            <div class="row">
+                <div class="col">
+                    <label for="image-size" class="form-label">Image size</label>
+                </div>
+                <div class="col">
+                    <input
+                        type="range"
+                        min="8"
+                        max="256"
+                        step="1"
+                        value="64"
+                        class="form-range"
+                        id="image-size"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+
+            <!-- Stroke opacity -->
+            <div class="row">
+                <div class="col">
+                    <label for="stroke-opacity" class="form-label">Stroke opacity</label>
+                </div>
+                <div class="col">
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value="1"
+                        class="form-range"
+                        id="stroke-opacity"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+
+            <!-- Fill opacity -->
+            <div class="row">
+                <div class="col">
+                    <label for="fill-opacity" class="form-label">Fill opacity</label>
+                </div>
+                <div class="col">
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value="1"
+                        class="form-range"
+                        id="fill-opacity"
+                        autocomplete="off"
+                    />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-3" id="attributes" style="display: none">
+        <div class="card-header">Attributes</div>
+
+        <div class="card-body">
+            <!-- Result table -->
+            <div id="results"></div>
+        </div>
+    </div>
+</div>

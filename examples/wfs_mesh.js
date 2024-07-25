@@ -1,10 +1,10 @@
 import { Color, CubeTextureLoader } from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
+import { MathUtils } from 'three/src/math/MathUtils.js';
 
 import GeoJSON from 'ol/format/GeoJSON.js';
 import VectorSource from 'ol/source/Vector.js';
-import TileWMS from 'ol/source/TileWMS.js';
 import { createXYZ } from 'ol/tilegrid.js';
 import { tile } from 'ol/loadingstrategy.js';
 
@@ -14,9 +14,11 @@ import ColorLayer from '@giro3d/giro3d/core/layer/ColorLayer.js';
 import Inspector from '@giro3d/giro3d/gui/Inspector.js';
 import FeatureCollection from '@giro3d/giro3d/entities/FeatureCollection.js';
 import Map from '@giro3d/giro3d/entities/Map.js';
-import TiledImageSource from '@giro3d/giro3d/sources/TiledImageSource.js';
+import WmtsSource from '@giro3d/giro3d/sources/WmtsSource.js';
 
 import StatusBar from './widgets/StatusBar.js';
+
+import { bindToggle } from './widgets/bindToggle.js';
 
 // Define projection that we will use (taken from https://epsg.io/3946, Proj4js section)
 Instance.registerCRS(
@@ -25,7 +27,7 @@ Instance.registerCRS(
 );
 
 // Define a geographic extent: CRS, min/max X, min/max Y
-const extent = new Extent('EPSG:3946', 1837816.94334, 1847692.32501, 5170036.4587, 5178412.82698);
+const extent = Extent.fromCenterAndSize('EPSG:3946', { x: 1842741, y: 5174060 }, 30000, 30000);
 // `viewerDiv` will contain Giro3D' rendering area (the canvas element)
 const viewerDiv = document.getElementById('viewerDiv');
 
@@ -36,22 +38,22 @@ const instance = new Instance(viewerDiv, { crs: 'EPSG:3946' });
 const map = new Map('planar', { extent });
 instance.add(map);
 
-// Adds a WMS imagery layer
-const olSource = new TileWMS({
-    url: 'https://data.geopf.fr/wms-r',
-    projection: 'EPSG:3946',
-    params: {
-        LAYERS: ['HR.ORTHOIMAGERY.ORTHOPHOTOS'],
-        FORMAT: 'image/jpeg',
-    },
-});
-const wmsSource = new TiledImageSource({ source: olSource });
+const capabilitiesUrl =
+    'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities';
 
-const colorLayer = new ColorLayer({
-    name: 'wms_imagery',
-    source: wmsSource,
-});
-map.addLayer(colorLayer);
+WmtsSource.fromCapabilities(capabilitiesUrl, {
+    layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
+})
+    .then(orthophotoWmts => {
+        map.addLayer(
+            new ColorLayer({
+                name: 'wmts_orthophotos',
+                extent: map.extent,
+                source: orthophotoWmts,
+            }),
+        );
+    })
+    .catch(console.error);
 
 // define the source of our data
 const busLinesSource = new VectorSource({
@@ -72,6 +74,17 @@ const busLinesSource = new VectorSource({
     strategy: tile(createXYZ({ tileSize: 512 })),
 });
 
+function randColor() {
+    const hue = MathUtils.randFloat(0, 1);
+    return new Color().setHSL(hue, 0.8, 0.5, 'srgb');
+}
+
+function makeStyle() {
+    return { color: randColor(), width: 8, renderOrder: MathUtils.randInt(0, 200) };
+}
+
+const lineStyles = {};
+
 // Create the `FeatureCollection` entity that will load our features as meshes.
 const busLines = new FeatureCollection('bus lines', {
     source: busLinesSource,
@@ -82,16 +95,29 @@ const busLines = new FeatureCollection('bus lines', {
     // we can modify the mesh through the `style` property
     style: feat => {
         const lineName = feat.getProperties().ligne;
+        const selected = feat.get('selected');
         // color according to line name
-        let color;
-        if (lineName.startsWith('C')) {
-            color = new Color('red');
-        } else if (lineName.startsWith('S')) {
-            color = new Color('yellow');
-        } else {
-            color = new Color('blue');
+        if (!lineStyles[lineName]) {
+            lineStyles[lineName] = makeStyle();
         }
-        return { color };
+        const { color, width, renderOrder } = lineStyles[lineName];
+        let lineWidth = width ?? 20;
+        let lineColor = color ?? new Color('white');
+
+        if (selected) {
+            lineWidth *= 1.5;
+            lineColor = 'red';
+        }
+
+        return {
+            stroke: {
+                color: lineColor,
+                lineWidth,
+                lineWidthUnits: 'world',
+                depthTest: false,
+                renderOrder: selected ? 2000 : renderOrder,
+            },
+        };
     },
 });
 
@@ -119,15 +145,21 @@ const busStopSource = new VectorSource({
 const busStops = new FeatureCollection('bus stops', {
     source: busStopSource,
     extent,
-    minLevel: 3,
-    maxLevel: 3,
+    minLevel: 0,
+    maxLevel: 0,
     elevation: 50,
-    // we can use the `style` callback, but it's also possible to modify the resulting mesh directly
-    // with the `onMeshCreated` option
-    onMeshCreated: mesh => {
-        mesh.material.size = 5;
-        mesh.material.sizeAttenuation = false;
-        mesh.material.color = new Color('#ffe44c');
+    style: feat => {
+        const selected = feat.get('selected');
+        const image = 'https://3d.oslandia.com/giro3d/images/bus-front.png';
+
+        return {
+            point: {
+                color: 'white',
+                pointSize: selected ? 40 : 20,
+                image,
+                renderOrder: selected ? 3000 : 2500,
+            },
+        };
     },
 });
 instance.add(busStops);
@@ -146,9 +178,10 @@ const cubeTexture = cubeTextureLoader.load([
 instance.scene.background = cubeTexture;
 
 // Place camera at the bottom left corner of the map
-instance.camera.camera3D.position.set(extent.west(), extent.south(), 10000);
+const center = extent.centerAsVector3();
+instance.camera.camera3D.position.set(center.x - 300, center.y - 300, 5000);
 // and look at the center of our extent
-instance.camera.camera3D.lookAt(extent.centerAsVector3());
+instance.camera.camera3D.lookAt(center);
 // we need to tell Giro3D we changed the camera position
 instance.notifyChange(instance.camera.camera3D);
 
@@ -164,40 +197,59 @@ controls.dampingFactor = 0.2;
 
 instance.useTHREEControls(controls);
 
-// display labels
-const text = document.createElement('div');
-text.className = 'label';
-// Any CSS style is supported
-text.style.color = '#ffffff';
-text.style.padding = '0.2em 1em';
-text.style.maxWidth = '200px';
-text.style.border = '2px solid #cccccc';
-text.style.backgroundColor = '#080808';
-text.style.textAlign = 'center';
-text.style.opacity = 0.7;
+const labelElement = document.createElement('div');
+labelElement.classList = 'badge rounded-pill text-bg-light';
+labelElement.style.marginTop = '2rem';
 
-const wrapper = document.createElement('div');
-wrapper.style.marginTop = '2rem';
-wrapper.appendChild(text);
-// then wrap it in a CSS2DObject
-const label = new CSS2DObject(wrapper);
+const text = document.createElement('span');
+text.style.marginLeft = '0.5rem';
+
+const busStopSymbol = document.createElement('i');
+busStopSymbol.classList.add('bi', 'bi-geo-alt-fill');
+
+const busLineSymbol = document.createElement('i');
+busLineSymbol.classList.add('bi', 'bi-bus-front-fill');
+
+labelElement.appendChild(text);
+
+const label = new CSS2DObject(labelElement);
+
+label.visible = false;
 instance.add(label);
 
-instance.domElement.addEventListener('mousemove', e => {
+let previousObjects = [];
+const objectsToUpdate = [];
+
+function pick(e) {
+    previousObjects.forEach(obj => obj.userData.feature.set('selected', false));
+
     const found = instance
         .pickObjectsAt(e, {
-            radius: 2,
-            limit: 1,
+            // radius: 2,
+            // limit: 1,
+            preferRaycasting: true,
+            sortByDistance: true,
             where: [busStops, busLines],
         })
         .at(0);
+
     if (found) {
         const obj = found.object;
-        if (found.entity === busStops) {
-            text.innerText = `Bus stop "${obj.userData.properties.nom}"`;
-        } else if (found.entity === busLines) {
-            text.innerText = `Bus line ${obj.userData.properties.ligne}`;
+        const feature = obj.userData.feature;
+        if (feature) {
+            feature.set('selected', true);
+            objectsToUpdate.push(obj);
         }
+        if (found.entity === busStops) {
+            text.innerText = `Bus stop "${feature.get('nom')}"`;
+            labelElement.insertBefore(busStopSymbol, text);
+            busLineSymbol.remove();
+        } else if (found.entity === busLines) {
+            text.innerText = `Bus line ${feature.get('ligne')}`;
+            labelElement.insertBefore(busLineSymbol, text);
+            busStopSymbol.remove();
+        }
+
         // Virtually any inner markup is supported, here we're just inserting text
         label.name = text.innerText;
         // take the middle vertex as position
@@ -209,6 +261,27 @@ instance.domElement.addEventListener('mousemove', e => {
         label.visible = false;
         instance.notifyChange(label);
     }
+
+    // instance.notifyChange([...previousObjects, ...objectsToUpdate]);
+    busLines.updateStyles();
+    busStops.updateStyles();
+    previousObjects = [...objectsToUpdate];
+    objectsToUpdate.length = 0;
+}
+
+instance.domElement.addEventListener('mousemove', pick);
+
+bindToggle('showBusStops', v => {
+    busStops.visible = v;
+    instance.notifyChange();
+});
+bindToggle('showBusLines', v => {
+    busLines.visible = v;
+    instance.notifyChange();
+});
+bindToggle('showMap', v => {
+    map.visible = v;
+    instance.notifyChange();
 });
 
 Inspector.attach(document.getElementById('panelDiv'), instance);

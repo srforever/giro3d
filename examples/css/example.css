@@ -123,6 +123,7 @@ pre {
   top: 0px;
   right: 0px;
   pointer-events: none;
+  overflow-y: auto;
   bottom: 1.5rem; /* 1.3rem for status bar + 0.5 for bottom margin */
   max-width: calc(100% - 4rem); /* To avoid masking the button area */
 }

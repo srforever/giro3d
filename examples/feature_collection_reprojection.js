@@ -13,6 +13,7 @@ import FeatureCollection from '@giro3d/giro3d/entities/FeatureCollection.js';
 import Coordinates from '@giro3d/giro3d/core/geographic/Coordinates';
 
 import StatusBar from './widgets/StatusBar.js';
+import { MathUtils } from 'three/src/math/MathUtils.js';
 
 // Defines projection that we will use (taken from https://epsg.io/2154, Proj4js section)
 Instance.registerCRS(
@@ -30,16 +31,41 @@ const arrondissementSource = new VectorSource({
     url: './data/paris_arrondissements.geojson',
 });
 
+function getHue(area) {
+    const minArea = 991153;
+    const maxArea = 16372542;
+    const hue = MathUtils.mapLinear(area, minArea, maxArea, 0.2, 0.8);
+
+    return MathUtils.clamp(hue, 0, 1);
+}
+
 // feat get automatically reprojected
 const arrondissements = new FeatureCollection('arrondissements', {
     source: arrondissementSource,
     extent,
+    ignoreZ: true,
     minLevel: 0,
     maxLevel: 0,
-    style: () => {
-        const grayLevel = Math.random();
+    style: feature => {
+        // The style depends on the polygon's area
+        const t = getHue(feature.get('surface'));
+        const highlight = feature.get('highlight');
+        const brightness = highlight ? 1 : 0.7;
+        const color = new Color().setHSL(0, t, brightness * t, 'srgb');
+
         return {
-            color: new Color(grayLevel, grayLevel, grayLevel),
+            fill: {
+                color,
+                depthTest: false,
+                renderOrder: 1,
+            },
+            stroke: highlight
+                ? {
+                      color: 'white',
+                      depthTest: false,
+                      renderOrder: 2,
+                  }
+                : null,
         };
     },
 });
@@ -54,18 +80,27 @@ const perimeterqaaSource = new VectorSource({
 const perimeterqaa = new FeatureCollection('perimeterqaa', {
     source: perimeterqaaSource,
     extent,
+    ignoreZ: true,
     minLevel: 0,
     maxLevel: 0,
-    // this is necessary to avoid z-fighting, as both perimeterqaa and arrondissements are at z=0
-    onMeshCreated: mesh => {
-        // let's ignore depthTest to avoid z-fighting
-        mesh.material.depthTest = false;
-    },
-    style: {
-        color: '#41822d',
+    style: feature => {
+        const highlight = feature.get('highlight');
+        return {
+            fill: {
+                color: highlight ? '#5d914d' : '#41822d',
+                depthTest: false,
+                opacity: 0.7,
+                renderOrder: 3,
+            },
+            stroke: {
+                color: '#85f516',
+                lineWidth: highlight ? 4 : 1,
+                depthTest: false,
+                renderOrder: 4,
+            },
+        };
     },
 });
-perimeterqaa.renderOrder = 2;
 instance.add(perimeterqaa);
 
 // a WFS source in 3857
@@ -84,33 +119,45 @@ const bdTopoSource = new VectorSource({
             '&bbox='
         }${bbox.join(',')},EPSG:3857`;
     },
-    // this is necessary to avoid z-fighting
-    onMeshCreated: mesh => {
-        mesh.material.depthTest = false;
-    },
     strategy: tile(createXYZ({ tileSize: 512 })),
 });
 const feat = new FeatureCollection('buildings', {
     source: bdTopoSource,
     // we specify that FeatureCollection should reproject the features before displaying them
     dataProjection: 'EPSG:3857',
+    // We are working on a flat, 2D scene, so we must ignore the Z coordinate of features, if any.
+    ignoreZ: true,
     extent,
     style: feature => {
         const properties = feature.getProperties();
+        const highlighted = properties.highlight;
         let color = '#FFFFFF';
-        if (properties.usage_1 === 'Résidentiel') {
-            color = '#9d9484';
-        } else if (properties.usage_1 === 'Commercial et services') {
-            color = '#b0ffa7';
+
+        if (highlighted) {
+            color = 'cyan';
+        } else {
+            if (properties.usage_1 === 'Résidentiel') {
+                color = '#9d9484';
+            } else if (properties.usage_1 === 'Commercial et services') {
+                color = '#b0ffa7';
+            }
         }
-        return { color };
+        return {
+            fill: {
+                color,
+                depthTest: false,
+                renderOrder: 5,
+            },
+            stroke: {
+                color: 'black',
+                renderOrder: 6,
+                depthTest: false,
+            },
+        };
     },
     minLevel: 11,
     maxLevel: 11,
 });
-// In case we want to display transparent buildings, we have to make sure they render *after* the
-// Map, so that you can see the map through them. Otherwise, we would see the skybox!
-feat.renderOrder = 3;
 
 instance.add(feat);
 
@@ -137,16 +184,21 @@ instance.useTHREEControls(controls);
 // information on click
 const resultTable = document.getElementById('results');
 
-function resetColor(o) {
-    if (o.material && o.userData.oldColor) {
-        o.material.color = o.userData.oldColor;
+let previousObjects = [];
+const objectsToUpdate = [];
+
+function createResultTable(values) {
+    resultTable.innerHTML = '';
+
+    for (const value of values) {
+        const child = document.createElement('li');
+        // child.classList.add('list-group-item');
+        child.innerText = value;
+        resultTable.appendChild(child);
     }
 }
 
 function pick(e) {
-    // first reset the colors
-    arrondissements.object3d.traverse(resetColor);
-    perimeterqaa.object3d.traverse(resetColor);
     instance.notifyChange();
     // pick objects
     const pickedObjects = instance.pickObjectsAt(e, {
@@ -154,39 +206,41 @@ function pick(e) {
         where: [arrondissements, perimeterqaa],
     });
 
+    // Reset highlights
+    previousObjects.forEach(o => o.userData.feature.set('highlight', false));
+
+    const tableValues = [];
+
     if (pickedObjects.length !== 0) {
         resultTable.innerHTML = '';
-        let arrondissementLabel = null;
-        let accessibilityZoneLabel = '';
+
         for (const p of pickedObjects) {
             const obj = p.object;
 
-            // init the oldColor the first time
-            if (!obj.userData.oldColor) {
-                obj.userData.oldColor = obj.material.color;
+            const feature = obj.userData.feature;
+            const entity = obj.userData.parentEntity;
+
+            objectsToUpdate.push(obj);
+
+            if (entity === arrondissements) {
+                tableValues.push(feature.get('l_ar'));
             }
-            if (obj.userData.parentEntity === arrondissements) {
-                arrondissementLabel = obj.userData.properties.l_ar;
-            }
-            if (obj.userData.parentEntity === perimeterqaa) {
-                accessibilityZoneLabel = 'Improved Accessibility Zone';
+            if (entity === perimeterqaa) {
+                tableValues.push('Improved Accessibility Zone');
             }
             // highlight it
-            obj.material.color = obj.userData.oldColor.clone().multiplyScalar(0.6);
+            feature.set('highlight', true);
         }
-        resultTable.innerHTML = `${arrondissementLabel}<br>${accessibilityZoneLabel}`;
     }
+
+    createResultTable(tableValues);
+
+    instance.notifyChange([...previousObjects, ...objectsToUpdate]);
+    previousObjects = [...objectsToUpdate];
+    objectsToUpdate.length = 0;
 }
 
 instance.domElement.addEventListener('mousemove', pick);
-
-// NOTE: let's not forget to clean our event when the entity is removed, otherwise the webglrenderer
-// recreates everything when picking.
-instance.addEventListener('entity-removed', () => {
-    if (instance.getObjects(obj => obj.id === feat.id).length === 0) {
-        instance.domElement.removeEventListener('mousemove', pick);
-    }
-});
 
 // Bind events
 Inspector.attach(document.getElementById('panelDiv'), instance);

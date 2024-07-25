@@ -72,7 +72,7 @@ class InstanceInspector extends Panel {
     }
 
     update() {
-        if (!this.gui._closed) {
+        if (!this.isClosed()) {
             this.updateControllers();
             this.webGlRendererPanel.update();
             this.enginePanel.update();

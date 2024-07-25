@@ -10,6 +10,6 @@
         },
         "typeRoots": ["../build/giro3d/*"],
         "allowJs": true,
-        "lib": ["DOM"]
+        "lib": ["DOM", "ES2021"]
     }
 }

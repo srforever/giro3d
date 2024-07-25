@@ -18,6 +18,7 @@ import Tiles3D, { type Tiles3DOptions, type Tiles3DPickResult } from './Tiles3D'
 import FeatureCollection, {
     type OnMeshCreatedCallback,
     type OnTileCreatedCallback,
+    type MeshUserData,
 } from './FeatureCollection';
 import type GetElevationOptions from './GetElevationOptions';
 import type GetElevationResult from './GetElevationResult';
@@ -50,6 +51,7 @@ export {
     Tiles3DOptions,
     Tiles3DPickResult,
     FeatureCollection,
+    MeshUserData,
     OnMeshCreatedCallback,
     OnTileCreatedCallback,
     Shape,

@@ -111,9 +111,17 @@ class MainLoop {
         this._changeSources = new Set<unknown>();
     }
 
-    scheduleUpdate(instance: Instance, forceRedraw: boolean, changeSource: unknown = undefined) {
+    scheduleUpdate(
+        instance: Instance,
+        forceRedraw: boolean,
+        changeSource: unknown | unknown[] = undefined,
+    ) {
         if (changeSource) {
-            this._changeSources.add(changeSource);
+            if (Array.isArray(changeSource)) {
+                changeSource.forEach(s => this._changeSources.add(s));
+            } else {
+                this._changeSources.add(changeSource);
+            }
         }
         this._needsRedraw = this._needsRedraw || forceRedraw;
 

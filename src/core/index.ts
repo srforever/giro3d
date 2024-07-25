@@ -36,6 +36,7 @@ import {
 } from './FeatureTypes';
 import type GraticuleOptions from './GraticuleOptions';
 import type HillshadingOptions from './HillshadingOptions';
+import * as features from './FeatureTypes';
 import type Disposable from './Disposable';
 import type OffsetScale from './OffsetScale';
 
@@ -45,6 +46,7 @@ export {
     cache,
     picking,
     OffsetScale,
+    features,
     Disposable,
     Instance,
     InstanceOptions,
