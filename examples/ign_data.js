@@ -2,11 +2,7 @@ import {
     Vector3,
     CubeTextureLoader,
     DirectionalLight,
-    MeshLambertMaterial,
     AmbientLight,
-    Mesh,
-    Material,
-    DoubleSide,
     Fog,
     Color,
     MathUtils,
@@ -45,8 +41,9 @@ const SKY_COLOR = new Color(0xf1e9c6);
 const viewerDiv = document.getElementById('viewerDiv');
 const instance = new Instance(viewerDiv, { crs: 'EPSG:2154', renderer: { clearColor: SKY_COLOR } });
 
-// create a map
 const extent = new Extent('EPSG:2154', -111629.52, 1275028.84, 5976033.79, 7230161.64);
+
+// create a map
 const map = new Giro3dMap('planar', {
     extent,
     backgroundColor: 'gray',
@@ -55,16 +52,17 @@ const map = new Giro3dMap('planar', {
         elevationLayersOnly: true,
     },
     discardNoData: true,
-    doubleSided: false,
+    doubleSided: true,
 });
+
 instance.add(map);
 
 const noDataValue = -1000;
 
-const capabilitiesUrl =
-    'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities';
+const url = 'https://data.geopf.fr/wmts?SERVICE=WMTS&VERSION=1.0.0&REQUEST=GetCapabilities';
 
-WmtsSource.fromCapabilities(capabilitiesUrl, {
+// Let's build the elevation layer from the WMTS capabilities
+WmtsSource.fromCapabilities(url, {
     layer: 'ELEVATION.ELEVATIONGRIDCOVERAGE.HIGHRES',
     format: new BilFormat(),
     noDataValue,
@@ -72,9 +70,11 @@ WmtsSource.fromCapabilities(capabilitiesUrl, {
     .then(elevationWmts => {
         map.addLayer(
             new ElevationLayer({
-                name: 'wmts_elevation',
+                name: 'elevation',
                 extent: map.extent,
-                // We don't need the full resolution of terrain because we are not using any shading
+                // We don't need the full resolution of terrain
+                // because we are not using any shading. This will save a lot of memory
+                // and make the terrain faster to load.
                 resolutionFactor: 0.25,
                 minmax: { min: 0, max: 5000 },
                 noDataOptions: {
@@ -86,13 +86,14 @@ WmtsSource.fromCapabilities(capabilitiesUrl, {
     })
     .catch(console.error);
 
-WmtsSource.fromCapabilities(capabilitiesUrl, {
+// Let's build the color layer from the WMTS capabilities
+WmtsSource.fromCapabilities(url, {
     layer: 'HR.ORTHOIMAGERY.ORTHOPHOTOS',
 })
     .then(orthophotoWmts => {
         map.addLayer(
             new ColorLayer({
-                name: 'wmts_orthophotos',
+                name: 'color',
                 extent: map.extent,
                 source: orthophotoWmts,
             }),
@@ -100,7 +101,7 @@ WmtsSource.fromCapabilities(capabilitiesUrl, {
     })
     .catch(console.error);
 
-const vectorSource = new VectorSource({
+const buildingSource = new VectorSource({
     format: new GeoJSON(),
     url: function url(bbox) {
         return `${
@@ -118,38 +119,86 @@ const vectorSource = new VectorSource({
     strategy: tile(createXYZ({ tileSize: 512 })),
 });
 
-const feat = new FeatureCollection('buildings', {
-    source: vectorSource,
+const hoverColor = new Color('yellow');
+
+// This is the style function that will assign a different style depending on a feature's attribute.
+// The `feature` argument is an OpenLayers feature.
+const buildingStyle = feature => {
+    const properties = feature.getProperties();
+    let fillColor = '#FFFFFF';
+
+    const hovered = properties.hovered ?? false;
+    const clicked = properties.clicked ?? false;
+
+    switch (properties.usage_1) {
+        case 'Industriel':
+            fillColor = '#f0bb41';
+            break;
+        case 'Agricole':
+            fillColor = '#96ff0d';
+            break;
+        case 'Religieux':
+            fillColor = '#41b5f0';
+            break;
+        case 'Sportif':
+            fillColor = '#ff0d45';
+            break;
+        case 'Résidentiel':
+            fillColor = '#cec8be';
+            break;
+        case 'Commercial et services':
+            fillColor = '#d8ffd4';
+            break;
+    }
+
+    const fill = clicked
+        ? 'yellow'
+        : hovered
+          ? new Color(fillColor).lerp(hoverColor, 0.2) // Let's use a slightly brighter color for hover
+          : fillColor;
+
+    return {
+        fill: {
+            color: fill,
+        },
+        stroke: {
+            color: clicked ? 'yellow' : hovered ? 'white' : 'black',
+            lineWidth: clicked ? 5 : undefined,
+        },
+    };
+};
+
+// Let's compute the extrusion offset of building polygons to give them walls.
+const extrusionOffsetCallback = feature => {
+    const properties = feature.getProperties();
+    const buildingHeight = properties['hauteur'];
+    const extrusionOffset = -buildingHeight;
+
+    if (Number.isNaN(extrusionOffset)) {
+        return null;
+    }
+    return extrusionOffset;
+};
+
+const featureCollection = new FeatureCollection('buildings', {
+    source: buildingSource,
     extent,
-    material: new MeshLambertMaterial(),
-    extrusionOffset: feature => {
-        const hauteur = -feature.getProperties().hauteur;
-        if (Number.isNaN(hauteur)) {
-            return null;
-        }
-        return hauteur;
-    },
-    style: feature => {
-        const properties = feature.getProperties();
-        let color = '#FFFFFF';
-        if (properties.usage_1 === 'Résidentiel') {
-            color = '#cec8be';
-        } else if (properties.usage_1 === 'Commercial et services') {
-            color = '#d8ffd4';
-        }
-        return { color };
-    },
+    extrusionOffset: extrusionOffsetCallback,
+    style: buildingStyle,
     minLevel: 11,
     maxLevel: 11,
 });
-// In case we want to display transparent buildings, we have to make sure they render *after* the
-// Map, so that you can see the map through them. Otherwise, we would see the skybox!
-feat.renderOrder = 1;
 
-instance.add(feat);
+instance.add(featureCollection);
+
+// To make sure that the buildings remain correctly displayed whenever
+// one entity become transparent (i.e it's opacity is less than 1), we need
+// to set the render of the feature collection to be greater than the map's.
+map.renderOrder = 0;
+featureCollection.renderOrder = 1;
 
 // also add some lights
-const sun = new DirectionalLight('#ffffff', 1.4);
+const sun = new DirectionalLight('#ffffff', 2);
 sun.position.set(1, 0, 1).normalize();
 sun.updateMatrixWorld(true);
 instance.scene.add(sun);
@@ -164,18 +213,20 @@ instance.scene.add(sun2);
 const ambientLight = new AmbientLight(0xffffff, 0.2);
 instance.scene.add(ambientLight);
 
-// place camera above grenoble
+// place camera above Grenoble
 instance.camera.camera3D.position.set(913349.2364044407, 6456426.459171033, 1706.0108044011636);
+
 // and look at the Bastille
 const lookAt = new Vector3(913896, 6459191, 200);
 instance.camera.camera3D.lookAt(lookAt);
+
 // Notify Giro3D we've changed the three.js camera position directly
 instance.notifyChange(instance.camera.camera3D);
 
 // Creates controls
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
 controls.enableDamping = true;
-controls.dampingFactor = 0.2;
+controls.dampingFactor = 0.4;
 
 // you need to use these 2 lines each time you change the camera lookAt or position programatically
 controls.target.copy(lookAt);
@@ -202,87 +253,113 @@ Inspector.attach(document.getElementById('panelDiv'), instance);
 // information on click
 const resultTable = document.getElementById('results');
 
-/** @type {Map<Mesh, Material>} */
-const previouslyPickedObjects = new Map();
+let lastCameraPosition = new Vector3(0, 0, 0);
+const tempVec3 = new Vector3(0, 0, 0);
 
-const pickedMaterial = new MeshLambertMaterial({ color: '#3581b8', side: DoubleSide });
-
-function pick(e) {
-    const pickedObjects = instance.pickObjectsAt(e, { where: [feat] });
-    for (const [key, value] of previouslyPickedObjects) {
-        // Reset material of previous objects
-        key.material = value;
+function truncate(value, length) {
+    if (value == null) {
+        return null;
     }
-    previouslyPickedObjects.clear();
-    instance.notifyChange();
 
-    if (pickedObjects.length > 0) {
-        resultTable.innerHTML = '';
+    const text = `${value}`;
+
+    if (text.length < length) {
+        return text;
     }
-    if (pickedObjects.length !== 0) {
-        // let's remove duplicates, because picking can find one match per face for the same object
-        const pickedMap = new Map();
-        for (const p of pickedObjects) {
-            pickedMap.set(p.object.userData.id, p.object);
-            if (!previouslyPickedObjects.has(p.object)) {
-                previouslyPickedObjects.set(p.object, p.object.material);
-                p.object.material = pickedMaterial;
+
+    return text.substring(0, length) + '…';
+}
+
+// Fill the attribute table with the objects' attributes.
+function fillTable(objects) {
+    resultTable.innerHTML = '';
+    document.getElementById('card').style.display = objects.length > 0 ? 'block' : 'none';
+
+    for (const obj of objects) {
+        if (!obj.userData.feature) {
+            continue;
+        }
+        const p = obj.userData.feature.getProperties();
+
+        const entries = [];
+        for (const [key, value] of Object.entries(p)) {
+            if (key !== 'geometry' && key !== 'clicked' && key !== 'hovered') {
+                const entry = `<tr>
+                <td title="${key}"><code>${truncate(key, 12)}</code></td>
+                <td title="${value}">${truncate(value, 18) ?? '<code>null</code>'}</td>
+                </tr>`;
+                entries.push(entry);
             }
         }
-        for (const obj of pickedMap.values()) {
-            const p = obj.userData.properties;
-            let propertiesInfo = '';
-            if (p) {
-                propertiesInfo = `
-                    <tr>
-                        <td>nature</td>
-                        <td>${p.nature}</td>
-                    </tr>
-                    <tr>
-                        <td>Usage 1</td>
-                        <td>${p.usage_1}</td>
-                    </tr>
-                    <tr>
-                        <td>Usage 2</td>
-                        <td>${p.usage_2 || 'Unspecified'}</td>
-                    </tr>
-                    <tr>
-                        <td>number of floor</td>
-                        <td>${p.nombre_d_etages || 'Unspecified'}</td>
-                    </tr>
-                `;
-            }
 
-            resultTable.innerHTML += `
-            <table class="table">
-                <thead>
-                    <tr>
-                        <th scope="col">Name</th>
-                        <th scope="col">Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>id</td>
-                        <td>${obj.userData.id}</td>
-                    </tr>
-                    ${propertiesInfo}
-                </tbody>
-            </table>
-        `;
-        }
+        resultTable.innerHTML += `
+        <table class="table table-sm table-striped">
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${entries.join('')}
+            </tbody>
+        </table>
+    `;
     }
 }
 
-instance.domElement.addEventListener('mousemove', pick);
+const previousHovered = [];
+const previousClicked = [];
+const objectsToUpdate = [];
 
-// NOTE: let's not forget to clean our event when the entity is removed, otherwise the webglrenderer
-// recreates everything when picking.
-instance.addEventListener('entity-removed', () => {
-    if (instance.getObjects(obj => obj.id === feat.id).length === 0) {
-        instance.domElement.removeEventListener('mousemove', pick);
+function pick(e, click) {
+    const pickedObjects = instance.pickObjectsAt(e, {
+        where: [featureCollection],
+    });
+
+    if (click) {
+        previousClicked.forEach(obj => obj.userData.feature.set('clicked', false));
+    } else {
+        previousHovered.forEach(obj => obj.userData.feature.set('hovered', false));
     }
-});
+
+    const property = click ? 'clicked' : 'hovered';
+
+    objectsToUpdate.length = 0;
+
+    if (pickedObjects.length > 0) {
+        const picked = pickedObjects[0];
+        const obj = picked.object;
+        const { feature } = obj.userData;
+
+        feature.set(property, true);
+
+        objectsToUpdate.push(obj);
+    }
+
+    if (click) {
+        fillTable(objectsToUpdate);
+    }
+
+    // To avoid updating all the objects and lose a lot of performance,
+    // we only update the objects that have changed.
+    const updatedObjects = [...previousHovered, ...previousClicked, ...objectsToUpdate];
+    if (click) {
+        previousClicked.splice(0, previousClicked.length, ...objectsToUpdate);
+    } else {
+        previousHovered.splice(0, previousHovered.length, ...objectsToUpdate);
+    }
+
+    if (updatedObjects.length > 0) {
+        featureCollection.updateStyles(updatedObjects);
+    }
+}
+
+const hover = e => pick(e, false);
+const click = e => pick(e, true);
+
+instance.domElement.addEventListener('mousemove', hover);
+instance.domElement.addEventListener('click', click);
 
 const DOWN_VECTOR = new Vector3(0, 0, -1);
 const EARTH_RADIUS = 6_3781_000;
@@ -295,7 +372,7 @@ function processFogAndClippingPlanes(camera) {
     // Compute the tilt, in radians, of the camera.
     const tilt = DOWN_VECTOR.angleTo(camera.camera3D.getWorldDirection(tmpVec3));
 
-    const altitude = camera.camera3D.position.z;
+    const altitude = MathUtils.clamp(camera.camera3D.position.z, 20, 100000);
 
     const maxFarPlane = 9_999_999;
     const actualTilt = MathUtils.clamp(tilt, 0, Math.PI / 3);
