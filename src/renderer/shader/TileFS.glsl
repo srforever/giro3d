@@ -120,23 +120,31 @@ void main() {
 
     float hillshade = 1.;
 
-#if defined(ELEVATION_LAYER)
-    // Step 5 : compute shading
+// Step 5 : compute shading
 #if defined(ENABLE_HILLSHADING)
-    hillshade = calcHillshade(
-        tileDimensions,
-        hillshading,
-        elevationLayer.offsetScale,
-        elevationTexture,
-        elevUv
-    );
-#endif
-#endif
-
-#if defined(ENABLE_HILLSHADING)
-#if defined(IS_GLOBE)
-    hillshade = hillshade * calcGlobeShading(wNormal, hillshading.sunDirection);
-#endif
+    #if defined(IS_GLOBE)
+        #if defined(ELEVATION_LAYER)
+            // Realistic shading based on sun direction
+            hillshade = calcGlobeShadingWithTerrain(
+                tileDimensions,
+                hillshading,
+                elevationLayer.offsetScale,
+                elevationTexture,
+                elevUv,
+                wNormal);
+        #else
+            hillshade = calcGlobeShading(hillshading, wNormal);
+        #endif
+    #elif defined(ELEVATION_LAYER)
+        // Local simplified hillshading
+        hillshade = calcHillshade(
+            tileDimensions,
+            hillshading,
+            elevationLayer.offsetScale,
+            elevationTexture,
+            elevUv
+        );
+    #endif
 #endif
 
 // Shading can be applied either:
