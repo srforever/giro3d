@@ -17,7 +17,7 @@ import {
 
 import type ColorMap from './ColorMap';
 import Interpretation from './Interpretation';
-import type Extent from '../geographic/Extent';
+import Extent from '../geographic/Extent';
 import LayerComposer from './LayerComposer';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils';
 import MemoryTracker from '../../renderer/MemoryTracker';
@@ -692,6 +692,15 @@ abstract class Layer<
         // Implemented in derived classes.
     }
 
+    private getExtentAsSourceCRS(extent: Extent): Extent {
+        const clone = extent.clone();
+        if (clone.crs() === 'EPSG:4326') {
+            // Keep extent in correct domain
+            clone.intersect(Extent.WGS84);
+        }
+        return clone.as(this.source.getCrs());
+    }
+
     /**
      * @param options - Options.
      * @returns A promise that is settled when all images have been fetched.
@@ -712,7 +721,7 @@ abstract class Layer<
 
         const results = this.source.getImages({
             id: `${target.node.id}`,
-            extent: extent.clone().as(this.source.getCrs()),
+            extent: this.getExtentAsSourceCRS(extent),
             width,
             height,
             signal: target.controller.signal,
@@ -1053,6 +1062,13 @@ abstract class Layer<
                 Math.round(textureSize.x * this.resolutionFactor),
                 Math.round(textureSize.y * this.resolutionFactor),
             );
+
+            if (this.getTargetProjection() === 'EPSG:4326') {
+                // Ensure that no extent overflow the WGS84 domain,
+                // to avoid artifacts at the 180° meridian.
+                extent.intersect(this.getExtent());
+            }
+
             const pitch = originalExtent.offsetToParent(extent);
 
             target = new Target({
