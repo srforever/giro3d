@@ -37,6 +37,10 @@ class MapTerrainPanel extends Panel {
             .name('Show collider meshes')
             .onChange(() => this.notify());
 
+        this.addController<boolean>(this.map.materialOptions, 'showExtentCorners')
+            .name('Show extent corners')
+            .onChange(() => this.notify());
+
         this.addController<boolean>(this.map.materialOptions.terrain, 'enableCPUTerrain').name(
             'CPU terrain',
         );
