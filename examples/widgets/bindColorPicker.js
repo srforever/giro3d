@@ -1,3 +1,5 @@
+import { Color } from 'three';
+
 export function bindColorPicker(id, onChange) {
     const colorPicker = document.getElementById(id);
 
@@ -8,7 +10,7 @@ export function bindColorPicker(id, onChange) {
     };
 
     return v => {
-        colorPicker.value = v;
+        colorPicker.value = `#${new Color(v).getHexString()}`;
         onChange(colorPicker.value);
     };
 }
