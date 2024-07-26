@@ -632,6 +632,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         this.materialOptions = {
             showColliderMeshes: false,
+            showExtentCorners: false,
             forceTextureAtlases: options.forceTextureAtlases,
             hillshading: getHillshadingOptions(options.hillshading),
             contourLines: getContourLineOptions(options.contourLines),

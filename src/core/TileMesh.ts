@@ -17,6 +17,10 @@ import {
     Vector3,
     MathUtils,
     Sphere,
+    Group,
+    Points,
+    BufferGeometry,
+    PointsMaterial,
 } from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker';
@@ -63,6 +67,12 @@ const helperMaterial = new MeshBasicMaterial({
     depthWrite: false,
     wireframe: true,
     transparent: true,
+});
+
+const cornerMaterial = new PointsMaterial({
+    color: 'yellow',
+    sizeAttenuation: false,
+    size: 10,
 });
 
 const NO_NEIGHBOUR = -99;
@@ -327,12 +337,16 @@ class TileMesh
     private readonly _tileGeometry: TileGeometry;
     private _shouldUpdateHeightMap = false;
     isLeaf = false;
+    private _helperRoot: Group;
+    private readonly _helpers: {
+        colliderMesh?: Mesh<TileGeometry, MeshBasicMaterial, Object3DEventMap>;
+        extentCorners?: Points<BufferGeometry, PointsMaterial>;
+    } = {};
     private _elevationLayerInfo: {
         layer: ElevationLayer;
         offsetScale: OffsetScale;
         renderTarget: WebGLRenderTarget<Texture>;
     };
-    private _helperMesh: Mesh<TileGeometry, MeshBasicMaterial, Object3DEventMap>;
 
     getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
         const result = target ?? createEmptyReport();
@@ -467,30 +481,63 @@ class TileMesh
         return this.geometry.origin;
     }
 
-    get showHelpers() {
-        if (!this._helperMesh) {
+    get showColliderMesh() {
+        if (!this._helpers.colliderMesh) {
             return false;
         }
-        return this._helperMesh.material.visible;
+        return this._helpers.colliderMesh.material.visible;
     }
 
-    set showHelpers(visible: boolean) {
-        if (visible && !this._helperMesh) {
-            this._helperMesh = new Mesh(this.geometry, helperMaterial);
-            this._helperMesh.matrixAutoUpdate = false;
-            this._helperMesh.name = 'collider helper';
-            this.add(this._helperMesh);
-            this._helperMesh.updateMatrix();
-            this._helperMesh.updateMatrixWorld(true);
+    set showColliderMesh(visible: boolean) {
+        if (visible && !this._helpers.colliderMesh) {
+            this._helpers.colliderMesh = new Mesh(this.geometry, helperMaterial);
+            this._helpers.colliderMesh.matrixAutoUpdate = false;
+            this._helpers.colliderMesh.name = 'collider helper';
+            this.createHelperRootIfNecessary();
+            this._helperRoot.add(this._helpers.colliderMesh);
+            this._helpers.colliderMesh.updateMatrix();
+            this._helpers.colliderMesh.updateMatrixWorld(true);
         }
 
-        if (!visible && this._helperMesh) {
-            this._helperMesh.removeFromParent();
-            this._helperMesh = null;
+        if (!visible && this._helpers.colliderMesh) {
+            this._helpers.colliderMesh.removeFromParent();
+            this._helpers.colliderMesh = null;
         }
 
-        if (this._helperMesh) {
-            this._helperMesh.material.visible = visible;
+        if (this._helpers.colliderMesh) {
+            this._helpers.colliderMesh.material.visible = visible;
+        }
+    }
+
+    get showExtentCorners() {
+        if (!this._helpers.extentCorners) {
+            return false;
+        }
+        return this._helpers.extentCorners.material.visible;
+    }
+
+    set showExtentCorners(visible: boolean) {
+        if (visible && !this._helpers.extentCorners) {
+            this.createHelperRootIfNecessary();
+
+            const geom = new BufferGeometry().setFromPoints(this.getBoundingBoxCorners());
+            const points = new Points(geom, cornerMaterial);
+            points.name = 'corners';
+
+            this._helpers.extentCorners = points;
+            this._helperRoot.attach(points);
+            points.updateMatrix();
+            points.updateMatrixWorld(true);
+        }
+
+        if (!visible && this._helpers.extentCorners) {
+            this._helpers.extentCorners.removeFromParent();
+            this._helpers.extentCorners.geometry.dispose();
+            this._helpers.extentCorners = null;
+        }
+
+        if (this._helpers.extentCorners) {
+            this._helpers.extentCorners.material.visible = visible;
         }
     }
 
@@ -509,12 +556,21 @@ class TileMesh
         }
     }
 
+    private createHelperRootIfNecessary() {
+        if (!this._helperRoot) {
+            this._helperRoot = new Group();
+            this._helperRoot.name = 'helpers';
+            this.add(this._helperRoot);
+            this._helperRoot.updateMatrixWorld(true);
+        }
+    }
+
     private createGeometry() {
         this.geometry = this._enableCPUTerrain
             ? makeRaycastableGeometry(this.extent, this._segments)
             : makePooledGeometry(this._pool, this.extent, this._segments, this.level);
-        if (this._helperMesh) {
-            this._helperMesh.geometry = this.geometry;
+        if (this._helpers.colliderMesh) {
+            this._helpers.colliderMesh.geometry = this.geometry;
         }
     }
 
@@ -642,7 +698,8 @@ class TileMesh
             }
         }
 
-        this.showHelpers = materialOptions.showColliderMeshes ?? false;
+        this.showColliderMesh = materialOptions.showColliderMeshes ?? false;
+        this.showExtentCorners = materialOptions.showExtentCorners ?? false;
     }
 
     isVisible() {
@@ -652,8 +709,8 @@ class TileMesh
     setDisplayed(show: boolean) {
         const currentVisibility = this.material.visible;
         this.material.visible = show && this.material.update();
-        if (this._helperMesh) {
-            this._helperMesh.visible = this.material.visible;
+        if (this._helperRoot) {
+            this._helperRoot.visible = this.material.visible;
         }
         if (currentVisibility !== show) {
             this.dispatchEvent({ type: 'visibility-changed' });

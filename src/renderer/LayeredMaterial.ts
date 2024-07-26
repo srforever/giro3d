@@ -226,6 +226,10 @@ export interface MaterialOptions {
      * Displays the collider meshes used for raycast.
      */
     showColliderMeshes?: boolean;
+    /**
+     * Displays the extent corners.
+     */
+    showExtentCorners?: boolean;
 }
 
 type HillshadingUniform = {
