@@ -809,6 +809,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             enableCPUTerrain: this.materialOptions.terrain.enableCPUTerrain,
             enableTerrainDeformation: this.materialOptions.terrain.enabled,
             onElevationChanged: this._onTileElevationChanged,
+            isGlobe: this._isGeocentric,
         });
 
         this.allTiles.add(tile);

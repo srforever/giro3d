@@ -95,11 +95,10 @@ function makePooledGeometry(pool: GeometryPool, extent: Extent, segments: number
     return geometry;
 }
 
-function makeRaycastableGeometry(extent: Extent, segments: number) {
-    const geometry =
-        extent.crs() === 'EPSG:4326'
-            ? new GlobeTileGeometry({ extent, segments })
-            : new ProjectedTileGeometry({ extent, segments });
+function makeRaycastableGeometry(extent: Extent, segments: number, isGlobe: boolean) {
+    const geometry = isGlobe
+        ? new GlobeTileGeometry({ extent, segments })
+        : new ProjectedTileGeometry({ extent, segments });
     return geometry;
 }
 
@@ -331,6 +330,7 @@ class TileMesh
     private _heightMap: UniqueOwner<HeightMap, this>;
     disposed = false;
     private _enableTerrainDeformation: boolean;
+    private readonly _isGlobe: boolean;
     private readonly _enableCPUTerrain: boolean;
     private readonly _instance: Instance;
     private readonly _onElevationChanged: (tile: this) => void;
@@ -397,6 +397,7 @@ class TileMesh
         material,
         extent,
         segments,
+        isGlobe,
         coord: { level, x = 0, y = 0 },
         textureSize,
         instance,
@@ -416,6 +417,7 @@ class TileMesh
         coord: { level: number; x: number; y: number };
         /** The texture size. */
         textureSize: Vector2;
+        isGlobe: boolean;
         instance: Instance;
         enableCPUTerrain: boolean;
         enableTerrainDeformation: boolean;
@@ -424,11 +426,12 @@ class TileMesh
         super(
             // CPU terrain forces geometries to be unique, so cannot be pooled
             enableCPUTerrain
-                ? makeRaycastableGeometry(extent, segments)
+                ? makeRaycastableGeometry(extent, segments, isGlobe)
                 : makePooledGeometry(geometryPool, extent, segments, level),
             material,
         );
 
+        this._isGlobe = isGlobe;
         this._tileGeometry = this.geometry;
         this._pool = geometryPool;
         this._segments = segments;
@@ -443,20 +446,19 @@ class TileMesh
         this._enableCPUTerrain = enableCPUTerrain;
         this._enableTerrainDeformation = enableTerrainDeformation;
 
-        this._volume =
-            extent.crs() === 'EPSG:4326'
-                ? new GlobeTileVolume({
-                      extent,
-                      owner: this,
-                      min: -100,
-                      max: +100,
-                  })
-                : new TileVolume({
-                      extent,
-                      owner: this,
-                      min: this.geometry.boundingBox.min.z,
-                      max: this.geometry.boundingBox.max.z,
-                  });
+        this._volume = this._isGlobe
+            ? new GlobeTileVolume({
+                  extent,
+                  owner: this,
+                  min: -100,
+                  max: +100,
+              })
+            : new TileVolume({
+                  extent,
+                  owner: this,
+                  min: this.geometry.boundingBox.min.z,
+                  max: this.geometry.boundingBox.max.z,
+              });
 
         this.name = `tile @ (z=${level}, x=${x}, y=${y})`;
 
@@ -567,7 +569,7 @@ class TileMesh
 
     private createGeometry() {
         this.geometry = this._enableCPUTerrain
-            ? makeRaycastableGeometry(this.extent, this._segments)
+            ? makeRaycastableGeometry(this.extent, this._segments, this._isGlobe)
             : makePooledGeometry(this._pool, this.extent, this._segments, this.level);
         if (this._helpers.colliderMesh) {
             this._helpers.colliderMesh.geometry = this.geometry;
