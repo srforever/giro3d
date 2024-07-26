@@ -38,6 +38,7 @@ import type GraticuleOptions from '../core/GraticuleOptions';
 import type ColorimetryOptions from '../core/ColorimetryOptions';
 import type ElevationLayer from '../core/layer/ElevationLayer';
 import type ColorLayer from '../core/layer/ColorLayer';
+import type { BlendingMode } from '../core/layer/ColorLayer';
 import type ElevationRange from '../core/ElevationRange';
 import type Extent from '../core/geographic/Extent';
 import type ColorMapAtlas from './ColorMapAtlas';
@@ -86,7 +87,7 @@ const DISABLED_ELEVATION_RANGE = new Vector2(-999999, 999999);
 class TextureInfo {
     originalOffsetScale: OffsetScale;
     offsetScale: OffsetScale;
-    readonly layer: Layer;
+    readonly layer: ColorLayer;
     texture: Texture;
     opacity: number;
     visible: boolean;
@@ -94,7 +95,7 @@ class TextureInfo {
     elevationRange: Vector2;
     brightnessContrastSaturation: Vector3;
 
-    constructor(layer: Layer) {
+    constructor(layer: ColorLayer) {
         this.layer = layer;
         this.offsetScale = null;
         this.originalOffsetScale = null;
@@ -259,8 +260,12 @@ type LayerUniform = {
     color: Vector4;
     textureSize: Vector2;
     elevationRange: Vector2;
-    mode: 0 | MaskMode;
     brightnessContrastSaturation: Vector3;
+};
+
+type ColorLayerUniform = LayerUniform & {
+    mode: 0 | MaskMode;
+    blendingMode: BlendingMode;
 };
 
 type NeighbourUniform = {
@@ -308,7 +313,7 @@ interface Uniforms {
     colorTextures: IUniform<Texture[]>;
     uuid: IUniform<number>;
     backgroundColor: IUniform<Vector4>;
-    layers: IUniform<LayerUniform[]>;
+    layers: IUniform<ColorLayerUniform[]>;
     elevationLayer: IUniform<LayerUniform>;
     brightnessContrastSaturation: IUniform<Vector3>;
     renderingState: IUniform<RenderingState>;
@@ -571,7 +576,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         this.sortLayersIfNecessary();
 
         if (this._mustUpdateUniforms) {
-            const layersUniform = [];
+            const layersUniform: ColorLayerUniform[] = [];
             const infos = this.texturesInfo.color.infos;
             const textureUniforms = this.uniforms.colorTextures.value;
             textureUniforms.length = 0;
@@ -597,12 +602,13 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
                 const color = new Vector4(rgb.r, rgb.g, rgb.b, a);
                 const elevationRange = info.elevationRange || DISABLED_ELEVATION_RANGE;
 
-                const uniform = {
+                const uniform: ColorLayerUniform = {
                     offsetScale,
                     color,
                     textureSize,
                     elevationRange,
                     mode: info.mode,
+                    blendingMode: layer.blendingMode,
                     brightnessContrastSaturation: info.brightnessContrastSaturation,
                 };
 
