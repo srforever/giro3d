@@ -535,6 +535,37 @@ export type MapConstructorOptions = {
  *
  * The main advantage of this method is that it's much faster and puts less pressure on the GPU.
  *
+ * ## Coordinate systems
+ *
+ * If the {@link core.Instance#referenceCrs | coordinate reference system} of the instance is a projected
+ * CRS, the map will be displayed as a flat object (with possible deformation along the Z-axis if an
+ * elevation layer is present).
+ *
+ * However, if the CRS of the instance is a geocentric CRS (i.e `EPSG:4978`), then the map will be
+ * rendered **as a globe**.
+ *
+ * ### Flat mode
+ *
+ * In this mode, the 3 axes of the scene are the following:
+ * - X-axis: eastings (X coordinate). Typically the +X axis points toward east in most systems.
+ * - Y-axis: northings (Y coordinate). Typically, the +Y axis points toward the north in most systems.
+ * - Z-axis: vertical axis (used for elevations).
+ *
+ * ### Globe mode
+ *
+ * The globe uses the [ECEF reference frame](https://en.wikipedia.org/wiki/Earth-centered,_Earth-fixed_coordinate_system),
+ * and the WGS84 spheroid ({@link Ellipsoid.WGS84}).
+ *
+ * The 3 axes of the 3D scene are the following:
+ * - X-axis: the axis that crosses the earth at the (0, 0) geographic position (the intersection
+ * between the greenwich meridian and the equator)
+ * - Y-axis: the axis that crosses the earth at the (90, 0) geographic position (the intersection
+ * between the 90° meridian and the equator).
+ * - Z-axis: The rotation axis of the earth (south/north axis).
+ *
+ * In this mode, shading works differently than in the flat mode. To specify the direction of the
+ * sun rays, use {@link setSunDirection}.
+ *
  * @typeParam UserData - The type of the {@link entities.Entity#userData} property.
  */
 class Map<UserData extends EntityUserData = EntityUserData>

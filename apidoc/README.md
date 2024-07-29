@@ -137,6 +137,10 @@ The [`Layer`](./classes/core.layer.Layer.html) class supports transformation of 
 
 💡 All CRSes used by layers must be registered with [`Instance.registerCRS()`](./classes/core.Instance.html#registerCRS) as well.
 
+#### Globe mode
+
+If the instance CRS is set to [`EPSG:4978`](https://epsg.io/4978), the map will be displayed as a globe rather than a flat map. This will use the WGS84 spheroid for geometric rendering.
+
 ### Other entities
 
 Except otherwise specified, entities do not support transformation of data from their source into the Instance CRS. This means that it is not possible to display a point cloud that is in a different CRS than the instance's.
