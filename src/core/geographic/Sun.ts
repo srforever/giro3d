@@ -1,66 +1,112 @@
 import { MathUtils } from 'three';
-import type LatLon from './LatLon';
+import Coordinates from './Coordinates';
 
-const m = Math;
-const PI = m.PI;
-const sin = m.sin;
-const cos = m.cos;
-const tan = m.tan;
-const asin = m.asin;
-const atan = m.atan2;
+function computeJulianDate(date: Date) {
+    let year = date.getUTCFullYear();
+    let month = date.getUTCMonth() + 1;
+    const day = date.getUTCDate();
+    const hour = date.getUTCHours();
+    const minute = date.getUTCMinutes();
+    const second = date.getUTCSeconds();
 
-const rad = PI / 180;
-const dayMs = 1000 * 60 * 60 * 24;
-const J1970 = 2440588;
-const J2000 = 2451545;
-const e = rad * 23.4397; // obliquity of the Earth
+    const dayFraction = (hour + minute / 60 + second / 3600) / 24;
 
-function toJulian(date: Date) {
-    return date.valueOf() / dayMs - 0.5 + J1970;
+    if (month <= 2) {
+        year -= 1;
+        month += 12;
+    }
+
+    const A = Math.floor(year / 100);
+    const B = 2 - A + Math.floor(A / 4);
+    const JD0h =
+        Math.floor(365.25 * (year + 4716)) + Math.floor(30.6001 * (month + 1)) + day + B - 1524.5;
+
+    return JD0h + dayFraction;
 }
 
-function toDays(date: Date) {
-    return toJulian(date) - J2000;
+function normalizedDegreesLongitude(degrees: number) {
+    const lon = degrees % 360;
+
+    return lon > 180 ? lon - 360 : lon < -180 ? 360 + lon : lon;
 }
 
-function getRightAscension(l: number, b: number) {
-    return atan(sin(l) * cos(e) - tan(b) * sin(e), cos(l));
+function normalizeAngle360(degrees: number): number {
+    const angle = degrees % 360;
+    return angle >= 0 ? angle : angle < 0 ? 360 + angle : 360 - angle;
 }
 
-function getDeclination(l: number, b: number) {
-    return asin(sin(b) * cos(e) + cos(b) * sin(e) * sin(l));
-}
+type Celestial = { rightAscension: number; declination: number };
 
-function getSolarMeanAnomaly(d: number) {
-    return rad * (357.5291 + 0.98560028 * d);
-}
+function celestialToGeographic(celestialLocation: Celestial, date: Date) {
+    const julianDate = computeJulianDate(date);
 
-function getEquationOfCenter(M: number) {
-    return rad * (1.9148 * sin(M) + 0.02 * sin(2 * M) + 0.0003 * sin(3 * M));
-}
+    //number of days (positive or negative) since Greenwich noon, Terrestrial Time, on 1 January 2000 (J2000.0)
+    const numDays = julianDate - 2451545;
 
-function getEclipticLongitude(M: number, C: number) {
-    const P = rad * 102.9372; // perihelion of the Earth
-    return M + C + P + PI;
-}
+    //Greenwich Mean Sidereal Time
+    const GMST = normalizeAngle360(280.46061837 + 360.98564736629 * numDays);
 
-function getSunPosition(date: Date): LatLon {
-    const d = toDays(date);
-    const M = getSolarMeanAnomaly(d);
-    const C = getEquationOfCenter(M);
-    const L = getEclipticLongitude(M, C);
-    const D = getDeclination(L, 0);
-    const A = getRightAscension(L, 0);
+    //Greenwich Hour Angle
+    const GHA = normalizeAngle360(GMST - celestialLocation.rightAscension);
 
-    const dayMilliSec = 24 * 3600000;
-    const longitude =
-        MathUtils.degToRad(A) + ((date.valueOf() % dayMilliSec) / dayMilliSec) * -360 + 180;
+    const longitude = normalizedDegreesLongitude(-GHA);
+
     return {
-        latitude: MathUtils.radToDeg(D),
-        longitude,
+        latitude: celestialLocation.declination,
+        longitude: longitude,
     };
 }
 
+/**
+ * Gets the position of the sun in [**equatorial coordinates**](https://en.wikipedia.org/wiki/Position_of_the_Sun#Equatorial_coordinates)
+ * at the given date.
+ *
+ * Note: the geographic position of the sun is the location on earth where the sun is at the zenith.
+ * @param date - The date to compute the geographic position. If unspecified, the current date is used.
+ * @returns The geographic position of the sun at the given date.
+ */
+function getGeographicPosition(date?: Date, target?: Coordinates): Coordinates {
+    date = date ?? new Date();
+
+    const JD = computeJulianDate(date);
+    const numDays = JD - 2451545;
+    // Mean longitude of the sun, in degrees
+    const meanLongitude = normalizeAngle360(280.46 + 0.9856474 * numDays);
+    // Mean anomaly of the sun, in radians
+    const meanAnomalyRad = normalizeAngle360(357.528 + 0.9856003 * numDays) * MathUtils.DEG2RAD;
+    // Ecliptic longitude of the sun, in degrees
+    const eclipticLongitude =
+        meanLongitude + 1.915 * Math.sin(meanAnomalyRad) + 0.02 * Math.sin(2 * meanAnomalyRad);
+    const eclipticLongitudeRad = eclipticLongitude * MathUtils.DEG2RAD;
+    // Obliquity of the ecliptic, in radians
+    const obliquityOfTheEcliptic = MathUtils.DEG2RAD * (23.439 - 0.0000004 * numDays);
+
+    const declination =
+        Math.asin(Math.sin(obliquityOfTheEcliptic) * Math.sin(eclipticLongitudeRad)) *
+        MathUtils.RAD2DEG;
+
+    let rightAscension =
+        Math.atan(Math.cos(obliquityOfTheEcliptic) * Math.tan(eclipticLongitudeRad)) *
+        MathUtils.RAD2DEG;
+
+    //compensate for atan result
+    if (eclipticLongitude >= 90 && eclipticLongitude < 270) {
+        rightAscension += 180;
+    }
+    rightAscension = normalizeAngle360(rightAscension);
+
+    const { latitude, longitude } = celestialToGeographic({ rightAscension, declination }, date);
+
+    target = target ?? new Coordinates('EPSG:4326', 0, 0);
+
+    target.set('EPSG:4326', longitude, latitude);
+
+    return target;
+}
+
+/**
+ * Utility functions related to the position of the sun.
+ */
 export default {
-    getSunPosition,
+    getGeographicPosition,
 };

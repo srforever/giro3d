@@ -15,16 +15,12 @@ import type Instance from '../core/Instance';
 import { isPerspectiveCamera } from '../renderer/Camera';
 import { ConstantSizeSphere } from '../renderer';
 import Ellipsoid from '../core/geographic/Ellipsoid';
-import type Geodetic from '../core/geographic/Geodetic';
+import { Coordinates } from '../core/geographic';
 
 const EPSILON = 0.000001;
 const NDC_CENTER = new Vector2(0, 0);
 const tmpVec2 = new Vector2();
-const tmpGeodetic: Geodetic = {
-    latitude: 0,
-    longitude: 0,
-    height: 0,
-};
+const tmpGeodetic = new Coordinates('EPSG:4979', 0, 0, 0);
 
 type EmptyEvent = {
     /* empty */
@@ -275,7 +271,7 @@ export default class GlobeControls extends EventDispatcher<GlobeControlsEvents> 
 
     getAltitude(): number {
         const { x, y, z } = this._camera.position;
-        return Ellipsoid.WGS84.toGeodetic(x, y, z, tmpGeodetic).height;
+        return Ellipsoid.WGS84.toGeodetic(x, y, z, tmpGeodetic).altitude;
     }
 
     //#region motions

@@ -83,7 +83,7 @@ class CameraInspector extends Panel {
         const geodetic = Ellipsoid.WGS84.toGeodetic(x, y, z);
         this.latitude = degreesFormatter.format(geodetic.latitude);
         this.longitude = degreesFormatter.format(geodetic.longitude);
-        this.altitude = altitudeFormatter.format(geodetic.height);
+        this.altitude = altitudeFormatter.format(geodetic.altitude);
     }
 
     private deleteSnapshots() {
