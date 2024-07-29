@@ -339,7 +339,7 @@ class TileMesh
     isLeaf = false;
     private _helperRoot: Group;
     private readonly _helpers: {
-        colliderMesh?: Mesh<TileGeometry, MeshBasicMaterial, Object3DEventMap>;
+        colliderMesh?: Mesh<BufferGeometry, MeshBasicMaterial, Object3DEventMap>;
         extentCorners?: Points<BufferGeometry, PointsMaterial>;
     } = {};
     private _elevationLayerInfo: {
@@ -492,7 +492,7 @@ class TileMesh
 
     set showColliderMesh(visible: boolean) {
         if (visible && !this._helpers.colliderMesh) {
-            this._helpers.colliderMesh = new Mesh(this.geometry, helperMaterial);
+            this._helpers.colliderMesh = new Mesh(this.geometry.raycastGeometry, helperMaterial);
             this._helpers.colliderMesh.matrixAutoUpdate = false;
             this._helpers.colliderMesh.name = 'collider helper';
             this.createHelperRootIfNecessary();
@@ -572,7 +572,7 @@ class TileMesh
             ? makeRaycastableGeometry(this.extent, this._segments, this._isGlobe)
             : makePooledGeometry(this._pool, this.extent, this._segments, this.level);
         if (this._helpers.colliderMesh) {
-            this._helpers.colliderMesh.geometry = this.geometry;
+            this._helpers.colliderMesh.geometry = this.geometry.raycastGeometry;
         }
     }
 
@@ -920,6 +920,10 @@ class TileMesh
 
         if (min > this._minmax.min && max < this._minmax.max) {
             this.setBBoxZ(min, max);
+        }
+
+        if (this._helpers.colliderMesh) {
+            this._helpers.colliderMesh.geometry = this.geometry.raycastGeometry;
         }
 
         this._onElevationChanged(this);
