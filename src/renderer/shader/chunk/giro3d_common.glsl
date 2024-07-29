@@ -232,7 +232,7 @@ vec3 Z = vec3(0, 0, 1);
 
         vec3 normal = (vec4(localNormal, 1.0) * enu).xyz;
 
-        float intensity = dot(normal, hillshading.sunDirection);
+        float intensity = dot(normal, -hillshading.sunDirection);
 
         return mix(1., intensity, hillshading.intensity);
     }

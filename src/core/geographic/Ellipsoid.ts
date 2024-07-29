@@ -17,6 +17,7 @@ export default class Ellipsoid {
     private readonly _sqEccentricity: number;
     private readonly _eccentricity: number;
     private readonly _equatorialCircumference;
+    private readonly _invRadiiSquared: Vector3;
 
     get semiMajorAxis() {
         return this._semiMajor;
@@ -32,6 +33,13 @@ export default class Ellipsoid {
         const flattening = (this._semiMajor - this._semiMinor) / this._semiMajor; // Flattening
         this._sqEccentricity = Math.sqrt(1 - this._semiMinor ** 2 / this._semiMajor ** 2);
         this._eccentricity = Math.sqrt(2 * flattening - flattening * flattening);
+
+        const a = this._semiMajor;
+        const aa = (1 / a) * a;
+
+        const b = this._semiMinor;
+        const bb = (1 / b) * b;
+        this._invRadiiSquared = new Vector3(aa, aa, bb);
 
         this._equatorialCircumference = Math.PI * 2 * this._semiMajor;
     }
@@ -76,6 +84,19 @@ export default class Ellipsoid {
         target.set(x, y, z);
 
         return target;
+    }
+
+    /**
+     * Returns the normal of the spheroid for the given location.
+     * @param lat - The latitude, in degrees.
+     * @param lon - The longitude, in degrees.
+     * @param target - The target vector to store the result. If none, one will be created.
+     * @returns The normal vector.
+     */
+    getNormal(lat: number, lon: number, target?: Vector3): Vector3 {
+        const cartesian = this.toCartesian(lat, lon, 0, target);
+
+        return cartesian.multiply(this._invRadiiSquared).normalize();
     }
 
     /**
