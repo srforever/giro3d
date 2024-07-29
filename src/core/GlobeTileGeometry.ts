@@ -133,9 +133,7 @@ export default class GlobeTileGeometry extends BufferGeometry implements MemoryU
                 max = Math.max(max, altitude);
 
                 const ecef = wgs84.toCartesian(lat, lon, altitude, tmpVec3);
-                // In ECEF, the normal vector is just the normalized position,
-                // Since the center of the earth is at (0, 0, 0).
-                const normal = tmpNormal.copy(ecef).normalize();
+                const normal = wgs84.getNormal(lat, lon, tmpNormal);
 
                 const { x, y, z } = ecef.sub(origin);
 
