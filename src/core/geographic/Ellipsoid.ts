@@ -1,5 +1,4 @@
 import { MathUtils, Vector2, Vector3 } from 'three';
-import type Geodetic from './Geodetic';
 import type Extent from './Extent';
 import Coordinates from './Coordinates';
 
@@ -9,8 +8,8 @@ const tmpDims = new Vector2();
 let wgs84: unknown;
 
 /**
- * A configurable that allows conversion from and to geodetic coordinates and cartesian coordinates,
- * as well as utility function to compute various geodetic values.
+ * A configurable spheroid that allows conversion from and to geodetic coordinates
+ * and cartesian coordinates, as well as utility function to compute various geodetic values.
  */
 export default class Ellipsoid {
     private readonly _semiMajor: number;
@@ -86,8 +85,8 @@ export default class Ellipsoid {
      * @param z - The cartesian Y coordinate.
      * @returns The geodetic coordinates.
      */
-    toGeodetic(x: number, y: number, z: number, target?: Geodetic): Geodetic {
-        target = target ?? { latitude: 0, longitude: 0, height: 0 };
+    toGeodetic(x: number, y: number, z: number, target?: Coordinates): Coordinates {
+        target = target ?? new Coordinates('EPSG:4979', 0, 0, 0);
         const lon = Math.atan2(y, x);
         const p = Math.sqrt(x ** 2 + y ** 2);
         const theta = Math.atan2(z * this._semiMajor, p * this._semiMinor);
@@ -100,9 +99,10 @@ export default class Ellipsoid {
         const N = this._semiMajor / Math.sqrt(1 - this._sqEccentricity ** 2 * Math.sin(lat) ** 2);
         const height = p / Math.cos(lat) - N;
 
-        target.latitude = MathUtils.radToDeg(lat);
-        target.longitude = MathUtils.radToDeg(lon);
-        target.height = height;
+        const latitude = MathUtils.radToDeg(lat);
+        const longitude = MathUtils.radToDeg(lon);
+
+        target.set('EPSG:4979', longitude, latitude, height);
 
         return target;
     }
