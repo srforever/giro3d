@@ -393,6 +393,10 @@ void main() {
             vec3 vertexOffset;
             vec2 uvOffset;
 
+#if defined(IS_GLOBE)
+            // XY-stitching cannot work in globe because we cannot compute
+            // the direction to move the vertices since the surface is curved.
+#else
             // Is there XY-stiching ?
             if (computeXYStitchingOffsets(
                     vUv,
@@ -411,6 +415,7 @@ void main() {
                 // The vertex has moved, maybe now it location has changed (from seam to corner)
                 location = locateVertex(vUv);
             }
+#endif
 
             // Get the elevation of our vertex in our texture
             vec2 elevUv = computeUv(vUv, elevationLayer.offsetScale.xy, elevationLayer.offsetScale.zw);
