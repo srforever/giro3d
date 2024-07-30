@@ -285,8 +285,6 @@ class GlobeTileVolume extends TileVolume {
             p13,
         ]);
 
-        this._corners = null;
-
         return worldBox.setFromCenterAndSize(
             worldBox.getCenter(tempVec3).sub(p0),
             worldBox.getSize(new Vector3()),
@@ -298,11 +296,13 @@ class GlobeTileVolume extends TileVolume {
             min = 0;
             max = 0;
         }
-        this._min = min;
-        this._max = max;
-        const box = this.computeLocalBox(this._extent, min, max);
-        this._localBox.copy(box);
-        this._corners = null;
+        if (this._min !== min || this._max !== max) {
+            this._min = min;
+            this._max = max;
+            const box = this.computeLocalBox(this._extent, min, max);
+            this._localBox.copy(box);
+            this._corners = null;
+        }
     }
 
     override getWorldSpaceBoundingSphere(target?: Sphere): Sphere {
