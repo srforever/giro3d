@@ -436,7 +436,7 @@ export default class DrawTool extends EventDispatcher<DrawToolEventMap> implemen
             }
 
             if (isDragging) {
-                if (pickedShape && pickedVertexIndex) {
+                if (pickedShape && pickedVertexIndex != null) {
                     const position = pickNonShapes(e)?.point;
                     if (position) {
                         pickedShape.updatePoint(pickedVertexIndex, position);
