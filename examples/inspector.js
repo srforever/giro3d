@@ -38,7 +38,7 @@ class MyCustomPanel extends Panel {
 
     // eslint-disable-next-line class-methods-use-this
     sayHello() {
-        console.log('hello from my custom panel !');
+        window.alert('Hello from my custom panel!');
     }
 }
 
