@@ -1,5 +1,88 @@
 # Changelog
 
+## v0.38.0 (2024-07-31)
+
+This release brings many new features and improvements.
+
+### Major changes
+
+#### New `DrawTool` and the `Shape` entity
+
+The [`DrawTool`](https://giro3d.org/latest/apidoc/classes/interactions.DrawTool.html) is completely rewritten. It now generates [`Shape`](https://giro3d.org/latest/apidoc/classes/entities.Shape-1.html) entities. Shapes are fully configurable entities that can display lines, points and surfaces, as well as various labels.
+
+Shapes can display lengths, perimeters, areas, angles and heights with configurable formatters, and can be exported to GeoJSON.
+
+👉 See the [`drawtool`](https://giro3d.org/latest/examples/drawtool.html) and [`digitizing`](https://giro3d.org/latest/examples/digitizing.html) examples for an illustration of the many capabilities of `DrawTool` and `Shape`.
+
+💡 The `Shape` entity does not depend on the `DrawTool` to work and can be used completely independently.
+
+#### Style API for `FeatureCollection`
+
+`FeatureCollection` now supports a rich set of styles for points, surfaces and lines. Styles can be dynamically updated (for example to highlight a feature on hover).
+
+The three supported styles are:
+
+-   [`PointStyle`](https://giro3d.org/latest/apidoc/types/core.features.PointStyle.html) to style symbols for Points and MultiPoints.
+-   [`FillStyle`](https://giro3d.org/latest/apidoc/types/core.features.FillStyle.html) to style surfaces of Polygons and MultiPolygons.
+-   [`StrokeStyle`](https://giro3d.org/latest/apidoc/types/core.features.StrokeStyle.html) to style lines of LineStrings, MultiLineStrings, Polygons and MultiPolygons.
+
+👉 See
+
+-   the [`ign_data`](https://giro3d.org/latest/examples/ign_data.html) example for an illustration on how to create 3D buildings from 2D polygons,
+-   the [`undraped_vectors`](https://giro3d.org/latest/examples/undraped_vectors.html) example on how to apply dynamic styles on features depending on their attributes.
+
+#### New layer source: `StaticImageSource`
+
+This simple source draws a single image on an arbitrary extent. Useful to display static, non-georeferenced images.
+
+👉 See the [`static_image_source`](https://giro3d.org/latest/examples/static_image_source.html) example to see it in action.
+
+#### Handle WebGL context loss
+
+The [WebGL2RenderingContext](https://developer.mozilla.org/en-US/docs/Web/API/WebGL2RenderingContext) is used by Giro3D to draw the scene in to a `<canvas>`.
+
+This context can be lost due to transient issues (GPU driver crash) or when the context runs out of memory.
+
+Giro3D now correctly recovers and recreates the scene when the context is restored, thanks to the new [`RenderingContextHandler`](https://giro3d.org/latest/apidoc/interfaces/renderer.RenderingContextHandler.html) interface.
+
+If you implement your own entity, be sure to implement this interface as well if your entity is sensitive to context losses (e.g an entity thats holds non-recoverable textures such as [`RenderTarget`](https://threejs.org/docs/index.html?q=renderta#api/en/renderers/WebGLRenderTarget)s.).
+
+💡 If you want to be notified when the context is lost or restored, you can use the appropriate events on the DOM element:
+
+```js
+instance.domElement.addEventListener('webglcontextlost', ...);
+instance.domElement.addEventListener('webglcontextrestored', ...);
+```
+
+### BREAKING CHANGE
+
+-   the styling API for the `FeatureCollection` entity has
+    changed. See the documentation of `FeatureStyles` for more information.
+-   the `DrawTool` API has changed. It now produces `Shape`
+    instances. The `Drawing` class is removed in favor of the `Shape` entity.
+
+### Feat
+
+-   **FeatureCollection**: add style API (#370)
+-   **Instance**: `notifyChange()` now supports multiple sources
+-   **DrawTool**: rewrite `DrawTool` and introduce the `Shape` entity (!628)
+-   **sources**: add the `StaticImageSource` class (#481)
+-   **Instance** handle rendering context losses (#423)
+-   **LayerInspector**: display the layer's `.resolutionFactor`
+-   **MainLoop**: make clipping plane computation optional (#456)
+
+### Fix
+
+-   **PointCloudMaterial**: fix missing texture coordinates in `MODE.TEXTURE` (#473)
+-   **LayerInspector**: make it compatible with the `Tiles3D` entity
+-   **Tiles3D**: fix invalid predicate handling in `getLayers()`
+-   **Map**: fix neighbour selection predicate (#475)
+
+### Perf
+
+-   **Inspector**: use a recursive approach to determine if a given GUI is closed
+-   **Outliner**: use a hashing mechanism to avoid recreating the treeview every frame
+
 ## v0.37.3 (2024-07-01)
 
 ### Fix
