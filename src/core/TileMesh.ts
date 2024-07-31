@@ -410,8 +410,8 @@ class TileMesh
         // Let's do it only if the ray intersects the volume of this tile.
         if (this.checkRayVolumeIntersection(raycaster)) {
             this.updateHeightMapIfNecessary();
+            super.raycast(raycaster, intersects);
         }
-        super.raycast(raycaster, intersects);
     }
 
     private updateHeightMapIfNecessary(): void {
