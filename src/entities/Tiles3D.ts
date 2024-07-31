@@ -757,7 +757,7 @@ class Tiles3D<
     }
 
     async executeCommand(metadata: ProcessedTile, requester?: Tile): Promise<Tile> {
-        const tile = new Tile(this, metadata, requester);
+        const tile = new Tile(metadata, requester);
 
         // Patch for supporting 3D Tiles pre 1.0 (metadata.content.url) and 1.0
         // (metadata.content.uri)

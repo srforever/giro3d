@@ -12,7 +12,6 @@ import Entity3D from '../../../src/entities/Entity3D';
 
 describe('Tiles3D', () => {
     const defaultSource = new Tiles3DSource('http://example.com/tileset');
-    const defaultEntity = new Entity3D('foo', new Group());
 
     describe('constructor', () => {
         it('should throw on falsy identifier', () => {
@@ -76,7 +75,7 @@ describe('Tiles3D', () => {
             const tileset = tilesetWithBox();
             const tileIndex = new $3dTilesIndex(tileset, '');
 
-            const tile = new Tile(defaultEntity, tileIndex.index['1']);
+            const tile = new Tile(tileIndex.index['1']);
 
             tile.calculateCameraDistance(camera.camera3D);
 
@@ -91,7 +90,7 @@ describe('Tiles3D', () => {
 
             const tileIndex = new $3dTilesIndex(tileset, '');
 
-            const tile = new Tile(defaultEntity, tileIndex.index['1']);
+            const tile = new Tile(tileIndex.index['1']);
 
             tile.calculateCameraDistance(camera.camera3D);
 
@@ -113,7 +112,7 @@ describe('Tiles3D', () => {
             const tileset = tilesetWithSphere();
             const tileIndex = new $3dTilesIndex(tileset, '');
 
-            const tile = new Tile(defaultEntity, tileIndex.index['1']);
+            const tile = new Tile(tileIndex.index['1']);
 
             tile.calculateCameraDistance(camera.camera3D);
 
@@ -128,7 +127,7 @@ describe('Tiles3D', () => {
 
             const tileIndex = new $3dTilesIndex(tileset, '');
 
-            const tile = new Tile(defaultEntity, tileIndex.index['1']);
+            const tile = new Tile(tileIndex.index['1']);
 
             tile.calculateCameraDistance(camera.camera3D);
 

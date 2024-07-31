@@ -1,5 +1,4 @@
 import { Object3D, Box3, Sphere, Vector3, type Camera as ThreeCamera } from 'three';
-import type Tiles3D from '../Tiles3D';
 import ScreenSpaceError from '../../core/ScreenSpaceError';
 import { type Camera } from '../../renderer';
 import { type ProcessedTile } from './3dTilesIndex';
@@ -35,12 +34,10 @@ class Tile extends Object3D {
     cleanableSince?: number;
     sse?: number;
 
-    constructor(entity: Tiles3D, metadata: ProcessedTile, parent?: Tile) {
+    constructor(metadata: ProcessedTile, parent?: Tile) {
         super();
         this.name = '3D tile';
         this.frustumCulled = false;
-
-        entity.onObjectCreated(this);
 
         // parse metadata
         if (metadata.transformMatrix) {
