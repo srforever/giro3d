@@ -120,6 +120,10 @@ Triaging consists mainly in settings labels. Labels provide a clear view on what
 
 First of all, committers should lead by example, and create issues before any code change (well, maybe not for typos...), and start branches within this repository, by using the "create merge request and branch" button from the issue.
 
+💡 If you create a branch manually, be sure to follow this naming convention:
+
+`1234-short-description-with-dashes`, where `1234` is the gitlab issue number. If there is no gitlab issue (for example a very minor fix such as typos that do not necessarily require an issue), you can ignore the issue number prefix.
+
 In order to smooth interactions, a few rules to help identify who should do what during a review process:
 
 -   A MR that needs additional work, e.g. not ready to be merged, should be in "Draft" mode to easily clearly identify what's ready to be reviewed and what's not; the author of the MR is responsible for managing the state of his MR

@@ -20,6 +20,7 @@
 #
 
 stages:
+    - validate
     - audit
     - build
     - lint
@@ -115,15 +116,19 @@ build_latest_site:
 ## LINT STAGE
 
 check-commit-message:
-    stage: lint
-    # Don't have to wait for audit/build to finish
-    needs: []
+    stage: validate
     script:
         - npm i
         - apk add --no-cache git
         - git fetch origin main
         - git remote set-head origin -a
         - npx commitlint -x @commitlint/config-conventional --from=origin/HEAD --to=${CI_COMMIT_SHA}
+
+validate-branch-name:
+    stage: validate
+    script:
+        - npm i
+        - npx --no-install validate-branch-name -t ${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}
 
 lint:
     stage: lint
