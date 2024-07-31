@@ -314,7 +314,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
      * this.onObjectCreated(obj);
      * @param obj - The object to prepare.
      */
-    onObjectCreated(obj: Object3D) {
+    protected onObjectCreated(obj: Object3D) {
         // note: we use traverse() because the object might have its own sub-hierarchy as well.
 
         this.traverse(o => {
