@@ -626,9 +626,6 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
                 break;
         }
 
-        // Ensures that the new objects are up-to-date with respect to opacity.
-        obj.opacity = this.opacity;
-
         // Since changing the style of the feature might create additional objects,
         // we have to use this method again.
         this.prepare(obj, feature, style);
@@ -654,7 +651,6 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
     private prepare(mesh: SimpleGeometryMesh<MeshUserData>, feature: Feature, style: FeatureStyle) {
         mesh.traverse((obj: MeshOrSurface) => {
             obj.userData.feature = feature;
-            obj.userData.parentEntity = this as Entity3D;
             obj.userData.style = style;
 
             this.assignRenderOrder(obj);
@@ -901,6 +897,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
                                 this._tileIdSet.add(id);
 
                                 tile.add(mesh);
+                                this.onObjectCreated(mesh);
 
                                 tile.boundingBox.expandByObject(mesh);
                                 this._instance.notifyChange(tile);
