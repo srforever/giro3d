@@ -396,9 +396,10 @@ class Tiles3D<
             metadata.obj = node;
             this._instance.notifyChange(this);
             return node;
-        } catch {
-            // ignore
-            return null;
+        } catch (e) {
+            if (e.name !== 'AbortError') {
+                throw e;
+            }
         } finally {
             this._opCounter.decrement();
         }
