@@ -188,9 +188,11 @@ export default {
                                     'b3dm shader has been patched to add log depth buffer support',
                                 );
                             }
-                            mesh.material.transparent = options.opacity < 1.0;
+                            // TODO allow to override what is in the 3Dtiles, but remember stuff, so
+                            // that we can revert back
+                            // mesh.material.transparent = mesh.material.transparent || (options.opacity < 1.0);
                             mesh.material.needsUpdate = true;
-                            mesh.material.opacity = options.opacity;
+                            // mesh.material.opacity = options.opacity;
                         };
                         gltf.scene.traverse(initMesh);
 
