@@ -226,6 +226,7 @@ class Outliner extends Panel {
     }
 
     onNodeClicked(obj: OutlinedObject3D) {
+        console.log(obj)
         this.select(obj);
         this.propView.populateProperties(obj);
         this.instance.notifyChange();

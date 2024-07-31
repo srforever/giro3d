@@ -298,5 +298,28 @@ describe('Entity3D', () => {
                 expect(mesh.material.clippingPlanes).toBe(planes);
             }
         });
+
+        it('should set the opacity of the created object and its descendants to the current opacity value', () => {
+            const entity = sut();
+
+            const o = new Object3D();
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+            entity.onObjectCreated(o);
+            for (const child of o.children) {
+                const mesh = child as Mesh<BoxGeometry, MeshStandardMaterial>;
+                expect(mesh.material.opacity).toBe(1);
+                expect(mesh.material.transparent).toBe(false);
+            }
+
+            entity.opacity = 0.7;
+            entity.onObjectCreated(o);
+            for (const child of o.children) {
+                const mesh = child as Mesh<BoxGeometry, MeshStandardMaterial>;
+                expect(mesh.material.opacity).toBe(0.7);
+                expect(mesh.material.transparent).toBe(true);
+            }
+        });
     });
 });

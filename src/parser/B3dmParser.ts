@@ -62,12 +62,6 @@ export interface B3dmParserOptions {
      */
     doNotPatchMaterial?: boolean;
     /**
-     * the b3dm opacity.
-     *
-     * @defaultValue 1.0
-     */
-    opacity?: number;
-    /**
      * override b3dm's embedded glTF materials.
      * If overrideMaterials is a three.js material, it will be the material used to override.
      *
@@ -188,9 +182,6 @@ export default {
                                     'b3dm shader has been patched to add log depth buffer support',
                                 );
                             }
-                            mesh.material.transparent = options.opacity < 1.0;
-                            mesh.material.needsUpdate = true;
-                            mesh.material.opacity = options.opacity;
                         };
                         gltf.scene.traverse(initMesh);
 
