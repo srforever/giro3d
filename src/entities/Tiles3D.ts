@@ -396,9 +396,6 @@ class Tiles3D<
             metadata.obj = node;
             this._instance.notifyChange(this);
             return node;
-        } catch {
-            // ignore
-            return null;
         } finally {
             this._opCounter.decrement();
         }
