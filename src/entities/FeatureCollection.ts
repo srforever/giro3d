@@ -57,10 +57,6 @@ const CACHE_TTL = 30_000; // 30 seconds
 
 const vector = new Vector3();
 
-function doNothing() {
-    /** empty */
-}
-
 /**
  * The content of the `.userData` property of the {@link SimpleGeometryMesh}es created by this entity.
  */
@@ -109,17 +105,6 @@ function selectBestSubdivisions(extent: Extent) {
 
     return { x, y };
 }
-
-/**
- * This function will be called just after the a geometry mesh is created, before it is added to the
- * scene. It gives an opportunity to modify the resulting mesh as needed by the application.
- */
-export type OnMeshCreatedCallback = (mesh: SimpleGeometryMesh) => void;
-
-/**
- * Callback called when a tile is created, with the tile object.
- */
-export type OnTileCreatedCallback = (tile: Group) => void;
 
 class FeatureTile extends Group {
     readonly isFeatureTile = true;
@@ -275,8 +260,6 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
     private readonly _opCounter: OperationCounter;
     private readonly _tileIdSet: Set<string | number>;
     private readonly _source: VectorSource;
-    private readonly _onTileCreated: OnTileCreatedCallback;
-    private readonly _onMeshCreated: OnMeshCreatedCallback;
     private readonly _style: FeatureStyle | FeatureStyleCallback;
     private readonly _extrusionOffset: FeatureExtrusionOffsetCallback | number | Array<number>;
     private readonly _elevation: FeatureElevationCallback | number | Array<number>;
@@ -357,13 +340,6 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
              * This allows to individually style each feature.
              */
             style?: FeatureStyle | FeatureStyleCallback;
-            /** Called when a mesh is created (just after conversion of the source data) */
-            onMeshCreated?: OnMeshCreatedCallback;
-            /**
-             * Callback called just after the subdivision, with the THREE.Group
-             * representing a tile
-             */
-            onTileCreated?: OnTileCreatedCallback;
             /**
              * An optional material generator for shaded surfaces.
              */
@@ -423,8 +399,6 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
 
         this.visible = true;
 
-        this._onTileCreated = options.onTileCreated || doNothing;
-        this._onMeshCreated = options.onMeshCreated || doNothing;
         this._level0Nodes = [];
 
         this._source = options.source;
@@ -523,7 +497,6 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
             new Vector3(extent.east(), extent.north(), 1),
         );
 
-        this._onTileCreated(tile);
         this.onObjectCreated(tile);
         return tile;
     }
@@ -807,10 +780,6 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
                 mesh.userData.feature = feature;
                 meshes.push(mesh);
                 this.prepare(mesh, feature, style);
-                // call onMeshCreated callback if needed
-                if (this._onMeshCreated) {
-                    this._onMeshCreated(mesh);
-                }
             }
         }
 

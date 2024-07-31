@@ -533,8 +533,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
      */
     wireframe: boolean;
 
-    onTileCreated: (map: this, parent: TileMesh, tile: TileMesh) => void;
-
     getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
         const result = target ?? createEmptyReport();
 
@@ -704,12 +702,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         this._subdivisions = selectBestSubdivisions(this.extent);
 
-        this.onTileCreated =
-            this.onTileCreated ||
-            (() => {
-                /** do nothing */
-            });
-
         // If the map is not square, we want to have more than a single
         // root tile to avoid elongated tiles that hurt visual quality and SSE computation.
         const rootExtents = this.extent.split(this._subdivisions.x, this._subdivisions.y);
@@ -796,8 +788,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
             const { min, max } = this.getElevationMinMax();
             tile.setBBoxZ(min, max);
         }
-
-        this.onTileCreated(this, parent, tile);
 
         this.onObjectCreated(tile);
 
