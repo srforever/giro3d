@@ -321,5 +321,21 @@ describe('Entity3D', () => {
                 expect(mesh.material.transparent).toBe(true);
             }
         });
+
+        it('should fire a "object-created" event', done => {
+            const entity = sut();
+            const o = new Object3D();
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+            o.add(new Mesh(new BoxGeometry(), new MeshStandardMaterial()));
+
+            entity.addEventListener('object-created', evt => {
+                expect(evt.type).toBe('object-created');
+                expect(evt.obj).toBe(o);
+                done();
+            });
+
+            entity.onObjectCreated(o);
+        });
     });
 });
