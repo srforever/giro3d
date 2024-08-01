@@ -33,6 +33,10 @@ export interface Entity3DEventMap extends EntityEventMap {
      * Fired when the entity render order changed.
      */
     'renderOrder-property-changed': { renderOrder: number };
+    /**
+     * Fired when the entity creates a new object
+     */
+    'object-created': { obj: Object3D };
 }
 
 /**
@@ -325,6 +329,8 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
 
         // Setup materials
         this.traverseMaterials(m => this.setupMaterial(m), obj);
+        // dispatch event
+        this.dispatchEvent({ type: 'object-created', obj });
     }
 
     /* eslint-disable class-methods-use-this */
