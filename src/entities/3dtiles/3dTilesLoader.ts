@@ -13,7 +13,6 @@ async function b3dmToMesh(data: ArrayBuffer, entity: Tiles3D, url: string) {
     const options = {
         gltfUpAxis: entity.asset.gltfUpAxis,
         urlBase,
-        opacity: entity.opacity,
     };
     const result = await B3dmParser.parse(data, options);
     const { batchTable } = result;

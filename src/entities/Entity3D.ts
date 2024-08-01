@@ -284,6 +284,22 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
     }
 
     /**
+     * Applies entity-level setup on new object's material.
+     *
+     * Subclasses can override this to setup custom logic, for instance if the entity can produce
+     * objects that are naturally transparent.
+     *
+     * @param material - the material of the newly created object
+     */
+    protected setupMaterial(material: Material) {
+        material.clippingPlanes = this._clippingPlanes;
+        material.opacity = this._opacity;
+        if (material.opacity < 1.0) {
+            material.transparent = true;
+        }
+    }
+
+    /**
      * Applies entity-level setup on a new object.
      *
      * Note: this method should be called from the subclassed entity to notify the parent
@@ -298,7 +314,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
      * this.onObjectCreated(obj);
      * @param obj - The object to prepare.
      */
-    onObjectCreated(obj: Object3D) {
+    protected onObjectCreated(obj: Object3D) {
         // note: we use traverse() because the object might have its own sub-hierarchy as well.
 
         this.traverse(o => {
@@ -308,13 +324,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
         }, obj);
 
         // Setup materials
-        this.traverseMaterials(material => {
-            material.clippingPlanes = this._clippingPlanes;
-            material.opacity = this._opacity;
-            if (material.opacity < 1.0) {
-                material.transparent = true;
-            }
-        }, obj);
+        this.traverseMaterials(m => this.setupMaterial(m), obj);
     }
 
     /* eslint-disable class-methods-use-this */
