@@ -281,6 +281,25 @@ describe('Entity3D', () => {
             });
         });
 
+        it('should dispatch the object-created event', () => {
+            const entity = sut();
+
+            const o = new Object3D();
+            o.add(new Object3D());
+            o.add(new Object3D());
+            o.add(new Object3D().add(new Object3D()));
+
+            const listener = jest.fn();
+
+            entity.addEventListener('object-created', listener);
+
+            expect(listener).not.toHaveBeenCalled();
+
+            entity.onObjectCreated(o);
+
+            expect(listener).toHaveBeenCalled();
+        });
+
         it('should assign the clipping planes property of the created object and its descendants', () => {
             const entity = sut();
             const planes = [new Plane()];
