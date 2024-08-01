@@ -263,8 +263,16 @@ class Tiles3D<
             // to the tile's material, and we are losing any custom opacity.
             this.material.opacity = this.opacity;
             this.material.transparent = this.opacity < 1;
+            // in the case we have a material for the whole entity, we can ignore the object's
+            // original opacity and the Entity3D implementation is fine
+            super.updateOpacity();
+        } else {
+            // if we *don't* have an entity-wise material, we need to be a bit more subtle and take
+            // the original opacity into account
+            this.traverseMaterials(material => {
+                this.setMaterialOpacity(material);
+            });
         }
-        super.updateOpacity();
     }
 
     async preprocess(): Promise<void> {
@@ -396,9 +404,10 @@ class Tiles3D<
             metadata.obj = node;
             this._instance.notifyChange(this);
             return node;
-        } catch {
-            // ignore
-            return null;
+        } catch (e) {
+            if (e.name !== 'AbortError') {
+                throw e;
+            }
         } finally {
             this._opCounter.decrement();
         }
@@ -724,8 +733,31 @@ class Tiles3D<
         }
     }
 
+    /**
+     * Calculate and set the material opacity, taking into account this entity opacity and the
+     * original opacity of the object.
+     *
+     * @param material - a material belonging to an object of this entity
+     */
+    protected setMaterialOpacity(material: Material) {
+        material.opacity = this.opacity * material.userData.originalOpacity;
+        const currentTransparent = material.transparent;
+        material.transparent = material.opacity < 1.0;
+        material.needsUpdate = currentTransparent !== material.transparent;
+    }
+
+    protected setupMaterial(material: Material) {
+        material.clippingPlanes = this.clippingPlanes;
+        // this object can already be transparent with opacity < 1.0
+        // we need to honor it, even when we change the whole entity's opacity
+        if (!material.userData.originalOpacity) {
+            material.userData.originalOpacity = material.opacity;
+        }
+        this.setMaterialOpacity(material);
+    }
+
     async executeCommand(metadata: ProcessedTile, requester?: Tile): Promise<Tile> {
-        const tile = new Tile(this, metadata, requester);
+        const tile = new Tile(metadata, requester);
 
         // Patch for supporting 3D Tiles pre 1.0 (metadata.content.url) and 1.0
         // (metadata.content.uri)
