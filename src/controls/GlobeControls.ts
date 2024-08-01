@@ -466,10 +466,12 @@ export default class GlobeControls extends EventDispatcher<GlobeControlsEvents> 
 
         const delta = event.deltaY;
 
+        const altitudeDelta = Math.abs(delta / 120) * this.getAltitudeDelta();
+
         if (delta < 0) {
-            this.dollyOut();
+            this.dollyOut(altitudeDelta);
         } else if (delta > 0) {
-            this.dollyIn();
+            this.dollyIn(altitudeDelta);
         }
 
         // const previousRange = this.getRange();
