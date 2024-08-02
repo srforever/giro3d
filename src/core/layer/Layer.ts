@@ -17,7 +17,7 @@ import {
 
 import type ColorMap from './ColorMap';
 import Interpretation from './Interpretation';
-import type Extent from '../geographic/Extent';
+import Extent from '../geographic/Extent';
 import LayerComposer from './LayerComposer';
 import PromiseUtils, { PromiseStatus } from '../../utils/PromiseUtils';
 import MemoryTracker from '../../renderer/MemoryTracker';
@@ -553,12 +553,20 @@ abstract class Layer<
         return this._preprocessOnce;
     }
 
+    private getTargetProjection() {
+        if (this._instance.referenceCrs === 'EPSG:4978') {
+            return 'EPSG:4326';
+        }
+
+        return this._instance.referenceCrs;
+    }
+
     /**
      * Perform the initialization. This should be called exactly once in the lifetime of the layer.
      */
     private async initializeOnce() {
         this._opCounter.increment();
-        const targetProjection = this._instance.referenceCrs;
+        const targetProjection = this.getTargetProjection();
 
         await this.source.initialize({
             targetProjection,
@@ -599,9 +607,13 @@ abstract class Layer<
      * @returns The layer final extent.
      */
     public getExtent(): Extent | undefined {
+        // We are interested in the projected CRS, not the cartesian one, if any.
+        const crs =
+            this._instance.referenceCrs === 'EPSG:4978' ? 'EPSG:4326' : this._instance.referenceCrs;
+
         // The layer extent takes precedence over the source extent,
         // since it maye be used for some cropping effect.
-        return this.extent ?? this.source.getExtent()?.clone()?.as(this._instance.referenceCrs);
+        return this.extent ?? this.source.getExtent()?.clone()?.as(crs);
     }
 
     async loadFallbackImagesInternal() {
@@ -680,6 +692,15 @@ abstract class Layer<
         // Implemented in derived classes.
     }
 
+    private getExtentAsSourceCRS(extent: Extent): Extent {
+        const clone = extent.clone();
+        if (clone.crs() === 'EPSG:4326') {
+            // Keep extent in correct domain
+            clone.intersect(Extent.WGS84);
+        }
+        return clone.as(this.source.getCrs());
+    }
+
     /**
      * @param options - Options.
      * @returns A promise that is settled when all images have been fetched.
@@ -700,7 +721,7 @@ abstract class Layer<
 
         const results = this.source.getImages({
             id: `${target.node.id}`,
-            extent: extent.clone().as(this.source.getCrs()),
+            extent: this.getExtentAsSourceCRS(extent),
             width,
             height,
             signal: target.controller.signal,
@@ -1041,6 +1062,13 @@ abstract class Layer<
                 Math.round(textureSize.x * this.resolutionFactor),
                 Math.round(textureSize.y * this.resolutionFactor),
             );
+
+            if (this.getTargetProjection() === 'EPSG:4326') {
+                // Ensure that no extent overflow the WGS84 domain,
+                // to avoid artifacts at the 180° meridian.
+                extent.intersect(this.getExtent());
+            }
+
             const pitch = originalExtent.offsetToParent(extent);
 
             target = new Target({

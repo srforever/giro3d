@@ -15,13 +15,21 @@ import {
     Matrix4,
     Box3,
     Vector3,
+    MathUtils,
+    Sphere,
+    Group,
+    Points,
+    BufferGeometry,
+    PointsMaterial,
 } from 'three';
 
 import MemoryTracker from '../renderer/MemoryTracker';
 import type LayeredMaterial from '../renderer/LayeredMaterial';
 import type { MaterialOptions } from '../renderer/LayeredMaterial';
 import type Extent from './geographic/Extent';
-import TileGeometry from './TileGeometry';
+import type TileGeometry from './TileGeometry';
+import GlobeTileGeometry from './GlobeTileGeometry';
+import ProjectedTileGeometry from './ProjectedTileGeometry';
 import type RenderingState from '../renderer/RenderingState';
 import ElevationLayer from './layer/ElevationLayer';
 import type Disposable from './Disposable';
@@ -40,9 +48,18 @@ import { intoUniqueOwner } from './UniqueOwner';
 import TextureGenerator from '../utils/TextureGenerator';
 import type GetElevationOptions from '../entities/GetElevationOptions';
 import { type NeighbourList } from './TileIndex';
+import { Coordinates } from './geographic';
+import type Camera from '../renderer/Camera';
+import { isOrthographicCamera, isPerspectiveCamera } from '../renderer/Camera';
+import Ellipsoid from './geographic/Ellipsoid';
 
 const ray = new Ray();
 const inverseMatrix = new Matrix4();
+const tmpBox = new Box3();
+const tmpSphere = new Sphere();
+const tmpCoordWGS84 = new Coordinates('EPSG:4326', 0, 0);
+
+const wgs84 = Ellipsoid.WGS84;
 
 const helperMaterial = new MeshBasicMaterial({
     color: '#75eba8',
@@ -50,6 +67,12 @@ const helperMaterial = new MeshBasicMaterial({
     depthWrite: false,
     wireframe: true,
     transparent: true,
+});
+
+const cornerMaterial = new PointsMaterial({
+    color: 'yellow',
+    sizeAttenuation: false,
+    size: 10,
 });
 
 const NO_NEIGHBOUR = -99;
@@ -67,15 +90,15 @@ function makePooledGeometry(pool: GeometryPool, extent: Extent, segments: number
         return cached;
     }
 
-    const dimensions = extent.dimensions();
-    const geometry = new TileGeometry({ dimensions, segments });
+    const geometry = new ProjectedTileGeometry({ extent, segments });
     pool.set(key, geometry);
     return geometry;
 }
 
-function makeRaycastableGeometry(extent: Extent, segments: number) {
-    const dimensions = extent.dimensions();
-    const geometry = new TileGeometry({ dimensions, segments });
+function makeRaycastableGeometry(extent: Extent, segments: number, isGlobe: boolean) {
+    const geometry = isGlobe
+        ? new GlobeTileGeometry({ extent, segments })
+        : new ProjectedTileGeometry({ extent, segments });
     return geometry;
 }
 
@@ -89,17 +112,21 @@ export interface TileMeshEventMap extends Object3DEventMap {
 }
 
 class TileVolume {
-    private readonly _localBox: Box3;
+    protected readonly _localBox: Box3;
     private readonly _owner: Object3D<Object3DEventMap>;
 
     constructor(options: { extent: Extent; min: number; max: number; owner: Object3D }) {
-        const dims = options.extent.dimensions(tempVec2);
+        this._owner = options.owner;
+        this._localBox = this.computeLocalBox(options.extent, options.min, options.max);
+    }
+
+    protected computeLocalBox(extent: Extent, minAltitude: number, maxAltitude: number): Box3 {
+        const dims = extent.dimensions(tempVec2);
         const width = dims.x;
         const height = dims.y;
-        const min = new Vector3(-width / 2, -height / 2, options.min);
-        const max = new Vector3(+width / 2, +height / 2, options.max);
-        this._localBox = new Box3(min, max);
-        this._owner = options.owner;
+        const min = new Vector3(-width / 2, -height / 2, minAltitude);
+        const max = new Vector3(+width / 2, +height / 2, maxAltitude);
+        return new Box3(min, max);
     }
 
     get centerZ() {
@@ -110,26 +137,26 @@ class TileVolume {
         return this._localBox;
     }
 
-    /**
-     * Gets or set the min altitude, in local coordinates.
-     */
-    get zMin() {
-        return this._localBox.min.z;
+    getCorners(): Vector3[] {
+        const bbox = this.getWorldSpaceBoundingBox(tmpBox);
+        const c0 = new Vector3(bbox.min.x, bbox.min.y, bbox.min.z);
+        const c1 = new Vector3(bbox.min.x, bbox.min.y, bbox.max.z);
+
+        const c2 = new Vector3(bbox.max.x, bbox.min.y, bbox.min.z);
+        const c3 = new Vector3(bbox.max.x, bbox.min.y, bbox.max.z);
+
+        const c4 = new Vector3(bbox.max.x, bbox.max.y, bbox.min.z);
+        const c5 = new Vector3(bbox.max.x, bbox.max.y, bbox.max.z);
+
+        const c6 = new Vector3(bbox.min.x, bbox.max.y, bbox.min.z);
+        const c7 = new Vector3(bbox.min.x, bbox.max.y, bbox.max.z);
+
+        return [c0, c1, c2, c3, c4, c5, c6, c7];
     }
 
-    set zMin(v: number) {
-        this._localBox.min.setZ(v);
-    }
-
-    /**
-     * Gets or set the max altitude, in local coordinates.
-     */
-    get zMax() {
-        return this._localBox.max.z;
-    }
-
-    set zMax(v: number) {
-        this._localBox.max.setZ(v);
+    setMinMax(min: number, max: number) {
+        this._localBox.min.setZ(min);
+        this._localBox.max.setZ(max);
     }
 
     /**
@@ -164,6 +191,124 @@ class TileVolume {
 
         return result;
     }
+
+    getWorldSpaceBoundingSphere(target?: Sphere): Sphere {
+        return this.getWorldSpaceBoundingBox(tmpBox).getBoundingSphere(target ?? new Sphere());
+    }
+}
+
+class GlobeTileVolume extends TileVolume {
+    private readonly _extent: Extent;
+    private _corners: Vector3[];
+    private _max = 0;
+    private _min = 0;
+
+    constructor(options: { extent: Extent; min: number; max: number; owner: Object3D }) {
+        super(options);
+
+        this._extent = options.extent;
+    }
+
+    getCorners(): Vector3[] {
+        if (this._corners == null) {
+            const dims = this._extent.dimensions(tempVec2);
+
+            const xCount = MathUtils.clamp(Math.round(dims.width / 5) + 1, 2, 6);
+            const yCount = MathUtils.clamp(Math.round(dims.height / 5) + 1, 2, 6);
+
+            this._corners = new Array(xCount * yCount);
+            const uStep = 1 / (xCount - 1);
+            const jStep = 1 / (yCount - 1);
+
+            let index = 0;
+            for (let i = 0; i < xCount; i++) {
+                for (let j = 0; j < yCount; j++) {
+                    const u = i * uStep;
+                    const v = j * jStep;
+
+                    const lonlat = this._extent.sample(u, v, tempVec2);
+
+                    const p0 = wgs84.toCartesian(lonlat.y, lonlat.x, this._min);
+                    const p1 = wgs84.toCartesian(lonlat.y, lonlat.x, this._max);
+
+                    this._corners[index++] = p0;
+                    this._corners[index++] = p1;
+                }
+            }
+        }
+
+        return this._corners;
+    }
+
+    protected override computeLocalBox(
+        extent: Extent,
+        minAltitude: number,
+        maxAltitude: number,
+    ): Box3 {
+        const p0 = wgs84.toCartesian(extent.north(), extent.west(), minAltitude);
+        const p1 = wgs84.toCartesian(extent.north(), extent.west(), maxAltitude);
+
+        const p2 = wgs84.toCartesian(extent.south(), extent.west(), minAltitude);
+        const p3 = wgs84.toCartesian(extent.south(), extent.west(), maxAltitude);
+
+        const p4 = wgs84.toCartesian(extent.south(), extent.east(), minAltitude);
+        const p5 = wgs84.toCartesian(extent.south(), extent.east(), maxAltitude);
+
+        const p6 = wgs84.toCartesian(extent.north(), extent.east(), minAltitude);
+        const p7 = wgs84.toCartesian(extent.north(), extent.east(), maxAltitude);
+
+        const center = extent.center(tmpCoordWGS84);
+
+        const p8 = wgs84.toCartesian(center.latitude, center.longitude, minAltitude);
+        const p9 = wgs84.toCartesian(center.latitude, center.longitude, maxAltitude);
+
+        const p10 = wgs84.toCartesian(extent.north(), center.longitude, minAltitude);
+        const p11 = wgs84.toCartesian(extent.south(), center.longitude, maxAltitude);
+
+        const p12 = wgs84.toCartesian(center.latitude, extent.west(), minAltitude);
+        const p13 = wgs84.toCartesian(center.latitude, extent.east(), maxAltitude);
+
+        const worldBox = new Box3().setFromPoints([
+            p0,
+            p1,
+            p2,
+            p3,
+            p4,
+            p5,
+            p6,
+            p7,
+            p8,
+            p9,
+            p10,
+            p11,
+            p12,
+            p13,
+        ]);
+
+        return worldBox.setFromCenterAndSize(
+            worldBox.getCenter(tempVec3).sub(p0),
+            worldBox.getSize(new Vector3()),
+        );
+    }
+
+    override setMinMax(min: number, max: number) {
+        if (!Number.isFinite(min) || !Number.isFinite(max)) {
+            min = 0;
+            max = 0;
+        }
+        if (this._min !== min || this._max !== max) {
+            this._min = min;
+            this._max = max;
+            const box = this.computeLocalBox(this._extent, min, max);
+            this._localBox.copy(box);
+            this._corners = null;
+        }
+    }
+
+    override getWorldSpaceBoundingSphere(target?: Sphere): Sphere {
+        target = target ?? new Sphere();
+        return target.setFromPoints(this.getCorners());
+    }
 }
 
 class TileMesh
@@ -185,17 +330,23 @@ class TileMesh
     private _heightMap: UniqueOwner<HeightMap, this>;
     disposed = false;
     private _enableTerrainDeformation: boolean;
+    private readonly _isGlobe: boolean;
     private readonly _enableCPUTerrain: boolean;
     private readonly _instance: Instance;
     private readonly _onElevationChanged: (tile: this) => void;
+    private readonly _tileGeometry: TileGeometry;
     private _shouldUpdateHeightMap = false;
     isLeaf = false;
+    private _helperRoot: Group;
+    private readonly _helpers: {
+        colliderMesh?: Mesh<BufferGeometry, MeshBasicMaterial, Object3DEventMap>;
+        extentCorners?: Points<BufferGeometry, PointsMaterial>;
+    } = {};
     private _elevationLayerInfo: {
         layer: ElevationLayer;
         offsetScale: OffsetScale;
         renderTarget: WebGLRenderTarget<Texture>;
     };
-    private _helperMesh: Mesh<TileGeometry, MeshBasicMaterial, Object3DEventMap>;
 
     getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
         const result = target ?? createEmptyReport();
@@ -217,17 +368,23 @@ class TileMesh
 
     get boundingBox(): Box3 {
         if (!this._enableTerrainDeformation) {
-            this._volume.zMin = 0;
-            this._volume.zMax = 0;
+            this._volume.setMinMax(0, 0);
         } else {
-            this._volume.zMin = this.minmax.min;
-            this._volume.zMax = this.minmax.max;
+            this._volume.setMinMax(this.minmax.min, this.minmax.max);
         }
         return this._volume.localBox;
     }
 
     getWorldSpaceBoundingBox(target: Box3): Box3 {
         return this._volume.getWorldSpaceBoundingBox(target);
+    }
+
+    getWorldSpaceBoundingSphere(target: Sphere): Sphere {
+        return this._volume.getWorldSpaceBoundingSphere(target);
+    }
+
+    getBoundingBoxCorners(): Vector3[] {
+        return this._volume.getCorners();
     }
 
     /**
@@ -240,6 +397,7 @@ class TileMesh
         material,
         extent,
         segments,
+        isGlobe,
         coord: { level, x = 0, y = 0 },
         textureSize,
         instance,
@@ -259,6 +417,7 @@ class TileMesh
         coord: { level: number; x: number; y: number };
         /** The texture size. */
         textureSize: Vector2;
+        isGlobe: boolean;
         instance: Instance;
         enableCPUTerrain: boolean;
         enableTerrainDeformation: boolean;
@@ -267,11 +426,13 @@ class TileMesh
         super(
             // CPU terrain forces geometries to be unique, so cannot be pooled
             enableCPUTerrain
-                ? makeRaycastableGeometry(extent, segments)
+                ? makeRaycastableGeometry(extent, segments, isGlobe)
                 : makePooledGeometry(geometryPool, extent, segments, level),
             material,
         );
 
+        this._isGlobe = isGlobe;
+        this._tileGeometry = this.geometry;
         this._pool = geometryPool;
         this._segments = segments;
         this._instance = instance;
@@ -285,12 +446,19 @@ class TileMesh
         this._enableCPUTerrain = enableCPUTerrain;
         this._enableTerrainDeformation = enableTerrainDeformation;
 
-        this._volume = new TileVolume({
-            extent,
-            owner: this,
-            min: this.geometry.boundingBox.min.z,
-            max: this.geometry.boundingBox.max.z,
-        });
+        this._volume = this._isGlobe
+            ? new GlobeTileVolume({
+                  extent,
+                  owner: this,
+                  min: -100,
+                  max: +100,
+              })
+            : new TileVolume({
+                  extent,
+                  owner: this,
+                  min: this.geometry.boundingBox.min.z,
+                  max: this.geometry.boundingBox.max.z,
+              });
 
         this.name = `tile @ (z=${level}, x=${x}, y=${y})`;
 
@@ -300,8 +468,6 @@ class TileMesh
         this.setDisplayed(false);
 
         this.material.setUuid(this.id);
-        const dim = extent.dimensions();
-        this.material.uniforms.tileDimensions.value.set(dim.x, dim.y);
 
         // Sets the default bbox volume
         this.setBBoxZ(-0.5, +0.5);
@@ -313,30 +479,67 @@ class TileMesh
         MemoryTracker.track(this, this.name);
     }
 
-    get showHelpers() {
-        if (!this._helperMesh) {
-            return false;
-        }
-        return this._helperMesh.material.visible;
+    get absolutePosition() {
+        return this.geometry.origin;
     }
 
-    set showHelpers(visible: boolean) {
-        if (visible && !this._helperMesh) {
-            this._helperMesh = new Mesh(this.geometry, helperMaterial);
-            this._helperMesh.matrixAutoUpdate = false;
-            this._helperMesh.name = 'collider helper';
-            this.add(this._helperMesh);
-            this._helperMesh.updateMatrix();
-            this._helperMesh.updateMatrixWorld(true);
+    get showColliderMesh() {
+        if (!this._helpers.colliderMesh) {
+            return false;
+        }
+        return this._helpers.colliderMesh.material.visible;
+    }
+
+    set showColliderMesh(visible: boolean) {
+        if (visible && !this._helpers.colliderMesh) {
+            this._helpers.colliderMesh = new Mesh(this.geometry.raycastGeometry, helperMaterial);
+            this._helpers.colliderMesh.matrixAutoUpdate = false;
+            this._helpers.colliderMesh.name = 'collider helper';
+            this.createHelperRootIfNecessary();
+            this._helperRoot.add(this._helpers.colliderMesh);
+            this._helpers.colliderMesh.updateMatrix();
+            this._helpers.colliderMesh.updateMatrixWorld(true);
         }
 
-        if (!visible && this._helperMesh) {
-            this._helperMesh.removeFromParent();
-            this._helperMesh = null;
+        if (!visible && this._helpers.colliderMesh) {
+            this._helpers.colliderMesh.removeFromParent();
+            this._helpers.colliderMesh = null;
         }
 
-        if (this._helperMesh) {
-            this._helperMesh.material.visible = visible;
+        if (this._helpers.colliderMesh) {
+            this._helpers.colliderMesh.material.visible = visible;
+        }
+    }
+
+    get showExtentCorners() {
+        if (!this._helpers.extentCorners) {
+            return false;
+        }
+        return this._helpers.extentCorners.material.visible;
+    }
+
+    set showExtentCorners(visible: boolean) {
+        if (visible && !this._helpers.extentCorners) {
+            this.createHelperRootIfNecessary();
+
+            const geom = new BufferGeometry().setFromPoints(this.getBoundingBoxCorners());
+            const points = new Points(geom, cornerMaterial);
+            points.name = 'corners';
+
+            this._helpers.extentCorners = points;
+            this._helperRoot.attach(points);
+            points.updateMatrix();
+            points.updateMatrixWorld(true);
+        }
+
+        if (!visible && this._helpers.extentCorners) {
+            this._helpers.extentCorners.removeFromParent();
+            this._helpers.extentCorners.geometry.dispose();
+            this._helpers.extentCorners = null;
+        }
+
+        if (this._helpers.extentCorners) {
+            this._helpers.extentCorners.material.visible = visible;
         }
     }
 
@@ -355,12 +558,21 @@ class TileMesh
         }
     }
 
+    private createHelperRootIfNecessary() {
+        if (!this._helperRoot) {
+            this._helperRoot = new Group();
+            this._helperRoot.name = 'helpers';
+            this.add(this._helperRoot);
+            this._helperRoot.updateMatrixWorld(true);
+        }
+    }
+
     private createGeometry() {
         this.geometry = this._enableCPUTerrain
-            ? makeRaycastableGeometry(this.extent, this._segments)
+            ? makeRaycastableGeometry(this.extent, this._segments, this._isGlobe)
             : makePooledGeometry(this._pool, this.extent, this._segments, this.level);
-        if (this._helperMesh) {
-            this._helperMesh.geometry = this.geometry;
+        if (this._helpers.colliderMesh) {
+            this._helpers.colliderMesh.geometry = this.geometry.raycastGeometry;
         }
     }
 
@@ -371,7 +583,7 @@ class TileMesh
     }
 
     addChildTile(tile: TileMesh) {
-        this.add(tile);
+        this.attach(tile);
         if (this._heightMap) {
             const heightMap = this._heightMap.payload;
             const inheritedHeightMap = heightMap.clone();
@@ -410,7 +622,16 @@ class TileMesh
         // Let's do it only if the ray intersects the volume of this tile.
         if (this.checkRayVolumeIntersection(raycaster)) {
             this.updateHeightMapIfNecessary();
+
+            // We have to distinguish between the rendered geometry and the raycasting geometry.
+            // However, three.js does not let use choose which will be used for raycasting,
+            // so we temporarily swap the geometry with the raycast geometry to perform raycasting.
+            // @ts-expect-error type mismatch is expected and transient
+            this.geometry = this._tileGeometry.raycastGeometry;
+
             super.raycast(raycaster, intersects);
+
+            this.geometry = this._tileGeometry;
         }
     }
 
@@ -479,7 +700,8 @@ class TileMesh
             }
         }
 
-        this.showHelpers = materialOptions.showColliderMeshes ?? false;
+        this.showColliderMesh = materialOptions.showColliderMeshes ?? false;
+        this.showExtentCorners = materialOptions.showExtentCorners ?? false;
     }
 
     isVisible() {
@@ -489,8 +711,8 @@ class TileMesh
     setDisplayed(show: boolean) {
         const currentVisibility = this.material.visible;
         this.material.visible = show && this.material.update();
-        if (this._helperMesh) {
-            this._helperMesh.visible = this.material.visible;
+        if (this._helperRoot) {
+            this._helperRoot.visible = this.material.visible;
         }
         if (currentVisibility !== show) {
             this.dispatchEvent({ type: 'visibility-changed' });
@@ -615,6 +837,36 @@ class TileMesh
         this._onElevationChanged(this);
     }
 
+    getScreenPixelSize(view: Camera, target?: Vector2): Vector2 {
+        target = target ?? new Vector2();
+
+        const sphere = this.getWorldSpaceBoundingSphere(tmpSphere);
+
+        const distance = sphere.center.distanceTo(view.camera3D.getWorldPosition(tempVec3));
+
+        let height: number;
+        let width: number;
+
+        if (isPerspectiveCamera(view.camera3D)) {
+            const fovRads = MathUtils.degToRad(view.camera3D.fov);
+            height = 2 * Math.tan(fovRads / 2) * distance;
+            width = height * view.camera3D.aspect;
+        } else if (isOrthographicCamera(view.camera3D)) {
+            height = Math.abs(view.camera3D.top - view.camera3D.bottom);
+            width = Math.abs(view.camera3D.right - view.camera3D.left);
+        }
+
+        const diameter = sphere.radius * 2;
+
+        const wRatio = diameter / width;
+        const hRatio = diameter / height;
+
+        target.setX(Math.ceil(wRatio * view.width));
+        target.setY(Math.ceil(hRatio * view.height));
+
+        return target;
+    }
+
     private createHeightMap(renderTarget: WebGLRenderTarget, offsetScale: OffsetScale) {
         const outputHeight = Math.floor(renderTarget.height);
         const outputWidth = Math.floor(renderTarget.width);
@@ -670,6 +922,10 @@ class TileMesh
             this.setBBoxZ(min, max);
         }
 
+        if (this._helpers.colliderMesh) {
+            this._helpers.colliderMesh.geometry = this.geometry.raycastGeometry;
+        }
+
         this._onElevationChanged(this);
     }
 
@@ -702,11 +958,7 @@ class TileMesh
     }
 
     private updateVolume(min: number, max: number) {
-        const v = this._volume;
-        if (Math.floor(min) !== Math.floor(v.zMin) || Math.floor(max) !== Math.floor(v.zMax)) {
-            this._volume.zMin = min;
-            this._volume.zMax = max;
-        }
+        this._volume.setMinMax(min, max);
     }
 
     get minmax() {

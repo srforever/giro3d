@@ -19,6 +19,7 @@ import type {
     TextureDataType,
     WebGLProgramParametersWithUniforms,
     Texture,
+    ColorRepresentation,
 } from 'three';
 import RenderingState from './RenderingState';
 import TileVS from './shader/TileVS.glsl';
@@ -37,6 +38,7 @@ import type GraticuleOptions from '../core/GraticuleOptions';
 import type ColorimetryOptions from '../core/ColorimetryOptions';
 import type ElevationLayer from '../core/layer/ElevationLayer';
 import type ColorLayer from '../core/layer/ColorLayer';
+import type { BlendingMode } from '../core/layer/ColorLayer';
 import type ElevationRange from '../core/ElevationRange';
 import type Extent from '../core/geographic/Extent';
 import type ColorMapAtlas from './ColorMapAtlas';
@@ -52,8 +54,13 @@ import {
 import type MemoryUsage from '../core/MemoryUsage';
 import EmptyTexture from './EmptyTexture';
 import OffsetScale from '../core/OffsetScale';
+import AtlasBuilder from './AtlasBuilder';
+import Capabilities from '../core/system/Capabilities';
+import Ellipsoid from '../core/geographic/Ellipsoid';
 
 const EMPTY_IMAGE_SIZE = 16;
+
+const tmpDims = new Vector2();
 
 interface ElevationTexture extends Texture {
     /**
@@ -80,7 +87,7 @@ const DISABLED_ELEVATION_RANGE = new Vector2(-999999, 999999);
 class TextureInfo {
     originalOffsetScale: OffsetScale;
     offsetScale: OffsetScale;
-    readonly layer: Layer;
+    readonly layer: ColorLayer;
     texture: Texture;
     opacity: number;
     visible: boolean;
@@ -88,7 +95,7 @@ class TextureInfo {
     elevationRange: Vector2;
     brightnessContrastSaturation: Vector3;
 
-    constructor(layer: Layer) {
+    constructor(layer: ColorLayer) {
         this.layer = layer;
         this.offsetScale = null;
         this.originalOffsetScale = null;
@@ -103,7 +110,7 @@ class TextureInfo {
         return (this.layer as MaskLayer).maskMode || 0;
     }
 }
-
+export const DEFAULT_OUTLINE_COLOR = 'red';
 export const DEFAULT_HILLSHADING_INTENSITY = 1;
 export const DEFAULT_HILLSHADING_ZFACTOR = 1;
 export const DEFAULT_AZIMUTH = 135;
@@ -111,6 +118,7 @@ export const DEFAULT_ZENITH = 45;
 export const DEFAULT_GRATICULE_COLOR = new Color(0, 0, 0);
 export const DEFAULT_GRATICULE_STEP = 500; // meters
 export const DEFAULT_GRATICULE_THICKNESS = 1;
+export const DEFAULT_SUN_DIRECTION = new Vector3(1, 0, 0);
 
 function drawImageOnAtlas(
     width: number,
@@ -207,6 +215,11 @@ export interface MaterialOptions {
      */
     showTileOutlines?: boolean;
     /**
+     * The tile outline color.
+     * @defaultValue {@link DEFAULT_OUTLINE_COLOR}
+     */
+    tileOutlineColor?: ColorRepresentation;
+    /**
      * Force using texture atlases even when not required by WebGL limitations.
      */
     forceTextureAtlases?: boolean;
@@ -214,6 +227,10 @@ export interface MaterialOptions {
      * Displays the collider meshes used for raycast.
      */
     showColliderMeshes?: boolean;
+    /**
+     * Displays the extent corners.
+     */
+    showExtentCorners?: boolean;
 }
 
 type HillshadingUniform = {
@@ -221,6 +238,7 @@ type HillshadingUniform = {
     zFactor: number;
     zenith: number;
     azimuth: number;
+    sunDirection: Vector3;
 };
 
 type ContourLineUniform = {
@@ -242,8 +260,12 @@ type LayerUniform = {
     color: Vector4;
     textureSize: Vector2;
     elevationRange: Vector2;
-    mode: 0 | MaskMode;
     brightnessContrastSaturation: Vector3;
+};
+
+type ColorLayerUniform = LayerUniform & {
+    mode: 0 | MaskMode;
+    blendingMode: BlendingMode;
 };
 
 type NeighbourUniform = {
@@ -274,11 +296,13 @@ type Defines = {
     USE_ATLAS_TEXTURE?: 1;
     /** The number of _visible_ color layers */
     VISIBLE_COLOR_LAYER_COUNT: number;
+    IS_GLOBE?: 1;
 };
 
 interface Uniforms {
     opacity: IUniform<number>;
     segments: IUniform<number>;
+    tileOutlineColor: IUniform<Color>;
     contourLines: IUniform<ContourLineUniform>;
     graticule: IUniform<GraticuleUniform>;
     hillshading: IUniform<HillshadingUniform>;
@@ -289,7 +313,7 @@ interface Uniforms {
     colorTextures: IUniform<Texture[]>;
     uuid: IUniform<number>;
     backgroundColor: IUniform<Vector4>;
-    layers: IUniform<LayerUniform[]>;
+    layers: IUniform<ColorLayerUniform[]>;
     elevationLayer: IUniform<LayerUniform>;
     brightnessContrastSaturation: IUniform<Vector3>;
     renderingState: IUniform<RenderingState>;
@@ -297,6 +321,8 @@ interface Uniforms {
     colorMapAtlas: IUniform<Texture>;
     layersColorMaps: IUniform<ColorMapUniform[]>;
     elevationColorMap: IUniform<ColorMapUniform>;
+    wgs84Dimensions: IUniform<Vector4>;
+    sunDirection: IUniform<Vector3>;
 
     fogDensity: IUniform<number>;
     fogNear: IUniform<number>;
@@ -335,6 +361,8 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
     private readonly _atlasInfo: AtlasInfo;
     private readonly _forceTextureAtlas: boolean;
     private readonly _maxTextureImageUnits: number;
+    private readonly _textureSize: Vector2;
+    private readonly _extent: Extent;
     private _options: MaterialOptions;
     private _hasElevationLayer: boolean;
 
@@ -352,35 +380,41 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
     constructor({
         options = {},
         renderer,
+        extent,
         maxTextureImageUnits,
-        atlasInfo,
         getIndexFn,
         textureDataType,
         hasElevationLayer,
+        isGlobe,
+        textureSize,
     }: {
         /** the material options. */
         options: MaterialOptions;
+        extent: Extent;
         /** the WebGL renderer. */
         renderer: WebGLRenderer;
         /** The number of maximum texture units in fragment shaders */
         maxTextureImageUnits: number;
-        /**  the Atlas info */
-        atlasInfo: AtlasInfo;
         /** The function to help sorting color layers. */
         getIndexFn: (arg0: Layer) => number;
         /** The texture data type to be used for the atlas texture. */
         textureDataType: TextureDataType;
         hasElevationLayer: boolean;
+        isGlobe: boolean;
+        textureSize: Vector2;
     }) {
         super({ clipping: true, glslVersion: GLSL3 });
 
-        this._atlasInfo = atlasInfo;
+        this._extent = extent;
+        this._atlasInfo = { maxX: 0, maxY: 0, atlas: null };
+        MaterialUtils.setDefine(this, 'IS_GLOBE', isGlobe);
         MaterialUtils.setDefine(this, 'USE_ATLAS_TEXTURE', false);
         MaterialUtils.setDefine(this, 'STITCHING', options.terrain?.stitching);
         MaterialUtils.setDefine(this, 'TERRAIN_DEFORMATION', options.terrain?.enabled);
         this._renderer = renderer;
         this._forceTextureAtlas = options.forceTextureAtlases ?? false;
 
+        this._textureSize = textureSize;
         this._hasElevationLayer = hasElevationLayer;
         this._composerDataType = textureDataType;
         this.uniforms.hillshading = new Uniform<HillshadingUniform>({
@@ -388,6 +422,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
             azimuth: DEFAULT_AZIMUTH,
             intensity: DEFAULT_HILLSHADING_INTENSITY,
             zFactor: DEFAULT_HILLSHADING_ZFACTOR,
+            sunDirection: DEFAULT_SUN_DIRECTION.clone(),
         });
 
         this.uniforms.fogDensity = new Uniform(0.00025);
@@ -447,7 +482,19 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
             },
         };
 
-        this.uniforms.tileDimensions = new Uniform(new Vector2());
+        const dim =
+            extent.crs() === 'EPSG:4326'
+                ? Ellipsoid.WGS84.getExtentDimensions(extent)
+                : extent.dimensions();
+        this.uniforms.tileDimensions = new Uniform(dim);
+
+        if (isGlobe) {
+            const { width, height } = extent.dimensions(tmpDims);
+            this.uniforms.wgs84Dimensions = new Uniform(
+                new Vector4(extent.west(), extent.south(), width, height),
+            );
+        }
+
         this.uniforms.brightnessContrastSaturation = new Uniform(new Vector3(0, 1, 1));
         this.uniforms.neighbours = new Uniform(new Array(8));
         for (let i = 0; i < 8; i++) {
@@ -529,7 +576,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         this.sortLayersIfNecessary();
 
         if (this._mustUpdateUniforms) {
-            const layersUniform = [];
+            const layersUniform: ColorLayerUniform[] = [];
             const infos = this.texturesInfo.color.infos;
             const textureUniforms = this.uniforms.colorTextures.value;
             textureUniforms.length = 0;
@@ -555,12 +602,13 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
                 const color = new Vector4(rgb.r, rgb.g, rgb.b, a);
                 const elevationRange = info.elevationRange || DISABLED_ELEVATION_RANGE;
 
-                const uniform = {
+                const uniform: ColorLayerUniform = {
                     offsetScale,
                     color,
                     textureSize,
                     elevationRange,
                     mode: info.mode,
+                    blendingMode: layer.blendingMode,
                     brightnessContrastSaturation: info.brightnessContrastSaturation,
                 };
 
@@ -755,6 +803,30 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         return Promise.resolve(true);
     }
 
+    private rebuildAtlasInfo() {
+        const colorLayers = this._colorLayers;
+
+        // rebuild color textures atlas
+        // We use a margin to prevent atlas bleeding.
+        const margin = 1.1;
+        const { width, height } = this._textureSize;
+
+        const { atlas, maxX, maxY } = AtlasBuilder.pack(
+            Capabilities.getMaxTextureSize(),
+            colorLayers.map(l => ({
+                id: l.id,
+                size: new Vector2(
+                    Math.round(width * l.resolutionFactor * margin),
+                    Math.round(height * l.resolutionFactor * margin),
+                ),
+            })),
+            this._atlasInfo.atlas,
+        );
+        this._atlasInfo.atlas = atlas;
+        this._atlasInfo.maxX = Math.max(this._atlasInfo.maxX, maxX);
+        this._atlasInfo.maxY = Math.max(this._atlasInfo.maxY, maxY);
+    }
+
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     pushColorLayer(newLayer: ColorLayer, _extent: Extent) {
         if (this._colorLayers.includes(newLayer)) {
@@ -773,6 +845,8 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         info.originalOffsetScale = new OffsetScale(0, 0, 0, 0);
         info.texture = emptyTexture;
         info.color = new Color(1, 1, 1);
+
+        this.rebuildAtlasInfo();
 
         // Optional feature: limit color layer display within an elevation range
         const hasElevationRange = newLayer.elevationRange != null;
@@ -825,6 +899,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         this._colorLayers.splice(index, 1);
 
         this.updateColorMaps();
+        this.rebuildAtlasInfo();
 
         this.updateColorLayerCount();
     }
@@ -914,7 +989,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
                     options.xStep,
                     options.yStep,
                 );
-                const rgb = options.color;
+                const rgb = new Color(options.color);
                 uniform.color.set(rgb.r, rgb.g, rgb.b, options.opacity);
             }
         }
@@ -953,6 +1028,14 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
 
         MaterialUtils.setDefine(this, 'ELEVATION_LAYER', this._elevationLayer?.visible);
         MaterialUtils.setDefine(this, 'ENABLE_OUTLINES', materialOptions.showTileOutlines);
+        if (materialOptions.showTileOutlines) {
+            if (this.uniforms.tileOutlineColor == null) {
+                this.uniforms.tileOutlineColor = new Uniform(new Color(DEFAULT_OUTLINE_COLOR));
+            }
+            if (materialOptions.tileOutlineColor) {
+                this.uniforms.tileOutlineColor.value = new Color(materialOptions.tileOutlineColor);
+            }
+        }
         MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', materialOptions.discardNoData);
 
         if (materialOptions.terrain) {
@@ -967,6 +1050,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
             uniform.azimuth = hillshadingParams.azimuth ?? DEFAULT_AZIMUTH;
             uniform.intensity = hillshadingParams.intensity ?? 1;
             uniform.zFactor = hillshadingParams.zFactor ?? 1;
+            uniform.sunDirection = hillshadingParams.sunDirection ?? DEFAULT_SUN_DIRECTION;
             MaterialUtils.setDefine(this, 'ENABLE_HILLSHADING', hillshadingParams.enabled);
             MaterialUtils.setDefine(
                 this,

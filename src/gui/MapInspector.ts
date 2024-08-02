@@ -1,6 +1,15 @@
 import type GUI from 'lil-gui';
 import type { AxesHelper, GridHelper } from 'three';
-import { Color } from 'three';
+import {
+    Color,
+    Sphere,
+    Mesh,
+    MeshBasicMaterial,
+    SphereGeometry,
+    Vector2,
+    MathUtils,
+    Box3,
+} from 'three';
 import { CSS2DObject } from 'three/examples/jsm/renderers/CSS2DRenderer.js';
 import type Instance from '../core/Instance';
 import TileMesh from '../core/TileMesh';
@@ -15,6 +24,11 @@ import ContourLinePanel from './ContourLinePanel';
 import ColorimetryPanel from './ColorimetryPanel';
 import GraticulePanel from './GraticulePanel';
 import MapTerrainPanel from './MapTerrainPanel';
+import Ellipsoid from '../core/geographic/Ellipsoid';
+
+const tmpSphere = new Sphere();
+const tmpVec2 = new Vector2();
+const tmpBox = new Box3();
 
 function createTileLabel() {
     const text = document.createElement('div');
@@ -58,6 +72,10 @@ class MapInspector extends EntityInspector {
     reachableTiles: number;
     visibleTiles: number;
     terrainPanel: MapTerrainPanel;
+    showSphereVolumes = false;
+    boundingSpheres: Set<Mesh<SphereGeometry, MeshBasicMaterial>> = new Set();
+    sphereMaterial: MeshBasicMaterial;
+    sphereGeometry: SphereGeometry;
 
     /**
      * Creates an instance of MapInspector.
@@ -112,8 +130,6 @@ class MapInspector extends EntityInspector {
                 .name('Elevation range maximum')
                 .onChange(() => this.notify(map));
         }
-        this.addController<number>(this.map.imageSize, 'width').name('Tile width  (pixels)');
-        this.addController<number>(this.map.imageSize, 'height').name('Tile height  (pixels)');
         this.addController<boolean>(this, 'showGrid')
             .name('Show grid')
             .onChange(v => this.toggleGrid(v));
@@ -128,6 +144,9 @@ class MapInspector extends EntityInspector {
         this.addController<boolean>(this.map.materialOptions, 'showTileOutlines')
             .name('Show tiles outlines')
             .onChange(() => this.notify());
+        this.addColorController(this.map.materialOptions, 'tileOutlineColor')
+            .name('Tile outline color')
+            .onChange(() => this.notify());
         this.addController<boolean>(this, 'showTileInfo')
             .name('Show tile info')
             .onChange(() => this.toggleBoundingBoxes());
@@ -137,6 +156,9 @@ class MapInspector extends EntityInspector {
         this.addColorController(this, 'extentColor')
             .name('Extent color')
             .onChange(() => this.updateExtentColor());
+        this.addController<boolean>(this, 'showSphereVolumes')
+            .name('Show sphere volumes')
+            .onChange(() => this.notify());
         this.addController<number>(this.map, 'subdivisionThreshold')
             .name('Subdivision threshold')
             .min(0.1)
@@ -187,6 +209,11 @@ class MapInspector extends EntityInspector {
         this.map.addEventListener('layer-removed', this._fillLayersCb);
         this.map.addEventListener('layer-order-changed', this._fillLayersCb);
 
+        this.instance.addEventListener(
+            'after-camera-update',
+            this.updateBoundingSpheres.bind(this),
+        );
+
         this.fillLayers();
     }
 
@@ -206,10 +233,11 @@ class MapInspector extends EntityInspector {
             label.name = 'MapInspector label';
             obj.addEventListener('dispose', () => {
                 label.element.remove();
-                label.remove();
+                label.removeFromParent();
+                this.labels.delete(obj.id);
             });
-            obj.add(label);
-            obj.updateMatrixWorld(true);
+            this.instance.add(label);
+            label.updateMatrixWorld(true);
             this.labels.set(obj.id, label);
         }
         return label;
@@ -220,30 +248,101 @@ class MapInspector extends EntityInspector {
             const label = this.labels.get(tile.id);
             if (label) {
                 label.element.remove();
-                label.parent?.remove(label);
+                label.removeFromParent();
                 this.labels.delete(tile.id);
             }
         } else {
             const isVisible = tile.visible && tile.material.visible;
+            const apparentSize = tile.getScreenPixelSize(this.instance.camera, tmpVec2);
             const label = this.getOrCreateLabel(tile);
             const element = label.element;
-            let innerText = `
-            Map=${this.map.id}
-            {x=${tile.x},y=${tile.y}} LOD=${tile.z}
-            (node #${tile.id})
-            progress=${Math.ceil(tile.progress * 100)}%
-            layers=${tile.material.getLayerCount()}
-            `;
+
+            const lines = [
+                `Map ID=${this.map.id}, Tile ID=${tile.id}`,
+                `{x=${tile.x},y=${tile.y}} LOD=${tile.z}`,
+                ` ${tile.textureSize.width} * ${tile.textureSize.height} (real), ${apparentSize.width} * ${apparentSize.height} (apparent)`,
+                ` ${tile.material.getLayerCount()} layer(s), progress=${Math.ceil(tile.progress * 100)}%`,
+            ];
+
             for (const layer of this.map.getLayers()) {
                 const info = layer.getInfo(tile);
-                innerText += `Layer '${layer.id}' - (images=${info.imageCount}, state=${info.state})\n`;
+                lines.push(
+                    `'${layer.name ?? layer.id}' - (images=${info.imageCount}, state=${info.state})`,
+                );
             }
-            element.innerText = innerText;
+
+            element.innerText = lines.join('\n');
             element.style.color = `#${color.getHexString()}`;
             element.style.opacity = isVisible ? '100%' : '0%';
-            tile.boundingBox.getCenter(label.position);
+            if (this.instance.referenceCrs === 'EPSG:4978') {
+                const { x, y } = tile.extent.centerAsVector2(tmpVec2);
+                const z = tile.minmax.max;
+                const p = Ellipsoid.WGS84.toCartesian(y, x, z);
+                label.position.copy(p);
+            } else {
+                tile.getWorldSpaceBoundingBox(tmpBox).getCenter(label.position);
+            }
             label.updateMatrixWorld();
         }
+    }
+
+    private updateBoundingSpheres() {
+        if (!this.showSphereVolumes) {
+            if (this.boundingSpheres.size > 0) {
+                this.boundingSpheres.forEach(mesh => {
+                    mesh.removeFromParent();
+                    mesh.userData.owner.userData.boundingSphere = null;
+                });
+                this.boundingSpheres.clear();
+            }
+            return;
+        }
+
+        if (!this.sphereMaterial) {
+            this.sphereMaterial = new MeshBasicMaterial({
+                color: this.boundingBoxColor,
+                wireframe: true,
+            });
+        }
+
+        if (!this.sphereGeometry) {
+            this.sphereGeometry = new SphereGeometry(1, 32, 16);
+        }
+
+        this.sphereMaterial.color = new Color(this.boundingBoxColor);
+
+        [...this.boundingSpheres].forEach(mesh => {
+            const tile: TileMesh = mesh.userData.owner;
+            if (tile.disposed) {
+                mesh.removeFromParent();
+                this.boundingSpheres.delete(mesh);
+            } else {
+                mesh.visible = tile.visible && tile.material.visible;
+            }
+        });
+
+        this.map.traverseTiles(tile => {
+            if (!tile.userData.boundingSphere) {
+                const mesh = new Mesh(this.sphereGeometry, this.sphereMaterial);
+                tile.userData.boundingSphere = mesh;
+
+                this.instance.add(mesh);
+                this.boundingSpheres.add(mesh);
+
+                mesh.userData.owner = tile;
+                mesh.rotateX(MathUtils.degToRad(90));
+            } else {
+                const mesh: Mesh = tile.userData.boundingSphere;
+                const sphere = tile.getWorldSpaceBoundingSphere(tmpSphere);
+
+                const r = sphere.radius;
+
+                mesh.scale.set(r, r, r);
+                mesh.position.copy(sphere.center);
+
+                mesh.updateMatrixWorld(true);
+            }
+        });
     }
 
     toggleBoundingBoxes() {

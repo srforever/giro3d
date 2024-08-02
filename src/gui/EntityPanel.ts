@@ -9,14 +9,16 @@ import Panel from './Panel';
 import Tiles3dInspector from './Tiles3dInspector';
 import PotreePointCloudInspector from './PotreePointCloudInspector';
 import ShapeInspector from './ShapeInspector';
+import AtmosphereInspector from './AtmosphereInspector';
 
-const customInspectors: Record<string, typeof EntityInspector> = {
+const customInspectors: Record<string, typeof EntityInspector<Entity3D>> = {
     Map: MapInspector,
     Tiles3D: Tiles3dInspector,
     PotreePointCloud: PotreePointCloudInspector,
     AxisGrid: AxisGridInspector,
     Shape: ShapeInspector,
     FeatureCollection: FeatureCollectionInspector,
+    Atmosphere: AtmosphereInspector,
 };
 
 /**

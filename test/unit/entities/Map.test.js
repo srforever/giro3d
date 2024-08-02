@@ -2,7 +2,7 @@ import '../setup.js';
 import { Color, Group, Object3D } from 'three';
 import Extent from '../../../src/core/geographic/Extent';
 import Instance from '../../../src/core/Instance';
-import Map from '../../../src/entities/Map';
+import Map, { selectBestSubdivisions } from '../../../src/entities/Map';
 import Layer from '../../../src/core/layer/Layer';
 import MainLoop from '../../../src/core/MainLoop';
 import { setupGlobalMocks } from '../mocks.js';
@@ -27,7 +27,7 @@ describe('Map', () => {
     /** @type {Map} */
     let map;
 
-    const extent = new Extent('EPSG:4326', {
+    const extent = new Extent('EPSG:3857', {
         west: 0,
         east: 10,
         south: 0,
@@ -253,7 +253,7 @@ describe('Map', () => {
         });
 
         it('should have a single root tile if square', () => {
-            expect(map.subdivisions).toEqual({ x: 1, y: 1 });
+            expect(map.level0Nodes).toHaveLength(1);
         });
 
         it('should have an tileIndex', () => {
@@ -261,29 +261,19 @@ describe('Map', () => {
         });
     });
 
-    describe('preprocess', () => {
+    describe('selectBestSubdivisions', () => {
         it('should produce multiple horizontal root tiles if needed', async () => {
             const horizontalExtent = new Extent('EPSG:3857', -250, 250, -100, 100);
-            const horizontalMap = new Map('horizontal', { extent: horizontalExtent });
-
-            horizontalMap._instance = { referenceCrs: 'EPSG:3857' };
-
-            await horizontalMap.preprocess();
-
-            expect(horizontalMap.subdivisions).toEqual({ x: 3, y: 1 });
+            expect(selectBestSubdivisions(horizontalExtent)).toEqual({ x: 3, y: 1 });
         });
 
         it('should produce multiple vertical root tiles if needed', async () => {
             const verticalExtent = new Extent('EPSG:3857', -100, 100, -250, 250);
-            const verticalMap = new Map('horizontal', { extent: verticalExtent });
-
-            verticalMap._instance = { referenceCrs: 'EPSG:3857' };
-
-            await verticalMap.preprocess();
-
-            expect(verticalMap.subdivisions).toEqual({ x: 1, y: 3 });
+            expect(selectBestSubdivisions(verticalExtent)).toEqual({ x: 1, y: 3 });
         });
+    });
 
+    describe('preprocess', () => {
         it('should convert the extent to the instance CRS', async () => {
             const verticalExtent = new Extent('EPSG:3857', -100, 100, -250, 250);
             const verticalMap = new Map('horizontal', { extent: verticalExtent });

@@ -6,6 +6,7 @@ import type { BoundingBoxHelper } from '../../helpers/Helpers';
 import Helpers from '../../helpers/Helpers';
 import Panel from '../Panel';
 import OutlinerPropertyView from './OutlinerPropertyView';
+import type Entity3D from '../../entities/Entity3D';
 
 type OutlinedObject3D = Object3D & {
     treeviewVisible: boolean;
@@ -34,6 +35,10 @@ function getHash(scene: Scene): number {
  * @returns the object containing foreground and background colors
  */
 function selectColor(obj: OutlinedObject3D): { back: string; fore: string } {
+    const entity = isEntityRoot(obj);
+    if (entity) {
+        return { back: 'gold', fore: 'black' };
+    }
     switch (obj.type) {
         case 'Mesh':
         case 'TileMesh':
@@ -67,6 +72,33 @@ function getMaterialVisibility(obj: Object3D): boolean {
     return true;
 }
 
+function isEntityRoot(obj: Object3D): Entity3D | null {
+    if (obj.userData.parentEntity != null) {
+        const entity: Entity3D = obj.userData.parentEntity;
+        if (entity.object3d === obj) {
+            return entity;
+        }
+    }
+
+    return null;
+}
+
+function getType(obj: Object3D): string {
+    const entity = isEntityRoot(obj);
+    if (entity != null) {
+        return entity.type;
+    }
+    return obj.type;
+}
+
+function getName(obj: Object3D): string {
+    const entity = isEntityRoot(obj);
+    if (entity != null) {
+        return entity.id;
+    }
+    return obj.name;
+}
+
 function createTreeViewNode(obj: OutlinedObject3D, marginLeft: number, clickHandler: ClickHandler) {
     const div = document.createElement('button');
     div.style.textAlign = 'left';
@@ -79,7 +111,9 @@ function createTreeViewNode(obj: OutlinedObject3D, marginLeft: number, clickHand
     name.style.background = 'transparent';
     const textColor = getMaterialVisibility(obj) ? 'white' : 'rgba(222, 208, 105, 0.59)';
     const { fore, back } = selectColor(obj);
-    name.innerHTML = `<span style="border-radius: 6px; padding: 2px; font-family: monospace; background-color: ${back}; color: ${fore}">${obj.type}</span> <span style="font-family: monospace; color: ${textColor}";>${obj.name}</span>`;
+    const type = getType(obj);
+    const objName = getName(obj);
+    name.innerHTML = `<span style="border-radius: 8px; padding: 2px 4px; font-family: monospace; font-weight: bold; background-color: ${back}; color: ${fore}">${type}</span> <span style="font-family: monospace; color: ${textColor}";>${objName}</span>`;
 
     div.appendChild(name);
 

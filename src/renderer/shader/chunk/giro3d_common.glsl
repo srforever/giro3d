@@ -26,11 +26,20 @@ vec4 convert_RG_Float_RGBA_UnsignedByte(const in vec4 color, const in float _pre
 }
 
 struct Hillshading {
-    float zenith;     // Zenith of sunlight, in degrees (0 - 90)
-    float azimuth;    // Azimuth on sunlight, in degrees (0 - 360)
     float intensity;  // The global lighting intensity
     float zFactor;    // The factor to apply to slopes.
+#if defined(IS_GLOBE)
+    vec3  sunDirection;
+#else
+    float zenith;     // Zenith of sunlight, in degrees (0 - 90)
+    float azimuth;    // Azimuth on sunlight, in degrees (0 - 360)
+#endif
 };
+
+const int BLENDING_MODE_NONE = 0;
+const int BLENDING_MODE_NORMAL = 1;
+const int BLENDING_MODE_ADDITIVE = 2;
+const int BLENDING_MODE_MULTIPLICATIVE = 3;
 
 /**
  * Describe a color layer's attributes.
@@ -44,6 +53,7 @@ struct LayerInfo {
     vec2        elevationRange; // Optional elevation range for the layer. Any fragment above or below this range will be ignored.
     #endif
     vec3        brightnessContrastSaturation;
+    int         blendingMode;
 };
 
 struct NoDataOptions {
@@ -103,6 +113,20 @@ vec4 blend(vec4 fore, vec4 back) {
     vec3 color = (fore.rgb * fore.a) + back.rgb * (back.a * (1.0 - fore.a)) / alpha;
 
     return vec4(color, alpha);
+}
+
+vec4 applyBlending(vec4 fore, vec4 back, int blendingMode) {
+    if (blendingMode == BLENDING_MODE_NORMAL) {
+        return blend(fore, back);
+    } else if (blendingMode == BLENDING_MODE_ADDITIVE) {
+        vec3 rgb = clamp((fore.rgb * fore.a) + (back.rgb * back.a), 0.0, 1.0);
+        return vec4(rgb, 1.0);
+    } else if (blendingMode == BLENDING_MODE_MULTIPLICATIVE) {
+        vec3 rgb = clamp(fore.rgb * back.rgb, 0.0, 1.0);
+        return vec4(rgb, 1.0);
+    } else {
+        return fore;
+    }
 }
 
 vec3 desaturate(vec3 color, float factor) {
@@ -182,19 +206,57 @@ float map(float value, float min1, float max1, float min2, float max2) {
     return min2 + (value - min1) * (max2 - min2) / (max1 - min1);
 }
 
-float calcHillshade(vec2 tileDimensions, Hillshading hillshading, vec4 offsetScale, sampler2D tex, vec2 uv){
-    // https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-hillshade-works.htm
-    vec2 derivatives = computeElevationDerivatives(tileDimensions, uv, tex, hillshading.zFactor, offsetScale);
-    float slope = calcSlope(derivatives);
-    float aspect = calcAspect(derivatives);
-    float zenith_rad = hillshading.zenith * M_PI / 180.0; // in radians
-    float azimuth_rad = hillshading.azimuth * M_PI / 180.0; // in radians
-    float hillshade = ((cos(zenith_rad) * cos(slope)) + (sin(zenith_rad) * sin(slope) * cos(azimuth_rad - aspect)));
-
-    hillshade = clamp(hillshade, 0., 1.);
-
-    return mix(1., hillshade, hillshading.intensity);
+vec3 getNormalFromDerivatives(float dx, float dy) {
+    vec3 direction = vec3(-dx, -dy, 1.0);
+    float magnitude = sqrt(pow(direction.x, 2.0) + pow(direction.y, 2.0) + pow(direction.z, 2.0));
+    return direction / magnitude;
 }
+
+vec3 Z = vec3(0, 0, 1);
+
+#if defined(IS_GLOBE)
+    float calcGlobeShadingWithTerrain(vec2 tileDimensions, Hillshading hillshading, vec4 offsetScale, sampler2D tex, vec2 uv, vec3 worldNormal){
+        vec2 derivatives = computeElevationDerivatives(tileDimensions, uv, tex, hillshading.zFactor, offsetScale);
+        vec3 localNormal = getNormalFromDerivatives(derivatives.x, derivatives.y);
+
+        vec3 e = normalize(cross(Z, worldNormal));
+        vec3 u = worldNormal;
+        vec3 n = normalize(cross(e, u));
+
+        mat4 enu = transpose(mat4(
+            e.x, e.y, e.z, 0.0,
+            n.x, n.y, n.z, 0.0,
+            u.x, u.y, u.z, 0.0,
+            0.0, 0.0, 0.0, 1.0
+        ));
+
+        vec3 normal = (vec4(localNormal, 1.0) * enu).xyz;
+
+        float intensity = dot(normal, -hillshading.sunDirection);
+
+        return mix(1., intensity, hillshading.intensity);
+    }
+
+    float calcGlobeShading(Hillshading hillshading, vec3 worldNormal){
+        float intensity = dot(worldNormal, -hillshading.sunDirection);
+
+        return mix(1., intensity, hillshading.intensity);
+    }
+#else
+    float calcHillshade(vec2 tileDimensions, Hillshading hillshading, vec4 offsetScale, sampler2D tex, vec2 uv){
+        // https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-hillshade-works.htm
+        vec2 derivatives = computeElevationDerivatives(tileDimensions, uv, tex, hillshading.zFactor, offsetScale);
+        float slope = calcSlope(derivatives);
+        float aspect = calcAspect(derivatives);
+        float zenith_rad = hillshading.zenith * M_PI / 180.0; // in radians
+        float azimuth_rad = hillshading.azimuth * M_PI / 180.0; // in radians
+        float hillshade = ((cos(zenith_rad) * cos(slope)) + (sin(zenith_rad) * sin(slope) * cos(azimuth_rad - aspect)));
+
+        hillshade = clamp(hillshade, 0., 1.);
+
+        return mix(1., hillshade, hillshading.intensity);
+    }
+#endif
 
 vec2 clamp01(vec2 uv) {
     return vec2(

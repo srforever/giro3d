@@ -7,11 +7,14 @@ import ColorMapInspector from './ColorMapInspector';
 import type { BoundingBoxHelper } from '../helpers/Helpers';
 import Helpers from '../helpers/Helpers';
 import SourceInspector from './SourceInspector';
-import type { ColorLayer, ElevationLayer } from '../core/layer';
+import type { ElevationLayer } from '../core/layer';
 import ColorimetryPanel from './ColorimetryPanel';
 import * as MemoryUsage from '../core/MemoryUsage';
 import type { Entity3D } from '../entities';
 import { isMap } from '../entities/Map';
+import { isColorLayer } from '../core/layer/ColorLayer';
+
+const blendingModes = ['None', 'Normal', 'Additive', 'Multiplicative'];
 
 /**
  * Inspector for a {@link Layer}.
@@ -37,6 +40,7 @@ class LayerInspector extends Panel {
     composerImages = 0;
     cpuMemoryUsage = 'unknown';
     gpuMemoryUsage = 'unknown';
+    blendingMode = 'Normal';
 
     /**
      * @param gui - The GUI.
@@ -70,6 +74,7 @@ class LayerInspector extends Panel {
             .onChange(() => {
                 this.notify(entity);
             });
+
         this.addController<boolean>(this.layer, 'frozen')
             .name('Frozen')
             .onChange(() => {
@@ -93,8 +98,8 @@ class LayerInspector extends Panel {
             this.addController<number>(this.minmax, 'min').name('Minimum elevation');
             this.addController<number>(this.minmax, 'max').name('Maximum elevation');
         }
-        if ((this.layer as ColorLayer).isColorLayer) {
-            const colorLayer = this.layer as ColorLayer;
+        if (isColorLayer(this.layer)) {
+            const colorLayer = this.layer;
             if (colorLayer.elevationRange) {
                 this.addController<number>(colorLayer.elevationRange, 'min')
                     .name('Elevation range minimum')
@@ -104,6 +109,15 @@ class LayerInspector extends Panel {
                     .name('Elevation range maximum')
                     .onChange(() => this.notify(entity));
             }
+
+            this.blendingMode = blendingModes[colorLayer.blendingMode];
+
+            this.addController<string>(this, 'blendingMode', blendingModes)
+                .name('Blending mode')
+                .onChange(v => {
+                    colorLayer.blendingMode = blendingModes.indexOf(v);
+                    this.notify(this.layer);
+                });
 
             this.colorimetryPanel = new ColorimetryPanel(
                 colorLayer.colorimetry,

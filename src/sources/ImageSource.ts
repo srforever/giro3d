@@ -49,8 +49,8 @@ class ImageResult {
         this.id = options.id;
         this.texture = options.texture;
         this.extent = options.extent;
-        this.min = options.min;
-        this.max = options.max;
+        this.min = options.min ?? 0;
+        this.max = options.max ?? 0;
     }
 }
 

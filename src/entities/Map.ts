@@ -1,7 +1,6 @@
 import {
     Vector2,
     Vector3,
-    Quaternion,
     Group,
     Color,
     MathUtils,
@@ -15,7 +14,7 @@ import {
     Box3,
 } from 'three';
 
-import type Extent from '../core/geographic/Extent';
+import Extent from '../core/geographic/Extent';
 import Layer from '../core/layer/Layer';
 import ColorLayer, { isColorLayer } from '../core/layer/ColorLayer';
 import ElevationLayer, { isElevationLayer } from '../core/layer/ElevationLayer';
@@ -29,13 +28,13 @@ import LayeredMaterial, {
     DEFAULT_GRATICULE_THICKNESS,
     DEFAULT_HILLSHADING_INTENSITY,
     DEFAULT_HILLSHADING_ZFACTOR,
+    DEFAULT_SUN_DIRECTION,
     DEFAULT_ZENITH,
 } from '../renderer/LayeredMaterial';
 import TileMesh, { isTileMesh } from '../core/TileMesh';
 import TileIndex, { type NeighbourList } from '../core/TileIndex';
 import type RenderingState from '../renderer/RenderingState';
 import ColorMapAtlas from '../renderer/ColorMapAtlas';
-import AtlasBuilder, { type AtlasInfo } from '../renderer/AtlasBuilder';
 import Capabilities from '../core/system/Capabilities';
 import type TileGeometry from '../core/TileGeometry';
 import { type MaterialOptions } from '../renderer/LayeredMaterial';
@@ -71,11 +70,17 @@ import type ElevationRange from '../core/ElevationRange';
 import type Context from '../core/Context';
 import type GetElevationOptions from './GetElevationOptions';
 import type GetElevationResult from './GetElevationResult';
+import Ellipsoid from '../core/geographic/Ellipsoid';
 
 /**
  * The default background color of maps.
  */
 export const DEFAULT_MAP_BACKGROUND_COLOR: ColorRepresentation = '#0a3b59';
+
+/**
+ * The default tile subdivision threshold.
+ */
+export const DEFAULT_SUBDIVISION_THRESHOLD = 1.5;
 
 /**
  * The default number of segments in a map's tile.
@@ -110,6 +115,8 @@ const MAX_SUPPORTED_ASPECT_RATIO = 10;
 const tmpVector = new Vector3();
 const tmpBox3 = new Box3();
 const tempNDC = new Vector2();
+const tmpWGS84Coordinates = new Coordinates('EPSG:4326', 0, 0);
+const tempDims = new Vector2();
 const tempCanvasCoords = new Vector2();
 const tmpSseSizes: [number, number] = [0, 0];
 const tmpIntersectList: Intersection<TileMesh>[] = [];
@@ -231,6 +238,7 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions): Hillshadin
             zFactor: DEFAULT_HILLSHADING_ZFACTOR,
             azimuth: DEFAULT_AZIMUTH,
             zenith: DEFAULT_ZENITH,
+            sunDirection: DEFAULT_SUN_DIRECTION.clone(),
         };
     }
 
@@ -243,6 +251,7 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions): Hillshadin
             zFactor: DEFAULT_HILLSHADING_ZFACTOR,
             azimuth: DEFAULT_AZIMUTH,
             zenith: DEFAULT_ZENITH,
+            sunDirection: DEFAULT_SUN_DIRECTION,
         };
     }
 
@@ -253,10 +262,15 @@ function getHillshadingOptions(input?: boolean | HillshadingOptions): Hillshadin
         zenith: input.zenith ?? DEFAULT_ZENITH,
         intensity: input.intensity ?? DEFAULT_HILLSHADING_INTENSITY,
         zFactor: input.zFactor ?? DEFAULT_HILLSHADING_ZFACTOR,
+        sunDirection: input.sunDirection ?? DEFAULT_SUN_DIRECTION,
     };
 }
 
-function selectBestSubdivisions(extent: Extent) {
+export function selectBestSubdivisions(extent: Extent) {
+    if (extent.equals(Extent.WGS84)) {
+        return { x: 4, y: 2 };
+    }
+
     const dims = extent.dimensions();
     const ratio = dims.x / dims.y;
     let x = 1;
@@ -272,15 +286,33 @@ function selectBestSubdivisions(extent: Extent) {
     return { x, y };
 }
 
-/**
- * Compute the best image size for tiles, taking into account the extent ratio.
- * In other words, rectangular tiles will have more pixels in their longest side.
- *
- * @param extent - The map extent.
- */
-function computeImageSize(extent: Extent) {
+function computeWGS84ImageSize(extent: Extent): Vector2 {
+    const dims = extent.dimensions(tempDims);
+
+    const meridianLength = Ellipsoid.WGS84.getMeridianArcLength(dims.height);
+
+    const centerLatitude = extent.center(tmpWGS84Coordinates).latitude;
+
+    // Since the northern edge of the extent has a different size
+    // than the southern edge (due to polar distortion), let's select the biggest edge.
+    // For south hemisphere extent, the biggest edge is the northern one, and vice-versa.
+    const biggestEdgeLatitude = centerLatitude < 0 ? extent.north() : extent.south();
+
+    // Let's compute the radius of the parallel at this latitude
+    const parallelLength = Ellipsoid.WGS84.getParallelArcLength(biggestEdgeLatitude, dims.width);
+
+    // Contrary to the version in computeImageSize(), we don't need to swap width and height
+    // because the meridian length will always be greater or equal to the parallel length.
+    const ratio = parallelLength / meridianLength;
+
     const baseSize = 512;
-    const dims = extent.dimensions();
+
+    return new Vector2(Math.round(baseSize * ratio), baseSize);
+}
+
+function computeProjectedImageSize(extent: Extent): Vector2 {
+    const baseSize = 512;
+    const dims = extent.dimensions(tempDims);
     const ratio = dims.x / dims.y;
     if (Math.abs(ratio - 1) < 0.01) {
         // We have a square tile
@@ -297,6 +329,19 @@ function computeImageSize(extent: Extent) {
 
     // We have a vertical tile
     return new Vector2(baseSize, Math.round(baseSize * actualRatio));
+}
+
+/**
+ * Compute the best image size for tiles, taking into account the extent ratio.
+ * In other words, rectangular tiles will have more pixels in their longest side.
+ *
+ * @param extent - The map extent.
+ */
+function computeImageSize(extent: Extent): Vector2 {
+    if (extent.crs() === 'EPSG:4326') {
+        return computeWGS84ImageSize(extent);
+    }
+    return computeProjectedImageSize(extent);
 }
 
 function getWidestDataType(layers: Layer[]): TextureDataType {
@@ -415,6 +460,11 @@ export type MapConstructorOptions = {
      */
     showOutline?: boolean;
     /**
+     * The color of the tile borders.
+     * @defaultValue red
+     */
+    outlineColor?: ColorRepresentation;
+    /**
      * The optional elevation range of the map. The map will not be
      * rendered for elevations outside of this range.
      * Note: this feature is only useful if an elevation layer is added to this map.
@@ -426,6 +476,11 @@ export type MapConstructorOptions = {
      * @defaultValue false
      */
     forceTextureAtlases?: boolean;
+    /**
+     * The threshold before which a map tile is subdivided.
+     * @defaultValue {@link DEFAULT_SUBDIVISION_THRESHOLD}
+     */
+    subdivisionThreshold?: number;
 };
 
 /**
@@ -480,6 +535,37 @@ export type MapConstructorOptions = {
  *
  * The main advantage of this method is that it's much faster and puts less pressure on the GPU.
  *
+ * ## Coordinate systems
+ *
+ * If the {@link core.Instance#referenceCrs | coordinate reference system} of the instance is a projected
+ * CRS, the map will be displayed as a flat object (with possible deformation along the Z-axis if an
+ * elevation layer is present).
+ *
+ * However, if the CRS of the instance is a geocentric CRS (i.e `EPSG:4978`), then the map will be
+ * rendered **as a globe**.
+ *
+ * ### Flat mode
+ *
+ * In this mode, the 3 axes of the scene are the following:
+ * - X-axis: eastings (X coordinate). Typically the +X axis points toward east in most systems.
+ * - Y-axis: northings (Y coordinate). Typically, the +Y axis points toward the north in most systems.
+ * - Z-axis: vertical axis (used for elevations).
+ *
+ * ### Globe mode
+ *
+ * The globe uses the [ECEF reference frame](https://en.wikipedia.org/wiki/Earth-centered,_Earth-fixed_coordinate_system),
+ * and the WGS84 spheroid ({@link Ellipsoid.WGS84}).
+ *
+ * The 3 axes of the 3D scene are the following:
+ * - X-axis: the axis that crosses the earth at the (0, 0) geographic position (the intersection
+ * between the greenwich meridian and the equator)
+ * - Y-axis: the axis that crosses the earth at the (90, 0) geographic position (the intersection
+ * between the 90° meridian and the equator).
+ * - Z-axis: The rotation axis of the earth (south/north axis).
+ *
+ * In this mode, shading works differently than in the flat mode. To specify the direction of the
+ * sun rays, use {@link setSunDirection}.
+ *
  * @typeParam UserData - The type of the {@link entities.Entity#userData} property.
  */
 class Map<UserData extends EntityUserData = EntityUserData>
@@ -491,13 +577,12 @@ class Map<UserData extends EntityUserData = EntityUserData>
         MemoryUsage
 {
     readonly hasLayers = true;
+    private _isGeocentric = false;
     private _segments: number;
     private _hasElevationLayer = false;
-    private readonly _atlasInfo: AtlasInfo;
-    private _subdivisions: { x: number; y: number };
     private _colorAtlasDataType: TextureDataType = UnsignedByteType;
-    private _imageSize: Vector2;
     private readonly _layers: Layer[] = [];
+    private readonly _sunDirection = new Vector3(1, 0, 0);
     private readonly _onLayerVisibilityChanged: (event: { target: Layer }) => void;
     private readonly _onTileElevationChanged: (tile: TileMesh) => void;
     /** @internal */
@@ -524,7 +609,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
      * sooner a tile is subdivided. Note: changing this scale to a value less than 1 can drastically
      * increase the number of tiles displayed in the scene, and can even lead to WebGL crashes.
      *
-     * @defaultValue 1.5
+     * @defaultValue {@link DEFAULT_SUBDIVISION_THRESHOLD}
      */
     subdivisionThreshold: number;
 
@@ -560,8 +645,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         this._layerIndices = new window.Map();
 
-        this._atlasInfo = { maxX: 0, maxY: 0, atlas: null };
-
         if (!options.extent.isValid()) {
             throw new Error(
                 'Invalid extent: minX must be less than maxX and minY must be less than maxY.',
@@ -569,7 +652,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         }
         this.extent = options.extent;
 
-        this.subdivisionThreshold = 1.5;
+        this.subdivisionThreshold = options.subdivisionThreshold ?? DEFAULT_SUBDIVISION_THRESHOLD;
         this.maxSubdivisionLevel = options.maxSubdivisionLevel ?? 30;
         this._onTileElevationChanged = this.onTileElevationChanged.bind(this);
         this._onLayerVisibilityChanged = this.onLayerVisibilityChanged.bind(this);
@@ -580,6 +663,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         this.materialOptions = {
             showColliderMeshes: false,
+            showExtentCorners: false,
             forceTextureAtlases: options.forceTextureAtlases,
             hillshading: getHillshadingOptions(options.hillshading),
             contourLines: getContourLineOptions(options.contourLines),
@@ -592,6 +676,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             segments: this.segments,
             elevationRange: options.elevationRange,
             backgroundOpacity: options.backgroundOpacity ?? 1,
+            tileOutlineColor: options.outlineColor ?? '#ff0000',
             backgroundColor:
                 options.backgroundColor !== undefined
                     ? new Color(options.backgroundColor)
@@ -643,10 +728,6 @@ class Map<UserData extends EntityUserData = EntityUserData>
         }
     }
 
-    get imageSize(): Vector2 {
-        return this._imageSize;
-    }
-
     private subdivideNode(context: Context, node: TileMesh) {
         if (!node.children.some(n => isTileMesh(n))) {
             const extents = node.extent.split(2, 2);
@@ -693,26 +774,27 @@ class Map<UserData extends EntityUserData = EntityUserData>
         });
     }
 
-    get subdivisions(): { x: number; y: number } {
-        return this._subdivisions;
-    }
-
     preprocess() {
-        this.extent = this.extent.as(this._instance.referenceCrs);
+        if (this._instance.referenceCrs === 'EPSG:4978') {
+            this._isGeocentric = true;
+        } else {
+            this._isGeocentric = false;
+            // In a projected coordinate system, we must ensure
+            // that the extent is in the correct projection
+            this.extent = this.extent.as(this._instance.referenceCrs);
+        }
 
-        this._subdivisions = selectBestSubdivisions(this.extent);
+        const subdivisions = selectBestSubdivisions(this.extent);
 
         // If the map is not square, we want to have more than a single
         // root tile to avoid elongated tiles that hurt visual quality and SSE computation.
-        const rootExtents = this.extent.split(this._subdivisions.x, this._subdivisions.y);
-
-        this._imageSize = computeImageSize(rootExtents[0]);
+        const rootExtents = this.extent.split(subdivisions.x, subdivisions.y);
 
         let i = 0;
         for (const root of rootExtents) {
-            if (this._subdivisions.x > this._subdivisions.y) {
+            if (subdivisions.x > subdivisions.y) {
                 this.level0Nodes.push(this.requestNewTile(root, undefined, 0, i, 0));
-            } else if (this._subdivisions.y > this._subdivisions.x) {
+            } else if (subdivisions.y > subdivisions.x) {
                 this.level0Nodes.push(this.requestNewTile(root, undefined, 0, 0, i));
             } else {
                 this.level0Nodes.push(this.requestNewTile(root, undefined, 0, 0, 0));
@@ -732,18 +814,19 @@ class Map<UserData extends EntityUserData = EntityUserData>
             return null;
         }
 
-        const quaternion = new Quaternion();
-        const position = extent.centerAsVector3();
+        const textureSize = computeImageSize(extent);
 
         // build tile
         const material = new LayeredMaterial({
             renderer: this._instance.renderer,
-            atlasInfo: this._atlasInfo,
             options: this.materialOptions,
+            textureSize,
+            extent,
             getIndexFn: this.getIndex.bind(this),
             textureDataType: this._colorAtlasDataType,
             hasElevationLayer: this._hasElevationLayer,
             maxTextureImageUnits: Capabilities.getMaxTextureUnitsCount(),
+            isGlobe: this._isGeocentric,
         });
 
         const tile = new TileMesh({
@@ -751,12 +834,13 @@ class Map<UserData extends EntityUserData = EntityUserData>
             instance: this._instance,
             material,
             extent,
-            textureSize: this._imageSize,
+            textureSize,
             segments: this.segments,
             coord: { level, x, y },
             enableCPUTerrain: this.materialOptions.terrain.enableCPUTerrain,
             enableTerrainDeformation: this.materialOptions.terrain.enabled,
             onElevationChanged: this._onTileElevationChanged,
+            isGlobe: this._isGeocentric,
         });
 
         this.allTiles.add(tile);
@@ -765,16 +849,9 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
         tile.material.opacity = this.opacity;
 
-        if (parent && parent instanceof TileMesh) {
-            // get parent position from extent
-            const positionParent = parent.extent.centerAsVector3();
-            // place relative to his parent
-            position.sub(positionParent).applyQuaternion(parent.quaternion.invert());
-            quaternion.premultiply(parent.quaternion);
-        }
+        const position = tile.absolutePosition;
 
         tile.position.copy(position);
-        tile.quaternion.copy(quaternion);
 
         tile.opacity = this.opacity;
         tile.setVisibility(false);
@@ -1127,17 +1204,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
             let requestChildrenUpdate = false;
 
             if (!this.frozen) {
-                const size = node.boundingBox.getSize(tmpVector);
-                const box = node.boundingBox;
-                const sse = ScreenSpaceError.computeFromBox3(
-                    context.camera,
-                    box,
-                    node.matrixWorld,
-                    Math.max(size.x, size.y),
-                    ScreenSpaceError.Mode.MODE_2D,
-                );
-
-                if (this.testTileSSE(node, sse) && this.canSubdivide(node)) {
+                if (this.shouldSubdivide(context, node) && this.canSubdivide(node)) {
                     this.subdivideNode(context, node);
                     // display iff children aren't ready
                     node.setDisplayed(false);
@@ -1170,9 +1237,28 @@ class Map<UserData extends EntityUserData = EntityUserData>
     private testVisibility(node: TileMesh, context: Context): boolean {
         node.update(this.materialOptions);
 
-        const isVisible = context.camera.isBox3Visible(node.boundingBox, node.matrixWorld);
+        // Frustum culling
+        const frustumVisible = context.camera.isBox3Visible(node.getWorldSpaceBoundingBox(tmpBox3));
+        let horizonVisible = true;
 
-        return isVisible;
+        if (frustumVisible && this._isGeocentric) {
+            horizonVisible = this.testHorizonVisibility(node, context);
+        }
+
+        return frustumVisible && horizonVisible;
+    }
+
+    private testHorizonVisibility(node: TileMesh, context: Context): boolean {
+        const cameraPosition = context.camera.camera3D.position;
+        const corners = node.getBoundingBoxCorners();
+
+        for (const corner of corners) {
+            if (Ellipsoid.WGS84.isHorizonVisible(cameraPosition, corner)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     postUpdate() {
@@ -1195,25 +1281,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         }
     }
 
-    private registerColorLayer(layer: ColorLayer) {
-        const colorLayers = this._layers.filter(l => l instanceof ColorLayer);
-
-        // rebuild color textures atlas
-        // We use a margin to prevent atlas bleeding.
-        const margin = 1.1;
-        const factor = layer.resolutionFactor * margin;
-        const { x, y } = this._imageSize;
-        const size = new Vector2(Math.round(x * factor), Math.round(y * factor));
-
-        const { atlas, maxX, maxY } = AtlasBuilder.pack(
-            Capabilities.getMaxTextureSize(),
-            colorLayers.map(l => ({ id: l.id, size })),
-            this._atlasInfo.atlas,
-        );
-        this._atlasInfo.atlas = atlas;
-        this._atlasInfo.maxX = Math.max(this._atlasInfo.maxX, maxX);
-        this._atlasInfo.maxY = Math.max(this._atlasInfo.maxY, maxY);
-
+    private registerColorLayer() {
         this._colorAtlasDataType = getWidestDataType(this.getColorLayers());
     }
 
@@ -1265,7 +1333,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         layer.addEventListener('visible-property-changed', this._onLayerVisibilityChanged);
 
         if (layer instanceof ColorLayer) {
-            this.registerColorLayer(layer);
+            this.registerColorLayer();
         } else if (layer instanceof ElevationLayer) {
             this._hasElevationLayer = true;
             this.updateGlobalMinMax();
@@ -1573,8 +1641,53 @@ class Map<UserData extends EntityUserData = EntityUserData>
         tmpSseSizes[0] = sse.lengths.x * sse.ratio;
         tmpSseSizes[1] = sse.lengths.y * sse.ratio;
 
-        const threshold = Math.max(this.imageSize.x, this.imageSize.y);
+        const { width, height } = tile.textureSize;
+
+        const threshold = Math.max(width, height);
         return tmpSseSizes.some(v => v >= threshold * this.subdivisionThreshold);
+    }
+
+    private shouldSubdivide(context: Context, node: TileMesh): boolean {
+        if (this._isGeocentric) {
+            if (node.level >= this.maxSubdivisionLevel) {
+                return false;
+            }
+
+            const { width, height } = node.getScreenPixelSize(context.camera);
+
+            const screenSize = Math.max(width, height);
+            const textureSize = Math.max(node.textureSize.width, node.textureSize.height);
+
+            if (screenSize / textureSize > this.subdivisionThreshold) {
+                return true;
+            }
+
+            return false;
+        } else {
+            const size = node.boundingBox.getSize(tmpVector);
+            const box = node.boundingBox;
+            const sse = ScreenSpaceError.computeFromBox3(
+                context.camera,
+                box,
+                node.matrixWorld,
+                Math.max(size.x, size.y),
+                ScreenSpaceError.Mode.MODE_2D,
+            );
+
+            return this.testTileSSE(node, sse);
+        }
+    }
+
+    /**
+     * Sets the direction of the sun rays.
+     */
+    setSunDirection(direction: Vector3) {
+        // No effect outside of globe mode
+        if (this._isGeocentric) {
+            this._sunDirection.copy(direction);
+            this.materialOptions.hillshading.sunDirection = this._sunDirection;
+            this._instance.notifyChange(this);
+        }
     }
 
     private updateMinMaxDistance(context: Context, node: TileMesh) {

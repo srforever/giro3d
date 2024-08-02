@@ -22,6 +22,25 @@ import type PickableFeatures from '../picking/PickableFeatures';
 import type ColorimetryOptions from '../ColorimetryOptions';
 import { defaultColorimetryOptions } from '../ColorimetryOptions';
 
+export enum BlendingMode {
+    /**
+     * Discard layer transparency.
+     */
+    None = 0,
+    /**
+     * Normal alpha blending.
+     */
+    Normal = 1,
+    /**
+     * Additive blending.
+     */
+    Additive = 2,
+    /**
+     * Multiplicative blending.
+     */
+    Multiplicative = 3,
+}
+
 export interface ColorLayerEvents extends LayerEvents {
     /** When the layer opacity changes */
     'opacity-property-changed': { opacity: number };
@@ -33,6 +52,8 @@ export interface ColorLayerEvents extends LayerEvents {
     'saturation-property-changed': { saturation: number };
     /** When the layer elevationRange property changes */
     'elevationRange-property-changed': { range: ElevationRange };
+    /** When the layer blendingMode property changes */
+    'blendingMode-property-changed': { blendingMode: BlendingMode };
 }
 
 export interface ColorLayerOptions extends LayerOptions {
@@ -45,6 +66,11 @@ export interface ColorLayerOptions extends LayerOptions {
      * The opacity of the layer. Default is 1 (opaque).
      */
     opacity?: number;
+    /**
+     * The blending mode.
+     * @defaultValue {@link BlendingMode.Normal}
+     */
+    blendingMode?: BlendingMode;
 }
 
 /**
@@ -55,6 +81,8 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
     implements PickableFeatures<VectorPickFeature, MapPickResult<VectorPickFeature>>
 {
     private _opacity: number;
+    private _blendingMode: BlendingMode = BlendingMode.Normal;
+
     /**
      * Read-only flag to check if a given object is of type ColorLayer.
      */
@@ -74,6 +102,7 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
         this.type = 'ColorLayer';
         this._elevationRange = options.elevationRange;
         this._opacity = options.opacity ?? 1;
+        this._blendingMode = options.blendingMode ?? BlendingMode.Normal;
     }
 
     /**
@@ -89,6 +118,20 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
     set elevationRange(range: ElevationRange | null) {
         this._elevationRange = range;
         this.dispatchEvent({ type: 'elevationRange-property-changed', range });
+    }
+
+    /**
+     * Gets or sets the blending mode of this layer.
+     */
+    get blendingMode() {
+        return this._blendingMode;
+    }
+
+    set blendingMode(v: BlendingMode) {
+        if (this._blendingMode !== v) {
+            this._blendingMode = v;
+            this.dispatchEvent({ type: 'blendingMode-property-changed', blendingMode: v });
+        }
     }
 
     /**
@@ -218,9 +261,10 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
         };
 
         if (vectorOptions.radius > 0) {
-            const tileExtent = pickedResult.object.extent.as(pickedResult.coord.crs).dimensions();
-            vectorOptions.xTileRes = tileExtent.x / pickedResult.entity.imageSize.x;
-            vectorOptions.yTileRes = tileExtent.y / pickedResult.entity.imageSize.y;
+            const tile = pickedResult.object;
+            const tileExtent = tile.extent.as(pickedResult.coord.crs).dimensions();
+            vectorOptions.xTileRes = tileExtent.x / tile.textureSize.width;
+            vectorOptions.yTileRes = tileExtent.y / tile.textureSize.height;
         }
 
         return this.getVectorFeaturesAtCoordinate(pickedResult.coord, vectorOptions).map(

@@ -688,4 +688,33 @@ describe('Extent', () => {
             expect(splitVertically[3]).toEqual(new Extent('foo', 0, 100, 75, 100));
         });
     });
+
+    describe('sample', () => {
+        it('should return the bottom left corner when u = 0 and v = 0', () => {
+            const extent = new Extent('EPSG:4326', 10, 20, 40, 50);
+
+            const sample = extent.sample(0, 0);
+
+            expect(sample.x).toEqual(10);
+            expect(sample.y).toEqual(40);
+        });
+
+        it('should return the top right corner when u = 1 and v = 1', () => {
+            const extent = new Extent('EPSG:4326', 10, 20, 40, 50);
+
+            const sample = extent.sample(1, 1);
+
+            expect(sample.x).toEqual(20);
+            expect(sample.y).toEqual(50);
+        });
+
+        it('should return the center when u = 0.5 and v = 0.5', () => {
+            const extent = new Extent('EPSG:4326', 10, 20, 40, 50);
+
+            const sample = extent.sample(0.5, 0.5);
+
+            expect(sample.x).toEqual(15);
+            expect(sample.y).toEqual(45);
+        });
+    });
 });
