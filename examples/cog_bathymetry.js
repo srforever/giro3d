@@ -32,7 +32,7 @@ const map = new Map('planar', {
 instance.add(map);
 
 const source = new CogSource({
-    url: 'http://127.0.0.1:14000/rasters/bathymetry-emodnet.cog.tif',
+    url: 'https://3d.oslandia.com/giro3d/rasters/bathymetry-emodnet.cog.tif',
     crs: 'EPSG:3857',
 });
 
