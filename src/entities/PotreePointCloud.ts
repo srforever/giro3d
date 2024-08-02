@@ -680,11 +680,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
             // only load geometry if this elements has points
             if (elt.numPoints > 0) {
                 if (elt.obj) {
-                    if (PointCloudMaterial.isPointCloudMaterial(elt.obj.material)) {
-                        elt.obj.material.update(this.material);
-                    } else {
-                        elt.obj.material.copy(this.material);
-                    }
+                    elt.obj.material.copy(this.material);
                     // if (__DEBUG__) {
                     //     if (this.bboxes.visible) {
                     //         if (!elt.obj.boxHelper) {
