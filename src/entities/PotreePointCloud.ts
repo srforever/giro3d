@@ -731,6 +731,8 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
                             err => {
                                 if (err instanceof Error && err.message === 'aborted') {
                                     elt.promise = null;
+                                } else {
+                                    console.error(err);
                                 }
                             },
                         )
