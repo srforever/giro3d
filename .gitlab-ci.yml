@@ -129,6 +129,8 @@ validate-branch-name:
     script:
         - npm i
         - npx --no-install validate-branch-name -t ${CI_MERGE_REQUEST_SOURCE_BRANCH_NAME}
+    rules:
+        - if: $CI_MERGE_REQUEST_SOURCE_BRANCH_NAME
 
 lint:
     stage: lint
