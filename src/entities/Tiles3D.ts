@@ -661,6 +661,9 @@ class Tiles3D<
                         this._instance.notifyChange(child);
                     }
                 })
+                .catch(e => {
+                    console.error('Cannot subdivide node', node, e);
+                })
                 .finally(() => delete child.promise);
         }
     }
@@ -685,23 +688,27 @@ class Tiles3D<
         // Substractive (refine = 'REPLACE') is an all or nothing subdivision mode
         const promises: Promise<void>[] = [];
         for (const child of this._tileIndex.get(node).children) {
-            const p = this.requestNewTile(child, node, false).then(tile => {
-                if (!tile || !node.parent) {
-                    // cancelled promise or node has been deleted
-                } else {
-                    node.add(tile);
-                    tile.updateMatrixWorld();
+            const p = this.requestNewTile(child, node, false)
+                .then(tile => {
+                    if (!tile || !node.parent) {
+                        // cancelled promise or node has been deleted
+                    } else {
+                        node.add(tile);
+                        tile.updateMatrixWorld();
 
-                    const extent = boundingVolumeToExtent(
-                        this._extent.crs(),
-                        tile.boundingVolume,
-                        tile.matrixWorld,
-                    );
-                    tile.traverse((obj: any) => {
-                        obj.extent = extent;
-                    });
-                }
-            });
+                        const extent = boundingVolumeToExtent(
+                            this._extent.crs(),
+                            tile.boundingVolume,
+                            tile.matrixWorld,
+                        );
+                        tile.traverse((obj: any) => {
+                            obj.extent = extent;
+                        });
+                    }
+                })
+                .catch(e => {
+                    console.error('Cannot subdivide node', node, e);
+                });
             promises.push(p);
         }
 
