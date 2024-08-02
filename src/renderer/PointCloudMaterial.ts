@@ -402,7 +402,6 @@ class PointCloudMaterial extends ShaderMaterial {
             this.defines.USE_LOGDEPTHBUF = 1;
             this.defines.USE_LOGDEPTHBUF_EXT = 1;
         }
-        this.extensions.fragDepth = true;
 
         this.uniforms.enableDeformations = new Uniform(false);
         this.uniforms.deformations = new Uniform([]);
