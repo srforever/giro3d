@@ -520,12 +520,19 @@ class Tiles3D<
                     this._distance.min = Math.min(this._distance.min, node.distance.min);
                     this._distance.max = Math.max(this._distance.max, node.distance.max);
                 }
+                node.content.traverse(o => {
+                    const mesh = o as Object3D;
+                    if (this.isOwned(mesh) && 'material' in mesh) {
+                        const m = mesh.material as Material;
+                        if ('wireframe' in m) {
+                            m.wireframe = this.wireframe;
+                        }
+                    }
+                });
                 if (this.material) {
                     node.content.traverse(o => {
                         const pointcloud = o as PointCloud;
                         if (this.isOwned(pointcloud) && pointcloud.material) {
-                            // TODO: is wireframe still supported?
-                            (pointcloud.material as any).wireframe = this.wireframe;
                             if (pointcloud.isPoints) {
                                 if (
                                     PointCloudMaterial.isPointCloudMaterial(pointcloud.material) &&
