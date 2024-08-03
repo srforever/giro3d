@@ -40,7 +40,7 @@ class Context {
      * @internal
      */
     fastUpdateHint: unknown;
-    private _entity: Entity;
+    private _entity: Entity | undefined;
     /**
      * Current entity being updated.
      */
