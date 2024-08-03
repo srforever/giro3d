@@ -32,7 +32,7 @@ export interface ColorLayerEvents extends LayerEvents {
     /** When the layer saturation changes */
     'saturation-property-changed': { saturation: number };
     /** When the layer elevationRange property changes */
-    'elevationRange-property-changed': { range: ElevationRange };
+    'elevationRange-property-changed': { range?: ElevationRange };
 }
 
 export interface ColorLayerOptions extends LayerOptions {
@@ -60,7 +60,7 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
      */
     readonly isColorLayer: boolean = true;
     readonly isPickableFeatures = true;
-    private _elevationRange: ElevationRange;
+    private _elevationRange?: ElevationRange;
     private _colorimetry: ColorimetryOptions = defaultColorimetryOptions();
 
     /**
@@ -79,14 +79,14 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
     /**
      * Gets the elevation range of this layer, if any.
      */
-    get elevationRange(): ElevationRange {
+    get elevationRange(): ElevationRange | undefined {
         return this._elevationRange;
     }
 
     /**
      * Sets the elevation range of this layer. Setting it to null removes the elevation range.
      */
-    set elevationRange(range: ElevationRange | null) {
+    set elevationRange(range: ElevationRange | undefined) {
         this._elevationRange = range;
         this.dispatchEvent({ type: 'elevationRange-property-changed', range });
     }
@@ -213,11 +213,15 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
     }
 
     pickFeaturesFrom(pickedResult: MapPickResult, options?: PickOptions): VectorPickFeature[] {
-        const vectorOptions: any = {
-            radius: options.radius ?? 0,
+        type Params = Parameters<typeof this.getVectorFeaturesAtCoordinate>[1];
+
+        const radius = options?.radius ?? 0;
+
+        const vectorOptions: Params = {
+            radius,
         };
 
-        if (vectorOptions.radius > 0) {
+        if (radius > 0) {
             const tileExtent = pickedResult.object.extent.as(pickedResult.coord.crs).dimensions();
             vectorOptions.xTileRes = tileExtent.x / pickedResult.entity.imageSize.x;
             vectorOptions.yTileRes = tileExtent.y / pickedResult.entity.imageSize.y;
@@ -259,7 +263,7 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
         const radius = options?.radius ?? 0;
 
         if (radius > 0) {
-            if (!Number.isFinite(options.xTileRes) || !Number.isFinite(options.yTileRes)) {
+            if (!Number.isFinite(options?.xTileRes) || !Number.isFinite(options?.yTileRes)) {
                 console.warn(
                     'Calling getVectorFeaturesAtCoordinate with radius but no tile resolution, this will return nothing',
                 );
@@ -269,29 +273,38 @@ class ColorLayer<UserData extends LayerUserData = LayerUserData>
             const results: Feature[] = [];
             const radiusSqr = radius ** 2;
 
+            const xRes = options?.xTileRes as number;
+            const yRes = options?.xTileRes as number;
+
             // First, define a square extent around the point
             // We might get more features than wanted, so we'll need to filter them afterwards.
             const e = new Extent(
                 coordinate.crs,
-                coordinate.x - options.xTileRes * radius,
-                coordinate.x + options.xTileRes * radius,
-                coordinate.y - options.yTileRes * radius,
-                coordinate.y + options.yTileRes * radius,
+                coordinate.x - xRes * radius,
+                coordinate.x + xRes * radius,
+                coordinate.y - yRes * radius,
+                coordinate.y + yRes * radius,
             );
             const features = this.getVectorFeaturesInExtent(e);
 
             const coordinateLayer = coordinate.as(layerProjection);
             const coord = [coordinateLayer.x, coordinateLayer.y];
             for (const feat of features) {
+                const geom = feat.getGeometry();
+
+                if (!geom) {
+                    continue;
+                }
+
                 // Check the feature is really in the picking circle
-                if (feat.getGeometry().intersectsCoordinate(coord)) {
+                if (geom.intersectsCoordinate(coord)) {
                     results.push(feat);
                     continue;
                 }
 
-                const closestPoint = feat.getGeometry().getClosestPoint(coord);
-                const distX = Math.abs(closestPoint[0] - coord[0]) / options.xTileRes;
-                const distY = Math.abs(closestPoint[1] - coord[1]) / options.yTileRes;
+                const closestPoint = geom.getClosestPoint(coord);
+                const distX = Math.abs(closestPoint[0] - coord[0]) / xRes;
+                const distY = Math.abs(closestPoint[1] - coord[1]) / yRes;
                 const distSqr = distX ** 2 + distY ** 2;
                 if (distSqr <= radiusSqr) {
                     results.push(feat);
