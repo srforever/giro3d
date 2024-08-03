@@ -92,8 +92,8 @@ class Image implements MemoryUsage {
     readonly texture: Texture;
     readonly alwaysVisible: boolean;
     readonly material: Material;
-    readonly min: number;
-    readonly max: number;
+    readonly min: number | undefined;
+    readonly max: number | undefined;
     disposed: boolean;
     readonly owners: Set<number>;
 
@@ -107,8 +107,8 @@ class Image implements MemoryUsage {
         texture: Texture;
         extent: Extent;
         alwaysVisible: boolean;
-        min: number;
-        max: number;
+        min?: number;
+        max?: number;
     }) {
         this.id = options.id;
         this.mesh = options.mesh;
@@ -154,11 +154,11 @@ class Image implements MemoryUsage {
 class LayerComposer implements MemoryUsage {
     readonly computeMinMax: boolean;
     readonly extent: Extent;
-    readonly dimensions: Vector2;
+    readonly dimensions: Vector2 | null;
     readonly images: Map<string, Image>;
     readonly webGLRenderer: WebGLRenderer;
     readonly transparent: boolean;
-    readonly noDataValue: number;
+    readonly noDataValue: number | undefined;
     readonly sourceCrs: string;
     readonly targetCrs: string;
     readonly needsReprojection: boolean;
@@ -222,7 +222,7 @@ class LayerComposer implements MemoryUsage {
         this.dimensions = this.extent ? this.extent.dimensions() : null;
         this.images = new Map();
         this.webGLRenderer = options.renderer;
-        this.transparent = options.transparent;
+        this.transparent = options.transparent ?? false;
         this.noDataValue = options.noDataValue;
         this.sourceCrs = options.sourceCrs;
         this.targetCrs = options.targetCrs;
@@ -328,9 +328,10 @@ class LayerComposer implements MemoryUsage {
         // The fill no-data radius is expressed in CRS units in the API,
         // but in UV space in the shader. A conversion is necessary.
         let noDataRadiusInUVSpace = 1; // Default is no limit.
-        if (options.fillNoData && Number.isFinite(options.fillNoDataRadius)) {
+        const radius = options.fillNoDataRadius;
+        if (options.fillNoData && radius != null && Number.isFinite(radius)) {
             const dims = extent.dimensions(tmpVec2);
-            noDataRadiusInUVSpace = options.fillNoDataRadius / dims.width;
+            noDataRadiusInUVSpace = radius / dims.width;
         }
 
         comp.draw(texture, rect, {
@@ -498,7 +499,7 @@ class LayerComposer implements MemoryUsage {
             mesh,
             texture: actualTexture,
             extent,
-            alwaysVisible: options.alwaysVisible,
+            alwaysVisible: options.alwaysVisible ?? false,
             min: options.min,
             max: options.max,
         });
@@ -618,7 +619,12 @@ class LayerComposer implements MemoryUsage {
 
         this.images.forEach(image => {
             if (extent.intersectsExtent(image.extent)) {
-                if (Number.isFinite(image.min) && Number.isFinite(image.max)) {
+                if (
+                    image.min != null &&
+                    Number.isFinite(image.min) &&
+                    image.max != null &&
+                    Number.isFinite(image.max)
+                ) {
                     min = Math.min(image.min, min);
                     max = Math.max(image.max, max);
                 }
