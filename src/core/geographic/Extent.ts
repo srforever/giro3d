@@ -76,6 +76,7 @@ class Extent {
      */
     constructor(crs: string, ...values: ExtentParameters) {
         this._values = new Float64Array(4);
+        this._crs = crs;
         this.set(crs, ...values);
     }
 
@@ -431,7 +432,6 @@ class Extent {
      */
     isPointInside(coord: Coordinates, epsilon = 0) {
         const c = this.crs() === coord.crs ? coord : coord.as(this.crs());
-        // TODO this ignores altitude
         if (crsIsGeographic(this.crs())) {
             return (
                 c.longitude <= this.east() + epsilon &&
@@ -456,7 +456,7 @@ class Extent {
      * If this value is not provided, a reasonable epsilon will be computed.
      * @returns `true` if this extent is contained in the other extent.
      */
-    isInside(other: Extent, epsilon: number = null) {
+    isInside(other: Extent, epsilon?: number) {
         const o = other.as(this._crs);
         // 0 is an acceptable value for epsilon:
         const dims = this.dimensions(tmpXY);
