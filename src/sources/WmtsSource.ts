@@ -112,18 +112,25 @@ export default class WmtsSource extends TiledImageSource {
         const config: Record<string, unknown> = {
             layer: options.layer,
         };
-        delete options.layer;
+
+        const sourceOptions = { ...options } as Partial<WmtsFromCapabilitiesOptions>;
+
+        delete sourceOptions.layer;
 
         if (options.matrixSet) {
             config.matrixSet = options.matrixSet;
-            delete options.matrixSet;
+            delete sourceOptions.matrixSet;
         }
         if (options.imageFormat) {
             config.format = options.imageFormat;
-            delete options.imageFormat;
+            delete sourceOptions.imageFormat;
         }
 
         const olOptions = optionsFromCapabilities(capabilities, config);
+
+        if (!olOptions) {
+            throw new Error('could not create layer options from capabilities');
+        }
 
         return new WmtsSource({
             source: new WMTS(olOptions),
