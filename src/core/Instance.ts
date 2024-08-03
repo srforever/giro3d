@@ -237,7 +237,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
     private _resizeTimeout?: string | number | NodeJS.Timeout;
     private _controls?: CustomCameraControls;
     private _controlFunctions?: ControlFunctions;
-    private _isDisposing: boolean;
+    private _isDisposing = false;
 
     /**
      * Constructs a Giro3D Instance
@@ -323,7 +323,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             this._resizeObserver.observe(viewerDiv);
         }
 
-        this._controls = null;
+        this._controls = undefined;
         this._pickingClock = new Clock(false);
 
         this._onContextRestored = this.onContextRestored.bind(this);
@@ -972,7 +972,7 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      * Removes a THREE controls previously added. The controls won't be disable.
      */
     removeTHREEControls(): void {
-        if (!this._controls) {
+        if (!this._controls || !this._controlFunctions) {
             return;
         }
 
@@ -984,8 +984,8 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
             this.removeEventListener('before-camera-update', this._controlFunctions.update);
         }
 
-        this._controls = null;
-        this._controlFunctions = null;
+        this._controls = undefined;
+        this._controlFunctions = undefined;
     }
 
     private updateControls() {
