@@ -1,19 +1,10 @@
-import {
-    Uniform,
-    type Texture,
-    FloatType,
-    CanvasTexture,
-    type TextureDataType,
-    type AnyPixelFormat,
-    GLSL3,
-    ShaderMaterial,
-    type IUniform,
-} from 'three';
+import { Uniform, type Texture, CanvasTexture, GLSL3, ShaderMaterial, type IUniform } from 'three';
 
 import FragmentShader from './ComposerTileFS.glsl';
 import VertexShader from './ComposerTileVS.glsl';
-import Interpretation, { Mode, type InterpretationUniform } from '../../core/layer/Interpretation';
+import Interpretation, { type InterpretationUniform } from '../../core/layer/Interpretation';
 import TextureGenerator from '../../utils/TextureGenerator';
+
 // Matches the NoDataOptions struct in the shader
 interface NoDataOptions {
     replacementAlpha?: number;
@@ -41,6 +32,10 @@ function createGridTexture() {
     const h = canvas.height;
 
     const ctx = canvas.getContext('2d');
+
+    if (!ctx) {
+        throw new Error('could not acquire 2D context on canvas');
+    }
 
     ctx.strokeStyle = 'yellow';
     ctx.lineWidth = 4;
@@ -81,8 +76,8 @@ const POOL_SIZE = 2048;
 let GRID_TEXTURE: Texture;
 
 interface Uniforms {
-    tex: IUniform<Texture>;
-    gridTexture: IUniform<Texture>;
+    tex: IUniform<Texture | null>;
+    gridTexture: IUniform<Texture | null>;
     flipY: IUniform<boolean>;
     showImageOutlines: IUniform<boolean>;
     expandRGB: IUniform<boolean>;
@@ -98,10 +93,8 @@ interface Uniforms {
 }
 
 class ComposerTileMaterial extends ShaderMaterial {
-    now: number;
-    dataType: TextureDataType;
-    pixelFormat: AnyPixelFormat;
-    readonly isComposerTileMaterial = true;
+    readonly isComposerTileMaterial = true as const;
+    readonly type = 'ComposerTileMaterial' as const;
 
     // @ts-expect-error property is not assignable.
     override readonly uniforms: Uniforms;
@@ -119,28 +112,26 @@ class ComposerTileMaterial extends ShaderMaterial {
 
         this.depthTest = false;
 
-        this.uniforms.tex = new Uniform(null);
-        this.uniforms.gridTexture = new Uniform(null);
-        this.uniforms.interpretation = new Uniform(null);
-        this.uniforms.flipY = new Uniform(false);
-        this.uniforms.noDataOptions = new Uniform({ enabled: false });
-        this.uniforms.showImageOutlines = new Uniform(false);
-        this.uniforms.opacity = new Uniform(this.opacity);
-        this.uniforms.channelCount = new Uniform(3);
-        this.uniforms.expandRGB = new Uniform(options.expandRGB ?? false);
-        this.uniforms.showEmptyTexture = new Uniform(options.showEmptyTexture ?? false);
-        this.uniforms.isEmptyTexture = new Uniform(false);
-        this.uniforms.convertRGFloatToRGBAUnsignedByte = new Uniform(
-            options.convertRGFloatToRGBAUnsignedByte != null,
-        );
-        this.uniforms.heightPrecision = new Uniform(
-            options.convertRGFloatToRGBAUnsignedByte?.precision ?? 0.1,
-        );
-        this.uniforms.heightOffset = new Uniform(
-            options.convertRGFloatToRGBAUnsignedByte?.offset ?? 20000,
-        );
-        this.now = performance.now();
-        this.type = 'ComposerTileMaterial';
+        this.uniforms = {
+            tex: new Uniform(null),
+            gridTexture: new Uniform(null),
+            interpretation: new Uniform({}),
+            flipY: new Uniform(false),
+            noDataOptions: new Uniform({ enabled: false }),
+            showImageOutlines: new Uniform(false),
+            opacity: new Uniform(this.opacity),
+            channelCount: new Uniform(3),
+            expandRGB: new Uniform(options?.expandRGB ?? false),
+            showEmptyTexture: new Uniform(options?.showEmptyTexture ?? false),
+            isEmptyTexture: new Uniform(false),
+            convertRGFloatToRGBAUnsignedByte: new Uniform(
+                options?.convertRGFloatToRGBAUnsignedByte != null,
+            ),
+            heightPrecision: new Uniform(
+                options?.convertRGFloatToRGBAUnsignedByte?.precision ?? 0.1,
+            ),
+            heightOffset: new Uniform(options?.convertRGFloatToRGBAUnsignedByte?.offset ?? 20000),
+        };
 
         if (options) {
             this.init(options);
@@ -150,8 +141,7 @@ class ComposerTileMaterial extends ShaderMaterial {
     private init(options: Options) {
         const interp = options.interpretation ?? Interpretation.Raw;
 
-        this.dataType = interp.mode !== Mode.Raw ? FloatType : options.texture.type;
-        this.pixelFormat = options.texture.format;
+        const pixelFormat = options.texture.format;
 
         const interpValue = {};
         interp.setUniform(interpValue);
@@ -175,7 +165,7 @@ class ComposerTileMaterial extends ShaderMaterial {
             options.convertRGFloatToRGBAUnsignedByte?.precision ?? 0.1;
         this.uniforms.heightOffset.value = options.convertRGFloatToRGBAUnsignedByte?.offset ?? 0.1;
 
-        const channelCount = TextureGenerator.getChannelCount(this.pixelFormat);
+        const channelCount = TextureGenerator.getChannelCount(pixelFormat);
         this.uniforms.channelCount.value = channelCount;
         if (options.showImageOutlines) {
             if (!GRID_TEXTURE) {
