@@ -151,6 +151,7 @@ export function getFullPointStyle(style?: Partial<PointStyle>): Required<PointSt
         sizeAttenuation,
         pointSize,
         depthTest,
+        // @ts-expect-error image can still be nullish
         image,
         renderOrder,
     };
