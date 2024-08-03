@@ -126,8 +126,8 @@ function createFloorVertices(
     coordinates: Array<Array<Array<number>>>,
     stride: number,
     offset: Vector3,
-    elevation: Array<number> | number,
-    ignoreZ: boolean,
+    elevation?: Array<number> | number,
+    ignoreZ?: boolean,
 ) {
     // iterate on polygon and holes
     const holesIndices = [];
@@ -264,7 +264,7 @@ function createWallForRings(
     }
 }
 
-function createSurfaces(polygon: Polygon, options: PolygonOptions) {
+function createSurfaces(polygon: Polygon, options: PolygonOptions & { origin: Vector3 }) {
     const stride = polygon.getStride();
 
     // First we compute the positions of the top vertices (that make the 'floor').
@@ -371,7 +371,7 @@ export default class GeometryConverter<
     private readonly _unshadedSurfaceMaterialGenerator: SurfaceMaterialGenerator;
     private readonly _lineMaterialGenerator: LineMaterialGenerator;
     private readonly _pointMaterialGenerator: PointMaterialGenerator;
-    private _disposed: boolean;
+    private _disposed = false;
 
     constructor(options?: {
         shadedSurfaceMaterialGenerator?: SurfaceMaterialGenerator;
@@ -496,7 +496,7 @@ export default class GeometryConverter<
     ): OutputMap<UserData>[K] {
         type ReturnType = OutputMap<UserData>[K];
 
-        this.setDefaultOrigin(geometry, options);
+        options = this.setDefaultOrigin(geometry, options);
 
         let result: ReturnType;
 
@@ -525,13 +525,13 @@ export default class GeometryConverter<
             case 'Polygon':
                 result = this.buildPolygon(
                     geometry as Polygon,
-                    options as PolygonOptions,
+                    options as PolygonOptions & { origin: Vector3 },
                 ) as ReturnType;
                 break;
             case 'MultiPolygon':
                 result = this.buildMultiPolygon(
                     geometry as MultiPolygon,
-                    options as PolygonOptions,
+                    options as PolygonOptions & { origin: Vector3 },
                 ) as ReturnType;
                 break;
             default:
@@ -543,14 +543,14 @@ export default class GeometryConverter<
         return result;
     }
 
-    updatePolygonMesh(mesh: PolygonMesh, options: PolygonOptions) {
+    updatePolygonMesh(mesh: PolygonMesh, options: PolygonOptions & { origin: Vector3 }) {
         if (options.stroke && mesh.linearRings == null) {
             // If the style is added, we have to create the rings
             const rings = this.getPolygonRings(mesh.source, options);
             mesh.linearRings = rings;
         } else if (!options.stroke && mesh.linearRings != null) {
             // If the style is removed, we have to remove the rings
-            mesh.linearRings = null;
+            mesh.linearRings = undefined;
         } else if (mesh.linearRings) {
             // Else, just update the existing rings with the new style
             const stroke = getFullStrokeStyle(options.stroke);
@@ -573,11 +573,9 @@ export default class GeometryConverter<
         } else if (mesh.surface) {
             const fill = getFullFillStyle(options.fill);
 
-            const surfacematerial = options.fill
-                ? mesh.isExtruded
-                    ? this._shadedSurfaceMaterialGenerator(fill)
-                    : this._unshadedSurfaceMaterialGenerator(fill)
-                : null;
+            const surfacematerial = mesh.isExtruded
+                ? this._shadedSurfaceMaterialGenerator(fill)
+                : this._unshadedSurfaceMaterialGenerator(fill);
 
             mesh.surface.update({
                 material: surfacematerial,
@@ -586,7 +584,7 @@ export default class GeometryConverter<
         }
     }
 
-    updateMultiPolygonMesh(mesh: MultiPolygonMesh, options: PolygonOptions) {
+    updateMultiPolygonMesh(mesh: MultiPolygonMesh, options: PolygonOptions & { origin: Vector3 }) {
         mesh.traversePolygons(obj => this.updatePolygonMesh(obj, options));
     }
 
@@ -614,7 +612,7 @@ export default class GeometryConverter<
         });
     }
 
-    updateSurfaceMesh(mesh: SurfaceMesh, options: PolygonOptions) {
+    updateSurfaceMesh(mesh: SurfaceMesh, options: PolygonOptions & { origin: Vector3 }) {
         this.updatePolygonMesh(mesh.parent, options);
     }
 
@@ -634,7 +632,10 @@ export default class GeometryConverter<
         object.updateMatrixWorld(true);
     }
 
-    private getSurfaceGeometry(polygon: Polygon, options: PolygonOptions): BufferGeometry {
+    private getSurfaceGeometry(
+        polygon: Polygon,
+        options: PolygonOptions & { origin: Vector3 },
+    ): BufferGeometry {
         const { positions, indices } = createSurfaces(polygon, options);
 
         const surfaceGeometry = new BufferGeometry();
@@ -651,9 +652,12 @@ export default class GeometryConverter<
      * If origin has not be set, compute a default origin point by taking the first
      * coordinate of the geometry.
      */
-    private setDefaultOrigin(geometry: Geometry, options: BaseOptions) {
+    private setDefaultOrigin<O extends BaseOptions>(
+        geometry: Geometry,
+        options: O,
+    ): O & { origin: Vector3 } {
         if (options.origin != null) {
-            return;
+            return options as O & { origin: Vector3 };
         }
 
         let first: Coordinate;
@@ -669,8 +673,7 @@ export default class GeometryConverter<
                 ).getFirstCoordinate();
                 break;
             default:
-                // TODO What to do with other types (GeometryCollection) ?
-                return;
+                throw new Error('unsupported geometry type: ' + geometry.getType());
         }
 
         if (first) {
@@ -680,9 +683,14 @@ export default class GeometryConverter<
 
             options.origin = new Vector3(x, y, z);
         }
+
+        return options as O & { origin: Vector3 };
     }
 
-    private getSurfaceMesh(polygon: Polygon, options: PolygonOptions): SurfaceMesh {
+    private getSurfaceMesh(
+        polygon: Polygon,
+        options: PolygonOptions & { origin: Vector3 },
+    ): SurfaceMesh {
         // In the case of 3D surfaces, we opt for a shaded material,
         // whereas in the case of flat polygons, we use an unshaded material.
         const fill = getFullFillStyle(options.fill);
@@ -708,7 +716,8 @@ export default class GeometryConverter<
         const ringCount = polygon.getLinearRingCount();
         const linearRings: LineStringMesh[] = [];
         for (let i = 0; i < ringCount; i++) {
-            const lineString = new LineString(polygon.getLinearRing(i).getCoordinates());
+            const geomRing = polygon.getLinearRing(i) as LinearRing;
+            const lineString = new LineString(geomRing.getCoordinates());
             const ring = this.buildLineString(lineString, {
                 origin: options.origin,
                 ignoreZ: options.ignoreZ,
@@ -720,9 +729,12 @@ export default class GeometryConverter<
         return linearRings;
     }
 
-    private buildPolygon(polygon: Polygon, options: PolygonOptions): PolygonMesh {
-        let surface: SurfaceMesh;
-        let linearRings: LineStringMesh[];
+    private buildPolygon(
+        polygon: Polygon,
+        options: PolygonOptions & { origin: Vector3 },
+    ): PolygonMesh {
+        let surface: SurfaceMesh | undefined;
+        let linearRings: LineStringMesh[] | undefined;
 
         if (options.fill) {
             surface = this.getSurfaceMesh(polygon, options);
@@ -745,7 +757,7 @@ export default class GeometryConverter<
 
     private buildMultiPolygon(
         multiPolygon: MultiPolygon,
-        options: PolygonOptions,
+        options: PolygonOptions & { origin: Vector3 },
     ): MultiPolygonMesh | PolygonMesh {
         const inputGeometries = multiPolygon.getPolygons();
 
@@ -794,10 +806,6 @@ export default class GeometryConverter<
     }
 
     private getShadedSurfaceMaterial(style: Required<FillStyle>): MeshLambertMaterial {
-        if (!style) {
-            return null;
-        }
-
         const key = hashStyle('shaded-surface', style);
 
         if (this._materialCache.has(key)) {
@@ -821,10 +829,6 @@ export default class GeometryConverter<
     }
 
     private getUnshadedSurfaceMaterial(style: Required<FillStyle>): MeshBasicMaterial {
-        if (!style) {
-            return null;
-        }
-
         const key = hashStyle('unshaded-surface', style);
 
         if (this._materialCache.has(key)) {
@@ -848,10 +852,6 @@ export default class GeometryConverter<
     }
 
     private getSpriteMaterial(style: Required<PointStyle>): SpriteMaterial {
-        if (!style) {
-            return null;
-        }
-
         // TODO support point shapes
         // TODO support image placement (hotspot)
         const styleKey = hashStyle('sprite', style);
@@ -926,10 +926,6 @@ export default class GeometryConverter<
     }
 
     private getLineMaterial(style: Required<StrokeStyle>): LineMaterial {
-        if (!style) {
-            return null;
-        }
-
         const styleKey = hashStyle('line', style);
 
         if (this._materialCache.has(styleKey)) {
