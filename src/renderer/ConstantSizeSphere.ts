@@ -25,10 +25,6 @@ function isPerspectiveCamera(cam: unknown): cam is PerspectiveCamera {
     return (cam as PerspectiveCamera).isPerspectiveCamera;
 }
 
-function isOrthographicCamera(cam: unknown): cam is OrthographicCamera {
-    return (cam as OrthographicCamera).isOrthographicCamera;
-}
-
 const SHARED_GEOMETRY = new SphereGeometry(1);
 const DEFAULT_RADIUS = 10;
 
@@ -99,8 +95,9 @@ export function getWorldSpaceRadius(
     if (isPerspectiveCamera(camera)) {
         const fovRads = MathUtils.degToRad(camera.fov);
         fieldOfViewHeight = Math.tan(fovRads) * dist;
-    } else if (isOrthographicCamera(camera)) {
-        fieldOfViewHeight = Math.abs(camera.top - camera.bottom);
+    } else {
+        const ortho = camera as OrthographicCamera;
+        fieldOfViewHeight = Math.abs(ortho.top - ortho.bottom);
     }
 
     const size = renderer.getSize(tmpSize);
