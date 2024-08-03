@@ -90,8 +90,11 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
         // Compute a min/max approximation using the background images that
         // are already present on the composer.
         if (!this.minmax || this.minmax.isDefault) {
-            const { min, max } = this._composer.getMinMax(this.getExtent());
-            this.minmax = { min, max };
+            const extent = this.getExtent();
+            if (extent) {
+                const { min, max } = this._composer.getMinMax(extent);
+                this.minmax = { min, max };
+            }
         }
     }
 
