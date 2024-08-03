@@ -12,6 +12,7 @@ export default class MultiLineStringMesh<UserData extends DefaultUserData = Defa
     readonly isMultiLineStringMesh = true as const;
     readonly type = 'MultiLineStringMesh' as const;
 
+    // @ts-expect-error assigned in the parent class
     userData: UserData;
 
     set opacity(opacity: number) {
