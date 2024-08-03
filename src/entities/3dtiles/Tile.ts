@@ -57,6 +57,7 @@ class Tile extends Object3D {
         }
         this.distance = { min: 0, max: 0 };
         this.updateMatrixWorld();
+        this.userData.metadata = metadata;
     }
 
     getChildTiles(): Tile[] {
