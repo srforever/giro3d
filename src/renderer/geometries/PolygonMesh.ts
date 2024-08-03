@@ -19,17 +19,18 @@ export default class PolygonMesh<UserData extends DefaultUserData = DefaultUserD
     readonly isExtruded: boolean = false;
 
     private _featureOpacity = 1;
-    private _surface: SurfaceMesh;
-    private _linearRings: LineStringMesh[];
+    private _surface?: SurfaceMesh<UserData>;
+    private _linearRings?: LineStringMesh<UserData>[];
     readonly source: Polygon;
 
+    // @ts-expect-error assigned in the parent class
     userData: UserData;
 
-    get surface(): SurfaceMesh {
+    get surface(): SurfaceMesh<UserData> | undefined {
         return this._surface;
     }
 
-    set surface(newSurface: SurfaceMesh) {
+    set surface(newSurface: SurfaceMesh<UserData>) {
         this._surface?.dispose();
         this._surface?.removeFromParent();
         this._surface = newSurface;
@@ -41,11 +42,11 @@ export default class PolygonMesh<UserData extends DefaultUserData = DefaultUserD
         }
     }
 
-    get linearRings() {
+    get linearRings(): LineStringMesh<UserData>[] | undefined {
         return this._linearRings;
     }
 
-    set linearRings(newRings: LineStringMesh[]) {
+    set linearRings(newRings: LineStringMesh<UserData>[] | undefined) {
         this._linearRings?.forEach(ring => {
             ring.removeFromParent();
             ring.dispose();
@@ -70,8 +71,8 @@ export default class PolygonMesh<UserData extends DefaultUserData = DefaultUserD
 
     constructor(options: {
         source: Polygon;
-        surface?: SurfaceMesh;
-        linearRings?: LineStringMesh[];
+        surface?: SurfaceMesh<UserData>;
+        linearRings?: LineStringMesh<UserData>[];
         isExtruded?: boolean;
     }) {
         super();
