@@ -19,11 +19,11 @@ export interface SSE {
     origin: Vector3;
     x: Vector3;
     y: Vector3;
-    z: Vector3;
+    z?: Vector3;
     lengths: {
         x: number;
         y: number;
-        z: number;
+        z?: number;
     };
     ratio: number;
     area: number;
@@ -73,13 +73,13 @@ function computeSSE(
 
     const xLength = temp[1].sub(temp[0]).length();
     const yLength = temp[2].sub(temp[0]).length();
-    let z = null;
-    let zLength = null;
+    let z = undefined;
+    let zLength = undefined;
     if (_3d) {
         z = temp[4].clone();
         zLength = temp[4].sub(temp[0]).length();
     }
-    const result = {
+    const result: SSE = {
         origin: temp[0].clone(),
         x: temp[1].clone(),
         y: temp[2].clone(),
@@ -158,7 +158,7 @@ export default {
         matrix: Matrix4,
         geometricError: number,
         mode: Mode,
-    ): SSE {
+    ): SSE | null {
         if (isPerspectiveCamera(camera.camera3D)) {
             const distance = findBox3Distance(camera, box3, matrix, mode === Mode.MODE_3D);
             if (distance <= geometricError) {
