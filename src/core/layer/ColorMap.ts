@@ -50,8 +50,8 @@ class ColorMap {
     private _max: number;
     private _mode: ColorMapMode;
     private _colors: Color[];
-    private _opacity: number[] | null;
-    private _cachedTexture: DataTexture;
+    private _opacity: number[] | undefined;
+    private _cachedTexture: DataTexture | undefined;
     private _active: boolean;
     /**
      * Creates an instance of ColorMap.
@@ -74,8 +74,8 @@ class ColorMap {
         this._max = max;
         this._mode = mode;
         this._colors = colors;
-        this._opacity = null;
-        this._cachedTexture = null;
+        this._opacity = undefined;
+        this._cachedTexture = undefined;
         this._active = true;
     }
 
@@ -153,10 +153,10 @@ class ColorMap {
             this._colors = v;
             // Reset the opacity array if it no longer has the same length.
             if (this._opacity && this._opacity.length !== v.length) {
-                this._opacity = null;
+                this._opacity = undefined;
             }
             this._cachedTexture?.dispose();
-            this._cachedTexture = null;
+            this._cachedTexture = undefined;
         }
     }
 
@@ -179,7 +179,7 @@ class ColorMap {
         if (this._opacity !== v) {
             this._opacity = v;
             this._cachedTexture?.dispose();
-            this._cachedTexture = null;
+            this._cachedTexture = undefined;
         }
     }
 
@@ -223,7 +223,7 @@ class ColorMap {
      * @returns The resulting texture.
      */
     getTexture(): DataTexture {
-        if (this._cachedTexture === null) {
+        if (this._cachedTexture == null) {
             this._cachedTexture = TextureGenerator.create1DTexture(this._colors, this._opacity);
             this._cachedTexture.minFilter = NearestFilter;
             this._cachedTexture.magFilter = NearestFilter;
