@@ -12,6 +12,7 @@ export default class MultiPolygonMesh<UserData extends DefaultUserData = Default
     readonly isMultiPolygonMesh = true as const;
     readonly type = 'MultiPolygonMesh' as const;
 
+    // @ts-expect-error assigned in the parent class
     userData: UserData;
 
     set opacity(opacity: number) {
