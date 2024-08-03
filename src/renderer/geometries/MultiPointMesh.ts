@@ -12,6 +12,7 @@ export default class MultiPointMesh<UserData extends DefaultUserData = DefaultUs
     readonly isMultiPointMesh = true as const;
     readonly type = 'MultiPointMesh' as const;
 
+    // @ts-expect-error assigned in the parent class
     userData: UserData;
 
     constructor(points: PointMesh[]) {
