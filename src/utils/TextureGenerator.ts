@@ -51,6 +51,55 @@ import EmptyTexture from '../renderer/EmptyTexture';
 import WebGLComposer from '../renderer/composition/WebGLComposer';
 import Rect from '../core/Rect';
 import Capabilities from '../core/system/Capabilities';
+import TextureWorker from './TextureWorker';
+
+let allowWorkers = false;
+
+const defaultCreateTextureWorker = () => {
+    return new Worker(new URL('./TextureWorker.js', import.meta.url), {
+        name: 'TextureWorker',
+        type: 'module',
+    });
+};
+
+let createTextureWorker: () => Worker;
+
+function configure(options: { createTextureWorker: () => Worker; allowWorkers?: boolean }) {
+    allowWorkers = options?.allowWorkers ?? false;
+    createTextureWorker = options?.createTextureWorker ?? defaultCreateTextureWorker;
+}
+
+class TextureWorkerPool {
+    private readonly _workers: TextureWorker[] = [];
+
+    getWorker(): TextureWorker {
+        if (!window.Worker) {
+            return null;
+        }
+
+        if (this._workers.length === 0) {
+            for (let index = 0; index < 4; index++) {
+                console.log('instantiating workers');
+                const worker = createTextureWorker();
+                const textureWorker = new TextureWorker(worker);
+                this._workers.push(textureWorker);
+            }
+        }
+
+        for (const worker of this._workers) {
+            if (!worker.loading) {
+                return worker;
+            }
+        }
+
+        // Priority to the worker that is close to completion.
+        this._workers.sort((a, b) => b.progress - a.progress);
+
+        return this._workers[0];
+    }
+}
+
+const workerPool = new TextureWorkerPool();
 
 export const OPAQUE_BYTE = 255;
 export const OPAQUE_FLOAT = 1.0;
@@ -83,6 +132,8 @@ function isDataTexture(texture: Texture): texture is DataTexture {
 function isCanvasTexture(texture: Texture): texture is CanvasTexture {
     return (texture as CanvasTexture).isCanvasTexture;
 }
+
+export type TypedArrayType = 'f32' | 'f64' | 'i8' | 'u8' | 'u16' | 'i16';
 
 /**
  * Returns the number of bytes per channel.
@@ -144,6 +195,7 @@ function getDataTypeString(dataType: TextureDataType): string {
 export type FillBufferOptions<Buf extends TypedArray | ArrayBuffer = TypedArray> = {
     input: Buf[];
     bufferSize: number;
+    sourceDataType: TypedArrayType;
     dataType: TextureDataType;
     nodata?: number;
     opaqueValue: number;
@@ -157,6 +209,25 @@ export type FillBufferResult<Buf extends TypedArray | ArrayBuffer = TypedArray> 
     isTransparent: boolean;
 };
 
+function createTypedArray(buffer: ArrayBuffer, type: TypedArrayType): TypedArray {
+    switch (type) {
+        case 'f32':
+            return new Float32Array(buffer);
+        case 'f64':
+            return new Float64Array(buffer);
+        case 'i8':
+            return new Int8Array(buffer);
+        case 'u8':
+            return new Uint8Array(buffer);
+        case 'u16':
+            return new Uint16Array(buffer);
+        case 'i16':
+            return new Int16Array(buffer);
+        default:
+            throw new Error(`unsupported array type: ${type}`);
+    }
+}
+
 // Important note : a lot of code is duplicated to avoid putting
 // conditional branches inside loops, as this can severely reduce performance.
 
@@ -168,6 +239,7 @@ function fillBuffer<T extends TypedArray>(options: FillBufferOptions<T>): FillBu
     const pixelData = options.input;
     const opaqueValue = options.opaqueValue;
     let buf: TypedArray;
+
     if (options.bufferSize && options.dataType) {
         switch (options.dataType) {
             case FloatType:
@@ -176,9 +248,17 @@ function fillBuffer<T extends TypedArray>(options: FillBufferOptions<T>): FillBu
             case UnsignedByteType:
                 buf = new Uint8ClampedArray(options.bufferSize);
                 break;
+            case ByteType:
+                buf = new Int8Array(options.bufferSize);
+                break;
+            case UnsignedShortType:
+                buf = new Uint16Array(options.bufferSize);
+                break;
+            case ShortType:
+                buf = new Int16Array(options.bufferSize);
+                break;
             default:
                 throw new Error('unrecognized buffer type: ' + options.dataType);
-                break;
         }
     } else {
         console.error('missing values');
@@ -475,6 +555,27 @@ async function decodeBlob(
     }
 }
 
+export type CreateDataTextureOptions = {
+    /** The texture width */
+    width?: number;
+    /** The texture height */
+    height?: number;
+    /**
+     * Indicates that the input data must be scaled into 8-bit values,
+     * using the provided min and max values for scaling.
+     */
+    scaling?: { min: number; max: number };
+    /**
+     * The no-data value. If specified, if a pixel has this value,
+     * then the alpha value will be transparent. Otherwise it will be opaque.
+     * If unspecified, the alpha will be opaque. This only applies to 1-channel data.
+     * Ignored for 3 and 4-channel data.
+     */
+    nodata?: number;
+    outputType: TextureDataType;
+    pixelData: TypedArray[];
+};
+
 export type CreateDataTextureResult = {
     texture: DataTexture | Texture;
     min: number;
@@ -485,42 +586,24 @@ export type CreateDataTextureResult = {
  * Returns a {@link DataTexture} initialized with the specified data.
  *
  * @param options - The creation options.
- * @param sourceDataType - The data type of the input pixel data.
+ * @param outputDataType - The data type of the input pixel data.
  * @param pixelData - The pixel data
  * for each input channels. Must be either one, three, or four channels.
  */
-function createDataTexture(
-    options: {
-        /** The texture width */
-        width?: number;
-        /** The texture height */
-        height?: number;
-        /**
-         * Indicates that the input data must be scaled into 8-bit values,
-         * using the provided min and max values for scaling.
-         */
-        scaling?: { min: number; max: number };
-        /**
-         * The no-data value. If specified, if a pixel has this value,
-         * then the alpha value will be transparent. Otherwise it will be opaque.
-         * If unspecified, the alpha will be opaque. This only applies to 1-channel data.
-         * Ignored for 3 and 4-channel data.
-         */
-        nodata?: number;
-    },
-    sourceDataType: TextureDataType,
-    ...pixelData: NumberArray[]
-): CreateDataTextureResult {
+function createDataTexture(options: CreateDataTextureOptions): CreateDataTextureResult {
     const width = options.width;
     const height = options.height;
     const pixelCount = width * height;
 
+    // Assume that all arrays are of the same data type.
+    const sourceDataType = getTypedArrayType(options.pixelData[0]);
+
     // If we apply scaling, it means that we force a 8-bit output.
-    const targetDataType = options.scaling === undefined ? sourceDataType : UnsignedByteType;
+    const targetDataType = options.scaling === undefined ? options.outputType : UnsignedByteType;
 
     let format: PixelFormat;
     let channelCount: number;
-    switch (pixelData.length) {
+    switch (options.pixelData.length) {
         case 1:
         case 2:
             format = RGFormat;
@@ -544,9 +627,10 @@ function createDataTexture(
     }
 
     const result = fillBuffer({
+        sourceDataType,
         bufferSize: pixelCount * channelCount,
         dataType: targetDataType,
-        input: pixelData,
+        input: options.pixelData,
         opaqueValue,
         scaling: options.scaling,
         nodata: options.nodata,
@@ -596,6 +680,84 @@ function create1DTexture(colors: Color[], alpha?: number[]): DataTexture {
     texture.needsUpdate = true;
 
     return texture;
+}
+
+/**
+ * Returns a {@link DataTexture} initialized with the specified data.
+ *
+ * @param options - The creation options.
+ * @param sourceDataType - The data type of the input pixel data.
+ * @param pixelData - The pixel data
+ * for each input channels. Must be either one, three, or four channels.
+ */
+async function createDataTextureAsync(
+    options: CreateDataTextureOptions,
+): Promise<CreateDataTextureResult> {
+    if (!allowWorkers) {
+        return createDataTexture(options);
+    }
+
+    const width = options.width;
+    const height = options.height;
+    const pixelCount = width * height;
+
+    // Assume that all arrays are of the same data type.
+    const sourceDataType = getTypedArrayType(options.pixelData[0]);
+
+    // If we apply scaling, it means that we force a 8-bit output.
+    const targetDataType = options.scaling === undefined ? options.outputType : UnsignedByteType;
+
+    let format: PixelFormat;
+    let channelCount: number;
+    switch (options.pixelData.length) {
+        case 1:
+        case 2:
+            format = RGFormat;
+            channelCount = 2;
+            break;
+        default:
+            format = RGBAFormat;
+            channelCount = 4;
+            break;
+    }
+
+    let opaqueValue: number;
+
+    switch (targetDataType) {
+        case UnsignedByteType:
+            opaqueValue = OPAQUE_BYTE;
+            break;
+        case FloatType:
+            opaqueValue = OPAQUE_FLOAT;
+            break;
+    }
+
+    const result = await workerPool.getWorker().fillBufferAsync({
+        sourceDataType,
+        bufferSize: pixelCount * channelCount,
+        dataType: targetDataType,
+        input: options.pixelData,
+        opaqueValue,
+        scaling: options.scaling,
+        nodata: options.nodata,
+    });
+
+    const texture = result.isTransparent
+        ? new EmptyTexture()
+        : new DataTexture(result.buffer, width, height, format, targetDataType);
+
+    if (!isEmptyTexture(texture)) {
+        texture.needsUpdate = true;
+        texture.generateMipmaps = false;
+        texture.magFilter = LinearFilter;
+        texture.minFilter = LinearFilter;
+    }
+
+    return {
+        texture,
+        min: result.min,
+        max: result.max,
+    };
 }
 
 /**
@@ -933,6 +1095,13 @@ function decodeMapboxTerrainImage(
     return { width, height, data };
 }
 
+function decodeMapboxTerrainImageAsync(source: ImageBitmap): Promise<DecodeMapboxTerrainResult> {
+    if (!allowWorkers) {
+        return Promise.resolve(decodeMapboxTerrainImage(source));
+    }
+    return workerPool.getWorker().decodeMapboxTerrainImageAsync(source);
+}
+
 /**
  * Returns a texture filter that is compatible with the texture.
  * @param filter - The requested filter.
@@ -972,9 +1141,66 @@ function ensureCompatibility(texture: Texture, renderer: WebGLRenderer) {
     texture.magFilter = getCompatibleTextureFilter(texture.magFilter, texture.type, renderer);
 }
 
+function getTypedArrayType(array: TypedArray): TypedArrayType {
+    if (array instanceof Float32Array) {
+        return 'f32';
+    }
+    if (array instanceof Float64Array) {
+        return 'f64';
+    }
+    if (array instanceof Uint8Array) {
+        return 'u8';
+    }
+    if (array instanceof Int8Array) {
+        return 'i8';
+    }
+    if (array instanceof Uint16Array) {
+        return 'u16';
+    }
+    if (array instanceof Int16Array) {
+        return 'i16';
+    }
+}
+
+function getTypedArrayTypeFromTextureDataType(input: TextureDataType): TypedArrayType {
+    switch (input) {
+        case FloatType:
+            return 'f32';
+        case UnsignedShortType:
+            return 'u16';
+        case ShortType:
+            return 'i16';
+        case UnsignedByteType:
+            return 'u8';
+        case ByteType:
+            return 'i8';
+        default:
+            throw new Error(`unsupported texture data type: ${getDataTypeString(input)}`);
+    }
+}
+
+function getTextureDataTypeFromTypedArrayType(input: TypedArrayType): TextureDataType {
+    switch (input) {
+        case 'f32':
+        case 'f64':
+        case 'u16':
+        case 'i16':
+            // Although WebGL exposes specific texture types for 16-bit integers,
+            // currently they don't work well so we revert to float32.
+            // Note that WebGL does not have float64 textures
+            return FloatType;
+        case 'i8':
+            return ByteType;
+        case 'u8':
+            return UnsignedByteType;
+    }
+}
+
 export default {
+    configure,
     createDataTexture,
     isEmptyTexture,
+    createDataTextureAsync,
     decodeBlob,
     fillBuffer,
     getChannelCount,
@@ -990,10 +1216,15 @@ export default {
     computeMinMaxFromImage,
     estimateSize,
     decodeMapboxTerrainImage,
+    decodeMapboxTerrainImageAsync,
     shouldExpandRGB,
     isCanvasEmpty,
     getMemoryUsage,
     readRGRenderTargetIntoRGBAU8Buffer,
     getCompatibleTextureFilter,
     ensureCompatibility,
+    getTypedArrayType,
+    getTextureDataTypeFromTypedArrayType,
+    getTypedArrayTypeFromTextureDataType,
+    createTypedArray,
 };

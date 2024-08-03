@@ -1,7 +1,7 @@
 import { FloatType } from 'three';
 import type { DecodeOptions } from './ImageFormat';
 import ImageFormat from './ImageFormat';
-import TextureGenerator from '../utils/TextureGenerator';
+import TextureGenerator, { type CreateDataTextureOptions } from '../utils/TextureGenerator';
 
 /**
  * Decoder for [BIL](https://desktop.arcgis.com/en/arcmap/10.3/manage-data/raster-and-images/bil-bip-and-bsq-raster-files.htm) images.
@@ -48,9 +48,6 @@ class BilFormat extends ImageFormat {
         const buf = await blob.arrayBuffer();
         const floatArray = new Float32Array(buf);
 
-        let min = +Infinity;
-        let max = -Infinity;
-
         // NOTE for BIL format, we consider everything that is under noDataValue as noDataValue
         // this is consistent with the servers behaviour we tested but if you see services that
         // expects something different, don't hesitate to question the next loop
@@ -58,19 +55,18 @@ class BilFormat extends ImageFormat {
             const value = floatArray[i];
             if (value <= options.noDataValue) {
                 floatArray[i] = options.noDataValue;
-            } else {
-                min = Math.min(value, min);
-                max = Math.max(value, max);
             }
         }
 
-        const opts = {
+        const opts: CreateDataTextureOptions = {
+            outputType: FloatType,
+            pixelData: [floatArray],
             width: options.width,
             height: options.height,
             nodata: options.noDataValue,
         };
-        const { texture } = TextureGenerator.createDataTexture(opts, FloatType, floatArray);
-        return { texture, min, max };
+
+        return await TextureGenerator.createDataTextureAsync(opts);
     }
 }
 

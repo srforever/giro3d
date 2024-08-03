@@ -25,17 +25,16 @@ class MapboxTerrainFormat extends ImageFormat {
     async decode(blob: Blob, options: DecodeOptions = {}) {
         const bitmap = await createImageBitmap(blob);
 
-        const { data, width, height } = TextureGenerator.decodeMapboxTerrainImage(bitmap);
+        const { data, width, height } =
+            await TextureGenerator.decodeMapboxTerrainImageAsync(bitmap);
 
-        const { texture, min, max } = TextureGenerator.createDataTexture(
-            {
-                width,
-                height,
-                nodata: options.noDataValue,
-            },
-            FloatType,
-            data,
-        );
+        const { texture, min, max } = await TextureGenerator.createDataTextureAsync({
+            pixelData: [data],
+            outputType: FloatType,
+            width,
+            height,
+            nodata: options.noDataValue,
+        });
 
         return {
             texture,

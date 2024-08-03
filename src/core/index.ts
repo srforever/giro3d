@@ -5,6 +5,8 @@ import * as picking from './picking';
 import Rect from './Rect';
 import Context from './Context';
 import Instance, {
+    type InstanceConfiguration,
+    type InstanceWorkerOptions,
     type InstanceOptions,
     type InstanceEvents,
     type FrameEventPayload,
@@ -49,6 +51,8 @@ export {
     features,
     Disposable,
     Instance,
+    InstanceConfiguration,
+    InstanceWorkerOptions,
     InstanceOptions,
     InstanceEvents,
     FrameEventPayload,

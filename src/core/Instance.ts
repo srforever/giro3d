@@ -34,6 +34,7 @@ import {
 } from './MemoryUsage';
 import { GlobalRenderTargetPool } from '../renderer/RenderTargetPool';
 import { GlobalCache } from './Cache';
+import TextureGenerator from '../utils/TextureGenerator';
 
 const vectors = {
     pos: new Vector3(),
@@ -54,6 +55,25 @@ export type FrameEventPayload = {
 export type EntityEventPayload = {
     /** Entity */
     entity: Entity;
+};
+
+export type InstanceWorkerOptions = {
+    /**
+     * Enable Web workers in Giro3D.
+     * @defaultValue true
+     */
+    enableWorkers: boolean;
+    /**
+     * The custom function to create a new texture worker. Useful when Giro3D fails to create workers.
+     */
+    createTextureWorker?: () => Worker;
+};
+
+export type InstanceConfiguration = {
+    /**
+     * Web workers options.
+     */
+    workers: InstanceWorkerOptions;
 };
 
 /**
@@ -588,6 +608,14 @@ class Instance extends EventDispatcher<InstanceEvents> implements Progress {
      */
     notifyChange(changeSources: unknown | unknown[] = undefined, needsRedraw = true): void {
         this._mainLoop.scheduleUpdate(this, needsRedraw, changeSources);
+    }
+
+    static configure(configuration: InstanceConfiguration) {
+        if (configuration.workers) {
+            TextureGenerator.configure({
+                createTextureWorker: configuration.workers.createTextureWorker,
+            });
+        }
     }
 
     /**
