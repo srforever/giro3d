@@ -6,6 +6,8 @@ import {
     type MemoryUsageReport,
 } from './MemoryUsage';
 
+export type DeleteHandler = (entry: unknown) => void;
+
 /**
  * The options for a cache entry.
  */
@@ -22,7 +24,7 @@ interface CacheOptions {
     /**
      * A optional callback called when the entry is deleted from the cache.
      */
-    onDelete?: (entry: unknown) => void;
+    onDelete?: DeleteHandler;
 }
 
 const SECONDS = 1000;
@@ -44,11 +46,10 @@ const DEFAULT_CAPACITY: number = 512 * 1024 * 1024;
 
 /**
  * The cache.
- *
  */
 class Cache implements MemoryUsage {
-    private readonly _deleteHandlers: Map<string, (entry: unknown) => void>;
-    private readonly _lru: LRUCache<string, unknown, unknown>;
+    private readonly _deleteHandlers: Map<string, DeleteHandler>;
+    private readonly _lru: LRUCache<string, object, unknown>;
     private _enabled: boolean;
 
     /**
@@ -155,7 +156,8 @@ class Cache implements MemoryUsage {
     }
 
     private onDisposed(key: string, value: unknown) {
-        const handler: (entry: unknown) => void = this._deleteHandlers.get(key);
+        const handler = this._deleteHandlers.get(key);
+
         if (handler) {
             this._deleteHandlers.delete(key);
             handler(value);
@@ -190,7 +192,7 @@ class Cache implements MemoryUsage {
      * @param value - The value.
      * @param options - The options.
      */
-    set(key: string, value: unknown, options: CacheOptions = {}) {
+    set(key: string, value: object, options: CacheOptions = {}) {
         if (!this.enabled) {
             return value;
         }
