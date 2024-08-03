@@ -16,6 +16,7 @@ export default class LineStringMesh<UserData extends DefaultUserData = DefaultUs
     private _featureOpacity = 1;
     private _styleOpacity = 1;
 
+    // @ts-expect-error unassigned (but assigned in the parent)
     userData: UserData;
 
     constructor(geometry: LineGeometry, material: LineMaterial, opacity: number) {
