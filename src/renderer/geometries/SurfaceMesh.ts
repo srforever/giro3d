@@ -14,8 +14,9 @@ export default class SurfaceMesh<UserData extends DefaultUserData = DefaultUserD
     private _featureOpacity = 1;
     private _styleOpacity = 1;
 
+    // @ts-expect-error assigned in the parent class
     userData: UserData;
-
+    // @ts-expect-error assigned in the parent class
     parent: PolygonMesh<UserData>;
 
     constructor(params: { geometry: BufferGeometry; material: Material; opacity: number }) {
