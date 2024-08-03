@@ -11,29 +11,29 @@ function defaultShouldExecute() {
 class Task {
     readonly id: string;
     private readonly _priority: number;
-    private readonly _signal: AbortSignal;
+    private readonly _signal?: AbortSignal;
     private readonly _resolve: (arg: unknown) => void;
     private readonly _request: () => Promise<unknown>;
 
     readonly reject: (reason?: Error | string) => void;
     readonly shouldExecute: () => boolean;
 
-    constructor(
-        id: string,
-        signal: AbortSignal,
-        priority: number,
-        request: () => Promise<unknown>,
-        resolve: (arg: unknown) => void,
-        reject: (reason?: unknown) => void,
-        shouldExecute: () => boolean,
-    ) {
-        this.id = id;
-        this._priority = priority;
-        this._signal = signal;
-        this._resolve = resolve;
-        this.reject = reject;
-        this._request = request;
-        this.shouldExecute = shouldExecute ?? defaultShouldExecute;
+    constructor(options: {
+        id: string;
+        signal?: AbortSignal;
+        priority: number;
+        request: () => Promise<unknown>;
+        resolve: (arg: unknown) => void;
+        reject: (reason?: unknown) => void;
+        shouldExecute?: () => boolean;
+    }) {
+        this.id = options.id;
+        this._priority = options.priority;
+        this._signal = options.signal;
+        this._resolve = options.resolve;
+        this.reject = options.reject;
+        this._request = options.request;
+        this.shouldExecute = options.shouldExecute ?? defaultShouldExecute;
     }
 
     getKey() {
@@ -197,7 +197,15 @@ class RequestQueue extends EventDispatcher<RequestQueueEvents> implements Progre
         this._opCounter.increment();
 
         const promise = new Promise((resolve, reject) => {
-            const task = new Task(id, signal, priority, request, resolve, reject, shouldExecute);
+            const task = new Task({
+                id,
+                signal,
+                priority,
+                request,
+                resolve,
+                reject,
+                shouldExecute,
+            });
             if (this._queue.isEmpty()) {
                 this._queue.enqueue(task);
                 this.onQueueAvailable();
