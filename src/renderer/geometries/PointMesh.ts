@@ -18,6 +18,7 @@ export default class PointMesh<UserData extends DefaultUserData = DefaultUserDat
     private _styleOpacity = 1;
     private _pointSize: number;
 
+    // @ts-expect-error assigned in the parent class
     userData: UserData;
 
     constructor(params: ConstructorParams) {
