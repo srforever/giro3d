@@ -22,7 +22,10 @@ Object3D.prototype.traverseOnce = function traverseOnce(callback: (obj: Object3D
     this.traverse((o: Object3D) => _tempArray.push(o));
 
     while (_tempArray.length > 0) {
-        callback(_tempArray.pop());
+        const obj = _tempArray.pop();
+        if (obj) {
+            callback(obj);
+        }
     }
 };
 
@@ -140,7 +143,7 @@ class EntityInspector extends Panel {
         entity: Entity3D,
         options: EntityInspectorOptions = {},
     ) {
-        super(parentGui, instance, options.title);
+        super(parentGui, instance, options.title ?? entity.type);
 
         this.entity = entity;
         this.rootObject = entity.object3d;

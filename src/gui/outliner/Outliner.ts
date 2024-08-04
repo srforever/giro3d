@@ -8,7 +8,7 @@ import Panel from '../Panel';
 import OutlinerPropertyView from './OutlinerPropertyView';
 
 type OutlinedObject3D = Object3D & {
-    treeviewVisible: boolean;
+    treeviewVisible?: boolean;
 };
 type ClickHandler = (obj: OutlinedObject3D) => void;
 interface Filter {
@@ -99,7 +99,7 @@ function createTreeViewNodeWithDescendants(
     level = 0,
 ) {
     if (obj.type !== 'Scene' && obj.treeviewVisible === false) {
-        return null;
+        return undefined;
     }
 
     const div = document.createElement('div');
@@ -138,7 +138,7 @@ function shouldBeDisplayedInTree(obj: OutlinedObject3D, filter: Filter) {
         return false;
     }
 
-    if (filter.searchRegex === null || filter.searchRegex.test(obj.name.toLowerCase())) {
+    if (filter.searchRegex == null || filter.searchRegex.test(obj.name.toLowerCase())) {
         return true;
     }
 
@@ -169,10 +169,10 @@ class Outliner extends Panel {
     filters: Filter;
     treeviewContainer: HTMLDivElement;
     treeview: HTMLDivElement;
-    rootNode: HTMLDivElement;
+    rootNode: HTMLDivElement | undefined;
     propView: OutlinerPropertyView;
     selectionHelper?: BoundingBoxHelper;
-    sceneHash: number = null;
+    sceneHash: number | undefined = undefined;
 
     /**
      * @param gui - The GUI.
@@ -261,7 +261,7 @@ class Outliner extends Panel {
         this.filters.searchQuery = this.filters.searchQuery.trim().toLowerCase();
         this.filters.searchRegex =
             this.filters.searchQuery.length > 0 ? new RegExp(this.filters.searchQuery) : null;
-        this.sceneHash = null;
+        this.sceneHash = undefined;
         this.updateTreeView();
     }
 
@@ -293,7 +293,9 @@ class Outliner extends Panel {
             this.instance.scene as unknown as OutlinedObject3D,
             obj => this.onNodeClicked(obj),
         );
-        this.treeview.appendChild(this.rootNode);
+        if (this.rootNode) {
+            this.treeview.appendChild(this.rootNode);
+        }
     }
 }
 

@@ -34,7 +34,6 @@ class MapInspector extends EntityInspector {
     map: Map;
     /** Toggle the frozen property of the map. */
     frozen: boolean;
-    showOutline: boolean;
     showGrid: boolean;
     renderState: string;
     layerCount: number;
@@ -205,8 +204,8 @@ class MapInspector extends EntityInspector {
             label = new CSS2DObject(createTileLabel());
             label.name = 'MapInspector label';
             obj.addEventListener('dispose', () => {
-                label.element.remove();
-                label.remove();
+                label?.element.remove();
+                label?.remove();
             });
             obj.add(label);
             obj.updateMatrixWorld(true);
@@ -356,7 +355,7 @@ class MapInspector extends EntityInspector {
 
     fillLayers() {
         while (this.layers.length > 0) {
-            this.layers.pop().dispose();
+            this.layers.pop()?.dispose();
         }
         // We reverse the order so that the layers are displayed in a natural order:
         // top layers in the inspector are also on top in the composition.
@@ -372,10 +371,10 @@ class MapInspector extends EntityInspector {
     toggleGrid(value: boolean) {
         if (!value) {
             if (this.grid) {
-                this.grid.parent.remove(this.grid);
+                this.grid.parent?.remove(this.grid);
             }
             if (this.axes) {
-                this.axes.parent.remove(this.axes);
+                this.axes.parent?.remove(this.axes);
             }
         } else {
             const dims = this.map.extent.dimensions();
