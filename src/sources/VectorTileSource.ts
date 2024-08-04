@@ -44,7 +44,6 @@ import { MVT } from 'ol/format.js';
 import type FeatureFormat from 'ol/format/Feature.js';
 import type { StyleFunction } from 'ol/style/Style';
 import type { Projection } from 'ol/proj';
-import type { OrderFunction } from 'ol/render';
 import type { Geometry } from 'ol/geom';
 import type { GetImageOptions, ImageResponse, ImageSourceOptions } from './ImageSource';
 import ImageSource, { ImageResult } from './ImageSource';
@@ -172,9 +171,9 @@ class VectorTileSource extends ImageSource {
     readonly isVectorTileSource: boolean = true;
     readonly source: OLVectorTileSourcce;
     readonly style: Style | StyleFunction;
-    readonly backgroundColor: string;
+    readonly backgroundColor: string | undefined;
     private _sourceProjection: Projection;
-    private _extent: Extent;
+    private _extent: Extent | undefined;
     private readonly _tileGrid: TileGrid;
     private readonly _crs: string;
     private readonly _olUID = MathUtils.generateUUID();
@@ -214,9 +213,13 @@ class VectorTileSource extends ImageSource {
 
         this.style = options.style;
         this.backgroundColor = options.backgroundColor;
-        this._sourceProjection = null;
 
         const projection = this.source.getProjection();
+
+        if (projection == null) {
+            throw new Error('could not get projection of source');
+        }
+
         this._crs = projection.getCode();
         const tileGrid = this.source.getTileGridForProjection(projection);
         this._tileGrid = tileGrid;
@@ -254,9 +257,13 @@ class VectorTileSource extends ImageSource {
 
         const z = tileCoord[0];
         const source = this.source;
-        const tileGrid = source.getTileGridForProjection(source.getProjection());
+        const tileGrid = source.getTileGridForProjection(this._sourceProjection);
         const resolution = tileGrid.getResolution(z);
         const ctx = canvas.getContext('2d');
+
+        if (!ctx) {
+            throw new Error('could not acquire 2D rendering context on canvas');
+        }
 
         if (this.backgroundColor) {
             ctx.fillStyle = this.backgroundColor;
@@ -297,11 +304,20 @@ class VectorTileSource extends ImageSource {
         const replayState = tile.getReplayState(this);
         const source = this.source;
         const sourceTileGrid = source.getTileGrid();
+
+        if (sourceTileGrid == null) {
+            throw new Error('could not get tile grid');
+        }
+
         const sourceProjection = source.getProjection();
+
+        if (sourceProjection == null) {
+            throw new Error('could not get projection');
+        }
+
         const tileGrid = source.getTileGridForProjection(sourceProjection);
         const resolution = tileGrid.getResolution(tile.getTileCoord()[0]);
         const tileExtent = tileGrid.getTileCoordExtent(tile.wrappedTileCoord);
-        const renderOrder: OrderFunction = null;
         const pixelRatio = 1;
 
         const tmpExtent2 = createEmptyExtent();
@@ -342,15 +358,15 @@ class VectorTileSource extends ImageSource {
             };
 
             const features = sourceTile.getFeatures();
-            if (renderOrder && renderOrder !== replayState.renderedRenderOrder) {
-                features.sort(renderOrder);
-            }
 
             for (let i = 0, ii = features.length; i < ii; ++i) {
-                const feature = features[i];
+                const feature = features[i] as Feature<Geometry>;
+
+                const geom = feature.getGeometry();
+
                 if (
-                    !bufferedExtent ||
-                    intersects(bufferedExtent, feature.getGeometry().getExtent())
+                    geom != null &&
+                    (!bufferedExtent || intersects(bufferedExtent, geom.getExtent()))
                 ) {
                     render.call(this, feature);
                 }
@@ -368,8 +384,9 @@ class VectorTileSource extends ImageSource {
                 tile.executorGroups[this._olUID].push(renderingReplayGroup);
             }
         }
+
         replayState.renderedRevision = 1;
-        replayState.renderedRenderOrder = renderOrder;
+
         return empty;
     }
 
