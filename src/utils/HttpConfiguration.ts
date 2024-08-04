@@ -109,14 +109,14 @@ function setHeader(urlPrefix: string, name: string, value: string) {
     const hostname = url.hostname;
 
     let hostEntry = perHostProperties.get(hostname);
-    let prefixEntry: PrefixEntry;
 
     if (!hostEntry) {
         hostEntry = [];
         perHostProperties.set(hostname, hostEntry);
     }
 
-    prefixEntry = hostEntry.find(entry => entry.urlPrefix === urlPrefix);
+    let prefixEntry = hostEntry.find(entry => entry.urlPrefix === urlPrefix);
+
     if (!prefixEntry) {
         prefixEntry = new PrefixEntry(urlPrefix);
         hostEntry.push(prefixEntry);

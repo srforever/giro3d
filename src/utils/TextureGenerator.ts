@@ -411,6 +411,11 @@ function getPixels(image: ImageBitmap | HTMLImageElement | HTMLCanvasElement): U
     canvas.width = image.width;
     canvas.height = image.height;
     const context = canvas.getContext('2d', { willReadFrequently: true });
+
+    if (!context) {
+        throw new Error('could not acquire 2D context on canvas');
+    }
+
     context.drawImage(image, 0, 0);
 
     return context.getImageData(0, 0, image.width, image.height).data;
@@ -492,9 +497,9 @@ export type CreateDataTextureResult = {
 function createDataTexture(
     options: {
         /** The texture width */
-        width?: number;
+        width: number;
         /** The texture height */
-        height?: number;
+        height: number;
         /**
          * Indicates that the input data must be scaled into 8-bit values,
          * using the provided min and max values for scaling.
@@ -535,11 +540,11 @@ function createDataTexture(
     let opaqueValue: number;
 
     switch (targetDataType) {
-        case UnsignedByteType:
-            opaqueValue = OPAQUE_BYTE;
-            break;
         case FloatType:
             opaqueValue = OPAQUE_FLOAT;
+            break;
+        default:
+            opaqueValue = OPAQUE_BYTE;
             break;
     }
 
@@ -633,8 +638,8 @@ function computeMinMaxFromBuffer(
             break;
         case Mode.ScaleToMinMax:
             {
-                const lower = interpretation.min;
-                const upper = interpretation.max;
+                const lower = interpretation.min as number;
+                const upper = interpretation.max as number;
                 const scale = upper - lower;
 
                 for (let i = 0; i < buffer.length; i += channelCount) {
