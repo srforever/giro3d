@@ -50,7 +50,7 @@ abstract class Panel {
         this._controllers = [];
     }
 
-    notify(source: any = undefined) {
+    notify(source: unknown = undefined) {
         this.instance.notifyChange(source);
     }
 
@@ -65,7 +65,7 @@ abstract class Panel {
      * @param prop - The name of the property.
      * @returns The created controller.
      */
-    addColorController(obj: any, prop: string) {
+    addColorController(obj: object, prop: string) {
         const controller = this.gui.addColor(obj, prop) as TypedController<Color>;
         this._controllers.push(controller);
         return controller;
@@ -84,9 +84,9 @@ abstract class Panel {
      * @returns The created controller.
      */
     addController<T>(
-        obj: any,
+        obj: object,
         prop: string,
-        $1?: object | number | any[],
+        $1?: object | number | unknown[],
         max?: number,
         step?: number,
     ) {

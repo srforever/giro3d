@@ -7,11 +7,8 @@ import type Layer from '../core/layer/Layer';
 
 /**
  * Inspector for a {@link ColorMap}.
- *
  */
 class ColorMapInspector extends Panel {
-    colorMap: ColorMap;
-
     /**
      * @param gui - The GUI.
      * @param instance - The Giro3D instance.
@@ -21,24 +18,22 @@ class ColorMapInspector extends Panel {
     constructor(gui: GUI, instance: Instance, layer: Layer, colorMap?: ColorMap) {
         super(gui, instance, 'Color map');
 
-        this.colorMap = colorMap;
-
-        if (colorMap !== undefined) {
-            this.addController<boolean>(this.colorMap, 'active')
+        if (colorMap != null) {
+            this.addController<boolean>(colorMap, 'active')
                 .name('Enabled')
                 .onChange(() => this.notify(layer));
 
-            this.addController<ColorMapMode>(this.colorMap, 'mode', ColorMapMode)
+            this.addController<ColorMapMode>(colorMap, 'mode', ColorMapMode)
                 .name('Mode')
                 .onChange(() => this.notify(layer));
 
-            this.addController<number>(this.colorMap, 'min')
+            this.addController<number>(colorMap, 'min')
                 .name('Lower bound')
                 .min(-8000)
                 .max(8000)
                 .onChange(() => this.notify(layer));
 
-            this.addController<number>(this.colorMap, 'max')
+            this.addController<number>(colorMap, 'max')
                 .name('Upper bound')
                 .min(-8000)
                 .max(8000)

@@ -44,10 +44,10 @@ class OutlinerPropertyView extends Panel {
 
     populateProperties(obj: Object3D) {
         while (this._controllers.length > 0) {
-            this._controllers.pop().destroy();
+            this._controllers.pop()?.destroy();
         }
         while (this._folders.length > 0) {
-            this._folders.pop().destroy();
+            this._folders.pop()?.destroy();
         }
         this.createControllers(obj, this.gui);
 
@@ -83,6 +83,7 @@ class OutlinerPropertyView extends Panel {
             this._folders.push(geometry);
             geometry.close();
             this.createControllers(obj.geometry, geometry);
+
             if ((obj as any).geometry.attributes) {
                 const attrs = (obj as any).geometry.attributes;
                 const attributes = geometry.addFolder('Attributes');
