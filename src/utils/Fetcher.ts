@@ -78,11 +78,13 @@ const hostQueues: Map<string, HttpQueue> = new Map();
  */
 function enqueue(req: Request) {
     const url = new URL(req.url);
-    if (!hostQueues.has(url.hostname)) {
-        const queue = new HttpQueue();
+
+    let queue = hostQueues.get(url.hostname);
+    if (!queue) {
+        queue = new HttpQueue();
         hostQueues.set(url.hostname, queue);
     }
-    return hostQueues.get(url.hostname).enqueue(req);
+    return queue.enqueue(req);
 }
 
 /**
@@ -144,7 +146,7 @@ async function fetchInternal(url: string, options?: FetchOptions): Promise<Respo
 
             return fetchInternal(url, {
                 ...options,
-                retries: options.retries - 1,
+                retries: retries - 1,
             });
         } else {
             const error = new Error(

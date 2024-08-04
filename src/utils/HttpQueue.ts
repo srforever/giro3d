@@ -4,7 +4,7 @@ export interface Task {
     /** The request */
     req: Request;
     /** The resolve callback, when this tasks completes successfully. */
-    resolve: (arg: unknown) => void;
+    resolve: (arg: Response | PromiseLike<Response>) => void;
     /** The reject callback, when this tasks completes with an error. */
     reject: (arg: unknown) => void;
 }
@@ -22,15 +22,11 @@ class HttpQueue {
     /**
      * @param options - Options.
      */
-    constructor(
-        options: {
-            /** Max concurrent requests for this host. */
-            maxConcurrentRequests?: number;
-        } = {
-            maxConcurrentRequests: DEFAULT_CONCURRENT_REQUESTS,
-        },
-    ) {
-        this._maxConcurrentRequests = options.maxConcurrentRequests;
+    constructor(options?: {
+        /** Max concurrent requests for this host. */
+        maxConcurrentRequests?: number;
+    }) {
+        this._maxConcurrentRequests = options?.maxConcurrentRequests ?? DEFAULT_CONCURRENT_REQUESTS;
         this._concurrentRequests = 0;
         this._queue = [];
     }
