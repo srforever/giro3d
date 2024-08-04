@@ -2,9 +2,9 @@ import type { Texture, TextureDataType } from 'three';
 
 export type DecodeOptions = {
     /** The texture width. */
-    width?: number;
+    width: number;
     /** The texture height */
-    height?: number;
+    height: number;
     /** The no-data value */
     noDataValue?: number;
 };
@@ -36,7 +36,7 @@ abstract class ImageFormat {
      */
     abstract decode(
         blob: Blob,
-        options: DecodeOptions,
+        options?: DecodeOptions,
     ): Promise<{
         texture: Texture;
         min?: number;

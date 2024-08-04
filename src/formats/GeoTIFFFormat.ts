@@ -42,7 +42,7 @@ class GeoTIFFFormat extends ImageFormat {
      * @param options - the decoding options
      */
     // eslint-disable-next-line class-methods-use-this
-    async decode(blob: Blob, options: DecodeOptions = {}) {
+    async decode(blob: Blob, options?: DecodeOptions) {
         const tiff = await fromBlob(blob);
         const image = await tiff.getImage();
 
@@ -51,7 +51,7 @@ class GeoTIFFFormat extends ImageFormat {
 
         let dataType;
         let opaqueValue;
-        const nodata = options.noDataValue || image.getGDALNoData() || undefined;
+        const nodata = options?.noDataValue || image.getGDALNoData() || undefined;
 
         if (image.getBitsPerSample() === 8) {
             dataType = UnsignedByteType;
