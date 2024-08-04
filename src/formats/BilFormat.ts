@@ -44,20 +44,22 @@ class BilFormat extends ImageFormat {
      * @param options - the decoding options
      */
     // eslint-disable-next-line class-methods-use-this
-    async decode(blob: Blob, options: DecodeOptions = {}) {
+    async decode(blob: Blob, options?: DecodeOptions) {
         const buf = await blob.arrayBuffer();
         const floatArray = new Float32Array(buf);
 
         let min = +Infinity;
         let max = -Infinity;
 
+        const noData = options?.noDataValue;
+
         // NOTE for BIL format, we consider everything that is under noDataValue as noDataValue
         // this is consistent with the servers behaviour we tested but if you see services that
         // expects something different, don't hesitate to question the next loop
         for (let i = 0; i < floatArray.length; i++) {
             const value = floatArray[i];
-            if (value <= options.noDataValue) {
-                floatArray[i] = options.noDataValue;
+            if (noData != null && value <= noData) {
+                floatArray[i] = noData;
             } else {
                 min = Math.min(value, min);
                 max = Math.max(value, max);
