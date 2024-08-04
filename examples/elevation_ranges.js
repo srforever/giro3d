@@ -2,7 +2,7 @@ import colormap from 'colormap';
 
 import XYZ from 'ol/source/XYZ.js';
 
-import { Color, Vector3 } from 'three';
+import { Color } from 'three';
 import { MapControls } from 'three/examples/jsm/controls/MapControls.js';
 
 import Extent from '@giro3d/giro3d/core/geographic/Extent.js';
@@ -80,21 +80,16 @@ const colorLayer = new ColorLayer({
 });
 map.addLayer(colorLayer);
 
-// Sets the camera position
-instance.camera.camera3D.position.set(-13615016, 5835706, 14797);
-
 // Creates controls
 const controls = new MapControls(instance.camera.camera3D, instance.domElement);
-
-// Then looks at extent's center
-controls.target = new Vector3(-13603869, 5814829, 0);
-controls.saveState();
-
 controls.enableDamping = true;
 controls.dampingFactor = 0.2;
 controls.maxPolarAngle = Math.PI / 2.3;
 
 instance.useTHREEControls(controls);
+
+// Sets the camera position
+instance.focusObject(map);
 
 Inspector.attach(document.getElementById('panelDiv'), instance);
 

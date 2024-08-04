@@ -1,4 +1,5 @@
 import {
+    Box3,
     Vector2,
     MathUtils,
     Group,
@@ -870,6 +871,14 @@ class Tiles3D<
             return pickPointsAt(this._instance, coordinates, this, options);
         }
         return pickObjectsAt(this._instance, coordinates, this.object3d, options);
+    }
+
+    getBoundingVolume() {
+        return this.root.boundingVolume.box.clone().applyMatrix4(this.root.matrixWorld);
+    }
+
+    getBoundingBox(target: Box3 = new Box3()): Box3 | null {
+        return this.root.getBoundingBox(target);
     }
 }
 

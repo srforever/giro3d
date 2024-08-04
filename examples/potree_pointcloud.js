@@ -1,4 +1,3 @@
-import { Vector3 } from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import Instance from '@giro3d/giro3d/core/Instance.js';
@@ -27,16 +26,9 @@ function placeCamera() {
     controls.enableDamping = true;
     controls.dampingFactor = 0.25;
 
-    const pos = new Vector3(6.757520397934977, -10.102934086721376, 7.402449241148831);
-
-    const lookAt = new Vector3(0.5, 0.5, 5);
-
-    camera.lookAt(lookAt);
-    controls.target.copy(lookAt);
-    camera.position.copy(pos);
-
-    instance.useTHREEControls(controls);
     StatusBar.bind(instance, { radius: 5 });
+    instance.useTHREEControls(controls);
+    instance.focusObject(potree);
 }
 
 instance.add(potree).then(placeCamera);
