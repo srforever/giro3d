@@ -32,6 +32,7 @@ class Tiles3dInspector extends EntityInspector {
             opacity: true,
         });
 
+        this.entity = entity;
         this.wireframe = entity.wireframe ?? false;
         this.sse = entity.sseThreshold;
 
@@ -87,7 +88,7 @@ class Tiles3dInspector extends EntityInspector {
 
     fillLayers() {
         while (this.layers.length > 0) {
-            this.layers.pop().dispose();
+            this.layers.pop()?.dispose();
         }
         // We reverse the order so that the layers are displayed in a natural order:
         // top layers in the inspector are also on top in the composition.

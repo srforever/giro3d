@@ -24,16 +24,16 @@ class LayerInspector extends Panel {
     state: string;
     sourceCrs: string;
     interpretation: string;
-    minmax: { min: number; max: number };
+    minmax: { min: number; max: number } | undefined;
     extentColor: Color;
     showExtent: boolean;
     extentHelper: BoundingBoxHelper | null;
-    visible: boolean;
+    visible = true;
     /** The color map inspector */
     colorMapInspector: ColorMapInspector;
     /** The source inspector. */
-    sourceInspector: SourceInspector;
-    colorimetryPanel: ColorimetryPanel;
+    sourceInspector: SourceInspector | undefined;
+    colorimetryPanel: ColorimetryPanel | undefined;
     composerImages = 0;
     cpuMemoryUsage = 'unknown';
     gpuMemoryUsage = 'unknown';
@@ -179,10 +179,12 @@ class LayerInspector extends Panel {
     toggleExtent() {
         if (!this.extentHelper && this.showExtent && isMap(this.entity)) {
             const { min, max } = this.entity.getElevationMinMax();
-            const box = this.layer.getExtent().toBox3(min, max);
-            this.extentHelper = Helpers.createBoxHelper(box, this.extentColor);
-            this.instance.threeObjects.add(this.extentHelper);
-            this.extentHelper.updateMatrixWorld(true);
+            const box = this.layer.getExtent()?.toBox3(min, max);
+            if (box) {
+                this.extentHelper = Helpers.createBoxHelper(box, this.extentColor);
+                this.instance.threeObjects.add(this.extentHelper);
+                this.extentHelper.updateMatrixWorld(true);
+            }
         }
 
         if (this.extentHelper) {

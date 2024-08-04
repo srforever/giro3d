@@ -4,8 +4,8 @@ import Panel from './Panel';
 import type Instance from '../core/Instance';
 
 class FetcherPanel extends Panel {
-    pendingRequests: number;
-    runningRequests: number;
+    pendingRequests = 0;
+    runningRequests = 0;
 
     constructor(parentGui: GUI, instance: Instance) {
         super(parentGui, instance, 'Fetcher');

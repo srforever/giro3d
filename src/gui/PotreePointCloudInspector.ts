@@ -28,6 +28,7 @@ class PotreePointCloudInspector extends EntityInspector {
             opacity: true,
         });
 
+        this.entity = entity;
         this.sse = entity.sseThreshold;
 
         this.bboxRoot = new Group();

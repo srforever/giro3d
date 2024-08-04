@@ -7,6 +7,7 @@ import ProcessingInspector from './ProcessingInspector';
 import type Panel from './Panel';
 import PackageInfoInspector from './PackageInfoInspector';
 import InstanceInspector from './InstanceInspector';
+import { isDisposable } from '../core/Disposable';
 
 // Here follows the style adaptation to lil-gui
 const styles = `
@@ -90,7 +91,9 @@ class Inspector {
     clearPanels() {
         while (this.folders.length > 0) {
             const gui = this.folders.pop();
-            if ((gui as any).dispose) (gui as any).dispose();
+            if (isDisposable(gui)) {
+                gui.dispose();
+            }
         }
     }
 
