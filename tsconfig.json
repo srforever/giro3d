@@ -14,9 +14,6 @@
         // We don't want to check the external libraries, only our
         "skipLibCheck": true,
         "moduleResolution": "node",
-        // This compiler run should
-        // only output d.ts files
-        "emitDeclarationOnly": true,
         // Types should go into this directory.
         // Removing this would place the .d.ts files
         // next to the .js files

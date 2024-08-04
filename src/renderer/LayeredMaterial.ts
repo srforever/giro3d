@@ -305,7 +305,7 @@ interface Uniforms {
 }
 
 class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
-    private readonly _getIndexFn: (arg0: Layer) => number;
+    private readonly _getIndexFn: (arg0: Layer) => number | undefined;
     private readonly _renderer: WebGLRenderer;
     private readonly _colorLayers: ColorLayer[] = [];
 
@@ -319,10 +319,10 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
             texture: ElevationTexture;
         };
     };
-    private _elevationLayer: ElevationLayer;
-    private _mustUpdateUniforms: boolean;
-    private _needsSorting: boolean;
-    private _needsAtlasRepaint: boolean;
+    private _elevationLayer: ElevationLayer | undefined;
+    private _mustUpdateUniforms = false;
+    private _needsSorting = false;
+    private _needsAtlasRepaint = false;
     private _composer: WebGLComposer | null = null;
     private _colorMapAtlas: ColorMapAtlas;
     private _composerDataType: TextureDataType = UnsignedByteType;
@@ -335,7 +335,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
     private readonly _atlasInfo: AtlasInfo;
     private readonly _forceTextureAtlas: boolean;
     private readonly _maxTextureImageUnits: number;
-    private _options: MaterialOptions;
+    private _options: Required<MaterialOptions>;
     private _hasElevationLayer: boolean;
 
     getMemoryUsage(context: GetMemoryUsageContext, target?: MemoryUsageReport): MemoryUsageReport {
@@ -349,17 +349,9 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         return result;
     }
 
-    constructor({
-        options = {},
-        renderer,
-        maxTextureImageUnits,
-        atlasInfo,
-        getIndexFn,
-        textureDataType,
-        hasElevationLayer,
-    }: {
+    constructor(params: {
         /** the material options. */
-        options: MaterialOptions;
+        options: Required<MaterialOptions>;
         /** the WebGL renderer. */
         renderer: WebGLRenderer;
         /** The number of maximum texture units in fragment shaders */
@@ -367,22 +359,26 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
         /**  the Atlas info */
         atlasInfo: AtlasInfo;
         /** The function to help sorting color layers. */
-        getIndexFn: (arg0: Layer) => number;
+        getIndexFn: (arg0: Layer) => number | undefined;
         /** The texture data type to be used for the atlas texture. */
         textureDataType: TextureDataType;
         hasElevationLayer: boolean;
     }) {
         super({ clipping: true, glslVersion: GLSL3 });
 
-        this._atlasInfo = atlasInfo;
+        this._atlasInfo = params.atlasInfo;
         MaterialUtils.setDefine(this, 'USE_ATLAS_TEXTURE', false);
-        MaterialUtils.setDefine(this, 'STITCHING', options.terrain?.stitching);
-        MaterialUtils.setDefine(this, 'TERRAIN_DEFORMATION', options.terrain?.enabled);
-        this._renderer = renderer;
-        this._forceTextureAtlas = options.forceTextureAtlases ?? false;
+        MaterialUtils.setDefine(this, 'STITCHING', params.options.terrain.stitching ?? false);
+        MaterialUtils.setDefine(
+            this,
+            'TERRAIN_DEFORMATION',
+            params.options.terrain.enabled ?? false,
+        );
+        this._renderer = params.renderer;
+        this._forceTextureAtlas = params.options.forceTextureAtlases ?? false;
 
-        this._hasElevationLayer = hasElevationLayer;
-        this._composerDataType = textureDataType;
+        this._hasElevationLayer = params.hasElevationLayer;
+        this._composerDataType = params.textureDataType;
         this.uniforms.hillshading = new Uniform<HillshadingUniform>({
             zenith: DEFAULT_ZENITH,
             azimuth: DEFAULT_AZIMUTH,
@@ -397,13 +393,13 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
 
         this.fog = true;
 
-        this._maxTextureImageUnits = maxTextureImageUnits;
+        this._maxTextureImageUnits = params.maxTextureImageUnits;
 
-        this._getIndexFn = getIndexFn;
+        this._getIndexFn = params.getIndexFn;
 
-        MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', options.discardNoData);
+        MaterialUtils.setDefine(this, 'DISCARD_NODATA_ELEVATION', params.options.discardNoData);
 
-        this.uniforms.segments = new Uniform(options.segments);
+        this.uniforms.segments = new Uniform(params.options.segments);
 
         this.uniforms.contourLines = new Uniform({
             thickness: 1,
@@ -418,16 +414,16 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
             position: new Vector4(0, 0, DEFAULT_GRATICULE_STEP, DEFAULT_GRATICULE_STEP),
         });
 
-        const elevationRange = options.elevationRange
-            ? new Vector2(options.elevationRange.min, options.elevationRange.max)
+        const elevationRange = params.elevationRange
+            ? new Vector2(params.elevationRange.min, params.elevationRange.max)
             : DISABLED_ELEVATION_RANGE;
         this.uniforms.elevationRange = new Uniform(elevationRange);
 
         this.uniforms.brightnessContrastSaturation = new Uniform(new Vector3(0, 1, 1));
 
-        MaterialUtils.setDefine(this, 'ENABLE_ELEVATION_RANGE', options.elevationRange != null);
+        MaterialUtils.setDefine(this, 'ENABLE_ELEVATION_RANGE', params.elevationRange != null);
 
-        this.side = options.doubleSided ? DoubleSide : FrontSide;
+        this.side = params.doubleSided ? DoubleSide : FrontSide;
 
         this.uniforms.renderingState = new Uniform(RenderingState.FINAL);
 
@@ -487,7 +483,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
             min: null,
         });
 
-        this._colorMapAtlas = options.colorMapAtlas;
+        this._colorMapAtlas = params.colorMapAtlas;
 
         this.uniformsNeedUpdate = true;
 
@@ -498,7 +494,7 @@ class LayeredMaterial extends ShaderMaterial implements MemoryUsage {
 
         this._needsAtlasRepaint = false;
 
-        this.update(options);
+        this.update(params);
 
         MemoryTracker.track(this, 'LayeredMaterial');
     }

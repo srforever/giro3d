@@ -113,10 +113,13 @@ class ElevationLayer<UserData extends LayerUserData = LayerUserData> extends Lay
 
     private getMinMax(texture: TextureWithMinMax) {
         if (this.minmax == null) {
-            this.minmax = { min: texture.min, max: texture.max };
+            this.minmax = { min: 0, max: 0 };
         }
-        const min = Number.isFinite(texture.min) ? texture.min : this.minmax.min;
-        const max = Number.isFinite(texture.max) ? texture.max : this.minmax.max;
+
+        const min =
+            texture.min != null && Number.isFinite(texture.min) ? texture.min : this.minmax.min;
+        const max =
+            texture.max != null && Number.isFinite(texture.max) ? texture.max : this.minmax.max;
         // Refine the min/max values using the new texture.
         this.minmax.min = Math.min(min, this.minmax.min);
         this.minmax.max = Math.max(max, this.minmax.max);

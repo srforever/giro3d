@@ -20,8 +20,8 @@ class ImageResult {
     id: string;
     texture: Texture;
     extent: Extent;
-    min: number;
-    max: number;
+    min?: number;
+    max?: number;
     /**
      * @param options - options
      */
@@ -119,7 +119,7 @@ abstract class ImageSource<Events extends ImageSourceEvents = ImageSourceEvents>
     implements MemoryUsage
 {
     readonly isImageSource: boolean = true;
-    private readonly _customColorSpace: ColorSpace;
+    private readonly _customColorSpace: ColorSpace | undefined;
     type: string;
     /**
      * Gets whether images generated from this source should be flipped vertically.
@@ -130,7 +130,7 @@ abstract class ImageSource<Events extends ImageSourceEvents = ImageSourceEvents>
      */
     datatype: TextureDataType;
     version: number;
-    readonly containsFn: CustomContainsFn;
+    readonly containsFn: CustomContainsFn | undefined;
 
     /**
      * @param options - Options.

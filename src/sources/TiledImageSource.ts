@@ -309,6 +309,8 @@ export default class TiledImageSource extends ImageSource {
                 const tileSize = this._tileGrid.getTileSize(0);
                 width = tileSize as number;
                 height = tileSize as number;
+            } else {
+                throw new Error('could not determiner tile size');
             }
             const decoded = await this.format.decode(blob, {
                 noDataValue: this.noDataValue,

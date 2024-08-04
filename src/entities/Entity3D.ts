@@ -57,7 +57,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
     public get distance(): { min: number; max: number } {
         return { min: this._distance.min, max: this._distance.max };
     }
-    private _clippingPlanes: Plane[];
+    private _clippingPlanes: Plane[] | null;
     private _renderOrder: number;
 
     readonly isPickable = true;
@@ -178,7 +178,7 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
         return this._clippingPlanes;
     }
 
-    set clippingPlanes(planes: Plane[]) {
+    set clippingPlanes(planes: Plane[] | null) {
         this._clippingPlanes = planes;
         this.updateClippingPlanes();
         this.dispatchEvent({ type: 'clippingPlanes-property-changed', clippingPlanes: planes });
@@ -376,11 +376,13 @@ class Entity3D<TEventMap extends Entity3DEventMap = Entity3DEventMap, TUserData 
      * object of this entity.
      */
     traverseMaterials(callback: (arg0: Material) => void, root: Object3D = undefined) {
-        this.traverse((o: any) => {
-            if (Array.isArray(o.material)) {
-                o.material.forEach((m: Material) => callback(m));
-            } else if (o.material) {
-                callback(o.material as Material);
+        this.traverse((o: Object3D) => {
+            if ('material' in o) {
+                if (Array.isArray(o.material)) {
+                    o.material.forEach((m: Material) => callback(m));
+                } else if (o.material) {
+                    callback(o.material as Material);
+                }
             }
         }, root);
     }

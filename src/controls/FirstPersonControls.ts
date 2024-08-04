@@ -75,9 +75,9 @@ export interface FirstPersonControlsOptions {
      */
     disableEventListeners?: boolean;
     /** the minimal height of the instance camera */
-    minHeight?: number;
+    minHeight?: number | null;
     /** the maximal height of the instance camera */
-    maxHeight?: number;
+    maxHeight?: number | null;
 }
 
 class FirstPersonControls {
@@ -85,7 +85,12 @@ class FirstPersonControls {
     instance: Instance;
     enabled: boolean;
     moves: Set<Movement>;
-    options: FirstPersonControlsOptions;
+    options: {
+        minHeight?: number;
+        maxHeight?: number;
+        verticalFOV: number;
+        moveSpeed: number;
+    };
     private _isMouseDown: boolean;
     private _onMouseDownMouseX: number;
     private _onMouseDownMouseY: number;
@@ -104,6 +109,7 @@ class FirstPersonControls {
         this.instance = instance;
         this.enabled = true;
         this.moves = new Set();
+
         if (options.panoramaRatio) {
             const radius = (options.panoramaRatio * 200) / (2 * Math.PI);
             options.verticalFOV =
@@ -111,14 +117,14 @@ class FirstPersonControls {
                     ? 180
                     : MathUtils.radToDeg(2 * Math.atan(200 / (2 * radius)));
         }
-        options.verticalFOV = options.verticalFOV ?? 180;
 
-        options.minHeight = options.minHeight ?? null;
-        options.maxHeight = options.maxHeight ?? null;
-
-        // backward or forward move speed in m/s
-        options.moveSpeed = options.moveSpeed ?? 10;
-        this.options = options;
+        this.options = {
+            // backward or forward move speed in m/s
+            moveSpeed: options.moveSpeed ?? 10,
+            minHeight: options.minHeight ?? undefined,
+            maxHeight: options.maxHeight ?? undefined,
+            verticalFOV: options.verticalFOV ?? 180,
+        };
 
         this._isMouseDown = false;
         this._onMouseDownMouseX = 0;
@@ -137,17 +143,20 @@ class FirstPersonControls {
         this.reset();
 
         const domElement = instance.domElement;
+
         if (!options.disableEventListeners) {
             domElement.addEventListener('mousedown', this.onMouseDown.bind(this), false);
             domElement.addEventListener('touchstart', this.onMouseDown.bind(this), false);
+
             domElement.addEventListener('mousemove', this.onMouseMove.bind(this), false);
             domElement.addEventListener('touchmove', this.onMouseMove.bind(this), false);
+
             domElement.addEventListener('mouseup', this.onMouseUp.bind(this), false);
             domElement.addEventListener('touchend', this.onMouseUp.bind(this), false);
+
             domElement.addEventListener('keyup', this.onKeyUp.bind(this), true);
             domElement.addEventListener('keydown', this.onKeyDown.bind(this), true);
             domElement.addEventListener('mousewheel', this.onMouseWheel.bind(this), false);
-            domElement.addEventListener('DOMMouseScroll', this.onMouseWheel.bind(this), false); // firefox
         }
 
         this.instance.addEventListener('after-camera-update', this.update.bind(this));
@@ -214,10 +223,10 @@ class FirstPersonControls {
             }
         }
 
-        if (this.options.minHeight !== null && this.camera.position.z < this.options.minHeight) {
+        if (this.options.minHeight != null && this.camera.position.z < this.options.minHeight) {
             this.camera.position.z = this.options.minHeight;
         } else if (
-            this.options.maxHeight !== null &&
+            this.options.maxHeight != null &&
             this.camera.position.z > this.options.maxHeight
         ) {
             this.camera.position.z = this.options.maxHeight;
@@ -234,10 +243,15 @@ class FirstPersonControls {
 
     // Event callback functions
     // Mouse movement handling
-    onMouseDown(event: MouseEvent) {
-        if (!this.enabled || event.button !== 0) {
+    onMouseDown(event: MouseEvent | TouchEvent) {
+        if (!this.enabled) {
             return;
         }
+
+        if ('button' in event && event.button !== 0) {
+            return;
+        }
+
         event.preventDefault();
         this._isMouseDown = true;
 
@@ -289,10 +303,10 @@ class FirstPersonControls {
             return;
         }
         let delta = 0;
-        if ('wheelDelta' in event && event.wheelDelta !== undefined) {
+        if ('wheelDelta' in event && event.wheelDelta != null) {
             delta = -event.wheelDelta;
             // Firefox
-        } else if (event.detail !== undefined) {
+        } else if (event.detail != null) {
             delta = event.detail;
         }
 

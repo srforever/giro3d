@@ -139,7 +139,7 @@ export interface PotreeMetadata {
     octreeDir?: string;
     boundingBox?: PotreeBoundingBox;
     tightBoundingBox?: PotreeBoundingBox;
-    pointAttributes?: any;
+    pointAttributes?: unknown;
     spacing?: number;
     scale?: number;
     hierarchyStepSize?: number;
@@ -301,7 +301,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
     onPointsCreated: OnPointsCreatedCallback | null;
     metadata?: PotreeMetadata;
     table?: string;
-    parse?: (data: ArrayBuffer, pointAttributes: object) => Promise<BufferGeometry>;
+    parse?: (data: ArrayBuffer, pointAttributes: unknown) => Promise<BufferGeometry>;
     extension?: 'cin' | 'bin';
     supportsProgressiveDisplay?: boolean;
     root?: OctreeItem;
@@ -655,7 +655,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
     update(context: Context, elt: OctreeItem) {
         if (this.octreeDepthLimit >= 0 && this.octreeDepthLimit < elt.name.length) {
             markForDeletion(elt);
-            return null;
+            return undefined;
         }
 
         // pick the best bounding box
@@ -663,7 +663,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
 
         if (context.fastUpdateHint && !elt.name.startsWith(context.fastUpdateHint as string)) {
             if (!elt.visible) {
-                return null;
+                return undefined;
             }
             this.updateMinMaxDistance(context, bbox);
         } else {
@@ -671,7 +671,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
 
             if (!elt.visible) {
                 markForDeletion(elt);
-                return null;
+                return undefined;
             }
 
             const distance = this.updateMinMaxDistance(context, bbox);
@@ -753,7 +753,7 @@ class PotreePointCloud<UserData extends EntityUserData = EntityUserData>
                 markForDeletion(child);
             }
         }
-        return null;
+        return undefined;
     }
 
     get loading() {

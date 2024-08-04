@@ -515,8 +515,8 @@ class Map<UserData extends EntityUserData = EntityUserData>
      */
     readonly isMap: boolean = true;
     readonly isPickableFeatures = true;
-    readonly materialOptions: MaterialOptions;
-    readonly showOutline: boolean;
+    readonly materialOptions: Required<MaterialOptions>;
+    readonly showOutline = false;
     /** @internal */
     readonly tileIndex: TileIndex<TileMesh>;
     /**
@@ -654,14 +654,14 @@ class Map<UserData extends EntityUserData = EntityUserData>
             let i = 0;
             const { x, y, z } = node;
             for (const extent of extents) {
-                let child;
+                let child: TileMesh;
                 if (i === 0) {
                     child = this.requestNewTile(extent, node, z + 1, 2 * x + 0, 2 * y + 0);
                 } else if (i === 1) {
                     child = this.requestNewTile(extent, node, z + 1, 2 * x + 0, 2 * y + 1);
                 } else if (i === 2) {
                     child = this.requestNewTile(extent, node, z + 1, 2 * x + 1, 2 * y + 0);
-                } else if (i === 3) {
+                } else {
                     child = this.requestNewTile(extent, node, z + 1, 2 * x + 1, 2 * y + 1);
                 }
 
@@ -727,11 +727,13 @@ class Map<UserData extends EntityUserData = EntityUserData>
         return Promise.resolve();
     }
 
-    private requestNewTile(extent: Extent, parent: TileMesh, level: number, x = 0, y = 0) {
-        if (parent && !parent.material) {
-            return null;
-        }
-
+    private requestNewTile(
+        extent: Extent,
+        parent: TileMesh | undefined,
+        level: number,
+        x = 0,
+        y = 0,
+    ) {
         const quaternion = new Quaternion();
         const position = extent.centerAsVector3();
 
@@ -754,8 +756,8 @@ class Map<UserData extends EntityUserData = EntityUserData>
             textureSize: this._imageSize,
             segments: this.segments,
             coord: { level, x, y },
-            enableCPUTerrain: this.materialOptions.terrain.enableCPUTerrain,
-            enableTerrainDeformation: this.materialOptions.terrain.enabled,
+            enableCPUTerrain: this.materialOptions.terrain.enableCPUTerrain ?? true,
+            enableTerrainDeformation: this.materialOptions.terrain.enabled ?? true,
             onElevationChanged: this._onTileElevationChanged,
         });
 
@@ -817,7 +819,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     }
 
     pick(coordinates: Vector2, options?: PickOptions): MapPickResult[] {
-        if (options.gpuPicking) {
+        if (options?.gpuPicking) {
             return pickTilesAt(this._instance, coordinates, this, options);
         } else {
             return this.pickUsingRaycast(coordinates, options);
@@ -826,7 +828,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
 
     private raycastAtCoordinate(
         coordinates: Vector2,
-        options: PickOptions,
+        options: PickOptions | undefined,
         results: MapPickResult[],
     ) {
         const normalized = this._instance.canvasToNormalizedCoords(coordinates, tempNDC);
@@ -863,7 +865,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
     private pickUsingRaycast(coordinates: Vector2, options?: PickOptions): MapPickResult[] {
         const results: MapPickResult[] = [];
 
-        if (!options.radius) {
+        if (!options?.radius) {
             this.raycastAtCoordinate(coordinates, options, results);
         } else {
             const originX = coordinates.x;
@@ -916,7 +918,8 @@ class Map<UserData extends EntityUserData = EntityUserData>
             return this.level0Nodes;
         }
 
-        let commonAncestor: TileMesh;
+        let commonAncestor: TileMesh | undefined = undefined;
+
         for (const source of changeSources.values()) {
             if ((source as ThreeCamera).isCamera) {
                 // if the change is caused by a camera move, no need to bother
@@ -1085,7 +1088,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
      * @param layer - The layer to search.
      * @returns The index of the layer.
      */
-    getIndex(layer: Layer): number {
+    getIndex(layer: Layer): number | undefined {
         return this._layerIndices.get(layer.id);
     }
 
@@ -1516,7 +1519,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
      * @param root - The raversal root. If undefined, the traversal starts at the root
      * object of this entity.
      */
-    traverseTiles(callback: (arg0: TileMesh) => void, root: Object3D = undefined) {
+    traverseTiles(callback: (arg0: TileMesh) => void, root?: Object3D) {
         const origin = root ?? this.object3d;
 
         if (origin) {
@@ -1561,7 +1564,7 @@ class Map<UserData extends EntityUserData = EntityUserData>
         return true;
     }
 
-    private testTileSSE(tile: TileMesh, sse: SSE) {
+    private testTileSSE(tile: TileMesh, sse: SSE | null) {
         if (this.maxSubdivisionLevel <= tile.level) {
             return false;
         }

@@ -96,6 +96,10 @@ function rasterizeBuilderGroup(
     const resY = extent.dimensions().y / size.height;
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
+    if (!ctx) {
+        throw new Error('could not acquire 2D rendering context on canvas');
+    }
+
     const transform = resetTransform(tmpTransform);
     scaleTransform(transform, pixelRatio / resX, -pixelRatio / resY);
     translateTransform(transform, -extent.west(), -extent.north());
@@ -169,12 +173,12 @@ export interface VectorSourceOptions extends ImageSourceOptions {
  */
 class VectorSource extends ImageSource {
     readonly isVectorSource: boolean = true;
-    readonly format: FeatureFormat;
+    readonly format: FeatureFormat | undefined;
     readonly data: string | object | Feature[];
     readonly source: Vector;
-    readonly dataProjection: string;
+    readonly dataProjection: string | undefined;
 
-    private _targetProjection: string;
+    private _targetProjection: string | undefined;
 
     /**
      * The current style.
@@ -253,7 +257,7 @@ class VectorSource extends ImageSource {
      * @param feature - The feature to reproject.
      */
     reproject(feature: Feature) {
-        feature.getGeometry().transform(this.dataProjection, this._targetProjection);
+        feature.getGeometry()?.transform(this.dataProjection, this._targetProjection);
     }
 
     async initialize(opts: { targetProjection: string }) {
@@ -276,7 +280,7 @@ class VectorSource extends ImageSource {
         this.source.on('addfeature', evt => {
             this.update();
 
-            if (shouldReproject) {
+            if (shouldReproject && evt.feature) {
                 this.reproject(evt.feature);
             }
         });
@@ -295,9 +299,9 @@ class VectorSource extends ImageSource {
      * Returns the feature with the specified id.
      *
      * @param id - The feature id.
-     * @returns The feature.
+     * @returns The feature or `null` if no feature is found with this id.
      */
-    getFeatureById(id: string | number): Feature {
+    getFeatureById(id: string | number): Feature | null {
         return this.source.getFeatureById(id);
     }
 
@@ -310,14 +314,14 @@ class VectorSource extends ImageSource {
         this.source.forEachFeature(callback);
     }
 
-    getCrs() {
+    getCrs(): string {
         // Note that since we are reprojecting vector _inside_ the source,
         // the source projection is the same as the target projection, indicating
         // that no projection needs to be done on images produced by this source.
         return this._targetProjection;
     }
 
-    getExtent() {
+    getExtent(): Extent {
         return this.getCurrentExtent();
     }
 

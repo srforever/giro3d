@@ -24,7 +24,7 @@ import MemoryTracker from '../MemoryTracker';
 import ComposerTileMaterial from './ComposerTileMaterial';
 import TextureGenerator from '../../utils/TextureGenerator';
 
-let SHARED_PLANE_GEOMETRY: PlaneGeometry = null;
+let SHARED_PLANE_GEOMETRY: PlaneGeometry | null = null;
 
 const IMAGE_Z = -10;
 const textureOwners = new Map<string, WebGLRenderTarget>();
@@ -74,24 +74,25 @@ export interface DrawOptions {
 class WebGLComposer {
     private readonly _showImageOutlines: boolean;
     private readonly _showEmptyTextures: boolean;
-    private readonly _extent: Rect;
+    private readonly _extent: Rect | undefined;
     private readonly _renderer: WebGLRenderer;
     private readonly _reuseTexture: boolean;
-    private readonly _clearColor: ColorRepresentation;
+    private readonly _clearColor: ColorRepresentation | undefined;
     private readonly _minFilter: MinificationTextureFilter;
     private readonly _magFilter: MagnificationTextureFilter;
     private readonly _ownedTextures: Texture[];
     private readonly _scene: Scene;
     private readonly _camera: OrthographicCamera;
     private readonly _expandRGB: boolean;
+    private readonly _plane: PlaneGeometry;
 
-    private _renderTarget: WebGLRenderTarget;
+    private _renderTarget: WebGLRenderTarget | undefined;
 
     readonly dataType: TextureDataType;
     readonly pixelFormat: PixelFormat;
 
-    readonly width: number;
-    readonly height: number;
+    readonly width: number | undefined;
+    readonly height: number | undefined;
 
     /**
      * Creates an instance of WebGLComposer.
@@ -132,13 +133,13 @@ class WebGLComposer {
          * to RGB by copying the R channel into the G and B channels. */
         expandRGB?: boolean;
     }) {
-        this._showImageOutlines = options.showImageOutlines;
-        this._showEmptyTextures = options.showEmptyTextures;
+        this._showImageOutlines = options.showImageOutlines ?? false;
+        this._showEmptyTextures = options.showEmptyTextures ?? false;
         this._extent = options.extent;
         this.width = options.width;
         this.height = options.height;
         this._renderer = options.webGLRenderer;
-        this._reuseTexture = options.reuseTexture;
+        this._reuseTexture = options.reuseTexture ?? false;
         this._clearColor = options.clearColor;
 
         const defaultFilter = TextureGenerator.getCompatibleTextureFilter(
@@ -155,6 +156,8 @@ class WebGLComposer {
             SHARED_PLANE_GEOMETRY = new PlaneGeometry(1, 1, 1, 1);
             MemoryTracker.track(SHARED_PLANE_GEOMETRY, 'WebGLComposer - PlaneGeometry');
         }
+
+        this._plane = SHARED_PLANE_GEOMETRY;
 
         // An array containing textures that this composer has created, to be disposed later.
         this._ownedTextures = [];
@@ -229,7 +232,7 @@ class WebGLComposer {
      * @param options - The options.
      */
     draw(image: DrawableImage, extent: Rect, options: DrawOptions = {}) {
-        const plane = new Mesh(SHARED_PLANE_GEOMETRY, null);
+        const plane = new Mesh(this._plane, null);
         MemoryTracker.track(plane, 'WebGLComposer - mesh');
         plane.scale.set(extent.width, extent.height, 1);
         this._scene.add(plane);
@@ -282,7 +285,7 @@ class WebGLComposer {
 
         mesh.material = material;
 
-        mesh.renderOrder = options.renderOrder;
+        mesh.renderOrder = options.renderOrder ?? 0;
         mesh.position.setZ(IMAGE_Z);
 
         this._scene.add(mesh);

@@ -3,9 +3,6 @@ import type Context from '../core/Context';
 import { type ObjectToUpdate } from '../core/MainLoop';
 import type Disposable from '../core/Disposable';
 
-/* eslint no-unused-vars: 0 */
-/* eslint class-methods-use-this: 0 */
-
 export interface EntityEventMap {
     'frozen-property-changed': { frozen: boolean };
 }
