@@ -22,7 +22,7 @@ class MapboxTerrainFormat extends ImageFormat {
      * @param blob - the data to decode
      * @param options - the decoding options
      */
-    async decode(blob: Blob, options: DecodeOptions = {}) {
+    async decode(blob: Blob, options: DecodeOptions) {
         const bitmap = await createImageBitmap(blob);
 
         const { data, width, height } = TextureGenerator.decodeMapboxTerrainImage(bitmap);
