@@ -28,9 +28,9 @@ import ConcurrentDownloader from './ConcurrentDownloader';
 
 const tmpDim = new Vector2();
 
-let sharedPool: Pool = null;
+let sharedPool: Pool | null = null;
 
-function getPool(): Pool {
+function getPool(): Pool | null {
     if (!sharedPool && window.Worker) {
         sharedPool = new Pool();
     }
@@ -99,7 +99,7 @@ export class FetcherResponse extends BaseResponse {
     }
 
     getHeader(name: string) {
-        return this.response.headers.get(name);
+        return this.response.headers.get(name) as string;
     }
 
     // @ts-expect-error (incorrectly typed base method, should be a Promise, but is an ArrayBuffer)
@@ -232,23 +232,23 @@ class CogSource extends ImageSource {
     readonly url: string;
     readonly crs: string;
     private readonly _cache: Cache = GlobalCache;
-    private _tiffImage: GeoTIFF;
-    private readonly _pool: Pool;
+    private _tiffImage: GeoTIFF | undefined;
+    private readonly _pool: Pool | null = null;
     private _imageCount: number;
-    private _extent: Extent;
-    private _dimensions: Vector2;
+    private _extent: Extent | undefined;
+    private _dimensions: Vector2 | undefined;
     private _images: Level[];
     private _masks: Level[];
-    private _sampleCount: number;
-    private _channels: number[];
-    private _initialized: boolean;
-    private _origin: number[];
-    private _nodata: number;
-    private _format: number;
-    private _bps: number;
-    private _initializePromise: Promise<void>;
+    private _sampleCount: number | undefined;
+    private _channels: number[] | undefined;
+    private _initialized = false;
+    private _origin: number[] | undefined;
+    private _nodata: number | null = null;
+    private _format: number | undefined;
+    private _bps: number | undefined;
+    private _initializePromise: Promise<void> | undefined;
     private readonly _cacheId: string = MathUtils.generateUUID();
-    private readonly _cacheOptions: CogCacheOptions;
+    private readonly _cacheOptions: CogCacheOptions | undefined;
 
     /**
      * Creates a COG source.
@@ -291,7 +291,7 @@ class CogSource extends ImageSource {
     }
 
     getExtent() {
-        return this._extent;
+        return this._extent as Extent;
     }
 
     getCrs() {
@@ -326,8 +326,9 @@ class CogSource extends ImageSource {
     ) {
         const { image } = this.selectLevel(requestExtent, requestWidth, requestHeight);
 
-        const pixelWidth = this._dimensions.x / image.width;
-        const pixelHeight = this._dimensions.y / image.height;
+        const dims = this._dimensions as Vector2;
+        const pixelWidth = dims.x / image.width;
+        const pixelHeight = dims.y / image.height;
 
         const marginExtent = requestExtent.withMargin(pixelWidth * margin, pixelHeight * margin);
 
@@ -403,8 +404,8 @@ class CogSource extends ImageSource {
 
         this._nodata = firstImage.getGDALNoData();
 
-        this._format = firstImage.getSampleFormat();
-        this._bps = firstImage.getBitsPerSample();
+        this._format = firstImage.getSampleFormat() as number;
+        this._bps = firstImage.getBitsPerSample() as number;
         this.datatype = selectDataType(this._format, this._bps);
 
         function makeLevel(image: GeoTIFFImage, resolution: number[]): Level {
@@ -449,7 +450,7 @@ class CogSource extends ImageSource {
      * @returns The window.
      */
     private makeWindowFromExtent(extent: Extent, resolution: number[]) {
-        const [oX, oY] = this._origin;
+        const [oX, oY] = this._origin as number[];
         const [imageResX, imageResY] = resolution;
         const ext = extent.values;
 
@@ -493,7 +494,7 @@ class CogSource extends ImageSource {
             {
                 width,
                 height,
-                nodata: this._nodata,
+                nodata: this._nodata ?? undefined,
             },
             dataType,
             ...buffers,
@@ -514,7 +515,7 @@ class CogSource extends ImageSource {
     private selectLevel(requestExtent: Extent, requestWidth: number, requestHeight: number) {
         // Number of images  = original + overviews if any
         const imageCount = this._imageCount;
-        const cropped = requestExtent.clone().intersect(this._extent);
+        const cropped = requestExtent.clone().intersect(this._extent as Extent);
         // Dimensions of the requested extent
         const extentDimension = cropped.dimensions(tmpDim);
 
@@ -523,18 +524,17 @@ class CogSource extends ImageSource {
             extentDimension.y / requestHeight,
         );
 
-        let image: Level;
-        let mask: Level;
+        let image: Level = this._images[imageCount - 1];
+        let mask: Level = this._masks[imageCount - 1];
+
+        const dims = this._dimensions as Vector2;
 
         // Select the image with the best resolution for our needs
         for (let i = imageCount - 1; i >= 0; i--) {
             image = this._images[i];
             mask = this._masks[i];
 
-            const sourceResolution = Math.min(
-                this._dimensions.x / image.width,
-                this._dimensions.y / image.height,
-            );
+            const sourceResolution = Math.min(dims.x / image.width, dims.y / image.height);
 
             if (targetResolution >= sourceResolution) {
                 break;
@@ -547,7 +547,7 @@ class CogSource extends ImageSource {
     /**
      * Gets the channel mapping.
      */
-    get channels() {
+    get channels(): number[] | undefined {
         return this._channels;
     }
 
@@ -567,28 +567,29 @@ class CogSource extends ImageSource {
 
         const { image, mask } = this.selectLevel(extent, width, height);
 
-        const adjusted = extent.fitToGrid(this._extent, image.width, image.height, 8, 8);
+        const adjusted = extent.fitToGrid(this._extent as Extent, image.width, image.height, 8, 8);
 
         const actualExtent = adjusted.extent;
 
         const buffers = await this.getRegionBuffers(
             actualExtent,
             image,
-            this._channels,
-            signal,
+            this._channels as number[],
             id,
+            signal,
         );
 
         signal?.throwIfAborted();
 
         let texture: Texture;
-        let min: number;
-        let max: number;
+        let min: number | undefined = undefined;
+        let max: number | undefined = undefined;
+
         if (buffers == null) {
             texture = new Texture();
         } else {
             if (mask && buffers.length === 3) {
-                const alpha = await this.processTransparencyMask(mask, actualExtent, signal, id);
+                const alpha = await this.processTransparencyMask(mask, actualExtent, id, signal);
                 if (alpha) {
                     buffers.push(alpha);
                 }
@@ -608,10 +609,10 @@ class CogSource extends ImageSource {
     private async processTransparencyMask(
         mask: Level,
         extent: Extent,
-        signal: AbortSignal,
         id: string,
+        signal?: AbortSignal,
     ) {
-        const bufs = await this.getRegionBuffers(extent, mask, [0], signal, id);
+        const bufs = await this.getRegionBuffers(extent, mask, [0], id, signal);
         if (!bufs) {
             return null;
         }
@@ -638,7 +639,7 @@ class CogSource extends ImageSource {
     ): Promise<ReadRasterResult> {
         if (canReadRGB(image)) {
             return await image.readRGB({
-                pool: this._pool,
+                pool: this._pool ?? undefined,
                 window,
                 signal,
                 interleave: false,
@@ -653,7 +654,7 @@ class CogSource extends ImageSource {
         // We would create more textures, but it could be worth it.
         const buf = await image.readRasters({
             pool: this._pool,
-            fillValue: this._nodata,
+            fillValue: this._nodata ?? undefined,
             samples: channels,
             window,
             signal,
@@ -673,26 +674,29 @@ class CogSource extends ImageSource {
         window: number[],
         channels: number[],
         signal?: AbortSignal,
-    ): Promise<TypedArray | TypedArray[]> {
+    ): Promise<TypedArray | TypedArray[] | null> {
         signal?.throwIfAborted();
 
         try {
             return await this.readWindow(image, window, channels, signal);
-        } catch (e) {
-            if (e.toString() === 'AggregateError: Request failed') {
-                // Problem with the source that is blocked by another fetch
-                // (request failed in readRasters). See the conversations in
-                // https://github.com/geotiffjs/geotiff.js/issues/218
-                // https://github.com/geotiffjs/geotiff.js/issues/221
-                // https://github.com/geotiffjs/geotiff.js/pull/224
-                // Retry until it is not blocked.
-                // TODO retry counter
-                await PromiseUtils.delay(100);
-                return this.fetchBuffer(image, window, channels, signal);
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                if (e.toString() === 'AggregateError: Request failed') {
+                    // Problem with the source that is blocked by another fetch
+                    // (request failed in readRasters). See the conversations in
+                    // https://github.com/geotiffjs/geotiff.js/issues/218
+                    // https://github.com/geotiffjs/geotiff.js/issues/221
+                    // https://github.com/geotiffjs/geotiff.js/pull/224
+                    // Retry until it is not blocked.
+                    // TODO retry counter
+                    await PromiseUtils.delay(100);
+                    return this.fetchBuffer(image, window, channels, signal);
+                }
+                if (e.name !== 'AbortError') {
+                    console.error(e);
+                }
             }
-            if (e.name !== 'AbortError') {
-                console.error(e);
-            }
+
             return null;
         }
     }
@@ -710,8 +714,8 @@ class CogSource extends ImageSource {
         extent: Extent,
         imageInfo: Level,
         channels: number[],
-        signal: AbortSignal,
         id: string,
+        signal?: AbortSignal,
     ): Promise<TypedArray[] | null> {
         const window = this.makeWindowFromExtent(extent, imageInfo.resolution);
 
