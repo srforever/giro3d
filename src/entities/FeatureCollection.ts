@@ -1,5 +1,5 @@
 import type { Object3D, Plane, BufferGeometry, Camera } from 'three';
-import { Box3, Group, Vector3 } from 'three';
+import { Box3, Group, MathUtils, Vector3 } from 'three';
 import type VectorSource from 'ol/source/Vector';
 import type Feature from 'ol/Feature';
 import type {
@@ -15,6 +15,7 @@ import type {
 import { GlobalCache } from '../core/Cache';
 import type Context from '../core/Context';
 import type Extent from '../core/geographic/Extent';
+import type { SSE } from '../core/ScreenSpaceError';
 import ScreenSpaceError from '../core/ScreenSpaceError';
 import LayerUpdateState from '../core/layer/LayerUpdateState';
 import type { Entity3DEventMap } from './Entity3D';
@@ -75,8 +76,6 @@ export type MeshUserData = {
     style: FeatureStyle;
 };
 
-type MeshOrSurface = SimpleGeometryMesh<MeshUserData> | SurfaceMesh<MeshUserData>;
-
 function isThreeCamera(obj: unknown): obj is Camera {
     return typeof obj === 'object' && (obj as Camera)?.isCamera;
 }
@@ -109,11 +108,11 @@ function selectBestSubdivisions(extent: Extent) {
 class FeatureTile extends Group {
     readonly isFeatureTile = true;
     readonly type = 'FeatureTile';
-    origin: Vector3;
+    readonly origin: Vector3;
 
     userData: {
         parentEntity: Entity3D;
-        layerUpdateState?: LayerUpdateState;
+        layerUpdateState: LayerUpdateState;
         extent: Extent;
         x: number;
         y: number;
@@ -122,11 +121,33 @@ class FeatureTile extends Group {
 
     boundingBox: Box3;
 
+    constructor(options: {
+        origin: Vector3;
+        boundingBox: Box3;
+        parent: Entity3D;
+        extent: Extent;
+        x: number;
+        y: number;
+        z: number;
+    }) {
+        super();
+        this.origin = options.origin;
+        this.boundingBox = options.boundingBox;
+        this.userData = {
+            parentEntity: options.parent,
+            extent: options.extent,
+            layerUpdateState: new LayerUpdateState(),
+            x: options.x,
+            y: options.y,
+            z: options.z,
+        };
+    }
+
     dispose(set: Set<string | number>) {
         this.traverse(obj => {
             if (isSimpleGeometryMesh<MeshUserData>(obj)) {
                 obj.dispose();
-                set.delete(obj.userData.feature.getId());
+                set.delete(obj.userData.feature.getId() as string | number);
             }
         });
 
@@ -138,7 +159,7 @@ function isFeatureTile(obj: unknown): obj is FeatureTile {
     return (obj as FeatureTile)?.isFeatureTile;
 }
 
-function getRootMesh(obj: Object3D): SimpleGeometryMesh<MeshUserData> | null {
+function getRootMesh(obj: Object3D): SimpleGeometryMesh<MeshUserData> | undefined {
     let current = obj;
 
     while (isSimpleGeometryMesh<MeshUserData>(current.parent)) {
@@ -148,7 +169,8 @@ function getRootMesh(obj: Object3D): SimpleGeometryMesh<MeshUserData> | null {
     if (isSimpleGeometryMesh<MeshUserData>(current)) {
         return current;
     }
-    return null;
+
+    return undefined;
 }
 
 /**
@@ -237,7 +259,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
     /**
      * The projection code of the data source.
      */
-    readonly dataProjection: string;
+    readonly dataProjection: string | undefined;
 
     /**
      * The minimum LOD at which this entity is displayed.
@@ -261,12 +283,12 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
     private readonly _tileIdSet: Set<string | number>;
     private readonly _source: VectorSource;
     private readonly _style: FeatureStyle | FeatureStyleCallback;
-    private readonly _extrusionOffset: FeatureExtrusionOffsetCallback | number | Array<number>;
-    private readonly _elevation: FeatureElevationCallback | number | Array<number>;
+    private readonly _extrusionOffset?: FeatureExtrusionOffsetCallback | number | Array<number>;
+    private readonly _elevation?: FeatureElevationCallback | number | Array<number>;
     private readonly _ignoreZ: boolean;
-    private _targetProjection: Projection;
 
-    private _cachedMemoryUsage: MemoryUsageReport;
+    private _targetProjection: Projection | undefined;
+    private _cachedMemoryUsage: MemoryUsageReport | undefined;
 
     /**
      * The factor to drive the subdivision of feature nodes. The heigher, the bigger the nodes.
@@ -339,7 +361,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
              * feature the same way. If a function is provided, it will be called with the feature.
              * This allows to individually style each feature.
              */
-            style?: FeatureStyle | FeatureStyleCallback;
+            style: FeatureStyle | FeatureStyleCallback;
             /**
              * An optional material generator for shaded surfaces.
              */
@@ -383,7 +405,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         if (!options.source) {
             throw new Error('options.source is mandatory.');
         }
-        this._ignoreZ = options.ignoreZ;
+        this._ignoreZ = options.ignoreZ ?? false;
         this.dataProjection = options.dataProjection;
         this.extent = options.extent;
         this._subdivisions = selectBestSubdivisions(this.extent);
@@ -472,30 +494,30 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         // create a simple square shape. We duplicate the top left and bottom right
         // vertices because each vertex needs to appear once per triangle.
         extent = extent.as(this._instance.referenceCrs);
-        const tile = new FeatureTile();
 
-        tile.origin = extent.centerAsVector3();
-        tile.name = `tile @ (z=${z}, x=${x}, y=${y})`;
+        // we initialize it with fake z to avoid a degenerate bounding box
+        // the culling test will be done considering x and y only anyway.
+        const boundingBox = new Box3(
+            new Vector3(extent.west(), extent.south(), -1),
+            new Vector3(extent.east(), extent.north(), 1),
+        );
 
-        tile.userData = {
-            parentEntity: this as Entity3D,
+        const tile = new FeatureTile({
+            origin: extent.centerAsVector3(),
+            boundingBox,
             extent,
-            z,
+            parent: this as Entity3D,
             x,
             y,
-        };
+            z,
+        });
+
+        tile.name = `tile @ (z=${z}, x=${x}, y=${y})`;
 
         if (this.renderOrder !== undefined || this.renderOrder !== null) {
             tile.renderOrder = this.renderOrder;
         }
         tile.visible = false;
-
-        // we initialize it with fake z to avoid a degenerate bounding box
-        // the culling test will be done considering x and y only anyway.
-        tile.boundingBox = new Box3(
-            new Vector3(extent.west(), extent.south(), -1),
-            new Vector3(extent.east(), extent.north(), 1),
-        );
 
         this.onObjectCreated(tile);
         return tile;
@@ -533,7 +555,10 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
     private getCachedList() {
         if (this._rootMeshes.length === 0) {
             this.traverse(obj => {
-                this._rootMeshes.push(getRootMesh(obj));
+                const root = getRootMesh(obj);
+                if (root) {
+                    this._rootMeshes.push(root);
+                }
             });
         }
 
@@ -563,7 +588,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         this._instance.notifyChange(this);
     }
 
-    private updateStyle(obj: SimpleGeometryMesh<MeshUserData>) {
+    private updateStyle(obj?: SimpleGeometryMesh<MeshUserData>) {
         if (!obj) {
             return;
         }
@@ -571,7 +596,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         const feature = obj.userData.feature as Feature;
         const style = this.getStyle(feature);
 
-        const commonOptions: BaseOptions = {
+        const commonOptions: BaseOptions & { origin: Vector3 } = {
             origin: obj.position,
             ignoreZ: this._ignoreZ,
         };
@@ -605,7 +630,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
                     if (isPolygonMesh(obj)) {
                         this._geometryConverter.updatePolygonMesh(obj, options);
                     } else if (isMultiPolygonMesh(obj)) {
-                        this._geometryConverter.updateMultiPolygonMesh(obj, style);
+                        this._geometryConverter.updateMultiPolygonMesh(obj, options);
                     }
                 }
                 break;
@@ -649,7 +674,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
     }
 
     private prepare(mesh: SimpleGeometryMesh<MeshUserData>, feature: Feature, style: FeatureStyle) {
-        mesh.traverse((obj: MeshOrSurface) => {
+        mesh.traverse((obj: Object3D) => {
             obj.userData.feature = feature;
             obj.userData.style = style;
 
@@ -693,7 +718,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
     private processFeatures(
         features: Feature<Geometry>[],
         node: FeatureTile,
-    ): SimpleGeometryMesh<MeshUserData>[] {
+    ): SimpleGeometryMesh<MeshUserData>[] | null {
         // if the node is not visible any more, don't bother
         if (!node.visible) {
             return null;
@@ -711,11 +736,23 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         const meshes: SimpleGeometryMesh<MeshUserData>[] = [];
 
         for (const feature of features) {
-            if (this._tileIdSet.has(feature.getId())) {
+            const geom = feature.getGeometry();
+
+            if (!geom) {
                 continue;
             }
-            const geom = feature.getGeometry();
-            const id = feature.getId();
+
+            let id = feature.getId();
+
+            if (!id) {
+                id = MathUtils.generateUUID();
+                feature.setId(id);
+            }
+
+            if (this._tileIdSet.has(id)) {
+                continue;
+            }
+
             const style = typeof this._style === 'function' ? this._style(feature) : this._style;
             const userData = {
                 id,
@@ -768,8 +805,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
                 case 'LinearRing':
                 case 'GeometryCollection':
                 case 'Circle':
-                    // TODO
-                    break;
+                    throw new Error('unsupported geometry type ' + type);
             }
 
             if (mesh) {
@@ -790,7 +826,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         reject: (error: Error) => void,
     ) {
         const olExtent = OLUtils.toOLExtent(extent);
-        const resolution: number = undefined;
+        const resolution: number | undefined = undefined;
 
         // @ts-expect-error loader_ is private
         this._source.loader_(olExtent, resolution, this._targetProjection, resolve, reject);
@@ -798,7 +834,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
 
     private async getMeshesWithCache(
         node: FeatureTile,
-    ): Promise<SimpleGeometryMesh<MeshUserData>[]> {
+    ): Promise<SimpleGeometryMesh<MeshUserData>[] | null> {
         const cacheKey = this.getCacheKey(node);
         const cachedFeatures = GlobalCache.get(cacheKey) as SimpleGeometryMesh<MeshUserData>[];
 
@@ -829,14 +865,14 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
     private disposeTile(tile: FeatureTile) {
         tile.dispose(this._tileIdSet);
         this._rootMeshes.length = 0;
-        this._cachedMemoryUsage = null;
+        this._cachedMemoryUsage = undefined;
     }
 
     update(ctx: Context, tile: FeatureTile) {
         if (!tile.parent) {
             this.disposeTile(tile);
 
-            return null;
+            return undefined;
         }
 
         // initialisation
@@ -853,7 +889,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         // if not visible we can stop early
         if (!tile.visible) {
             this.disposeTile(tile);
-            return null;
+            return undefined;
         }
 
         this.updateMinMaxDistance(ctx.distance.plane, tile);
@@ -891,7 +927,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
                         }
 
                         for (const mesh of meshes) {
-                            const id = mesh.userData.feature.getId();
+                            const id = mesh.userData.feature.getId() as string | number;
 
                             if (!this._tileIdSet.has(id) || id == null) {
                                 this._tileIdSet.add(id);
@@ -922,7 +958,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
                 })
                 .finally(() => {
                     this._rootMeshes.length = 0;
-                    this._cachedMemoryUsage = null;
+                    this._cachedMemoryUsage = undefined;
                     this._opCounter.decrement();
                 });
         }
@@ -978,7 +1014,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
                     child = this.buildNewTile(extent, z + 1, 2 * x + 0, 2 * y + 1);
                 } else if (i === 2) {
                     child = this.buildNewTile(extent, z + 1, 2 * x + 1, 2 * y + 0);
-                } else if (i === 3) {
+                } else {
                     child = this.buildNewTile(extent, z + 1, 2 * x + 1, 2 * y + 1);
                 }
                 node.add(child);
@@ -990,7 +1026,7 @@ class FeatureCollection<UserData = EntityUserData> extends Entity3D<Entity3DEven
         }
     }
 
-    private testTileSSE(tile: Group, sse: { lengths: { x: number; y: number }; ratio: number }) {
+    private testTileSSE(tile: Group, sse: SSE) {
         if (this.maxLevel >= 0 && this.maxLevel <= tile.userData.z) {
             return false;
         }
