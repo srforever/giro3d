@@ -69,7 +69,7 @@ function processMinMax(
         /**  The interpretation. */
         interpretation: Interpretation;
         /** The no-data value. */
-        noDataValue: number;
+        noDataValue?: number;
     },
 ) {
     if (texture.min != null && texture.max != null) {
@@ -153,7 +153,7 @@ class Image implements MemoryUsage {
 
 class LayerComposer implements MemoryUsage {
     readonly computeMinMax: boolean;
-    readonly extent: Extent;
+    readonly extent: Extent | undefined;
     readonly dimensions: Vector2 | null;
     readonly images: Map<string, Image>;
     readonly webGLRenderer: WebGLRenderer;
@@ -236,7 +236,7 @@ class LayerComposer implements MemoryUsage {
 
         this.composer = new WebGLComposer({
             webGLRenderer: options.renderer,
-            extent: this.extent ? Rect.fromExtent(this.extent) : null,
+            extent: this.extent ? Rect.fromExtent(this.extent) : undefined,
             showImageOutlines: options.showImageOutlines,
             pixelFormat: options.pixelFormat,
             textureDataType: options.textureDataType,
@@ -551,8 +551,8 @@ class LayerComposer implements MemoryUsage {
 
             meshes.push(mesh);
 
-            min = Math.min(min, texture.min);
-            max = Math.max(max, texture.max);
+            min = texture.min != null ? Math.min(min, texture.min) : min;
+            max = texture.max != null ? Math.max(max, texture.max) : max;
         }
 
         // Ensure that other images are not visible: we are only
@@ -694,7 +694,7 @@ class LayerComposer implements MemoryUsage {
                 image.opacity = 1;
             }
 
-            if (this.computeMinMax && isRequired) {
+            if (this.computeMinMax && isRequired && image.min != null && image.max != null) {
                 min = Math.min(image.min, min);
                 max = Math.max(image.max, max);
             }
@@ -708,7 +708,11 @@ class LayerComposer implements MemoryUsage {
             (!Number.isFinite(min) || !Number.isFinite(max))
         ) {
             for (const image of this.images.values()) {
-                if (extent.intersectsExtent(image.extent)) {
+                if (
+                    extent.intersectsExtent(image.extent) &&
+                    image.min != null &&
+                    image.max != null
+                ) {
                     min = Math.min(image.min, min);
                     max = Math.max(image.max, max);
                 }
